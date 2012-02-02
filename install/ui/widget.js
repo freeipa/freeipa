@@ -2064,7 +2064,7 @@ IPA.combobox_widget = function(spec) {
             type: 'text',
             name: that.name,
             title: that.tooltip,
-            readonly: !that.editable,
+            readonly: !that.editable || that.read_only,
             keyup: function() {
                 that.input_field_changed.notify([], that);
             },
@@ -2147,7 +2147,8 @@ IPA.combobox_widget = function(spec) {
     };
 
     that.open = function() {
-        that.list_container.css('visibility', 'visible');
+        if (!that.read_only)
+            that.list_container.css('visibility', 'visible');
     };
 
     that.close = function() {

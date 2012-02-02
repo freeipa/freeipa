@@ -1,0 +1,16 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "result": {
+            "automemberdefaultgroup": [
+                "cn=foohostgroup,cn=hostgroups,cn=accounts,dc=dev,dc=example,dc=com"
+            ],
+            "cn": [
+                "Hostgroup"
+            ]
+        },
+        "summary": "Set default group for automember \"hostgroup\"",
+        "value": "hostgroup"
+    }
+}

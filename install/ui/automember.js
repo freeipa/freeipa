@@ -106,6 +106,21 @@ IPA.automember.rule_search_facet = function(spec) {
 
     that.group_type = spec.group_type;
 
+    var init = function() {
+
+        that.default_group_widget = IPA.automember.default_group_widget({
+            entity: that.entity,
+            group_type: that.group_type
+        });
+    };
+
+    that.refresh = function() {
+
+        that.search_facet_refresh();
+        that.default_group_widget.refresh();
+    };
+
+
     that.get_records_command_name = function() {
         return that.managed_entity.name + that.group_type+'_get_records';
     };
@@ -138,6 +153,23 @@ IPA.automember.rule_search_facet = function(spec) {
 
         return command;
     };
+
+    that.create_content = function(container) {
+
+        var header = $('<div/>', {
+            'class': 'automember-header'
+        }).appendTo(container);
+
+        var content = $('<div/>', {
+            'class': 'automember-content'
+        }).appendTo(container);
+
+        that.default_group_widget.create(header);
+        that.table.create(content);
+
+    };
+
+    init();
 
     return that;
 };
@@ -457,5 +489,159 @@ IPA.automember.condition_widget = function(spec) {
 };
 
 IPA.widget_factories['automember_condition'] = IPA.automember.condition_widget;
+
+IPA.automember.default_group_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+    that.group_type = spec.group_type;
+    that.group = '';
+
+    var init = function() {
+
+        that.group_select = IPA.entity_select_widget({
+            name: 'automemberdefaultgroup',
+            other_entity: that.group_type,
+            other_field: 'cn',
+            show_undo: false
+        });
+
+        that.group_select.value_changed.attach(that.group_changed);
+    };
+
+    that.get_group = function() {
+
+        var group = that.group_select.save();
+        group = group.length === 0 ? '' : group[0];
+        return group;
+    };
+
+    that.set_group = function(group) {
+
+        if (group === that.group) return;
+
+        that.group = group;
+        that.group_select.update([group]);
+    };
+
+    that.group_changed = function() {
+
+        var group = that.get_group();
+
+        if (group === that.group) return;
+
+        if (group === '') {
+            that.remove_default_group();
+        } else {
+            that.set_default_group(group);
+        }
+    };
+
+    that.load = function(data) {
+
+        var group = data.result.result.automemberdefaultgroup;
+
+        if (group) group = group[0];
+
+        if (!group || group.indexOf('cn=') === -1) {
+            group = '';
+        } else {
+            //extract from dn
+            var i1 = group.indexOf('=');
+            var i2 = group.indexOf(',');
+            if (i1 > -1 && i2 > -1) {
+                group = group.substring(i1 + 1,i2);
+            }
+        }
+
+        that.update(group);
+    };
+
+    that.update = function(group) {
+
+        group = group || '';
+
+        that.set_group(group);
+    };
+
+    that.create_command = function(method) {
+
+        method = 'default_group_' + method;
+        var command_name = that.entity.name + that.group_type + '_' + method;
+
+        var command  = IPA.command({
+            name: command_name,
+            entity: that.entity.name,
+            method: method,
+            options: {
+                type: that.group_type
+            }
+        });
+
+        return command;
+    };
+
+    that.refresh = function() {
+
+        var command = that.create_command('show');
+        command.on_success = that.load;
+
+        command.execute();
+    };
+
+    that.remove_default_group = function() {
+
+        var command = that.create_command('remove');
+
+        command.on_success = function() {
+            that.update('');
+        };
+        command.on_error = that.refresh;
+
+        command.execute();
+    };
+
+    that.set_default_group = function(group) {
+
+        var command = that.create_command('set');
+        command.on_success = that.load;
+        command.on_error = that.refresh;
+        command.set_option('automemberdefaultgroup', group);
+
+        command.execute();
+    };
+
+
+    that.create = function(container) {
+
+        var title = that.get_title();
+
+        var default_group = $('<div />', {
+            'class': 'default_group'
+        }).appendTo(container);
+
+        that.header = $('<h2/>', {
+            name: 'header',
+            text: title,
+            title: title
+        }).appendTo(default_group);
+
+        that.group_select.create(default_group);
+    };
+
+    that.get_title = function() {
+        if (that.group_type === 'group') {
+            return 'Default user group'; //TODO: translate
+        } else {
+            return 'Default host group'; //TODO: translate
+        }
+    };
+
+    init();
+
+    return that;
+};
+
 
 IPA.register('automember', IPA.automember.entity);

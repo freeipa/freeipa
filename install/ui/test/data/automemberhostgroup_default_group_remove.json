@@ -1,0 +1,14 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "result": {
+            "automemberdefaultgroup": "No default group set",
+            "cn": [
+                "Hostgroup"
+            ]
+        },
+        "summary": "Removed default group for automember \"hostgroup\"",
+        "value": "hostgroup"
+    }
+}
