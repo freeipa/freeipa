@@ -1495,6 +1495,13 @@ class dnsrecord(LDAPObject):
 
     def get_dn(self, *keys, **options):
         if self.is_pkey_zone_record(*keys):
+            dn = self.api.Object[self.parent_object].get_dn(*keys[:-1], **options)
+            # zone must exist
+            ldap = self.api.Backend.ldap2
+            try:
+                (dn_, zone) = ldap.get_entry(dn, [])
+            except errors.NotFound:
+                self.api.Object['dnszone'].handle_not_found(keys[-2])
             return self.api.Object[self.parent_object].get_dn(*keys[:-1], **options)
         return super(dnsrecord, self).get_dn(*keys, **options)
 
