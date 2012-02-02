@@ -247,6 +247,7 @@ class DsInstance(service.Service):
         self.step("adding replication acis", self.__add_replication_acis)
         # See LDIFs for automember configuration during replica install
         self.step("setting Auto Member configuration", self.__add_replica_automember_config)
+        self.step("enabling S4U2Proxy delegation", self.__setup_s4u2proxy)
 
         self.__common_post_setup()
 
@@ -543,6 +544,9 @@ class DsInstance(service.Service):
 
     def __add_replication_acis(self):
         self._ldap_mod("replica-acis.ldif", self.sub_dict)
+
+    def __setup_s4u2proxy(self):
+        self._ldap_mod("replica-s4u2proxy.ldif", self.sub_dict)
 
     def __create_indices(self):
         self._ldap_mod("indices.ldif")

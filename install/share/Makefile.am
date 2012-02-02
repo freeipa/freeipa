@@ -53,6 +53,7 @@ app_DATA =				\
 	sudobind.ldif			\
 	automember.ldif			\
 	replica-automember.ldif		\
+	replica-s4u2proxy.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

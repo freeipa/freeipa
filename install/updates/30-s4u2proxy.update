@@ -9,7 +9,7 @@ default: objectClass: groupOfPrincipals
 default: objectClass: top
 default: cn: ipa-http-delegation
 default: memberPrincipal: HTTP/$FQDN@$REALM
-default: ipaAllowedTarget: 'cn=ipa-ldap-delegation-targets,cn=etc,$SUFFIX'
+default: ipaAllowedTarget: 'cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX'
 
 dn: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
 default: objectClass: groupOfPrincipals
