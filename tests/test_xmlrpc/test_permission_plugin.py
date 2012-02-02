@@ -181,6 +181,23 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Retrieve %r with --raw' % permission1,
+            command=('permission_show', [permission1], {'raw' : True}),
+            expected=dict(
+                value=permission1,
+                summary=None,
+                result={
+                    'dn': unicode(permission1_dn),
+                    'cn': [permission1],
+                    'member': [unicode(privilege1_dn)],
+                    'aci': u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///cn=testperm,cn=permissions,cn=pbac,%s";)' \
+                            % (api.env.basedn, api.env.basedn),
+                },
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % permission1,
             command=('permission_find', [permission1], {}),
             expected=dict(
@@ -214,6 +231,26 @@ class test_permission(Declarative):
                         'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with --raw' % permission1,
+            command=('permission_find', [permission1], {'raw' : True}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': unicode(permission1_dn),
+                        'cn': [permission1],
+                        'member': [unicode(privilege1_dn)],
+                        'aci': u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///cn=testperm,cn=permissions,cn=pbac,%s";)' \
+                                % (api.env.basedn, api.env.basedn),
                     },
                 ],
             ),

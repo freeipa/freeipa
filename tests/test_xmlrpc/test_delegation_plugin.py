@@ -127,6 +127,20 @@ class test_delegation(Declarative):
 
 
         dict(
+            desc='Retrieve %r with --raw' % delegation1,
+            command=('delegation_show', [delegation1], {'raw' : True}),
+            expected=dict(
+                value=delegation1,
+                summary=None,
+                result={
+                    'aci': u'(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=cn=admins,cn=groups,cn=accounts,%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///cn=editors,cn=groups,cn=accounts,%s";)' \
+                            % (api.env.basedn, api.env.basedn)
+                },
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % delegation1,
             command=('delegation_find', [delegation1], {}),
             expected=dict(
@@ -156,6 +170,23 @@ class test_delegation(Declarative):
                 result=[
                     {
                     'aciname': delegation1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with --raw' % delegation1,
+            command=('delegation_find', [delegation1], {'raw' : True}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 delegation matched',
+                result=[
+                    {
+                    'aci': u'(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=cn=admins,cn=groups,cn=accounts,%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///cn=editors,cn=groups,cn=accounts,%s";)' \
+                            % (api.env.basedn, api.env.basedn),
                     },
                 ],
             ),

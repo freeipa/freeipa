@@ -54,17 +54,11 @@ EXAMPLES:
 
 ACI_PREFIX=u"selfservice"
 
-def is_selfservice(aciname):
-    """
-    Determine if the ACI is a Self-service ACI and raise an exception if it
-    isn't.
-
-    Return the result if it is a self-service ACI.
-    """
-    result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX)['result']
-    if 'selfaci' not in result or result['selfaci'] == False:
-        raise errors.NotFound(reason=_('Self-service permission \'%(permission)s\' not found') % dict(permission=aciname))
-    return result
+output_params = (
+    Str('aci',
+        label=_('ACI'),
+    ),
+)
 
 class selfservice(Object):
     """
@@ -112,6 +106,13 @@ class selfservice(Object):
         json_dict['methods'] = [m for m in self.methods]
         return json_dict
 
+    def postprocess_result(self, result):
+        try:
+            # do not include prefix in result
+            del result['aciprefix']
+        except KeyError:
+            pass
+
 api.register(selfservice)
 
 
@@ -119,6 +120,7 @@ class selfservice_add(crud.Create):
     __doc__ = _('Add a new self-service permission.')
 
     msg_summary = _('Added selfservice "%(value)s"')
+    has_output_params = output_params
 
     def execute(self, aciname, **kw):
         if not 'permissions' in kw:
@@ -126,7 +128,7 @@ class selfservice_add(crud.Create):
         kw['selfaci'] = True
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']
-        del result['aciprefix']     # do not include prefix in result
+        self.obj.postprocess_result(result)
 
         return dict(
             result=result,
@@ -143,9 +145,9 @@ class selfservice_del(crud.Delete):
     msg_summary = _('Deleted selfservice "%(value)s"')
 
     def execute(self, aciname, **kw):
-        is_selfservice(aciname)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_del'](aciname, **kw)
+        self.obj.postprocess_result(result)
 
         return dict(
             result=True,
@@ -159,15 +161,16 @@ class selfservice_mod(crud.Update):
     __doc__ = _('Modify a self-service permission.')
 
     msg_summary = _('Modified selfservice "%(value)s"')
+    has_output_params = output_params
 
     def execute(self, aciname, **kw):
-        is_selfservice(aciname)
         if 'attrs' in kw and kw['attrs'] is None:
             raise errors.RequirementError(name='attrs')
 
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_mod'](aciname, **kw)['result']
-        del result['aciprefix']     # do not include prefix in result
+        self.obj.postprocess_result(result)
+
         return dict(
             result=result,
             value=aciname,
@@ -184,6 +187,7 @@ class selfservice_find(crud.Search):
     )
 
     takes_options = (gen_pkey_only_option("name"),)
+    has_output_params = output_params
 
     def execute(self, term, **kw):
         kw['selfaci'] = True
@@ -191,7 +195,7 @@ class selfservice_find(crud.Search):
         result = api.Command['aci_find'](term, **kw)['result']
 
         for aci in result:
-            del aci['aciprefix']     # do not include prefix in result
+            self.obj.postprocess_result(aci)
 
         return dict(
             result=result,
@@ -205,15 +209,11 @@ api.register(selfservice_find)
 class selfservice_show(crud.Retrieve):
     __doc__ = _('Display information about a self-service permission.')
 
-    has_output_params = (
-        Str('aci',
-            label=_('ACI'),
-        ),
-    )
+    has_output_params = output_params
 
     def execute(self, aciname, **kw):
-        result = is_selfservice(aciname)
-        del result['aciprefix']     # do not include prefix in result
+        result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX, **kw)['result']
+        self.obj.postprocess_result(result)
         return dict(
             result=result,
             value=aciname,

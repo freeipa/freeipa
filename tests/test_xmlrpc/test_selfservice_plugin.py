@@ -120,6 +120,19 @@ class test_selfservice(Declarative):
 
 
         dict(
+            desc='Retrieve %r with --raw' % selfservice1,
+            command=('selfservice_show', [selfservice1], {'raw':True}),
+            expected=dict(
+                value=selfservice1,
+                summary=None,
+                result={
+                    'aci': u'(targetattr = "street || c || l || st || postalcode")(version 3.0;acl "selfservice:testself";allow (write) userdn = "ldap:///self";)',
+                },
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % selfservice1,
             command=('selfservice_find', [selfservice1], {}),
             expected=dict(
@@ -166,6 +179,22 @@ class test_selfservice(Declarative):
                         'permissions': [u'write'],
                         'selfaci': True,
                         'aciname': selfservice1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with --raw' % selfservice1,
+            command=('selfservice_find', [selfservice1], {'raw':True}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 selfservice matched',
+                result=[
+                    {
+                        'aci': u'(targetattr = "street || c || l || st || postalcode")(version 3.0;acl "selfservice:testself";allow (write) userdn = "ldap:///self";)'
                     },
                 ],
             ),
