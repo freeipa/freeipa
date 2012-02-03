@@ -888,6 +888,12 @@ class RPRecord(DNSRecord):
     rfc = 1183
     supported = False
 
+def _srv_target_validator(ugettext, value):
+    if value == u'.':
+        # service not available
+        return
+    return _domain_name_validator(ugettext, value)
+
 class SRVRecord(DNSRecord):
     rrtype = 'SRV'
     rfc = 2782
@@ -908,6 +914,7 @@ class SRVRecord(DNSRecord):
             maxvalue=65535,
         ),
         Str('target',
+            _srv_target_validator,
             label=_('Target'),
             doc=_('The domain name of the target host or \'.\' if the service is decidedly not available at this domain'),
         ),
