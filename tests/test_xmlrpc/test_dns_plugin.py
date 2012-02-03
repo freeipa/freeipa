@@ -667,6 +667,26 @@ class test_dns(Declarative):
         ),
 
         dict(
+            desc='Add NSEC record to %r using dnsrecord_add' % (dnsres1),
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'nsec_part_next': dnszone1,
+                                                            'nsec_part_types' : ['TXT', 'A']}),
+            expected={
+                'value': dnsres1,
+                'summary': None,
+                'result': {
+                    'objectclass': [u'top', u'idnsrecord'],
+                    'dn': unicode(dnsres1_dn),
+                    'idnsname': [dnsres1],
+                    'arecord': [u'10.10.0.1'],
+                    'cnamerecord': [u'foo-1.example.com.'],
+                    'kxrecord': [u'1 foo-1'],
+                    'txtrecord': [u'foo bar'],
+                    'nsecrecord': [dnszone1 + u' TXT A'],
+                },
+            },
+        ),
+
+        dict(
             desc='Delete record %r in zone %r' % (dnsres1, dnszone1),
             command=('dnsrecord_del', [dnszone1, dnsres1], {'del_all': True }),
             expected={

@@ -292,6 +292,11 @@ class DNSRecord(Str):
             return None
         return tuple(values)
 
+    def _part_values_to_string(self, values, index):
+        self._validate_parts(values)
+        return u" ".join(super(DNSRecord, self)._convert_scalar(v, index) \
+                             for v in values if v is not None)
+
     def get_parts_from_kw(self, kw, raise_on_none=True):
         part_names = tuple(self.part_name_format % (self.rrtype.lower(), part.name) \
                                for part in self.parts)
@@ -316,10 +321,7 @@ class DNSRecord(Str):
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, (tuple, list)):
-            # convert parsed values to the string
-            self._validate_parts(value)
-            return u" ".join(super(DNSRecord, self)._convert_scalar(v, index) \
-                             for v in value if v is not None)
+            return self._part_values_to_string(value, index)
         return super(DNSRecord, self)._convert_scalar(value, index)
 
     def normalize(self, value):
@@ -795,10 +797,10 @@ class NSECRecord(DNSRecord):
             _domain_name_validator,
             label=_('Next Domain Name'),
         ),
-        StrEnum('types',
+        StrEnum('types+',
             label=_('Type Map'),
-            multivalue=True,
             values=_allowed_types,
+            csv=True,
         ),
     )
 
@@ -809,6 +811,16 @@ class NSECRecord(DNSRecord):
             return None
 
         return (values[0], tuple(values[1:]))
+
+    def _part_values_to_string(self, values, index):
+        self._validate_parts(values)
+        values_flat = [values[0],]  # add "next" part
+        types = values[1]
+        if not isinstance(types, (list, tuple)):
+            types = [types,]
+        values_flat.extend(types)
+        return u" ".join(Str._convert_scalar(self, v, index) \
+                             for v in values_flat if v is not None)
 
 class NSEC3Record(DNSRecord):
     rrtype = 'NSEC3'
