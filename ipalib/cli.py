@@ -818,7 +818,7 @@ class help(frontend.Local):
                 raise HelpError(topic=topic)
 
             print doc
-            if len(commands) > 1:
+            if commands:
                 print ''
                 print unicode(_('Topic commands:'))
                 for c in commands:

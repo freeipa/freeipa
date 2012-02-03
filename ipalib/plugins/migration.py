@@ -67,18 +67,31 @@ EXAMPLES:
  The simplest migration, accepting all defaults:
    ipa migrate-ds ldap://ds.example.com:389
 
- Specify the user and group container. This can be used to migrate user and
- group data from an IPA v1 server:
-   ipa migrate-ds --user-container='cn=users,cn=accounts' --group-container='cn=groups,cn=accounts' ldap://ds.example.com:389
+ Specify the user and group container. This can be used to migrate user
+ and group data from an IPA v1 server:
+   ipa migrate-ds --user-container='cn=users,cn=accounts' \\
+       --group-container='cn=groups,cn=accounts' \\
+       ldap://ds.example.com:389
 
  Since IPA v2 server already contain predefined groups that may collide with
- groups in migrated (IPA v1) server (for example admins, ipausers), users having
- colliding group as their primary group may happen to belong to an unknown group
- on new IPA v2 server.
+ groups in migrated (IPA v1) server (for example admins, ipausers), users
+ having colliding group as their primary group may happen to belong to
+ an unknown group on new IPA v2 server.
  Use --group-overwrite-gid option to overwrite GID of already existing groups
  to prevent this issue:
-    ipa migrate-ds --group-overwrite-gid --user-container='cn=users,cn=accounts' --group-container='cn=groups,cn=accounts' ldap://ds.example.com:389
+    ipa migrate-ds --group-overwrite-gid \\
+        --user-container='cn=users,cn=accounts' \\
+        --group-container='cn=groups,cn=accounts' \\
+        ldap://ds.example.com:389
 
+ Migrated users or groups may have object class and accompanied attributes
+ unknown to the IPA v2 server. These object classes and attributes may be
+ left out of the migration process:
+    ipa migrate-ds --user-container='cn=users,cn=accounts' \\
+       --group-container='cn=groups,cn=accounts' \\
+       --user-ignore-objectclass=radiusprofile \\
+       --user-ignore-attribute=radiusgroupname \\
+       ldap://ds.example.com:389
 """)
 
 # USER MIGRATION CALLBACKS AND VARS
