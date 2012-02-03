@@ -1003,6 +1003,10 @@ class TXTRecord(DNSRecord):
         ),
     )
 
+    def _get_part_values(self, value):
+        # ignore any space in TXT record
+        return (value,)
+
 _dns_records = (
     ARecord(),
     AAAARecord(),
@@ -1536,6 +1540,8 @@ class dnsrecord(LDAPObject):
                             u'dnsdata' : dnsvalue
                     }
                     values = param._get_part_values(dnsvalue)
+                    if values is None:
+                        continue
                     for val_id, val in enumerate(values):
                         if val is not None:
                             dnsentry[parts_params[val_id].name] = val
