@@ -610,7 +610,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dnsrecord_add
-args: 2,113,3
+args: 2,114,3
 arg: Str('dnszoneidnsname', cli_name='dnszone', query=True, required=True)
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Int('dnsttl', attribute=True, cli_name='ttl', multivalue=False, required=False)
@@ -620,6 +620,7 @@ option: Str('a_part_ip_address', attribute=False, cli_name='a_ip_address', multi
 option: AAAARecord('aaaarecord', attribute=True, cli_name='aaaa_rec', csv=True, multivalue=True, option_group=u'AAAA Record', required=False)
 option: Str('aaaa_part_ip_address', attribute=False, cli_name='aaaa_ip_address', multivalue=False, option_group=u'AAAA Record', required=False)
 option: A6Record('a6record', attribute=True, cli_name='a6_rec', csv=True, multivalue=True, option_group=u'A6 Record', required=False)
+option: Str('a6_part_data', attribute=False, cli_name='a6_data', multivalue=False, option_group=u'A6 Record', required=False)
 option: AFSDBRecord('afsdbrecord', attribute=True, cli_name='afsdb_rec', csv=True, multivalue=True, option_group=u'AFSDB Record', required=False)
 option: Int('afsdb_part_subtype', attribute=False, cli_name='afsdb_subtype', maxvalue=65535, minvalue=0, multivalue=False, option_group=u'AFSDB Record', required=False)
 option: Str('afsdb_part_hostname', attribute=False, cli_name='afsdb_hostname', multivalue=False, option_group=u'AFSDB Record', required=False)
@@ -786,7 +787,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dnsrecord_find
-args: 2,114,4
+args: 2,115,4
 arg: Str('dnszoneidnsname', cli_name='dnszone', query=True, required=True)
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
@@ -797,6 +798,7 @@ option: Str('a_part_ip_address', attribute=False, autofill=False, cli_name='a_ip
 option: AAAARecord('aaaarecord', attribute=True, autofill=False, cli_name='aaaa_rec', csv=True, multivalue=True, option_group=u'AAAA Record', query=True, required=False)
 option: Str('aaaa_part_ip_address', attribute=False, autofill=False, cli_name='aaaa_ip_address', multivalue=False, option_group=u'AAAA Record', query=True, required=False)
 option: A6Record('a6record', attribute=True, autofill=False, cli_name='a6_rec', csv=True, multivalue=True, option_group=u'A6 Record', query=True, required=False)
+option: Str('a6_part_data', attribute=False, autofill=False, cli_name='a6_data', multivalue=False, option_group=u'A6 Record', query=True, required=False)
 option: AFSDBRecord('afsdbrecord', attribute=True, autofill=False, cli_name='afsdb_rec', csv=True, multivalue=True, option_group=u'AFSDB Record', query=True, required=False)
 option: Int('afsdb_part_subtype', attribute=False, autofill=False, cli_name='afsdb_subtype', maxvalue=65535, minvalue=0, multivalue=False, option_group=u'AFSDB Record', query=True, required=False)
 option: Str('afsdb_part_hostname', attribute=False, autofill=False, cli_name='afsdb_hostname', multivalue=False, option_group=u'AFSDB Record', query=True, required=False)
@@ -908,7 +910,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnsrecord_mod
-args: 2,114,3
+args: 2,115,3
 arg: Str('dnszoneidnsname', cli_name='dnszone', query=True, required=True)
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Int('dnsttl', attribute=True, autofill=False, cli_name='ttl', multivalue=False, required=False)
@@ -918,6 +920,7 @@ option: Str('a_part_ip_address', attribute=False, autofill=False, cli_name='a_ip
 option: AAAARecord('aaaarecord', attribute=True, autofill=False, cli_name='aaaa_rec', csv=True, multivalue=True, option_group=u'AAAA Record', required=False)
 option: Str('aaaa_part_ip_address', attribute=False, autofill=False, cli_name='aaaa_ip_address', multivalue=False, option_group=u'AAAA Record', required=False)
 option: A6Record('a6record', attribute=True, autofill=False, cli_name='a6_rec', csv=True, multivalue=True, option_group=u'A6 Record', required=False)
+option: Str('a6_part_data', attribute=False, autofill=False, cli_name='a6_data', multivalue=False, option_group=u'A6 Record', required=False)
 option: AFSDBRecord('afsdbrecord', attribute=True, autofill=False, cli_name='afsdb_rec', csv=True, multivalue=True, option_group=u'AFSDB Record', required=False)
 option: Int('afsdb_part_subtype', attribute=False, autofill=False, cli_name='afsdb_subtype', maxvalue=65535, minvalue=0, multivalue=False, option_group=u'AFSDB Record', required=False)
 option: Str('afsdb_part_hostname', attribute=False, autofill=False, cli_name='afsdb_hostname', multivalue=False, option_group=u'AFSDB Record', required=False)

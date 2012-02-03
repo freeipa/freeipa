@@ -466,7 +466,15 @@ class ARecord(DNSRecord):
 class A6Record(DNSRecord):
     rrtype = 'A6'
     rfc = 3226
-    parts = None    # experimental rr type
+    parts = (
+        Str('data',
+            label=_('Record data'),
+        ),
+    )
+
+    def _get_part_values(self, value):
+        # A6 RR type is obsolete and only a raw interface is provided
+        return (value,)
 
 class AAAARecord(DNSRecord):
     rrtype = 'AAAA'
@@ -1639,7 +1647,7 @@ class dnsrecord_add(LDAPCreate):
 
         # check if any record part was added
         for option in options:
-            option_part_re = re.match(r'([a-z]+)_part_', option)
+            option_part_re = re.match(r'([a-z0-9]+)_part_', option)
 
             if option_part_re is not None:
                 record_option = self.obj.get_record_option(option_part_re.group(1))
