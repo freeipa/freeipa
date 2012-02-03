@@ -250,6 +250,20 @@ class i18n_messages(Command):
             "aci": {
                 "attribute": _("Attribute"),
             },
+            "automember": {
+                "add_condition": _("Add Condition into ${pkey}"),
+                "add_rule": _("Add Rule"),
+                "attribute": _("Attribute"),
+                "default_host_group": _("Default host group"),
+                "default_user_group": _("Default user group"),
+                "exclusive": _("Exclusive"),
+                "expression": _("Expression"),
+                "hostgrouprule": _("Host group rule"),
+                "hostgrouprules": _("Host group rules"),
+                "inclusive": _("Inclusive"),
+                "usergrouprule": _("User group rule"),
+                "usergrouprules": _("User group rules"),
+            },
             "automountkey": {
             },
             "automountlocation": {
@@ -507,6 +521,7 @@ class i18n_messages(Command):
         },
         "tabs": {
             "audit": _("Audit"),
+            "automember": _("Automember"),
             "automount": _("Automount"),
             "dns": _("DNS"),
             "hbac": _("Host Based Access Control"),

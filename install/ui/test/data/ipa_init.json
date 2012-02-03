@@ -115,6 +115,20 @@
                         "aci": {
                             "attribute": "Attribute"
                         },
+                        "automember": {
+                            "add_condition": "Add Condition into ${pkey}",
+                            "add_rule": "Add Rule",
+                            "attribute": "Attribute",
+                            "default_host_group": "Default host group",
+                            "default_user_group": "Default user group",
+                            "exclusive": "Exclusive",
+                            "expression": "Expression",
+                            "hostgrouprule": "Host group rule",
+                            "hostgrouprules": "Host group rules",
+                            "inclusive": "Inclusive",
+                            "usergrouprule": "User group rule",
+                            "usergrouprules": "User group rules"
+                        },
                         "automountkey": {},
                         "automountlocation": {
                             "identity": "Automount Location Settings"
