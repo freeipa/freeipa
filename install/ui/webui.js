@@ -69,12 +69,12 @@ IPA.admin_navigation = function(spec) {
             {entity: 'pwpolicy'},
             {entity: 'krbtpolicy'},
             {entity: 'selinuxusermap'},
-            {name: 'automember', label: 'Automember', //TODO: translate IPA.messages.tabs.automember
+            {name: 'automember', label: IPA.messages.tabs.automember,
              children: [
                 { name: 'amgroup', entity: 'automember',
-                  facet: 'searchgroup', label: 'User group rules'}, //TODO: translate
+                  facet: 'searchgroup', label: IPA.messages.objects.automember.usergrouprules},
                 { name: 'amhostgroup', entity: 'automember',
-                  facet: 'searchhostgroup', label: 'Host group rules'} //TODO: translate
+                  facet: 'searchhostgroup', label: IPA.messages.objects.automember.hostgrouprules}
             ]}
         ]},
         {name: 'ipaserver', label: IPA.messages.tabs.ipaserver, children: [

@@ -43,7 +43,7 @@ IPA.automember.entity = function(spec) {
             factory: IPA.automember.rule_search_facet,
             name: 'searchgroup',
             group_type: 'group',
-            label: 'User group rules', //TODO: translate
+            label: IPA.messages.objects.automember.usergrouprules,
             details_facet: 'usergrouprule',
             columns: [
                 'cn',
@@ -54,7 +54,7 @@ IPA.automember.entity = function(spec) {
             factory: IPA.automember.rule_search_facet,
             name: 'searchhostgroup',
             group_type: 'hostgroup',
-            label: 'Host group rules', //TODO: translate
+            label: IPA.messages.objects.automember.hostgrouprules,
             details_facet: 'hostgrouprule',
             columns: [
                 'cn',
@@ -65,7 +65,7 @@ IPA.automember.entity = function(spec) {
             factory: IPA.automember.rule_details_facet,
             name: 'usergrouprule',
             group_type: 'group',
-            label: 'User group rule', //TODO: translate
+            label: IPA.messages.objects.automember.usergrouprule,
             disable_facet_tabs: true,
             redirect_info: { tab: 'amgroup' }
         }).
@@ -73,12 +73,13 @@ IPA.automember.entity = function(spec) {
             factory: IPA.automember.rule_details_facet,
             name: 'hostgrouprule',
             group_type: 'hostgroup',
-            label: 'Host group rule',//TODO: translate
+            label: IPA.messages.objects.automember.hostgrouprule,
             disable_facet_tabs: true,
             redirect_info: { tab: 'amhostgroup' }
         }).
         adder_dialog({
             factory: IPA.automember.rule_adder_dialog,
+            title: IPA.messages.objects.automember.add_rule,
             fields: [
                 {
                     type: 'entity_select',
@@ -218,7 +219,7 @@ IPA.automember.rule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'inclusive',
-            label: 'Inclusive', //TODO:translate
+            label: IPA.messages.objects.automember.inclusive,
             widgets: [
                 {
                     type: 'automember_condition',
@@ -227,17 +228,17 @@ IPA.automember.rule_details_facet = function(spec) {
                     add_command: 'add_condition',
                     remove_command: 'remove_condition',
                     adder_dialog: {
-                        title: 'Add Condition to ${pkey}', //TODO: translate
+                        title: IPA.messages.objects.automember.add_condition,
                         fields: [
                             {
                                 name: 'key',
                                 type: 'select',
                                 options: IPA.automember.get_condition_attributes(spec.group_type),
-                                label: 'Attribute' //TODO: translate
+                                label: IPA.messages.objects.automember.attribute
                             },
                             {
                                 name: 'automemberinclusiveregex',
-                                label: 'Expression' //TODO: translate
+                                label: IPA.messages.objects.automember.expression
                             }
                         ]
                     }
@@ -247,7 +248,7 @@ IPA.automember.rule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'exclusive',
-            label: 'Exclusive', //TODO:translate
+            label: IPA.messages.objects.automember.exclusive,
             widgets: [
                 {
                     type: 'automember_condition',
@@ -256,17 +257,17 @@ IPA.automember.rule_details_facet = function(spec) {
                     add_command: 'add_condition',
                     remove_command: 'remove_condition',
                     adder_dialog: {
-                        title: 'Add Condition to ${pkey}', //TODO: translate
+                        title: IPA.messages.objects.automember.add_condition,
                         fields:  [
                             {
                                 name: 'key',
                                 type: 'select',
                                 options: IPA.automember.get_condition_attributes(spec.group_type),
-                                label: 'Attribute' //TODO: translate
+                                label: IPA.messages.objects.automember.attribute
                             },
                             {
                                 name: 'automemberexclusiveregex',
-                                label: 'Expression' //TODO: translate
+                                label: IPA.messages.objects.automember.expression
                             }
                         ]
                     }
@@ -414,11 +415,11 @@ IPA.automember.condition_widget = function(spec) {
     spec.columns = $.merge(spec.columns || [], [
         {
             name: 'attribute',
-            label: 'Attribute'//TODO:translate
+            label: IPA.messages.objects.automember.attribute
         },
         {
             name: 'expression',
-            label: 'Expression'//TODO:translate
+            label: IPA.messages.objects.automember.expression
         }
     ]);
 
@@ -632,9 +633,9 @@ IPA.automember.default_group_widget = function(spec) {
 
     that.get_title = function() {
         if (that.group_type === 'group') {
-            return 'Default user group'; //TODO: translate
+            return IPA.messages.objects.automember.default_user_group;
         } else {
-            return 'Default host group'; //TODO: translate
+            return IPA.messages.objects.automember.default_host_group;
         }
     };
 
