@@ -566,6 +566,15 @@ class test_dns(Declarative):
         ),
 
         dict(
+            desc='Try to add invalid SRV record via parts to zone %r using dnsrecord_add' % (dnszone1),
+            command=('dnsrecord_add', [dnszone1, u'_foo._tcp'], {'srv_part_priority': 0,
+                                                                 'srv_part_weight' : 0,
+                                                                 'srv_part_port' : 123,
+                                                                 'srv_part_target' : u'foo bar'}),
+            expected=errors.ValidationError(name='srv_part_target', error=''),
+        ),
+
+        dict(
             desc='Add SRV record to zone %r using dnsrecord_add' % (dnszone1),
             command=('dnsrecord_add', [dnszone1, u'_foo._tcp'], {'srvrecord': u"0 100 1234 %s" % dnszone1_mname}),
             expected={
