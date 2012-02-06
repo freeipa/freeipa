@@ -339,15 +339,11 @@ class permission_mod(LDAPUpdate):
                         newname=options['rename'], newprefix=ACI_PREFIX)
 
             cn = options['rename']     # rename finished
-        print "permission_rename1", entry_attrs
 
-        print "permission_rename1 result options", options
         result = self.api.Command.permission_show(cn, **options)['result']
-        print "permission_rename1 result", result
         for r in result:
             if not r.startswith('member_'):
                 entry_attrs[r] = result[r]
-        print "permission_rename2", entry_attrs
         return dn
 
 api.register(permission_mod)
