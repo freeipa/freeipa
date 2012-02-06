@@ -30,13 +30,17 @@ from ipalib.backend import Executioner
 from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
-from ipalib.util import make_repr
+from ipalib.util import make_repr, parse_time_duration
 from ipalib.compat import json
+from ipalib.session import session_mgr, read_krbccache_file, store_krbccache_file, delete_krbccache_file, fmt_time, default_max_session_lifetime
+from ipalib.backend import Backend
+from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb5_format_tgt_principal_name, krb5_format_service_principal_name, krb_ticket_expiration_threshold
 from wsgiref.util import shift_path_info
 from ipapython.version import VERSION
 import base64
 import os
 import string
+import datetime
 from decimal import Decimal
 _not_found_template = """<html>
 <head>
@@ -139,8 +143,8 @@ class session(Executioner):
         return key in self.__apps
 
     def __call__(self, environ, start_response):
+        self.debug('WSGI session.__call__:')
         try:
-            self.create_context(ccache=environ.get('KRB5CCNAME'))
             return self.route(environ, start_response)
         finally:
             destroy_context()
@@ -200,9 +204,7 @@ class WSGIExecutioner(Executioner):
         name = None
         args = ()
         options = {}
-        if not 'KRB5CCNAME' in environ:
-            return self.marshal(result, CCacheError(), _id)
-        self.debug('Request environment: %s' % environ)
+
         if not 'HTTP_REFERER' in environ:
             return self.marshal(result, RefererError(referer='missing'), _id)
         if not environ['HTTP_REFERER'].startswith('https://%s/ipa' % self.api.env.host) and not self.env.in_tree:
@@ -263,15 +265,25 @@ class WSGIExecutioner(Executioner):
         """
         WSGI application for execution.
         """
+
+        self.debug('WSGI WSGIExecutioner.__call__:')
         try:
             status = '200 OK'
             response = self.wsgi_execute(environ)
             headers = [('Content-Type', self.content_type + '; charset=utf-8')]
         except StandardError, e:
-            self.exception('%s.__call__():', self.name)
+            self.exception('WSGI %s.__call__():', self.name)
             status = '500 Internal Server Error'
             response = status
             headers = [('Content-Type', 'text/plain')]
+
+        session_data = getattr(context, 'session_data', None)
+        if session_data is not None:
+            # Send session cookie back and store session data
+            # FIXME: the URL path should be retreived from somewhere (but where?), not hardcoded
+            session_cookie = session_mgr.generate_cookie('/ipa', session_data['session_id'])
+            headers.append(('Set-Cookie', session_cookie))
+
         start_response(status, headers)
         return [response]
 
@@ -299,6 +311,18 @@ class xmlserver(WSGIExecutioner):
             'system.methodHelp': self.methodHelp,
         }
         super(xmlserver, self)._on_finalize()
+
+    def __call__(self, environ, start_response):
+        '''
+        '''
+
+        self.debug('WSGI xmlserver.__call__:')
+        self.create_context(ccache=environ.get('KRB5CCNAME'))
+        try:
+            response = super(xmlserver, self).__call__(environ, start_response)
+        finally:
+            destroy_context()
+        return response
 
     def listMethods(self, *params):
         return tuple(name.decode('UTF-8') for name in self.Command)
@@ -461,6 +485,69 @@ class jsonserver(WSGIExecutioner):
     content_type = 'application/json'
     key = 'json'
 
+    def need_login(self, start_response):
+        status = '401 Unauthorized'
+        headers = []
+        response = ''
+
+        self.debug('jsonserver: %s', status)
+
+        start_response(status, headers)
+        return [response]
+
+    def __call__(self, environ, start_response):
+        '''
+        '''
+
+        self.debug('WSGI jsonserver.__call__:')
+
+        # Load the session data
+        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
+        session_id = session_data['session_id']
+
+        self.debug('jsonserver.__call__: session_id=%s start_timestamp=%s write_timestamp=%s expiration_timestamp=%s',
+                   session_id,
+                   fmt_time(session_data['session_start_timestamp']),
+                   fmt_time(session_data['session_write_timestamp']),
+                   fmt_time(session_data['session_expiration_timestamp']))
+
+        ccache_data = session_data.get('ccache_data')
+
+        # Redirect to login if no Kerberos credentials
+        if ccache_data is None:
+            self.debug('no ccache, need login')
+            return self.need_login(start_response)
+
+        krbccache_pathname = store_krbccache_file(ccache_data)
+
+        # Redirect to login if Kerberos credentials are expired
+        cc = KRB5_CCache(krbccache_pathname)
+        ldap_principal = krb5_format_service_principal_name('ldap', self.api.env.host, self.api.env.realm)
+        tgt_principal = krb5_format_tgt_principal_name(self.api.env.realm)
+        if not (cc.credential_is_valid(ldap_principal) or cc.credential_is_valid(tgt_principal)):
+            self.debug('ccache expired, deleting session, need login')
+            session_mgr.delete_session_data(session_id)
+            delete_krbccache_file(krbccache_pathname)
+            return self.need_login(start_response)
+
+        # Store the session data in the per-thread context
+        setattr(context, 'session_data', session_data)
+
+        self.create_context(ccache=krbccache_pathname)
+
+        try:
+            response = super(jsonserver, self).__call__(environ, start_response)
+        finally:
+            # Kerberos may have updated the ccache data, refresh our copy of it
+            session_data['ccache_data'] = read_krbccache_file(krbccache_pathname)
+            # Delete the temporary ccache file we used
+            delete_krbccache_file(krbccache_pathname)
+            # Store the session data.
+            session_mgr.store_session_data(session_data)
+            destroy_context()
+
+        return response
+
     def marshal(self, result, error, _id=None):
         if error:
             assert isinstance(error, PublicError)
@@ -512,3 +599,76 @@ class jsonserver(WSGIExecutioner):
             )
         options = dict((str(k), v) for (k, v) in options.iteritems())
         return (method, args, options, _id)
+
+class krblogin(Backend):
+    key = 'login'
+
+    def __init__(self):
+        super(krblogin, self).__init__()
+
+    def _on_finalize(self):
+        super(krblogin, self)._on_finalize()
+        self.api.Backend.session.mount(self, self.key)
+
+        # Set the session expiration time
+        try:
+            seconds = parse_time_duration(self.api.env.session_auth_duration)
+            self.session_auth_duration = int(seconds)
+            self.debug("session_auth_duration: %s", datetime.timedelta(seconds=self.session_auth_duration))
+        except Exception, e:
+            self.session_auth_duration = default_max_session_lifetime
+            self.error('unable to parse session_auth_duration, defaulting to %d: %s',
+                       self.session_auth_duration, e)
+
+
+    def __call__(self, environ, start_response):
+        headers = []
+
+        self.debug('WSGI krblogin.__call__:')
+
+        # Get the ccache created by mod_auth_kerb
+        ccache=environ.get('KRB5CCNAME')
+        if ccache is None:
+            status = '500 Internal Error'
+            response = 'KRB5CCNAME not defined'
+            start_response(status, headers)
+            return [response]
+
+        ccache_scheme, ccache_location = krb5_parse_ccache(ccache)
+        assert ccache_scheme == 'FILE'
+
+        # Retrieve the session data (or newly create)
+        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
+        session_id = session_data['session_id']
+
+        # Copy the ccache file contents into the session data
+        session_data['ccache_data'] = read_krbccache_file(ccache_location)
+
+        # Compute when the session will expire
+        cc = KRB5_CCache(ccache)
+        tgt_principal = krb5_format_tgt_principal_name(self.api.env.realm)
+        authtime, starttime, endtime, renew_till = cc.get_credential_times(tgt_principal)
+
+        # Account for clock skew and/or give us some time leeway
+        krb_expiration = endtime - krb_ticket_expiration_threshold
+
+        # Set the session expiration time
+        session_mgr.set_session_expiration_time(session_data,
+                                                lifetime=self.session_auth_duration,
+                                                max_age=krb_expiration)
+
+        # Store the session data now that it's been updated with the ccache
+        session_mgr.store_session_data(session_data)
+
+        self.debug('krblogin: ccache="%s" session_id="%s" ccache="%s"',
+                   ccache, session_id, ccache)
+
+        # Return success and set session cookie
+        status = '200 Success'
+        response = ''
+
+        session_cookie = session_mgr.generate_cookie('/ipa', session_data['session_id'])
+        headers.append(('Set-Cookie', session_cookie))
+
+        start_response(status, headers)
+        return [response]

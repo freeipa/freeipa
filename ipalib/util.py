@@ -310,3 +310,103 @@ class cachedproperty(object):
 
     def __delete__(self, obj):
         raise AttributeError("can't delete attribute")
+
+# regexp matching signed floating point number (group 1) followed by
+# optional whitespace followed by time unit, e.g. day, hour (group 7)
+time_duration_re = re.compile(r'([-+]?((\d+)|(\d+\.\d+)|(\.\d+)|(\d+\.)))\s*([a-z]+)', re.IGNORECASE)
+
+# number of seconds in a time unit
+time_duration_units = {
+    'year'    : 365*24*60*60,
+    'years'   : 365*24*60*60,
+    'y'       : 365*24*60*60,
+    'month'   : 30*24*60*60,
+    'months'  : 30*24*60*60,
+    'week'    : 7*24*60*60,
+    'weeks'   : 7*24*60*60,
+    'w'       : 7*24*60*60,
+    'day'     : 24*60*60,
+    'days'    : 24*60*60,
+    'd'       : 24*60*60,
+    'hour'    : 60*60,
+    'hours'   : 60*60,
+    'h'       : 60*60,
+    'minute'  : 60,
+    'minutes' : 60,
+    'min'     : 60,
+    'second'  : 1,
+    'seconds' : 1,
+    'sec'     : 1,
+    's'       : 1,
+}
+
+def parse_time_duration(value):
+    '''
+
+    Given a time duration string, parse it and return the total number
+    of seconds represented as a floating point value. Negative values
+    are permitted.
+
+    The string should be composed of one or more numbers followed by a
+    time unit. Whitespace and punctuation is optional. The numbers may
+    be optionally signed.  The time units are case insenstive except
+    for the single character 'M' or 'm' which means month and minute
+    respectively.
+
+    Recognized time units are:
+
+        * year, years, y
+        * month, months, M
+        * week, weeks, w
+        * day, days, d
+        * hour, hours, h
+        * minute, minutes, min, m
+        * second, seconds, sec, s
+
+    Examples:
+        "1h"                    # 1 hour
+        "2 HOURS, 30 Minutes"   # 2.5 hours
+        "1week -1 day"          # 6 days
+        ".5day"                 # 12 hours
+        "2M"                    # 2 months
+        "1h:15m"                # 1.25 hours
+        "1h, -15min"            # 45 minutes
+        "30 seconds"            # .5 minute
+
+    Note: Despite the appearance you can perform arithmetic the
+    parsing is much simpler, the parser searches for signed values and
+    adds the signed value to a running total. Only + and - are permitted
+    and must appear prior to a digit.
+
+    :parameters:
+        value : string
+            A time duration string in the specified format
+    :returns:
+        total number of seconds as float (may be negative)
+    '''
+
+    matches = 0
+    duration = 0.0
+    for match in time_duration_re.finditer(value):
+        matches += 1
+        magnitude = match.group(1)
+        unit = match.group(7)
+
+        # Get the unit, only M and m are case sensitive
+        if unit == 'M':         # month
+            seconds_per_unit = 30*24*60*60
+        elif unit == 'm':       # minute
+            seconds_per_unit = 60
+        else:
+            unit = unit.lower()
+            seconds_per_unit = time_duration_units.get(unit)
+            if seconds_per_unit is None:
+                raise ValueError('unknown time duration unit "%s"' % unit)
+        magnitude = float(magnitude)
+        seconds = magnitude * seconds_per_unit
+        duration += seconds
+
+    if matches == 0:
+        raise ValueError('no time duration found in "%s"' % value)
+
+    return duration

@@ -25,7 +25,8 @@ Loads WSGI server plugins.
 from ipalib import api
 
 if 'in_server' in api.env and api.env.in_server is True:
-    from ipaserver.rpcserver import session, xmlserver, jsonserver
+    from ipaserver.rpcserver import session, xmlserver, jsonserver, krblogin
     api.register(session)
     api.register(xmlserver)
     api.register(jsonserver)
+    api.register(krblogin)

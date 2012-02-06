@@ -65,7 +65,9 @@ current block assignments:
 
             - **1100 - 1199**  `KerberosError` and its subclasses
 
-            - **1200 - 1999**  *Reserved for future use*
+            - **1200 - 1299**  `SessionError` and its subclasses
+
+            - **1300 - 1999**  *Reserved for future use*
 
         - **2000 - 2999**  `AuthorizationError` and its subclasses
 
@@ -596,6 +598,18 @@ class CannotResolveKDC(KerberosError):
 
     errno = 1107
     format = _('Cannot resolve KDC for requested realm')
+
+
+class SessionError(AuthenticationError):
+    """
+    **1200** Base class for Session errors (*1200 - 1299*).
+
+    For example:
+
+    """
+
+    errno = 1200
+    format= _('Session error')
 
 
 ##############################################################################
