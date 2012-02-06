@@ -116,6 +116,9 @@ DEFAULT_CONFIG = (
     ('webui_prod', True),
     ('webui_assets_dir', None),
 
+    # Maximum time before a session expires forcing credentials to be reacquired.
+    ('session_auth_duration', '1h'),
+
     # Debugging:
     ('verbose', 0),
     ('debug', False),

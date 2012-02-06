@@ -59,6 +59,7 @@ var IPA = function() {
         // if current path matches live server path, use live data
         if (that.url && window.location.pathname.substring(0, that.url.length) === that.url) {
             that.json_url = params.url || '/ipa/json';
+            that.login_url = params.url || '/ipa/login'; // FIXME, what about the other case below?
 
         } else { // otherwise use fixtures
             that.json_path = params.url || "test/data";
@@ -285,6 +286,31 @@ var IPA = function() {
     return that;
 }();
 
+IPA.get_credentials = function() {
+    var status;
+
+    function error_handler(xhr, text_status, error_thrown) {
+        status = xhr.status;
+    }
+
+
+    function success_handler(data, text_status, xhr) {
+        status = xhr.status;
+    }
+
+    var request = {
+        url: IPA.login_url,
+	async: false,
+	type: "GET",
+        success: success_handler,
+        error: error_handler
+    };
+
+    $.ajax(request);
+
+    return status;
+}
+
 /**
  * Call an IPA command over JSON-RPC.
  *
@@ -378,6 +404,39 @@ IPA.command = function(spec) {
             dialog.open();
         }
 
+        /*
+         * Special error handler used the first time this command is
+         * submitted. It checks to see if the session credentials need
+         * to be acquired and if so sends a request to a special url
+         * to establish the sesion credentials. If acquiring the
+         * session credentials is successful it simply resubmits the
+         * exact same command after setting the error handler back to
+         * the normal error handler. If aquiring the session
+         * credentials fails the normal error handler is invoked to
+         * process the error returned from the attempt to aquire the
+         * session credentials.
+         */
+        function error_handler_login(xhr, text_status, error_thrown) {
+            if (xhr.status === 401) {
+                var login_status = IPA.get_credentials();
+
+                if (login_status === 200) {
+                    that.request.error = error_handler
+                    $.ajax(that.request);
+                } else {
+                    // error_handler() calls IPA.hide_activity_icon()
+                    error_handler.call(this, xhr, text_status, error_thrown);
+                }
+            }
+        }
+
+        /*
+         * Normal error handler, handles all errors.
+         * error_handler_login() is initially used to trap the
+         * special case need to aquire session credentials, this is
+         * not a true error, rather it's an indication an extra step
+         * needs to be taken before normal processing can continue.
+         */
         function error_handler(xhr, text_status, error_thrown) {
 
             IPA.hide_activity_icon();
@@ -472,20 +531,20 @@ IPA.command = function(spec) {
             }
         }
 
-        var data = {
+        that.data = {
             method: that.get_command(),
             params: [that.args, that.options]
         };
 
-        var request = {
-            url: IPA.json_url || IPA.json_path + '/' + (that.name || data.method) + '.json',
-            data: JSON.stringify(data),
+        that.request = {
+            url: IPA.json_url || IPA.json_path + '/' + (that.name || that.data.method) + '.json',
+            data: JSON.stringify(that.data),
             success: success_handler,
-            error: error_handler
+            error: error_handler_login
         };
 
         IPA.display_activity_icon();
-        $.ajax(request);
+        $.ajax(that.request);
     };
 
     that.get_failed = function(command, result, text_status, xhr) {

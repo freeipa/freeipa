@@ -49,14 +49,8 @@ import socket
 from ipapython.nsslib import NSSHTTPS, NSSConnection
 from nss.error import NSPRError
 from urllib2 import urlparse
-
-# Some Kerberos error definitions from krb5.h
-KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN = (-1765328377L)
-KRB5KRB_AP_ERR_TKT_EXPIRED      = (-1765328352L)
-KRB5_FCC_PERM                   = (-1765328190L)
-KRB5_FCC_NOFILE                 = (-1765328189L)
-KRB5_CC_FORMAT                  = (-1765328185L)
-KRB5_REALM_CANT_RESOLVE         = (-1765328164L)
+from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
+                             KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
 
 def xml_wrap(value):
     """

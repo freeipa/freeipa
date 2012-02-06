@@ -49,11 +49,11 @@ Values should not be quoted, the quotes will not be stripped.
 
 .np
     # Wrong \- don't include quotes
-    verbose = "9"
+    verbose = "True"
 
     # Right \- Properly formatted options
-    verbose = 9
-    verbose=9
+    verbose = True
+    verbose=True
 .fi
 
 Options must appear in the section named [global]. There are no other sections defined or used currently.
@@ -80,8 +80,43 @@ Specifies the hostname of the dogtag CA server. The default is the hostname of t
 .B context <context>
 Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli and server. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.
 .TP
+.B verbose <boolean>
+When True provides more information. Specifically this sets the global log level to "info".
+.TP
 .B debug <boolean>
-If True then logging will be much more verbose. Default is False.
+When True provides detailed information. Specifically this set the global log level to "debug". Default is False.
+.TP
+.B log_logger_XXX <comma separated list of regexps>
+loggers matching regexp will be assigned XXX level.
+.IP
+Logger levels can be explicitly specified for specific loggers as
+opposed to a global logging level. Specific loggers are indiciated
+by a list of regular expressions bound to a level. If a logger's
+name matches the regexp then it is assigned that level. This config item
+must begin with "log_logger_level_" and then be
+followed by a symbolic or numeric log level, for example:
+.IP
+  log_logger_level_debug = ipalib\\.dn\\..*
+.IP
+  log_logger_level_35 = ipalib\\.plugins\\.dogtag
+.IP
+The first line says any logger belonging to the ipalib.dn module
+will have it's level configured to debug.
+.IP
+The second line say the ipa.plugins.dogtag logger will be
+configured to level 35.
+.IP
+This config item is useful when you only want to see the log output from
+one or more selected loggers. Turning on the global debug flag will produce
+an enormous amount of output. This allows you to leave the global debug flag
+off and selectively enable output from a specific logger. Typically loggers
+are bound to classes and plugins.
+.IP
+Note: logger names are a dot ('.') separated list forming a path
+in the logger tree.  The dot character is also a regular
+expression metacharacter (matches any character) therefore you
+will usually need to escape the dot in the logger names by
+preceeding it with a backslash.
 .TP
 .B domain <domain>
 The domain of the IPA server e.g. example.com.
@@ -128,11 +163,11 @@ If the IPA server fails to start and this value is True the server will attempt 
 .B validate_api <boolean>
 Used internally in the IPA source package to verify that the API has not changed. This is used to prevent regressions. If it is true then some errors are ignored so enough of the IPA framework can be loaded to verify all of the API, even if optional components are not installed. The default is False.
 .TP
-.B verbose <integer>
-Generates more output. The default is 0 which generates no additional output. On the client a setting of 1 will provide more information on the command and show the servers the client contacts. A setting of 2 or higher will display the XML\-RPC request. This value has no effect on the server.
-.TP
 .B xmlrpc_uri <URI>
 Specifies the URI of the XML\-RPC server for a client. This is used by IPA and some external tools as well, such as ipa\-getcert. e.g. https://ipa.example.com/ipa/xml
+.TP
+.B session_auth_duration <time duration spec>
+Specifies the length of time authentication credentials cached in the session are valid. After the duration expires credentials will be automatically reacquired. Examples are "2 hours", "1h:30m", "10 minutes", "5min, 30sec".
 .TP
 The following define the containers for the IPA server. Containers define where in the DIT that objects can be found. The full location is the value of container + basedn.
   container_accounts: cn=accounts

@@ -67,6 +67,10 @@ class IPATypeChecker(TypeChecker):
         'ipalib.parameters.Enum': ['values'],
         'ipalib.parameters.File': ['stdin_if_missing'],
         'urlparse.SplitResult': ['netloc'],
+        'ipalib.krb_utils.KRB5_CCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
+        'ipalib.session.SessionManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
+        'ipalib.session.SessionCCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
+        'ipalib.session.MemcacheSessionManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
     }
 
     def _related_classes(self, klass):
