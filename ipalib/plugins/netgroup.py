@@ -151,8 +151,8 @@ class netgroup_add(LDAPCreate):
         entry_attrs.setdefault('nisdomainname', self.api.env.domain)
 
         try:
-            dn = self.obj.get_dn(keys[-1])
-            (dn_, netgroup) = ldap.get_entry(dn, ['objectclass'])
+            test_dn = self.obj.get_dn(keys[-1])
+            (test_dn_, netgroup) = ldap.get_entry(test_dn, ['objectclass'])
             if 'mepManagedEntry' in netgroup.get('objectclass', []):
                 raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
             else:
