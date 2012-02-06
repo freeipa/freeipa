@@ -59,6 +59,7 @@
                         "restore": "Restore",
                         "retry": "Retry",
                         "revoke": "Revoke",
+                        "set": "Set",
                         "update": "Update",
                         "view": "View"
                     },
@@ -317,6 +318,16 @@
                             "unprovision_confirmation": "Are you sure you want to unprovision this service?",
                             "unprovision_title": "Unprovisioning ${entity}",
                             "valid": "Kerberos Key Present, Service Provisioned"
+                        },
+                        "sshkeystore": {
+                            "keys": "SSH public keys",
+                            "set_dialog_help": "Base-64 encoded SSH public key:",
+                            "set_dialog_title": "Set SSH key",
+                            "show_set_key": "Show/Set key",
+                            "status_mod_ns": "Modified: key not set",
+                            "status_mod_s": "Modified",
+                            "status_new_ns": "New: key not set",
+                            "status_new_s": "New: key set"
                         },
                         "sudocmd": {
                             "groups": "Groups"

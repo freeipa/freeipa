@@ -63,7 +63,12 @@ IPA.host.entity = function(spec) {
                         'l',
                         'nshostlocation',
                         'nshardwareplatform',
-                        'nsosversion'
+                        'nsosversion',
+                        {
+                            type: 'sshkeys',
+                            name: 'ipasshpubkey',
+                            label: IPA.messages.objects.sshkeystore.keys
+                        }
                     ]
                 },
                 {

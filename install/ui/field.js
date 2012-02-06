@@ -148,20 +148,26 @@ IPA.field = function(spec) {
     that.load = function(record) {
         that.record = record;
 
-        var value = record[that.name];
-        if (value instanceof Array) {
-            that.values = value;
-        } else {
-            that.values = value !== undefined ? [value] : [];
-        }
-
-        if (!that.values.length) {
-            that.values = [''];
-        }
+        that.values = that.get_value(record, that.name);
 
         that.load_writable(record);
 
         that.reset();
+    };
+
+    that.get_value = function(record, name) {
+
+        var value = record[name];
+
+        if (!(value instanceof Array)) {
+            value = value !== undefined ? [value] : [];
+        }
+
+        if (!value.length) {
+            value = [''];
+        }
+
+        return value;
     };
 
     that.load_writable = function(record) {
@@ -272,16 +278,21 @@ IPA.field = function(spec) {
         //compare values in array
         if (values.length !== that.values.length) return true;
 
-        values.sort();
-        that.values.sort();
+        return !that.dirty_are_equal(that.values, values);
+    };
 
-        for (var i=0; i<values.length; i++) {
-            if (values[i] != that.values[i]) {
-                return true;
+    that.dirty_are_equal = function(orig_vals, new_vals) {
+
+        orig_vals.sort();
+        new_vals.sort();
+
+        for (var i=0; i<orig_vals.length; i++) {
+            if (orig_vals[i] !== new_vals[i]) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     };
 
     that.is_empty = function(value) {
@@ -382,6 +393,7 @@ IPA.field = function(spec) {
     init();
 
     // methods that should be invoked by subclasses
+    that.field_dirty_are_equal = that.dirty_are_equal;
     that.field_load = that.load;
     that.field_reset = that.reset;
     that.field_save = that.save;
@@ -562,6 +574,56 @@ IPA.multivalued_field = function(spec) {
         }
 
         return that.valid;
+    };
+
+    return that;
+};
+
+IPA.sshkeys_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.multivalued_field(spec);
+
+    that.sshfp_attr = 'sshpubkeyfp' || spec.sshfp_attr;
+
+    that.load = function(record) {
+
+        var keys = that.get_value(record, that.name);
+        var fingerprints = that.get_value(record, that.sshfp_attr);
+
+        var values = [];
+
+        if (keys.length === fingerprints.length) {
+            for (var i=0; i<keys.length; i++) {
+
+                if (keys[i] === '') continue;
+
+                var value = {
+                    key: keys[i].__base64__,
+                    fingerprint: fingerprints[i]
+                };
+                values.push(value);
+            }
+        }
+
+        that.values = values;
+
+        that.load_writable(record);
+
+        that.reset();
+    };
+
+    that.dirty_are_equal = function(orig_vals, new_vals) {
+
+        var i;
+        var orig_keys = [];
+
+        for (i=0; i<orig_vals.length; i++) {
+            orig_keys.push(orig_vals[i].key);
+        }
+
+        return that.field_dirty_are_equal(orig_keys, new_vals);
     };
 
     return that;
@@ -805,3 +867,4 @@ IPA.field_factories['entity_select'] = IPA.combobox_field;
 IPA.field_factories['combobox'] = IPA.combobox_field;
 IPA.field_factories['link'] = IPA.link_field;
 IPA.field_factories['enable'] = IPA.enable_field;
+IPA.field_factories['sshkeys'] = IPA.sshkeys_field;
