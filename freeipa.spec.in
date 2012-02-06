@@ -109,6 +109,8 @@ Requires: python-ldap
 Requires: python-krbV
 Requires: acl
 Requires: python-pyasn1 >= 0.0.9a
+Requires: memcached
+Requires: python-memcached
 %if 0%{?fedora} >= 16
 Requires: systemd-units >= 36-3
 Requires(pre): systemd-units
@@ -356,12 +358,25 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/preferences.html
 mkdir -p %{buildroot}%{_initrddir}
+mkdir %{buildroot}%{_sysconfdir}/sysconfig/
+install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_memcached
+
+%if 0%{?fedora} >= 15
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d/
+install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_sysconfdir}/tmpfiles.d/ipa.conf
+%endif
+
+mkdir -p %{buildroot}%{_localstatedir}/run/
+install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa_memcached/
+
 %if 0%{?fedora} >= 16
 # Default to systemd initscripts for F16 and above
 mkdir -p %{buildroot}%{_unitdir}
 install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
+install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
 %else
 install -m755 init/SystemV/ipa.init %{buildroot}%{_initrddir}/ipa
+install -m755 init/SystemV/ipa_memcached.init %{buildroot}%{_initrddir}/ipa_memcached
 %endif
 %endif
 
@@ -491,12 +506,19 @@ fi
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-compliance
 %{_sysconfdir}/cron.d/ipa-compliance
+%config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
+%dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
+%if 0%{?fedora} >= 15
+%config %{_sysconfdir}/tmpfiles.d/ipa.conf
+%endif
 %if 0%{?fedora} >= 16
 # Use systemd scheme
 %attr(644,root,root) %{_unitdir}/ipa.service
+%attr(644,root,root) %{_unitdir}/ipa_memcached.service
 %else
 # Use SystemV scheme only before F16
 %attr(755,root,root) %{_initrddir}/ipa
+%attr(755,root,root) %{_initrddir}/ipa_memcached
 %endif
 %dir %{python_sitelib}/ipaserver
 %{python_sitelib}/ipaserver/*

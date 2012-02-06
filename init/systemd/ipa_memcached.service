@@ -1,0 +1,12 @@
+[Unit]
+Description=IPA memcached daemon, increases IPA server performance
+After=network.target
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/sysconfig/ipa_memcached
+PIDFile=/var/run/ipa_memcached/ipa_memcached.pid
+ExecStart=/usr/bin/memcached -d -s $SOCKET_PATH -u $USER -m $CACHESIZE -c $MAXCONN -P /var/run/ipa_memcached/ipa_memcached.pid $OPTIONS
+
+[Install]
+WantedBy=multi-user.target
