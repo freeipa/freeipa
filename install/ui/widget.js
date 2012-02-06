@@ -308,7 +308,7 @@ IPA.password_widget = function(spec) {
     return that;
 };
 
-IPA.multivalued_text_widget = function(spec) {
+IPA.multivalued_widget = function(spec) {
 
     spec = spec || {};
 
@@ -322,9 +322,12 @@ IPA.multivalued_text_widget = function(spec) {
     that.rows = [];
 
     that.on_child_value_changed = function(row) {
-        if(that.test_dirty_row(row)) {
+        if (that.test_dirty_row(row)) {
             row.widget.show_undo();
             row.remove_link.hide();
+        } else {
+            row.widget.hide_undo();
+            row.remove_link.show();
         }
 
         that.value_changed.notify([], that);
@@ -473,7 +476,7 @@ IPA.multivalued_text_widget = function(spec) {
 
     that.create = function(container) {
 
-        container.addClass('multivalued-text-widget');
+        container.addClass('multivalued-widget');
 
         that.widget_create(container);
 
@@ -2813,6 +2816,202 @@ IPA.widget_builder = function(spec) {
     return that;
 };
 
+IPA.sshkeys_widget = function(spec) {
+
+    spec = spec || {};
+    spec.widget_factory = IPA.sshkey_widget;
+
+    var that = IPA.multivalued_widget(spec);
+
+    that.test_dirty_row = function(row) {
+
+        if(row.deleted || row.is_new) return true;
+
+        var values = row.widget.save();
+
+        var key = values[0];
+        var original_key = row.original_values[0];
+
+        if (original_key && original_key.key && original_key.key !== key) {
+            return true;
+        }
+
+        return false;
+    };
+
+    return that;
+};
+
+IPA.sshkey_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.input_widget(spec);
+
+    that.key = null;
+    that.originally_set = false;
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        container.addClass('text-widget');
+
+        that.status_label = $('<span />', {
+            'class': 'sshkey-status',
+            text: ''
+        }).appendTo(container);
+
+        that.link = $('<a/>', {
+            type: that.type,
+            'class': 'sshkey-set',
+            name: that.name,
+            href: '#show-certificate',
+            title: that.tooltip,
+            text: IPA.messages.objects.sshkeystore.show_set_key,
+            onclick: function() {
+                that.open_edit_dialog();
+                return false;
+            }
+        }).appendTo(container);
+
+        if (that.undo) {
+            that.create_undo(container);
+        }
+
+        that.create_error_link(container);
+    };
+
+    that.update = function(values) {
+
+        var key = values && values.length ? values[0] : null;
+
+        if (!key || key === '') {
+            key = {};
+        }
+
+        that.key = $.extend({}, key);
+
+        if (that.key.key && that.key.key !== '' &&
+                that.key.fingerprint && that.key.fingerprint !== '') {
+            that.originally_set = true;
+            that.original_key = that.key.key;
+        }
+        that.update_link();
+    };
+
+    that.set_deleted = function(deleted) {
+        if (deleted) {
+            that.status_label.addClass('strikethrough');
+        } else {
+            that.status_label.removeClass('strikethrough');
+        }
+    };
+
+    that.save = function() {
+        var value = that.key.key;
+        value = value ? [value] : [''];
+        return value;
+    };
+
+    that.update_link = function() {
+        var text = that.get_status();
+        that.status_label.text(text);
+    };
+
+    that.get_status = function() {
+
+        var text = '';
+        var value = that.key.key;
+
+        if (that.original_key) {
+
+            if (value !== that.original_key) {
+                if (value === '') {
+                    text = IPA.messages.objects.sshkeystore.status_mod_ns;
+                } else {
+                    text = IPA.messages.objects.sshkeystore.status_mod_s;
+                }
+            } else {
+                text = that.key.fingerprint;
+            }
+
+        } else {
+
+            if (!value || value === '') {
+                text = IPA.messages.objects.sshkeystore.status_new_ns;
+            } else {
+                text = IPA.messages.objects.sshkeystore.status_new_s;
+            }
+        }
+
+        return text;
+    };
+
+    that.set_user_value = function(value) {
+
+        var previous = that.key.key;
+        that.key.key = value;
+        that.update_link();
+
+        if (value !== previous) {
+            that.value_changed.notify([], that);
+        }
+    };
+
+    that.open_edit_dialog = function() {
+
+        var dialog = that.create_edit_dialog();
+        dialog.open();
+    };
+
+    that.create_edit_dialog = function() {
+
+        var dialog = IPA.dialog({
+            title: IPA.messages.objects.sshkeystore.set_dialog_title,
+            width: 500,
+            height: 380
+        });
+
+        dialog.message = IPA.messages.objects.sshkeystore.set_dialog_help;
+
+        dialog.create_button({
+            name: 'update',
+            label: IPA.messages.buttons.set,
+            click: function() {
+                var value = dialog.textarea.val();
+                that.set_user_value(value);
+                dialog.close();
+            }
+        });
+
+        dialog.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                dialog.close();
+            }
+        });
+
+        dialog.create = function() {
+
+            dialog.container.append(dialog.message);
+
+            dialog.textarea = $('<textarea/>', {
+                'class': 'certificate',
+                readonly: that.read_only
+            }).appendTo(dialog.container);
+
+            var key = that.key.key || '';
+            dialog.textarea.val(key);
+        };
+
+        return dialog;
+    };
+
+    return that;
+};
+
 
 IPA.widget_factories['attribute_table'] = IPA.attribute_table_widget;
 IPA.widget_factories['checkbox'] = IPA.checkbox_widget;
@@ -2825,9 +3024,10 @@ IPA.widget_factories['enable'] = IPA.enable_widget;
 IPA.widget_factories['entity_select'] = IPA.entity_select_widget;
 IPA.widget_factories['header'] = IPA.header_widget;
 IPA.widget_factories['link'] = IPA.link_widget;
-IPA.widget_factories['multivalued'] = IPA.multivalued_text_widget;
+IPA.widget_factories['multivalued'] = IPA.multivalued_widget;
 IPA.widget_factories['password'] = IPA.password_widget;
 IPA.widget_factories['radio'] = IPA.radio_widget;
 IPA.widget_factories['select'] = IPA.select_widget;
+IPA.widget_factories['sshkeys'] = IPA.sshkeys_widget;
 IPA.widget_factories['textarea'] = IPA.textarea_widget;
 IPA.widget_factories['text'] = IPA.text_widget;

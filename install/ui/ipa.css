@@ -1251,11 +1251,11 @@ table.scrollable tbody {
     width: 250px;
 }
 
-.multivalued-text-widget [name=value] {
+.multivalued-widget [name=value] {
     margin-bottom: 1em;
 }
 
-.multivalued-text-widget input {
+.multivalued-widget input {
     width: 250px;
 }
 
@@ -1487,6 +1487,11 @@ div.entity[name=hbactest] div.facet[name=run_test] .hbac-test-content {
     font-weight: normal;
 }
 
+/* --- SSH key store --- */
+
+span.sshkey-status, a.sshkey-set {
+    padding-right: 5px;
+}
 /* --- Automember --- */
 
 .automember-header {

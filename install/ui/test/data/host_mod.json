@@ -10,6 +10,7 @@
                 "enrolledby": "rsc",
                 "fqdn": "rscwo",
                 "ipaclientversion": "rscwo",
+                "ipasshpubkey": "rscwo",
                 "ipauniqueid": "rsc",
                 "krbcanonicalname": "rscwo",
                 "krbextradata": "rscwo",

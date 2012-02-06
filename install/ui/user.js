@@ -91,7 +91,12 @@ IPA.user.entity = function(spec) {
                         'uidnumber',
                         'gidnumber',
                         'loginshell',
-                        'homedirectory'
+                        'homedirectory',
+                        {
+                            type: 'sshkeys',
+                            name: 'ipasshpubkey',
+                            label: IPA.messages.objects.sshkeystore.keys
+                        }
                     ]
                 },
                 {

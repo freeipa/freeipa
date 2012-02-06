@@ -211,7 +211,7 @@ test("Testing text widget.", function() {
 });
 
 test("Testing multi-valued text widget.", function() {
-    factory  = IPA.multivalued_text_widget;
+    factory  = IPA.multivalued_widget;
     spec = {undo:true,name:'title'};
     base_widget_test('test_value');
     widget_string_test();
