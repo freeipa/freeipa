@@ -48,6 +48,7 @@ from ipaserver.install import httpinstance
 from ipaserver.install import ntpinstance
 from ipaserver.install import certs
 from ipaserver.install import cainstance
+from ipaserver.install import memcacheinstance
 
 from ipaserver.install import service
 from ipapython import version
@@ -987,6 +988,9 @@ def main():
         [pw_fd, pw_name] = tempfile.mkstemp()
         os.write(pw_fd, options.http_pin)
         os.close(pw_fd)
+
+    memcache = memcacheinstance.MemcacheInstance()
+    memcache.create_instance('MEMCACHE', host_name, dm_password, util.realm_to_suffix(realm_name))
 
     http = httpinstance.HTTPInstance(fstore)
     if options.http_pkcs12:

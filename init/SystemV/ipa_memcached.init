@@ -1,0 +1,120 @@
+#! /bin/sh
+#
+# chkconfig: - 55 45
+# description:	The ipa_memcached daemon is a memory cache service for IPA
+# processname: memcached
+# config: /etc/sysconfig/ipa_memcached
+# pidfile: /var/run/ipa_memcached/ipa_memcached.pid
+
+# Standard LSB functions
+#. /lib/lsb/init-functions
+
+# Source function library.
+. /etc/init.d/functions
+
+SOCKET_PATH=/var/run/ipa_memcached/ipa_memcached
+USER=apache
+PIDFILE=/var/run/ipa_memcached/ipa_memcached.pid
+MAXCONN=1024
+CACHESIZE=64
+OPTIONS=""
+
+if [ -f /etc/sysconfig/ipa_memcached ];then
+    . /etc/sysconfig/ipa_memcached
+fi
+
+# Check that networking is up.
+. /etc/sysconfig/network
+
+if [ "$NETWORKING" = "no" ]
+then
+    exit 0
+fi
+
+prog="ipa_memcached"
+pidfile=${PIDFILE-/var/run/ipa_memcached/ipa_memcached.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/ipa_memcached}
+
+start () {
+    echo -n $"Starting $prog: "
+    # Ensure that $pidfile directory has proper permissions and exists
+    piddir=`dirname $pidfile`
+    if [ ! -d $piddir ]; then
+	mkdir $piddir
+    fi
+    if [ "`stat -c %U $piddir`" != "$USER" ]; then
+	chown $USER $piddir
+    fi
+
+    daemon --pidfile ${pidfile} /usr/bin/memcached -d -s ${SOCKET_PATH} -u ${USER} -m ${CACHESIZE} -c ${MAXCONN} -P ${pidfile} ${OPTIONS}
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch ${lockfile}
+    return $RETVAL
+}
+
+stop () {
+    echo -n $"Stopping $prog: "
+    killproc -p ${pidfile} $prog
+    RETVAL=$?
+    echo
+    if [ $RETVAL -eq 0 ] ; then
+	rm -f ${lockfile} ${pidfile}
+    fi
+    return $RETVAL
+}
+
+restart () {
+        stop
+        start
+}
+
+reload() {
+    restart
+}
+
+force_reload() {
+    restart
+}
+
+rh_status() {
+    # run checks to determine if the service is running or use generic status
+    status -p ${pidfile} $prog
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    reload)
+        rh_status_q || exit 7
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    status)
+        rh_status
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+        restart
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload}"
+        exit 2
+esac
+exit $?
