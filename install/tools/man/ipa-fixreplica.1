@@ -1,0 +1,51 @@
+.\" A man page for ipa-fixreplica
+.\" Copyright (C) 2012 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.TH "ipa-fixreplica" "1" "Jan 6 2012" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-fixreplica \- Add memberOf as excluded attribute to replication agreements
+.SH "SYNOPSIS"
+ipa\-fixreplica [options]
+.SH "DESCRIPTION"
+The memberOf attribute was not properly added to some replication agreements
+causing unnecessary replication. This tool will update all replication
+agreements for the current host and add memberOf to the exclusion list.
+
+When executed as root no password is required, otherwise it will prompt
+for the Directory Manager password.
+
+This is executed when the package is updated in rpm so should not need
+to be run by an end-user. It is not harmful to run multiple times.
+
+This needs to be run on all replicas to be truly effective.
+.SH "OPTIONS"
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Enable debug logging when more verbose output is needed
+.TP
+\fB\-t\fR, \fB\-\-test\fR
+Run in test mode, no changes are applied
+.TP
+\fB\-y\fR \fIfile\fR
+File containing the Directory Manager password
+.SH "EXIT STATUS"
+0 if the command was successful or IPA is not configured
+
+1 if an error occurred
+
+2 If during test mode it determines that there are agreements that need updating

@@ -12,6 +12,7 @@ sbin_SCRIPTS =			\
 	ipa-replica-install	\
 	ipa-replica-prepare	\
 	ipa-replica-manage	\
+	ipa-fixreplica		\
 	ipa-csreplica-manage	\
  	ipa-server-certinstall  \
 	ipactl			\

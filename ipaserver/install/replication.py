@@ -99,7 +99,7 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
 class ReplicationManager(object):
     """Manage replication agreements between DS servers, and sync
     agreements with Windows servers"""
-    def __init__(self, realm, hostname, dirman_passwd, port=PORT, starttls=False):
+    def __init__(self, realm, hostname, dirman_passwd, port=PORT, starttls=False, conn=None):
         self.hostname = hostname
         self.port = port
         self.dirman_passwd = dirman_passwd
@@ -108,18 +108,23 @@ class ReplicationManager(object):
         tmp = util.realm_to_suffix(realm)
         self.suffix = str(DN(tmp)).lower()
 
-        # If we are passed a password we'll use it as the DM password
-        # otherwise we'll do a GSSAPI bind.
-        if starttls:
-            self.conn = ipaldap.IPAdmin(hostname, port=port)
-            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, CACERT)
-            self.conn.start_tls_s()
+        # The caller is allowed to pass in an existing IPAdmin connection.
+        # Open a new one if not provided
+        if conn is None:
+            # If we are passed a password we'll use it as the DM password
+            # otherwise we'll do a GSSAPI bind.
+            if starttls:
+                self.conn = ipaldap.IPAdmin(hostname, port=port)
+                ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, CACERT)
+                self.conn.start_tls_s()
+            else:
+                self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT)
+            if dirman_passwd:
+                self.conn.do_simple_bind(bindpw=dirman_passwd)
+            else:
+                self.conn.do_sasl_gssapi_bind()
         else:
-            self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT)
-        if dirman_passwd:
-            self.conn.do_simple_bind(bindpw=dirman_passwd)
-        else:
-            self.conn.do_sasl_gssapi_bind()
+            self.conn = conn
 
         self.repl_man_passwd = dirman_passwd
 

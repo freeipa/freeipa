@@ -388,6 +388,8 @@ fi
 if [ $1 -gt 1 ] ; then
     /usr/sbin/ipa-upgradeconfig || :
     /usr/sbin/ipa-ldap-updater --upgrade >/dev/null 2>&1 || :
+    # Make sure replication agreements are correct
+    /usr/sbin/ipa-fixreplica >/dev/null 2>&1 || :
 fi
 
 %preun server
@@ -471,6 +473,7 @@ fi
 %{_sbindir}/ipa-replica-install
 %{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa-replica-manage
+%{_sbindir}/ipa-fixreplica
 %{_sbindir}/ipa-csreplica-manage
 %{_sbindir}/ipa-server-certinstall
 %{_sbindir}/ipa-ldap-updater
@@ -551,6 +554,7 @@ fi
 %{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
 %{_mandir}/man1/ipa-replica-manage.1.gz
+%{_mandir}/man1/ipa-fixreplica.1.gz
 %{_mandir}/man1/ipa-csreplica-manage.1.gz
 %{_mandir}/man1/ipa-replica-prepare.1.gz
 %{_mandir}/man1/ipa-server-certinstall.1.gz
