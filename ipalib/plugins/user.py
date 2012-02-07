@@ -27,6 +27,7 @@ import copy
 from ipalib import _, ngettext
 from ipapython.ipautil import ipa_generate_password
 import string
+import posixpath
 
 __doc__ = _("""
 Users
@@ -207,11 +208,9 @@ class user(LDAPObject):
             default_from=lambda givenname, sn: '%c%c' % (givenname[0], sn[0]),
             autofill=True,
         ),
-        Str('homedirectory',
+        Str('homedirectory?',
             cli_name='homedir',
             label=_('Home directory'),
-            default_from=lambda uid: '/home/%s' % uid,
-            autofill=True,
         ),
         Str('gecos?',
             label=_('GECOS field'),
@@ -221,7 +220,6 @@ class user(LDAPObject):
         Str('loginshell?',
             cli_name='shell',
             label=_('Login shell'),
-            default=u'/bin/sh',
         ),
         Str('krbprincipalname?', validate_principal,
             cli_name='principal',
@@ -413,17 +411,16 @@ class user_add(LDAPCreate):
                         len = int(config.get('ipamaxusernamelength')[0])
                     )
                 )
-        entry_attrs.setdefault('loginshell', config.get('ipadefaultloginshell'))
+        default_shell = config.get('ipadefaultloginshell', ['/bin/sh'])[0]
+        entry_attrs.setdefault('loginshell', default_shell)
         # hack so we can request separate first and last name in CLI
         full_name = '%s %s' % (entry_attrs['givenname'], entry_attrs['sn'])
         entry_attrs.setdefault('cn', full_name)
         if 'homedirectory' not in entry_attrs:
             # get home's root directory from config
-            homes_root = config.get('ipahomesrootdir', '/home')[0]
+            homes_root = config.get('ipahomesrootdir', ['/home'])[0]
             # build user's home directory based on his uid
-            home_dir = '%s/%s' % (homes_root, keys[-1])
-            home_dir = home_dir.replace('//', '/').rstrip('/')
-            entry_attrs['homedirectory'] = home_dir
+            entry_attrs['homedirectory'] = posixpath.join(homes_root, keys[-1])
         entry_attrs.setdefault('krbpwdpolicyreference', 'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn))
         entry_attrs.setdefault('krbprincipalname', '%s@%s' % (entry_attrs['uid'], api.env.realm))
 

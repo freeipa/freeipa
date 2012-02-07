@@ -909,5 +909,135 @@ class test_user(Declarative):
             expected=errors.MalformedUserPrincipal(principal='%s@BAD@NOTFOUND.ORG' % user1),
         ),
 
+        dict(
+            desc='Delete %r' % user1,
+            command=('user_del', [user1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+        dict(
+            desc='Change default home directory',
+            command=(
+                'config_mod', [], dict(ipahomesrootdir=u'/other-home'),
+            ),
+            expected=lambda x: True,
+        ),
+
+        dict(
+            desc='Create user %r with different default home directory' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=dict(
+                    gecos=[u'Test User1'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/other-home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=lambda x: DN(x) == \
+                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Reset default home directory',
+            command=(
+                'config_mod', [], dict(ipahomesrootdir=u'/home'),
+            ),
+            expected=lambda x: True,
+        ),
+
+        dict(
+            desc='Delete %r' % user1,
+            command=('user_del', [user1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % user1,
+                value=user1,
+            ),
+        ),
+
+        dict(
+            desc='Change default login shell',
+            command=(
+                'config_mod', [], dict(ipadefaultloginshell=u'/usr/bin/ipython'),
+            ),
+            expected=lambda x: True,
+        ),
+
+        dict(
+            desc='Create user %r with different default login shell' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=dict(
+                    gecos=[u'Test User1'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/usr/bin/ipython'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=lambda x: DN(x) == \
+                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Reset default login shell',
+            command=(
+                'config_mod', [], dict(ipadefaultloginshell=u'/bin/sh'),
+            ),
+            expected=lambda x: True,
+        ),
 
     ]
