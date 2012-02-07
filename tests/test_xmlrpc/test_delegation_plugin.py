@@ -68,6 +68,18 @@ class test_delegation(Declarative):
             ),
         ),
 
+        dict(
+            desc='Try to create %r for non-existing member group' % delegation1,
+            command=(
+                'delegation_add', [delegation1], dict(
+                     attrs=u'street,c,l,st,postalCode',
+                     permissions=u'write',
+                     group=u'editors',
+                     memberof=u'nonexisting',
+                ),
+            ),
+            expected=errors.NotFound(reason='group not found'),
+        ),
 
         # Note that we add postalCode but expect postalcode. This tests
         # the attrs normalizer.
