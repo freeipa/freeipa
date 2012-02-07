@@ -208,22 +208,24 @@ def _make_aci(ldap, current, aciname, kw):
     Given a name and a set of keywords construct an ACI.
     """
     # Do some quick and dirty validation.
-    t1 = 'type' in kw
-    t2 = 'filter' in kw
-    t3 = 'subtree' in kw
-    t4 = 'targetgroup' in kw
-    t5 = 'attrs' in kw
-    t6 = 'memberof' in kw
-    if t1 + t2 + t3 + t4 > 1:
+    checked_args=['type','filter','subtree','targetgroup','attrs','memberof']
+    valid={}
+    for arg in checked_args:
+        if arg in kw:
+            valid[arg]=kw[arg] is not None
+        else:
+            valid[arg]=False
+
+    if valid['type'] + valid['filter'] + valid['subtree'] + valid['targetgroup'] > 1:
         raise errors.ValidationError(name='target', error=_('type, filter, subtree and targetgroup are mutually exclusive'))
 
     if 'aciprefix' not in kw:
         raise errors.ValidationError(name='aciprefix', error=_('ACI prefix is required'))
 
-    if t1 + t2 + t3 + t4 + t5 + t6 == 0:
+    if sum(valid.itervalues()) == 0:
         raise errors.ValidationError(name='target', error=_('at least one of: type, filter, subtree, targetgroup, attrs or memberof are required'))
 
-    if t2 + t6 > 1:
+    if valid['filter'] + valid['memberof'] > 1:
         raise errors.ValidationError(name='target', error=_('filter and memberof are mutually exclusive'))
 
     group = 'group' in kw
@@ -262,12 +264,16 @@ def _make_aci(ldap, current, aciname, kw):
         else:
             dn = entry_attrs['dn']
             a.set_bindrule('groupdn = "ldap:///%s"' % dn)
-        if 'attrs' in kw:
+        if valid['attrs']:
             a.set_target_attr(kw['attrs'])
-        if 'memberof' in kw:
+        if valid['memberof']:
+            try:
+                api.Command['group_show'](kw['memberof'])
+            except errors.NotFound:
+                api.Object['group'].handle_not_found(kw['memberof'])
             groupdn = _group_from_memberof(kw['memberof'])
             a.set_target_filter('memberOf=%s' % groupdn)
-        if 'filter' in kw:
+        if valid['filter']:
             # Test the filter by performing a simple search on it. The
             # filter is considered valid if either it returns some entries
             # or it returns no entries, otherwise we let whatever exception
@@ -279,15 +285,15 @@ def _make_aci(ldap, current, aciname, kw):
             except errors.NotFound:
                 pass
             a.set_target_filter(kw['filter'])
-        if 'type' in kw:
+        if valid['type']:
             target = _type_map[kw['type']]
             a.set_target(target)
-        if 'targetgroup' in kw:
+        if valid['targetgroup']:
             # Purposely no try here so we'll raise a NotFound
             entry_attrs = api.Command['group_show'](kw['targetgroup'])['result']
             target = 'ldap:///%s' % entry_attrs['dn']
             a.set_target(target)
-        if 'subtree' in kw:
+        if valid['subtree']:
             # See if the subtree is a full URI
             target = kw['subtree']
             if not target.startswith('ldap:///'):

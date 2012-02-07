@@ -500,6 +500,16 @@ class test_permission(Declarative):
             )
         ),
 
+        dict(
+            desc='Try to create permission %r with non-existing memberof' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                     memberof=u'nonexisting',
+                     permissions=u'write',
+                )
+            ),
+            expected=errors.NotFound(reason='group not found'),
+        ),
 
         dict(
             desc='Create memberof permission %r' % permission1,
@@ -507,6 +517,7 @@ class test_permission(Declarative):
                 'permission_add', [permission1], dict(
                      memberof=u'editors',
                      permissions=u'write',
+                     type=u'user',
                 )
             ),
             expected=dict(
@@ -518,6 +529,52 @@ class test_permission(Declarative):
                     objectclass=objectclasses.permission,
                     memberof=u'editors',
                     permissions=[u'write'],
+                    type=u'user',
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Try to update non-existent memberof of %r' % permission1,
+            command=('permission_mod', [permission1], dict(memberof=u'nonexisting')),
+            expected=errors.NotFound(reason='group not found'),
+        ),
+
+        dict(
+            desc='Update memberof permission %r' % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                     memberof=u'admins',
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Modified permission "%s"' % permission1,
+                result=dict(
+                    dn=lambda x: DN(x) == permission1_dn,
+                    cn=[permission1],
+                    memberof=u'admins',
+                    permissions=[u'write'],
+                    type=u'user',
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Unset memberof of permission %r' % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                     memberof=None,
+                )
+            ),
+            expected=dict(
+                summary=u'Modified permission "%s"' % permission1,
+                value=permission1,
+                result=dict(
+                    dn=lambda x: DN(x) == permission1_dn,
+                    cn=[permission1],
+                    permissions=[u'write'],
+                    type=u'user',
                 ),
             ),
         ),
