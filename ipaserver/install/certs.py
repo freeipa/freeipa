@@ -46,7 +46,7 @@ import nss.nss as nss
 
 from ipalib import api
 
-from ipalib.compat import sha1
+from ipapython.compat import sha1
 
 # Apache needs access to this database so we need to create it
 # where apache can reach
