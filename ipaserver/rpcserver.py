@@ -31,7 +31,7 @@ from ipalib.errors import PublicError, InternalError, CommandError, JSONError, C
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr, parse_time_duration
-from ipalib.compat import json
+from ipapython.compat import json
 from ipalib.session import session_mgr, read_krbccache_file, store_krbccache_file, delete_krbccache_file, fmt_time, default_max_session_lifetime
 from ipalib.backend import Backend
 from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb5_format_tgt_principal_name, krb5_format_service_principal_name, krb_ticket_expiration_threshold
