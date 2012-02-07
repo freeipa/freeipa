@@ -58,10 +58,7 @@ def parse_options():
     parser.add_option("-p", "--password", dest="dirman_password",
                       help="Directory Manager password")
 
-    config.add_standard_options(parser)
     options, args = parser.parse_args()
-
-    config.init_config(options)
 
     return options, args
 
