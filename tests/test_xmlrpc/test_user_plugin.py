@@ -25,6 +25,7 @@ Test the `ipalib/plugins/user.py` module.
 
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
+from tests.util import assert_equal
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password, fuzzy_string, fuzzy_dergeneralizedtime
 from ipalib.dn import *
 
@@ -36,6 +37,11 @@ group1=u'group1'
 invaliduser1=u'+tuser1'
 invaliduser2=u'tuser1234567890123456789012345678901234567890'
 
+def upg_check(response):
+    """Check that the user was assigned to the corresponding private group."""
+    assert_equal(response['result']['uidnumber'],
+                 response['result']['gidnumber'])
+    return True
 
 class test_user(Declarative):
 
@@ -111,6 +117,7 @@ class test_user(Declarative):
                            api.env.basedn),
                 ),
             ),
+            extra_check = upg_check,
         ),
 
 
@@ -523,6 +530,7 @@ class test_user(Declarative):
                            api.env.basedn),
                 ),
             ),
+            extra_check = upg_check,
         ),
 
 
@@ -563,6 +571,7 @@ class test_user(Declarative):
                            api.env.basedn),
                 ),
             ),
+            extra_check = upg_check,
         ),
 
 
