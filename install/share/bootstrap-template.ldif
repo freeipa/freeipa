@@ -225,9 +225,7 @@ objectClass: top
 objectClass: groupofnames
 objectClass: nestedgroup
 objectClass: ipausergroup
-objectClass: posixgroup
 objectClass: ipaobject
-gidNumber: eval($IDSTART+1)
 description: Default group for all users
 cn: ipausers
 ipaUniqueID: autogenerate
