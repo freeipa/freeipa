@@ -178,6 +178,31 @@ KWARGS = """Command %r raised %s with wrong kwargs.
 
 
 class Declarative(XMLRPC_test):
+    """A declarative-style test suite
+
+    A Declarative test suite is controlled by the ``tests`` and
+    ``cleanup_commands`` class variables.
+
+    The ``tests`` is a list of dictionaries with the following keys:
+
+    ``desc``
+        A name/description of the test
+    ``command``
+        A (command, args, kwargs) triple specifying the command to run
+    ``expected``
+        Can be either an ``errors.PublicError`` instance, in which case
+        the command must fail with the given error; or the
+        expected result.
+        The result is checked with ``tests.util.assert_deepequal``.
+    ``extra_check`` (optional)
+        A checking function that is called with the response. It must
+        return true for the test to pass.
+
+    The ``cleanup_commands`` is a list of (command, args, kwargs)
+    triples. These are commands get run both before and after tests,
+    and must not fail.
+    """
+
     cleanup_commands = tuple()
     tests = tuple()
 
@@ -217,7 +242,7 @@ class Declarative(XMLRPC_test):
             nice = '%s[%d]: %s: %s' % (
                 name, i, test['command'][0], test.get('desc', '')
             )
-            func = lambda: self.check(nice, test)
+            func = lambda: self.check(nice, **test)
             func.description = nice
             yield (func,)
 
@@ -225,15 +250,14 @@ class Declarative(XMLRPC_test):
         for tup in self.cleanup_generate('post'):
             yield tup
 
-    def check(self, nice, test):
-        (cmd, args, options) = test['command']
+    def check(self, nice, desc, command, expected, extra_check=None):
+        (cmd, args, options) = command
         if cmd not in api.Command:
             raise nose.SkipTest('%r not in api.Command' % cmd)
-        expected = test['expected']
         if isinstance(expected, errors.PublicError):
             self.check_exception(nice, cmd, args, options, expected)
         else:
-            self.check_output(nice, cmd, args, options, expected)
+            self.check_output(nice, cmd, args, options, expected, extra_check)
 
     def check_exception(self, nice, cmd, args, options, expected):
         klass = expected.__class__
@@ -259,6 +283,8 @@ class Declarative(XMLRPC_test):
 #                KWARGS % (cmd, name, args, options, expected.kw, e.kw)
 #            )
 
-    def check_output(self, nice, cmd, args, options, expected):
-            got = api.Command[cmd](*args, **options)
-            assert_deepequal(expected, got, nice)
+    def check_output(self, nice, cmd, args, options, expected, extra_check):
+        got = api.Command[cmd](*args, **options)
+        assert_deepequal(expected, got, nice)
+        if extra_check and not extra_check(got):
+            raise AssertionError('Extra check %s failed' % extra_check)
