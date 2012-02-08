@@ -59,10 +59,11 @@ var IPA = function() {
         // if current path matches live server path, use live data
         if (that.url && window.location.pathname.substring(0, that.url.length) === that.url) {
             that.json_url = params.url || '/ipa/json';
-            that.login_url = params.url || '/ipa/login'; // FIXME, what about the other case below?
+            that.login_url = params.url || '/ipa/login';
 
         } else { // otherwise use fixtures
             that.json_path = params.url || "test/data";
+            // that.login_url is not needed for fixtures
         }
 
         $.ajaxSetup(that.ajax_options);
@@ -300,8 +301,8 @@ IPA.get_credentials = function() {
 
     var request = {
         url: IPA.login_url,
-	async: false,
-	type: "GET",
+        async: false,
+        type: "GET",
         success: success_handler,
         error: error_handler
     };
@@ -309,7 +310,7 @@ IPA.get_credentials = function() {
     $.ajax(request);
 
     return status;
-}
+};
 
 /**
  * Call an IPA command over JSON-RPC.
@@ -421,13 +422,13 @@ IPA.command = function(spec) {
                 var login_status = IPA.get_credentials();
 
                 if (login_status === 200) {
-                    that.request.error = error_handler
+                    that.request.error = error_handler;
                     $.ajax(that.request);
-                } else {
-                    // error_handler() calls IPA.hide_activity_icon()
-                    error_handler.call(this, xhr, text_status, error_thrown);
+                    return;
                 }
             }
+            // error_handler() calls IPA.hide_activity_icon()
+            error_handler.call(this, xhr, text_status, error_thrown);
         }
 
         /*
