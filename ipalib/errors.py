@@ -816,6 +816,15 @@ class NotConfiguredError(InvocationError):
     format = _('Client is not configured. Run ipa-client-install.')
 
 
+class PromptFailed(InvocationError):
+    """
+    **3014** Raise when an interactive prompt failed.
+    """
+
+    errno = 3014
+    format = _('Could not get %(name)s interactively')
+
+
 ##############################################################################
 # 4000 - 4999: Execution errors
 
@@ -1587,5 +1596,5 @@ public_errors = tuple(
 
 if __name__ == '__main__':
     for klass in public_errors:
-        print '%d\t%s' % (klass.code, klass.__name__)
+        print '%d\t%s' % (klass.errno, klass.__name__)
     print '(%d public errors)' % len(public_errors)

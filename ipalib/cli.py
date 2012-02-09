@@ -46,7 +46,9 @@ import frontend
 import backend
 import plugable
 import util
-from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError, NotFound, NotConfiguredError
+from errors import (PublicError, CommandError, HelpError, InternalError,
+        NoSuchNamespaceError, ValidationError, NotFound, NotConfiguredError,
+        PromptFailed)
 from constants import CLI_TAB
 from parameters import Password, Bytes, File, Str, StrEnum
 from text import _
@@ -515,6 +517,18 @@ class textui(backend.Backend):
     def print_error(self, text):
         print '  ** %s **' % unicode(text)
 
+    def prompt_helper(self, prompt, label, prompt_func=raw_input):
+        """Prompt user for input
+
+        Handles encoding the prompt and decoding the input.
+        On end of stream or ctrl+c, raise PromptFailed.
+        """
+        try:
+            return self.decode(prompt_func(self.encode(prompt)))
+        except (KeyboardInterrupt, EOFError):
+            print
+            raise PromptFailed(name=label)
+
     def prompt(self, label, default=None, get_values=None, optional=False):
         """
         Prompt user for input.
@@ -528,11 +542,7 @@ class textui(backend.Backend):
             prompt = u'%s: ' % prompt
         else:
             prompt = u'%s [%s]: ' % (prompt, default)
-        try:
-            data = raw_input(self.encode(prompt))
-        except EOFError:
-            return None
-        return self.decode(data)
+        return self.prompt_helper(prompt, label)
 
     def prompt_yesno(self, label, default=None):
         """
@@ -546,8 +556,6 @@ class textui(backend.Backend):
 
         If Default parameter is None, user is asked for Yes/No answer until
         a correct answer is provided. Answer is then returned.
-
-        In case of an error, a None value may returned
         """
 
         default_prompt = None
@@ -563,10 +571,7 @@ class textui(backend.Backend):
             prompt = u'%s Yes/No: ' % label
 
         while True:
-            try:
-                data = raw_input(self.encode(prompt)).lower()
-            except EOFError:
-                return None
+            data = self.prompt_helper(prompt, label)
 
             if data in (u'yes', u'y'):
                 return True
@@ -580,23 +585,19 @@ class textui(backend.Backend):
         Prompt user for a password or read it in via stdin depending
         on whether there is a tty or not.
         """
-        try:
-            if sys.stdin.isatty():
-                while True:
-                    pw1 = getpass.getpass(u'%s: ' % unicode(label))
-                    if not confirm:
-                        return self.decode(pw1)
-                    pw2 = getpass.getpass(
-                        unicode(_('Enter %(label)s again to verify: ') % dict(label=label))
-                    )
-                    if pw1 == pw2:
-                        return self.decode(pw1)
-                    self.print_error( _('Passwords do not match!'))
-            else:
-                return self.decode(sys.stdin.readline().strip())
-        except KeyboardInterrupt:
-            print ''
-            self.print_error(_('Cancelled.'))
+        if sys.stdin.isatty():
+            prompt = u'%s: ' % unicode(label)
+            repeat_prompt = unicode(_('Enter %(label)s again to verify: ') % dict(label=label))
+            while True:
+                pw1 = self.prompt_helper(prompt, label, prompt_func=getpass.getpass)
+                if not confirm:
+                    return pw1
+                pw2 = self.prompt_helper(repeat_prompt, label, prompt_func=getpass.getpass)
+                if pw1 == pw2:
+                    return pw1
+                self.print_error( _('Passwords do not match!'))
+        else:
+            return self.decode(sys.stdin.readline().strip())
 
     def select_entry(self, entries, format, attrs, display_count=True):
         """
