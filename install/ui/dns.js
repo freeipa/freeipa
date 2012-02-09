@@ -582,7 +582,12 @@ IPA.dns.get_record_metadata = function() {
                     validators: [IPA.ip_v4_address_validator()]
                 }
             ],
-            columns: ['a_part_ip_address']
+            columns: [
+                {
+                    factory: IPA.dns.ptr_redirection_column,
+                    name: 'a_part_ip_address'
+                }
+            ]
         },
         {
             name: 'aaaarecord',
@@ -592,7 +597,12 @@ IPA.dns.get_record_metadata = function() {
                     validators: [IPA.ip_v6_address_validator()]
                 }
             ],
-            columns: ['aaaa_part_ip_address']
+            columns: [
+                {
+                    factory: IPA.dns.ptr_redirection_column,
+                    name: 'aaaa_part_ip_address'
+                }
+            ]
         },
         {
             name: 'a6record',
@@ -1829,6 +1839,227 @@ IPA.dns.record_modify_column = function(spec) {
             }
         }).appendTo(container);
     };
+
+    return that;
+};
+
+IPA.dns.ptr_redirection_column = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.column(spec);
+
+    that.link = true;
+
+    that.link_handler = function(value) {
+
+        var address = NET.ip_address(value);
+
+        var dialog = IPA.dns.ptr_redirection_dialog({
+            address: address
+        });
+        dialog.open();
+
+        return false;
+    };
+
+    return that;
+};
+
+IPA.dns.ptr_redirection_dialog = function(spec) {
+
+    spec = spec || {};
+
+    spec.title = IPA.messages.objects.dnsrecord.ptr_redir_title;
+
+    var that = IPA.dialog(spec);
+
+    that.address = spec.address;
+
+    that.create = function() {
+
+        that.status_div = $('<div />', {
+            'class': 'redirection-status'
+        }).appendTo(that.container);
+    };
+
+    that.create_buttons = function() {
+
+        that.create_button({
+            name: 'close',
+            label: IPA.messages.buttons.close,
+            click: function() {
+                that.close();
+            }
+        });
+    };
+
+    that.create_add_record_button = function() {
+
+        $('<a />', {
+            text:  IPA.messages.objects.dnsrecord.ptr_redir_create,
+            href: '#create_record',
+            click: function() {
+                that.create_record();
+                return false;
+            }
+        }).appendTo(that.container);
+    };
+
+    that.append_status = function(message) {
+
+        $('<div />', {
+            text: message
+        }).appendTo(that.status_div);
+    };
+
+    that.open = function() {
+
+        that.dialog_open();
+        that.start_redirect();
+    };
+
+    //step 0 - preparation
+    that.start_redirect = function() {
+
+        if (!that.address.valid) {
+            that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_address_err);
+        } else {
+            that.reverse_address = that.address.get_reverse().toLowerCase()+'.';
+
+            var record = IPA.nav.get_state('dnsrecord-pkey');
+            var zone = IPA.nav.get_state('dnszone-pkey');
+
+            if (record && zone && record !== '' && zone !== '') {
+                that.dns_record = {
+                    name: record,
+                    zone: zone
+                };
+            }
+
+            that.get_zones();
+        }
+    };
+
+    //1st step: get all zones
+    that.get_zones = function() {
+
+        that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_zones);
+
+        var command = IPA.command({
+            entity: 'dnszone',
+            method: 'find',
+            options: {
+                pkey_only: true
+            },
+            on_success: that.find_zone,
+            on_error: function() {
+                that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_zones_err);
+            }
+        });
+
+        command.execute();
+    };
+
+    //2nd step: find target zone
+    that.find_zone = function(data) {
+        var zones = data.result.result;
+        var target_zone = null;
+
+        for (var i=0; i<zones.length; i++) {
+
+            var zone_name = zones[i].idnsname[0];
+            if (that.reverse_address.indexOf(zone_name) > -1) {
+                var msg = IPA.messages.objects.dnsrecord.ptr_redir_zone;
+                msg = msg.replace('${zone}', zone_name);
+                that.append_status(msg);
+
+                if (!target_zone ||
+                    (target_zone && zone_name.length > target_zone.length)) {
+
+                    target_zone = zone_name;
+                }
+
+                break;
+            }
+        }
+
+        if (target_zone) {
+            that.zone = target_zone;
+            that.check_record();
+        } else {
+            that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_zone_err);
+        }
+    };
+
+    //3rd step: check record existance
+    that.check_record = function(zone) {
+
+        that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_record);
+
+        var i1 = that.reverse_address.indexOf(that.zone);
+        var record_name = that.reverse_address.substring(0,i1 - 1);
+        that.record_keys = [that.zone, record_name];
+
+        var command = IPA.command({
+            entity: 'dnsrecord',
+            method: 'show',
+            args: that.record_keys,
+            on_success: function() {
+                that.redirect();
+            },
+            on_error: function() {
+                that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_record_err);
+                if (that.dns_record) {
+                    that.create_add_record_button();
+                }
+            },
+            retry: false
+        });
+
+        command.execute();
+    };
+
+    //4th-a step: actual redirect
+    that.redirect = function() {
+
+        var entity = IPA.get_entity('dnsrecord');
+
+        IPA.nav.show_entity_page(
+            entity,
+            'default',
+            that.record_keys);
+
+        that.close();
+    };
+
+    //4th-b optional step: create PTR record
+    that.create_record = function() {
+
+        that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_creating);
+
+        var ptr = that.dns_record.name +'.' + that.dns_record.zone;
+
+        var command = IPA.command({
+            entity: 'dnsrecord',
+            method: 'add',
+            args: that.record_keys,
+            options: {
+                ptrrecord: [ptr]
+            },
+            on_success: function() {
+                that.redirect();
+            },
+            on_error: function() {
+                that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_creating_err);
+            }
+        });
+
+        command.execute();
+    };
+
+
+    that.create_buttons();
 
     return that;
 };
