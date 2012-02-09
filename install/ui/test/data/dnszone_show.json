@@ -18,6 +18,11 @@
                 "dsrecord": "rscwo",
                 "hinforecord": "rscwo",
                 "idnsallowdynupdate": "rscwo",
+                "idnsallowquery": "rscwo",
+                "idnsallowsyncptr": "rscwo",
+                "idnsallowtransfer": "rscwo",
+                "idnsforwarders": "rscwo",
+                "idnsforwardpolicy": "rscwo",
                 "idnsname": "rscwo",
                 "idnssoaexpire": "rscwo",
                 "idnssoaminimum": "rscwo",
@@ -50,6 +55,21 @@
             "dn": "idnsname=example.com,cn=dns,dc=example,dc=com",
             "idnsallowdynupdate": [
                 "FALSE"
+            ],
+            "idnsallowquery": [
+                "any"
+            ],
+            "idnsallowsyncptr": [
+                "TRUE"
+            ],
+            "idnsallowtransfer": [
+                "none"
+            ],
+            "idnsforwarders": [
+                "2003:beef::24"
+            ],
+            "idnsforwardpolicy": [
+                "only"
             ],
             "idnsname": [
                 "example.com"

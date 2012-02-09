@@ -569,6 +569,7 @@ class i18n_messages(Command):
                 "ip_v6_address": _('Not a valid IPv6 address'),
                 "max_value": _("Maximum value is ${value}"),
                 "min_value": _("Minimum value is ${value}"),
+                "net_address": _("Not a valid network address"),
                 "required": _("Required field"),
             },
         },

@@ -430,6 +430,7 @@
                             "ip_v6_address": "Not a valid IPv6 address",
                             "max_value": "Maximum value is ${value}",
                             "min_value": "Minimum value is ${value}",
+                            "net_address": "Not a valid network address",
                             "required": "Required field"
                         }
                     }
