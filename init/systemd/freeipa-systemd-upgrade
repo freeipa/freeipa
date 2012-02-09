@@ -80,7 +80,7 @@ try:
     # when enabling DS instances we'll also do configure /etc/sysconfig/dirsrv.systemd
     # which comes with 389-ds-base-1.2.10-0.8.a7 on F-16 and later. This is handled in
     # fedora16 platform code
-    realm = config.config.default_realm.upper().replace('.','-')
+    realm = config.config.default_realm.upper().replace('.','-') #pylint: disable=E1103
     print "    Re-enable Directory server instances PKI-IPA and %s " % (realm)
     if os.path.exists('/etc/systemd/system/dirsrv@.service'):
         os.unlink('/etc/systemd/system/dirsrv@.service')
