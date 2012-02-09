@@ -550,10 +550,15 @@ IPA.multivalued_field = function(spec) {
 
     that.validate = function() {
 
+        var values = that.save();
+
+        return that.validate_core(values);
+    };
+
+    that.validate_core = function(values) {
+
         that.hide_error();
         that.valid = true;
-
-        var values = that.save();
 
         if (that.is_empty(values)) {
             return that.valid;

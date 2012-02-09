@@ -57,12 +57,13 @@ IPA.dns.zone_entity = function(spec) {
         }).
         details_facet({
             factory: IPA.dnszone_details_facet,
+            command_mode: 'info',
             sections: [{
                 name: 'identity',
                 fields: [
                     'idnsname',
                     {
-                        type: 'radio',
+                        type: 'enable',
                         name: 'idnszoneactive',
                         label: IPA.messages.status.label,
                         options: [
@@ -96,6 +97,43 @@ IPA.dns.zone_entity = function(spec) {
                     {
                         type: 'textarea',
                         name: 'idnsupdatepolicy'
+                    },
+                    {
+                        type: 'netaddr',
+                        name: 'idnsallowquery',
+                        validators: [
+                            IPA.network_validator({
+                                specials: ['any', 'none',
+                                               'localhost', 'localnets'],
+                                allow_negation: true,
+                                allow_host_address: true
+                        })]
+                    },
+                    {
+                        type: 'netaddr',
+                        name: 'idnsallowtransfer',
+                        validators: [
+                            IPA.network_validator({
+                                specials: ['any', 'none',
+                                               'localhost', 'localnets'],
+                                allow_negation: true,
+                                allow_host_address: true
+                        })]
+                    },
+                    {
+                        type: 'multivalued',
+                        name: 'idnsforwarders',
+                        validators: [IPA.ip_address_validator()]
+                    },
+                    {
+                        type: 'checkboxes',
+                        name: 'idnsforwardpolicy',
+                        mutex: true,
+                        options: IPA.create_options(['only', 'first'])
+                    },
+                    {
+                        type: 'checkbox',
+                        name: 'idnsallowsyncptr'
                     }
                 ]
             }]
@@ -142,7 +180,8 @@ IPA.dns.zone_entity = function(spec) {
                         {
                             type: 'dnszone_name',
                             name: 'name_from_ip',
-                            radio_name: 'dnszone_name_type'
+                            radio_name: 'dnszone_name_type',
+                            validators: [IPA.network_validator()]
                         }
                     ]
                 },
@@ -177,97 +216,12 @@ IPA.dnszone_details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 
-    that.update = function(on_success, on_error) {
+    that.update_on_success = function(data, text_status, xhr) {
+        that.refresh();
+    };
 
-        var args = that.get_primary_key();
-
-        var modify_operation = {
-            execute: false,
-            command: IPA.command({
-                entity: that.entity.name,
-                method: 'mod',
-                args: args,
-                options: { all: true, rights: true }
-            })
-        };
-
-        var enable_operation = {
-            execute: false,
-            command: IPA.command({
-                entity: that.entity.name,
-                method: 'enable',
-                args: args,
-                options: { all: true, rights: true }
-            })
-        };
-
-        var record = {};
-        that.save(record);
-
-        var fields = that.fields.get_fields();
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            if (!field.is_dirty()) continue;
-
-            var values = record[field.name];
-            if (!values) continue;
-
-            var metadata = field.metadata;
-
-            // skip primary key
-            if (metadata && metadata.primary_key) continue;
-
-            // check enable/disable
-            if (field.name == 'idnszoneactive') {
-                if (values[0] == 'FALSE') enable_operation.command.method = 'disable';
-                enable_operation.execute = true;
-                continue;
-            }
-
-            if (metadata) {
-                if (values.length == 1) {
-                    modify_operation.command.set_option(field.name, values[0]);
-                } else if (field.join) {
-                    modify_operation.command.set_option(field.name, values.join(','));
-                } else {
-                    modify_operation.command.set_option(field.name, values);
-                }
-
-            } else {
-                if (values.length) {
-                    modify_operation.command.set_option('setattr', field.name+'='+values[0]);
-                } else {
-                    modify_operation.command.set_option('setattr', field.name+'=');
-                }
-                for (var l=1; l<values.length; l++) {
-                    modify_operation.command.set_option('addattr', field.name+'='+values[l]);
-                }
-            }
-
-            modify_operation.execute = true;
-        }
-
-        var batch = IPA.batch_command({
-            name: 'dnszone_details_update',
-            on_success: function(data, text_status, xhr) {
-                that.refresh();
-                if (on_success) on_success.call(this, data, text_status, xhr);
-            },
-            on_error: function(xhr, text_status, error_thrown) {
-                that.refresh();
-                if (on_error) on_error.call(this, xhr, text_status, error_thrown);
-            }
-        });
-
-        if (modify_operation.execute) batch.add_command(modify_operation.command);
-        if (enable_operation.execute) batch.add_command(enable_operation.command);
-
-        if (!batch.commands.length) {
-            that.refresh();
-            return;
-        }
-
-        batch.execute();
+    that.update_on_error = function(xhr, text_status, error_thrown) {
+        that.refresh();
     };
 
     return that;
@@ -1816,6 +1770,78 @@ IPA.dns.record_type_table_widget = function(spec) {
 
 IPA.widget_factories['dnsrecord_type_table'] = IPA.dns.record_type_table_widget;
 
+IPA.dns.netaddr_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.multivalued_field(spec);
+
+    that.load = function(record) {
+
+        that.record = record;
+
+        that.values = that.get_value(record, that.name);
+        that.values = that.values[0].split(';');
+
+        that.load_writable(record);
+
+        that.reset();
+    };
+
+    that.test_dirty = function() {
+
+        if (that.read_only) return false;
+
+        var values = that.field_save();
+
+        //check for empty value: null, [''], '', []
+        var orig_empty = that.is_empty(that.values);
+        var new_empty= that.is_empty(values);
+        if (orig_empty && new_empty) return false;
+        if (orig_empty != new_empty) return true;
+
+        //strict equality - checks object's ref equality, numbers, strings
+        if (values === that.values) return false;
+
+        //compare values in array
+        if (values.length !== that.values.length) return true;
+
+        for (var i=0; i<values.length; i++) {
+            if (values[i] != that.values[i]) {
+                return true;
+            }
+        }
+
+        return that.widget.test_dirty();
+    };
+
+    that.save = function(record) {
+
+        var values = that.field_save();
+        var new_val = values.join(';');
+
+        if (record) {
+            record[that.name] = new_val;
+        }
+
+        return [new_val];
+    };
+
+    that.validate = function() {
+
+        var values = that.field_save();
+
+        return that.validate_core(values);
+    };
+
+    return that;
+};
+
+IPA.field_factories['netaddr'] = IPA.dns.netaddr_field;
+IPA.widget_factories['netaddr'] = IPA.multivalued_widget;
+
+
+
 IPA.dns.record_modify_column = function(spec) {
 
     spec = spec || {};
@@ -2116,6 +2142,84 @@ IPA.ip_v6_address_validator = function(spec) {
     return IPA.ip_address_validator(spec);
 };
 
+IPA.network_validator = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.validator(spec);
+
+    that.allow_negation = spec.allow_negation;
+    that.allow_host_address = spec.allow_host_address;
+    that.specials = spec.specials || [];
+    that.message = spec.message || IPA.messages.widget.validation.net_address;
+
+    that.false_result = function() {
+        return {
+            valid: false,
+            message: that.message
+        };
+    };
+
+    that.true_result = function() {
+        return {
+            valid: true
+        };
+    };
+
+    that.validate = function(value) {
+
+        if (typeof value !== 'string') return that.false_result();
+
+        if (that.specials.indexOf(value) > -1) {
+            return that.true_result();
+        }
+
+        var address_part, mask_part;
+
+        if (value.indexOf('/') > -1) {
+
+            var parts = value.split('/');
+
+            if (parts.length === 2) {
+                address_part = parts[0];
+                mask_part = parts[1];
+
+                if (mask_part === '') return that.false_result();
+
+            } else {
+                return that.false_result();
+            }
+        } else if (that.allow_host_address) {
+            address_part = value;
+        } else {
+            return that.false_result();
+        }
+
+
+        if (that.allow_negation && address_part.indexOf('!') === 0) {
+            address_part = address_part.substring(1);
+        }
+
+        var address = NET.ip_address(address_part);
+        if (!address.valid) return that.false_result();
+
+        if (mask_part) {
+
+            var mask = parseInt(mask_part, 10);
+
+            var mask_length = 32;
+            if (address.type === 'v6') mask_length = 128;
+
+            if (isNaN(mask) || mask < 8 || mask > mask_length) {
+                return that.false_result();
+            }
+        }
+
+        return that.true_result();
+    };
+
+    return that;
+};
 
 IPA.register('dnszone', IPA.dns.zone_entity);
 IPA.register('dnsrecord', IPA.dns.record_entity);

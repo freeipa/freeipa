@@ -533,9 +533,11 @@ IPA.multivalued_widget = function(spec) {
 
     that.test_dirty_row = function(row) {
 
-        if(row.deleted || row.is_new) return true;
+        if (row.deleted || row.is_new) return true;
 
         var values = row.widget.save();
+
+        if (row.original_values.length !== values.length) return true;
 
         for (var i=0; i<values.length; i++) {
             if (values[i] !== row.original_values[i]) {
