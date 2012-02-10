@@ -86,11 +86,11 @@ class LDAPUpdate:
         domain = ipautil.get_domain_name()
         libarch = self.__identify_arch()
 
-        if not self.ldapi:
-            fqdn = installutils.get_fqdn()
-            if fqdn is None:
-                raise RuntimeError("Unable to determine hostname")
-        else:
+        fqdn = installutils.get_fqdn()
+        if fqdn is None:
+            raise RuntimeError("Unable to determine hostname")
+        fqhn = fqdn # Save this for the sub_dict variable
+        if self.ldapi:
             fqdn = "ldapi://%%2fvar%%2frun%%2fslapd-%s.socket" % "-".join(
                 self.realm.split(".")
             )
@@ -98,7 +98,7 @@ class LDAPUpdate:
         if not self.sub_dict.get("REALM") and self.realm is not None:
             self.sub_dict["REALM"] = self.realm
         if not self.sub_dict.get("FQDN"):
-            self.sub_dict["FQDN"] = fqdn
+            self.sub_dict["FQDN"] = fqhn
         if not self.sub_dict.get("DOMAIN"):
             self.sub_dict["DOMAIN"] = domain
         if not self.sub_dict.get("SUFFIX") and suffix is not None:
