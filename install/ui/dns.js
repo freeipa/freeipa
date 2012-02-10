@@ -569,9 +569,9 @@ IPA.dns.get_record_metadata = function() {
         {
             name: 'a6record',
             attributes: [
-                'a6record'
+                'a6_part_data'
             ],
-            columns: ['a6record']
+            columns: ['a6_part_data']
         },
         {
             name: 'afsdbrecord',
