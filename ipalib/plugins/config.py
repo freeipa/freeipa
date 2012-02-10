@@ -241,8 +241,8 @@ class config_mod(LDAPUpdate):
                         continue
                     if obj_attr not in new_allowed_attrs:
                         raise errors.ValidationError(name=attr,
-                                error=_('%s default attribute %s would not be allowed!') \
-                                % (obj, obj_attr))
+                                error=_('%(obj)s default attribute %(attr)s would not be allowed!') \
+                                % dict(obj=obj, attr=obj_attr))
 
         if 'ipaselinuxusermapdefault' in options and options['ipaselinuxusermapdefault'] is None:
             raise errors.ValidationError(name='ipaselinuxusermapdefault',
