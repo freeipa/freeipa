@@ -665,6 +665,7 @@ IPA.checkboxes_widget = function (spec) {
 
     that.options = spec.options || [];
     that.direction = spec.direction || 'vertical';
+    that.mutex = spec.mutex;
 
     that.create = function(container) {
 
@@ -699,6 +700,15 @@ IPA.checkboxes_widget = function (spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
+
+            var checkbox = $(this);
+            var checked = checkbox.is(':checked');
+
+            if (that.mutex && checked) {
+                that.clear();
+                checkbox.attr('checked', true);
+            }
+
             that.value_changed.notify([that.save()], that);
         });
 
