@@ -222,7 +222,7 @@ class Declarative(XMLRPC_test):
             )
         try:
             api.Command[cmd](*args, **options)
-        except errors.NotFound:
+        except (errors.NotFound, errors.EmptyModlist):
             pass
 
     def test_generator(self):

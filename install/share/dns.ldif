@@ -1,5 +1,6 @@
 dn: cn=dns,$SUFFIX
 changetype: add
+objectClass: idnsConfigObject
 objectClass: nsContainer
 objectClass: top
 cn: dns

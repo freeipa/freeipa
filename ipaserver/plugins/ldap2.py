@@ -67,10 +67,11 @@ SASL_AUTH = _ldap_sasl.sasl({}, 'GSSAPI')
 # OID 1.3.6.1.4.1.1466.115.121.1.7 (Boolean) syntax encoding
 def _encode_bool(self, value):
     def encode_bool_value(value):
+        if value is None:
+            return None
         if value:
             return u'TRUE'
-        else:
-            return u'FALSE'
+        return u'FALSE'
 
     if type(value) in (tuple, list):
         return tuple(encode_bool_value(v) for v in value)
