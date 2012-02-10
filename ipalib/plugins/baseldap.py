@@ -1644,8 +1644,8 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
     Retrieve all LDAP entries matching the given criteria.
     """
     member_attributes = []
-    member_param_incl_doc = _('Search for %s with these %s %s.')
-    member_param_excl_doc = _('Search for %s without these %s %s.')
+    member_param_incl_doc = _('Search for %(searched_object)s with these %(relationship)s %(ldap_object)s.')
+    member_param_excl_doc = _('Search for %(searched_object)s without these %(relationship)s %(ldap_object)s.')
 
     # pointer to function for entries sorting
     # if no function is assigned the entries are sorted by their primary key value
@@ -1684,18 +1684,20 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             relationship = self.obj.relationships.get(
                 attr, ['member', '', 'no_']
             )
-            doc = self.member_param_incl_doc % (
-                self.obj.object_name_plural, relationship[0].lower(),
-                ldap_obj.object_name_plural
+            doc = self.member_param_incl_doc % dict(
+                searched_object=self.obj.object_name_plural,
+                relationship=relationship[0].lower(),
+                ldap_object=ldap_obj.object_name_plural
             )
             name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
             yield Str(
                 '%s*' % name, cli_name='%ss' % name, doc=doc,
                 label=ldap_obj.object_name, csv=True
             )
-            doc = self.member_param_excl_doc % (
-                self.obj.object_name_plural, relationship[0].lower(),
-                ldap_obj.object_name_plural
+            doc = self.member_param_excl_doc % dict(
+                searched_object=self.obj.object_name_plural,
+                relationship=relationship[0].lower(),
+                ldap_object=ldap_obj.object_name_plural
             )
             name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
             yield Str(

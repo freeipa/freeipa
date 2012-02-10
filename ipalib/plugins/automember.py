@@ -185,7 +185,7 @@ class automember(LDAPObject):
         try:
             (gdn, entry_attrs) = ldap.get_entry(dn, [])
         except errors.NotFound:
-            raise errors.NotFound(reason=_(u'Group: %s not found!' % groupname))
+            raise errors.NotFound(reason=_(u'Group: %s not found!') % groupname)
         return gdn
 
     def get_dn(self, *keys, **options):
@@ -212,7 +212,7 @@ class automember(LDAPObject):
         if obj is not None:
             return obj
         else:
-            raise errors.NotFound(reason=_('%s is not a valid attribute.' % attr))
+            raise errors.NotFound(reason=_('%s is not a valid attribute.') % attr)
 
 api.register(automember)
 
@@ -283,7 +283,7 @@ class automember_add_condition(LDAPUpdate):
         try:
             (tdn, test_attrs) = ldap.get_entry(dn, [])
         except errors.NotFound:
-            raise errors.NotFound(reason=_(u'Auto member rule: %s not found!' % keys[0]))
+            raise errors.NotFound(reason=_(u'Auto member rule: %s not found!') % keys[0])
         # Define container key
         key = options['key']
         # Check to see if the attribute is valid
@@ -369,7 +369,7 @@ class automember_remove_condition(LDAPUpdate):
         try:
             (tdn, test_attrs) = ldap.get_entry(dn, [])
         except errors.NotFound:
-            raise errors.NotFound(reason=_(u'Auto member rule: %s not found!' % keys[0]))
+            raise errors.NotFound(reason=_(u'Auto member rule: %s not found!') % keys[0])
 
         # Define container key
         type_attr_default = {'group': 'manager', 'hostgroup': 'fqdn'}

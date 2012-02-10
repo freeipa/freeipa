@@ -101,7 +101,7 @@ class ra(rabase.rabase):
         except errors.CertificateOperationError, e:
             raise e
         except NSPRError, e:
-            raise errors.CertificateOperationError(error=_('unable to decode csr: %s' % e))
+            raise errors.CertificateOperationError(error=_('unable to decode csr: %s') % e)
 
         # certutil wants the CSR to have have a header and footer. Add one
         # if it isn't there.
