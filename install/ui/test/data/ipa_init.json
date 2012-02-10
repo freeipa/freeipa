@@ -216,7 +216,7 @@
                         },
                         "group": {
                             "details": "Group Settings",
-                            "posix": "Is this a POSIX group?"
+                            "posix": "POSIX group"
                         },
                         "hbacrule": {
                             "any_host": "Any Host",
@@ -253,7 +253,7 @@
                             "cn": "Host Name",
                             "delete_key_unprovision": "Delete Key, Unprovision",
                             "details": "Host Settings",
-                            "enrolled": "Enrolled?",
+                            "enrolled": "Enrolled",
                             "enrollment": "Enrollment",
                             "fqdn": "Fully Qualified Host Name",
                             "keytab": "Kerberos Key",
