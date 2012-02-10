@@ -359,7 +359,7 @@ class hbactest(Command):
                     if res == pyhbac.HBAC_EVAL_DENY:
                         notmatched_rules.append(ipa_rule.name)
                     if warning_flag:
-                        warning_rules.append(u'Sourcehost value of rule "%s" is ignored' % (ipa_rule.name))
+                        warning_rules.append(_(u'Sourcehost value of rule "%s" is ignored') % (ipa_rule.name))
                 except pyhbac.HbacError as (code, rule_name):
                     if code == pyhbac.HBAC_EVAL_ERROR:
                         error_rules.append(rule_name)
@@ -402,7 +402,7 @@ class hbactest(Command):
                 continue
             result = output[o]
             if isinstance(result, (list, tuple)):
-                    textui.print_attribute(outp.name, result, '%s: %s', 1, True)
+                textui.print_attribute(unicode(outp.doc), result, '%s: %s', 1, True)
             elif isinstance(result, (unicode, bool)):
                 if o == 'summary':
                     textui.print_summary(result)
@@ -410,6 +410,6 @@ class hbactest(Command):
                     textui.print_indented(result)
 
         # Propagate integer value for result. It will give proper command line result for scripts
-        return int(not bool(output['value']))
+        return int(not output['value'])
 
 api.register(hbactest)
