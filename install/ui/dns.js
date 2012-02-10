@@ -534,6 +534,10 @@ IPA.dns.get_record_metadata = function() {
                 {
                     name: 'a_part_ip_address',
                     validators: [IPA.ip_v4_address_validator()]
+                },
+                {
+                    type: 'checkbox',
+                    name: 'a_extra_create_reverse'
                 }
             ],
             columns: [
@@ -549,6 +553,10 @@ IPA.dns.get_record_metadata = function() {
                 {
                     name:'aaaa_part_ip_address',
                     validators: [IPA.ip_v6_address_validator()]
+                },
+                {
+                    type: 'checkbox',
+                    name: 'aaaa_extra_create_reverse'
                 }
             ],
             columns: [
@@ -1045,7 +1053,7 @@ IPA.dns.extend_spec = function(spec, fields, widgets) {
     }
 };
 
-IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets) {
+IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets, update) {
 
     var set_defined = function(property, object, name) {
         if (property !== undefined) {
@@ -1069,19 +1077,27 @@ IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets) {
     for (var i=0; i<type.attributes.length;i++) {
         var attribute = type.attributes[i];
 
+        if (typeof attribute === 'string') {
+            attribute = {
+                name: attribute
+            };
+        }
+
+        var metadata = IPA.get_entity_param('dnsrecord', attribute.name);
+        if (metadata && update && metadata.flags &&
+            metadata.flags.indexOf('no_update') > -1) continue;
+
         //create field
         var field = {};
-        if (typeof attribute === 'string') {
-            field.name = attribute;
-        } else {
-            field.name = attribute.name;
-            field.label = attribute.label ||
-                            IPA.dns.record_get_attr_label(attribute.name);
-            set_defined(attribute.type, field, 'type');
-            set_defined(attribute.validators, field, 'validators');
-            set_defined(attribute.required, field, 'required');
-            copy_obj(widget, attribute.field_opt);
-        }
+
+        field.name = attribute.name;
+        field.label = attribute.label ||
+                        IPA.dns.record_get_attr_label(attribute.name);
+        set_defined(attribute.type, field, 'type');
+        set_defined(attribute.validators, field, 'validators');
+        set_defined(attribute.required, field, 'required');
+        copy_obj(widget, attribute.field_opt);
+
         field.widget = type.name+'.'+field.name;
         fields.push(field);
 
@@ -1214,6 +1230,9 @@ IPA.dns.record_get_attr_label = function(part_name) {
     if (part_name.indexOf('_part_') > -1) {
 
         label = label.substring(label.indexOf(' '));
+    } else if (part_name.indexOf('_extra_') > -1) {
+
+        label = label.substring(label.indexOf(' '));
     }
 
     return label;
@@ -1293,16 +1312,18 @@ IPA.dnsrecord_adder_dialog_type_policy = function(spec) {
         var fields = that.container.fields.get_fields();
 
         for (var i=0; i<fields.length; i++) {
+
             var field = fields[i];
-
             var fieldtype;
-            var index = field.name.indexOf('_part_');
-            if (index > -1) {
-                fieldtype = field.name.substring(0, index);
-            } else {
-                fieldtype = field.name.substring(0, field.name.indexOf('record'));
-            }
+            var attr_types = ['_part_', '_extra_', 'record'];
 
+            for (var j=0; j<attr_types.length; j++) {
+                var index = field.name.indexOf(attr_types[j]);
+                if (index > -1) {
+                    fieldtype = field.name.substring(0, index);
+                    break;
+                }
+            }
 
             field.enabled = (field.name === 'idnsname' ||
                 field.name === that.type_field_name ||
@@ -1657,7 +1678,7 @@ IPA.dns.record_type_table_widget = function(spec) {
         var type = IPA.dns.get_record_type(dnstype+'record');
 
         IPA.dns.record_prepare_editor_for_type(type, dialog_spec.fields,
-                                               dialog_spec.widgets);
+                                               dialog_spec.widgets, true);
 
         var dialog = IPA.entity_adder_dialog(dialog_spec);
 
