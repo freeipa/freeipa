@@ -148,6 +148,12 @@ EXAMPLES:
  if one is not included):
    ipa dns-resolve www.example.com
    ipa dns-resolve www
+
+ Show global DNS configuration:
+   ipa dnsconfig-show
+
+ Modify global DNS configuration and set a list of global forwarders:
+   ipa dnsconfig-mod --forwarder=10.0.0.1
 """)
 
 # supported resource record types
@@ -2100,3 +2106,47 @@ class dns_is_enabled(Command):
         return dict(result=dns_enabled, value=u'')
 
 api.register(dns_is_enabled)
+
+
+class dnsconfig(LDAPObject):
+    """
+    DNS global configuration object
+    """
+    object_name = _('DNS configuration options')
+    default_attributes = [ 'idnsforwarders', ]
+
+    label = _('DNS Global Configuration')
+    label_singular = _('DNS Global Configuration')
+
+    takes_params = (
+        Str('idnsforwarders*',
+            _validate_ipaddr,
+            cli_name='forwarder',
+            label=_('Global forwarders'),
+            doc=_('A list of global forwarders'),
+            csv=True,
+        ),
+    )
+
+    def get_dn(self, *keys, **kwargs):
+        return api.env.container_dns
+
+    def get_dnsconfig(self, ldap):
+        (dn, entry) = ldap.get_entry(self.get_dn(), None,
+                           normalize=self.normalize_dn)
+
+        return entry
+
+api.register(dnsconfig)
+
+
+class dnsconfig_mod(LDAPUpdate):
+    __doc__ = _('Modify global DNS configuration.')
+
+api.register(dnsconfig_mod)
+
+
+class dnsconfig_show(LDAPRetrieve):
+    __doc__ = _('Show the current global DNS configuration.')
+
+api.register(dnsconfig_show)

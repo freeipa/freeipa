@@ -64,6 +64,7 @@ class test_dns(Declarative):
         ('dnsrecord_del', [dnszone1, dnsres1], {'del_all' : True}),
         ('dnszone_del', [dnszone2], {}),
         ('dnszone_del', [revdnszone1], {}),
+        ('dnsconfig_mod', [], {'idnsforwarders' : None,})
     ]
 
     tests = [
@@ -768,6 +769,19 @@ class test_dns(Declarative):
                     'dn': unicode(dnsrev1_dn),
                     'idnsname': [dnsrev1],
                     'ptrrecord': [u'foo-1.example.com.'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Update global DNS settings',
+            command=('dnsconfig_mod', [], {'idnsforwarders' : [u'80.142.15.80'],}),
+            expected={
+                'value': u'',
+                'summary': None,
+                'result': {
+                    'idnsforwarders': [u'80.142.15.80'],
                 },
             },
         ),

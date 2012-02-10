@@ -20,3 +20,6 @@ add: basedn: 'cn=privileges,cn=pbac,$SUFFIX'
 add: filter: (objectclass=*)
 add: ttl: 10
 
+# add idnsConfigObject if it is not there already
+dn: cn=dns, $SUFFIX
+addifexist: objectClass: idnsConfigObject

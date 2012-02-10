@@ -610,6 +610,28 @@ arg: Str('hostname')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
+command: dnsconfig_mod
+args: 0,8,3
+option: Str('idnsforwarders', attribute=True, autofill=False, cli_name='forwarder', csv=True, multivalue=True, required=False)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('version?', exclude='webui')
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, None)
+command: dnsconfig_show
+args: 0,4,3
+option: Flag('rights', autofill=True, default=False)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('version?', exclude='webui')
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, None)
 command: dnsrecord_add
 args: 2,114,3
 arg: Str('dnszoneidnsname', cli_name='dnszone', query=True, required=True)
