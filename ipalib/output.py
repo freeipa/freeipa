@@ -111,11 +111,11 @@ class ListOfEntries(Output):
 result = Output('result', doc=_('All commands should at least have a result'))
 
 summary = Output('summary', (unicode, NoneType),
-    'User-friendly description of action performed'
+    _('User-friendly description of action performed')
 )
 
 value = Output('value', unicode,
-    "The primary_key value of the entry, e.g. 'jdoe' for a user",
+    _("The primary_key value of the entry, e.g. 'jdoe' for a user"),
     flags=['no_display'],
 )
 
@@ -130,19 +130,19 @@ standard_entry = (
 standard_list_of_entries = (
     summary,
     ListOfEntries('result'),
-    Output('count', int, 'Number of entries returned'),
-    Output('truncated', bool, 'True if not all results were returned'),
+    Output('count', int, _('Number of entries returned')),
+    Output('truncated', bool, _('True if not all results were returned')),
 )
 
 standard_delete = (
     summary,
-    Output('result', dict, 'list of deletions that failed'),
+    Output('result', dict, _('List of deletions that failed')),
     value,
 )
 
 standard_boolean = (
     summary,
-    Output('result', bool, 'True means the operation was successful'),
+    Output('result', bool, _('True means the operation was successful')),
     value,
 )
 

@@ -265,13 +265,13 @@ class hbacrule_mod(LDAPUpdate):
             self.obj.handle_not_found(*keys)
 
         if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="user category cannot be set to 'all' while there are allowed users")
+            raise errors.MutuallyExclusiveError(reason=_("user category cannot be set to 'all' while there are allowed users"))
         if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="host category cannot be set to 'all' while there are allowed hosts")
+            raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are allowed hosts"))
         if is_all(options, 'sourcehostcategory') and 'sourcehost' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="sourcehost category cannot be set to 'all' while there are allowed source hosts")
+            raise errors.MutuallyExclusiveError(reason=_("sourcehost category cannot be set to 'all' while there are allowed sourcehosts"))
         if is_all(options, 'servicecategory') and 'memberservice' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="service category cannot be set to 'all' while there are allowed services")
+            raise errors.MutuallyExclusiveError(reason=_("service category cannot be set to 'all' while there are allowed services"))
         return dn
 
 api.register(hbacrule_mod)
