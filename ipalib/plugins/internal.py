@@ -353,7 +353,7 @@ class i18n_messages(Command):
             },
             "group": {
                 "details": _("Group Settings"),
-                "posix": _("Is this a POSIX group?"),
+                "posix": _("POSIX group"),
             },
             "hbacrule": {
                 "any_host": _("Any Host"),
@@ -391,7 +391,7 @@ class i18n_messages(Command):
                 "cn": _("Host Name"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
                 "details": _("Host Settings"),
-                "enrolled": _("Enrolled?"),
+                "enrolled": _("Enrolled"),
                 "enrollment": _("Enrollment"),
                 "fqdn": _("Fully Qualified Host Name"),
                 "keytab": _("Kerberos Key"),
