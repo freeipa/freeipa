@@ -25,38 +25,6 @@
 #include "util/time.h"
 #include "gen_ndr/ndr_krb5pac.h"
 
-#define KRB5INT_PAC_SIGN_AVAILABLE 1
-#define KRB5INT_FIND_AUTHDATA_AVAILABLE 1
-
-#if KRB5INT_PAC_SIGN_AVAILABLE
-krb5_error_code
-krb5int_pac_sign(krb5_context context,
-                 krb5_pac pac,
-                 krb5_timestamp authtime,
-                 krb5_const_principal principal,
-                 const krb5_keyblock *server_key,
-                 const krb5_keyblock *privsvr_key,
-                 krb5_data *data);
-#define krb5_pac_sign krb5int_pac_sign
-#define KRB5_PAC_LOGON_INFO 1
-#endif
-
-#if KRB5INT_FIND_AUTHDATA_AVAILABLE
-krb5_error_code
-krb5int_find_authdata(krb5_context context,
-                      krb5_authdata *const *ticket_authdata,
-                      krb5_authdata *const *ap_req_authdata,
-                      krb5_authdatatype ad_type, krb5_authdata ***results);
-#define krb5_find_authdata krb5int_find_authdata
-#endif
-
-#ifndef KRB5_PAC_SERVER_CHECKSUM
-#define KRB5_PAC_SERVER_CHECKSUM 6
-#endif
-#ifndef KRB5_PAC_PRIVSVR_CHECKSUM
-#define KRB5_PAC_PRIVSVR_CHECKSUM 7
-#endif
-
 static char *user_pac_attrs[] = {
     "objectClass",
     "uid",
