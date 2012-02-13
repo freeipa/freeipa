@@ -47,6 +47,9 @@ struct ipapwd_policy {
     int min_pwd_length;
     int history_length;
     int min_complexity;
+    int max_fail;
+    int failcnt_interval;
+    int lockout_duration;
 };
 
 time_t ipapwd_gentime_to_time_t(char *timestr);

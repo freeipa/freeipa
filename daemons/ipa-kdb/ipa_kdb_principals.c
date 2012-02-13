@@ -534,20 +534,6 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         entry->attributes |= KRB5_KDB_DISALLOW_ALL_TIX;
     }
 
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
-                                    "krbLastAdminUnlock", &restime);
-    if (ret == 0) {
-        krb5_int32 time32le = htole32((krb5_int32)restime);
-
-        kerr = ipadb_set_tl_data(entry,
-                                 KRB5_TL_LAST_ADMIN_UNLOCK,
-                                 sizeof(time32le),
-                                 (krb5_octet *)&time32le);
-        if (kerr) {
-            goto done;
-        }
-    }
-
     ied = calloc(1, sizeof(struct ipadb_e_data));
     if (!ied) {
         kerr = ENOMEM;
@@ -617,6 +603,22 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         }
 
         ied->last_pwd_change = restime;
+    }
+
+    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
+                                    "krbLastAdminUnlock", &restime);
+    if (ret == 0) {
+        krb5_int32 time32le = htole32((krb5_int32)restime);
+
+        kerr = ipadb_set_tl_data(entry,
+                                 KRB5_TL_LAST_ADMIN_UNLOCK,
+                                 sizeof(time32le),
+                                 (krb5_octet *)&time32le);
+        if (kerr) {
+            goto done;
+        }
+
+        ied->last_admin_unlock = restime;
     }
 
     kerr = 0;
@@ -933,6 +935,7 @@ void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
                     free(ied->pw_history[i]);
                 }
                 free(ied->pw_history);
+                free(ied->pol);
                 free(ied);
             }
         }
@@ -1618,9 +1621,10 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
             }
         }
 
-        if (ied->ipa_user && ied->passwd && ied->pol.history_length) {
+        if (ied->ipa_user && ied->passwd &&
+            ied->pol && ied->pol->history_length) {
             ret = ipapwd_generate_new_history(ied->passwd, now,
-                                              ied->pol.history_length,
+                                              ied->pol->history_length,
                                               ied->pw_history,
                                               &new_history, &nh_len);
             if (ret) {
