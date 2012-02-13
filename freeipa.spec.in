@@ -440,6 +440,19 @@ if [ "$1" -ge "1" ]; then
 %endif
 fi
 
+%pre server
+# Stop ipa_kpasswd if it exists before upgrading so we don't have a
+# zombie process when we're done.
+if [ -e /usr/sbin/ipa_kpasswd ]; then
+%if 0%{?fedora} >= 16
+# Use systemd scheme
+    /bin/systemctl stop ipa_kpasswd.service >/dev/null 2>&1 || :
+%else
+# Use SystemV scheme only before F16
+    /sbin/service ipa_kpasswd stop >/dev/null 2>&1 || :
+%endif
+fi
+
 %pre server-selinux
 if [ -s /etc/selinux/config ]; then
        . %{_sysconfdir}/selinux/config

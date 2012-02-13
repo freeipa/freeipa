@@ -29,6 +29,7 @@ try:
     from ipaserver.install import installutils
     from ipaserver.install import dsinstance
     from ipaserver.install import httpinstance
+    from ipaserver.install import service
     import krbV
     import re
     import os
@@ -42,6 +43,25 @@ error was:
     %s
 """ % sys.exc_value
     sys.exit(1)
+
+class KpasswdInstance(service.SimpleServiceInstance):
+    def __init__(self):
+        service.SimpleServiceInstance.__init__(self, "ipa_kpasswd")
+
+def uninstall_ipa_kpasswd():
+    """
+    We can't use the full service uninstaller because that will attempt
+    to stop and disable the service which by now doesn't exist. We just
+    want to clean up sysrestore.state to remove all references to
+    ipa_kpasswd.
+    """
+    ipa_kpasswd = KpasswdInstance()
+
+    running = ipa_kpasswd.restore_state("running")
+    enabled = not ipa_kpasswd.restore_state("enabled")
+
+    if enabled is not None and not enabled:
+        ipa_kpasswd.remove()
 
 def backup_file(filename, ext):
     """Make a backup of filename using ext as the extension. Do not overwrite
@@ -119,7 +139,7 @@ def upgrade(sub_dict, filename, template, add=False):
     if new < 0:
         print "%s not found." % template
 
-    if old < new or add:
+    if old < new or (add and old == 0):
         backup_file(filename, new)
         update_conf(sub_dict, filename, template)
         print "Upgraded %s to version %d" % (filename, new)
@@ -157,6 +177,46 @@ def upgrade_pki():
         ipautil.run(['/usr/bin/pki-setup-proxy', '-pki_instance_root=/var/lib'
                      ,'-pki_instance_name=pki-ca','-subsystem_type=ca'])
 
+def update_dbmodules(realm, filename="/etc/krb5.conf"):
+    newfile = []
+    found_dbrealm = False
+    found_realm = False
+    prefix = ''
+
+    st = os.stat(filename)
+    fd = open(filename)
+
+    lines = fd.readlines()
+    fd.close()
+
+    if '    db_library = ipadb.so\n' in lines:
+        # Already updated
+        return
+
+    for line in lines:
+        if line.startswith('[dbmodules]'):
+            found_dbrealm = True
+        if found_dbrealm and line.find(realm) > -1:
+            found_realm = True
+            prefix = '#'
+        if found_dbrealm and line.find('}') > -1 and found_realm:
+            found_realm = False
+            newfile.append('#%s' % line)
+            prefix = ''
+            continue
+      
+        newfile.append('%s%s' % (prefix, line))
+
+    # Append updated dbmodules information
+    newfile.append('  %s = {\n' % realm)
+    newfile.append('    db_library = ipadb.so\n')
+    newfile.append('  }\n')
+
+    # Write out new file
+    fd = open(filename, 'w')
+    fd.write("".join(newfile))
+    fd.close()
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -188,6 +248,8 @@ def main():
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
     upgrade_pki()
+    update_dbmodules(krbctx.default_realm)
+    uninstall_ipa_kpasswd()
 try:
     if __name__ == "__main__":
         sys.exit(main())
