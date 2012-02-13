@@ -241,6 +241,14 @@ def run(args, stdin=None, raiseonerr=True,
     p_out = None
     p_err = None
 
+    if isinstance(nolog, basestring):
+        # We expect a tuple (or list, or other iterable) of nolog strings.
+        # Passing just a single string is bad: strings are also, so this
+        # would result in every individual character of that string being
+        # replaced by XXXXXXXX.
+        # This is a sanity check to prevent that.
+        raise ValueError('nolog must be a tuple of strings.')
+
     if env is None:
         # copy default env
         env = copy.deepcopy(os.environ)
