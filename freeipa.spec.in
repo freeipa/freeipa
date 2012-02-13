@@ -37,7 +37,7 @@ BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
 BuildRequires:  openldap-devel
-BuildRequires:  krb5-devel
+BuildRequires:  krb5-devel >= 1.10
 BuildRequires:  krb5-workstation
 BuildRequires:  libuuid-devel
 %if 0%{?fedora} >= 16
@@ -93,7 +93,7 @@ Requires(pre): 389-ds-base >= 1.2.10-0.5.a5
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
-Requires: krb5-server >= 1.9.2-6
+Requires: krb5-server >= 1.10
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
