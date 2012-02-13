@@ -24,73 +24,6 @@
 #include "ipa_pwd.h"
 #include <kadm5/kadm_err.h>
 
-static char *pw_policy_attrs[] = {
-    "krbmaxpwdlife",
-    "krbminpwdlife",
-    "krbpwdmindiffchars",
-    "krbpwdminlength",
-    "krbpwdhistorylength",
-
-    NULL
-};
-
-static krb5_error_code ipadb_get_pw_policy(struct ipadb_context *ipactx,
-                                           char *pw_policy_dn,
-                                           struct ipapwd_policy *pol)
-{
-    krb5_error_code kerr;
-    LDAPMessage *res = NULL;
-    LDAPMessage *lentry;
-    uint32_t result;
-    int ret;
-
-    kerr = ipadb_simple_search(ipactx, pw_policy_dn, LDAP_SCOPE_BASE,
-                               "(objectClass=*)", pw_policy_attrs, &res);
-    if (kerr) {
-        goto done;
-    }
-
-    lentry = ldap_first_entry(ipactx->lcontext, res);
-    if (!lentry) {
-        kerr = KRB5_KDB_INTERNAL_ERROR;
-        goto done;
-    }
-
-    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
-                                    "krbMinPwdLife", &result);
-    if (ret == 0) {
-        pol->min_pwd_life = result;
-    }
-
-    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
-                                    "krbMaxPwdLife", &result);
-    if (ret == 0) {
-        pol->max_pwd_life = result;
-    }
-
-    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
-                                    "krbPwdMinLength", &result);
-    if (ret == 0) {
-        pol->min_pwd_length = result;
-    }
-
-    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
-                                    "krbPwdHistoryLength", &result);
-    if (ret == 0) {
-        pol->history_length = result;
-    }
-
-    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
-                                    "krbPwdMinDiffChars", &result);
-    if (ret == 0) {
-        pol->min_complexity = result;
-    }
-
-done:
-    ldap_msgfree(res);
-    return kerr;
-}
-
 static krb5_error_code ipapwd_error_to_kerr(krb5_context context,
                                             enum ipapwd_error err)
 {
@@ -149,13 +82,11 @@ static krb5_error_code ipadb_check_pw_policy(krb5_context context,
         return ENOMEM;
     }
 
-    ied->pol.max_pwd_life = IPAPWD_DEFAULT_PWDLIFE;
-    ied->pol.min_pwd_length = IPAPWD_DEFAULT_MINLEN;
-    kerr = ipadb_get_pw_policy(ipactx, ied->pw_policy_dn, &ied->pol);
+    kerr = ipadb_get_ipapwd_policy(ipactx, ied->pw_policy_dn, &ied->pol);
     if (kerr != 0) {
         return kerr;
     }
-    ret = ipapwd_check_policy(&ied->pol, passwd, time(NULL),
+    ret = ipapwd_check_policy(ied->pol, passwd, time(NULL),
                               db_entry->expiration,
                               db_entry->pw_expiration,
                               ied->last_pwd_change,
@@ -302,7 +233,11 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
     }
 
     if (truexp) {
-        *expire_time = mod_time + ied->pol.max_pwd_life;
+        if (ied->pol) {
+            *expire_time = mod_time + ied->pol->max_pwd_life;
+        } else {
+            *expire_time = mod_time + IPAPWD_DEFAULT_PWDLIFE;
+        }
     } else {
         /* not 'self', so reset */
         *expire_time = mod_time;

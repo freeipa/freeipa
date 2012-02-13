@@ -103,7 +103,8 @@ struct ipadb_e_data {
     time_t last_pwd_change;
     char *pw_policy_dn;
     char **pw_history;
-    struct ipapwd_policy pol;
+    struct ipapwd_policy *pol;
+    time_t last_admin_unlock;
 };
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);
@@ -165,6 +166,11 @@ krb5_error_code ipadb_iterate(krb5_context kcontext,
                               krb5_pointer func_arg);
 
 /* POLICY FUNCTIONS */
+
+krb5_error_code ipadb_get_ipapwd_policy(struct ipadb_context *ipactx,
+                                        char *pw_policy_dn,
+                                        struct ipapwd_policy **pol);
+
 krb5_error_code ipadb_create_pwd_policy(krb5_context kcontext,
                                         osa_policy_ent_t policy);
 krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
@@ -232,3 +238,13 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
                                                 krb5_const_principal client,
                                                 const krb5_db_entry *server,
                                                 krb5_const_principal proxy);
+
+/* AS AUDIT */
+
+void ipadb_audit_as_req(krb5_context kcontext,
+                        krb5_kdc_req *request,
+                        krb5_db_entry *client,
+                        krb5_db_entry *server,
+                        krb5_timestamp authtime,
+                        krb5_error_code error_code);
+
