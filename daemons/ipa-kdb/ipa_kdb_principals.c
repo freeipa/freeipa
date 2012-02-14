@@ -1422,7 +1422,8 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
     /* KADM5_LAST_PWD_CHANGE */
     /* apparently, at least some versions of kadmin fail to set this flag
      * when they do include a pwd change timestamp in TL_DATA.
-     * So for now always check for it regardless. */
+     * So for now check if KADM5_KEY_DATA has been set, which kadm5
+     * always does on password changes */
 #if KADM5_ACTUALLY_SETS_LAST_PWD_CHANGE
     if (entry->mask & KMASK_LAST_PWD_CHANGE) {
         if (!entry->n_tl_data) {
@@ -1431,7 +1432,8 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
         }
 
 #else
-    if (entry->n_tl_data) {
+    if (entry->n_tl_data &&
+        entry->mask & KMASK_KEY_DATA) {
 #endif
         kerr = ipadb_get_tl_data(entry,
                                  KRB5_TL_LAST_PWD_CHANGE,
