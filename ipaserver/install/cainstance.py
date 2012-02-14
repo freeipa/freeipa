@@ -77,7 +77,7 @@ TOMCAT_SERVER_PORT=9701
 # information
 INF_TEMPLATE = """
 [General]
-FullMachineName=   $FQHN
+FullMachineName=   $FQDN
 SuiteSpotUserID=   $USER
 SuiteSpotGroup=    $GROUP
 ServerRoot=    $SERVER_ROOT
@@ -266,7 +266,7 @@ class CADSInstance(service.Service):
 
     def __setup_sub_dict(self):
         server_root = dsinstance.find_server_root()
-        self.sub_dict = dict(FQHN=self.fqdn, SERVERID=self.serverid,
+        self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=PKI_DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
