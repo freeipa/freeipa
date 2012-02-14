@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from time import gmtime, strftime
+from time import gmtime, strftime, strptime
 import copy
 import string
 
@@ -27,9 +27,13 @@ from ipalib import Flag, Int, Password, Str, Bool, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib.request import context
 from ipalib import _, ngettext
+from ipalib import output
 from ipapython.ipautil import ipa_generate_password
 import posixpath
 from ipalib.util import validate_sshpubkey, output_sshpubkey
+if api.env.in_server and api.env.context in ['lite', 'server']:
+    from ipaserver.plugins.ldap2 import ldap2
+    import os
 
 __doc__ = _("""
 Users
@@ -76,6 +80,21 @@ NO_UPG_MAGIC = '__no_upg__'
 user_output_params = (
     Flag('has_keytab',
         label=_('Kerberos keys available'),
+    ),
+   )
+
+status_output_params = (
+    Str('server',
+        label=_('Server'),
+    ),
+    Str('krbloginfailedcount',
+        label=_('Failed logins'),
+    ),
+    Str('krblastsuccessfulauth',
+        label=_('Last successful authentication'),
+    ),
+    Str('krblastfailedauth',
+        label=_('Last failed authentication'),
     ),
    )
 
@@ -681,3 +700,95 @@ class user_unlock(LDAPQuery):
         )
 
 api.register(user_unlock)
+
+class user_status(LDAPQuery):
+    __doc__ = _("""
+    Lockout status of a user account
+
+    An account may become locked if the password is entered incorrectly too
+    many times within a specific time period as controlled by password
+    policy. A locked account is a temporary condition and may be unlocked by
+    an administrator.
+
+    This connects to each IPA master and displays the lockout status on
+    each one.""")
+
+    has_output = output.standard_list_of_entries
+    has_output_params = LDAPSearch.has_output_params + status_output_params
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+        dn = self.obj.get_dn(*keys, **options)
+        attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth', 'krblastfailedauth']
+
+        masters = []
+        # Get list of masters
+        try:
+            (masters, truncated) = ldap.find_entries(
+                None, ['*'], 'cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn,
+                ldap.SCOPE_ONELEVEL
+            )
+        except errors.NotFound:
+            # If this happens we have some pretty serious problems
+            self.error('No IPA masters found!')
+            pass
+
+        entries = []
+        count = 0
+        for master in masters:
+            host = master[1]['cn'][0]
+            if host == api.env.host:
+                other_ldap = self.obj.backend
+            else:
+                other_ldap = ldap2(shared_instance=False,
+                                   ldap_uri='ldap://%s' % host,
+                                   base_dn=self.api.env.basedn)
+                try:
+                    other_ldap.connect(ccache=os.environ['KRB5CCNAME'])
+                except Exception, e:
+                    self.error("user_status: Connecting to %s failed with %s" % (host, str(e)))
+                    newresult = dict()
+                    newresult['dn'] = dn
+                    newresult['server'] = _("%(host)s failed: %(error)s") % dict(host=host, error=str(e))
+                    entries.append(newresult)
+                    count += 1
+                    continue
+            try:
+                entry = other_ldap.get_entry(dn, attr_list)
+                newresult = dict()
+                for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
+                    newresult[attr] = entry[1].get(attr, [u'N/A'])
+                newresult['krbloginfailedcount'] = entry[1].get('krbloginfailedcount', u'0')
+                if not options.get('raw', False):
+                    for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
+                        try:
+                            if newresult[attr][0] == u'N/A':
+                                continue
+                            newtime = time.strptime(newresult[attr][0], '%Y%m%d%H%M%SZ')
+                            newresult[attr][0] = unicode(time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime))
+                        except Exception, e:
+                            self.debug("time conversion failed with %s" % str(e))
+                            pass
+                newresult['dn'] = dn
+                newresult['server'] = host
+                entries.append(newresult)
+                count += 1
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
+            except Exception, e:
+                self.error("user_status: Retrieving status for %s failed with %s" % (dn, str(e)))
+                newresult = dict()
+                newresult['dn'] = dn
+                newresult['server'] = _("%(host)s failed") % dict(host=host)
+                entries.append(newresult)
+                count += 1
+
+            if host != api.env.host:
+                other_ldap.destroy_connection()
+
+        return dict(result=entries,
+                    count=count,
+                    truncated=False,
+        )
+
+api.register(user_status)
