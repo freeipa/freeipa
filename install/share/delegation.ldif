@@ -52,7 +52,7 @@ objectClass: groupofnames
 objectClass: nestedgroup
 cn: Entitlement Compliance
 description: Verify entitlement compliance
-member: fqdn=$FQHN,cn=computers,cn=accounts,$SUFFIX
+member: fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX
 
 ############################################
 # Add the default privileges

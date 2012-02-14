@@ -100,7 +100,7 @@ def is_ds_running(server_id=''):
 
 INF_TEMPLATE = """
 [General]
-FullMachineName=   $FQHN
+FullMachineName=   $FQDN
 SuiteSpotUserID=   $USER
 SuiteSpotGroup=    $GROUP
 ServerRoot=    $SERVER_ROOT
@@ -275,7 +275,7 @@ class DsInstance(service.Service):
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
-        self.sub_dict = dict(FQHN=self.fqdn, SERVERID=self.serverid,
+        self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password,
                              RANDOM_PASSWORD=self.generate_random(),
                              SUFFIX=self.suffix.lower(),
