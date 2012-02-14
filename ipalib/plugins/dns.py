@@ -144,6 +144,13 @@ EXAMPLES:
  Show records for resource www in zone example.com
    ipa dnsrecord-show example.com www
 
+ Forward all request for a zone external.com to another nameserver using
+ a "first" policy (it will send the queries to the selected forwarder and if
+ not answered it will use global resolvers):
+   ipa dnszone-add external.com
+   ipa dnszone-mod external.com --forwarder=10.20.0.1 \\
+                                --forward-policy=first
+
  Delete zone example.com with all resource records:
    ipa dnszone-del example.com
 
@@ -1215,7 +1222,8 @@ class dnszone(LDAPObject):
     default_attributes = [
         'idnsname', 'idnszoneactive', 'idnssoamname', 'idnssoarname',
         'idnssoaserial', 'idnssoarefresh', 'idnssoaretry', 'idnssoaexpire',
-        'idnssoaminimum', 'idnsallowquery', 'idnsallowtransfer'
+        'idnssoaminimum', 'idnsallowquery', 'idnsallowtransfer',
+        'idnsforwarders', 'idnsforwardpolicy'
     ] + _record_attributes
     label = _('DNS Zones')
     label_singular = _('DNS Zone')
@@ -1336,6 +1344,18 @@ class dnszone(LDAPObject):
             doc=_('Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
             default=u'none;',  # no one can issue queries by default
             autofill=True,
+        ),
+        Str('idnsforwarders*',
+            _validate_ipaddr,
+            cli_name='forwarder',
+            label=_('Zone forwarders'),
+            doc=_('A list of zone forwarders'),
+            csv=True,
+        ),
+        StrEnum('idnsforwardpolicy?',
+            cli_name='forward_policy',
+            label=_('Forward policy'),
+            values=(u'only', u'first',),
         ),
     )
 
