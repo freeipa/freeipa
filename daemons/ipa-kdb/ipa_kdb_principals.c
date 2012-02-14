@@ -1760,33 +1760,37 @@ static krb5_error_code ipadb_modify_principal(krb5_context kcontext,
     LDAPMessage *lentry;
     struct ipadb_mods *imods = NULL;
     char *dn = NULL;
+    struct ipadb_e_data *ied;
 
     ipactx = ipadb_get_context(kcontext);
     if (!ipactx) {
         return KRB5_KDB_DBNOTINITED;
     }
 
-    kerr = krb5_unparse_name(kcontext, entry->princ, &principal);
-    if (kerr != 0) {
-        goto done;
-    }
+    ied = (struct ipadb_e_data *)entry->e_data;
+    if (!ied || !ied->entry_dn) {
+        kerr = krb5_unparse_name(kcontext, entry->princ, &principal);
+        if (kerr != 0) {
+            goto done;
+        }
 
-    kerr = ipadb_fetch_principals(ipactx, principal, &res);
-    if (kerr != 0) {
-        goto done;
-    }
+        kerr = ipadb_fetch_principals(ipactx, principal, &res);
+        if (kerr != 0) {
+            goto done;
+        }
 
-    /* FIXME: no alias allowed for now, should we allow modifies
-     * by alias name ? */
-    kerr = ipadb_find_principal(kcontext, 0, res, &principal, &lentry);
-    if (kerr != 0) {
-        goto done;
-    }
+        /* FIXME: no alias allowed for now, should we allow modifies
+         * by alias name ? */
+        kerr = ipadb_find_principal(kcontext, 0, res, &principal, &lentry);
+        if (kerr != 0) {
+            goto done;
+        }
 
-    dn = ldap_get_dn(ipactx->lcontext, lentry);
-    if (!dn) {
-        kerr = KRB5_KDB_INTERNAL_ERROR;
-        goto done;
+        dn = ldap_get_dn(ipactx->lcontext, lentry);
+        if (!dn) {
+            kerr = KRB5_KDB_INTERNAL_ERROR;
+            goto done;
+        }
     }
 
     kerr = new_ipadb_mods(&imods);
@@ -1800,7 +1804,11 @@ static krb5_error_code ipadb_modify_principal(krb5_context kcontext,
         goto done;
     }
 
-    kerr = ipadb_simple_modify(ipactx, dn, imods->mods);
+    if (!ied || !ied->entry_dn) {
+        kerr = ipadb_simple_modify(ipactx, dn, imods->mods);
+    } else {
+        kerr = ipadb_simple_modify(ipactx, ied->entry_dn, imods->mods);
+    }
 
 done:
     ipadb_mods_free(imods);
