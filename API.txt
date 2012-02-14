@@ -1067,7 +1067,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_add
-args: 1,23,3
+args: 1,24,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('name_from_ip', attribute=False, cli_name='name_from_ip', multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, cli_name='name_server', multivalue=False, required=True)
@@ -1085,6 +1085,7 @@ option: Str('idnsallowquery', attribute=True, autofill=True, cli_name='allow_que
 option: Str('idnsallowtransfer', attribute=True, autofill=True, cli_name='allow_transfer', default=u'none;', multivalue=False, required=False)
 option: Str('idnsforwarders', attribute=True, cli_name='forwarder', csv=True, multivalue=True, required=False)
 option: StrEnum('idnsforwardpolicy', attribute=True, cli_name='forward_policy', multivalue=False, required=False, values=(u'only', u'first'))
+option: Bool('idnsallowsyncptr', attribute=True, cli_name='allow_sync_ptr', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('force', autofill=True, default=False)
@@ -1115,7 +1116,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_find
-args: 1,25,4
+args: 1,26,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('name_from_ip', attribute=False, autofill=False, cli_name='name_from_ip', multivalue=False, query=True, required=False)
@@ -1135,6 +1136,7 @@ option: Str('idnsallowquery', attribute=True, autofill=False, cli_name='allow_qu
 option: Str('idnsallowtransfer', attribute=True, autofill=False, cli_name='allow_transfer', default=u'none;', multivalue=False, query=True, required=False)
 option: Str('idnsforwarders', attribute=True, autofill=False, cli_name='forwarder', csv=True, multivalue=True, query=True, required=False)
 option: StrEnum('idnsforwardpolicy', attribute=True, autofill=False, cli_name='forward_policy', multivalue=False, query=True, required=False, values=(u'only', u'first'))
+option: Bool('idnsallowsyncptr', attribute=True, autofill=False, cli_name='allow_sync_ptr', multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('forward_only', autofill=True, cli_name='forward_only', default=False)
@@ -1147,7 +1149,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnszone_mod
-args: 1,23,3
+args: 1,24,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('name_from_ip', attribute=False, autofill=False, cli_name='name_from_ip', multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', multivalue=False, required=False)
@@ -1165,6 +1167,7 @@ option: Str('idnsallowquery', attribute=True, autofill=False, cli_name='allow_qu
 option: Str('idnsallowtransfer', attribute=True, autofill=False, cli_name='allow_transfer', default=u'none;', multivalue=False, required=False)
 option: Str('idnsforwarders', attribute=True, autofill=False, cli_name='forwarder', csv=True, multivalue=True, required=False)
 option: StrEnum('idnsforwardpolicy', attribute=True, autofill=False, cli_name='forward_policy', multivalue=False, required=False, values=(u'only', u'first'))
+option: Bool('idnsallowsyncptr', attribute=True, autofill=False, cli_name='allow_sync_ptr', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
