@@ -1357,6 +1357,11 @@ class dnszone(LDAPObject):
             label=_('Forward policy'),
             values=(u'only', u'first',),
         ),
+        Bool('idnsallowsyncptr?',
+            cli_name='allow_sync_ptr',
+            label=_('Allow PTR sync'),
+            doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+        ),
     )
 
 api.register(dnszone)
