@@ -320,6 +320,9 @@ class i18n_messages(Command):
             },
             "delegation": {
             },
+            "dnsconfig": {
+                "options": _("Options"),
+            },
             "dnsrecord": {
                 "data": _("Data"),
                 "deleted_no_data": _("DNS record was deleted because it contained no data."),

@@ -408,8 +408,8 @@ IPA.navigation = function(spec) {
         container.tabs('select', index);
 
         var tab = tabs[index];
-        if (tab.hidden) {
-            depth--;
+        if (tab.depth !== undefined) {
+            depth += tab.depth;
         }
 
         if (tab.children && tab.children.length) {

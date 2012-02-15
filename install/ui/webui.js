@@ -40,10 +40,9 @@ IPA.admin_navigation = function(spec) {
             {entity: 'hostgroup'},
             {entity: 'netgroup'},
             {entity: 'service'},
-            {name:'dns',
-             label: IPA.messages.tabs.dns,
-             children:[
-                 {entity: 'dnszone', hidden:true},
+            {name:'dns', label: IPA.messages.tabs.dns, children:[
+                 {entity: 'dnszone'},
+                 {entity: 'dnsconfig'},
                  {entity: 'dnsrecord', hidden:true}
              ]
             }
@@ -63,9 +62,9 @@ IPA.admin_navigation = function(spec) {
             {name:'automount',
              label: IPA.messages.tabs.automount,
              children:[
-                {entity: 'automountlocation', hidden:true},
-                {entity: 'automountmap', hidden: true},
-                {entity: 'automountkey', hidden: true}]},
+                {entity: 'automountlocation', hidden:true, depth: -1},
+                {entity: 'automountmap', hidden: true, depth: -1},
+                {entity: 'automountkey', hidden: true, depth: -1}]},
             {entity: 'pwpolicy'},
             {entity: 'krbtpolicy'},
             {entity: 'selinuxusermap'},
