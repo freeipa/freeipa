@@ -464,6 +464,7 @@ def uninstall():
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
     dsinstance.DsInstance(fstore=fstore).uninstall()
+    memcacheinstance.MemcacheInstance().uninstall()
     fstore.restore_all_files()
     try:
         os.remove(ANSWER_CACHE)

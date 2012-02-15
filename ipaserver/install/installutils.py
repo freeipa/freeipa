@@ -36,7 +36,7 @@ from ipapython import ipautil, dnsclient, sysrestore
 from ipapython.ipa_log_manager import *
 
 # Used to determine install status
-IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named']
+IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
 
 class BadHostError(Exception):
     pass

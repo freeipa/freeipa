@@ -29,12 +29,15 @@ try:
     from ipaserver.install import installutils
     from ipaserver.install import dsinstance
     from ipaserver.install import httpinstance
+    from ipaserver.install import memcacheinstance
     from ipaserver.install import service
+    import ldap
     import krbV
     import re
     import os
     import shutil
     import fileinput
+    import ipalib.errors
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -253,6 +256,15 @@ def main():
 
     http = httpinstance.HTTPInstance()
     http.remove_httpd_ccache()
+
+    memcache = memcacheinstance.MemcacheInstance()
+    memcache.ldapi = True
+    memcache.realm = krbctx.default_realm
+    try:
+        if not memcache.is_configured():
+            memcache.create_instance('MEMCACHE', fqdn, None, ipautil.realm_to_suffix(krbctx.default_realm))
+    except (ldap.ALREADY_EXISTS, ipalib.errors.DuplicateEntry):
+        pass
 
 try:
     if __name__ == "__main__":
