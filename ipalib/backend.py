@@ -23,6 +23,7 @@ Base classes for all backed-end plugins.
 
 import threading
 import plugable
+import os
 from errors import PublicError, InternalError, CommandError
 from request import context, Connection, destroy_context
 
@@ -106,6 +107,10 @@ class Executioner(Backend):
         """
         client_ip: The IP address of the remote client.
         """
+
+        if ccache is not None:
+            os.environ["KRB5CCNAME"] = ccache
+
         if self.env.in_server:
             self.Backend.ldap2.connect(ccache=ccache)
         else:

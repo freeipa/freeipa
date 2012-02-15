@@ -1,6 +1,7 @@
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
 #   Jason Gerard DeRose <jderose@redhat.com>
+#   John Dennis <jdennis@redhat.com>
 #
 # Copyright (C) 2010  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -45,6 +46,6 @@ else:
     # This is the WSGI callable:
     def application(environ, start_response):
         if not environ['wsgi.multithread']:
-            return api.Backend.session(environ, start_response)
+            return api.Backend.wsgi_dispatch(environ, start_response)
         else:
             api.log.error("IPA does not work with the threaded MPM, use the pre-fork MPM")

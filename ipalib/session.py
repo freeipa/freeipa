@@ -25,6 +25,8 @@ import re
 import time
 from text import _
 from ipapython.ipa_log_manager import *
+from ipalib import api, errors
+from ipalib import Command
 from ipalib.krb_utils import *
 
 __doc__ = '''
@@ -632,6 +634,82 @@ def fmt_time(timestamp):
 
 #-------------------------------------------------------------------------------
 
+class AuthManager(object):
+    '''
+    This class is an abstract base class and is meant to be subclassed
+    to provide actual functionality. The purpose is to encapsulate all
+    the callbacks one might need to manage authenticaion. Different
+    authentication mechanisms will instantiate a subclass of this and
+    register it with the SessionAuthManger. When an authentication
+    event occurs the matching method will be called for each
+    registered class. This allows the SessionAuthManager to notify
+    interested parties.
+    '''
+
+    def __init__(self, name):
+        log_mgr.get_logger(self, True)
+        self.name = name
+
+
+    def logout(self, session_data):
+        '''
+        Called when a user requests to be logged out of their session.
+
+        :parameters:
+          session_data
+            The current session data
+        :returns:
+          None
+        '''
+        self.debug('AuthManager.logout.%s:', self.name)
+
+class SessionAuthManager(object):
+    '''
+    '''
+
+    def __init__(self):
+        '''
+        '''
+        log_mgr.get_logger(self, True)
+        self.auth_managers = {}
+
+    def register(self, name, auth_mgr):
+        self.debug('SessionAuthManager.register: name=%s', name)
+
+        existing_mgr = self.auth_managers.get(name)
+        if existing_mgr is not None:
+            raise KeyError('cannot register auth manager named "%s" one already exists, name="%s" object=%s',
+                           name, existing_mgr.name, repr(existing_mgr))
+
+        if not isinstance(auth_mgr, AuthManager):
+            raise TypeError('auth_mgr must be an instance of AuthManager, not %s',
+                            auth_mgr.__class__.__name__)
+
+        self.auth_managers[name] = auth_mgr
+
+
+    def unregister(self, name):
+        self.debug('SessionAuthManager.unregister: name=%s', name)
+
+        if not self.auth_managers.has_key(name):
+            raise KeyError('cannot unregister auth manager named "%s", does not exist',
+                           name)
+        del self.auth_managers[name]
+
+
+    def logout(self, session_data):
+        '''
+        '''
+        self.debug('SessionAuthManager.logout:')
+
+        for auth_mgr in self.auth_managers.values():
+            try:
+                auth_mgr.logout(session_data)
+            except Exception, e:
+                self.error('%s auth_mgr logout failed: %s', auth_mgr.name, e)
+
+#-------------------------------------------------------------------------------
+
 class SessionManager(object):
 
     '''
@@ -649,8 +727,9 @@ class SessionManager(object):
 
         log_mgr.get_logger(self, True)
         self.generated_session_ids = set()
+        self.auth_mgr = SessionAuthManager()
 
-    def generate_session_id(self, n_bits=48):
+    def generate_session_id(self, n_bits=128):
         '''
         Return a random string to be used as a session id.
 
@@ -790,8 +869,7 @@ class MemcacheSessionManager(SessionManager):
         n_retries = 0
         while n_retries < max_retries:
             session_id = super(MemcacheSessionManager, self).new_session_id(max_retries)
-            session_key = self.session_key(session_id)
-            session_data = self.mc.get(session_key)
+            session_data = self.get_session_data(session_id)
             if session_data is None:
                 break
             n_retries += 1
@@ -842,6 +920,21 @@ class MemcacheSessionManager(SessionManager):
           A key (string) used to look up the session data in the memcache.
         '''
         return 'ipa.session.%s' % (session_id)
+
+    def get_session_data(self, session_id):
+        '''
+        Given a session id retrieve the session data associated with it.
+        If no session data exists for the session id return None.
+
+        :parameters:
+          session_id
+            The session id whose session data is desired.
+        :returns:
+          Session data if found, None otherwise.
+        '''
+        session_key = self.session_key(session_id)
+        session_data = self.mc.get(session_key)
+        return session_data
 
     def get_session_id_from_http_cookie(self, cookie_header):
         '''
@@ -904,8 +997,7 @@ class MemcacheSessionManager(SessionManager):
             self.store_session_data(session_data)
             return session_data
         else:
-            session_key = self.session_key(session_id)
-            session_data = self.mc.get(session_key)
+            session_data = self.get_session_data(session_id)
             if session_data is None:
                 self.debug('no session data in cache with id=%s, generating empty session data', session_id)
                 session_data = self.new_session_data(session_id)
@@ -1091,6 +1183,30 @@ def delete_krbccache_file(krbccache_pathname=None):
         root_logger.error('unable to delete session krbccache file "%s", %s',
                           krbccache_pathname, e)
 
+
+#-------------------------------------------------------------------------------
+
+from ipalib.request import context
+
+class session_logout(Command):
+    '''
+    RPC command used to log the current user out of their session.
+    '''
+
+    def execute(self, *args, **options):
+        session_data = getattr(context, 'session_data', None)
+        if session_data is None:
+            self.debug('session logout command: no session_data found')
+        else:
+            session_id = session_data.get('session_id')
+            self.debug('session logout command: session_id=%s', session_id)
+
+            # Notifiy registered listeners
+            session_mgr.auth_mgr.logout(session_data)
+
+        return dict(result=None)
+
+api.register(session_logout)
 
 #-------------------------------------------------------------------------------
 

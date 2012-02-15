@@ -3,6 +3,7 @@
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
  *    Endi Dewata <edewata@redhat.com>
+ *    John Dennis <jdennis@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -58,7 +59,7 @@ var IPA = function() {
 
         // if current path matches live server path, use live data
         if (that.url && window.location.pathname.substring(0, that.url.length) === that.url) {
-            that.json_url = params.url || '/ipa/json';
+            that.json_url = params.url || '/ipa/session/json';
             that.login_url = params.url || '/ipa/login';
 
         } else { // otherwise use fixtures

@@ -158,7 +158,6 @@ class KRB5_CCache(object):
         self.ccache = None
         self.principal = None
 
-        self.debug('opening ccache file "%s"', ccache)
         try:
             self.context = krbV.default_context()
             self.scheme, self.name = krb5_parse_ccache(ccache)
@@ -228,8 +227,6 @@ class KRB5_CCache(object):
         except krbV.Krb5Error, e:
             error_code = e.args[0]
             if error_code == KRB5_CC_NOTFOUND:
-                self.debug('"%s" credential not found in "%s" ccache',
-                           krbV_principal.name, self.ccache_str()) #pylint: disable=E1103
                 raise KeyError('"%s" credential not found in "%s" ccache' % \
                                (krbV_principal.name, self.ccache_str())) #pylint: disable=E1103
             raise e
@@ -281,7 +278,7 @@ class KRB5_CCache(object):
             cred = self.get_credentials(krbV_principal)
             authtime, starttime, endtime, renew_till = cred[3]
 
-            self.debug('principal=%s, authtime=%s, starttime=%s, endtime=%s, renew_till=%s',
+            self.debug('get_credential_times: principal=%s, authtime=%s, starttime=%s, endtime=%s, renew_till=%s',
                        krbV_principal.name, #pylint: disable=E1103
                        krb5_format_time(authtime), krb5_format_time(starttime),
                        krb5_format_time(endtime), krb5_format_time(renew_till))
@@ -327,3 +324,69 @@ class KRB5_CCache(object):
         if endtime < now:
             return False
         return True
+
+    def valid(self, host, realm):
+        '''
+        Test to see if ldap service ticket or the TGT is valid.
+
+        :parameters:
+          host
+            ldap server
+          realm
+            kerberos realm
+        :returns:
+          True if either the ldap service ticket or the TGT is valid,
+          False otherwise.
+        '''
+
+        try:
+            principal = krb5_format_service_principal_name('ldap', host, realm)
+            valid = self.credential_is_valid(principal)
+            if valid:
+                return True
+        except KeyError:
+            pass
+
+        try:
+            principal = krb5_format_tgt_principal_name(realm)
+            valid = self.credential_is_valid(principal)
+            return valid
+        except KeyError:
+            return False
+
+    def endtime(self, host, realm):
+        '''
+        Returns the minimum endtime for tickets of interest (ldap service or TGT).
+
+        :parameters:
+          host
+            ldap server
+          realm
+            kerberos realm
+        :returns:
+          UNIX timestamp value.
+        '''
+
+        result = 0
+        try:
+            principal = krb5_format_service_principal_name('ldap', host, realm)
+            authtime, starttime, endtime, renew_till = self.get_credential_times(principal)
+            if result:
+                result = min(result, endtime)
+            else:
+                result = endtime
+        except KeyError:
+            pass
+
+        try:
+            principal = krb5_format_tgt_principal_name(realm)
+            authtime, starttime, endtime, renew_till = self.get_credential_times(principal)
+            if result:
+                result = min(result, endtime)
+            else:
+                result = endtime
+        except KeyError:
+            pass
+
+        self.debug('"%s" ccache endtime=%s', self.ccache_str(), krb5_format_time(result))
+        return result
