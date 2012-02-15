@@ -232,6 +232,7 @@ class KerbTransport(SSLTransport):
     """
     Handles Kerberos Negotiation authentication to an XML-RPC server.
     """
+    flags = kerberos.GSS_C_MUTUAL_FLAG | kerberos.GSS_C_SEQUENCE_FLAG
 
     def _handle_exception(self, e, service=None):
         (major, minor) = ipautil.get_gsserror(e)
@@ -257,10 +258,7 @@ class KerbTransport(SSLTransport):
         service = "HTTP@" + host.split(':')[0]
 
         try:
-            (rc, vc) = kerberos.authGSSClientInit(service,
-                                                kerberos.GSS_C_DELEG_FLAG |
-                                                kerberos.GSS_C_MUTUAL_FLAG |
-                                                kerberos.GSS_C_SEQUENCE_FLAG)
+            (rc, vc) = kerberos.authGSSClientInit(service, self.flags)
         except kerberos.GSSError, e:
             self._handle_exception(e)
 
@@ -284,6 +282,14 @@ class KerbTransport(SSLTransport):
         return (host, extra_headers, x509)
 
 
+class DelegatedKerbTransport(KerbTransport):
+    """
+    Handles Kerberos Negotiation authentication and TGT delegation to an
+    XML-RPC server.
+    """
+    flags = kerberos.GSS_C_DELEG_FLAG |  kerberos.GSS_C_MUTUAL_FLAG | \
+            kerberos.GSS_C_SEQUENCE_FLAG
+
 class xmlclient(Connectible):
     """
     Forwarding backend plugin for XML-RPC client.
@@ -303,7 +309,7 @@ class xmlclient(Connectible):
         """
         if not hasattr(self.conn, '_ServerProxy__transport'):
             return None
-        if isinstance(self.conn._ServerProxy__transport, KerbTransport):
+        if type(self.conn._ServerProxy__transport) in (KerbTransport, DelegatedKerbTransport):
             scheme = "https"
         else:
             scheme = "http"
@@ -337,14 +343,18 @@ class xmlclient(Connectible):
 
         return servers
 
-    def create_connection(self, ccache=None, verbose=False, fallback=True):
+    def create_connection(self, ccache=None, verbose=False, fallback=True,
+                          delegate=False):
         servers = self.get_url_list()
         serverproxy = None
         for server in servers:
             kw = dict(allow_none=True, encoding='UTF-8')
             kw['verbose'] = verbose
             if server.startswith('https://'):
-                kw['transport'] = KerbTransport()
+                if delegate:
+                    kw['transport'] = DelegatedKerbTransport()
+                else:
+                    kw['transport'] = KerbTransport()
             else:
                 kw['transport'] = LanguageAwareTransport()
             self.log.info('trying %s' % server)

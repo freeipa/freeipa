@@ -139,6 +139,7 @@ DEFAULT_CONFIG = (
     ('prompt_all', False),
     ('interactive', True),
     ('fallback', True),
+    ('delegate', False),
 
     # Enable certain optional plugins:
     ('enable_ra', False),

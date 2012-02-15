@@ -174,7 +174,7 @@ objectClass: groupOfPrincipals
 objectClass: top
 cn: ipa-http-delegation
 memberPrincipal: HTTP/$HOST@$REALM
-ipaAllowedTarget: cn=ipa-ldap-delegation-targets,cn=etc,$SUFFIX
+ipaAllowedTarget: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
 
 dn: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
 changetype: add
