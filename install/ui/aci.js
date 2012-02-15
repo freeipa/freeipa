@@ -487,7 +487,12 @@ IPA.attributes_widget = function(spec) {
 
         values = values || [];
         for (var i=0; i<values.length; i++) {
-            var value = values[i].toLowerCase();
+
+            var value = values[i];
+
+            if (!value || value === '') continue;
+
+            value = value.toLowerCase();
             that.values.push(value);
         }
 
