@@ -32,9 +32,9 @@ from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr, parse_time_duration
 from ipapython.compat import json
-from ipalib.session import session_mgr, read_krbccache_file, store_krbccache_file, delete_krbccache_file, fmt_time, default_max_session_lifetime
+from ipalib.session import session_mgr, AuthManager, read_krbccache_file, store_krbccache_file, delete_krbccache_file, fmt_time, default_max_session_lifetime
 from ipalib.backend import Backend
-from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb5_format_tgt_principal_name, krb5_format_service_principal_name, krb_ticket_expiration_threshold
+from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb_ticket_expiration_threshold
 from wsgiref.util import shift_path_info
 from ipapython.version import VERSION
 import base64
@@ -118,18 +118,17 @@ def extract_query(environ):
     return query
 
 
-class session(Executioner):
+class wsgi_dispatch(Executioner):
     """
     WSGI routing middleware and entry point into IPA server.
 
-    The `session` plugin is the entry point into the IPA server.  It will create
-    an LDAP connection (from a session cookie or the KRB5CCNAME header) and then
-    dispatch the request to the appropriate application.  In WSGI parlance,
-    `session` is *middleware*.
+    The `wsgi_dispatch` plugin is the entry point into the IPA server.
+    It dispatchs the request to the appropriate wsgi application
+    handler which is specific to the authentication and RPC mechanism.
     """
 
     def __init__(self):
-        super(session, self).__init__()
+        super(wsgi_dispatch, self).__init__()
         self.__apps = {}
 
     def __iter__(self):
@@ -143,7 +142,7 @@ class session(Executioner):
         return key in self.__apps
 
     def __call__(self, environ, start_response):
-        self.debug('WSGI session.__call__:')
+        self.debug('WSGI wsgi_dispatch.__call__:')
         try:
             return self.route(environ, start_response)
         finally:
@@ -151,10 +150,10 @@ class session(Executioner):
 
     def _on_finalize(self):
         self.url = self.env['mount_ipa']
-        super(session, self)._on_finalize()
+        super(wsgi_dispatch, self)._on_finalize()
 
     def route(self, environ, start_response):
-        key = shift_path_info(environ)
+        key = environ.get('PATH_INFO')
         if key in self.__apps:
             app = self.__apps[key]
             return app(environ, start_response)
@@ -189,8 +188,8 @@ class WSGIExecutioner(Executioner):
 
     def set_api(self, api):
         super(WSGIExecutioner, self).set_api(api)
-        if 'session' in self.api.Backend:
-            self.api.Backend.session.mount(self, self.key)
+        if 'wsgi_dispatch' in self.api.Backend:
+            self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
     def _on_finalize(self):
         self.url = self.env.mount_ipa + self.key
@@ -302,7 +301,7 @@ class xmlserver(WSGIExecutioner):
     """
 
     content_type = 'text/xml'
-    key = 'xml'
+    key = '/xml'
 
     def _on_finalize(self):
         self.__system = {
@@ -317,6 +316,10 @@ class xmlserver(WSGIExecutioner):
         '''
 
         self.debug('WSGI xmlserver.__call__:')
+        ccache=environ.get('KRB5CCNAME')
+        if ccache is None:
+            return self.marshal(None, CCacheError())
+        self.create_context(ccache=ccache)
         try:
             self.create_context(ccache=environ.get('KRB5CCNAME'))
             response = super(xmlserver, self).__call__(environ, start_response)
@@ -338,23 +341,6 @@ class xmlserver(WSGIExecutioner):
 
     def methodHelp(self, *params):
         return u'methodHelp not implemented'
-
-    def marshaled_dispatch(self, data, ccache, client_ip):
-        """
-        Execute the XML-RPC request contained in ``data``.
-        """
-        try:
-            self.create_context(ccache=ccache, client_ip=client_ip)
-            (params, name) = xml_loads(data)
-            if name in self.__system:
-                response = (self.__system[name](*params),)
-            else:
-                (args, options) = params_2_args_options(params)
-                response = (self.execute(name, *args, **options),)
-        except PublicError, e:
-            self.debug('response: %s: %s', e.__class__.__name__, str(e))
-            response = Fault(e.errno, e.strerror)
-        return xml_dumps(response, methodresponse=True)
 
     def unmarshal(self, data):
         (params, name) = xml_loads(data)
@@ -489,17 +475,6 @@ class jsonserver(WSGIExecutioner):
     """
 
     content_type = 'application/json'
-    key = 'json'
-
-    def need_login(self, start_response):
-        status = '401 Unauthorized'
-        headers = []
-        response = ''
-
-        self.debug('jsonserver: %s', status)
-
-        start_response(status, headers)
-        return [response]
 
     def __call__(self, environ, start_response):
         '''
@@ -507,51 +482,7 @@ class jsonserver(WSGIExecutioner):
 
         self.debug('WSGI jsonserver.__call__:')
 
-        # Load the session data
-        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
-        session_id = session_data['session_id']
-
-        self.debug('jsonserver.__call__: session_id=%s start_timestamp=%s write_timestamp=%s expiration_timestamp=%s',
-                   session_id,
-                   fmt_time(session_data['session_start_timestamp']),
-                   fmt_time(session_data['session_write_timestamp']),
-                   fmt_time(session_data['session_expiration_timestamp']))
-
-        ccache_data = session_data.get('ccache_data')
-
-        # Redirect to login if no Kerberos credentials
-        if ccache_data is None:
-            self.debug('no ccache, need login')
-            return self.need_login(start_response)
-
-        krbccache_pathname = store_krbccache_file(ccache_data)
-
-        # Redirect to login if Kerberos credentials are expired
-        cc = KRB5_CCache(krbccache_pathname)
-        ldap_principal = krb5_format_service_principal_name('ldap', self.api.env.host, self.api.env.realm)
-        tgt_principal = krb5_format_tgt_principal_name(self.api.env.realm)
-        if not (cc.credential_is_valid(ldap_principal) or cc.credential_is_valid(tgt_principal)):
-            self.debug('ccache expired, deleting session, need login')
-            session_mgr.delete_session_data(session_id)
-            delete_krbccache_file(krbccache_pathname)
-            return self.need_login(start_response)
-
-        # Store the session data in the per-thread context
-        setattr(context, 'session_data', session_data)
-
-        self.create_context(ccache=krbccache_pathname)
-
-        try:
-            response = super(jsonserver, self).__call__(environ, start_response)
-        finally:
-            # Kerberos may have updated the ccache data, refresh our copy of it
-            session_data['ccache_data'] = read_krbccache_file(krbccache_pathname)
-            # Delete the temporary ccache file we used
-            delete_krbccache_file(krbccache_pathname)
-            # Store the session data.
-            session_mgr.store_session_data(session_data)
-            destroy_context()
-
+        response = super(jsonserver, self).__call__(environ, start_response)
         return response
 
     def marshal(self, result, error, _id=None):
@@ -606,15 +537,154 @@ class jsonserver(WSGIExecutioner):
         options = dict((str(k), v) for (k, v) in options.iteritems())
         return (method, args, options, _id)
 
+class AuthManagerKerb(AuthManager):
+    '''
+    Instances of the AuthManger class are used to handle
+    authentication events delivered by the SessionManager. This class
+    specifcally handles the management of Kerbeos credentials which
+    may be stored in the session.
+    '''
+
+    def __init__(self, name):
+        super(AuthManagerKerb, self).__init__(name)
+
+    def logout(self, session_data):
+        '''
+        The current user has requested to be logged out. To accomplish
+        this we remove the user's kerberos credentials from their
+        session. This does not destroy the session, it just prevents
+        it from being used for fast authentication. Because the
+        credentials are no longer in the session cache any future
+        attempt will require the acquisition of credentials using one
+        of the login mechanisms.
+        '''
+
+        if session_data.has_key('ccache_data'):
+            self.debug('AuthManager.logout.%s: deleting ccache_data', self.name)
+            del session_data['ccache_data']
+        else:
+            self.error('AuthManager.logout.%s: session_data does not contain ccache_data', self.name)
+
+
+class jsonserver_session(jsonserver):
+    """
+    JSON RPC server protected with session auth.
+    """
+
+    key = '/session/json'
+
+    def __init__(self):
+        super(jsonserver_session, self).__init__()
+        auth_mgr = AuthManagerKerb(self.__class__.__name__)
+        session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
+
+    def need_login(self, start_response):
+        status = '401 Unauthorized'
+        headers = []
+        response = ''
+
+        self.debug('jsonserver_session: %s', status)
+
+        start_response(status, headers)
+        return [response]
+
+    def __call__(self, environ, start_response):
+        '''
+        '''
+
+        self.debug('WSGI jsonserver_session.__call__:')
+
+        # Load the session data
+        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
+        session_id = session_data['session_id']
+
+        self.debug('jsonserver_session.__call__: session_id=%s start_timestamp=%s write_timestamp=%s expiration_timestamp=%s',
+                   session_id,
+                   fmt_time(session_data['session_start_timestamp']),
+                   fmt_time(session_data['session_write_timestamp']),
+                   fmt_time(session_data['session_expiration_timestamp']))
+
+        ccache_data = session_data.get('ccache_data')
+
+        # Redirect to login if no Kerberos credentials
+        if ccache_data is None:
+            self.debug('no ccache, need login')
+            return self.need_login(start_response)
+
+        krbccache_pathname = store_krbccache_file(ccache_data)
+
+        # Redirect to login if Kerberos credentials are expired
+        cc = KRB5_CCache(krbccache_pathname)
+        if not cc.valid(self.api.env.host, self.api.env.realm):
+            self.debug('ccache expired, deleting session, need login')
+            delete_krbccache_file(krbccache_pathname)
+            return self.need_login(start_response)
+
+        # Store the session data in the per-thread context
+        setattr(context, 'session_data', session_data)
+
+        self.create_context(ccache=krbccache_pathname)
+
+        try:
+            response = super(jsonserver_session, self).__call__(environ, start_response)
+        finally:
+            # Kerberos may have updated the ccache data during the
+            # execution of the command therefore we need refresh our
+            # copy of it in the session data so the next command sees
+            # the same state of the ccache.
+            #
+            # However we must be careful not to restore the ccache
+            # data in the session data if it was explicitly deleted
+            # during the execution of the command. For example the
+            # logout command removes the ccache data from the session
+            # data to invalidate the session credentials.
+
+            if session_data.has_key('ccache_data'):
+                session_data['ccache_data'] = read_krbccache_file(krbccache_pathname)
+
+            # Delete the temporary ccache file we used
+            delete_krbccache_file(krbccache_pathname)
+            # Store the session data.
+            session_mgr.store_session_data(session_data)
+            destroy_context()
+
+        return response
+
+class jsonserver_kerb(jsonserver):
+    """
+    JSON RPC server protected with kerberos auth.
+    """
+
+    key = '/json'
+
+    def __call__(self, environ, start_response):
+        '''
+        '''
+
+        self.debug('WSGI jsonserver_kerb.__call__:')
+
+        ccache=environ.get('KRB5CCNAME')
+        if ccache is None:
+            return self.marshal(None, CCacheError())
+        self.create_context(ccache=ccache)
+
+        try:
+            response = super(jsonserver_kerb, self).__call__(environ, start_response)
+        finally:
+            destroy_context()
+
+        return response
+
+
 class krblogin(Backend):
-    key = 'login'
+    key = '/login'
 
     def __init__(self):
         super(krblogin, self).__init__()
 
     def _on_finalize(self):
         super(krblogin, self)._on_finalize()
-        self.api.Backend.session.mount(self, self.key)
+        self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
         # Set the session expiration time
         try:
@@ -652,8 +722,7 @@ class krblogin(Backend):
 
         # Compute when the session will expire
         cc = KRB5_CCache(ccache)
-        tgt_principal = krb5_format_tgt_principal_name(self.api.env.realm)
-        authtime, starttime, endtime, renew_till = cc.get_credential_times(tgt_principal)
+        endtime = cc.endtime(self.api.env.host, self.api.env.realm)
 
         # Account for clock skew and/or give us some time leeway
         krb_expiration = endtime - krb_ticket_expiration_threshold
@@ -673,7 +742,7 @@ class krblogin(Backend):
         status = '200 Success'
         response = ''
 
-        session_cookie = session_mgr.generate_cookie('/ipa', session_data['session_id'])
+        session_cookie = session_mgr.generate_cookie('/ipa', session_id)
         headers.append(('Set-Cookie', session_cookie))
 
         start_response(status, headers)

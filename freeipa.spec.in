@@ -74,6 +74,7 @@ BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
 BuildRequires:  pylint
 BuildRequires:  libipa_hbac-python
+BuildRequires:  python-memcached
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,

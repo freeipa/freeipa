@@ -84,7 +84,7 @@ def test_params_2_args_options():
 
 
 class test_session(object):
-    klass = rpcserver.session
+    klass = rpcserver.wsgi_dispatch
 
     def test_route(self):
         def app1(environ, start_response):
@@ -125,7 +125,7 @@ class test_session(object):
         # Test that StandardError is raise if trying override a mount:
         e = raises(StandardError, inst.mount, app2, 'foo')
         assert str(e) == '%s.mount(): cannot replace %r with %r at %r' % (
-            'session', app1, app2, 'foo'
+            'wsgi_dispatch', app1, app2, 'foo'
         )
 
         # Test mounting a second app:
@@ -141,7 +141,7 @@ class test_xmlserver(PluginTester):
 
     _plugin = rpcserver.xmlserver
 
-    def test_marshaled_dispatch(self):
+    def test_marshaled_dispatch(self): # FIXME
         (o, api, home) = self.instance('Backend', in_server=True)
 
 

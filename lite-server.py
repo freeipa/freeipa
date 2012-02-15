@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     urlmap = URLMap()
     apps = [
-        ('IPA', KRBCheater(api.Backend.session)),
+        ('IPA', KRBCheater(api.Backend.wsgi_dispatch)),
         ('webUI', KRBCheater(WebUIApp())),
     ]
     for (name, app) in apps:
