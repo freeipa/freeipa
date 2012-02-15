@@ -558,7 +558,8 @@
                     "ipacertificatesubjectbase",
                     "ipapwdexpadvnotify",
                     "ipaselinuxusermaporder",
-                    "ipaselinuxusermapdefault"
+                    "ipaselinuxusermapdefault",
+                    "ipaconfigstring"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -1044,35 +1045,31 @@
                         "alwaysask": false,
                         "attribute": false,
                         "autofill": false,
-                        "class": "Str",
+                        "class": "StrEnum",
                         "cli_name": "ipaconfigstring",
                         "cli_short_name": null,
-                        "csv": false,
+                        "csv": true,
                         "csv_separator": ",",
                         "csv_skipspace": true,
                         "default": null,
                         "doc": "Extra hashes to generate in password plug-in",
                         "exclude": null,
-                        "flags": [
-                            "no_update"
-                        ],
+                        "flags": [],
                         "hint": null,
                         "include": null,
                         "label": "Password plugin features",
-                        "length": null,
-                        "maxlength": null,
-                        "minlength": null,
-                        "multivalue": false,
+                        "multivalue": true,
                         "name": "ipaconfigstring",
-                        "noextrawhitespace": true,
                         "option_group": null,
-                        "pattern": null,
-                        "pattern_errmsg": null,
                         "primary_key": false,
                         "query": false,
                         "required": false,
                         "sortorder": 2,
-                        "type": "unicode"
+                        "type": "unicode",
+                        "values": [
+                            "AllowLMhash",
+                            "AllowNThash"
+                        ]
                     },
                     {
                         "alwaysask": false,
@@ -1309,7 +1306,13 @@
                     "hostmask",
                     "houseidentifier",
                     "idnsallowdynupdate",
+                    "idnsallowquery",
+                    "idnsallowsyncptr",
+                    "idnsallowtransfer",
+                    "idnsforwarders",
+                    "idnsforwardpolicy",
                     "idnsname",
+                    "idnspersistentsearch",
                     "idnssoaexpire",
                     "idnssoaminimum",
                     "idnssoamname",
@@ -1319,6 +1322,7 @@
                     "idnssoaserial",
                     "idnsupdatepolicy",
                     "idnszoneactive",
+                    "idnszonerefresh",
                     "inetdomainbasedn",
                     "inetdomainstatus",
                     "inetsubscriberaccountid",
@@ -2364,6 +2368,227 @@
                     }
                 ]
             },
+            "dnsconfig": {
+                "aciattrs": [],
+                "attribute_members": {},
+                "bindable": false,
+                "container_dn": "",
+                "default_attributes": [
+                    "idnsforwardpolicy",
+                    "idnsforwarders",
+                    "idnsallowsyncptr",
+                    "idnszonerefresh",
+                    "idnspersistentsearch"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "DNS Global Configuration",
+                "label_singular": "DNS Global Configuration",
+                "methods": [
+                    "mod",
+                    "show"
+                ],
+                "name": "dnsconfig",
+                "object_class": [],
+                "object_class_config": null,
+                "object_name": "DNS configuration options",
+                "object_name_plural": "entries",
+                "parent_object": "",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "StrEnum",
+                        "cli_name": "forward_policy",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "Forward policy",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Forward policy",
+                        "multivalue": false,
+                        "name": "idnsforwardpolicy",
+                        "option_group": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "unicode",
+                        "values": [
+                            "only",
+                            "first"
+                        ]
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Str",
+                        "cli_name": "forwarder",
+                        "cli_short_name": null,
+                        "csv": true,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "A list of global forwarders",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Global forwarders",
+                        "length": null,
+                        "maxlength": null,
+                        "minlength": null,
+                        "multivalue": true,
+                        "name": "idnsforwarders",
+                        "noextrawhitespace": true,
+                        "option_group": null,
+                        "pattern": null,
+                        "pattern_errmsg": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "unicode"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Bool",
+                        "cli_name": "allow_sync_ptr",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "Allow synchronization of forward (A, AAAA) and reverse (PTR) records",
+                        "exclude": null,
+                        "falsehoods": [
+                            0,
+                            "0",
+                            "false",
+                            "FALSE"
+                        ],
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Allow PTR sync",
+                        "multivalue": false,
+                        "name": "idnsallowsyncptr",
+                        "option_group": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "truths": [
+                            "1",
+                            1,
+                            "true",
+                            "TRUE"
+                        ],
+                        "type": "bool"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Int",
+                        "cli_name": "zone_refresh",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "An interval between regular polls of the name server for new DNS zones",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Zone refresh interval",
+                        "maxvalue": 2147483647,
+                        "minvalue": 0,
+                        "multivalue": false,
+                        "name": "idnszonerefresh",
+                        "option_group": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "int"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Bool",
+                        "cli_name": "persistent_search",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "Enable persistent search mechanism for the name server data change detection",
+                        "exclude": null,
+                        "falsehoods": [
+                            0,
+                            "0",
+                            "false",
+                            "FALSE"
+                        ],
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Persistent search",
+                        "multivalue": false,
+                        "name": "idnspersistentsearch",
+                        "option_group": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "truths": [
+                            "1",
+                            1,
+                            "true",
+                            "TRUE"
+                        ],
+                        "type": "bool"
+                    }
+                ],
+                "uuid_attribute": ""
+            },
             "dnsrecord": {
                 "aciattrs": [
                     "a6record",
@@ -2731,7 +2956,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "arecord",
                         "include": null,
                         "label": "A IP Address",
                         "length": null,
@@ -2748,6 +2973,48 @@
                         "required": false,
                         "sortorder": 2,
                         "type": "unicode"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": true,
+                        "class": "Flag",
+                        "cli_name": "a_create_reverse",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": false,
+                        "doc": "Create reverse record for this IP Address",
+                        "exclude": null,
+                        "falsehoods": [
+                            0,
+                            "0",
+                            "false",
+                            "FALSE"
+                        ],
+                        "flags": [
+                            "no_update",
+                            "dnsrecord_extra",
+                            "virtual_attribute"
+                        ],
+                        "hint": "arecord",
+                        "include": null,
+                        "label": "A Create reverse",
+                        "multivalue": false,
+                        "name": "a_extra_create_reverse",
+                        "option_group": "A Record",
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "truths": [
+                            "1",
+                            1,
+                            "true",
+                            "TRUE"
+                        ],
+                        "type": "bool"
                     },
                     {
                         "alwaysask": false,
@@ -2800,7 +3067,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "aaaarecord",
                         "include": null,
                         "label": "AAAA IP Address",
                         "length": null,
@@ -2817,6 +3084,48 @@
                         "required": false,
                         "sortorder": 2,
                         "type": "unicode"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": true,
+                        "class": "Flag",
+                        "cli_name": "aaaa_create_reverse",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": false,
+                        "doc": "Create reverse record for this IP Address",
+                        "exclude": null,
+                        "falsehoods": [
+                            0,
+                            "0",
+                            "false",
+                            "FALSE"
+                        ],
+                        "flags": [
+                            "no_update",
+                            "dnsrecord_extra",
+                            "virtual_attribute"
+                        ],
+                        "hint": "aaaarecord",
+                        "include": null,
+                        "label": "AAAA Create reverse",
+                        "multivalue": false,
+                        "name": "aaaa_extra_create_reverse",
+                        "option_group": "AAAA Record",
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "truths": [
+                            "1",
+                            1,
+                            "true",
+                            "TRUE"
+                        ],
+                        "type": "bool"
                     },
                     {
                         "alwaysask": false,
@@ -2851,6 +3160,41 @@
                         "sortorder": 2,
                         "type": "unicode",
                         "validatedns": true
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Str",
+                        "cli_name": "a6_data",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "Record data",
+                        "exclude": null,
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "a6record",
+                        "include": null,
+                        "label": "A6 Record data",
+                        "length": null,
+                        "maxlength": null,
+                        "minlength": null,
+                        "multivalue": false,
+                        "name": "a6_part_data",
+                        "noextrawhitespace": true,
+                        "option_group": "A6 Record",
+                        "pattern": null,
+                        "pattern_errmsg": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "unicode"
                     },
                     {
                         "alwaysask": false,
@@ -2904,7 +3248,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "afsdbrecord",
                         "include": null,
                         "label": "AFSDB Subtype",
                         "maxvalue": 65535,
@@ -2935,7 +3279,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "afsdbrecord",
                         "include": null,
                         "label": "AFSDB Hostname",
                         "length": null,
@@ -3040,7 +3384,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "certrecord",
                         "include": null,
                         "label": "CERT Certificate Type",
                         "maxvalue": 65535,
@@ -3071,7 +3415,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "certrecord",
                         "include": null,
                         "label": "CERT Key Tag",
                         "maxvalue": 65535,
@@ -3102,7 +3446,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "certrecord",
                         "include": null,
                         "label": "CERT Algorithm",
                         "maxvalue": 255,
@@ -3133,7 +3477,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "certrecord",
                         "include": null,
                         "label": "CERT Certificate/CRL",
                         "length": null,
@@ -3202,7 +3546,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "cnamerecord",
                         "include": null,
                         "label": "CNAME Hostname",
                         "length": null,
@@ -3343,7 +3687,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "dnamerecord",
                         "include": null,
                         "label": "DNAME Target",
                         "length": null,
@@ -3448,7 +3792,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "dsrecord",
                         "include": null,
                         "label": "DS Key Tag",
                         "maxvalue": 65535,
@@ -3479,7 +3823,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "dsrecord",
                         "include": null,
                         "label": "DS Algorithm",
                         "maxvalue": 255,
@@ -3510,7 +3854,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "dsrecord",
                         "include": null,
                         "label": "DS Digest Type",
                         "maxvalue": 255,
@@ -3541,7 +3885,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "dsrecord",
                         "include": null,
                         "label": "DS Digest",
                         "length": null,
@@ -3682,7 +4026,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "keyrecord",
                         "include": null,
                         "label": "KEY Flags",
                         "maxvalue": 65535,
@@ -3713,7 +4057,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "keyrecord",
                         "include": null,
                         "label": "KEY Protocol",
                         "maxvalue": 255,
@@ -3744,7 +4088,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "keyrecord",
                         "include": null,
                         "label": "KEY Algorithm",
                         "maxvalue": 255,
@@ -3775,7 +4119,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "keyrecord",
                         "include": null,
                         "label": "KEY Public Key",
                         "length": null,
@@ -3844,7 +4188,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "kxrecord",
                         "include": null,
                         "label": "KX Preference",
                         "maxvalue": 65535,
@@ -3875,7 +4219,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "kxrecord",
                         "include": null,
                         "label": "KX Exchanger",
                         "length": null,
@@ -3944,7 +4288,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Degrees Latitude",
                         "maxvalue": 90,
@@ -3976,7 +4320,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Minutes Latitude",
                         "maxvalue": 59,
@@ -3994,7 +4338,7 @@
                         "alwaysask": false,
                         "attribute": false,
                         "autofill": false,
-                        "class": "Float",
+                        "class": "Decimal",
                         "cli_name": "loc_lat_sec",
                         "cli_short_name": null,
                         "csv": false,
@@ -4008,19 +4352,24 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Seconds Latitude",
-                        "maxvalue": 59.999,
-                        "minvalue": 0.0,
+                        "maxvalue": {
+                            "__base64__": ""
+                        },
+                        "minvalue": {
+                            "__base64__": ""
+                        },
                         "multivalue": false,
                         "name": "loc_part_lat_sec",
                         "option_group": "LOC Record",
+                        "precision": 3,
                         "primary_key": false,
                         "query": false,
                         "required": false,
                         "sortorder": 2,
-                        "type": "float"
+                        "type": "Decimal"
                     },
                     {
                         "alwaysask": false,
@@ -4039,7 +4388,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Direction Latitude",
                         "multivalue": false,
@@ -4072,7 +4421,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Degrees Longtitude",
                         "maxvalue": 180,
@@ -4104,7 +4453,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Minutes Longtitude",
                         "maxvalue": 59,
@@ -4122,7 +4471,7 @@
                         "alwaysask": false,
                         "attribute": false,
                         "autofill": false,
-                        "class": "Float",
+                        "class": "Decimal",
                         "cli_name": "loc_lon_sec",
                         "cli_short_name": null,
                         "csv": false,
@@ -4136,19 +4485,24 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Seconds Longtitude",
-                        "maxvalue": 59.999,
-                        "minvalue": 0.0,
+                        "maxvalue": {
+                            "__base64__": ""
+                        },
+                        "minvalue": {
+                            "__base64__": ""
+                        },
                         "multivalue": false,
                         "name": "loc_part_lon_sec",
                         "option_group": "LOC Record",
+                        "precision": 3,
                         "primary_key": false,
                         "query": false,
                         "required": false,
                         "sortorder": 2,
-                        "type": "float"
+                        "type": "Decimal"
                     },
                     {
                         "alwaysask": false,
@@ -4167,7 +4521,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Direction Longtitude",
                         "multivalue": false,
@@ -4187,7 +4541,7 @@
                         "alwaysask": false,
                         "attribute": false,
                         "autofill": false,
-                        "class": "Float",
+                        "class": "Decimal",
                         "cli_name": "loc_altitude",
                         "cli_short_name": null,
                         "csv": false,
@@ -4200,25 +4554,30 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Altitude",
-                        "maxvalue": 42849672.95,
-                        "minvalue": -100000.0,
+                        "maxvalue": {
+                            "__base64__": ""
+                        },
+                        "minvalue": {
+                            "__base64__": ""
+                        },
                         "multivalue": false,
                         "name": "loc_part_altitude",
                         "option_group": "LOC Record",
+                        "precision": 2,
                         "primary_key": false,
                         "query": false,
                         "required": false,
                         "sortorder": 2,
-                        "type": "float"
+                        "type": "Decimal"
                     },
                     {
                         "alwaysask": false,
                         "attribute": false,
                         "autofill": false,
-                        "class": "Float",
+                        "class": "Decimal",
                         "cli_name": "loc_size",
                         "cli_short_name": null,
                         "csv": false,
@@ -4232,25 +4591,30 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Size",
-                        "maxvalue": 90000000.0,
-                        "minvalue": 0.0,
+                        "maxvalue": {
+                            "__base64__": ""
+                        },
+                        "minvalue": {
+                            "__base64__": ""
+                        },
                         "multivalue": false,
                         "name": "loc_part_size",
                         "option_group": "LOC Record",
+                        "precision": 2,
                         "primary_key": false,
                         "query": false,
                         "required": false,
                         "sortorder": 2,
-                        "type": "float"
+                        "type": "Decimal"
                     },
                     {
                         "alwaysask": false,
                         "attribute": false,
                         "autofill": false,
-                        "class": "Float",
+                        "class": "Decimal",
                         "cli_name": "loc_h_precision",
                         "cli_short_name": null,
                         "csv": false,
@@ -4264,25 +4628,30 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Horizontal Precision",
-                        "maxvalue": 90000000.0,
-                        "minvalue": 0.0,
+                        "maxvalue": {
+                            "__base64__": ""
+                        },
+                        "minvalue": {
+                            "__base64__": ""
+                        },
                         "multivalue": false,
                         "name": "loc_part_h_precision",
                         "option_group": "LOC Record",
+                        "precision": 2,
                         "primary_key": false,
                         "query": false,
                         "required": false,
                         "sortorder": 2,
-                        "type": "float"
+                        "type": "Decimal"
                     },
                     {
                         "alwaysask": false,
                         "attribute": false,
                         "autofill": false,
-                        "class": "Float",
+                        "class": "Decimal",
                         "cli_name": "loc_v_precision",
                         "cli_short_name": null,
                         "csv": false,
@@ -4296,19 +4665,24 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "locrecord",
                         "include": null,
                         "label": "LOC Vertical Precision",
-                        "maxvalue": 90000000.0,
-                        "minvalue": 0.0,
+                        "maxvalue": {
+                            "__base64__": ""
+                        },
+                        "minvalue": {
+                            "__base64__": ""
+                        },
                         "multivalue": false,
                         "name": "loc_part_v_precision",
                         "option_group": "LOC Record",
+                        "precision": 2,
                         "primary_key": false,
                         "query": false,
                         "required": false,
                         "sortorder": 2,
-                        "type": "float"
+                        "type": "Decimal"
                     },
                     {
                         "alwaysask": false,
@@ -4361,7 +4735,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "mxrecord",
                         "include": null,
                         "label": "MX Preference",
                         "maxvalue": 65535,
@@ -4392,7 +4766,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "mxrecord",
                         "include": null,
                         "label": "MX Exchanger",
                         "length": null,
@@ -4461,7 +4835,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "naptrrecord",
                         "include": null,
                         "label": "NAPTR Order",
                         "maxvalue": 65535,
@@ -4492,7 +4866,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "naptrrecord",
                         "include": null,
                         "label": "NAPTR Preference",
                         "maxvalue": 65535,
@@ -4523,7 +4897,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "naptrrecord",
                         "include": null,
                         "label": "NAPTR Flags",
                         "length": null,
@@ -4558,7 +4932,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "naptrrecord",
                         "include": null,
                         "label": "NAPTR Service",
                         "length": null,
@@ -4593,7 +4967,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "naptrrecord",
                         "include": null,
                         "label": "NAPTR Regular Expression",
                         "length": null,
@@ -4628,7 +5002,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "naptrrecord",
                         "include": null,
                         "label": "NAPTR Replacement",
                         "length": null,
@@ -4697,7 +5071,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "nsrecord",
                         "include": null,
                         "label": "NS Hostname",
                         "length": null,
@@ -4766,7 +5140,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "nsecrecord",
                         "include": null,
                         "label": "NSEC Next Domain Name",
                         "length": null,
@@ -4791,7 +5165,7 @@
                         "class": "StrEnum",
                         "cli_name": "nsec_types",
                         "cli_short_name": null,
-                        "csv": false,
+                        "csv": true,
                         "csv_separator": ",",
                         "csv_skipspace": true,
                         "default": null,
@@ -4801,7 +5175,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "nsecrecord",
                         "include": null,
                         "label": "NSEC Type Map",
                         "multivalue": true,
@@ -4973,7 +5347,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "ptrrecord",
                         "include": null,
                         "label": "PTR Hostname",
                         "length": null,
@@ -5042,7 +5416,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Type Covered",
                         "multivalue": false,
@@ -5107,7 +5481,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Algorithm",
                         "maxvalue": 255,
@@ -5138,7 +5512,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Labels",
                         "maxvalue": 255,
@@ -5169,7 +5543,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Original TTL",
                         "maxvalue": 2147483647,
@@ -5200,7 +5574,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Signature Expiration",
                         "length": null,
@@ -5235,7 +5609,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Signature Inception",
                         "length": null,
@@ -5270,7 +5644,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Key Tag",
                         "maxvalue": 65535,
@@ -5301,7 +5675,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Signer's Name",
                         "length": null,
@@ -5336,7 +5710,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "rrsigrecord",
                         "include": null,
                         "label": "RRSIG Signature",
                         "length": null,
@@ -5441,7 +5815,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Type Covered",
                         "multivalue": false,
@@ -5506,7 +5880,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Algorithm",
                         "maxvalue": 255,
@@ -5537,7 +5911,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Labels",
                         "maxvalue": 255,
@@ -5568,7 +5942,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Original TTL",
                         "maxvalue": 2147483647,
@@ -5599,7 +5973,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Signature Expiration",
                         "length": null,
@@ -5634,7 +6008,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Signature Inception",
                         "length": null,
@@ -5669,7 +6043,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Key Tag",
                         "maxvalue": 65535,
@@ -5700,7 +6074,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Signer's Name",
                         "length": null,
@@ -5735,7 +6109,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sigrecord",
                         "include": null,
                         "label": "SIG Signature",
                         "length": null,
@@ -5840,7 +6214,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "srvrecord",
                         "include": null,
                         "label": "SRV Priority",
                         "maxvalue": 65535,
@@ -5871,7 +6245,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "srvrecord",
                         "include": null,
                         "label": "SRV Weight",
                         "maxvalue": 65535,
@@ -5902,7 +6276,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "srvrecord",
                         "include": null,
                         "label": "SRV Port",
                         "maxvalue": 65535,
@@ -5933,7 +6307,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "srvrecord",
                         "include": null,
                         "label": "SRV Target",
                         "length": null,
@@ -6002,7 +6376,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sshfprecord",
                         "include": null,
                         "label": "SSHFP Algorithm",
                         "maxvalue": 255,
@@ -6033,7 +6407,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sshfprecord",
                         "include": null,
                         "label": "SSHFP Fingerprint Type",
                         "maxvalue": 255,
@@ -6064,7 +6438,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "sshfprecord",
                         "include": null,
                         "label": "SSHFP Fingerprint",
                         "length": null,
@@ -6241,7 +6615,7 @@
                             "dnsrecord_part",
                             "virtual_attribute"
                         ],
-                        "hint": null,
+                        "hint": "txtrecord",
                         "include": null,
                         "label": "TXT Text Data",
                         "length": null,
@@ -6277,6 +6651,11 @@
                     "dsrecord",
                     "hinforecord",
                     "idnsallowdynupdate",
+                    "idnsallowquery",
+                    "idnsallowsyncptr",
+                    "idnsallowtransfer",
+                    "idnsforwarders",
+                    "idnsforwardpolicy",
                     "idnsname",
                     "idnssoaexpire",
                     "idnssoaminimum",
@@ -6318,6 +6697,10 @@
                     "idnssoaretry",
                     "idnssoaexpire",
                     "idnssoaminimum",
+                    "idnsallowquery",
+                    "idnsallowtransfer",
+                    "idnsforwarders",
+                    "idnsforwardpolicy",
                     "arecord",
                     "aaaarecord",
                     "a6record",
@@ -6831,6 +7214,170 @@
                         "label": "Dynamic update",
                         "multivalue": false,
                         "name": "idnsallowdynupdate",
+                        "option_group": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "truths": [
+                            "1",
+                            1,
+                            "true",
+                            "TRUE"
+                        ],
+                        "type": "bool"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": true,
+                        "class": "Str",
+                        "cli_name": "allow_query",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": "any",
+                        "doc": "Semicolon separated list of IP addresses or networks which are allowed to issue queries",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Allow query",
+                        "length": null,
+                        "maxlength": null,
+                        "minlength": null,
+                        "multivalue": false,
+                        "name": "idnsallowquery",
+                        "noextrawhitespace": true,
+                        "option_group": null,
+                        "pattern": null,
+                        "pattern_errmsg": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "unicode"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": true,
+                        "class": "Str",
+                        "cli_name": "allow_transfer",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": "none",
+                        "doc": "Semicolon separated list of IP addresses or networks which are allowed to transfer the zone",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Allow transfer",
+                        "length": null,
+                        "maxlength": null,
+                        "minlength": null,
+                        "multivalue": false,
+                        "name": "idnsallowtransfer",
+                        "noextrawhitespace": true,
+                        "option_group": null,
+                        "pattern": null,
+                        "pattern_errmsg": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "unicode"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Str",
+                        "cli_name": "forwarder",
+                        "cli_short_name": null,
+                        "csv": true,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "A list of zone forwarders",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Zone forwarders",
+                        "length": null,
+                        "maxlength": null,
+                        "minlength": null,
+                        "multivalue": true,
+                        "name": "idnsforwarders",
+                        "noextrawhitespace": true,
+                        "option_group": null,
+                        "pattern": null,
+                        "pattern_errmsg": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "unicode"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "StrEnum",
+                        "cli_name": "forward_policy",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "Forward policy",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Forward policy",
+                        "multivalue": false,
+                        "name": "idnsforwardpolicy",
+                        "option_group": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "unicode",
+                        "values": [
+                            "only",
+                            "first"
+                        ]
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Bool",
+                        "cli_name": "allow_sync_ptr",
+                        "cli_short_name": null,
+                        "csv": false,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone",
+                        "exclude": null,
+                        "falsehoods": [
+                            0,
+                            "0",
+                            "false",
+                            "FALSE"
+                        ],
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Allow PTR sync",
+                        "multivalue": false,
+                        "name": "idnsallowsyncptr",
                         "option_group": null,
                         "primary_key": false,
                         "query": false,
@@ -8097,7 +8644,8 @@
                     "memberof",
                     "managedby",
                     "memberindirect",
-                    "memberofindirect"
+                    "memberofindirect",
+                    "macaddress"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -8515,6 +9063,38 @@
                         "option_group": null,
                         "pattern": null,
                         "pattern_errmsg": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "sortorder": 2,
+                        "type": "unicode"
+                    },
+                    {
+                        "alwaysask": false,
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Str",
+                        "cli_name": "macaddress",
+                        "cli_short_name": null,
+                        "csv": true,
+                        "csv_separator": ",",
+                        "csv_skipspace": true,
+                        "default": null,
+                        "doc": "Hardware MAC address(es) on this host",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "MAC address",
+                        "length": null,
+                        "maxlength": null,
+                        "minlength": null,
+                        "multivalue": true,
+                        "name": "macaddress",
+                        "noextrawhitespace": true,
+                        "option_group": null,
+                        "pattern": "^([a-fA-F0-9]{2}[:|\\-]?){5}[a-fA-F0-9]{2}$",
+                        "pattern_errmsg": "Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.",
                         "primary_key": false,
                         "query": false,
                         "required": false,
@@ -11281,6 +11861,7 @@
                 "default_attributes": [
                     "cn",
                     "ipaenabledflag",
+                    "externaluser",
                     "description",
                     "usercategory",
                     "hostcategory",
@@ -12502,7 +13083,7 @@
                     {
                         "alwaysask": false,
                         "attribute": false,
-                        "autofill": true,
+                        "autofill": false,
                         "class": "Str",
                         "cli_name": "homedir",
                         "cli_short_name": null,
@@ -12527,7 +13108,7 @@
                         "pattern_errmsg": null,
                         "primary_key": false,
                         "query": false,
-                        "required": true,
+                        "required": false,
                         "sortorder": 2,
                         "type": "unicode"
                     },
@@ -12573,7 +13154,7 @@
                         "csv": false,
                         "csv_separator": ",",
                         "csv_skipspace": true,
-                        "default": "/bin/sh",
+                        "default": null,
                         "doc": "Login shell",
                         "exclude": null,
                         "flags": [],
