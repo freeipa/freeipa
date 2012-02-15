@@ -20,6 +20,7 @@
 import sys
 import os, socket
 import tempfile
+import pwd
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import services as ipaservices
@@ -51,12 +52,13 @@ def print_msg(message, output_fd=sys.stdout):
 
 
 class Service(object):
-    def __init__(self, service_name, sstore=None, dm_password=None):
+    def __init__(self, service_name, sstore=None, dm_password=None, ldapi=False):
         self.service_name = service_name
         self.service = ipaservices.service(service_name)
         self.steps = []
         self.output_fd = sys.stdout
         self.dm_password = dm_password
+        self.ldapi = ldapi
 
         self.fqdn = socket.gethostname()
         self.admin_conn = None
@@ -72,7 +74,12 @@ class Service(object):
         self.dercert = None
 
     def ldap_connect(self):
-        self.admin_conn = self.__get_conn(self.fqdn, self.dm_password)
+        if self.ldapi:
+            if not self.realm:
+                raise RuntimeError('realm must be set to use ldapi connection')
+            self.admin_conn = self.__get_conn(None, None, ldapi=True, realm=self.realm)
+        else:
+            self.admin_conn = self.__get_conn(self.fqdn, self.dm_password)
 
     def ldap_disconnect(self):
         self.admin_conn.unbind()
@@ -258,14 +265,25 @@ class Service(object):
 
         self.steps = []
 
-    def __get_conn(self, fqdn, dm_password):
+    def __get_conn(self, fqdn, dm_password, ldapi=False, realm=None):
         # If we are passed a password we'll use it as the DM password
         # otherwise we'll do a GSSAPI bind.
         try:
 #            conn = ipaldap.IPAdmin(fqdn, port=636, cacert=CACERT)
-            conn = ipaldap.IPAdmin(fqdn, port=389)
+            if ldapi:
+                conn = ipaldap.IPAdmin(ldapi=ldapi, realm=realm)
+            else:
+                conn = ipaldap.IPAdmin(fqdn, port=389)
             if dm_password:
                 conn.do_simple_bind(bindpw=dm_password)
+            elif os.getegid() == 0 and self.ldapi:
+                try:
+                    # autobind
+                    pw_name = pwd.getpwuid(os.geteuid()).pw_name
+                    conn.do_external_bind(pw_name)
+                except errors.NotFound:
+                    # Fall back
+                    conn.do_sasl_gssapi_bind()
             else:
                 conn.do_sasl_gssapi_bind()
         except Exception, e:
@@ -276,7 +294,8 @@ class Service(object):
 
     def ldap_enable(self, name, fqdn, dm_password, ldap_suffix):
         self.disable()
-        conn = self.__get_conn(fqdn, dm_password)
+        if not self.admin_conn:
+            self.ldap_connect()
 
         entry_name = "cn=%s,cn=%s,%s,%s" % (name, fqdn,
                                             "cn=masters,cn=ipa,cn=etc",
@@ -290,9 +309,9 @@ class Service(object):
                         "enabledService", "startOrder " + str(order))
 
         try:
-            conn.addEntry(entry)
-        except ldap.ALREADY_EXISTS, e:
-            root_logger.critical("failed to add %s Service startup entry" % name)
+            self.admin_conn.addEntry(entry)
+        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
+            root_logger.debug("failed to add %s Service startup entry" % name)
             raise e
 
 class SimpleServiceInstance(Service):
