@@ -84,6 +84,7 @@ class HTTPInstance(service.Service):
             self.step("setting up browser autoconfig", self.__setup_autoconfig)
         self.step("publish CA cert", self.__publish_ca_cert)
         self.step("creating a keytab for httpd", self.__create_http_keytab)
+        self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)
         self.step("configuring SELinux for httpd", self.__selinux_config)
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
@@ -136,7 +137,9 @@ class HTTPInstance(service.Service):
         pent = pwd.getpwnam("apache")
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
 
+    def remove_httpd_ccache(self):
         # Clean up existing ccache
+        pent = pwd.getpwnam("apache")
         installutils.remove_file('/tmp/krb5cc_%d' % pent.pw_uid)
 
     def __configure_http(self):
