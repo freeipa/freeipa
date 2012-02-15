@@ -214,7 +214,7 @@ def _reverse_zone_name(netstr):
 
 def _validate_ipaddr(ugettext, ipaddr, ip_version=None):
     try:
-        ip = netaddr.IPAddress(ipaddr)
+        ip = netaddr.IPAddress(ipaddr, flags=netaddr.INET_PTON)
 
         if ip_version is not None:
             if ip.version != ip_version:
