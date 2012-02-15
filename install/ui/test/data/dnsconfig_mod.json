@@ -1,0 +1,32 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "result": {
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "cn": "rscwo",
+                "idnsallowsyncptr": "rscwo",
+                "idnsforwarders": "rscwo",
+                "idnsforwardpolicy": "rscwo",
+                "idnspersistentsearch": "rscwo",
+                "idnszonerefresh": "rscwo",
+                "nsaccountlock": "rscwo",
+                "objectclass": "rscwo"
+            },
+            "cn": [
+                "dns"
+            ],
+            "idnsforwarders": [
+                "2001:beef::1"
+            ],
+            "objectclass": [
+                "idnsConfigObject",
+                "nsContainer",
+                "top"
+            ]
+        },
+        "summary": null,
+        "value": ""
+    }
+}

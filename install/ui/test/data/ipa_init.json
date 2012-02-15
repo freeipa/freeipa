@@ -183,6 +183,9 @@
                             "user": "User Options"
                         },
                         "delegation": {},
+                        "dnsconfig": {
+                            "options": "Options"
+                        },
                         "dnsrecord": {
                             "data": "Data",
                             "deleted_no_data": "DNS record was deleted because it contained no data.",

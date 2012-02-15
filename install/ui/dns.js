@@ -28,6 +28,35 @@
 
 IPA.dns = {};
 
+IPA.dns.config_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function() {
+        that.entity_init();
+
+        that.builder.details_facet({
+            title: IPA.metadata.objects.config.label,
+            sections: [
+                {
+                    name: 'options',
+                    label: IPA.messages.objects.dnsconfig.options,
+                    fields: [
+                        {
+                            type: 'multivalued',
+                            name: 'idnsforwarders',
+                            validators: [IPA.ip_address_validator()]
+                        }
+                    ]
+                }
+            ],
+            needs_update: true
+        });
+    };
+
+    return that;
+};
+
 IPA.dns.zone_entity = function(spec) {
 
     var that = IPA.entity(spec);
@@ -2242,5 +2271,6 @@ IPA.network_validator = function(spec) {
     return that;
 };
 
+IPA.register('dnsconfig', IPA.dns.config_entity);
 IPA.register('dnszone', IPA.dns.zone_entity);
 IPA.register('dnsrecord', IPA.dns.record_entity);
