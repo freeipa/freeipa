@@ -250,6 +250,10 @@ def main():
     upgrade_pki()
     update_dbmodules(krbctx.default_realm)
     uninstall_ipa_kpasswd()
+
+    http = httpinstance.HTTPInstance()
+    http.remove_httpd_ccache()
+
 try:
     if __name__ == "__main__":
         sys.exit(main())
