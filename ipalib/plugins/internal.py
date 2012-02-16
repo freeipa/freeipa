@@ -315,6 +315,7 @@ class i18n_messages(Command):
             "config": {
                 "group": _("Group Options"),
                 "search": _("Search Options"),
+                "selinux": _("SELinux Options"),
                 "user": _("User Options"),
             },
             "delegation": {
