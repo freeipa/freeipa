@@ -186,20 +186,29 @@ class Update(PKQuery):
             for option in super(Update, self).get_options():
                 yield option
         for option in self.obj.params_minus_pk():
+            new_flags = option.flags
             attribute = 'virtual_attribute' not in option.flags
+            if option.required:
+                # Required options turn into non-required, since not specifying
+                # them means that they are not changed.
+                # However, they cannot be empty (i.e. explicitly set to None).
+                new_flags = new_flags.union(['nonempty'])
             if 'no_update' in option.flags:
                 continue
             if 'ask_update' in option.flags:
                 yield option.clone(
                     attribute=attribute, query=False, required=False,
-                    autofill=False, alwaysask=True
+                    autofill=False, alwaysask=True, flags=new_flags,
                 )
             elif 'req_update' in option.flags:
                 yield option.clone(
                     attribute=attribute, required=True, alwaysask=False,
+                    flags=new_flags,
                 )
             else:
-                yield option.clone(attribute=attribute, required=False, autofill=False)
+                yield option.clone(attribute=attribute, required=False,
+                    autofill=False, flags=new_flags,
+                )
         if not self.extra_options_first:
             for option in super(Update, self).get_options():
                 yield option
