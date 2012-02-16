@@ -651,7 +651,7 @@ class Command(HasParam):
         """
         for param in self.params():
             value = kw.get(param.name, None)
-            param.validate(value, self.env.context)
+            param.validate(value, self.env.context, supplied=param.name in kw)
 
     def verify_client_version(self, client_version):
         """
