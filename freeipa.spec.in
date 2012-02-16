@@ -74,6 +74,7 @@ BuildRequires:  pyOpenSSL
 BuildRequires:  pylint
 BuildRequires:  libipa_hbac-python
 BuildRequires:  python-memcached
+BuildRequires:  sssd >= 1.8.0
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -209,7 +210,7 @@ Requires:  libcurl
 Requires:  xmlrpc-c
 %endif
 %endif
-Requires: sssd >= 1.5.1
+Requires: sssd >= 1.8.0
 Requires: certmonger >= 0.26
 Requires: nss-tools
 Requires: bind-utils
@@ -668,6 +669,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+
+* Thu Mar 1 2012 Jan Cholasta <jcholast@redhat.com> - 2.2.0-15
+- Set min nvr of sssd to 1.8.0 for SSH support
+- Add BuildRequires on sssd >= 1.8.0
 
 * Wed Feb 29 2012 Petr Vobornik <pvoborni@redhat.com> - 2.2.0-14
 - Add Web UI form based login page

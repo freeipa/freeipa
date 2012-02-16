@@ -719,6 +719,14 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
         sssdconfig.new_config()
         domain = sssdconfig.new_domain(cli_domain)
 
+    try:
+        sssdconfig.activate_service('ssh')
+    except SSSDConfig.NoServiceError:
+        print "Unable to activate the SSH service in SSSD config."
+        print "Please make sure you have SSSD built with SSH support installed."
+        print "Configure SSH support manually in /etc/sssd/sssd.conf."
+        root_logger.debug("Unable to activate the SSH service in SSSD config.")
+
     domain.add_provider('ipa', 'id')
 
     if not options.on_master:
@@ -797,7 +805,8 @@ def change_ssh_config(filename, changes, sections):
         if line is not None:
             lines.append(line)
     for opt in changes:
-        lines.append('%s %s\n' % (opt, changes[opt]))
+        if changes[opt] is not None:
+            lines.append('%s %s\n' % (opt, changes[opt]))
     lines.append('\n')
     if in_section:
         lines.append(line)
@@ -828,6 +837,9 @@ def configure_ssh(fstore, ssh_dir, options):
         changes = {}
         if options.trust_sshfp:
             changes['VerifyHostKeyDNS'] = 'yes'
+        elif options.sssd and file_exists('/usr/bin/sss_ssh_knownhostsproxy'):
+            changes['ProxyCommand'] = '/usr/bin/sss_ssh_knownhostsproxy -p %p %h'
+            changes['GlobalKnownHostsFile2'] = '/var/lib/sss/pubconf/known_hosts'
 
         change_ssh_config(ssh_config, changes, ['Host'])
         print 'Configured', ssh_config
@@ -847,6 +859,21 @@ def configure_ssh(fstore, ssh_dir, options):
         'GSSAPIAuthentication': 'yes',
         'UsePAM': 'yes',
     }
+
+    if options.sssd and file_exists('/usr/bin/sss_ssh_authorizedkeys'):
+        (stdout, stderr, retcode) = ipautil.run(['sshd', '-t', '-f', '/dev/null', '-o', 'AuthorizedKeysCommand='], raiseonerr=False)
+        if retcode == 0:
+            changes['AuthorizedKeysCommand'] = '/usr/bin/sss_ssh_authorizedkeys'
+            changes['AuthorizedKeysCommandRunAs'] = None
+        else:
+            (stdout, stderr, retcode) = ipautil.run(['sshd', '-t', '-f', '/dev/null', '-o', 'PubKeyAgent='], raiseonerr=False)
+            if retcode == 0:
+                changes['PubKeyAgent'] = '/usr/bin/sss_ssh_authorizedkeys %u'
+                changes['PubkeyAgentRunAs'] = None
+            else:
+                print "Warning: Installed OpenSSH server does not support dynamically loading"
+                print "         authorized user keys. Public key authentication of IPA users"
+                print "         will not be available."
 
     change_ssh_config(sshd_config, changes, ['Match'])
     print 'Configured', sshd_config
