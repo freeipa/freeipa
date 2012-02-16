@@ -60,6 +60,11 @@ IPA.config.entity = function(spec) {
                         'ipamaxusernamelength',
                         'ipapwdexpadvnotify',
                         {
+                            name: 'ipaconfigstring',
+                            type: 'checkboxes',
+                            options: IPA.create_options(['AllowLMhash','AllowNThash'])
+                        },
+                        {
                             type: 'checkbox',
                             name: 'ipamigrationenabled'
                         },
@@ -78,6 +83,14 @@ IPA.config.entity = function(spec) {
                             type: 'multivalued',
                             name: 'ipagroupobjectclasses'
                         }
+                    ]
+                },
+                {
+                    name: 'selinux',
+                    label: IPA.messages.objects.config.selinux,
+                    fields: [
+                        'ipaselinuxusermaporder',
+                        'ipaselinuxusermapdefault'
                     ]
                 }
             ],

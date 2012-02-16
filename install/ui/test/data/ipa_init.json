@@ -179,6 +179,7 @@
                         "config": {
                             "group": "Group Options",
                             "search": "Search Options",
+                            "selinux": "SELinux Options",
                             "user": "User Options"
                         },
                         "delegation": {},

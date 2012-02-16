@@ -20,6 +20,8 @@
                 "ipapwdexpadvnotify": "rscwo",
                 "ipasearchrecordslimit": "rscwo",
                 "ipasearchtimelimit": "rscwo",
+                "ipaselinuxusermapdefault": "rscwo",
+                "ipaselinuxusermaporder": "rscwo",
                 "ipauserobjectclasses": "rscwo",
                 "ipausersearchfields": "rscwo",
                 "nsaccountlock": "rscwo",
@@ -71,6 +73,12 @@
             ],
             "ipasearchtimelimit": [
                 "2"
+            ],
+            "ipaselinuxusermapdefault": [
+                "guest_u:s0"
+            ],
+            "ipaselinuxusermaporder": [
+                "guest_u:s0$xguest_u:s0$user_u:s0-s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023"
             ],
             "ipauserobjectclasses": [
                 "top",
