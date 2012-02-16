@@ -89,7 +89,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires: %{name}-server-selinux = %{version}-%{release}
-Requires(pre): 389-ds-base >= 1.2.10-0.5.a5
+Requires(pre): 389-ds-base >= 1.2.10.1-1
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -668,6 +668,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Thu Feb 16 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-16
+- Set min for 389-ds-base to 1.2.10.1-1 to fix install segfault,
+  schema replication.
+
 * Tue Jan 31 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-15
 - Set min for krb5-server to 1.9.2-6 to pick up needed s4u2proxy patches
 
