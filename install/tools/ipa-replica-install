@@ -29,6 +29,7 @@ from ipapython import ipautil
 
 from ipaserver.install import dsinstance, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
+from ipaserver.install import memcacheinstance
 from ipaserver.install.replication import replica_conn_check
 from ipaserver.install.installutils import HostnameLocalhost, resolve_host
 from ipaserver.install.installutils import ReplicaConfig, expand_replica_info, read_replica_info
@@ -183,6 +184,9 @@ def install_http(config, auto_redirect):
     if ipautil.file_exists(config.dir + "/httpcert.p12"):
         pkcs12_info = (config.dir + "/httpcert.p12",
                        config.dir + "/http_pin.txt")
+
+    memcache = memcacheinstance.MemcacheInstance()
+    memcache.create_instance('MEMCACHE', config.host_name, config.dirman_password, util.realm_to_suffix(config.realm_name))
 
     http = httpinstance.HTTPInstance()
     http.create_instance(config.realm_name, config.host_name, config.domain_name, config.dirman_password, False, pkcs12_info, self_signed_ca=True, auto_redirect=auto_redirect)
