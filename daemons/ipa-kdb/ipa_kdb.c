@@ -454,7 +454,7 @@ kdb_vftabl kdb_function_table = {
     NULL,                               /* encrypt_key_data */
     ipadb_sign_authdata,                /* sign_authdata */
     NULL,                               /* check_transited_realms */
-    NULL,                               /* check_policy_as */
+    ipadb_check_policy_as,              /* check_policy_as */
     NULL,                               /* check_policy_tgs */
     ipadb_audit_as_req,                 /* audit_as_req */
     NULL,                               /* refresh_config */
