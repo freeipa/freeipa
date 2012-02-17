@@ -185,6 +185,14 @@ krb5_error_code ipadb_delete_pwd_policy(krb5_context kcontext,
                                         char *policy);
 void ipadb_free_pwd_policy(krb5_context kcontext, osa_policy_ent_t val);
 
+krb5_error_code ipadb_check_policy_as(krb5_context kcontext,
+                                      krb5_kdc_req *request,
+                                      krb5_db_entry *client,
+                                      krb5_db_entry *server,
+                                      krb5_timestamp kdc_time,
+                                      const char **status,
+                                      krb5_pa_data ***e_data);
+
 /* MASTER KEY FUNCTIONS */
 krb5_error_code ipadb_fetch_master_key(krb5_context kcontext,
                                        krb5_principal mname,
