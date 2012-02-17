@@ -95,7 +95,7 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
                                        krb5_const_principal target)
 {
     struct ipadb_context *ipactx;
-    krb5_error_code kerr = ENOENT;
+    krb5_error_code kerr;
     LDAPMessage *lentry;
     LDAPDerefRes *deref_results;
     LDAPDerefRes *dres;
@@ -125,6 +125,9 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
         kerr = ENOENT;
         goto done;
     }
+
+    /* the default is that we fail */
+    kerr = ENOENT;
 
     while (lentry) {
         /* both client and target must be found in the same ACI */
