@@ -109,15 +109,16 @@ DEFAULT_CONFIG = (
 
     # Web Application mount points
     ('mount_ipa', '/ipa/'),
-    ('mount_xmlserver', 'xml'),
-    ('mount_jsonserver', 'json'),
 
     # WebUI stuff:
     ('webui_prod', True),
-    ('webui_assets_dir', None),
+
+    # Session stuff:
 
     # Maximum time before a session expires forcing credentials to be reacquired.
-    ('session_auth_duration', '1h'),
+    ('session_auth_duration', '20 minutes'),
+    # How a session expiration is computed, see SessionManager.set_session_expiration_time()
+    ('session_duration_type', 'inactivity_timeout'),
 
     # Debugging:
     ('verbose', 0),

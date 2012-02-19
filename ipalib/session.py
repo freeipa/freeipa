@@ -626,7 +626,7 @@ mod_auth_kerb. Everything else remains the same.
 
 #-------------------------------------------------------------------------------
 
-default_max_session_lifetime = 60*60 # number of seconds
+default_max_session_duration = 60*60 # number of seconds
 
 ISO8601_DATETIME_FMT = '%Y-%m-%dT%H:%M:%S' # FIXME jrd, this should be defined elsewhere
 def fmt_time(timestamp):
@@ -888,8 +888,8 @@ class MemcacheSessionManager(SessionManager):
           The session ID used to identify this session data.
         session_start_timestamp
           Timestamp when this session was created.
-        session_write_timestamp
-          Timestamp when the session was last written to cache.
+        session_access_timestamp
+          Timestamp when the session was last accessed.
         session_expiration_timestamp
           Timestamp when session expires. Defaults to zero which
           implies no expiration. See `set_session_expiration_time()`.
@@ -904,7 +904,7 @@ class MemcacheSessionManager(SessionManager):
         now = time.time()
         return {'session_id'                   : session_id,
                 'session_start_timestamp'      : now,
-                'session_write_timestamp'      : now,
+                'session_access_timestamp'     : now,
                 'session_expiration_timestamp' : 0,
                }
 
@@ -934,6 +934,12 @@ class MemcacheSessionManager(SessionManager):
         '''
         session_key = self.session_key(session_id)
         session_data = self.mc.get(session_key)
+
+        if session_data is not None:
+            # update the access timestamp
+            now = time.time()
+            session_data['session_access_timestamp'] = now
+
         return session_data
 
     def get_session_id_from_http_cookie(self, cookie_header):
@@ -1028,14 +1034,17 @@ class MemcacheSessionManager(SessionManager):
         '''
         session_id = session_data['session_id']
         session_key = self.session_key(session_id)
+
+        # update the access timestamp
         now = time.time()
-        session_data['session_write_timestamp'] = now
+        session_data['session_access_timestamp'] = now
+
         session_expiration_timestamp = session_data['session_expiration_timestamp']
 
-        self.debug('store session: session_id=%s start_timestamp=%s write_timestamp=%s expiration_timestamp=%s',
+        self.debug('store session: session_id=%s start_timestamp=%s access_timestamp=%s expiration_timestamp=%s',
                    session_id,
                    fmt_time(session_data['session_start_timestamp']),
-                   fmt_time(session_data['session_write_timestamp']),
+                   fmt_time(session_data['session_access_timestamp']),
                    fmt_time(session_data['session_expiration_timestamp']))
 
         self.mc.set(session_key, session_data, time=session_expiration_timestamp)
@@ -1072,8 +1081,8 @@ class MemcacheSessionManager(SessionManager):
         return result
 
     def set_session_expiration_time(self, session_data,
-                                    lifetime=default_max_session_lifetime,
-                                    max_age=None):
+                                    duration=default_max_session_duration,
+                                    max_age=None, duration_type='inactivity_timeout'):
         '''
         memcached permits setting an expiration time on entries. The
         expiration time may either be Unix time (number of seconds since
@@ -1088,10 +1097,24 @@ class MemcacheSessionManager(SessionManager):
         constraints.
 
         When a session is created it's start time is recorded in the
-        session data as the session_start_timestamp value. The
-        expiration timestamp is computed by adding the lifetime to the
-        session_start_timestamp. Then if the max_age is specified the
-        expiration is constrained to be not greater than the max_age.
+        session data as the session_start_timestamp value.
+
+        There are two ways the expiration timestamp can be computed:
+
+          from_start
+            A session has a fixed duration beginning with the start of
+            the session. The session expires when the duration
+            interval has elapsed relative to the start of the session.
+          inactivity_timeout
+            A session times out after a period of inactivity. The
+            expiration time is advanced by the value of the duration
+            interval everytime the session is updated.
+
+        After the expiration is computed it may be capped at a maximum
+        value due to other constraints (e.g. authentication credential
+        expiration). If the optional max_age parameter is specified
+        then expiration is constrained to be not greater than the
+        max_age.
 
         The final computed expiration is then written into the
         session_data as the session_expiration_timestamp value. The
@@ -1107,30 +1130,50 @@ class MemcacheSessionManager(SessionManager):
         :parameters:
           session_data
             Session data dict, must contain session_id key.
-          lifetime
+          duration
             Number of seconds cache entry should live. This is a
             duration value, not a timestamp.  Zero implies no
             expiration.
-
-        max_age
+          max_age
             Unix time value when cache entry must expire by.
 
         :returns:
           expiration timestamp, zero implies no expiration
         '''
 
-        if lifetime == 0 and max_age is None:
+        if duration == 0 and max_age is None:
+            # No expiration
             expiration = 0
             session_data['session_expiration_timestamp'] = expiration
             return expiration
 
-        session_start_timestamp = session_data['session_start_timestamp']
-        expiration = session_start_timestamp + lifetime
+        if duration_type == 'inactivity_timeout':
+            now = time.time()
+            session_data['session_access_timestamp'] = now
+            expiration = now + duration
+        elif duration_type == 'from_start':
+            session_start_timestamp = session_data['session_start_timestamp']
+            expiration = session_start_timestamp + duration
+        else:
+            # Don't throw an exception, it's critical the session be
+            # given some expiration, instead log the error and execute
+            # a default action of expiring the session 5 minutes after
+            # it was initiated (similar to from_start but with
+            # hardcoded duration)
+            default = 60*5
+            self.warning('unknown session duration_type (%s), defaulting to %s seconds from session start',
+                         duration_type, default)
+            session_start_timestamp = session_data['session_start_timestamp']
+            expiration = session_start_timestamp + default
 
+        # Cap the expiration if max_age is specified
         if max_age is not None:
             expiration = min(expiration, max_age)
 
         session_data['session_expiration_timestamp'] = expiration
+
+        self.debug('set_session_expiration_time: duration_type=%s duration=%s max_age=%s expiration=%s (%s)',
+                   duration_type, duration, max_age, expiration, fmt_time(expiration))
 
         return expiration
 
