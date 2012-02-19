@@ -169,6 +169,9 @@ Specifies the URI of the XML\-RPC server for a client. This is used by IPA and s
 .B session_auth_duration <time duration spec>
 Specifies the length of time authentication credentials cached in the session are valid. After the duration expires credentials will be automatically reacquired. Examples are "2 hours", "1h:30m", "10 minutes", "5min, 30sec".
 .TP
+.B session_duration_type <inactivity_timeout|from_start>
+Specifies how the expiration of a session is computed. With \fBinactivity_timeout\fR the expiration time is advanced by the value of session_auth_duration everytime the user accesses the service. With \fBfrom_start\fR the session expiration is the start of the user's session plus the value of session_auth_duration.
+.TP
 The following define the containers for the IPA server. Containers define where in the DIT that objects can be found. The full location is the value of container + basedn.
   container_accounts: cn=accounts
   container_applications: cn=applications,cn=configs,cn=policies

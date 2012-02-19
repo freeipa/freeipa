@@ -32,7 +32,7 @@ from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr, parse_time_duration
 from ipapython.compat import json
-from ipalib.session import session_mgr, AuthManager, read_krbccache_file, store_krbccache_file, delete_krbccache_file, fmt_time, default_max_session_lifetime
+from ipalib.session import session_mgr, AuthManager, read_krbccache_file, store_krbccache_file, delete_krbccache_file, fmt_time, default_max_session_duration
 from ipalib.backend import Backend
 from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb_ticket_expiration_threshold
 from wsgiref.util import shift_path_info
@@ -566,7 +566,60 @@ class AuthManagerKerb(AuthManager):
             self.error('AuthManager.logout.%s: session_data does not contain ccache_data', self.name)
 
 
-class jsonserver_session(jsonserver):
+class KerberosSession(object):
+    '''
+    Functionally shared by all RPC handlers using both sessions and
+    Kerberos.  This class must be implemented as a mixin class rather
+    than the more obvious technique of subclassing because the classes
+    needing this do not share a common base class.
+    '''
+
+    def kerb_session_on_finalize(self):
+        '''
+        Initialize values from the Env configuration.
+
+        Why do it this way and not simply reference
+        api.env.session_auth_duration? Because that config item cannot
+        be used directly, it must be parsed and converted to an
+        integer. It would be inefficient to reparse it on every
+        request. So we parse it once and store the result in the class
+        instance.
+        '''
+        # Set the session expiration time
+        try:
+            seconds = parse_time_duration(self.api.env.session_auth_duration)
+            self.session_auth_duration = int(seconds)
+            self.debug("session_auth_duration: %s", datetime.timedelta(seconds=self.session_auth_duration))
+        except Exception, e:
+            self.session_auth_duration = default_max_session_duration
+            self.error('unable to parse session_auth_duration, defaulting to %d: %s',
+                       self.session_auth_duration, e)
+
+    def update_session_expiration(self, session_data, krb_endtime):
+        '''
+        Each time a session is created or accessed we need to update
+        it's expiration time. The expiration time is set inside the
+        session_data.
+
+        :parameters:
+          session_data
+            The session data whose expiration is being updatded.
+          krb_endtime
+            The UNIX timestamp for when the Kerberos credentials expire.
+        :returns:
+          None
+        '''
+
+        # Account for clock skew and/or give us some time leeway
+        krb_expiration = krb_endtime - krb_ticket_expiration_threshold
+
+        # Set the session expiration time
+        session_mgr.set_session_expiration_time(session_data,
+                                                duration=self.session_auth_duration,
+                                                max_age=krb_expiration,
+                                                duration_type=self.api.env.session_duration_type)
+
+class jsonserver_session(jsonserver, KerberosSession):
     """
     JSON RPC server protected with session auth.
     """
@@ -577,6 +630,10 @@ class jsonserver_session(jsonserver):
         super(jsonserver_session, self).__init__()
         auth_mgr = AuthManagerKerb(self.__class__.__name__)
         session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
+
+    def _on_finalize(self):
+        super(jsonserver_session, self)._on_finalize()
+        self.kerb_session_on_finalize()
 
     def need_login(self, start_response):
         status = '401 Unauthorized'
@@ -598,10 +655,10 @@ class jsonserver_session(jsonserver):
         session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
         session_id = session_data['session_id']
 
-        self.debug('jsonserver_session.__call__: session_id=%s start_timestamp=%s write_timestamp=%s expiration_timestamp=%s',
+        self.debug('jsonserver_session.__call__: session_id=%s start_timestamp=%s access_timestamp=%s expiration_timestamp=%s',
                    session_id,
                    fmt_time(session_data['session_start_timestamp']),
-                   fmt_time(session_data['session_write_timestamp']),
+                   fmt_time(session_data['session_access_timestamp']),
                    fmt_time(session_data['session_expiration_timestamp']))
 
         ccache_data = session_data.get('ccache_data')
@@ -619,6 +676,10 @@ class jsonserver_session(jsonserver):
             self.debug('ccache expired, deleting session, need login')
             delete_krbccache_file(krbccache_pathname)
             return self.need_login(start_response)
+
+        # Update the session expiration based on the Kerberos expiration
+        endtime = cc.endtime(self.api.env.host, self.api.env.realm)
+        self.update_session_expiration(session_data, endtime)
 
         # Store the session data in the per-thread context
         setattr(context, 'session_data', session_data)
@@ -676,7 +737,7 @@ class jsonserver_kerb(jsonserver):
         return response
 
 
-class krblogin(Backend):
+class krblogin(Backend, KerberosSession):
     key = '/login'
 
     def __init__(self):
@@ -685,17 +746,7 @@ class krblogin(Backend):
     def _on_finalize(self):
         super(krblogin, self)._on_finalize()
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
-
-        # Set the session expiration time
-        try:
-            seconds = parse_time_duration(self.api.env.session_auth_duration)
-            self.session_auth_duration = int(seconds)
-            self.debug("session_auth_duration: %s", datetime.timedelta(seconds=self.session_auth_duration))
-        except Exception, e:
-            self.session_auth_duration = default_max_session_lifetime
-            self.error('unable to parse session_auth_duration, defaulting to %d: %s',
-                       self.session_auth_duration, e)
-
+        self.kerb_session_on_finalize()
 
     def __call__(self, environ, start_response):
         headers = []
@@ -720,17 +771,10 @@ class krblogin(Backend):
         # Copy the ccache file contents into the session data
         session_data['ccache_data'] = read_krbccache_file(ccache_location)
 
-        # Compute when the session will expire
+        # Set when the session will expire
         cc = KRB5_CCache(ccache)
         endtime = cc.endtime(self.api.env.host, self.api.env.realm)
-
-        # Account for clock skew and/or give us some time leeway
-        krb_expiration = endtime - krb_ticket_expiration_threshold
-
-        # Set the session expiration time
-        session_mgr.set_session_expiration_time(session_data,
-                                                lifetime=self.session_auth_duration,
-                                                max_age=krb_expiration)
+        self.update_session_expiration(session_data, endtime)
 
         # Store the session data now that it's been updated with the ccache
         session_mgr.store_session_data(session_data)
@@ -747,3 +791,5 @@ class krblogin(Backend):
 
         start_response(status, headers)
         return [response]
+
+

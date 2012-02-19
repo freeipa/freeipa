@@ -388,5 +388,5 @@ class KRB5_CCache(object):
         except KeyError:
             pass
 
-        self.debug('"%s" ccache endtime=%s', self.ccache_str(), krb5_format_time(result))
+        self.debug('"%s" ccache endtime=%s (%s)', self.ccache_str(), result, krb5_format_time(result))
         return result
