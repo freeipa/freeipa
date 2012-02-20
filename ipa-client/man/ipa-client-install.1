@@ -30,6 +30,11 @@ An authorized user is required to join a client machine to IPA. This can take th
 
 This same tool is used to unconfigure IPA and attemps to return the machine to its previous state. Part of this process is to unenroll the host from the IPA server. Unenrollment consists of disabling the prinicipal key on the IPA server so that it may be re\-enrolled. The machine principal in /etc/krb5.keytab (host/<fqdn>@REALM) is used to authenticate to the IPA server to unenroll itself. If this principal does not exist then unenrollment will fail and an administrator will need to disable the host principal (ipa host\-disable <fqdn>).
 
+.SS "HOSTNAME REQUIREMENTS"
+Client must use a \fBstatic hostname\fR. If the machine hostname changes for example due to a dynamic hostname assignment by a DHCP server, client enrollment to IPA server breaks and user then would not be able to perform Kerberos authentication.
+
+--hostname option may be used to specify a static hostname that is set in machine system configuration and persist over reboot.
+
 .SH "OPTIONS"
 .SS "BASIC OPTIONS"
 .TP
@@ -55,7 +60,7 @@ Prompt for the password for joining a machine to the IPA realm.
 Configure PAM to create a users home directory if it does not exist.
 .TP
 \fB\-\-hostname\fR
-The hostname of this server (FQDN). If specified, the hostname will be set and the system configuration will be updated to persist over reboot. By default a nodename result from uname(2) is used.
+The hostname of this machine (FQDN). If specified, the hostname will be set and the system configuration will be updated to persist over reboot. By default a nodename result from uname(2) is used.
 .TP
 \fB\-\-ntp\-server\fR=\fINTP_SERVER\fR
 Configure ntpd to use this NTP server.
