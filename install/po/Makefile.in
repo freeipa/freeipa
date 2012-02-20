@@ -37,23 +37,28 @@ PY_FILES = $(shell cd ../..; git ls-files | grep -v -e "^tests/" -e "^doc/" -e "
 C_FILES = $(shell cd ../..; git ls-files | grep "\.c$$" | tr '\n' ' '; cd install/po)
 H_FILES = $(shell cd ../..; git ls-files | grep "\.h$$" | tr '\n' ' '; cd install/po)
 
+# Please keep this list sorted!
 PY_EXPLICIT_FILES = \
-     ipa \
-     install/tools/ipa-replica-manage \
-     install/tools/ipa-server-certinstall \
-     install/tools/ipa-replica-conncheck \
-     install/tools/ipa-replica-install \
-     install/tools/ipa-nis-manage \
-     install/tools/ipa-upgradeconfig \
-     install/tools/ipa-replica-prepare \
-     install/tools/ipa-compat-manage \
-     install/tools/ipa-managed-entries \
-     install/tools/ipa-server-install \
-     install/tools/ipa-ldap-updater \
-     install/tools/ipa-dns-install \
+     init/systemd/freeipa-systemd-upgrade \
      install/tools/ipa-adtrust-install \
      install/tools/ipa-ca-install \
+     install/tools/ipa-compat-manage \
+     install/tools/ipa-csreplica-manage \
+     install/tools/ipactl \
+     install/tools/ipa-dns-install \
+     install/tools/ipa-ldap-updater \
+     install/tools/ipa-managed-entries \
+     install/tools/ipa-nis-manage \
+     install/tools/ipa-replica-conncheck \
+     install/tools/ipa-replica-install \
+     install/tools/ipa-replica-manage \
+     install/tools/ipa-replica-prepare \
+     install/tools/ipa-server-certinstall \
+     install/tools/ipa-server-install \
+     install/tools/ipa-upgradeconfig \
+     ipa \
      ipa-client/ipa-install/ipa-client-install
+
 
 PYTHON_POTFILES = $(PY_FILES) $(PY_EXPLICIT_FILES)
 
