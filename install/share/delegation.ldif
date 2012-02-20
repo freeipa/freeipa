@@ -565,7 +565,7 @@ dn: $SUFFIX
 changetype: modify
 add: aci
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Users";allow (add) groupdn = "ldap:///cn=Add Users,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetfilter = "(!(memberOf=cn=admins,cn=groups,cn=accounts,$SUFFIX))")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "krbLastAdminUnlock || krbLoginFailedCount")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Unlock user accounts";allow (write) groupdn = "ldap:///cn=Unlock user accounts,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add user to default group";allow (write) groupdn = "ldap:///cn=Add user to default group,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Users";allow (delete) groupdn = "ldap:///cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX";)
