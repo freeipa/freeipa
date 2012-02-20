@@ -231,6 +231,8 @@ def validate_zonemgr(zonemgr):
         local_part, dot, domain = zonemgr.partition('@')
         if not regex_local_part.match(local_part):
             raise ValueError(local_part_errmsg)
+        if not domain:
+            raise ValueError(_('missing address domain'))
     elif zonemgr.count('@') > 1:
         raise ValueError(_('too many \'@\' characters'))
     else:
@@ -238,8 +240,7 @@ def validate_zonemgr(zonemgr):
         if last_fake_sep != -1: # there is a 'fake' local-part/domain separator
             sep = zonemgr.find('.', last_fake_sep+2)
             if sep == -1:
-                raise ValueError(_('address domain is not fully qualified ' \
-                          '("example.com" instead of just "example")'))
+                raise ValueError(_('missing address domain'))
             local_part = zonemgr[:sep]
             domain = zonemgr[sep+1:]
 
@@ -250,10 +251,6 @@ def validate_zonemgr(zonemgr):
 
             if not regex_local_part.match(local_part):
                 raise ValueError(local_part_errmsg)
-
-    if '.' not in domain:
-        raise ValueError(_('address domain is not fully qualified ' \
-                          '("example.com" instead of just "example")'))
 
     if not all(regex_domain.match(part) for part in domain.split(".")):
         raise ValueError(_('domain name may only include letters, numbers, and -'))
