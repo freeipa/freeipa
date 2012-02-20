@@ -192,7 +192,7 @@ def parse_options():
                       default=False, help="Do not create reverse DNS zone")
     dns_group.add_option("--zonemgr", action="callback", callback=bindinstance.zonemgr_callback,
                       type="string",
-                      help="DNS zone manager e-mail address. Defaults to root")
+                      help="DNS zone manager e-mail address. Defaults to hostmaster@DOMAIN")
     dns_group.add_option("--zone-notif", dest="zone_notif",
                       action="store_true", default=False,
                       help="Let name server receive notification when a new zone is added." \
