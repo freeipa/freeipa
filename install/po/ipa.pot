@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2012-02-20 12:24-0500\n"
+"POT-Creation-Date: 2012-02-21 17:18-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,53 +24,49 @@ msgstr ""
 msgid "Enter %(label)s again to verify: "
 msgstr ""
 
-#: ipalib/cli.py:594 ipa-client/ipa-getkeytab.c:768
+#: ipalib/cli.py:598 ipa-client/ipa-getkeytab.c:768
 #, c-format
 msgid "Passwords do not match!"
 msgstr ""
 
-#: ipalib/cli.py:599
-msgid "Cancelled."
-msgstr ""
-
-#: ipalib/cli.py:760
+#: ipalib/cli.py:761
 #, python-format
 msgid "Purpose: %s"
 msgstr ""
 
-#: ipalib/cli.py:777
+#: ipalib/cli.py:778
 msgid "Usage: ipa [global-options] COMMAND ..."
 msgstr ""
 
-#: ipalib/cli.py:779
+#: ipalib/cli.py:780
 msgid "Built-in commands:"
 msgstr ""
 
-#: ipalib/cli.py:781
+#: ipalib/cli.py:782
 msgid "Help subtopics:"
 msgstr ""
 
-#: ipalib/cli.py:784
+#: ipalib/cli.py:785
 msgid "Help topics:"
 msgstr ""
 
-#: ipalib/cli.py:789
+#: ipalib/cli.py:790
 msgid "Try `ipa --help` for a list of global options."
 msgstr ""
 
-#: ipalib/cli.py:823
+#: ipalib/cli.py:824
 msgid "Topic commands:"
 msgstr ""
 
-#: ipalib/cli.py:834
+#: ipalib/cli.py:835
 msgid "Command name"
 msgstr ""
 
-#: ipalib/cli.py:984
+#: ipalib/cli.py:985
 msgid "Positional arguments"
 msgstr ""
 
-#: ipalib/cli.py:1217
+#: ipalib/cli.py:1218
 msgid "No file to read"
 msgstr ""
 
@@ -210,187 +206,192 @@ msgstr ""
 msgid "Client is not configured. Run ipa-client-install."
 msgstr ""
 
-#: ipalib/errors.py:844 ipalib/errors.py:1084 ipalib/errors.py:1178
-#: ipalib/errors.py:1493 ipalib/errors.py:1510
+#: ipalib/errors.py:825
+#, python-format
+msgid "Could not get %(name)s interactively"
+msgstr ""
+
+#: ipalib/errors.py:853 ipalib/errors.py:1093 ipalib/errors.py:1187
+#: ipalib/errors.py:1502 ipalib/errors.py:1519
 #, python-format
 msgid "%(reason)s"
 msgstr ""
 
-#: ipalib/errors.py:860
+#: ipalib/errors.py:869
 msgid "This entry already exists"
 msgstr ""
 
-#: ipalib/errors.py:876
+#: ipalib/errors.py:885
 msgid "You must enroll a host in order to create a host service"
 msgstr ""
 
-#: ipalib/errors.py:892
+#: ipalib/errors.py:901
 #, python-format
 msgid ""
 "Service principal is not of the form: service/fully-qualified host name: "
 "%(reason)s"
 msgstr ""
 
-#: ipalib/errors.py:908
+#: ipalib/errors.py:917
 msgid ""
 "The realm for the principal does not match the realm for this IPA server"
 msgstr ""
 
-#: ipalib/errors.py:924
+#: ipalib/errors.py:933
 msgid "This command requires root access"
 msgstr ""
 
-#: ipalib/errors.py:940
+#: ipalib/errors.py:949
 msgid "This is already a posix group"
 msgstr ""
 
-#: ipalib/errors.py:956
+#: ipalib/errors.py:965
 #, python-format
 msgid "Principal is not of the form user@REALM: %(principal)r"
 msgstr ""
 
-#: ipalib/errors.py:972
+#: ipalib/errors.py:981
 msgid "This entry is already enabled"
 msgstr ""
 
-#: ipalib/errors.py:988
+#: ipalib/errors.py:997
 msgid "This entry is already disabled"
 msgstr ""
 
-#: ipalib/errors.py:1004
+#: ipalib/errors.py:1013
 msgid "This entry cannot be enabled or disabled"
 msgstr ""
 
-#: ipalib/errors.py:1020
+#: ipalib/errors.py:1029
 msgid "This entry is not a member"
 msgstr ""
 
-#: ipalib/errors.py:1036
+#: ipalib/errors.py:1045
 msgid "A group may not be a member of itself"
 msgstr ""
 
-#: ipalib/errors.py:1052
+#: ipalib/errors.py:1061
 msgid "This entry is already a member"
 msgstr ""
 
-#: ipalib/errors.py:1068
+#: ipalib/errors.py:1077
 #, python-format
 msgid "Base64 decoding failed: %(reason)s"
 msgstr ""
 
-#: ipalib/errors.py:1100
+#: ipalib/errors.py:1109
 msgid "A group may not be added as a member of itself"
 msgstr ""
 
-#: ipalib/errors.py:1116
+#: ipalib/errors.py:1125
 msgid "The default users group cannot be removed"
 msgstr ""
 
-#: ipalib/errors.py:1132
+#: ipalib/errors.py:1141
 msgid "Host does not have corresponding DNS A record"
 msgstr ""
 
-#: ipalib/errors.py:1147
+#: ipalib/errors.py:1156
 msgid "Deleting a managed group is not allowed. It must be detached first."
 msgstr ""
 
-#: ipalib/errors.py:1162
+#: ipalib/errors.py:1171
 msgid "A managed group cannot have a password policy."
 msgstr ""
 
-#: ipalib/errors.py:1194
+#: ipalib/errors.py:1203
 #, python-format
 msgid "'%(entry)s' doesn't have a certificate."
 msgstr ""
 
-#: ipalib/errors.py:1210
+#: ipalib/errors.py:1219
 #, python-format
 msgid "Unable to create private group. A group '%(group)s' already exists."
 msgstr ""
 
-#: ipalib/errors.py:1226
+#: ipalib/errors.py:1235
 #, python-format
 msgid ""
 "A problem was encountered when verifying that all members were %(verb)s: "
 "%(exc)s"
 msgstr ""
 
-#: ipalib/errors.py:1244
+#: ipalib/errors.py:1253
 #, python-format
 msgid "%(attr)s does not contain '%(value)s'"
 msgstr ""
 
-#: ipalib/errors.py:1261
+#: ipalib/errors.py:1270
 #, python-format
 msgid ""
 "The search criteria was not specific enough. Expected 1 and found %(found)d."
 msgstr ""
 
-#: ipalib/errors.py:1285
+#: ipalib/errors.py:1294
 #, python-format
 msgid "no command nor help topic %(topic)r"
 msgstr ""
 
-#: ipalib/errors.py:1309
+#: ipalib/errors.py:1318
 msgid "change collided with another change"
 msgstr ""
 
-#: ipalib/errors.py:1325
+#: ipalib/errors.py:1334
 msgid "no modifications to be performed"
 msgstr ""
 
-#: ipalib/errors.py:1341
+#: ipalib/errors.py:1350
 #, python-format
 msgid "%(desc)s: %(info)s"
 msgstr ""
 
-#: ipalib/errors.py:1357
+#: ipalib/errors.py:1366
 msgid "limits exceeded for this query"
 msgstr ""
 
-#: ipalib/errors.py:1372
+#: ipalib/errors.py:1381
 #, python-format
 msgid "%(info)s"
 msgstr ""
 
-#: ipalib/errors.py:1387
+#: ipalib/errors.py:1396
 msgid "modifying primary key is not allowed"
 msgstr ""
 
-#: ipalib/errors.py:1403
+#: ipalib/errors.py:1412
 #, python-format
 msgid "%(attr)s: Only one value allowed."
 msgstr ""
 
-#: ipalib/errors.py:1419
+#: ipalib/errors.py:1428
 #, python-format
 msgid "%(attr)s: Invalid syntax."
 msgstr ""
 
-#: ipalib/errors.py:1435
+#: ipalib/errors.py:1444
 #, python-format
 msgid "Bad search filter %(info)s"
 msgstr ""
 
-#: ipalib/errors.py:1460
+#: ipalib/errors.py:1469
 #, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr ""
 
-#: ipalib/errors.py:1476
+#: ipalib/errors.py:1485
 #, python-format
 msgid "Certificate format error: %(error)s"
 msgstr ""
 
-#: ipalib/errors.py:1527
+#: ipalib/errors.py:1536
 msgid "Already registered"
 msgstr ""
 
-#: ipalib/errors.py:1543
+#: ipalib/errors.py:1552
 msgid "Not registered yet"
 msgstr ""
 
-#: ipalib/errors.py:1559
+#: ipalib/errors.py:1568
 #, python-format
 msgid "%(key)s cannot be deleted because %(label)s %(dependent)s requires it"
 msgstr ""
@@ -1651,7 +1652,7 @@ msgid "Continuous mode: Don't stop on errors."
 msgstr ""
 
 #: ipalib/plugins/baseldap.py:1087 ipalib/plugins/baseldap.py:1159
-#: ipalib/plugins/internal.py:436
+#: ipalib/plugins/internal.py:437
 msgid "Rights"
 msgstr ""
 
@@ -1865,7 +1866,7 @@ msgstr ""
 
 #: ipalib/plugins/cert.py:236 ipalib/plugins/cert.py:439
 #: ipalib/plugins/entitle.py:174 ipalib/plugins/host.py:323
-#: ipalib/plugins/internal.py:347 ipalib/plugins/service.py:235
+#: ipalib/plugins/internal.py:348 ipalib/plugins/service.py:235
 msgid "Certificate"
 msgstr ""
 
@@ -2525,7 +2526,7 @@ msgid "A hostname which this alias hostname points to"
 msgstr ""
 
 #: ipalib/plugins/dns.py:560 ipalib/plugins/dns.py:926
-#: ipalib/plugins/internal.py:437
+#: ipalib/plugins/internal.py:438
 msgid "Target"
 msgstr ""
 
@@ -2661,7 +2662,7 @@ msgid "Order"
 msgstr ""
 
 #: ipalib/plugins/dns.py:872 ipalib/plugins/hbactest.py:194
-#: ipalib/plugins/internal.py:465 ipalib/plugins/service.py:223
+#: ipalib/plugins/internal.py:466 ipalib/plugins/service.py:223
 msgid "Service"
 msgstr ""
 
@@ -3173,7 +3174,7 @@ msgstr ""
 
 #: ipalib/plugins/entitle.py:217 ipalib/plugins/entitle.py:304
 #: ipalib/plugins/entitle.py:384 ipalib/plugins/entitle.py:570
-#: ipalib/plugins/entitle.py:683 ipalib/plugins/internal.py:360
+#: ipalib/plugins/entitle.py:683 ipalib/plugins/internal.py:361
 msgid "Product"
 msgstr ""
 
@@ -3185,7 +3186,7 @@ msgstr ""
 
 #: ipalib/plugins/entitle.py:223 ipalib/plugins/entitle.py:307
 #: ipalib/plugins/entitle.py:576 ipalib/plugins/entitle.py:686
-#: ipalib/plugins/internal.py:351
+#: ipalib/plugins/internal.py:352
 msgid "Consumed"
 msgstr ""
 
@@ -3202,11 +3203,11 @@ msgstr ""
 msgid "Retrieve the entitlement certs."
 msgstr ""
 
-#: ipalib/plugins/entitle.py:390 ipalib/plugins/internal.py:363
+#: ipalib/plugins/entitle.py:390 ipalib/plugins/internal.py:364
 msgid "Start"
 msgstr ""
 
-#: ipalib/plugins/entitle.py:393 ipalib/plugins/internal.py:354
+#: ipalib/plugins/entitle.py:393 ipalib/plugins/internal.py:355
 msgid "End"
 msgstr ""
 
@@ -3552,7 +3553,7 @@ msgstr ""
 msgid "Service category the rule applies to"
 msgstr ""
 
-#: ipalib/plugins/hbacrule.py:187 ipalib/plugins/internal.py:541
+#: ipalib/plugins/hbacrule.py:187 ipalib/plugins/internal.py:542
 #: ipalib/plugins/selinuxusermap.py:176 ipalib/plugins/sudorule.py:109
 msgid "Enabled"
 msgstr ""
@@ -3580,7 +3581,7 @@ msgstr ""
 msgid "Source Host Groups"
 msgstr ""
 
-#: ipalib/plugins/hbacrule.py:215 ipalib/plugins/internal.py:386
+#: ipalib/plugins/hbacrule.py:215 ipalib/plugins/internal.py:387
 #: ipalib/plugins/service.py:222
 msgid "Services"
 msgstr ""
@@ -4170,7 +4171,7 @@ msgstr ""
 msgid "hosts"
 msgstr ""
 
-#: ipalib/plugins/host.py:270 ipalib/plugins/internal.py:453
+#: ipalib/plugins/host.py:270 ipalib/plugins/internal.py:454
 msgid "Host"
 msgstr ""
 
@@ -5036,665 +5037,669 @@ msgid "Search Options"
 msgstr ""
 
 #: ipalib/plugins/internal.py:318
+msgid "SELinux Options"
+msgstr ""
+
+#: ipalib/plugins/internal.py:319
 msgid "User Options"
 msgstr ""
 
-#: ipalib/plugins/internal.py:323
+#: ipalib/plugins/internal.py:324
 msgid "Data"
 msgstr ""
 
-#: ipalib/plugins/internal.py:324
+#: ipalib/plugins/internal.py:325
 msgid "DNS record was deleted because it contained no data."
 msgstr ""
 
-#: ipalib/plugins/internal.py:325
+#: ipalib/plugins/internal.py:326
 msgid "Other Record Types"
 msgstr ""
 
-#: ipalib/plugins/internal.py:326
+#: ipalib/plugins/internal.py:327
 msgid "Address not valid, can't redirect"
 msgstr ""
 
-#: ipalib/plugins/internal.py:327
+#: ipalib/plugins/internal.py:328
 msgid "Create dns record"
 msgstr ""
 
-#: ipalib/plugins/internal.py:328
+#: ipalib/plugins/internal.py:329
 msgid "Creating record."
 msgstr ""
 
-#: ipalib/plugins/internal.py:329
+#: ipalib/plugins/internal.py:330
 msgid "Record creation failed."
 msgstr ""
 
-#: ipalib/plugins/internal.py:330
+#: ipalib/plugins/internal.py:331
 msgid "Checking if record exists."
 msgstr ""
 
-#: ipalib/plugins/internal.py:331
+#: ipalib/plugins/internal.py:332
 msgid "Record not found."
 msgstr ""
 
-#: ipalib/plugins/internal.py:332
+#: ipalib/plugins/internal.py:333
 msgid "Redirection to PTR record"
 msgstr ""
 
-#: ipalib/plugins/internal.py:333
+#: ipalib/plugins/internal.py:334
 msgid "Zone found: ${zone}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:334
+#: ipalib/plugins/internal.py:335
 msgid "Target reverse zone not found."
 msgstr ""
 
-#: ipalib/plugins/internal.py:335
+#: ipalib/plugins/internal.py:336
 msgid "Fetching DNS zones."
 msgstr ""
 
-#: ipalib/plugins/internal.py:336
+#: ipalib/plugins/internal.py:337
 msgid "An error occurd while fetching dns zones."
 msgstr ""
 
-#: ipalib/plugins/internal.py:337
+#: ipalib/plugins/internal.py:338
 msgid "You will be redirected to DNS Zone."
 msgstr ""
 
-#: ipalib/plugins/internal.py:338
+#: ipalib/plugins/internal.py:339
 msgid "Standard Record Types"
 msgstr ""
 
-#: ipalib/plugins/internal.py:339
+#: ipalib/plugins/internal.py:340
 msgid "Records for DNS Zone"
 msgstr ""
 
-#: ipalib/plugins/internal.py:340
+#: ipalib/plugins/internal.py:341
 msgid "Record Type"
 msgstr ""
 
-#: ipalib/plugins/internal.py:343
+#: ipalib/plugins/internal.py:344
 msgid "DNS Zone Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:346
+#: ipalib/plugins/internal.py:347
 msgid "Account"
 msgstr ""
 
-#: ipalib/plugins/internal.py:348
+#: ipalib/plugins/internal.py:349
 msgid "Certificates"
 msgstr ""
 
-#: ipalib/plugins/internal.py:349
+#: ipalib/plugins/internal.py:350
 msgid "Consume"
 msgstr ""
 
-#: ipalib/plugins/internal.py:350
+#: ipalib/plugins/internal.py:351
 msgid "Consume Entitlement"
 msgstr ""
 
-#: ipalib/plugins/internal.py:352
+#: ipalib/plugins/internal.py:353
 msgid "Download"
 msgstr ""
 
-#: ipalib/plugins/internal.py:353
+#: ipalib/plugins/internal.py:354
 msgid "Download Certificate"
 msgstr ""
 
-#: ipalib/plugins/internal.py:355
+#: ipalib/plugins/internal.py:356
 msgid "Import"
 msgstr ""
 
-#: ipalib/plugins/internal.py:356
+#: ipalib/plugins/internal.py:357
 msgid "Import Certificate"
 msgstr ""
 
-#: ipalib/plugins/internal.py:357
+#: ipalib/plugins/internal.py:358
 msgid "Enter the Base64-encoded entitlement certificate below:"
 msgstr ""
 
-#: ipalib/plugins/internal.py:358
+#: ipalib/plugins/internal.py:359
 msgid "Loading..."
 msgstr ""
 
-#: ipalib/plugins/internal.py:359
+#: ipalib/plugins/internal.py:360
 msgid "No Certificate."
 msgstr ""
 
-#: ipalib/plugins/internal.py:361
+#: ipalib/plugins/internal.py:362
 msgid "Register"
 msgstr ""
 
-#: ipalib/plugins/internal.py:362
+#: ipalib/plugins/internal.py:363
 msgid "Registration"
 msgstr ""
 
-#: ipalib/plugins/internal.py:364 ipalib/plugins/internal.py:419
-#: ipalib/plugins/internal.py:466 ipalib/plugins/internal.py:542
+#: ipalib/plugins/internal.py:365 ipalib/plugins/internal.py:420
+#: ipalib/plugins/internal.py:467 ipalib/plugins/internal.py:543
 msgid "Status"
 msgstr ""
 
-#: ipalib/plugins/internal.py:367
+#: ipalib/plugins/internal.py:368
 msgid "Group Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:368
+#: ipalib/plugins/internal.py:369
 msgid "POSIX group"
 msgstr ""
 
-#: ipalib/plugins/internal.py:371 ipalib/plugins/internal.py:451
-#: ipalib/plugins/internal.py:492
+#: ipalib/plugins/internal.py:372 ipalib/plugins/internal.py:452
+#: ipalib/plugins/internal.py:493
 msgid "Any Host"
 msgstr ""
 
-#: ipalib/plugins/internal.py:372
+#: ipalib/plugins/internal.py:373
 msgid "Any Service"
 msgstr ""
 
-#: ipalib/plugins/internal.py:373 ipalib/plugins/internal.py:452
-#: ipalib/plugins/internal.py:493
+#: ipalib/plugins/internal.py:374 ipalib/plugins/internal.py:453
+#: ipalib/plugins/internal.py:494
 msgid "Anyone"
 msgstr ""
 
-#: ipalib/plugins/internal.py:374
+#: ipalib/plugins/internal.py:375
 msgid "Accessing"
 msgstr ""
 
-#: ipalib/plugins/internal.py:375 ipalib/plugins/internal.py:498
+#: ipalib/plugins/internal.py:376 ipalib/plugins/internal.py:499
 msgid "Rule status"
 msgstr ""
 
-#: ipalib/plugins/internal.py:376
+#: ipalib/plugins/internal.py:377
 msgid "Via Service"
 msgstr ""
 
-#: ipalib/plugins/internal.py:377
+#: ipalib/plugins/internal.py:378
 msgid "From"
 msgstr ""
 
-#: ipalib/plugins/internal.py:378 ipalib/plugins/internal.py:454
-#: ipalib/plugins/internal.py:503
+#: ipalib/plugins/internal.py:379 ipalib/plugins/internal.py:455
+#: ipalib/plugins/internal.py:504
 msgid "Specified Hosts and Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:379
+#: ipalib/plugins/internal.py:380
 msgid "Specified Services and Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:380 ipalib/plugins/internal.py:455
-#: ipalib/plugins/internal.py:504
+#: ipalib/plugins/internal.py:381 ipalib/plugins/internal.py:456
+#: ipalib/plugins/internal.py:505
 msgid "Specified Users and Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:381 ipalib/plugins/internal.py:505
+#: ipalib/plugins/internal.py:382 ipalib/plugins/internal.py:506
 msgid "Who"
 msgstr ""
 
-#: ipalib/plugins/internal.py:389
+#: ipalib/plugins/internal.py:390
 msgid "Access Denied"
 msgstr ""
 
-#: ipalib/plugins/internal.py:390
+#: ipalib/plugins/internal.py:391
 msgid "Access Granted"
 msgstr ""
 
-#: ipalib/plugins/internal.py:391
+#: ipalib/plugins/internal.py:392
 msgid "Include Disabled"
 msgstr ""
 
-#: ipalib/plugins/internal.py:392
+#: ipalib/plugins/internal.py:393
 msgid "Include Enabled"
 msgstr ""
 
-#: ipalib/plugins/internal.py:393
+#: ipalib/plugins/internal.py:394
 msgid "HBAC Test"
 msgstr ""
 
-#: ipalib/plugins/internal.py:394
+#: ipalib/plugins/internal.py:395
 msgid "Matched"
 msgstr ""
 
-#: ipalib/plugins/internal.py:395
+#: ipalib/plugins/internal.py:396
 msgid "New Test"
 msgstr ""
 
-#: ipalib/plugins/internal.py:396
+#: ipalib/plugins/internal.py:397
 msgid "Rules"
 msgstr ""
 
-#: ipalib/plugins/internal.py:397
+#: ipalib/plugins/internal.py:398
 msgid "Run Test"
 msgstr ""
 
-#: ipalib/plugins/internal.py:398
+#: ipalib/plugins/internal.py:399
 msgid "Specify external ${entity}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:399
+#: ipalib/plugins/internal.py:400
 msgid "Unmatched"
 msgstr ""
 
-#: ipalib/plugins/internal.py:402
+#: ipalib/plugins/internal.py:403
 msgid "Host Certificate"
 msgstr ""
 
-#: ipalib/plugins/internal.py:403 ipalib/plugins/internal.py:462
+#: ipalib/plugins/internal.py:404 ipalib/plugins/internal.py:463
 msgid "Host Name"
 msgstr ""
 
-#: ipalib/plugins/internal.py:404 ipalib/plugins/internal.py:460
+#: ipalib/plugins/internal.py:405 ipalib/plugins/internal.py:461
 msgid "Delete Key, Unprovision"
 msgstr ""
 
-#: ipalib/plugins/internal.py:405
+#: ipalib/plugins/internal.py:406
 msgid "Host Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:406
+#: ipalib/plugins/internal.py:407
 msgid "Enrolled"
 msgstr ""
 
-#: ipalib/plugins/internal.py:407
+#: ipalib/plugins/internal.py:408
 msgid "Enrollment"
 msgstr ""
 
-#: ipalib/plugins/internal.py:408
+#: ipalib/plugins/internal.py:409
 msgid "Fully Qualified Host Name"
 msgstr ""
 
-#: ipalib/plugins/internal.py:409
+#: ipalib/plugins/internal.py:410
 msgid "Kerberos Key"
 msgstr ""
 
-#: ipalib/plugins/internal.py:410 ipalib/plugins/internal.py:463
+#: ipalib/plugins/internal.py:411 ipalib/plugins/internal.py:464
 msgid "Kerberos Key Not Present"
 msgstr ""
 
-#: ipalib/plugins/internal.py:411
+#: ipalib/plugins/internal.py:412
 msgid "Kerberos Key Present, Host Provisioned"
 msgstr ""
 
-#: ipalib/plugins/internal.py:412
+#: ipalib/plugins/internal.py:413
 msgid "One-Time-Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:413
+#: ipalib/plugins/internal.py:414
 msgid "One-Time-Password Not Present"
 msgstr ""
 
-#: ipalib/plugins/internal.py:414
+#: ipalib/plugins/internal.py:415
 msgid "One-Time-Password Present"
 msgstr ""
 
-#: ipalib/plugins/internal.py:415
+#: ipalib/plugins/internal.py:416
 msgid "Reset OTP"
 msgstr ""
 
-#: ipalib/plugins/internal.py:416
+#: ipalib/plugins/internal.py:417
 msgid "Reset One-Time-Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:417
+#: ipalib/plugins/internal.py:418
 msgid "Set OTP"
 msgstr ""
 
-#: ipalib/plugins/internal.py:418
+#: ipalib/plugins/internal.py:419
 msgid "Set One-Time-Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:420 ipalib/plugins/internal.py:467
+#: ipalib/plugins/internal.py:421 ipalib/plugins/internal.py:468
 msgid "Unprovision"
 msgstr ""
 
-#: ipalib/plugins/internal.py:421
+#: ipalib/plugins/internal.py:422
 msgid "Are you sure you want to unprovision this host?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:422 ipalib/plugins/internal.py:469
+#: ipalib/plugins/internal.py:423 ipalib/plugins/internal.py:470
 msgid "Unprovisioning ${entity}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:425
+#: ipalib/plugins/internal.py:426
 msgid "Host Group Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:428 ipalib/plugins/krbtpolicy.py:79
+#: ipalib/plugins/internal.py:429 ipalib/plugins/krbtpolicy.py:79
 #: ipalib/plugins/krbtpolicy.py:80
 msgid "Kerberos Ticket Policy"
 msgstr ""
 
-#: ipalib/plugins/internal.py:431
+#: ipalib/plugins/internal.py:432
 msgid "Netgroup Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:434 ipalib/plugins/internal.py:550
+#: ipalib/plugins/internal.py:435 ipalib/plugins/internal.py:551
 msgid "Identity"
 msgstr ""
 
-#: ipalib/plugins/internal.py:435
+#: ipalib/plugins/internal.py:436
 msgid "Permission with invalid target specification"
 msgstr ""
 
-#: ipalib/plugins/internal.py:440
+#: ipalib/plugins/internal.py:441
 msgid "Privilege Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:443 ipalib/plugins/pwpolicy.py:221
+#: ipalib/plugins/internal.py:444 ipalib/plugins/pwpolicy.py:221
 msgid "Password Policy"
 msgstr ""
 
-#: ipalib/plugins/internal.py:446
+#: ipalib/plugins/internal.py:447
 msgid "Role Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:456 ipalib/plugins/pwpolicy.py:432
+#: ipalib/plugins/internal.py:457 ipalib/plugins/pwpolicy.py:432
 #: ipalib/plugins/user.py:177
 msgid "User"
 msgstr ""
 
-#: ipalib/plugins/internal.py:459
+#: ipalib/plugins/internal.py:460
 msgid "Service Certificate"
 msgstr ""
 
-#: ipalib/plugins/internal.py:461
+#: ipalib/plugins/internal.py:462
 msgid "Service Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:464
+#: ipalib/plugins/internal.py:465
 msgid "Provisioning"
 msgstr ""
 
-#: ipalib/plugins/internal.py:468
+#: ipalib/plugins/internal.py:469
 msgid "Are you sure you want to unprovision this service?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:470
+#: ipalib/plugins/internal.py:471
 msgid "Kerberos Key Present, Service Provisioned"
 msgstr ""
 
-#: ipalib/plugins/internal.py:473
+#: ipalib/plugins/internal.py:474
 msgid "SSH public keys"
 msgstr ""
 
-#: ipalib/plugins/internal.py:474
+#: ipalib/plugins/internal.py:475
 msgid "Base-64 encoded SSH public key:"
 msgstr ""
 
-#: ipalib/plugins/internal.py:475
+#: ipalib/plugins/internal.py:476
 msgid "Set SSH key"
 msgstr ""
 
-#: ipalib/plugins/internal.py:476
+#: ipalib/plugins/internal.py:477
 msgid "Show/Set key"
 msgstr ""
 
-#: ipalib/plugins/internal.py:477
+#: ipalib/plugins/internal.py:478
 msgid "Modified: key not set"
 msgstr ""
 
-#: ipalib/plugins/internal.py:478
+#: ipalib/plugins/internal.py:479
 msgid "Modified"
 msgstr ""
 
-#: ipalib/plugins/internal.py:479
+#: ipalib/plugins/internal.py:480
 msgid "New: key not set"
 msgstr ""
 
-#: ipalib/plugins/internal.py:480
+#: ipalib/plugins/internal.py:481
 msgid "New: key set"
 msgstr ""
 
-#: ipalib/plugins/internal.py:483
+#: ipalib/plugins/internal.py:484
 msgid "Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:486 ipalib/plugins/sudocmdgroup.py:82
+#: ipalib/plugins/internal.py:487 ipalib/plugins/sudocmdgroup.py:82
 msgid "Commands"
 msgstr ""
 
-#: ipalib/plugins/internal.py:489
+#: ipalib/plugins/internal.py:490
 msgid "Allow"
 msgstr ""
 
-#: ipalib/plugins/internal.py:490
+#: ipalib/plugins/internal.py:491
 msgid "Any Command"
 msgstr ""
 
-#: ipalib/plugins/internal.py:491
+#: ipalib/plugins/internal.py:492
 msgid "Any Group"
 msgstr ""
 
-#: ipalib/plugins/internal.py:494
+#: ipalib/plugins/internal.py:495
 msgid "Run Commands"
 msgstr ""
 
-#: ipalib/plugins/internal.py:495
+#: ipalib/plugins/internal.py:496
 msgid "Deny"
 msgstr ""
 
-#: ipalib/plugins/internal.py:496
+#: ipalib/plugins/internal.py:497
 msgid "External"
 msgstr ""
 
-#: ipalib/plugins/internal.py:497
+#: ipalib/plugins/internal.py:498
 msgid "Access this host"
 msgstr ""
 
-#: ipalib/plugins/internal.py:499
+#: ipalib/plugins/internal.py:500
 msgid "Options"
 msgstr ""
 
-#: ipalib/plugins/internal.py:500
+#: ipalib/plugins/internal.py:501
 msgid "As Whom"
 msgstr ""
 
-#: ipalib/plugins/internal.py:501
+#: ipalib/plugins/internal.py:502
 msgid "Specified Commands and Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:502
+#: ipalib/plugins/internal.py:503
 msgid "Specified Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:508
+#: ipalib/plugins/internal.py:509
 msgid "Account Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:509
+#: ipalib/plugins/internal.py:510
 msgid "Account Status"
 msgstr ""
 
-#: ipalib/plugins/internal.py:510
+#: ipalib/plugins/internal.py:511
 msgid "Contact Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:511
+#: ipalib/plugins/internal.py:512
 msgid "Employee Information"
 msgstr ""
 
-#: ipalib/plugins/internal.py:512
+#: ipalib/plugins/internal.py:513
 msgid "Error changing account status"
 msgstr ""
 
-#: ipalib/plugins/internal.py:513
+#: ipalib/plugins/internal.py:514
 msgid "Password expiration"
 msgstr ""
 
-#: ipalib/plugins/internal.py:514
+#: ipalib/plugins/internal.py:515
 msgid "Mailing Address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:515
+#: ipalib/plugins/internal.py:516
 msgid "Misc. Information"
 msgstr ""
 
-#: ipalib/plugins/internal.py:516
+#: ipalib/plugins/internal.py:517
 msgid ""
 "Are you sure you want to ${action} the user?<br/>The change will take effect "
 "immediately."
 msgstr ""
 
-#: ipalib/plugins/internal.py:517
+#: ipalib/plugins/internal.py:518
 msgid "Click to ${action}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:521 ipalib/plugins/passwd.py:79
+#: ipalib/plugins/internal.py:522 ipalib/plugins/passwd.py:79
 msgid "Current Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:522
+#: ipalib/plugins/internal.py:523
 msgid "Current password is required"
 msgstr ""
 
-#: ipalib/plugins/internal.py:523 ipalib/plugins/passwd.py:76
+#: ipalib/plugins/internal.py:524 ipalib/plugins/passwd.py:76
 msgid "New Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:524
+#: ipalib/plugins/internal.py:525
 msgid "Password change complete"
 msgstr ""
 
-#: ipalib/plugins/internal.py:525
+#: ipalib/plugins/internal.py:526
 msgid "Passwords must match"
 msgstr ""
 
-#: ipalib/plugins/internal.py:526
+#: ipalib/plugins/internal.py:527
 msgid "Reset Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:527
+#: ipalib/plugins/internal.py:528
 msgid "Verify Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:530
+#: ipalib/plugins/internal.py:531
 msgid "Are you sure you want to delete selected entries?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:531
+#: ipalib/plugins/internal.py:532
 msgid "Some entries were not deleted"
 msgstr ""
 
-#: ipalib/plugins/internal.py:532
+#: ipalib/plugins/internal.py:533
 msgid "Quick Links"
 msgstr ""
 
-#: ipalib/plugins/internal.py:533
+#: ipalib/plugins/internal.py:534
 msgid "Select All"
 msgstr ""
 
-#: ipalib/plugins/internal.py:534
+#: ipalib/plugins/internal.py:535
 msgid ""
 "Query returned more results than the configured size limit. Displaying the "
 "first ${counter} results."
 msgstr ""
 
-#: ipalib/plugins/internal.py:535
+#: ipalib/plugins/internal.py:536
 msgid "Unselect All"
 msgstr ""
 
-#: ipalib/plugins/internal.py:538
+#: ipalib/plugins/internal.py:539
 msgid "Disable"
 msgstr ""
 
-#: ipalib/plugins/internal.py:539
+#: ipalib/plugins/internal.py:540
 msgid "Disabled"
 msgstr ""
 
-#: ipalib/plugins/internal.py:540
+#: ipalib/plugins/internal.py:541
 msgid "Enable"
 msgstr ""
 
-#: ipalib/plugins/internal.py:545
+#: ipalib/plugins/internal.py:546
 msgid "Audit"
 msgstr ""
 
-#: ipalib/plugins/internal.py:546
+#: ipalib/plugins/internal.py:547
 msgid "Automember"
 msgstr ""
 
-#: ipalib/plugins/internal.py:547
+#: ipalib/plugins/internal.py:548
 msgid "Automount"
 msgstr ""
 
-#: ipalib/plugins/internal.py:548
+#: ipalib/plugins/internal.py:549
 msgid "DNS"
 msgstr ""
 
-#: ipalib/plugins/internal.py:549
+#: ipalib/plugins/internal.py:550
 msgid "Host Based Access Control"
 msgstr ""
 
-#: ipalib/plugins/internal.py:551
+#: ipalib/plugins/internal.py:552
 msgid "IPA Server"
 msgstr ""
 
-#: ipalib/plugins/internal.py:552
+#: ipalib/plugins/internal.py:553
 msgid "Policy"
 msgstr ""
 
-#: ipalib/plugins/internal.py:553
+#: ipalib/plugins/internal.py:554
 msgid "Role Based Access Control"
 msgstr ""
 
-#: ipalib/plugins/internal.py:554
+#: ipalib/plugins/internal.py:555
 msgid "Sudo"
 msgstr ""
 
-#: ipalib/plugins/internal.py:556
+#: ipalib/plugins/internal.py:557
 msgid "True"
 msgstr ""
 
-#: ipalib/plugins/internal.py:558
+#: ipalib/plugins/internal.py:559
 msgid "Next"
 msgstr ""
 
-#: ipalib/plugins/internal.py:559
+#: ipalib/plugins/internal.py:560
 msgid "Page"
 msgstr ""
 
-#: ipalib/plugins/internal.py:560
+#: ipalib/plugins/internal.py:561
 msgid "Prev"
 msgstr ""
 
-#: ipalib/plugins/internal.py:561
+#: ipalib/plugins/internal.py:562
 msgid "undo"
 msgstr ""
 
-#: ipalib/plugins/internal.py:562
+#: ipalib/plugins/internal.py:563
 msgid "undo all"
 msgstr ""
 
-#: ipalib/plugins/internal.py:564
+#: ipalib/plugins/internal.py:565
 msgid "Text does not match field pattern"
 msgstr ""
 
-#: ipalib/plugins/internal.py:565
+#: ipalib/plugins/internal.py:566
 msgid "Must be an integer"
 msgstr ""
 
-#: ipalib/plugins/internal.py:566
+#: ipalib/plugins/internal.py:567
 msgid "Not a valid IP address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:567
+#: ipalib/plugins/internal.py:568
 msgid "Not a valid IPv4 address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:568
+#: ipalib/plugins/internal.py:569
 msgid "Not a valid IPv6 address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:569
+#: ipalib/plugins/internal.py:570
 msgid "Maximum value is ${value}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:570
+#: ipalib/plugins/internal.py:571
 msgid "Minimum value is ${value}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:571
+#: ipalib/plugins/internal.py:572
 msgid "Required field"
 msgstr ""
 
-#: ipalib/plugins/internal.py:576
+#: ipalib/plugins/internal.py:577
 msgid "Dict of I18N messages"
 msgstr ""
 
