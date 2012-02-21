@@ -2107,7 +2107,8 @@ class dnsrecord_mod(LDAPUpdate):
                 old_dnsvalue, new_parts = updated_attrs[attr]
 
                 if old_dnsvalue not in old_entry.get(attr, []):
-                    raise errors.AttrValueNotFound(attr=attr,
+                    attr_name = unicode(param.label or param.name)
+                    raise errors.AttrValueNotFound(attr=attr_name,
                                                    value=old_dnsvalue)
                 old_entry[attr].remove(old_dnsvalue)
 
@@ -2253,7 +2254,12 @@ class dnsrecord_del(LDAPUpdate):
                 try:
                     old_entry[attr].remove(val)
                 except (KeyError, ValueError):
-                    raise errors.AttrValueNotFound(attr=attr,
+                    try:
+                        param = self.params[attr]
+                        attr_name = unicode(param.label or param.name)
+                    except:
+                        attr_name = attr
+                    raise errors.AttrValueNotFound(attr=attr_name,
                                                    value=val)
             entry_attrs[attr] = list(set(old_entry[attr]))
 
