@@ -331,3 +331,7 @@ add:aci:'(targetattr = "ipasshpubkey")(target = "ldap:///fqdn=*,cn=computers,cn=
 # of administrators
 dn: $SUFFIX
 replace:aci:'(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)::(targetfilter = "(!(memberOf=cn=admins,cn=groups,cn=accounts,$SUFFIX))")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)'
+
+# Don't allow the default 'manage group membership' to be able to manage the
+# admins group
+replace:aci:'(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)::(targetfilter = "(!(cn=admins))")(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)'
