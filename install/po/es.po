@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Red Hat
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 # Translators:
 # Eduardo Villagrán M <gotencool@gmail.com>, 2012.
 # gguerrer <gguerrer@redhat.com>, 2011.
@@ -1290,7 +1290,7 @@ msgstr ""
 msgid ""
 "The key,info pair must be unique. A key named %(key)s with info %(info)s "
 "already exists"
-msgstr "El par de claves, la información debe ser único. Un nombre clave %(key)s  con% información %(info)s ya existe"
+msgstr "El par de claves, la información debe ser único. Un nombre clave %(key)s  con información %(info)s ya existe"
 
 #: ipalib/plugins/automount.py:627
 #, python-format
