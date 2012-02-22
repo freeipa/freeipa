@@ -102,7 +102,7 @@ IPA.field = function(spec) {
 
     that.validate_required = function() {
         var values = that.save();
-        if (that.is_empty(values) && that.is_required() && that.enabled) {
+        if (IPA.is_empty(values) && that.is_required() && that.enabled) {
             that.valid = false;
             that.show_error(IPA.messages.widget.validation.required);
             return false;
@@ -123,7 +123,7 @@ IPA.field = function(spec) {
 
         var values = that.save();
 
-        if (that.is_empty(values)) {
+        if (IPA.is_empty(values)) {
             return that.valid;
         }
 
@@ -267,8 +267,8 @@ IPA.field = function(spec) {
         var values = that.save();
 
         //check for empty value: null, [''], '', []
-        var orig_empty = that.is_empty(that.values);
-        var new_empty= that.is_empty(values);
+        var orig_empty = IPA.is_empty(that.values);
+        var new_empty= IPA.is_empty(values);
         if (orig_empty && new_empty) return false;
         if (orig_empty != new_empty) return true;
 
@@ -293,22 +293,6 @@ IPA.field = function(spec) {
         }
 
         return true;
-    };
-
-    that.is_empty = function(value) {
-
-        var empty = false;
-
-        if (!value) empty = true;
-
-        if (value instanceof Array) {
-            empty = empty || value.length === 0 ||
-                    (value.length === 1) && (value[0] === '');
-        }
-
-        if (value === '') empty = true;
-
-        return empty;
     };
 
     /**
@@ -560,7 +544,7 @@ IPA.multivalued_field = function(spec) {
         that.hide_error();
         that.valid = true;
 
-        if (that.is_empty(values)) {
+        if (IPA.is_empty(values)) {
             return that.valid;
         }
 
