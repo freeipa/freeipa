@@ -52,7 +52,8 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'select',
                     name: 'target',
-                    widget: 'target.target'
+                    widget: 'target.target',
+                    enabled: false
                 },
                 {
                     name: 'filter',
@@ -62,7 +63,8 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'entity_select',
                     name: 'memberof',
-                    widget: 'target.memberof'
+                    widget: 'target.memberof',
+                    enabled: false
                 },
                 {
                     name: 'subtree',
@@ -84,6 +86,13 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     name: 'attrs',
                     widget: 'target.attrs',
+                    enabled: false
+                },
+                {
+                    name: 'attrs_multi',
+                    param: 'attrs',
+                    type: 'multivalued',
+                    widget: 'target.attrs_multi',
                     enabled: false
                 }
             ],
@@ -139,7 +148,8 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'select',
                     name: 'target',
-                    widget: 'target.target'
+                    widget: 'target.target',
+                    enabled: false
                 },
                 {
                     name: 'filter',
@@ -149,7 +159,8 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'entity_select',
                     name: 'memberof',
-                    widget: 'target.memberof'
+                    widget: 'target.memberof',
+                    enabled: false
                 },
                 {
                     name: 'subtree',
@@ -171,6 +182,13 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     name: 'attrs',
                     widget: 'target.attrs',
+                    enabled: false
+                },
+                {
+                    name: 'attrs_multi',
+                    type: 'multivalued',
+                    param: 'attrs',
+                    widget: 'target.attrs_multi',
                     enabled: false
                 }
             ],
@@ -702,6 +720,14 @@ IPA.permission_target_widget = function(spec) {
         });
 
         that.widgets.add_widget(that.attribute_table);
+
+        that.attribute_multivalued = IPA.multivalued_widget({
+            entity: that.entity,
+            name: 'attrs_multi',
+            hidden: true
+        });
+
+        that.widgets.add_widget(that.attribute_multivalued);
     };
 
     init();
@@ -725,13 +751,18 @@ IPA.permission_target_policy = function (widget_name) {
         });
 
         var type_select = widgets.get_widget('type');
-        var attribute_table = widgets.get_widget('attrs');
-        var attribute_field = that.container.fields.get_field('attrs');
+
         type_select.value_changed.attach(function() {
             var type = type_select.save()[0];
-            attribute_table.object_type = type;
-            attribute_field.reset();
+            that.set_attrs_type(type);
         });
+    };
+
+    that.set_attrs_type = function(type) {
+        var attribute_field = that.container.fields.get_field('attrs');
+        var attribute_table = that.permission_target.widgets.get_widget('attrs');
+        attribute_table.object_type = type;
+        attribute_field.reset();
     };
 
     that.post_create = function() {
@@ -740,18 +771,20 @@ IPA.permission_target_policy = function (widget_name) {
 
     that.post_load = function(data) {
 
-        var targets = that.permission_target.targets;
+        var displayed_target;
 
-        that.set_target_visible_core('memberof', false);
+        for (var target in that.target_mapping) {
 
-        for (var i=0; i<targets.length; i++) {
-            var target = targets[i];
-
-            if(data.result.result[target]) {
-                that.select_target(target);
+            if (data.result.result[target]) {
+                displayed_target = target;
             } else {
                 that.set_target_visible(target, false);
             }
+        }
+
+        if (displayed_target) {
+            that.permission_target.target = displayed_target;
+            that.set_target_visible(displayed_target, true);
         }
     };
 
@@ -763,27 +796,71 @@ IPA.permission_target_policy = function (widget_name) {
 
     that.set_target_visible = function(target, visible) {
 
-        that.set_target_visible_core(target, visible);
-
-        if (target === 'type') {
-            that.set_target_visible_core('attrs', visible);
-        } else {
-            var field = that.container.fields.get_field(target);
-            field.set_required(visible);
-        }
-
-        if (visible) {
-            var member_of_visible = target === 'type' || target === 'subtree';
-            that.set_target_visible_core('memberof', member_of_visible);
-        }
+        var target_info = that.target_mapping[target];
+        that.set_target_visible_core(target_info, visible);
     };
 
-    that.set_target_visible_core = function(target, visible) {
-        var widget = that.permission_target.widgets.get_widget(target);
-        var field = that.container.fields.get_field(target);
-        that.permission_target.set_row_visible(target, visible);
+    that.set_target_visible_core = function(target_info, visible) {
+        var widget = that.permission_target.widgets.get_widget(target_info.name);
+        var field = that.container.fields.get_field(target_info.name);
+        that.permission_target.set_row_visible(target_info.name, visible);
         field.enabled = visible;
+        field.set_required(visible && target_info.required);
         widget.hidden = !visible;
+
+        if (target_info.additional) {
+            for (var i=0; i<target_info.additional.length; i++) {
+                var nested_info = target_info.additional[i];
+                that.set_target_visible_core(nested_info, visible);
+            }
+        }
+
+        if (target_info.action) target_info.action();
+    };
+
+
+    that.target_mapping = {
+        filter: {
+            name: 'filter',
+            required: true,
+            additional: [
+                {
+                    name: 'attrs_multi'
+                }
+            ]
+        },
+        subtree: {
+            name: 'subtree',
+            required: true,
+            additional: [
+                {
+                    name: 'memberof'
+                }
+            ]
+        },
+        targetgroup: {
+            name: 'targetgroup',
+            required: true,
+            additional: [
+                {
+                    name: 'attrs'
+                }
+            ],
+            action: function() {
+                that.set_attrs_type('group');
+            }
+        },
+        type: {
+            name: 'type',
+            additional: [
+                {
+                    name: 'memberof'
+                },
+                {
+                    name: 'attrs'
+                }
+            ]
+        }
     };
 
 
