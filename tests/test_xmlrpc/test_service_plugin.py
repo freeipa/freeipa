@@ -467,4 +467,21 @@ class test_service(Declarative):
             expected=errors.HostService()
         ),
 
+
+        # These tests will only succeed when running against lite-server.py
+        # on same box as IPA install.
+        dict(
+            desc='Delete the current host (master?) %s HTTP service, should be caught' % api.env.host,
+            command=('service_del', ['HTTP/%s' % api.env.host], {}),
+            expected=errors.ValidationError(name='principal', error='This principal is required by the IPA master'),
+        ),
+
+
+        dict(
+            desc='Delete the current host (master?) %s ldap service, should be caught' % api.env.host,
+            command=('service_del', ['ldap/%s' % api.env.host], {}),
+            expected=errors.ValidationError(name='principal', error='This principal is required by the IPA master'),
+        ),
+
+
     ]
