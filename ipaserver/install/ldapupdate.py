@@ -43,6 +43,7 @@ import os
 import pwd
 import fnmatch
 import csv
+import inspect
 from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
 from ipaserver.install.plugins import FIRST, MIDDLE, LAST
 
@@ -586,7 +587,11 @@ class LDAPUpdate:
            return True if the schema has changed
            return False if it has not
         """
-        s = ldap.schema.SubSchema(s)
+        signature = inspect.getargspec(ldap.schema.SubSchema.__init__)
+        if 'check_uniqueness' in signature.args:
+            s = ldap.schema.SubSchema(s, check_uniqueness=0)
+        else:
+            s = ldap.schema.SubSchema(s)
         s = s.ldap_entry()
 
         # Get a fresh copy and convert into a SubSchema
