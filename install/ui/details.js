@@ -493,7 +493,7 @@ IPA.details_facet = function(spec) {
 
             if (only_dirty && !field.is_dirty()) continue;
 
-            var values = record[field.name];
+            var values = record[field.param];
             if (require_value && !values) continue;
 
             update_info.append_field(field, values);
@@ -838,23 +838,25 @@ IPA.command_builder = function() {
     that.add_field_option = function(command, field, values) {
         if (!field || !values) return;
 
+        var name = field.param;
+
         if (field.metadata) {
             if (field.metadata.primary_key) return;
             if (values.length === 1) {
-                command.set_option(field.name, values[0]);
+                command.set_option(name, values[0]);
             } else if (field.join) {
-                command.set_option(field.name, values.join(','));
+                command.set_option(name, values.join(','));
             } else {
-                command.set_option(field.name, values);
+                command.set_option(name, values);
             }
         } else {
             if (values.length) {
-                command.add_option('setattr', field.name+'='+values[0]);
+                command.add_option('setattr', name+'='+values[0]);
             } else {
-                command.add_option('setattr', field.name+'=');
+                command.add_option('setattr', name+'=');
             }
             for (var k=1; k<values.length; k++) {
-                command.add_option('addattr', field.name+'='+values[k]);
+                command.add_option('addattr', name+'='+values[k]);
             }
         }
     };

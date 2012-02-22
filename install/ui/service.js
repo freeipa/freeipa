@@ -347,7 +347,7 @@ IPA.service_provisioning_status_field = function (spec) {
     that.load = function(record) {
 
         that.values = {
-            value: record[that.name],
+            value: record[that.param],
             pkey: record['krbprincipalname'][0]
         };
 
