@@ -1845,8 +1845,8 @@ IPA.dns.netaddr_field = function(spec) {
         var values = that.field_save();
 
         //check for empty value: null, [''], '', []
-        var orig_empty = that.is_empty(that.values);
-        var new_empty= that.is_empty(values);
+        var orig_empty = IPA.is_empty(that.values);
+        var new_empty= IPA.is_empty(values);
         if (orig_empty && new_empty) return false;
         if (orig_empty != new_empty) return true;
 

@@ -1207,6 +1207,22 @@ IPA.create_options = function(labels, values) {
     return options;
 };
 
+IPA.is_empty = function(value) {
+
+    var empty = false;
+
+    if (!value) empty = true;
+
+    if (value instanceof Array) {
+        empty = empty || value.length === 0 ||
+                (value.length === 1) && (value[0] === '');
+    }
+
+    if (value === '') empty = true;
+
+    return empty;
+};
+
 IPA.config = {
     default_priority: 500
 };
