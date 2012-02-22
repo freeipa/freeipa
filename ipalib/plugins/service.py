@@ -288,6 +288,16 @@ class service_del(LDAPDelete):
     msg_summary = _('Deleted service "%(value)s"')
     member_attributes = ['managedby']
     def pre_callback(self, ldap, dn, *keys, **options):
+        # In the case of services we don't want IPA master services to be
+        # deleted. This is a limited few though. If the user has their own
+        # custom services allow them to manage them.
+        (service, hostname, realm) = split_principal(keys[-1])
+        try:
+            host_is_master(ldap, hostname)
+        except errors.ValidationError, e:
+            service_types = ['HTTP', 'ldap', 'DNS' 'dogtagldap']
+            if service in service_types:
+                raise errors.ValidationError(name='principal', error=_('This principal is required by the IPA master'))
         if self.api.env.enable_ra:
             (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
             cert = entry_attrs.get('usercertificate')

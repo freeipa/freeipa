@@ -560,6 +560,7 @@ class host_del(LDAPDelete):
             fqdn = hostentry['fqdn'][0]
         else:
             fqdn = keys[-1]
+        host_is_master(ldap, fqdn)
         # Remove all service records for this host
         truncated = True
         while truncated:

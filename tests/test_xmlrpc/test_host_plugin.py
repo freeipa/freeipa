@@ -661,4 +661,13 @@ class test_host(Declarative):
             ),
         ),
 
+
+        # This test will only succeed when running against lite-server.py
+        # on same box as IPA install.
+        dict(
+            desc='Delete the current host (master?) %s should be caught' % api.env.host,
+            command=('host_del', [api.env.host], {}),
+            expected=errors.ValidationError(name='fqdn', error='An IPA master host cannot be deleted'),
+        ),
+
     ]

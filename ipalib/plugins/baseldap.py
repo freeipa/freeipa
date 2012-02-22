@@ -387,6 +387,20 @@ def remove_external_post_callback(memberattr, membertype, externalattr, ldap, co
 
     return (completed + completed_external, dn)
 
+def host_is_master(ldap, fqdn):
+    """
+    Check to see if this host is a master.
+
+    Raises an exception if a master, otherwise returns nothing.
+    """
+    master_dn = str(DN('cn=%s' % fqdn, 'cn=masters,cn=ipa,cn=etc', api.env.basedn))
+    try:
+        (dn, entry_attrs) = ldap.get_entry(master_dn, ['objectclass'])
+        raise errors.ValidationError(name='hostname', error=_('An IPA master host cannot be deleted'))
+    except errors.NotFound:
+        # Good, not a master
+        return
+
 
 class LDAPObject(Object):
     """
