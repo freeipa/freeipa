@@ -220,6 +220,19 @@ def update_dbmodules(realm, filename="/etc/krb5.conf"):
     fd.write("".join(newfile))
     fd.close()
 
+def cleanup_kdc():
+    """
+    Clean up old KDC files if they exist. We need to remove the actual
+    file and any references in the uninstall configuration.
+    """
+    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+    for file in ['kpasswd.keytab', 'ldappwd']:
+        filename = '/var/kerberos/krb5kdc/%s' % file
+        installutils.remove_file(filename)
+        if fstore.has_file(filename):
+            fstore.untrack_file(filename)
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -266,6 +279,7 @@ def main():
     except (ldap.ALREADY_EXISTS, ipalib.errors.DuplicateEntry):
         pass
 
+    cleanup_kdc()
 try:
     if __name__ == "__main__":
         sys.exit(main())
