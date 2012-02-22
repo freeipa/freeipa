@@ -41,7 +41,8 @@ module('aci', {
                     {
                         type: 'select',
                         name: 'target',
-                        widget: 'target.target'
+                        widget: 'target.target',
+                        enabled: false
                     },
                     {
                         name: 'filter',
@@ -51,7 +52,8 @@ module('aci', {
                     {
                         type: 'entity_select',
                         name: 'memberof',
-                        widget: 'target.memberof'
+                        widget: 'target.memberof',
+                        enabled: false
                     },
                     {
                         name: 'subtree',
@@ -73,6 +75,13 @@ module('aci', {
                     {
                         name: 'attrs',
                         widget: 'target.attrs',
+                        enabled: false
+                    },
+                    {
+                        name: 'attrs_multi',
+                        param: 'attrs',
+                        type: 'multivalued',
+                        widget: 'target.attrs_multi',
                         enabled: false
                     }
                 ],
@@ -203,7 +212,7 @@ test("Testing aci grouptarget.", function() {
     same(target_widget.target, 'targetgroup' , 'group control selected');
 
 
-    same(get_visible_rows(target_widget), ['targetgroup'],
+    same(get_visible_rows(target_widget), ['targetgroup', 'attrs'],
         'group select row visible');
 
     ok ($('option', target_widget.group_select.container).length > 2,
@@ -252,7 +261,7 @@ test("Testing filter target.", function() {
 
     same(target_widget.target, 'filter', 'filter selected');
 
-    same(get_visible_rows(target_widget), ['filter'], 'filter row visible');
+    same(get_visible_rows(target_widget), ['filter', 'attrs_multi'], 'filter row visible');
 
     ok(record.filter[0], data.result.result.filter, 'filter set correctly');
 });

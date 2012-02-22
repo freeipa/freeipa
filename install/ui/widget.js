@@ -436,7 +436,7 @@ IPA.multivalued_widget = function(spec) {
 
         row.widget = that.widget_factory({
             name: that.name+'-'+row_index,
-            undo: that.undo,
+            undo: that.undo || row.is_new,
             read_only: that.read_only,
             writable: that.writable
         });
