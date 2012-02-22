@@ -782,6 +782,8 @@ last, after all sets and adds."""),
                 except errors.ValidationError, err:
                     (name, error) = str(err.strerror).split(':')
                     raise errors.ValidationError(name=attr, error=error)
+                if self.api.env.in_server:
+                    value = self.params[attr].encode(value)
             if append and attr in newdict:
                 if type(value) in (tuple,):
                     newdict[attr] += list(value)
