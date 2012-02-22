@@ -226,6 +226,49 @@ class FileStore:
 
         return len(self.files) > 0
 
+    def untrack_file(self, path):
+        """Remove file at path @path from list of backed up files.
+
+        Does not remove any files from the filesystem.
+
+        Returns #True if the file was untracked, #False if there
+        was no backup file to restore
+        """
+
+        root_logger.debug("Untracking system configuration file '%s'", path)
+
+        if not os.path.isabs(path):
+            raise ValueError("Absolute path required")
+
+        mode = None
+        uid = None
+        gid = None
+        filename = None
+
+        for (key, value) in self.files.items():
+            (mode,uid,gid,filepath) = string.split(value, ',', 3)
+            if (filepath == path):
+                filename = key
+                break
+
+        if not filename:
+            raise ValueError("No such file name in the index")
+
+        backup_path = os.path.join(self._path, filename)
+        if not os.path.exists(backup_path):
+            root_logger.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
+            return False
+
+        try:
+            os.unlink(backup_path)
+        except Exception, e:
+            root_logger.error('Error removing %s: %s' % (backup_path, str(e)))
+
+        del self.files[filename]
+        self.save()
+
+        return True
+
 class StateFile:
     """A metadata file for recording system state which can
     be backed up and later restored. The format is something
