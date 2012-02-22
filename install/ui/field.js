@@ -32,6 +32,7 @@ IPA.field = function(spec) {
     that.entity = IPA.get_entity(spec.entity);
     that.container = null;
     that.name = spec.name;
+    that.param = spec.param || spec.name;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
     that.formatter = spec.formatter;
@@ -66,7 +67,7 @@ IPA.field = function(spec) {
 
     var init = function() {
         if (!that.metadata && that.entity) {
-            that.metadata = IPA.get_entity_param(that.entity.name, that.name);
+            that.metadata = IPA.get_entity_param(that.entity.name, that.param);
         }
         if (that.metadata) {
             if (that.label === undefined) {
@@ -148,7 +149,7 @@ IPA.field = function(spec) {
     that.load = function(record) {
         that.record = record;
 
-        that.values = that.get_value(record, that.name);
+        that.values = that.get_value(record, that.param);
 
         that.load_writable(record);
 
@@ -185,7 +186,7 @@ IPA.field = function(spec) {
         }
 
         if (record.attributelevelrights) {
-            var rights = record.attributelevelrights[that.name];
+            var rights = record.attributelevelrights[that.param];
             if (!rights || rights.indexOf('w') < 0) {
                 that.writable = false;
             }
@@ -249,7 +250,7 @@ IPA.field = function(spec) {
         }
 
         if(record) {
-            record[that.name] = values;
+            record[that.param] = values;
         }
 
         return values;
@@ -594,7 +595,7 @@ IPA.sshkeys_field = function(spec) {
 
     that.load = function(record) {
 
-        var keys = that.get_value(record, that.name);
+        var keys = that.get_value(record, that.param);
         var fingerprints = that.get_value(record, that.sshfp_attr);
 
         var values = [];

@@ -122,17 +122,17 @@ IPA.entity_adder_dialog = function(spec) {
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
 
-            var values = record[field.name];
+            var values = record[field.param];
             if (!values) continue;
 
             // TODO: Handle multi-valued attributes like in detail facet's update()
             var value = values.join(',');
             if (!value) continue;
 
-            if (field.name == pkey_name) {
+            if (field.param === pkey_name) {
                 command.add_arg(value);
             } else {
-                command.set_option(field.name, value);
+                command.set_option(field.param, value);
             }
         }
 

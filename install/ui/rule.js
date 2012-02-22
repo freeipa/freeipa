@@ -170,7 +170,7 @@ IPA.rule_association_table_field = function(spec) {
 
             if (typeof record !== 'object') {
                 record = {};
-                record[that.name] = values[i];
+                record[that.param] = values[i];
             }
 
             record[that.external] = external;
@@ -180,7 +180,7 @@ IPA.rule_association_table_field = function(spec) {
     };
 
     that.load = function(result) {
-        that.values = result[that.name] || [];
+        that.values = result[that.param] || [];
 
         if (that.external) {
             that.set_values_external(that.values, '');
