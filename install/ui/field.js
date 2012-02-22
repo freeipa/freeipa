@@ -395,8 +395,23 @@ IPA.validator = function(spec) {
 
     var that = {};
 
+    that.message = spec.message || IPA.messages.widget.validation.error;
+
+    that.false_result = function(message) {
+        return {
+            valid: false,
+            message: message || that.message
+        };
+    };
+
+    that.true_result = function() {
+        return {
+            valid: true
+        };
+    };
+
     that.validate = function() {
-        return { valid: true };
+        return that.true_result();
     };
 
     return that;
@@ -411,46 +426,34 @@ IPA.metadata_validator = function(spec) {
         var message;
         var metadata = context.metadata;
 
-        if (!metadata) return { valid: true };
+        if (!metadata || IPA.is_empty(value)) return that.true_result();
 
         if (metadata.type == 'int') {
             if (!value.match(/^-?\d+$/)) {
-                return {
-                    valid: false,
-                    message: IPA.messages.widget.validation.integer
-                };
+                return that.false_result(IPA.messages.widget.validation.integer);
             }
 
             if (metadata.minvalue !== undefined && value < metadata.minvalue) {
                 message = IPA.messages.widget.validation.min_value;
                 message = message.replace('${value}', metadata.minvalue);
-                return {
-                    valid: false,
-                    message: message
-                };
+                return that.false_result(message);
             }
 
             if (metadata.maxvalue !== undefined && value > metadata.maxvalue) {
                 message = IPA.messages.widget.validation.max_value;
                 message = message.replace('${value}', metadata.maxvalue);
-                return {
-                    valid: false,
-                    message: message
-                };
+                return that.false_result(message);
             }
         }
 
         if (metadata.pattern) {
             var regex = new RegExp(metadata.pattern);
             if (!value.match(regex)) {
-                return {
-                    valid: false,
-                    message: metadata.pattern_errmsg
-                };
+                return that.false_result(metadata.pattern_errmsg);
             }
         }
 
-        return { valid: true };
+        return that.true_result();
     };
 
     return that;
