@@ -2151,16 +2151,15 @@ IPA.ip_address_validator = function(spec) {
 
     that.validate = function(value) {
 
+        if (IPA.is_empty(value)) return that.true_result();
+
         var address = NET.ip_address(value);
 
         if (!address.valid || !that.is_type_match(address.type)) {
-            return {
-                valid: false,
-                message: that.message
-            };
+            return that.false_result();
         }
 
-        return { valid: true };
+        return that.true_result();
     };
 
     that.is_type_match = function(net_type) {
@@ -2203,20 +2202,9 @@ IPA.network_validator = function(spec) {
     that.specials = spec.specials || [];
     that.message = spec.message || IPA.messages.widget.validation.net_address;
 
-    that.false_result = function() {
-        return {
-            valid: false,
-            message: that.message
-        };
-    };
-
-    that.true_result = function() {
-        return {
-            valid: true
-        };
-    };
-
     that.validate = function(value) {
+
+        if (IPA.is_empty(value)) return that.true_result();
 
         if (typeof value !== 'string') return that.false_result();
 
