@@ -317,9 +317,15 @@ class xmlserver(WSGIExecutioner):
         '''
 
         self.debug('WSGI xmlserver.__call__:')
-        self.create_context(ccache=environ.get('KRB5CCNAME'))
         try:
+            self.create_context(ccache=environ.get('KRB5CCNAME'))
             response = super(xmlserver, self).__call__(environ, start_response)
+        except PublicError, e:
+            status = '200 OK'
+            response = status
+            headers = [('Content-Type', 'text/plain')]
+            start_response(status, headers)
+            return self.marshal(None, e)
         finally:
             destroy_context()
         return response
