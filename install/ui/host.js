@@ -347,7 +347,7 @@ IPA.widget_factories['host_fqdn'] = IPA.host_fqdn_widget;
 IPA.host_adder_dialog = function(spec) {
 
     spec = spec || {};
-    spec.retry = typeof spec.retry !== 'undefined' ? spec.retry : false;
+    spec.retry = spec.retry !== undefined ? spec.retry : false;
 
     var that = IPA.entity_adder_dialog(spec);
 
@@ -356,36 +356,7 @@ IPA.host_adder_dialog = function(spec) {
         that.container.addClass('host-adder-dialog');
     };
 
-    that.on_error = function(xhr, text_status, error_thrown) {
-        var ajax = this;
-        var command = that.command;
-        var data = error_thrown.data;
-        var dialog = null;
-
-        if(data && data.error && data.error.code === 4304) {
-            dialog = IPA.message_dialog({
-                message: data.error.message,
-                title: spec.title,
-                on_ok: function() {
-                    data.result = {
-                        result: {
-                            fqdn: command.args[0]
-                        }
-                    };
-                    command.on_success.call(ajax, data, text_status, xhr);
-                }
-            });
-        } else {
-            dialog = IPA.error_dialog({
-                xhr: xhr,
-                text_status: text_status,
-                error_thrown: error_thrown,
-                command: command
-            });
-        }
-
-        dialog.open(that.container);
-    };
+    that.on_error = IPA.create_4304_error_handler(that);
 
     return that;
 };

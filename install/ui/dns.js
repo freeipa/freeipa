@@ -982,10 +982,13 @@ IPA.dns.record_entity = function(spec) {
 IPA.dns.record_adder_dialog = function(spec) {
 
     spec = spec || {};
+    spec.retry = spec.retry !== undefined ? spec.retry : false;
 
     IPA.dns.record_prepare_spec(spec, IPA.dns.record_prepare_editor_for_type);
 
     var that = IPA.entity_adder_dialog(spec);
+
+    that.on_error = IPA.create_4304_error_handler(that);
 
     return that;
 };
@@ -1621,6 +1624,7 @@ IPA.dns.record_type_table_widget = function(spec) {
             entity: that.entity,
             fields: [],
             widgets: [],
+            retry: false,
             title: title.replace('${entity}', label)
         };
 
@@ -1635,6 +1639,8 @@ IPA.dns.record_type_table_widget = function(spec) {
         var cancel_button = dialog.buttons.get('cancel');
         dialog.buttons.empty();
 
+        dialog.on_error = IPA.create_4304_error_handler(dialog);
+
         dialog.create_button({
             name: 'add',
             label: IPA.messages.buttons.add,
@@ -1642,7 +1648,12 @@ IPA.dns.record_type_table_widget = function(spec) {
                 dialog.hide_message();
                 dialog.add(
                     function(data, text_status, xhr) {
-                        that.reload_facet(data);
+
+                        if (data.result.result.dnsrecords) {
+                            that.reload_facet(data);
+                        } else {
+                            that.refresh_facet();
+                        }
                         dialog.close();
                     },
                     dialog.on_error);
@@ -1661,7 +1672,11 @@ IPA.dns.record_type_table_widget = function(spec) {
                         message = message.replace('${entity}', label);
                         dialog.show_message(message);
 
-                        that.reload_facet(data);
+                        if (data.result.result.dnsrecords) {
+                            that.reload_facet(data);
+                        } else {
+                            that.refresh_facet();
+                        }
                         dialog.reset();
                     },
                     dialog.on_error);
