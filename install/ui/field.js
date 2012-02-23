@@ -460,6 +460,25 @@ IPA.metadata_validator = function(spec) {
     return that;
 };
 
+IPA.unsupported_validator = function(spec) {
+
+    var that = IPA.validator(spec);
+
+    that.unsupported = spec.unsupported || [];
+    that.message = spec.message || IPA.messages.widget.validation.unsupported;
+
+    that.validate = function(value, context) {
+
+        if (IPA.is_empty(value)) return that.true_result();
+
+        if (that.unsupported.indexOf(value) > -1) return that.false_result();
+
+        return that.true_result();
+    };
+
+    return that;
+};
+
 IPA.checkbox_field = function(spec) {
 
     spec = spec || {};
