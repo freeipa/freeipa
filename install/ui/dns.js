@@ -131,9 +131,11 @@ IPA.dns.zone_entity = function(spec) {
                         type: 'netaddr',
                         name: 'idnsallowquery',
                         validators: [
+                            IPA.unsupported_validator({
+                                unsupported: ['localhost', 'localnets']
+                            }),
                             IPA.network_validator({
-                                specials: ['any', 'none',
-                                               'localhost', 'localnets'],
+                                specials: ['any', 'none'],
                                 allow_negation: true,
                                 allow_host_address: true
                         })]
@@ -142,9 +144,11 @@ IPA.dns.zone_entity = function(spec) {
                         type: 'netaddr',
                         name: 'idnsallowtransfer',
                         validators: [
+                            IPA.unsupported_validator({
+                                unsupported: ['localhost', 'localnets']
+                            }),
                             IPA.network_validator({
-                                specials: ['any', 'none',
-                                               'localhost', 'localnets'],
+                                specials: ['any', 'none'],
                                 allow_negation: true,
                                 allow_host_address: true
                         })]

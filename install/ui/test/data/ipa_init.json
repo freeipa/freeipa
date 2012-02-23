@@ -434,7 +434,8 @@
                             "max_value": "Maximum value is ${value}",
                             "min_value": "Minimum value is ${value}",
                             "net_address": "Not a valid network address",
-                            "required": "Required field"
+                            "required": "Required field",
+                            "unsupported": "Unsupported value"
                         }
                     }
                 }
