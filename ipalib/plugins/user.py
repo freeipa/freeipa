@@ -263,6 +263,7 @@ class user(LDAPObject):
         Int('gidnumber',
             label=_('GID'),
             doc=_('Group ID Number'),
+            minvalue=1,
             default_from=lambda uidnumber: uidnumber,
             autofill=True,
         ),

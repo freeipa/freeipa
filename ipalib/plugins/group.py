@@ -119,6 +119,7 @@ class group(LDAPObject):
             cli_name='gid',
             label=_('GID'),
             doc=_('GID (use this option to set it manually)'),
+            minvalue=1,
         ),
     )
 
