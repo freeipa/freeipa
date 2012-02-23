@@ -309,6 +309,19 @@ IPA.automember.rule_adder_dialog = function(spec) {
 
     var that = IPA.entity_adder_dialog(spec);
 
+    that.show_edit_page = function (entity,result) {
+        var pkey_name = entity.metadata.primary_key;
+        var pkey = result[pkey_name];
+        if (pkey instanceof Array) {
+            pkey = pkey[0];
+        }
+        var facet = IPA.current_entity.get_facet();
+        var facetname = facet.group_type === 'group' ? 'usergrouprule' :
+                            'hostgrouprule';
+
+        IPA.nav.show_entity_page(that.entity, facetname, pkey);
+    };
+
     that.reset = function() {
 
         var field = that.fields.get_field('cn');
@@ -328,6 +341,7 @@ IPA.automember.rule_adder_dialog = function(spec) {
 
         return command;
     };
+
 
     return that;
 };
