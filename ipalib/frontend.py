@@ -557,6 +557,26 @@ class Command(HasParam):
             if name in params:
                 yield(name, params[name])
 
+    def split_csv(self, **kw):
+        """
+        Return a dictionary of values where values are decoded from CSV.
+
+        For example:
+
+        >>> class my_command(Command):
+        ...     takes_options = (
+        ...         Param('flags', multivalue=True, csv=True),
+        ...     )
+        ...
+        >>> c = my_command()
+        >>> c.finalize()
+        >>> c.split_csv(flags=u'public,replicated')
+        {'flags': (u'public', u'replicated')}
+        """
+        return dict(
+            (k, self.params[k].split_csv(v)) for (k, v) in kw.iteritems()
+        )
+
     def normalize(self, **kw):
         """
         Return a dictionary of normalized values.

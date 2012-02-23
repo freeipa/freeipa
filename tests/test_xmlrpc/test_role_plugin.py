@@ -47,9 +47,6 @@ privilege1 = u'r,w privilege 1'
 privilege1_dn = DN(('cn', privilege1), DN(api.env.container_privilege),
                    api.env.basedn)
 
-def escape_comma(value):
-    return value.replace(',', '\\,')
-
 class test_role(Declarative):
 
     cleanup_commands = [
@@ -184,7 +181,7 @@ class test_role(Declarative):
         dict(
             desc='Add privilege %r to role %r' % (privilege1, role1),
             command=('role_add_privilege', [role1],
-                dict(privilege=escape_comma(privilege1))
+                dict(privilege=privilege1)
             ),
             expected=dict(
                 completed=1,
@@ -465,7 +462,7 @@ class test_role(Declarative):
         dict(
             desc='Remove privilege %r from role %r' % (privilege1, role1),
             command=('role_remove_privilege', [role1],
-                dict(privilege=escape_comma(privilege1))
+                dict(privilege=privilege1)
             ),
             expected=dict(
                 completed=1,
@@ -486,7 +483,7 @@ class test_role(Declarative):
         dict(
             desc='Remove privilege %r from role %r again' % (privilege1, role1),
             command=('role_remove_privilege', [role1],
-                dict(privilege=escape_comma(privilege1))
+                dict(privilege=privilege1)
             ),
             expected=dict(
                 completed=0,
