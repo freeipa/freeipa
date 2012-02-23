@@ -1178,6 +1178,46 @@ IPA.error_list = function() {
     return that;
 };
 
+IPA.create_4304_error_handler = function(adder_dialog) {
+
+    var set_pkey = function(result) {
+
+        var pkey_name = adder_dialog.entity.metadata.primary_key;
+        var args = adder_dialog.command.args;
+        var pkey = args[args.length-1];
+        result[pkey_name] = pkey;
+    };
+
+    return function (xhr, text_status, error_thrown) {
+
+        var ajax = this;
+        var command = adder_dialog.command;
+        var data = error_thrown.data;
+        var dialog = null;
+
+        if (data && data.error && data.error.code === 4304) {
+            dialog = IPA.message_dialog({
+                message: data.error.message,
+                title: adder_dialog.title,
+                on_ok: function() {
+                    data.result = { result: {} };
+                    set_pkey(data.result.result);
+                    command.on_success.call(ajax, data, text_status, xhr);
+                }
+            });
+        } else {
+            dialog = IPA.error_dialog({
+                xhr: xhr,
+                text_status: text_status,
+                error_thrown: error_thrown,
+                command: command
+            });
+        }
+
+        dialog.open(adder_dialog.container);
+    };
+};
+
 IPA.limit_text = function(value, max_length) {
 
     if (!value) return '';
