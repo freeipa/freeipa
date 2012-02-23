@@ -2144,14 +2144,7 @@ IPA.combobox_widget = function(spec) {
             name: 'list',
             size: that.size,
             style: 'width: 100%',
-            change: function() {
-                var value = $('option:selected', that.list).val();
-                that.input.val(value);
-                IPA.select_range(that.input, 0, 0);
-
-                that.close();
-                that.value_changed.notify([[value]], that);
-            }
+            change: that.select_on_change
         }).appendTo(div);
 
         if (that.undo) {
@@ -2159,6 +2152,18 @@ IPA.combobox_widget = function(spec) {
         }
 
         that.create_error_link(container);
+    };
+
+    that.select_on_change = function() {
+
+        if (!that.is_open()) return;
+
+        var value = $('option:selected', that.list).val();
+        that.input.val(value);
+        IPA.select_range(that.input, 0, 0);
+
+        that.close();
+        that.value_changed.notify([[value]], that);
     };
 
     that.open = function() {
@@ -2281,7 +2286,8 @@ IPA.combobox_widget = function(spec) {
     that.create_option = function(label, value) {
         return $('<option/>', {
             text: label,
-            value: value
+            value: value,
+            click:that.select_on_change
         }).appendTo(that.list);
     };
 
