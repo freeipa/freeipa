@@ -140,7 +140,18 @@ def restore_context(filepath):
 
     ipautil.run() will do the logging.
     """
-    ipautil.run(["/sbin/restorecon", filepath], raiseonerr=False)
+    try:
+        if (os.path.exists('/usr/sbin/selinuxenabled')):
+            ipautil.run(["/usr/sbin/selinuxenabled"])
+        else:
+            # No selinuxenabled, no SELinux
+            return
+    except ipautil.CalledProcessError:
+        # selinuxenabled returns 1 if not enabled
+        return
+
+    if (os.path.exists('/sbin/restorecon')):
+        ipautil.run(["/sbin/restorecon", filepath], raiseonerr=False)
 
 def backup_and_replace_hostname(fstore, statestore, hostname):
     old_hostname = socket.gethostname()
