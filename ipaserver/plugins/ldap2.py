@@ -241,6 +241,9 @@ def _handle_errors(e, **kw):
     except _ldap.SUCCESS:
         pass
     except _ldap.LDAPError, e:
+        if 'NOT_ALLOWED_TO_DELEGATE' in info:
+            raise errors.ACIError(info="KDC returned NOT_ALLOWED_TO_DELEGATE")
+        root_logger.info('Unhandled LDAPError: %s' % str(e))
         raise errors.DatabaseError(desc=desc, info=info)
 
 
