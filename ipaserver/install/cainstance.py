@@ -746,6 +746,7 @@ class CAInstance(service.Service):
         # mod_nss.
         args = [
             '/usr/bin/sslget',
+            '-v',
             '-n', 'ipa-ca-agent',
             '-p', self.admin_password,
             '-d', self.ca_agent_db,
@@ -765,6 +766,7 @@ class CAInstance(service.Service):
         # Now issue the RA certificate.
         args = [
             '/usr/bin/sslget',
+            '-v',
             '-n', 'ipa-ca-agent',
             '-p', self.admin_password,
             '-d', self.ca_agent_db,

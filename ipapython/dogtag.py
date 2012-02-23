@@ -74,8 +74,8 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
         host = host.encode('utf-8')
     uri = 'https://%s%s' % (ipautil.format_netloc(host, port), url)
     post = urlencode(kw)
-    root_logger.info('sslget %r', uri)
-    root_logger.debug('sslget post %r', post)
+    root_logger.debug('https_request %r', uri)
+    root_logger.debug('https_request post %r', post)
     request_headers = {"Content-type": "application/x-www-form-urlencoded",
                        "Accept": "text/plain"}
     try:
