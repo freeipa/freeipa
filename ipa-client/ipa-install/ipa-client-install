@@ -90,6 +90,8 @@ def parse_options():
                       help="do not configure OpenSSH server")
     basic_group.add_option("--no-dns-sshfp", dest="create_sshfp", default=True, action="store_false",
                       help="do not automatically create DNS SSHFP records")
+    basic_group.add_option("--noac", dest="no_ac", default=False, action="store_true",
+                      help="do not use Authconfig to modify the nsswitch.conf and PAM configuration")
     basic_group.add_option("-f", "--force", dest="force", action="store_true",
                       default=False, help="force setting of LDAP/Kerberos conf")
     basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
@@ -1395,75 +1397,77 @@ def install(options, env, fstore, statestore):
             root_logger.info("%s daemon is not installed, skip configuration" % (nscd.service_name))
 
     retcode, conf, filename = (0, None, None)
-    # Modify nsswitch/pam stack
-    auth_config = ipaservices.authconfig()
-    if options.sssd:
-        statestore.backup_state('authconfig', 'sssd', True)
-        statestore.backup_state('authconfig', 'sssdauth', True)
-        auth_config.enable("sssd").\
-                    enable("sssdauth")
-        message = "SSSD enabled"
-        conf = 'SSSD'
-    else:
-        statestore.backup_state('authconfig', 'ldap', True)
-        auth_config.enable("ldap").\
-                    enable("forcelegacy")
-        message = "LDAP enabled"
 
-    if options.mkhomedir:
-        statestore.backup_state('authconfig', 'mkhomedir', True)
-        auth_config.enable("mkhomedir")
+    if not options.no_ac:
+        # Modify nsswitch/pam stack
+        auth_config = ipaservices.authconfig()
+        if options.sssd:
+            statestore.backup_state('authconfig', 'sssd', True)
+            statestore.backup_state('authconfig', 'sssdauth', True)
+            auth_config.enable("sssd").\
+                        enable("sssdauth")
+            message = "SSSD enabled"
+            conf = 'SSSD'
+        else:
+            statestore.backup_state('authconfig', 'ldap', True)
+            auth_config.enable("ldap").\
+                        enable("forcelegacy")
+            message = "LDAP enabled"
 
-    auth_config.add_option("update")
-    auth_config.execute()
-    print message
+        if options.mkhomedir:
+            statestore.backup_state('authconfig', 'mkhomedir', True)
+            auth_config.enable("mkhomedir")
 
-    if not options.sssd:
-        #Modify pam to add pam_krb5 only when sssd is not in use
-        auth_config.reset()
-        statestore.backup_state('authconfig', 'krb5', True)
-        auth_config.enable("krb5").\
-                    add_option("update").\
-                    add_option("nostart")
+        auth_config.add_option("update")
         auth_config.execute()
-        print "Kerberos 5 enabled"
+        print message
 
-    # Update non-SSSD LDAP configuration after authconfig calls as it would
-    # change its configuration otherways
-    if not options.sssd:
-        for configurer in [configure_ldap_conf, configure_nslcd_conf]:
-            (retcode, conf, filename) = configurer(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, nosssd_files[configurer.__name__])
-            if retcode:
-                return CLIENT_INSTALL_ERROR
-            if conf:
-                print "%s configured using configuration file(s) %s" % (conf, filename)
+        if not options.sssd:
+            #Modify pam to add pam_krb5 only when sssd is not in use
+            auth_config.reset()
+            statestore.backup_state('authconfig', 'krb5', True)
+            auth_config.enable("krb5").\
+                        add_option("update").\
+                        add_option("nostart")
+            auth_config.execute()
+            print "Kerberos 5 enabled"
 
-    #Check that nss is working properly
-    if not options.on_master:
-        n = 0
-        found = False
-        # Loop for up to 10 seconds to see if nss is working properly.
-        # It can sometimes take a few seconds to connect to the remote provider.
-        # Particulary, SSSD might take longer than 6-8 seconds.
-        while n < 10 and not found:
-            try:
-                ipautil.run(["getent", "passwd", "admin"])
-                found = True
-            except Exception, e:
-                time.sleep(1)
-                n = n + 1
+        # Update non-SSSD LDAP configuration after authconfig calls as it would
+        # change its configuration otherways
+        if not options.sssd:
+            for configurer in [configure_ldap_conf, configure_nslcd_conf]:
+                (retcode, conf, filename) = configurer(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, nosssd_files[configurer.__name__])
+                if retcode:
+                    return CLIENT_INSTALL_ERROR
+                if conf:
+                    print "%s configured using configuration file(s) %s" % (conf, filename)
 
-        if not found:
-            print "Unable to find 'admin' user with 'getent passwd admin'!"
-            if conf:
-                print "Recognized configuration: %s" % (conf)
-            else:
-                print "Unable to reliably detect configuration. Check NSS setup manually."
+        #Check that nss is working properly
+        if not options.on_master:
+            n = 0
+            found = False
+            # Loop for up to 10 seconds to see if nss is working properly.
+            # It can sometimes take a few seconds to connect to the remote provider.
+            # Particulary, SSSD might take longer than 6-8 seconds.
+            while n < 10 and not found:
+                try:
+                    ipautil.run(["getent", "passwd", "admin"])
+                    found = True
+                except Exception, e:
+                    time.sleep(1)
+                    n = n + 1
 
-            try:
-                hardcode_ldap_server(cli_server)
-            except Exception, e:
-                print "Adding hardcoded server name to /etc/ldap.conf failed: " + str(e)
+            if not found:
+                print "Unable to find 'admin' user with 'getent passwd admin'!"
+                if conf:
+                    print "Recognized configuration: %s" % (conf)
+                else:
+                    print "Unable to reliably detect configuration. Check NSS setup manually."
+
+                try:
+                    hardcode_ldap_server(cli_server)
+                except Exception, e:
+                    print "Adding hardcoded server name to /etc/ldap.conf failed: " + str(e)
 
     if options.conf_ntp and not options.on_master:
         if options.ntp_server:
