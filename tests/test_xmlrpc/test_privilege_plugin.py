@@ -87,7 +87,7 @@ class test_privilege(Declarative):
             command=(
                 'permission_add', [permission1], dict(
                      type=u'user',
-                     permissions=u'add, delete',
+                     permissions=[u'add', u'delete'],
                 )
             ),
             expected=dict(

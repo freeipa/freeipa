@@ -724,8 +724,9 @@ class test_dns(Declarative):
 
         dict(
             desc='Add NSEC record to %r using dnsrecord_add' % (dnsres1),
-            command=('dnsrecord_add', [dnszone1, dnsres1], {'nsec_part_next': dnszone1,
-                                                            'nsec_part_types' : ['TXT', 'A']}),
+            command=('dnsrecord_add', [dnszone1, dnsres1], {
+                'nsec_part_next': dnszone1,
+                'nsec_part_types' : [u'TXT', u'A']}),
             expected={
                 'value': dnsres1,
                 'summary': None,

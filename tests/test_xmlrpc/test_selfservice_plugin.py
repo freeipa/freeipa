@@ -74,8 +74,8 @@ class test_selfservice(Declarative):
             desc='Create %r' % selfservice1,
             command=(
                 'selfservice_add', [selfservice1], dict(
-                     attrs=u'street,c,l,st,postalCode',
-                     permissions=u'write',
+                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
+                    permissions=u'write',
                 )
             ),
             expected=dict(
@@ -95,8 +95,8 @@ class test_selfservice(Declarative):
             desc='Try to create duplicate %r' % selfservice1,
             command=(
                 'selfservice_add', [selfservice1], dict(
-                     attrs=u'street,c,l,st,postalCode',
-                     permissions=u'write',
+                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
+                    permissions=u'write',
                 ),
             ),
             expected=errors.DuplicateEntry(),

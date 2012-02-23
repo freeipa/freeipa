@@ -87,7 +87,7 @@ class test_delegation(Declarative):
             desc='Create %r' % delegation1,
             command=(
                 'delegation_add', [delegation1], dict(
-                     attrs=u'street,c,l,st,postalCode',
+                     attrs=[u'street', u'c', u'l', u'st', u'postalCode'],
                      permissions=u'write',
                      group=u'editors',
                      memberof=u'admins',
@@ -111,7 +111,7 @@ class test_delegation(Declarative):
             desc='Try to create duplicate %r' % delegation1,
             command=(
                 'delegation_add', [delegation1], dict(
-                     attrs=u'street,c,l,st,postalCode',
+                     attrs=[u'street', u'c', u'l', u'st', u'postalCode'],
                      permissions=u'write',
                      group=u'editors',
                      memberof=u'admins',

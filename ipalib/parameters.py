@@ -345,11 +345,16 @@ class Param(ReadOnly):
               is not `required`. Applied for all crud.Update based commands
             * req_update: The parameter is `required` in all crud.Update based
               commands
-      - hint: This attribute is currently not used
+      - hint: this attribute is currently not used
       - alwaysask: when enabled, CLI asks for parameter value even when the
         parameter is not `required`
       - sortorder: used to sort a list of parameters for Command. See
         `Command.finalize()` for further information
+      - csv: this multivalue attribute is given in CSV format
+      - csv_separator: character that separates values in CSV (comma by
+        default)
+      - csv_skipspace: if true, leading whitespace will be ignored in
+        individual CSV values
     """
 
     # This is a dummy type so that most of the functionality of Param can be
@@ -697,12 +702,46 @@ class Param(ReadOnly):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
                                 dialect=dialect,
-                                delimiter=self.csv_separator, escapechar='\\',
+                                delimiter=self.csv_separator, quotechar='"',
                                 skipinitialspace=self.csv_skipspace,
                                 **kwargs)
         for row in csv_reader:
             # decode UTF-8 back to Unicode, cell by cell:
             yield [unicode(cell, 'utf-8') for cell in row]
+
+    def split_csv(self, value):
+        """Split CSV strings into individual values.
+
+        For CSV params, ``value`` is a tuple of strings. Each of these is split
+        on commas, and the results are concatenated into one tuple.
+
+        For example::
+
+            >>> param = Param('telephones', multivalue=True, csv=True)
+            >>> param.split_csv((u'1, 2', u'3', u'4, 5, 6'))
+            (u'1', u'2', u'3', u'4', u'5', u'6')
+
+        If ``value`` is not a tuple (or list), it is only split::
+
+            >>> param = Param('telephones', multivalue=True, csv=True)
+            >>> param.split_csv(u'1, 2, 3')
+            (u'1', u'2', u'3')
+
+        For non-CSV params, return the value unchanged.
+        """
+        if self.csv:
+            if type(value) not in (tuple, list):
+                value = (value,)
+            newval = ()
+            for v in value:
+                if isinstance(v, basestring):
+                    csvreader = self.__unicode_csv_reader([unicode(v)])
+                    newval += tuple(csvreader.next()) #pylint: disable=E1101
+                else:
+                    newval += (v,)
+            return newval
+        else:
+            return value
 
     def normalize(self, value):
         """
@@ -730,15 +769,6 @@ class Param(ReadOnly):
         if self.multivalue:
             if type(value) not in (tuple, list):
                 value = (value,)
-            if self.csv:
-                newval = ()
-                for v in value:
-                    if isinstance(v, basestring):
-                        csvreader = self.__unicode_csv_reader([unicode(v)])
-                        newval += tuple(csvreader.next()) #pylint: disable=E1101
-                    else:
-                        newval += (v,)
-                value = newval
         if self.multivalue:
             return tuple(
                 self._normalize_scalar(v) for v in value

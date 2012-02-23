@@ -1025,9 +1025,10 @@ class cli(backend.Executioner):
         if not isinstance(cmd, frontend.Local):
             self.create_context()
         kw = self.parse(cmd, argv)
-        kw['version'] = API_VERSION
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
+        kw = cmd.split_csv(**kw)
+        kw['version'] = API_VERSION
         self.load_files(cmd, kw)
         try:
             result = self.execute(name, **kw)

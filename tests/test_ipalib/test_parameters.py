@@ -635,44 +635,44 @@ class test_Param(ClassChecker):
         assert o._convert_scalar.value is default
         assert o.normalizer.value is default
 
-    def test_csv_normalize(self):
+    def test_split_csv(self):
         """
-        Test the `ipalib.parameters.Param.normalize` method with csv.
+        Test the `ipalib.parameters.Param.split_csv` method with csv.
         """
         o = self.cls('my_list+', csv=True)
-        n = o.normalize('a,b')
+        n = o.split_csv('a,b')
         assert type(n) is tuple
         assert len(n) is 2
 
-        n = o.normalize('bar,   "hi, there",foo')
+        n = o.split_csv('bar,   "hi, there",foo')
         assert type(n) is tuple
         assert len(n) is 3
 
-    def test_csv_normalize_separator(self):
+    def test_split_csv_separator(self):
         """
-        Test the `ipalib.parameters.Param.normalize` method with csv and a separator.
+        Test the `ipalib.parameters.Param.split_csv` method with csv and a separator.
         """
         o = self.cls('my_list+', csv=True, csv_separator='|')
 
-        n = o.normalize('a')
+        n = o.split_csv('a')
         assert type(n) is tuple
         assert len(n) is 1
 
-        n = o.normalize('a|b')
+        n = o.split_csv('a|b')
         assert type(n) is tuple
         assert len(n) is 2
 
-    def test_csv_normalize_skipspace(self):
+    def test_split_csv_skipspace(self):
         """
-        Test the `ipalib.parameters.Param.normalize` method with csv without skipping spaces.
+        Test the `ipalib.parameters.Param.split_csv` method with csv without skipping spaces.
         """
         o = self.cls('my_list+', csv=True, csv_skipspace=False)
 
-        n = o.normalize('a')
+        n = o.split_csv('a')
         assert type(n) is tuple
         assert len(n) is 1
 
-        n = o.normalize('a, "b,c", d')
+        n = o.split_csv('a, "b,c", d')
         assert type(n) is tuple
         # the output w/o skipspace is ['a',' "b','c"',' d']
         assert len(n) is 4
