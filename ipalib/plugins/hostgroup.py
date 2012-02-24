@@ -20,6 +20,7 @@
 
 from ipalib.plugins.baseldap import *
 from ipalib import api, Int, _, ngettext, errors
+from ipalib.plugins.netgroup import NETGROUP_PATTERN, NETGROUP_PATTERN_ERRMSG
 from ipalib.dn import DN
 
 __doc__ = _("""
@@ -76,6 +77,8 @@ class hostgroup(LDAPObject):
 
     takes_params = (
         Str('cn',
+            pattern=NETGROUP_PATTERN,
+            pattern_errmsg=NETGROUP_PATTERN_ERRMSG,
             cli_name='hostgroup_name',
             label=_('Host-group'),
             doc=_('Name of host-group'),
