@@ -170,6 +170,11 @@ $(function() {
         $('#loggedinas a').fragment(
             {'user-facet': 'details', 'user-pkey': IPA.whoami_pkey}, 2);
 
+        $('#logout').click(function() {
+            IPA.logout();
+            return false;
+        }).text(IPA.messages.login.logout);
+
         IPA.nav = create_navigation();
         IPA.nav.create();
         IPA.nav.update();

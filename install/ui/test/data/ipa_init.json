@@ -110,7 +110,9 @@
                     },
                     "false": "False",
                     "login": {
-                        "header": "Logged In As"
+                        "header": "Logged In As",
+                        "logout": "Logout",
+                        "logout_error": "Logout error"
                     },
                     "objects": {
                         "aci": {
