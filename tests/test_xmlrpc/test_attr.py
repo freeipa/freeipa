@@ -402,4 +402,117 @@ class test_attr(Declarative):
             ),
         ),
 
+        dict(
+            desc='Lock %r using setattr' % user1,
+            command=(
+                'user_mod', [user1], dict(setattr=u'nsaccountlock=TrUe')
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'test@example.com', u'test2@example.com'],
+                    memberof_group=[u'ipausers'],
+                    telephonenumber=[u'202-888-9833'],
+                    nsaccountlock=True,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+                summary=u'Modified user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+        dict(
+            desc='Unlock %r using addattr&delattr' % user1,
+            command=(
+                'user_mod', [user1], dict(
+                    addattr=u'nsaccountlock=FaLsE',
+                    delattr=u'nsaccountlock=True')
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'test@example.com', u'test2@example.com'],
+                    memberof_group=[u'ipausers'],
+                    telephonenumber=[u'202-888-9833'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+                summary=u'Modified user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+        dict(
+            desc='Try adding a new group search fields config entry',
+            command=(
+                'config_mod', [], dict(addattr=u'ipagroupsearchfields=newattr')
+            ),
+            expected=errors.OnlyOneValueAllowed(attr='ipagroupsearchfields'),
+        ),
+
+        dict(
+            desc='Try adding a new cert subject base config entry',
+            command=(
+                'config_mod', [], dict(addattr=u'ipacertificatesubjectbase=0=DOMAIN.COM')
+            ),
+            expected=errors.OnlyOneValueAllowed(attr='ipacertificatesubjectbase'),
+        ),
+
+        dict(
+            desc='Try deleting a required config entry',
+            command=(
+                'config_mod', [], dict(delattr=u'ipasearchrecordslimit=100')
+            ),
+            expected=errors.RequirementError(name='ipasearchrecordslimit'),
+        ),
+
+        dict(
+            desc='Try setting nonexistent attribute',
+            command=('config_mod', [], dict(setattr=u'invalid_attr=false')),
+            expected=errors.ObjectclassViolation(
+                info='attribute "invalid_attr" not allowed'),
+        ),
+
+        dict(
+            desc='Try setting out-of-range krbpwdmaxfailure',
+            command=('pwpolicy_mod', [], dict(setattr=u'krbpwdmaxfailure=-1')),
+            expected=errors.ValidationError(name='krbpwdmaxfailure',
+                error='must be at least 0'),
+        ),
+
+        dict(
+            desc='Try setting out-of-range maxfail',
+            command=('pwpolicy_mod', [], dict(krbpwdmaxfailure=u'-1')),
+            expected=errors.ValidationError(name='maxfail',
+                error='must be at least 0'),
+        ),
+
+        dict(
+            desc='Try setting non-numeric krbpwdmaxfailure',
+            command=('pwpolicy_mod', [], dict(setattr=u'krbpwdmaxfailure=abc')),
+            expected=errors.ConversionError(name='krbpwdmaxfailure',
+                error='must be an integer'),
+        ),
+
+        dict(
+            desc='Try setting non-numeric maxfail',
+            command=('pwpolicy_mod', [], dict(krbpwdmaxfailure=u'abc')),
+            expected=errors.ConversionError(name='maxfail',
+                error='must be an integer'),
+        ),
+
     ]

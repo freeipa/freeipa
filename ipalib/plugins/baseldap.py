@@ -794,8 +794,6 @@ last, after all sets and adds."""),
         Convert a string in the form of name/value pairs into a dictionary.
         The incoming attribute may be a string or a list.
 
-        Any attribute found that is also a param is validated.
-
         :param attrs: A list of name/value pairs
 
         :param append: controls whether this returns a list of values or a single
@@ -811,15 +809,6 @@ last, after all sets and adds."""),
             if len(value) == 0:
                 # None means "delete this attribute"
                 value = None
-            if attr in self.params:
-                try:
-                   value = self.params[attr](value)
-                except errors.ValidationError, err:
-                    raise errors.ValidationError(name=attr, error=err.error)
-                except errors.ConversionError, err:
-                    raise errors.ValidationError(name=attr, error=err.error)
-                if self.api.env.in_server:
-                    value = self.params[attr].encode(value)
             if append and attr in newdict:
                 if type(value) in (tuple,):
                     newdict[attr] += list(value)
@@ -923,12 +912,41 @@ last, after all sets and adds."""),
         # normalize all values
         changedattrs = setattrs | addattrs | delattrs
         for attr in changedattrs:
-            # remove duplicite and invalid values
-            entry_attrs[attr] = list(set([val for val in entry_attrs[attr] if val]))
-            if not entry_attrs[attr]:
-                entry_attrs[attr] = None
-            elif isinstance(entry_attrs[attr], (tuple, list)) and len(entry_attrs[attr]) == 1:
-                entry_attrs[attr] = entry_attrs[attr][0]
+            if attr in self.obj.params:
+                # convert single-value params to scalars
+                value = entry_attrs[attr]
+                try:
+                    param = self.params[attr]
+                except KeyError:
+                    # The CRUD classes filter their disallowed parameters out.
+                    # Yet {set,add,del}attr are powerful enough to change these
+                    # (e.g. Config's ipacertificatesubjectbase)
+                    # So, use the parent's attribute
+                    param = self.obj.params[attr]
+                if not param.multivalue:
+                    if len(value) == 1:
+                        value = value[0]
+                    elif not value:
+                        value = None
+                    else:
+                        raise errors.OnlyOneValueAllowed(attr=attr)
+                # validate, convert and encode params
+                try:
+                   value = param(value)
+                except errors.ValidationError, err:
+                    raise errors.ValidationError(name=attr, error=err.error)
+                except errors.ConversionError, err:
+                    raise errors.ConversionError(name=attr, error=err.error)
+                value = param.encode(value)
+                entry_attrs[attr] = value
+            else:
+                # unknown attribute: remove duplicite and invalid values
+                entry_attrs[attr] = list(set([val for val in entry_attrs[attr] if val]))
+                if not entry_attrs[attr]:
+                    entry_attrs[attr] = None
+                elif isinstance(entry_attrs[attr], (tuple, list)) and len(entry_attrs[attr]) == 1:
+                    entry_attrs[attr] = entry_attrs[attr][0]
+
 
 class LDAPCreate(BaseLDAPCommand, crud.Create):
     """
