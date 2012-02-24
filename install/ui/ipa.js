@@ -295,7 +295,6 @@ IPA.get_credentials = function() {
         status = xhr.status;
     }
 
-
     function success_handler(data, text_status, xhr) {
         status = xhr.status;
     }
@@ -311,6 +310,51 @@ IPA.get_credentials = function() {
     $.ajax(request);
 
     return status;
+};
+
+IPA.logout = function() {
+
+    function show_error(message) {
+        var dialog = IPA.message_dialog({
+            message: message,
+            title: IPA.messages.login.logout_error
+        });
+        dialog.open();
+    }
+
+    function redirect () {
+        window.location = 'logout.html';
+    }
+
+    function success_handler(data, text_status, xhr) {
+        if (data && data.error) {
+            show_error(data.error.message);
+        } else {
+            redirect();
+        }
+    }
+
+    function error_handler(xhr, text_status, error_thrown) {
+        if (xhr.status === 401) {
+            redirect();
+        } else {
+            show_error(text_status);
+        }
+    }
+
+    var command = {
+        method: 'session_logout',
+        params: [[], {}]
+    };
+
+    var request = {
+        url: IPA.json_url || IPA.json_path + '/session_logout.json',
+        data: JSON.stringify(command),
+        success: success_handler,
+        error: error_handler
+    };
+
+    $.ajax(request);
 };
 
 /**

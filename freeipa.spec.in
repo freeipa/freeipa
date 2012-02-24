@@ -551,6 +551,7 @@ fi
 %{_usr}/share/ipa/migration/migration.py*
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
+%{_usr}/share/ipa/ui/logout.html
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
 %{_usr}/share/ipa/ui/*.js
@@ -667,6 +668,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Feb 29 2012 Petr Vobornik <pvoborni@redhat.com> - 2.2.0-13
+- Add Web UI logout page
+
 * Mon Feb 27 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-12
 - Add Requires to ipa-client on oddjob-mkhomedir
 

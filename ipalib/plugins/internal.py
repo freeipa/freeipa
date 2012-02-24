@@ -245,7 +245,9 @@ class i18n_messages(Command):
         },
         "false": _("False"),
         "login": {
-            "header": _("Logged In As")
+            "header": _("Logged In As"),
+            "logout": _("Logout"),
+            "logout_error": _("Logout error"),
         },
         "objects": {
             "aci": {
