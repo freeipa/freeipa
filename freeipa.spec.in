@@ -212,6 +212,7 @@ Requires: sssd >= 1.5.1
 Requires: certmonger >= 0.26
 Requires: nss-tools
 Requires: bind-utils
+Requires: oddjob-mkhomedir
 
 Obsoletes: ipa-client >= 1.0
 
@@ -665,6 +666,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Mon Feb 27 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-12
+- Add Requires to ipa-client on oddjob-mkhomedir
+
 * Fri Feb 24 2012 Martin Kosek <mkosek@redhat.com> - 2.2.0-11
 - Set min for bind-dyndb-ldap to 1.1.0-0.8.a2 to pick up new features
 
