@@ -49,6 +49,10 @@ EXAMPLES:
    ipa netgroup-del admins
 """)
 
+
+NETGROUP_PATTERN='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$'
+NETGROUP_PATTERN_ERRMSG='may only include letters, numbers, _, -, and .'
+
 output_params = (
         Str('memberuser_user?',
             label='Member User',
@@ -101,6 +105,8 @@ class netgroup(LDAPObject):
 
     takes_params = (
         Str('cn',
+            pattern=NETGROUP_PATTERN,
+            pattern_errmsg=NETGROUP_PATTERN_ERRMSG,
             cli_name='name',
             label=_('Netgroup name'),
             primary_key=True,

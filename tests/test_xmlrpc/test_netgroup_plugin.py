@@ -56,6 +56,8 @@ user2 = u'pexample'
 
 group1 = u'testgroup'
 
+invalidnetgroup1=u'+badnetgroup'
+
 class test_netgroup(Declarative):
     """
     Test the `netgroup` plugin.
@@ -93,6 +95,13 @@ class test_netgroup(Declarative):
             desc='Try to delete non-existent %r' % netgroup1,
             command=('netgroup_del', [netgroup1], {}),
             expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test an invalid netgroup name %r' % invalidnetgroup1,
+            command=('netgroup_add', [invalidnetgroup1], dict(description=u'Test')),
+            expected=errors.ValidationError(name='cn', error='may only include letters, numbers, _, - and .'),
         ),
 
 

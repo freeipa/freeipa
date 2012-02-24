@@ -36,6 +36,8 @@ fqdn1 = u'testhost1.%s' % api.env.domain
 host_dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
               api.env.basedn)
 
+invalidhostgroup1 = u'@invalid'
+
 
 class test_hostgroup(Declarative):
 
@@ -66,6 +68,13 @@ class test_hostgroup(Declarative):
             desc='Try to delete non-existent %r' % hostgroup1,
             command=('hostgroup_del', [hostgroup1], {}),
             expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test an invalid hostgroup name %r' % invalidhostgroup1,
+            command=('hostgroup_add', [invalidhostgroup1], dict(description=u'Test')),
+            expected=errors.ValidationError(name='cn', error='may only include letters, numbers, _, - and .'),
         ),
 
 

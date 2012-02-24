@@ -1755,7 +1755,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, None)
 command: hostgroup_add
 args: 1,6,3
-arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, primary_key=True, required=True)
+arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -1767,7 +1767,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, None)
 command: hostgroup_add_member
 args: 1,5,3
-arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1778,7 +1778,7 @@ output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: hostgroup_del
 args: 1,1,3
-arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=True, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=True, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
@@ -1786,7 +1786,7 @@ output: Output('value', <type 'unicode'>, None)
 command: hostgroup_find
 args: 1,20,4
 arg: Str('criteria?', noextrawhitespace=False)
-option: Str('cn', attribute=True, autofill=False, cli_name='hostgroup_name', multivalue=False, primary_key=True, query=True, required=False)
+option: Str('cn', attribute=True, autofill=False, cli_name='hostgroup_name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
@@ -1812,7 +1812,7 @@ output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: hostgroup_mod
 args: 1,8,3
-arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -1826,7 +1826,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, None)
 command: hostgroup_remove_member
 args: 1,5,3
-arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1837,7 +1837,7 @@ output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: hostgroup_show
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1915,7 +1915,7 @@ output: Output('failed', <type 'dict'>, None)
 output: Output('enabled', <type 'bool'>, None)
 command: netgroup_add
 args: 1,9,3
-arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
 option: Str('nisdomainname', attribute=True, cli_name='nisdomain', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
@@ -1930,7 +1930,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, None)
 command: netgroup_add_member
 args: 1,8,3
-arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1944,7 +1944,7 @@ output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: netgroup_del
 args: 1,1,3
-arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', multivalue=True, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
@@ -1952,7 +1952,7 @@ output: Output('value', <type 'unicode'>, None)
 command: netgroup_find
 args: 1,26,4
 arg: Str('criteria?', noextrawhitespace=False)
-option: Str('cn', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
+option: Str('cn', attribute=True, autofill=False, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
 option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', multivalue=False, query=True, required=False)
 option: Str('ipauniqueid', attribute=True, autofill=False, cli_name='uuid', multivalue=False, query=True, required=False)
@@ -1984,7 +1984,7 @@ output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: netgroup_mod
 args: 1,11,3
-arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
@@ -2001,7 +2001,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, None)
 command: netgroup_remove_member
 args: 1,8,3
-arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -2015,7 +2015,7 @@ output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: netgroup_show
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
