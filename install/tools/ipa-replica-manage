@@ -29,6 +29,7 @@ from ipaserver.install import bindinstance
 from ipaserver import ipaldap
 from ipapython import version
 from ipalib import api, errors, util
+from ipalib.dn import DN
 from ipapython.ipa_log_manager import *
 
 CACERT = "/etc/ipa/ca.crt"
@@ -287,6 +288,7 @@ def del_master(realm, hostname, options):
     # 3. If an IPA agreement connect to the master to be removed.
     repltype = thisrepl.get_agreement_type(hostname)
     if repltype == replication.IPA_REPLICA:
+        winsync = False
         try:
             delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
         except Exception, e:
@@ -308,7 +310,16 @@ def del_master(realm, hostname, options):
             replica_names = delrepl.find_ipa_replication_agreements()
     else:
         # WINSYNC replica, delete agreement from current host
+        winsync = True
         replica_names = [options.host]
+
+    if not winsync and not options.force:
+        print "Deleting a master is irreversible."
+        print "To reconnect to the remote master you will need to prepare " \
+              "a new replica file"
+        print "and re-install."
+        if not ipautil.user_input("Continue to delete?", False):
+            sys.exit("Deletion aborted")
 
     # 4. Remove each agreement
     for r in replica_names:
@@ -390,6 +401,18 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
                                         options.passsync, options.win_subtree,
                                         options.cacert)
     else:
+        # First see if we already exist on the remote master. If so this was
+        # a previously deleted connection.
+        try:
+            repl2 = replication.ReplicationManager(realm, replica2, dirman_passwd)
+            master_dn = repl2.replica_dn()
+            binddn = str(DN(('krbprincipalname','ldap/%s@%s' % (replica1, api.env.realm)),(api.env.container_service),(api.env.basedn)))
+            master = repl2.conn.getEntry(master_dn, ldap.SCOPE_BASE)
+            binddns = master.getValues('nsDS5ReplicaBindDN')
+            if binddns and binddn in binddns:
+                sys.exit("You cannot connect to a previously deleted master")
+        except errors.NotFound:
+            pass
         repl1.setup_gssapi_replication(replica2, "cn=Directory Manager", dirman_passwd)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
