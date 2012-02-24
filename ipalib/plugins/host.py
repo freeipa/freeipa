@@ -31,8 +31,8 @@ from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
 from ipalib.plugins.service import validate_certificate
 from ipalib.plugins.service import set_certificate_attrs
-from ipalib.plugins.dns import dns_container_exists, _record_types
-from ipalib.plugins.dns import add_forward_record
+from ipalib.plugins.dns import dns_container_exists, _record_types, add_records_for_host_validation, add_records_for_host
+from ipalib.plugins.dns import get_reverse_zone
 from ipalib import _, ngettext
 from ipalib import x509
 from ipalib.dn import *
@@ -104,51 +104,6 @@ def validate_host(ugettext, fqdn):
     if fqdn.find('.') == -1:
         return _('Fully-qualified hostname required')
     return None
-
-def is_forward_record(zone, str_address):
-    addr = netaddr.IPAddress(str_address)
-    if addr.version == 4:
-        result = api.Command['dnsrecord_find'](zone, arecord=str_address)
-    elif addr.version == 6:
-        result = api.Command['dnsrecord_find'](zone, aaaarecord=str_address)
-    else:
-        raise ValueError('Invalid address family')
-
-    return result['count'] > 0
-
-def get_reverse_zone(ipaddr, prefixlen=None):
-    ip = netaddr.IPAddress(ipaddr)
-    revdns = unicode(ip.reverse_dns)
-
-    if prefixlen is None:
-        revzone = u''
-
-        result = api.Command['dnszone_find']()['result']
-        for zone in result:
-            zonename = zone['idnsname'][0]
-            if revdns.endswith(zonename) and len(zonename) > len(revzone):
-                revzone = zonename
-    else:
-        if ip.version == 4:
-            pos = 4 - prefixlen / 8
-        elif ip.version == 6:
-            pos = 32 - prefixlen / 4
-        items = ip.reverse_dns.split('.')
-        revzone = u'.'.join(items[pos:])
-
-        try:
-            api.Command['dnszone_show'](revzone)
-        except errors.NotFound:
-            revzone = u''
-
-    if len(revzone) == 0:
-        raise errors.NotFound(
-            reason=_('DNS reverse zone for IP address %(addr)s not found') % dict(addr=ipaddr)
-        )
-
-    revname = revdns[:-len(revzone)-1]
-
-    return revzone, revname
 
 def remove_fwd_ptr(ipaddr, host, domain, recordtype):
     api.log.debug('deleting ipaddr %s' % ipaddr)
@@ -421,35 +376,15 @@ class host_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if 'ip_address' in options and dns_container_exists(ldap):
+        if options.get('ip_address') and dns_container_exists(ldap):
             parts = keys[-1].split('.')
+            host = parts[0]
             domain = unicode('.'.join(parts[1:]))
-            result = api.Command['dnszone_find']()['result']
-            match = False
-            for zone in result:
-                if domain == zone['idnsname'][0]:
-                    match = True
-                    break
-            if not match:
-                raise errors.NotFound(
-                    reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
-                )
-            ip = CheckedIPAddress(options['ip_address'], match_local=False)
-            if not options.get('no_reverse', False):
-                try:
-                    prefixlen = None
-                    if not ip.defaultnet:
-                        prefixlen = ip.prefixlen
-                    # we prefer lookup of the IP through the reverse zone
-                    revzone, revname = get_reverse_zone(ip, prefixlen)
-                    reverse = api.Command['dnsrecord_find'](revzone, idnsname=revname)
-                    if reverse['count'] > 0:
-                        raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
-                except errors.NotFound:
-                    pass
-            else:
-                if is_forward_record(domain, unicode(ip)):
-                    raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
+            check_reverse = not options.get('no_reverse', False)
+            add_records_for_host_validation('ip_address', host, domain,
+                    options['ip_address'],
+                    check_forward=True,
+                    check_reverse=check_reverse)
         if not options.get('force', False) and not 'ip_address' in options:
             util.validate_host_dns(self.log, keys[-1])
         if 'locality' in entry_attrs:
@@ -489,24 +424,15 @@ class host_add(LDAPCreate):
         if dns_container_exists(ldap):
             try:
                 parts = keys[-1].split('.')
+                host = parts[0]
                 domain = unicode('.'.join(parts[1:]))
 
-                if 'ip_address' in options:
-                    ip = CheckedIPAddress(options['ip_address'], match_local=False)
-                    add_forward_record(domain, parts[0], unicode(ip))
+                if options.get('ip_address'):
+                    add_reverse = not options.get('no_reverse', False)
 
-                    if not options.get('no_reverse', False):
-                        try:
-                            prefixlen = None
-                            if not ip.defaultnet:
-                                prefixlen = ip.prefixlen
-                            revzone, revname = get_reverse_zone(ip, prefixlen)
-                            addkw = { 'ptrrecord' : keys[-1]+'.' }
-                            api.Command['dnsrecord_add'](revzone, revname, **addkw)
-                        except errors.EmptyModlist:
-                            # the entry already exists and matches
-                            pass
-
+                    add_records_for_host(host, domain, options['ip_address'],
+                                         add_forward=True,
+                                         add_reverse=add_reverse)
                     del options['ip_address']
 
                 update_sshfp_record(domain, unicode(parts[0]), entry_attrs)

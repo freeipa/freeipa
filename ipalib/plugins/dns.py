@@ -83,8 +83,10 @@ EXAMPLES:
  Add LOC record for example.com:
    ipa dnsrecord-add example.com @ --loc-rec="49 11 42.4 N 16 36 29.6 E 227.64m"
 
- Add new A record for www.example.com: (random IP)
-   ipa dnsrecord-add example.com www --a-rec=80.142.15.2
+ Add new A record for www.example.com. Create a reverse record in appropriate
+ reverse zone as well. In this case a PTR record "2" pointing to www.example.com.
+ will be created in zone 15.142.80.in-addr.arpa.
+   ipa dnsrecord-add example.com www --a-rec=80.142.15.2 --a-create-reverse
 
  Add new PTR record for www.example.com
    ipa dnsrecord-add 15.142.80.in-addr.arpa. 2 --ptr-rec=www.example.com.
@@ -324,8 +326,132 @@ def _normalize_hostname(domain_name):
     else:
         return domain_name
 
+def is_forward_record(zone, str_address):
+    addr = netaddr.IPAddress(str_address)
+    if addr.version == 4:
+        result = api.Command['dnsrecord_find'](zone, arecord=str_address)
+    elif addr.version == 6:
+        result = api.Command['dnsrecord_find'](zone, aaaarecord=str_address)
+    else:
+        raise ValueError('Invalid address family')
+
+    return result['count'] > 0
+
+def add_forward_record(zone, name, str_address):
+    addr = netaddr.IPAddress(str_address)
+    try:
+        if addr.version == 4:
+            api.Command['dnsrecord_add'](zone, name, arecord=str_address)
+        elif addr.version == 6:
+            api.Command['dnsrecord_add'](zone, name, aaaarecord=str_address)
+        else:
+            raise ValueError('Invalid address family')
+    except errors.EmptyModlist:
+        pass # the entry already exists and matches
+
+def get_reverse_zone(ipaddr, prefixlen=None):
+    ip = netaddr.IPAddress(ipaddr)
+    revdns = unicode(ip.reverse_dns)
+
+    if prefixlen is None:
+        revzone = u''
+
+        result = api.Command['dnszone_find']()['result']
+        for zone in result:
+            zonename = zone['idnsname'][0]
+            if revdns.endswith(zonename) and len(zonename) > len(revzone):
+                revzone = zonename
+    else:
+        if ip.version == 4:
+            pos = 4 - prefixlen / 8
+        elif ip.version == 6:
+            pos = 32 - prefixlen / 4
+        items = ip.reverse_dns.split('.')
+        revzone = u'.'.join(items[pos:])
+
+        try:
+            api.Command['dnszone_show'](revzone)
+        except errors.NotFound:
+            revzone = u''
+
+    if len(revzone) == 0:
+        raise errors.NotFound(
+            reason=_('DNS reverse zone for IP address %(addr)s not found') % dict(addr=ipaddr)
+        )
+
+    revname = revdns[:-len(revzone)-1]
+
+    return revzone, revname
+
+def add_records_for_host_validation(option_name, host, domain, ip_addresses, check_forward=True, check_reverse=True):
+    result = api.Command['dnszone_find']()['result']
+    match = False
+    for zone in result:
+        if domain == zone['idnsname'][0]:
+            match = True
+            break
+    if not match:
+        raise errors.NotFound(
+            reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
+        )
+    if not isinstance(ip_addresses, (tuple, list)):
+        ip_addresses = [ip_addresses]
+
+    for ip_address in ip_addresses:
+        try:
+            ip = CheckedIPAddress(ip_address, match_local=False)
+        except Exception, e:
+            raise errors.ValidationError(name=option_name, error=unicode(e))
+
+        if check_forward:
+            if is_forward_record(domain, unicode(ip)):
+                raise errors.DuplicateEntry(
+                        message=_(u'IP address %(ip)s is already assigned in domain %(domain)s.')\
+                            % dict(ip=str(ip), domain=domain))
+
+        if check_reverse:
+            try:
+                prefixlen = None
+                if not ip.defaultnet:
+                    prefixlen = ip.prefixlen
+                # we prefer lookup of the IP through the reverse zone
+                revzone, revname = get_reverse_zone(ip, prefixlen)
+                reverse = api.Command['dnsrecord_find'](revzone, idnsname=revname)
+                if reverse['count'] > 0:
+                    raise errors.DuplicateEntry(
+                            message=_(u'Reverse record for IP address %(ip)s already exists in reverse zone %(zone)s.')\
+                            % dict(ip=str(ip), zone=revzone))
+            except errors.NotFound:
+                pass
+
+
+def add_records_for_host(host, domain, ip_addresses, add_forward=True, add_reverse=True):
+    if not isinstance(ip_addresses, (tuple, list)):
+        ip_addresses = [ip_addresses]
+
+    for ip_address in ip_addresses:
+        ip = CheckedIPAddress(ip_address, match_local=False)
+
+        if add_forward:
+            add_forward_record(domain, host, unicode(ip))
+
+        if add_reverse:
+            try:
+                prefixlen = None
+                if not ip.defaultnet:
+                    prefixlen = ip.prefixlen
+                revzone, revname = get_reverse_zone(ip, prefixlen)
+                addkw = { 'ptrrecord' : host + "." + domain }
+                api.Command['dnsrecord_add'](revzone, revname, **addkw)
+            except errors.EmptyModlist:
+                # the entry already exists and matches
+                pass
+
 class DNSRecord(Str):
+    # a list of parts that create the actual raw DNS record
     parts = None
+    # an optional list of parameters used in record-specific operations
+    extra = None
     supported = True
     # supported RR types: https://fedorahosted.org/bind-dyndb-ldap/browser/doc/schema
 
@@ -335,6 +461,7 @@ class DNSRecord(Str):
     option_group_format = _('%s Record')
     see_rfc_msg = _("(see RFC %s for details)")
     part_name_format = "%s_part_%s"
+    extra_name_format = "%s_extra_%s"
     cli_name_format = "%s_%s"
     format_error_msg = None
 
@@ -478,30 +605,59 @@ class DNSRecord(Str):
             part.validate(val)
         return None
 
+    def _convert_dnsrecord_part(self, part):
+        """
+        All parts of DNSRecord need to be processed and modified before they
+        can be added to global DNS API. For example a prefix need to be added
+        before part name so that the name is unique in the global namespace.
+        """
+        name = self.part_name_format % (self.rrtype.lower(), part.name)
+        cli_name = self.cli_name_format % (self.rrtype.lower(), part.name)
+        label = self.part_label_format % (self.rrtype, unicode(part.label))
+        option_group = self.option_group_format % self.rrtype
+        flags = list(part.flags) + ['dnsrecord_part', 'virtual_attribute',]
+
+        if not part.required:
+            flags.append('dnsrecord_optional')
+
+        return part.clone_rename(name,
+                     cli_name=cli_name,
+                     label=label,
+                     required=False,
+                     option_group=option_group,
+                     flags=flags,
+                     hint=self.name,)   # name of parent RR param
+
+    def _convert_dnsrecord_extra(self, extra):
+        """
+        Parameters for special per-type behavior need to be processed in the
+        same way as record parts in _convert_dnsrecord_part().
+        """
+        name = self.extra_name_format % (self.rrtype.lower(), extra.name)
+        cli_name = self.cli_name_format % (self.rrtype.lower(), extra.name)
+        label = self.part_label_format % (self.rrtype, unicode(extra.label))
+        option_group = self.option_group_format % self.rrtype
+        flags = list(extra.flags) + ['dnsrecord_extra', 'virtual_attribute',]
+
+        return extra.clone_rename(name,
+                     cli_name=cli_name,
+                     label=label,
+                     required=False,
+                     option_group=option_group,
+                     flags=flags,
+                     hint=self.name,)   # name of parent RR param
+
     def get_parts(self):
         if self.parts is None:
             return tuple()
 
-        parts = []
+        return tuple(self._convert_dnsrecord_part(part) for part in self.parts)
 
-        for part in self.parts:
-            name = self.part_name_format % (self.rrtype.lower(), part.name)
-            cli_name = self.cli_name_format % (self.rrtype.lower(), part.name)
-            label = self.part_label_format % (self.rrtype, unicode(part.label))
-            option_group = self.option_group_format % self.rrtype
-            flags = list(part.flags) + ['dnsrecord_part', 'virtual_attribute',]
+    def get_extra(self):
+        if self.extra is None:
+            return tuple()
 
-            if not part.required:
-                flags.append('dnsrecord_optional')
-
-            parts.append(part.clone_rename(name,
-                         cli_name=cli_name,
-                         label=label,
-                         required=False,
-                         option_group=option_group,
-                         flags=flags))
-
-        return tuple(parts)
+        return tuple(self._convert_dnsrecord_extra(extra) for extra in self.extra)
 
     def prompt_parts(self, backend, mod_dnsvalue=None):
         mod_parts = None
@@ -531,7 +687,54 @@ class DNSRecord(Str):
 
         return user_options
 
-class ARecord(DNSRecord):
+    # callbacks for per-type special record behavior
+    def dnsrecord_add_pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        pass
+
+    def dnsrecord_add_post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        pass
+
+class ForwardRecord(DNSRecord):
+    extra = (
+        Flag('create_reverse?',
+            label=_('Create reverse'),
+            doc=_('Create reverse record for this IP Address'),
+            flags=['no_update']
+        ),
+    )
+
+    def dnsrecord_add_pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        reverse_option = self._convert_dnsrecord_extra(self.extra[0])
+        if options.get(reverse_option.name):
+            records = entry_attrs.get(self.name, [])
+            if not records:
+                # --<rrtype>-create-reverse is set, but there are not records
+                raise errors.RequirementError(name=self.name)
+
+            for record in records:
+                add_records_for_host_validation(self.name, keys[-1], keys[-2], record,
+                        check_forward=False,
+                        check_reverse=True)
+
+            setattr(context, '%s_reverse' % self.name, entry_attrs.get(self.name))
+
+    def dnsrecord_add_post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        rev_records = getattr(context, '%s_reverse' % self.name, [])
+
+        if rev_records:
+            # make sure we don't run this post callback action again in nested
+            # commands, line adding PTR record in add_records_for_host
+            delattr(context, '%s_reverse' % self.name)
+            for record in rev_records:
+                try:
+                    add_records_for_host(keys[-1], keys[-2], record,
+                        add_forward=False, add_reverse=True)
+                except Exception, e:
+                    raise errors.NonFatalError(
+                        reason=_('Cannot create reverse record for "%(value)s": %(exc)s') \
+                                % dict(value=record, exc=unicode(e)))
+
+class ARecord(ForwardRecord):
     rrtype = 'A'
     rfc = 1035
     parts = (
@@ -554,7 +757,7 @@ class A6Record(DNSRecord):
         # A6 RR type is obsolete and only a raw interface is provided
         return (value,)
 
-class AAAARecord(DNSRecord):
+class AAAARecord(ForwardRecord):
     rrtype = 'AAAA'
     rfc = 3596
     parts = (
@@ -1169,6 +1372,9 @@ def __dns_record_options_iter():
         for part in option.get_parts():
             yield part
 
+        for extra in option.get_extra():
+            yield extra
+
 _dns_record_options = tuple(__dns_record_options_iter())
 
 # dictionary of valid reverse zone -> number of address components
@@ -1191,18 +1397,6 @@ def is_ns_rec_resolvable(name):
         raise errors.NotFound(
             reason=_('Nameserver \'%(host)s\' does not have a corresponding A/AAAA record') % {'host': name}
         )
-
-def add_forward_record(zone, name, str_address):
-    addr = netaddr.IPAddress(str_address)
-    try:
-        if addr.version == 4:
-            api.Command['dnsrecord_add'](zone, name, arecord=str_address)
-        elif addr.version == 6:
-            api.Command['dnsrecord_add'](zone, name, aaaarecord=str_address)
-        else:
-            raise ValueError('Invalid address family')
-    except errors.EmptyModlist:
-        pass # the entry already exists and matches
 
 def dns_container_exists(ldap):
     try:
@@ -1659,13 +1853,6 @@ class dnsrecord(LDAPObject):
         if not has_options:
             raise errors.OptionError(no_option_msg)
 
-    def get_record_option(self, rec_type):
-        name = '%srecord' % rec_type.lower()
-        if name in self.params:
-            return self.params[name]
-        else:
-            return None
-
     def get_record_entry_attrs(self, entry_attrs):
         return dict((attr, val) for attr,val in entry_attrs.iteritems() \
                     if attr in self.params and not self.params[attr].primary_key)
@@ -1766,19 +1953,60 @@ class dnsrecord_add(LDAPCreate):
             if hasattr(self.obj, rtype_cb):
                 dn = getattr(self.obj, rtype_cb)(ldap, dn, entry_attrs, *keys, **options)
 
-        # check if any record part was added
+        precallback_attrs = []
         for option in options:
-            option_part_re = re.match(r'([a-z0-9]+)_part_', option)
+            try:
+                param = self.params[option]
+            except KeyError:
+                continue
 
-            if option_part_re is not None:
-                record_option = self.obj.get_record_option(option_part_re.group(1))
-                if record_option.name in entry_attrs:
+            if 'dnsrecord_part' in param.flags:
+                # check if any record part was added
+                try:
+                    rrparam = self.params[param.hint]
+                except KeyError, AttributeError:
+                    continue
+
+                if rrparam.name in entry_attrs:
                     # this record was already entered
                     continue
 
-                parts = record_option.get_parts_from_kw(options)
-                dnsvalue = [record_option._convert_scalar(parts)]
-                entry_attrs[record_option.name] = dnsvalue
+                parts = rrparam.get_parts_from_kw(options)
+                dnsvalue = [rrparam._convert_scalar(parts)]
+                entry_attrs[rrparam.name] = dnsvalue
+                continue
+
+            if 'dnsrecord_extra' in param.flags:
+                # do not run precallback for unset flags
+                if isinstance(param, Flag) and not options[option]:
+                    continue
+                # extra option is passed, run per-type pre_callback for given RR type
+                precallback_attrs.append(param.hint)
+
+        # run precallback also for all new RR type attributes in entry_attrs
+        for attr in entry_attrs:
+            try:
+                param = self.params[attr]
+            except KeyError:
+                continue
+
+            if not isinstance(param, DNSRecord):
+                continue
+            precallback_attrs.append(attr)
+
+        precallback_attrs = list(set(precallback_attrs))
+
+        for attr in precallback_attrs:
+            # run per-type
+            try:
+                param = self.params[attr]
+            except KeyError:
+                continue
+            param.dnsrecord_add_pre_callback(ldap, dn, entry_attrs, attrs_list, *keys, **options)
+
+        # Store all new attrs so that DNSRecord post callback is called for
+        # new attributes only and not for all attributes in the LDAP entry
+        setattr(context, 'dnsrecord_precallback_attrs', precallback_attrs)
 
         try:
             (dn_, old_entry) = ldap.get_entry(
@@ -1810,6 +2038,10 @@ class dnsrecord_add(LDAPCreate):
         raise exc
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        for attr in getattr(context, 'dnsrecord_precallback_attrs', []):
+            param = self.params[attr]
+            param.dnsrecord_add_post_callback(ldap, dn, entry_attrs, *keys, **options)
+
         self.obj.postprocess_record(entry_attrs, **options)
 
         return dn
@@ -1993,7 +2225,8 @@ class dnsrecord_del(LDAPUpdate):
 
     def get_options(self):
         for option in super(dnsrecord_del, self).get_options():
-            if 'dnsrecord_part' in option.flags:
+            if any(flag in option.flags for flag in \
+                    ('dnsrecord_part', 'dnsrecord_extra',)):
                 continue
             elif isinstance(option, DNSRecord):
                 yield option.clone(option_group=None)
@@ -2137,6 +2370,16 @@ class dnsrecord_find(LDAPSearch):
     takes_options = LDAPSearch.takes_options + (
         dnsrecord.structured_flag,
     )
+
+    def get_options(self):
+        for option in super(dnsrecord_find, self).get_options():
+            if any(flag in option.flags for flag in \
+                    ('dnsrecord_part', 'dnsrecord_extra',)):
+                continue
+            elif isinstance(option, DNSRecord):
+                yield option.clone(option_group=None)
+                continue
+            yield option
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         # include zone record (root entry) in the search

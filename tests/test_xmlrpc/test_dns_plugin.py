@@ -42,6 +42,8 @@ dnsres1 = u'testdnsres'
 dnsres1_dn = DN(('idnsname',dnsres1), dnszone1_dn)
 dnsrev1 = u'80'
 dnsrev1_dn = DN(('idnsname',dnsrev1), revdnszone1_dn)
+dnsrev2 = u'81'
+dnsrev2_dn = DN(('idnsname',dnsrev2), revdnszone1_dn)
 
 class test_dns(Declarative):
 
@@ -868,6 +870,46 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowquery': [u'!10.0.0.0/8;any;'],
                     'idnsallowtransfer': [u'80.142.15.80;'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Try to create duplicate PTR record for %r with --a-create-reverse' % dnsres1,
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'arecord': u'80.142.15.80',
+                                                            'a_extra_create_reverse' : True}),
+            expected=errors.DuplicateEntry(message=u''),
+        ),
+
+
+        dict(
+            desc='Create A record %r in zone %r with --a-create-reverse' % (dnsres1, dnszone1),
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'arecord': u'80.142.15.81',
+                                                            'a_extra_create_reverse' : True}),
+            expected={
+                'value': dnsres1,
+                'summary': None,
+                'result': {
+                    'dn': unicode(dnsres1_dn),
+                    'idnsname': [dnsres1],
+                    'objectclass': [u'top', u'idnsrecord'],
+                    'arecord': [u'80.142.15.81'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Check reverse record for %r created via --a-create-reverse' % dnsres1,
+            command=('dnsrecord_show', [revdnszone1, dnsrev2], {}),
+            expected={
+                'value': dnsrev2,
+                'summary': None,
+                'result': {
+                    'dn': unicode(dnsrev2_dn),
+                    'idnsname': [dnsrev2],
+                    'ptrrecord': [dnsres1 + '.' + dnszone1 + '.'],
                 },
             },
         ),
