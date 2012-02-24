@@ -548,6 +548,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 	int kvno, i;
 	ber_tag_t rtag;
 	ber_int_t *encs = NULL;
+	int successful_keys = 0;
 
 	/* cant' return more than nkeys, sometimes less */
 	encs = calloc(keys->nkeys + 1, sizeof(ber_int_t));
@@ -587,12 +588,14 @@ static int ldap_set_keytab(krb5_context krbctx,
 		goto error_out;
 	}
 
+#ifdef LDAP_OPT_X_SASL_NOCANON
         /* Don't do DNS canonicalization */
 	ret = ldap_set_option(ld, LDAP_OPT_X_SASL_NOCANON, LDAP_OPT_ON);
 	if (ret != LDAP_SUCCESS) {
 	    fprintf(stderr, _("Unable to set LDAP_OPT_X_SASL_NOCANON\n"));
 	    goto error_out;
 	}
+#endif
 
 	version = LDAP_VERSION3;
 	ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
@@ -620,7 +623,13 @@ static int ldap_set_keytab(krb5_context krbctx,
 						   LDAP_SASL_QUIET,
 						   ldap_sasl_interact, princ);
 		if (ret != LDAP_SUCCESS) {
-			fprintf(stderr, _("SASL Bind failed!\n"));
+			char *msg=NULL;
+#ifdef LDAP_OPT_DIAGNOSTIC_MESSAGE
+			ldap_get_option(ld, LDAP_OPT_DIAGNOSTIC_MESSAGE,
+				(void*)&msg);
+#endif
+			fprintf(stderr, "SASL Bind failed %s (%d) %s!\n",
+				ldap_err2string(ret), ret, msg ? msg : "");
 			goto error_out;
 		}
 	}
@@ -705,16 +714,34 @@ static int ldap_set_keytab(krb5_context krbctx,
 
 	rtag = ber_scanf(sctrl, "{i{", &kvno);
 	if (rtag == LBER_ERROR) {
-		fprintf(stderr, _("ber_scanf() failed, Invalid control ?!\n"));
+		fprintf(stderr, _("ber_scanf() failed, unable to find kvno ?!\n"));
 		goto error_out;
 	}
 
 	for (i = 0; i < keys->nkeys; i++) {
 		ret = ber_scanf(sctrl, "{i}", &encs[i]);
 		if (ret == LBER_ERROR) {
-                    fprintf(stderr, _("ber_scanf() failed, Invalid control ?!\n"));
-                    goto error_out;
-                }
+			char enc[79]; /* fit std terminal or truncate */
+			krb5_error_code krberr;
+			krberr = krb5_enctype_to_string(
+				keys->ksdata[i].enctype, enc, 79);
+			if (krberr) {
+				fprintf(stderr, _("Failed to retrieve "
+					"encryption type type #%d\n"),
+					keys->ksdata[i].enctype);
+			} else {
+				fprintf(stderr, _("Failed to retrieve "
+					"encryption type %s (#%d)\n"),
+					enc, keys->ksdata[i].enctype);
+			}
+                } else {
+			successful_keys++;
+		}
+	}
+
+	if (successful_keys == 0) {
+		fprintf(stderr, _("Failed to retrieve any keys"));
+		goto error_out;
 	}
 
 	ret = filter_keys(krbctx, keys, encs);
