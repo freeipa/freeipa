@@ -439,3 +439,21 @@ def parse_time_duration(value):
         raise ValueError('no time duration found in "%s"' % value)
 
     return duration
+
+def gen_dns_update_policy(realm, rrtypes=('A', 'AAAA', 'SSHFP')):
+    """
+    Generate update policy for a DNS zone (idnsUpdatePolicy attribute). Bind
+    uses this policy to grant/reject access for client machines trying to
+    dynamically update their records.
+
+    :param realm: A realm of the of the client
+    :param rrtypes: A list of resource records types that client shall be
+                    allowed to update
+    """
+    policy_element = "grant %(realm)s krb5-self * %(rrtype)s"
+    policies = [ policy_element % dict(realm=realm, rrtype=rrtype) \
+               for rrtype in rrtypes ]
+    policy = "; ".join(policies)
+    policy += ";"
+
+    return policy

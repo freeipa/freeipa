@@ -32,7 +32,7 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib.constants import DNS_ZONE_REFRESH
 from ipalib.parameters import IA5Str
-from ipalib.util import validate_zonemgr, normalize_zonemgr
+from ipalib.util import validate_zonemgr, normalize_zonemgr, gen_dns_update_policy
 from ipapython.ipa_log_manager import *
 
 import ipalib
@@ -185,7 +185,7 @@ def read_reverse_zone(default, ip_address):
 def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_address=None,
        update_policy=None):
     if update_policy is None:
-        update_policy = "grant %(realm)s krb5-self * A; grant %(realm)s krb5-self * AAAA; grant %(realm)s krb5-self * SSHFP;" % dict(realm=api.env.realm)
+        update_policy = gen_dns_update_policy(api.env.realm)
 
     if zonemgr is None:
         zonemgr = 'hostmaster.%s' % name

@@ -20,10 +20,13 @@
 from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipaserver.install.plugins import baseupdate
-from ipalib import api, errors
+from ipalib import api, errors, util
 
-class update_dnszone_acls(PostUpdate):
+class update_dnszones(PostUpdate):
     """
+    Update all zones to meet requirements in the new FreeIPA versions
+
+    1) AllowQuery and AllowTransfer
     Set AllowQuery and AllowTransfer ACLs in all zones that may be configured
     in an upgraded FreeIPA instance.
 
@@ -34,6 +37,14 @@ class update_dnszone_acls(PostUpdate):
 
     This plugin disables the zone transfer by default so that it needs to be
     explicitly enabled by FreeIPA Administrator.
+
+    2) Update policy
+    SSH public key support includes a feature to automatically add/update
+    client SSH fingerprints in SSHFP records. However, the update won't
+    work for zones created before this support was added as they don't allow
+    clients to update SSHFP records in their update policies.
+
+    This module extends the original policy to allow the SSHFP updates.
     """
     order=MIDDLE
 
@@ -41,7 +52,7 @@ class update_dnszone_acls(PostUpdate):
         ldap = self.obj.backend
 
         try:
-            zones = api.Command.dnszone_find()['result']
+            zones = api.Command.dnszone_find(all=True)['result']
         except errors.NotFound:
             self.log.info('No DNS zone to update found')
             return (False, False, [])
@@ -56,10 +67,14 @@ class update_dnszone_acls(PostUpdate):
                 # do not open zone transfers by default
                 update['idnsallowtransfer'] = u'none;'
 
+            old_policy = util.gen_dns_update_policy(api.env.realm, ('A', 'AAAA'))
+            if zone.get('idnsupdatepolicy', [''])[0] == old_policy:
+                update['idnsupdatepolicy'] = util.gen_dns_update_policy(\
+                        api.env.realm)
+
             if update:
                 api.Command.dnszone_mod(zone[u'idnsname'][0], **update)
 
-
         return (False, False, [])
 
-api.register(update_dnszone_acls)
+api.register(update_dnszones)
