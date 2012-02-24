@@ -30,7 +30,7 @@ from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import validate_zonemgr, normalize_zonemgr, validate_hostname
 from ipapython import dnsclient
-from ipapython.ipautil import valid_ip
+from ipapython.ipautil import valid_ip, CheckedIPAddress
 from ldap import explode_dn
 
 __doc__ = _("""
@@ -47,6 +47,9 @@ EXAMPLES:
  Modify the zone to allow dynamic updates for hosts own records in realm EXAMPLE.COM:
    ipa dnszone-mod example.com --dynamic-update=TRUE \\
         --update-policy="grant EXAMPLE.COM krb5-self * A; grant EXAMPLE.COM krb5-self * AAAA;"
+
+ Modify the zone to allow zone transfers for local network only:
+   ipa dnszone-mod example.com --allow-transfer=10.0.0.0/8
 
  Add new reverse zone specified by network IP address:
    ipa dnszone-add --name-from-ip=80.142.15.0/24 \\
@@ -224,6 +227,68 @@ def _validate_ipnet(ugettext, ipnet):
     except (netaddr.AddrFormatError, ValueError, UnboundLocalError):
         return _('invalid IP network format')
     return None
+
+def _validate_bind_aci(ugettext, bind_acis):
+    if not bind_acis:
+        return
+
+    bind_acis = bind_acis.split(';')
+    if bind_acis[-1]:
+        return _('each ACL element must be terminated with a semicolon')
+    else:
+        bind_acis.pop(-1)
+
+    for bind_aci in bind_acis:
+        if bind_aci in ("any", "none"):
+            continue
+
+        if bind_aci in ("localhost", "localnets"):
+            return _('ACL name "%s" is not supported') % bind_aci
+
+        if bind_aci.startswith('!'):
+            bind_aci = bind_aci[1:]
+
+        try:
+            ip = CheckedIPAddress(bind_aci, parse_netmask=True,
+                                  allow_network=True)
+        except (netaddr.AddrFormatError, ValueError), e:
+            return unicode(e)
+        except UnboundLocalError:
+            return _(u"invalid address format")
+
+def _normalize_bind_aci(bind_acis):
+    if not bind_acis:
+        return
+    bind_acis = bind_acis.split(';')
+    normalized = []
+    for bind_aci in bind_acis:
+        if not bind_aci:
+            continue
+        if bind_aci in ("any", "none", "localhost", "localnets"):
+            normalized.append(bind_aci)
+            continue
+
+        prefix = ""
+        if bind_aci.startswith('!'):
+            bind_aci = bind_aci[1:]
+            prefix = "!"
+
+        try:
+            ip = CheckedIPAddress(bind_aci, parse_netmask=True,
+                                  allow_network=True)
+            if '/' in bind_aci:    # addr with netmask
+                netmask = "/%s" % ip.prefixlen
+            else:
+                netmask = ""
+            normalized.append(u"%s%s%s" % (prefix, str(ip), netmask))
+            continue
+        except:
+            normalized.append(bind_aci)
+            continue
+
+    acis = u';'.join(normalized)
+    acis += u';'
+    return acis
 
 def _domain_name_validator(ugettext, value):
     try:
@@ -1150,7 +1215,7 @@ class dnszone(LDAPObject):
     default_attributes = [
         'idnsname', 'idnszoneactive', 'idnssoamname', 'idnssoarname',
         'idnssoaserial', 'idnssoarefresh', 'idnssoaretry', 'idnssoaexpire',
-        'idnssoaminimum'
+        'idnssoaminimum', 'idnsallowquery', 'idnsallowtransfer'
     ] + _record_attributes
     label = _('DNS Zones')
     label_singular = _('DNS Zone')
@@ -1253,6 +1318,24 @@ class dnszone(LDAPObject):
             attribute=True,
             default=False,
             autofill=True
+        ),
+        Str('idnsallowquery?',
+            _validate_bind_aci,
+            normalizer=_normalize_bind_aci,
+            cli_name='allow_query',
+            label=_('Allow query'),
+            doc=_('Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
+            default=u'any;',   # anyone can issue queries by default
+            autofill=True,
+        ),
+        Str('idnsallowtransfer?',
+            _validate_bind_aci,
+            normalizer=_normalize_bind_aci,
+            cli_name='allow_transfer',
+            label=_('Allow transfer'),
+            doc=_('Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
+            default=u'none;',  # no one can issue queries by default
+            autofill=True,
         ),
     )
 

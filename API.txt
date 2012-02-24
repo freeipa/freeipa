@@ -1067,7 +1067,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_add
-args: 1,19,3
+args: 1,21,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('name_from_ip', attribute=False, cli_name='name_from_ip', multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, cli_name='name_server', multivalue=False, required=True)
@@ -1081,6 +1081,8 @@ option: Int('dnsttl', attribute=True, cli_name='ttl', multivalue=False, required
 option: StrEnum('dnsclass', attribute=True, cli_name='class', multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
 option: Str('idnsupdatepolicy', attribute=True, cli_name='update_policy', multivalue=False, required=False)
 option: Bool('idnsallowdynupdate', attribute=True, autofill=True, cli_name='dynamic_update', default=False, multivalue=False, required=False)
+option: Str('idnsallowquery', attribute=True, autofill=True, cli_name='allow_query', default=u'any;', multivalue=False, required=False)
+option: Str('idnsallowtransfer', attribute=True, autofill=True, cli_name='allow_transfer', default=u'none;', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('force', autofill=True, default=False)
@@ -1111,7 +1113,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_find
-args: 1,21,4
+args: 1,23,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('name_from_ip', attribute=False, autofill=False, cli_name='name_from_ip', multivalue=False, query=True, required=False)
@@ -1127,6 +1129,8 @@ option: StrEnum('dnsclass', attribute=True, autofill=False, cli_name='class', mu
 option: Str('idnsupdatepolicy', attribute=True, autofill=False, cli_name='update_policy', multivalue=False, query=True, required=False)
 option: Bool('idnszoneactive', attribute=True, autofill=False, cli_name='zone_active', multivalue=False, query=True, required=False)
 option: Bool('idnsallowdynupdate', attribute=True, autofill=False, cli_name='dynamic_update', default=False, multivalue=False, query=True, required=False)
+option: Str('idnsallowquery', attribute=True, autofill=False, cli_name='allow_query', default=u'any;', multivalue=False, query=True, required=False)
+option: Str('idnsallowtransfer', attribute=True, autofill=False, cli_name='allow_transfer', default=u'none;', multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('forward_only', autofill=True, cli_name='forward_only', default=False)
@@ -1139,7 +1143,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnszone_mod
-args: 1,19,3
+args: 1,21,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('name_from_ip', attribute=False, autofill=False, cli_name='name_from_ip', multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', multivalue=False, required=False)
@@ -1153,6 +1157,8 @@ option: Int('dnsttl', attribute=True, autofill=False, cli_name='ttl', multivalue
 option: StrEnum('dnsclass', attribute=True, autofill=False, cli_name='class', multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
 option: Str('idnsupdatepolicy', attribute=True, autofill=False, cli_name='update_policy', multivalue=False, required=False)
 option: Bool('idnsallowdynupdate', attribute=True, autofill=False, cli_name='dynamic_update', default=False, multivalue=False, required=False)
+option: Str('idnsallowquery', attribute=True, autofill=False, cli_name='allow_query', default=u'any;', multivalue=False, required=False)
+option: Str('idnsallowtransfer', attribute=True, autofill=False, cli_name='allow_transfer', default=u'none;', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')

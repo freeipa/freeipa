@@ -214,7 +214,9 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
                                 idnssoarname=unicode(zonemgr),
                                 ip_address=unicode(ns_ip_address),
                                 idnsallowdynupdate=True,
-                                idnsupdatepolicy=unicode(update_policy))
+                                idnsupdatepolicy=unicode(update_policy),
+                                idnsallowquery=u'any',
+                                idnsallowtransfer=u'none',)
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
@@ -252,7 +254,9 @@ def add_reverse_zone(zone, ns_hostname=None, ns_ip_address=None,
                                 idnssoamname=unicode(ns_main+'.'),
                                 idnsallowdynupdate=True,
                                 ip_address=unicode(ns_ip_address),
-                                idnsupdatepolicy=unicode(update_policy))
+                                idnsupdatepolicy=unicode(update_policy),
+                                idnsallowquery=u'any',
+                                idnsallowtransfer=u'none',)
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 

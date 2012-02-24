@@ -6,6 +6,7 @@ app_PYTHON = 			\
 	baseupdate.py		\
 	fix_replica_memberof.py	\
 	rename_managed.py	\
+	dns.py			\
 	updateclient.py		\
 	$(NULL)
 

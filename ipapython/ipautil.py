@@ -77,7 +77,9 @@ class CheckedIPAddress(netaddr.IPAddress):
     # and don't allow IP addresses such as '1.1.1' in the same time
     netaddr_ip_flags = netaddr.INET_PTON
 
-    def __init__(self, addr, match_local=False, parse_netmask=True):
+    def __init__(self, addr, match_local=False, parse_netmask=True,
+                 allow_network=False, allow_loopback=False,
+                 allow_broadcast=False, allow_multicast=False):
         if isinstance(addr, CheckedIPAddress):
             super(CheckedIPAddress, self).__init__(addr, flags=self.netaddr_ip_flags)
             self.prefixlen = addr.prefixlen
@@ -98,20 +100,23 @@ class CheckedIPAddress(netaddr.IPAddress):
             try:
                 addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
             except ValueError:
-                net = netaddr.IPNetwork(addr)
+                net = netaddr.IPNetwork(addr, flags=self.netaddr_ip_flags)
                 if not parse_netmask:
                     raise ValueError("netmask and prefix length not allowed here")
                 addr = net.ip
 
         if addr.version not in (4, 6):
             raise ValueError("unsupported IP version")
-        if addr.is_loopback():
+
+        if not allow_loopback and addr.is_loopback():
             raise ValueError("cannot use loopback IP address")
-        if addr.is_reserved() or addr in netaddr.ip.IPV4_6TO4:
+        if (not addr.is_loopback() and addr.is_reserved()) \
+                or addr in netaddr.ip.IPV4_6TO4:
             raise ValueError("cannot use IANA reserved IP address")
+
         if addr.is_link_local():
             raise ValueError("cannot use link-local IP address")
-        if addr.is_multicast():
+        if not allow_multicast and addr.is_multicast():
             raise ValueError("cannot use multicast IP address")
 
         if match_local:
@@ -143,9 +148,9 @@ class CheckedIPAddress(netaddr.IPAddress):
             elif addr.version == 6:
                 net = netaddr.IPNetwork(str(addr) + '/64')
 
-        if addr == net.network:
+        if not allow_network and  addr == net.network:
             raise ValueError("cannot use IP network address")
-        if addr.version == 4 and addr == net.broadcast:
+        if not allow_broadcast and addr.version == 4 and addr == net.broadcast:
             raise ValueError("cannot use broadcast IP address")
 
         super(CheckedIPAddress, self).__init__(addr, flags=self.netaddr_ip_flags)
