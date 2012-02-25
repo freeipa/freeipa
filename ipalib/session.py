@@ -1197,34 +1197,71 @@ class MemcacheSessionManager(SessionManager):
 krbccache_dir ='/var/run/ipa_memcached'
 krbccache_prefix = 'krbcc_'
 
-def get_krbccache_pathname():
+def _get_krbccache_pathname():
     return os.path.join(krbccache_dir, '%s%s' % (krbccache_prefix, os.getpid()))
 
-def read_krbccache_file(krbccache_pathname):
-    root_logger.debug('reading krbccache data from "%s"', krbccache_pathname)
-    src = open(krbccache_pathname)
-    ccache_data = src.read()
-    src.close()
-    return ccache_data
+def get_ipa_ccache_name(scheme='FILE'):
+    if scheme == 'FILE':
+        name = os.path.join(krbccache_dir, '%s%s' % (krbccache_prefix, os.getpid()))
+    else:
+        raise ValueError('ccache scheme "%s" unsupported', scheme)
 
-def store_krbccache_file(ccache_data):
-    krbccache_pathname = get_krbccache_pathname()
-    root_logger.debug('storing krbccache data into "%s"', krbccache_pathname)
-    dst = open(krbccache_pathname, 'w')
-    dst.write(ccache_data)
-    dst.close()
+    ccache_name = krb5_unparse_ccache(scheme, name)
+    return ccache_name
 
-    return krbccache_pathname
 
-def delete_krbccache_file(krbccache_pathname=None):
-    if krbccache_pathname is None:
-        krbccache_pathname = get_krbccache_pathname()
+def load_ccache_data(ccache_name):
+    scheme, name = krb5_parse_ccache(ccache_name)
+    if scheme == 'FILE':
+        root_logger.debug('reading ccache data from file "%s"', name)
+        src = open(name)
+        ccache_data = src.read()
+        src.close()
+        return ccache_data
+    else:
+        raise ValueError('ccache scheme "%s" unsupported (%s)', scheme, ccache_name)
 
-    try:
-        os.unlink(krbccache_pathname)
-    except Exception, e:
-        root_logger.error('unable to delete session krbccache file "%s", %s',
-                          krbccache_pathname, e)
+def bind_ipa_ccache(ccache_data, scheme='FILE'):
+    if scheme == 'FILE':
+        name = _get_krbccache_pathname()
+        root_logger.debug('storing ccache data into file "%s"', name)
+        dst = open(name, 'w')
+        dst.write(ccache_data)
+        dst.close()
+    else:
+        raise ValueError('ccache scheme "%s" unsupported', scheme)
+
+    ccache_name = krb5_unparse_ccache(scheme, name)
+    os.environ['KRB5CCNAME'] = ccache_name
+    return ccache_name
+
+def release_ipa_ccache(ccache_name):
+    '''
+    Stop using the current request's ccache.
+      * Remove KRB5CCNAME from the enviroment
+      * Remove the ccache file from the file system
+
+    Note, we do not demand any of these elements exist, but if they
+    do we'll remove them.
+    '''
+
+    if os.environ.has_key('KRB5CCNAME'):
+        if ccache_name != os.environ['KRB5CCNAME']:
+            root_logger.error('release_ipa_ccache: ccache_name (%s) != KRB5CCNAME environment variable (%s)',
+                              ccache_name, os.environ['KRB5CCNAME'])
+        del os.environ['KRB5CCNAME']
+    else:
+        root_logger.debug('release_ipa_ccache: KRB5CCNAME environment variable not set')
+
+    scheme, name = krb5_parse_ccache(ccache_name)
+    if scheme == 'FILE':
+        if os.path.exists(name):
+            try:
+                os.unlink(name)
+            except Exception, e:
+                root_logger.error('unable to delete session ccache file "%s", %s', name, e)
+    else:
+        raise ValueError('ccache scheme "%s" unsupported (%s)', scheme, ccache_name)
 
 
 #-------------------------------------------------------------------------------

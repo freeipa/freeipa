@@ -27,14 +27,15 @@ from cgi import parse_qs
 from xml.sax.saxutils import escape
 from xmlrpclib import Fault
 from ipalib.backend import Executioner
-from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError
+from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr, parse_time_duration
 from ipapython.compat import json
-from ipalib.session import session_mgr, AuthManager, read_krbccache_file, store_krbccache_file, delete_krbccache_file, fmt_time, default_max_session_duration
+from ipalib.session import session_mgr, AuthManager, get_ipa_ccache_name, load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time, default_max_session_duration
 from ipalib.backend import Backend
-from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb_ticket_expiration_threshold
+from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name
+from ipapython import ipautil
 from wsgiref.util import shift_path_info
 from ipapython.version import VERSION
 import base64
@@ -42,6 +43,11 @@ import os
 import string
 import datetime
 from decimal import Decimal
+import urlparse
+
+HTTP_STATUS_SUCCESS = '200 Success'
+HTTP_STATUS_SERVER_ERROR = '500 Internal Server Error'
+
 _not_found_template = """<html>
 <head>
 <title>404 Not Found</title>
@@ -54,17 +60,82 @@ The requested URL <strong>%(url)s</strong> was not found on this server.
 </body>
 </html>"""
 
+_bad_request_template = """<html>
+<head>
+<title>400 Bad Request</title>
+</head>
+<body>
+<h1>Bad Request</h1>
+<p>
+<strong>%(message)s</strong>
+</p>
+</body>
+</html>"""
+
+_internal_error_template = """<html>
+<head>
+<title>500 Internal Server Error</title>
+</head>
+<body>
+<h1>Internal Server Error</h1>
+<p>
+<strong>%(message)s</strong>
+</p>
+</body>
+</html>"""
+
+_unauthorized_template = """<html>
+<head>
+<title>401 Unauthorized</title>
+</head>
+<body>
+<h1>Invalid Authentication</h1>
+<p>
+<strong>%(message)s</strong>
+</p>
+</body>
+</html>"""
 
 def not_found(environ, start_response):
     """
     Return a 404 Not Found error.
     """
     status = '404 Not Found'
-    response_headers = [('Content-Type', 'text/html')]
+    response_headers = [('Content-Type', 'text/html; charset=utf-8')]
     start_response(status, response_headers)
     output = _not_found_template % dict(
         url=escape(environ['SCRIPT_NAME'] + environ['PATH_INFO'])
     )
+    return [output]
+
+def bad_request(environ, start_response, message):
+    """
+    Return a 400 Bad Request error.
+    """
+    status = '400 Bad Request'
+    response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+    start_response(status, response_headers)
+    output = _bad_request_template % dict(message=escape(message))
+    return [output]
+
+def internal_error(environ, start_response, message):
+    """
+    Return a 500 Internal Server Error.
+    """
+    status = HTTP_STATUS_SERVER_ERROR
+    response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+    start_response(status, response_headers)
+    output = _internal_error_template % dict(message=escape(message))
+    return [output]
+
+def unauthorized(environ, start_response, message):
+    """
+    Return a 401 Unauthorized error.
+    """
+    status = '401 Unauthorized'
+    response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+    start_response(status, response_headers)
+    output = _unauthorized_template % dict(message=escape(message))
     return [output]
 
 def read_input(environ):
@@ -267,14 +338,14 @@ class WSGIExecutioner(Executioner):
 
         self.debug('WSGI WSGIExecutioner.__call__:')
         try:
-            status = '200 OK'
+            status = HTTP_STATUS_SUCCESS
             response = self.wsgi_execute(environ)
             headers = [('Content-Type', self.content_type + '; charset=utf-8')]
         except StandardError, e:
             self.exception('WSGI %s.__call__():', self.name)
-            status = '500 Internal Server Error'
+            status = HTTP_STATUS_SERVER_ERROR
             response = status
-            headers = [('Content-Type', 'text/plain')]
+            headers = [('Content-Type', 'text/plain; charset=utf-8')]
 
         session_data = getattr(context, 'session_data', None)
         if session_data is not None:
@@ -316,17 +387,16 @@ class xmlserver(WSGIExecutioner):
         '''
 
         self.debug('WSGI xmlserver.__call__:')
-        ccache=environ.get('KRB5CCNAME')
-        if ccache is None:
+        user_ccache=environ.get('KRB5CCNAME')
+        if user_ccache is None:
             return self.marshal(None, CCacheError())
-        self.create_context(ccache=ccache)
         try:
-            self.create_context(ccache=environ.get('KRB5CCNAME'))
+            self.create_context(ccache=user_ccache)
             response = super(xmlserver, self).__call__(environ, start_response)
         except PublicError, e:
-            status = '200 OK'
+            status = HTTP_STATUS_SUCCESS
             response = status
-            headers = [('Content-Type', 'text/plain')]
+            headers = [('Content-Type', 'text/plain; charset=utf-8')]
             start_response(status, headers)
             return self.marshal(None, e)
         finally:
@@ -619,6 +689,40 @@ class KerberosSession(object):
                                                 max_age=krb_expiration,
                                                 duration_type=self.api.env.session_duration_type)
 
+
+    def finalize_kerberos_acquisition(self, who, ccache_name, environ, start_response, headers=None):
+        if headers is None:
+            headers = []
+
+        # Retrieve the session data (or newly create)
+        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
+        session_id = session_data['session_id']
+
+        self.debug('finalize_kerberos_acquisition: %s ccache_name="%s" session_id="%s"',
+                   who, ccache_name, session_id)
+
+        # Copy the ccache file contents into the session data
+        session_data['ccache_data'] = load_ccache_data(ccache_name)
+
+        # Set when the session will expire
+        cc = KRB5_CCache(ccache_name)
+        endtime = cc.endtime(self.api.env.host, self.api.env.realm)
+        self.update_session_expiration(session_data, endtime)
+
+        # Store the session data now that it's been updated with the ccache
+        session_mgr.store_session_data(session_data)
+
+        # The request is finished with the ccache, destroy it.
+        release_ipa_ccache(ccache_name)
+
+        # Return success and set session cookie
+        session_cookie = session_mgr.generate_cookie('/ipa', session_id)
+        headers.append(('Set-Cookie', session_cookie))
+
+        start_response(HTTP_STATUS_SUCCESS, headers)
+        return ['']
+
+
 class jsonserver_session(jsonserver, KerberosSession):
     """
     JSON RPC server protected with session auth.
@@ -668,13 +772,14 @@ class jsonserver_session(jsonserver, KerberosSession):
             self.debug('no ccache, need login')
             return self.need_login(start_response)
 
-        krbccache_pathname = store_krbccache_file(ccache_data)
+        ipa_ccache_name = bind_ipa_ccache(ccache_data)
 
         # Redirect to login if Kerberos credentials are expired
-        cc = KRB5_CCache(krbccache_pathname)
+        cc = KRB5_CCache(ipa_ccache_name)
         if not cc.valid(self.api.env.host, self.api.env.realm):
             self.debug('ccache expired, deleting session, need login')
-            delete_krbccache_file(krbccache_pathname)
+            # The request is finished with the ccache, destroy it.
+            release_ipa_ccache(ipa_ccache_name)
             return self.need_login(start_response)
 
         # Update the session expiration based on the Kerberos expiration
@@ -684,7 +789,7 @@ class jsonserver_session(jsonserver, KerberosSession):
         # Store the session data in the per-thread context
         setattr(context, 'session_data', session_data)
 
-        self.create_context(ccache=krbccache_pathname)
+        self.create_context(ccache=ipa_ccache_name)
 
         try:
             response = super(jsonserver_session, self).__call__(environ, start_response)
@@ -701,10 +806,10 @@ class jsonserver_session(jsonserver, KerberosSession):
             # data to invalidate the session credentials.
 
             if session_data.has_key('ccache_data'):
-                session_data['ccache_data'] = read_krbccache_file(krbccache_pathname)
+                session_data['ccache_data'] = load_ccache_data(ipa_ccache_name)
 
-            # Delete the temporary ccache file we used
-            delete_krbccache_file(krbccache_pathname)
+            # The request is finished with the ccache, destroy it.
+            release_ipa_ccache(ipa_ccache_name)
             # Store the session data.
             session_mgr.store_session_data(session_data)
             destroy_context()
@@ -724,10 +829,10 @@ class jsonserver_kerb(jsonserver):
 
         self.debug('WSGI jsonserver_kerb.__call__:')
 
-        ccache=environ.get('KRB5CCNAME')
-        if ccache is None:
+        user_ccache=environ.get('KRB5CCNAME')
+        if user_ccache is None:
             return self.marshal(None, CCacheError())
-        self.create_context(ccache=ccache)
+        self.create_context(ccache=user_ccache)
 
         try:
             response = super(jsonserver_kerb, self).__call__(environ, start_response)
@@ -737,59 +842,96 @@ class jsonserver_kerb(jsonserver):
         return response
 
 
-class krblogin(Backend, KerberosSession):
-    key = '/login'
+class login_kerberos(Backend, KerberosSession):
+    key = '/session/login_kerberos'
 
     def __init__(self):
-        super(krblogin, self).__init__()
+        super(login_kerberos, self).__init__()
 
     def _on_finalize(self):
-        super(krblogin, self)._on_finalize()
+        super(login_kerberos, self)._on_finalize()
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
         self.kerb_session_on_finalize()
 
     def __call__(self, environ, start_response):
-        headers = []
-
-        self.debug('WSGI krblogin.__call__:')
+        self.debug('WSGI login_kerberos.__call__:')
 
         # Get the ccache created by mod_auth_kerb
-        ccache=environ.get('KRB5CCNAME')
-        if ccache is None:
-            status = '500 Internal Error'
-            response = 'KRB5CCNAME not defined'
-            start_response(status, headers)
-            return [response]
+        user_ccache_name=environ.get('KRB5CCNAME')
+        if user_ccache_name is None:
+            return internal_error(environ, start_response, 'KRB5CCNAME not defined')
 
-        ccache_scheme, ccache_location = krb5_parse_ccache(ccache)
-        assert ccache_scheme == 'FILE'
+        return self.finalize_kerberos_acquisition('login_kerberos', user_ccache_name, environ, start_response)
 
-        # Retrieve the session data (or newly create)
-        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
-        session_id = session_data['session_id']
+class login_password(Backend, KerberosSession):
 
-        # Copy the ccache file contents into the session data
-        session_data['ccache_data'] = read_krbccache_file(ccache_location)
+    content_type = 'text/plain'
+    key = '/session/login_password'
 
-        # Set when the session will expire
-        cc = KRB5_CCache(ccache)
-        endtime = cc.endtime(self.api.env.host, self.api.env.realm)
-        self.update_session_expiration(session_data, endtime)
+    def __init__(self):
+        super(login_password, self).__init__()
 
-        # Store the session data now that it's been updated with the ccache
-        session_mgr.store_session_data(session_data)
+    def _on_finalize(self):
+        super(login_password, self)._on_finalize()
+        self.api.Backend.wsgi_dispatch.mount(self, self.key)
+        self.kerb_session_on_finalize()
 
-        self.debug('krblogin: ccache="%s" session_id="%s" ccache="%s"',
-                   ccache, session_id, ccache)
+    def __call__(self, environ, start_response):
+        self.debug('WSGI login_password.__call__:')
 
-        # Return success and set session cookie
-        status = '200 Success'
-        response = ''
+        # Get the user and password parameters from the request
+        content_type = environ.get('CONTENT_TYPE', '').lower()
+        if content_type != 'application/x-www-form-urlencoded':
+            return bad_request(environ, start_response, "Content-Type must be application/x-www-form-urlencoded")
 
-        session_cookie = session_mgr.generate_cookie('/ipa', session_id)
-        headers.append(('Set-Cookie', session_cookie))
+        method = environ.get('REQUEST_METHOD', '').upper()
+        if method == 'POST':
+            query_string = read_input(environ)
+        else:
+            return bad_request(environ, start_response, "HTTP request method must be POST")
 
-        start_response(status, headers)
-        return [response]
+        try:
+            query_dict = urlparse.parse_qs(query_string)
+        except Exception, e:
+            return bad_request(environ, start_response, "cannot parse query data")
 
+        user = query_dict.get('user', None)
+        if user is not None:
+            if len(user) == 1:
+                user = user[0]
+            else:
+                return bad_request(environ, start_response, "more than one user parameter")
+        else:
+            return bad_request(environ, start_response, "no user specified")
+
+        password = query_dict.get('password', None)
+        if password is not None:
+            if len(password) == 1:
+                password = password[0]
+            else:
+                return bad_request(environ, start_response, "more than one password parameter")
+        else:
+            return bad_request(environ, start_response, "no password specified")
+
+        # Get the ccache we'll use and attempt to get credentials in it with user,password
+        ipa_ccache_name = get_ipa_ccache_name()
+        try:
+            self.kinit(user, self.api.env.realm, password, ipa_ccache_name)
+        except InvalidSessionPassword, e:
+            return unauthorized(environ, start_response, str(e))
+
+        return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
+
+    def kinit(self, user, realm, password, ccache_name):
+        # Format the user as a kerberos principal
+        principal = krb5_format_principal_name(user, realm)
+
+        (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kinit', principal],
+                                                   env={'KRB5CCNAME':ccache_name},
+                                                   stdin=password, raiseonerr=False)
+        self.debug('kinit: principal=%s returncode=%s, stderr="%s"',
+                   principal, returncode, stderr)
+
+        if returncode != 0:
+            raise InvalidSessionPassword(principal=principal, message=unicode(stderr))
 
