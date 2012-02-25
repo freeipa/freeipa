@@ -42,7 +42,7 @@ ccache_name_re = re.compile(r'^((\w+):)?(.+)')
 
 #-------------------------------------------------------------------------------
 
-def krb5_parse_ccache(name):
+def krb5_parse_ccache(ccache_name):
     '''
     Given a Kerberos ccache name parse it into it's scheme and
     location components. Currently valid values for the scheme
@@ -55,12 +55,12 @@ def krb5_parse_ccache(name):
     does not exist it defaults to FILE.
 
     :parameters:
-      name
+      ccache_name
         The name of the Kerberos ccache.
     :returns:
       A two-tuple of (scheme, ccache)
     '''
-    match = ccache_name_re.search(name)
+    match = ccache_name_re.search(ccache_name)
     if match:
         scheme = match.group(2)
         location = match.group(3)
@@ -71,7 +71,10 @@ def krb5_parse_ccache(name):
 
         return scheme, location
     else:
-        raise ValueError('Invalid ccache name = "%s"' % name)
+        raise ValueError('Invalid ccache name = "%s"' % ccache_name)
+
+def krb5_unparse_ccache(scheme, name):
+    return '%s:%s' % (scheme.upper(), name)
 
 def krb5_format_principal_name(user, realm):
     '''
@@ -388,5 +391,5 @@ class KRB5_CCache(object):
         except KeyError:
             pass
 
-        self.debug('"%s" ccache endtime=%s (%s)', self.ccache_str(), result, krb5_format_time(result))
+        self.debug('KRB5_CCache %s endtime=%s (%s)', self.ccache_str(), result, krb5_format_time(result))
         return result

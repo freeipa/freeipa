@@ -100,14 +100,14 @@ class test_session(object):
             )
 
         inst = self.klass()
-        inst.mount(app1, 'foo')
-        inst.mount(app2, 'bar')
+        inst.mount(app1, '/foo/stuff')
+        inst.mount(app2, '/bar')
 
         d = dict(SCRIPT_NAME='/ipa', PATH_INFO='/foo/stuff')
-        assert inst.route(d, None) == ('from 1', ['/ipa/foo', '/stuff'])
+        assert inst.route(d, None) == ('from 1', ['/ipa', '/foo/stuff'])
 
         d = dict(SCRIPT_NAME='/ipa', PATH_INFO='/bar')
-        assert inst.route(d, None) == ('from 2', ['/ipa/bar', ''])
+        assert inst.route(d, None) == ('from 2', ['/ipa', '/bar'])
 
     def test_mount(self):
         def app1(environ, start_response):

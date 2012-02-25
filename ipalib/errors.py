@@ -612,6 +612,13 @@ class SessionError(AuthenticationError):
     format= _('Session error')
 
 
+class InvalidSessionPassword(SessionError):
+    """
+    **1201** Raised when we cannot obtain a TGT for a principal.
+    """
+    errno = 1201
+    format= _('Principal %(principal)s cannot be authenticated: %(message)s')
+
 ##############################################################################
 # 2000 - 2999: Authorization errors
 class AuthorizationError(PublicError):
