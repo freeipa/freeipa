@@ -239,6 +239,11 @@ class config_mod(LDAPUpdate):
                 for obj_attr in checked_attrs:
                     if obj_attr in OPERATIONAL_ATTRIBUTES:
                         continue
+                    if obj_attr in self.api.Object[obj].params and \
+                      'virtual_attribute' in \
+                      self.api.Object[obj].params[obj_attr].flags:
+                        # skip virtual attributes
+                        continue
                     if obj_attr not in new_allowed_attrs:
                         raise errors.ValidationError(name=attr,
                                 error=_('%(obj)s default attribute %(attr)s would not be allowed!') \
