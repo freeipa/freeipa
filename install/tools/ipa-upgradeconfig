@@ -275,6 +275,10 @@ def main():
     memcache.realm = krbctx.default_realm
     try:
         if not memcache.is_configured():
+            # 389-ds needs to be running to create the memcache instance
+            # because we record the new service in cn=masters.
+            ds = dsinstance.DsInstance()
+            ds.start()
             memcache.create_instance('MEMCACHE', fqdn, None, ipautil.realm_to_suffix(krbctx.default_realm))
     except (ldap.ALREADY_EXISTS, ipalib.errors.DuplicateEntry):
         pass
