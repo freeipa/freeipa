@@ -5,7 +5,6 @@ app_DATA =                              \
 	error.html			\
 	index.html			\
 	invalid.html			\
-	ipa_migration.css			\
 	migration.py			\
 	$(NULL)
 

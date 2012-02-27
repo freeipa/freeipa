@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>IPA: Identity Policy Audit</title>
+
+    <link rel="stylesheet" type="text/css" href="ipa.css" />
+
+    <script type="text/javascript" src="json2.js"></script>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="login.js"></script>
+</head>
+
+<body class="info-page login-page">
+
+    <div class="container_1">
+
+        <div class="header-logo">
+            <img src="images/ipa-logo.png" /><img src="images/ipa-banner.png" />
+        </div>
+
+        <div id="formwindow">
+            <h2>Login</h2>
+            <div id="error-box" style="display:none">
+                <p><strong>Please re-enter your username or password</strong></p>
+                <p>The password or username you entered is incorrect. Please try again (make sure your caps lock is off).</p>
+                <p>If the problem persists, contact your administrator.</p>
+            </div>
+
+            <form id="login">
+                <ul>
+                    <li>
+                        <label for="username">Username:</label>
+                        <input type="text" name="username" value="" accesskey="u" />
+                    </li>
+                    <li>
+                        <label for="password">Password:</label>
+                        <input type="password" name="password" value="" accesskey="p" />
+                    </li>
+                <ul>
+
+                <div class="formbutton">
+                    <input name="submit" value="Login" type="submit" />
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

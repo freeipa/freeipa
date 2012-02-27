@@ -38,6 +38,8 @@ app_DATA =				\
 	jquery.js			\
 	jquery.ordered-map.js 		\
 	json2.js			\
+	login.html			\
+	login.js			\
 	logout.html			\
 	navigation.js			\
 	net.js				\

@@ -1525,3 +1525,100 @@ span.sshkey-status, a.sshkey-set {
 .automember-header .default_group label {
     margin-right: 20px;
 }
+
+/* --- Stand alone forms --- */
+
+#formwindow {
+    -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    background: none repeat scroll 0 0 #FFFFFF;
+    border-color: #FFFFFF #F0F0F0 #F0F0F0;
+    border-right: 1px solid #F0F0F0;
+    border-style: solid;
+    border-width: 1px;
+    color: #3F3F3F;
+    margin: 40px auto 100px;
+    width: 450px;
+}
+
+#error-box, .error-box {
+    -moz-border-radius: 0.3em 0.3em 0.3em 0.3em;
+    -webkit-border-radius: 0.3em 0.3em 0.3em 0.3em;
+    background-color: #FFEBE8;
+    border: 1px solid #DD3C10;
+    margin: 0 2em 1em 2em;
+    padding: 1em 2em;
+}
+
+#formwindow h2 {
+    background-color: #F0F0F0;
+    font-size: 1.6em;
+    padding: 18px 15px 14px 22px;
+    text-transform: uppercase;
+    margin: 0 0 1em 0;
+    font-weight: bold;
+}
+
+.formbutton input {
+    float: right;
+    margin: 1em 1em 1em 0;
+    -moz-border-radius: 0.3em 0.3em 0.3em 0.3em;
+    -webkit-border-radius: 0.3em 0.3em 0.3em 0.3em;
+    border-radius: 0.3em 0.3em 0.3em 0.3em;
+    background: -moz-linear-gradient(center top, #959595, #5e5e5e) repeat scroll 0 0  transparent;
+    background: -webkit-radial-gradient(center top, #959595, #5e5e5e) repeat scroll 0 0  transparent;
+    border: 1px solid #777777;
+    color: #ffffff;
+    font-weight: normal;
+    padding: 0.5em 0.8em;
+}
+
+.formcontent {
+    padding: 0em 1em 1em;
+}
+
+/* --- Login form --- */
+#login li {
+    padding-bottom: 15px;
+    text-align: right;
+    width: 370px;
+    list-style-type: none;
+}
+
+#login li input {
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+    margin-left: 15px;
+    padding: 2px 10px;
+    width: 248px;
+}
+
+#login li label, #modal li label {
+    font-weight: bold;
+    font-size: 1.2em;
+    list-style-type: none;
+}
+
+form#login {
+    display: inline-block;
+    padding-bottom: 15px;
+    width: 418px;
+}
+
+/* --- Login page --- */
+
+.login-page #formwindow {
+    margin-top: 100px;
+}
+
+/* --- Unauthorized dialog --- */
+
+.auth-dialog  {
+    padding: 0 2em;
+}
+
+.auth-dialog h3 {
+    margin: 0.5em;
+}

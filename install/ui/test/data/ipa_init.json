@@ -46,6 +46,7 @@
                         "add_and_close": "Add and Close",
                         "add_and_edit": "Add and Edit",
                         "add_many": "Add Many",
+                        "back": "Back",
                         "cancel": "Cancel",
                         "close": "Close",
                         "edit": "Edit",
@@ -110,9 +111,14 @@
                     },
                     "false": "False",
                     "login": {
+                        "form_auth": "form-based authentication",
                         "header": "Logged In As",
+                        "login": "Login",
                         "logout": "Logout",
-                        "logout_error": "Logout error"
+                        "logout_error": "Logout error",
+                        "password": "Password",
+                        "use": "Or you can use ",
+                        "username": "Username"
                     },
                     "objects": {
                         "aci": {

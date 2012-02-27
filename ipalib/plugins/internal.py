@@ -181,6 +181,7 @@ class i18n_messages(Command):
             "add_and_close": _("Add and Close"),
             "add_and_edit": _("Add and Edit"),
             "add_many": _("Add Many"),
+            "back": _("Back"),
             "cancel": _("Cancel"),
             "close": _("Close"),
             "edit": _("Edit"),
@@ -245,9 +246,14 @@ class i18n_messages(Command):
         },
         "false": _("False"),
         "login": {
+            "form_auth": _("form-based authentication"),
             "header": _("Logged In As"),
+            "login": _("Login"),
             "logout": _("Logout"),
             "logout_error": _("Logout error"),
+            "password": _("Password"),
+            "use": _("Or you can use "),
+            "username": _("Username"),
         },
         "objects": {
             "aci": {
