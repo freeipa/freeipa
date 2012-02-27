@@ -85,7 +85,6 @@ IPA.input_widget = function(spec) {
 
         $('<span/>', {
             name: 'error_link',
-            html: IPA.messages.widget.validation.error,
             'class': 'ui-state-error ui-corner-all',
             style: 'display:none'
         }).appendTo(container);

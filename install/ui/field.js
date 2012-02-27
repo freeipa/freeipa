@@ -105,7 +105,9 @@ IPA.field = function(spec) {
         var values = that.save();
         if (IPA.is_empty(values) && that.is_required() && that.enabled) {
             that.valid = false;
-            that.show_error(IPA.messages.widget.validation.required);
+            var message = IPA.get_message('widget.validation.required',
+                "Required field");
+            that.show_error(message);
             return false;
         }
         return true;
@@ -396,7 +398,7 @@ IPA.validator = function(spec) {
 
     var that = {};
 
-    that.message = spec.message || IPA.messages.widget.validation.error;
+    that.message = spec.message || IPA.get_message('widget.validation.error');
 
     that.false_result = function(message) {
         return {

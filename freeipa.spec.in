@@ -551,10 +551,10 @@ fi
 %{_usr}/share/ipa/migration/error.html
 %{_usr}/share/ipa/migration/index.html
 %{_usr}/share/ipa/migration/invalid.html
-%{_usr}/share/ipa/migration/ipa_migration.css
 %{_usr}/share/ipa/migration/migration.py*
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
+%{_usr}/share/ipa/ui/login.html
 %{_usr}/share/ipa/ui/logout.html
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
@@ -675,6 +675,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Feb 29 2012 Petr Vobornik <pvoborni@redhat.com> - 2.99.0-21
+- Add Web UI form based login page
+- Removed ipa_migration.css
+
 * Wed Feb 29 2012 Petr Vobornik <pvoborni@redhat.com> - 2.99.0-20
 - Add Web UI logout page
 

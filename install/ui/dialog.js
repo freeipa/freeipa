@@ -31,6 +31,7 @@ IPA.dialog_button = function(spec) {
     that.name = spec.name;
     that.label = spec.label || spec.name;
     that.click = spec.click || click;
+    that.visible = spec.visible !== undefined ? spec.visible : true;
 
     function click() {
     }
@@ -152,13 +153,6 @@ IPA.dialog = function(spec) {
         that.create();
         that.reset();
 
-        // create a map of button labels and handlers
-        var dialog_buttons = {};
-        for (var i=0; i<that.buttons.values.length; i++) {
-            var button = that.buttons.values[i];
-            dialog_buttons[button.label] = button.click;
-        }
-
         that.container.dialog({
             title: that.title,
             modal: true,
@@ -166,11 +160,30 @@ IPA.dialog = function(spec) {
             minWidth: that.width,
             height: that.height,
             minHeight: that.height,
-            buttons: dialog_buttons,
             close: function(event, ui) {
                 that.close();
             }
         });
+
+        that.set_buttons();
+    };
+
+    that.option = function(name, value) {
+        that.container.dialog('option', name, value);
+    };
+
+    that.set_buttons = function() {
+
+        // create a map of button labels and handlers
+        var dialog_buttons = {};
+        for (var i=0; i<that.buttons.values.length; i++) {
+            var button = that.buttons.values[i];
+            if (!button.visible) continue;
+            dialog_buttons[button.label] = button.click;
+        }
+
+        //set buttons to dialog
+        that.option('buttons', dialog_buttons);
 
         // find button elements
         var parent = that.container.parent();
@@ -182,8 +195,14 @@ IPA.dialog = function(spec) {
         });
     };
 
-    that.option = function(name, value) {
-        that.container.dialog('option', name, value);
+    that.display_buttons = function(names) {
+
+        for (var i=0; i<that.buttons.values.length; i++) {
+            var button = that.buttons.values[i];
+
+            button.visible = names.indexOf(button.name) > -1;
+        }
+        that.set_buttons();
     };
 
     that.save = function(record) {

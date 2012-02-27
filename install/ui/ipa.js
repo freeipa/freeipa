@@ -357,6 +357,37 @@ IPA.logout = function() {
     $.ajax(request);
 };
 
+IPA.login_password = function(username, password) {
+
+    var success = false;
+
+    function success_handler(data, text_status, xhr) {
+        success = true;
+    }
+
+    var data = {
+        user: username,
+        password: password
+    };
+
+    var request = {
+        url: '/ipa/session/login_password',
+        data: data,
+        contentType: 'application/x-www-form-urlencoded',
+        processData: true,
+        dataType: 'html',
+        async: false,
+        type: 'POST',
+        success: success_handler
+    };
+
+    IPA.display_activity_icon();
+    $.ajax(request);
+    IPA.hide_activity_icon();
+
+    return success;
+};
+
 /**
  * Call an IPA command over JSON-RPC.
  *
@@ -450,6 +481,20 @@ IPA.command = function(spec) {
             dialog.open();
         }
 
+        function auth_dialog_open(xhr, text_status, error_thrown) {
+
+            var ajax = this;
+
+            var dialog = IPA.unauthorized_dialog({
+                xhr: xhr,
+                text_status: text_status,
+                error_thrown: error_thrown,
+                command: that
+            });
+
+            dialog.open();
+        }
+
         /*
          * Special error handler used the first time this command is
          * submitted. It checks to see if the session credentials need
@@ -488,16 +533,8 @@ IPA.command = function(spec) {
             IPA.hide_activity_icon();
 
             if (xhr.status === 401) {
-                error_thrown = {}; // error_thrown is string
-                error_thrown.name = IPA.get_message('ajax.401.title',
-                    'Kerberos ticket no longer valid.');
-                error_thrown.message = IPA.get_message('ajax.401.message',
-                    "Your kerberos ticket is no longer valid. "+
-                    "Please run kinit and then click 'Retry'. "+
-                    "If this is your first time running the IPA Web UI "+
-                    "<a href='/ipa/config/unauthorized.html'>"+
-                    "follow these directions</a> to configure your browser.");
-
+                auth_dialog_open(xhr, text_status, error_thrown);
+                return;
             } else if (!error_thrown) {
                 error_thrown = {
                     name: xhr.responseText || IPA.get_message('errors.unknown_error', 'Unknown Error'),
@@ -1139,40 +1176,39 @@ IPA.error_dialog = function(spec) {
         * ticket, the messages including the button labels have not
         * been loaded yet, so the button labels need default values.
         */
-        var label;
 
-        if(that.visible_buttons.indexOf('retry') > -1) {
-            label = IPA.get_message('buttons.retry', 'Retry');
-            that.create_button({
-                name: 'retry',
-                label: label,
-                click: function() {
-                    that.on_retry();
-                }
-            });
-        }
+        var visible = that.visible_buttons.indexOf('retry') > -1;
+        var label = IPA.get_message('buttons.retry', 'Retry');
+        that.create_button({
+            name: 'retry',
+            label: label,
+            visible: visible,
+            click: function() {
+                that.on_retry();
+            }
+        });
 
-        if(that.visible_buttons.indexOf('ok') > -1) {
-            label = IPA.get_message('buttons.ok', 'OK');
-            that.create_button({
-                name: 'ok',
-                label: label,
-                click: function() {
-                    that.on_ok();
-                }
-            });
-        }
+        visible = that.visible_buttons.indexOf('ok') > -1;
+        label = IPA.get_message('buttons.ok', 'OK');
+        that.create_button({
+            name: 'ok',
+            label: label,
+            visible: visible,
+            click: function() {
+                that.on_ok();
+            }
+        });
 
-        if(that.visible_buttons.indexOf('cancel') > -1) {
-            label = IPA.get_message('buttons.cancel', 'Cancel');
-            that.create_button({
-                name: 'cancel',
-                label: label,
-                click: function() {
-                    that.on_cancel();
-                }
-            });
-        }
+        visible = that.visible_buttons.indexOf('cancel') > -1;
+        label = IPA.get_message('buttons.cancel', 'Cancel');
+        that.create_button({
+            name: 'cancel',
+            label: label,
+            visible: visible,
+            click: function() {
+                that.on_cancel();
+            }
+        });
     };
 
     that.on_retry = function() {
@@ -1260,6 +1296,175 @@ IPA.create_4304_error_handler = function(adder_dialog) {
 
         dialog.open(adder_dialog.container);
     };
+};
+
+IPA.unauthorized_dialog = function(spec) {
+
+    spec = spec || {};
+
+    spec.sections = [
+        {
+            fields: [
+                {
+                    name: 'username',
+                    required: true,
+                    label: IPA.get_message('login.username', "Username")
+                },
+                {
+                    name: 'password',
+                    type: 'password',
+                    required: true,
+                    label: IPA.get_message('login.password', "Password")
+                }
+            ]
+        }
+    ];
+
+    spec.visible_buttons = spec.visible_buttons || ['retry'];
+
+    var that = IPA.error_dialog(spec);
+
+    that.title = spec.title || IPA.get_message('ajax.401.title',
+                    'Kerberos ticket no longer valid.');
+
+    that.message = spec.message || IPA.get_message('ajax.401.message',
+                    "Your kerberos ticket is no longer valid. "+
+                    "Please run kinit and then click 'Retry'. "+
+                    "If this is your first time running the IPA Web UI "+
+                    "<a href='/ipa/config/unauthorized.html'>"+
+                    "follow these directions</a> to configure your browser.");
+
+    that.form_auth_failed = "<p><strong>Please re-enter your username or password</strong></p>" +
+                "<p>The password or username you entered is incorrect. " +
+                "Please try again (make sure your caps lock is off).</p>" +
+                "<p>If the problem persists, contact your administrator.</p>";
+
+    that.create = function() {
+
+        that.krb_message_contatiner = $('<div\>').appendTo(that.container);
+
+        $('<p/>', {
+            html: that.message
+        }).appendTo(that.krb_message_contatiner);
+
+        var text = IPA.get_message('login.use', "Or you can use ");
+        var fb_title = $('<p/>', {
+            text: text
+        }).appendTo(that.krb_message_contatiner);
+
+        text = IPA.get_message('login.form_auth', "form-based authentication");
+        $('<a/>', {
+            text: text,
+            style: 'cursor:pointer;',
+            click: that.show_form
+        }).appendTo(fb_title);
+
+        fb_title.append('.');
+
+        that.create_form();
+    };
+
+    that.create_form = function() {
+
+        that.form = $('<div>', {
+            'class': 'auth-dialog',
+            style: 'display: none;'
+        }).appendTo(that.container);
+
+        var text = IPA.get_message('login.login', "Login");
+        $('<h3/>', {
+            text: text
+        }).appendTo(that.form);
+
+        that.error_box = $('<div/>', {
+            'class': 'error-box',
+            style: 'display:none',
+            html: that.form_auth_failed
+        }).appendTo(that.form);
+
+
+        var widgets = that.widgets.get_widgets();
+        for (var i=0; i<widgets.length; i++) {
+            var widget = widgets[i];
+
+            var div = $('<div/>', {
+                name: widget.name,
+                'class': 'dialog-section'
+            }).appendTo(that.form);
+
+            widget.create(div);
+        }
+    };
+
+    that.create_login_buttons = function() {
+
+        var visible = that.visible_buttons.indexOf('login') > -1;
+        var label = IPA.get_message('login.login', "Login");
+        that.create_button({
+            name: 'login',
+            label: label,
+            visible: visible,
+            click: function() {
+                that.on_login();
+            }
+        });
+
+        visible = that.visible_buttons.indexOf('back') > -1;
+        label = IPA.get_message('buttons.back', "Back");
+        that.create_button({
+            name: 'back',
+            label: label,
+            visible: visible,
+            click: function() {
+                that.on_back();
+            }
+        });
+    };
+
+    that.show_form = function() {
+
+        that.krb_message_contatiner.css('display', 'none');
+        that.form.css('display', 'block');
+
+        that.display_buttons(['login', 'back']);
+    };
+
+    that.on_back = function() {
+
+        that.krb_message_contatiner.css('display', 'block');
+        that.form.css('display', 'none');
+
+        that.display_buttons(['retry']);
+    };
+
+    that.on_login = function() {
+
+        if (!that.validate()) return;
+
+        var record = {};
+        that.save(record);
+
+        IPA.display_activity_icon();
+
+        var success = IPA.login_password(record.username[0], record.password[0]);
+
+        IPA.hide_activity_icon();
+
+        if (success) {
+            that.on_login_success();
+        } else {
+            that.error_box.css('display', 'block');
+        }
+    };
+
+    that.on_login_success = function() {
+        that.error_box.css('display', 'none');
+        that.on_retry();
+    };
+
+    that.create_login_buttons();
+
+    return that;
 };
 
 IPA.limit_text = function(value, max_length) {
