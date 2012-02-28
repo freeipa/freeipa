@@ -31,7 +31,9 @@ from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
 from ipalib.plugins.service import validate_certificate
 from ipalib.plugins.service import set_certificate_attrs
-from ipalib.plugins.dns import dns_container_exists, _record_types, add_records_for_host_validation, add_records_for_host
+from ipalib.plugins.dns import (dns_container_exists, _record_types,
+        add_records_for_host_validation, add_records_for_host,
+        _hostname_validator, get_reverse_zone)
 from ipalib.plugins.dns import get_reverse_zone
 from ipalib import _, ngettext
 from ipalib import x509
@@ -96,14 +98,6 @@ EXAMPLES:
  Add a host that can manage this host's keytab and certificate:
    ipa host-add-managedby --hosts=test2 test
 """)
-
-def validate_host(ugettext, fqdn):
-    """
-    Require at least one dot in the hostname (to support localhost.localdomain)
-    """
-    if fqdn.find('.') == -1:
-        return _('Fully-qualified hostname required')
-    return None
 
 def remove_fwd_ptr(ipaddr, host, domain, recordtype):
     api.log.debug('deleting ipaddr %s' % ipaddr)
@@ -225,10 +219,7 @@ class host(LDAPObject):
     label_singular = _('Host')
 
     takes_params = (
-        Str('fqdn', validate_host,
-            pattern='^[a-zA-Z0-9][a-zA-Z0-9-\.]{0,254}$',
-            pattern_errmsg='may only include letters, numbers, and -',
-            maxlength=255,
+        Str('fqdn', _hostname_validator,
             cli_name='hostname',
             label=_('Host name'),
             primary_key=True,
@@ -481,7 +472,7 @@ class host_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         # If we aren't given a fqdn, find it
-        if validate_host(None, keys[-1]) is not None:
+        if _hostname_validator(None, keys[-1]) is not None:
             hostentry = api.Command['host_show'](keys[-1])['result']
             fqdn = hostentry['fqdn'][0]
         else:
@@ -856,7 +847,7 @@ class host_disable(LDAPQuery):
         ldap = self.obj.backend
 
         # If we aren't given a fqdn, find it
-        if validate_host(None, keys[-1]) is not None:
+        if _hostname_validator(None, keys[-1]) is not None:
             hostentry = api.Command['host_show'](keys[-1])['result']
             fqdn = hostentry['fqdn'][0]
         else:
