@@ -68,6 +68,7 @@ class IPATypeChecker(TypeChecker):
         'ipalib.parameters.File': ['stdin_if_missing'],
         'urlparse.SplitResult': ['netloc'],
         'ipaserver.rpcserver.KerberosSession' : ['api', 'log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
+        'ipaserver.rpcserver.HTTP_Status' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipalib.krb_utils.KRB5_CCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipalib.session.AuthManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipalib.session.SessionAuthManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
