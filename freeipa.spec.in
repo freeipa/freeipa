@@ -114,10 +114,18 @@ Requires: systemd-units >= 36-3
 Requires(pre): systemd-units
 Requires(post): systemd-units
 %endif
-%if 0%{?fedora} >= 15
+%if 0%{?fedora} >= 17
+Requires: selinux-policy >= 3.10.0-82
+%else
+%if 0%{?fedora} == 16
+Requires: selinux-policy >= 3.10.0-78
+%else
+%if 0%{?fedora} == 15
 Requires: selinux-policy >= 3.9.16-18
 %else
 Requires: selinux-policy >= 3.9.7-27
+%endif
+%endif
 %endif
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
