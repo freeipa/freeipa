@@ -699,6 +699,25 @@ class DNSRecord(Str):
 
         return tuple(self._convert_dnsrecord_extra(extra) for extra in self.extra)
 
+    def __get_part_param(self, backend, part, output_kw, default=None):
+        name = self.part_name_format % (self.rrtype.lower(), part.name)
+        label = self.part_label_format % (self.rrtype, unicode(part.label))
+        optional = not part.required
+
+        while True:
+            try:
+                raw = backend.textui.prompt(label,
+                                            optional=optional,
+                                            default=default)
+                if not raw.strip():
+                    raw = default
+
+                output_kw[name] = part(raw)
+                break
+            except (errors.ValidationError, errors.ConversionError), e:
+                backend.textui.print_prompt_attribute_error(
+                        unicode(label), unicode(e.error))
+
     def prompt_parts(self, backend, mod_dnsvalue=None):
         mod_parts = None
         if mod_dnsvalue is not None:
@@ -709,21 +728,33 @@ class DNSRecord(Str):
             return user_options
 
         for part_id, part in enumerate(self.parts):
-            name = self.part_name_format % (self.rrtype.lower(), part.name)
-            label = self.part_label_format % (self.rrtype, unicode(part.label))
-            optional = not part.required
             if mod_parts:
                 default = mod_parts[part_id]
             else:
                 default = None
 
-            raw = backend.textui.prompt(label,
-                                        optional=optional,
-                                        default=default)
-            if not raw.strip():
-                raw = default
+            self.__get_part_param(backend, part, user_options, default)
 
-            user_options[name] = part(raw)
+        return user_options
+
+    def prompt_missing_parts(self, backend, kw, prompt_optional=False):
+        user_options = {}
+        if self.parts is None:
+            return user_options
+
+        for part in self.parts:
+            name = self.part_name_format % (self.rrtype.lower(), part.name)
+            label = self.part_label_format % (self.rrtype, unicode(part.label))
+
+            if name in kw:
+                continue
+
+            optional = not part.required
+            if optional and not prompt_optional:
+                continue
+
+            default = part.get_default(**kw)
+            self.__get_part_param(backend, part, user_options, default)
 
         return user_options
 
@@ -1946,6 +1977,51 @@ class dnsrecord(LDAPObject):
                     record.setdefault('dnsrecords', []).append(dnsentry)
                 del record[attr]
 
+    def get_rrparam_from_part(self, part_name):
+        """
+        Get an instance of DNSRecord parameter that has part_name as its part.
+        If such parameter is not found, None is returned
+
+        :param part_name Part parameter name
+        """
+        try:
+            param = self.params[part_name]
+
+            if not any(flag in param.flags for flag in \
+                    ('dnsrecord_part', 'dnsrecord_extra')):
+                return None
+
+            # All DNS record part or extra parameters contain a name of its
+            # parent RR parameter in its hint attribute
+            rrparam = self.params[param.hint]
+        except (KeyError, AttributeError):
+            return None
+
+        return rrparam
+
+    def iterate_rrparams_by_parts(self, kw, skip_extra=False):
+        """
+        Iterates through all DNSRecord instances that has at least one of its
+        parts or extra options in given dictionary. It returns the DNSRecord
+        instance only for the first occurence of part/extra option.
+
+        :param kw Dictionary with DNS record parts or extra options
+        :param skip_extra Skip DNS record extra options, yield only DNS records
+                          with a real record part
+        """
+        processed = []
+        for opt in kw:
+            rrparam = self.get_rrparam_from_part(opt)
+            if rrparam is None:
+                continue
+
+            if skip_extra and 'dnsrecord_extra' in self.params[opt].flags:
+                continue
+
+            if rrparam.name not in processed:
+                processed.append(rrparam)
+                yield rrparam
+
 api.register(dnsrecord)
 
 
@@ -1970,11 +2046,22 @@ class dnsrecord_add(LDAPCreate):
     def interactive_prompt_callback(self, kw):
         try:
             self.obj.has_cli_options(kw, self.no_option_msg)
+
+            # Some DNS records were entered, do not use full interactive help
+            # We should still ask user for required parts of DNS parts he is
+            # trying to add in the same way we do for standard LDAP parameters
+            #
+            # Do not ask for required parts when any "extra" option is used,
+            # it can be used to fill all required params by itself
+            new_kw = {}
+            for rrparam in self.obj.iterate_rrparams_by_parts(kw, skip_extra=True):
+                user_options = rrparam.prompt_missing_parts(self.Backend, kw,
+                                                            prompt_optional=False)
+                new_kw.update(user_options)
+            kw.update(new_kw)
+            return
         except errors.OptionError:
             pass
-        else:
-            # some record type entered, skip this helper
-            return
 
         # check zone type
         if kw['idnsname'] == _dns_zone_record:
@@ -2026,13 +2113,11 @@ class dnsrecord_add(LDAPCreate):
             except KeyError:
                 continue
 
-            if 'dnsrecord_part' in param.flags:
-                # check if any record part was added
-                try:
-                    rrparam = self.params[param.hint]
-                except (KeyError, AttributeError):
-                    continue
+            rrparam = self.obj.get_rrparam_from_part(option)
+            if rrparam is None:
+                continue
 
+            if 'dnsrecord_part' in param.flags:
                 if rrparam.name in entry_attrs:
                     # this record was already entered
                     continue
@@ -2047,7 +2132,7 @@ class dnsrecord_add(LDAPCreate):
                 if isinstance(param, Flag) and not options[option]:
                     continue
                 # extra option is passed, run per-type pre_callback for given RR type
-                precallback_attrs.append(param.hint)
+                precallback_attrs.append(rrparam.name)
 
         # run precallback also for all new RR type attributes in entry_attrs
         for attr in entry_attrs:

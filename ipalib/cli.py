@@ -529,6 +529,9 @@ class textui(backend.Backend):
             print
             raise PromptFailed(name=label)
 
+    def print_prompt_attribute_error(self, attribute, error):
+        self.print_plain('>>> %s: %s' % (attribute, error))
+
     def prompt(self, label, default=None, get_values=None, optional=False):
         """
         Prompt user for input.
@@ -1160,7 +1163,8 @@ class cli(backend.Executioner):
                     error = None
                     while True:
                         if error is not None:
-                            print '>>> %s: %s' % (unicode(param.label), unicode(error))
+                            self.Backend.textui.print_prompt_attribute_error(unicode(param.label),
+                                                                             unicode(error))
                         raw = self.Backend.textui.prompt(param.label, default, optional=param.alwaysask or not param.required)
                         try:
                             value = param(raw, **kw)
