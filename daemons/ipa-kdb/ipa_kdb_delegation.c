@@ -140,7 +140,8 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
         switch (ret) {
         case 0:
             for (dres = deref_results; dres; dres = dres->next) {
-                if (strcasecmp(dres->derefAttr, "ipaAllowToImpersonate") == 0) {
+                if (client_found == false &&
+                    strcasecmp(dres->derefAttr, "ipaAllowToImpersonate") == 0) {
                     /* NOTE: client_missing is used to signal that the
                      * attribute was completely missing. This signals that
                      * ANY client is allowed to be impersonated.
@@ -148,7 +149,8 @@ static krb5_error_code ipadb_match_acl(krb5_context kcontext,
                     client_missing = false;
                     client_found = ipadb_match_member(client_princ, dres);
                 }
-                if (strcasecmp(dres->derefAttr, "ipaAllowedTarget") == 0) {
+                if (target_found == false &&
+                    strcasecmp(dres->derefAttr, "ipaAllowedTarget") == 0) {
                     target_found = ipadb_match_member(target_princ, dres);
                 }
             }
