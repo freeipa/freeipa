@@ -1376,6 +1376,8 @@ def __dns_record_options_iter():
             yield extra
 
 _dns_record_options = tuple(__dns_record_options_iter())
+_dns_supported_record_types = tuple(record.rrtype for record in _dns_records \
+                                    if record.supported)
 
 # dictionary of valid reverse zone -> number of address components
 _valid_reverse_zones = {
@@ -1938,9 +1940,12 @@ class dnsrecord_add(LDAPCreate):
 
                 if not isinstance(param, DNSRecord):
                     raise ValueError()
-            except KeyError, ValueError:
-                all_types = u', '.join(_record_types)
-                self.Backend.textui.print_plain(_(u'Invalid type. Allowed values are: %s') % all_types)
+
+                if not param.supported:
+                    raise ValueError()
+            except (KeyError, ValueError):
+                all_types = u', '.join(_dns_supported_record_types)
+                self.Backend.textui.print_plain(_(u'Invalid or unsupported type. Allowed values are: %s') % all_types)
                 continue
             ok = True
 
@@ -1964,7 +1969,7 @@ class dnsrecord_add(LDAPCreate):
                 # check if any record part was added
                 try:
                     rrparam = self.params[param.hint]
-                except KeyError, AttributeError:
+                except (KeyError, AttributeError):
                     continue
 
                 if rrparam.name in entry_attrs:
