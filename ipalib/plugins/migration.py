@@ -119,9 +119,13 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         try:
             (g_dn, g_attrs) = ldap.get_entry(ctx['def_group_dn'], ['gidnumber'])
         except errors.NotFound:
-            error_msg = 'Default group for new users not found.'
+            error_msg = _('Default group for new users not found.')
             raise errors.NotFound(reason=error_msg)
-        ctx['def_group_gid'] = g_attrs['gidnumber'][0]
+        if not ldap.has_upg():
+            if 'gidnumber' in g_attrs:
+                ctx['def_group_gid'] = g_attrs['gidnumber'][0]
+            else:
+                raise errors.NotFound(reason=_('User Private Groups are disabled and the default users group is not POSIX'))
 
     # fill in required attributes by IPA
     entry_attrs['ipauniqueid'] = 'autogenerate'
@@ -130,7 +134,8 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         home_dir = '%s/%s' % (homes_root, pkey)
         home_dir = home_dir.replace('//', '/').rstrip('/')
         entry_attrs['homedirectory'] = home_dir
-    entry_attrs.setdefault('gidnumber', ctx['def_group_gid'])
+    if 'def_group_gid' in ctx:
+        entry_attrs.setdefault('gidnumber', ctx['def_group_gid'])
 
     # do not migrate all attributes
     for attr in entry_attrs.keys():
