@@ -176,6 +176,12 @@ def validate_ipaddr(ugettext, ipaddr):
         return unicode(e)
     return None
 
+def normalize_hostname(hostname):
+    """Use common fqdn form without the trailing dot"""
+    if hostname.endswith(u'.'):
+        hostname = hostname[:-1]
+    hostname = hostname.lower()
+    return hostname
 
 class host(LDAPObject):
     """
@@ -223,7 +229,7 @@ class host(LDAPObject):
             cli_name='hostname',
             label=_('Host name'),
             primary_key=True,
-            normalizer=lambda value: value.lower(),
+            normalizer=normalize_hostname,
         ),
         Str('description?',
             cli_name='desc',
@@ -294,8 +300,6 @@ class host(LDAPObject):
 
     def get_dn(self, *keys, **options):
         hostname = keys[-1]
-        if hostname.endswith('.'):
-            hostname = hostname[:-1]
         dn = super(host, self).get_dn(hostname, **options)
         try:
             self.backend.get_entry(dn, [''])
@@ -504,16 +508,11 @@ class host_del(LDAPDelete):
             # Remove DNS entries
             parts = fqdn.split('.')
             domain = unicode('.'.join(parts[1:]))
-            result = api.Command['dnszone_find']()['result']
-            match = False
-            for zone in result:
-                if domain == zone['idnsname'][0]:
-                    match = True
-                    break
-            if not match:
-                raise errors.NotFound(
-                    reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
-                )
+            try:
+                result = api.Command['dnszone_show'](domain)['result']
+                domain = result['idnsname'][0]
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
             # Get all forward resources for this host
             records = api.Command['dnsrecord_find'](domain, idnsname=parts[0])['result']
             for record in records:
@@ -664,16 +663,11 @@ class host_mod(LDAPUpdate):
         if options.get('updatedns', False) and dns_container_exists(ldap):
             parts = keys[-1].split('.')
             domain = unicode('.'.join(parts[1:]))
-            result = api.Command['dnszone_find']()['result']
-            match = False
-            for zone in result:
-                if domain == zone['idnsname'][0]:
-                    match = True
-                    break
-            if not match:
-                raise errors.NotFound(
-                    reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
-                )
+            try:
+                result = api.Command['dnszone_show'](domain)['result']
+                domain = result['idnsname'][0]
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
             update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
 
         if 'ipasshpubkey' in entry_attrs:
