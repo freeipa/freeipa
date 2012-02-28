@@ -992,8 +992,12 @@ class ReplicationManager(object):
         dn2 = DN(u'cn=ipa-ldap-delegation-targets', api.env.container_s4u2proxy, self.suffix)
         member_principal2 = "ldap/%(fqdn)s@%(realm)s" % dict(fqdn=replica, realm=realm)
 
+        dn3 = DN(u'cn=ipa-cifs-delegation-targets', api.env.container_s4u2proxy, self.suffix)
+        member_principal3 = "cifs/%(fqdn)s@%(realm)s" % dict(fqdn=replica, realm=realm)
+
         for (dn, member_principal) in ((str(dn1), member_principal1),
-                                       (str(dn2), member_principal2)):
+                                       (str(dn2), member_principal2),
+                                       (str(dn3), member_principal3)):
             try:
                 mod = [(ldap.MOD_DELETE, 'memberPrincipal', member_principal)]
                 self.conn.modify_s(dn, mod)

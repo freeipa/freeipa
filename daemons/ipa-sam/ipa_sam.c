@@ -123,6 +123,7 @@ do { \
 #define LDAP_PAGE_SIZE 1024
 #define LDAP_OBJ_SAMBASAMACCOUNT "ipaNTUserAttrs"
 #define LDAP_OBJ_TRUSTED_DOMAIN "ipaNTTrustedDomain"
+#define LDAP_ATTRIBUTE_TRUST_SID "ipaNTTrustedDomainSID"
 #define LDAP_ATTRIBUTE_SID "ipaNTSecurityIdentifier"
 #define LDAP_OBJ_GROUPMAP "ipaNTGroupAttrs"
 
@@ -1674,7 +1675,7 @@ static bool get_trusted_domain_by_sid_int(struct ldapsam_privates *ldap_state,
 
 	filter = talloc_asprintf(mem_ctx, "(&(objectClass=%s)(%s=%s))",
 				 LDAP_OBJ_TRUSTED_DOMAIN,
-				 LDAP_ATTRIBUTE_SECURITY_IDENTIFIER, sid);
+				 LDAP_ATTRIBUTE_TRUST_SID, sid);
 	if (filter == NULL) {
 		return false;
 	}
@@ -1734,10 +1735,10 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 	/* All attributes are MAY */
 
 	dummy = get_single_attribute(NULL, priv2ld(ldap_state), entry,
-				     LDAP_ATTRIBUTE_SECURITY_IDENTIFIER);
+				     LDAP_ATTRIBUTE_TRUST_SID);
 	if (dummy == NULL) {
 		DEBUG(9, ("Attribute %s not present.\n",
-			  LDAP_ATTRIBUTE_SECURITY_IDENTIFIER));
+			  LDAP_ATTRIBUTE_TRUST_SID));
 		ZERO_STRUCT(td->security_identifier);
 	} else {
 		res = string_to_sid(&td->security_identifier, dummy);
@@ -2021,7 +2022,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 
 	if (!is_null_sid(&td->security_identifier)) {
 		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
-				 LDAP_ATTRIBUTE_SECURITY_IDENTIFIER,
+				 LDAP_ATTRIBUTE_TRUST_SID,
 				 sid_string_talloc(tmp_ctx, &td->security_identifier));
 	}
 

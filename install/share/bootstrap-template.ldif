@@ -175,6 +175,7 @@ objectClass: top
 cn: ipa-http-delegation
 memberPrincipal: HTTP/$HOST@$REALM
 ipaAllowedTarget: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
+ipaAllowedTarget: cn=ipa-cifs-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
 
 dn: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
 changetype: add
@@ -182,6 +183,13 @@ objectClass: groupOfPrincipals
 objectClass: top
 cn: ipa-ldap-delegation-targets
 memberPrincipal: ldap/$HOST@$REALM
+
+dn: cn=ipa-cifs-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
+changetype: add
+objectClass: groupOfPrincipals
+objectClass: top
+cn: ipa-cifs-delegation-targets
+memberPrincipal: cifs/$HOST@$REALM
 
 dn: uid=admin,cn=users,cn=accounts,$SUFFIX
 changetype: add
