@@ -255,7 +255,10 @@ class ADTRUSTInstance(service.Service):
         conf_fd.close()
 
     def __add_cldap_module(self):
-        self._ldap_mod("ipa-cldap-conf.ldif", self.sub_dict)
+        try:
+            self._ldap_mod("ipa-cldap-conf.ldif", self.sub_dict)
+        except:
+            pass
 
     def __write_smb_registry(self):
         template = os.path.join(ipautil.SHARE_DIR, "smb.conf.template")
@@ -279,21 +282,23 @@ class ADTRUSTInstance(service.Service):
 
     def __setup_principal(self):
         cifs_principal = "cifs/" + self.fqdn + "@" + self.realm_name
-        installutils.kadmin_addprinc(cifs_principal)
 
-        self.move_service(cifs_principal)
+        api.Command.service_add(unicode(cifs_principal))
 
-        try:
-            ipautil.run(["ipa-rmkeytab", "--principal", cifs_principal,
-                                         "-k", "/etc/krb5.keytab"])
-        except ipautil.CalledProcessError, e:
-            if e.returncode != 5:
-                root_logger.critical("Failed to remove old key for %s" % cifs_principal)
+        samba_keytab = "/etc/samba/samba.keytab"
+        if os.path.exists(samba_keytab):
+            try:
+                ipautil.run(["ipa-rmkeytab", "--principal", cifs_principal,
+                                         "-k", samba_keytab])
+            except ipautil.CalledProcessError, e:
+                root_logger.critical("Result of removing old key: %d" % e.returncode)
+                if e.returncode != 5:
+                    root_logger.critical("Failed to remove old key for %s" % cifs_principal)
 
         try:
             ipautil.run(["ipa-getkeytab", "--server", self.fqdn,
                                           "--principal", cifs_principal,
-                                          "-k", "/etc/krb5.keytab"])
+                                          "-k", samba_keytab])
         except ipautil.CalledProcessError, e:
             root_logger.critical("Failed to add key for %s" % cifs_principal)
 
@@ -368,7 +373,7 @@ class ADTRUSTInstance(service.Service):
         try:
             self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, \
                              self.suffix)
-        except ldap.ALREADY_EXISTS:
+        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
             root_logger.critical("ADTRUST Service startup entry already exists.")
             pass
 

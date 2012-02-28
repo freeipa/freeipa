@@ -1,7 +1,8 @@
 [global]
 workgroup = $NETBIOS_NAME
 realm = $REALM
-kerberos method = system keytab
+kerberos method = dedicated keytab
+dedicated keytab file = FILE:/etc/samba/samba.keytab
 create krb5 conf = no
 security = user
 domain master = yes
@@ -10,6 +11,7 @@ log level = 1
 max log size = 100000
 log file = /var/log/samba/log.%m
 passdb backend = ipasam:ldapi://$LDAPI_SOCKET
+disable spoolss = yes
 ldapsam:trusted=yes
 ldap ssl = off
 ldap admin dn = $SMB_DN
