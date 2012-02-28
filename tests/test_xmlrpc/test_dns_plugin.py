@@ -93,6 +93,19 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Try to create zone with invalid name',
+            command=(
+                'dnszone_add', [u'invalid zone'], {
+                    'idnssoamname': dnszone1_mname,
+                    'idnssoarname': dnszone1_rname,
+                    'ip_address' : u'1.2.3.4',
+                }
+            ),
+            expected=errors.ValidationError(name='idnsname', error=''),
+        ),
+
+
+        dict(
             desc='Create zone %r' % dnszone1,
             command=(
                 'dnszone_add', [dnszone1], {
@@ -440,6 +453,13 @@ class test_dns(Declarative):
             desc='Try to delete root zone record \'@\' in %r' % (dnszone1),
             command=('dnsrecord_del', [dnszone1, u'@'], {'del_all' : True}),
             expected=errors.ValidationError(name='del_all', error=''),
+        ),
+
+
+        dict(
+            desc='Try to create record with invalid name in zone %r' % dnszone1,
+            command=('dnsrecord_add', [dnszone1, u'invalid record'], {'arecord': u'127.0.0.1'}),
+            expected=errors.ValidationError(name='idnsname', error=''),
         ),
 
 

@@ -213,6 +213,36 @@ def normalize_zonemgr(zonemgr):
 
     return zonemgr
 
+def validate_dns_label(dns_label, allow_underscore=False):
+    label_chars = r'a-z0-9'
+    underscore_err_msg = ''
+    if allow_underscore:
+        label_chars += "_"
+        underscore_err_msg = u' _,'
+    label_regex = r'^[%(chars)s]([%(chars)s-]?[%(chars)s])*$' % dict(chars=label_chars)
+    regex = re.compile(label_regex, re.IGNORECASE)
+
+    if len(dns_label) > 63:
+        raise ValueError(_('DNS label cannot be longer that 63 characters'))
+
+    if not regex.match(dns_label):
+        raise ValueError(_('only letters, numbers,%(underscore)s and - are allowed. ' \
+                           '- must not be the DNS label character') \
+                           % dict(underscore=underscore_err_msg))
+
+def validate_domain_name(domain_name):
+    if domain_name.endswith('.'):
+        domain_name = domain_name[:-1]
+
+    domain_name = domain_name.split(".")
+
+    # apply DNS name validator to every name part
+    map(lambda label:validate_dns_label(label), domain_name)
+
+    if not domain_name[-1].isalpha():
+        # see RFC 1123
+        raise ValueError(_('top level domain label must be alphabetic'))
+
 def validate_zonemgr(zonemgr):
     """ See RFC 1033, 1035 """
     regex_domain = re.compile(r'^[a-z0-9]([a-z0-9-]?[a-z0-9])*$', re.IGNORECASE)
@@ -252,8 +282,7 @@ def validate_zonemgr(zonemgr):
             if not regex_local_part.match(local_part):
                 raise ValueError(local_part_errmsg)
 
-    if not all(regex_domain.match(part) for part in domain.split(".")):
-        raise ValueError(_('domain name may only include letters, numbers, and -'))
+    validate_domain_name(domain)
 
 def validate_hostname(hostname, check_fqdn=True):
     """ See RFC 952, 1123
@@ -261,20 +290,18 @@ def validate_hostname(hostname, check_fqdn=True):
     :param hostname Checked value
     :param check_fqdn Check if hostname is fully qualified
     """
-    regex_name = re.compile(r'^[a-z0-9]([a-z0-9-]?[a-z0-9])*$', re.IGNORECASE)
-
     if len(hostname) > 255:
         raise ValueError(_('cannot be longer that 255 characters'))
 
     if hostname.endswith('.'):
         hostname = hostname[:-1]
 
-    if check_fqdn and '.' not in hostname:
-        raise ValueError(_('not fully qualified'))
-
-    if not all(regex_name.match(part) for part in hostname.split(".")):
-        raise ValueError(_('only letters, numbers, and - are allowed. ' \
-                           '- must not be the last name character'))
+    if '.' not in hostname:
+        if check_fqdn:
+            raise ValueError(_('not fully qualified'))
+        validate_dns_label(hostname)
+    else:
+        validate_domain_name(hostname)
 
 def validate_sshpubkey(ugettext, pubkey):
     try:

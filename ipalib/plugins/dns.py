@@ -28,7 +28,8 @@ from ipalib import Command
 from ipalib.parameters import Flag, Bool, Int, Decimal, Str, StrEnum, Any
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
-from ipalib.util import validate_zonemgr, normalize_zonemgr, validate_hostname
+from ipalib.util import (validate_zonemgr, normalize_zonemgr,
+        validate_hostname, validate_dns_label, validate_domain_name)
 from ipapython import dnsclient
 from ipapython.ipautil import valid_ip, CheckedIPAddress
 from ldap import explode_dn
@@ -299,7 +300,7 @@ def _normalize_bind_aci(bind_acis):
     acis += u';'
     return acis
 
-def _domain_name_validator(ugettext, value):
+def _bind_hostname_validator(ugettext, value):
     try:
         # Allow domain name which is not fully qualified. These are supported
         # in bind and then translated as <non-fqdn-name>.<domain>.
@@ -309,6 +310,22 @@ def _domain_name_validator(ugettext, value):
             % unicode(e)
 
     return None
+
+def _dns_record_name_validator(ugettext, value):
+    if value == _dns_zone_record:
+        return
+
+    try:
+        map(lambda label:validate_dns_label(label, allow_underscore=True), \
+            value.split(u'.'))
+    except ValueError, e:
+        return unicode(e)
+
+def _domain_name_validator(ugettext, value):
+    try:
+        validate_domain_name(value)
+    except ValueError, e:
+        return unicode(e)
 
 def _hostname_validator(ugettext, value):
     try:
@@ -777,7 +794,7 @@ class AFSDBRecord(DNSRecord):
             maxvalue=65535,
         ),
         Str('hostname',
-            _domain_name_validator,
+            _bind_hostname_validator,
             label=_('Hostname'),
         ),
     )
@@ -816,7 +833,7 @@ class CNAMERecord(DNSRecord):
     rfc = 1035
     parts = (
         Str('hostname',
-            _domain_name_validator,
+            _bind_hostname_validator,
             label=_('Hostname'),
             doc=_('A hostname which this alias hostname points to'),
         ),
@@ -837,7 +854,7 @@ class DNAMERecord(DNSRecord):
     rfc = 2672
     parts = (
         Str('target',
-            _domain_name_validator,
+            _bind_hostname_validator,
             label=_('Target'),
         ),
     )
@@ -916,7 +933,7 @@ class KXRecord(DNSRecord):
             maxvalue=65535,
         ),
         Str('exchanger',
-            _domain_name_validator,
+            _bind_hostname_validator,
             label=_('Exchanger'),
             doc=_('A host willing to act as a key exchanger'),
         ),
@@ -1057,7 +1074,7 @@ class MXRecord(DNSRecord):
             maxvalue=65535,
         ),
         Str('exchanger',
-            _domain_name_validator,
+            _bind_hostname_validator,
             label=_('Exchanger'),
             doc=_('A host willing to act as a mail exchanger'),
         ),
@@ -1069,7 +1086,7 @@ class NSRecord(DNSRecord):
 
     parts = (
         Str('hostname',
-            _domain_name_validator,
+            _bind_hostname_validator,
             label=_('Hostname'),
         ),
     )
@@ -1083,7 +1100,7 @@ class NSECRecord(DNSRecord):
 
     parts = (
         Str('next',
-            _domain_name_validator,
+            _bind_hostname_validator,
             label=_('Next Domain Name'),
         ),
         StrEnum('types+',
@@ -1181,7 +1198,7 @@ def _srv_target_validator(ugettext, value):
     if value == u'.':
         # service not available
         return
-    return _domain_name_validator(ugettext, value)
+    return _bind_hostname_validator(ugettext, value)
 
 class SRVRecord(DNSRecord):
     rrtype = 'SRV'
@@ -1426,6 +1443,7 @@ class dnszone(LDAPObject):
 
     takes_params = (
         Str('idnsname',
+            _domain_name_validator,
             cli_name='name',
             label=_('Zone name'),
             doc=_('Zone name (FQDN)'),
@@ -1742,6 +1760,7 @@ class dnsrecord(LDAPObject):
 
     takes_params = (
         Str('idnsname',
+            _dns_record_name_validator,
             cli_name='name',
             label=_('Record name'),
             doc=_('Record name'),
