@@ -401,13 +401,9 @@ def get_reverse_zone(ipaddr, prefixlen=None):
     return revzone, revname
 
 def add_records_for_host_validation(option_name, host, domain, ip_addresses, check_forward=True, check_reverse=True):
-    result = api.Command['dnszone_find']()['result']
-    match = False
-    for zone in result:
-        if domain == zone['idnsname'][0]:
-            match = True
-            break
-    if not match:
+    try:
+        api.Command['dnszone_show'](domain)['result']
+    except errors.NotFound:
         raise errors.NotFound(
             reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
         )
@@ -1578,6 +1574,25 @@ class dnszone(LDAPObject):
         ),
     )
 
+    def get_dn(self, *keys, **options):
+        zone = keys[-1]
+        dn = super(dnszone, self).get_dn(zone, **options)
+        try:
+            self.backend.get_entry(dn, [''])
+        except errors.NotFound:
+            if zone.endswith(u'.'):
+                zone = zone[:-1]
+            else:
+                zone = zone + u'.'
+            test_dn = super(dnszone, self).get_dn(zone, **options)
+
+            try:
+                (dn, entry_attrs) = self.backend.get_entry(test_dn, [''])
+            except errors.NotFound:
+                pass
+
+        return dn
+
 api.register(dnszone)
 
 
@@ -1601,7 +1616,7 @@ class dnszone_add(LDAPCreate):
             self.obj.params['name_from_ip'](unicode(options['name_from_ip']))
         return super(dnszone_add, self).args_options_2_params(*args, **options)
 
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if not dns_container_exists(self.api.Backend.ldap2):
             raise errors.NotFound(reason=_('DNS is not configured'))
 
