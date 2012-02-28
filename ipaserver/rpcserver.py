@@ -96,47 +96,57 @@ _unauthorized_template = """<html>
 </body>
 </html>"""
 
-def not_found(environ, start_response):
-    """
-    Return a 404 Not Found error.
-    """
-    status = '404 Not Found'
-    response_headers = [('Content-Type', 'text/html; charset=utf-8')]
-    start_response(status, response_headers)
-    output = _not_found_template % dict(
-        url=escape(environ['SCRIPT_NAME'] + environ['PATH_INFO'])
-    )
-    return [output]
+class HTTP_Status(object):
+    def not_found(self, environ, start_response, url, message):
+        """
+        Return a 404 Not Found error.
+        """
+        status = '404 Not Found'
+        response_headers = [('Content-Type', 'text/html; charset=utf-8')]
 
-def bad_request(environ, start_response, message):
-    """
-    Return a 400 Bad Request error.
-    """
-    status = '400 Bad Request'
-    response_headers = [('Content-Type', 'text/html; charset=utf-8')]
-    start_response(status, response_headers)
-    output = _bad_request_template % dict(message=escape(message))
-    return [output]
+        self.info('%s: URL="%s", %s', status, url, message)
+        start_response(status, response_headers)
+        output = _not_found_template % dict(url=escape(url))
+        return [output]
 
-def internal_error(environ, start_response, message):
-    """
-    Return a 500 Internal Server Error.
-    """
-    status = HTTP_STATUS_SERVER_ERROR
-    response_headers = [('Content-Type', 'text/html; charset=utf-8')]
-    start_response(status, response_headers)
-    output = _internal_error_template % dict(message=escape(message))
-    return [output]
+    def bad_request(self, environ, start_response, message):
+        """
+        Return a 400 Bad Request error.
+        """
+        status = '400 Bad Request'
+        response_headers = [('Content-Type', 'text/html; charset=utf-8')]
 
-def unauthorized(environ, start_response, message):
-    """
-    Return a 401 Unauthorized error.
-    """
-    status = '401 Unauthorized'
-    response_headers = [('Content-Type', 'text/html; charset=utf-8')]
-    start_response(status, response_headers)
-    output = _unauthorized_template % dict(message=escape(message))
-    return [output]
+        self.info('%s: %s', status, message)
+
+        start_response(status, response_headers)
+        output = _bad_request_template % dict(message=escape(message))
+        return [output]
+
+    def internal_error(self, environ, start_response, message):
+        """
+        Return a 500 Internal Server Error.
+        """
+        status = HTTP_STATUS_SERVER_ERROR
+        response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+
+        self.error('%s: %s', status, message)
+
+        start_response(status, response_headers)
+        output = _internal_error_template % dict(message=escape(message))
+        return [output]
+
+    def unauthorized(self, environ, start_response, message):
+        """
+        Return a 401 Unauthorized error.
+        """
+        status = '401 Unauthorized'
+        response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+
+        self.info('%s: %s', status, message)
+
+        start_response(status, response_headers)
+        output = _unauthorized_template % dict(message=escape(message))
+        return [output]
 
 def read_input(environ):
     """
@@ -189,7 +199,7 @@ def extract_query(environ):
     return query
 
 
-class wsgi_dispatch(Executioner):
+class wsgi_dispatch(Executioner, HTTP_Status):
     """
     WSGI routing middleware and entry point into IPA server.
 
@@ -228,7 +238,9 @@ class wsgi_dispatch(Executioner):
         if key in self.__apps:
             app = self.__apps[key]
             return app(environ, start_response)
-        return not_found(environ, start_response)
+        url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
+        return self.not_found(environ, start_response, url,
+                              'URL fragment "%s" does not have a handler' % (key))
 
     def mount(self, app, key):
         """
@@ -744,7 +756,7 @@ class jsonserver_session(jsonserver, KerberosSession):
         headers = []
         response = ''
 
-        self.debug('jsonserver_session: %s', status)
+        self.debug('jsonserver_session: %s need login', status)
 
         start_response(status, headers)
         return [response]
@@ -842,7 +854,7 @@ class jsonserver_kerb(jsonserver):
         return response
 
 
-class login_kerberos(Backend, KerberosSession):
+class login_kerberos(Backend, KerberosSession, HTTP_Status):
     key = '/session/login_kerberos'
 
     def __init__(self):
@@ -859,11 +871,12 @@ class login_kerberos(Backend, KerberosSession):
         # Get the ccache created by mod_auth_kerb
         user_ccache_name=environ.get('KRB5CCNAME')
         if user_ccache_name is None:
-            return internal_error(environ, start_response, 'KRB5CCNAME not defined')
+            return self.internal_error(environ, start_response,
+                                       'login_kerberos: KRB5CCNAME not defined in HTTP request environment')
 
         return self.finalize_kerberos_acquisition('login_kerberos', user_ccache_name, environ, start_response)
 
-class login_password(Backend, KerberosSession):
+class login_password(Backend, KerberosSession, HTTP_Status):
 
     content_type = 'text/plain'
     key = '/session/login_password'
@@ -882,43 +895,43 @@ class login_password(Backend, KerberosSession):
         # Get the user and password parameters from the request
         content_type = environ.get('CONTENT_TYPE', '').lower()
         if content_type != 'application/x-www-form-urlencoded':
-            return bad_request(environ, start_response, "Content-Type must be application/x-www-form-urlencoded")
+            return self.bad_request(environ, start_response, "Content-Type must be application/x-www-form-urlencoded")
 
         method = environ.get('REQUEST_METHOD', '').upper()
         if method == 'POST':
             query_string = read_input(environ)
         else:
-            return bad_request(environ, start_response, "HTTP request method must be POST")
+            return self.bad_request(environ, start_response, "HTTP request method must be POST")
 
         try:
             query_dict = urlparse.parse_qs(query_string)
         except Exception, e:
-            return bad_request(environ, start_response, "cannot parse query data")
+            return self.bad_request(environ, start_response, "cannot parse query data")
 
         user = query_dict.get('user', None)
         if user is not None:
             if len(user) == 1:
                 user = user[0]
             else:
-                return bad_request(environ, start_response, "more than one user parameter")
+                return self.bad_request(environ, start_response, "more than one user parameter")
         else:
-            return bad_request(environ, start_response, "no user specified")
+            return self.bad_request(environ, start_response, "no user specified")
 
         password = query_dict.get('password', None)
         if password is not None:
             if len(password) == 1:
                 password = password[0]
             else:
-                return bad_request(environ, start_response, "more than one password parameter")
+                return self.bad_request(environ, start_response, "more than one password parameter")
         else:
-            return bad_request(environ, start_response, "no password specified")
+            return self.bad_request(environ, start_response, "no password specified")
 
         # Get the ccache we'll use and attempt to get credentials in it with user,password
         ipa_ccache_name = get_ipa_ccache_name()
         try:
             self.kinit(user, self.api.env.realm, password, ipa_ccache_name)
         except InvalidSessionPassword, e:
-            return unauthorized(environ, start_response, str(e))
+            return self.unauthorized(environ, start_response, str(e))
 
         return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
 
