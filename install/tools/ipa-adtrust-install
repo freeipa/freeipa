@@ -131,6 +131,7 @@ def main():
                 break
 
     # Check we have a public IP that is associated with the hostname
+    ip = None
     try:
         if options.ip_address:
             ip = ipautil.CheckedIPAddress(options.ip_address, match_local=True)

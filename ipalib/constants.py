@@ -101,7 +101,10 @@ DEFAULT_CONFIG = (
     ('container_automember', 'cn=automember,cn=etc'),
     ('container_selinux', 'cn=usermap,cn=selinux'),
     ('container_s4u2proxy', 'cn=s4u2proxy,cn=etc'),
-
+    ('container_cifsdomains', 'cn=ad,cn=etc'),
+    ('container_trusts', 'cn=trusts'),
+    ('container_adtrusts', 'cn=ad,cn=trusts'),
+ 
     # Ports, hosts, and URIs:
     # FIXME: let's renamed xmlrpc_uri to rpc_xml_uri
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),

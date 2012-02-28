@@ -4,7 +4,7 @@ add: memberPrincipal
 memberPrincipal: HTTP/$FQDN@$REALM
 -
 add: ipaAllowedTarget
-ipaAllowedTarget: cn=ipa-cifs-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
+ipaAllowedTarget: 'cn=ipa-cifs-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX'
 
 dn: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
 changetype: modify

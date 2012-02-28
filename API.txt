@@ -3085,6 +3085,63 @@ option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
+command: trust_add_ad
+args: 1,7,3
+arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, required=True)
+option: Str('realm_admin?', cli_name='admin')
+option: Password('realm_passwd?', cli_name='password', confirm=False)
+option: Str('realm_server?', cli_name='server')
+option: Password('trust_secret?', cli_name='trust_secret', confirm=False)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('version?', exclude='webui')
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, None)
+command: trust_del
+args: 1,1,3
+arg: Str('cn', attribute=True, cli_name='realm', multivalue=True, primary_key=True, query=True, required=True)
+option: Flag('continue', autofill=True, cli_name='continue', default=False)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('result', <type 'dict'>, None)
+output: Output('value', <type 'unicode'>, None)
+command: trust_find
+args: 1,7,4
+arg: Str('criteria?', noextrawhitespace=False)
+option: Str('cn', attribute=True, autofill=False, cli_name='realm', multivalue=False, primary_key=True, query=True, required=False)
+option: Int('timelimit?', autofill=False, minvalue=0)
+option: Int('sizelimit?', autofill=False, minvalue=0)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('version?', exclude='webui')
+option: Flag('pkey_only?', autofill=True, default=False)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
+output: Output('count', <type 'int'>, None)
+output: Output('truncated', <type 'bool'>, None)
+command: trust_mod
+args: 1,7,3
+arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('version?', exclude='webui')
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, None)
+command: trust_show
+args: 1,4,3
+arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, query=True, required=True)
+option: Flag('rights', autofill=True, default=False)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('version?', exclude='webui')
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, None)
 command: user_add
 args: 1,34,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, required=True)

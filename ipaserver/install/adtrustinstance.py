@@ -114,7 +114,7 @@ class ADTRUSTInstance(service.Service):
         print "The user for Samba is %s" % self.smb_dn
         try:
             self.admin_conn.getEntry(self.smb_dn, ldap.SCOPE_BASE)
-            print "Samba user entry exists, resetting password"
+            root_logger.info("Samba user entry exists, resetting password")
 
             self.admin_conn.modify_s(self.smb_dn, \
                           [(ldap.MOD_REPLACE, "userPassword", self.smb_dn_pwd)])
@@ -215,7 +215,7 @@ class ADTRUSTInstance(service.Service):
 
         try:
             self.admin_conn.getEntry(self.smb_dom_dn, ldap.SCOPE_BASE)
-            print "Samba domain object already exists"
+            root_logger.info("Samba domain object already exists")
             return
         except errors.NotFound:
             pass
@@ -283,7 +283,12 @@ class ADTRUSTInstance(service.Service):
     def __setup_principal(self):
         cifs_principal = "cifs/" + self.fqdn + "@" + self.realm_name
 
-        api.Command.service_add(unicode(cifs_principal))
+        try:
+            api.Command.service_add(unicode(cifs_principal))
+        except errors.DuplicateEntry, e:
+            # CIFS principal already exists, it is not the first time adtrustinstance is managed
+            # That's fine, we we'll re-extract the key again.
+            pass
 
         samba_keytab = "/etc/samba/samba.keytab"
         if os.path.exists(samba_keytab):
@@ -291,7 +296,6 @@ class ADTRUSTInstance(service.Service):
                 ipautil.run(["ipa-rmkeytab", "--principal", cifs_principal,
                                          "-k", samba_keytab])
             except ipautil.CalledProcessError, e:
-                root_logger.critical("Result of removing old key: %d" % e.returncode)
                 if e.returncode != 5:
                     root_logger.critical("Failed to remove old key for %s" % cifs_principal)
 
@@ -374,7 +378,7 @@ class ADTRUSTInstance(service.Service):
             self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, \
                              self.suffix)
         except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
-            root_logger.critical("ADTRUST Service startup entry already exists.")
+            root_logger.info("ADTRUST Service startup entry already exists.")
             pass
 
     def __setup_sub_dict(self):

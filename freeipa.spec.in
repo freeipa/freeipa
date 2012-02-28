@@ -189,6 +189,19 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). This package provides SELinux rules for the
 daemons included in freeipa-server
+
+%package server-trust-ad
+Summary: Virtual package to install packages required for Active Directory trusts
+Group: System Environment/Base
+Requires: %{name}-server = %version-%release
+Requires: python-crypto
+Requires: samba4-python
+Requires: samba4
+
+%description server-trust-ad
+Cross-realm trusts with Active Directory in IPA require working Samba 4 installation.
+This package is provided for convenience to install all required dependencies at once.
+
 %endif
 
 
@@ -278,7 +291,6 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). If you are using IPA you need to install this
 package.
-
 
 %prep
 %setup -n freeipa-%{version} -q
@@ -633,6 +645,9 @@ fi
 %doc COPYING README Contributors.txt
 %{_usr}/share/selinux/targeted/ipa_httpd.pp
 %{_usr}/share/selinux/targeted/ipa_dogtag.pp
+
+%files server-trust-ad
+%{_usr}/share/ipa/smb.conf.empty
 %endif
 
 %files client
@@ -684,6 +699,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue May 29 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-30
+- Add freeipa-server-trust-ad virtual package to capture all required dependencies
+  for Active Directory trust management
+
 * Fri May 11 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-29
 - Replace used DNS client library (acutil) with python-dns
 
