@@ -1916,7 +1916,7 @@ IPA.attribute_table_widget = function(spec) {
             on_error: on_error
         });
 
-        command.set_option(that.attribute_name, values.join(','));
+        command.set_option(that.attribute_name, values);
 
         var additional_options = that.get_additional_options();
         for (var i=0; i<additional_options.length; i++) {

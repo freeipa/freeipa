@@ -1613,7 +1613,7 @@ IPA.dns.record_type_table_widget = function(spec) {
         });
 
         var record_name = that.dnstype.toLowerCase()+'record';
-        command.set_option(record_name, values.join(','));
+        command.set_option(record_name, values);
         command.set_option('structured', true);
 
         command.execute();

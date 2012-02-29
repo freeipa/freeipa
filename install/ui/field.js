@@ -52,7 +52,6 @@ IPA.field = function(spec) {
     that.enabled = spec.enabled === undefined ? true : spec.enabled;
 
     that.undo = spec.undo === undefined ? true : spec.undo;
-    that.join = spec.join;
 
     that.metadata = spec.metadata;
     that.validators = spec.validators || [];
