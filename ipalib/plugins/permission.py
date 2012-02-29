@@ -23,6 +23,7 @@ from ipalib import api, _, ngettext
 from ipalib import Flag, Str, StrEnum
 from ipalib.request import context
 from ipalib import errors
+from ipalib.dn import DN
 
 __doc__ = _("""
 Permissions
@@ -88,6 +89,43 @@ output_params = (
         label=_('ACI'),
     ),
 )
+
+dn_ipaconfig = str(DN('cn=ipaconfig,cn=etc,%s' % api.env.basedn))
+
+def check_attrs(attrs, type):
+    # Trying to delete attributes - no need for validation
+    if attrs is None:
+        return True
+    allowed_objcls=[]
+    disallowed_objcls=[]
+    obj=api.Object[type]
+
+    if obj.object_class_config:
+        (dn,objcls)=api.Backend.ldap2.get_entry(
+            dn_ipaconfig,[obj.object_class_config]
+            )
+        allowed_objcls=objcls[obj.object_class_config]
+    else:
+        allowed_objcls=obj.object_class
+    if obj.possible_objectclasses:
+        allowed_objcls+=obj.possible_objectclasses
+    if obj.disallow_object_classes:
+        disallowed_objcls=obj.disallow_object_classes
+
+    allowed_attrs=[]
+    disallowed_attrs=[]
+    if allowed_objcls:
+        allowed_attrs=api.Backend.ldap2.get_allowed_attributes(allowed_objcls)
+    if disallowed_objcls:
+        disallowed_attrs=api.Backend.ldap2.get_allowed_attributes(disallowed_objcls)
+    failed_attrs=[]
+    for attr in attrs:
+        if (attr not in allowed_attrs) or (attr in disallowed_attrs):
+            failed_attrs.append(attr)
+    if failed_attrs:
+        raise errors.ObjectclassViolation(info='attribute(s) \"%s\" not allowed' % ','.join(failed_attrs))
+    return True
+
 
 class permission(LDAPObject):
     """
@@ -192,6 +230,8 @@ class permission_add(LDAPCreate):
         opts['permission'] = keys[-1]
         opts['aciprefix'] = ACI_PREFIX
         try:
+            if 'type' in entry_attrs and 'attrs' in entry_attrs:
+                check_attrs(entry_attrs['attrs'],entry_attrs['type'])
             self.api.Command.aci_add(keys[-1], **opts)
         except Exception, e:
             raise e
@@ -272,6 +312,21 @@ class permission_mod(LDAPUpdate):
             )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
+        # check the correctness of attributes only when the type is specified
+        type=None
+        attrs_to_check=[]
+        current_values=self.api.Command.permission_show(attrs['cn'][0])['result']
+        if 'type' in entry_attrs:
+            type = entry_attrs['type']
+        elif 'type' in current_values:
+            type = current_values['type']
+        if 'attrs' in entry_attrs:
+            attrs_to_check = entry_attrs['attrs']
+        elif 'attrs' in current_values:
+            attrs_to_check = current_values['attrs']
+        if attrs_to_check and type is not None:
+            check_attrs(attrs_to_check,type)
 
         # when renaming permission, check if the target permission does not
         # exists already. Then, make changes to underlying ACI
