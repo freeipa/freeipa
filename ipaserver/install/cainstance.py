@@ -274,12 +274,10 @@ class CADSInstance(service.Service):
                              GROUP=dsinstance.DS_GROUP)
 
     def __create_ds_user(self):
-        user_exists = True
         try:
             pwd.getpwnam(PKI_DS_USER)
             root_logger.debug("ds user %s exists" % PKI_DS_USER)
         except KeyError:
-            user_exists = False
             root_logger.debug("adding ds user %s" % PKI_DS_USER)
             args = ["/usr/sbin/useradd", "-g", dsinstance.DS_GROUP,
                                          "-c", "PKI DS System User",
@@ -291,8 +289,6 @@ class CADSInstance(service.Service):
                 root_logger.debug("done adding user")
             except ipautil.CalledProcessError, e:
                 root_logger.critical("failed to add user %s" % e)
-
-        self.backup_state("user_exists", user_exists)
 
     def __create_instance(self):
         self.backup_state("running", dsinstance.is_ds_running())
@@ -406,11 +402,9 @@ class CADSInstance(service.Service):
 
         user_exists = self.restore_state("user_exists")
 
-        if user_exists == False:
-            try:
-                ipautil.run(["/usr/sbin/userdel", PKI_DS_USER])
-            except ipautil.CalledProcessError, e:
-                root_logger.critical("failed to delete user %s" % e)
+        # At one time we removed this user on uninstall. That can potentially
+        # orphan files, or worse, if another useradd runs in the intermim,
+        # cause files to have a new owner.
 
 class CAInstance(service.Service):
     """
@@ -566,12 +560,10 @@ class CAInstance(service.Service):
         # so actual enablement is delayed.
 
     def __create_ca_user(self):
-        user_exists = True
         try:
             pwd.getpwnam(PKI_USER)
             root_logger.debug("ca user %s exists" % PKI_USER)
         except KeyError:
-            user_exists = False
             root_logger.debug("adding ca user %s" % PKI_USER)
             args = ["/usr/sbin/useradd", "-c", "CA System User",
                                          "-d", "/var/lib",
@@ -582,8 +574,6 @@ class CAInstance(service.Service):
                 root_logger.debug("done adding user")
             except ipautil.CalledProcessError, e:
                 root_logger.critical("failed to add user %s" % e)
-
-        self.backup_state("user_exists", user_exists)
 
     def __configure_instance(self):
         preop_pin = get_preop_pin(self.server_root, PKI_INSTANCE_NAME)
@@ -1064,12 +1054,10 @@ class CAInstance(service.Service):
         except ipautil.CalledProcessError, e:
             root_logger.critical("failed to uninstall CA instance %s" % e)
 
+        # At one time we removed this user on uninstall. That can potentially
+        # orphan files, or worse, if another useradd runs in the intermim,
+        # cause files to have a new owner.
         user_exists = self.restore_state("user_exists")
-        if user_exists == False:
-            try:
-                ipautil.run(["/usr/sbin/userdel", PKI_USER])
-            except ipautil.CalledProcessError, e:
-                root_logger.critical("failed to delete user %s" % e)
 
     def publish_ca_cert(self, location):
         args = ["-L", "-n", self.canickname, "-a"]
