@@ -26,6 +26,7 @@ Also see the `ipalib.rpc` module.
 from cgi import parse_qs
 from xml.sax.saxutils import escape
 from xmlrpclib import Fault
+from ipalib import plugable
 from ipalib.backend import Executioner
 from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword
 from ipalib.request import context, Connection, destroy_context
@@ -96,7 +97,7 @@ _unauthorized_template = """<html>
 </body>
 </html>"""
 
-class HTTP_Status(object):
+class HTTP_Status(plugable.Plugin):
     def not_found(self, environ, start_response, url, message):
         """
         Return a 404 Not Found error.
