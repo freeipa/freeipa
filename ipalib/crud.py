@@ -144,7 +144,7 @@ class Create(Method):
                 continue
             if 'ask_create' in option.flags:
                 yield option.clone(
-                    attribute=attribute, query=True, required=False,
+                    attribute=attribute, query=False, required=False,
                     autofill=False, alwaysask=True
                 )
             else:
@@ -161,6 +161,8 @@ class PKQuery(Method):
 
     def get_args(self):
         if self.obj.primary_key:
+            # Don't enforce rules on the primary key so we can reference
+            # any stored entry, legal or not
             yield self.obj.primary_key.clone(attribute=True, query=True)
 
 
@@ -189,7 +191,7 @@ class Update(PKQuery):
                 continue
             if 'ask_update' in option.flags:
                 yield option.clone(
-                    attribute=attribute, query=True, required=False,
+                    attribute=attribute, query=False, required=False,
                     autofill=False, alwaysask=True
                 )
             elif 'req_update' in option.flags:

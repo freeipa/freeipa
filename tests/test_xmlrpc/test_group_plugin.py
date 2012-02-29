@@ -602,6 +602,28 @@ class test_group(Declarative):
             expected=errors.ValidationError(name='cn', error='may only include letters, numbers, _, -, . and $'),
         ),
 
+        # The assumption on these next 4 tests is that if we don't get a
+        # validation error then the request was processed normally.
+        dict(
+            desc='Test that validation is disabled on mods',
+            command=('group_mod', [invalidgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test that validation is disabled on deletes',
+            command=('group_del', [invalidgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test that validation is disabled on show',
+            command=('group_show', [invalidgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
 
         ##### managed entry tests
         dict(

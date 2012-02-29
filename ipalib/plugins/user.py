@@ -168,7 +168,7 @@ class user(LDAPObject):
         'memberof': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
         'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
     }
-    rdnattr = 'uid'
+    rdn_is_primary_key = True
     bindable = True
     password_attributes = [('userpassword', 'has_password'),
                            ('krbprincipalkey', 'has_keytab')]

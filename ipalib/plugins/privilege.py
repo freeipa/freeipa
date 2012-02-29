@@ -60,7 +60,7 @@ class privilege(LDAPObject):
     reverse_members = {
         'member': ['permission'],
     }
-    rdnattr='cn'
+    rdn_is_primary_key = True
 
     label = _('Privileges')
     label_singular = _('Privilege')

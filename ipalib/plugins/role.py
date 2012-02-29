@@ -76,7 +76,7 @@ class role(LDAPObject):
     reverse_members = {
         'member': ['privilege'],
     }
-    rdnattr='cn'
+    rdn_is_primary_key = True
 
     label = _('Roles')
     label_singular = _('Role')

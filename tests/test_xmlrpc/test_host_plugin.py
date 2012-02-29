@@ -47,6 +47,7 @@ dn3 = DN(('fqdn',fqdn3),('cn','computers'),('cn','accounts'),
 fqdn4 = u'testhost2.lab.%s' % api.env.domain
 dn4 = DN(('fqdn',fqdn4),('cn','computers'),('cn','accounts'),
          api.env.basedn)
+invalidfqdn1 = u'foo_bar.lab.%s' % api.env.domain
 
 # We can use the same cert we generated for the service tests
 fd = open('tests/test_xmlrpc/service.crt', 'r')
@@ -668,6 +669,47 @@ class test_host(Declarative):
             desc='Delete the current host (master?) %s should be caught' % api.env.host,
             command=('host_del', [api.env.host], {}),
             expected=errors.ValidationError(name='fqdn', error='An IPA master host cannot be deleted'),
+        ),
+
+        dict(
+            desc='Test that validation is enabled on adds',
+            command=('host_add', [invalidfqdn1], {}),
+            expected=errors.ValidationError(name='fqdn', error='may only include letters, numbers, and -'),
+        ),
+
+
+        # The assumption on these next 4 tests is that if we don't get a
+        # validation error then the request was processed normally.
+        dict(
+            desc='Test that validation is disabled on mods',
+            command=('host_mod', [invalidfqdn1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test that validation is disabled on deletes',
+            command=('host_del', [invalidfqdn1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test that validation is disabled on show',
+            command=('host_show', [invalidfqdn1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test that validation is disabled on find',
+            command=('host_find', [invalidfqdn1], {}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 hosts matched',
+                result=[],
+            ),
         ),
 
     ]

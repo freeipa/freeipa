@@ -95,7 +95,7 @@ class group(LDAPObject):
         'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule',
         'sudorule'],
     }
-    rdnattr = 'cn'
+    rdn_is_primary_key = True
 
     label = _('User Groups')
     label_singular = _('User Group')
