@@ -46,28 +46,67 @@ class StartResponse(object):
 
 
 def test_not_found():
-    f = rpcserver.not_found
+    f = rpcserver.HTTP_Status()
     t = rpcserver._not_found_template
     s = StartResponse()
 
     # Test with an innocent URL:
-    d = dict(SCRIPT_NAME='/ipa', PATH_INFO='/foo/stuff')
+    url = '/ipa/foo/stuff'
     assert_equal(
-        f(d, s),
+        f.not_found(None, s, url, None),
         [t % dict(url='/ipa/foo/stuff')]
     )
     assert s.status == '404 Not Found'
-    assert s.headers == [('Content-Type', 'text/html')]
+    assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
 
     # Test when URL contains any of '<>&'
     s.reset()
-    d = dict(SCRIPT_NAME='&nbsp;', PATH_INFO='<script>do_bad_stuff();</script>')
+    url ='&nbsp;' + '<script>do_bad_stuff();</script>'
     assert_equal(
-        f(d, s),
+        f.not_found(None, s, url, None),
         [t % dict(url='&amp;nbsp;&lt;script&gt;do_bad_stuff();&lt;/script&gt;')]
     )
     assert s.status == '404 Not Found'
-    assert s.headers == [('Content-Type', 'text/html')]
+    assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
+
+
+def test_bad_request():
+    f = rpcserver.HTTP_Status()
+    t = rpcserver._bad_request_template
+    s = StartResponse()
+
+    assert_equal(
+        f.bad_request(None, s, 'illegal request'),
+        [t % dict(message='illegal request')]
+    )
+    assert s.status == '400 Bad Request'
+    assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
+
+
+def test_internal_error():
+    f = rpcserver.HTTP_Status()
+    t = rpcserver._internal_error_template
+    s = StartResponse()
+
+    assert_equal(
+        f.internal_error(None, s, 'request failed'),
+        [t % dict(message='request failed')]
+    )
+    assert s.status == '500 Internal Server Error'
+    assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
+
+
+def test_internal_error():
+    f = rpcserver.HTTP_Status()
+    t = rpcserver._unauthorized_template
+    s = StartResponse()
+
+    assert_equal(
+        f.unauthorized(None, s, 'unauthorized'),
+        [t % dict(message='unauthorized')]
+    )
+    assert s.status == '401 Unauthorized'
+    assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
 
 
 
