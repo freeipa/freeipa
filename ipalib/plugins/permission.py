@@ -144,7 +144,7 @@ class permission(LDAPObject):
     attribute_members = {
         'member': ['privilege'],
     }
-    rdnattr='cn'
+    rdn_is_primary_key = True
 
     label = _('Permissions')
     label_singular = _('Permission')

@@ -429,7 +429,7 @@ class LDAPObject(Object):
     rdn_attribute = ''
     uuid_attribute = ''
     attribute_members = {}
-    rdnattr = None
+    rdn_is_primary_key = False # Do we need RDN change to do a rename?
     password_attributes = []
     # Can bind as this entry (has userPassword or krbPrincipalKey)
     bindable = False
@@ -1178,7 +1178,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     has_output_params = global_output_params
 
     def _get_rename_option(self):
-        rdnparam = getattr(self.obj.params, self.obj.rdnattr)
+        rdnparam = getattr(self.obj.params, self.obj.primary_key.name)
         return rdnparam.clone_rename('rename',
             cli_name='rename', required=False, label=_('Rename'),
             doc=_('Rename the %(ldap_obj_name)s object') % dict(
@@ -1189,7 +1189,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     def get_options(self):
         for option in super(LDAPUpdate, self).get_options():
             yield option
-        if self.obj.rdnattr:
+        if self.obj.rdn_is_primary_key:
             yield self._get_rename_option()
 
     def execute(self, *keys, **options):
@@ -1229,18 +1229,19 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         rdnupdate = False
         try:
-            if self.obj.rdnattr and 'rename' in options:
+            if self.obj.rdn_is_primary_key and 'rename' in options:
                 if not options['rename']:
                     raise errors.ValidationError(name='rename', error=u'can\'t be empty')
-                entry_attrs[self.obj.rdnattr] = options['rename']
+                entry_attrs[self.obj.primary_key.name] = options['rename']
 
-            if self.obj.rdnattr and self.obj.rdnattr in entry_attrs:
+            if self.obj.rdn_is_primary_key and self.obj.primary_key.name in entry_attrs:
                 # RDN change
-                ldap.update_entry_rdn(dn, unicode('%s=%s' % (self.obj.rdnattr,
-                    entry_attrs[self.obj.rdnattr])))
-                rdnkeys = keys[:-1] + (entry_attrs[self.obj.rdnattr], )
+                ldap.update_entry_rdn(dn,
+                    unicode('%s=%s' % (self.obj.primary_key.name,
+                    entry_attrs[self.obj.primary_key.name])))
+                rdnkeys = keys[:-1] + (entry_attrs[self.obj.primary_key.name], )
                 dn = self.obj.get_dn(*rdnkeys)
-                del entry_attrs[self.obj.rdnattr]
+                del entry_attrs[self.obj.primary_key.name]
                 options['rdnupdate'] = True
                 rdnupdate = True
 

@@ -508,7 +508,8 @@ class Param(ReadOnly):
         self.class_rules = tuple(class_rules)
         self.rules = rules
         if self.query:
-            self.all_rules = self.class_rules
+            # by definition a query enforces no class or parameter rules
+            self.all_rules = ()
         else:
             self.all_rules = self.class_rules + self.rules
         for rule in self.all_rules:

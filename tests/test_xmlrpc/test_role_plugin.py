@@ -33,6 +33,7 @@ role1 = u'test-role-1'
 role1_dn = DN(('cn',role1),api.env.container_rolegroup,
               api.env.basedn)
 renamedrole1 = u'test-role'
+invalidrole1 = u' whitespace '
 
 role2 = u'test-role-2'
 role2_dn = DN(('cn',role2),api.env.container_rolegroup,
@@ -97,6 +98,15 @@ class test_role(Declarative):
                 summary=u'0 roles matched',
                 result=[],
             ),
+        ),
+
+
+        dict(
+            desc='Create invalid %r' % invalidrole1,
+            command=('role_add', [invalidrole1],
+                dict(description=u'role desc 1')
+            ),
+            expected=errors.ValidationError(name='cn', error='Leading and trailing spaces are not allowed'),
         ),
 
 

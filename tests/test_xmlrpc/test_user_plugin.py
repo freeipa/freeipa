@@ -643,6 +643,42 @@ class test_user(Declarative):
             expected=errors.ValidationError(name='uid', error='can be at most 33 characters'),
         ),
 
+
+        # The assumption on these next 4 tests is that if we don't get a
+        # validation error then the request was processed normally.
+        dict(
+            desc='Test that validation is disabled on deletes',
+            command=('user_del', [invaliduser1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test that validation is disabled on show',
+            command=('user_show', [invaliduser1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Test that validation is disabled on find',
+            command=('user_find', [invaliduser1], {}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 users matched',
+                result=[],
+            ),
+        ),
+
+
+        dict(
+            desc='Try to rename to invalid username %r' % user1,
+            command=('user_mod', [user1], dict(rename=invaliduser1)),
+            expected=errors.ValidationError(name='uid', error='may only include letters, numbers, _, -, . and $'),
+        ),
+
+
         dict(
             desc='Create %r' % group1,
             command=(

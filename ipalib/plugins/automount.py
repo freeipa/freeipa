@@ -645,7 +645,7 @@ class automountkey(LDAPObject):
     default_attributes = [
         'automountkey', 'automountinformation', 'description'
     ]
-    rdnattr = 'description'
+    rdn_is_primary_key = True
     rdn_separator = ' '
 
     takes_params = (
