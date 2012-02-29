@@ -288,12 +288,10 @@ class DsInstance(service.Service):
                          )
 
     def __create_ds_user(self):
-        user_exists = True
         try:
             pwd.getpwnam(DS_USER)
             root_logger.debug("ds user %s exists" % DS_USER)
         except KeyError:
-            user_exists = False
             root_logger.debug("adding ds user %s" % DS_USER)
             args = ["/usr/sbin/useradd", "-g", DS_GROUP,
                                          "-c", "DS System User",
@@ -305,8 +303,6 @@ class DsInstance(service.Service):
                 root_logger.debug("done adding user")
             except ipautil.CalledProcessError, e:
                 root_logger.critical("failed to add user %s" % e)
-
-        self.backup_state("user_exists", user_exists)
 
     def __create_instance(self):
         self.backup_state("running", is_ds_running())
@@ -624,15 +620,10 @@ class DsInstance(service.Service):
             dsdb.untrack_server_cert("Server-Cert")
             erase_ds_instance_data(serverid)
 
+        # At one time we removed this user on uninstall. That can potentially
+        # orphan files, or worse, if another useradd runs in the intermim,
+        # cause files to have a new owner.
         user_exists = self.restore_state("user_exists")
-
-        if user_exists == False:
-            pent = pwd.getpwnam(DS_USER)
-            installutils.remove_file("/var/tmp/ldap_%d" % pent.pw_uid)
-            try:
-                ipautil.run(["/usr/sbin/userdel", DS_USER])
-            except ipautil.CalledProcessError, e:
-                root_logger.critical("failed to delete user %s" % e)
 
         # Make sure some upgrade-related state is removed. This could cause
         # re-installation problems.

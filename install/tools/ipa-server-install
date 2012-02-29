@@ -475,16 +475,6 @@ def uninstall():
 
     sstore._load()
     group_exists = sstore.restore_state("install", "group_exists")
-    if group_exists == False:
-        try:
-            grp.getgrnam(dsinstance.DS_GROUP)
-            try:
-                ipautil.run(["/usr/sbin/groupdel", dsinstance.DS_GROUP])
-            except ipautil.CalledProcessError, e:
-                root_logger.critical("failed to delete group %s" % e)
-                rv = 1
-        except KeyError:
-            root_logger.info("Group %s already removed", dsinstance.DS_GROUP)
 
     ipaservices.knownservices.ipa.disable()
 
@@ -855,16 +845,13 @@ def main():
     try:
         grp.getgrnam(dsinstance.DS_GROUP)
         root_logger.debug("ds group %s exists" % dsinstance.DS_GROUP)
-        group_exists = True
     except KeyError:
-        group_exists = False
         args = ["/usr/sbin/groupadd", "-r", dsinstance.DS_GROUP]
         try:
             ipautil.run(args)
             root_logger.debug("done adding DS group")
         except ipautil.CalledProcessError, e:
             root_logger.critical("failed to add DS group: %s" % e)
-    sstore.backup_state("install", "group_exists", group_exists)
 
     # Configure ntpd
     if options.conf_ntp:
