@@ -894,7 +894,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
         # Get the user and password parameters from the request
         content_type = environ.get('CONTENT_TYPE', '').lower()
-        if content_type != 'application/x-www-form-urlencoded':
+        if not content_type.startswith('application/x-www-form-urlencoded'):
             return self.bad_request(environ, start_response, "Content-Type must be application/x-www-form-urlencoded")
 
         method = environ.get('REQUEST_METHOD', '').upper()
