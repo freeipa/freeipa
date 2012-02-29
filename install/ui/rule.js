@@ -213,7 +213,7 @@ IPA.rule_association_table_field = function(spec) {
                     options: {all: true, rights: true}
                 });
 
-                command.set_option(that.widget.other_entity.name, values.join(','));
+                command.set_option(that.widget.other_entity.name, values);
                 update_info.append_command(command, that.priority);
             }
         }

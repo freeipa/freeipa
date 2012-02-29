@@ -110,28 +110,16 @@ IPA.bulk_associator = function(spec) {
             return;
         }
 
-        var value = that.values.shift();
-        if (!value) {
-            that.on_success();
-            return;
-        }
-
-        while (that.values.length > 0) {
-            value += ',' + that.values.shift();
-        }
-
-        var args = [that.pkey];
-        var options = { 'all': true };
-        options[that.other_entity.name] = value;
-
         var command = IPA.command({
             entity: that.entity.name,
             method: that.method,
-            args: args,
-            options: options,
+            args: [that.pkey],
+            options: { 'all': true },
             on_success: that.on_success,
             on_error: that.on_error
         });
+
+        command.set_option(that.other_entity.name, that.values);
 
         //alert(JSON.stringify(command.to_json()));
 
@@ -556,7 +544,7 @@ IPA.association_table_widget = function (spec) {
             on_success: on_success,
             on_error: on_error
         });
-        command.set_option(that.other_entity.name, values.join(','));
+        command.set_option(that.other_entity.name, values);
 
         command.execute();
     };
@@ -619,7 +607,7 @@ IPA.association_table_widget = function (spec) {
             on_error: on_error
         });
 
-        command.set_option(that.other_entity.name, values.join(','));
+        command.set_option(that.other_entity.name, values);
 
         command.execute();
     };

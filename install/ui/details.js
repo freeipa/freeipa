@@ -844,8 +844,6 @@ IPA.command_builder = function() {
             if (field.metadata.primary_key) return;
             if (values.length === 1) {
                 command.set_option(name, values[0]);
-            } else if (field.join) {
-                command.set_option(name, values.join(','));
             } else {
                 command.set_option(name, values);
             }

@@ -46,7 +46,6 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'rights',
                     name: 'permissions',
-                    join: true,
                     widget: 'rights.permissions'
                 },
                 {
@@ -142,7 +141,6 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'rights',
                     name: 'permissions',
-                    join: true,
                     widget: 'general.permissions'
                 },
                 {
@@ -407,14 +405,12 @@ IPA.aci.delegation_entity = function(spec) {
                             type: 'entity_select',
                             name: 'memberof',
                             other_entity: that.group_entity,
-                            other_field: 'cn',
-                            join: true
+                            other_field: 'cn'
                         },
                         {
                             type: 'attributes',
                             name: 'attrs',
-                            object_type: 'user',
-                            join: true
+                            object_type: 'user'
                         }
                     ]
                 }
@@ -434,14 +430,12 @@ IPA.aci.delegation_entity = function(spec) {
                     type: 'entity_select',
                     name: 'memberof',
                     other_entity: that.group_entity,
-                    other_field: 'cn',
-                    join: true
+                    other_field: 'cn'
                 },
                 {
                     type: 'attributes',
                     name: 'attrs',
-                    object_type: 'user',
-                    join: true
+                    object_type: 'user'
                 }
             ]
         });
