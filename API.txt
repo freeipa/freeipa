@@ -1893,7 +1893,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: migrate_ds
-args: 2,15,3
+args: 2,16,4
 arg: Str('ldapuri', cli_name='ldap_uri')
 arg: Password('bindpw', cli_name='password', confirm=False)
 option: Str('binddn?', autofill=True, cli_name='bind_dn', default=u'cn=directory manager')
@@ -1909,11 +1909,13 @@ option: Flag('groupoverwritegid', autofill=True, cli_name='group_overwrite_gid',
 option: StrEnum('schema?', autofill=True, cli_name='schema', default=u'RFC2307bis', values=(u'RFC2307bis', u'RFC2307'))
 option: Flag('continue?', autofill=True, default=False)
 option: Str('basedn?', cli_name='base_dn')
+option: Flag('compat?', autofill=True, cli_name='with_compat', default=False)
 option: Str('exclude_groups*', autofill=True, cli_name='exclude_groups', csv=True, default=())
 option: Str('exclude_users*', autofill=True, cli_name='exclude_users', csv=True, default=())
 output: Output('result', <type 'dict'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Output('enabled', <type 'bool'>, None)
+output: Output('compat', <type 'bool'>, None)
 command: netgroup_add
 args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, required=True)
