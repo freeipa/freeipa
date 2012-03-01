@@ -66,6 +66,8 @@ IPA.dialog = function(spec) {
     that.title = spec.title;
     that.width = spec.width || 500;
     that.height = spec.height;
+    that.close_on_escape = spec.close_on_escape !== undefined ?
+                            spec.close_on_escape : true;
 
     that.widgets = IPA.widget_container();
     that.fields = IPA.field_container({ container: that });
@@ -156,6 +158,7 @@ IPA.dialog = function(spec) {
         that.container.dialog({
             title: that.title,
             modal: true,
+            closeOnEscape: that.close_on_escape,
             width: that.width,
             minWidth: that.width,
             height: that.height,
