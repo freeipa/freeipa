@@ -30,6 +30,7 @@ class test_sudorule(XMLRPC_test):
     Test the `sudorule` plugin.
     """
     rule_name = u'testing_sudorule1'
+    rule_name2 = u'testing_sudorule2'
     rule_command = u'/usr/bin/testsudocmd1'
     rule_desc = u'description'
     rule_desc_mod = u'description modified'
@@ -38,8 +39,8 @@ class test_sudorule(XMLRPC_test):
     test_external_user = u'external_test_user'
     test_group = u'sudorule_test_group'
     test_external_group = u'external_test_group'
-    test_host = u'sudorule.test-host'
-    test_external_host = u'external.test-host'
+    test_host = u'sudorule.testhost'
+    test_external_host = u'external.testhost'
     test_hostgroup = u'sudorule_test_hostgroup'
     test_sudoallowcmdgroup = u'sudorule_test_allowcmdgroup'
     test_sudodenycmdgroup = u'sudorule_test_denycmdgroup'
@@ -625,8 +626,45 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudocmdgroup_del'](self.test_sudoallowcmdgroup)
         api.Command['sudocmdgroup_del'](self.test_sudodenycmdgroup)
 
+    def test_l_sudorule_order(self):
+        """
+        Test that order uniqueness is maintained
+        """
+        api.Command['sudorule_mod'](self.rule_name, sudoorder=1)
 
-    def test_l_sudorule_del(self):
+        api.Command['sudorule_add'](self.rule_name2)
+
+        # mod of rule that has no order and set a duplicate
+        try:
+            api.Command['sudorule_mod'](self.rule_name2, sudoorder=1)
+        except errors.ValidationError:
+            pass
+
+        # Remove the rule so we can re-add it
+        api.Command['sudorule_del'](self.rule_name2)
+
+        # add a new rule with a duplicate order
+        try:
+            api.Command['sudorule_add'](self.rule_name2, sudoorder=1)
+        except errors.ValidationError:
+            pass
+
+        # add a new rule with a unique order
+        api.Command['sudorule_add'](self.rule_name2, sudoorder=2)
+        try:
+            api.Command['sudorule_mod'](self.rule_name2, sudoorder=1)
+        except errors.ValidationError:
+            pass
+
+        # Try setting both to 0
+        api.Command['sudorule_mod'](self.rule_name2, sudoorder=0)
+        try:
+            api.Command['sudorule_mod'](self.rule_name, sudoorder=0)
+        except errors.ValidationError:
+            pass
+
+
+    def test_m_sudorule_del(self):
         """
         Test deleting a Sudo rule using `xmlrpc.sudorule_del`.
         """
@@ -638,3 +676,4 @@ class test_sudorule(XMLRPC_test):
             pass
         else:
             assert False
+        api.Command['sudorule_del'](self.rule_name2)

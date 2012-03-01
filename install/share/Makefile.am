@@ -9,7 +9,7 @@ app_DATA =				\
 	60basev2.ldif			\
 	60basev3.ldif			\
 	60ipadns.ldif			\
-	60ipasudo.ldif			\
+	65ipasudo.ldif			\
 	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\
 	caJarSigningCert.cfg.template	\

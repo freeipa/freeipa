@@ -2831,7 +2831,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: sudorule_add
-args: 1,14,3
+args: 1,15,3
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
@@ -2839,6 +2839,7 @@ option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', multivalue=F
 option: StrEnum('cmdcategory', attribute=True, cli_name='cmdcat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('ipasudorunasusercategory', attribute=True, cli_name='runasusercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('ipasudorunasgroupcategory', attribute=True, cli_name='runasgroupcat', multivalue=False, required=False, values=(u'all',))
+option: Int('sudoorder', attribute=True, cli_name='order', default=0, multivalue=False, required=False)
 option: Str('externaluser', attribute=True, cli_name='externaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextuser', attribute=True, cli_name='runasexternaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextgroup', attribute=True, cli_name='runasexternalgroup', multivalue=False, required=False)
@@ -2936,7 +2937,7 @@ args: 1,0,1
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 output: Output('result', None, None)
 command: sudorule_find
-args: 1,16,4
+args: 1,17,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
@@ -2945,6 +2946,7 @@ option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostca
 option: StrEnum('cmdcategory', attribute=True, autofill=False, cli_name='cmdcat', multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('ipasudorunasusercategory', attribute=True, autofill=False, cli_name='runasusercat', multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('ipasudorunasgroupcategory', attribute=True, autofill=False, cli_name='runasgroupcat', multivalue=False, query=True, required=False, values=(u'all',))
+option: Int('sudoorder', attribute=True, autofill=False, cli_name='order', default=0, multivalue=False, query=True, required=False)
 option: Str('externaluser', attribute=True, autofill=False, cli_name='externaluser', multivalue=False, query=True, required=False)
 option: Str('ipasudorunasextuser', attribute=True, autofill=False, cli_name='runasexternaluser', multivalue=False, query=True, required=False)
 option: Str('ipasudorunasextgroup', attribute=True, autofill=False, cli_name='runasexternalgroup', multivalue=False, query=True, required=False)
@@ -2959,7 +2961,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: sudorule_mod
-args: 1,16,3
+args: 1,17,3
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
@@ -2967,6 +2969,7 @@ option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostca
 option: StrEnum('cmdcategory', attribute=True, autofill=False, cli_name='cmdcat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('ipasudorunasusercategory', attribute=True, autofill=False, cli_name='runasusercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('ipasudorunasgroupcategory', attribute=True, autofill=False, cli_name='runasgroupcat', multivalue=False, required=False, values=(u'all',))
+option: Int('sudoorder', attribute=True, autofill=False, cli_name='order', default=0, multivalue=False, required=False)
 option: Str('externaluser', attribute=True, autofill=False, cli_name='externaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextuser', attribute=True, autofill=False, cli_name='runasexternaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextgroup', attribute=True, autofill=False, cli_name='runasexternalgroup', multivalue=False, required=False)
