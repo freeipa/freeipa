@@ -359,7 +359,7 @@ class DsInstance(service.Service):
                              "60basev2.ldif",
                              "60basev3.ldif",
                              "60ipadns.ldif",
-                             "60ipasudo.ldif"):
+                             "65ipasudo.ldif"):
             target_fname = schema_dirname(self.serverid) + schema_fname
             shutil.copyfile(ipautil.SHARE_DIR + schema_fname, target_fname)
             os.chmod(target_fname, 0440)    # read access for dirsrv user/group

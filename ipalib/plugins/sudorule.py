@@ -40,6 +40,10 @@ FreeIPA provides a means to configure the various aspects of Sudo:
    RunAsGroup: The group(s) whose gid rights Sudo will be invoked with.
    Options: The various Sudoers Options that can modify Sudo's behavior.
 
+An order can be added to a sudorule to control the order in which they
+are evaluated (if the client supports it). This order is an integer and
+must be unique.
+
 FreeIPA provides a designated binddn to use with Sudo located at:
 uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
 
@@ -80,6 +84,7 @@ class sudorule(LDAPObject):
         'memberallowcmd', 'memberdenycmd', 'ipasudoopt',
         'ipasudorunas', 'ipasudorunasgroup',
         'ipasudorunasusercategory', 'ipasudorunasgroupcategory',
+        'sudoorder',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -138,6 +143,13 @@ class sudorule(LDAPObject):
             label=_('RunAs Group category'),
             doc=_('RunAs Group category the rule applies to'),
             values=(u'all', ),
+        ),
+        Int('sudoorder?',
+            cli_name='order',
+            label=_('Sudo order'),
+            doc=_('integer to order the Sudo rules'),
+            default=0,
+            minvalue=0,
         ),
         Str('memberuser_user?',
             label=_('Users'),
@@ -207,6 +219,25 @@ class sudorule(LDAPObject):
         ),
     )
 
+    order_not_unique_msg = _(
+        'order must be a unique value (%(order)d already used by %(rule)s)'
+    )
+
+    def check_order_uniqueness(self, *keys, **options):
+        if 'sudoorder' in options:
+            entries = self.methods.find(
+                sudoorder=options['sudoorder']
+            )['result']
+            if len(entries) > 0:
+                rule_name = entries[0]['cn'][0]
+                raise errors.ValidationError(
+                    name='order',
+                    error=self.order_not_unique_msg % {
+                        'order': options['sudoorder'],
+                        'rule': rule_name,
+                    }
+                )
+
 api.register(sudorule)
 
 
@@ -214,6 +245,7 @@ class sudorule_add(LDAPCreate):
     __doc__ = _('Create new Sudo Rule.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        self.obj.check_order_uniqueness(*keys, **options)
         # Sudo Rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
         return dn
@@ -236,6 +268,15 @@ class sudorule_mod(LDAPUpdate):
 
     msg_summary = _('Modified Sudo Rule "%(value)s"')
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if 'sudoorder' in options:
+            new_order = options.get('sudoorder')
+            old_entry = self.api.Command.sudorule_show(keys[-1])['result']
+            if 'sudoorder' in old_entry:
+                old_order = int(old_entry['sudoorder'][0])
+                if old_order != new_order:
+                    self.obj.check_order_uniqueness(*keys, **options)
+            else:
+                self.obj.check_order_uniqueness(*keys, **options)
         try:
             (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
