@@ -343,7 +343,7 @@ class KRB5_CCache(object):
         '''
 
         try:
-            principal = krb5_format_service_principal_name('ldap', host, realm)
+            principal = krb5_format_service_principal_name('HTTP', host, realm)
             valid = self.credential_is_valid(principal)
             if valid:
                 return True
@@ -372,7 +372,7 @@ class KRB5_CCache(object):
 
         result = 0
         try:
-            principal = krb5_format_service_principal_name('ldap', host, realm)
+            principal = krb5_format_service_principal_name('HTTP', host, realm)
             authtime, starttime, endtime, renew_till = self.get_credential_times(principal)
             if result:
                 result = min(result, endtime)
