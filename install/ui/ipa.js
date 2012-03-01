@@ -489,6 +489,7 @@ IPA.command = function(spec) {
                 xhr: xhr,
                 text_status: text_status,
                 error_thrown: error_thrown,
+                close_on_escape: false,
                 command: that
             });
 
@@ -1353,10 +1354,19 @@ IPA.unauthorized_dialog = function(spec) {
         }).appendTo(that.krb_message_contatiner);
 
         text = IPA.get_message('login.form_auth', "form-based authentication");
-        $('<a/>', {
+        that.form_auth_link = $('<a/>', {
             text: text,
-            style: 'cursor:pointer;',
-            click: that.show_form
+            href: '#',
+            click: function() {
+                that.show_form();
+                return false;
+            },
+            keydown: function(event) {
+                if (event.keyCode === 13) { //enter
+                    that.show_form();
+                    return false;
+                }
+            }
         }).appendTo(fb_title);
 
         fb_title.append('.');
@@ -1368,7 +1378,8 @@ IPA.unauthorized_dialog = function(spec) {
 
         that.form = $('<div>', {
             'class': 'auth-dialog',
-            style: 'display: none;'
+            style: 'display: none;',
+            keyup: that.on_form_keyup
         }).appendTo(that.container);
 
         var text = IPA.get_message('login.login', "Login");
@@ -1421,20 +1432,45 @@ IPA.unauthorized_dialog = function(spec) {
         });
     };
 
+    that.open = function() {
+        that.dialog_open();
+        that.form_auth_link.focus();
+    };
+
+    that.on_form_keyup = function(event) {
+
+        if (that.switching) {
+            that.switching = false;
+            return;
+        }
+
+        if (event.keyCode === 13) { // enter
+            that.on_login();
+            event.preventDefault();
+        } else if (event.keyCode === 27) { // escape
+            that.on_back();
+            event.preventDefault();
+        }
+    };
+
     that.show_form = function() {
+
+        that.switching = true;
 
         that.krb_message_contatiner.css('display', 'none');
         that.form.css('display', 'block');
-
         that.display_buttons(['login', 'back']);
+
+        var user_field = that.fields.get_field('username');
+        user_field.widget.focus_input();
     };
 
     that.on_back = function() {
 
         that.krb_message_contatiner.css('display', 'block');
         that.form.css('display', 'none');
-
         that.display_buttons(['retry']);
+        that.form_auth_link.focus();
     };
 
     that.on_login = function() {
