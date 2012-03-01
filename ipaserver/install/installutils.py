@@ -34,6 +34,7 @@ from ConfigParser import SafeConfigParser
 
 from ipapython import ipautil, dnsclient, sysrestore
 from ipapython.ipa_log_manager import *
+from ipalib.util import validate_hostname
 
 # Used to determine install status
 IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
@@ -158,6 +159,12 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
 
     if ipautil.valid_ip(host_name):
         raise BadHostError("IP address not allowed as a hostname")
+
+    try:
+        # make sure that the host name meets the requirements in ipalib
+        validate_hostname(host_name)
+    except ValueError, e:
+        raise BadHostError("Invalid hostname '%s', %s" % (host_name, unicode(e)))
 
     if local_hostname:
         try:
