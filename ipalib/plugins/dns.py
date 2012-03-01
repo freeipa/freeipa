@@ -39,6 +39,33 @@ Domain Name System (DNS)
 
 Manage DNS zone and resource records.
 
+
+USING STRUCTURED PER-TYPE OPTIONS
+
+There are many structured DNS RR types where DNS data stored in LDAP server
+is not just a scalar value, for example an IP address or a domain name, but
+a data structure which may be often complex. A good example is a LOC record
+[RFC1876] which consists of many mandatory and optional parts (degrees,
+minutes, seconds of latitude and longitude, altitude or precision).
+
+It may be difficult to manipulate such DNS records without making a mistake
+and entering an invalid value. DNS module provides an abstraction over these
+raw records and allows to manipulate each RR type with specific options. For
+each supported RR type, DNS module provides a standard option to manipulate
+a raw records with format --<rrtype>-rec, e.g. --mx-rec, and special options
+for every part of the RR structure with format --<rrtype>-<partname>, e.g.
+--mx-preference and --mx-exchanger.
+
+When adding a record, either RR specific options or standard option for a raw
+value can be used, they just should not be combined in one add operation. When
+modifying an existing entry, new RR specific options can be used to change
+one part of a DNS record, where the standard option for raw value is used
+to specify the modified value. The following example demonstrates
+a modification of MX record preference form 0 to 1 in a record without
+modifying the exchanger:
+ipa dnsrecord-mod --mx-rec="0 mx.example.com." --mx-preference=1
+
+
 EXAMPLES:
 
  Add new zone:
@@ -960,23 +987,23 @@ class LOCRecord(DNSRecord):
             values=(u'N', u'S',),
         ),
         Int('lon_deg',
-            label=_('Degrees Longtitude'),
+            label=_('Degrees Longitude'),
             minvalue=0,
             maxvalue=180,
         ),
         Int('lon_min?',
-            label=_('Minutes Longtitude'),
+            label=_('Minutes Longitude'),
             minvalue=0,
             maxvalue=59,
         ),
         Decimal('lon_sec?',
-            label=_('Seconds Longtitude'),
+            label=_('Seconds Longitude'),
             minvalue='0.0',
             maxvalue='59.999',
             precision=3,
         ),
         StrEnum('lon_dir',
-            label=_('Direction Longtitude'),
+            label=_('Direction Longitude'),
             values=(u'E', u'W',),
         ),
         Decimal('altitude',
