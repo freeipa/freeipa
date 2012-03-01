@@ -52,6 +52,11 @@ Two LDAP schemas define how group members are stored: RFC2307 and
 RFC2307bis. RFC2307bis uses member and uniquemember to specify group
 members, RFC2307 uses memberUid. The default schema is RFC2307bis.
 
+The schema compat feature allows IPA to reformat data for systems that
+do not support RFC2307bis. It is recommended that this feature is disabled
+during migration to reduce system overhead. It can be re-enabled after
+migration. To migrate with it enabled use the "--with-compat" option.
+
 Migrated users do not have Kerberos credentials, they have only their
 LDAP password. To complete the migration process, users need to go
 to http://ipa.example.com/ipa/migration and authenticate using their
@@ -106,6 +111,8 @@ _ref_err_msg = _('Migration of LDAP search reference is not supported.')
 _dn_err_msg = _('Malformed DN')
 
 _supported_schemas = (u'RFC2307bis', u'RFC2307')
+
+_compat_dn = "cn=Schema Compatibility,cn=plugins,cn=config"
 
 
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
@@ -445,6 +452,12 @@ class migrate_ds(Command):
             label=_('Base DN'),
             doc=_('Base DN on remote LDAP server'),
         ),
+        Flag('compat?',
+            cli_name='with_compat',
+            label=_('Ignore compat plugin'),
+            doc=_('Allows migration despite the usage of compat plugin'),
+            default=False,
+        ),
     )
 
     has_output = (
@@ -459,6 +472,10 @@ class migrate_ds(Command):
         output.Output('enabled',
             type=bool,
             doc=_('False if migration mode was disabled.'),
+        ),
+        output.Output('compat',
+            type=bool,
+            doc=_('False if migration fails because the compatibility plug-in is enabled.'),
         ),
     )
 
@@ -645,11 +662,17 @@ can use their Kerberos accounts.''')
 
         # check if migration mode is enabled
         if config.get('ipamigrationenabled', ('FALSE', ))[0] == 'FALSE':
-            return dict(result={}, failed={}, enabled=False)
+            return dict(result={}, failed={}, enabled=False, compat=True)
 
         # connect to DS
         ds_ldap = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
         ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw)
+
+        #check whether the compat plugin is enabled
+        if not options.get('compat'):
+            (dn,check_compat) = ds_ldap.get_entry(_compat_dn, normalize=False)
+            if check_compat is not None and check_compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
+                return dict(result={},failed={},enabled=True, compat=False)
 
         if not ds_base_dn:
             # retrieve base DN from remote LDAP server
@@ -670,12 +693,15 @@ can use their Kerberos accounts.''')
             ldap, config, ds_ldap, ds_base_dn, options
         )
 
-        return dict(result=migrated, failed=failed, enabled=True)
+        return dict(result=migrated, failed=failed, enabled=True, compat=True)
 
     def output_for_cli(self, textui, result, ldapuri, bindpw, **options):
         textui.print_name(self.name)
         if not result['enabled']:
             textui.print_plain(self.migration_disabled_msg)
+            return 1
+        if not result['compat']:
+            textui.print_plain("The compat plug-in is enabled. This can increase the memory requirements during migration. Disable the compat plug-in with \'ipa-compat-manage disable\' or re-run this script with \'--with-compat\' option.")
             return 1
         textui.print_plain('Migrated:')
         textui.print_entry1(
