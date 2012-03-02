@@ -27,8 +27,7 @@ from ipaserver import ipaldap
 from ipapython import services as ipaservices
 import installutils
 from ldap import modlist
-from ipalib import util
-from ipalib import errors
+from ipalib import api, util, errors
 from ipapython import ipautil
 from ipalib.dn import DN
 
@@ -940,6 +939,27 @@ class ReplicationManager(object):
                 raise e
             else:
                 err = e
+
+        # remove replica memberPrincipal from s4u2proxy configuration
+        dn1 = DN(u'cn=ipa-http-delegation', api.env.container_s4u2proxy, self.suffix)
+        member_principal1 = "HTTP/%(fqdn)s@%(realm)s" % dict(fqdn=replica, realm=realm)
+
+        dn2 = DN(u'cn=ipa-ldap-delegation-targets', api.env.container_s4u2proxy, self.suffix)
+        member_principal2 = "ldap/%(fqdn)s@%(realm)s" % dict(fqdn=replica, realm=realm)
+
+        for (dn, member_principal) in ((str(dn1), member_principal1),
+                                       (str(dn2), member_principal2)):
+            try:
+                mod = [(ldap.MOD_DELETE, 'memberPrincipal', member_principal)]
+                self.conn.modify_s(dn, mod)
+            except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE):
+                root_logger.debug("Replica (%s) memberPrincipal (%s) not found in %s" % \
+                        (replica, member_principal, dn))
+            except Exception, e:
+                if not force:
+                    raise e
+                elif not err:
+                    err = e
 
         # delete master entry with all active services
         try:
