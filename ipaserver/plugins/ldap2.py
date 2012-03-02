@@ -1091,12 +1091,12 @@ class ldap2(CrudBackend, Encoder):
         (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
 
         # remove dn from group entry's `member_attr` attribute
-        members = group_entry_attrs.get(member_attr, [])
+        members = [DN(m) for m in group_entry_attrs.get(member_attr, [])]
         try:
-            members.remove(dn.lower())
+            members.remove(DN(dn))
         except ValueError:
             raise errors.NotGroupMember()
-        group_entry_attrs[member_attr] = members
+        group_entry_attrs[member_attr] = [str(m) for m in members]
 
         # update group entry
         self.update_entry(group_dn, group_entry_attrs)
