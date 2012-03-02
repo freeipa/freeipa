@@ -41,9 +41,9 @@ class test_hbac(XMLRPC_test):
 
     test_user = u'hbacrule_test_user'
     test_group = u'hbacrule_test_group'
-    test_host = u'hbacrule.test-netgroup'
+    test_host = u'hbacrule.testnetgroup'
     test_hostgroup = u'hbacrule_test_hostgroup'
-    test_sourcehost = u'hbacrule.test-src-host'
+    test_sourcehost = u'hbacrule.testsrchost'
     test_sourcehostgroup = u'hbacrule_test_src_hostgroup'
     test_service = u'sshd'
     test_host_external = u'notfound.example.com'
