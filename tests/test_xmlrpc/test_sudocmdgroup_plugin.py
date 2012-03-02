@@ -28,12 +28,36 @@ from ipalib.dn import *
 sudocmdgroup1 = u'testsudocmdgroup1'
 sudocmdgroup2 = u'testsudocmdgroup2'
 sudocmd1 = u'/usr/bin/sudotestcmd1'
+sudocmd_plus = u'/bin/ls -l /lost+found/*'
+
+def create_command(sudocmd):
+    return dict(
+        desc='Create %r' % sudocmd,
+        command=(
+            'sudocmd_add', [], dict(sudocmd=sudocmd,
+                description=u'Test sudo command')
+        ),
+        expected=dict(
+            value=sudocmd,
+            summary=u'Added Sudo Command "%s"' % sudocmd,
+            result=dict(
+                objectclass=objectclasses.sudocmd,
+                sudocmd=[sudocmd],
+                ipauniqueid=[fuzzy_uuid],
+                description=[u'Test sudo command'],
+                dn=lambda x: DN(x) == \
+                    DN(('sudocmd',sudocmd),('cn','sudocmds'),('cn','sudo'),
+                    api.env.basedn),
+            ),
+        ),
+    )
 
 class test_sudocmdgroup(Declarative):
     cleanup_commands = [
         ('sudocmdgroup_del', [sudocmdgroup1], {}),
         ('sudocmdgroup_del', [sudocmdgroup2], {}),
         ('sudocmd_del', [sudocmd1], {}),
+        ('sudocmd_del', [sudocmd_plus], {}),
     ]
 
     tests = [
@@ -473,6 +497,54 @@ class test_sudocmdgroup(Declarative):
             ),
         ),
 
+        ################
+        # test a command that needs DN escaping:
+        create_command(sudocmd_plus),
+
+        dict(
+            desc='Add %r to %r' % (sudocmd_plus, sudocmdgroup1),
+            command=('sudocmdgroup_add_member', [sudocmdgroup1],
+                dict(sudocmd=sudocmd_plus)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        sudocmd=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
+                        'member_sudocmd': (sudocmd_plus,),
+                        'cn': [sudocmdgroup1],
+                        'description': [u'New desc 1'],
+                },
+            ),
+        ),
+
+        dict(
+            desc='Remove %r from %r' %  (sudocmd_plus, sudocmdgroup1),
+            command=('sudocmdgroup_remove_member', [sudocmdgroup1],
+                dict(sudocmd=sudocmd_plus)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        sudocmd=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
+                        'cn': [sudocmdgroup1],
+                        'description': [u'New desc 1'],
+                },
+            ),
+        ),
 
         ################
         # delete sudocmdgroup1:

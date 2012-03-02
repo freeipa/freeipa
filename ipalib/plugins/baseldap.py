@@ -1583,8 +1583,8 @@ class LDAPRemoveMember(LDAPModMember):
 
         completed = 0
         for (attr, objs) in member_dns.iteritems():
-            for ldap_obj_name in objs:
-                for m_dn in member_dns[attr][ldap_obj_name]:
+            for ldap_obj_name, m_dns in objs.iteritems():
+                for m_dn in m_dns:
                     if not m_dn:
                         continue
                     try:
