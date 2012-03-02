@@ -322,7 +322,7 @@ class WSGIExecutioner(Executioner):
             error = InternalError()
         finally:
             os.environ['LANG'] = lang
-        if name:
+        if name and name in self.Command:
             try:
                 params = self.Command[name].args_options_2_params(*args, **options)
             except Exception, e:
@@ -331,10 +331,11 @@ class WSGIExecutioner(Executioner):
                 )
                 # get at least some context of what is going on
                 params = options
+            principal = getattr(context, 'principal', 'UNKNOWN')
             if error:
-                self.info('%s: %s(%s): %s', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
+                self.info('%s: %s(%s): %s', principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
             else:
-                self.info('%s: %s(%s): SUCCESS', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)))
+                self.info('%s: %s(%s): SUCCESS', principal, name, ', '.join(self.Command[name]._repr_iter(**params)))
         else:
             self.info('%s: %s', context.principal, e.__class__.__name__)
         return self.marshal(result, error, _id)
@@ -377,7 +378,7 @@ class WSGIExecutioner(Executioner):
         raise NotImplementedError('%s.marshal()' % self.fullname)
 
 
-class xmlserver(WSGIExecutioner):
+class xmlserver(WSGIExecutioner, HTTP_Status):
     """
     Execution backend plugin for XML-RPC server.
 
@@ -402,6 +403,8 @@ class xmlserver(WSGIExecutioner):
         self.debug('WSGI xmlserver.__call__:')
         user_ccache=environ.get('KRB5CCNAME')
         if user_ccache is None:
+            self.internal_error(environ, start_response,
+                                'xmlserver.__call__: KRB5CCNAME not defined in HTTP request environment')
             return self.marshal(None, CCacheError())
         try:
             self.create_context(ccache=user_ccache)
@@ -548,7 +551,7 @@ def json_decode_binary(val):
         else:
             return val
 
-class jsonserver(WSGIExecutioner):
+class jsonserver(WSGIExecutioner, HTTP_Status):
     """
     JSON RPC server.
 
@@ -576,11 +579,12 @@ class jsonserver(WSGIExecutioner):
                 message=error.strerror,
                 name=error.__class__.__name__,
             )
+        principal = getattr(context, 'principal', 'UNKNOWN')
         response = dict(
             result=result,
             error=error,
             id=_id,
-            principal=unicode(context.principal),
+            principal=unicode(principal),
             version=unicode(VERSION),
         )
         response = json_encode_binary(response)
@@ -844,6 +848,8 @@ class jsonserver_kerb(jsonserver):
 
         user_ccache=environ.get('KRB5CCNAME')
         if user_ccache is None:
+            self.internal_error(environ, start_response,
+                                'jsonserver_kerb.__call__: KRB5CCNAME not defined in HTTP request environment')
             return self.marshal(None, CCacheError())
         self.create_context(ccache=user_ccache)
 
