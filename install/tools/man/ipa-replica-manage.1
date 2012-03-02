@@ -103,13 +103,13 @@ Re\-initialize a replica:
 This will re\-initialize the data on the server where you execute the command, retrieving the data from the srv2.example.com replica
 .TP
 Add a new replication agreement:
- # ipa replica\-manage connect srv2.example.com srv4.example.com
+ # ipa\-replica\-manage connect srv2.example.com srv4.example.com
 .TP
 Remove an existing replication agreement:
- # ipa replica\-manage disconnect srv1.example.com srv3.example.com
+ # ipa\-replica\-manage disconnect srv1.example.com srv3.example.com
 .TP
 Completely remove a replica:
- # ipa replica\-manage del srv4.example.com
+ # ipa\-replica\-manage del srv4.example.com
 .TP
 Using connect/disconnect you can manage the replication topology.
 .SH "WINSYNC"
