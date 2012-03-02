@@ -409,7 +409,7 @@ def uninstall(options, env, quiet=False):
         if not options.on_master:
             if user_input("Do you want to reboot the machine?", False):
                 try:
-                    run(["/usr/bin/reboot"])
+                    run(["/sbin/reboot"])
                 except Exception, e:
                     emit_quiet(quiet, "Reboot command failed to exceute. " + str(e))
                     return CLIENT_UNINSTALL_ERROR
