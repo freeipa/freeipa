@@ -42,7 +42,7 @@ import kerberos
 from ipalib.backend import Connectible
 from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError, KerberosError, XMLRPCMarshallError
 from ipalib import errors
-from ipalib.request import context
+from ipalib.request import context, Connection
 from ipapython import ipautil, dnsclient
 import httplib
 import socket
@@ -215,16 +215,39 @@ class LanguageAwareTransport(Transport):
 class SSLTransport(LanguageAwareTransport):
     """Handles an HTTPS transaction to an XML-RPC server."""
 
+    def __nss_initialized(self, dbdir):
+        """
+        If there is another connections open it may have already
+        initialized NSS. This is likely to lead to an NSS shutdown
+        failure.  One way to mitigate this is to tell NSS to not
+        initialize if it has already been done in another open connection.
+
+        Returns True if another connection is using the same db.
+        """
+        for value in context.__dict__.values():
+            if not isinstance(value, Connection):
+                continue
+            if not isinstance(value.conn._ServerProxy__transport, SSLTransport):
+                continue
+            if value.conn._ServerProxy__transport.dbdir == dbdir:
+                return True
+        return False
+
     def make_connection(self, host):
-        host, self._extra_headers, x509 = self.get_host_info(host)
         host, self._extra_headers, x509 = self.get_host_info(host)
         # Python 2.7 changed the internal class used in xmlrpclib from
         # HTTP to HTTPConnection. We need to use the proper subclass
+
+        # If we an existing connection exists using the same NSS database
+        # there is no need to re-initialize. Pass thsi into the NSS
+        # connection creator.
+        self.dbdir='/etc/pki/nssdb'
+        no_init = self.__nss_initialized(self.dbdir)
         (major, minor, micro, releaselevel, serial) = sys.version_info
         if major == 2 and minor < 7:
-            conn = NSSHTTPS(host, 443, dbdir="/etc/pki/nssdb")
+            conn = NSSHTTPS(host, 443, dbdir=self.dbdir, no_init=no_init)
         else:
-            conn = NSSConnection(host, 443, dbdir="/etc/pki/nssdb")
+            conn = NSSConnection(host, 443, dbdir=self.dbdir, no_init=no_init)
         conn.connect()
         return conn
 

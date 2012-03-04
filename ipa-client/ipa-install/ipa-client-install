@@ -179,6 +179,7 @@ def nssldap_exists():
 def emit_quiet(quiet, message):
     if not quiet:
         print message
+    root_logger.debug(message)
 
 def uninstall(options, env, quiet=False):
 
@@ -1033,6 +1034,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
     except StandardError, e:
         root_logger.warning("host_mod: %s" % str(e))
         print >>sys.stderr, "Failed to upload host SSH public keys."
+        root_logger.debug('Failed to upload host SSH public keys.')
         return
 
     if create_sshfp:
@@ -1326,7 +1328,6 @@ def install(options, env, fstore, statestore):
     if 'config_loaded' not in api.env:
         print >>sys.stderr, "Failed to initialize IPA API."
         return CLIENT_INSTALL_ERROR
-    api.Backend.xmlclient.connect()
 
     # Always back up sssd.conf. It gets updated by authconfig --enablekrb5.
     fstore.backup_file("/etc/sssd/sssd.conf")
@@ -1350,6 +1351,7 @@ def install(options, env, fstore, statestore):
     os.environ['KRB5CCNAME'] = CCACHE_FILE
     try:
         ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', 'host/%s' % hostname])
+        api.Backend.xmlclient.connect()
     except CalledProcessError, e:
         print >>sys.stderr, "Failed to obtain host TGT."
 
@@ -1480,6 +1482,7 @@ def install(options, env, fstore, statestore):
     configure_ssh(fstore, ipaservices.knownservices.sshd.get_config_dir(), options)
 
     print "Client configuration complete."
+    root_logger.debug('Client configuration complete.')
 
     return 0
 

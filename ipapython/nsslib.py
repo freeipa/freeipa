@@ -190,7 +190,16 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
     default_port = httplib.HTTPSConnection.default_port
 
     def __init__(self, host, port=None, strict=None,
-                 dbdir=None, family=socket.AF_UNSPEC):
+                 dbdir=None, family=socket.AF_UNSPEC, no_init=False):
+        """
+        :param host: the server to connect to
+        :param port: the port to use (default is set in HTTPConnection)
+        :param dbdir: the NSS database directory
+        :param family: network family to use (default AF_UNSPEC)
+        :param no_init: do not initialize the NSS database. This requires
+                        that the database has already been initialized or
+                        the request will fail.
+        """
         httplib.HTTPConnection.__init__(self, host, port, strict)
         NSSAddressFamilyFallback.__init__(self, family)
 
@@ -198,7 +207,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
             raise RuntimeError("dbdir is required")
 
         root_logger.debug('%s init %s', self.__class__.__name__, host)
-        if nss.nss_is_initialized():
+        if not no_init and nss.nss_is_initialized():
             # close any open NSS database and use the new one
             ssl.clear_session_cache()
             try:
