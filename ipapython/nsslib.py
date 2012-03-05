@@ -298,13 +298,13 @@ class NSSHTTPS(httplib.HTTP):
 
     _connection_class = NSSConnection
 
-    def __init__(self, host='', port=None, strict=None, dbdir=None):
+    def __init__(self, host='', port=None, strict=None, dbdir=None, no_init=False):
         # provide a default host, pass the X509 cert info
 
         # urf. compensate for bad input.
         if port == 0:
             port = None
-        self._setup(self._connection_class(host, port, strict, dbdir=dbdir))
+        self._setup(self._connection_class(host, port, strict, dbdir=dbdir, no_init=no_init))
 
     def getreply(self):
         """
