@@ -319,6 +319,7 @@ IPA.cert.view_dialog = function(spec) {
 
     that.subject = IPA.cert.parse_dn(spec.subject);
     that.serial_number = spec.serial_number || '';
+    that.serial_number_hex = spec.serial_number_hex || '';
     that.issuer = IPA.cert.parse_dn(spec.issuer);
     that.issued_on = spec.issued_on || '';
     that.expires_on = spec.expires_on || '';
@@ -365,6 +366,12 @@ IPA.cert.view_dialog = function(spec) {
         $('<td>'+IPA.messages.objects.cert.serial_number+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.serial_number
+        }).appendTo(tr);
+
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.serial_number_hex+':</td>').appendTo(tr);
+        $('<td/>', {
+            text: that.serial_number_hex
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
@@ -785,6 +792,7 @@ IPA.cert.status_widget = function(spec) {
             'title': title,
             'subject': result['subject'],
             'serial_number': result['serial_number'],
+            'serial_number_hex': result['serial_number_hex'],
             'issuer': result['issuer'],
             'issued_on': result['valid_not_before'],
             'expires_on': result['valid_not_after'],

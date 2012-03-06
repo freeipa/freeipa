@@ -96,6 +96,9 @@ output_params = (
     Str('serial_number',
         label=_('Serial Number'),
     ),
+    Str('serial_number_hex',
+        label=_('Serial Number (hex)'),
+    ),
     Str('issuer',
         label=_('Issuer'),
     ),
@@ -190,6 +193,7 @@ def set_certificate_attrs(entry_attrs):
     cert = x509.load_certificate(cert, datatype=x509.DER)
     entry_attrs['subject'] = unicode(cert.subject)
     entry_attrs['serial_number'] = unicode(cert.serial_number)
+    entry_attrs['serial_number_hex'] = u'0x%X' % cert.serial_number
     entry_attrs['issuer'] = unicode(cert.issuer)
     entry_attrs['valid_not_before'] = unicode(cert.valid_not_before_str)
     entry_attrs['valid_not_after'] = unicode(cert.valid_not_after_str)

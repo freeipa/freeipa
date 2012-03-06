@@ -609,6 +609,7 @@ def parse_profile_submit_result_xml(doc):
         if len(serial_number) == 1:
             serial_number = int(serial_number[0].text, 16) # parse as hex
             response_request['serial_number'] = serial_number
+            response['serial_number_hex'] = u'0x%X' % serial_number
 
         certificate = request.xpath('b64[1]')
         if len(certificate) == 1:
@@ -834,6 +835,7 @@ def parse_display_cert_xml(doc):
     if len(serial_number) == 1:
         serial_number = int(serial_number[0].text, 16) # parse as hex
         response['serial_number'] = serial_number
+        response['serial_number_hex'] = u'0x%X' % serial_number
 
     pkcs7_chain = doc.xpath('//xml/header/pkcs7ChainBase64[1]')
     if len(pkcs7_chain) == 1:
@@ -1026,6 +1028,7 @@ def parse_revoke_cert_xml(doc):
         if len(serial_number) == 1:
             serial_number = int(serial_number[0].text, 16) # parse as hex
             response_record['serial_number'] = serial_number
+            response['serial_number_hex'] = u'0x%X' % serial_number
 
         error_string = record.xpath('error[1]')
         if len(error_string) == 1:
@@ -1187,6 +1190,7 @@ def parse_unrevoke_cert_xml(doc):
     if len(serial_number) == 1:
         serial_number = int(serial_number[0].text, 16) # parse as hex
         response['serial_number'] = serial_number
+        response['serial_number_hex'] = u'0x%X' % serial_number
 
     return response
 
@@ -1471,6 +1475,7 @@ class ra(rabase.rabase):
         if parse_result.has_key('serial_number'):
             # see module documentation concerning serial numbers and XMLRPC
             cmd_result['serial_number'] = unicode(parse_result['serial_number'])
+            cmd_result['serial_number_hex'] = u'0x%X' % int(cmd_result['serial_number'])
 
         if parse_result.has_key('revocation_reason'):
             cmd_result['revocation_reason'] = parse_result['revocation_reason']
@@ -1539,6 +1544,7 @@ class ra(rabase.rabase):
         if request.has_key('serial_number'):
             # see module documentation concerning serial numbers and XMLRPC
             cmd_result['serial_number'] = unicode(request['serial_number'])
+            cmd_result['serial_number_hex'] = u'0x%X' % request['serial_number']
 
         if request.has_key('certificate'):
             cmd_result['certificate'] = request['certificate']
