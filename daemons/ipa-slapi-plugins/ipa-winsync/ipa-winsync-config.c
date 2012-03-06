@@ -58,6 +58,7 @@
 #include <dirsrv/winsync-plugin.h>
 #endif
 #include "ipa-winsync.h"
+#include "util.h"
 
 #include "plstr.h"
 
@@ -173,6 +174,72 @@ parse_acct_disable(const char *theval)
     }
 
     return retval;
+}
+
+/*
+ * Check if User Private Groups are enabled in given IPA domain
+ * Returns: 0 - UPG are enabled
+ *          1 - UPG are disabled
+ *         -1 - some sort of error
+ */
+static int
+ipa_winsync_upg_enabled(const Slapi_DN *ds_subtree)
+{
+    int ret = -1;
+    int rc;
+    char * dn = NULL;
+    Slapi_Entry *entry = NULL;
+    Slapi_Backend *be;
+    const Slapi_DN *ds_suffix = NULL;
+    Slapi_DN *sdn = NULL;
+    const char *attrs_list[] = {IPA_WINSYNC_UPG_DEF_ATTR, 0};
+    char * value = NULL;
+
+    /* find ancestor base DN */
+    be = slapi_be_select(ds_subtree);
+    ds_suffix = slapi_be_getsuffix(be, 0);
+    if (ds_suffix == NULL) {
+        LOG_FATAL("Invalid DS subtree [%s]\n", slapi_sdn_get_dn(ds_subtree));
+        goto done;
+    }
+
+    dn = slapi_ch_smprintf(IPA_WINSYNC_UPG_DEF_DN, slapi_sdn_get_dn(ds_suffix));
+
+    if (!dn) {
+        LOG_OOM();
+        goto done;
+    }
+
+    sdn = slapi_sdn_new_dn_byref(dn);
+    rc = slapi_search_internal_get_entry(sdn, (char **) attrs_list, &entry,
+                                         ipa_winsync_get_plugin_identity());
+
+    if (rc) {
+        LOG("failed to retrieve UPG definition (%s) with rc %d\n", dn, rc);
+        goto done;
+    }
+
+    value = slapi_entry_attr_get_charptr(entry, IPA_WINSYNC_UPG_DEF_ATTR);
+
+    if (!value) {
+        LOG("failed to read %s from UPG definition (%s)\n",
+             IPA_WINSYNC_UPG_DEF_ATTR, dn);
+        goto done;
+    }
+
+    if (strstr(value, IPA_WINSYNC_UPG_DEF_DISABLED) == NULL) {
+        ret = 0;
+    } else {
+        ret = 1;
+    }
+
+done:
+    slapi_ch_free_string(&dn);
+    slapi_sdn_free(&sdn);
+    slapi_ch_free_string(&value);
+    slapi_entry_free(entry);
+
+    return ret;
 }
 
 /*
@@ -792,6 +859,7 @@ ipa_winsync_config_refresh_domain(
     char *activated_filter = NULL;
     char *inactivated_group_dn = NULL;
     char *activated_group_dn = NULL;
+    int upg = -1;
 
     slapi_lock_mutex(theConfig.lock);
     realm_filter = slapi_ch_strdup(theConfig.realm_filter);
@@ -908,6 +976,9 @@ ipa_winsync_config_refresh_domain(
         goto out;
     }
 
+    /* check if User Private Groups are enabled */
+    upg = ipa_winsync_upg_enabled(ds_subtree);
+
     /* next, find the group whose name is default_group_name - construct the filter
        based on the filter attribute value - assumes the group name is stored
        in the cn attribute value, and the gidNumber in the gidNumber attribute value */
@@ -917,11 +988,17 @@ ipa_winsync_config_refresh_domain(
                                            real_group_filter, "gidNumber",
                                            NULL, &default_gid);
     if (!default_gid) {
-        /* error - could not find the default gidNumber */
-        LOG_FATAL("Error: could not find the entry containing the default gidNumber "
-                  "ds subtree [%s] filter [%s] attr [%s]\n",
-                  slapi_sdn_get_dn(ds_subtree), new_entry_filter, "gidNumber");
-        goto out;
+        /* error - could not find the default gidNumber
+           This is not a fatal error if User Private Groups (UPG) are enabled.
+         */
+        if (upg) {
+            LOG_FATAL("Error: could not find the entry containing the default gidNumber "
+                      "UPG [%d] ds subtree [%s] filter [%s] attr [%s]\n",
+                      ret, slapi_sdn_get_dn(ds_subtree), new_entry_filter, "gidNumber");
+            goto out;
+        } else {
+            ret = LDAP_SUCCESS;
+        }
     }
 
     /* If we are syncing account disable, we need to find the groups used
@@ -973,13 +1050,10 @@ ipa_winsync_config_refresh_domain(
     /* this copies new_user_objclasses */
     slapi_entry_add_valueset(iwdc->domain_e, "objectclass", new_user_objclasses);
 
-    /* set the default gid number */
-    sv = slapi_value_new_string_passin(default_gid);
-    default_gid = NULL; /* passin owns the memory */
-    if (!slapi_entry_attr_has_syntax_value(iwdc->domain_e, "gidNumber", sv)) {
-        slapi_entry_add_value(iwdc->domain_e,  "gidNumber", sv);
+    /* When UPG is disabled, set the default gid number */
+    if (upg && default_gid) {
+        slapi_entry_attr_set_charptr(iwdc->domain_e,  "gidNumber", default_gid);
     }
-    slapi_value_free(&sv);
 
     slapi_ch_free_string(&iwdc->inactivated_group_dn);
     iwdc->inactivated_group_dn = inactivated_group_dn;

@@ -167,4 +167,10 @@ enum {
    with the same value for samAccountName will be synced
 */
 #define IPA_WINSYNC_FORCE_SYNC "ipaWinSyncForceSync"
+
+/* Path to UPG configuration */
+#define IPA_WINSYNC_UPG_DEF_DN "cn=UPG Definition,cn=Definitions,cn=Managed Entries,cn=etc,%s"
+#define IPA_WINSYNC_UPG_DEF_ATTR "originfilter"
+#define IPA_WINSYNC_UPG_DEF_DISABLED "(objectclass=disable)"
+
 #endif /* IPA_WINSYNC_H */
