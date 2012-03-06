@@ -456,12 +456,12 @@ def main():
     service.print_msg("Restarting the KDC")
     krb.restart()
 
+    if options.setup_dns:
+        install_bind(config, options)
+
     # Restart httpd to pick up the new IPA configuration
     service.print_msg("Restarting the web server")
     http.restart()
-
-    if options.setup_dns:
-        install_bind(config, options)
 
     # Call client install script
     try:

@@ -22,7 +22,7 @@
 import traceback
 
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.install import bindinstance, ntpinstance
+from ipaserver.install import service, bindinstance, ntpinstance, httpinstance
 from ipaserver.install.installutils import *
 from ipaserver.install import installutils
 from ipapython import version
@@ -223,6 +223,11 @@ def main():
                zone_notif=options.zone_notif)
     bind.create_instance()
 
+    # Restart http instance to make sure acutil has the right resolver
+    # https://bugzilla.redhat.com/show_bug.cgi?id=800368
+    http = httpinstance.HTTPInstance(fstore)
+    service.print_msg("Restarting the web server")
+    http.restart()
 
     print "=============================================================================="
     print "Setup complete"
