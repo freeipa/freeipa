@@ -313,6 +313,7 @@ class i18n_messages(Command):
                 "revoke_confirmation": _("To confirm your intention to revoke this certificate, select a reason from the pull-down list, and click the \"Revoke\" button."),
                 "revoked": _("Certificate Revoked"),
                 "serial_number": _("Serial Number"),
+                "serial_number_hex": _("Serial Number (hex)"),
                 "sha1_fingerprint": _("SHA1 Fingerprint"),
                 "superseded": _("Superseded"),
                 "unspecified": _("Unspecified"),

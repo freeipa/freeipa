@@ -26,6 +26,7 @@ from ipalib import api, errors, x509
 from ipalib.dn import *
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_digits
 from tests.test_xmlrpc.xmlrpc_test import fuzzy_hash, fuzzy_date, fuzzy_issuer
+from tests.test_xmlrpc.xmlrpc_test import fuzzy_hex
 from tests.test_xmlrpc import objectclasses
 import base64
 
@@ -253,6 +254,7 @@ class test_host(Declarative):
                     subject=lambda x: DN(x) == \
                         DN(('CN',api.env.host),('O',api.env.realm)),
                     serial_number=fuzzy_digits,
+                    serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
                     issuer=fuzzy_issuer,
@@ -284,6 +286,7 @@ class test_host(Declarative):
                     subject=lambda x: DN(x) == \
                         DN(('CN',api.env.host),('O',api.env.realm)),
                     serial_number=fuzzy_digits,
+                    serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
                     issuer=fuzzy_issuer,
@@ -482,6 +485,7 @@ class test_host(Declarative):
                     subject=lambda x: DN(x) == \
                         DN(('CN',api.env.host),('O',api.env.realm)),
                     serial_number=fuzzy_digits,
+                    serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
                     macaddress=[u'00:50:56:30:F6:5F'],
@@ -511,6 +515,7 @@ class test_host(Declarative):
                     subject=lambda x: DN(x) == \
                         DN(('CN',api.env.host),('O',api.env.realm)),
                     serial_number=fuzzy_digits,
+                    serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
                     macaddress=[u'00:50:56:30:F6:5F', u'00:50:56:2C:8D:82'],

@@ -53,6 +53,8 @@ fuzzy_date = Fuzzy('^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$'
 
 fuzzy_issuer = Fuzzy(type=basestring, test=lambda issuer: valid_issuer(issuer, api.env.realm))
 
+fuzzy_hex = Fuzzy('^0x[0-9a-fA-F]+$', type=basestring)
+
 # Matches password - password consists of all printable characters without whitespaces
 # The only exception is space, but space cannot be at the beggingin or end of the pwd
 fuzzy_password = Fuzzy('^\S([\S ]*\S)*$')

@@ -221,6 +221,7 @@ class ra(rabase.rabase):
 
         cmd_result = {}
         cmd_result['serial_number'] = unicode(serial) # convert long to decimal unicode string
+        cmd_result['serial_number_hex'] = u'0x%X' % serial
         cmd_result['certificate']   = unicode(cert)
         cmd_result['subject']       = unicode(subject)
 
