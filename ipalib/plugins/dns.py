@@ -348,6 +348,24 @@ def _dns_record_name_validator(ugettext, value):
     except ValueError, e:
         return unicode(e)
 
+def _validate_bind_forwarder(ugettext, forwarder):
+    ip_address, sep, port = forwarder.partition(u' port ')
+
+    ip_address_validation = _validate_ipaddr(ugettext, ip_address)
+
+    if ip_address_validation is not None:
+        return ip_address_validation
+
+    if sep:
+        try:
+            port = int(port)
+            if port < 0 or port > 65535:
+                raise ValueError()
+        except ValueError:
+            return _('%(port)s is not a valid port' % dict(port=port))
+
+    return None
+
 def _domain_name_validator(ugettext, value):
     try:
         validate_domain_name(value)
@@ -1614,10 +1632,11 @@ class dnszone(LDAPObject):
             autofill=True,
         ),
         Str('idnsforwarders*',
-            _validate_ipaddr,
+            _validate_bind_forwarder,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('A list of zone forwarders'),
+            doc=_('A list of global forwarders. A custom port can be specified ' \
+                  'for each forwarder using a standard format "IP_ADDRESS port PORT"'),
             csv=True,
         ),
         StrEnum('idnsforwardpolicy?',
@@ -2628,10 +2647,11 @@ class dnsconfig(LDAPObject):
 
     takes_params = (
         Str('idnsforwarders*',
-            _validate_ipaddr,
+            _validate_bind_forwarder,
             cli_name='forwarder',
             label=_('Global forwarders'),
-            doc=_('A list of global forwarders'),
+            doc=_('A list of global forwarders. A custom port can be specified ' \
+                  'for each forwarder using a standard format "IP_ADDRESS port PORT"'),
             csv=True,
         ),
     )

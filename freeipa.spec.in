@@ -159,8 +159,8 @@ Requires(postun): python initscripts chkconfig
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
 # that work for us.
-Conflicts: bind-dyndb-ldap < 1.1.0-0.8.a2
-Conflicts: bind < 9.8.1-1
+Conflicts: bind-dyndb-ldap < 1.1.0-0.9.b1
+Conflicts: bind < 9.8.2-0.4.rc2
 
 # mod_proxy provides a single API to communicate over SSL. If mod_ssl
 # is even loaded into Apache then it grabs this interface.
@@ -678,6 +678,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+
+* Wed Mar 19 2012 Martin Kosek <mkosek@redhat.com> - 2.2.0-16
+- Set min for bind-dyndb-ldap and bind to pick up new features and bug fixes
 
 * Thu Mar 1 2012 Jan Cholasta <jcholast@redhat.com> - 2.2.0-15
 - Set min nvr of sssd to 1.8.0 for SSH support
