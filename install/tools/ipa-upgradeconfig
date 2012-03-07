@@ -31,6 +31,8 @@ try:
     from ipaserver.install import httpinstance
     from ipaserver.install import memcacheinstance
     from ipaserver.install import service
+    from ipaserver.install import cainstance
+    from ipaserver.install import certs
     import ldap
     import krbV
     import re
@@ -233,6 +235,15 @@ def cleanup_kdc():
         if fstore.has_file(filename):
             fstore.untrack_file(filename)
 
+def upgrade_ipa_profile(realm):
+    """
+    Update the IPA Profile provided by dogtag
+    """
+    ca = cainstance.CAInstance(realm, certs.NSS_DIR)
+    if ca.is_configured():
+        if ca.enable_subject_key_identifier():
+            ca.restart()
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -284,6 +295,8 @@ def main():
         pass
 
     cleanup_kdc()
+    upgrade_ipa_profile(krbctx.default_realm)
+
 try:
     if __name__ == "__main__":
         sys.exit(main())
