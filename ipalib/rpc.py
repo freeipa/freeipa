@@ -229,7 +229,8 @@ class SSLTransport(LanguageAwareTransport):
                 continue
             if not isinstance(value.conn._ServerProxy__transport, SSLTransport):
                 continue
-            if value.conn._ServerProxy__transport.dbdir == dbdir:
+            if hasattr(value.conn._ServerProxy__transport, 'dbdir') and \
+              value.conn._ServerProxy__transport.dbdir == dbdir:
                 return True
         return False
 
@@ -241,13 +242,14 @@ class SSLTransport(LanguageAwareTransport):
         # If we an existing connection exists using the same NSS database
         # there is no need to re-initialize. Pass thsi into the NSS
         # connection creator.
-        self.dbdir='/etc/pki/nssdb'
-        no_init = self.__nss_initialized(self.dbdir)
+        dbdir = '/etc/pki/nssdb'
+        no_init = self.__nss_initialized(dbdir)
         (major, minor, micro, releaselevel, serial) = sys.version_info
         if major == 2 and minor < 7:
-            conn = NSSHTTPS(host, 443, dbdir=self.dbdir, no_init=no_init)
+            conn = NSSHTTPS(host, 443, dbdir=dbdir, no_init=no_init)
         else:
-            conn = NSSConnection(host, 443, dbdir=self.dbdir, no_init=no_init)
+            conn = NSSConnection(host, 443, dbdir=dbdir, no_init=no_init)
+        self.dbdir=dbdir
         conn.connect()
         return conn
 
