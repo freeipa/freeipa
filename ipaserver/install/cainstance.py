@@ -72,6 +72,7 @@ EE_CLIENT_AUTH_PORT=9446
 UNSECURE_PORT=9180
 TOMCAT_SERVER_PORT=9701
 
+IPA_SERVICE_PROFILE = '/var/lib/%s/profiles/ca/caIPAserviceCert.cfg' % PKI_INSTANCE_NAME
 
 # We need to reset the template because the CA uses the regular boot
 # information
@@ -520,6 +521,7 @@ class CAInstance(service.Service):
             self.step("setting up signing cert profile", self.__setup_sign_profile)
             self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("set certificate subject base", self.__set_subject_in_config)
+            self.step("enabling Subject Key Identifier", self.enable_subject_key_identifier)
             self.step("configuring certificate server to start on boot", self.__enable)
             if not self.clone:
                 self.step("restarting certificate server", self.__restart_instance)
@@ -1030,14 +1032,17 @@ class CAInstance(service.Service):
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
 
         # Fix the CRL URI in the profile
-        installutils.set_directive('/var/lib/%s/profiles/ca/caIPAserviceCert.cfg' % PKI_INSTANCE_NAME, 'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0', 'https://%s/ipa/crl/MasterCRL.bin' % ipautil.format_netloc(self.fqdn), quotes=False, separator='=')
+        installutils.set_directive(IPA_SERVICE_PROFILE,
+            'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0',
+            'https://%s/ipa/crl/MasterCRL.bin' % ipautil.format_netloc(self.fqdn),
+            quotes=False, separator='=')
 
         ipaservices.restore_context(publishdir)
 
     def __set_subject_in_config(self):
         # dogtag ships with an IPA-specific profile that forces a subject
         # format. We need to update that template with our base subject
-        if installutils.update_file("/var/lib/%s/profiles/ca/caIPAserviceCert.cfg" % PKI_INSTANCE_NAME, 'OU=pki-ipa, O=IPA', self.subject_base):
+        if installutils.update_file(IPA_SERVICE_PROFILE, 'OU=pki-ipa, O=IPA', self.subject_base):
             print "Updating subject_base in CA template failed"
 
     def uninstall(self):
@@ -1071,6 +1076,44 @@ class CAInstance(service.Service):
         shutil.copy(ipautil.SHARE_DIR + "ipa-pki-proxy.conf",
                     HTTPD_CONFD + "ipa-pki-proxy.conf")
 
+    def enable_subject_key_identifier(self):
+        """
+        See if Subject Key Identifier is set in the profile and if not, add it.
+        """
+        setlist = installutils.get_directive(IPA_SERVICE_PROFILE,
+            'policyset.serverCertSet.list', separator='=')
+
+        # this is the default setting from pki-ca. Don't touch it if a user
+        # has manually modified it.
+        if setlist == '1,2,3,4,5,6,7,8':
+            installutils.set_directive(IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.list',
+                '1,2,3,4,5,6,7,8,10',
+                quotes=False, separator='=')
+            installutils.set_directive(IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.10.constraint.class_id',
+                'noConstraintImpl',
+                quotes=False, separator='=')
+            installutils.set_directive(IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.10.constraint.name',
+                'No Constraint',
+                quotes=False, separator='=')
+            installutils.set_directive(IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.10.default.class_id',
+                'subjectKeyIdentifierExtDefaultImpl',
+                quotes=False, separator='=')
+            installutils.set_directive(IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.10.default.name',
+                'Subject Key Identifier Extension Default',
+                quotes=False, separator='=')
+            installutils.set_directive(IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.10.default.params.critical',
+                'false',
+                quotes=False, separator='=')
+            return True
+
+        # No update was done
+        return False
 
 def install_replica_ca(config, postinstall=False):
     """
