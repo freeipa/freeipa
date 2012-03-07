@@ -43,10 +43,21 @@ IPA.dns.config_entity = function(spec) {
                     label: IPA.messages.objects.dnsconfig.options,
                     fields: [
                         {
+                            type: 'checkbox',
+                            name: 'idnsallowsyncptr'
+                        },
+                        {
                             type: 'multivalued',
                             name: 'idnsforwarders',
                             validators: [IPA.ip_address_validator()]
-                        }
+                        },
+                        {
+                            type: 'checkboxes',
+                            name: 'idnsforwardpolicy',
+                            mutex: true,
+                            options: IPA.create_options(['only', 'first'])
+                        },
+                        'idnszonerefresh'
                     ]
                 }
             ],

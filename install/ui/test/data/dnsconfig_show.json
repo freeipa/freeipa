@@ -18,8 +18,17 @@
                 "dns"
             ],
             "dn": "cn=dns,dc=dev,dc=example,dc=com",
+            "idnsallowsyncptr": [
+                "FALSE"
+            ],
             "idnsforwarders": [
                 "2001:beef::1"
+            ],
+            "idnsforwardpolicy": [
+                "first"
+            ],
+            "idnszonerefresh": [
+                "20"
             ],
             "objectclass": [
                 "idnsConfigObject",
