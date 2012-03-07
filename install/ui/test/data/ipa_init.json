@@ -452,6 +452,7 @@
                             "max_value": "Maximum value is ${value}",
                             "min_value": "Minimum value is ${value}",
                             "net_address": "Not a valid network address",
+                            "port": "'${port}' is not a valid port",
                             "required": "Required field",
                             "unsupported": "Unsupported value"
                         }

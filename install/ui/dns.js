@@ -49,7 +49,7 @@ IPA.dns.config_entity = function(spec) {
                         {
                             type: 'multivalued',
                             name: 'idnsforwarders',
-                            validators: [IPA.ip_address_validator()]
+                            validators: [IPA.dnsforwarder_validator()]
                         },
                         {
                             type: 'checkboxes',
@@ -167,7 +167,7 @@ IPA.dns.zone_entity = function(spec) {
                     {
                         type: 'multivalued',
                         name: 'idnsforwarders',
-                        validators: [IPA.ip_address_validator()]
+                        validators: [IPA.dnsforwarder_validator()]
                     },
                     {
                         type: 'checkboxes',
@@ -2170,7 +2170,6 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
     return that;
 };
 
-
 IPA.ip_address_validator = function(spec) {
 
     spec = spec || {};
@@ -2202,6 +2201,8 @@ IPA.ip_address_validator = function(spec) {
                 (that.address_type === 'IPv6' && net_type === 'v6'));
     };
 
+    that.ip_address_validate = that.validate;
+
     return that;
 };
 
@@ -2219,6 +2220,36 @@ IPA.ip_v6_address_validator = function(spec) {
     spec.address_type = 'IPv6';
     spec.message = IPA.messages.widget.validation.ip_v6_address;
     return IPA.ip_address_validator(spec);
+};
+
+IPA.dnsforwarder_validator = function(spec) {
+
+    spec = spec || {};
+    var that = IPA.ip_address_validator(spec);
+
+    that.validate = function(value) {
+
+        var address_part = value;
+
+        if (value.indexOf(' ') > - 1) {
+            var parts = value.split(' ');
+
+            if (parts.length !== 3 || parts[1] !== 'port') return that.false_result();
+
+            address_part = parts[0];
+            var port = parts[2];
+
+            if (!port.match(/^[1-9]\d*$|^0$/) || port < 0 || port > 65535) {
+                var message = IPA.messages.widget.validation.port;
+                message = message.replace('${port}', port);
+                return that.false_result(message);
+            }
+        }
+
+        return that.ip_address_validate(address_part);
+    };
+
+    return that;
 };
 
 IPA.network_validator = function(spec) {
