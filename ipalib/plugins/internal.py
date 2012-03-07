@@ -591,6 +591,7 @@ class i18n_messages(Command):
                 "max_value": _("Maximum value is ${value}"),
                 "min_value": _("Minimum value is ${value}"),
                 "net_address": _("Not a valid network address"),
+                "port": _("'${port}' is not a valid port"),
                 "required": _("Required field"),
                 "unsupported": _("Unsupported value"),
             },
