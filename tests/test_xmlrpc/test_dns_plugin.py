@@ -66,7 +66,11 @@ class test_dns(Declarative):
         ('dnsrecord_del', [dnszone1, dnsres1], {'del_all' : True}),
         ('dnszone_del', [dnszone2], {}),
         ('dnszone_del', [revdnszone1], {}),
-        ('dnsconfig_mod', [], {'idnsforwarders' : None,})
+        ('dnsconfig_mod', [], {'idnsforwarders' : None,
+                               'idnsforwardpolicy' : None,
+                               'idnsallowsyncptr' : None,
+                               'idnszonerefresh' : None,
+                               })
     ]
 
     tests = [

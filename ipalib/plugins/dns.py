@@ -2640,7 +2640,10 @@ class dnsconfig(LDAPObject):
     DNS global configuration object
     """
     object_name = _('DNS configuration options')
-    default_attributes = [ 'idnsforwarders', ]
+    default_attributes = [
+        'idnsforwardpolicy', 'idnsforwarders', 'idnsallowsyncptr',
+        'idnszonerefresh'
+    ]
 
     label = _('DNS Global Configuration')
     label_singular = _('DNS Global Configuration')
@@ -2653,6 +2656,22 @@ class dnsconfig(LDAPObject):
             doc=_('A list of global forwarders. A custom port can be specified ' \
                   'for each forwarder using a standard format "IP_ADDRESS port PORT"'),
             csv=True,
+        ),
+        StrEnum('idnsforwardpolicy?',
+            cli_name='forward_policy',
+            label=_('Forward policy'),
+            values=(u'only', u'first',),
+        ),
+        Bool('idnsallowsyncptr?',
+            cli_name='allow_sync_ptr',
+            label=_('Allow PTR sync'),
+            doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records'),
+        ),
+        Int('idnszonerefresh?',
+            cli_name='zone_refresh',
+            label=_('Zone refresh interval'),
+            doc=_('An interval between regular polls of the name server for new DNS zones'),
+            minvalue=0,
         ),
     )
 
