@@ -2231,7 +2231,7 @@ IPA.network_validator = function(spec) {
             return that.true_result();
         }
 
-        var address_part, mask_part;
+        var address_part, mask;
 
         if (value.indexOf('/') > -1) {
 
@@ -2239,9 +2239,9 @@ IPA.network_validator = function(spec) {
 
             if (parts.length === 2) {
                 address_part = parts[0];
-                mask_part = parts[1];
+                mask = parts[1];
 
-                if (mask_part === '') return that.false_result();
+                if (mask === '') return that.false_result();
 
             } else {
                 return that.false_result();
@@ -2260,14 +2260,12 @@ IPA.network_validator = function(spec) {
         var address = NET.ip_address(address_part);
         if (!address.valid) return that.false_result();
 
-        if (mask_part) {
-
-            var mask = parseInt(mask_part, 10);
+        if (mask) {
 
             var mask_length = 32;
             if (address.type === 'v6') mask_length = 128;
 
-            if (isNaN(mask) || mask < 8 || mask > mask_length) {
+            if (!mask.match(/^[1-9]\d*$/) || mask < 8 || mask > mask_length) {
                 return that.false_result();
             }
         }
