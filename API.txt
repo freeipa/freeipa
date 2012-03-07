@@ -611,8 +611,11 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dnsconfig_mod
-args: 0,8,3
+args: 0,11,3
 option: Str('idnsforwarders', attribute=True, autofill=False, cli_name='forwarder', csv=True, multivalue=True, required=False)
+option: StrEnum('idnsforwardpolicy', attribute=True, autofill=False, cli_name='forward_policy', multivalue=False, required=False, values=(u'only', u'first'))
+option: Bool('idnsallowsyncptr', attribute=True, autofill=False, cli_name='allow_sync_ptr', multivalue=False, required=False)
+option: Int('idnszonerefresh', attribute=True, autofill=False, cli_name='zone_refresh', minvalue=0, multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
