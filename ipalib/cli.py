@@ -574,7 +574,7 @@ class textui(backend.Backend):
             prompt = u'%s Yes/No: ' % label
 
         while True:
-            data = self.prompt_helper(prompt, label)
+            data = self.prompt_helper(prompt, label).lower() #pylint: disable=E1103
 
             if data in (u'yes', u'y'):
                 return True
