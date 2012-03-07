@@ -37,10 +37,11 @@ HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
 NSS_CONF = HTTPD_DIR + "/conf.d/nss.conf"
 
-selinux_warning = """WARNING: could not set selinux boolean httpd_can_network_connect to true.
-The web interface may not function correctly until this boolean is
-successfully change with the command:
-   /usr/sbin/setsebool -P httpd_can_network_connect true
+selinux_warning = """
+WARNING: could not set selinux boolean(s) %(var)s to true.  The web
+interface may not function correctly until this boolean is successfully
+change with the command:
+   /usr/sbin/setsebool -P %(var)s true
 Try updating the policycoreutils and selinux-policy packages.
 """
 
@@ -103,30 +104,35 @@ class HTTPInstance(service.Service):
         self.ldap_enable('HTTP', self.fqdn, self.dm_password, self.suffix)
 
     def __selinux_config(self):
-        selinux=0
+        selinux = False
         try:
             if (os.path.exists('/usr/sbin/selinuxenabled')):
                 ipautil.run(["/usr/sbin/selinuxenabled"])
-                selinux=1
+                selinux = True
         except ipautil.CalledProcessError:
             # selinuxenabled returns 1 if not enabled
             pass
 
         if selinux:
-            try:
-                # returns e.g. "httpd_can_network_connect --> off"
-                (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/getsebool",
-                                                "httpd_can_network_connect"])
-                self.backup_state("httpd_can_network_connect", stdout.split()[2])
-            except:
-                pass
+            # Don't assume all vars are available
+            vars = []
+            for var in ["httpd_can_network_connect", "httpd_manage_ipa"]:
+                try:
+                    (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/getsebool", var])
+                    self.backup_state(var, stdout.split()[2])
+                    vars.append(var)
+                except:
+                    pass
 
-            # Allow apache to connect to the turbogears web gui
-            # This can still fail even if selinux is enabled
-            try:
-                ipautil.run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
-            except:
-                self.print_msg(selinux_warning)
+            # Allow apache to connect to the dogtag UI and the session cache
+            # This can still fail even if selinux is enabled. Execute these
+            # together so it is speedier.
+            if vars:
+                bools = [var + "=true" for var in vars]
+                try:
+                    ipautil.run(["/usr/sbin/setsebool", "-P", ' '.join(bools)])
+                except:
+                    self.print_msg(selinux_warning % dict(var=','.join(vars)))
 
     def __create_http_keytab(self):
         installutils.kadmin_addprinc(self.principal)
@@ -293,12 +299,13 @@ class HTTPInstance(service.Service):
         installutils.remove_file("/etc/httpd/conf.d/ipa.conf")
         installutils.remove_file("/etc/httpd/conf.d/ipa-pki-proxy.conf")
 
-        sebool_state = self.restore_state("httpd_can_network_connect")
-        if not sebool_state is None:
-            try:
-                ipautil.run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", sebool_state])
-            except:
-                self.print_msg(selinux_warning)
+        for var in ["httpd_can_network_connect", "httpd_manage_ipa"]:
+            sebool_state = self.restore_state(var)
+            if not sebool_state is None:
+                try:
+                    ipautil.run(["/usr/sbin/setsebool", "-P", var, sebool_state])
+                except:
+                    self.print_msg(selinux_warning % dict(var=var))
 
         if not running is None and running:
             self.start()
