@@ -1615,6 +1615,7 @@ IPA.table_widget = function (spec) {
 
         if (!select_set) {
             value = record[that.value_attr_name];
+            value = value ? value.toString() : '';
             $('input[name="'+that.name+'"]', tr).val(value);
         }
 
