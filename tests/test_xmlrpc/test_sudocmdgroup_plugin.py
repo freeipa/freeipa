@@ -22,12 +22,13 @@ Test the `ipalib/plugins/sudocmdgroup.py` module.
 
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_sudocmddn
 from ipapython.dn import DN
 
 sudocmdgroup1 = u'testsudocmdgroup1'
 sudocmdgroup2 = u'testsudocmdgroup2'
 sudocmd1 = u'/usr/bin/sudotestcmd1'
+sudocmd1_camelcase = u'/usr/bin/sudoTestCmd1'
 sudocmd_plus = u'/bin/ls -l /lost+found/*'
 
 def create_command(sudocmd):
@@ -43,10 +44,8 @@ def create_command(sudocmd):
             result=dict(
                 objectclass=objectclasses.sudocmd,
                 sudocmd=[sudocmd],
-                ipauniqueid=[fuzzy_uuid],
-                description=[u'Test sudo command'],
-                dn=DN(('sudocmd',sudocmd),('cn','sudocmds'),('cn','sudo'),
-                      api.env.basedn),
+                ipauniqueid=[fuzzy_uuid], description=[u'Test sudo command'],
+                dn=fuzzy_sudocmddn,
             ),
         ),
     )
@@ -56,6 +55,7 @@ class test_sudocmdgroup(Declarative):
         ('sudocmdgroup_del', [sudocmdgroup1], {}),
         ('sudocmdgroup_del', [sudocmdgroup2], {}),
         ('sudocmd_del', [sudocmd1], {}),
+        ('sudocmd_del', [sudocmd1_camelcase], {}),
         ('sudocmd_del', [sudocmd_plus], {}),
     ]
 
@@ -76,12 +76,28 @@ class test_sudocmdgroup(Declarative):
                     sudocmd=[u'/usr/bin/sudotestcmd1'],
                     ipauniqueid=[fuzzy_uuid],
                     description=[u'Test sudo command 1'],
-                    dn=DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
-                          api.env.basedn),
+                    dn=fuzzy_sudocmddn,
                 ),
             ),
         ),
 
+        dict(
+            desc='Create %r' % sudocmd1_camelcase,
+            command=(
+                'sudocmd_add', [], dict(sudocmd=sudocmd1_camelcase, description=u'Test sudo command 2')
+            ),
+            expected=dict(
+                value=sudocmd1_camelcase,
+                summary=u'Added Sudo Command "%s"' % sudocmd1_camelcase,
+                result=dict(
+                    objectclass=objectclasses.sudocmd,
+                    sudocmd=[u'/usr/bin/sudoTestCmd1'],
+                    ipauniqueid=[fuzzy_uuid],
+                    description=[u'Test sudo command 2'],
+                    dn=fuzzy_sudocmddn,
+                ),
+            ),
+        ),
 
         dict(
             desc='Verify the managed sudo command %r was created' % sudocmd1,
@@ -92,8 +108,7 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
-                    dn=DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
-                          api.env.basedn),
+                    dn=fuzzy_sudocmddn,
                 ),
             ),
         ),
@@ -413,11 +428,10 @@ class test_sudocmdgroup(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    dn=DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
-                          api.env.basedn),
+                    dn=fuzzy_sudocmddn,
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
-                    memberof_sudocmdgroup = [u'testsudocmdgroup1'],
+                    memberof_sudocmdgroup=[u'testsudocmdgroup1'],
                 ),
             ),
         ),
@@ -446,6 +460,29 @@ class test_sudocmdgroup(Declarative):
         ),
 
         dict(
+            desc='Add member %r to %r' % (sudocmd1_camelcase, sudocmdgroup1),
+            command=(
+                'sudocmdgroup_add_member', [sudocmdgroup1],
+                dict(sudocmd=sudocmd1_camelcase)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        sudocmd=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
+                        'member_sudocmd': (sudocmd1, sudocmd1_camelcase),
+                        'cn': [sudocmdgroup1],
+                        'description': [u'New desc 1'],
+                },
+            ),
+        ),
+
+        dict(
             desc='Remove member %r from %r' % (sudocmd1, sudocmdgroup1),
             command=('sudocmdgroup_remove_member',
                 [sudocmdgroup1], dict(sudocmd=sudocmd1)
@@ -459,7 +496,29 @@ class test_sudocmdgroup(Declarative):
                 ),
                 result={
                     'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                             ('cn','sudo'),api.env.basedn),
+                           ('cn','sudo'),api.env.basedn),
+                    'member_sudocmd': (sudocmd1_camelcase,),
+                    'cn': [sudocmdgroup1],
+                    'description': [u'New desc 1'],
+                },
+            ),
+        ),
+
+        dict(
+            desc='Remove member %r from %r' % (sudocmd1_camelcase, sudocmdgroup1),
+            command=('sudocmdgroup_remove_member',
+                [sudocmdgroup1], dict(sudocmd=sudocmd1_camelcase)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        sudocmd=tuple(),
+                    ),
+                ),
+                result={
+                    'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                     'cn': [sudocmdgroup1],
                     'description': [u'New desc 1'],
                 },
