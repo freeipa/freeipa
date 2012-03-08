@@ -35,10 +35,10 @@ from ipalib.x509 import valid_issuer
 # or `long`?  If not, we still need to return them as `unicode` instead of `str`.
 fuzzy_digits = Fuzzy('^\d+$', type=basestring)
 
+uuid_re = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
 # Matches an ipauniqueid like u'784d85fd-eae7-11de-9d01-54520012478b'
-fuzzy_uuid = Fuzzy(
-    '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-)
+fuzzy_uuid = Fuzzy('^%s$' % uuid_re)
 
 # Matches trusted domain GUID, like u'463bf2be-3456-4a57-979e-120304f2a0eb'
 fuzzy_guid = fuzzy_uuid
@@ -52,7 +52,12 @@ fuzzy_domain_sid = Fuzzy(
 
 # Matches netgroup dn. Note (?i) at the beginning of the regexp is the ingnore case flag
 fuzzy_netgroupdn = Fuzzy(
-    '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},cn=ng,cn=alt,%s' % api.env.basedn
+    '(?i)ipauniqueid=%s,cn=ng,cn=alt,%s' % (uuid_re, api.env.basedn)
+)
+
+# Matches sudocmd dn
+fuzzy_sudocmddn = Fuzzy(
+    '(?i)ipauniqueid=%s,cn=sudocmds,cn=sudo,%s' % (uuid_re, api.env.basedn)
 )
 
 # Matches a hash signature, not enforcing length

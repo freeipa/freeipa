@@ -21,18 +21,20 @@
 Test the `ipalib/plugins/sudocmd.py` module.
 """
 
-from ipalib import api, errors
-from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
+from ipalib import errors
+from tests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_sudocmddn,
+    fuzzy_uuid)
 from tests.test_xmlrpc import objectclasses
-from ipapython.dn import DN
 
 sudocmd1 = u'/usr/bin/sudotestcmd1'
+sudocmd1_camelcase = u'/usr/bin/sudoTestCmd1'
 
 
 class test_sudocmd(Declarative):
 
     cleanup_commands = [
         ('sudocmd_del', [sudocmd1], {}),
+        ('sudocmd_del', [sudocmd1_camelcase], {}),
     ]
 
     tests = [
@@ -72,10 +74,29 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=u'Added Sudo Command "%s"' % sudocmd1,
                 result=dict(
-                    dn=DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
-                          api.env.basedn),
+                    dn=fuzzy_sudocmddn,
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
+                    objectclass=objectclasses.sudocmd,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % sudocmd1_camelcase,
+            command=('sudocmd_add', [sudocmd1_camelcase],
+                dict(
+                    description=u'Test sudo command 2',
+                ),
+            ),
+            expected=dict(
+                value=sudocmd1_camelcase,
+                summary=u'Added Sudo Command "%s"' % sudocmd1_camelcase,
+                result=dict(
+                    dn=fuzzy_sudocmddn,
+                    sudocmd=[sudocmd1_camelcase],
+                    description=[u'Test sudo command 2'],
                     objectclass=objectclasses.sudocmd,
                     ipauniqueid=[fuzzy_uuid],
                 ),
@@ -94,6 +115,17 @@ class test_sudocmd(Declarative):
                 u'name "%s" already exists' % sudocmd1),
         ),
 
+        dict(
+            desc='Try to create duplicate %r' % sudocmd1_camelcase,
+            command=('sudocmd_add', [sudocmd1_camelcase],
+                dict(
+                    description=u'Test sudo command 2',
+                ),
+            ),
+            expected=errors.DuplicateEntry(message=u'sudo command with ' +
+                u'name "%s" already exists' % sudocmd1_camelcase),
+        ),
+
 
         dict(
             desc='Retrieve %r' % sudocmd1,
@@ -102,8 +134,7 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    dn=DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
-                          api.env.basedn),
+                    dn=fuzzy_sudocmddn,
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
                 ),
@@ -120,10 +151,26 @@ class test_sudocmd(Declarative):
                 summary=u'1 Sudo Command matched',
                 result=[
                     dict(
-                        dn=DN(('sudocmd',sudocmd1),('cn','sudocmds'),
-                              ('cn','sudo'),api.env.basedn),
+                        dn=fuzzy_sudocmddn,
                         sudocmd=[sudocmd1],
                         description=[u'Test sudo command 1'],
+                    ),
+                ],
+            ),
+        ),
+
+        dict(
+            desc='Search for %r' % sudocmd1_camelcase,
+            command=('sudocmd_find', [sudocmd1_camelcase], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 Sudo Command matched',
+                result=[
+                    dict(
+                        dn=fuzzy_sudocmddn,
+                        sudocmd=[sudocmd1_camelcase],
+                        description=[u'Test sudo command 2'],
                     ),
                 ],
             ),
@@ -152,8 +199,7 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    dn=DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
-                          api.env.basedn),
+                    dn=fuzzy_sudocmddn,
                     sudocmd=[sudocmd1],
                     description=[u'Updated sudo command 1'],
                 ),
@@ -193,5 +239,19 @@ class test_sudocmd(Declarative):
             command=('sudocmd_del', [sudocmd1], {}),
             expected=errors.NotFound(
                 reason=u'%s: sudo command not found' % sudocmd1),
+        ),
+
+        dict(
+            desc='Retrieve %r' % sudocmd1_camelcase,
+            command=('sudocmd_show', [sudocmd1_camelcase], {}),
+            expected=dict(
+                value=sudocmd1_camelcase,
+                summary=None,
+                result=dict(
+                    dn=fuzzy_sudocmddn,
+                    sudocmd=[sudocmd1_camelcase],
+                    description=[u'Test sudo command 2'],
+                ),
+            ),
         ),
     ]

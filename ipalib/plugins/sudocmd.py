@@ -62,6 +62,7 @@ class sudocmd(LDAPObject):
         'memberof': ['sudocmdgroup'],
     }
     uuid_attribute = 'ipauniqueid'
+    rdn_attribute = 'ipauniqueid'
     label = _('Sudo Commands')
     label_singular = _('Sudo Command')
 
