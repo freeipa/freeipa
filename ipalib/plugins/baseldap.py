@@ -1744,28 +1744,20 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 relationship = self.obj.relationships.get(
                     attr, ['member', '', 'no_']
                 )
-                param_name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
-                if param_name in options:
-                    dns = []
-                    for pkey in options[param_name]:
-                        dns.append(ldap_obj.get_dn(pkey))
-                    flt = ldap.make_filter_from_attr(
-                        attr, dns, ldap.MATCH_ALL
-                    )
-                    filter = ldap.combine_filters(
-                        (filter, flt), ldap.MATCH_ALL
-                    )
-                param_name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
-                if param_name in options:
-                    dns = []
-                    for pkey in options[param_name]:
-                        dns.append(ldap_obj.get_dn(pkey))
-                    flt = ldap.make_filter_from_attr(
-                        attr, dns, ldap.MATCH_NONE
-                    )
-                    filter = ldap.combine_filters(
-                        (filter, flt), ldap.MATCH_ALL
-                    )
+                # Handle positive (MATCH_ALL) and negative (MATCH_NONE)
+                # searches similarly
+                param_prefixes = relationship[1:]  # e.g. ('in_', 'not_in_')
+                rules = ldap.MATCH_ALL, ldap.MATCH_NONE
+                for param_prefix, rule in zip(param_prefixes, rules):
+                    param_name = '%s%s' % (param_prefix, to_cli(ldap_obj_name))
+                    if options.get(param_name):
+                        dns = []
+                        for pkey in options[param_name]:
+                            dns.append(ldap_obj.get_dn(pkey))
+                        flt = ldap.make_filter_from_attr(attr, dns, rule)
+                        filter = ldap.combine_filters(
+                            (filter, flt), ldap.MATCH_ALL
+                        )
         return filter
 
     has_output_params = global_output_params
