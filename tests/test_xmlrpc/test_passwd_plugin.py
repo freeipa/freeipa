@@ -21,6 +21,9 @@ Test the `ipalib/plugins/passwd.py` module.
 """
 
 import sys
+
+from nose.tools import assert_raises  # pylint: disable=E0611
+
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
@@ -62,9 +65,5 @@ class test_passwd(XMLRPC_test):
         api.Command['user_del'](self.uid)
 
         # Verify that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['user_show'](self.uid)
-        except errors.NotFound:
-            pass
-        else:
-            assert False

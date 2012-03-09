@@ -24,7 +24,8 @@ import os
 import sys
 import ldap
 import nose
-from tests.util import raises, PluginTester
+from nose.tools import raises
+from tests.util import PluginTester
 from tests.data import unicode_str
 from ipalib import api
 from ipalib import errors
@@ -182,20 +183,16 @@ class test_update(object):
 
         assert(modified == True)
 
+    @raises(BadSyntax)
     def test_8_badsyntax(self):
         """
         Test the updater with an unknown keyword
         """
-        try:
-            modified = self.updater.update([self.testdir + "8_badsyntax.update"])
-        except BadSyntax:
-            pass
+        modified = self.updater.update([self.testdir + "8_badsyntax.update"])
 
+    @raises(BadSyntax)
     def test_9_badsyntax(self):
         """
         Test the updater with an incomplete line
         """
-        try:
-            modified = self.updater.update([self.testdir + "9_badsyntax.update"])
-        except BadSyntax:
-            pass
+        modified = self.updater.update([self.testdir + "9_badsyntax.update"])

@@ -20,6 +20,8 @@
 Test the `ipalib/plugins/hbacrule.py` module.
 """
 
+from nose.tools import raises, assert_raises  # pylint: disable=E0611
+
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
@@ -63,18 +65,14 @@ class test_hbac(XMLRPC_test):
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
         assert_attr_equal(entry, 'description', self.rule_desc)
 
+    @raises(errors.DuplicateEntry)
     def test_1_hbacrule_add(self):
         """
         Test adding an existing HBAC rule using `xmlrpc.hbacrule_add'.
         """
-        try:
-            api.Command['hbacrule_add'](
+        api.Command['hbacrule_add'](
                 self.rule_name, accessruletype=self.rule_type
             )
-        except errors.DuplicateEntry:
-            pass
-        else:
-            assert False
 
     def test_2_hbacrule_show(self):
         """
@@ -400,20 +398,6 @@ class test_hbac(XMLRPC_test):
         assert not failed['sourcehost']['hostgroup']
         entry = ret['result']
 
-    def test_c_hbacrule_zap_testing_data(self):
-        """
-        Clear data for HBAC plugin testing.
-        """
-        api.Command['hbacrule_remove_host'](self.rule_name, host=self.test_host)
-        api.Command['hbacrule_remove_host'](self.rule_name, hostgroup=self.test_hostgroup)
-        api.Command['user_del'](self.test_user)
-        api.Command['group_del'](self.test_group)
-        api.Command['host_del'](self.test_host)
-        api.Command['hostgroup_del'](self.test_hostgroup)
-        api.Command['host_del'](self.test_sourcehost)
-        api.Command['hostgroup_del'](self.test_sourcehostgroup)
-        api.Command['hbacsvc_del'](self.test_service)
-
     def test_d_hbacrule_disable(self):
         """
         Test disabling HBAC rule using `xmlrpc.hbacrule_disable`.
@@ -433,6 +417,7 @@ class test_hbac(XMLRPC_test):
          # FIXME: Should this be 'enabled' or 'TRUE'?
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_f_hbacrule_exclusiveuser(self):
         """
         Test adding a user to an HBAC rule when usercat='all'
@@ -440,22 +425,21 @@ class test_hbac(XMLRPC_test):
         api.Command['hbacrule_mod'](self.rule_name, usercategory=u'all')
         try:
             api.Command['hbacrule_add_user'](self.rule_name, users='admin')
-        except errors.MutuallyExclusiveError:
-            pass
-        api.Command['hbacrule_mod'](self.rule_name, usercategory=u'')
+        finally:
+            api.Command['hbacrule_mod'](self.rule_name, usercategory=u'')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_g_hbacrule_exclusiveuser(self):
         """
         Test setting usercat='all' in an HBAC rule when there are users
         """
-        api.Command['hbacrule_add_user'](self.rule_name, users='admin')
+        api.Command['hbacrule_add_user'](self.rule_name, user='admin')
         try:
             api.Command['hbacrule_mod'](self.rule_name, usercategory=u'all')
-        except errors.MutuallyExclusiveError:
-            pass
         finally:
-            api.Command['hbacrule_remove_user'](self.rule_name, users='admin')
+            api.Command['hbacrule_remove_user'](self.rule_name, user='admin')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_h_hbacrule_exclusivehost(self):
         """
         Test adding a host to an HBAC rule when hostcat='all'
@@ -463,10 +447,10 @@ class test_hbac(XMLRPC_test):
         api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'all')
         try:
             api.Command['hbacrule_add_host'](self.rule_name, host=self.test_host)
-        except errors.MutuallyExclusiveError:
-            pass
-        api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'')
+        finally:
+            api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_i_hbacrule_exclusivehost(self):
         """
         Test setting hostcat='all' in an HBAC rule when there are hosts
@@ -474,22 +458,21 @@ class test_hbac(XMLRPC_test):
         api.Command['hbacrule_add_host'](self.rule_name, host=self.test_host)
         try:
             api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'all')
-        except errors.MutuallyExclusiveError:
-            pass
         finally:
             api.Command['hbacrule_remove_host'](self.rule_name, host=self.test_host)
 
+    @raises(errors.MutuallyExclusiveError)
     def test_j_hbacrule_exclusiveservice(self):
         """
         Test adding a service to an HBAC rule when servicecat='all'
         """
         api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'all')
         try:
-            api.Command['hbacrule_add_host'](self.rule_name, hbacsvc=self.test_service)
-        except errors.MutuallyExclusiveError:
-            pass
-        api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'')
+            api.Command['hbacrule_add_service'](self.rule_name, hbacsvc=self.test_service)
+        finally:
+            api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_k_hbacrule_exclusiveservice(self):
         """
         Test setting servicecat='all' in an HBAC rule when there are services
@@ -497,35 +480,43 @@ class test_hbac(XMLRPC_test):
         api.Command['hbacrule_add_service'](self.rule_name, hbacsvc=self.test_service)
         try:
             api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'all')
-        except errors.MutuallyExclusiveError:
-            pass
         finally:
             api.Command['hbacrule_remove_service'](self.rule_name, hbacsvc=self.test_service)
 
+    @raises(errors.ValidationError)
     def test_l_hbacrule_add(self):
         """
         Test adding a new HBAC rule with a deny type.
         """
-        try:
-            api.Command['hbacrule_add'](
-                u'denyrule',
-                accessruletype=u'deny',
-                description=self.rule_desc,
-            )
-        except errors.ValidationError:
-            pass
+        api.Command['hbacrule_add'](
+            u'denyrule',
+            accessruletype=u'deny',
+            description=self.rule_desc,
+        )
 
+    @raises(errors.ValidationError)
     def test_m_hbacrule_add(self):
         """
         Test changing an HBAC rule to the deny type
         """
-        try:
-            api.Command['hbacrule_mod'](
-                self.rule_name,
-                accessruletype=u'deny',
-            )
-        except errors.ValidationError:
-            pass
+        api.Command['hbacrule_mod'](
+            self.rule_name,
+            accessruletype=u'deny',
+        )
+
+    def test_y_hbacrule_zap_testing_data(self):
+        """
+        Clear data for HBAC plugin testing.
+        """
+        api.Command['hbacrule_remove_host'](self.rule_name, host=self.test_host)
+        api.Command['hbacrule_remove_host'](self.rule_name, hostgroup=self.test_hostgroup)
+        api.Command['user_del'](self.test_user)
+        api.Command['group_del'](self.test_group)
+        api.Command['host_del'](self.test_host)
+        api.Command['hostgroup_del'](self.test_hostgroup)
+        api.Command['host_del'](self.test_sourcehost)
+        api.Command['hostgroup_del'](self.test_sourcehostgroup)
+        api.Command['hbacsvc_del'](self.test_service)
 
     def test_z_hbacrule_del(self):
         """
@@ -533,9 +524,5 @@ class test_hbac(XMLRPC_test):
         """
         api.Command['hbacrule_del'](self.rule_name)
         # verify that it's gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['hbacrule_show'](self.rule_name)
-        except errors.NotFound:
-            pass
-        else:
-            assert False

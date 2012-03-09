@@ -21,6 +21,8 @@
 Test the `ipalib/plugins/sudorule.py` module.
 """
 
+from nose.tools import raises, assert_raises  # pylint: disable=E0611
+
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
@@ -63,18 +65,14 @@ class test_sudorule(XMLRPC_test):
         assert_attr_equal(entry, 'cn', self.rule_name)
         assert_attr_equal(entry, 'description', self.rule_desc)
 
+    @raises(errors.DuplicateEntry)
     def test_1_sudorule_add(self):
         """
         Test adding an duplicate Sudo rule using `xmlrpc.sudorule_add'.
         """
-        try:
-            api.Command['sudorule_add'](
-                self.rule_name
-            )
-        except errors.DuplicateEntry:
-            pass
-        else:
-            assert False
+        api.Command['sudorule_add'](
+            self.rule_name
+        )
 
     def test_2_sudorule_show(self):
         """
@@ -521,29 +519,29 @@ class test_sudorule(XMLRPC_test):
         assert 'memberdenycmd_sudocmd' not in entry
         assert 'memberdenycmd_sudocmdgroup' not in entry
 
+    @raises(errors.MutuallyExclusiveError)
     def test_c_sudorule_exclusiveuser(self):
         """
         Test adding a user to an Sudo rule when usercat='all'
         """
         api.Command['sudorule_mod'](self.rule_name, usercategory=u'all')
         try:
-            api.Command['sudorule_add_user'](self.rule_name, users='admin')
-        except errors.MutuallyExclusiveError:
-            pass
-        api.Command['sudorule_mod'](self.rule_name, usercategory=u'')
+            api.Command['sudorule_add_user'](self.rule_name, user=u'admin')
+        finally:
+            api.Command['sudorule_mod'](self.rule_name, usercategory=u'')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_d_sudorule_exclusiveuser(self):
         """
         Test setting usercat='all' in an Sudo rule when there are users
         """
-        api.Command['sudorule_add_user'](self.rule_name, users='admin')
+        api.Command['sudorule_add_user'](self.rule_name, user=u'admin')
         try:
             api.Command['sudorule_mod'](self.rule_name, usercategory=u'all')
-        except errors.MutuallyExclusiveError:
-            pass
         finally:
-            api.Command['sudorule_remove_user'](self.rule_name, users='admin')
+            api.Command['sudorule_remove_user'](self.rule_name, user=u'admin')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_e_sudorule_exclusivehost(self):
         """
         Test adding a host to an Sudo rule when hostcat='all'
@@ -551,10 +549,10 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_mod'](self.rule_name, hostcategory=u'all')
         try:
             api.Command['sudorule_add_host'](self.rule_name, host=self.test_host)
-        except errors.MutuallyExclusiveError:
-            pass
-        api.Command['sudorule_mod'](self.rule_name, hostcategory=u'')
+        finally:
+            api.Command['sudorule_mod'](self.rule_name, hostcategory=u'')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_f_sudorule_exclusivehost(self):
         """
         Test setting hostcat='all' in an Sudo rule when there are hosts
@@ -562,11 +560,10 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_add_host'](self.rule_name, host=self.test_host)
         try:
             api.Command['sudorule_mod'](self.rule_name, hostcategory=u'all')
-        except errors.MutuallyExclusiveError:
-            pass
         finally:
             api.Command['sudorule_remove_host'](self.rule_name, host=self.test_host)
 
+    @raises(errors.MutuallyExclusiveError)
     def test_g_sudorule_exclusivecommand(self):
         """
         Test adding a command to an Sudo rule when cmdcategory='all'
@@ -574,10 +571,10 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_mod'](self.rule_name, cmdcategory=u'all')
         try:
             api.Command['sudorule_add_allow_command'](self.rule_name, sudocmd=self.test_command)
-        except errors.MutuallyExclusiveError:
-            pass
-        api.Command['sudorule_mod'](self.rule_name, cmdcategory=u'')
+        finally:
+            api.Command['sudorule_mod'](self.rule_name, cmdcategory=u'')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_h_sudorule_exclusivecommand(self):
         """
         Test setting cmdcategory='all' in an Sudo rule when there are commands
@@ -585,11 +582,10 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_add_allow_command'](self.rule_name, sudocmd=self.test_command)
         try:
             api.Command['sudorule_mod'](self.rule_name, cmdcategory=u'all')
-        except errors.MutuallyExclusiveError:
-            pass
         finally:
             api.Command['sudorule_remove_allow_command'](self.rule_name, sudocmd=self.test_command)
 
+    @raises(errors.MutuallyExclusiveError)
     def test_i_sudorule_exclusiverunas(self):
         """
         Test adding a runasuser to an Sudo rule when ipasudorunasusercategory='all'
@@ -597,10 +593,10 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'all')
         try:
             api.Command['sudorule_add_runasuser'](self.rule_name, sudocmd=self.test_user)
-        except errors.MutuallyExclusiveError:
-            pass
-        api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'')
+        finally:
+            api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'')
 
+    @raises(errors.MutuallyExclusiveError)
     def test_j_sudorule_exclusiverunas(self):
         """
         Test setting ipasudorunasusercategory='all' in an Sudo rule when there are runas users
@@ -608,8 +604,6 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_add_runasuser'](self.rule_name, user=self.test_user)
         try:
             api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'all')
-        except errors.MutuallyExclusiveError:
-            pass
         finally:
             api.Command['sudorule_remove_runasuser'](self.rule_name, user=self.test_command)
 
@@ -644,24 +638,18 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_del'](self.rule_name2)
 
         # add a new rule with a duplicate order
-        try:
+        with assert_raises(errors.ValidationError):
             api.Command['sudorule_add'](self.rule_name2, sudoorder=1)
-        except errors.ValidationError:
-            pass
 
         # add a new rule with a unique order
         api.Command['sudorule_add'](self.rule_name2, sudoorder=2)
-        try:
+        with assert_raises(errors.ValidationError):
             api.Command['sudorule_mod'](self.rule_name2, sudoorder=1)
-        except errors.ValidationError:
-            pass
 
         # Try setting both to 0
         api.Command['sudorule_mod'](self.rule_name2, sudoorder=0)
-        try:
+        with assert_raises(errors.ValidationError):
             api.Command['sudorule_mod'](self.rule_name, sudoorder=0)
-        except errors.ValidationError:
-            pass
 
 
     def test_m_sudorule_del(self):
@@ -670,10 +658,6 @@ class test_sudorule(XMLRPC_test):
         """
         api.Command['sudorule_del'](self.rule_name)
         # verify that it's gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['sudorule_show'](self.rule_name)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
         api.Command['sudorule_del'](self.rule_name2)
