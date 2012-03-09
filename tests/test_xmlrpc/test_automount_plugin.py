@@ -22,6 +22,8 @@ Test the `ipalib/plugins/automount.py' module.
 """
 
 import sys
+from nose.tools import raises, assert_raises  # pylint: disable=E0611
+
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
@@ -77,16 +79,12 @@ class test_automount(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
 
+    @raises(errors.DuplicateEntry)
     def test_4_automountkey_add(self):
         """
         Test adding a duplicate key using `xmlrpc.automountkey_add` method.
         """
-        try:
-            api.Command['automountkey_add'](self.locname, self.mapname, **self.key_kw)
-        except errors.DuplicateEntry:
-            pass
-        else:
-            assert False
+        res = api.Command['automountkey_add'](self.locname, self.mapname, **self.key_kw)
 
     def test_5_automountmap_show(self):
         """
@@ -153,12 +151,8 @@ class test_automount(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountkey_show'](self.locname, self.mapname, **delkey_kw)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
     def test_c_automountlocation_del(self):
         """
@@ -169,12 +163,8 @@ class test_automount(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountlocation_show'](self.locname)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
     def test_d_automountmap_del(self):
         """
@@ -182,12 +172,8 @@ class test_automount(XMLRPC_test):
         """
         # Verify that the second key we added is gone
         key_kw = {'automountkey': self.keyname2, 'automountinformation': self.info, 'raw': True}
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountkey_show'](self.locname, self.mapname, **key_kw)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
 class test_automount_direct(XMLRPC_test):
     """
@@ -214,16 +200,12 @@ class test_automount_direct(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
+    @raises(errors.DuplicateEntry)
     def test_2_automountmap_add_duplicate(self):
         """
         Test adding a duplicate direct map.
         """
-        try:
-            res = api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.direct_kw)['result']
-        except errors.DuplicateEntry:
-            pass
-        else:
-            assert False
+        res = api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.direct_kw)['result']
 
     def test_3_automountlocation_del(self):
         """
@@ -234,12 +216,8 @@ class test_automount_direct(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verity that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountlocation_show'](self.locname)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
 class test_automount_indirect(XMLRPC_test):
     """
@@ -269,16 +247,12 @@ class test_automount_indirect(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
+    @raises(errors.DuplicateEntry)
     def test_1a_automountmap_add_indirect(self):
         """
         Test adding a duplicate indirect map.
         """
-        try:
-            api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)['result']
-        except errors.DuplicateEntry:
-            pass
-        else:
-            assert False
+        api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)['result']
 
     def test_2_automountmap_show(self):
         """
@@ -297,12 +271,8 @@ class test_automount_indirect(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountkey_show'](self.locname, self.parentmap, **self.key_kw)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
     def test_4_automountmap_del(self):
         """
@@ -313,12 +283,8 @@ class test_automount_indirect(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountmap_show'](self.locname, self.mapname)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
     def test_5_automountlocation_del(self):
         """
@@ -329,12 +295,8 @@ class test_automount_indirect(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verity that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountlocation_show'](self.locname)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
 
 class test_automount_indirect_no_parent(XMLRPC_test):
@@ -382,12 +344,8 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountkey_show'](self.locname, self.parentmap, **delkey_kw)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
     def test_4_automountmap_del(self):
         """
@@ -398,12 +356,8 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountmap_show'](self.locname, self.mapname)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
 
     def test_5_automountlocation_del(self):
         """
@@ -414,9 +368,5 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         assert_attr_equal(res, 'failed', '')
 
         # Verity that it is gone
-        try:
+        with assert_raises(errors.NotFound):
             api.Command['automountlocation_show'](self.locname)
-        except errors.NotFound:
-            pass
-        else:
-            assert False

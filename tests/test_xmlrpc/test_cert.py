@@ -23,6 +23,8 @@ Test the `ipalib/plugins/cert.py` module against the selfsign plugin.
 import sys
 import os
 import shutil
+from nose.tools import assert_raises  # pylint: disable=E0611
+
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
@@ -105,11 +107,8 @@ class test_cert(XMLRPC_test):
         res = api.Command['host_add'](self.host_fqdn, force= True)['result']
 
         csr = unicode(self.generateCSR(str(self.subject)))
-        try:
+        with assert_raises(errors.NotFound):
             res = api.Command['cert_request'](csr, principal=self.service_princ)
-            assert False
-        except errors.NotFound:
-            pass
 
     def test_2_cert_add(self):
         """
