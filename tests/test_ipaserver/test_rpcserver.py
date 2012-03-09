@@ -96,7 +96,7 @@ def test_internal_error():
     assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
 
 
-def test_internal_error():
+def test_unauthorized_error():
     f = rpcserver.HTTP_Status()
     t = rpcserver._unauthorized_template
     s = StartResponse()
@@ -107,7 +107,6 @@ def test_internal_error():
     )
     assert s.status == '401 Unauthorized'
     assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
-
 
 
 def test_params_2_args_options():
