@@ -670,9 +670,13 @@ can use their Kerberos accounts.''')
 
         #check whether the compat plugin is enabled
         if not options.get('compat'):
-            (dn,check_compat) = ds_ldap.get_entry(_compat_dn, normalize=False)
-            if check_compat is not None and check_compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                return dict(result={},failed={},enabled=True, compat=False)
+            try:
+                (dn,check_compat) = ldap.get_entry(_compat_dn, normalize=False)
+                if check_compat is not None and \
+                        check_compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
+                    return dict(result={},failed={},enabled=True, compat=False)
+            except errors.NotFound:
+                pass
 
         if not ds_base_dn:
             # retrieve base DN from remote LDAP server
