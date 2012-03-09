@@ -1337,7 +1337,11 @@ def install(options, env, fstore, statestore):
         print "Configured /etc/sssd/sssd.conf"
 
     # Add the CA to the default NSS database and trust it
-    run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
+    try:
+        run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
+    except CalledProcessError, e:
+        print >>sys.stderr, "Failed to add CA to the default NSS database."
+        return CLIENT_INSTALL_ERROR
 
     # If on master assume kerberos is already configured properly.
     if not options.on_master:
@@ -1354,6 +1358,9 @@ def install(options, env, fstore, statestore):
         api.Backend.xmlclient.connect()
     except CalledProcessError, e:
         print >>sys.stderr, "Failed to obtain host TGT."
+        # fail to obtain ticket makes it impossible to login and bind from sssd to LDAP,
+        # abort installation and rollback changes
+        return CLIENT_INSTALL_ERROR
 
     if not options.on_master:
         client_dns(cli_server, hostname, options.dns_updates)
