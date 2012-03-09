@@ -632,18 +632,12 @@ IPA.checkbox_widget = function (spec) {
         var value;
 
         if (values && values.length) {
-            // use loaded value
             value = values[0];
-        } else {
-            // use default value
-            value = that.checked;
         }
 
-        // convert string into boolean
-        if (value === 'TRUE') {
-            value = true;
-        } else if (value === 'FALSE') {
-            value = false;
+        if (typeof value !== 'boolean') {
+            // use default value
+            value = that.checked;
         }
 
         that.input.attr('checked', value);

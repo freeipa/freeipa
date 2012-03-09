@@ -487,6 +487,23 @@ IPA.checkbox_field = function(spec) {
     var that = IPA.field(spec);
 
     that.checked = spec.checked || false;
+    that.boolean_formatter = IPA.boolean_formatter();
+
+    that.load = function(record) {
+
+        that.record = record;
+
+        that.values = that.get_value(record, that.param);
+
+        var value = that.boolean_formatter.parse(that.values);
+        if (value === '') value = that.widget.checked; //default value
+
+        that.values = [value];
+
+        that.load_writable(record);
+
+        that.reset();
+    };
 
     that.widgets_created = function() {
 
@@ -510,13 +527,6 @@ IPA.checkboxes_field = function(spec) {
 
     var that = IPA.field(spec);
 
-    that.checkbox_load = that.load;
-/*
-    // a checkbox will always have a value, so it's never required
-    that.is_required = function() {
-        return false;
-    };
-*/
     return that;
 };
 
