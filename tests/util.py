@@ -446,7 +446,7 @@ def check_TypeError(value, type_, name, callback, *args, **kw):
     assert e.type is type_
     assert e.name == name
     assert type(e.name) is str
-    assert str(e) == ipalib.errors.TYPE_FORMAT % (name, type_, value)
+    assert str(e) == ipalib.errors.TYPE_ERROR % (name, type_, value)
     return e
 
 
@@ -592,7 +592,7 @@ class DummyClass(object):
     def __process(self, name_, args_, kw_):
         if self.__i >= len(self.__calls):
             raise AssertionError(
-                'extra call: %s, %r, %r' % (name, args, kw)
+                'extra call: %s, %r, %r' % (name_, args_, kw_)
             )
         (name, args, kw, result) = self.__calls[self.__i]
         self.__i += 1

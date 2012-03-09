@@ -265,8 +265,8 @@ class test_hbac(XMLRPC_test):
         assert 'hostgroup' in failed['memberhost']
         assert not failed['memberhost']['hostgroup']
         entry = ret['result']
-        assert 'memberhost_host' not in res[1]
-        assert 'memberhost_hostgroup' not in res[1]
+        assert 'memberhost_host' not in entry
+        assert 'memberhost_hostgroup' not in entry
 
     def test_a_hbacrule_add_sourcehost(self):
         """
@@ -327,7 +327,7 @@ class test_hbac(XMLRPC_test):
         entry = ret['result']
         assert 'memberservice service' not in entry
 
-    def test_b_hbacrule_remove_host(self):
+    def test_b_hbacrule_remove_sourcehost(self):
         """
         Test removing source host and hostgroup from HBAC rule using `xmlrpc.hbacrule_remove_host`.
         """
