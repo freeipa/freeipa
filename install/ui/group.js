@@ -140,7 +140,7 @@ IPA.group_nonposix_checkbox_widget = function (spec) {
 };
 
 IPA.widget_factories['nonposix_checkbox'] = IPA.group_nonposix_checkbox_widget;
-IPA.field_factories['nonposix_checkbox'] = IPA.checkbox_fields;
+IPA.field_factories['nonposix_checkbox'] = IPA.checkbox_field;
 
 IPA.group_adder_dialog = function(spec) {
 

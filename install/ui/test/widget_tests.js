@@ -223,7 +223,9 @@ test("Testing checkbox widget.", function() {
     spec = {name:'title'};
     base_widget_test('test_value');
 
-    var mock_record = { 'title': 'TRUE' };
+    //Changing mock record from 'TRUE' to true. Value normalization is field's
+    //job. Checkbox should work with booleans values.
+     var mock_record = { 'title': [true] };
 
     widget.update(mock_record.title);
     same(widget.save(),[true], "Checkbox is set");
