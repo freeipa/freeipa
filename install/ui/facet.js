@@ -79,6 +79,11 @@ IPA.facet = function(spec) {
         that.content = $('<div/>', {
             'class': 'facet-content'
         }).appendTo(container);
+
+        that.error_container = $('<div/>', {
+            'class': 'facet-content facet-error'
+        }).appendTo(container);
+
         that.create_content(that.content);
     };
 
@@ -101,6 +106,22 @@ IPA.facet = function(spec) {
 
     that.show = function() {
         that.container.css('display', 'block');
+        that.show_content();
+    };
+
+    that.show_content = function() {
+        that.content.css('display', 'block');
+        that.error_container.css('display', 'none');
+    };
+
+    that.show_error = function() {
+        that.content.css('display', 'none');
+        that.error_container.css('display', 'block');
+    };
+
+    that.error_displayed = function() {
+        return that.error_container &&
+                    that.error_container.css('display') === 'block';
     };
 
     that.hide = function() {
@@ -128,11 +149,64 @@ IPA.facet = function(spec) {
     };
 
     that.report_error = function(error_thrown) {
-        // TODO: The error message should be displayed in the facet footer.
-        // There should be a standard footer section for all facets.
-        that.content.empty();
-        that.content.append('<p>'+IPA.get_message('errors.error', 'Error')+': '+error_thrown.name+'</p>');
-        that.content.append('<p>'+error_thrown.message+'</p>');
+
+        var add_option = function(ul, text, handler) {
+
+            var li = $('<li/>').appendTo(ul);
+            $('<a />', {
+                href: '#',
+                text: text,
+                click: function() {
+                    handler();
+                    return false;
+                }
+            }).appendTo(li);
+        };
+
+        var title = IPA.messages.error_report.title;
+        title = title.replace('${error}', error_thrown.name);
+
+        that.error_container.empty();
+        that.error_container.append('<h1>'+title+'</h1>');
+
+        var details = $('<div/>', {
+            'class': 'error-details'
+        }).appendTo(that.error_container);
+        details.append('<p>'+error_thrown.message+'</p>');
+
+        $('<div/>', {
+            text: IPA.messages.error_report.options
+        }).appendTo(that.error_container);
+
+        var options_list = $('<ul/>').appendTo(that.error_container);
+
+        add_option(
+            options_list,
+            IPA.messages.error_report.refresh,
+            function() {
+                that.refresh();
+            }
+        );
+
+        add_option(
+            options_list,
+            IPA.messages.error_report.main_page,
+            function() {
+                IPA.nav.show_top_level_page();
+            }
+        );
+
+        add_option(
+            options_list,
+            IPA.messages.error_report.reload,
+            function() {
+                window.location.reload(false);
+            }
+        );
+
+        that.error_container.append('<p>'+IPA.messages.error_report.problem_persists+'</p>');
+
+        that.show_error();
     };
 
     that.get_redirect_facet = function() {

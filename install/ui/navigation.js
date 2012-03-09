@@ -263,6 +263,10 @@ IPA.navigation = function(spec) {
         return that.push_state(state);
     };
 
+    that.show_top_level_page = function() {
+        jQuery.bbq.pushState({}, 2);
+    };
+
     that.get_tab_facet = function(tab_name) {
 
         var facet = null;
