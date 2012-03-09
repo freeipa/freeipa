@@ -419,7 +419,9 @@ IPA.details_facet = function(spec) {
     that.needs_update = function() {
         if (that._needs_update !== undefined) return that._needs_update;
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        return pkey !== that.pkey;
+        var needs_update = that.error_displayed();
+        needs_update = needs_update || pkey !== that.pkey;
+        return needs_update;
     };
 
     that.field_dirty_changed = function(dirty) {

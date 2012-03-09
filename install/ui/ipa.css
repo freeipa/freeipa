@@ -648,6 +648,21 @@ div[name=settings].facet-group li a {
     top: 70px;
 }
 
+/* --- Facet error --- */
+
+.facet-error {
+    padding: 2em 15em;
+}
+
+.facet-error h1 {
+    text-align: center;
+}
+
+.facet-error .error-details {
+    margin-top: 2em;
+    font-family: monospace;
+}
+
 /* ---- Search Facet ---- */
 
 .content-table {

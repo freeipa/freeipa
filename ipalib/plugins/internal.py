@@ -226,6 +226,14 @@ class i18n_messages(Command):
             "validation_title": _("Validation error"),
             "validation_message": _("Input form contains invalid or missing values."),
         },
+        "error_report": {
+            "options": _("Please try the following options:"),
+            "problem_persists": _("If the problem persists please contact the system administrator."),
+            "refresh": _("Refresh the page."),
+            "reload": _("Reload the browser."),
+            "main_page": _("Return to the main page and retry the operation"),
+            "title": _("An error has occured (${error})"),
+        },
         "errors": {
             "error": _("Error"),
             "http_error": _("HTTP Error"),

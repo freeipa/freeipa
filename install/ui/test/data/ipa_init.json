@@ -91,6 +91,14 @@
                         "validation_message": "Input form contains invalid or missing values.",
                         "validation_title": "Validation error"
                     },
+                    "error_report": {
+                        "options": "Please try the following options:",
+                        "problem_persists": "If the problem persists please contact the system administrator.",
+                        "refresh": "Refresh the page.",
+                        "reload": "Reload the browser.",
+                        "main_page": "Return to the main page and retry the operation",
+                        "title": "An error has occured (${error})"
+                    },
                     "errors": {
                         "error": "Error",
                         "http_error": "HTTP Error",
