@@ -287,6 +287,9 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
       expected = u'how are you?'
       got = 'how are you?'
       path = (0, 'world')
+
+    Note that lists and tuples are considered equivalent, and the order of
+    their elements does not matter.
     """
     if isinstance(expected, tuple):
         expected = list(expected)
