@@ -664,5 +664,7 @@ IPA.message_dialog = function(spec) {
 
     init();
 
+    that.message_dialog_create = that.create;
+
     return that;
 };

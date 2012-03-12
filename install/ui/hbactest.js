@@ -410,19 +410,6 @@ IPA.hbac.test_select_facet = function(spec) {
     that.validate = function(record) {
         if (record[that.name]) return true;
 
-        var dialog = IPA.message_dialog({
-            title: IPA.messages.dialogs.validation_title,
-            message: IPA.messages.dialogs.validation_message
-        });
-
-        dialog.on_ok = function() {
-            var state = {};
-            state[that.entity.name+'-facet'] = that.name;
-            IPA.nav.push_state(state);
-        };
-
-        dialog.open();
-
         return false;
     };
 
@@ -691,22 +678,34 @@ IPA.hbac.test_run_facet = function(spec) {
         var command = IPA.command({ method: 'hbactest' });
 
         var options = {};
+        var validation_results = {
+            valid: true,
+            invalid_facets: []
+        };
 
         var facet = that.entity.get_facet('user');
         facet.save(options);
-        if (!facet.validate(options)) return;
+        that.validate_facet(facet, options, validation_results);
 
         facet = that.entity.get_facet('targethost');
         facet.save(options);
-        if (!facet.validate(options)) return;
+        that.validate_facet(facet, options, validation_results);
 
         facet = that.entity.get_facet('service');
         facet.save(options);
-        if (!facet.validate(options)) return;
+        that.validate_facet(facet, options, validation_results);
 
         facet = that.entity.get_facet('sourcehost');
         facet.save(options);
-        if (!facet.validate(options)) return;
+        that.validate_facet(facet, options, validation_results);
+
+        if (!validation_results.valid) {
+            var dialog = IPA.hbac.validation_dialog({
+                validation_results: validation_results
+            });
+            dialog.open();
+            return;
+        }
 
         facet = that.entity.get_facet('rules');
         facet.save(options);
@@ -719,6 +718,17 @@ IPA.hbac.test_run_facet = function(spec) {
         };
 
         command.execute();
+    };
+
+    that.validate_facet = function(facet, options, validation_results) {
+
+        var facet_valid = facet.validate(options);
+
+        validation_results.valid = facet_valid && validation_results.valid;
+
+        if (!facet_valid) {
+            validation_results.invalid_facets.push(facet);
+        }
     };
 
     that.get_records_map = function(data) {
@@ -755,6 +765,66 @@ IPA.hbac.test_run_facet = function(spec) {
     };
 
     init();
+
+    return that;
+};
+
+IPA.hbac.validation_dialog = function(spec)  {
+
+    spec = spec || {};
+    spec.title = spec.title || IPA.messages.dialogs.validation_title;
+    spec.message = spec.message || IPA.messages.dialogs.validation_message;
+
+    var that = IPA.message_dialog(spec);
+
+    that.validation_results = spec.validation_results;
+
+    that.create = function() {
+
+        if (that.message) {
+            that.message_dialog_create();
+        }
+
+        if (that.validation_results && that.validation_results.invalid_facets) {
+            var invalid_facets = that.validation_results.invalid_facets;
+
+            var ul;
+
+            if (invalid_facets.length > 0) {
+                var div = $('<div/>',{
+                     text: IPA.messages.objects.hbactest.missing_values
+                }).appendTo(that.container);
+                ul = $('<ul/>').appendTo(that.container);
+            }
+
+            for (var i=0; i<invalid_facets.length; i++) {
+
+                var facet = invalid_facets[i];
+
+                var li = $('<li />').appendTo(ul);
+
+                var metadata = IPA.get_command_option('hbactest', facet.name);
+
+                $('<a />', {
+                    href: '#'+facet.name,
+                    text: metadata.label,
+                    click: function(facet) {
+                        return function() {
+                            that.redirect_to_facet(facet);
+                            return false;
+                        };
+                    }(facet)
+                }).appendTo(li);
+            }
+        }
+    };
+
+    that.redirect_to_facet = function(facet) {
+        that.close();
+        var state = {};
+        state[facet.entity.name+'-facet'] = facet.name;
+        IPA.nav.push_state(state);
+    };
 
     return that;
 };

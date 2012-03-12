@@ -267,6 +267,7 @@
                             "include_enabled": "Include Enabled",
                             "label": "HBAC Test",
                             "matched": "Matched",
+                            "missing_values": "Missing values: ",
                             "new_test": "New Test",
                             "rules": "Rules",
                             "run_test": "Run Test",
