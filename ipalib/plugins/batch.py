@@ -76,11 +76,11 @@ class batch(Command):
 
     has_output = (
         Output('count', int, doc=''),
-        Output('results', list, doc='')
+        Output('results', (list, tuple), doc='')
     )
 
     def execute(self, *args, **options):
-        results=[]
+        results = []
         for arg in args[0]:
             params = dict()
             name = None
@@ -92,11 +92,8 @@ class batch(Command):
                 name = arg['method']
                 if name not in self.Command:
                     raise errors.CommandError(name=name)
-                a = arg['params'][0]
-                kw = arg['params'][1]
-                newkw = {}
-                for k in kw:
-                    newkw[str(k)] = kw[k]
+                a, kw = arg['params']
+                newkw = dict((str(k), v) for k, v in kw.iteritems())
                 params = api.Command[name].args_options_2_params(*a, **newkw)
 
                 result = api.Command[name](*a, **newkw)
