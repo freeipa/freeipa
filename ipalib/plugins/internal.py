@@ -405,6 +405,7 @@ class i18n_messages(Command):
                 "include_enabled": _("Include Enabled"),
                 "label": _("HBAC Test"),
                 "matched": _("Matched"),
+                "missing_values": _("Missing values: "),
                 "new_test": _("New Test"),
                 "rules": _("Rules"),
                 "run_test": _("Run Test"),
