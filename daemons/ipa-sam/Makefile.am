@@ -7,6 +7,9 @@ SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 			-lsmbconf		\
 			$(NULL)
 
+KRB5_UTIL_DIR=../../util
+KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
+
 INCLUDES =						\
 	-I.						\
 	-I$(srcdir)					\
@@ -18,6 +21,7 @@ INCLUDES =						\
 	-DDATADIR=\""$(datadir)"\"			\
 	-DLDAPIDIR=\""$(localstatedir)/run"\"		\
 	-DHAVE_LDAP					\
+	-I $(KRB5_UTIL_DIR)				\
 	$(AM_CFLAGS)					\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\
@@ -34,6 +38,7 @@ plugin_LTLIBRARIES = 		\
 
 ipasam_la_SOURCES = 		\
 	ipa_sam.c		\
+	$(KRB5_UTIL_SRCS)	\
 	$(NULL)
 
 ipasam_la_LDFLAGS = 		\
@@ -43,6 +48,7 @@ ipasam_la_LDFLAGS = 		\
 
 ipasam_la_LIBADD = 		\
 	$(LDAP_LIBS)		\
+	$(KRB5_LIBS)		\
 	$(TALLOC_LIBS)		\
 	$(SAMBAUTIL_LIBS)	\
 	$(NDR_LIBS)		\

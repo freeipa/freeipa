@@ -9,6 +9,7 @@
 #include <pwd.h>
 #include <errno.h>
 #include <ldap.h>
+#include <krb5/krb5.h>
 
 #include <talloc.h>
 
@@ -28,17 +29,7 @@
 
 #include <sasl/sasl.h>
 #include <krb5/krb5.h>
-#include <time.h>
-
-/* TODO: remove if smbrunsecret() is removed */
-typedef struct connection_structi {} connection_struct;
-struct current_user {
-	connection_struct *conn;
-	uint16_t vuid;
-	struct security_unix_token ut;
-	struct security_token *nt_user_token;
-};
-extern struct current_user current_user;
+#include "ipa_krb5.h"
 
 /* from drsblobs.h */
 struct AuthInfoNone {
@@ -104,7 +95,6 @@ char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* avai
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
 bool is_null_sid(const struct dom_sid *sid); /* available in libsecurity.so */
 bool strnequal(const char *s1,const char *s2,size_t n); /* available in libutil_str.so */
-int smbrunsecret(const char *cmd, const char *secret); /* available in libsmbconf.so */
 bool trim_char(char *s,char cfront,char cback); /* available in libutil_str.so */
 bool sid_peek_check_rid(const struct dom_sid *exp_dom_sid, const struct dom_sid *sid, uint32_t *rid); /* available in libsecurity.so */
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
@@ -1393,6 +1383,76 @@ static bool search_krb_princ(struct ldapsam_privates *ldap_state,
 	return true;
 }
 
+static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
+			      TALLOC_CTX *mem_ctx,
+			      const char *princ, const char *pwd,
+			      const char *base_dn)
+{
+	int ret;
+	krb5_error_code krberr;
+	krb5_context krbctx;
+	krb5_principal service_princ;
+	struct keys_container keys;
+	char *err_msg;
+	struct berval *reqdata = NULL;
+	struct berval *retdata = NULL;
+        char *retoid;
+
+	krberr = krb5_init_context(&krbctx);
+	if (krberr != 0) {
+		DEBUG(1, ("krb5_init_context failed.\n"));
+		ret = krberr;
+		goto done;
+	}
+
+	krberr = krb5_parse_name(krbctx, princ, &service_princ);
+	if (krberr != 0) {
+		DEBUG(1, ("Invalid Service Principal Name [%s]\n", princ));
+		ret = krberr;
+		goto done;
+	}
+
+	ret = create_keys(krbctx, service_princ, discard_const(pwd), NULL, &keys, &err_msg);
+	if (!ret) {
+		if (err_msg != NULL) {
+			DEBUG(1, ("create_keys returned [%s]\n", err_msg));
+		}
+		goto done;
+	}
+
+	reqdata = create_key_control(&keys, princ);
+	if (reqdata == NULL) {
+		DEBUG(1, ("Failed to create reqdata!\n"));
+		ret= ENOMEM;
+		goto done;
+	}
+
+	ret = smbldap_extended_operation(ldap_state->smbldap_state,
+					 KEYTAB_SET_OID, reqdata, NULL, NULL,
+					 &retoid, &retdata);
+	if (ret != LDAP_SUCCESS) {
+		DEBUG(1, ("smbldap_extended_operation failed!\n"));
+		goto done;
+	}
+
+	/* So far we do not care abot the result */
+	ldap_memfree(retoid);
+	if (retdata != NULL) {
+		ber_bvfree(retdata);
+	}
+
+	ret = 0;
+done:
+	if (reqdata != NULL) {
+	    ber_bvfree(reqdata);
+	}
+	free_keys_contents(krbctx, &keys);
+	krb5_free_principal(krbctx, service_princ);
+	krb5_free_context(krbctx);
+
+	return ret;
+}
+
 static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 			  TALLOC_CTX *mem_ctx,
 			  const char *princ, const char *pwd,
@@ -1461,22 +1521,9 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	/* TODO: Call the appropriate expo if ipasam is part of the FreeIPA
-	 * source tree */
-	inp = talloc_asprintf(mem_ctx, "change_password -pw %s %s", pwd, princ);
-	if (inp == NULL) {
-		return false;
-	}
-
-	uid_t save_uid = current_user.ut.uid;
-	gid_t save_gid = current_user.ut.gid;
-	current_user.ut.uid = 0;
-	current_user.ut.gid = 0;
-	ret = smbrunsecret("kadmin.local", inp);
-	current_user.ut.uid = save_uid;
-	current_user.ut.gid = save_gid;
+	ret = set_cross_realm_pw(ldap_state, mem_ctx, princ, pwd, base_dn);
 	if (ret != 0) {
-		DEBUG(1, ("calling kadmin.local failed.\n"));
+		DEBUG(1, ("set_cross_realm_pw failed.\n"));
 		return false;
 	}
 
