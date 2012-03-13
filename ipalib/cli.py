@@ -123,7 +123,7 @@ class textui(backend.Backend):
 
     def __get_encoding(self, stream):
         assert stream in (sys.stdin, sys.stdout)
-        if stream.encoding is None:
+        if getattr(stream, 'encoding', None) is None:
             return 'UTF-8'
         return stream.encoding
 
@@ -1007,7 +1007,11 @@ class cli(backend.Executioner):
     Backend plugin for executing from command line interface.
     """
 
-    def run(self, argv):
+    def get_command(self, argv):
+        """Given CLI arguments, return the Command to use
+
+        On incorrect invocation, prints out a help message and returns None
+        """
         if len(argv) == 0:
             self.Command.help()
             return
@@ -1022,15 +1026,27 @@ class cli(backend.Executioner):
         if name not in self.Command or self.Command[name].NO_CLI:
             raise CommandError(name=key)
         cmd = self.Command[name]
-        if not isinstance(cmd, frontend.Local):
-            self.create_context()
+        return cmd
+
+    def argv_to_keyword_arguments(self, cmd, argv):
+        """Get the keyword arguments for a Command"""
         kw = self.parse(cmd, argv)
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
         kw = cmd.split_csv(**kw)
         kw['version'] = API_VERSION
         self.load_files(cmd, kw)
+        return kw
+
+    def run(self, argv):
+        cmd = self.get_command(argv)
+        if cmd is None:
+            return
+        name = cmd.name
+        if not isinstance(cmd, frontend.Local):
+            self.create_context()
         try:
+            kw = self.argv_to_keyword_arguments(cmd, argv[1:])
             result = self.execute(name, **kw)
             if callable(cmd.output_for_cli):
                 for param in cmd.params():
