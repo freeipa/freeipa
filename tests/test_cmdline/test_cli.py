@@ -1,0 +1,184 @@
+import shlex
+import sys
+import contextlib
+import StringIO
+
+import nose
+
+from tests import util
+from ipalib import api, errors
+from ipapython.version import API_VERSION
+
+
+class TestCLIParsing(object):
+    """Tests that commandlines are correctly parsed to Command keyword args
+    """
+    def check_command(self, commandline, expected_command_name, **kw_expected):
+        argv = shlex.split(commandline)
+        executioner = api.Backend.cli
+
+        cmd = executioner.get_command(argv)
+        kw_got = executioner.argv_to_keyword_arguments(cmd, argv[1:])
+        util.assert_deepequal(expected_command_name, cmd.name, 'Command name')
+        util.assert_deepequal(kw_expected, kw_got)
+
+    def run_command(self, command_name, **kw):
+        """Run a command on the server"""
+        if not api.Backend.xmlclient.isconnected():
+            api.Backend.xmlclient.connect(fallback=False)
+        api.Command[command_name](**kw)
+
+    @contextlib.contextmanager
+    def fake_stdin(self, string_in):
+        """Context manager that temporarily replaces stdin to read a string"""
+        old_stdin = sys.stdin
+        sys.stdin = StringIO.StringIO(string_in)
+        yield
+        sys.stdin = old_stdin
+
+    def test_ping(self):
+        self.check_command('ping', 'ping',
+            version=API_VERSION)
+
+    def test_user_show(self):
+        self.check_command('user-show admin', 'user_show',
+            uid=u'admin',
+            rights=False,
+            raw=False,
+            all=False,
+            version=API_VERSION)
+
+    def test_user_show_underscore(self):
+        self.check_command('user_show admin', 'user_show',
+            uid=u'admin',
+            rights=False,
+            raw=False,
+            all=False,
+            version=API_VERSION)
+
+    def test_group_add(self):
+        self.check_command('group-add tgroup1 --desc="Test group"',
+            'group_add',
+            cn=u'tgroup1',
+            description=u'Test group',
+            nonposix=False,
+            raw=False,
+            all=False,
+            version=API_VERSION)
+
+    def test_sudocmdgroup_add_member(self):
+        # Test CSV splitting is done correctly
+        self.check_command(
+            # The following is as it would appear on the command line:
+            r'sudocmdgroup-add-member tcmdgroup1 --sudocmds=abc,\"de,f\",\\,g',
+            'sudocmdgroup_add_member',
+            cn=u'tcmdgroup1',
+            sudocmd=[u'abc', u'de,f', u'\\', u'g'],
+            raw=False,
+            all=False,
+            version=API_VERSION)
+
+    def test_group_add_nonposix(self):
+        self.check_command('group-add tgroup1 --desc="Test group" --nonposix',
+            'group_add',
+            cn=u'tgroup1',
+            description=u'Test group',
+            nonposix=True,
+            raw=False,
+            all=False,
+            version=API_VERSION)
+
+    def test_group_add_gid(self):
+        self.check_command('group-add tgroup1 --desc="Test group" --gid=1234',
+            'group_add',
+            cn=u'tgroup1',
+            description=u'Test group',
+            gidnumber=u'1234',
+            nonposix=False,
+            raw=False,
+            all=False,
+            version=API_VERSION)
+
+    def test_group_add_interactive(self):
+        with self.fake_stdin('Test group\n'):
+            self.check_command('group-add tgroup1', 'group_add',
+                cn=u'tgroup1',
+                description=u'Test group',
+                nonposix=False,
+                raw=False,
+                all=False,
+                version=API_VERSION)
+
+    def test_dnsrecord_add(self):
+        self.check_command('dnsrecord-add test-example.com ns --a-rec=1.2.3.4',
+            'dnsrecord_add',
+            dnszoneidnsname=u'test-example.com',
+            idnsname=u'ns',
+            arecord=[u'1.2.3.4'],
+            structured=False,
+            force=False,
+            raw=False,
+            all=False,
+            version=API_VERSION)
+
+    def test_dnsrecord_del_all(self):
+        try:
+            self.run_command('dnszone_add', idnsname=u'test-example.com',
+                idnssoamname=u'ns.test-example.com',
+                admin_email=u'devnull@test-example.com', force=True)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        try:
+            self.run_command('dnsrecord_add',
+                dnszoneidnsname=u'test-example.com',
+                idnsname=u'ns', arecord=u'1.2.3.4')
+            with self.fake_stdin('yes\n'):
+                self.check_command('dnsrecord_del test-example.com ns',
+                    'dnsrecord_del',
+                    dnszoneidnsname=u'test-example.com',
+                    idnsname=u'ns',
+                    del_all=True,
+                    structured=False,
+                    raw=False,
+                    all=False,
+                    version=API_VERSION)
+            with self.fake_stdin('YeS\n'):
+                self.check_command('dnsrecord_del test-example.com ns',
+                    'dnsrecord_del',
+                    dnszoneidnsname=u'test-example.com',
+                    idnsname=u'ns',
+                    del_all=True,
+                    structured=False,
+                    raw=False,
+                    all=False,
+                    version=API_VERSION)
+        finally:
+            self.run_command('dnszone_del', idnsname=u'test-example.com')
+
+    def test_dnsrecord_del_one_by_one(self):
+        try:
+            self.run_command('dnszone_add', idnsname=u'test-example.com',
+                idnssoamname=u'ns.test-example.com',
+                admin_email=u'devnull@test-example.com', force=True)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        try:
+            records = (u'1 1 E3B72BA346B90570EED94BE9334E34AA795CED23',
+                       u'2 1 FD2693C1EFFC11A8D2BE57229212A04B45663791')
+            for record in records:
+                self.run_command('dnsrecord_add',
+                    dnszoneidnsname=u'test-example.com', idnsname=u'ns',
+                    sshfprecord=record)
+            with self.fake_stdin('no\nyes\nyes\n'):
+                self.check_command('dnsrecord_del test-example.com ns',
+                    'dnsrecord_del',
+                    dnszoneidnsname=u'test-example.com',
+                    idnsname=u'ns',
+                    del_all=False,
+                    sshfprecord=records,
+                    structured=False,
+                    raw=False,
+                    all=False,
+                    version=API_VERSION)
+        finally:
+            self.run_command('dnszone_del', idnsname=u'test-example.com')

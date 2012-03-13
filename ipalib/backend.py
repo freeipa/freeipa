@@ -102,7 +102,6 @@ class Connectible(Backend):
 
 class Executioner(Backend):
 
-
     def create_context(self, ccache=None, client_ip=None):
         """
         client_ip: The IP address of the remote client.
