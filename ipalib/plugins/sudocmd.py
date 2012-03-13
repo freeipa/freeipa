@@ -109,6 +109,32 @@ class sudocmd_del(LDAPDelete):
 
     msg_summary = _('Deleted Sudo Command "%(value)s"')
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        filters = [
+            ldap.make_filter_from_attr(attr, dn)
+            for attr in ('memberallowcmd', 'memberdenycmd')]
+        filter = ldap.combine_filters(filters, ldap.MATCH_ANY)
+        filter = ldap.combine_filters(
+            (filter, ldap.make_filter_from_attr('objectClass', 'ipasudorule')),
+            ldap.MATCH_ALL)
+        dependent_sudorules = []
+        try:
+            entries, truncated = ldap.find_entries(
+                filter, ['cn'],
+                base_dn=DN(api.env.container_sudorule, api.env.basedn))
+        except errors.NotFound:
+            pass
+        else:
+            for entry_dn, entry_attrs in entries:
+                [cn] = entry_attrs['cn']
+                dependent_sudorules.append(cn)
+
+        if dependent_sudorules:
+            raise errors.DependentEntry(
+                key=keys[0], label='sudorule',
+                dependent=', '.join(dependent_sudorules))
+        return dn
+
 api.register(sudocmd_del)
 
 class sudocmd_mod(LDAPUpdate):

@@ -718,6 +718,8 @@ class test_sudorule(XMLRPC_test):
         api.Command['group_del'](self.test_group)
         api.Command['host_del'](self.test_host)
         api.Command['hostgroup_del'](self.test_hostgroup)
+        api.Command['sudorule_remove_allow_command'](self.rule_name,
+                                                     sudocmd=self.test_command)
         api.Command['sudocmd_del'](self.test_command)
         api.Command['sudocmdgroup_del'](self.test_sudoallowcmdgroup)
         api.Command['sudocmdgroup_del'](self.test_sudodenycmdgroup)

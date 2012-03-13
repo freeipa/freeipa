@@ -29,12 +29,15 @@ from tests.test_xmlrpc import objectclasses
 sudocmd1 = u'/usr/bin/sudotestcmd1'
 sudocmd1_camelcase = u'/usr/bin/sudoTestCmd1'
 
+sudorule1 = u'test_sudorule1'
+
 
 class test_sudocmd(Declarative):
 
     cleanup_commands = [
         ('sudocmd_del', [sudocmd1], {}),
         ('sudocmd_del', [sudocmd1_camelcase], {}),
+        ('sudorule_del', [sudorule1], {}),
     ]
 
     tests = [
@@ -206,6 +209,73 @@ class test_sudocmd(Declarative):
             ),
         ),
 
+        dict(
+            desc='Create %r' % sudorule1,
+            command=('sudorule_add', [sudorule1], {}),
+            expected=lambda e, result: True,
+        ),
+
+        dict(
+            desc='Add %r to %r allow list' % (sudocmd1, sudorule1),
+            command=('sudorule_add_allow_command', [sudorule1],
+                dict(sudocmd=sudocmd1)),
+            expected=dict(
+                    completed=1,
+                    failed=dict(
+                        memberallowcmd=dict(sudocmdgroup=(), sudocmd=())),
+                    result=lambda result: True,
+                ),
+        ),
+
+        dict(
+            desc="Test %r can't be deleted when in %r" % (sudocmd1, sudorule1),
+            command=('sudocmd_del', [sudocmd1], {}),
+            expected=errors.DependentEntry(key=sudocmd1, label='sudorule',
+                dependent=sudorule1),
+        ),
+
+        dict(
+            desc='Remove %r from %r' % (sudocmd1, sudorule1),
+            command=('sudorule_remove_allow_command', [sudorule1],
+                dict(sudocmd=sudocmd1)),
+            expected=dict(
+                    completed=1,
+                    failed=dict(
+                        memberallowcmd=dict(sudocmdgroup=(), sudocmd=())),
+                    result=lambda result: True,
+                ),
+        ),
+
+        dict(
+            desc='Add %r to %r deny list' % (sudocmd1, sudorule1),
+            command=('sudorule_add_deny_command', [sudorule1],
+                dict(sudocmd=sudocmd1)),
+            expected=dict(
+                    completed=1,
+                    failed=dict(
+                        memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
+                    result=lambda result: True,
+                ),
+        ),
+
+        dict(
+            desc="Test %r can't be deleted when in %r" % (sudocmd1, sudorule1),
+            command=('sudocmd_del', [sudocmd1], {}),
+            expected=errors.DependentEntry(key=sudocmd1, label='sudorule',
+                dependent=sudorule1),
+        ),
+
+        dict(
+            desc='Remove %r from %r' % (sudocmd1, sudorule1),
+            command=('sudorule_remove_deny_command', [sudorule1],
+                dict(sudocmd=sudocmd1)),
+            expected=dict(
+                    completed=1,
+                    failed=dict(
+                        memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
+                    result=lambda result: True,
+                ),
+        ),
 
         dict(
             desc='Delete %r' % sudocmd1,
