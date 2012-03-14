@@ -217,7 +217,7 @@
                             "ptr_redir_zone": "Zone found: ${zone}",
                             "ptr_redir_zone_err": "Target reverse zone not found.",
                             "ptr_redir_zones": "Fetching DNS zones.",
-                            "ptr_redir_zones_err": "An error occurd while fetching dns zones.",
+                            "ptr_redir_zones_err": "An error occurred while fetching dns zones.",
                             "redirection_dnszone": "You will be redirected to DNS Zone.",
                             "standard": "Standard Record Types",
                             "title": "Records for DNS Zone",
