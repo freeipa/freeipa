@@ -97,7 +97,7 @@ class test_sudorule(XMLRPC_test):
         Test searching for Sudo rules using `xmlrpc.sudorule_find`.
         """
         ret = api.Command['sudorule_find'](
-            name=self.rule_name,
+            cn=self.rule_name,
             description=self.rule_desc_mod
         )
         assert ret['truncated'] is False
@@ -131,7 +131,7 @@ class test_sudorule(XMLRPC_test):
             self.test_sudodenycmdgroup, description=u'desc'
         )
         self.failsafe_add(api.Object.sudocmd,
-            self.test_command, description=u'desc', force=True
+            self.test_command, description=u'desc'
         )
 
     def test_8_sudorule_add_user(self):
@@ -592,7 +592,7 @@ class test_sudorule(XMLRPC_test):
         """
         api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'all')
         try:
-            api.Command['sudorule_add_runasuser'](self.rule_name, sudocmd=self.test_user)
+            api.Command['sudorule_add_runasuser'](self.rule_name, user=self.test_user)
         finally:
             api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'')
 

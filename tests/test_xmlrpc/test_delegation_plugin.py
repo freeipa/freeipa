@@ -45,7 +45,7 @@ class test_delegation(Declarative):
 
         dict(
             desc='Try to update non-existent %r' % delegation1,
-            command=('delegation_mod', [delegation1], dict(description=u'Foo')),
+            command=('delegation_mod', [delegation1], dict(group=u'admins')),
             expected=errors.NotFound(reason='no such entry'),
         ),
 

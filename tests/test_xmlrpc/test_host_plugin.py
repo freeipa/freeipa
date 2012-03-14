@@ -123,7 +123,7 @@ class test_host(Declarative):
             command=('host_add', [fqdn1],
                 dict(
                     description=u'Test host 1',
-                    localityname=u'Undisclosed location 1',
+                    locality=u'Undisclosed location 1',
                     force=True,
                 ),
             ),

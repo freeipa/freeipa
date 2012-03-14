@@ -123,7 +123,7 @@ class test_hbac(XMLRPC_test):
         Test searching for HBAC rules using `xmlrpc.hbacrule_find`.
         """
         ret = api.Command['hbacrule_find'](
-            name=self.rule_name, accessruletype=self.rule_type,
+            cn=self.rule_name, accessruletype=self.rule_type,
             description=self.rule_desc_mod
         )
         assert ret['truncated'] is False
@@ -155,7 +155,7 @@ class test_hbac(XMLRPC_test):
             self.test_sourcehostgroup, description=u'desc'
         )
         self.failsafe_add(api.Object.hbacsvc,
-            self.test_service, description=u'desc', force=True
+            self.test_service, description=u'desc',
         )
 
     def test_8_hbacrule_add_user(self):
@@ -424,7 +424,7 @@ class test_hbac(XMLRPC_test):
         """
         api.Command['hbacrule_mod'](self.rule_name, usercategory=u'all')
         try:
-            api.Command['hbacrule_add_user'](self.rule_name, users=u'admin')
+            api.Command['hbacrule_add_user'](self.rule_name, user=u'admin')
         finally:
             api.Command['hbacrule_mod'](self.rule_name, usercategory=u'')
 
