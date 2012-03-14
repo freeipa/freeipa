@@ -129,23 +129,15 @@ Requires: selinux-policy >= 3.9.7-27
 %endif
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
-%if 0%{?fedora} >= 16
-Requires: pki-ca >= 9.0.15
-Requires: pki-silent >= 9.0.15
-# Only tomcat6 greater than this version provides proper systemd support
-Requires: tomcat6 >= 6.0.32-17
-%else
-%if 0%{?fedora} >= 15
-Requires: pki-ca >= 9.0.15
-Requires: pki-silent >= 9.0.15
-Requires: pki-setup  >= 9.0.15
-%else
-Requires: pki-ca >= 9.0.5
-Requires: pki-silent >= 9.0.5
-%endif
-%endif
+Requires: pki-ca >= 9.0.18
+Requires: pki-silent >= 9.0.18
+Requires: pki-setup  >= 9.0.18
 Requires: dogtag-pki-common-theme
 Requires: dogtag-pki-ca-theme
+%if 0%{?fedora} >= 16
+# Only tomcat6 greater than this version provides proper systemd support
+Requires: tomcat6 >= 6.0.32-17
+%endif
 %if 0%{?rhel}
 Requires: subscription-manager
 %endif

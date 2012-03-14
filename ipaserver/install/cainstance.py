@@ -660,9 +660,6 @@ class CAInstance(service.Service):
                 args.append("-clone")
                 args.append("false")
 
-            # pkisilent does not escape the arguments before passing them to shell
-            args[2:] = [ipautil.shell_quote(i) for i in args[2:]]
-
             # Define the things we don't want logged
             nolog = (self.admin_password, self.dm_password,)
 
