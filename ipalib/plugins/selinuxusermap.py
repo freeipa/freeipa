@@ -65,7 +65,7 @@ EXAMPLES:
 SEEALSO:
 
  The list controlling the order in which the SELinux user map is applied
- and the default SELinux user are available in the config-show commond.
+ and the default SELinux user are available in the config-show command.
 """)
 
 notboth_err = _('HBAC rule and local members cannot both be set')
