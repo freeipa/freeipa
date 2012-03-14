@@ -21,6 +21,8 @@ from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipaserver.install.plugins import baseupdate
 from ipalib import api, errors, util
+from ipalib.dn import DN
+from ipalib.plugins.dns import dns_container_exists
 
 class update_dnszones(PostUpdate):
     """
@@ -78,3 +80,36 @@ class update_dnszones(PostUpdate):
         return (False, False, [])
 
 api.register(update_dnszones)
+
+class update_dns_permissions(PostUpdate):
+    """
+    New DNS permissions need to be added only for updated machines with
+    enabled DNS. LDIF loaded by DNS installer would fail because of duplicate
+    entries otherwise.
+    """
+    def execute(self, **options):
+        ldap = self.obj.backend
+
+        if not dns_container_exists(ldap):
+            return (False, False, [])
+
+        dnsupdates = {}
+        dn = str(DN('cn=Write DNS Configuration', api.env.container_permission, api.env.basedn))
+        entry = ['objectClass:groupofnames',
+                 'objectClass:top',
+                 'cn:Write DNS Configuration',
+                 'description:Write DNS Configuration',
+                 'member:cn=DNS Administrators,cn=privileges,cn=pbac,%s' % api.env.basedn,
+                 'member:cn=DNS Servers,cn=privileges,cn=pbac,%s' % api.env.basedn]
+        # make sure everything is str or otherwise python-ldap will complain
+        entry = map(str, entry)
+        dnsupdates[dn] = {'dn' : str(dn), 'default' : entry}
+
+        dn = str(DN(api.env.basedn))
+        entry = ['add:aci:\'(targetattr = "idnsforwardpolicy || idnsforwarders || idnsallowsyncptr || idnszonerefresh || idnspersistentsearch")(target = "ldap:///cn=dns,%(realm)s")(version 3.0;acl "permission:Write DNS Configuration";allow (write) groupdn = "ldap:///cn=Write DNS Configuration,cn=permissions,cn=pbac,%(realm)s";)\'' % dict(realm=api.env.basedn)]
+        entry = map(str, entry)
+        dnsupdates[dn] = {'dn' : dn, 'updates' : entry}
+
+        return (False, True, [dnsupdates])
+
+api.register(update_dns_permissions)
