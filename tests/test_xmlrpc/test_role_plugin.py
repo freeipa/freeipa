@@ -81,7 +81,7 @@ class test_role(Declarative):
 
         dict(
             desc='Try to rename non-existent %r' % role1,
-            command=('role_del', [role1], dict(setattr=u'cn=%s' % renamedrole1)),
+            command=('role_mod', [role1], dict(setattr=u'cn=%s' % renamedrole1)),
             expected=errors.NotFound(reason='no such entry'),
         ),
 

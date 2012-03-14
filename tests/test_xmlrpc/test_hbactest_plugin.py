@@ -79,7 +79,7 @@ class test_hbactest(XMLRPC_test):
             self.test_sourcehostgroup, description=u'desc'
         )
         self.failsafe_add(api.Object.hbacsvc,
-            self.test_service, description=u'desc', force=True
+            self.test_service, description=u'desc'
         )
 
         for i in [0,1,2,3]:

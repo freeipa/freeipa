@@ -49,7 +49,7 @@ class test_pwpolicy(XMLRPC_test):
         self.failsafe_add(
             api.Object.user, self.user, givenname=u'Test', sn=u'User'
         )
-        api.Command.group_add_member(self.group, users=self.user)
+        api.Command.group_add_member(self.group, user=self.user)
 
         entry = api.Command['pwpolicy_add'](self.group, **self.kw)['result']
         assert_attr_equal(entry, 'krbminpwdlife', '30')

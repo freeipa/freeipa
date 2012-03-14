@@ -718,10 +718,7 @@ class test_automember(Declarative):
         dict(
             desc='Retrieve default automember group for groups',
             command=(
-                'automember_default_group_show', [], dict(
-                    type=u'group',
-                    automemberdefaultgroup=defaultgroup1,
-                )
+                'automember_default_group_show', [], dict(type=u'group')
             ),
             expected=dict(
                 result=dict(
