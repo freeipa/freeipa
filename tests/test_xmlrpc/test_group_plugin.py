@@ -368,7 +368,6 @@ class test_group(Declarative):
                         'dn': lambda x: DN(x) == \
                             DN(('cn','ipausers'),('cn','groups'),('cn','accounts'),
                                api.env.basedn),
-                        'gidnumber': [fuzzy_digits],
                         'cn': [u'ipausers'],
                         'description': [u'Default group for all users'],
                     },
