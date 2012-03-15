@@ -3,6 +3,7 @@ AUTOMAKE_OPTIONS = 1.7
 NULL =
 
 SUBDIRS =  				\
+	ext				\
 	images				\
 	$(NULL)
 
@@ -20,7 +21,6 @@ app_DATA =				\
 	dns.js				\
 	entitle.js 			\
 	entity.js 			\
-	extension.js 			\
 	facet.js 			\
 	favicon.ico			\
 	field.js			\
