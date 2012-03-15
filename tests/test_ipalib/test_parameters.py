@@ -64,6 +64,16 @@ class test_DefaultFrom(ClassChecker):
         e = raises(TypeError, self.cls, callback, 'givenname', 17)
         assert str(e) == TYPE_ERROR % ('keys', str, 17, int)
 
+        # Test that ValueError is raised when inferring keys from a callback
+        # which has *args:
+        e = raises(ValueError, self.cls, lambda foo, *args: None)
+        assert str(e) == "callback: variable-length argument list not allowed"
+
+        # Test that ValueError is raised when inferring keys from a callback
+        # which has **kwargs:
+        e = raises(ValueError, self.cls, lambda foo, **kwargs: None)
+        assert str(e) == "callback: variable-length argument list not allowed"
+
     def test_repr(self):
         """
         Test the `ipalib.parameters.DefaultFrom.__repr__` method.
@@ -185,8 +195,6 @@ class test_Param(ClassChecker):
         assert o.normalizer is None
         assert o.default is None
         assert o.default_from is None
-        assert o.create_default is None
-        assert o._get_default is None
         assert o.autofill is False
         assert o.query is False
         assert o.attribute is False
@@ -250,16 +258,6 @@ class test_Param(ClassChecker):
         assert str(e) == \
             "Param('my_param'): takes no such kwargs: 'ape', 'great'"
 
-        # Test that ValueError is raised if you provide both default_from and
-        # create_default:
-        e = raises(ValueError, self.cls, 'my_param',
-            default_from=lambda first, last: first[0] + last,
-            create_default=lambda **kw: 'The Default'
-        )
-        assert str(e) == '%s: cannot have both %r and %r' % (
-            "Param('my_param')", 'default_from', 'create_default',
-        )
-
         # Test that ValueError is raised if you provide both include and
         # exclude:
         e = raises(ValueError, self.cls, 'my_param',
@@ -276,15 +274,11 @@ class test_Param(ClassChecker):
         e = raises(ValueError, self.cls, 'my_param', csv=True)
         assert str(e) == '%s: cannot have csv without multivalue' % "Param('my_param')"
 
-        # Test that _get_default gets set:
-        call1 = lambda first, last: first[0] + last
-        call2 = lambda **kw: 'The Default'
-        o = self.cls('my_param', default_from=call1)
-        assert o.default_from.callback is call1
-        assert o._get_default is o.default_from
-        o = self.cls('my_param', create_default=call2)
-        assert o.create_default is call2
-        assert o._get_default is call2
+        # Test that default_from gets set:
+        call = lambda first, last: first[0] + last
+        o = self.cls('my_param', default_from=call)
+        assert type(o.default_from) is parameters.DefaultFrom
+        assert o.default_from.callback is call
 
     def test_repr(self):
         """
@@ -579,7 +573,7 @@ class test_Param(ClassChecker):
 
     def test_get_default(self):
         """
-        Test the `ipalib.parameters.Param._get_default` method.
+        Test the `ipalib.parameters.Param.get_default` method.
         """
         class PassThrough(object):
             value = None
@@ -621,17 +615,6 @@ class test_Param(ClassChecker):
         assert o.normalizer.value is None
         default = o.get_default(first=u'john', last='doe')
         assert_equal(default, u'jdoe')
-        assert o._convert_scalar.value is default
-        assert o.normalizer.value is default
-
-        # Test with create_default:
-        o = Str('my_str',
-            normalizer=PassThrough(),
-            default=u'Static Default',
-            create_default=lambda **kw: u'The created default',
-        )
-        default = o.get_default(first=u'john', last='doe')
-        assert_equal(default, u'The created default')
         assert o._convert_scalar.value is default
         assert o.normalizer.value is default
 
