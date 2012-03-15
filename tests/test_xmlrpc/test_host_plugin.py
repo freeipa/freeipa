@@ -462,7 +462,7 @@ class test_host(Declarative):
 
         dict(
             desc='Try to rename %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(setattr=u'fqdn=changed')),
+            command=('host_mod', [fqdn1], dict(setattr=u'fqdn=changed.example.com')),
             expected=errors.NotAllowedOnRDN()
         ),
 
