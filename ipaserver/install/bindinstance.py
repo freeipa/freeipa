@@ -637,6 +637,26 @@ class BindInstance(service.Service):
                 # remove also master NS record from the reverse zone
                 del_rr(rzone, "@", "NS", fqdn+".")
 
+    def check_global_configuration(self):
+        """
+        Check global DNS configuration in LDAP server and inform user when it
+        set and thus overrides his configured options in named.conf.
+        """
+        result = api.Command.dnsconfig_show()
+        global_conf_set = any(param in result['result'] for \
+                              param in api.Object['dnsconfig'].params)
+
+        if not global_conf_set:
+            print "Global DNS configuration in LDAP server is empty"
+            print "You can use 'dnsconfig-mod' command to set global DNS options that"
+            print "would override settings in local named.conf files"
+            return
+
+        print "Global DNS configuration in LDAP server is not empty"
+        print "The following configuration options override local settings in named.conf:"
+        print ""
+        textui = ipalib.cli.textui()
+        api.Command.dnsconfig_show.output_for_cli(textui, result, None, reverse=False)
 
     def uninstall(self):
         if self.is_configured():

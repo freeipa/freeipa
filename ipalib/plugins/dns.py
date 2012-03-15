@@ -189,6 +189,14 @@ EXAMPLES:
    ipa dns-resolve www.example.com
    ipa dns-resolve www
 
+
+GLOBAL DNS CONFIGURATION
+
+DNS configuration passed to command line install script is stored in a local
+configuration file on each IPA server where DNS service is configured. These
+local settings can be overridden with a common configuration stored in LDAP
+server:
+
  Show global DNS configuration:
    ipa dnsconfig-show
 
@@ -2701,16 +2709,30 @@ class dnsconfig(LDAPObject):
 
         return entry
 
+    def postprocess_result(self, result):
+        if not any(param in result['result'] for param in self.params):
+            result['summary'] = unicode(_('Global DNS configuration is empty'))
+
 api.register(dnsconfig)
 
 
 class dnsconfig_mod(LDAPUpdate):
     __doc__ = _('Modify global DNS configuration.')
 
+    def execute(self, *keys, **options):
+        result = super(dnsconfig_mod, self).execute(*keys, **options)
+        self.obj.postprocess_result(result)
+        return result
+
 api.register(dnsconfig_mod)
 
 
 class dnsconfig_show(LDAPRetrieve):
     __doc__ = _('Show the current global DNS configuration.')
+
+    def execute(self, *keys, **options):
+        result = super(dnsconfig_show, self).execute(*keys, **options)
+        self.obj.postprocess_result(result)
+        return result
 
 api.register(dnsconfig_show)

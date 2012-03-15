@@ -229,6 +229,10 @@ def install_bind(config, options):
                config.domain_name, forwarders, options.conf_ntp, reverse_zone)
     bind.create_instance()
 
+    print ""
+    bind.check_global_configuration()
+    print ""
+
 def install_dns_records(config, options):
 
     if not bindinstance.dns_container_exists(config.master_host_name,
