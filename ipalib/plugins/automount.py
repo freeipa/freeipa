@@ -845,6 +845,10 @@ class automountmap_add_indirect(LDAPCreate):
                     automountkey=options['key'], **kw
                 )
             else: # adding to auto.master
+                # Ensure auto.master exists
+                self.api.Command['automountmap_show'](
+                    keys[0], options['parentmap']
+                )
                 options['automountinformation'] = keys[1]
                 self.api.Command['automountkey_add'](
                     keys[0], u'auto.master',
