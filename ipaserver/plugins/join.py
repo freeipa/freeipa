@@ -52,7 +52,7 @@ class join(Command):
             validate_host,
             cli_name='hostname',
             doc=_("The hostname to register as"),
-            create_default=lambda **kw: unicode(util.get_fqdn()),
+            default_from=lambda: unicode(util.get_fqdn()),
             autofill=True,
             #normalizer=lamda value: value.lower(),
         ),
@@ -60,7 +60,7 @@ class join(Command):
     takes_options= (
         Str('realm',
             doc=_("The IPA realm"),
-            create_default=lambda **kw: get_realm(),
+            default_from=lambda: get_realm(),
             autofill=True,
         ),
         Str('nshardwareplatform?',

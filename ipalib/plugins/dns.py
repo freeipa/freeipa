@@ -234,7 +234,7 @@ def _rname_validator(ugettext, zonemgr):
         return unicode(e)
     return None
 
-def _create_zone_serial(**kwargs):
+def _create_zone_serial():
     """ Generate serial number for zones. The format follows RFC 1912 """
     return int('%s01' % time.strftime('%Y%m%d'))
 
@@ -1554,7 +1554,7 @@ class dnszone(LDAPObject):
             label=_('SOA serial'),
             doc=_('SOA record serial number'),
             minvalue=1,
-            create_default=_create_zone_serial,
+            default_from=_create_zone_serial,
             autofill=True,
         ),
         Int('idnssoarefresh',

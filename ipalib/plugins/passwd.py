@@ -69,7 +69,7 @@ class passwd(Command):
             label=_('User name'),
             primary_key=True,
             autofill=True,
-            create_default=lambda **kw: util.get_current_principal(),
+            default_from=lambda: util.get_current_principal(),
             normalizer=lambda value: normalize_principal(value),
         ),
         Password('password',

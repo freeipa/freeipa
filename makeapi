@@ -45,7 +45,6 @@ PARAM_IGNORED_KW_ATTRIBUTES = ('label',
                                'normalizer',
                                'encoder',
                                'default_from',
-                               'create_default',
                                'hint',
                                'flags',
                                'sortorder',)

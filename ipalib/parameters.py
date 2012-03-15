@@ -198,6 +198,8 @@ class DefaultFrom(ReadOnly):
         self.callback = callback
         if len(keys) == 0:
             fc = callback.func_code
+            if fc.co_flags & 0x0c:
+                raise ValueError("callback: variable-length argument list not allowed")
             self.keys = fc.co_varnames[:fc.co_argcount]
         else:
             self.keys = keys
@@ -308,13 +310,9 @@ class Param(ReadOnly):
         encoder
       - default_from: a custom function for generating default values of
         parameter instance
-      - create_default: a custom function for generating default values of
-        parameter instance. Unlike default_from attribute, this function
-        is not wrapped. `Param.get_default()` documentation provides further
-        details
       - autofill: by default, only `required` parameters get a default value
-        from default_from or create_default functions. When autofill is
-        enabled, optional attributes get the default value filled too
+        from the default_from function. When autofill is enabled, optional
+        attributes get the default value filled too
       - query: this attribute is controlled by framework. When the `query`
         is enabled, framework assumes that the value is only queried and not
         inserted in the LDAP. Validation is then relaxed - custom
@@ -379,7 +377,6 @@ class Param(ReadOnly):
         ('normalizer', callable, None),
         ('encoder', callable, None),
         ('default_from', DefaultFrom, None),
-        ('create_default', callable, None),
         ('autofill', bool, False),
         ('query', bool, False),
         ('attribute', bool, False),
@@ -480,20 +477,6 @@ class Param(ReadOnly):
             if value is not None and hasattr(self, rule_name):
                 class_rules.append(getattr(self, rule_name))
         check_name(self.cli_name)
-
-        # Check that only default_from or create_default was provided:
-        assert not hasattr(self, '_get_default'), self.nice
-        if callable(self.default_from):
-            if callable(self.create_default):
-                raise ValueError(
-                    '%s: cannot have both %r and %r' % (
-                        self.nice, 'default_from', 'create_default')
-                )
-            self._get_default = self.default_from
-        elif callable(self.create_default):
-            self._get_default = self.create_default
-        else:
-            self._get_default = None
 
         # Check that only 'include' or 'exclude' was provided:
         if None not in (self.include, self.exclude):
@@ -990,59 +973,9 @@ class Param(ReadOnly):
         >>> kw = dict(first=u'John', department=u'Engineering')
         >>> login.get_default(**kw)
         u'my-static-login-default'
-
-        The second, less common way to construct a dynamic default is to provide
-        a callback via the ``create_default`` keyword argument.  Unlike a
-        ``default_from`` callback, your ``create_default`` callback will not get
-        wrapped in any dispatcher.  Instead, it will be called directly, which
-        means your callback must accept arbitrary keyword arguments, although
-        whether your callback utilises these values is up to your
-        implementation.  For example:
-
-        >>> def make_csr(**kw):
-        ...     print '  make_csr(%r)' % (kw,)  # Note output below
-        ...     return 'Certificate Signing Request'
-        ...
-        >>> csr = Bytes('csr', create_default=make_csr)
-
-        Your ``create_default`` callback will be called with whatever keyword
-        arguments are passed to `Param.get_default()`.  For example:
-
-        >>> kw = dict(arbitrary='Keyword', arguments='Here')
-        >>> csr.get_default(**kw)
-          make_csr({'arguments': 'Here', 'arbitrary': 'Keyword'})
-        'Certificate Signing Request'
-
-        And your ``create_default`` callback is called even if
-        `Param.get_default()` is called with *zero* keyword arguments.
-        For example:
-
-        >>> csr.get_default()
-          make_csr({})
-        'Certificate Signing Request'
-
-        The ``create_default`` callback will most likely be used as a
-        pre-execute hook to perform some special client-side operation.  For
-        example, the ``csr`` parameter above might make a call to
-        ``/usr/bin/openssl``.  However, often a ``create_default`` callback
-        could also be implemented as a ``default_from`` callback.  When this is
-        the case, a ``default_from`` callback should be used as they are more
-        structured and therefore less error-prone.
-
-        The ``default_from`` and ``create_default`` keyword arguments are
-        mutually exclusive.  If you provide both, a ``ValueError`` will be
-        raised.  For example:
-
-        >>> homedir = Str('home',
-        ...     default_from=lambda login: '/home/%s' % login,
-        ...     create_default=lambda **kw: '/lets/use/this',
-        ... )
-        Traceback (most recent call last):
-          ...
-        ValueError: Str('home'): cannot have both 'default_from' and 'create_default'
         """
-        if self._get_default is not None:
-            default = self._get_default(**kw)
+        if self.default_from is not None:
+            default = self.default_from(**kw)
             if default is not None:
                 try:
                     return self.convert(self.normalize(default))
