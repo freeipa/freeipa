@@ -1019,6 +1019,9 @@ def main():
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
 
         bind.create_instance()
+        print ""
+        bind.check_global_configuration()
+        print ""
     else:
         bind.create_sample_bind_zone()
 

@@ -232,6 +232,9 @@ def main():
     print "=============================================================================="
     print "Setup complete"
     print ""
+    bind.check_global_configuration()
+    print ""
+    print ""
     print "\tYou must make sure these network ports are open:"
     print "\t\tTCP Ports:"
     print "\t\t  * 53: bind"
