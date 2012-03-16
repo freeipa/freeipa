@@ -780,8 +780,9 @@ last, after all sets and adds."""),
                 try:
                    value = self.params[attr](value)
                 except errors.ValidationError, err:
-                    (name, error) = str(err.strerror).split(':')
-                    raise errors.ValidationError(name=attr, error=error)
+                    raise errors.ValidationError(name=attr, error=err.error)
+                except errors.ConversionError, err:
+                    raise errors.ValidationError(name=attr, error=err.error)
                 if self.api.env.in_server:
                     value = self.params[attr].encode(value)
             if append and attr in newdict:
