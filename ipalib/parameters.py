@@ -563,6 +563,18 @@ class Param(ReadOnly):
             self.validate(value, supplied=self.name in kw)
         return value
 
+    def get_param_name(self):
+        """
+        Return the right name of an attribute depending on usage.
+
+        Normally errors should use cli_name, our "friendly" name. When
+        using the API directly or *attr return the real name.
+        """
+        name = self.cli_name
+        if not name:
+            name = self.name
+        return name
+
     def kw(self):
         """
         Iterate through ``(key,value)`` for all kwargs passed to constructor.
@@ -861,11 +873,8 @@ class Param(ReadOnly):
         for rule in self.all_rules:
             error = rule(ugettext, value)
             if error is not None:
-                name = self.cli_name
-                if not name:
-                    name = self.name
                 raise ValidationError(
-                    name=name,
+                    name=self.get_param_name(),
                     value=value,
                     index=index,
                     error=error,
@@ -1175,7 +1184,7 @@ class Int(Number):
                 return int(value)
             except ValueError:
                 pass
-        raise ConversionError(name=self.name, index=index,
+        raise ConversionError(name=self.get_param_name(), index=index,
             error=ugettext(self.type_error),
         )
 
@@ -1218,11 +1227,8 @@ class Int(Number):
         for rule in self.all_rules:
             error = rule(ugettext, value)
             if error is not None:
-                name = self.cli_name
-                if not name:
-                    name = self.name
                 raise ValidationError(
-                    name=name,
+                    name=self.get_param_name(),
                     value=value,
                     index=index,
                     error=error,
@@ -1309,7 +1315,7 @@ class Decimal(Number):
             try:
                 value = decimal.Decimal(value)
             except Exception, e:
-                raise ConversionError(name=self.name, index=index,
+                raise ConversionError(name=self.get_param_name(), index=index,
                                       error=unicode(e))
 
         if isinstance(value, decimal.Decimal):
@@ -1449,7 +1455,7 @@ class Bytes(Data):
             try:
                 value = base64.b64decode(value)
             except TypeError:
-                raise ConversionError(name=self.name, index=index, error=self.type_error)
+                raise ConversionError(name=self.get_param_name(), index=index, error=self.type_error)
         return super(Bytes, self)._convert_scalar(value, index)
 
 
@@ -1548,7 +1554,8 @@ class IA5Str(Str):
         if isinstance(value, basestring):
             for i in xrange(len(value)):
                 if ord(value[i]) > 127:
-                    raise ConversionError(name=self.name, index=index,
+                    raise ConversionError(name=self.get_param_name(),
+                        index=index,
                         error=_('The character \'%(char)r\' is not allowed.') %
                             dict(char=value[i],)
                     )
@@ -1832,10 +1839,10 @@ class AccessTime(Str):
         try:
             self._check(value)
         except ValueError, e:
-            raise ValidationError(name=self.cli_name, error=e.args[0])
+            raise ValidationError(name=self.get_param_name(), error=e.args[0])
         except IndexError:
             raise ValidationError(
-                name=self.cli_name, error='incomplete time value'
+                name=self.get_param_name(), error='incomplete time value'
             )
         return None
 
