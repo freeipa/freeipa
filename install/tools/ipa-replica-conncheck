@@ -241,18 +241,29 @@ def port_check(host, port_list):
     if not ip:
         raise RuntimeError("Port check failed! Unable to resolve host name '%s'" % host)
 
-    failed_ports = []
+    ports_failed = []
+    ports_udp_warning = []  # conncheck could not verify that port is open
     for port in port_list:
         if ipautil.host_port_open(host, port.port, port.port_type, socket_timeout=CONNECT_TIMEOUT):
             result = "OK"
         else:
-            failed_ports.append(port)
-            result = "FAILED"
+            if port.port_type == socket.SOCK_DGRAM:
+                ports_udp_warning.append(port)
+                result = "WARNING"
+            else:
+                ports_failed.append(port)
+                result = "FAILED"
         print_info("   %s (%d): %s" % (port.description, port.port, result))
 
-    if failed_ports:
+    if ports_udp_warning:
+        print "The following UDP ports could not be verified as open: %s" \
+                % ", ".join(str(port.port) for port in ports_udp_warning)
+        print "This can happen if they are already bound to an application"
+        print "and ipa-replica-conncheck cannot attach own UDP responder."
+
+    if ports_failed:
         msg_ports = []
-        for port in failed_ports:
+        for port in ports_failed:
             port_type_text = "TCP" if port.port_type == SOCK_STREAM else "UDP"
             msg_ports.append('%d (%s)' % (port.port, port_type_text))
         raise RuntimeError("Port check failed! Inaccessible port(s): %s" \
