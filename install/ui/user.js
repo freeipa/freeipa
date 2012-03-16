@@ -272,6 +272,8 @@ IPA.user.details_facet = function(spec) {
 
     that.refresh_on_success = function(data, text_status, xhr) {
         // do not load data from batch
+
+        that.show_content();
     };
 
     that.create_refresh_command = function() {
