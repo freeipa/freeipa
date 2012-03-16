@@ -305,6 +305,8 @@ class DsInstance(service.Service):
                 root_logger.critical("failed to add user %s" % e)
 
     def __create_instance(self):
+        pent = pwd.getpwnam(DS_USER)
+
         self.backup_state("running", is_ds_running())
         self.backup_state("serverid", self.serverid)
         self.fstore.backup_file("/etc/sysconfig/dirsrv")
@@ -320,6 +322,7 @@ class DsInstance(service.Service):
 
         # Must be readable for dirsrv
         os.chmod(target_fname, 0440)
+        os.chown(target_fname, pent.pw_uid, pent.pw_gid)
 
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
         root_logger.debug("writing inf template")
