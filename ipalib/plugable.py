@@ -596,7 +596,7 @@ class API(DictProxy):
         if self.env.mode in ('dummy', 'unit_test'):
             return
         self.import_plugins('ipalib')
-        if self.env.in_server:
+        if self.env.context in ('server', 'lite'):
             self.import_plugins('ipaserver')
         if self.env.context in ('installer', 'updates'):
             self.import_plugins('ipaserver/install/plugins')
