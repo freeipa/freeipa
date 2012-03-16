@@ -255,6 +255,7 @@ IPA.hbac.test_facet = function(spec) {
 
         command.on_success = function(data, text_status, xhr) {
             that.load(data);
+            that.show_content();
         };
 
         command.on_error = function(xhr, text_status, error_thrown) {
