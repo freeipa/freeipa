@@ -68,6 +68,10 @@ IPA.host.entity = function(spec) {
                             type: 'sshkeys',
                             name: 'ipasshpubkey',
                             label: IPA.messages.objects.sshkeystore.keys
+                        },
+                        {
+                            type: 'multivalued',
+                            name: 'macaddress'
                         }
                     ]
                 },
