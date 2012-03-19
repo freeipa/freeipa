@@ -97,7 +97,20 @@ class CheckedIPAddress(netaddr.IPAddress):
             pass
         else:
             try:
-                addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
+                try:
+                    addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
+                except netaddr.AddrFormatError:
+                    # netaddr.IPAddress doesn't handle zone indices in textual
+                    # IPv6 addresses. Try removing zone index and parse the
+                    # address again.
+                    if not isinstance(addr, basestring):
+                        raise
+                    addr, sep, foo = addr.partition('%')
+                    if sep != '%':
+                        raise
+                    addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
+                    if addr.version != 6:
+                        raise
             except ValueError:
                 net = netaddr.IPNetwork(addr, flags=self.netaddr_ip_flags)
                 if not parse_netmask:
