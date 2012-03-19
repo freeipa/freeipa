@@ -200,6 +200,18 @@ def set_certificate_attrs(entry_attrs):
     entry_attrs['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
     entry_attrs['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
 
+def check_required_principal(ldap, hostname, service):
+    """
+    Raise an error if the host of this prinicipal is an IPA master and one
+    of the principals required for proper execution.
+    """
+    try:
+        host_is_master(ldap, hostname)
+    except errors.ValidationError, e:
+        service_types = ['HTTP', 'ldap', 'DNS' 'dogtagldap']
+        if service in service_types:
+            raise errors.ValidationError(name='principal', error=_('This principal is required by the IPA master'))
+
 class service(LDAPObject):
     """
     Service object.
@@ -296,12 +308,7 @@ class service_del(LDAPDelete):
         # deleted. This is a limited few though. If the user has their own
         # custom services allow them to manage them.
         (service, hostname, realm) = split_principal(keys[-1])
-        try:
-            host_is_master(ldap, hostname)
-        except errors.ValidationError, e:
-            service_types = ['HTTP', 'ldap', 'DNS' 'dogtagldap']
-            if service in service_types:
-                raise errors.ValidationError(name='principal', error=_('This principal is required by the IPA master'))
+        check_required_principal(ldap, hostname, service)
         if self.api.env.enable_ra:
             (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
             cert = entry_attrs.get('usercertificate')
@@ -464,6 +471,9 @@ class service_disable(LDAPQuery):
 
         dn = self.obj.get_dn(*keys, **options)
         (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+
+        (service, hostname, realm) = split_principal(keys[-1])
+        check_required_principal(ldap, hostname, service)
 
         # See if we do any work at all here and if not raise an exception
         done_work = False

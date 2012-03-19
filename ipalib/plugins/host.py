@@ -850,6 +850,8 @@ class host_disable(LDAPQuery):
         else:
             fqdn = keys[-1]
 
+        host_is_master(ldap, fqdn)
+
         # See if we actually do anthing here, and if not raise an exception
         done_work = False
 
