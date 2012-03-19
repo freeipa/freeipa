@@ -673,8 +673,16 @@ class test_host(Declarative):
         dict(
             desc='Delete the current host (master?) %s should be caught' % api.env.host,
             command=('host_del', [api.env.host], {}),
-            expected=errors.ValidationError(name='fqdn', error='An IPA master host cannot be deleted'),
+            expected=errors.ValidationError(name='fqdn', error='An IPA master host cannot be deleted or disabled'),
         ),
+
+
+        dict(
+            desc='Disable the current host (master?) %s should be caught' % api.env.host,
+            command=('host_disable', [api.env.host], {}),
+            expected=errors.ValidationError(name='fqdn', error='An IPA master host cannot be deleted or disabled'),
+        ),
+
 
         dict(
             desc='Test that validation is enabled on adds',
