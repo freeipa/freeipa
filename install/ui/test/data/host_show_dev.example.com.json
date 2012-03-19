@@ -33,6 +33,7 @@
                 "krbticketpolicyreference": "rsc",
                 "krbupenabled": "rsc",
                 "l": "rscwo",
+                "macaddress": "rscwo",
                 "managedby": "rscwo",
                 "memberof": "rsc",
                 "nsaccountlock": "rscwo",

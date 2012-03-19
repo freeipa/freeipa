@@ -33,6 +33,7 @@
                 "krbticketpolicyreference": "rsc",
                 "krbupenabled": "rsc",
                 "l": "rscwo",
+                "macaddress": "rscwo",
                 "managedby": "rscwo",
                 "memberof": "rsc",
                 "nsaccountlock": "rscwo",
@@ -57,6 +58,9 @@
             ],
             "krbprincipalname": [
                 "host/test.example.com@EXAMPLE.COM"
+            ],
+            "macaddress": [
+                "FE:ED:BA:BE:BE:EF"
             ],
             "managedby": [
                 "fqdn=test.example.com,cn=computers,cn=accounts,dc=example,dc=com"
