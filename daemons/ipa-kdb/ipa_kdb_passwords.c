@@ -71,6 +71,9 @@ static krb5_error_code ipadb_check_pw_policy(krb5_context context,
     int ret;
 
     ipactx = ipadb_get_context(context);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
 
     ied = (struct ipadb_e_data *)db_entry->e_data;
     if (ied->magic != IPA_E_DATA_MAGIC) {

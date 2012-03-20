@@ -373,6 +373,9 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     /* proceed to fill in attributes in the order they are defined in
      * krb5_db_entry in kdb.h */
     ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
     lcontext = ipactx->lcontext;
 
     entry->magic = KRB5_KDB_MAGIC_NUMBER;

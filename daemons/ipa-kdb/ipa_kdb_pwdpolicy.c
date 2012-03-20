@@ -121,6 +121,9 @@ krb5_error_code ipadb_get_ipapwd_policy(struct ipadb_context *ipactx,
 
 done:
     ldap_msgfree(res);
+    if (kerr) {
+        free(pol);
+    }
     return kerr;
 }
 

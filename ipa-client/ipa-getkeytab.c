@@ -211,10 +211,10 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
             if (krberr != 0) {
                 fprintf(stderr,
                         _("Warning unrecognized encryption type: [%s]\n"), t);
-                t = p+1;
+                if (p) t = p + 1;
                 continue;
             }
-            t = p+1;
+            if (p) t = p + 1;
 
             if (!q) {
                 ksdata[j].salttype = KRB5_KDB_SALTTYPE_NORMAL;
