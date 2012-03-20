@@ -26,7 +26,6 @@ IPA_BASEDN_INFO = 'ipa v2.0'
 
 import string
 import tempfile
-from ipapython.ipa_log_manager import *
 import subprocess
 import random
 import os, sys, traceback, readline
@@ -37,14 +36,14 @@ import urllib2
 import socket
 import ldap
 import struct
-
-from ipapython import ipavalidate
 from types import *
-
 import re
 import xmlrpclib
 import datetime
 import netaddr
+
+from ipapython.ipa_log_manager import *
+from ipapython import ipavalidate
 from ipapython import config
 try:
     from subprocess import CalledProcessError
@@ -259,10 +258,14 @@ def run(args, stdin=None, raiseonerr=True,
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
 
-    p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
-                         close_fds=True, env=env)
-    stdout,stderr = p.communicate(stdin)
-    stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
+    try:
+        p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
+                             close_fds=True, env=env)
+        stdout,stderr = p.communicate(stdin)
+        stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
+    except KeyboardInterrupt:
+        p.wait()
+        raise
 
     # The command and its output may include passwords that we don't want
     # to log. Run through the nolog items.
