@@ -158,12 +158,10 @@ def clean_responders(responders):
         responders.remove(responder)
 
 def sigterm_handler(signum, frame):
-    print_info("\nCleaning up...")
-
-    global RESPONDERS
-    clean_responders(RESPONDERS)
-
-    sys.exit(1)
+    # do what SIGINT does (raise a KeyboardInterrupt)
+    sigint_handler = signal.getsignal(signal.SIGINT)
+    if callable(sigint_handler):
+        sigint_handler(signum, frame)
 
 def configure_krb5_conf(realm, kdc, filename):
 
@@ -268,7 +266,6 @@ def main():
     root_logger.debug("missing options might be asked for interactively later\n")
 
     signal.signal(signal.SIGTERM, sigterm_handler)
-    signal.signal(signal.SIGINT, sigterm_handler)
 
     required_ports = BASE_PORTS
     if options.check_ca:
@@ -384,6 +381,7 @@ if __name__ == "__main__":
     except SystemExit, e:
         sys.exit(e)
     except KeyboardInterrupt:
+        print_info("\nCleaning up...")
         sys.exit(1)
     except RuntimeError, e:
         sys.exit(e)
@@ -395,4 +393,3 @@ if __name__ == "__main__":
                     os.remove(file_name)
                 except OSError:
                     pass
-
