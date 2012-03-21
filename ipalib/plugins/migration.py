@@ -114,6 +114,14 @@ _supported_schemas = (u'RFC2307bis', u'RFC2307')
 
 _compat_dn = "cn=Schema Compatibility,cn=plugins,cn=config"
 
+def is_DN_syntax(ldap, attr):
+    """
+    Check the schema to see if the attribute uses DN syntax.
+
+    Returns True/False
+    """
+    obj = ldap.schema.get_obj(_ldap.schema.AttributeType, attr)
+    return obj is not None and obj.syntax == '1.3.6.1.4.1.1466.115.121.1.12'
 
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
     attr_blacklist = ['krbprincipalkey','memberofindirect','memberindirect']
@@ -167,6 +175,40 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         entry_attrs['krbprincipalname'] = principal
     else:
         failed[pkey] = unicode(_krb_err_msg % principal)
+
+    # Fix any attributes with DN syntax that point to entries in the old
+    # tree
+    search_bases = kwargs.get('search_bases', None)
+    ds_ldap = ctx['ds_ldap']
+
+    for attr in entry_attrs.keys():
+        if is_DN_syntax(ldap, attr):
+            for ind, value in enumerate(entry_attrs[attr]):
+                try:
+                    (remote_dn, remote_entry) = ds_ldap.get_entry(value, [api.Object.user.primary_key.name, api.Object.group.primary_key.name])
+                except errors.NotFound:
+                    api.log.error('In %s the attribute %s refers to non-existent entry %s' % (dn, attr, value))
+                    continue
+                if value.lower().endswith(search_bases['user']):
+                    primary_key = api.Object.user.primary_key.name
+                    container = api.env.container_user
+                elif value.lower().endswith(search_bases['group']):
+                    primary_key = api.Object.group.primary_key.name
+                    container = api.env.container_group
+                else:
+                    api.log.error('In entry %s value %s in attribute %s does not belong into any known container' % (dn, value, attr))
+                    continue
+
+                if not remote_entry.get(primary_key):
+                    api.log.error('In %s there is no primary key %s to migrate for %s' % (value, primary_key, attr))
+                    continue
+
+                api.log.info('converting DN value %s for %s in %s' % (value, attr, dn))
+                rdnval = remote_entry[primary_key][0].lower()
+                entry_attrs[attr][ind] = \
+                    str(DN((primary_key, rdnval),
+                    container,
+                    api.env.basedn))
 
     return dn
 
@@ -549,7 +591,7 @@ can use their Kerberos accounts.''')
             search_filter = construct_filter(self.migrate_objects[ldap_obj_name]['filter_template'],
                                              options[to_cli(self.migrate_objects[ldap_obj_name]['oc_option'])])
             exclude = options['exclude_%ss' % to_cli(ldap_obj_name)]
-            context = {}
+            context = dict(ds_ldap = ds_ldap)
 
             migrated[ldap_obj_name] = []
             failed[ldap_obj_name] = {}
