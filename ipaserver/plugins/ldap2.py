@@ -401,6 +401,9 @@ class ldap2(CrudBackend, Encoder):
             obj = self.schema.get_obj(_ldap.schema.ObjectClass, oc)
             if obj is not None:
                 allowed_attributes += obj.must + obj.may
+                # look for allowed attributes in the superior objectclasses
+                if obj.sup:
+                    allowed_attributes += self.get_allowed_attributes(obj.sup,raise_on_unknown)
             elif raise_on_unknown:
                 raise errors.NotFound(reason=_('objectclass %s not found') % oc)
         return [unicode(a).lower() for a in list(set(allowed_attributes))]
