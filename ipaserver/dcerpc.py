@@ -135,7 +135,7 @@ class TrustDomainInstance(object):
 
         # Netlogon response doesn't contain SID of the domain.
         # We need to do rootDSE search with LDAP_SERVER_EXTENDED_DN_OID control to reveal the SID
-        ldap_uri = 'ldap://%s' % (result.pdc_name)
+        ldap_uri = 'ldap://%s' % (result.pdc_dns_name)
         conn = _ldap.initialize(ldap_uri)
         conn.set_option(_ldap.OPT_SERVER_CONTROLS, [ExtendedDNControl()])
         result = None
