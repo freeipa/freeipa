@@ -487,7 +487,15 @@ class LDAPObject(Object):
             pass
         # DN object assures we're returning a decoded (unescaped) value
         dn = DN(dn)
-        return dn[self.primary_key.name]
+        try:
+            return dn[self.primary_key.name]
+        except KeyError:
+            # The primary key is not in the DN.
+            # This shouldn't happen, but we don't want a "show" command to
+            # crash.
+            # Just return the entire DN, it's all we have if the entry
+            # doesn't exist
+            return unicode(dn)
 
     def get_ancestor_primary_keys(self):
         if self.parent_object:
