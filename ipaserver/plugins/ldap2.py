@@ -42,7 +42,19 @@ import ldap as _ldap
 from ldap.ldapobject import SimpleLDAPObject
 import ldap.filter as _ldap_filter
 import ldap.sasl as _ldap_sasl
-from ldap.controls import LDAPControl
+try:
+    from ldap.controls.simple import GetEffectiveRightsControl #pylint: disable=F0401,E0611
+except ImportError:
+    """
+    python-ldap 2.4.x introduced a new API for effective rights control, which
+    needs to be used or otherwise bind dn is not passed correctly. The following
+    class is created for backward compatibility with python-ldap 2.3.x.
+    Relevant BZ: https://bugzilla.redhat.com/show_bug.cgi?id=802675
+    """
+    from ldap.controls import LDAPControl
+    class GetEffectiveRightsControl(LDAPControl):
+        def __init__(self, criticality, authzId=None):
+            LDAPControl.__init__(self, '1.3.6.1.4.1.42.2.27.9.5.2', criticality, authzId)
 # for backward compatibility
 from ldap.functions import explode_dn
 from ipalib.dn import DN
@@ -874,7 +886,7 @@ class ldap2(CrudBackend, Encoder):
         """
         principal = getattr(context, 'principal')
         (binddn, attrs) = self.find_entry_by_attr("krbprincipalname", principal, "krbPrincipalAux")
-        sctrl = [LDAPControl("1.3.6.1.4.1.42.2.27.9.5.2", True, "dn: " + binddn.encode('UTF-8'))]
+        sctrl = [GetEffectiveRightsControl(True, "dn: " + binddn.encode('UTF-8'))]
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
         (dn, attrs) = self.get_entry(dn, entry_attrs)
         # remove the control so subsequent operations don't include GER
