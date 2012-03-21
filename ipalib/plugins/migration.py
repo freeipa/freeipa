@@ -657,6 +657,7 @@ can use their Kerberos accounts.''')
                         ) + [o.lower() for o in entry_attrs['objectclass']]
                     )
                 )
+                entry_attrs[ldap_obj.primary_key.name][0] = entry_attrs[ldap_obj.primary_key.name][0].lower()
 
                 callback = self.migrate_objects[ldap_obj_name]['pre_callback']
                 if callable(callback):
