@@ -2131,6 +2131,7 @@ class dnsrecord_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         precallback_attrs = []
+        processed_attrs = []
         for option in options:
             try:
                 param = self.params[option]
@@ -2142,13 +2143,19 @@ class dnsrecord_add(LDAPCreate):
                 continue
 
             if 'dnsrecord_part' in param.flags:
-                if rrparam.name in entry_attrs:
+                if rrparam.name in processed_attrs:
                     # this record was already entered
                     continue
+                if rrparam.name in entry_attrs:
+                    # this record is entered both via parts and raw records
+                    raise errors.ValidationError(name=param.cli_name or param.name,
+                            error=_('Raw value of a DNS record was already set by "%(name)s" option') \
+                                  % dict(name=rrparam.cli_name or rrparam.name))
 
                 parts = rrparam.get_parts_from_kw(options)
                 dnsvalue = [rrparam._convert_scalar(parts)]
                 entry_attrs[rrparam.name] = dnsvalue
+                processed_attrs.append(rrparam.name)
                 continue
 
             if 'dnsrecord_extra' in param.flags:
@@ -2193,6 +2200,8 @@ class dnsrecord_add(LDAPCreate):
             for attr in old_entry.keys():
                 if attr not in _record_attributes:
                     continue
+                if entry_attrs[attr] is None:
+                    entry_attrs[attr] = []
                 if not isinstance(entry_attrs[attr], (tuple, list)):
                     vals = [entry_attrs[attr]]
                 else:
@@ -2244,26 +2253,23 @@ class dnsrecord_mod(LDAPUpdate):
         # check if any attr should be updated using structured instead of replaced
         # format is recordname : (old_value, new_parts)
         updated_attrs = {}
-        for attr in entry_attrs:
-            param = self.params[attr]
-            if not isinstance(param, DNSRecord):
-                continue
-
+        for param in self.obj.iterate_rrparams_by_parts(options, skip_extra=True):
             parts = param.get_parts_from_kw(options, raise_on_none=False)
 
             if parts is None:
                 # old-style modification
                 continue
 
-            if isinstance(entry_attrs[attr], (tuple, list)):
-                if len(entry_attrs[attr]) > 1:
+            old_value = entry_attrs.get(param.name)
+            if not old_value:
+                raise errors.RequirementError(name=param.name)
+            if isinstance(old_value, (tuple, list)):
+                if len(old_value) > 1:
                     raise errors.ValidationError(name=param.name,
                            error=_('DNS records can be only updated one at a time'))
-                old_value = entry_attrs[attr][0]
-            else:
-                old_value = entry_attrs[attr]
+                old_value = old_value[0]
 
-            updated_attrs[attr] = (old_value, parts)
+            updated_attrs[param.name] = (old_value, parts)
 
         # Run pre_callback validators
         self.obj.run_precallback_validators(dn, entry_attrs, *keys, **options)

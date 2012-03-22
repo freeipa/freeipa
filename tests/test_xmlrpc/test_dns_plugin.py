@@ -622,6 +622,18 @@ class test_dns(Declarative):
         ),
 
         dict(
+            desc='Try to add SRV record to zone %r both via parts and a raw value' % (dnszone1),
+            command=('dnsrecord_add', [dnszone1, u'_foo._tcp'], {'srv_part_priority': 0,
+                                                                 'srv_part_weight' : 0,
+                                                                 'srv_part_port' : 123,
+                                                                 'srv_part_target' : u'foo.bar.',
+                                                                 'srvrecord': [u"1 100 1234 %s" \
+                                                                     % dnszone1_mname]}),
+            expected=errors.ValidationError(name='srv_target',
+                error='Raw value of a DNS record was already set by a_rec option'),
+        ),
+
+        dict(
             desc='Add SRV record to zone %r using dnsrecord_add' % (dnszone1),
             command=('dnsrecord_add', [dnszone1, u'_foo._tcp'], {'srvrecord': u"0 100 1234 %s" % dnszone1_mname}),
             expected={
@@ -632,6 +644,40 @@ class test_dns(Declarative):
                     'dn': unicode(DN(('idnsname', u'_foo._tcp'), dnszone1_dn)),
                     'idnsname': [u'_foo._tcp'],
                     'srvrecord': [u"0 100 1234 %s" % dnszone1_mname],
+                },
+            },
+        ),
+
+        dict(
+            desc='Try to modify SRV record in zone %r without specifying modified value' % (dnszone1),
+            command=('dnsrecord_mod', [dnszone1, u'_foo._tcp'], {'srv_part_priority': 1,}),
+            expected=errors.RequirementError(name='srvrecord'),
+        ),
+
+        dict(
+            desc='Try to modify SRV record in zone %r with non-existent modified value' % (dnszone1),
+            command=('dnsrecord_mod', [dnszone1, u'_foo._tcp'], {'srv_part_priority': 1,
+                                                  'srvrecord' : [u"0 100 1234 does.not.exist."] }),
+            expected=errors.AttrValueNotFound(attr='SRV', value=u'0 100 1234 ns1.dnszone.test.'),
+        ),
+
+        dict(
+            desc='Try to modify SRV record in zone %r with invalid part value' % (dnszone1),
+            command=('dnsrecord_mod', [dnszone1, u'_foo._tcp'], {'srv_part_priority': 100000,
+                                                  'srvrecord' : [u"0 100 1234 %s" % dnszone1_mname] }),
+            expected=errors.ValidationError(name='srv_priority', error=u'can be at most 65535'),
+        ),
+
+        dict(
+            desc='Modify SRV record in zone %r using parts' % (dnszone1),
+            command=('dnsrecord_mod', [dnszone1, u'_foo._tcp'], {'srv_part_priority': 1,
+                                                  'srvrecord' : [u"0 100 1234 %s" % dnszone1_mname] }),
+            expected={
+                'value': u'_foo._tcp',
+                'summary': None,
+                'result': {
+                    'idnsname': [u'_foo._tcp'],
+                    'srvrecord': [u"1 100 1234 %s" % dnszone1_mname],
                 },
             },
         ),
