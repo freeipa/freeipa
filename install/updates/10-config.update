@@ -38,3 +38,7 @@ only:nsslapd-anonlimitsdn:'cn=anonymous-limits,cn=etc,$SUFFIX'
 # doesn't support it generates a non-fatal error.
 dn: cn=config
 add:nsslapd-defaultNamingContext:'$SUFFIX'
+
+# Allow the root DSE to be searched even with minssf set
+dn: cn=config
+only:nsslapd-minssf-exclude-rootdse:on
