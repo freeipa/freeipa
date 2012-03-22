@@ -153,6 +153,16 @@ IPA.automount.map_entity = function(spec) {
 
 IPA.automount.key_entity = function(spec) {
 
+    spec = spec || {};
+
+    spec.policies = spec.policies || [
+        IPA.facet_update_policy({
+            source_facet: 'details',
+            dest_entity: 'automountmap',
+            dest_facet: 'keys'
+        })
+    ];
+
     var that = IPA.entity(spec);
 
     that.init = function() {

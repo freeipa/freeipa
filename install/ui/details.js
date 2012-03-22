@@ -535,6 +535,7 @@ IPA.details_facet = function(spec) {
 
     that.update_on_success = function(data, text_status, xhr) {
         that.load(data);
+        that.on_update.notify();
     };
 
     that.update_on_error = function(xhr, text_status, error_thrown) {

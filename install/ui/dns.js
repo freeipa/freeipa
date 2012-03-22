@@ -262,6 +262,7 @@ IPA.dnszone_details_facet = function(spec) {
 
     that.update_on_success = function(data, text_status, xhr) {
         that.refresh();
+        that.on_update.notify();
     };
 
     that.update_on_error = function(xhr, text_status, error_thrown) {
@@ -913,6 +914,17 @@ IPA.dns.get_record_type = function(type_name) {
 };
 
 IPA.dns.record_entity = function(spec) {
+
+    spec = spec || {};
+
+    spec.policies = spec.policies || [
+        IPA.facet_update_policy({
+            source_facet: 'details',
+            dest_entity: 'dnszone',
+            dest_facet: 'records'
+        }),
+        IPA.adder_facet_update_policy()
+    ];
 
     var that = IPA.entity(spec);
 
@@ -1599,6 +1611,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                 function(data) {
                     that.reload_facet(data);
                     dialog.close();
+                    that.notify_facet_update();
                 },
                 function() {
                     that.refresh_facet();
@@ -1670,6 +1683,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                             that.refresh_facet();
                         }
                         dialog.close();
+                        that.notify_facet_update();
                     },
                     dialog.on_error);
             }
@@ -1693,6 +1707,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                             that.refresh_facet();
                         }
                         dialog.reset();
+                        that.notify_facet_update();
                     },
                     dialog.on_error);
             }
@@ -1784,6 +1799,7 @@ IPA.dns.record_type_table_widget = function(spec) {
             command.on_success = function(data) {
                 that.reload_facet(data);
                 dialog.close();
+                that.notify_facet_update();
             };
             command.on_error = function() {
                 that.refresh_facet();
@@ -1823,6 +1839,11 @@ IPA.dns.record_type_table_widget = function(spec) {
         //FIXME: seems as bad approach
         var facet = IPA.current_entity.get_facet();
         facet.refresh();
+    };
+
+    that.notify_facet_update = function() {
+        var facet = IPA.current_entity.get_facet();
+        facet.on_update.notify();
     };
 
     that.update = function(values) {
