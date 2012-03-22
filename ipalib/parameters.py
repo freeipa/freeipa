@@ -715,14 +715,15 @@ class Param(ReadOnly):
         if self.csv:
             if type(value) not in (tuple, list):
                 value = (value,)
-            newval = ()
+            newval = []
             for v in value:
                 if isinstance(v, basestring):
-                    csvreader = self.__unicode_csv_reader([unicode(v)])
-                    newval += tuple(csvreader.next()) #pylint: disable=E1101
+                    lines = unicode(v).splitlines()
+                    for row in self.__unicode_csv_reader(lines):
+                        newval.extend(row)
                 else:
-                    newval += (v,)
-            return newval
+                    newval.append(v)
+            return tuple(newval)
         else:
             return value
 
