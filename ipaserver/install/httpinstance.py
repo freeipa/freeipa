@@ -129,8 +129,10 @@ class HTTPInstance(service.Service):
             # together so it is speedier.
             if vars:
                 bools = [var + "=true" for var in vars]
+                args = ["/usr/sbin/setsebool", "-P"]
+                args.extend(bools);
                 try:
-                    ipautil.run(["/usr/sbin/setsebool", "-P", ' '.join(bools)])
+                    ipautil.run(args)
                 except:
                     self.print_msg(selinux_warning % dict(var=','.join(vars)))
 
