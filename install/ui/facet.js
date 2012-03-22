@@ -45,6 +45,9 @@ IPA.facet = function(spec) {
     that.header = spec.header || IPA.facet_header({ facet: that });
 
     that._needs_update = spec.needs_update;
+    that.expired_flag = true;
+    that.last_updated = null;
+    that.expire_timeout = spec.expire_timeout || 600; //[seconds]
 
     that.dialogs = $.ordered_map();
 
@@ -140,8 +143,34 @@ IPA.facet = function(spec) {
     };
 
     that.needs_update = function() {
+
         if (that._needs_update !== undefined) return that._needs_update;
-        return true;
+
+        var needs_update = false;
+
+        if (that.expire_timeout && that.expire_timeout > 0) {
+
+            if (!that.last_updated) {
+                needs_update = true;
+            } else {
+                var now = Date.now();
+                needs_update = (now - that.last_updated) > that.expire_timeout * 1000;
+            }
+        }
+
+        needs_update = needs_update || that.expired_flag;
+        needs_update = needs_update || that.error_displayed();
+
+        return needs_update;
+    };
+
+    that.set_expired_flag = function() {
+        that.expired_flag = true;
+    };
+
+    that.clear_expired_flag = function() {
+        that.expired_flag = false;
+        that.last_updated = Date.now();
     };
 
     that.is_dirty = function() {
@@ -263,6 +292,7 @@ IPA.facet = function(spec) {
     that.facet_create = that.create;
     that.facet_create_header = that.create_header;
     that.facet_create_content = that.create_content;
+    that.facet_needs_update = that.needs_update;
     that.facet_show = that.show;
     that.facet_hide = that.hide;
     that.facet_load = that.load;
@@ -583,6 +613,8 @@ IPA.table_facet = function(spec) {
         that.table.total_pages_span.text(that.table.total_pages);
 
         that.table.pagination_control.css('visibility', 'visible');
+
+        that.clear_expired_flag();
     };
 
 
@@ -821,6 +853,7 @@ IPA.table_facet = function(spec) {
             if (that.table.current_page > 1) {
                 var state = {};
                 state[that.entity.name+'-page'] = that.table.current_page - 1;
+                that.set_expired_flag();
                 IPA.nav.push_state(state);
             }
         };
@@ -829,6 +862,7 @@ IPA.table_facet = function(spec) {
             if (that.table.current_page < that.table.total_pages) {
                 var state = {};
                 state[that.entity.name+'-page'] = that.table.current_page + 1;
+                that.set_expired_flag();
                 IPA.nav.push_state(state);
             }
         };
@@ -841,6 +875,7 @@ IPA.table_facet = function(spec) {
             }
             var state = {};
             state[that.entity.name+'-page'] = page;
+            that.set_expired_flag();
             IPA.nav.push_state(state);
         };
     };
