@@ -31,6 +31,11 @@ IPA.entity = function(spec) {
 
     spec = spec || {};
 
+    spec.policies = spec.policies || [
+        IPA.search_facet_update_policy(),
+        IPA.details_facet_update_policy()
+    ];
+
     var that = {};
 
     that.name = spec.name;
@@ -42,6 +47,11 @@ IPA.entity = function(spec) {
     that.dialogs = $.ordered_map();
     that.dialog_specs = spec.dialogs || [];
     that.dialogs_created = false;
+
+    that.policies = IPA.entity_policies({
+        entity: that,
+        policies: spec.policies
+    });
 
     that.facets = $.ordered_map();
     that.facet_groups = $.ordered_map();
@@ -116,6 +126,7 @@ IPA.entity = function(spec) {
             var builder = IPA.facet_builder(that);
             builder.build_facets();
             that.facets_created = true;
+            that.policies.facets_created();
         }
 
         if (name === undefined) {
@@ -568,4 +579,144 @@ IPA.dialog_builder = function(entity) {
     };
 
     return that;
+};
+
+IPA.entity_policy = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.entity = spec.entity;
+
+    that.facets_created = function() {
+    };
+
+    return that;
+};
+
+IPA.entity_policies = function(spec) {
+
+    var that = {};
+
+    that.entity = spec.entity;
+    that.policies = [];
+
+    that.add_policy = function(policy) {
+
+        policy.entity = that.entity;
+        that.policies.push(policy);
+    };
+
+    that.add_policies = function(policies) {
+
+        if (!policies) return;
+
+        for (var i=0; i<policies.length; i++) {
+            that.add_policy(policies[i]);
+        }
+    };
+
+    that.facets_created = function() {
+
+        for (var i=0; i<that.policies.length; i++) {
+            that.policies[i].facets_created();
+        }
+    };
+
+    that.add_policies(spec.policies);
+
+    return that;
+};
+
+IPA.facet_update_policy = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.entity_policy();
+
+    that.event = spec.event || 'on_update';
+    that.source_facet_name = spec.source_facet;
+    that.dest_facet_name = spec.dest_facet;
+    that.dest_entity_name = spec.dest_entity;
+
+    that.facets_created = function() {
+
+        that.source_facet = that.entity.get_facet(that.source_facet_name);
+        var dest_entity = that.entity;
+        if (that.dest_entity_name) {
+            dest_entity = IPA.get_entity(that.dest_entity_name);
+            if (!dest_entity) return;
+        }
+        that.dest_facet = dest_entity.get_facet(that.dest_facet_name);
+
+        if (!that.source_facet || !that.dest_facet) return;
+
+        var event = that.source_facet[that.event];
+        if (!event && !event.attach) return;
+
+        event.attach(that.set_expired_flag);
+    };
+
+    that.set_expired_flag = function() {
+
+        that.dest_facet.set_expired_flag();
+    };
+
+    return that;
+};
+
+IPA.adder_facet_update_policy = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.entity_policy();
+
+    that.event = spec.event || 'added';
+    that.dialog_name = spec.dialog_name || 'add';
+    that.dest_facet_name = spec.dest_facet || 'details';
+    that.dest_entity_name = spec.dest_entity;
+
+    that.facets_created = function() {
+
+        that.dialog = that.entity.get_dialog(that.dialog_name);
+        var dest_entity = that.entity;
+        if (that.dest_entity_name) {
+            dest_entity = IPA.get_entity(that.dest_entity_name);
+            if (!dest_entity) return;
+        }
+        that.dest_facet = dest_entity.get_facet(that.dest_facet_name);
+
+        if (!that.dialog || !that.dest_facet) return;
+
+        var event = that.dialog[that.event];
+        if (!event && !event.attach) return;
+
+        event.attach(that.set_expired_flag);
+    };
+
+    that.set_expired_flag = function() {
+
+        that.dest_facet.set_expired_flag();
+    };
+
+    return that;
+};
+
+IPA.search_facet_update_policy = function(spec) {
+
+    spec = spec || {};
+    spec.source_facet = 'search';
+    spec.dest_facet = 'details';
+
+    return IPA.facet_update_policy(spec);
+};
+
+IPA.details_facet_update_policy = function(spec) {
+
+    spec = spec || {};
+    spec.source_facet = 'details';
+    spec.dest_facet = 'search';
+
+    return IPA.facet_update_policy(spec);
 };

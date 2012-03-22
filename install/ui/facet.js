@@ -48,6 +48,7 @@ IPA.facet = function(spec) {
     that.expired_flag = true;
     that.last_updated = null;
     that.expire_timeout = spec.expire_timeout || 600; //[seconds]
+    that.on_update = IPA.observer();
 
     that.dialogs = $.ordered_map();
 

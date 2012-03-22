@@ -33,6 +33,19 @@ IPA.automember.entity = function(spec) {
     IPA.metadata.objects.automember.takes_params.push(pkey_attr);
     IPA.metadata.objects.automember.primary_key = pkey_attr.name;
 
+    spec = spec || {};
+
+    spec.policies = spec.policies || [
+        IPA.facet_update_policy({
+            source_facet: 'usergrouprule',
+            dest_facet: 'searchgroup'
+        }),
+        IPA.facet_update_policy({
+            source_facet: 'hostgrouprule',
+            dest_facet: 'searchhostgroup'
+        })
+    ];
+
     var that = IPA.entity(spec);
 
     that.init = function() {
