@@ -1548,6 +1548,21 @@ IPA.is_empty = function(value) {
     return empty;
 };
 
+IPA.array_diff = function(a, b) {
+
+    if (a === b || (!a && !b)) return false;
+
+    if (!a || !b) return true;
+
+    if (a.length !== b.length) return true;
+
+    for (var i=0; i<a.length; i++) {
+        if (a[i] !== b[i]) return true;
+    }
+
+    return false;
+};
+
 IPA.config = {
     default_priority: 500
 };

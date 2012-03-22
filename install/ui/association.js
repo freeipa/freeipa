@@ -1064,9 +1064,7 @@ IPA.association_facet = function (spec) {
         var page = parseInt(IPA.nav.get_state(that.entity.name+'-page'), 10) || 1;
         if (that.table.current_page !== page) return true;
 
-        if (that.error_displayed()) return true;
-
-        return false;
+        return that.facet_needs_update();
     };
 
     init();

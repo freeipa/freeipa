@@ -4,6 +4,7 @@
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
  *    Endi S. Dewata <edewata@redhat.com>
+ *    Petr Vobornik <pvoborni@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -128,10 +129,23 @@ IPA.search_facet = function(spec) {
 
         var filter = IPA.nav.get_state(that.entity.name+'-filter');
         that.old_filter = filter || '';
+        that.old_pkeys = that.managed_entity.get_primary_key_prefix();
 
         if (that.filter) {
             that.filter.val(filter);
         }
+    };
+
+    that.needs_update = function() {
+        if (that._needs_update !== undefined) return that._needs_update;
+
+        var needs_update = that.facet_needs_update();
+
+        //check if state changed
+        var pkeys = that.managed_entity.get_primary_key_prefix();
+        needs_update = needs_update || IPA.array_diff(pkeys, that.old_pkeys);
+
+        return needs_update;
     };
 
     that.show_add_dialog = function() {
@@ -171,8 +185,12 @@ IPA.search_facet = function(spec) {
 
     that.find = function() {
         var filter = that.filter.val();
+        var old_filter = IPA.nav.get_state(that.managed_entity.name+'-filter');
         var state = {};
         state[that.managed_entity.name + '-filter'] = filter;
+
+        if (filter !== old_filter) that.set_expired_flag();
+
         IPA.nav.push_state(state);
     };
 
@@ -186,16 +204,8 @@ IPA.search_facet = function(spec) {
 
     that.create_refresh_command = function() {
 
-        var filter = [];
-        var entity = that.managed_entity;
-
-        filter.unshift(IPA.nav.get_state(entity.name+'-filter'));
-        entity = entity.get_containing_entity();
-
-        while (entity !== null) {
-            filter.unshift(IPA.nav.get_state(entity.name+'-pkey'));
-            entity = entity.get_containing_entity();
-        }
+        var filter = that.managed_entity.get_primary_key_prefix();
+        filter.push(IPA.nav.get_state(that.managed_entity.name+'-filter'));
 
         var command = IPA.command({
             name: that.get_search_command_name(),
@@ -239,8 +249,14 @@ IPA.search_facet = function(spec) {
     };
 
     that.needs_clear = function() {
+        var clear = false;
         var filter = IPA.nav.get_state(that.entity.name+'-filter') || '';
-        return that.old_filter !== '' || that.old_filter !== filter;
+        clear = that.old_filter !== '' || that.old_filter !== filter;
+
+        var pkeys = that.managed_entity.get_primary_key_prefix();
+        clear = clear || IPA.array_diff(pkeys, that.old_pkeys);
+
+        return clear;
     };
 
     init();
@@ -337,8 +353,11 @@ IPA.nested_search_facet = function(spec) {
         that.header.set_pkey(
             IPA.nav.get_state(IPA.current_entity.name+'-pkey'));
 
+        var filter = IPA.nav.get_state(that.managed_entity.name+'-filter');
+        that.old_filter = filter || '';
+        that.old_pkeys = that.managed_entity.get_primary_key_prefix();
+
         if (that.filter) {
-            var filter = IPA.nav.get_state(that.managed_entity.name+'-filter');
             that.filter.val(filter);
         }
     };

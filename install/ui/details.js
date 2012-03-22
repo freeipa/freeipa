@@ -413,14 +413,21 @@ IPA.details_facet = function(spec) {
         that.facet_show();
 
         that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        that.old_key_prefix = that.entity.get_primary_key_prefix();
         that.header.set_pkey(that.pkey);
     };
 
     that.needs_update = function() {
         if (that._needs_update !== undefined) return that._needs_update;
+
+        var needs_update = that.facet_needs_update();
+
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        var needs_update = that.error_displayed();
+        var key_prefix = that.entity.get_primary_key_prefix();
+
         needs_update = needs_update || pkey !== that.pkey;
+        needs_update = needs_update || IPA.array_diff(key_prefix, that.old_key_prefix);
+
         return needs_update;
     };
 
@@ -472,6 +479,7 @@ IPA.details_facet = function(spec) {
         }
         that.policies.post_load(data);
         that.enable_update(false);
+        that.clear_expired_flag();
     };
 
     that.save = function(record) {
