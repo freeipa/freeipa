@@ -24,6 +24,7 @@ from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum
 from ipalib.cli import to_cli
 from ipalib.dn import *
+from ipalib.plugins.user import NO_UPG_MAGIC
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         from ipaserver.plugins.ldap2 import ldap2
@@ -126,21 +127,30 @@ def is_DN_syntax(ldap, attr):
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
     attr_blacklist = ['krbprincipalkey','memberofindirect','memberindirect']
     attr_blacklist.extend(kwargs.get('attr_blacklist', []))
+    ds_ldap = ctx['ds_ldap']
+    has_upg = ctx['has_upg']
+    search_bases = kwargs.get('search_bases', None)
+    valid_gids = kwargs['valid_gids']
 
-    # get default primary group for new users
-    if 'def_group_dn' not in ctx:
-        def_group = config.get('ipadefaultprimarygroup')
-        ctx['def_group_dn'] = api.Object.group.get_dn(def_group)
-        try:
-            (g_dn, g_attrs) = ldap.get_entry(ctx['def_group_dn'], ['gidnumber'])
-        except errors.NotFound:
-            error_msg = _('Default group for new users not found.')
-            raise errors.NotFound(reason=error_msg)
-        if not ldap.has_upg():
-            if 'gidnumber' in g_attrs:
-                ctx['def_group_gid'] = g_attrs['gidnumber'][0]
-            else:
-                raise errors.NotFound(reason=_('User Private Groups are disabled and the default users group is not POSIX'))
+    if 'gidnumber' not in entry_attrs:
+        raise errors.NotFound(reason=_('%(user)s is not a POSIX user') % dict(user=pkey))
+    else:
+        # See if the gidNumber at least points to a valid group on the remote
+        # server.
+        if entry_attrs['gidnumber'][0] not in valid_gids:
+            try:
+                (remote_dn, remote_entry) = ds_ldap.find_entry_by_attr(
+                    'gidnumber', entry_attrs['gidnumber'][0], 'posixgroup',
+                    [''], search_bases['group']
+                )
+                valid_gids.append(entry_attrs['gidnumber'][0])
+            except errors.NotFound:
+                api.log.warn('Migrated user\'s GID number %s does not point to a known group.' % entry_attrs['gidnumber'][0])
+
+    # We don't want to create a UPG so set the magic value in description
+    # to let the DS plugin know.
+    entry_attrs.setdefault('description', [])
+    entry_attrs['description'].append(NO_UPG_MAGIC)
 
     # fill in required attributes by IPA
     entry_attrs['ipauniqueid'] = 'autogenerate'
@@ -149,8 +159,10 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         home_dir = '%s/%s' % (homes_root, pkey)
         home_dir = home_dir.replace('//', '/').rstrip('/')
         entry_attrs['homedirectory'] = home_dir
-    if 'def_group_gid' in ctx:
-        entry_attrs.setdefault('gidnumber', ctx['def_group_gid'])
+
+    if 'loginshell' not in entry_attrs:
+        default_shell = config.get('ipadefaultloginshell', ['/bin/sh'])[0]
+        entry_attrs.setdefault('loginshell', default_shell)
 
     # do not migrate all attributes
     for attr in entry_attrs.keys():
@@ -178,8 +190,6 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
 
     # Fix any attributes with DN syntax that point to entries in the old
     # tree
-    search_bases = kwargs.get('search_bases', None)
-    ds_ldap = ctx['ds_ldap']
 
     for attr in entry_attrs.keys():
         if is_DN_syntax(ldap, attr):
@@ -187,7 +197,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                 try:
                     (remote_dn, remote_entry) = ds_ldap.get_entry(value, [api.Object.user.primary_key.name, api.Object.group.primary_key.name])
                 except errors.NotFound:
-                    api.log.error('In %s the attribute %s refers to non-existent entry %s' % (dn, attr, value))
+                    api.log.warn('%s: attribute %s refers to non-existent entry %s' % (pkey, attr, value))
                     continue
                 if value.lower().endswith(search_bases['user']):
                     primary_key = api.Object.user.primary_key.name
@@ -196,14 +206,14 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                     primary_key = api.Object.group.primary_key.name
                     container = api.env.container_group
                 else:
-                    api.log.error('In entry %s value %s in attribute %s does not belong into any known container' % (dn, value, attr))
+                    api.log.warn('%s: value %s in attribute %s does not belong into any known container' % (pkey, value, attr))
                     continue
 
                 if not remote_entry.get(primary_key):
-                    api.log.error('In %s there is no primary key %s to migrate for %s' % (value, primary_key, attr))
+                    api.log.warn('%s: there is no primary key %s to migrate for %s' % (pkey, primary_key, attr))
                     continue
 
-                api.log.info('converting DN value %s for %s in %s' % (value, attr, dn))
+                api.log.debug('converting DN value %s for %s in %s' % (value, attr, dn))
                 rdnval = remote_entry[primary_key][0].lower()
                 entry_attrs[attr][ind] = \
                     str(DN((primary_key, rdnval),
@@ -219,7 +229,13 @@ def _post_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
         ldap.add_entry_to_group(dn, ctx['def_group_dn'])
     except errors.ExecutionError, e:
         failed[pkey] = unicode(_grp_err_msg)
-
+    if 'description' in entry_attrs and NO_UPG_MAGIC in entry_attrs['description']:
+        entry_attrs['description'].remove(NO_UPG_MAGIC)
+        kw = {'setattr': unicode('description=%s' % ','.join(entry_attrs['description']))}
+        try:
+            api.Command['user_mod'](pkey, **kw)
+        except (errors.EmptyModlist, errors.NotFound):
+            pass
 
 # GROUP MIGRATION CALLBACKS AND VARS
 
@@ -626,6 +642,21 @@ can use their Kerberos accounts.''')
                 else:
                     blacklists[blacklist] = tuple()
 
+            # get default primary group for new users
+            if 'def_group_dn' not in context:
+                def_group = config.get('ipadefaultprimarygroup')
+                context['def_group_dn'] = api.Object.group.get_dn(def_group)
+                try:
+                    (g_dn, g_attrs) = ldap.get_entry(context['def_group_dn'], ['gidnumber', 'cn'])
+                except errors.NotFound:
+                    error_msg = _('Default group for new users not found')
+                    raise errors.NotFound(reason=error_msg)
+                if 'gidnumber' in g_attrs:
+                    context['def_group_gid'] = g_attrs['gidnumber'][0]
+
+            context['has_upg'] = ldap.has_upg()
+
+            valid_gids = []
             for (dn, entry_attrs) in entries:
                 if dn is None:  # LDAP search reference
                     failed[ldap_obj_name][entry_attrs[0]] = unicode(_ref_err_msg)
@@ -661,13 +692,18 @@ can use their Kerberos accounts.''')
 
                 callback = self.migrate_objects[ldap_obj_name]['pre_callback']
                 if callable(callback):
-                    dn = callback(
-                        ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
-                        config, context, schema = options['schema'],
-                        search_bases = search_bases,
-                        **blacklists
-                    )
-                    if not dn:
+                    try:
+                        dn = callback(
+                            ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
+                            config, context, schema = options['schema'],
+                            search_bases = search_bases,
+                            valid_gids = valid_gids,
+                            **blacklists
+                        )
+                        if not dn:
+                            continue
+                    except errors.NotFound, e:
+                        failed[ldap_obj_name][pkey] = unicode(e.reason)
                         continue
 
                 try:
@@ -717,7 +753,7 @@ can use their Kerberos accounts.''')
                 (dn,check_compat) = ldap.get_entry(_compat_dn, normalize=False)
                 if check_compat is not None and \
                         check_compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                    return dict(result={},failed={},enabled=True, compat=False)
+                    return dict(result={}, failed={}, enabled=True, compat=False)
             except errors.NotFound:
                 pass
 
