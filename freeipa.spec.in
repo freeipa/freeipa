@@ -75,6 +75,8 @@ BuildRequires:  pylint
 BuildRequires:  libipa_hbac-python
 BuildRequires:  python-memcached
 BuildRequires:  sssd >= 1.8.0
+BuildRequires:  python-lxml
+BuildRequires:  python-pyasn1 >= 0.0.9a
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -670,6 +672,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+
+* Fri Mar 23 2012 Petr Viktorin <pviktori@redhat.com> - 2.2.0-17
+- Add python-lxml and python-pyasn1 to BuildRequires
 
 * Wed Mar 19 2012 Martin Kosek <mkosek@redhat.com> - 2.2.0-16
 - Set min for bind-dyndb-ldap and bind to pick up new features and bug fixes
