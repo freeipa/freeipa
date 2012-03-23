@@ -227,8 +227,8 @@ def _rname_validator(ugettext, zonemgr):
     return None
 
 def _create_zone_serial(**kwargs):
-    """Generate serial number for zones."""
-    return int('%s01' % time.strftime('%Y%d%m'))
+    """ Generate serial number for zones. The format follows RFC 1912 """
+    return int('%s01' % time.strftime('%Y%m%d'))
 
 def _reverse_zone_name(netstr):
     net = netaddr.IPNetwork(netstr)
