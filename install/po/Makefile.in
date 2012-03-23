@@ -66,7 +66,7 @@ C_POTFILES = $(C_FILES) $(H_FILES)
 
 .SUFFIXES:
 .SUFFIXES: .po .mo
-.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test_lang test mo-files debug
+.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test mo-files debug
 
 all:
 
@@ -129,6 +129,7 @@ update-pot:
 	    echo "$(DOMAIN).pot unmodified" ; \
 	fi || :
 	@rm -f $(DOMAIN).pot.update $(DOMAIN).pot.update.tmp $(DOMAIN).pot.tmp
+	./test_i18n.py --show-strings --validate-pot $(DOMAIN).pot
 
 msg-stats:
 	@pot_count=`$(MSGFMT) --statistics $(DOMAIN).pot 2>&1 | \
@@ -192,17 +193,14 @@ maintainer-clean: distclean
 # msgstr will be set to the empty string (i.e. untranslated). We depend on
 # the msgid being copied to the msgstr.
 
-test_lang:
-	rm -rf test.po test_locale
-	$(MSGINIT) --no-translator -i $(DOMAIN).pot -l en_US -o test.po
-	$(SED) -i -r -e 's/Language: en_US/Language: xh_ZA/' test.po
-	$(SED) -i -r -e 's/^msgstr[ \t]+"(..*)"[ \t]*$$/msgstr "\xe2\x86\x92\1\xe2\x86\x90"/' test.po
-	$(SED) -i -r -e 's/^msgstr[ \t]+"(.*)(\\n)(.)"[ \t]*$$/msgstr "\1\xe2\x86\x90\2"/' test.po
-	$(MKDIR_P) test_locale/xh_ZA/LC_MESSAGES
-	$(MSGFMT) -o test_locale/xh_ZA/LC_MESSAGES/ipa.mo test.po
+test:
+	./test_i18n.py --test-gettext
 
-test: test_lang
-	./test_i18n.py
+validate-pot:
+	./test_i18n.py --show-strings --validate-pot $(DOMAIN).pot
+
+validate-po:
+	./test_i18n.py --show-strings --validate-po $(po_files)
 
 debug:
 	@echo Python potfiles:
