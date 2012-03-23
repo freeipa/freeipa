@@ -2414,7 +2414,7 @@ class dnsrecord_del(LDAPUpdate):
                 continue
             yield option
 
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         try:
             (dn_, old_entry) = ldap.get_entry(
                     dn, _record_attributes,
@@ -2443,13 +2443,19 @@ class dnsrecord_del(LDAPUpdate):
                                                    value=val)
             entry_attrs[attr] = list(set(old_entry[attr]))
 
+        del_all = False
         if not self.obj.is_pkey_zone_record(*keys):
-            del_all = True
+            record_found = False
             for attr in old_entry:
                 if old_entry[attr]:
-                    del_all = False
+                    record_found = True
                     break
-            setattr(context, 'del_all', del_all)
+            del_all = not record_found
+
+        # set del_all flag in context
+        # when the flag is enabled, the entire DNS record object is deleted
+        # in a post callback
+        setattr(context, 'del_all', del_all)
 
         return dn
 
@@ -2465,7 +2471,8 @@ class dnsrecord_del(LDAPUpdate):
 
         result = super(dnsrecord_del, self).execute(*keys, **options)
 
-        if getattr(context, 'del_all', False):
+        if getattr(context, 'del_all', False) and not \
+                self.obj.is_pkey_zone_record(*keys):
             return self.obj.methods.delentry(*keys)
         return result
 
