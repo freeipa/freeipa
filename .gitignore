@@ -46,6 +46,8 @@ install/config.status
 install/install-sh
 install/missing
 install/stamp-h1
+install/po/test.po
+install/po/test_locale/xh_ZA/LC_MESSAGES/ipa.mo
 install/ui/test/results
 ipa-client/COPYING
 ipa-client/ChangeLog

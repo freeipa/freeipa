@@ -72,6 +72,7 @@ BuildRequires:  python-kerberos
 BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
 BuildRequires:  pylint
+BuildRequires:  python-polib
 BuildRequires:  libipa_hbac-python
 BuildRequires:  python-memcached
 BuildRequires:  sssd >= 1.8.0
