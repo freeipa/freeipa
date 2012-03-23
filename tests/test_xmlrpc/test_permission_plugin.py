@@ -661,8 +661,8 @@ class test_permission(Declarative):
             command=(
                 'permission_add', [permission1], dict(
                      type=u'hostgroup',
-                     permissions=u'add,delete,write',
-                     attrs=u'businessCategory,owner,description',
+                     permissions=[u'add', u'delete', u'write'],
+                     attrs=[u'businessCategory', u'owner', u'description'],
                 )
             ),
             expected=dict(

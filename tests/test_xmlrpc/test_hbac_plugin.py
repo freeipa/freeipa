@@ -424,7 +424,7 @@ class test_hbac(XMLRPC_test):
         """
         api.Command['hbacrule_mod'](self.rule_name, usercategory=u'all')
         try:
-            api.Command['hbacrule_add_user'](self.rule_name, users='admin')
+            api.Command['hbacrule_add_user'](self.rule_name, users=u'admin')
         finally:
             api.Command['hbacrule_mod'](self.rule_name, usercategory=u'')
 
@@ -433,11 +433,11 @@ class test_hbac(XMLRPC_test):
         """
         Test setting usercat='all' in an HBAC rule when there are users
         """
-        api.Command['hbacrule_add_user'](self.rule_name, user='admin')
+        api.Command['hbacrule_add_user'](self.rule_name, user=u'admin')
         try:
             api.Command['hbacrule_mod'](self.rule_name, usercategory=u'all')
         finally:
-            api.Command['hbacrule_remove_user'](self.rule_name, user='admin')
+            api.Command['hbacrule_remove_user'](self.rule_name, user=u'admin')
 
     @raises(errors.MutuallyExclusiveError)
     def test_h_hbacrule_exclusivehost(self):

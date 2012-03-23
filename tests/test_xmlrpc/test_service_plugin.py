@@ -271,7 +271,7 @@ class test_service(Declarative):
 
         dict(
             desc='Add non-existent host to %r' % service1,
-            command=('service_add_host', [service1], dict(host='notfound')),
+            command=('service_add_host', [service1], dict(host=u'notfound')),
             expected=dict(
                 failed=dict(managedby=dict(host=[(u'notfound', u'no such entry')])),
                 completed=0,
@@ -286,7 +286,7 @@ class test_service(Declarative):
 
         dict(
             desc='Remove non-existent host from %r' % service1,
-            command=('service_remove_host', [service1], dict(host='notfound')),
+            command=('service_remove_host', [service1], dict(host=u'notfound')),
             expected=dict(
                 failed=dict(managedby=dict(host=[(u'notfound', u'This entry is not a member')])),
                 completed=0,
