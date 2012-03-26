@@ -97,8 +97,11 @@ def makecert(reqdir):
     # Generate NSS cert database to store the private key for our CSR
     run_certutil(reqdir, ["-N", "-f", pwname])
 
+    res = api.Backend.client.run('config_show')
+    subject_base = res['result']['ipacertificatesubjectbase'][0]
+
     cert = None
-    subject = 'CN=%s,O=%s' % (api.env.host, api.env.realm)
+    subject = 'CN=%s,%s' % (api.env.host, subject_base)
     princ = 'unittest/%s@%s' % (api.env.host, api.env.realm)
     csr = unicode(generateCSR(reqdir, pwname, subject))
 
