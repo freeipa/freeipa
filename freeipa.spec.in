@@ -93,7 +93,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires: %{name}-server-selinux = %{version}-%{release}
-Requires(pre): 389-ds-base >= 1.2.10.1-1
+Requires(pre): 389-ds-base >= 1.2.10.4-2
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -679,6 +679,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+
+* Wed Mar 26 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-25
+- Set min for 389-ds-base to 1.2.10.4-2 to fix upgrade issue
 
 * Fri Mar 23 2012 Petr Viktorin <pviktori@redhat.com> - 2.99.0-24
 - Add python-lxml and python-pyasn1 to BuildRequires
