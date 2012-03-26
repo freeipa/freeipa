@@ -22,6 +22,16 @@
 
 #include "ipa_kdb.h"
 
+/*
+ * During TGS request search by ipaKrbPrincipalName (case-insensitive)
+ * and krbPrincipalName (case-sensitive)
+ */
+#define PRINC_TGS_SEARCH_FILTER "(&(|(objectclass=krbprincipalaux)" \
+                                    "(objectclass=krbprincipal)" \
+                                    "(objectclass=ipakrbprincipal))" \
+                                    "(|(ipakrbprincipalalias=%s)" \
+                                      "(krbprincipalname=%s)))"
+
 #define PRINC_SEARCH_FILTER "(&(|(objectclass=krbprincipalaux)" \
                                 "(objectclass=krbprincipal))" \
                               "(krbprincipalname=%s))"
@@ -29,6 +39,7 @@
 static char *std_principal_attrs[] = {
     "krbPrincipalName",
     "krbCanonicalName",
+    "ipaKrbPrincipalAlias",
     "krbUPEnabled",
     "krbPrincipalKey",
     "krbTicketPolicyReference",
@@ -73,6 +84,7 @@ static char *std_principal_obj_classes[] = {
     "krbprincipal",
     "krbprincipalaux",
     "krbTicketPolicyAux",
+    "ipakrbprincipal",
 
     NULL
 };
@@ -637,13 +649,14 @@ done:
 }
 
 static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
-                                              char *search_expr,
+                                              unsigned int flags,
+                                              char *principal,
                                               LDAPMessage **result)
 {
     krb5_error_code kerr;
     char *src_filter = NULL;
-    char *esc_search_expr = NULL;
-    int ret;
+    char *esc_original_princ = NULL;
+    int ret, i;
 
     if (!ipactx->lcontext) {
         ret = ipadb_get_connection(ipactx);
@@ -655,13 +668,19 @@ static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
 
     /* escape filter but do not touch '*' as this function accepts
      * wildcards in names */
-    esc_search_expr = ipadb_filter_escape(search_expr, false);
-    if (!esc_search_expr) {
+    esc_original_princ = ipadb_filter_escape(principal, false);
+    if (!esc_original_princ) {
         kerr = KRB5_KDB_INTERNAL_ERROR;
         goto done;
     }
 
-    ret = asprintf(&src_filter, PRINC_SEARCH_FILTER, esc_search_expr);
+    if (flags & KRB5_KDB_FLAG_ALIAS_OK) {
+        ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER,
+                       esc_original_princ, esc_original_princ);
+    } else {
+        ret = asprintf(&src_filter, PRINC_SEARCH_FILTER, esc_original_princ);
+    }
+
     if (ret == -1) {
         kerr = KRB5_KDB_INTERNAL_ERROR;
         goto done;
@@ -674,7 +693,7 @@ static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
 
 done:
     free(src_filter);
-    free(esc_search_expr);
+    free(esc_original_princ);
     return kerr;
 }
 
@@ -714,9 +733,12 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
         /* we need to check for a strict match as a '*' in the name may have
          * caused the ldap server to return multiple entries */
         for (i = 0; vals[i]; i++) {
-            /* FIXME: use case insensitive compare and tree as alias ?? */
-            if (strcmp(vals[i]->bv_val, (*principal)) == 0) {
-                found = true;
+            /* KDC will accept aliases when doing TGT lookup (ref_tgt_again in do_tgs_req.c */
+            /* Use case-insensitive comparison in such cases */
+            if ((flags & KRB5_KDB_FLAG_ALIAS_OK) != 0) {
+                found = (strcasecmp(vals[i]->bv_val, (*principal)) == 0);
+            } else {
+                found = (strcmp(vals[i]->bv_val, (*principal)) == 0);
             }
         }
 
@@ -732,11 +754,15 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
             continue;
         }
 
-        /* FIXME: use case insensitive compare and treat as alias ?? */
-        if (strcmp(vals[0]->bv_val, (*principal)) != 0 &&
-                !(flags & KRB5_KDB_FLAG_ALIAS_OK)) {
+        /* Again, if aliases are accepted by KDC, use case-insensitive comparison */
+        if ((flags & KRB5_KDB_FLAG_ALIAS_OK) != 0) {
+            found = (strcasecmp(vals[0]->bv_val, (*principal)) == 0);
+        } else {
+            found = (strcmp(vals[0]->bv_val, (*principal)) == 0);
+        }
+
+        if (!found) {
             /* search does not allow aliases */
-            found = false;
             ldap_value_free_len(vals);
             continue;
         }
@@ -884,7 +910,7 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
         goto done;
     }
 
-    kerr = ipadb_fetch_principals(ipactx, principal, &res);
+    kerr = ipadb_fetch_principals(ipactx, flags, principal, &res);
     if (kerr != 0) {
         goto done;
     }
@@ -1399,6 +1425,11 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
         if (kerr) {
             goto done;
         }
+        kerr = ipadb_get_ldap_mod_str(imods, "ipaKrbPrincipalAlias",
+                                      principal, mod_op);
+        if (kerr) {
+            goto done;
+        }
     }
 
     /* KADM5_PRINC_EXPIRE_TIME */
@@ -1736,13 +1767,13 @@ static krb5_error_code ipadb_add_principal(krb5_context kcontext,
         goto done;
     }
 
-    kerr = ipadb_entry_to_mods(kcontext, imods,
-                               entry, principal, LDAP_MOD_ADD);
+    kerr = ipadb_entry_default_attrs(imods);
     if (kerr != 0) {
         goto done;
     }
 
-    kerr = ipadb_entry_default_attrs(imods);
+    kerr = ipadb_entry_to_mods(kcontext, imods,
+                               entry, principal, LDAP_MOD_ADD);
     if (kerr != 0) {
         goto done;
     }
@@ -1780,7 +1811,7 @@ static krb5_error_code ipadb_modify_principal(krb5_context kcontext,
             goto done;
         }
 
-        kerr = ipadb_fetch_principals(ipactx, principal, &res);
+        kerr = ipadb_fetch_principals(ipactx, 0, principal, &res);
         if (kerr != 0) {
             goto done;
         }
@@ -1931,7 +1962,7 @@ krb5_error_code ipadb_delete_principal(krb5_context kcontext,
         goto done;
     }
 
-    kerr = ipadb_fetch_principals(ipactx, principal, &res);
+    kerr = ipadb_fetch_principals(ipactx, 0, principal, &res);
     if (kerr != 0) {
         goto done;
     }
@@ -1983,7 +2014,7 @@ krb5_error_code ipadb_iterate(krb5_context kcontext,
     }
 
     /* fetch list of principal matching filter */
-    kerr = ipadb_fetch_principals(ipactx, match_entry, &res);
+    kerr = ipadb_fetch_principals(ipactx, 0, match_entry, &res);
     if (kerr != 0) {
         goto done;
     }

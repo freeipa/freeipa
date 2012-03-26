@@ -221,7 +221,7 @@ class service(LDAPObject):
     object_name_plural = _('services')
     object_class = [
         'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux', 'ipaobject',
-        'ipaservice', 'pkiuser'
+        'ipaservice', 'pkiuser', 'ipakrbprincipal'
     ]
     search_attributes = ['krbprincipalname', 'managedby']
     default_attributes = ['krbprincipalname', 'usercertificate', 'managedby']
@@ -292,6 +292,11 @@ class service_add(LDAPCreate):
              util.validate_host_dns(self.log, hostname)
         if not 'managedby' in entry_attrs:
              entry_attrs['managedby'] = hostresult['dn']
+
+        # Enforce ipaKrbPrincipalAlias to aid case-insensitive searches
+        # as krbPrincipalName/krbCanonicalName are case-sensitive in Kerberos
+        # schema
+        entry_attrs['ipakrbprincipalalias'] = keys[-1]
 
         return dn
 

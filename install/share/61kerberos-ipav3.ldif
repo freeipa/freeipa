@@ -1,0 +1,3 @@
+dn: cn=schema
+attributeTypes: (2.16.840.1.113730.3.8.11.32 NAME 'ipaKrbPrincipalAlias' DESC 'IPA principal alias' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3')
+objectClasses: (2.16.840.1.113730.3.8.12.8 NAME 'ipaKrbPrincipal' SUP krbPrincipalAux AUXILIARY MUST ( krbPrincipalName $ ipaKrbPrincipalAlias ) X-ORIGIN 'IPA v3' )

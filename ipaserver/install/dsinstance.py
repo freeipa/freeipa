@@ -389,6 +389,7 @@ class DsInstance(service.Service):
                              "60basev2.ldif",
                              "60basev3.ldif",
                              "60ipadns.ldif",
+                             "61kerberos-ipav3.ldif",
                              "65ipasudo.ldif"):
             target_fname = schema_dirname(self.serverid) + schema_fname
             shutil.copyfile(ipautil.SHARE_DIR + schema_fname, target_fname)
