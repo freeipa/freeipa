@@ -51,7 +51,7 @@ fuzzy_hash = Fuzzy('^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=basestring)
 # Matches a date, like Tue Apr 26 17:45:35 2016 UTC
 fuzzy_date = Fuzzy('^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$')
 
-fuzzy_issuer = Fuzzy(type=basestring, test=lambda issuer: valid_issuer(issuer, api.env.realm))
+fuzzy_issuer = Fuzzy(type=basestring, test=lambda issuer: valid_issuer(issuer))
 
 fuzzy_hex = Fuzzy('^0x[0-9a-fA-F]+$', type=basestring)
 

@@ -252,7 +252,7 @@ class test_host(Declarative):
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=lambda x: DN(x) == \
-                        DN(('CN',api.env.host),('O',api.env.realm)),
+                        DN(('CN',api.env.host),x509.subject_base()),
                     serial_number=fuzzy_digits,
                     serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,
@@ -284,7 +284,7 @@ class test_host(Declarative):
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=lambda x: DN(x) == \
-                        DN(('CN',api.env.host),('O',api.env.realm)),
+                        DN(('CN',api.env.host),x509.subject_base()),
                     serial_number=fuzzy_digits,
                     serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,
@@ -483,7 +483,7 @@ class test_host(Declarative):
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=lambda x: DN(x) == \
-                        DN(('CN',api.env.host),('O',api.env.realm)),
+                        DN(('CN',api.env.host),x509.subject_base()),
                     serial_number=fuzzy_digits,
                     serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,
@@ -513,7 +513,7 @@ class test_host(Declarative):
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=lambda x: DN(x) == \
-                        DN(('CN',api.env.host),('O',api.env.realm)),
+                        DN(('CN',api.env.host),x509.subject_base()),
                     serial_number=fuzzy_digits,
                     serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,

@@ -28,6 +28,7 @@ from nose.tools import assert_raises  # pylint: disable=E0611
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
+from ipalib import x509
 import tempfile
 from ipapython import ipautil
 import nose
@@ -74,6 +75,8 @@ class test_cert(XMLRPC_test):
         # Create our temporary NSS database
         self.run_certutil(["-N", "-f", self.pwname])
 
+        self.subject = DN(('CN', self.host_fqdn), x509.subject_base())
+
     def tearDown(self):
         super(test_cert, self).tearDown()
         shutil.rmtree(self.reqdir, ignore_errors=True)
@@ -95,7 +98,6 @@ class test_cert(XMLRPC_test):
     """
     host_fqdn = u'ipatestcert.%s' % api.env.domain
     service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
-    subject = DN(('CN',host_fqdn),('O',api.env.realm))
 
     def test_1_cert_add(self):
         """

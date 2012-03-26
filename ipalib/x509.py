@@ -42,15 +42,29 @@ from ipalib import api
 from ipalib import _
 from ipalib import util
 from ipalib import errors
+from ipalib.dn import DN
 
 PEM = 0
 DER = 1
 
 PEM_REGEX = re.compile(r'(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)', re.DOTALL)
 
-def valid_issuer(issuer, realm):
-    return issuer in ('CN=%s Certificate Authority' % realm,
-                      'CN=Certificate Authority,O=%s' % realm,)
+_subject_base = None
+
+def subject_base():
+    global _subject_base
+
+    if _subject_base is None:
+        config = api.Command['config_show']()['result']
+        _subject_base = DN(config['ipacertificatesubjectbase'][0])
+
+    return _subject_base
+
+def valid_issuer(issuer):
+    if api.env.ra_plugin == 'dogtag':
+        return DN(issuer) == DN(('CN', 'Certificate Authority'), subject_base())
+    else:
+        return DN(issuer) == DN(('CN', '%s Certificate Authority' % api.env.realm))
 
 def strip_header(pem):
     """
@@ -209,7 +223,7 @@ def verify_cert_subject(ldap, hostname, dercert):
     issuer = str(nsscert.issuer)
 
     # Handle both supported forms of issuer, from selfsign and dogtag.
-    if (not valid_issuer(issuer, api.env.realm)):
+    if (not valid_issuer(issuer)):
         raise errors.CertificateOperationError(error=_('Issuer "%(issuer)s" does not match the expected issuer') % \
         {'issuer' : issuer})
 
