@@ -218,6 +218,7 @@ Requires: certmonger >= 0.26
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
+Requires: python-krbV
 
 Obsoletes: ipa-client >= 1.0
 
@@ -673,6 +674,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+
+* Tue Mar 27 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-19
+- Add python-krbV Requires on client package
 
 * Wed Mar 26 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-18
 - Set min for 389-ds-base to 1.2.10.4-2 to fix upgrade issue
