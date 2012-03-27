@@ -2543,8 +2543,7 @@ class dnsrecord_del(LDAPUpdate):
                 if user_del_value is True:
                      deleted_values.append(rec_value)
             if deleted_values:
-                deleted_list = u','.join(deleted_values)
-                kw[param.name] = param(deleted_list)
+                kw[param.name] = tuple(deleted_values)
 
 api.register(dnsrecord_del)
 
