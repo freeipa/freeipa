@@ -15,6 +15,7 @@ MSGINIT = @MSGINIT@
 MSGMERGE = @MSGMERGE@
 MSGCMP = @MSGCMP@
 TX = @TX@
+IPA_TEST_I18N = ../../tests/i18n.py
 
 DOMAIN = @GETTEXT_DOMAIN@
 MSGMERGE_UPDATE = $(MSGMERGE) --update
@@ -127,7 +128,7 @@ update-pot:
 	    echo "$(DOMAIN).pot unmodified" ; \
 	fi || :
 	@rm -f $(DOMAIN).pot.update $(DOMAIN).pot.update.tmp $(DOMAIN).pot.tmp
-	./test_i18n.py --show-strings --validate-pot $(DOMAIN).pot
+	$(IPA_TEST_I18N) --show-strings --validate-pot $(DOMAIN).pot
 
 msg-stats:
 	@pot_count=`$(MSGFMT) --statistics $(DOMAIN).pot 2>&1 | \
@@ -167,38 +168,14 @@ distclean: clean
 
 maintainer-clean: distclean
 
-# We test our translations by taking the original untranslated string
-# (e.g. msgid) and prepend a prefix character and then append a suffix
-# character. The test consists of asserting that the first character in the
-# translated string is the prefix, the last character in the translated string
-# is the suffix and the everything between the first and last character exactly
-# matches the original msgid.
-#
-# We use unicode characters not in the ascii character set for the prefix and
-# suffix to enhance the test. To make reading the translated string easier the
-# prefix is the unicode right pointing arrow and the suffix left pointing arrow,
-# thus the translated string looks like the original string enclosed in
-# arrows. In ASCII art the string "foo" would render as:
-# -->foo<--
-#
-# Unicode right pointing arrow: u'\u2192', utf-8 = '\xe2\x86\x92'
-# Unicode left pointing arrow:  u'\u2190', utf-8 = '\xe2\x86\x90'
-#
-# The sed command below performs the prefix and suffix substitution.
-#
-# When msginit is invoked with an English target locale it copies the msgid
-# into the msgstr. This is an undocumented feature of msginit. Otherwise the
-# msgstr will be set to the empty string (i.e. untranslated). We depend on
-# the msgid being copied to the msgstr.
-
 test:
-	./test_i18n.py --test-gettext
+	$(IPA_TEST_I18N) --test-gettext
 
 validate-pot:
-	./test_i18n.py --show-strings --validate-pot $(DOMAIN).pot
+	$(IPA_TEST_I18N) --show-strings --validate-pot $(DOMAIN).pot
 
 validate-po:
-	./test_i18n.py --show-strings --validate-po $(po_files)
+	$(IPA_TEST_I18N) --show-strings --validate-po $(po_files)
 
 debug:
 	@echo Python potfiles:

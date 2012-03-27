@@ -19,6 +19,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# WARNING: Do not import ipa modules, this is also used as a
+# stand-alone script (invoked from install/po Makefile).
 import optparse
 import sys
 import gettext
@@ -86,14 +88,108 @@ _shell_substitution_regexp = re.compile(r'\$(\s*)([({]?)(\s*)\w+(\s*)([)}]?)')
 # group 4: whitespace between variable and ending delimiter
 # group 5: ending delimiter
 
-# We do not permit anonymous substitutions in translation strings
-# (e.g. '%s occurred' % error) because they do not provide the
-# necessary context to translators, they would only see
-# '%s occurred'. Instead a keyword substitution should be used
-# (e.g. '%(error)s occurred' % {'error': error_message})
+printf_fmt_re = re.compile(
+    r"%"                                     # start
+     "(\d+\$)?"                              # fmt_arg    (group  1)
+     "(([#0 +'I]|-(?!\d))*)"                 # flags      (group  2)
+     "(([+-]?([1-9][0-9]*)?)|(\*|\*\d+\$))?" # width      (group  4)
+     "(\.((-?\d*)|(\*|)|(\*\d+\$)))?"        # precision  (group  8)
+     "(h|hh|l|ll|L|j|z|t)?"                  # length     (group 13)
+     "([diouxXeEfFgGaAcspnm%])")             # conversion (group 14)
 
-# Python anonymous format substitutions, e.g. %s, %d, %f, etc.
-python_anonymous_substitutions_regexp = re.compile(r'%[srduoxf]\b') # e.g. %s
+#-------------------------------------------------------------------------------
+
+def get_prog_langs(entry):
+    '''
+    Given an entry in a pot or po file return a set of the
+    programming languges it was found in. It needs to be a set
+    because the same msgid may appear in more than one file which may
+    be in different programming languages.
+
+    Note: One might think you could use the c-format etc. flags to
+    attached to entry to make this determination, but you can't. Those
+    flags refer to the style of the string not the programming
+    language it came from. Also the flags are often omitted and/or are
+    inaccurate.
+
+    For now we just look at the file extension. If we knew the path to
+    the file we could use other heuristics such as looking for the
+    shbang interpreter string.
+
+    The set of possible language types witch might be returned are:
+
+    * c
+    * python
+
+    '''
+    result = set()
+
+    for location in entry.occurrences:
+        filename = location[0]
+        ext = os.path.splitext(filename)[1]
+
+        if ext in ('.c', '.h', '.cxx', '.cpp', '.hxx'):
+            result.add('c')
+        elif ext in ('.py'):
+            result.add('python')
+
+    return result
+
+def parse_printf_fmt(s):
+    '''
+    Parse a printf style format string and return a list of format
+    conversions found in the string.
+
+    Each conversion specification is introduced by the character %, and
+    ends with a conversion specifier.  In between there may be (in this
+    order) zero or more flags, an optional minimum field width, an
+    optional precision and an optional length modifier. See "man 3
+    printf" for details.
+
+    Each item in the returned list is a dict whose keys are the
+    sub-parts of a conversion specification. The key and values are:
+
+    fmt
+        The entire format conversion specification
+    fmt_arg
+        The positional index of the matching argument in the argument
+        list, e.g. %1$ indicates the first argument in the argument
+        will be read for this conversion, excludes the leading % but
+        includes the trailing $, 1$ is the fmt_arg in %1$.
+    flags
+        The flag characaters, e.g. 0 is the flag in %08d
+    width
+        The width field, e.g. 20 is the width in %20s
+    precision
+        The precisioin field, e.g. .2 is the precision in %8.2f
+    length
+        The length modifier field, e.g. l is the length modifier in %ld
+    conversion
+        The conversion specifier character, e.g. d is the conversion
+        specification character in %ld
+
+    If the part is not found in the format it's value will be None.
+    '''
+
+    result = []
+
+    # get list of all matches, but skip escaped %
+    matches = [x for x in printf_fmt_re.finditer(s) if x.group(0) != "%%"]
+
+    # build dict of each sub-part of the format, append to result
+    for match in matches:
+        parts = {}
+        parts['fmt']        = match.group(0)
+        parts['fmt_arg']    = match.group(1)
+        parts['flags']      = match.group(2) or None
+        parts['width']      = match.group(4) or None
+        parts['precision']  = match.group(8)
+        parts['length']     = match.group(13)
+        parts['conversion'] = match.group(14)
+
+        result.append(parts)
+
+    return result
 
 def validate_substitutions_match(s1, s2, s1_name='string1', s2_name='string2'):
     '''
@@ -233,22 +329,35 @@ def validate_substitution_syntax(s, s_name='string'):
     return errors
 
 
-def validate_anonymous_substitutions(s, s_name='string'):
+def validate_positional_substitutions(s, prog_langs, s_name='string'):
     '''
-    We do not permit multiple anonymous substitutions in translation
+    We do not permit multiple positional substitutions in translation
     strings (e.g. '%s') because they do not allow translators to reorder the
     wording. Instead keyword substitutions should be used when there are
     more than one.
     '''
     errors = []
 
+    fmts = parse_printf_fmt(s)
+    n_fmts = len(fmts)
 
-    matches = list(python_anonymous_substitutions_regexp.finditer(s))
+    errors = []
+    if n_fmts > 1:
+        for i, fmt_parts in enumerate(fmts):
+            fmt        = fmt_parts['fmt']
+            fmt_arg    = fmt_parts['fmt_arg']
+            width      = fmt_parts['width']
 
-    if len(matches) > 1:
-        for match in python_anonymous_substitutions_regexp.finditer(s):
-            errors.append("%s has anonymous substitution '%s', use keyword substitution instead" %
-                          (s_name, match.group(0)))
+            if width == '*':
+                errors.append("Error: * width arg in format '%s should be indexed" % fmt)
+
+            if fmt_arg is None:
+                if 'c' in prog_langs:
+                    errors.append("%s format '%s' is positional, should use indexed argument" %
+                                  (s_name, fmt))
+                else:
+                    errors.append("%s format '%s' is positional, should use keyword substitution" %
+                                  (s_name, fmt))
 
     if errors:
         if show_strings:
@@ -265,7 +374,7 @@ def validate_file(file_path, validation_mode):
 
     * validate_substitutions_match()
     * validate_substitution_syntax()
-    * validate_anonymous_substitutions()
+    * validate_positional_substitutions()
 
     Returns the number of entries with errors.
     '''
@@ -290,7 +399,8 @@ def validate_file(file_path, validation_mode):
         have_msgstr = msgstr.strip() != ''
         if validation_mode == 'pot':
             if have_msgid:
-                errors = validate_anonymous_substitutions(msgid, 'msgid')
+                prog_langs = get_prog_langs(entry)
+                errors = validate_positional_substitutions(msgid, prog_langs, 'msgid')
                 entry_errors.extend(errors)
         if validation_mode == 'po':
             if have_msgid and have_msgstr:
@@ -387,23 +497,28 @@ def validate_unicode_edit(msgid, msgstr):
 
 
 def test_translations(po_file, lang, domain, locale_dir):
+    # The test installs the test message catalog under the xh_ZA
+    # (e.g. Zambia Xhosa) language by default. It would be nice to
+    # use a dummy language not associated with any real language,
+    # but the setlocale function demands the locale be a valid
+    # known locale, Zambia Xhosa is a reasonable choice :)
+
+    os.environ['LANG'] = lang
+
+    # Create a gettext translation object specifying our domain as
+    # 'ipa' and the locale_dir as 'test_locale' (i.e. where to
+    # look for the message catalog). Then use that translation
+    # object to obtain the translation functions.
+
+    t = gettext.translation(domain, locale_dir)
+
+    get_msgstr = t.ugettext
+    get_msgstr_plural = t.ungettext
+
+    return po_file_iterate(po_file, get_msgstr, get_msgstr_plural)
+
+def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
     try:
-
-        # The test installs the test message catalog under the xh_ZA
-        # (e.g. Zambia Xhosa) language by default. It would be nice to
-        # use a dummy language not associated with any real language,
-        # but the setlocale function demands the locale be a valid
-        # known locale, Zambia Xhosa is a reasonable choice :)
-
-        os.environ['LANG'] = lang
-
-        # Create a gettext translation object specifying our domain as
-        # 'ipa' and the locale_dir as 'test_locale' (i.e. where to
-        # look for the message catalog). Then use that translation
-        # object to obtain the translation functions.
-
-        t = gettext.translation(domain, locale_dir)
-
         # Iterate over the msgid's
         if not os.path.isfile(po_file):
             print >>sys.stderr, 'file does not exist "%s"' % (po_file)
@@ -422,8 +537,8 @@ def test_translations(po_file, lang, domain, locale_dir):
             if entry.msgid_plural:
                 msgid = entry.msgid
                 msgid_plural = entry.msgid_plural
-                msgstr = t.ungettext(msgid, msgid_plural, 1)
-                msgstr_plural = t.ungettext(msgid, msgid_plural, 2)
+                msgstr = get_msgstr_plural(msgid, msgid_plural, 1)
+                msgstr_plural = get_msgstr_plural(msgid, msgid_plural, 2)
 
                 try:
                     n_translations += 1
@@ -448,7 +563,7 @@ def test_translations(po_file, lang, domain, locale_dir):
 
             else:
                 msgid = entry.msgid
-                msgstr = t.ugettext(msgid)
+                msgstr = get_msgstr(msgid)
 
                 try:
                     n_translations += 1
