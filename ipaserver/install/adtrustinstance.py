@@ -32,6 +32,7 @@ from ipalib import errors, api
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import *
+from ipapython import services as ipaservices
 
 import string
 import struct
@@ -285,7 +286,7 @@ class ADTRUSTInstance(service.Service):
 
         try:
             api.Command.service_add(unicode(cifs_principal))
-        except errors.DuplicateEntry, e:
+        except Exception, e:
             # CIFS principal already exists, it is not the first time adtrustinstance is managed
             # That's fine, we we'll re-extract the key again.
             pass
@@ -369,6 +370,12 @@ class ADTRUSTInstance(service.Service):
         except:
             pass
 
+    def __restart_kdc(self):
+        try:
+            ipaservices.knownservices.krb5kdc.restart()
+        except:
+            pass
+
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
         # We do not let the system start IPA components on its own,
@@ -418,20 +425,22 @@ class ADTRUSTInstance(service.Service):
         self.ldap_connect()
 
         self.step("stopping smbd", self.__stop)
-        self.step("create samba user", self.__create_samba_user)
-        self.step("create samba domain object", \
+        self.step("creating samba user", self.__create_samba_user)
+        self.step("creating samba domain object", \
                   self.__create_samba_domain_object)
-        self.step("create samba config registry", self.__write_smb_registry)
+        self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
         self.step("setting password for the samba user", \
                   self.__set_smb_ldap_password)
-        self.step("Adding cifs Kerberos principal", self.__setup_principal)
-        self.step("Adding admin(group) SIDs", self.__add_admin_sids)
-        self.step("Activation CLDAP plugin", self.__add_cldap_module)
+        self.step("adding cifs Kerberos principal", self.__setup_principal)
+        self.step("adding admin(group) SIDs", self.__add_admin_sids)
+        self.step("activating CLDAP plugin", self.__add_cldap_module)
         self.step("configuring smbd to start on boot", self.__enable)
         if not self.no_msdcs:
             self.step("adding special DNS service records", \
                       self.__add_dns_service_records)
+        self.step("restarting KDC to take MS PAC changes into account", \
+                  self.__restart_kdc)
         self.step("starting smbd", self.__start)
 
         self.start_creation("Configuring smbd:")
