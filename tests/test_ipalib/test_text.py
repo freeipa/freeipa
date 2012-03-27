@@ -22,10 +22,13 @@ Test the `ipalib.text` module.
 """
 
 import os
+import shutil
+import tempfile
 import re
 import nose
 import locale
 from tests.util import raises, assert_equal
+from tests.i18n import create_po, po_file_iterate
 from ipalib.request import context
 from ipalib import request
 from ipalib import text
@@ -35,99 +38,85 @@ singular = '%(count)d goose makes a %(dish)s'
 plural = '%(count)d geese make a %(dish)s'
 
 
-# Unicode right pointing arrow
-prefix = u'\u2192'               # utf-8 == '\xe2\x86\x92'
-# Unicode left pointing arrow
-suffix = u'\u2190'               # utf-8 == '\xe2\x86\x90'
-
-def get_msgid(po_file):
-    'Get the first non-empty msgid from the po file'
-
-    msgid_re = re.compile(r'^\s*msgid\s+"(.+)"\s*$')
-    f = open(po_file)
-    for line in f.readlines():
-        match = msgid_re.search(line)
-        if match:
-            msgid = match.group(1)
-            f.close()
-            return msgid
-    f.close()
-    raise ValueError('No msgid found in %s' % po_file)
-
-def test_gettext():
-    '''
-    Test gettext translation
-
-    We test our translations by taking the original untranslated
-    string (e.g. msgid) and prepend a prefix character and then append
-    a suffix character. The test consists of asserting that the first
-    character in the translated string is the prefix, the last
-    character in the translated string is the suffix and the
-    everything between the first and last character exactly matches
-    the original msgid.
-
-    We use unicode characters not in the ascii character set for the
-    prefix and suffix to enhance the test. To make reading the
-    translated string easier the prefix is the unicode right pointing
-    arrow and the suffix left pointing arrow, thus the translated
-    string looks like the original string enclosed in arrows. In ASCII
-    art the string "foo" would render as: "-->foo<--"
-    '''
-
-    localedir='install/po/test_locale'
-    test_file='install/po/test.po'
-
-    lang = os.environ['LANG']
-    os.environ['LANG'] = 'xh_ZA'
-
-    # Tell gettext that our domain is 'ipa', that locale_dir is
-    # 'test_locale' (i.e. where to look for the message catalog)
-    _ = text.GettextFactory('ipa', localedir)
-
-    # We need a translatable string to test with, read one from the
-    # test po file
-    if not file_exists(test_file):
-        raise nose.SkipTest(
-           'Test language not available, run "make test_lang" in install/po'
-        )
-    msgid = get_msgid(test_file)
-
-    # Get the localized instance of the msgid, it should be a Gettext
-    # instance.
-    localized = _(msgid)
-    assert(isinstance(localized, text.Gettext))
-
-    # Get the translated string from the Gettext instance by invoking
-    # unicode on it.
-    translated = unicode(localized)
-
-    # Perform the verifications on the translated string.
-
-    # Verify the first character is the test prefix
-    assert(translated[0] == prefix)
-
-    # Verify the last character is the test suffix
-    assert(translated[-1] == suffix)
-
-    # Verify everything between the first and last character is the
-    # original untranslated string
-    assert(translated[1:-1] == msgid)
-    
-    # Reset the language and assure we don't get the test values
-    context.__dict__.clear()
-    os.environ['LANG'] = lang
-
-    translated = unicode(localized)
-
-    assert(translated[0] != prefix)
-    assert(translated[-1] != suffix)
-
 def test_create_translation():
     f = text.create_translation
     key = ('foo', None)
     t = f(key)
     assert context.__dict__[key] is t
 
+
+class test_TestLang(object):
+    def setUp(self):
+        self.tmp_dir = None
+        self.saved_lang  = None
+
+        self.lang = 'xh_ZA'
+        self.domain = 'ipa'
+
+        self.ipa_i18n_dir = os.path.join(os.path.dirname(__file__), '../../install/po')
+
+        self.pot_basename = '%s.pot' % self.domain
+        self.po_basename = '%s.po' % self.lang
+        self.mo_basename = '%s.mo' % self.domain
+
+        self.tmp_dir = tempfile.mkdtemp()
+        self.saved_lang  = os.environ['LANG']
+
+        self.locale_dir = os.path.join(self.tmp_dir, 'test_locale')
+        self.msg_dir = os.path.join(self.locale_dir, self.lang, 'LC_MESSAGES')
+
+        if not os.path.exists(self.msg_dir):
+            os.makedirs(self.msg_dir)
+
+        self.pot_file = os.path.join(self.ipa_i18n_dir, self.pot_basename)
+        self.mo_file = os.path.join(self.msg_dir, self.mo_basename)
+        self.po_file = os.path.join(self.tmp_dir, self.po_basename)
+
+        result = create_po(self.pot_file, self.po_file, self.mo_file)
+        if result:
+            raise nose.SkipTest('Unable to create po file "%s" & mo file "%s" from pot file "%s"' %
+                                (self.po_file, self.mo_file, self.pot_file))
+
+        if not file_exists(self.po_file):
+            raise nose.SkipTest('Test po file unavailable, run "make test" in install/po')
+
+        if not file_exists(self.mo_file):
+            raise nose.SkipTest('Test mo file unavailable, run "make test" in install/po')
+
+        self.po_file_iterate = po_file_iterate
+
+    def tearDown(self):
+        if self.saved_lang is not None:
+            os.environ['LANG'] = self.saved_lang
+
+        if self.tmp_dir is not None:
+            shutil.rmtree(self.tmp_dir)
+
+    def test_test_lang(self):
+        print "test_test_lang"
+        # The test installs the test message catalog under the xh_ZA
+        # (e.g. Zambia Xhosa) language by default. It would be nice to
+        # use a dummy language not associated with any real language,
+        # but the setlocale function demands the locale be a valid
+        # known locale, Zambia Xhosa is a reasonable choice :)
+
+        os.environ['LANG'] = self.lang
+
+        # Create a gettext translation object specifying our domain as
+        # 'ipa' and the locale_dir as 'test_locale' (i.e. where to
+        # look for the message catalog). Then use that translation
+        # object to obtain the translation functions.
+
+        def get_msgstr(msg):
+            gt = text.GettextFactory(localedir=self.locale_dir)(msg)
+            return unicode(gt)
+
+        def get_msgstr_plural(singular, plural, count):
+            ng = text.NGettextFactory(localedir=self.locale_dir)(singular, plural, count)
+            return ng(count)
+
+        result = self.po_file_iterate(self.po_file, get_msgstr, get_msgstr_plural)
+        assert result == 0
 
 class test_LazyText(object):
 
