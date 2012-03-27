@@ -241,7 +241,8 @@ class test_attr(Declarative):
             command=(
                 'user_mod', [user1], dict(delattr=u'telephoneNumber=301-555-1212')
             ),
-            expected=errors.AttrValueNotFound(attr='telephoneNumber', value='301-555-1212')
+            expected=errors.AttrValueNotFound(attr=u'telephonenumber',
+                value=u'301-555-1212')
         ),
 
 
@@ -345,7 +346,7 @@ class test_attr(Declarative):
             command=(
                 'user_mod', [user1], dict(givenname=None)
             ),
-            expected=errors.RequirementError(name='givenname'),
+            expected=errors.RequirementError(name='first'),
         ),
 
 

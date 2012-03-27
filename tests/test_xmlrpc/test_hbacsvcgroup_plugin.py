@@ -47,7 +47,8 @@ class test_hbacsvcgroup(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_show', [hbacsvcgroup1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: HBAC service group not found' % hbacsvcgroup1),
         ),
 
 
@@ -56,14 +57,16 @@ class test_hbacsvcgroup(Declarative):
             command=('hbacsvcgroup_mod', [hbacsvcgroup1],
                 dict(description=u'Updated hbacsvcgroup 1')
             ),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: HBAC service group not found' % hbacsvcgroup1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_del', [hbacsvcgroup1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: HBAC service group not found' % hbacsvcgroup1),
         ),
 
 
@@ -91,7 +94,9 @@ class test_hbacsvcgroup(Declarative):
             command=('hbacsvcgroup_add', [hbacsvcgroup1],
                 dict(description=u'Test hbacsvcgroup 1')
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(
+                message=u'HBAC service group with name "%s" already exists' %
+                    hbacsvcgroup1),
         ),
 
 

@@ -60,21 +60,24 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % rule1,
             command=('selinuxusermap_show', [rule1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: SELinux User Map rule not found' % rule1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % rule1,
             command=('selinuxusermap_mod', [rule1], dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: SELinux User Map rule not found' % rule1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % rule1,
             command=('selinuxusermap_del', [rule1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: SELinux User Map rule not found' % rule1),
         ),
 
 
@@ -103,7 +106,8 @@ class test_selinuxusermap(Declarative):
             command=(
                 'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1)
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(message=u'SELinux User Map rule ' +
+                u'with name "%s" already exists' % rule1),
         ),
 
 
@@ -479,7 +483,8 @@ class test_selinuxusermap(Declarative):
             command=(
                 'selinuxusermap_mod', [rule1], dict(seealso=hbacrule1)
             ),
-            expected=errors.MutuallyExclusiveError(reason=u'cannot have both'),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
         ),
 
 
@@ -521,7 +526,8 @@ class test_selinuxusermap(Declarative):
             command=(
                 'selinuxusermap_mod', [rule1], dict(seealso=u'notfound')
             ),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'HBAC rule notfound not found'),
         ),
 
 
@@ -546,14 +552,16 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Add user to %r that has HBAC' % rule1,
             command=('selinuxusermap_add_user', [rule1], dict(user=user1)),
-            expected=errors.MutuallyExclusiveError(reason=u'cannot have both'),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
         ),
 
 
         dict(
             desc='Add host to %r that has HBAC' % rule1,
             command=('selinuxusermap_add_host', [rule1], dict(host=host1)),
-            expected=errors.MutuallyExclusiveError(reason=u'cannot have both'),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
         ),
 
 
@@ -592,17 +600,19 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Try to delete non-existent %r' % rule1,
             command=('selinuxusermap_del', [rule1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: SELinux User Map rule not found' % rule1),
         ),
 
 
         # Some negative tests
         dict(
-            desc='Create rule with unknown user%r' % rule1,
+            desc='Create rule with unknown user %r' % rule1,
             command=(
                 'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'notfound')
             ),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'SELinux user notfound not ' +
+                u'found in ordering list (in config)'),
         ),
 
 
@@ -611,7 +621,8 @@ class test_selinuxusermap(Declarative):
             command=(
                 'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'bad+user')
             ),
-            expected=errors.ValidationError(name='ipaselinuxuser', error='invalid name'),
+            expected=errors.ValidationError(name='selinuxuser',
+                error=u'Invalid SELinux user name, only a-Z and _ are allowed'),
         ),
 
 
@@ -620,7 +631,8 @@ class test_selinuxusermap(Declarative):
             command=(
                 'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'xguest_u:s999')
             ),
-            expected=errors.ValidationError(name='ipaselinuxuser', error='invalid name'),
+            expected=errors.ValidationError(name='selinuxuser',
+                error=u'Invalid MLS value, must match s[0-15](-s[0-15])'),
         ),
 
 
@@ -629,7 +641,9 @@ class test_selinuxusermap(Declarative):
             command=(
                 'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'xguest_u:s0:p88')
             ),
-            expected=errors.ValidationError(name='ipaselinuxuser', error='invalid name'),
+            expected=errors.ValidationError(name='selinuxuser',
+                error=u'Invalid MCS value, must match c[0-1023].c[0-1023] ' +
+                    u'and/or c[0-1023]-c[0-c0123]'),
         ),
 
     ]

@@ -39,21 +39,24 @@ class test_selfservice(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % selfservice1,
             command=('selfservice_show', [selfservice1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'ACI with name "%s" not found' % selfservice1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % selfservice1,
             command=('selfservice_mod', [selfservice1], dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'ACI with name "%s" not found' % selfservice1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % selfservice1,
             command=('selfservice_del', [selfservice1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'ACI with name "%s" not found' % selfservice1),
         ),
 
 

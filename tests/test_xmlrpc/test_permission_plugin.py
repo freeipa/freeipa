@@ -61,21 +61,24 @@ class test_permission(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % permission1,
             command=('permission_show', [permission1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: permission not found' % permission1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % permission1,
             command=('permission_mod', [permission1], dict(permissions=u'all')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: permission not found' % permission1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % permission1,
             command=('permission_del', [permission1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: permission not found' % permission1),
         ),
 
 
@@ -516,21 +519,24 @@ class test_permission(Declarative):
         dict(
             desc='Try to delete non-existent %r' % permission1,
             command=('permission_del', [permission1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: permission not found' % permission1),
         ),
 
 
         dict(
             desc='Try to retrieve non-existent %r' % permission1,
             command=('permission_show', [permission1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: permission not found' % permission1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % permission1,
             command=('permission_mod', [permission1], dict(rename=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: permission not found' % permission1),
         ),
 
 
@@ -575,7 +581,7 @@ class test_permission(Declarative):
                      permissions=u'write',
                 )
             ),
-            expected=errors.NotFound(reason='group not found'),
+            expected=errors.NotFound(reason=u'nonexisting: group not found'),
         ),
 
         dict(
@@ -603,8 +609,9 @@ class test_permission(Declarative):
 
         dict(
             desc='Try to update non-existent memberof of %r' % permission1,
-            command=('permission_mod', [permission1], dict(memberof=u'nonexisting')),
-            expected=errors.NotFound(reason='group not found'),
+            command=('permission_mod', [permission1], dict(
+                memberof=u'nonexisting')),
+            expected=errors.NotFound(reason=u'nonexisting: group not found'),
         ),
 
         dict(

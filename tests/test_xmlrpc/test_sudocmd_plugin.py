@@ -40,21 +40,24 @@ class test_sudocmd(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % sudocmd1,
             command=('sudocmd_show', [sudocmd1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % sudocmd1,
             command=('sudocmd_mod', [sudocmd1], dict(description=u'Nope')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % sudocmd1,
             command=('sudocmd_del', [sudocmd1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1),
         ),
 
 
@@ -88,7 +91,8 @@ class test_sudocmd(Declarative):
                     description=u'Test sudo command 1',
                 ),
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(message=u'sudo command with ' +
+                u'name "%s" already exists' % sudocmd1),
         ),
 
 
@@ -175,20 +179,23 @@ class test_sudocmd(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % sudocmd1,
             command=('sudocmd_show', [sudocmd1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % sudocmd1,
             command=('sudocmd_mod', [sudocmd1], dict(description=u'Nope')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % sudocmd1,
             command=('sudocmd_del', [sudocmd1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1),
         ),
     ]

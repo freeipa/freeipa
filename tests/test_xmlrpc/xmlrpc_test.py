@@ -282,10 +282,8 @@ class Declarative(XMLRPC_test):
         # information through the exception, so we can't test the kw on the
         # client side.  However, if we switch to using JSON-RPC for the default
         # transport, the exception is a free-form data structure (dict).
-#        if e.kw != expected.kw:
-#            raise AssertionError(
-#                KWARGS % (cmd, name, args, options, expected.kw, e.kw)
-#            )
+        # For now just compare the strings
+        assert_deepequal(expected.strerror, e.strerror)
 
     def check_output(self, nice, cmd, args, options, expected, extra_check):
         got = api.Command[cmd](*args, **options)

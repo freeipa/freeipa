@@ -81,7 +81,8 @@ class test_netgroup(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % netgroup1,
             command=('netgroup_show', [netgroup1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: netgroup not found' % netgroup1),
         ),
 
 
@@ -90,35 +91,42 @@ class test_netgroup(Declarative):
             command=('netgroup_mod', [netgroup1],
                 dict(description=u'Updated hostgroup 1')
             ),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: netgroup not found' % netgroup1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % netgroup1,
             command=('netgroup_del', [netgroup1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: netgroup not found' % netgroup1),
         ),
 
 
         dict(
             desc='Test an invalid netgroup name %r' % invalidnetgroup1,
             command=('netgroup_add', [invalidnetgroup1], dict(description=u'Test')),
-            expected=errors.ValidationError(name='cn', error='may only include letters, numbers, _, - and .'),
+            expected=errors.ValidationError(name='name',
+                error=u'may only include letters, numbers, _, -, and .'),
         ),
 
 
         dict(
             desc='Test an invalid nisdomain1 name %r' % invalidnisdomain1,
-            command=('netgroup_add', [netgroup1], dict(description=u'Test',nisdomainname=invalidnisdomain1)),
-            expected=errors.ValidationError(name='nisdomainname', error='may only include letters, numbers, _, - and .'),
+            command=('netgroup_add', [netgroup1],
+                dict(description=u'Test',nisdomainname=invalidnisdomain1)),
+            expected=errors.ValidationError(name='nisdomain',
+                error='may only include letters, numbers, _, -, and .'),
         ),
 
 
         dict(
             desc='Test an invalid nisdomain2 name %r' % invalidnisdomain2,
-            command=('netgroup_add', [netgroup1], dict(description=u'Test',nisdomainname=invalidnisdomain2)),
-            expected=errors.ValidationError(name='nisdomainname', error='may only include letters, numbers, _, - and .'),
+            command=('netgroup_add', [netgroup1],
+                dict(description=u'Test',nisdomainname=invalidnisdomain2)),
+            expected=errors.ValidationError(name='nisdomain',
+                error='may only include letters, numbers, _, -, and .'),
         ),
 
 
@@ -169,7 +177,8 @@ class test_netgroup(Declarative):
             command=('netgroup_add', [netgroup1],
                 dict(description=u'Test netgroup 1')
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(
+                message=u'netgroup with name "%s" already exists' % netgroup1),
         ),
 
 

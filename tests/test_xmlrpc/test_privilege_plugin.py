@@ -52,21 +52,24 @@ class test_privilege(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % privilege1,
             command=('privilege_show', [privilege1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: privilege not found' % privilege1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % privilege1,
             command=('privilege_mod', [privilege1], dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: privilege not found' % privilege1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: privilege not found' % privilege1),
         ),
 
 
