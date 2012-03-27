@@ -230,14 +230,14 @@ def validate_dns_label(dns_label, allow_underscore=False):
                            '- must not be the DNS label character') \
                            % dict(underscore=underscore_err_msg))
 
-def validate_domain_name(domain_name):
+def validate_domain_name(domain_name, allow_underscore=False):
     if domain_name.endswith('.'):
         domain_name = domain_name[:-1]
 
     domain_name = domain_name.split(".")
 
     # apply DNS name validator to every name part
-    map(lambda label:validate_dns_label(label), domain_name)
+    map(lambda label:validate_dns_label(label,allow_underscore), domain_name)
 
     if not domain_name[-1].isalpha():
         # see RFC 1123
@@ -284,7 +284,7 @@ def validate_zonemgr(zonemgr):
 
     validate_domain_name(domain)
 
-def validate_hostname(hostname, check_fqdn=True):
+def validate_hostname(hostname, check_fqdn=True, allow_underscore=False):
     """ See RFC 952, 1123
 
     :param hostname Checked value
@@ -299,9 +299,9 @@ def validate_hostname(hostname, check_fqdn=True):
     if '.' not in hostname:
         if check_fqdn:
             raise ValueError(_('not fully qualified'))
-        validate_dns_label(hostname)
+        validate_dns_label(hostname,allow_underscore)
     else:
-        validate_domain_name(hostname)
+        validate_domain_name(hostname,allow_underscore)
 
 def validate_sshpubkey(ugettext, pubkey):
     try:

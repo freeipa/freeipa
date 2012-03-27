@@ -57,6 +57,9 @@ user2 = u'pexample'
 group1 = u'testgroup'
 
 invalidnetgroup1=u'+badnetgroup'
+invalidnisdomain1=u'domain1,domain2'
+invalidnisdomain2=u'+invalidnisdomain'
+invalidhost=u'+invalid&host'
 
 class test_netgroup(Declarative):
     """
@@ -102,6 +105,20 @@ class test_netgroup(Declarative):
             desc='Test an invalid netgroup name %r' % invalidnetgroup1,
             command=('netgroup_add', [invalidnetgroup1], dict(description=u'Test')),
             expected=errors.ValidationError(name='cn', error='may only include letters, numbers, _, - and .'),
+        ),
+
+
+        dict(
+            desc='Test an invalid nisdomain1 name %r' % invalidnisdomain1,
+            command=('netgroup_add', [netgroup1], dict(description=u'Test',nisdomainname=invalidnisdomain1)),
+            expected=errors.ValidationError(name='nisdomainname', error='may only include letters, numbers, _, - and .'),
+        ),
+
+
+        dict(
+            desc='Test an invalid nisdomain2 name %r' % invalidnisdomain2,
+            command=('netgroup_add', [netgroup1], dict(description=u'Test',nisdomainname=invalidnisdomain2)),
+            expected=errors.ValidationError(name='nisdomainname', error='may only include letters, numbers, _, - and .'),
         ),
 
 
@@ -330,6 +347,14 @@ class test_netgroup(Declarative):
                         'description': [u'Test desc 1'],
                 },
             ),
+        ),
+
+
+        dict(
+            desc='Add invalid host %r to netgroup %r' % (invalidhost, netgroup1),
+            command=('netgroup_add_member', [netgroup1], dict(host=invalidhost)),
+            expected=errors.ValidationError(name='host',
+             error='only letters, numbers, _, and - are allowed. - must not be the DNS label character'),
         ),
 
 
@@ -756,7 +781,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Test netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -777,7 +802,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Test netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -800,7 +825,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Test netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                     },
                 ],
             ),
@@ -824,7 +849,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Test netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                     },
                 ],
             ),
@@ -848,7 +873,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Test netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                     },
                     {
                         'dn': fuzzy_netgroupdn,
@@ -878,7 +903,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -913,7 +938,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -947,7 +972,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -980,7 +1005,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1012,7 +1037,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1043,7 +1068,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1074,7 +1099,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1105,7 +1130,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1136,7 +1161,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1167,7 +1192,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1198,7 +1223,7 @@ class test_netgroup(Declarative):
                         'cn': [netgroup1],
                         'description': [u'Updated netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [u'unknown'],
+                        'externalhost': [unknown_host],
                 },
             ),
         ),

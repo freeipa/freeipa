@@ -53,6 +53,10 @@ class test_sudorule(XMLRPC_test):
     test_category = u'all'
     test_option = u'authenticate'
 
+    test_invalid_user = u'+invalid#user'
+    test_invalid_host = u'+invalid&host.nonexist.com'
+    test_invalid_group = u'+invalid#group'
+
     def test_0_sudorule_add(self):
         """
         Test adding a new Sudo rule using `xmlrpc.sudorule_add`.
@@ -206,6 +210,20 @@ class test_sudorule(XMLRPC_test):
         entry = ret['result']
         assert_attr_equal(entry, 'ipasudorunas_user', self.test_runasuser)
 
+    def test_a_sudorule_add_runasuser_invalid(self):
+        """
+        Test adding run as invalid user to Sudo rule using
+        `xmlrpc.sudorule_add_runasuser`.
+        """
+        try:
+            api.Command['sudorule_add_runasuser'](
+                self.rule_name, user=self.test_invalid_user
+            )
+        except errors.ValidationError:
+            pass
+        else:
+            assert False
+
     def test_b_sudorule_remove_runasuser(self):
         """
         Test removing run as user to Sudo rule using
@@ -239,6 +257,20 @@ class test_sudorule(XMLRPC_test):
         assert_attr_equal(entry, 'ipasudorunasgroup_group',
             self.test_runasgroup)
 
+    def test_a_sudorule_add_runasgroup_invalid(self):
+        """
+        Test adding run as invalid user to Sudo rule using
+        `xmlrpc.sudorule_add_runasuser`.
+        """
+        try:
+            api.Command['sudorule_add_runasgroup'](
+                self.rule_name, group=self.test_invalid_group
+            )
+        except errors.ValidationError:
+            pass
+        else:
+            assert False
+
     def test_b_sudorule_remove_runasgroup(self):
         """
         Test removing run as group to Sudo rule using
@@ -267,6 +299,20 @@ class test_sudorule(XMLRPC_test):
         failed = ret['failed']
         entry = ret['result']
         assert_attr_equal(entry, 'externaluser', self.test_external_user)
+
+    def test_a_sudorule_add_externaluser_invalid(self):
+        """
+        Test adding an invalid external user to Sudo rule using
+        `xmlrpc.sudorule_add_user`.
+        """
+        try:
+            api.Command['sudorule_add_user'](
+                self.rule_name, user=self.test_invalid_user
+            )
+        except errors.ValidationError:
+            pass
+        else:
+            assert False
 
     def test_b_sudorule_remove_externaluser(self):
         """
@@ -423,6 +469,20 @@ class test_sudorule(XMLRPC_test):
         failed = ret['failed']
         entry = ret['result']
         assert_attr_equal(entry, 'externalhost', self.test_external_host)
+
+    def test_a_sudorule_add_externalhost_invalid(self):
+        """
+        Test adding an invalid external host to Sudo rule using
+        `xmlrpc.sudorule_add_host`.
+        """
+        try:
+            api.Command['sudorule_add_host'](
+                self.rule_name, host=self.test_invalid_host
+            )
+        except errors.ValidationError:
+            pass
+        else:
+            assert False
 
     def test_b_sudorule_remove_externalhost(self):
         """

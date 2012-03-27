@@ -53,6 +53,11 @@ EXAMPLES:
 NETGROUP_PATTERN='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$'
 NETGROUP_PATTERN_ERRMSG='may only include letters, numbers, _, -, and .'
 
+# according to most common use cases the netgroup pattern should fit
+# also the nisdomain pattern
+NISDOMAIN_PATTERN=NETGROUP_PATTERN
+NISDOMAIN_PATTERN_ERRMSG=NETGROUP_PATTERN_ERRMSG
+
 output_params = (
         Str('memberuser_user?',
             label='Member User',
@@ -118,6 +123,8 @@ class netgroup(LDAPObject):
             doc=_('Netgroup description'),
         ),
         Str('nisdomainname?',
+            pattern=NISDOMAIN_PATTERN,
+            pattern_errmsg=NISDOMAIN_PATTERN_ERRMSG,
             cli_name='nisdomain',
             label=_('NIS domain name'),
         ),
@@ -255,6 +262,8 @@ class netgroup_add_member(LDAPAddMember):
 
     member_attributes = ['memberuser', 'memberhost', 'member']
     has_output_params = LDAPAddMember.has_output_params + output_params
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        return add_external_pre_callback('host', ldap, dn, keys, options)
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 

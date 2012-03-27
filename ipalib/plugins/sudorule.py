@@ -431,7 +431,7 @@ class sudorule_add_user(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'usercategory'):
             raise errors.MutuallyExclusiveError(reason=_("users cannot be added when user category='all'"))
-        return dn
+        return add_external_pre_callback('user', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         return add_external_post_callback('memberuser', 'user', 'externaluser', ldap, completed, failed, dn, entry_attrs, keys, options)
@@ -464,7 +464,7 @@ class sudorule_add_host(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'hostcategory'):
             raise errors.MutuallyExclusiveError(reason=_("hosts cannot be added when host category='all'"))
-        return dn
+        return add_external_pre_callback('host', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
@@ -517,7 +517,7 @@ class sudorule_add_runasuser(LDAPAddMember):
                           error=unicode(_("RunAsUser does not accept '%(name)s' as a group name")) %
                           dict(name=name))
 
-        return dn
+        return add_external_pre_callback('user', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         return add_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
@@ -565,7 +565,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
                           error=unicode(_("RunAsGroup does not accept '%(name)s' as a group name")) %
                           dict(name=name))
 
-        return dn
+        return add_external_pre_callback('group', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         return add_external_post_callback('ipasudorunasgroup', 'group', 'ipasudorunasextgroup', ldap, completed, failed, dn, entry_attrs, keys, options)
