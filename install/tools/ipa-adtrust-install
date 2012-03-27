@@ -133,25 +133,31 @@ def main():
     # Check we have a public IP that is associated with the hostname
     ip = None
     try:
-        if options.ip_address:
-            ip = ipautil.CheckedIPAddress(options.ip_address, match_local=True)
+        hostaddr = resolve_host(api.env.host)
+        if len(hostaddr) > 1:
+            print >> sys.stderr, "The server hostname resolves to more than one address:"
+            for addr in hostaddr:
+                print >> sys.stderr, "  %s" % addr
+
+            if options.ip_address:
+                if str(options.ip_address) not in hostaddr:
+                    print >> sys.stderr, "Address passed in --ip-address did not match any resolved"
+                    print >> sys.stderr, "address!"
+                    sys.exit(1)
+                print "Selected IP address:", str(options.ip_address)
+                ip = options.ip_address
+            else:
+                if options.unattended:
+                    print >> sys.stderr, "Please use --ip-address option to specify the address"
+                    sys.exit(1)
+                else:
+                    ip = read_ip_address(api.env.host, fstore)
         else:
-            hostaddr = resolve_host(api.env.host)
-            ip = hostaddr and ipautil.CheckedIPAddress(hostaddr, match_local=True)
+                ip = hostaddr and ipautil.CheckedIPAddress(hostaddr[0], match_local=True)
     except Exception, e:
         print "Error: Invalid IP Address %s: %s" % (ip, e)
-        ip = None
-
-    if not ip:
-        if options.unattended:
-            sys.exit("Unable to resolve IP address for host name")
-        else:
-            read_ip = read_ip_address(api.env.host, fstore)
-            try:
-                ip = ipautil.CheckedIPAddress(read_ip, match_local=True)
-            except Exception, e:
-                print "Error: Invalid IP Address %s: %s" % (ip, e)
-                sys.exit("Aborting installation.")
+        print "Aborting installation"
+        sys.exit(1)
 
     ip_address = str(ip)
     root_logger.debug("will use ip_address: %s\n", ip_address)
