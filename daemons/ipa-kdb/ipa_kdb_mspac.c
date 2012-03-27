@@ -762,11 +762,13 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     krb5_pac pac = NULL;
     krb5_data pac_data;
 
-    /* Prefer canonicalised name from client entry */
-    if (client != NULL) {
-        ks_client_princ = client->princ;
-    } else {
+    /* When using s4u2proxy client_princ actually refers to the proxied user
+     * while client->princ to the proxy service asking for the TGS on behalf
+     * of the proxied user. So always use client_princ in preference */
+    if (client_princ != NULL) {
         ks_client_princ = client_princ;
+    } else {
+        ks_client_princ = client->princ;
     }
 
     is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
