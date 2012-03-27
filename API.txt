@@ -1923,7 +1923,7 @@ command: netgroup_add
 args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
-option: Str('nisdomainname', attribute=True, cli_name='nisdomain', multivalue=False, required=False)
+option: Str('nisdomainname', attribute=True, cli_name='nisdomain', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', required=False)
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
 option: Str('setattr*', cli_name='setattr', exclude='webui')
@@ -1960,7 +1960,7 @@ args: 1,26,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
-option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', multivalue=False, query=True, required=False)
+option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', query=True, required=False)
 option: Str('ipauniqueid', attribute=True, autofill=False, cli_name='uuid', multivalue=False, query=True, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, query=True, required=False, values=(u'all',))
@@ -1992,7 +1992,7 @@ command: netgroup_mod
 args: 1,11,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', multivalue=False, required=False)
+option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$', pattern_errmsg='may only include letters, numbers, _, -, and .', required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
 option: Str('setattr*', cli_name='setattr', exclude='webui')

@@ -50,6 +50,8 @@ class test_hbac(XMLRPC_test):
     test_service = u'sshd'
     test_host_external = u'notfound.example.com'
 
+    test_invalid_sourcehost = u'inv+alid#srchost.nonexist.com'
+
     def test_0_hbacrule_add(self):
         """
         Test adding a new HBAC rule using `xmlrpc.hbacrule_add`.
@@ -283,6 +285,17 @@ class test_hbac(XMLRPC_test):
         entry = ret['result']
         assert_attr_equal(entry, 'sourcehost_host', self.test_host)
         assert_attr_equal(entry, 'sourcehost_hostgroup', self.test_hostgroup)
+
+    def test_a_hbacrule_add_invalid_sourcehost(self):
+        """
+        Test adding invalid source host to HBAC rule using `xmlrpc.hbacrule_add_host`.
+        """
+        try:
+            api.Command['hbacrule_add_sourcehost'](
+                self.rule_name, host=self.test_invalid_sourcehost, hostgroup=self.test_hostgroup
+            )
+        except errors.ValidationError:
+            pass
 
     def test_a_hbacrule_add_service(self):
         """

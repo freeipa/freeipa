@@ -33,7 +33,7 @@ from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
 from ipalib import output
 from ipalib.text import _
-from ipalib.util import json_serialize
+from ipalib.util import json_serialize, validate_hostname
 from ipalib.dn import *
 
 global_output_params = (
@@ -312,6 +312,33 @@ def wait_for_value(ldap, dn, attr, value):
                     break
 
     return entry_attrs
+
+def add_external_pre_callback(membertype, ldap, dn, keys, options):
+    """
+    Pre callback to validate external members.
+
+    This should be called by a command pre callback directly.
+
+    membertype is the type of member
+    """
+    # validate hostname with allowed underscore characters, non-fqdn
+    # hostnames are allowed
+    def validate_host(hostname):
+        validate_hostname(hostname, check_fqdn=False, allow_underscore=True)
+
+    if membertype in options:
+        if membertype == 'host':
+            validator = validate_host
+        else:
+            validator = api.Object[membertype].primary_key
+        for value in options[membertype]:
+            try:
+                validator(value)
+            except errors.ValidationError as e:
+                raise errors.ValidationError(name=membertype, error=e.error)
+            except ValueError as e:
+                raise errors.ValidationError(name=membertype, error=e)
+    return dn
 
 def add_external_post_callback(memberattr, membertype, externalattr, ldap, completed, failed, dn, entry_attrs, *keys, **options):
     """

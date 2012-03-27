@@ -498,7 +498,7 @@ class hbacrule_add_sourcehost(LDAPAddMember):
         if 'sourcehostcategory' in entry_attrs and \
             entry_attrs['sourcehostcategory'][0].lower() == 'all':
             raise errors.MutuallyExclusiveError(reason="source hosts cannot be added when sourcehost category='all'")
-        return dn
+        return add_external_pre_callback('host', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         return add_external_post_callback('sourcehost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
