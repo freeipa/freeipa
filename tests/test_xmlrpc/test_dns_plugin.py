@@ -82,21 +82,24 @@ class test_dns(Declarative):
         dict(
             desc='Try to retrieve non-existent zone %r' % dnszone1,
             command=('dnszone_show', [dnszone1], {}),
-            expected=errors.NotFound(reason='DNS zone not found'),
+            expected=errors.NotFound(
+                reason=u'%s: DNS zone not found' % dnszone1),
         ),
 
 
         dict(
             desc='Try to update non-existent zone %r' % dnszone1,
             command=('dnszone_mod', [dnszone1], {'idnssoamname': u'foobar'}),
-            expected=errors.NotFound(reason='DNS zone not found'),
+            expected=errors.NotFound(
+                reason=u'%s: DNS zone not found' % dnszone1),
         ),
 
 
         dict(
             desc='Try to delete non-existent zone %r' % dnszone1,
             command=('dnszone_del', [dnszone1], {}),
-            expected=errors.NotFound(reason='DNS zone not found'),
+            expected=errors.NotFound(
+                reason=u'%s: DNS zone not found' % dnszone1),
         ),
 
 
@@ -109,7 +112,9 @@ class test_dns(Declarative):
                     'ip_address' : u'1.2.3.4',
                 }
             ),
-            expected=errors.ValidationError(name='idnsname', error=''),
+            expected=errors.ValidationError(name='name',
+                error=u'only letters, numbers, and - are allowed. ' +
+                    u'- must not be the DNS label character'),
         ),
 
 
@@ -155,7 +160,8 @@ class test_dns(Declarative):
                     'ip_address' : u'1.2.3.4',
                 }
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(
+                message=u'DNS zone with name "%s" already exists' % dnszone1),
         ),
 
         dict(
@@ -446,28 +452,33 @@ class test_dns(Declarative):
         dict(
             desc='Try to retrieve non-existent record %r in zone %r' % (dnsres1, dnszone1),
             command=('dnsrecord_show', [dnszone1, dnsres1], {}),
-            expected=errors.NotFound(reason='DNS resource record not found'),
+            expected=errors.NotFound(
+                reason=u'%s: DNS resource record not found' % dnsres1),
         ),
 
 
         dict(
             desc='Try to delete non-existent record %r in zone %r' % (dnsres1, dnszone1),
             command=('dnsrecord_del', [dnszone1, dnsres1], {'del_all' : True}),
-            expected=errors.NotFound(reason='DNS resource record not found'),
+            expected=errors.NotFound(
+                reason=u'%s: DNS resource record not found' % dnsres1),
         ),
 
 
         dict(
             desc='Try to delete root zone record \'@\' in %r' % (dnszone1),
             command=('dnsrecord_del', [dnszone1, u'@'], {'del_all' : True}),
-            expected=errors.ValidationError(name='del_all', error=''),
+            expected=errors.ValidationError(name='del_all',
+                error=u"Zone record '@' cannot be deleted"),
         ),
 
 
         dict(
             desc='Try to create record with invalid name in zone %r' % dnszone1,
             command=('dnsrecord_add', [dnszone1, u'invalid record'], {'arecord': u'127.0.0.1'}),
-            expected=errors.ValidationError(name='idnsname', error=''),
+            expected=errors.ValidationError(name='name',
+                error=u'only letters, numbers, _, and - are allowed. ' +
+                    u'- must not be the DNS label character'),
         ),
 
 
@@ -591,7 +602,9 @@ class test_dns(Declarative):
         dict(
             desc='Try to add invalid MX record to zone %r using dnsrecord_add' % (dnszone1),
             command=('dnsrecord_add', [dnszone1, u'@'], {'mxrecord': dnszone1_mname }),
-            expected=errors.ValidationError(name='mxrecord', error=''),
+            expected=errors.ValidationError(name='mx_rec',
+                error=u'format must be specified as "PREFERENCE EXCHANGER" ' +
+                    u' (see RFC 1035 for details)'),
         ),
 
         dict(
@@ -613,7 +626,9 @@ class test_dns(Declarative):
         dict(
             desc='Try to add invalid SRV record to zone %r using dnsrecord_add' % (dnszone1),
             command=('dnsrecord_add', [dnszone1, u'_foo._tcp'], {'srvrecord': dnszone1_mname}),
-            expected=errors.ValidationError(name='srvrecord', error=''),
+            expected=errors.ValidationError(name='srv_rec',
+                error=u'format must be specified as "PRIORITY WEIGHT PORT TARGET" ' +
+                    u' (see RFC 2782 for details)'),
         ),
 
         dict(
@@ -622,7 +637,9 @@ class test_dns(Declarative):
                                                                  'srv_part_weight' : 0,
                                                                  'srv_part_port' : 123,
                                                                  'srv_part_target' : u'foo bar'}),
-            expected=errors.ValidationError(name='srv_part_target', error=''),
+            expected=errors.ValidationError(name='srv_target',
+                error=u'invalid domain-name: only letters, numbers, and - ' +
+                    u'are allowed. - must not be the DNS label character'),
         ),
 
         dict(
@@ -634,7 +651,8 @@ class test_dns(Declarative):
                                                                  'srvrecord': [u"1 100 1234 %s" \
                                                                      % dnszone1_mname]}),
             expected=errors.ValidationError(name='srv_target',
-                error='Raw value of a DNS record was already set by a_rec option'),
+                error=u'Raw value of a DNS record was already set by ' +
+                    u'"srv_rec" option'),
         ),
 
         dict(
@@ -662,7 +680,8 @@ class test_dns(Declarative):
             desc='Try to modify SRV record in zone %r with non-existent modified value' % (dnszone1),
             command=('dnsrecord_mod', [dnszone1, u'_foo._tcp'], {'srv_part_priority': 1,
                                                   'srvrecord' : [u"0 100 1234 does.not.exist."] }),
-            expected=errors.AttrValueNotFound(attr='SRV', value=u'0 100 1234 ns1.dnszone.test.'),
+            expected=errors.AttrValueNotFound(attr='SRV record',
+                value=u'0 100 1234 does.not.exist.'),
         ),
 
         dict(
@@ -689,7 +708,8 @@ class test_dns(Declarative):
         dict(
             desc='Try to add invalid LOC record to zone %r using dnsrecord_add' % (dnszone1),
             command=('dnsrecord_add', [dnszone1, u'@'], {'locrecord': u"91 11 42.4 N 16 36 29.6 E 227.64" }),
-            expected=errors.ValidationError(name='locrecord', error=''),
+            expected=errors.ValidationError(name='lat_deg',
+                error=u'can be at most 90'),
         ),
 
         dict(
@@ -712,7 +732,9 @@ class test_dns(Declarative):
         dict(
             desc='Try to add invalid CNAME record %r using dnsrecord_add' % (dnsres1),
             command=('dnsrecord_add', [dnszone1, dnsres1], {'cnamerecord': u'-.example.com' }),
-            expected=errors.ValidationError(name='cnamerecord', error=''),
+            expected=errors.ValidationError(name='hostname',
+                error=u'invalid domain-name: only letters, numbers, and - ' +
+                    u'are allowed. - must not be the DNS label character'),
         ),
 
         dict(
@@ -734,7 +756,9 @@ class test_dns(Declarative):
         dict(
             desc='Try to add invalid KX record %r using dnsrecord_add' % (dnsres1),
             command=('dnsrecord_add', [dnszone1, dnsres1], {'kxrecord': u'foo-1.example.com' }),
-            expected=errors.ValidationError(name='kxrecord', error=''),
+            expected=errors.ValidationError(name='kx_rec',
+                error=u'format must be specified as "PREFERENCE EXCHANGER" ' +
+                    u' (see RFC 2230 for details)'),
         ),
 
         dict(
@@ -841,7 +865,8 @@ class test_dns(Declarative):
                     'ip_address' : u'1.2.3.4',
                 }
             ),
-            expected=errors.ValidationError(name='name_from_ip', error='invalid format'),
+            expected=errors.ValidationError(name='name_from_ip',
+                error=u'invalid IP network format'),
         ),
 
         dict(
@@ -881,7 +906,9 @@ class test_dns(Declarative):
         dict(
             desc='Try to add invalid PTR %r to %r using dnsrecord_add' % (dnsrev1, revdnszone1),
             command=('dnsrecord_add', [revdnszone1, dnsrev1], {'ptrrecord': u'-.example.com' }),
-            expected=errors.ValidationError(name='ptrrecord', error=''),
+            expected=errors.ValidationError(name='hostname',
+                error=u'invalid domain-name: only letters, numbers, and - ' +
+                    u'are allowed. - must not be the DNS label character'),
         ),
 
         dict(
@@ -916,7 +943,8 @@ class test_dns(Declarative):
         dict(
             desc='Try to add invalid allow-query to zone %r' % dnszone1,
             command=('dnszone_mod', [dnszone1], {'idnsallowquery': u'localhost'}),
-            expected=errors.ValidationError(name='idnsallowquery', error=''),
+            expected=errors.ValidationError(name='allow_query',
+                error=u'ACL name "localhost" is not supported'),
         ),
 
         dict(
@@ -948,7 +976,8 @@ class test_dns(Declarative):
         dict(
             desc='Try to add invalid allow-transfer to zone %r' % dnszone1,
             command=('dnszone_mod', [dnszone1], {'idnsallowtransfer': u'10.'}),
-            expected=errors.ValidationError(name='idnsallowtransfer', error=''),
+            expected=errors.ValidationError(name='allow_transfer',
+                error=u"failed to detect a valid IP address from u'10.'"),
         ),
 
         dict(
@@ -981,7 +1010,9 @@ class test_dns(Declarative):
             desc='Try to create duplicate PTR record for %r with --a-create-reverse' % dnsres1,
             command=('dnsrecord_add', [dnszone1, dnsres1], {'arecord': u'80.142.15.80',
                                                             'a_extra_create_reverse' : True}),
-            expected=errors.DuplicateEntry(message=u''),
+            expected=errors.DuplicateEntry(message=u'Reverse record for IP ' +
+                u'address 80.142.15.80 already exists in reverse zone ' +
+                u'15.142.80.in-addr.arpa..'),
         ),
 
 

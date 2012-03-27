@@ -61,7 +61,8 @@ class test_service(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % service1,
             command=('service_show', [service1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: service not found' % service1),
         ),
 
 
@@ -191,7 +192,8 @@ class test_service(Declarative):
                     force=True,
                 ),
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(
+                message=u'service with name "%s" already exists' % service1),
         ),
 
 
@@ -362,7 +364,9 @@ class test_service(Declarative):
         dict(
             desc='Update %r with a bad certificate' % service1,
             command=('service_mod', [service1], dict(usercertificate=badservercert)),
-            expected=errors.CertificateOperationError(error='exact error msg not needed'),
+            expected=errors.CertificateOperationError(
+                error=u'Issuer "CN=IPA Test Certificate Authority" does not ' +
+                    u'match the expected issuer'),
         ),
 
 
@@ -432,7 +436,8 @@ class test_service(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % service1,
             command=('service_show', [service1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: service not found' % service1),
         ),
 
 

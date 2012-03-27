@@ -76,31 +76,46 @@ class test_automember(Declarative):
     tests = [
 
         dict(
-            desc='Try to retrieve non-existent %r' % user1,
-            command=('user_show', [user1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            desc='Try to retrieve non-existent group rule %r' % group1,
+            command=('automember_add', [group1],
+                dict(description=u'Test desc', type=u'group')),
+            expected=errors.NotFound(reason=u'Group: %s not found!' % group1),
+        ),
+
+        dict(
+            desc='Try to update non-existent group rule %r' % group1,
+            command=('automember_add', [group1], dict(type=u'group')),
+            expected=errors.NotFound(reason=u'Group: %s not found!' % group1),
+        ),
+
+        dict(
+            desc='Try to delete non-existent group rule %r' % group1,
+            command=('automember_del', [group1], dict(type=u'group')),
+            expected=errors.NotFound(reason=u': auto_member_rule not found'),
         ),
 
 
         dict(
-            desc='Try to update non-existent %r' % user1,
-            command=('user_mod', [user1], dict(givenname=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            desc='Try to retrieve non-existent hostgroup rule %r' % hostgroup1,
+            command=('automember_add', [hostgroup1],
+                dict(description=u'Test desc', type=u'hostgroup')),
+            expected=errors.NotFound(
+                reason=u'Group: %s not found!' % hostgroup1),
         ),
-
 
         dict(
-            desc='Try to delete non-existent %r' % user1,
-            command=('user_del', [user1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            desc='Try to update non-existent hostgroup rule %r' % hostgroup1,
+            command=('automember_add', [hostgroup1], dict(type=u'hostgroup')),
+            expected=errors.NotFound(
+                reason=u'Group: %s not found!' % hostgroup1),
         ),
-
 
         dict(
-            desc='Try to rename non-existent %r' % user1,
-            command=('user_mod', [user1], dict(setattr=u'uid=tuser')),
-            expected=errors.NotFound(reason='no such entry'),
+            desc='Try to delete non-existent hostgroup rule %r' % hostgroup1,
+            command=('automember_del', [hostgroup1], dict(type=u'hostgroup')),
+            expected=errors.NotFound(reason=u': auto_member_rule not found'),
         ),
+
 
 
         dict(

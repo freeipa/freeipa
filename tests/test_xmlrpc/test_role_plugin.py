@@ -61,28 +61,28 @@ class test_role(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % role1,
             command=('role_show', [role1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: role not found' % role1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % role1,
             command=('role_mod', [role1], dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: role not found' % role1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % role1,
             command=('role_del', [role1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: role not found' % role1),
         ),
 
 
         dict(
             desc='Try to rename non-existent %r' % role1,
             command=('role_mod', [role1], dict(setattr=u'cn=%s' % renamedrole1)),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: role not found' % role1),
         ),
 
 
@@ -103,7 +103,8 @@ class test_role(Declarative):
             command=('role_add', [invalidrole1],
                 dict(description=u'role desc 1')
             ),
-            expected=errors.ValidationError(name='cn', error='Leading and trailing spaces are not allowed'),
+            expected=errors.ValidationError(name='name',
+                error=u'Leading and trailing spaces are not allowed'),
         ),
 
 
@@ -516,21 +517,21 @@ class test_role(Declarative):
         dict(
             desc='Try to delete non-existent %r' % role1,
             command=('role_del', [role1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: role not found' % role1),
         ),
 
 
         dict(
-            desc='Try to retrieve non-existent %r' % role1,
-            command=('role_show', [group1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            desc='Try to show non-existent %r' % role1,
+            command=('role_show', [role1], {}),
+            expected=errors.NotFound(reason=u'%s: role not found' % role1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % role1,
             command=('role_mod', [role1], dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: role not found' % role1),
         ),
 
 

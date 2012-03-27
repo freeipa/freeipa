@@ -61,28 +61,28 @@ class test_user(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % user1,
             command=('user_show', [user1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % user1,
             command=('user_mod', [user1], dict(givenname=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % user1,
             command=('user_del', [user1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
             desc='Try to rename non-existent %r' % user1,
             command=('user_mod', [user1], dict(setattr=u'uid=tuser')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
@@ -132,7 +132,8 @@ class test_user(Declarative):
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(
+                message=u'user with name "%s" already exists' % user1),
         ),
 
 
@@ -387,7 +388,8 @@ class test_user(Declarative):
             command=(
                 'user_mod', [user1], dict(setattr=u'krbmaxticketlife=88000')
             ),
-            expected=errors.ObjectclassViolation(info='attribute "krbmaxticketlife" not allowed'),
+            expected=errors.ObjectclassViolation(
+                info=u'attribute "krbmaxticketlife" not allowed'),
         ),
 
 
@@ -485,7 +487,7 @@ class test_user(Declarative):
         dict(
             desc='Try to delete non-existent %r' % user1,
             command=('user_del', [user1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'tuser1: user not found'),
         ),
 
 
@@ -584,7 +586,8 @@ class test_user(Declarative):
         dict(
             desc='Make non-existent %r the manager of %r' % (renameduser1, user2),
             command=('user_mod', [user2], dict(manager=renameduser1)),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'manager %s not found' % renameduser1),
         ),
 
 
@@ -625,28 +628,31 @@ class test_user(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % user1,
             command=('user_show', [user1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % user1,
             command=('user_mod', [user1], dict(givenname=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
             desc='Test an invalid login name %r' % invaliduser1,
             command=('user_add', [invaliduser1], dict(givenname=u'Test', sn=u'User1')),
-            expected=errors.ValidationError(name='uid', error='may only include letters, numbers, _, -, . and $'),
+            expected=errors.ValidationError(name='login',
+                error=u'may only include letters, numbers, _, -, . and $'),
         ),
 
 
         dict(
             desc='Test a login name that is too long %r' % invaliduser2,
-            command=('user_add', [invaliduser2], dict(givenname=u'Test', sn=u'User1')),
-            expected=errors.ValidationError(name='uid', error='can be at most 33 characters'),
+            command=('user_add', [invaliduser2],
+                dict(givenname=u'Test', sn=u'User1')),
+            expected=errors.ValidationError(name='login',
+                error='can be at most 32 characters'),
         ),
 
 
@@ -655,14 +661,16 @@ class test_user(Declarative):
         dict(
             desc='Test that validation is disabled on deletes',
             command=('user_del', [invaliduser1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: user not found' % invaliduser1),
         ),
 
 
         dict(
             desc='Test that validation is disabled on show',
             command=('user_show', [invaliduser1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: user not found' % invaliduser1),
         ),
 
 
@@ -681,14 +689,16 @@ class test_user(Declarative):
         dict(
             desc='Try to rename to invalid username %r' % user1,
             command=('user_mod', [user1], dict(rename=invaliduser1)),
-            expected=errors.ValidationError(name='uid', error='may only include letters, numbers, _, -, . and $'),
+            expected=errors.ValidationError(name='rename',
+                error=u'may only include letters, numbers, _, -, . and $'),
         ),
 
 
         dict(
             desc='Try to rename to a username that is too long %r' % user1,
             command=('user_mod', [user1], dict(rename=invaliduser2)),
-            expected=errors.ValidationError(name='uid', error='can be at most 33 characters'),
+            expected=errors.ValidationError(name='login',
+                error='can be at most 32 characters'),
         ),
 
 

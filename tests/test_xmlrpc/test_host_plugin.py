@@ -72,21 +72,24 @@ class test_host(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % fqdn1,
             command=('host_show', [fqdn1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: host not found' % fqdn1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % fqdn1,
             command=('host_mod', [fqdn1], dict(description=u'Nope')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: host not found' % fqdn1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % fqdn1,
             command=('host_del', [fqdn1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: host not found' % fqdn1),
         ),
 
 
@@ -127,7 +130,8 @@ class test_host(Declarative):
                     force=True,
                 ),
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(message=u'host with name ' +
+                u'"%s" already exists' %  fqdn1),
         ),
 
 
@@ -530,7 +534,9 @@ class test_host(Declarative):
         dict(
             desc='Add an illegal MAC address to %r' % fqdn1,
             command=('host_mod', [fqdn1], dict(macaddress=[u'xx'])),
-            expected=errors.ValidationError(name='macaddress', error='invalid \'macaddress\': Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.'),
+            expected=errors.ValidationError(name='macaddress',
+                error=u'Must be of the form HH:HH:HH:HH:HH:HH, where ' +
+                    u'each H is a hexadecimal character.'),
         ),
 
 
@@ -548,21 +554,21 @@ class test_host(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % fqdn1,
             command=('host_show', [fqdn1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: host not found' % fqdn1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % fqdn1,
             command=('host_mod', [fqdn1], dict(description=u'Nope')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: host not found' % fqdn1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % fqdn1,
             command=('host_del', [fqdn1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(reason=u'%s: host not found' % fqdn1),
         ),
 
         # Test deletion using a non-fully-qualified hostname. Services
@@ -636,7 +642,8 @@ class test_host(Declarative):
         dict(
             desc='Try to add host not in DNS %r without force' % fqdn2,
             command=('host_add', [fqdn2], {}),
-            expected=errors.DNSNotARecordError(reason='Host does not have corresponding DNS A record'),
+            expected=errors.DNSNotARecordError(
+                reason=u'Host does not have corresponding DNS A record'),
         ),
 
 
@@ -660,7 +667,7 @@ class test_host(Declarative):
                     krbprincipalname=[u'host/%s@%s' % (fqdn2, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn2],
+                    managedby_host=[fqdn2],
                     has_keytab=False,
                     has_password=False,
                 ),
@@ -673,21 +680,25 @@ class test_host(Declarative):
         dict(
             desc='Delete the current host (master?) %s should be caught' % api.env.host,
             command=('host_del', [api.env.host], {}),
-            expected=errors.ValidationError(name='fqdn', error='An IPA master host cannot be deleted or disabled'),
+            expected=errors.ValidationError(name='hostname',
+                error=u'An IPA master host cannot be deleted or disabled'),
         ),
 
 
         dict(
             desc='Disable the current host (master?) %s should be caught' % api.env.host,
             command=('host_disable', [api.env.host], {}),
-            expected=errors.ValidationError(name='fqdn', error='An IPA master host cannot be deleted or disabled'),
+            expected=errors.ValidationError(name='hostname',
+                error=u'An IPA master host cannot be deleted or disabled'),
         ),
 
 
         dict(
             desc='Test that validation is enabled on adds',
             command=('host_add', [invalidfqdn1], {}),
-            expected=errors.ValidationError(name='fqdn', error='may only include letters, numbers, and -'),
+            expected=errors.ValidationError(name='hostname',
+                error=u'invalid domain-name: only letters, numbers, and - ' +
+                    u'are allowed. - must not be the DNS label character'),
         ),
 
 
@@ -696,21 +707,24 @@ class test_host(Declarative):
         dict(
             desc='Test that validation is disabled on mods',
             command=('host_mod', [invalidfqdn1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1),
         ),
 
 
         dict(
             desc='Test that validation is disabled on deletes',
             command=('host_del', [invalidfqdn1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1),
         ),
 
 
         dict(
             desc='Test that validation is disabled on show',
             command=('host_show', [invalidfqdn1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1),
         ),
 
 

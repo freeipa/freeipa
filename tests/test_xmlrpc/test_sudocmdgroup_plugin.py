@@ -107,7 +107,8 @@ class test_sudocmdgroup(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % sudocmdgroup1,
             command=('sudocmdgroup_show', [sudocmdgroup1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup1),
         ),
 
 
@@ -115,14 +116,16 @@ class test_sudocmdgroup(Declarative):
             desc='Try to update non-existent %r' % sudocmdgroup1,
             command=('sudocmdgroup_mod', [sudocmdgroup1],
                 dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % sudocmdgroup1,
             command=('sudocmdgroup_del', [sudocmdgroup1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup1),
         ),
 
 
@@ -154,7 +157,8 @@ class test_sudocmdgroup(Declarative):
                 'sudocmdgroup_add', [sudocmdgroup1],
                 dict(description=u'Test desc 1')
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(message=u'sudo command group ' +
+                u'with name "%s" already exists' % sudocmdgroup1),
         ),
 
 
@@ -235,7 +239,8 @@ class test_sudocmdgroup(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % sudocmdgroup2,
             command=('sudocmdgroup_show', [sudocmdgroup2], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup2),
         ),
 
 
@@ -243,14 +248,16 @@ class test_sudocmdgroup(Declarative):
             desc='Try to update non-existent %r' % sudocmdgroup2,
             command=('sudocmdgroup_mod', [sudocmdgroup2],
                 dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup2),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % sudocmdgroup2,
             command=('sudocmdgroup_del', [sudocmdgroup2], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup2),
         ),
 
 
@@ -282,7 +289,9 @@ class test_sudocmdgroup(Declarative):
                 'sudocmdgroup_add', [sudocmdgroup2],
                 dict(description=u'Test desc 2')
             ),
-            expected=errors.DuplicateEntry(),
+            expected=errors.DuplicateEntry(
+                message=u'sudo command group with name "%s" already exists' %
+                    sudocmdgroup2),
         ),
 
 
@@ -562,14 +571,16 @@ class test_sudocmdgroup(Declarative):
         dict(
             desc='Try to delete non-existent %r' % sudocmdgroup1,
             command=('sudocmdgroup_del', [sudocmdgroup1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup1),
         ),
 
 
         dict(
             desc='Try to retrieve non-existent %r' % sudocmdgroup1,
             command=('sudocmdgroup_show', [sudocmdgroup1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup1),
         ),
 
 
@@ -577,7 +588,8 @@ class test_sudocmdgroup(Declarative):
             desc='Try to update non-existent %r' % sudocmdgroup1,
             command=('sudocmdgroup_mod', [sudocmdgroup1],
             dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup1),
         ),
 
 
@@ -597,14 +609,16 @@ class test_sudocmdgroup(Declarative):
         dict(
             desc='Try to delete non-existent %r' % sudocmdgroup2,
             command=('sudocmdgroup_del', [sudocmdgroup2], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup2),
         ),
 
 
         dict(
             desc='Try to retrieve non-existent %r' % sudocmdgroup2,
             command=('sudocmdgroup_show', [sudocmdgroup2], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup2),
         ),
 
 
@@ -612,7 +626,8 @@ class test_sudocmdgroup(Declarative):
             desc='Try to update non-existent %r' % sudocmdgroup2,
             command=('sudocmdgroup_mod', [sudocmdgroup2],
             dict(description=u'Foo')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command group not found' % sudocmdgroup2),
         ),
 
 
@@ -632,7 +647,8 @@ class test_sudocmdgroup(Declarative):
         dict(
             desc='Verify that %r is really gone' % sudocmd1,
             command=('sudocmd_show', [sudocmd1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1),
         ),
 
     ]

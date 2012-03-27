@@ -39,21 +39,24 @@ class test_delegation(Declarative):
         dict(
             desc='Try to retrieve non-existent %r' % delegation1,
             command=('delegation_show', [delegation1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'ACI with name "%s" not found' % delegation1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % delegation1,
             command=('delegation_mod', [delegation1], dict(group=u'admins')),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'ACI with name "%s" not found' % delegation1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % delegation1,
             command=('delegation_del', [delegation1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'ACI with name "%s" not found' % delegation1),
         ),
 
 
@@ -78,7 +81,7 @@ class test_delegation(Declarative):
                      memberof=u'nonexisting',
                 ),
             ),
-            expected=errors.NotFound(reason='group not found'),
+            expected=errors.NotFound(reason=u'nonexisting: group not found'),
         ),
 
         # Note that we add postalCode but expect postalcode. This tests
