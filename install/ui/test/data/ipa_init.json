@@ -312,7 +312,18 @@
                             "identity": "Kerberos Ticket Policy"
                         },
                         "netgroup": {
-                            "identity": "Netgroup Settings"
+                            "any_host": "Any Host",
+                            "anyone": "Anyone",
+                            "external": "External",
+                            "host": "Host",
+                            "hostgroups": "Host Groups",
+                            "hosts": "Hosts",
+                            "identity": "Netgroup Settings",
+                            "specified_hosts": "Specified Hosts and Groups",
+                            "specified_users": "Specified Users and Groups",
+                            "user": "User",
+                            "usergroups": "User Groups",
+                            "users": "Users"
                         },
                         "permission": {
                             "identity": "Identity",
