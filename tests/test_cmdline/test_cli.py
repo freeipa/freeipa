@@ -26,7 +26,11 @@ class TestCLIParsing(object):
         """Run a command on the server"""
         if not api.Backend.xmlclient.isconnected():
             api.Backend.xmlclient.connect(fallback=False)
-        api.Command[command_name](**kw)
+        try:
+            api.Command[command_name](**kw)
+        except errors.NetworkError:
+            raise nose.SkipTest('%r: Server not available: %r' %
+                                (self.__module__, api.env.xmlrpc_uri))
 
     @contextlib.contextmanager
     def fake_stdin(self, string_in):
