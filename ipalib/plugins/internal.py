@@ -450,7 +450,18 @@ class i18n_messages(Command):
                 "identity": _("Kerberos Ticket Policy"),
                 },
             "netgroup": {
+                "any_host": _("Any Host"),
+                "anyone": _("Anyone"),
+                "external": _("External"),
+                "host": _("Host"),
+                "hostgroups": _("Host Groups"),
+                "hosts": _("Hosts"),
                 "identity": _("Netgroup Settings"),
+                "specified_hosts": _("Specified Hosts and Groups"),
+                "specified_users": _("Specified Users and Groups"),
+                "user": _("User"),
+                "usergroups": _("User Groups"),
+                "users": _("Users"),
                 },
             "permission": {
                 "identity": _("Identity"),
