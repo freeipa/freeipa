@@ -122,11 +122,13 @@ class XMLRPC_test(object):
     Base class for all XML-RPC plugin tests
     """
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         if not server_available:
-            raise nose.SkipTest(
-                'Server not available: %r' % api.env.xmlrpc_uri
-            )
+            raise nose.SkipTest('%r: Server not available: %r' %
+                                (cls.__module__, api.env.xmlrpc_uri))
+
+    def setUp(self):
         if not api.Backend.xmlclient.isconnected():
             api.Backend.xmlclient.connect(fallback=False)
 

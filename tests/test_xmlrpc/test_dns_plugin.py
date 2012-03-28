@@ -47,8 +47,12 @@ dnsrev2_dn = DN(('idnsname',dnsrev2), revdnszone1_dn)
 
 class test_dns(Declarative):
 
-    def setUp(self):
-        super(test_dns, self).setUp()
+    @classmethod
+    def setUpClass(cls):
+        super(test_dns, cls).setUpClass()
+
+        if not api.Backend.xmlclient.isconnected():
+            api.Backend.xmlclient.connect(fallback=False)
         try:
            api.Command['dnszone_add'](dnszone1,
                idnssoamname = dnszone1_mname,
