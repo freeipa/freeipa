@@ -107,6 +107,14 @@ def assert_equal(val1, val2):
     assert val1 == val2, '%r != %r' % (val1, val2)
 
 
+def assert_not_equal(val1, val2):
+    """
+    Assert ``val1`` and ``val2`` are the same type and of non-equal value.
+    """
+    assert type(val1) is type(val2), '%r != %r' % (val1, val2)
+    assert val1 != val2, '%r == %r' % (val1, val2)
+
+
 class Fuzzy(object):
     """
     Perform a fuzzy (non-strict) equality tests.

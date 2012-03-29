@@ -752,7 +752,7 @@ class test_group(Declarative):
         dict(
             desc='Create %r without User Private Group' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', noprivate=True)
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', noprivate=True, gidnumber=1000)
             ),
             expected=dict(
                 value=user1,
@@ -768,7 +768,7 @@ class test_group(Declarative):
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                    gidnumber=[u'1000'],
                     displayname=[u'Test User1'],
                     cn=[u'Test User1'],
                     initials=[u'TU'],
