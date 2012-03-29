@@ -32,7 +32,7 @@ char *std_pwdpolicy_attrs[] = {
     "krbpwdminlength",
     "krbpwdhistorylength",
     "krbpwdmaxfailure",
-    "krbpwdmaxfailurecountinterval",
+    "krbpwdfailurecountinterval",
     "krbpwdlockoutduration",
 
     NULL
