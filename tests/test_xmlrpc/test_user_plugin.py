@@ -25,7 +25,7 @@ Test the `ipalib/plugins/user.py` module.
 
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
-from tests.util import assert_equal
+from tests.util import assert_equal, assert_not_equal
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password, fuzzy_string, fuzzy_dergeneralizedtime
 from ipalib.dn import *
 
@@ -41,6 +41,12 @@ def upg_check(response):
     """Check that the user was assigned to the corresponding private group."""
     assert_equal(response['result']['uidnumber'],
                  response['result']['gidnumber'])
+    return True
+
+def not_upg_check(response):
+    """Check that the user was not assigned to the corresponding private group."""
+    assert_not_equal(response['result']['uidnumber'],
+                     response['result']['gidnumber'])
     return True
 
 class test_user(Declarative):
@@ -1085,4 +1091,159 @@ class test_user(Declarative):
             expected=lambda x: True,
         ),
 
+        dict(
+            desc='Delete %r' % user1,
+            command=('user_del', [user1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % user1,
+                value=user1,
+            ),
+        ),
+
+        dict(
+            desc='Create %r without UPG' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', noprivate=True)
+            ),
+            expected=errors.NotFound(reason='Default group for new users is not POSIX'),
+        ),
+
+        dict(
+            desc='Create %r without UPG with GID explicitly set' % user2,
+            command=(
+                'user_add', [user2], dict(givenname=u'Test', sn=u'User2', noprivate=True, gidnumber=1000)
+            ),
+            expected=dict(
+                value=user2,
+                summary=u'Added user "tuser2"',
+                result=dict(
+                    gecos=[u'Test User2'],
+                    givenname=[u'Test'],
+                    description=[],
+                    homedirectory=[u'/home/tuser2'],
+                    krbprincipalname=[u'tuser2@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user_base,
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[u'1000'],
+                    displayname=[u'Test User2'],
+                    cn=[u'Test User2'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=lambda x: DN(x) == \
+                        DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % user2,
+            command=('user_del', [user2], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % user2,
+                value=user2,
+            ),
+        ),
+
+        dict(
+            desc='Change default user group',
+            command=(
+                'config_mod', [], dict(ipadefaultprimarygroup=group1),
+            ),
+            expected=lambda x: True,
+        ),
+
+        dict(
+            desc='Create %r without UPG' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', noprivate=True)
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=dict(
+                    gecos=[u'Test User1'],
+                    givenname=[u'Test'],
+                    description=[],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user_base,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    memberof_group=[group1],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=lambda x: DN(x) == \
+                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
+                ),
+            ),
+            extra_check = not_upg_check,
+        ),
+
+        dict(
+            desc='Create %r without UPG with GID explicitly set' % user2,
+            command=(
+                'user_add', [user2], dict(givenname=u'Test', sn=u'User2', noprivate=True, gidnumber=1000)
+            ),
+            expected=dict(
+                value=user2,
+                summary=u'Added user "tuser2"',
+                result=dict(
+                    gecos=[u'Test User2'],
+                    givenname=[u'Test'],
+                    description=[],
+                    homedirectory=[u'/home/tuser2'],
+                    krbprincipalname=[u'tuser2@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user_base,
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[u'1000'],
+                    displayname=[u'Test User2'],
+                    cn=[u'Test User2'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    memberof_group=[group1],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=lambda x: DN(x) == \
+                        DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Reset default user group',
+            command=(
+                'config_mod', [], dict(ipadefaultprimarygroup=u'ipausers'),
+            ),
+            expected=lambda x: True,
+        ),
     ]

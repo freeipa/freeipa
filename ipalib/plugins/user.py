@@ -76,6 +76,7 @@ EXAMPLES:
 
 
 NO_UPG_MAGIC = '__no_upg__'
+DNA_MAGIC = 999
 
 user_output_params = (
     Flag('has_keytab',
@@ -276,14 +277,14 @@ class user(LDAPObject):
             label=_('UID'),
             doc=_('User ID Number (system will assign one if not provided)'),
             autofill=True,
-            default=999,
+            default=DNA_MAGIC,
             minvalue=1,
         ),
         Int('gidnumber',
             label=_('GID'),
             doc=_('Group ID Number'),
             minvalue=1,
-            default_from=lambda uidnumber: uidnumber,
+            default=DNA_MAGIC,
             autofill=True,
         ),
         Str('street?',
@@ -455,7 +456,7 @@ class user_add(LDAPCreate):
         entry_attrs.setdefault('krbpwdpolicyreference', 'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn))
         entry_attrs.setdefault('krbprincipalname', '%s@%s' % (entry_attrs['uid'], api.env.realm))
 
-        if 'gidnumber' not in entry_attrs:
+        if entry_attrs.get('gidnumber', DNA_MAGIC) == DNA_MAGIC:
             # gidNumber wasn't specified explicity, find out what it should be
             if not options.get('noprivate', False) and ldap.has_upg():
                 # User Private Groups - uidNumber == gidNumber
@@ -468,7 +469,10 @@ class user_add(LDAPCreate):
                 try:
                     (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidnumber'])
                 except errors.NotFound:
-                    error_msg = 'Default group for new users not found.'
+                    error_msg = _('Default group for new users not found')
+                    raise errors.NotFound(reason=error_msg)
+                if 'gidnumber' not in group_attrs:
+                    error_msg = _('Default group for new users is not POSIX')
                     raise errors.NotFound(reason=error_msg)
                 entry_attrs['gidnumber'] = group_attrs['gidnumber']
 
