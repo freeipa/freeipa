@@ -33,6 +33,12 @@ class update_replica_memberof(PreUpdate):
     order=MIDDLE
 
     def execute(self, **options):
+        totalexcludes = ('entryusn',
+                         'krblastsuccessfulauth',
+                         'krblastfailedauth',
+                         'krbloginfailedcount')
+        excludes = ('memberof', ) + totalexcludes
+
         # We need an IPAdmin connection to the backend
         conn = ipaldap.IPAdmin(api.env.host, ldapi=True, realm=api.env.realm)
         conn.do_external_bind(pwd.getpwuid(os.geteuid()).pw_name)
@@ -43,7 +49,21 @@ class update_replica_memberof(PreUpdate):
         self.log.debug("Found %d agreement(s)" % len(entries))
         for replica in entries:
             self.log.debug(replica.description)
-            if 'memberof' not in replica.nsDS5ReplicatedAttributeList:
+            attrlist = replica.getValue('nsDS5ReplicatedAttributeList')
+            if attrlist is None:
+                self.log.debug("Adding nsDS5ReplicatedAttributeList and nsDS5ReplicatedAttributeListTotal")
+                current = replica.toDict()
+                # Need to add it altogether
+                replica.setValues('nsDS5ReplicatedAttributeList',
+                    '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
+                replica.setValues('nsDS5ReplicatedAttributeListTotal',
+                    '(objectclass=*) $ EXCLUDE %s' % " ".join(totalexcludes))
+                try:
+                    repl.conn.updateEntry(replica.dn, current, replica.toDict())
+                    self.log.debug("Updated")
+                except Exception, e:
+                    self.log.error("Error caught updating replica: %s" % str(e))
+            elif 'memberof' not in attrlist.lower():
                 self.log.debug("Attribute list needs updating")
                 current = replica.toDict()
                 replica.setValue('nsDS5ReplicatedAttributeList',
