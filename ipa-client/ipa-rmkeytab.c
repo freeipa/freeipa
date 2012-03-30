@@ -42,7 +42,7 @@ remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, 
     if (krberr) {
         fprintf(stderr, _("Unable to parse principal name\n"));
         if (debug)
-            fprintf(stderr, _("krb5_parse_name %d: %s\n"),
+            fprintf(stderr, _("krb5_parse_name %1$d: %2$s\n"),
                             krberr, error_message(krberr));
         rval = 4;
         goto done;
@@ -71,7 +71,7 @@ remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, 
             }
             fprintf(stderr, _("principal not found\n"));
             if (debug)
-                fprintf(stderr, _("krb5_kt_get_entry %d: %s\n"),
+                fprintf(stderr, _("krb5_kt_get_entry %1$d: %2$s\n"),
                                 krberr, error_message(krberr));
             rval = 5;
             break;
@@ -82,7 +82,7 @@ remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, 
             fprintf(stderr, _("Unable to remove entry\n"));
             if (debug) {
                 fprintf(stdout, _("kvno %d\n"), entry2.vno);
-                fprintf(stderr, _("krb5_kt_remove_entry %d: %s\n"),
+                fprintf(stderr, _("krb5_kt_remove_entry %1$d: %2$s\n"),
                                 krberr, error_message(krberr));
             }
             rval = 6;
@@ -118,7 +118,7 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
         if (krberr) {
             fprintf(stderr, _("Unable to parse principal\n"));
             if (debug) {
-                fprintf(stderr, _("krb5_unparse_name %d: %s\n"),
+                fprintf(stderr, _("krb5_unparse_name %1$d: %2$s\n"),
                                 krberr, error_message(krberr));
             }
             rval = 4;
@@ -227,14 +227,14 @@ main(int argc, const char **argv)
 
     krberr = krb5_kt_resolve(context, ktname, &ktid);
     if (krberr) {
-        fprintf(stderr, _("Failed to open keytab '%s': %s\n"), keytab,
+        fprintf(stderr, _("Failed to open keytab '%1$s': %2$s\n"), keytab,
             error_message(krberr));
         rval = 3;
         goto cleanup;
     }
     krberr = krb5_kt_start_seq_get(context, ktid, &cursor);
     if (krberr) {
-        fprintf(stderr, _("Failed to open keytab '%s': %s\n"), keytab,
+        fprintf(stderr, _("Failed to open keytab '%1$s': %2$s\n"), keytab,
             error_message(krberr));
         rval = 3;
         goto cleanup;
@@ -252,7 +252,7 @@ cleanup:
         if (krberr) {
             fprintf(stderr, _("Closing keytab failed\n"));
             if (debug)
-                fprintf(stderr, _("krb5_kt_close %d: %s\n"),
+                fprintf(stderr, _("krb5_kt_close %1$d: %2$s\n"),
                                 krberr, error_message(krberr));
         }
     }

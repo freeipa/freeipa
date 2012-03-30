@@ -108,7 +108,7 @@ static int check_perms(const char *keytab)
                 break;
             default:
                 fprintf(stderr,
-                        _("access() on %s failed: errno = %d\n"),
+                        _("access() on %1$s failed: errno = %2$d\n"),
                         keytab, errno);
                 break;
         }
@@ -334,7 +334,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
                             NULL, NULL, NULL, 0, &res);
 
     if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, _("Search for %s on rootdse failed with error %d"),
+        fprintf(stderr, _("Search for %1$s on rootdse failed with error %2$d\n"),
                 root_attrs[0], ret);
         rval = 14;
         goto done;
@@ -801,7 +801,7 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     krberr = krb5_parse_name(krbctx, principal, &princ);
     if (krberr != 0) {
         if (!quiet)
-            fprintf(stderr, _("Error parsing \"%s\": %s.\n"),
+            fprintf(stderr, _("Error parsing \"%1$s\": %2$s.\n"),
                             principal, error_message(krberr));
         return krberr;
     }
