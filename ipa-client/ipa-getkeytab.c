@@ -82,7 +82,7 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 			krberr = krb5_init_context(&krbctx);
 
 			if (krberr) {
-				fprintf(stderr, _("Kerberos context initialization failed: %s (%d)\n"),
+				fprintf(stderr, _("Kerberos context initialization failed: %1$s (%2$d)\n"),
                                 error_message(krberr), krberr);
 				in->result = NULL;
 				in->len = 0;
@@ -93,7 +93,7 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 			krberr = krb5_unparse_name(krbctx, princ, &outname);
 
 			if (krberr) {
-                fprintf(stderr, _("Unable to parse principal: %s (%d)\n"),
+                fprintf(stderr, _("Unable to parse principal: %1$s (%2$d)\n"),
                                 error_message(krberr), krberr);
 				in->result = NULL;
 				in->len = 0;
@@ -511,7 +511,7 @@ static int ipa_ldap_init(LDAP ** ld, const char * scheme, const char * servernam
 {
 	char* url = NULL;
 	int  url_len = snprintf(url,0,"%s://%s:%d",scheme,servername,port) +1;
-       
+
 	url = (char *)malloc (url_len);
 	if (!url){
 		fprintf(stderr, _("Out of memory \n"));
@@ -570,7 +570,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 		if (ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, "/etc/ipa/ca.crt") != LDAP_OPT_SUCCESS) {
 			goto error_out;
 		}
- 
+
 		if ( ipa_ldap_init(&ld, "ldaps",servername, 636) != LDAP_SUCCESS){
 		  goto error_out;
 		}
@@ -579,7 +579,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 		}
 	} else {
 		if (ipa_ldap_init(&ld, "ldap",servername, 389) != LDAP_SUCCESS){
-			goto error_out;			
+			goto error_out;
 		}
 	}
 
@@ -731,7 +731,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 					keys->ksdata[i].enctype);
 			} else {
 				fprintf(stderr, _("Failed to retrieve "
-					"encryption type %s (#%d)\n"),
+					"encryption type %1$s (#%2$d)\n"),
 					enc, keys->ksdata[i].enctype);
 			}
                 } else {
