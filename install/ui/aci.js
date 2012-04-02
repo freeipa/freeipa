@@ -759,6 +759,13 @@ IPA.permission_target_policy = function (widget_name) {
         attribute_field.reset();
     };
 
+    that.update_attrs = function() {
+
+        var type_select = that.permission_target.widgets.get_widget('type');
+        var type = type_select.save()[0];
+        that.set_attrs_type(type);
+    };
+
     that.post_create = function() {
         that.select_target(that.permission_target.targets[0]);
     };
@@ -853,7 +860,10 @@ IPA.permission_target_policy = function (widget_name) {
                 {
                     name: 'attrs'
                 }
-            ]
+            ],
+            action: function() {
+                that.update_attrs();
+            }
         }
     };
 
