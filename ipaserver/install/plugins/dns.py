@@ -87,6 +87,39 @@ class update_dns_permissions(PostUpdate):
     enabled DNS. LDIF loaded by DNS installer would fail because of duplicate
     entries otherwise.
     """
+
+    _write_dns_perm_dn = DN('cn=Write DNS Configuration',
+                            api.env.container_permission,
+                            api.env.basedn)
+    _write_dns_perm_entry = ['objectClass:groupofnames',
+                             'objectClass:top',
+                             'cn:Write DNS Configuration',
+                             'description:Write DNS Configuration',
+                             'member:cn=DNS Administrators,cn=privileges,cn=pbac,%s' \
+                                     % api.env.basedn,
+                             'member:cn=DNS Servers,cn=privileges,cn=pbac,%s' \
+                                     % api.env.basedn]
+
+    _read_dns_perm_dn = DN('cn=read dns entries',
+                            api.env.container_permission,
+                            api.env.basedn)
+    _read_dns_perm_entry = ['objectClass:top',
+                            'objectClass:groupofnames',
+                            'objectClass:ipapermission',
+                            'cn:read dns entries',
+                            'description:Read DNS entries',
+                            'ipapermissiontype:SYSTEM',
+                            'member:cn=DNS Administrators,cn=privileges,cn=pbac,%s' \
+                                     % api.env.basedn,
+                            'member:cn=DNS Servers,cn=privileges,cn=pbac,%s' \
+                                     % api.env.basedn,]
+
+    _write_dns_aci_dn = DN(api.env.basedn)
+    _write_dns_aci_entry = ['add:aci:\'(targetattr = "idnsforwardpolicy || idnsforwarders || idnsallowsyncptr || idnszonerefresh || idnspersistentsearch")(target = "ldap:///cn=dns,%(realm)s")(version 3.0;acl "permission:Write DNS Configuration";allow (write) groupdn = "ldap:///cn=Write DNS Configuration,cn=permissions,cn=pbac,%(realm)s";)\'' % dict(realm=api.env.basedn)]
+
+    _read_dns_aci_dn = DN(api.env.container_dns, api.env.basedn)
+    _read_dns_aci_entry = ['add:aci:\'(targetattr = "*")(version 3.0; acl "No access to DNS tree without a permission"; deny (read,search,compare) (groupdn != "ldap:///cn=admins,cn=groups,cn=accounts,%(realm)s") and (groupdn != "ldap:///cn=read dns entries,cn=permissions,cn=pbac,%(realm)s");)\''  % dict(realm=api.env.basedn) ]
+
     def execute(self, **options):
         ldap = self.obj.backend
 
@@ -94,21 +127,17 @@ class update_dns_permissions(PostUpdate):
             return (False, False, [])
 
         dnsupdates = {}
-        dn = str(DN('cn=Write DNS Configuration', api.env.container_permission, api.env.basedn))
-        entry = ['objectClass:groupofnames',
-                 'objectClass:top',
-                 'cn:Write DNS Configuration',
-                 'description:Write DNS Configuration',
-                 'member:cn=DNS Administrators,cn=privileges,cn=pbac,%s' % api.env.basedn,
-                 'member:cn=DNS Servers,cn=privileges,cn=pbac,%s' % api.env.basedn]
-        # make sure everything is str or otherwise python-ldap will complain
-        entry = map(str, entry)
-        dnsupdates[dn] = {'dn' : str(dn), 'default' : entry}
 
-        dn = str(DN(api.env.basedn))
-        entry = ['add:aci:\'(targetattr = "idnsforwardpolicy || idnsforwarders || idnsallowsyncptr || idnszonerefresh || idnspersistentsearch")(target = "ldap:///cn=dns,%(realm)s")(version 3.0;acl "permission:Write DNS Configuration";allow (write) groupdn = "ldap:///cn=Write DNS Configuration,cn=permissions,cn=pbac,%(realm)s";)\'' % dict(realm=api.env.basedn)]
-        entry = map(str, entry)
-        dnsupdates[dn] = {'dn' : dn, 'updates' : entry}
+        # add default and updated entries
+        for dn, container, entry in ((self._write_dns_perm_dn, 'default', self._write_dns_perm_entry),
+                                     (self._read_dns_perm_dn, 'default', self._read_dns_perm_entry),
+                                     (self._write_dns_aci_dn, 'updates', self._write_dns_aci_entry),
+                                     (self._read_dns_aci_dn, 'updates', self._read_dns_aci_entry)):
+
+            dn = str(dn)
+            # make sure everything is str or otherwise python-ldap would complain
+            entry = map(str, entry)
+            dnsupdates[dn] = {'dn' : dn, container : entry}
 
         return (False, True, [dnsupdates])
 
