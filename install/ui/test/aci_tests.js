@@ -282,7 +282,7 @@ test("Testing subtree target.", function() {
 
     same(record.subtree[0], data.result.result.subtree, 'subtree set correctly');
 
-    same(get_visible_rows(target_widget), ['memberof', 'subtree'], 'subtree row visible');
+    same(get_visible_rows(target_widget), ['memberof', 'subtree', 'attrs_multi'], 'subtree row visible');
 });
 
 
