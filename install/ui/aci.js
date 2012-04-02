@@ -836,6 +836,9 @@ IPA.permission_target_policy = function (widget_name) {
             additional: [
                 {
                     name: 'memberof'
+                },
+                {
+                    name: 'attrs_multi'
                 }
             ]
         },
