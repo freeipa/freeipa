@@ -4,6 +4,7 @@ objectClass: idnsConfigObject
 objectClass: nsContainer
 objectClass: top
 cn: dns
+aci: (targetattr = "*")(version 3.0; acl "No access to DNS tree without a permission"; deny (read,search,compare) (groupdn != "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX") and (groupdn != "ldap:///cn=read dns entries,cn=permissions,cn=pbac,$SUFFIX");)
 
 dn: $SUFFIX
 changetype: modify
@@ -53,6 +54,17 @@ objectClass: groupofnames
 objectClass: top
 cn: update dns entries
 description: Update DNS entries
+member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
+member: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=read dns entries,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: read dns entries
+description: Read DNS entries
+ipapermissiontype: SYSTEM
 member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
 member: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
 
