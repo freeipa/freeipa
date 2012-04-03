@@ -86,7 +86,7 @@ class HTTPInstance(service.Service):
         self.step("publish CA cert", self.__publish_ca_cert)
         self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)
-        self.step("configuring SELinux for httpd", self.__selinux_config)
+        self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
 
@@ -103,7 +103,7 @@ class HTTPInstance(service.Service):
         # components as found in our LDAP configuration tree
         self.ldap_enable('HTTP', self.fqdn, self.dm_password, self.suffix)
 
-    def __selinux_config(self):
+    def configure_selinux_for_httpd(self):
         selinux = False
         try:
             if (os.path.exists('/usr/sbin/selinuxenabled')):
