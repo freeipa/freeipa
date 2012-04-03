@@ -326,7 +326,7 @@ def add_external_pre_callback(membertype, ldap, dn, keys, options):
     def validate_host(hostname):
         validate_hostname(hostname, check_fqdn=False, allow_underscore=True)
 
-    if membertype in options:
+    if options.get(membertype):
         if membertype == 'host':
             validator = validate_host
         else:
