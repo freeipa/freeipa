@@ -163,7 +163,7 @@ def check_certs():
             print "Missing Certification Authority file."
             print "You should place a copy of the CA certificate in /usr/share/ipa/html/ca.crt"
 
-def upgrade_pki():
+def upgrade_pki(fstore):
     """
     Update/add the dogtag proxy configuration. The IPA side of this is
     handled in ipa-pki-proxy.conf.
@@ -173,7 +173,6 @@ def upgrade_pki():
     if not os.path.exists('/etc/pki-ca/CS.cfg'):
         return
 
-    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
     http = httpinstance.HTTPInstance(fstore)
     http.enable_mod_nss_renegotiate()
     if not installutils.get_directive('/etc/pki-ca/CS.cfg',
@@ -222,13 +221,11 @@ def update_dbmodules(realm, filename="/etc/krb5.conf"):
     fd.write("".join(newfile))
     fd.close()
 
-def cleanup_kdc():
+def cleanup_kdc(fstore):
     """
     Clean up old KDC files if they exist. We need to remove the actual
     file and any references in the uninstall configuration.
     """
-    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
-
     for file in ['kpasswd.keytab', 'ldappwd']:
         filename = '/var/kerberos/krb5kdc/%s' % file
         installutils.remove_file(filename)
@@ -244,6 +241,14 @@ def upgrade_ipa_profile(realm):
         if ca.enable_subject_key_identifier():
             ca.restart()
 
+def upgrade_httpd_selinux(fstore):
+    """
+    Update SElinux configuration for httpd instance in the same way as the
+    new server installation does.
+    """
+    http = httpinstance.HTTPInstance(fstore)
+    http.configure_selinux_for_httpd()
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -253,6 +258,8 @@ def main():
 
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")
+
+    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
     try:
         krbctx = krbV.default_context()
@@ -274,12 +281,13 @@ def main():
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
-    upgrade_pki()
+    upgrade_pki(fstore)
     update_dbmodules(krbctx.default_realm)
     uninstall_ipa_kpasswd()
 
-    http = httpinstance.HTTPInstance()
+    http = httpinstance.HTTPInstance(fstore)
     http.remove_httpd_ccache()
+    http.configure_selinux_for_httpd()
 
     memcache = memcacheinstance.MemcacheInstance()
     memcache.ldapi = True
@@ -294,7 +302,7 @@ def main():
     except (ldap.ALREADY_EXISTS, ipalib.errors.DuplicateEntry):
         pass
 
-    cleanup_kdc()
+    cleanup_kdc(fstore)
     upgrade_ipa_profile(krbctx.default_realm)
 
 try:
