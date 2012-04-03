@@ -551,6 +551,16 @@ class user_mod(LDAPUpdate):
     has_output_params = LDAPUpdate.has_output_params + user_output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if 'rename' in options:
+            config = ldap.get_ipa_config()[1]
+            if 'ipamaxusernamelength' in config:
+                if len(options['rename']) > int(config.get('ipamaxusernamelength')[0]):
+                    raise errors.ValidationError(
+                        name=self.obj.primary_key.cli_name,
+                        error=_('can be at most %(len)d characters') % dict(
+                            len = int(config.get('ipamaxusernamelength')[0])
+                        )
+                    )
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'])
         if 'manager' in entry_attrs:
