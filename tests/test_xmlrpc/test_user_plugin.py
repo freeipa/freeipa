@@ -686,6 +686,13 @@ class test_user(Declarative):
 
 
         dict(
+            desc='Try to rename to a username that is too long %r' % user1,
+            command=('user_mod', [user1], dict(rename=invaliduser2)),
+            expected=errors.ValidationError(name='uid', error='can be at most 33 characters'),
+        ),
+
+
+        dict(
             desc='Create %r' % group1,
             command=(
                 'group_add', [group1], dict(description=u'Test desc')
