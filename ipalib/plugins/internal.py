@@ -148,6 +148,12 @@ class i18n_messages(Command):
                 "title": _("Kerberos ticket no longer valid."),
             },
         },
+        "actions": {
+            "confirm": _("Are you sure you want to proceed with the action."),
+            "delete_confirm": _("Are you sure you want to delete ${object}"),
+            "disable_confirm": _("Are you sure you want to disable ${object}"),
+            "enable_confirm": _("Are you sure you want to enable ${object}"),
+        },
         "association": {
             "add": {
                 "ipasudorunas": _("Add RunAs ${other_entity} into ${entity} ${primary_key}"),

@@ -1052,6 +1052,11 @@ span.main-separator{
     cursor: default;
 }
 
+.button-disabled {
+    color: gray;
+    cursor: default;
+}
+
 .aci-attribute-table tbody {
     border-bottom: 1px solid #8a8a8a;
     height:10em;
@@ -1636,4 +1641,54 @@ form#login {
 
 .auth-dialog h3 {
     margin: 0.5em;
+}
+
+/* --- Action list --- */
+
+.facet-action-list {
+    position: absolute;
+    left: 200px;
+    top: 15px;
+    height: 24px;
+    vertical-align: top;
+}
+
+.facet-action-list div {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.facet-action-list div[name=apply] {
+    margin-left: 10px;
+}
+
+ #content .facet-action-list div[name=apply] a.ui-state-default {
+    padding: 3px 5px 1px 5px;
+}
+
+.facet-action-list select {
+    font-size: 11px;
+    padding-left: 4px;
+    padding-right: 4px;
+    height: 24px;
+}
+
+.facet-action-list .separator {
+    width: 1px;
+    height: 24px;
+    margin-left: 10px;
+    margin-right: 15px;
+    background-color: #a1a1a1;
+}
+
+/* --- Facet title states --- */
+
+.facet-title h3 {
+    display: inline-block;
+}
+
+.facet-title .header-icon {
+    display: none;
+    width: 17px;
+    height: 17px;
 }

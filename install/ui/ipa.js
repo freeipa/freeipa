@@ -1657,6 +1657,10 @@ IPA.array_diff = function(a, b) {
     return false;
 };
 
+IPA.confirm = function(msg) {
+    return window.confirm(msg);
+};
+
 IPA.config = {
     default_priority: 500
 };

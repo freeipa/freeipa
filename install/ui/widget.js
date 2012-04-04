@@ -891,6 +891,19 @@ IPA.select_widget = function(spec) {
         $('option', that.select).attr('selected', '');
     };
 
+    that.enable_options = function() {
+        $('option', that.select).attr('disabled', '');
+    };
+
+    that.disable_options = function(options) {
+
+        for (var i=0; i<options.length;i++) {
+            var value = options[i];
+            var option = $('option[value="'+value+'"]', that.select);
+            option.attr('disabled', 'disabled');
+        }
+    };
+
     // methods that should be invoked by subclasses
     that.select_save = that.save;
     that.select_update = that.update;
@@ -2432,6 +2445,95 @@ IPA.button = function(spec) {
     return button;
 };
 
+IPA.button_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.href = spec.href;
+    that.style = spec.style;
+    that.click = spec.click;
+    that['class'] = spec['class'];
+    that.disabled_class = 'button-disabled';
+
+    that.on_click = function() {
+
+        if (that.click) {
+            that.click();
+        }
+        return false;
+    };
+
+    that.create = function(container) {
+        that.button = IPA.button({
+            id: that.id,
+            name: that.name,
+            href: that.href,
+            title: that.tooltip,
+            label: that.label,
+            'class': that['class'],
+            style: that.style,
+            click: that.on_click
+        }).appendTo(container);
+    };
+
+    that.get_enabled = function() {
+
+        var enabled = true;
+
+        if (that.button) {
+            enabled = that.button.hasClass(that.disabled_class);
+        }
+
+        return enabled;
+    };
+
+    that.set_enabled = function(enabled) {
+
+        enabled ? that.enable() : that.disable();
+    };
+
+    that.enable = function() {
+        if (that.button) {
+            that.button.removeClass(that.disabled_class);
+        }
+    };
+
+    that.disable = function() {
+        if (that.button) {
+            that.button.addClass(that.disabled_class);
+        }
+    };
+
+    return that;
+};
+
+IPA.html_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.html = spec.html;
+    that.css_class = spec.css_class;
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        if (that.css_class) {
+            container.addClass(that.css_class);
+        }
+
+        if (that.html) {
+            container.append(that.html);
+        }
+    };
+
+    return that;
+};
+
 IPA.composite_widget = function(spec) {
 
     spec = spec || {};
@@ -3016,6 +3118,7 @@ IPA.sshkey_widget = function(spec) {
 
 
 IPA.widget_factories['attribute_table'] = IPA.attribute_table_widget;
+IPA.widget_factories['button'] = IPA.button_widget;
 IPA.widget_factories['checkbox'] = IPA.checkbox_widget;
 IPA.widget_factories['checkboxes'] = IPA.checkboxes_widget;
 IPA.widget_factories['combobox'] = IPA.combobox_widget;
@@ -3025,6 +3128,7 @@ IPA.widget_factories['details_table_section_nc'] = IPA.details_table_section_nc;
 IPA.widget_factories['enable'] = IPA.enable_widget;
 IPA.widget_factories['entity_select'] = IPA.entity_select_widget;
 IPA.widget_factories['header'] = IPA.header_widget;
+IPA.widget_factories['html'] = IPA.html_widget;
 IPA.widget_factories['link'] = IPA.link_widget;
 IPA.widget_factories['multivalued'] = IPA.multivalued_widget;
 IPA.widget_factories['password'] = IPA.password_widget;

@@ -13,6 +13,12 @@
                             "title": "Kerberos ticket no longer valid."
                         }
                     },
+                    "actions": {
+                        "confirm": "Are you sure you want to proceed with the action.",
+                        "delete_confirm": "Are you sure you want to delete ${object}",
+                        "disable_confirm": "Are you sure you want to disable ${object}",
+                        "enable_confirm": "Are you sure you want to enable ${object}"
+                    },
                     "association": {
                         "add": {
                             "ipasudorunas": "Add RunAs ${other_entity} into ${entity} ${primary_key}",
