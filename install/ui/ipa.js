@@ -964,6 +964,73 @@ IPA.concurrent_command = function(spec) {
     return that;
 };
 
+IPA.builder = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.factory = spec.factory || IPA.default_factory;
+
+    that.build = function(spec) {
+
+        var factory = spec.factory || that.factory;
+
+        //when spec is a factory function
+        if (!spec.factory && typeof spec === 'function') {
+            factory = spec;
+            spec = {};
+        }
+
+        var obj = factory(spec);
+        return obj;
+    };
+
+    that.build_objects = function(specs) {
+
+        var objects = [];
+
+        for (var i=0; i<specs.length; i++) {
+            var spec = specs[i];
+            var obj = that.build(spec);
+            objects.push(obj);
+        }
+
+        return objects;
+    };
+
+    return that;
+};
+
+IPA.build = function(spec, builder_fac) {
+
+    if (!spec) return null;
+
+    if (!builder_fac) builder_fac = IPA.builder;
+
+    var builder = builder_fac();
+    var product;
+
+    if ($.isArray(spec)) {
+        product = builder.build_objects(spec);
+    } else {
+        product = builder.build(spec);
+    }
+
+    return product;
+};
+
+IPA.default_factory = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    $.extend(that, spec);
+
+    return that;
+};
+
 /* helper function used to retrieve information about an attribute */
 IPA.get_entity_param = function(entity_name, name) {
 
