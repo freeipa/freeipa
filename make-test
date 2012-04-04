@@ -16,38 +16,14 @@ nose = '/usr/bin/nosetests'
 ran = []
 fail = []
 
-parser = optparse.OptionParser(
-	usage='usage: %prog [MODULE...]',
-)
-parser.add_option('--stop',
-	action='store_true',
-	default=False,
-	help='Stop running tests after the first error or failure',
-)
-parser.add_option('--pdb',
-	action='store_true',
-	default=False,
-	help='Drop into debugger on errors',
-)
-parser.add_option('--pdb-failures',
-	action='store_true',
-	default=False,
-	help='Drop into debugger on failures',
-)
-(options, args) = parser.parse_args()
-
-cmd = [nose] + args + [
+cmd = [
+    nose,
     '-v',
     '--with-doctest',
     '--doctest-tests',
     '--exclude=plugins',
 ]
-if options.stop:
-    cmd.append('--stop')
-if options.pdb:
-    cmd.append('--pdb')
-if options.pdb_failures:
-    cmd.append('--pdb-failures')
+cmd += sys.argv[1:]
 
 
 # This must be set so ipalib.api gets initialized property for tests:
@@ -60,7 +36,9 @@ for v in versions:
     pver = python + v
     if not path.isfile(pver):
         continue
-    if 0 != call([pver] + cmd):
+    command = [pver] + cmd
+    print ' '.join(cmd)
+    if 0 != call(cmd):
         fail.append(pver)
     ran.append(pver)
 
