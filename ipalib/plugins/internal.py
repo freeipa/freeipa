@@ -338,6 +338,8 @@ class i18n_messages(Command):
             "delegation": {
             },
             "dnsconfig": {
+                "forward_first": _("Forward first"),
+                "forward_only": _("Forward only"),
                 "options": _("Options"),
             },
             "dnsrecord": {

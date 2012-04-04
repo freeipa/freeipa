@@ -1516,17 +1516,22 @@ IPA.limit_text = function(value, max_length) {
     return limited_text;
 };
 
-IPA.create_options = function(labels, values) {
-
-    if(!values) values = labels;
+IPA.create_options = function(values) {
 
     var options = [];
 
-    for (var i=0; i<labels.length; i++) {
-        options.push({
-            label: labels[i],
-            value: values[i]
-        });
+    for (var i=0; i<values.length; i++) {
+        var val = values[i];
+        var option = val;
+
+        if (typeof val === 'string') {
+            option = {
+                value: val,
+                label: val
+            };
+        }
+
+        options.push(option);
     }
 
     return options;
