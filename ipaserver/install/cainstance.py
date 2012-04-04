@@ -292,7 +292,6 @@ class CADSInstance(service.Service):
                 root_logger.critical("failed to add user %s" % e)
 
     def __create_instance(self):
-        self.backup_state("running", dsinstance.is_ds_running())
         self.backup_state("serverid", self.serverid)
 
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
@@ -310,7 +309,7 @@ class CADSInstance(service.Service):
             ipautil.run(args)
             root_logger.debug("completed creating ds instance")
         except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to restart ds instance %s" % e)
+            root_logger.critical("failed to create ds instance %s" % e)
         inf_fd.close()
 
     def load_pkcs12(self):
@@ -383,12 +382,8 @@ class CADSInstance(service.Service):
         if self.is_configured():
             self.print_msg("Unconfiguring CA directory server")
 
-        running = self.restore_state("running")
         enabled = self.restore_state("enabled")
         serverid = self.restore_state("serverid")
-
-        if not running is None:
-            ipaservices.knownservices.dirsrv.stop(self.serverid)
 
         if not enabled is None and not enabled:
             ipaservices.knownservices.dirsrv.disable()

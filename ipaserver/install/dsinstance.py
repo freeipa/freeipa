@@ -90,6 +90,34 @@ def erase_ds_instance_data(serverid):
 #    except:
 #        pass
 
+def get_ds_instances():
+    '''
+    Return a sorted list of all 389ds instances.
+
+    If the instance name ends with '.removed' it is ignored. This
+    matches 389ds behavior.
+    '''
+
+    dirsrv_instance_dir='/etc/dirsrv'
+    instance_prefix = 'slapd-'
+
+    instances = []
+
+    for basename in os.listdir(dirsrv_instance_dir):
+        pathname = os.path.join(dirsrv_instance_dir, basename)
+        # Must be a directory
+        if os.path.isdir(pathname):
+            # Must start with prefix and not end with .removed
+            if basename.startswith(instance_prefix) and not basename.endswith('.removed'):
+                # Strip off prefix
+                instance = basename[len(instance_prefix):]
+                # Must be non-empty
+                if instance:
+                    instances.append(instance)
+
+    instances.sort()
+    return instances
+
 def check_ports():
     ds_unsecure = installutils.port_available(389)
     ds_secure = installutils.port_available(636)
@@ -305,7 +333,6 @@ class DsInstance(service.Service):
                 root_logger.critical("failed to add user %s" % e)
 
     def __create_instance(self):
-        self.backup_state("running", is_ds_running())
         self.backup_state("serverid", self.serverid)
         self.fstore.backup_file("/etc/sysconfig/dirsrv")
 
@@ -336,7 +363,7 @@ class DsInstance(service.Service):
             ipautil.run(args)
             root_logger.debug("completed creating ds instance")
         except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to restart ds instance %s" % e)
+            root_logger.critical("failed to create ds instance %s" % e)
 
         # check for open port 389 from now on
         self.open_ports.append(389)
@@ -595,11 +622,7 @@ class DsInstance(service.Service):
         if self.is_configured():
             self.print_msg("Unconfiguring directory server")
 
-        running = self.restore_state("running")
         enabled = self.restore_state("enabled")
-
-        if not running is None:
-            self.stop()
 
         try:
             self.fstore.restore_file("/etc/security/limits.conf")
@@ -631,8 +654,13 @@ class DsInstance(service.Service):
         self.restore_state('nsslapd-security')
         self.restore_state('nsslapd-ldapiautobind')
 
-        if running:
-            self.start()
+        # If any dirsrv instances remain after we've removed ours then
+        # (re)start them.
+        for ds_instance in get_ds_instances():
+            try:
+                ipaservices.knownservices.dirsrv.restart(ds_instance)
+            except Exception, e:
+                root_logger.error('Unable to restart ds instance %s: %s', ds_instance, e)
 
     # we could probably move this function into the service.Service
     # class - it's very generic - all we need is a way to get an
