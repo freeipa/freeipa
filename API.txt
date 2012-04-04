@@ -418,7 +418,7 @@ command: batch
 args: 1,0,2
 arg: Any('methods*')
 output: Output('count', <type 'int'>, None)
-output: Output('results', <type 'list'>, None)
+output: Output('results', (<type 'list'>, <type 'tuple'>), None)
 command: cert_remove_hold
 args: 1,0,1
 arg: Str('serial_number')
