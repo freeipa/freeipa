@@ -52,10 +52,19 @@ IPA.dns.config_entity = function(spec) {
                             validators: [IPA.dnsforwarder_validator()]
                         },
                         {
-                            type: 'checkboxes',
+                            type: 'radio',
                             name: 'idnsforwardpolicy',
-                            mutex: true,
-                            options: IPA.create_options(['only', 'first'])
+                            default_value: 'first',
+                            options: [
+                                {
+                                    value: 'first',
+                                    label: IPA.messages.objects.dnsconfig.forward_first
+                                },
+                                {
+                                    value: 'only',
+                                    label: IPA.messages.objects.dnsconfig.forward_only
+                                }
+                            ]
                         },
                         'idnszonerefresh'
                     ]
@@ -170,10 +179,19 @@ IPA.dns.zone_entity = function(spec) {
                         validators: [IPA.dnsforwarder_validator()]
                     },
                     {
-                        type: 'checkboxes',
+                        type: 'radio',
                         name: 'idnsforwardpolicy',
-                        mutex: true,
-                        options: IPA.create_options(['only', 'first'])
+                        default_value: 'first',
+                        options: [
+                            {
+                                value: 'first',
+                                label: IPA.messages.objects.dnsconfig.forward_first
+                            },
+                            {
+                                value: 'only',
+                                label: IPA.messages.objects.dnsconfig.forward_only
+                            }
+                        ]
                     },
                     {
                         type: 'checkbox',
