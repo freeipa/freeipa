@@ -433,7 +433,7 @@ output: Output('result', <type 'dict'>, None)
 command: cert_revoke
 args: 1,1,1
 arg: Str('serial_number')
-option: Int('revocation_reason?', autofill=True, default=0, maxvalue=10, minvalue=0)
+option: Int('revocation_reason', autofill=True, default=0, maxvalue=10, minvalue=0)
 output: Output('result', None, None)
 command: cert_show
 args: 1,1,1

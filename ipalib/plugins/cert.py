@@ -526,7 +526,7 @@ class cert_revoke(VirtualCommand):
 
     # FIXME: The default is 0.  Is this really an Int param?
     takes_options = (
-        Int('revocation_reason?',
+        Int('revocation_reason',
             label=_('Reason'),
             doc=_('Reason for revoking the certificate (0-10)'),
             minvalue=0,
