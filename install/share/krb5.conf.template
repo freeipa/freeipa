@@ -22,7 +22,7 @@
 [domain_realm]
  .$DOMAIN = $REALM
  $DOMAIN = $REALM
-
+$OTHER_DOMAIN_REALM_MAPS
 [dbmodules]
   $REALM = {
     db_library = ipadb.so
