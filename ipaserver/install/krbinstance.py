@@ -232,6 +232,19 @@ class KrbInstance(service.Service):
                              SERVER_ID=dsinstance.realm_to_serverid(self.realm),
                              REALM=self.realm)
 
+        # IPA server/KDC is not a subdomain of default domain
+        # Proper domain-realm mapping needs to be specified
+        dr_map = ''
+        if not self.fqdn.endswith(self.domain):
+            root_logger.debug("IPA FQDN '%s' is not located in default domain '%s'" \
+                    % (self.fqdn, self.domain))
+            server_host, dot, server_domain = self.fqdn.partition('.')
+            root_logger.debug("Domain '%s' needs additional mapping in krb5.conf" \
+                    % server_domain)
+            dr_map = " .%(domain)s = %(realm)s\n %(domain)s = %(realm)s\n" \
+                        % dict(domain=server_domain, realm=self.realm)
+        self.sub_dict['OTHER_DOMAIN_REALM_MAPS'] = dr_map
+
     def __configure_sasl_mappings(self):
         # we need to remove any existing SASL mappings in the directory as otherwise they
         # they may conflict.

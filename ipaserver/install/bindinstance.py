@@ -395,7 +395,6 @@ class BindInstance(service.Service):
         self.domain = domain_name
         self.forwarders = forwarders
         self.host = fqdn.split(".")[0]
-        self.host_domain = '.'.join(fqdn.split(".")[1:])
         self.suffix = util.realm_to_suffix(self.realm)
         self.ntp = ntp
         self.reverse_zone = reverse_zone
@@ -408,6 +407,21 @@ class BindInstance(service.Service):
             self.zonemgr = normalize_zonemgr(zonemgr)
 
         self.__setup_sub_dict()
+
+    @property
+    def host_domain(self):
+        return '.'.join(self.fqdn.split(".")[1:])
+
+    @property
+    def host_in_rr(self):
+        # when a host is not in a default domain, it needs to be referred
+        # with FQDN and not in a domain-relative host name
+        if not self.host_in_default_domain():
+            return normalize_zone(self.fqdn)
+        return self.host
+
+    def host_in_default_domain(self):
+        return normalize_zone(self.host_domain) == normalize_zone(self.domain)
 
     def create_sample_bind_zone(self):
         bind_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.zone.db.template", self.sub_dict)
@@ -474,7 +488,7 @@ class BindInstance(service.Service):
 
         if self.ntp:
             optional_ntp =  "\n;ntp server\n"
-            optional_ntp += "_ntp._udp\t\tIN SRV 0 100 123\t%s""" % self.host
+            optional_ntp += "_ntp._udp\t\tIN SRV 0 100 123\t%s""" % self.host_in_rr
         else:
             optional_ntp = ""
 
@@ -495,7 +509,7 @@ class BindInstance(service.Service):
         self._ldap_mod("dns.ldif", self.sub_dict)
 
     def __setup_zone(self):
-        if self.host_domain != self.domain:
+        if not self.host_in_default_domain():
             # add DNS domain for host first
             root_logger.debug("Host domain (%s) is different from DNS domain (%s)!" \
                     % (self.host_domain, self.domain))
@@ -512,14 +526,14 @@ class BindInstance(service.Service):
     def __add_self(self):
         zone = self.domain
         resource_records = (
-            ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host),
+            ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host_in_rr),
             ("_kerberos", "TXT", self.realm),
-            ("_kerberos._tcp", "SRV", "0 100 88 %s" % self.host),
-            ("_kerberos._udp", "SRV", "0 100 88 %s" % self.host),
-            ("_kerberos-master._tcp", "SRV", "0 100 88 %s" % self.host),
-            ("_kerberos-master._udp", "SRV", "0 100 88 %s" % self.host),
-            ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host),
-            ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host),
+            ("_kerberos._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
+            ("_kerberos._udp", "SRV", "0 100 88 %s" % self.host_in_rr),
+            ("_kerberos-master._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
+            ("_kerberos-master._udp", "SRV", "0 100 88 %s" % self.host_in_rr),
+            ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host_in_rr),
+            ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host_in_rr),
         )
 
         for (host, type, rdata) in resource_records:
@@ -528,10 +542,10 @@ class BindInstance(service.Service):
             else:
                 add_rr(zone, host, type, rdata)
         if self.ntp:
-            add_rr(zone, "_ntp._udp", "SRV", "0 100 123 %s" % self.host)
+            add_rr(zone, "_ntp._udp", "SRV", "0 100 123 %s" % self.host_in_rr)
 
         # Add forward and reverse records to self
-        add_fwd_rr(zone, self.host, self.ip_address)
+        add_fwd_rr(self.host_domain, self.host, self.ip_address)
         if self.reverse_zone is not None and dns_zone_exists(self.reverse_zone):
             add_ptr_rr(self.reverse_zone, self.ip_address, self.fqdn)
 
