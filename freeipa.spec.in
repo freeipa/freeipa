@@ -131,7 +131,7 @@ Requires: selinux-policy >= 3.9.7-27
 %endif
 %endif
 Requires(post): selinux-policy-base
-Requires: slapi-nis >= 0.21
+Requires: slapi-nis >= 0.40
 Requires: pki-ca >= 9.0.18
 Requires: pki-silent >= 9.0.18
 Requires: pki-setup  >= 9.0.18
@@ -681,6 +681,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+
+* Thu Apr  5 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-27
+- Bump minimum version of slapi-nis to 0.40
 
 * Tue Mar 27 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-26
 - Add python-krbV Requires on client package
