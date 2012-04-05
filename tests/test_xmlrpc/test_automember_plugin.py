@@ -710,7 +710,7 @@ class test_automember(Declarative):
                     automemberdefaultgroup=[u'cn=%s,cn=groups,cn=accounts,%s' % (defaultgroup1, api.env.basedn)],
                 ),
                 value=u'group',
-                summary=u'Set default group for automember "group"',
+                summary=u'Set default (fallback) group for automember "group"',
             ),
         ),
 
@@ -733,7 +733,7 @@ class test_automember(Declarative):
 
 
         dict(
-            desc='Set default automember group for hostgroups',
+            desc='Set default (fallback) automember group for hostgroups',
             command=(
                 'automember_default_group_set', [], dict(
                     type=u'hostgroup',
@@ -746,7 +746,7 @@ class test_automember(Declarative):
                     automemberdefaultgroup=[u'cn=%s,cn=hostgroups,cn=accounts,%s' % (defaulthostgroup1, api.env.basedn)],
                 ),
                 value=u'hostgroup',
-                summary=u'Set default group for automember "hostgroup"',
+                summary=u'Set default (fallback) group for automember "hostgroup"',
             ),
         ),
 
