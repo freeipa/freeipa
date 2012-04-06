@@ -26,6 +26,7 @@ from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 selfservice1 = u'testself'
+invalid_selfservice1 = u'bad+name'
 
 class test_selfservice(Declarative):
 
@@ -268,6 +269,18 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=u'Deleted selfservice "%s"' % selfservice1,
             )
+        ),
+
+        dict(
+            desc='Create invalid %r' % invalid_selfservice1,
+            command=(
+                'selfservice_add', [invalid_selfservice1], dict(
+                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
+                    permissions=u'write',
+                )
+            ),
+            expected=errors.ValidationError(name='name',
+                error='May only contain letters, numbers, -, _, and space'),
         ),
 
     ]

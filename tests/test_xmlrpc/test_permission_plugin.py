@@ -45,6 +45,8 @@ privilege1 = u'testpriv1'
 privilege1_dn = DN(('cn',privilege1),
                    api.env.container_privilege,api.env.basedn)
 
+invalid_permission1 = u'bad;perm'
+
 
 class test_permission(Declarative):
 
@@ -712,5 +714,14 @@ class test_permission(Declarative):
             ),
         ),
 
+        dict(
+            desc='Try to create invalid %r' % invalid_permission1,
+            command=('permission_add', [invalid_permission1], dict(
+                     type=u'user',
+                     permissions=u'write',
+                )),
+            expected=errors.ValidationError(name='name',
+                error='May only contain letters, numbers, -, _, and space'),
+        ),
 
     ]
