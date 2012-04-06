@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
+
 from ipalib.plugins.baseldap import *
 from ipalib import api, _, ngettext
 from ipalib import Flag, Str, StrEnum
@@ -92,6 +93,7 @@ output_params = (
 
 dn_ipaconfig = str(DN('cn=ipaconfig,cn=etc,%s' % api.env.basedn))
 
+
 def check_attrs(attrs, type):
     # Trying to delete attributes - no need for validation
     if attrs is None:
@@ -154,6 +156,8 @@ class permission(LDAPObject):
             cli_name='name',
             label=_('Permission name'),
             primary_key=True,
+            pattern='^[-_ a-zA-Z0-9]+$',
+            pattern_errmsg="May only contain letters, numbers, -, _, and space",
         ),
         Str('permissions+',
             cli_name='permissions',

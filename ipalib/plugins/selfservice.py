@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
+
 from ipalib import api, _, ngettext
 from ipalib import Flag, Str
 from ipalib.request import context
@@ -60,6 +61,7 @@ output_params = (
     ),
 )
 
+
 class selfservice(Object):
     """
     Selfservice object.
@@ -77,6 +79,8 @@ class selfservice(Object):
             label=_('Self-service name'),
             doc=_('Self-service name'),
             primary_key=True,
+            pattern='^[-_ a-zA-Z0-9]+$',
+            pattern_errmsg="May only contain letters, numbers, -, _, and space",
         ),
         Str('permissions*',
             cli_name='permissions',
