@@ -152,7 +152,7 @@ static int ipapwd_gentime_cmp(const void *p1, const void *p2)
      * a higher letter or number */
 
     /* return youngest first by inverting terms */
-    return memcmp(p2, p1, GENERALIZED_TIME_LENGTH);
+    return memcmp(*(void * const *)p2, *(void * const *)p1, GENERALIZED_TIME_LENGTH);
 }
 
 #define SHA_SALT_LENGTH 8
