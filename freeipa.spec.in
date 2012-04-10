@@ -117,7 +117,7 @@ Requires(pre): systemd-units
 Requires(post): systemd-units
 %endif
 %if 0%{?fedora} >= 17
-Requires: selinux-policy >= 3.10.0-82
+Requires: selinux-policy >= 3.10.0-110
 %else
 %if 0%{?fedora} == 16
 Requires: selinux-policy >= 3.10.0-78
@@ -214,7 +214,7 @@ Requires:  xmlrpc-c
 %endif
 %endif
 Requires: sssd >= 1.8.0
-Requires: certmonger >= 0.26
+Requires: certmonger >= 0.53
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
@@ -538,6 +538,8 @@ fi
 %endif
 %dir %{python_sitelib}/ipaserver
 %{python_sitelib}/ipaserver/*
+%dir %{_libdir}/ipa/certmonger
+%attr(755,root,root) %{_libdir}/ipa/certmonger/*
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/wsgi.py*
 %{_usr}/share/ipa/*.ldif
@@ -674,6 +676,11 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue Apr 10 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-21
+- Set min for selinux-policy to 3.10.0-110 on F-17 to pick up certmonger
+  policy for restarting services.
+- Set min for certmonger to 0.53 so we have the -C option to set restart
+  commands.
 
 * Thu Apr  5 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-20
 - Bump minimum version of slapi-nis to 0.40

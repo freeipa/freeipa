@@ -1,0 +1,7 @@
+#!/usr/bin/python -E
+from ipapython import services as ipaservices
+
+try:
+    ipaservices.knownservices.httpd.restart()
+except Exception, e:
+    print "Cannot restart httpd: %s" % str(e)

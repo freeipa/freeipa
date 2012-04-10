@@ -1,0 +1,2 @@
+This directory contains scripts to be used by the command (-C) option
+of certmonger to restart services when the certificates are renewed.
