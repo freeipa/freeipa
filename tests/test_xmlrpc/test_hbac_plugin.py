@@ -430,6 +430,27 @@ class test_hbac(XMLRPC_test):
          # FIXME: Should this be 'enabled' or 'TRUE'?
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
 
+    def test_ea_hbacrule_disable_setattr(self):
+        """
+        Test disabling HBAC rule using setattr
+        """
+        command_result = api.Command['hbacrule_mod'](
+            self.rule_name, setattr=u'ipaenabledflag=false')
+        assert command_result['result']['ipaenabledflag'] == (u'FALSE',)
+        entry = api.Command['hbacrule_show'](self.rule_name)['result']
+        assert_attr_equal(entry, 'ipaenabledflag', 'FALSE')
+
+    def test_eb_hbacrule_enable_setattr(self):
+        """
+        Test enabling HBAC rule using setattr
+        """
+        command_result = api.Command['hbacrule_mod'](
+            self.rule_name, setattr=u'ipaenabledflag=1')
+        assert command_result['result']['ipaenabledflag'] == (u'TRUE',)
+        # check it's really enabled
+        entry = api.Command['hbacrule_show'](self.rule_name)['result']
+        assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
+
     @raises(errors.MutuallyExclusiveError)
     def test_f_hbacrule_exclusiveuser(self):
         """
