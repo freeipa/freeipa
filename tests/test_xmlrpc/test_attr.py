@@ -433,7 +433,7 @@ class test_attr(Declarative):
             command=(
                 'user_mod', [user1], dict(
                     addattr=u'nsaccountlock=FaLsE',
-                    delattr=u'nsaccountlock=True')
+                    delattr=u'nsaccountlock=TRUE')
             ),
             expected=dict(
                 result=dict(

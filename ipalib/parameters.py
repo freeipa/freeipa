@@ -895,7 +895,7 @@ class Param(ReadOnly):
                     rule=rule,
                 )
 
-    def encode(self, value):
+    def encode(self, value, force=False):
         """
         Encode Python native type value to chosen backend format. Encoding is
         applied for parameters representing actual attributes (attribute=True).
@@ -909,8 +909,10 @@ class Param(ReadOnly):
         `Param._encode()`.
 
         :param value: Encoded value
+        :param force: If set to true, encoding takes place even for Params
+            not marked as attribute
         """
-        if not self.attribute: #pylint: disable=E1101
+        if not self.attribute and not force: #pylint: disable=E1101
             return value
         if self.encoder is not None: #pylint: disable=E1101
             return self.encoder(value) #pylint: disable=E1101
