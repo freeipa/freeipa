@@ -210,7 +210,7 @@ class HTTPInstance(service.Service):
             # We only handle one server cert
             nickname = server_certs[0][0]
             self.dercert = db.get_cert_from_db(nickname, pem=False)
-            db.track_server_cert(nickname, self.principal, db.passwd_fname)
+            db.track_server_cert(nickname, self.principal, db.passwd_fname, 'restart_httpd')
 
             self.__set_mod_nss_nickname(nickname)
         else:
@@ -219,7 +219,7 @@ class HTTPInstance(service.Service):
 
             db.create_password_conf()
             self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
-            db.track_server_cert("Server-Cert", self.principal, db.passwd_fname)
+            db.track_server_cert("Server-Cert", self.principal, db.passwd_fname, 'restart_httpd')
             db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
 
         # Fix the database permissions

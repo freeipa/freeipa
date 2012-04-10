@@ -81,6 +81,7 @@ AC_CONFIG_FILES([
     tools/man/Makefile
     updates/Makefile
     po/Makefile
+    restart_scripts/Makefile
 ])
 
 AC_OUTPUT

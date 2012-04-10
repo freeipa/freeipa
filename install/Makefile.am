@@ -13,6 +13,7 @@ SUBDIRS =			\
         tools			\
         updates			\
         po			\
+        restart_scripts		\
 	$(NULL)
 
 install-exec-local:

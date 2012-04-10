@@ -189,10 +189,14 @@ def cert_exists(nickname, secdir):
     else:
         return False
 
-def start_tracking(nickname, secdir, password_file=None):
+def start_tracking(nickname, secdir, password_file=None, command=None):
     """
     Tell certmonger to track the given certificate nickname in NSS
     database in secdir protected by optional password file password_file.
+
+    command is an optional parameter which specifies a command for
+    certmonger to run when it renews a certificate. This command must
+    reside in /usr/lib/ipa/certmonger to work with SELinux.
 
     Returns the stdout, stderr and returncode from running ipa-getcert
 
@@ -206,6 +210,9 @@ def start_tracking(nickname, secdir, password_file=None):
     if password_file:
         args.append("-p")
         args.append(os.path.abspath(password_file))
+    if command:
+        args.append("-C")
+        args.append(command)
 
     (stdout, stderr, returncode) = ipautil.run(args)
 

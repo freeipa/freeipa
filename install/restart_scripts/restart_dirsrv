@@ -1,0 +1,13 @@
+#!/usr/bin/python -E
+import sys
+from ipapython import services as ipaservices
+
+try:
+    instance = sys.argv[1]
+except IndexError:
+    instance = ""
+
+try:
+    ipaservices.knownservices.dirsrv.restart(instance)
+except Exception, e:
+    print "Cannot restart dirsrv (instance: '%s'): %s" % (instance, str(e))

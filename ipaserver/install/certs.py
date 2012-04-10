@@ -18,6 +18,7 @@
 #
 
 import os, stat, subprocess, re
+import sys
 import errno
 import tempfile
 import shutil
@@ -492,16 +493,25 @@ class CertDB(object):
 
         raise RuntimeError("Unable to find serial number")
 
-    def track_server_cert(self, nickname, principal, password_file=None):
+    def track_server_cert(self, nickname, principal, password_file=None, command=None):
         """
         Tell certmonger to track the given certificate nickname.
+
+        If command is not a full path then it is prefixed with
+        /usr/lib[64]/ipa/certmonger.
         """
+        if command is not None and not os.path.isabs(command):
+            if sys.maxsize > 2**32:
+                libpath = 'lib64'
+            else:
+                libpath = 'lib'
+            command = '/usr/%s/ipa/certmonger/%s' % (libpath, command)
         cmonger = ipaservices.knownservices.certmonger
         cmonger.enable()
         ipaservices.knownservices.messagebus.start()
         cmonger.start()
         try:
-            (stdout, stderr, rc) = certmonger.start_tracking(nickname, self.secdir, password_file)
+            (stdout, stderr, rc) = certmonger.start_tracking(nickname, self.secdir, password_file, command)
         except (ipautil.CalledProcessError, RuntimeError), e:
             root_logger.error("certmonger failed starting to track certificate: %s" % str(e))
             return
