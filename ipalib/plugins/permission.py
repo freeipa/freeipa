@@ -335,14 +335,17 @@ class permission_mod(LDAPUpdate):
         # when renaming permission, check if the target permission does not
         # exists already. Then, make changes to underlying ACI
         if 'rename' in options:
-            try:
-                new_dn = dn.replace(keys[-1], options['rename'], 1)
-                (new_dn, attrs) = ldap.get_entry(
-                    new_dn, attrs_list, normalize=self.obj.normalize_dn
-                )
-                raise errors.DuplicateEntry()
-            except errors.NotFound:
-                pass    # permission may be renamed, continue
+            if options['rename']:
+                try:
+                    new_dn = dn.replace(keys[-1].lower(), options['rename'], 1)
+                    (new_dn, attrs) = ldap.get_entry(
+                        new_dn, attrs_list, normalize=self.obj.normalize_dn
+                    )
+                    raise errors.DuplicateEntry()
+                except errors.NotFound:
+                    pass    # permission may be renamed, continue
+            else:
+                raise errors.ValidationError(name='rename',error=_('New name can not be empty'))
 
         opts = copy.copy(options)
         for o in ['all', 'raw', 'rights', 'rename']:
