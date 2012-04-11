@@ -36,6 +36,10 @@ permission1_renamed = u'testperm1_rn'
 permission1_renamed_dn = DN(('cn',permission1_renamed),
                             api.env.container_permission,api.env.basedn)
 
+permission1_renamed_ucase = u'Testperm_RN'
+permission1_renamed_ucase_dn = DN(('cn',permission1_renamed_ucase.lower()),
+                            api.env.container_permission,api.env.basedn)
+
 
 permission2 = u'testperm2'
 permission2_dn = DN(('cn',permission2),
@@ -466,6 +470,17 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Try to rename %r to empty name' % (permission1),
+            command=(
+                'permission_mod', [permission1], dict(rename=u'',
+                                                      permissions=u'all',)
+            ),
+            expected=errors.ValidationError(name=u'rename',
+                                    error=u'New name can not be empty'),
+        ),
+
+
+        dict(
             desc='Check integrity of original permission %r' % permission1,
             command=('permission_show', [permission1], {}),
             expected=dict(
@@ -506,12 +521,34 @@ class test_permission(Declarative):
 
 
         dict(
-            desc='Delete %r' % permission1_renamed,
-            command=('permission_del', [permission1_renamed], {}),
+            desc='Rename %r to permission %r' % (permission1_renamed,
+                                                 permission1_renamed_ucase),
+            command=(
+                'permission_mod', [permission1_renamed], dict(rename=permission1_renamed_ucase,
+                                                      permissions= u'write',)
+            ),
+            expected=dict(
+                value=permission1_renamed,
+                summary=u'Modified permission "%s"' % permission1_renamed,
+                result={
+                    'dn': lambda x: DN(x) == permission1_renamed_ucase_dn,
+                    'cn': [permission1_renamed_ucase.lower()],
+                    'member_privilege': [privilege1],
+                    'type': u'user',
+                    'permissions': [u'write'],
+                    'memberof': u'ipausers',
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % permission1_renamed_ucase,
+            command=('permission_del', [permission1_renamed_ucase], {}),
             expected=dict(
                 result=dict(failed=u''),
-                value=permission1_renamed,
-                summary=u'Deleted permission "%s"' % permission1_renamed,
+                value=permission1_renamed_ucase,
+                summary=u'Deleted permission "%s"' % permission1_renamed_ucase,
             )
         ),
 
