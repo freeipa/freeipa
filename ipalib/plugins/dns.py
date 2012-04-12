@@ -2227,6 +2227,9 @@ class dnsrecord_add(LDAPCreate):
             param = self.params[attr]
             param.dnsrecord_add_post_callback(ldap, dn, entry_attrs, *keys, **options)
 
+        if self.obj.is_pkey_zone_record(*keys):
+            entry_attrs[self.obj.primary_key.name] = [_dns_zone_record]
+
         self.obj.postprocess_record(entry_attrs, **options)
 
         return dn
@@ -2321,6 +2324,9 @@ class dnsrecord_mod(LDAPUpdate):
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if self.obj.is_pkey_zone_record(*keys):
+            entry_attrs[self.obj.primary_key.name] = [_dns_zone_record]
+
         self.obj.postprocess_record(entry_attrs, **options)
 
     def interactive_prompt_callback(self, kw):
