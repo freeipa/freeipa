@@ -47,7 +47,8 @@ PARAM_IGNORED_KW_ATTRIBUTES = ('label',
                                'default_from',
                                'hint',
                                'flags',
-                               'sortorder',)
+                               'sortorder',
+                               'pattern_errmsg',)
 
 # attributes removed from Output object
 OUTPUT_IGNORED_ATTRIBUTES = ('doc',
