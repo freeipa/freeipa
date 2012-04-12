@@ -27,6 +27,7 @@ import sys
 import os
 import re
 import inspect
+import operator
 from ipalib import api
 from ipalib.parameters import Param
 from ipalib.output import Output
@@ -206,9 +207,9 @@ def make_api():
         fd.write('args: %d,%d,%d\n' % (len(cmd.args), len(cmd.options), len(cmd.output)))
         for a in cmd.args():
             fd.write('arg: %s\n' % param_repr(a))
-        for o in cmd.options():
+        for o in sorted(cmd.options(), key=operator.attrgetter('name')):
             fd.write('option: %s\n' % param_repr(o))
-        for o in cmd.output():
+        for o in sorted(cmd.output(), key=operator.attrgetter('name')):
             fd.write('output: %s\n' % param_repr(o))
     fd.close()
 
