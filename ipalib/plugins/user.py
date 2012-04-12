@@ -551,7 +551,7 @@ class user_mod(LDAPUpdate):
     has_output_params = LDAPUpdate.has_output_params + user_output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if 'rename' in options:
+        if options.get('rename') is not None:
             config = ldap.get_ipa_config()[1]
             if 'ipamaxusernamelength' in config:
                 if len(options['rename']) > int(config.get('ipamaxusernamelength')[0]):
