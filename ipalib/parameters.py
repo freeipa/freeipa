@@ -343,6 +343,12 @@ class Param(ReadOnly):
               is not `required`. Applied for all crud.Update based commands
             * req_update: The parameter is `required` in all crud.Update based
               commands
+            * nonempty: This is an internal flag; a required attribute should
+              be used instead of it.
+              The value of this parameter must not be empty, but it may
+              not be given at all. All crud.Update commands automatically
+              convert required parameters to `nonempty` ones, so the value
+              can be unspecified (unchanged) but cannot be deleted.
       - hint: this attribute is currently not used
       - alwaysask: when enabled, CLI asks for parameter value even when the
         parameter is not `required`
