@@ -102,11 +102,12 @@ def test_unauthorized_error():
     s = StartResponse()
 
     assert_equal(
-        f.unauthorized(None, s, 'unauthorized'),
+        f.unauthorized(None, s, 'unauthorized', 'password-expired'),
         [t % dict(message='unauthorized')]
     )
     assert s.status == '401 Unauthorized'
-    assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
+    assert s.headers == [('Content-Type', 'text/html; charset=utf-8'),
+                         ('X-IPA-Rejection-Reason', 'password-expired')]
 
 
 def test_params_2_args_options():
