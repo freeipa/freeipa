@@ -32,6 +32,8 @@ from ipalib.errors import PublicError, InternalError, CommandError, JSONError, C
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr, parse_time_duration
+from ipalib.dn import DN
+from ipaserver.plugins.ldap2 import ldap2
 from ipapython.compat import json
 from ipalib.session import session_mgr, AuthManager, get_ipa_ccache_name, load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time, default_max_session_duration
 from ipalib.backend import Backend
@@ -45,6 +47,7 @@ import string
 import datetime
 from decimal import Decimal
 import urlparse
+import time
 
 HTTP_STATUS_SUCCESS = '200 Success'
 HTTP_STATUS_SERVER_ERROR = '500 Internal Server Error'
@@ -136,12 +139,14 @@ class HTTP_Status(plugable.Plugin):
         output = _internal_error_template % dict(message=escape(message))
         return [output]
 
-    def unauthorized(self, environ, start_response, message):
+    def unauthorized(self, environ, start_response, message, reason):
         """
         Return a 401 Unauthorized error.
         """
         status = '401 Unauthorized'
         response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+        if reason:
+            response_headers.append(('X-IPA-Rejection-Reason', reason))
 
         self.info('%s: %s', status, message)
 
@@ -935,10 +940,42 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
         # Get the ccache we'll use and attempt to get credentials in it with user,password
         ipa_ccache_name = get_ipa_ccache_name()
+        reason = 'invalid-password'
         try:
             self.kinit(user, self.api.env.realm, password, ipa_ccache_name)
         except InvalidSessionPassword, e:
-            return self.unauthorized(environ, start_response, str(e))
+            # Ok, now why is this bad. Is the password simply bad or is the
+            # password expired?
+            try:
+                dn = str(DN(('uid', user),
+                            self.api.env.container_user,
+                            self.api.env.basedn))
+                conn = ldap2(shared_instance=False,
+                             ldap_uri=self.api.env.ldap_uri)
+                conn.connect(bind_dn=dn, bind_pw=password)
+
+                # password is ok, must be expired, lets double-check
+                (userdn, entry_attrs) = conn.get_entry(dn,
+                    ['krbpasswordexpiration'])
+                if 'krbpasswordexpiration' in entry_attrs:
+                    expiration = entry_attrs['krbpasswordexpiration'][0]
+                    try:
+                        exp = time.strptime(expiration, '%Y%m%d%H%M%SZ')
+                        if exp <= time.gmtime():
+                            reason = 'password-expired'
+                    except ValueError, v:
+                        self.error('Unable to convert %s to a time string'
+                            % expiration)
+
+            except Exception:
+                # It doesn't really matter how we got here but the user's
+                # password is not accepted or the user is unknown.
+                pass
+            finally:
+                if conn.isconnected():
+                    conn.destroy_connection()
+
+            return self.unauthorized(environ, start_response, str(e), reason)
 
         return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
 
