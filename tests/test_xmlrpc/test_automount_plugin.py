@@ -145,7 +145,7 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountkey_del` method.
         """
-        delkey_kw={'automountkey': self.keyname_rename, 'automountinformation' : self.newinfo, 'raw': True}
+        delkey_kw={'automountkey': self.keyname_rename, 'automountinformation' : self.newinfo}
         res = api.Command['automountkey_del'](self.locname, self.mapname, **delkey_kw)['result']
         assert res
         assert_attr_equal(res, 'failed', '')
@@ -227,8 +227,7 @@ class test_automount_indirect(XMLRPC_test):
     mapname = u'auto.home'
     keyname = u'/home'
     parentmap = u'auto.master'
-    info = u'somehost:/homes'
-    map_kw = {'key': keyname, 'parentmap': parentmap, 'info': info, 'raw': True}
+    map_kw = {'key': keyname, 'parentmap': parentmap, 'raw': True}
     key_kw = {'automountkey': keyname, 'automountinformation': mapname}
 
     def test_0_automountlocation_add(self):

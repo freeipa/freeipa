@@ -788,6 +788,8 @@ class automountkey_add(LDAPCreate):
     msg_summary = _('Added automount key "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        options.pop('add_operation', None)
+        options.pop('description', None)
         self.obj.check_key_uniqueness(keys[-2], keys[-1], **options)
         return dn
 
@@ -827,39 +829,35 @@ class automountmap_add_indirect(LDAPCreate):
     )
 
     def execute(self, *keys, **options):
+        parentmap = options.pop('parentmap', None)
+        key = options.pop('key')
         result = self.api.Command['automountmap_add'](*keys, **options)
         try:
-            if options['parentmap'] != u'auto.master':
-                if options['key'].startswith('/'):
-                    raise errors.ValidationError(name='mount', error=_('mount point is relative to parent map, cannot begin with /'))
+            if parentmap != u'auto.master':
+                if key.startswith('/'):
+                    raise errors.ValidationError(name='mount',
+                        error=_('mount point is relative to parent map, '
+                            'cannot begin with /'))
                 location = keys[0]
                 map = keys[1]
                 options['automountinformation'] = map
 
                 # Ensure the referenced map exists
-                self.api.Command['automountmap_show'](
-                    location, options['parentmap']
-                )
+                self.api.Command['automountmap_show'](location, parentmap)
                 # Add a submount key
-                kw = dict(key=options['key'], automountinformation='-fstype=autofs ldap:%s' % map)
                 self.api.Command['automountkey_add'](
-                    location, options['parentmap'],
-                    automountkey=options['key'], **kw
-                )
+                    location, parentmap, automountkey=key, key=key,
+                    automountinformation='-fstype=autofs ldap:%s' % map)
             else: # adding to auto.master
                 # Ensure auto.master exists
-                self.api.Command['automountmap_show'](
-                    keys[0], options['parentmap']
-                )
-                options['automountinformation'] = keys[1]
+                self.api.Command['automountmap_show'](keys[0], parentmap)
                 self.api.Command['automountkey_add'](
-                    keys[0], u'auto.master',
-                    automountkey=options['key'], **options
-                )
-        except Exception, e:
+                    keys[0], u'auto.master', automountkey=key,
+                    automountinformation=keys[1])
+        except Exception:
             # The key exists, drop the map
-            self.api.Command['automountmap_del'](*keys, **options)
-            raise e
+            self.api.Command['automountmap_del'](*keys)
+            raise
         return result
 
 api.register(automountmap_add_indirect)
