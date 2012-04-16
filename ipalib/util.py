@@ -31,6 +31,7 @@ from weakref import WeakKeyDictionary
 
 from ipalib import errors
 from ipalib.text import _
+from ipalib.dn import DN, RDN
 from ipapython import dnsclient
 from ipapython.ipautil import decode_ssh_pubkey
 
@@ -484,3 +485,17 @@ def gen_dns_update_policy(realm, rrtypes=('A', 'AAAA', 'SSHFP')):
     policy += ";"
 
     return policy
+
+def validate_rdn_param(ugettext, value):
+    try:
+        rdn = RDN(value)
+    except Exception, e:
+        return str(e)
+    return None
+
+def validate_dn_param(ugettext, value):
+    try:
+        rdn = DN(value)
+    except Exception, e:
+        return str(e)
+    return None
