@@ -4,3 +4,18 @@ replace: schema-compat-entry-attribute:'sudoRunAsGroup=%deref("ipaSudoRunAs","cn
 # as the original, '' or -.
 dn: cn=ng,cn=Schema Compatibility,cn=plugins,cn=config
 replace: schema-compat-entry-attribute:'nisNetgroupTriple=(%link("%ifeq(\"hostCategory\",\"all\",\"\",\"%collect(\\\"%{externalHost}\\\",\\\"%deref(\\\\\\\"memberHost\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberHost\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\")\")","-",",","%ifeq(\"userCategory\",\"all\",\"\",\"%collect(\\\"%deref(\\\\\\\"memberUser\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberUser\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\")\")","-"),%{nisDomainName:-})::nisNetgroupTriple=(%link("%ifeq(\"hostCategory\",\"all\",\"\",\"%collect(\\\"%{externalHost}\\\",\\\"%deref(\\\\\\\"memberHost\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberHost\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\")\")","%ifeq(\"hostCategory\",\"all\",\"\",\"-\")",",","%ifeq(\"userCategory\",\"all\",\"\",\"%collect(\\\"%deref(\\\\\\\"memberUser\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberUser\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\")\")","%ifeq(\"userCategory\",\"all\",\"\",\"-\")"),%{nisDomainName:-})'
+
+dn: cn=computers, cn=Schema Compatibility, cn=plugins, cn=config
+default:objectClass: top
+default:objectClass: extensibleObject
+default:cn: computers
+default:schema-compat-container-group: cn=compat, $SUFFIX
+default:schema-compat-container-rdn: cn=computers
+default:schema-compat-search-base: cn=computers, cn=accounts, $SUFFIX
+default:schema-compat-search-filter: (&(macAddress=*)(fqdn=*)(objectClass=ipaHost))
+default:schema-compat-entry-rdn: cn=%first("%{fqdn}")
+default:schema-compat-entry-attribute: objectclass=device
+default:schema-compat-entry-attribute: objectclass=ieee802Device
+default:schema-compat-entry-attribute: cn=%{fqdn}
+default:schema-compat-entry-attribute: macAddress=%{macAddress}
+
