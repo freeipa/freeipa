@@ -70,3 +70,26 @@ default:nis-filter: (objectClass=ipanisNetgroup)
 default:nis-key-format: %{cn}
 default:nis-value-format:%merge(" ","%deref_f(\"member\",\"(objectclass=ipanisNetgroup)\",\"cn\")","(%link(\"%ifeq(\\\"hostCategory\\\",\\\"all\\\",\\\"\\\",\\\"%collect(\\\\\\\"%{externalHost}\\\\\\\",\\\\\\\"%deref(\\\\\\\\\\\\\\\"memberHost\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"memberHost\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\")\\\")\",\"%ifeq(\\\"hostCategory\\\",\\\"all\\\",\\\"\\\",\\\"-\\\")\",\",\",\"%ifeq(\\\"userCategory\\\",\\\"all\\\",\\\"\\\",\\\"%collect(\\\\\\\"%deref(\\\\\\\\\\\\\\\"memberUser\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"uid\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"uid\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"memberUser\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"uid\\\\\\\\\\\\\\\")\\\\\\\")\\\")\",\"%ifeq(\\\"userCategory\\\",\\\"all\\\",\\\"\\\",\\\"-\\\")\"),%{nisDomainName:-})")
 default:nis-secure: no
+
+dn: nis-domain=$DOMAIN+nis-map=ethers.byaddr, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: ethers.byaddr
+default:nis-base: cn=computers, cn=accounts, $SUFFIX
+default:nis-filter: (&(macAddress=*)(fqdn=*)(objectClass=ipaHost))
+default:nis-keys-format: %mregsub("%{macAddress} %{fqdn}","(..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..) (.*)","%1:%2:%3:%4:%5:%6")
+default:nis-values-format: %mregsub("%{macAddress} %{fqdn}","(..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..) (.*)","%1:%2:%3:%4:%5:%6 %7")
+default:nis-secure: no
+
+dn: nis-domain=$DOMAIN+nis-map=ethers.byname, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: ethers.byname
+default:nis-base: cn=computers, cn=accounts, $SUFFIX
+default:nis-filter: (&(macAddress=*)(fqdn=*)(objectClass=ipaHost))
+default:nis-keys-format: %mregsub("%{macAddress} %{fqdn}","(..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..) (.*)","%7")
+default:nis-values-format: %mregsub("%{macAddress} %{fqdn}","(..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..)[:\\\|-](..) (.*)","%1:%2:%3:%4:%5:%6 %7")
+default:nis-secure: no
+
