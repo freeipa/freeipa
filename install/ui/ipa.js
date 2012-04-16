@@ -359,10 +359,23 @@ IPA.logout = function() {
 
 IPA.login_password = function(username, password) {
 
-    var success = false;
+    var result = 'invalid';
 
     function success_handler(data, text_status, xhr) {
-        success = true;
+        result = 'success';
+    }
+
+    function error_handler(xhr, text_status, error_thrown) {
+
+        if (xhr.status === 401) {
+            var reason = xhr.getResponseHeader("X-IPA-Rejection-Reason");
+
+            //change result from invalid only if we have a header which we
+            //understand
+            if (reason === 'password-expired') {
+                result = 'expired';
+            }
+        }
     }
 
     var data = {
@@ -378,14 +391,15 @@ IPA.login_password = function(username, password) {
         dataType: 'html',
         async: false,
         type: 'POST',
-        success: success_handler
+        success: success_handler,
+        error: error_handler
     };
 
     IPA.display_activity_icon();
     $.ajax(request);
     IPA.hide_activity_icon();
 
-    return success;
+    return result;
 };
 
 /**
@@ -1340,6 +1354,10 @@ IPA.unauthorized_dialog = function(spec) {
                 "Please try again (make sure your caps lock is off).</p>" +
                 "<p>If the problem persists, contact your administrator.</p>";
 
+    that.password_expired = "<p><strong>Password expired</strong></p>" +
+                "<p>Please run kinit to reset the password and then try to login again.</p>" +
+                "<p>If the problem persists, contact your administrator.</p>";
+
     that.create = function() {
 
         that.krb_message_contatiner = $('<div\>').appendTo(that.container);
@@ -1482,13 +1500,17 @@ IPA.unauthorized_dialog = function(spec) {
 
         IPA.display_activity_icon();
 
-        var success = IPA.login_password(record.username[0], record.password[0]);
+        var result = IPA.login_password(record.username[0], record.password[0]);
 
         IPA.hide_activity_icon();
 
-        if (success) {
+        if (result === 'success') {
             that.on_login_success();
-        } else {
+        } else if (result === 'expired') {
+            that.error_box.html(that.password_expired);
+            that.error_box.css('display', 'block');
+        }else {
+            that.error_box.html(that.form_auth_failed);
             that.error_box.css('display', 'block');
         }
     };
