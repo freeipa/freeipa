@@ -589,13 +589,19 @@ can use their Kerberos accounts.''')
 
     def _get_search_bases(self, options, ds_base_dn, migrate_order):
         search_bases = dict()
+        ds_base_dn = DN(ds_base_dn)
         for ldap_obj_name in migrate_order:
             container = options.get('%scontainer' % to_cli(ldap_obj_name))
             if container:
-                search_base = str(DN(container, ds_base_dn))
+                container = DN(container)
+                # Don't append base dn if user already appended it in the container dn
+                if container.endswith(ds_base_dn):
+                    search_base = container
+                else:
+                    search_base = DN(container, ds_base_dn)
             else:
                 search_base = ds_base_dn
-            search_bases[ldap_obj_name] = search_base
+            search_bases[ldap_obj_name] = str(search_base)
         return search_bases
 
     def migrate(self, ldap, config, ds_ldap, ds_base_dn, options):
