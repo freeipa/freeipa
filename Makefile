@@ -88,11 +88,12 @@ client-dirs:
 		echo "Without those directories ipa-client-install will fail" ; \
 	fi
 
-lint:
+lint: bootstrap-autogen
 	./make-lint $(LINT_OPTIONS)
+	$(MAKE) -C install/po validate-src-strings
+
 
 test:
-	$(MAKE) -C install/po test_lang
 	./make-testcert
 	./make-test
 

@@ -29,6 +29,7 @@ import re
 import os
 import traceback
 import polib
+from collections import namedtuple
 
 '''
 We test our translations by taking the original untranslated string
@@ -379,51 +380,138 @@ def validate_file(file_path, validation_mode):
     Returns the number of entries with errors.
     '''
 
+    def emit_messages():
+        if n_warnings:
+            warning_lines.insert(0, section_seperator)
+            warning_lines.insert(1, "%d validation warnings in %s" % (n_warnings, file_path))
+            print '\n'.join(warning_lines)
+
+        if n_errors:
+            error_lines.insert(0, section_seperator)
+            error_lines.insert(1, "%d validation errors in %s" % (n_errors, file_path))
+            print '\n'.join(error_lines)
+
+    Result = namedtuple('ValidateFileResult', ['n_entries', 'n_msgids', 'n_msgstrs', 'n_warnings', 'n_errors'])
+
+    warning_lines = []
     error_lines = []
-    n_entries_with_errors = 0
+    n_entries = 0
+    n_msgids = 0
+    n_msgstrs = 0
+    n_entries = 0
+    n_warnings = 0
+    n_errors  = 0
+    n_plural_forms = 0
 
     if not os.path.isfile(file_path):
-        print >>sys.stderr, 'file does not exist "%s"' % (file_path)
-        return 1
+        error_lines.append(entry_seperator)
+        error_lines.append('file does not exist "%s"' % (file_path))
+        n_errors += 1
+        emit_messages()
+        return Result(n_entries=n_entries, n_msgids=n_msgids, n_msgstrs=n_msgstrs, n_warnings=n_warnings, n_errors=n_errors)
+
     try:
         po = polib.pofile(file_path)
     except Exception, e:
-        print >>sys.stderr, 'Unable to parse file "%s": %s' % (file_path, e)
-        return 1
+        error_lines.append(entry_seperator)
+        error_lines.append('Unable to parse file "%s": %s' % (file_path, e))
+        n_errors += 1
+        emit_messages()
+        return Result(n_entries=n_entries, n_msgids=n_msgids, n_msgstrs=n_msgstrs, n_warnings=n_warnings, n_errors=n_errors)
 
+
+    if validation_mode == 'po':
+        plural_forms = po.metadata.get('Plural-Forms')
+        if not plural_forms:
+            error_lines.append(entry_seperator)
+            error_lines.append("%s: does not have Plural-Forms header" % file_path)
+            n_errors += 1
+        match = re.search(r'\bnplurals\s*=\s*(\d+)', plural_forms)
+        if match:
+            n_plural_forms = int(match.group(1))
+        else:
+            error_lines.append(entry_seperator)
+            error_lines.append("%s: does not specify integer nplurals in Plural-Forms header" % file_path)
+            n_errors += 1
+
+    n_entries = len(po)
     for entry in po:
+        entry_warnings = []
         entry_errors = []
-        msgid = entry.msgid
-        msgstr = entry.msgstr
-        have_msgid = msgid.strip() != ''
-        have_msgstr = msgstr.strip() != ''
+        have_msgid = entry.msgid.strip() != ''
+        have_msgid_plural = entry.msgid_plural.strip() != ''
+        have_msgstr = entry.msgstr.strip() != ''
+
+        if have_msgid:
+            n_msgids += 1
+        if have_msgid_plural:
+            n_msgids += 1
+        if have_msgstr:
+            n_msgstrs += 1
+
         if validation_mode == 'pot':
+            prog_langs = get_prog_langs(entry)
             if have_msgid:
-                prog_langs = get_prog_langs(entry)
-                errors = validate_positional_substitutions(msgid, prog_langs, 'msgid')
+                errors = validate_positional_substitutions(entry.msgid, prog_langs, 'msgid')
                 entry_errors.extend(errors)
-        if validation_mode == 'po':
-            if have_msgid and have_msgstr:
-                errors = validate_substitutions_match(msgid, msgstr, 'msgid', 'msgstr')
+            if have_msgid_plural:
+                errors = validate_positional_substitutions(entry.msgid_plural, prog_langs, 'msgid_plural')
                 entry_errors.extend(errors)
+        elif validation_mode == 'po':
+            if have_msgid:
+                if have_msgstr:
+                    errors = validate_substitutions_match(entry.msgid, entry.msgstr, 'msgid', 'msgstr')
+                    entry_errors.extend(errors)
+
+                if have_msgid_plural and have_msgstr:
+                    n_plurals = 0
+                    for index, msgstr in entry.msgstr_plural.items():
+                        have_msgstr_plural = msgstr.strip() != ''
+                        if have_msgstr_plural:
+                            n_plurals += 1
+                            errors = validate_substitutions_match(entry.msgid_plural, msgstr, 'msgid_plural', 'msgstr_plural[%s]' % index)
+                            entry_errors.extend(errors)
+                        else:
+                            entry_errors.append('msgstr_plural[%s] is empty' % (index))
+                    if n_plural_forms != n_plurals:
+                        entry_errors.append('%d plural forms specified, but this entry has %d plurals' % (n_plural_forms, n_plurals))
+
         if pedantic:
             if have_msgid:
-                errors = validate_substitution_syntax(msgid, 'msgid')
-                entry_errors.extend(errors)
+                errors = validate_substitution_syntax(entry.msgid, 'msgid')
+                entry_warnings.extend(errors)
+
+            if have_msgid_plural:
+                errors = validate_substitution_syntax(entry.msgid_plural, 'msgid_plural')
+                entry_warnings.extend(errors)
+
+                errors = validate_substitutions_match(entry.msgid, entry.msgid_plural, 'msgid', 'msgid_plural')
+                entry_warnings.extend(errors)
+
+                for index, msgstr in entry.msgstr_plural.items():
+                    have_msgstr_plural = msgstr.strip() != ''
+                    if have_msgstr_plural:
+                        errors = validate_substitution_syntax(msgstr,  'msgstr_plural[%s]' % index)
+                        entry_warnings.extend(errors)
+
             if have_msgstr:
-                errors = validate_substitution_syntax(msgstr, 'msgstr')
-                entry_errors.extend(errors)
+                errors = validate_substitution_syntax(entry.msgstr, 'msgstr')
+                entry_warnings.extend(errors)
+
+        if entry_warnings:
+            warning_lines.append(entry_seperator)
+            warning_lines.append('locations: %s' % (', '.join(["%s:%d" % (x[0], int(x[1])) for x in entry.occurrences])))
+            warning_lines.extend(entry_warnings)
+            n_warnings += 1
+
         if entry_errors:
             error_lines.append(entry_seperator)
             error_lines.append('locations: %s' % (', '.join(["%s:%d" % (x[0], int(x[1])) for x in entry.occurrences])))
             error_lines.extend(entry_errors)
-            n_entries_with_errors += 1
-    if n_entries_with_errors:
-        error_lines.insert(0, section_seperator)
-        error_lines.insert(1, "%d validation errors in %s" % (n_entries_with_errors, file_path))
-        print '\n'.join(error_lines)
+            n_errors += 1
 
-    return n_entries_with_errors
+    emit_messages()
+    return Result(n_entries=n_entries, n_msgids=n_msgids, n_msgstrs=n_msgstrs, n_warnings=n_warnings, n_errors=n_errors)
 
 
 #----------------------------------------------------------------------
@@ -676,10 +764,21 @@ def main():
             print >> sys.stderr, 'ERROR: unknown validation mode "%s"' % (options.mode)
             return 1
 
+        total_entries = 0
+        total_msgids = 0
+        total_msgstrs = 0
+        total_warnings = 0
         total_errors = 0
+
         for f in files:
-            n_errors = validate_file(f, validation_mode)
-            total_errors += n_errors
+            result = validate_file(f, validation_mode)
+            total_entries += result.n_entries
+            total_msgids += result.n_msgids
+            total_msgstrs += result.n_msgstrs
+            total_warnings += result.n_warnings
+            total_errors += result.n_errors
+            print "%s: %d entries, %d msgid, %d msgstr, %d warnings %d errors" % \
+                (f, result.n_entries, result.n_msgids, result.n_msgstrs, result.n_warnings, result.n_errors)
         if total_errors:
             print section_seperator
             print "%d errors in %d files" % (total_errors, len(files))

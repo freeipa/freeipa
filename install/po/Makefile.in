@@ -160,7 +160,7 @@ install: $(mo_files)
 	done
 
 mostlyclean:
-	rm -rf *.mo test.po test_locale
+	rm -rf *.mo test.po test_locale tmp.pot
 	rm -f $(DOMAIN).pot.update $(DOMAIN).pot.update.tmp $(DOMAIN).pot.tmp
 
 clean: mostlyclean
@@ -178,6 +178,14 @@ validate-pot:
 
 validate-po:
 	$(IPA_TEST_I18N) --show-strings --validate-po $(po_files)
+
+validate-src-strings:
+	@rm -f tmp.pot
+	@touch tmp.pot
+	@$(MAKE) DOMAIN=tmp update-pot; \
+	status=$$?; \
+	rm tmp.pot; \
+	exit $$status
 
 debug:
 	@echo Python potfiles:
