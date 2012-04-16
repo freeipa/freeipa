@@ -624,6 +624,9 @@ class DsInstance(service.Service):
 
         enabled = self.restore_state("enabled")
 
+        # Just eat this state if it exists
+        running = self.restore_state("running")
+
         try:
             self.fstore.restore_file("/etc/security/limits.conf")
             self.fstore.restore_file("/etc/sysconfig/dirsrv")
