@@ -23,6 +23,7 @@ import ldap as _ldap
 from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum
 from ipalib.cli import to_cli
+from ipalib.util import validate_dn_param
 from ipalib.dn import *
 from ipalib.plugins.user import NO_UPG_MAGIC
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -418,23 +419,23 @@ class migrate_ds(Command):
     )
 
     takes_options = (
-        Str('binddn?',
+        Str('binddn?', validate_dn_param,
             cli_name='bind_dn',
             label=_('Bind DN'),
             default=u'cn=directory manager',
             autofill=True,
         ),
-        Str('usercontainer?',
+        Str('usercontainer', validate_dn_param,
             cli_name='user_container',
             label=_('User container'),
-            doc=_('RDN of container for users in DS relative to base DN'),
+            doc=_('DN of container for users in DS relative to base DN'),
             default=u'ou=people',
             autofill=True,
         ),
-        Str('groupcontainer?',
+        Str('groupcontainer', validate_dn_param,
             cli_name='group_container',
             label=_('Group container'),
-            doc=_('RDN of container for groups in DS relative to base DN'),
+            doc=_('DN of container for groups in DS relative to base DN'),
             default=u'ou=groups',
             autofill=True,
         ),
@@ -589,9 +590,12 @@ can use their Kerberos accounts.''')
     def _get_search_bases(self, options, ds_base_dn, migrate_order):
         search_bases = dict()
         for ldap_obj_name in migrate_order:
-            search_bases[ldap_obj_name] = '%s,%s' % (
-                options['%scontainer' % to_cli(ldap_obj_name)], ds_base_dn
-            )
+            container = options.get('%scontainer' % to_cli(ldap_obj_name))
+            if container:
+                search_base = str(DN(container, ds_base_dn))
+            else:
+                search_base = ds_base_dn
+            search_bases[ldap_obj_name] = search_base
         return search_bases
 
     def migrate(self, ldap, config, ds_ldap, ds_base_dn, options):
