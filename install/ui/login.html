@@ -21,9 +21,16 @@
 
         <div id="formwindow">
             <h2>Login</h2>
-            <div id="error-box" style="display:none">
+
+            <div id="invalid" class="error-box" style="display:none">
                 <p><strong>Please re-enter your username or password</strong></p>
                 <p>The password or username you entered is incorrect. Please try again (make sure your caps lock is off).</p>
+                <p>If the problem persists, contact your administrator.</p>
+            </div>
+
+            <div id="expired" class="error-box" style="display:none">
+                <p><strong>Password expired</strong></p>
+                <p>Please run kinit to reset the password and then try to login again.</p>
                 <p>If the problem persists, contact your administrator.</p>
             </div>
 

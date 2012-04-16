@@ -22,10 +22,23 @@ var LP = {}; //Login Page
 
 LP.login = function(username, password) {
 
-    var success = false;
+    var result = 'invalid';
 
     function success_handler(data, text_status, xhr) {
-        success = true;
+        result = 'success';
+    }
+
+    function error_handler(xhr, text_status, error_thrown) {
+
+        if (xhr.status === 401) {
+            var reason = xhr.getResponseHeader("X-IPA-Rejection-Reason");
+
+            //change result from invalid only if we have a header which we
+            //understand
+            if (reason === 'password-expired') {
+                result = 'expired';
+            }
+        }
     }
 
     var data = {
@@ -36,14 +49,18 @@ LP.login = function(username, password) {
     var request = {
         url: '/ipa/session/login_password',
         data: data,
+        contentType: 'application/x-www-form-urlencoded',
+        processData: true,
+        dataType: 'html',
         async: false,
-        type: "POST",
-        success: success_handler
+        type: 'POST',
+        success: success_handler,
+        error: error_handler
     };
 
     $.ajax(request);
 
-    return success;
+    return result;
 };
 
 LP.on_submit = function() {
@@ -51,10 +68,14 @@ LP.on_submit = function() {
     var username = $('input[name=username]', LP.form).val();
     var password = $('input[name=password]', LP.form).val();
 
-    var success = LP.login(username, password);
+    var result = LP.login(username, password);
 
-    if (!success) {
-        $('#error-box').css('display', 'block');
+    if (result === 'invalid') {
+        $('#expired').css('display', 'none');
+        $('#invalid').css('display', 'block');
+    } else if (result === 'expired') {
+        $('#invalid').css('display', 'none');
+        $('#expired').css('display', 'block');
     } else {
         window.location = '/ipa/ui';
     }
