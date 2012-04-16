@@ -186,3 +186,52 @@ class TestCLIParsing(object):
                     version=API_VERSION)
         finally:
             self.run_command('dnszone_del', idnsname=u'test-example.com')
+
+    def test_dnsrecord_add_ask_for_missing_fields(self):
+        sshfp_parts = (1, 1, u'E3B72BA346B90570EED94BE9334E34AA795CED23')
+
+        with self.fake_stdin('SSHFP\n%d\n%d\n%s' % sshfp_parts):
+            self.check_command('dnsrecord-add test-example.com sshfp',
+                'dnsrecord_add',
+                dnszoneidnsname=u'test-example.com',
+                idnsname=u'sshfp',
+                sshfp_part_fp_type=sshfp_parts[0],
+                sshfp_part_algorithm=sshfp_parts[1],
+                sshfp_part_fingerprint=sshfp_parts[2],
+                structured=False,
+                raw=False,
+                all=False,
+                force=False,
+                version=API_VERSION)
+
+        # NOTE: when a DNS record part is passed via command line, it is not
+        # converted to its base type when transfered via wire
+        with self.fake_stdin('%d\n%s' % (sshfp_parts[1], sshfp_parts[2])):
+            self.check_command('dnsrecord-add test-example.com sshfp ' \
+                    '--sshfp-algorithm=%d' % sshfp_parts[0],
+                'dnsrecord_add',
+                dnszoneidnsname=u'test-example.com',
+                idnsname=u'sshfp',
+                sshfp_part_fp_type=sshfp_parts[0],
+                sshfp_part_algorithm=unicode(sshfp_parts[1]),   # passed via cmdline
+                sshfp_part_fingerprint=sshfp_parts[2],
+                structured=False,
+                raw=False,
+                all=False,
+                force=False,
+                version=API_VERSION)
+
+        with self.fake_stdin(sshfp_parts[2]):
+            self.check_command('dnsrecord-add test-example.com sshfp ' \
+                    '--sshfp-algorithm=%d --sshfp-fp-type=%d' % (sshfp_parts[0], sshfp_parts[1]),
+                'dnsrecord_add',
+                dnszoneidnsname=u'test-example.com',
+                idnsname=u'sshfp',
+                sshfp_part_fp_type=unicode(sshfp_parts[0]),     # passed via cmdline
+                sshfp_part_algorithm=unicode(sshfp_parts[1]),   # passed via cmdline
+                sshfp_part_fingerprint=sshfp_parts[2],
+                structured=False,
+                raw=False,
+                all=False,
+                force=False,
+                version=API_VERSION)

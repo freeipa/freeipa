@@ -2046,7 +2046,7 @@ class dnsrecord(LDAPObject):
                 continue
 
             if rrparam.name not in processed:
-                processed.append(rrparam)
+                processed.append(rrparam.name)
                 yield rrparam
 
 api.register(dnsrecord)
