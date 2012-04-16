@@ -385,6 +385,9 @@ class CADSInstance(service.Service):
         enabled = self.restore_state("enabled")
         serverid = self.restore_state("serverid")
 
+        # Just eat this state if it exists
+        running = self.restore_state("running")
+
         if not enabled is None and not enabled:
             ipaservices.knownservices.dirsrv.disable()
 
