@@ -616,7 +616,7 @@ class test_dns(Declarative):
                 'result': {
                     'objectclass': [u'top', u'idnsrecord', u'idnszone'],
                     'dn': unicode(dnszone1_dn),
-                    'idnsname': [dnszone1],
+                    'idnsname': [u'@'],
                     'mxrecord': [u"0 %s" % dnszone1_mname],
                     'nsrecord': [dnszone1_mname],
                 },
@@ -721,7 +721,7 @@ class test_dns(Declarative):
                 'result': {
                     'objectclass': [u'top', u'idnsrecord', u'idnszone'],
                     'dn': unicode(dnszone1_dn),
-                    'idnsname': [dnszone1],
+                    'idnsname': [u'@'],
                     'mxrecord': [u"0 %s" % dnszone1_mname],
                     'nsrecord': [dnszone1_mname],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64"],

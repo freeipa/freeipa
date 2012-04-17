@@ -475,7 +475,7 @@ class test_permission(Declarative):
                 'permission_mod', [permission1], dict(rename=u'',
                                                       permissions=u'all',)
             ),
-            expected=errors.ValidationError(name=u'rename',
+            expected=errors.ValidationError(name='rename',
                                     error=u'New name can not be empty'),
         ),
 
