@@ -672,11 +672,11 @@ IPA.facet_title = function(spec) {
     return that;
 };
 
-IPA.table_facet = function(spec) {
+IPA.table_facet = function(spec, no_init) {
 
     spec = spec || {};
 
-    var that = IPA.facet(spec);
+    var that = IPA.facet(spec, no_init);
 
     that.managed_entity = spec.managed_entity ? IPA.get_entity(spec.managed_entity) : that.entity;
 
@@ -684,19 +684,13 @@ IPA.table_facet = function(spec) {
     that.search_all_entries = spec.search_all_entries;
     that.search_all_attributes = spec.search_all_attributes;
     that.selectable = spec.selectable === undefined ? true : spec.selectable;
+    that.select_changed = IPA.observer();
 
     that.row_enabled_attribute = spec.row_enabled_attribute;
     that.row_disabled_attribute = spec.row_disabled_attribute;
     that.details_facet_name = spec.details_facet || 'default';
 
     that.columns = $.ordered_map();
-
-    var init = function() {
-        var columns = spec.columns || [];
-        for (var i=0; i<columns.length; i++) {
-            that.create_column(columns[i]);
-        }
-    };
 
     that.get_columns = function() {
         return that.columns.values;
@@ -947,19 +941,6 @@ IPA.table_facet = function(spec) {
         return that.table.get_selected_values();
     };
 
-    that.select_changed = function() {
-
-        that.selected_values = that.get_selected_values();
-
-        if (that.remove_button) {
-            if (that.selected_values.length === 0) {
-                that.remove_button.addClass('action-button-disabled');
-            } else {
-                that.remove_button.removeClass('action-button-disabled');
-            }
-        }
-    };
-
     that.init_table = function(entity) {
 
         that.table = IPA.table_widget({
@@ -992,7 +973,8 @@ IPA.table_facet = function(spec) {
         }
 
         that.table.select_changed = function() {
-            that.select_changed();
+            that.selected_values = that.get_selected_values();
+            that.select_changed.notify([that.selected_values]);
         };
 
         that.table.prev_page = function() {
@@ -1026,7 +1008,14 @@ IPA.table_facet = function(spec) {
         };
     };
 
-    init();
+    that.init_table_columns = function() {
+        var columns = spec.columns || [];
+        for (var i=0; i<columns.length; i++) {
+            that.create_column(columns[i]);
+        }
+    };
+
+    if (!no_init) that.init_table_columns();
 
     that.table_facet_create_get_records_command = that.create_get_records_command;
 
@@ -1299,6 +1288,27 @@ IPA.dirty_state_listener = function(spec) {
 
         if (dirty) {
             that.state.push('dirty');
+        }
+
+        that.state_changed.notify();
+    };
+
+    return that;
+};
+
+IPA.selected_state_listener = function(spec) {
+
+    spec = spec || {};
+
+    spec.event = spec.event || 'select_changed';
+
+    var that = IPA.state_listener(spec);
+
+    that.on_event = function(selected) {
+        that.state = [];
+
+        if (selected && selected.length > 0) {
+            that.state.push('item-selected');
         }
 
         that.state_changed.notify();

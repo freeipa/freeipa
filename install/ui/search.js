@@ -25,7 +25,7 @@
 
 /* REQUIRES: ipa.js */
 
-IPA.search_facet = function(spec) {
+IPA.search_facet = function(spec, no_init) {
 
     spec = spec || {};
 
@@ -37,14 +37,58 @@ IPA.search_facet = function(spec) {
     spec.disable_facet_tabs =
         spec.disable_facet_tabs === undefined ? true : spec.disable_facet_tabs;
 
-    var that = IPA.table_facet(spec);
+    spec.control_buttons = spec.control_buttons || {};
+
+    var cb = spec.control_buttons;
+    cb.factory = cb.factory || IPA.control_buttons_widget;
+    cb.buttons = cb.buttons || [];
+    cb.state_listeners = cb.state_listeners || [];
+    cb.buttons.unshift(
+        {
+            name: 'refresh',
+            label: IPA.messages.buttons.refresh,
+            icon: 'reset-icon',
+            action: {
+                handler: function(facet) {
+                    facet.refresh();
+                }
+            }
+        },
+        {
+            name: 'remove',
+            label: IPA.messages.buttons.remove,
+            icon: 'remove-icon',
+            action: {
+                enable_cond: ['item-selected'],
+                disable_cond: ['self-service'],
+                handler: function(facet) {
+                    facet.show_remove_dialog();
+                }
+            }
+        },
+        {
+            name: 'add',
+            label: IPA.messages.buttons.add,
+            icon: 'add-icon',
+            action: {
+                disable_cond: ['self-service'],
+                handler: function(facet) {
+                    facet.show_add_dialog();
+                }
+            }
+        }
+    );
+    cb.state_listeners.push(
+        {
+            factory: IPA.selected_state_listener
+        }
+    );
+
+    //TODO: make buttons invisible on self-service. Currently regression.
+
+    var that = IPA.table_facet(spec, true);
 
     that.deleter_dialog = spec.deleter_dialog || IPA.search_deleter_dialog;
-
-    var init = function() {
-
-        that.init_table(that.managed_entity);
-    };
 
     that.create_header = function(container) {
 
@@ -81,47 +125,7 @@ IPA.search_facet = function(spec) {
             }
         }).appendTo(filter_container);
 
-        that.refresh_button = IPA.action_button({
-            name: 'refresh',
-            href: 'refresh',
-            label: IPA.messages.buttons.refresh,
-            icon: 'reset-icon',
-            click: function() {
-                that.refresh();
-                return false;
-            }
-        }).appendTo(that.controls);
-
-        that.remove_button = IPA.action_button({
-            name: 'remove',
-            label: IPA.messages.buttons.remove,
-            icon: 'remove-icon',
-            click: function() {
-                if (!that.remove_button.hasClass('action-button-disabled')) {
-                    that.show_remove_dialog();
-                }
-                return false;
-            }
-        }).appendTo(that.controls);
-
-        that.add_button = IPA.action_button({
-            name: 'add',
-            label: IPA.messages.buttons.add,
-            icon: 'add-icon',
-            click: function() {
-                if (!that.add_button.hasClass('action-button-disabled')) {
-                    that.show_add_dialog();
-                }
-                return false;
-            }
-        }).appendTo(that.controls);
-
-        var self_service = IPA.nav.name === 'self-service';
-
-        if (self_service) {
-            that.remove_button.css('display', 'none');
-            that.add_button.css('display', 'none');
-        }
+        that.create_control_buttons(that.controls);
     };
 
     that.show = function() {
@@ -259,7 +263,14 @@ IPA.search_facet = function(spec) {
         return clear;
     };
 
-    init();
+    that.init_search_facet = function() {
+
+        that.init_facet();
+        that.init_table_columns();
+        that.init_table(that.managed_entity);
+    };
+
+    if (!no_init) that.init_search_facet();
 
     // methods that should be invoked by subclasses
     that.search_facet_refresh = that.refresh;
