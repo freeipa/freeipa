@@ -25,7 +25,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js */
 
-IPA.facet = function(spec) {
+IPA.facet = function(spec, no_init) {
 
     spec = spec || {};
 
@@ -102,6 +102,13 @@ IPA.facet = function(spec) {
     };
 
     that.create_content = function(container) {
+    };
+
+    that.create_control_buttons = function(container) {
+
+        if (that.control_buttons) {
+            that.control_buttons.create(container);
+        }
     };
 
     that.set_title = function(container, title) {
@@ -289,6 +296,23 @@ IPA.facet = function(spec) {
         }
     };
 
+    that.init_facet = function() {
+
+        var buttons_spec = {
+            factory: IPA.control_buttons_widget,
+            name: 'control-buttons',
+            'class': 'control-buttons'
+        };
+
+        if (spec.control_buttons) {
+            $.extend(buttons_spec, spec.control_buttons);
+        }
+
+        that.control_buttons = IPA.build(buttons_spec);
+        that.control_buttons.init(that);
+    };
+
+    if (!no_init) that.init_facet();
 
     // methods that should be invoked by subclasses
     that.facet_create = that.create;
@@ -1221,6 +1245,256 @@ IPA.state_evaluator = function(spec) {
 
     that.get_description = function() {
         return that.description || '';
+    };
+
+    return that;
+};
+
+IPA.state_listener = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.event_name = spec.event;
+    that.state_changed = IPA.observer();
+    that.state = [];
+
+    that.init = function(facet) {
+
+        if (that.event_name && facet[that.event_name]) {
+            facet[that.event_name].attach(that.on_event);
+        }
+    };
+
+    that.on_event = function() {
+        that.state_changed.notify();
+    };
+
+    that.get_description = function() {
+        return that.description || '';
+    };
+
+    return that;
+};
+
+IPA.state_listener_builder = function(spec) {
+
+    spec = spec || {};
+    spec.factory = spec.factory || IPA.state_listener;
+    var that = IPA.builder(spec);
+    return that;
+};
+
+IPA.dirty_state_listener = function(spec) {
+
+    spec = spec || {};
+
+    spec.event = spec.event || 'dirty_changed';
+
+    var that = IPA.state_listener(spec);
+
+    that.on_event = function(dirty) {
+        that.state = [];
+
+        if (dirty) {
+            that.state.push('dirty');
+        }
+
+        that.state_changed.notify();
+    };
+
+    return that;
+};
+
+IPA.action_button_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.name = spec.name;
+    that.label = spec.label;
+    that.tooltip = spec.tooltip;
+    that.href = spec.href || that.name;
+    that.icon = spec.icon;
+
+    that.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
+    that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
+    that.confirm_dialog = spec.confirm_dialog;
+
+    that.action = IPA.build(spec.action, IPA.action_builder);
+    that.enabled = spec.enabled !== undefined ? spec.enabled : true;
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        that.button_element = IPA.action_button({
+            name: that.name,
+            href: that.href,
+            label: that.label,
+            icon: that.icon,
+            click: function() {
+                that.on_click();
+                return false;
+            }
+        }).appendTo(container);
+
+        that.set_enabled(that.enabled);
+    };
+
+    that.on_click = function() {
+
+        if (!that.enabled) return;
+
+        if (that.needs_confirm) {
+
+            var confirmed = false;
+
+            if (that.confirm_dialog) {
+
+                var dialog = IPA.build(that.confirm_dialog);
+                confirmed = dialog.confirm(that.facet);
+            } else {
+                var msg = that.get_confirm_message();
+                confirmed = IPA.confirm(msg);
+            }
+
+            if (!confirmed) return;
+        }
+
+        that.execute_action();
+    };
+
+    that.get_confirm_message = function() {
+        return that.confirm_msg;
+    };
+
+    that.execute_action = function() {
+
+        if (that.action) {
+            that.action.execute(that.facet);
+        }
+    };
+
+    that.set_enabled = function(enabled) {
+        that.enabled = enabled;
+
+        if (that.button_element) {
+            if (enabled) {
+                that.button_element.removeClass('action-button-disabled');
+            } else {
+                that.button_element.addClass('action-button-disabled');
+            }
+        }
+    };
+
+    return that;
+};
+
+IPA.action_button_widget_builder = function(spec) {
+
+    spec = spec || {};
+    spec.factory = spec.factory || IPA.action_button_widget;
+    var that = IPA.builder(spec);
+    return that;
+};
+
+IPA.control_buttons_widget = function(spec) {
+
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.buttons = IPA.build(spec.buttons, IPA.action_button_widget_builder) || [];
+    that.state_listeners = IPA.build(spec.state_listeners, IPA.state_listener_builder) || [];
+    that.state = [];
+
+    that.init = function(facet) {
+
+        var i;
+
+        for (i=0; i<that.state_listeners.length; i++) {
+
+            var listener = that.state_listeners[i];
+            listener.init(facet);
+            listener.state_changed.attach(that.on_state_change);
+        }
+
+        for (i=0; i<that.buttons.length; i++) {
+
+            var button = that.buttons[i];
+            button.facet = facet;
+        }
+
+        that.on_state_change();
+    };
+
+    that.create = function(container) {
+
+        that.container = $('<div/>', {
+            'class': that['class']
+        }).appendTo(container);
+
+        for (var i=0; i<that.buttons.length; i++) {
+
+            var button = that.buttons[i];
+            button.create(that.container);
+        }
+    };
+
+    that.on_state_change = function() {
+
+        that.get_state();
+        that.reevaluate_enabled();
+    };
+
+    that.get_state = function() {
+
+        that.state = [];
+
+        for (var i=0; i<that.state_listeners.length; i++) {
+
+            var listener = that.state_listeners[i];
+            that.state.push.apply(that.state, listener.state);
+        }
+    };
+
+    that.reevaluate_enabled = function() {
+
+        for (var i=0; i<that.buttons.length; i++) {
+
+            var button = that.buttons[i];
+            var enabled = that.action_enabled(button.action);
+            button.set_enabled(enabled);
+        }
+    };
+
+    that.action_enabled = function(action) {
+
+        var i, cond;
+
+        if (action.disable_cond) {
+            for (i=0; i<action.disable_cond.length; i++) {
+                cond = action.disable_cond[i];
+                if (that.state.indexOf(cond) > -1) {
+                    return false;
+                }
+            }
+        }
+
+        if (action.enable_cond) {
+            for (i=0; i<action.enable_cond.length; i++) {
+                cond = action.enable_cond[i];
+                if (that.state.indexOf(cond) < 0) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     };
 
     return that;
