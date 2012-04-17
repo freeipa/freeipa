@@ -396,6 +396,12 @@ IPA.aci.delegation_entity = function(spec) {
                     fields: [
                         'aciname',
                         {
+                            type: 'checkboxes',
+                            name: 'permissions',
+                            required: true,
+                            options: IPA.create_options(['read', 'write'])
+                        },
+                        {
                             type: 'entity_select',
                             name: 'group',
                             other_entity: that.group_entity,
@@ -420,6 +426,11 @@ IPA.aci.delegation_entity = function(spec) {
         adder_dialog({
             fields: [
                 'aciname',
+                {
+                    type: 'checkboxes',
+                    name: 'permissions',
+                    options: IPA.create_options(['read', 'write'])
+                },
                 {
                     type: 'entity_select',
                     name: 'group',
