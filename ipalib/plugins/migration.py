@@ -146,7 +146,12 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                 )
                 valid_gids.append(entry_attrs['gidnumber'][0])
             except errors.NotFound:
-                api.log.warn('Migrated user\'s GID number %s does not point to a known group.' % entry_attrs['gidnumber'][0])
+                api.log.warn('GID number %s of migrated user %s does not point to a known group.' \
+                             % (entry_attrs['gidnumber'][0], pkey))
+            except errors.SingleMatchExpected, e:
+                # GID number matched more groups, this should not happen
+                api.log.warn('GID number %s of migrated user %s should match 1 group, but it matched %d groups' \
+                             % (entry_attrs['gidnumber'][0], pkey, e.found))
 
     # We don't want to create a UPG so set the magic value in description
     # to let the DS plugin know.
