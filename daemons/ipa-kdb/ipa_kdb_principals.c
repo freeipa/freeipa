@@ -374,6 +374,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
      * krb5_db_entry in kdb.h */
     ipactx = ipadb_get_context(kcontext);
     if (!ipactx) {
+        free(entry);
         return KRB5_KDB_DBNOTINITED;
     }
     lcontext = ipactx->lcontext;
