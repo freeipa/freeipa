@@ -227,12 +227,63 @@ IPA.facet_policies = function(spec) {
     return that;
 };
 
-IPA.details_facet = function(spec) {
+IPA.details_facet = function(spec, no_init) {
 
     spec = spec || {};
     spec.name = spec.name || 'details';
+    spec.control_buttons = spec.control_buttons || {};
 
-    var that = IPA.facet(spec);
+    var cb = spec.control_buttons;
+    cb.factory = cb.factory || IPA.control_buttons_widget;
+    cb.buttons = cb.buttons || [];
+    cb.state_listeners = cb.state_listeners || [];
+    cb.buttons.unshift(
+        {
+            name: 'refresh',
+            label: IPA.messages.buttons.refresh,
+            icon: 'reset-icon',
+            action: {
+                handler: function(facet) {
+                    facet.refresh();
+                }
+            }
+        },
+        {
+            name: 'reset',
+            label: IPA.messages.buttons.reset,
+            icon: 'reset-icon',
+            needs_confirm: true,
+            action: {
+                enable_cond: ['dirty'],
+                handler: function(facet) {
+                    facet.reset();
+                }
+            }
+        },
+        {
+            name: 'update',
+            label: IPA.messages.buttons.update,
+            icon: 'update-icon',
+            action: {
+                enable_cond: ['dirty'],
+                handler: function(facet) {
+                    if (!facet.validate()) {
+                        facet.show_validation_error();
+                        return;
+                    }
+
+                    facet.update();
+                }
+            }
+        }
+    );
+    cb.state_listeners.push(
+        {
+            factory: IPA.dirty_state_listener
+        }
+    );
+
+    var that = IPA.facet(spec, true);
 
     that.entity = IPA.get_entity(spec.entity);
     that.update_command_name = spec.update_command_name || 'mod';
@@ -257,6 +308,7 @@ IPA.details_facet = function(spec) {
     };
 
     that.dirty = false;
+    that.dirty_changed = IPA.observer();
 
     /* the primary key used for show and update is built as an array.
        for most entities, this will be a single element long, but for some
@@ -299,48 +351,7 @@ IPA.details_facet = function(spec) {
 
     that.create_controls = function() {
 
-        that.refresh_button = IPA.action_button({
-            name: 'refresh',
-            href: 'refresh',
-            label: IPA.messages.buttons.refresh,
-            icon: 'reset-icon',
-            click: function() {
-                that.refresh();
-                return false;
-            }
-        }).appendTo(that.controls);
-
-        that.reset_button = IPA.action_button({
-            name: 'reset',
-            label: IPA.messages.buttons.reset,
-            icon: 'reset-icon',
-            'class': 'details-reset action-button-disabled',
-            click: function() {
-                if (!that.update_button.hasClass('action-button-disabled')) {
-                    that.reset();
-                }
-                return false;
-            }
-        }).appendTo(that.controls);
-
-        that.update_button = IPA.action_button({
-            name: 'update',
-            label: IPA.messages.buttons.update,
-            icon: 'update-icon',
-            'class': 'details-update action-button-disabled',
-            click: function() {
-                if (that.update_button.hasClass('action-button-disabled')) return false;
-
-                if (!that.validate()) {
-                    that.show_validation_error();
-                    return false;
-                }
-
-                that.update();
-
-                return false;
-            }
-        }).appendTo(that.controls);
+        that.create_control_buttons(that.controls);
     };
 
     that.create_header = function(container) {
@@ -432,13 +443,18 @@ IPA.details_facet = function(spec) {
     };
 
     that.field_dirty_changed = function(dirty) {
-        if(dirty) {
+
+        var old_dirty = that.dirty;
+
+        if (dirty) {
             that.dirty = true;
         } else {
             that.dirty = that.is_dirty();
         }
 
-        that.enable_update(that.dirty);
+        if (old_dirty !== that.dirty) {
+            that.dirty_changed.notify([that.dirty]);
+        }
     };
 
     that.is_dirty = function() {
@@ -451,24 +467,6 @@ IPA.details_facet = function(spec) {
         return false;
     };
 
-    that.enable_update = function(value) {
-        if(that.reset_button) {
-            if(value) {
-                that.reset_button.removeClass('action-button-disabled');
-            } else {
-                that.reset_button.addClass('action-button-disabled');
-            }
-        }
-
-        if(that.update_button) {
-            if(value) {
-                that.update_button.removeClass('action-button-disabled');
-            } else {
-                that.update_button.addClass('action-button-disabled');
-            }
-        }
-    };
-
     that.load = function(data) {
         that.facet_load(data);
 
@@ -478,7 +476,6 @@ IPA.details_facet = function(spec) {
             field.load(data.result.result);
         }
         that.policies.post_load(data);
-        that.enable_update(false);
         that.clear_expired_flag();
     };
 
@@ -518,7 +515,6 @@ IPA.details_facet = function(spec) {
             var field = fields[i];
             field.reset();
         }
-        that.enable_update(false);
     };
 
 
@@ -744,15 +740,16 @@ IPA.details_facet = function(spec) {
         });
     };
 
-    that.init = function() {
+    that.init_details_facet = function() {
 
+        that.init_facet();
         that.create_builder();
         that.builder.build(spec);
         that.fields.widgets_created();
         that.policies.init();
     };
 
-    that.init();
+    if (!no_init) that.init_details_facet();
 
     // methods that should be invoked by subclasses
     that.details_facet_create_update_command = that.create_update_command;
