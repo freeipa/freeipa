@@ -754,7 +754,7 @@ class ldap2(CrudBackend, Encoder):
         except _ldap.LDAPError, e:
             _handle_errors(e)
 
-        if not res:
+        if not res and not truncated:
             raise errors.NotFound(reason='no such entry')
 
         if attrs_list and ('memberindirect' in attrs_list or '*' in attrs_list):
@@ -801,7 +801,10 @@ class ldap2(CrudBackend, Encoder):
         if len(entries) > 1:
             raise errors.SingleMatchExpected(found=len(entries))
         else:
-            return entries[0]
+            if truncated:
+                raise errors.LimitsExceeded()
+            else:
+                return entries[0]
 
     def get_entry(self, dn, attrs_list=None, time_limit=None,
                   size_limit=None, normalize=True):
@@ -811,10 +814,14 @@ class ldap2(CrudBackend, Encoder):
         Keyword arguments:
         attrs_list - list of attributes to return, all if None (default None)
         """
-        return self.find_entries(
+        (entry, truncated) = self.find_entries(
             None, attrs_list, dn, self.SCOPE_BASE, time_limit=time_limit,
             size_limit=size_limit, normalize=normalize
-        )[0][0]
+        )
+
+        if truncated:
+            raise errors.LimitsExceeded()
+        return entry[0]
 
     config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
     def get_ipa_config(self, attrs_list=None):
@@ -827,10 +834,13 @@ class ldap2(CrudBackend, Encoder):
             # Not in our context yet
             pass
         try:
-            (cdn, config_entry) = self.find_entries(
+            (entry, truncated) = self.find_entries(
                 None, attrs_list, base_dn=cdn, scope=self.SCOPE_BASE,
                 time_limit=2, size_limit=10
-            )[0][0]
+            )
+            if truncated:
+                raise errors.LimitsExceeded()
+            (cdn, config_entry) = entry[0]
         except errors.NotFound:
             config_entry = {}
         for a in self.config_defaults:
@@ -1155,6 +1165,8 @@ class ldap2(CrudBackend, Encoder):
                         attr_list, member, time_limit=time_limit,
                         size_limit=size_limit, scope=_ldap.SCOPE_BASE,
                         normalize=normalize)
+                    if truncated:
+                        raise errors.LimitsExceeded()
                     results.append(list(result[0]))
                     for m in result[0][1].get('member', []):
                         # This member may contain other members, add it to our

@@ -724,6 +724,8 @@ class automountkey(LDAPObject):
                 basedn, _ldap.SCOPE_ONELEVEL)
             if len(entries) > 1:
                 raise errors.NotFound(reason=_('More than one entry with key %(key)s found, use --info to select specific entry.') % dict(key=pkey))
+            if truncated:
+                raise errors.LimitsExceeded()
             dn = entries[0][0]
 
         return dn
