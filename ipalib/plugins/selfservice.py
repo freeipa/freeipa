@@ -149,8 +149,7 @@ class selfservice_del(crud.Delete):
     msg_summary = _('Deleted selfservice "%(value)s"')
 
     def execute(self, aciname, **kw):
-        kw['aciprefix'] = ACI_PREFIX
-        result = api.Command['aci_del'](aciname, **kw)
+        result = api.Command['aci_del'](aciname, aciprefix=ACI_PREFIX)
         self.obj.postprocess_result(result)
 
         return dict(

@@ -46,7 +46,8 @@ class test_selfservice(Declarative):
 
         dict(
             desc='Try to update non-existent %r' % selfservice1,
-            command=('selfservice_mod', [selfservice1], dict(description=u'Foo')),
+            command=('selfservice_mod', [selfservice1],
+                dict(permissions=u'write')),
             expected=errors.NotFound(
                 reason=u'ACI with name "%s" not found' % selfservice1),
         ),

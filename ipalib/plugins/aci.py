@@ -565,21 +565,20 @@ class aci_del(crud.Delete):
 
     takes_options = (_prefix_option,)
 
-    def execute(self, aciname, **kw):
+    def execute(self, aciname, aciprefix):
         """
         Execute the aci-delete operation.
 
         :param aciname: The name of the ACI being deleted.
-        :param kw: unused
+        :param aciprefix: The ACI prefix.
         """
-        assert 'aciname' not in kw
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
 
         acistrs = entry_attrs.get('aci', [])
         acis = _convert_strings_to_acis(acistrs)
-        aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
+        aci = _find_aci_by_name(acis, aciprefix, aciname)
         for a in acistrs:
             candidate = ACI(a)
             if aci.isequal(candidate):
@@ -614,28 +613,25 @@ class aci_mod(crud.Update):
     msg_summary = _('Modified ACI "%(value)s"')
 
     def execute(self, aciname, **kw):
+        aciprefix = kw['aciprefix']
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
 
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
-        aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
+        aci = _find_aci_by_name(acis, aciprefix, aciname)
 
         # The strategy here is to convert the ACI we're updating back into
         # a series of keywords. Then we replace any keywords that have been
         # updated and convert that back into an ACI and write it out.
         oldkw = _aci_to_kw(ldap, aci)
         newkw = deepcopy(oldkw)
-        if 'selfaci' in newkw and newkw['selfaci'] == True:
+        if newkw.get('selfaci', False):
             # selfaci is set in aci_to_kw to True only if the target is self
             kw['selfaci'] = True
-        for k in kw.keys():
-            newkw[k] = kw[k]
+        newkw.update(kw)
         for acikw in (oldkw, newkw):
-            try:
-                del acikw['aciname']
-            except KeyError:
-                pass
+            acikw.pop('aciname', None)
 
         # _make_aci is what is run in aci_add and validates the input.
         # Do this before we delete the existing ACI.
@@ -643,7 +639,7 @@ class aci_mod(crud.Update):
         if aci.isequal(newaci):
             raise errors.EmptyModlist()
 
-        self.api.Command['aci_del'](aciname, **kw)
+        self.api.Command['aci_del'](aciname, aciprefix=aciprefix)
 
         try:
             result = self.api.Command['aci_add'](aciname, **newkw)['result']
@@ -652,7 +648,7 @@ class aci_mod(crud.Update):
             # report the ADD error back to user
             try:
                 self.api.Command['aci_add'](aciname, **oldkw)
-            except:
+            except Exception:
                 pass
             raise e
 
@@ -949,7 +945,7 @@ class aci_rename(crud.Update):
         # Do this before we delete the existing ACI.
         newaci = _make_aci(ldap, None, kw['newname'], newkw)
 
-        self.api.Command['aci_del'](aciname, **kw)
+        self.api.Command['aci_del'](aciname, aciprefix=kw['aciprefix'])
 
         result = self.api.Command['aci_add'](kw['newname'], **newkw)['result']
 

@@ -194,10 +194,7 @@ class permission_add(LDAPCreate):
         opts['test'] = True
         opts['permission'] = keys[-1]
         opts['aciprefix'] = ACI_PREFIX
-        try:
-            self.api.Command.aci_add(keys[-1], **opts)
-        except Exception, e:
-            raise e
+        self.api.Command.aci_add(keys[-1], **opts)
 
         # Clear the aci attributes out of the permission entry
         for o in options:
@@ -289,24 +286,20 @@ class permission_mod(LDAPUpdate):
                 except errors.NotFound:
                     pass    # permission may be renamed, continue
             else:
-                raise errors.ValidationError(name='rename',error=_('New name can not be empty'))
+                raise errors.ValidationError(
+                    name='rename',error=_('New name can not be empty'))
 
         opts = copy.copy(options)
-        for o in ['all', 'raw', 'rights', 'rename']:
-            if o in opts:
-                del opts[o]
+        for o in ['all', 'raw', 'rights', 'test', 'rename']:
+            opts.pop(o, None)
         setattr(context, 'aciupdate', False)
         # If there are no options left we don't need to do anything to the
         # underlying ACI.
         if len(opts) > 0:
-            opts['test'] = False
             opts['permission'] = keys[-1]
             opts['aciprefix'] = ACI_PREFIX
-            try:
-                self.api.Command.aci_mod(keys[-1], **opts)
-                setattr(context, 'aciupdate', True)
-            except Exception, e:
-                raise e
+            self.api.Command.aci_mod(keys[-1], **opts)
+            setattr(context, 'aciupdate', True)
 
         # Clear the aci attributes out of the permission entry
         for o in self.obj.aci_attributes:
@@ -341,11 +334,12 @@ class permission_mod(LDAPUpdate):
                         permission=options['rename'])
 
             self.api.Command.aci_rename(cn, aciprefix=ACI_PREFIX,
-                        newname=options['rename'], newprefix=ACI_PREFIX)
+                        newname=options['rename'])
 
             cn = options['rename']     # rename finished
 
-        result = self.api.Command.permission_show(cn, **options)['result']
+        common_options = dict((k, options[k]) for k in ('all', 'raw') if k in options)
+        result = self.api.Command.permission_show(cn, **common_options)['result']
         for r in result:
             if not r.startswith('member_'):
                 entry_attrs[r] = result[r]
@@ -363,7 +357,7 @@ class permission_find(LDAPSearch):
     has_output_params = LDAPSearch.has_output_params + output_params
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        if options.get('pkey_only', False):
+        if options.pop('pkey_only', False):
             return
         for entry in entries:
             (dn, attrs) = entry
@@ -379,9 +373,9 @@ class permission_find(LDAPSearch):
 
         # Now find all the ACIs that match. Once we find them, add any that
         # aren't already in the list along with their permission info.
-        options['aciprefix'] = ACI_PREFIX
 
         opts = copy.copy(options)
+        opts['aciprefix'] = ACI_PREFIX
         try:
             # permission ACI attribute is needed
             del opts['raw']
@@ -422,7 +416,8 @@ class permission_show(LDAPRetrieve):
     has_output_params = LDAPRetrieve.has_output_params + output_params
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         try:
-            aci = self.api.Command.aci_show(keys[-1], aciprefix=ACI_PREFIX, **options)['result']
+            common_options = dict((k, options[k]) for k in ('all', 'raw') if k in options)
+            aci = self.api.Command.aci_show(keys[-1], aciprefix=ACI_PREFIX, **common_options)['result']
             for attr in self.obj.aci_attributes:
                 if attr in aci:
                     entry_attrs[attr] = aci[attr]
