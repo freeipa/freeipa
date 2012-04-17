@@ -29,7 +29,8 @@ from parameters import create_param, parse_param_spec, Param, Str, Flag, Passwor
 from output import Output, Entry, ListOfEntries
 from text import _, ngettext
 
-from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot, VersionError, RequirementError
+from errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
+    RequiresRoot, VersionError, RequirementError, OptionError)
 from errors import InvocationError
 from constants import TYPE_ERROR
 from ipapython.version import API_VERSION
@@ -404,6 +405,8 @@ class Command(HasParam):
     output_params = Plugin.finalize_attr('output_params')
     has_output_params = tuple()
 
+    internal_options = tuple()
+
     msg_summary = None
     msg_truncated = _('Results are truncated, try a more specific search')
 
@@ -520,7 +523,13 @@ class Command(HasParam):
     def __options_2_params(self, options):
         for name in self.params:
             if name in options:
-                yield (name, options[name])
+                yield (name, options.pop(name))
+        # If any options remain, they are either internal or unknown
+        unused_keys = set(options).difference(self.internal_options)
+        unused_keys.discard('version')
+        if unused_keys:
+            raise OptionError(_('Unknown option: %(option)s'),
+                option=unused_keys.pop())
 
     def args_options_2_entry(self, *args, **options):
         """

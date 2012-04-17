@@ -787,6 +787,8 @@ class automountkey_add(LDAPCreate):
 
     msg_summary = _('Added automount key "%(value)s"')
 
+    internal_options = ['description', 'add_operation']
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         options.pop('add_operation', None)
         options.pop('description', None)
@@ -846,7 +848,7 @@ class automountmap_add_indirect(LDAPCreate):
                 self.api.Command['automountmap_show'](location, parentmap)
                 # Add a submount key
                 self.api.Command['automountkey_add'](
-                    location, parentmap, automountkey=key, key=key,
+                    location, parentmap, automountkey=key,
                     automountinformation='-fstype=autofs ldap:%s' % map)
             else: # adding to auto.master
                 # Ensure auto.master exists
@@ -909,6 +911,8 @@ class automountkey_mod(LDAPUpdate):
     __doc__ = _('Modify an automount key.')
 
     msg_summary = _('Modified automount key "%(value)s"')
+
+    internal_options = ['newautomountkey']
 
     takes_options = LDAPUpdate.takes_options + (
         IA5Str('newautomountinformation?',

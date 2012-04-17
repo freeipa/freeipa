@@ -726,7 +726,7 @@ class test_netgroup(Declarative):
 
 
         dict(
-            desc='Add duplicatehost %r to netgroup %r' % (host1, netgroup1),
+            desc='Add duplicate host %r to netgroup %r' % (host1, netgroup1),
             command=(
                 'netgroup_add_member', [netgroup1], dict(host=host1)
             ),
@@ -960,8 +960,8 @@ class test_netgroup(Declarative):
         ),
 
         dict(
-            desc='Search for all netgroups using empty memberuser',
-            command=('netgroup_find', [], dict(memberuser=None)),
+            desc='Search for all netgroups using empty member user',
+            command=('netgroup_find', [], dict(user=None)),
             expected=dict(
                 count=2,
                 truncated=False,

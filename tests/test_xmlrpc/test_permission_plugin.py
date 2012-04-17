@@ -644,6 +644,18 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Search using nonexistent --subtree',
+            command=('permission_find', [], {'subtree': u'foo'}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 permissions matched',
+                result=[],
+            ),
+        ),
+
+
+        dict(
             desc='Delete %r' % permission1_renamed_ucase,
             command=('permission_del', [permission1_renamed_ucase], {}),
             expected=dict(

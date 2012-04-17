@@ -610,6 +610,8 @@ class aci_mod(crud.Update):
 
     takes_options = (_prefix_option,)
 
+    internal_options = ['rename']
+
     msg_summary = _('Modified ACI "%(value)s"')
 
     def execute(self, aciname, **kw):

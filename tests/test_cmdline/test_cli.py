@@ -128,8 +128,7 @@ class TestCLIParsing(object):
     def test_dnsrecord_del_all(self):
         try:
             self.run_command('dnszone_add', idnsname=u'test-example.com',
-                idnssoamname=u'ns.test-example.com',
-                admin_email=u'devnull@test-example.com', force=True)
+                idnssoamname=u'ns.test-example.com', force=True)
         except errors.NotFound:
             raise nose.SkipTest('DNS is not configured')
         try:
@@ -162,8 +161,7 @@ class TestCLIParsing(object):
     def test_dnsrecord_del_one_by_one(self):
         try:
             self.run_command('dnszone_add', idnsname=u'test-example.com',
-                idnssoamname=u'ns.test-example.com',
-                admin_email=u'devnull@test-example.com', force=True)
+                idnssoamname=u'ns.test-example.com', force=True)
         except errors.NotFound:
             raise nose.SkipTest('DNS is not configured')
         try:

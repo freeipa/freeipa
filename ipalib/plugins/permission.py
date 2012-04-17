@@ -90,6 +90,16 @@ output_params = (
     ),
 )
 
+def filter_options(options, keys):
+    """Return a dict that includes entries from `options` that are in `keys`
+
+    example:
+    >>> filtered = filter_options({'a': 1, 'b': 2, 'c': 3}, ['a', 'c'])
+    >>> filtered == {'a': 1, 'c': 3}
+    True
+    """
+    return dict((k, options[k]) for k in keys if k in options)
+
 class permission(LDAPObject):
     """
     Permission object.
@@ -331,7 +341,7 @@ class permission_mod(LDAPUpdate):
 
             cn = options['rename']     # rename finished
 
-        common_options = dict((k, options[k]) for k in ('all', 'raw') if k in options)
+        common_options = filter_options(options, ['all', 'raw'])
         result = self.api.Command.permission_show(cn, **common_options)['result']
         for r in result:
             if not r.startswith('member_'):
@@ -350,12 +360,19 @@ class permission_find(LDAPSearch):
     has_output_params = LDAPSearch.has_output_params + output_params
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+
+        # There is an option/param overlap: "cn" must be passed as "aciname"
+        # to aci-find. Besides that we don't need cn anymore so pop it
+        aciname = options.pop('cn', None)
+
         pkey_only = options.pop('pkey_only', False)
         if not pkey_only:
             for entry in entries:
                 (dn, attrs) = entry
                 try:
-                    aci = self.api.Command.aci_show(attrs['cn'][0], aciprefix=ACI_PREFIX, **options)['result']
+                    common_options = filter_options(options, ['all', 'raw'])
+                    aci = self.api.Command.aci_show(attrs['cn'][0],
+                        aciprefix=ACI_PREFIX, **common_options)['result']
 
                     # copy information from respective ACI to permission entry
                     for attr in self.obj.aci_attributes:
@@ -377,23 +394,16 @@ class permission_find(LDAPSearch):
         # aren't already in the list along with their permission info.
 
         opts = copy.copy(options)
+        if aciname:
+            opts['aciname'] = aciname
         opts['aciprefix'] = ACI_PREFIX
-        try:
-            # permission ACI attribute is needed
-            del opts['raw']
-        except:
-            pass
-        if 'cn' in options:
-            # the attribute for name is difference in acis
-            opts['aciname'] = options['cn']
+        # permission ACI attribute is needed
+        opts.pop('raw', None)
+        opts.pop('sizelimit', None)
         aciresults = self.api.Command.aci_find(*args, **opts)
         truncated = truncated or aciresults['truncated']
         results = aciresults['result']
 
-        if 'cn' in options:
-            # there is an option/param overlap if --name is in the
-            # search list, we don't need cn anymore so drop it.
-            options.pop('cn')
         for aci in results:
             found = False
             if 'permission' in aci:
@@ -403,7 +413,9 @@ class permission_find(LDAPSearch):
                         found = True
                         break
                 if not found:
-                    permission = self.api.Command.permission_show(aci['permission'], **options)['result']
+                    common_options = filter_options(options, ['all', 'raw'])
+                    permission = self.api.Command.permission_show(
+                        aci['permission'], **common_options)['result']
                     dn = permission['dn']
                     del permission['dn']
                     if pkey_only:
@@ -429,8 +441,9 @@ class permission_show(LDAPRetrieve):
     has_output_params = LDAPRetrieve.has_output_params + output_params
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         try:
-            common_options = dict((k, options[k]) for k in ('all', 'raw') if k in options)
-            aci = self.api.Command.aci_show(keys[-1], aciprefix=ACI_PREFIX, **common_options)['result']
+            common_options = filter_options(options, ['all', 'raw'])
+            aci = self.api.Command.aci_show(keys[-1], aciprefix=ACI_PREFIX,
+                **common_options)['result']
             for attr in self.obj.aci_attributes:
                 if attr in aci:
                     entry_attrs[attr] = aci[attr]

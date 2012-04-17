@@ -511,6 +511,11 @@ class test_Command(ClassChecker):
         assert e.count == 2
         assert str(e) == "command 'example' takes at most 2 arguments"
 
+        # Test that OptionError is raised when an extra option is given:
+        o = self.get_instance()
+        e = raises(errors.OptionError, o.args_options_2_params, bad_option=True)
+        assert e.option == 'bad_option'
+
         # Test that OverlapError is raised:
         o = self.get_instance(args=('one', 'two'), options=('three', 'four'))
         e = raises(errors.OverlapError, o.args_options_2_params,
