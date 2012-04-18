@@ -186,7 +186,7 @@ def install_http(config, auto_redirect):
                        config.dir + "/http_pin.txt")
 
     memcache = memcacheinstance.MemcacheInstance()
-    memcache.create_instance('MEMCACHE', config.host_name, config.dirman_password, util.realm_to_suffix(config.realm_name))
+    memcache.create_instance('MEMCACHE', config.host_name, config.dirman_password, ipautil.realm_to_suffix(config.realm_name))
 
     http = httpinstance.HTTPInstance()
     http.create_instance(config.realm_name, config.host_name, config.domain_name, config.dirman_password, False, pkcs12_info, self_signed_ca=True, auto_redirect=auto_redirect)
@@ -236,7 +236,7 @@ def install_bind(config, options):
 def install_dns_records(config, options):
 
     if not bindinstance.dns_container_exists(config.master_host_name,
-                                             util.realm_to_suffix(config.realm_name),
+                                             ipautil.realm_to_suffix(config.realm_name),
                                              dm_password=config.dirman_password):
         return
 
@@ -355,7 +355,7 @@ def main():
         fd = open("/etc/ipa/default.conf", "w")
         fd.write("[global]\n")
         fd.write("host=" + config.host_name + "\n")
-        fd.write("basedn=" + util.realm_to_suffix(config.realm_name) + "\n")
+        fd.write("basedn=" + ipautil.realm_to_suffix(config.realm_name) + "\n")
         fd.write("realm=" + config.realm_name + "\n")
         fd.write("domain=" + config.domain_name + "\n")
         fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % ipautil.format_netloc(config.host_name))
@@ -434,7 +434,7 @@ def main():
     # We need to ldap_enable the CA now that DS is up and running
     if CA and config.setup_ca:
         CA.ldap_enable('CA', config.host_name, config.dirman_password,
-                       util.realm_to_suffix(config.realm_name))
+                       ipautil.realm_to_suffix(config.realm_name))
         cs.add_simple_service('dogtagldap/%s@%s' % (config.host_name, config.realm_name))
         cs.add_cert_to_service()
 

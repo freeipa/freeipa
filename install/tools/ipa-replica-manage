@@ -126,13 +126,13 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
         else:
             conn.do_sasl_gssapi_bind()
 
-        dn = 'cn=masters,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)
+        dn = 'cn=masters,cn=ipa,cn=etc,%s' % ipautil.realm_to_suffix(realm)
         entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
 
         for ent in entries:
             peers[ent.cn] = ['master', '']
 
-        dn = 'cn=replicas,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)
+        dn = 'cn=replicas,cn=ipa,cn=etc,%s' % ipautil.realm_to_suffix(realm)
         entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
 
         for ent in entries:
@@ -255,7 +255,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     if type1 == replication.WINSYNC:
         try:
             dn = 'cn=%s,cn=replicas,cn=ipa,cn=etc,%s' % (replica2,
-                                                         util.realm_to_suffix(realm))
+                                                         ipautil.realm_to_suffix(realm))
             entries = repl1.conn.search_s(dn, ldap.SCOPE_SUBTREE)
             if len(entries) != 0:
                 dnset = repl1.conn.get_dns_sorted_by_length(entries,

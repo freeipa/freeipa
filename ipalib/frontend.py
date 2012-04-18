@@ -26,7 +26,6 @@ import inspect
 from base import lock, check_name, NameSpace
 from plugable import Plugin, is_production_mode
 from parameters import create_param, parse_param_spec, Param, Str, Flag, Password
-from util import make_repr
 from output import Output, Entry, ListOfEntries
 from text import _, ngettext
 

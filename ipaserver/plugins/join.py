@@ -21,11 +21,13 @@
 Joining an IPA domain
 """
 
+import krbV
+
 from ipalib import api, util
 from ipalib import Command, Str
 from ipalib import errors
-import krbV
 from ipalib import _
+from ipaserver.install import installutils
 
 def get_realm():
     """
@@ -52,7 +54,7 @@ class join(Command):
             validate_host,
             cli_name='hostname',
             doc=_("The hostname to register as"),
-            default_from=lambda: unicode(util.get_fqdn()),
+            default_from=lambda: unicode(installutils.get_fqdn()),
             autofill=True,
             #normalizer=lamda value: value.lower(),
         ),

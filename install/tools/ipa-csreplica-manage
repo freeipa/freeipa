@@ -165,7 +165,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
         conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
         conn.do_simple_bind(bindpw=dirman_passwd)
 
-        dn = str(DN('cn=masters,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)))
+        dn = str(DN('cn=masters,cn=ipa,cn=etc,%s' % ipautil.realm_to_suffix(realm)))
         entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
 
         for ent in entries:
@@ -316,7 +316,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         conn = ipaldap.IPAdmin(replica2, 636, cacert=CACERT)
         conn.do_simple_bind(bindpw=dirman_passwd)
 
-        dn = str(DN('cn=CA,cn=%s,cn=masters,cn=ipa,cn=etc,%s' % (replica2, util.realm_to_suffix(realm))))
+        dn = str(DN('cn=CA,cn=%s,cn=masters,cn=ipa,cn=etc,%s' % (replica2, ipautil.realm_to_suffix(realm))))
         conn.search_s(dn, ldap.SCOPE_ONELEVEL)
         conn.unbind_s()
     except ldap.NO_SUCH_OBJECT:

@@ -21,17 +21,6 @@
 Test the `ipalib.util` module.
 """
 
-from tests.util import raises
 from ipalib import util
 
 
-def test_make_repr():
-    """
-    Test the `ipalib.util.make_repr` function.
-    """
-    f = util.make_repr
-    assert f('my') == 'my()'
-    assert f('my', True, u'hello') == "my(True, u'hello')"
-    assert f('my', one=1, two='two') == "my(one=1, two='two')"
-    assert f('my', None, 3, dog='animal', apple='fruit') == \
-        "my(None, 3, apple='fruit', dog='animal')"

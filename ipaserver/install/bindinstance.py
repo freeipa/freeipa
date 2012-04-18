@@ -395,7 +395,7 @@ class BindInstance(service.Service):
         self.domain = domain_name
         self.forwarders = forwarders
         self.host = fqdn.split(".")[0]
-        self.suffix = util.realm_to_suffix(self.realm)
+        self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ntp = ntp
         self.reverse_zone = reverse_zone
         self.zone_refresh = zone_refresh
@@ -614,7 +614,7 @@ class BindInstance(service.Service):
         self.realm = realm_name
         self.domain = domain_name
         self.host = fqdn.split(".")[0]
-        self.suffix = util.realm_to_suffix(self.realm)
+        self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ntp = ntp
         self.reverse_zone = reverse_zone
 
@@ -622,7 +622,7 @@ class BindInstance(service.Service):
 
     def remove_master_dns_records(self, fqdn, realm_name, domain_name):
         host = fqdn.split(".")[0]
-        suffix = util.realm_to_suffix(realm_name)
+        suffix = ipautil.realm_to_suffix(realm_name)
 
         zone = domain_name
         resource_records = (

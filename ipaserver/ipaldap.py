@@ -34,7 +34,7 @@ import ldap.sasl
 import ldapurl
 from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
-from ipaserver import ipautil
+from ipapython import ipautil
 from ipalib import errors
 from ipapython.ipautil import format_netloc
 from ipapython.entity import Entity

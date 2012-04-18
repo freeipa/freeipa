@@ -143,7 +143,7 @@ def main():
 
     # We need to ldap_enable the CA now that DS is up and running
     CA.ldap_enable('CA', config.host_name, config.dirman_password,
-                   util.realm_to_suffix(config.realm_name))
+                   ipautil.realm_to_suffix(config.realm_name))
     cs.add_simple_service('dogtagldap/%s@%s' % (config.host_name, config.realm_name))
     cs.add_cert_to_service()
 

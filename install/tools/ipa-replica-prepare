@@ -307,7 +307,7 @@ def main():
     enable_replication_version_checking(api.env.host, api.env.realm,
         dirman_password)
 
-    subject_base = get_subject_base(api.env.host, dirman_password, util.realm_to_suffix(api.env.realm))
+    subject_base = get_subject_base(api.env.host, dirman_password, ipautil.realm_to_suffix(api.env.realm))
 
     top_dir = tempfile.mkdtemp("ipa")
     dir = top_dir + "/realm_info"

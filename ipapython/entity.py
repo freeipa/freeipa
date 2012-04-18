@@ -17,18 +17,7 @@
 
 import copy
 
-import ipapython.ipautil
-
-def utf8_encode_value(value):
-    if isinstance(value,unicode):
-        return value.encode('utf-8')
-    return value
-
-def utf8_encode_values(values):
-    if isinstance(values,list) or isinstance(values,tuple):
-        return map(utf8_encode_value, values)
-    else:
-        return utf8_encode_value(values)
+from ipapython import ipautil
 
 def copy_CIDict(x):
     """Do a deep copy of a CIDict"""
@@ -55,19 +44,19 @@ class Entity:
         if entrydata:
             if isinstance(entrydata,tuple):
                 self.dn = entrydata[0]
-                self.data = ipapython.ipautil.CIDict(entrydata[1])
+                self.data = ipautil.CIDict(entrydata[1])
             elif isinstance(entrydata,str) or isinstance(entrydata,unicode):
                 self.dn = entrydata
-                self.data = ipapython.ipautil.CIDict()
+                self.data = ipautil.CIDict()
             elif isinstance(entrydata,dict):
                 self.dn = entrydata['dn']
                 del entrydata['dn']
-                self.data = ipapython.ipautil.CIDict(entrydata)
+                self.data = ipautil.CIDict(entrydata)
         else:
             self.dn = ''
-            self.data = ipapython.ipautil.CIDict()
+            self.data = ipautil.CIDict()
 
-        self.orig_data = ipapython.ipautil.CIDict(copy_CIDict(self.data))
+        self.orig_data = ipautil.CIDict(copy_CIDict(self.data))
 
     def __nonzero__(self):
         """This allows us to do tests like if entry: returns false if there is no data,
@@ -120,9 +109,9 @@ class Entity:
         if (len(value) < 1):
             return
         if (len(value) == 1):
-            self.data[name] = utf8_encode_values(value[0])
+            self.data[name] = ipautil.utf8_encode_values(value[0])
         else:
-            self.data[name] = utf8_encode_values(value)
+            self.data[name] = ipautil.utf8_encode_values(value)
 
     setValues = setValue
 
@@ -161,7 +150,7 @@ class Entity:
     def toDict(self):
         """Convert the attrs and values to a dict. The dict is keyed on the
         attribute name.  The value is either single value or a list of values."""
-        result = ipapython.ipautil.CIDict(self.data)
+        result = ipautil.CIDict(self.data)
         result['dn'] = self.dn
         return result
 
@@ -171,7 +160,7 @@ class Entity:
 
     def origDataDict(self):
         """Returns a dict of the original values of the user.  Used for updates."""
-        result = ipapython.ipautil.CIDict(self.orig_data)
+        result = ipautil.CIDict(self.orig_data)
         result['dn'] = self.dn
         return result
 

@@ -105,7 +105,7 @@ class ReplicationManager(object):
         self.dirman_passwd = dirman_passwd
         self.realm = realm
         self.starttls = starttls
-        tmp = util.realm_to_suffix(realm)
+        tmp = ipautil.realm_to_suffix(realm)
         self.suffix = str(DN(tmp)).lower()
         self.need_memberof_fixup = False
 

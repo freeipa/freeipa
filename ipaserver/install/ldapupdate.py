@@ -79,7 +79,7 @@ class LDAPUpdate:
             krbctx = krbV.default_context()
             try:
                 self.realm = krbctx.default_realm
-                suffix = util.realm_to_suffix(self.realm)
+                suffix = ipautil.realm_to_suffix(self.realm)
             except krbV.Krb5Error:
                 self.realm = None
                 suffix = None

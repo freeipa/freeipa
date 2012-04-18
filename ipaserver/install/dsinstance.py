@@ -167,7 +167,7 @@ class DsInstance(service.Service):
         self.open_ports = []
         self.run_init_memberof = True
         if realm_name:
-            self.suffix = util.realm_to_suffix(self.realm_name)
+            self.suffix = ipautil.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
         else:
             self.suffix = None
@@ -218,7 +218,7 @@ class DsInstance(service.Service):
                         hbac_allow=True):
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
-        self.suffix = util.realm_to_suffix(self.realm_name)
+        self.suffix = ipautil.realm_to_suffix(self.realm_name)
         self.fqdn = fqdn
         self.dm_password = dm_password
         self.domain = domain_name
@@ -251,7 +251,7 @@ class DsInstance(service.Service):
                        domain_name, dm_password, pkcs12_info=None):
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
-        self.suffix = util.realm_to_suffix(self.realm_name)
+        self.suffix = ipautil.realm_to_suffix(self.realm_name)
         self.master_fqdn = master_fqdn
         self.fqdn = fqdn
         self.dm_password = dm_password

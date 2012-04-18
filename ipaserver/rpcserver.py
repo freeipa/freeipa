@@ -31,7 +31,7 @@ from ipalib.backend import Executioner
 from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
-from ipalib.util import make_repr, parse_time_duration
+from ipalib.util import parse_time_duration
 from ipalib.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython.compat import json

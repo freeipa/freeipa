@@ -62,7 +62,7 @@ class HTTPInstance(service.Service):
         self.realm = realm
         self.domain = domain_name
         self.dm_password = dm_password
-        self.suffix = util.realm_to_suffix(self.realm)
+        self.suffix = ipautil.realm_to_suffix(self.realm)
         self.pkcs12_info = pkcs12_info
         self.self_signed_ca = self_signed_ca
         self.principal = "HTTP/%s@%s" % (self.fqdn, self.realm)

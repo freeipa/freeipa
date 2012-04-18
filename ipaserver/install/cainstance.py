@@ -240,7 +240,7 @@ class CADSInstance(service.Service):
         if host_name and realm_name:
             self.principal = "dogtagldap/%s@%s" % (self.fqdn, self.realm_name)
         if realm_name:
-            self.suffix = util.realm_to_suffix(self.realm_name)
+            self.suffix = ipautil.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
         else:
             self.suffix = None
@@ -250,7 +250,7 @@ class CADSInstance(service.Service):
                         subject_base=None):
         self.ds_port = ds_port
         self.realm_name = realm_name.upper()
-        self.suffix = util.realm_to_suffix(self.realm_name)
+        self.suffix = ipautil.realm_to_suffix(self.realm_name)
         self.fqdn = host_name
         self.dm_password = dm_password
         self.domain = domain_name

@@ -61,16 +61,6 @@ def get_current_principal():
         #TODO: do a kinit?
         raise errors.CCacheError()
 
-def get_fqdn():
-    fqdn = ""
-    try:
-        fqdn = socket.getfqdn()
-    except:
-        try:
-            fqdn = socket.gethostname()
-        except:
-            fqdn = ""
-    return fqdn
 
 # FIXME: This function has no unit test
 def find_modules_in_dir(src_dir):
@@ -93,43 +83,6 @@ def find_modules_in_dir(src_dir):
             continue
         yield (module, pyfile)
 
-
-# FIXME: This function has no unit test
-def load_plugins_in_dir(src_dir):
-    """
-    Import each Python module found in ``src_dir``.
-    """
-    for module in find_modules_in_dir(src_dir):
-        imp.load_module(module, *imp.find_module(module, [src_dir]))
-
-
-# FIXME: This function has no unit test
-def import_plugins_subpackage(name):
-    """
-    Import everythig in ``plugins`` sub-package of package named ``name``.
-    """
-    try:
-        plugins = __import__(name + '.plugins').plugins
-    except ImportError:
-        return
-    src_dir = os.path.dirname(os.path.abspath(plugins.__file__))
-    for name in find_modules_in_dir(src_dir):
-        full_name = '%s.%s' % (plugins.__name__, name)
-        __import__(full_name)
-
-
-def make_repr(name, *args, **kw):
-    """
-    Construct a standard representation of a class instance.
-    """
-    args = [repr(a) for a in args]
-    kw = ['%s=%r' % (k, kw[k]) for k in sorted(kw)]
-    return '%s(%s)' % (name, ', '.join(args + kw))
-
-def realm_to_suffix(realm_name):
-    s = realm_name.split(".")
-    terms = ["dc=" + x.lower() for x in s]
-    return ",".join(terms)
 
 def validate_host_dns(log, fqdn):
     """
