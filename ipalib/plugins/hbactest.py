@@ -325,7 +325,7 @@ class hbactest(Command):
                     srchost_result = self.api.Command.host_show(request.srchost.name)['result']
                     groups = srchost_result['memberof_hostgroup']
                     if 'memberofindirect_hostgroup' in srchost_result:
-                        groups += search_result['memberofindirect_hostgroup']
+                        groups += srchost_result['memberofindirect_hostgroup']
                     request.srchost.groups = sorted(set(groups))
                 except:
                      pass
@@ -338,7 +338,7 @@ class hbactest(Command):
                 tgthost_result = self.api.Command.host_show(request.targethost.name)['result']
                 groups = tgthost_result['memberof_hostgroup']
                 if 'memberofindirect_hostgroup' in tgthost_result:
-                    groups += search_result['memberofindirect_hostgroup']
+                    groups += tgthost_result['memberofindirect_hostgroup']
                 request.targethost.groups = sorted(set(groups))
             except:
                 pass
