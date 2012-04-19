@@ -374,20 +374,19 @@ class permission_mod(LDAPUpdate):
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
-        if isinstance(exc, errors.EmptyModlist):
-            aciupdate = getattr(context, 'aciupdate')
-            opts = copy.copy(options)
-            # Clear the aci attributes out of the permission entry
-            for o in self.obj.aci_attributes + ['all', 'raw', 'rights']:
-                try:
-                    del opts[o]
-                except:
-                    pass
-
-            if len(opts) > 0 and not aciupdate:
-                raise exc
-        else:
-            raise exc
+        if call_func.func_name == 'update_entry':
+            if isinstance(exc, errors.EmptyModlist):
+                aciupdate = getattr(context, 'aciupdate')
+                opts = copy.copy(options)
+                # Clear the aci attributes out of the permission entry
+                for o in self.obj.aci_attributes + ['all', 'raw', 'rights']:
+                    try:
+                        del opts[o]
+                    except:
+                        pass
+                if len(opts) == 0 or aciupdate:
+                    return
+        raise exc
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # rename the underlying ACI after the change to permission

@@ -642,12 +642,12 @@ class entitle_import(LDAPUpdate):
         If we are adding the first entry there are no updates so EmptyModlist
         will get thrown. Ignore it.
         """
-        if isinstance(exc, errors.EmptyModlist):
-            if not getattr(context, 'entitle_import', False):
-                raise exc
-            return (call_args, {})
-        else:
-            raise exc
+        if call_func.func_name == 'update_entry':
+            if isinstance(exc, errors.EmptyModlist):
+                if not getattr(context, 'entitle_import', False):
+                    raise exc
+                return (call_args, {})
+        raise exc
 
     def execute(self, *keys, **options):
         super(entitle_import, self).execute(*keys, **options)
@@ -729,9 +729,10 @@ class entitle_sync(LDAPUpdate):
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
-        if isinstance(exc, errors.EmptyModlist):
-            # If there is nothing to change we are already synchronized.
-            return
+        if call_func.func_name == 'update_entry':
+            if isinstance(exc, errors.EmptyModlist):
+                # If there is nothing to change we are already synchronized.
+                return
         raise exc
 
 api.register(entitle_sync)

@@ -744,26 +744,28 @@ class CallbackInterface(Method):
         else:
             klass.INTERACTIVE_PROMPT_CALLBACKS.append(callback)
 
-    def _call_exc_callbacks(self, args, options, exc, call_func, *call_args, **call_kwargs):
-        rv = None
-        for i in xrange(len(getattr(self, 'EXC_CALLBACKS', []))):
-            callback = self.EXC_CALLBACKS[i]
-            try:
-                if hasattr(callback, 'im_self'):
-                    rv = callback(
-                        args, options, exc, call_func, *call_args, **call_kwargs
-                    )
-                else:
-                    rv = callback(
-                        self, args, options, exc, call_func, *call_args,
-                        **call_kwargs
-                    )
-            except errors.ExecutionError, e:
-                if (i + 1) < len(self.EXC_CALLBACKS):
-                    exc = e
-                    continue
-                raise e
-        return rv
+    def _exc_wrapper(self, keys, options, call_func):
+        """Function wrapper that automatically calls exception callbacks"""
+        def wrapped(*call_args, **call_kwargs):
+            # call call_func first
+            func = call_func
+            callbacks = list(getattr(self, 'EXC_CALLBACKS', []))
+            while True:
+                try:
+                    return func(*call_args, **call_kwargs)
+                except errors.ExecutionError, e:
+                    if not callbacks:
+                        raise
+                    # call exc_callback in the next loop
+                    callback = callbacks.pop(0)
+                    if hasattr(callback, 'im_self'):
+                        def exc_func(*args, **kwargs):
+                            return callback(keys, options, e, call_func, *args, **kwargs)
+                    else:
+                        def exc_func(*args, **kwargs):
+                            return callback(self, keys, options, e, call_func, *args, **kwargs)
+                    func = exc_func
+        return wrapped
 
 
 class BaseLDAPCommand(CallbackInterface, Command):
@@ -883,17 +885,11 @@ last, after all sets and adds."""),
 
         if needldapattrs:
             try:
-                (dn, old_entry) = ldap.get_entry(
+                (dn, old_entry) = self._exc_wrapper(keys, options, ldap.get_entry)(
                     dn, needldapattrs, normalize=self.obj.normalize_dn
                 )
-            except errors.ExecutionError, e:
-                try:
-                    (dn, old_entry) = self._call_exc_callbacks(
-                        keys, options, e, ldap.get_entry, dn, [],
-                        normalize=self.obj.normalize_dn
-                    )
-                except errors.NotFound:
-                    self.obj.handle_not_found(*keys)
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
             for attr in needldapattrs:
                 entry_attrs[attr] = old_entry.get(attr, [])
 
@@ -1019,29 +1015,23 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
 
         try:
-            ldap.add_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
-        except errors.ExecutionError, e:
-            try:
-                self._call_exc_callbacks(
-                    keys, options, e, ldap.add_entry, dn, entry_attrs,
-                    normalize=self.obj.normalize_dn
-                )
-            except errors.NotFound:
-                parent = self.obj.parent_object
-                if parent:
-                    raise errors.NotFound(
-                        reason=self.obj.parent_not_found_msg % {
-                            'parent': keys[-2],
-                            'oname': self.api.Object[parent].object_name,
-                        }
-                    )
+            self._exc_wrapper(keys, options, ldap.add_entry)(dn, entry_attrs, normalize=self.obj.normalize_dn)
+        except errors.NotFound:
+            parent = self.obj.parent_object
+            if parent:
                 raise errors.NotFound(
-                    reason=self.obj.container_not_found_msg % {
-                        'container': self.obj.container_dn,
+                    reason=self.obj.parent_not_found_msg % {
+                        'parent': keys[-2],
+                        'oname': self.api.Object[parent].object_name,
                     }
                 )
-            except errors.DuplicateEntry:
-                self.obj.handle_duplicate_entry(*keys)
+            raise errors.NotFound(
+                reason=self.obj.container_not_found_msg % {
+                    'container': self.obj.container_dn,
+                }
+            )
+        except errors.DuplicateEntry:
+            self.obj.handle_duplicate_entry(*keys)
 
         try:
             if self.obj.rdn_attribute:
@@ -1050,22 +1040,16 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
                     object_class = self.obj.object_class
                 else:
                     object_class = None
-                (dn, entry_attrs) = ldap.find_entry_by_attr(
+                (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.find_entry_by_attr)(
                     self.obj.primary_key.name, keys[-1], object_class, attrs_list,
                     self.obj.container_dn
                 )
             else:
-                (dn, entry_attrs) = ldap.get_entry(
+                (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
                     dn, attrs_list, normalize=self.obj.normalize_dn
                 )
-        except errors.ExecutionError, e:
-            try:
-                (dn, entry_attrs) = self._call_exc_callbacks(
-                    keys, options, e, ldap.get_entry, dn, attrs_list,
-                    normalize=self.obj.normalize_dn
-                )
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -1181,17 +1165,11 @@ class LDAPRetrieve(LDAPQuery):
                 dn = callback(self, ldap, dn, attrs_list, *keys, **options)
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(
+            (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.ExecutionError, e:
-            try:
-                (dn, entry_attrs) = self._call_exc_callbacks(
-                    keys, options, e, ldap.get_entry, dn, attrs_list,
-                    normalize=self.obj.normalize_dn
-                )
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         if options.get('rights', False) and options.get('all', False):
             entry_attrs['attributelevelrights'] = get_effective_rights(ldap, dn)
@@ -1297,7 +1275,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
             if self.obj.rdn_is_primary_key and self.obj.primary_key.name in entry_attrs:
                 # RDN change
-                ldap.update_entry_rdn(dn,
+                self._exc_wrapper(keys, options, ldap.update_entry_rdn)(dn,
                     unicode('%s=%s' % (self.obj.primary_key.name,
                     entry_attrs[self.obj.primary_key.name])))
                 rdnkeys = keys[:-1] + (entry_attrs[self.obj.primary_key.name], )
@@ -1306,37 +1284,25 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 options['rdnupdate'] = True
                 rdnupdate = True
 
-            ldap.update_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
-        except errors.ExecutionError, e:
             # Exception callbacks will need to test for options['rdnupdate']
             # to decide what to do. An EmptyModlist in this context doesn't
             # mean an error occurred, just that there were no other updates to
             # perform.
-            try:
-                self._call_exc_callbacks(
-                    keys, options, e, ldap.update_entry, dn, entry_attrs,
-                    normalize=self.obj.normalize_dn
-                )
-            except errors.EmptyModlist, e:
-                if not rdnupdate:
-                    raise e
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+            self._exc_wrapper(keys, options, ldap.update_entry)(dn, entry_attrs, normalize=self.obj.normalize_dn)
+        except errors.EmptyModlist, e:
+            if not rdnupdate:
+                raise e
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(
+            (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.ExecutionError, e:
-            try:
-                (dn, entry_attrs) = self._call_exc_callbacks(
-                    keys, options, e, ldap.get_entry, dn, attrs_list,
-                    normalize=self.obj.normalize_dn
-                )
-            except errors.NotFound:
-                raise errors.MidairCollision(
-                    format=_('the entry was deleted while being modified')
-                )
+        except errors.NotFound:
+            raise errors.MidairCollision(
+                format=_('the entry was deleted while being modified')
+            )
 
         if options.get('rights', False) and options.get('all', False):
             entry_attrs['attributelevelrights'] = get_effective_rights(ldap, dn)
@@ -1399,15 +1365,9 @@ class LDAPDelete(LDAPMultiQuery):
                         for (dn_, entry_attrs) in subentries:
                             delete_subtree(dn_)
                 try:
-                    ldap.delete_entry(base_dn, normalize=self.obj.normalize_dn)
-                except errors.ExecutionError, e:
-                    try:
-                        self._call_exc_callbacks(
-                            nkeys, options, e, ldap.delete_entry, base_dn,
-                            normalize=self.obj.normalize_dn
-                        )
-                    except errors.NotFound:
-                        self.obj.handle_not_found(*nkeys)
+                    self._exc_wrapper(nkeys, options, ldap.delete_entry)(base_dn, normalize=self.obj.normalize_dn)
+                except errors.NotFound:
+                    self.obj.handle_not_found(*nkeys)
 
             delete_subtree(dn)
 
@@ -1560,17 +1520,11 @@ class LDAPAddMember(LDAPModMember):
             )
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(
+            (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.ExecutionError, e:
-            try:
-                (dn, entry_attrs) = self._call_exc_callbacks(
-                    keys, options, e, ldap.get_entry, dn, attrs_list,
-                    normalize=self.obj.normalize_dn
-                )
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -1668,17 +1622,11 @@ class LDAPRemoveMember(LDAPModMember):
         time.sleep(.3)
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(
+            (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.ExecutionError, e:
-            try:
-                (dn, entry_attrs) = self._call_exc_callbacks(
-                    keys, options, e, ldap.get_entry, dn, attrs_list,
-                    normalize=self.obj.normalize_dn
-                )
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -1884,20 +1832,13 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 )
 
         try:
-            (entries, truncated) = ldap.find_entries(
+            (entries, truncated) = self._exc_wrapper(args, options, ldap.find_entries)(
                 filter, attrs_list, base_dn, scope,
                 time_limit=options.get('timelimit', None),
                 size_limit=options.get('sizelimit', None)
             )
-        except errors.ExecutionError, e:
-            try:
-                (entries, truncated) = self._call_exc_callbacks(
-                    args, options, e, ldap.find_entries, filter, attrs_list,
-                    base_dn, scope=ldap.SCOPE_ONELEVEL,
-                    normalize=self.obj.normalize_dn
-                )
-            except errors.NotFound:
-                (entries, truncated) = ([], False)
+        except errors.NotFound:
+            (entries, truncated) = ([], False)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -2030,21 +1971,15 @@ class LDAPAddReverseMember(LDAPModReverseMember):
             try:
                 options = {'%s' % self.member_attr: keys[-1]}
                 try:
-                    result = self.api.Command[self.member_command](attr, **options)
+                    result = self._exc_wrapper(keys, options, self.api.Command[self.member_command])(attr, **options)
                     if result['completed'] == 1:
                         completed = completed + 1
                     else:
                         failed['member'][self.reverse_attr].append((attr, result['failed']['member'][self.member_attr][0][1]))
-                except errors.ExecutionError, e:
-                    try:
-                        (dn, entry_attrs) = self._call_exc_callbacks(
-                            keys, options, e, self.member_command, dn, attrs_list,
-                            normalize=self.obj.normalize_dn
-                        )
-                    except errors.NotFound, e:
-                        msg = str(e)
-                        (attr, msg) = msg.split(':', 1)
-                        failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
+                except errors.NotFound, e:
+                    msg = str(e)
+                    (attr, msg) = msg.split(':', 1)
+                    failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
 
             except errors.PublicError, e:
                 failed['member'][self.reverse_attr].append((attr, unicode(msg)))
@@ -2143,21 +2078,15 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
             try:
                 options = {'%s' % self.member_attr: keys[-1]}
                 try:
-                    result = self.api.Command[self.member_command](attr, **options)
+                    result = self._exc_wrapper(keys, options, self.api.Command[self.member_command])(attr, **options)
                     if result['completed'] == 1:
                         completed = completed + 1
                     else:
                         failed['member'][self.reverse_attr].append((attr, result['failed']['member'][self.member_attr][0][1]))
-                except errors.ExecutionError, e:
-                    try:
-                        (dn, entry_attrs) = self._call_exc_callbacks(
-                            keys, options, e, self.member_command, dn, attrs_list,
-                            normalize=self.obj.normalize_dn
-                        )
-                    except errors.NotFound, e:
-                        msg = str(e)
-                        (attr, msg) = msg.split(':', 1)
-                        failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
+                except errors.NotFound, e:
+                    msg = str(e)
+                    (attr, msg) = msg.split(':', 1)
+                    failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
 
             except errors.PublicError, e:
                 failed['member'][self.reverse_attr].append((attr, unicode(msg)))
