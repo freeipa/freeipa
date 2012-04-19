@@ -78,7 +78,7 @@ def parse_options():
                       action="store_true", default=False,
                       help="create home directories for users on their first login")
     basic_group.add_option("", "--hostname", dest="hostname",
-                      help="The hostname of this server (FQDN). If specified, the hostname will be set and "
+                      help="The hostname of this machine (FQDN). If specified, the hostname will be set and "
                            "the system configuration will be updated to persist over reboot. "
                            "By default a nodename result from uname(2) is used.")
     basic_group.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
