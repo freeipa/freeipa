@@ -73,6 +73,7 @@ class IPATypeChecker(TypeChecker):
         'ipalib.session.SessionManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipalib.session.SessionCCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipalib.session.MemcacheSessionManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
+        'ipapython.admintool.AdminTool' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
     }
 
     def _related_classes(self, klass):

@@ -825,7 +825,7 @@ class LDAPUpdate:
                     data = self.read_file(f)
                 except Exception, e:
                     print e
-                    sys.exit(1)
+                    sys.exit(e)
 
                 (all_updates, dn_list) = self.parse_update_file(data, all_updates, dn_list)
 

@@ -32,12 +32,14 @@ import tempfile
 import shutil
 from ConfigParser import SafeConfigParser
 import traceback
+import textwrap
 
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 import ldap
 
-from ipapython import ipautil, sysrestore
+from ipapython import ipautil, sysrestore, admintool
+from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import *
 from ipalib.util import validate_hostname
 from ipapython import config
@@ -60,18 +62,6 @@ class HostReverseLookupError(HostLookupError):
 
 class HostnameLocalhost(HostLookupError):
     pass
-
-
-class ScriptError(StandardError):
-    """An exception that records an error message and a return value
-    """
-    def __init__(self, msg = '', rval = 1):
-        self.msg = msg
-        self.rval = rval
-
-    def __str__(self):
-        return self.msg
-
 
 class ReplicaConfig:
     def __init__(self):
@@ -639,65 +629,65 @@ def run_script(main_function, operation_name, log_file_name=None,
             sys.exit(return_value)
 
     except BaseException, error:
-        handle_error(error, log_file_name)
+        message, exitcode = handle_error(error, log_file_name)
+        if message:
+            print >> sys.stderr, message
+        sys.exit(exitcode)
 
 
 def handle_error(error, log_file_name=None):
-    """Handle specific errors"""
+    """Handle specific errors. Returns a message and return code"""
 
     if isinstance(error, SystemExit):
-        sys.exit(error)
+        if isinstance(error.code, int):
+            return None, error.code
+        elif error.code is None:
+            return None, 0
+        else:
+            return str(error), 1
     if isinstance(error, RuntimeError):
-        sys.exit(error)
+        return str(error), 1
     if isinstance(error, KeyboardInterrupt):
-        print >> sys.stderr, "Cancelled."
-        sys.exit(1)
+        return "Cancelled.", 1
 
-    if isinstance(error, ScriptError):
-        if error.msg:
-            print >> sys.stderr, error.msg
-        sys.exit(error.rval)
+    if isinstance(error, admintool.ScriptError):
+        return error.msg, error.rval
 
     if isinstance(error, socket.error):
-        print >> sys.stderr, error
-        sys.exit(1)
+        return error, 1
 
     if isinstance(error, ldap.INVALID_CREDENTIALS):
-        print >> sys.stderr, "Invalid password"
-        sys.exit(1)
+        return "Invalid password", 1
     if isinstance(error, ldap.INSUFFICIENT_ACCESS):
-        print >> sys.stderr, "Insufficient access"
-        sys.exit(1)
+        return "Insufficient access", 1
     if isinstance(error, ldap.LOCAL_ERROR):
-        print >> sys.stderr, error.args[0]['info']
-        sys.exit(1)
+        return error.args[0]['info'], 1
     if isinstance(error, ldap.SERVER_DOWN):
-        print >> sys.stderr, error.args[0]['desc']
-        sys.exit(1)
+        return error.args[0]['desc'], 1
     if isinstance(error, ldap.LDAPError):
-        print >> sys.stderr, 'LDAP error: %s' % type(error).__name__
-        print >> sys.stderr, error.args[0]['info']
-        sys.exit(1)
+        return 'LDAP error: %s\n%s' % (
+            type(error).__name__, error.args[0]['info']), 1
 
     if isinstance(error, config.IPAConfigError):
-        print >> sys.stderr, "An IPA server to update cannot be found. Has one been configured yet?"
-        print >> sys.stderr, "The error was: %s" % error
-        sys.exit(1)
+        message = "An IPA server to update cannot be found. Has one been configured yet?"
+        message += "\nThe error was: %s" % error
+        return message, 1
     if isinstance(error, errors.LDAPError):
-        print >> sys.stderr, "An error occurred while performing operations: %s" % error
-        sys.exit(1)
+        return "An error occurred while performing operations: %s" % error, 1
 
     if isinstance(error, HostnameLocalhost):
-        print >> sys.stderr, "The hostname resolves to the localhost address (127.0.0.1/::1)"
-        print >> sys.stderr, "Please change your /etc/hosts file so that the hostname"
-        print >> sys.stderr, "resolves to the ip address of your network interface."
-        print >> sys.stderr, ""
-        print >> sys.stderr, "Please fix your /etc/hosts file and restart the setup program"
-        sys.exit(1)
+        message = textwrap.dedent("""
+            The hostname resolves to the localhost address (127.0.0.1/::1)
+            Please change your /etc/hosts file so that the hostname
+            resolves to the ip address of your network interface.
+
+            Please fix your /etc/hosts file and restart the setup program
+            """).strip()
+        return message, 1
 
     if log_file_name:
-        print >> sys.stderr, "Unexpected error - see %s for details:" % log_file_name
+        message = "Unexpected error - see %s for details:" % log_file_name
     else:
-        print >> sys.stderr, "Unexpected error"
-    print >> sys.stderr, '%s: %s' % (type(error).__name__, error)
-    sys.exit(1)
+        message = "Unexpected error"
+    message += '\n%s: %s' % (type(error).__name__, error)
+    return message, 1
