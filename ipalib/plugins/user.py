@@ -53,6 +53,10 @@ been issued.
 Password management is not a part of this module. For more information
 about this topic please see: ipa help passwd
 
+Account lockout on password failure happens per IPA master. The user-status
+command can be used to identify which master the user is locked out on.
+It is on that master the the administrator must unlock the user.
+
 EXAMPLES:
 
  Add a new user:
@@ -96,6 +100,9 @@ status_output_params = (
     ),
     Str('krblastfailedauth',
         label=_('Last failed authentication'),
+    ),
+    Str('now',
+        label=_('Time now'),
     ),
    )
 
@@ -725,7 +732,18 @@ class user_status(LDAPQuery):
     an administrator.
 
     This connects to each IPA master and displays the lockout status on
-    each one.""")
+    each one.
+
+    To determine whether an account is locked on a given server you need
+    to compare the number of failed logins and the time of the last failure.
+    For an account to be locked it must exceed the maxfail failures within
+    the failinterval duration as specified in the password policy associated
+    with the user.
+
+    The failed login counter is modified only when a user attempts a log in
+    so it is possible that an account may appear locked but the last failed
+    login attempt is older than the lockouttime of the password policy. This
+    means that the user may attempt a login again. """)
 
     has_output = output.standard_list_of_entries
     has_output_params = LDAPSearch.has_output_params + status_output_params
@@ -733,8 +751,9 @@ class user_status(LDAPQuery):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
         dn = self.obj.get_dn(*keys, **options)
-        attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth', 'krblastfailedauth']
+        attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth', 'krblastfailedauth', 'nsaccountlock']
 
+        disabled = False
         masters = []
         # Get list of masters
         try:
@@ -785,6 +804,14 @@ class user_status(LDAPQuery):
                             pass
                 newresult['dn'] = dn
                 newresult['server'] = host
+                if options.get('raw', False):
+                    time_format = '%Y%m%d%H%M%SZ'
+                else:
+                    time_format = '%Y-%m-%dT%H:%M:%SZ'
+                newresult['now'] = unicode(strftime(time_format, gmtime()))
+                convert_nsaccountlock(entry[1])
+                if 'nsaccountlock' in entry[1].keys():
+                    disabled = entry[1]['nsaccountlock']
                 entries.append(newresult)
                 count += 1
             except errors.NotFound:
@@ -803,6 +830,8 @@ class user_status(LDAPQuery):
         return dict(result=entries,
                     count=count,
                     truncated=False,
+                    summary=unicode(_('Account disabled: %(disabled)s' %
+                        dict(disabled=disabled))),
         )
 
 api.register(user_status)
