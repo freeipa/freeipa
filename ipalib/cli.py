@@ -1195,8 +1195,13 @@ class cli(backend.Executioner):
                     param.label, param.confirm
                 )
 
-        for callback in getattr(cmd, 'INTERACTIVE_PROMPT_CALLBACKS', []):
-            callback(kw)
+        try:
+            callbacks = cmd.get_callbacks('interactive_prompt')
+        except AttributeError:
+            pass
+        else:
+            for callback in callbacks:
+                callback(cmd, kw)
 
     def load_files(self, cmd, kw):
         """

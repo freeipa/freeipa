@@ -24,11 +24,12 @@ Test the `ipalib.plugins.baseldap` module.
 from ipalib import errors
 from ipalib.plugins import baseldap
 
+
 def test_exc_wrapper():
     """Test the CallbackInterface._exc_wrapper helper method"""
     handled_exceptions = []
 
-    class test_callback(baseldap.CallbackInterface):
+    class test_callback(baseldap.BaseLDAPCommand):
         """Fake IPA method"""
         def test_fail(self):
             self._exc_wrapper([], {}, self.fail)(1, 2, a=1, b=2)
@@ -64,3 +65,95 @@ def test_exc_wrapper():
 
     instance.test_fail()
     assert handled_exceptions == [None, errors.ExecutionError]
+
+
+def test_callback_registration():
+    class callbacktest_base(baseldap.CallbackInterface):
+        _callback_registry = dict(test={})
+
+        def test_callback(self, param):
+            messages.append(('Base test_callback', param))
+
+    def registered_callback(self, param):
+        messages.append(('Base registered callback', param))
+    callbacktest_base.register_callback('test', registered_callback)
+
+    class SomeClass(object):
+        def registered_callback(self, command, param):
+            messages.append(('Registered callback from another class', param))
+    callbacktest_base.register_callback('test', SomeClass().registered_callback)
+
+    class callbacktest_subclass(callbacktest_base):
+        pass
+
+    def subclass_callback(self, param):
+        messages.append(('Subclass registered callback', param))
+    callbacktest_subclass.register_callback('test', subclass_callback)
+
+
+    messages = []
+    instance = callbacktest_base()
+    for callback in instance.get_callbacks('test'):
+        callback(instance, 42)
+    assert messages == [
+            ('Base test_callback', 42),
+            ('Base registered callback', 42),
+            ('Registered callback from another class', 42)]
+
+    messages = []
+    instance = callbacktest_subclass()
+    for callback in instance.get_callbacks('test'):
+        callback(instance, 42)
+    assert messages == [
+            ('Base test_callback', 42),
+            ('Subclass registered callback', 42)]
+
+
+def test_exc_callback_registration():
+    messages = []
+    class callbacktest_base(baseldap.BaseLDAPCommand):
+        """A method superclass with an exception callback"""
+        def exc_callback(self, keys, options, exc, call_func, *args, **kwargs):
+            """Let the world know we saw the error, but don't handle it"""
+            messages.append('Base exc_callback')
+            raise exc
+
+        def test_fail(self):
+            """Raise a handled exception"""
+            try:
+                self._exc_wrapper([], {}, self.fail)(1, 2, a=1, b=2)
+            except Exception:
+                pass
+
+        def fail(self, *args, **kwargs):
+            """Raise an error"""
+            raise errors.ExecutionError('failure')
+
+    base_instance = callbacktest_base()
+
+    class callbacktest_subclass(callbacktest_base):
+        pass
+
+    @callbacktest_subclass.register_exc_callback
+    def exc_callback(self, keys, options, exc, call_func, *args, **kwargs):
+        """Subclass's private exception callback"""
+        messages.append('Subclass registered callback')
+        raise exc
+
+    subclass_instance = callbacktest_subclass()
+
+    # Make sure exception in base class is only handled by the base class
+    base_instance.test_fail()
+    assert messages == ['Base exc_callback']
+
+
+    @callbacktest_base.register_exc_callback
+    def exc_callback(self, keys, options, exc, call_func, *args, **kwargs):
+        """Callback on super class; doesn't affect the subclass"""
+        messages.append('Superclass registered callback')
+        raise exc
+
+    # Make sure exception in subclass is only handled by both
+    messages = []
+    subclass_instance.test_fail()
+    assert messages == ['Base exc_callback', 'Subclass registered callback']

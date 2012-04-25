@@ -51,8 +51,6 @@ class IPATypeChecker(TypeChecker):
         'ipalib.plugable.Plugin': ['Command', 'Object', 'Method', 'Property',
             'Backend', 'env', 'debug', 'info', 'warning', 'error', 'critical',
             'exception', 'context', 'log'],
-        'ipalib.plugins.baseldap.CallbackInterface': ['pre_callback',
-            'post_callback', 'exc_callback'],
         'ipalib.plugins.misc.env': ['env'],
         'ipalib.parameters.Param': ['cli_name', 'cli_short_name', 'label',
             'doc', 'required', 'multivalue', 'primary_key', 'normalizer',
