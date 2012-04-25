@@ -1675,9 +1675,10 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
     member_param_incl_doc = _('Search for %(searched_object)s with these %(relationship)s %(ldap_object)s.')
     member_param_excl_doc = _('Search for %(searched_object)s without these %(relationship)s %(ldap_object)s.')
 
-    # pointer to function for entries sorting
-    # if no function is assigned the entries are sorted by their primary key value
-    entries_sortfn = None
+    # LDAPSearch sorts all matched records in the end using their primary key
+    # as a key attribute
+    # Set the following attribute to False to turn sorting off
+    sort_result_entries = True
 
     takes_options = (
         Int('timelimit?',
@@ -1846,12 +1847,10 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             else:
                 callback(self, ldap, entries, truncated, *args, **options)
 
-        if not self.entries_sortfn:
+        if self.sort_result_entries:
             if self.obj.primary_key:
                 sortfn=lambda x,y: cmp(x[1][self.obj.primary_key.name][0].lower(), y[1][self.obj.primary_key.name][0].lower())
                 entries.sort(sortfn)
-        else:
-            entries.sort(self.entries_sortfn)
 
         if not options.get('raw', False):
             for e in entries:
