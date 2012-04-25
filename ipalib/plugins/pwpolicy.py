@@ -455,6 +455,9 @@ api.register(pwpolicy_show)
 class pwpolicy_find(LDAPSearch):
     __doc__ = _('Search for group password policies.')
 
+    # this command does custom sorting in post_callback
+    sort_result_entries = False
+
     def sort_priority(self,x,y):
         # global policy will be always last in the output
         if x[1]['cn'][0] == global_policy_name:
@@ -463,17 +466,34 @@ class pwpolicy_find(LDAPSearch):
             return -1
         else:
             # policies with higher priority will be at the beginning of the list
-            return cmp(int(x[1]['cospriority'][0]), int(y[1]['cospriority'][0]))
-
-    entries_sortfn = sort_priority
+            try:
+                x =  cmp(int(x[1]['cospriority'][0]), int(y[1]['cospriority'][0]))
+            except KeyError:
+                # if cospriority is not present in the entry, rather return 0
+                # than crash
+                x = 0
+            return x
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        if options.get('pkey_only', False):
-            return False
         for e in entries:
             # attribute rights are not allowed for pwpolicy_find
             self.obj.add_cospriority(e[1], e[1]['cn'][0], rights=False)
-            self.obj.convert_time_for_output(e[1], **options)
+            if options.get('pkey_only', False):
+                # when pkey_only flag is on, entries should contain only a cn
+                # and a cospriority attribute that will be used for sorting
+                # When the entries are sorted, cosentry is removed
+                self.obj.convert_time_for_output(e[1], **options)
+
+        # do custom entry sorting by its cospriority
+        entries.sort(self.sort_priority)
+
+        if options.get('pkey_only', False):
+            # remove cospriority that was used for sorting
+            for e in entries:
+                try:
+                    del e[1]['cospriority']
+                except KeyError:
+                    pass
 
 api.register(pwpolicy_find)
 
