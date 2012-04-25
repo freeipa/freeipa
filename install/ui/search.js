@@ -58,9 +58,10 @@ IPA.search_facet = function(spec, no_init) {
             name: 'remove',
             label: IPA.messages.buttons.remove,
             icon: 'remove-icon',
+            needs_confirm: true,
+            hide_cond: ['self-service'],
             action: {
                 enable_cond: ['item-selected'],
-                disable_cond: ['self-service'],
                 handler: function(facet) {
                     facet.show_remove_dialog();
                 }
@@ -70,8 +71,8 @@ IPA.search_facet = function(spec, no_init) {
             name: 'add',
             label: IPA.messages.buttons.add,
             icon: 'add-icon',
+            hide_cond: ['self-service'],
             action: {
-                disable_cond: ['self-service'],
                 handler: function(facet) {
                     facet.show_add_dialog();
                 }
@@ -81,6 +82,9 @@ IPA.search_facet = function(spec, no_init) {
     cb.state_listeners.push(
         {
             factory: IPA.selected_state_listener
+        },
+        {
+            factory: IPA.self_service_state_listener
         }
     );
 

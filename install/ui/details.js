@@ -476,6 +476,7 @@ IPA.details_facet = function(spec, no_init) {
             field.load(data.result.result);
         }
         that.policies.post_load(data);
+        that.post_load.notify();
         that.clear_expired_flag();
     };
 

@@ -50,6 +50,7 @@ IPA.facet = function(spec, no_init) {
     that.last_updated = null;
     that.expire_timeout = spec.expire_timeout || 600; //[seconds]
     that.on_update = IPA.observer();
+    that.post_load = IPA.observer();
 
     that.dialogs = $.ordered_map();
 
@@ -754,6 +755,7 @@ IPA.table_facet = function(spec, no_init) {
 
         that.table.pagination_control.css('visibility', 'visible');
 
+        that.post_load.notify();
         that.clear_expired_flag();
     };
 
@@ -1317,6 +1319,29 @@ IPA.selected_state_listener = function(spec) {
     return that;
 };
 
+IPA.self_service_state_listener = function(spec) {
+
+    spec = spec || {};
+
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_listener(spec);
+
+    that.on_event = function() {
+        that.state = [];
+
+        var self_service = IPA.nav.name === 'self-service';
+
+        if (self_service) {
+            that.state.push('self-service');
+        }
+
+        that.state_changed.notify();
+    };
+
+    return that;
+};
+
 IPA.action_button_widget = function(spec) {
 
     spec = spec || {};
@@ -1335,6 +1360,10 @@ IPA.action_button_widget = function(spec) {
 
     that.action = IPA.build(spec.action, IPA.action_builder);
     that.enabled = spec.enabled !== undefined ? spec.enabled : true;
+    that.visible = spec.visible !== undefined ? spec.visible : true;
+
+    that.show_cond = spec.show_cond || [];
+    that.hide_cond = spec.hide_cond || [];
 
     that.create = function(container) {
 
@@ -1352,6 +1381,7 @@ IPA.action_button_widget = function(spec) {
         }).appendTo(container);
 
         that.set_enabled(that.enabled);
+        that.set_visible(that.visible);
     };
 
     that.on_click = function() {
@@ -1396,6 +1426,19 @@ IPA.action_button_widget = function(spec) {
                 that.button_element.removeClass('action-button-disabled');
             } else {
                 that.button_element.addClass('action-button-disabled');
+            }
+        }
+    };
+
+    that.set_visible = function(visible) {
+
+        that.visible = visible;
+
+        if (that.button_element) {
+            if (visible) {
+                that.button_element.show();
+            } else {
+                that.button_element.hide();
             }
         }
     };
@@ -1458,7 +1501,7 @@ IPA.control_buttons_widget = function(spec) {
     that.on_state_change = function() {
 
         that.get_state();
-        that.reevaluate_enabled();
+        that.reevaluate();
     };
 
     that.get_state = function() {
@@ -1472,42 +1515,45 @@ IPA.control_buttons_widget = function(spec) {
         }
     };
 
-    that.reevaluate_enabled = function() {
+    that.reevaluate = function() {
 
         for (var i=0; i<that.buttons.length; i++) {
 
             var button = that.buttons[i];
-            var enabled = that.action_enabled(button.action);
+            var action = button.action;
+            var enabled = IPA.eval_cond(action.enable_cond, action.disable_cond, that.state);
+            var visible = IPA.eval_cond(button.show_cond, button.hide_cond, that.state);
             button.set_enabled(enabled);
+            button.set_visible(visible);
         }
-    };
-
-    that.action_enabled = function(action) {
-
-        var i, cond;
-
-        if (action.disable_cond) {
-            for (i=0; i<action.disable_cond.length; i++) {
-                cond = action.disable_cond[i];
-                if (that.state.indexOf(cond) > -1) {
-                    return false;
-                }
-            }
-        }
-
-        if (action.enable_cond) {
-            for (i=0; i<action.enable_cond.length; i++) {
-                cond = action.enable_cond[i];
-                if (that.state.indexOf(cond) < 0) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     };
 
     return that;
+};
+
+IPA.eval_cond = function(enable_cond, disable_cond, state) {
+
+    var i, cond;
+
+    if (disable_cond) {
+        for (i=0; i<disable_cond.length; i++) {
+            cond = disable_cond[i];
+            if (state.indexOf(cond) > -1) {
+                return false;
+            }
+        }
+    }
+
+    if (enable_cond) {
+        for (i=0; i<enable_cond.length; i++) {
+            cond = enable_cond[i];
+            if (state.indexOf(cond) < 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 };
 
 
@@ -1632,27 +1678,10 @@ IPA.action_list_widget = function(spec) {
 
     that.action_enabled = function(action) {
 
-        var i, cond;
-
-        if (action.disable_cond) {
-            for (i=0; i<action.disable_cond.length; i++) {
-                cond = action.disable_cond[i];
-                if (that.state.indexOf(cond) > -1) {
-                    return false;
-                }
-            }
-        }
-
-        if (action.enable_cond) {
-            for (i=0; i<action.enable_cond.length; i++) {
-                cond = action.enable_cond[i];
-                if (that.state.indexOf(cond) < 0) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        var enabled = IPA.eval_cond(action.enable_cond,
+                                    action.disable_cond,
+                                    that.state);
+        return enabled;
     };
 
     that.select_first_enabled = function() {
