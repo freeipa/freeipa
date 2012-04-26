@@ -22,6 +22,8 @@ Test the `ipalib/plugins/pwpolicy.py` module.
 """
 
 import sys
+from nose.tools import assert_raises  # pylint: disable=E0611
+
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
@@ -33,9 +35,11 @@ class test_pwpolicy(XMLRPC_test):
     """
     group = u'testgroup12'
     group2 = u'testgroup22'
+    group3 = u'testgroup32'
     user = u'testuser12'
     kw = {'cospriority': 1, 'krbminpwdlife': 30, 'krbmaxpwdlife': 40, 'krbpwdhistorylength': 5, 'krbpwdminlength': 6 }
     kw2 = {'cospriority': 2, 'krbminpwdlife': 40, 'krbmaxpwdlife': 60, 'krbpwdhistorylength': 8, 'krbpwdminlength': 9 }
+    kw3 = {'cospriority': 3, 'krbminpwdlife': 50, 'krbmaxpwdlife': 30, 'krbpwdhistorylength': 3, 'krbpwdminlength': 4 }
     global_policy = u'global_policy'
 
     def test_1_pwpolicy_add(self):
@@ -161,7 +165,36 @@ class test_pwpolicy(XMLRPC_test):
         else:
             assert False
 
-    def test_b_pwpolicy_del(self):
+    def test_b_pwpolicy_add(self):
+        """
+        Test adding a third per-group policy using the `xmlrpc.pwpolicy_add` method.
+        """
+        self.failsafe_add(
+            api.Object.group, self.group3, description=u'pwpolicy test group 3'
+        )
+        entry = api.Command['pwpolicy_add'](self.group3, **self.kw3)['result']
+        assert_attr_equal(entry, 'krbminpwdlife', '50')
+        assert_attr_equal(entry, 'krbmaxpwdlife', '30')
+        assert_attr_equal(entry, 'krbpwdhistorylength', '3')
+        assert_attr_equal(entry, 'krbpwdminlength', '4')
+        assert_attr_equal(entry, 'cospriority', '3')
+
+    def test_c_pwpolicy_find(self):
+        """Test that password policies are sorted properly with --pkey-only"""
+        result = api.Command['pwpolicy_find'](pkey_only=True)['result']
+        assert len(result) == 4
+        assert result[0]['cn'] == (self.group,)
+        assert result[1]['cn'] == (self.group2,)
+        assert result[2]['cn'] == (self.group3,)
+        assert result[3]['cn'] == ('global_policy',)
+
+    def test_d_pwpolicy_show(self):
+        """Test that deleting a group removes its pwpolicy"""
+        api.Command['group_del'](self.group3)
+        with assert_raises(errors.NotFound):
+            api.Command['pwpolicy_show'](self.group3)
+
+    def test_e_pwpolicy_del(self):
         """
         Test the `xmlrpc.pwpolicy_del` method.
         """
