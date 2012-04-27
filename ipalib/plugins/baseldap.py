@@ -1966,7 +1966,7 @@ class LDAPAddReverseMember(LDAPModReverseMember):
         entry_start = self.api.Command[self.show_command](keys[-1])['result']
         completed = 0
         failed = {'member': {self.reverse_attr: []}}
-        for attr in options.get(self.reverse_attr, []):
+        for attr in options.get(self.reverse_attr) or []:
             try:
                 options = {'%s' % self.member_attr: keys[-1]}
                 try:
@@ -2073,7 +2073,7 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
         entry_start = self.api.Command[self.show_command](keys[-1])['result']
         completed = 0
         failed = {'member': {self.reverse_attr: []}}
-        for attr in options.get(self.reverse_attr, []):
+        for attr in options.get(self.reverse_attr) or []:
             try:
                 options = {'%s' % self.member_attr: keys[-1]}
                 try:

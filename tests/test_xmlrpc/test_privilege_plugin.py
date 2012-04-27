@@ -348,6 +348,50 @@ class test_privilege(Declarative):
 
 
         dict(
+            desc='Add zero permissions to %r' % privilege1,
+            command=('privilege_add_permission', [privilege1],
+                dict(permission=None),
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        permission=[],
+                    ),
+                ),
+                result={
+                    'dn': lambda x: DN(x) == privilege1_dn,
+                    'cn': [privilege1],
+                    'description': [u'New desc 1'],
+                    'memberof_permission': [permission2],
+                }
+            ),
+        ),
+
+
+        dict(
+            desc='Remove zero permissions from %r' % privilege1,
+            command=('privilege_remove_permission', [privilege1],
+                dict(permission=None),
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        permission=[],
+                    ),
+                ),
+                result={
+                    'dn': lambda x: DN(x) == privilege1_dn,
+                    'cn': [privilege1],
+                    'description': [u'New desc 1'],
+                    'memberof_permission': [permission2],
+                }
+            ),
+        ),
+
+
+        dict(
             desc='Delete %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
             expected=dict(

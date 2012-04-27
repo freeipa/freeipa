@@ -202,6 +202,48 @@ class test_role(Declarative):
 
 
         dict(
+            desc='Add zero privileges to role %r' % role1,
+            command=('role_add_privilege', [role1], dict(privilege=None)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        privilege=[],
+                    ),
+                ),
+                result={
+                    'dn': lambda x: DN(x) == role1_dn,
+                    'cn': [role1],
+                    'description': [u'role desc 1'],
+                    'memberof_privilege': [privilege1],
+                }
+            ),
+        ),
+
+
+        dict(
+            desc='Remove zero privileges from role %r' % role1,
+            command=('role_remove_privilege', [role1], dict(privilege=None)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        privilege=[],
+                    ),
+                ),
+                result={
+                    'dn': lambda x: DN(x) == role1_dn,
+                    'cn': [role1],
+                    'description': [u'role desc 1'],
+                    'memberof_privilege': [privilege1],
+                }
+            ),
+        ),
+
+
+        dict(
             desc='Add member %r to %r' % (group1, role1),
             command=('role_add_member', [role1], dict(group=group1)),
             expected=dict(
