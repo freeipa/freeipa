@@ -791,18 +791,18 @@ last, after all sets and adds."""),
                          exclude='webui',
                         )
 
-    def _convert_2_dict(self, attrs, append=True):
+    def _convert_2_dict(self, attrs):
         """
         Convert a string in the form of name/value pairs into a dictionary.
-        The incoming attribute may be a string or a list.
 
-        :param attrs: A list of name/value pairs
-
-        :param append: controls whether this returns a list of values or a single
-        value.
+        :param attrs: A list of name/value pair strings, in the "name=value"
+            format. May also be a single string, or None.
         """
+
         newdict = {}
-        if not type(attrs) in (list, tuple):
+        if attrs is None:
+            attrs = []
+        elif not type(attrs) in (list, tuple):
             attrs = [attrs]
         for a in attrs:
             m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", a)
@@ -811,7 +811,7 @@ last, after all sets and adds."""),
             if len(value) == 0:
                 # None means "delete this attribute"
                 value = None
-            if append and attr in newdict:
+            if attr in newdict:
                 if type(value) in (tuple,):
                     newdict[attr] += list(value)
                 else:

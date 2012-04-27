@@ -39,7 +39,8 @@ class test_attr(Declarative):
         dict(
             desc='Create %r' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                    setattr=None)
             ),
             expected=dict(
                 value=user1,
