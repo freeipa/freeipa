@@ -703,41 +703,6 @@ class test_permission(Declarative):
 
 
         dict(
-            desc='Create permission %r with attributes from superior objectclass' % permission1,
-            command=(
-                'permission_add', [permission1], dict(
-                     type=u'hostgroup',
-                     permissions=[u'add', u'delete', u'write'],
-                     attrs=[u'businessCategory', u'owner', u'description'],
-                )
-            ),
-            expected=dict(
-                value=permission1,
-                summary=u'Added permission "%s"' % permission1,
-                result=dict(
-                    dn=lambda x: DN(x) == permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    type=u'hostgroup',
-                    permissions=[u'add',u'delete',u'write'],
-                    attrs=[u'businesscategory',u'owner',u'description'],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Delete %r' % permission1,
-            command=('permission_del', [permission1], {}),
-            expected=dict(
-                result=dict(failed=u''),
-                value=permission1,
-                summary=u'Deleted permission "%s"' % permission1,
-            ),
-        ),
-
-
-        dict(
             desc='Create targetgroup permission %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
