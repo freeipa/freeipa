@@ -157,9 +157,6 @@ global_output_params = (
     Str('memberofindirect_hbacrule?',
         label='Indirect Member of HBAC rule',
     ),
-    Str('externalhost?',
-        label=_('External host'),
-    ),
     Str('sourcehost',
         label=_('Failed source hosts/hostgroups'),
     ),
@@ -312,6 +309,20 @@ def wait_for_value(ldap, dn, attr, value):
                     break
 
     return entry_attrs
+
+
+def validate_externalhost(ugettext, hostname):
+    try:
+        validate_hostname(hostname, check_fqdn=False, allow_underscore=True)
+    except ValueError, e:
+        return unicode(e)
+
+
+external_host_param = Str('externalhost*', validate_externalhost,
+        label=_('External host'),
+        flags=['no_create', 'no_update', 'no_search'],
+)
+
 
 def add_external_pre_callback(membertype, ldap, dn, keys, options):
     """

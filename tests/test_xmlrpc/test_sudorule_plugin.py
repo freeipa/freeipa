@@ -484,6 +484,23 @@ class test_sudorule(XMLRPC_test):
         else:
             assert False
 
+    def test_a_sudorule_mod_externalhost_invalid_addattr(self):
+        """
+        Test adding an invalid external host to Sudo rule using
+        `xmlrpc.sudorule_mod --addattr`.
+        """
+        try:
+            api.Command['sudorule_mod'](
+                self.rule_name,
+                addattr='externalhost=%s' % self.test_invalid_host
+            )
+        except errors.ValidationError, e:
+            assert unicode(e) == ("invalid 'externalhost': only letters, " +
+                "numbers, _, and - are allowed. " +
+                "DNS label may not start or end with -")
+        else:
+            assert False
+
     def test_b_sudorule_remove_externalhost(self):
         """
         Test removing an external host from Sudo rule using

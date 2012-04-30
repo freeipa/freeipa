@@ -219,6 +219,7 @@ class hbacrule(LDAPObject):
             label=_('Service Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
+        external_host_param,
     )
 
 api.register(hbacrule)

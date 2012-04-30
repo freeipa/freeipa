@@ -146,6 +146,7 @@ class netgroup(LDAPObject):
             doc=_('Host category the rule applies to'),
             values=(u'all', ),
         ),
+        external_host_param,
     )
 
 api.register(netgroup)

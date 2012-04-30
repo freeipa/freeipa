@@ -377,6 +377,15 @@ class test_hbac(XMLRPC_test):
         entry = ret['result']
         assert_attr_equal(entry, 'externalhost', self.test_host_external)
 
+    @raises(errors.ValidationError)
+    def test_c_hbacrule_mod_invalid_external_setattr(self):
+        """
+        Test adding the same external host using `xmlrpc.hbacrule_add_host`.
+        """
+        ret = api.Command['hbacrule_mod'](
+            self.rule_name, setattr=self.test_invalid_sourcehost
+        )
+
     def test_c_hbacrule_remove_external_host(self):
         """
         Test removing external source host using `xmlrpc.hbacrule_remove_host`.

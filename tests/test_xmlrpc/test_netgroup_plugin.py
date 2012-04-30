@@ -46,6 +46,8 @@ host_dn1 = DN(('fqdn',host1),('cn','computers'),('cn','accounts'),
 
 unknown_host = u'unknown'
 
+unknown_host2 = u'unknown2'
+
 hostgroup1 = u'hg1'
 hostgroup_dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                    api.env.basedn)
@@ -826,6 +828,66 @@ class test_netgroup(Declarative):
                         'externalhost': [unknown_host],
                 },
             ),
+        ),
+
+        dict(
+            desc='Add invalid host %r to netgroup %r using setattr' %
+                (invalidhost, netgroup1),
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr='externalhost=%s' % invalidhost)
+            ),
+            expected=errors.ValidationError(name='externalhost',
+                error='only letters, numbers, _, and - are allowed. ' +
+                    'DNS label may not start or end with -'),
+        ),
+
+        dict(
+            desc='Add unknown host %r to netgroup %r using addattr' %
+                (unknown_host2, netgroup1),
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(addattr='externalhost=%s' % unknown_host2)
+            ),
+            expected=dict(
+                value=u'netgroup1',
+                summary=u'Modified netgroup "netgroup1"',
+                result={
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [unknown_host, unknown_host2],
+                },
+            )
+        ),
+
+        dict(
+            desc='Remove unknown host %r from netgroup %r using delattr' %
+                (unknown_host2, netgroup1),
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(delattr='externalhost=%s' % unknown_host2)
+            ),
+            expected=dict(
+                value=u'netgroup1',
+                summary=u'Modified netgroup "netgroup1"',
+                result={
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [unknown_host],
+                },
+            )
         ),
 
         dict(

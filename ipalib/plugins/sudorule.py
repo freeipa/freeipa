@@ -217,6 +217,7 @@ class sudorule(LDAPObject):
             doc=_('Run with the gid of a specified POSIX group'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
+        external_host_param,
     )
 
     order_not_unique_msg = _(
