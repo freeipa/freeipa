@@ -102,24 +102,42 @@ IPA.dns.zone_entity = function(spec) {
                     label: IPA.messages.status.label,
                     formatter: IPA.boolean_status_formatter()
                 }
-            ]
+            ],
+            control_buttons: {
+                buttons: [
+                    {
+                        name: 'disable',
+                        label: IPA.messages.buttons.disable,
+                        icon: 'disabled-icon',
+                        needs_confirm: true,
+                        action: {
+                            factory: IPA.batch_items_action,
+                            method: 'disable',
+                            enable_cond: ['item-selected']
+                        }
+                    },
+                    {
+                        name: 'enable',
+                        label: IPA.messages.buttons.enable,
+                        icon: 'enabled-icon',
+                        needs_confirm: true,
+                        action: {
+                            factory: IPA.batch_items_action,
+                            method: 'enable',
+                            enable_cond: ['item-selected']
+                        }
+                    }
+                ]
+            }
         }).
         details_facet({
             factory: IPA.dnszone_details_facet,
             command_mode: 'info',
-            sections: [{
+            sections: [
+            {
                 name: 'identity',
                 fields: [
                     'idnsname',
-                    {
-                        type: 'enable',
-                        name: 'idnszoneactive',
-                        label: IPA.messages.status.label,
-                        options: [
-                            { value: 'TRUE', label: IPA.messages.status.enabled },
-                            { value: 'FALSE', label: IPA.messages.status.disabled }
-                        ]
-                    },
                     'idnssoamname',
                     'idnssoarname',
                     'idnssoaserial',
@@ -198,7 +216,20 @@ IPA.dns.zone_entity = function(spec) {
                         name: 'idnsallowsyncptr'
                     }
                 ]
-            }]
+            }],
+            action_list: {
+                factory: IPA.action_list_widget,
+                name: 'action',
+                state_evaluator: {
+                    factory: IPA.enable_state_evaluator,
+                    field: 'idnszoneactive'
+                },
+                actions: [
+                    IPA.enable_action,
+                    IPA.disable_action,
+                    IPA.delete_action
+                ]
+            }
         }).
         nested_search_facet({
             factory: IPA.dns.record_search_facet,

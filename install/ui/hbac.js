@@ -25,8 +25,7 @@
 
 IPA.hbac = {
     //priority of commands in details facet
-    remove_method_priority: IPA.config.default_priority - 1,
-    enable_priority: IPA.config.default_priority + 1
+    remove_method_priority: IPA.config.default_priority - 1
 };
 
 IPA.hbac.rule_entity = function(spec) {
@@ -47,12 +46,51 @@ IPA.hbac.rule_entity = function(spec) {
                     formatter: IPA.boolean_status_formatter()
                 },
                 'description'
-            ]
+            ],
+            control_buttons: {
+                buttons: [
+                    {
+                        name: 'disable',
+                        label: IPA.messages.buttons.disable,
+                        icon: 'disabled-icon',
+                        needs_confirm: true,
+                        action: {
+                            factory: IPA.batch_items_action,
+                            method: 'disable',
+                            enable_cond: ['item-selected']
+                        }
+                    },
+                    {
+                        name: 'enable',
+                        label: IPA.messages.buttons.enable,
+                        icon: 'enabled-icon',
+                        needs_confirm: true,
+                        action: {
+                            factory: IPA.batch_items_action,
+                            method: 'enable',
+                            enable_cond: ['item-selected']
+                        }
+                    }
+                ]
+            }
         }).
         details_facet({
             factory: IPA.hbacrule_details_facet,
             entity: that,
-            command_mode: 'info'
+            command_mode: 'info',
+            action_list: {
+                factory: IPA.action_list_widget,
+                name: 'action',
+                state_evaluator: {
+                    factory: IPA.enable_state_evaluator,
+                    field: 'ipaenabledflag'
+                },
+                actions: [
+                    IPA.enable_action,
+                    IPA.disable_action,
+                    IPA.delete_action
+                ]
+            }
         }).
         adder_dialog({
             fields: [ 'cn' ]
@@ -203,13 +241,6 @@ IPA.hbacrule_details_facet = function(spec) {
             type: 'textarea',
             name: 'description',
             widget: 'general.description'
-        },
-        {
-            type: 'enable',
-            name: 'ipaenabledflag',
-            label: IPA.messages.status.label,
-            priority: IPA.hbac.enable_priority,
-            widget: 'general.ipaenabledflag'
         }
     ];
 
@@ -225,14 +256,6 @@ IPA.hbacrule_details_facet = function(spec) {
                 {
                     type: 'textarea',
                     name: 'description'
-                },
-                {
-                    type: 'enable',
-                    name: 'ipaenabledflag',
-                    options: [
-                        { value: 'TRUE', label: IPA.messages.status.enabled },
-                        { value: 'FALSE', label: IPA.messages.status.disabled }
-                    ]
                 }
             ]
         }

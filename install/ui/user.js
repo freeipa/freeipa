@@ -3,6 +3,8 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
+ *    Endi Sukma Dewata <edewata@redhat.com>
+ *    Petr Vobornik <pvoborni@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -52,7 +54,35 @@ IPA.user.entity = function(spec) {
                 'mail',
                 'telephonenumber',
                 'title'
-            ]
+            ],
+            control_buttons: {
+                buttons: [
+                    {
+                        name: 'disable',
+                        label: IPA.messages.buttons.disable,
+                        icon: 'disabled-icon',
+                        needs_confirm: true,
+                        hide_cond: ['self-service'],
+                        action: {
+                            factory: IPA.batch_items_action,
+                            method: 'disable',
+                            enable_cond: ['item-selected']
+                        }
+                    },
+                    {
+                        name: 'enable',
+                        label: IPA.messages.buttons.enable,
+                        icon: 'enabled-icon',
+                        needs_confirm: true,
+                        hide_cond: ['self-service'],
+                        action: {
+                            factory: IPA.batch_items_action,
+                            method: 'enable',
+                            enable_cond: ['item-selected']
+                        }
+                    }
+                ]
+            }
         }).
         details_facet({
             factory: IPA.user.details_facet,
@@ -72,11 +102,6 @@ IPA.user.entity = function(spec) {
                 {
                     name: 'account',
                     fields: [
-                        {
-                            factory: IPA.user_status_widget,
-                            name: 'nsaccountlock',
-                            label: IPA.messages.status.label
-                        },
                         'uid',
                         {
                             factory: IPA.user_password_widget,
@@ -191,7 +216,21 @@ IPA.user.entity = function(spec) {
                     name: 'misc',
                     fields: [ 'carlicense' ]
                 }
-            ]
+            ],
+            action_list: {
+                factory: IPA.action_list_widget,
+                name: 'action',
+                state_evaluator: {
+                    factory: IPA.enable_state_evaluator,
+                    field: 'nsaccountlock',
+                    invert_value: true
+                },
+                actions: [
+                    IPA.enable_action,
+                    IPA.disable_action,
+                    IPA.delete_action
+                ]
+            }
         }).
         association_facet({
             name: 'memberof_group',
@@ -375,167 +414,6 @@ IPA.user_adder_dialog = function(spec) {
     that.save = function(record) {
         that.dialog_save(record);
         delete record.userpassword2;
-    };
-
-    return that;
-};
-
-IPA.user_status_widget = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.input_widget(spec);
-
-
-    that.create = function(container) {
-
-        that.widget_create(container);
-
-        that.status_span = $('<span/>', {
-            name: 'status'
-        }).appendTo(container);
-
-        that.link_span = $('<span/>', {
-            name: 'link'
-        }).appendTo(container);
-
-        that.link_span.append(': ');
-
-        that.status_link = $('<a/>', {
-            name: 'link',
-            click: function() {
-
-                var facet = that.entity.get_facet();
-
-                if (facet.is_dirty()) {
-                    var dialog = IPA.dirty_dialog({
-                        facet: facet
-                    });
-
-                    dialog.callback = function() {
-                        that.show_activation_dialog();
-                    };
-
-                    dialog.open(container);
-
-                } else {
-                    that.show_activation_dialog();
-                }
-
-                return false;
-            }
-        }).appendTo(that.link_span);
-    };
-
-    that.update = function(values) {
-
-        //if (!that.record) return;
-
-        //var lock_field = 'nsaccountlock';
-        //var locked_field = that.record[lock_field];
-        var locked_field = values;
-        var locked = false;
-
-        if (locked_field instanceof Array) {
-            locked_field = locked_field[0];
-        }
-        if (typeof locked_field === 'boolean') {
-            locked = locked_field;
-        } else {
-            locked = locked_field && locked_field.toLowerCase() === 'true';
-        }
-
-        var status;
-        var action;
-
-        if (locked) {
-            status = IPA.messages.status.disabled;
-            action = 'enable';
-
-        } else {
-            status = IPA.messages.status.enabled;
-            action = 'disable';
-        }
-
-        that.status_span.html(status);
-        that.status_link.attr('href', action);
-
-        var message = IPA.messages.objects.user.status_link;
-        var action_label = IPA.messages.status[action];
-        message = message.replace('${action}', action_label);
-
-        that.status_link.html(message);
-
-        if (that.writable) {
-            that.link_span.css('display', '');
-
-        } else {
-            that.link_span.css('display', 'none');
-        }
-    };
-
-    that.clear = function() {
-        that.link_span.css('display', 'none');
-        that.status_span.text('');
-    };
-
-    that.show_activation_dialog = function() {
-
-        var action = that.status_link.attr('href');
-
-        var message = IPA.messages.objects.user.status_confirmation;
-        var action_label = IPA.messages.status[action];
-        message = message.replace('${action}', action_label.toLocaleLowerCase());
-
-        var dialog = IPA.dialog({
-            title: IPA.messages.dialogs.confirmation
-        });
-
-        dialog.create = function() {
-            dialog.container.append(message);
-        };
-
-        dialog.create_button({
-            name: 'set_status',
-            label: action_label,
-            click: function() {
-                that.set_status(
-                    action,
-                    function(data, textStatus, xhr) {
-                        var facet = that.entity.get_facet();
-                        facet.refresh();
-                        dialog.close();
-                    }
-                );
-            }
-        });
-
-        dialog.create_button({
-            name: 'cancel',
-            label: IPA.messages.buttons.cancel,
-            click: function() {
-                dialog.close();
-            }
-        });
-
-        dialog.open(that.container);
-    };
-
-    that.set_status = function(method, on_success, on_error) {
-
-        var pkey = IPA.nav.get_state('user-pkey');
-
-        IPA.command({
-            entity: 'user',
-            method: method,
-            args: [pkey],
-            on_success: on_success,
-            on_error: on_error
-        }).execute();
-    };
-
-    that.widgets_created = function() {
-        that.widget = that;
     };
 
     return that;

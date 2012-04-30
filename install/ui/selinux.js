@@ -23,8 +23,7 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
 IPA.selinux = {
-    remove_method_priority: IPA.config.default_priority - 1,
-    enable_priority: IPA.config.default_priority + 1
+    remove_method_priority: IPA.config.default_priority - 1
 };
 
 IPA.selinux.selinuxusermap_entity = function(spec) {
@@ -46,12 +45,51 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
                     formatter: IPA.boolean_status_formatter()
                 },
                 'description'
-            ]
+            ],
+            control_buttons: {
+                buttons: [
+                    {
+                        name: 'disable',
+                        label: IPA.messages.buttons.disable,
+                        icon: 'disabled-icon',
+                        needs_confirm: true,
+                        action: {
+                            factory: IPA.batch_items_action,
+                            method: 'disable',
+                            enable_cond: ['item-selected']
+                        }
+                    },
+                    {
+                        name: 'enable',
+                        label: IPA.messages.buttons.enable,
+                        icon: 'enabled-icon',
+                        needs_confirm: true,
+                        action: {
+                            factory: IPA.batch_items_action,
+                            method: 'enable',
+                            enable_cond: ['item-selected']
+                        }
+                    }
+                ]
+            }
         }).
         details_facet({
             factory: IPA.selinux_details_facet,
             entity: that,
-            command_mode: 'info'
+            command_mode: 'info',
+            action_list: {
+                factory: IPA.action_list_widget,
+                name: 'action',
+                state_evaluator: {
+                    factory: IPA.enable_state_evaluator,
+                    field: 'ipaenabledflag'
+                },
+                actions: [
+                    IPA.enable_action,
+                    IPA.disable_action,
+                    IPA.delete_action
+                ]
+            }
         }).
         adder_dialog({
             fields: [
@@ -91,13 +129,6 @@ IPA.selinux_details_facet = function(spec) {
             type: 'entity_select',
             name: 'seealso',
             widget: 'general.seealso'
-        },
-        {
-            type: 'enable',
-            name: 'ipaenabledflag',
-            label: IPA.messages.status.label,
-            priority: IPA.selinux.enable_priority,
-            widget: 'general.ipaenabledflag'
         }
     ];
 
@@ -123,14 +154,6 @@ IPA.selinux_details_facet = function(spec) {
                     name: 'seealso',
                     other_entity: 'hbacrule',
                     other_field: 'cn'
-                },
-                {
-                    type: 'enable',
-                    name: 'ipaenabledflag',
-                    options: [
-                        { value: 'TRUE', label: IPA.messages.status.enabled },
-                        { value: 'FALSE', label: IPA.messages.status.disabled }
-                    ]
                 }
             ]
         }
