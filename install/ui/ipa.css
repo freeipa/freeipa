@@ -1692,3 +1692,20 @@ form#login {
     width: 17px;
     height: 17px;
 }
+
+.facet-title.enabled .header-icon {
+    background-image: url(images/ui-icons_222222_256x240.png);
+    background-position: -64px -144px;
+    display: inline-block;
+}
+
+.facet-title.disabled .header-icon {
+    background-image: url(images/ui-icons_bbbbbb_256x240.png);
+    background-position: -64px -128px;
+    display: inline-block;
+}
+
+.facet-title.disabled h3,
+.facet-title.disabled h3 .facet-pkey{
+    color: gray;
+}

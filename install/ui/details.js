@@ -871,3 +871,153 @@ IPA.command_builder = function() {
 
     return that;
 }();
+
+IPA.boolean_state_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.state_evaluator(spec);
+
+    that.field = spec.field;
+    that.true_state = spec.true_state || that.field_name + '-true';
+    that.false_state = spec.false_state || that.field_name + '-false';
+    that.true_desc = spec.true_desc || IPA.messages['true'];
+    that.false_desc = spec.false_desc || IPA.messages['false'];
+    that.invert_value = spec.invert_value;
+    that.parser = IPA.build({
+        factory: spec.parser || IPA.boolean_formatter,
+        invert_value: that.invert_value
+    });
+
+    that.evaluate = function(record) {
+
+        that.state = [];
+
+        var value = that.parser.parse(record[that.field]);
+
+        if (value === true) {
+            that.state.push(that.true_state);
+            that.description = that.true_desc;
+        } else {
+            that.state.push(that.false_state);
+            that.description = that.false_desc;
+        }
+
+        return that.state;
+    };
+
+    return that;
+};
+
+IPA.enable_state_evaluator = function(spec) {
+
+    spec = spec || {};
+    spec.true_state = spec.true_state || 'enabled';
+    spec.false_state = spec.false_state || 'disabled';
+    spec.true_desc = spec.true_desc || IPA.messages.status.enabled;
+    spec.false_desc = spec.false_desc || IPA.messages.status.disabled;
+
+    var that = IPA.boolean_state_evaluator(spec);
+
+    return that;
+};
+
+IPA.object_action = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.action(spec);
+
+    that.method = spec.method;
+    that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
+
+    that.execute = function(facet, on_success, on_error) {
+
+        var entity_name = facet.entity.name;
+        var pkey = IPA.nav.get_state(entity_name+'-pkey');
+
+        if (that.needs_confirm && !that.confirm_object(pkey)) return;
+
+        IPA.command({
+            entity: entity_name,
+            method: that.method,
+            args: [pkey],
+            on_success: that.get_on_success(facet, on_success),
+            on_error: that.get_on_error(facet, on_error)
+        }).execute();
+    };
+
+    that.on_success = function(facet, data, text_status, xhr) {
+        facet.on_update.notify();
+    };
+
+    that.on_error = function(facet, xhr, text_status, error_thrown) {
+    };
+
+    that.get_on_success = function(facet, on_success) {
+        return function(data, text_status, xhr) {
+            that.on_success(facet, data, text_status, xhr);
+            if (on_success) on_success.call(this, data, text_status, xhr);
+        };
+    };
+
+    that.get_on_error = function(facet, on_error) {
+        return function(xhr, text_status, error_thrown) {
+            that.on_error(facet, xhr, text_status, error_thrown);
+            if (on_error) on_error.call(this, xhr, text_status, error_thrown);
+        };
+    };
+
+    that.confirm_object = function(obj_name) {
+        var msg = that.confirm_msg.replace('${object}', obj_name);
+        return IPA.confirm(msg);
+    };
+
+    return that;
+};
+
+IPA.enable_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'enable';
+    spec.method = spec.method || 'enable';
+    spec.confirm_msg = spec.confirm_msg || IPA.messages.actions.enable_confirm;
+    spec.label = spec.label || IPA.messages.buttons.enable;
+    spec.disable_cond = spec.disable_cond || ['enabled'];
+
+    var that = IPA.object_action(spec);
+
+    return that;
+};
+
+IPA.disable_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'disable';
+    spec.method = spec.method || 'disable';
+    spec.confirm_msg = spec.confirm_msg || IPA.messages.actions.disable_confirm;
+    spec.label = spec.label || IPA.messages.buttons.disable;
+    spec.enable_cond = spec.enable_cond || ['enabled'];
+
+    var that = IPA.object_action(spec);
+
+    return that;
+};
+
+IPA.delete_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'delete';
+    spec.method = spec.method || 'del';
+    spec.confirm_msg = spec.confirm_msg || IPA.messages.actions.delete_confirm;
+    spec.label = spec.label || IPA.messages.buttons.remove;
+
+    var that = IPA.object_action(spec);
+
+    that.on_success = function(facet, data, text_status, xhr) {
+        facet.on_update.notify();
+        facet.redirect();
+    };
+
+    return that;
+};
