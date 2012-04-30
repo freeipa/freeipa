@@ -22,8 +22,12 @@
 
 #include "ipa_kdb.h"
 #include <talloc.h>
+#include <syslog.h>
 #include "util/time.h"
 #include "gen_ndr/ndr_krb5pac.h"
+
+
+int krb5_klog_syslog(int, const char *, ...);
 
 static char *user_pac_attrs[] = {
     "objectClass",
@@ -63,7 +67,9 @@ static char *memberof_pac_attrs[] = {
     NULL
 };
 
+#define SID_ID_AUTHS 6
 #define SID_SUB_AUTHS 15
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 static int string_to_sid(char *str, struct dom_sid *sid)
 {
@@ -126,6 +132,80 @@ static int string_to_sid(char *str, struct dom_sid *sid)
     return 0;
 }
 
+static char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid)
+{
+    size_t c;
+    size_t len;
+    int ofs;
+    uint32_t ia;
+    char *buf;
+
+    if (dom_sid == NULL) {
+        return NULL;
+    }
+
+    len = 25 + dom_sid->num_auths * 11;
+
+    buf = talloc_zero_size(memctx, len);
+
+    ia = (dom_sid->id_auth[5]) +
+         (dom_sid->id_auth[4] << 8 ) +
+         (dom_sid->id_auth[3] << 16) +
+         (dom_sid->id_auth[2] << 24);
+
+    ofs = snprintf(buf, len, "S-%u-%lu", (unsigned int) dom_sid->sid_rev_num,
+                                            (unsigned long) ia);
+
+    for (c = 0; c < dom_sid->num_auths; c++) {
+        ofs += snprintf(buf + ofs, MAX(len - ofs, 0), "-%lu",
+                                        (unsigned long) dom_sid->sub_auths[c]);
+    }
+
+    if (ofs >= len) {
+        talloc_free(buf);
+        return NULL;
+    }
+
+    return buf;
+}
+
+static struct dom_sid *dom_sid_dup(TALLOC_CTX *memctx,
+                                   const struct dom_sid *dom_sid)
+{
+    struct dom_sid *new_sid;
+    size_t c;
+
+    if (dom_sid == NULL) {
+        return NULL;
+    }
+
+    new_sid = talloc(memctx, struct dom_sid);
+    if (new_sid == NULL) {
+        return NULL;
+    }
+
+    new_sid->sid_rev_num = dom_sid->sid_rev_num;
+    for (c = 0; c < SID_ID_AUTHS; c++) {
+        new_sid->id_auth[c] = dom_sid->id_auth[c];
+    }
+    new_sid->num_auths = dom_sid->num_auths;
+    for (c = 0; c < SID_SUB_AUTHS; c++) {
+        new_sid->sub_auths[c] = dom_sid->sub_auths[c];
+    }
+
+    return new_sid;
+}
+
+static int sid_append_rid(struct dom_sid *sid, uint32_t rid)
+{
+    if (sid->num_auths >= SID_SUB_AUTHS) {
+        return EINVAL;
+    }
+
+    sid->sub_auths[sid->num_auths++] = rid;
+    return 0;
+}
+
 /**
 * @brief Takes a user sid and removes the rid.
 *        The sid is changed by this function,
@@ -143,7 +223,9 @@ static int sid_split_rid(struct dom_sid *sid, uint32_t *rid)
     }
 
     sid->num_auths--;
-    *rid = sid->sub_auths[sid->num_auths];
+    if (rid != NULL) {
+        *rid = sid->sub_auths[sid->num_auths];
+    }
     sid->sub_auths[sid->num_auths] = 0;
 
     return 0;
@@ -538,6 +620,349 @@ static bool is_cross_realm_krbtgt(krb5_const_principal princ)
     return true;
 }
 
+static char *gen_sid_string(TALLOC_CTX *memctx, struct dom_sid *dom_sid,
+                            uint32_t rid)
+{
+    char *str = NULL;
+    int ret;
+
+    ret = sid_append_rid(dom_sid, rid);
+    if (ret != 0) {
+        krb5_klog_syslog(LOG_ERR, "sid_append_rid failed");
+        return NULL;
+    }
+
+    str = dom_sid_string(memctx, dom_sid);
+    ret = sid_split_rid(dom_sid, NULL);
+    if (ret != 0) {
+        krb5_klog_syslog(LOG_ERR, "sid_split_rid failed");
+        talloc_free(str);
+        return NULL;
+    }
+
+    return str;
+}
+
+static int get_group_sids(TALLOC_CTX *memctx,
+                          struct PAC_LOGON_INFO_CTR *logon_info,
+                          char ***_group_sids)
+{
+    int ret;
+    size_t c;
+    size_t p = 0;
+    struct dom_sid *domain_sid = NULL;
+    char **group_sids = NULL;
+
+    domain_sid = dom_sid_dup(memctx, logon_info->info->info3.base.domain_sid);
+    if (domain_sid == NULL) {
+        krb5_klog_syslog(LOG_ERR, "dom_sid_dup failed");
+        ret = ENOMEM;
+        goto done;
+    }
+
+    group_sids = talloc_array(memctx, char *,
+                                     2 +
+                                     logon_info->info->info3.base.groups.count +
+                                     logon_info->info->info3.sidcount);
+    if (group_sids == NULL) {
+        krb5_klog_syslog(LOG_ERR, "talloc_array failed");
+        ret = ENOMEM;
+        goto done;
+    }
+
+    group_sids[p] = gen_sid_string(memctx, domain_sid,
+                                  logon_info->info->info3.base.primary_gid);
+    if (group_sids[p] == NULL) {
+        krb5_klog_syslog(LOG_ERR, "gen_sid_string failed");
+        ret = EINVAL;
+        goto done;
+    }
+    p++;
+
+    for (c = 0; c < logon_info->info->info3.base.groups.count; c++) {
+        group_sids[p] = gen_sid_string(memctx, domain_sid,
+                               logon_info->info->info3.base.groups.rids[c].rid);
+        if (group_sids[p] == NULL) {
+        krb5_klog_syslog(LOG_ERR, "gen_sid_string 2 failed");
+            ret = EINVAL;
+            goto done;
+        }
+        p++;
+    }
+    for (c = 0; c < logon_info->info->info3.sidcount; c++) {
+        group_sids[p] = dom_sid_string(memctx,
+                                       logon_info->info->info3.sids[c].sid);
+        if (group_sids[p] == NULL) {
+        krb5_klog_syslog(LOG_ERR, "dom_sid_string failed");
+            ret = EINVAL;
+            goto done;
+        }
+        p++;
+    }
+
+    group_sids[p] = NULL;
+
+    *_group_sids = group_sids;
+
+    ret = 0;
+done:
+    talloc_free(domain_sid);
+    if (ret != 0) {
+        talloc_free(group_sids);
+    }
+
+    return ret;
+}
+
+static int add_groups(TALLOC_CTX *memctx,
+                      struct PAC_LOGON_INFO_CTR *logon_info,
+                      size_t ipa_group_sids_count,
+                      struct dom_sid2 *ipa_group_sids)
+{
+    size_t c;
+    struct netr_SidAttr *sids = NULL;
+
+    if (ipa_group_sids_count == 0) {
+        return 0;
+    }
+
+    sids = talloc_realloc(memctx, logon_info->info->info3.sids,
+                       struct netr_SidAttr,
+                       logon_info->info->info3.sidcount + ipa_group_sids_count);
+    if (sids == NULL) {
+        return ENOMEM;
+    }
+
+
+    for (c = 0; c < ipa_group_sids_count; c++) {
+        sids[c + logon_info->info->info3.sidcount].sid = &ipa_group_sids[c];
+        sids[c + logon_info->info->info3.sidcount].attributes =
+                                                    SE_GROUP_ENABLED |
+                                                    SE_GROUP_MANDATORY |
+                                                    SE_GROUP_ENABLED_BY_DEFAULT;
+    }
+
+    logon_info->info->info3.sidcount += ipa_group_sids_count;
+    logon_info->info->info3.sids = sids;
+
+
+    return 0;
+}
+
+static int map_groups(TALLOC_CTX *memctx, krb5_context kcontext,
+                      char **group_sids, size_t *_ipa_group_sids_count,
+                      struct dom_sid **_ipa_group_sids)
+{
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+    int ret;
+    LDAPMessage *results = NULL;
+    LDAPMessage *lentry;
+    char *basedn = NULL;
+    char *filter = NULL;
+    LDAPDerefRes *deref_results = NULL;
+    LDAPDerefRes *dres;
+    LDAPDerefVal *dval;
+    size_t c;
+    size_t count = 0;
+    size_t sid_index = 0;
+    struct dom_sid *sids = NULL;
+    char *entry_attrs[] ={"1.1", NULL};
+    unsigned long gid;
+    struct dom_sid sid;
+    char *endptr;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (ipactx == NULL) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    basedn = talloc_asprintf(memctx, "cn=groups,cn=accounts,%s", ipactx->base);
+    if (basedn == NULL) {
+        krb5_klog_syslog(LOG_ERR, "talloc_asprintf failed.");
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    for (c = 0; group_sids[c] != NULL; c++) {
+        talloc_free(filter);
+        filter = talloc_asprintf(memctx, "(&(objectclass=ipaExternalGroup)(ipaExternalMember=%s))",
+                                 group_sids[c]);
+        if (filter == NULL) {
+            krb5_klog_syslog(LOG_ERR, "talloc_asprintf failed.");
+            kerr = ENOMEM;
+            goto done;
+        }
+
+        kerr = ipadb_deref_search(ipactx, basedn, LDAP_SCOPE_ONE, filter,
+                                  entry_attrs, deref_search_attrs,
+                                  memberof_pac_attrs, &results);
+        if (kerr != 0) {
+            krb5_klog_syslog(LOG_ERR, "ipadb_deref_search failed.");
+            goto done;
+        }
+
+        lentry = ldap_first_entry(ipactx->lcontext, results);
+        if (lentry == NULL) {
+            continue;
+        }
+
+        ldap_derefresponse_free(deref_results);
+        ret = ipadb_ldap_deref_results(ipactx->lcontext, lentry, &deref_results);
+        switch (ret) {
+            case ENOENT:
+                /* No entry found, try next SID */
+                break;
+            case 0:
+                if (deref_results == NULL) {
+                    krb5_klog_syslog(LOG_ERR, "No results.");
+                    break;
+                }
+
+                for (dres = deref_results; dres; dres = dres->next) {
+                    count++;
+                }
+
+                sids = talloc_realloc(memctx, sids, struct dom_sid, count);
+                if (sids == NULL) {
+                    krb5_klog_syslog(LOG_ERR, "talloc_realloc failed.");
+                    kerr = ENOMEM;
+                    goto done;
+                }
+
+                for (dres = deref_results; dres; dres = dres->next) {
+                    gid = 0;
+                    memset(&sid, '\0', sizeof(struct dom_sid));
+                    for (dval = dres->attrVals; dval; dval = dval->next) {
+                        if (strcasecmp(dval->type, "gidNumber") == 0) {
+                            errno = 0;
+                            gid = strtoul((char *)dval->vals[0].bv_val,
+                                          &endptr,10);
+                            if (gid == 0 || gid >= UINT32_MAX || errno != 0 ||
+                                *endptr != '\0') {
+                                continue;
+                            }
+                        }
+                        if (strcasecmp(dval->type,
+                                       "ipaNTSecurityIdentifier") == 0) {
+                            kerr = string_to_sid((char *)dval->vals[0].bv_val, &sid);
+                            if (kerr != 0) {
+                                continue;
+                            }
+                        }
+                    }
+                    if (gid != 0 && sid.sid_rev_num != 0) {
+                    /* TODO: check if gid maps to sid */
+                        if (sid_index >= count) {
+                            krb5_klog_syslog(LOG_ERR, "Index larger than "
+                                                      "array, this shoould "
+                                                      "never happen.");
+                            kerr = EFAULT;
+                            goto done;
+                        }
+                        memcpy(&sids[sid_index], &sid, sizeof(struct dom_sid));
+                        sid_index++;
+                    }
+                }
+
+                break;
+            default:
+                goto done;
+        }
+    }
+
+    *_ipa_group_sids_count = sid_index;
+    *_ipa_group_sids = sids;
+
+    kerr = 0;
+
+done:
+    ldap_derefresponse_free(deref_results);
+    talloc_free(basedn);
+    talloc_free(filter);
+    ldap_msgfree(results);
+    return kerr;
+}
+
+static krb5_error_code filter_pac(krb5_context context, krb5_data *old_data,
+                                  krb5_data *new_data)
+{
+    DATA_BLOB pac_data;
+    union PAC_INFO pac_info;
+    krb5_error_code kerr;
+    enum ndr_err_code ndr_err;
+    TALLOC_CTX *tmpctx;
+    int ret;
+    char **group_sids = NULL;
+    size_t ipa_group_sids_count = 0;
+    struct dom_sid *ipa_group_sids = NULL;
+
+    tmpctx = talloc_new(NULL);
+    if (!tmpctx) {
+        return ENOMEM;
+    }
+
+    pac_data.length = old_data->length;
+    pac_data.data = (uint8_t *) old_data->data;
+
+    ndr_err = ndr_pull_union_blob(&pac_data, tmpctx, &pac_info,
+                                  PAC_TYPE_LOGON_INFO,
+                                  (ndr_pull_flags_fn_t) ndr_pull_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+        krb5_klog_syslog(LOG_ERR, "ndr_pull_union_blob failed");
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    ret = get_group_sids(tmpctx, &pac_info.logon_info, &group_sids);
+    if (ret != 0) {
+        krb5_klog_syslog(LOG_ERR, "get_group_sids failed");
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    ret = map_groups(tmpctx, context, group_sids, &ipa_group_sids_count,
+                     &ipa_group_sids);
+    if (ret != 0) {
+        krb5_klog_syslog(LOG_ERR, "map_groups failed");
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    ret = add_groups(tmpctx, &pac_info.logon_info, ipa_group_sids_count,
+                     ipa_group_sids);
+    if (ret != 0) {
+        krb5_klog_syslog(LOG_ERR, "add_groups failed");
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    ndr_err = ndr_push_union_blob(&pac_data, tmpctx, &pac_info,
+                                  PAC_TYPE_LOGON_INFO,
+                                  (ndr_push_flags_fn_t)ndr_push_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+        krb5_klog_syslog(LOG_ERR, "ndr_push_union_blob failed");
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    new_data->magic = KV5M_DATA;
+    new_data->data = malloc(pac_data.length);
+    if (new_data->data == NULL) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    memcpy(new_data->data, pac_data.data, pac_data.length);
+    new_data->length = pac_data.length;
+
+    kerr = 0;
+
+done:
+    talloc_free(tmpctx);
+
+    return kerr;
+}
+
 static krb5_error_code ipadb_verify_pac(krb5_context context,
                                         unsigned int flags,
                                         krb5_const_principal client_princ,
@@ -557,6 +982,7 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
     krb5_pac old_pac = NULL;
     krb5_pac new_pac = NULL;
     krb5_data data;
+    krb5_data filtered_data;
     size_t i;
 
     kerr = krb5_pac_parse(context,
@@ -567,6 +993,7 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         goto done;
     }
 
+    memset(&filtered_data, 0, sizeof(filtered_data));
     /* for cross realm trusts cases we need to check the right checksum.
      * when the PAC is signed by our realm, we can always just check it
      * passing our realm krbtgt key as the kdc checksum key (privsvr).
@@ -584,6 +1011,16 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
 
         /* TODO: Here is where we need to plug our PAC Filtering, later on */
         srv_key = krbtgt_key;
+
+        kerr = krb5_pac_get_buffer(context, old_pac, KRB5_PAC_LOGON_INFO, &data);
+        if (kerr != 0) {
+            goto done;
+        }
+
+        kerr = filter_pac(context, &data, &filtered_data);
+        if (kerr != 0) {
+            goto done;
+        }
     } else {
         /* krbtgt from our own realm */
         priv_key = krbtgt_key;
@@ -613,6 +1050,20 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
             buffer_types[i] == KRB5_PAC_PRIVSVR_CHECKSUM) {
             continue;
         }
+
+        if (buffer_types[i] == KRB5_PAC_LOGON_INFO &&
+            filtered_data.length != 0) {
+            kerr = krb5_pac_add_buffer(context, new_pac,
+                                       buffer_types[i], &filtered_data);
+            krb5_free_data_contents(context, &filtered_data);
+            if (kerr) {
+                krb5_pac_free(context, new_pac);
+                goto done;
+            }
+
+            continue;
+        }
+
         kerr = krb5_pac_get_buffer(context, old_pac,
                                     buffer_types[i], &data);
         if (kerr == 0) {
