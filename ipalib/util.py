@@ -223,12 +223,15 @@ def validate_dns_label(dns_label, allow_underscore=False):
     label_regex = r'^[%(chars)s]([%(chars)s-]?[%(chars)s])*$' % dict(chars=label_chars)
     regex = re.compile(label_regex, re.IGNORECASE)
 
+    if not dns_label:
+        raise ValueError(_('empty DNS label'))
+
     if len(dns_label) > 63:
         raise ValueError(_('DNS label cannot be longer that 63 characters'))
 
     if not regex.match(dns_label):
         raise ValueError(_('only letters, numbers,%(underscore)s and - are allowed. ' \
-                           '- must not be the DNS label character') \
+                           'DNS label may not start or end with -') \
                            % dict(underscore=underscore_err_msg))
 
 def validate_domain_name(domain_name, allow_underscore=False):
@@ -246,11 +249,12 @@ def validate_domain_name(domain_name, allow_underscore=False):
 
 def validate_zonemgr(zonemgr):
     """ See RFC 1033, 1035 """
-    regex_domain = re.compile(r'^[a-z0-9]([a-z0-9-]?[a-z0-9])*$', re.IGNORECASE)
-    regex_local_part = re.compile(r'^[a-z0-9]([a-z0-9-_\.]?[a-z0-9])*$',
+    regex_local_part = re.compile(r'^[a-z0-9]([a-z0-9-_]?[a-z0-9])*$',
                                     re.IGNORECASE)
-
-    local_part_errmsg = _('mail account may only include letters, numbers, -, _ and a dot. There may not be consecutive -, _ and . characters')
+    local_part_errmsg = _('mail account may only include letters, numbers, -, _ and a dot. There may not be consecutive -, _ and . characters. Its parts may not start or end with - or _')
+    local_part_sep = '.'
+    local_part = None
+    domain = None
 
     if len(zonemgr) > 255:
         raise ValueError(_('cannot be longer that 255 characters'))
@@ -260,30 +264,30 @@ def validate_zonemgr(zonemgr):
 
     if zonemgr.count('@') == 1:
         local_part, dot, domain = zonemgr.partition('@')
-        if not regex_local_part.match(local_part):
-            raise ValueError(local_part_errmsg)
-        if not domain:
-            raise ValueError(_('missing address domain'))
     elif zonemgr.count('@') > 1:
         raise ValueError(_('too many \'@\' characters'))
     else:
         last_fake_sep = zonemgr.rfind('\\.')
         if last_fake_sep != -1: # there is a 'fake' local-part/domain separator
+            local_part_sep = '\\.'
             sep = zonemgr.find('.', last_fake_sep+2)
-            if sep == -1:
-                raise ValueError(_('missing address domain'))
-            local_part = zonemgr[:sep]
-            domain = zonemgr[sep+1:]
-
-            if not all(regex_local_part.match(part) for part in local_part.split('\\.')):
-                raise ValueError(local_part_errmsg)
+            if sep != -1:
+                local_part = zonemgr[:sep]
+                domain = zonemgr[sep+1:]
         else:
             local_part, dot, domain = zonemgr.partition('.')
 
-            if not regex_local_part.match(local_part):
-                raise ValueError(local_part_errmsg)
+    if not domain:
+        raise ValueError(_('missing address domain'))
 
     validate_domain_name(domain)
+
+    if not local_part:
+        raise ValueError(_('missing mail account'))
+
+    if not all(regex_local_part.match(part) for part in \
+               local_part.split(local_part_sep)):
+        raise ValueError(local_part_errmsg)
 
 def validate_hostname(hostname, check_fqdn=True, allow_underscore=False):
     """ See RFC 952, 1123
