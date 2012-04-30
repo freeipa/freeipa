@@ -391,3 +391,45 @@ IPA.nested_search_facet = function(spec) {
 
     return that;
 };
+
+/*
+ * Calls entity's disable command for each selected item in a batch.
+ * Usable in table facets.
+ */
+IPA.batch_items_action = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.action(spec);
+
+    that.method = spec.method || 'disable';
+
+    that.execute = function(facet, on_success, on_error) {
+
+        var entity = facet.managed_entity;
+        var pkeys = facet.get_selected_values();
+
+        var batch = IPA.batch_command({
+            name: entity.name + '_batch_'+ that.method,
+            on_success: function() {
+                facet.refresh();
+            }
+        });
+
+        for (var i=0; i<pkeys.length; i++) {
+            var pkey = pkeys[i];
+
+            var command = IPA.command({
+                entity: entity.name,
+                method: that.method,
+                args: [pkey]
+            });
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
+    };
+
+    return that;
+};
