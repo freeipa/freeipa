@@ -878,7 +878,7 @@ def configure_ssh(fstore, ssh_dir, options):
     fstore.backup_file(sshd_config)
 
     changes = {
-        'KerberosAuthentication': 'yes',
+        'KerberosAuthentication': 'no',
         'GSSAPIAuthentication': 'yes',
         'UsePAM': 'yes',
     }
