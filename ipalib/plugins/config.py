@@ -229,8 +229,8 @@ class config_mod(LDAPUpdate):
                 if not entry_attrs[attr]:
                     raise errors.ValidationError(name=attr,
                         error=_('May not be empty'))
-                objectclasses = list(set(entry_attrs[attr] \
-                                         + self.api.Object[obj].possible_objectclasses))
+                objectclasses = list(set(entry_attrs[attr]).union(
+                        self.api.Object[obj].possible_objectclasses))
                 new_allowed_attrs = ldap.get_allowed_attributes(objectclasses,
                                         raise_on_unknown=True)
                 checked_attrs = self.api.Object[obj].default_attributes
