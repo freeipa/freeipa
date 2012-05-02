@@ -1374,12 +1374,34 @@ def install(options, env, fstore, statestore):
 
     os.environ['KRB5CCNAME'] = CCACHE_FILE
     try:
-        ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', 'host/%s' % hostname])
-        api.Backend.xmlclient.connect()
+        ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', 'host/%s@%s' % (hostname, cli_realm)])
     except CalledProcessError, e:
         print >>sys.stderr, "Failed to obtain host TGT."
         # fail to obtain ticket makes it impossible to login and bind from sssd to LDAP,
         # abort installation and rollback changes
+        return CLIENT_INSTALL_ERROR
+
+    # Now, we have a TGT, lets try to connect to the server's XML-RPC interface
+    try:
+        api.Backend.xmlclient.connect()
+    except errors.KerberosError, e:
+        root_logger.debug('Cannot connect to the server due to Kerberos error: %s' % str(e))
+        root_logger.debug('Trying with delegate=True')
+        try:
+            api.Backend.xmlclient.connect(delegate=True)
+            root_logger.debug('Connection with delegate=True successful')
+
+            # The remote server is not capable of Kerberos S4U2Proxy delegation
+            # This features is implemented in IPA server version 2.2 and higher
+            print >>sys.stderr, "Target IPA server has a lower version that the enrolled client"
+            print >>sys.stderr, "Some capabilities including the ipa command capability may not be available"
+        except errors.PublicError, e2:
+            root_logger.debug('Second connect with delegate=True also failed: %s' % str(e2))
+            print >>sys.stderr, "Cannot connect to the IPA server XML-RPC interface: %s" % str(e2)
+            return CLIENT_INSTALL_ERROR
+    except errors.PublicError, e:
+        root_logger.debug('Cannot connect to the server due to generic error: %s' % str(e))
+        print >>sys.stderr, "Cannot connect to the IPA server XML-RPC interface: %s" % str(e)
         return CLIENT_INSTALL_ERROR
 
     if not options.on_master:
