@@ -107,7 +107,8 @@ IPA.user.entity = function(spec) {
                         'uid',
                         {
                             factory: IPA.user_password_widget,
-                            name: 'userpassword'
+                            name: 'has_password',
+                            metadata: IPA.get_entity_param('user', 'userpassword')
                         },
                         {
                             name: 'krbpasswordexpiration',
@@ -430,118 +431,154 @@ IPA.user_adder_dialog = function(spec) {
 IPA.user_password_widget = function(spec) {
 
     spec = spec || {};
+    spec.read_only = true;
 
     var that = IPA.input_widget(spec);
+    that.set_value = spec.set_value || '******';
+    that.unset_value = spec.unset_value || '';
 
     that.create = function(container) {
 
         that.widget_create(container);
 
-        $('<a/>', {
-            href: 'jslink',
-            title: 'userpassword',
-            text: IPA.messages.password.reset_password,
-            click: function() {
-                that.show_dialog();
-                return false;
-            }
+        that.display_control = $('<label/>', {
+            name: that.name
         }).appendTo(container);
     };
 
-    that.show_dialog = function() {
+    that.update = function(values) {
 
-        var pkey = IPA.nav.get_state('user-pkey');
-        var self_service = pkey === IPA.whoami.uid[0];
-
-        var sections = [];
-        if (self_service) {
-            sections.push({
-                fields: [
-                    {
-                        name: 'current_password',
-                        label: IPA.messages.password.current_password,
-                        type: 'password'
-                    }
-                ]
-            });
+        if (values && values[0]) {
+            that.display_control.text(that.set_value);
+        } else {
+            that.display_control.text(that.unset_value);
         }
+    };
 
-        sections.push({
+    that.clear = function() {
+        that.display_control.text('');
+    };
+
+    return that;
+};
+
+IPA.user_password_dialog = function(spec) {
+
+    spec = spec || {};
+
+    spec.width = spec.width || 400;
+    spec.title = spec.title || IPA.messages.password.reset_password;
+    spec.sections = spec.sections || [];
+
+    spec.sections.push(
+        {
+            name: 'input',
             fields: [
+                {
+                    name: 'current_password',
+                    label: IPA.messages.password.current_password,
+                    type: 'password',
+                    required: true
+                },
                 {
                     name: 'password1',
                     label: IPA.messages.password.new_password,
-                    type: 'password'
+                    type: 'password',
+                    required: true
                 },
                 {
                     name: 'password2',
                     label: IPA.messages.password.verify_password,
-                    type: 'password'
+                    type: 'password',
+                    required: true
                 }
             ]
         });
 
-        var dialog = IPA.dialog({
-            entity: that.entity,
-            title: IPA.messages.password.reset_password,
-            width: 400,
-            sections: sections
-        });
+    var that = IPA.dialog(spec);
 
+    that.get_pkey = function() {
+        return IPA.nav.get_state('user-pkey');
+    };
 
-        dialog.create_button({
+    that.is_self_service = function() {
+        var pkey = that.get_pkey();
+        var self_service = pkey === IPA.whoami.uid[0];
+        return self_service;
+    };
+
+    that.open = function() {
+
+        var self_service = that.is_self_service();
+        var section = that.widgets.get_widget('input');
+
+        that.dialog_open();
+        section.set_row_visible('current_password', self_service);
+    };
+
+    that.create_buttons = function() {
+
+        that.create_button({
             name: 'reset_password',
             label: IPA.messages.password.reset_password,
-            click: function() {
-
-                var record = {};
-                dialog.save(record);
-
-                var current_password;
-
-                if (self_service) {
-                    current_password = record.current_password[0];
-                    if (!current_password) {
-                        alert(IPA.messages.password.current_password_required);
-                        return;
-                    }
-                }
-
-                var new_password = record.password1[0];
-                var repeat_password = record.password2[0];
-
-                if (new_password != repeat_password) {
-                    alert(IPA.messages.password.password_must_match);
-                    return;
-                }
-
-                that.set_password(
-                    pkey,
-                    current_password,
-                    new_password,
-                    function(data, text_status, xhr) {
-                        alert(IPA.messages.password.password_change_complete);
-                        dialog.close();
-                        // refresh password expiration field
-                        var facet = IPA.current_entity.get_facet();
-                        facet.refresh();
-                    },
-                    function(xhr, text_status, error_thrown) {
-                        dialog.close();
-                    }
-                );
-            }
+            click: that.on_reset_click
         });
 
-        dialog.create_button({
+        that.create_button({
             name: 'cancel',
             label: IPA.messages.buttons.cancel,
             click: function() {
-                dialog.close();
+                that.close();
             }
         });
+    };
 
-        dialog.open(that.container);
+    that.on_reset_click = function() {
+
+        var pkey = that.get_pkey();
+        var self_service = that.is_self_service();
+
+        var record = {};
+        that.save(record);
+
+        var current_password;
+
+        if (self_service) {
+            current_password = record.current_password[0];
+            if (!current_password) {
+                alert(IPA.messages.password.current_password_required);
+                return;
+            }
+        }
+
+        var new_password = record.password1[0];
+        var repeat_password = record.password2[0];
+
+        if (IPA.is_empty(new_password)) {
+            alert(IPA.messages.password.new_password_required);
+            return;
+        }
+
+        if (new_password != repeat_password) {
+            alert(IPA.messages.password.password_must_match);
+            return;
+        }
+
+        that.set_password(
+            pkey,
+            current_password,
+            new_password,
+            function(data, text_status, xhr) {
+                alert(IPA.messages.password.password_change_complete);
+                that.close();
+                // refresh password expiration field
+                var facet = IPA.current_entity.get_facet();
+                facet.refresh();
+            },
+            function(xhr, text_status, error_thrown) {
+                that.close();
+            }
+        );
     };
 
     that.set_password = function(pkey, current_password, password, on_success, on_error) {
@@ -559,6 +596,8 @@ IPA.user_password_widget = function(spec) {
 
         command.execute();
     };
+
+    that.create_buttons();
 
     return that;
 };
