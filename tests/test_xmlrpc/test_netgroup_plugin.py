@@ -363,7 +363,8 @@ class test_netgroup(Declarative):
             desc='Add invalid host %r to netgroup %r' % (invalidhost, netgroup1),
             command=('netgroup_add_member', [netgroup1], dict(host=invalidhost)),
             expected=errors.ValidationError(name='host',
-             error='only letters, numbers, _, and - are allowed. - must not be the DNS label character'),
+             error='only letters, numbers, _, and - are allowed. ' +
+                    u'DNS label may not start or end with -'),
         ),
 
 
