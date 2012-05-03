@@ -369,17 +369,21 @@ IPA.facet_header = function(spec) {
 
         if (!value) return;
 
-        var limited_value = IPA.limit_text(value, 60);
+        var key, i;
+        var pkey_max = that.get_max_pkey_length();
+        var limited_value = IPA.limit_text(value, pkey_max);
 
         if (!that.facet.disable_breadcrumb) {
             var breadcrumb = [];
+            var keys = [];
 
             var entity = that.facet.entity.get_containing_entity();
 
             while (entity) {
+                key = IPA.nav.get_state(entity.name+'-pkey');
                 breadcrumb.unshift($('<a/>', {
                     'class': 'breadcrumb-element',
-                    text: IPA.nav.get_state(entity.name+'-pkey'),
+                    text: key,
                     title: entity.metadata.label_singular,
                     click: function(entity) {
                         return function() {
@@ -390,17 +394,34 @@ IPA.facet_header = function(spec) {
                 }));
 
                 entity = entity.get_containing_entity();
+                keys.unshift(key);
             }
 
+            //calculation of breadcrumb keys length
+            keys.push(value);
+            var max_bc_l = 140; //max chars which can fit on one line
+            var max_key_l = (max_bc_l / keys.length) - 4; //4 chars as divider
+            var bc_l = 0;
+            var to_limit = keys.length;
+
+            //count how many won't be limited and how much space they take
+            for (i=0; i<keys.length; i++) {
+                var key_l = keys[i].length;
+                if (key_l <= max_key_l) {
+                    to_limit--;
+                    bc_l += key_l + 4;
+                }
+            }
+
+            max_key_l = ((max_bc_l - bc_l) / to_limit) - 4;
+
+
             that.path.empty();
-            var key_max_lenght = 60 / breadcrumb.length;
 
-            for (var i=0; i<breadcrumb.length; i++) {
+            for (i=0; i<breadcrumb.length; i++) {
                 var item = breadcrumb[i];
-
-                var entity_key = item.text();
-                var limited_entity_key = IPA.limit_text(entity_key, key_max_lenght);
-                item.text(limited_entity_key);
+                key = IPA.limit_text(keys[i], max_key_l);
+                item.text(key);
 
                 that.path.append(' &raquo; ');
                 that.path.append(item);
@@ -408,10 +429,12 @@ IPA.facet_header = function(spec) {
 
             that.path.append(' &raquo; ');
 
+            key = IPA.limit_text(keys[i], max_key_l);
+
             $('<span>', {
                 'class': 'breadcrumb-element',
                 title: value,
-                text: limited_value
+                text: key
             }).appendTo(that.path);
         }
 
@@ -578,6 +601,29 @@ IPA.facet_header = function(spec) {
         }
 
         that.adjust_elements();
+    };
+
+    that.get_max_pkey_length = function() {
+
+        var label_w, max_pkey_w, max_pkey_l, al, al_w, icon_w, char_w, container_w;
+
+        container_w = that.container.width();
+        icon_w = that.title_widget.icon.width();
+        label_w = that.title_widget.title.width();
+        char_w = label_w / that.title_widget.title.text().length;
+        max_pkey_w = container_w - icon_w - label_w;
+        max_pkey_w -= 10; //some space correction to be safe
+
+        if (that.action_list) {
+            al = that.action_list.container;
+            al_w = al.width();
+
+            max_pkey_w -=  al_w;
+        }
+
+        max_pkey_l = Math.ceil(max_pkey_w / char_w);
+
+        return max_pkey_l;
     };
 
     that.adjust_elements = function() {
