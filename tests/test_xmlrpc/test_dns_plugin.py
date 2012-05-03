@@ -114,7 +114,7 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(name='name',
                 error=u'only letters, numbers, and - are allowed. ' +
-                    u'- must not be the DNS label character'),
+                    u'DNS label may not start or end with -'),
         ),
 
 
@@ -478,7 +478,7 @@ class test_dns(Declarative):
             command=('dnsrecord_add', [dnszone1, u'invalid record'], {'arecord': u'127.0.0.1'}),
             expected=errors.ValidationError(name='name',
                 error=u'only letters, numbers, _, and - are allowed. ' +
-                    u'- must not be the DNS label character'),
+                    u'DNS label may not start or end with -'),
         ),
 
 
@@ -639,7 +639,7 @@ class test_dns(Declarative):
                                                                  'srv_part_target' : u'foo bar'}),
             expected=errors.ValidationError(name='srv_target',
                 error=u'invalid domain-name: only letters, numbers, and - ' +
-                    u'are allowed. - must not be the DNS label character'),
+                    u'are allowed. DNS label may not start or end with -'),
         ),
 
         dict(
@@ -734,7 +734,7 @@ class test_dns(Declarative):
             command=('dnsrecord_add', [dnszone1, dnsres1], {'cnamerecord': u'-.example.com' }),
             expected=errors.ValidationError(name='hostname',
                 error=u'invalid domain-name: only letters, numbers, and - ' +
-                    u'are allowed. - must not be the DNS label character'),
+                    u'are allowed. DNS label may not start or end with -'),
         ),
 
         dict(
@@ -908,7 +908,7 @@ class test_dns(Declarative):
             command=('dnsrecord_add', [revdnszone1, dnsrev1], {'ptrrecord': u'-.example.com' }),
             expected=errors.ValidationError(name='hostname',
                 error=u'invalid domain-name: only letters, numbers, and - ' +
-                    u'are allowed. - must not be the DNS label character'),
+                    u'are allowed. DNS label may not start or end with -'),
         ),
 
         dict(
