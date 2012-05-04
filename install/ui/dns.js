@@ -33,6 +33,13 @@ IPA.dns.config_entity = function(spec) {
     var that = IPA.entity(spec);
 
     that.init = function() {
+
+        if (!IPA.dns_enabled) {
+            throw {
+                expected: true
+            };
+        }
+
         that.entity_init();
 
         that.builder.details_facet({
