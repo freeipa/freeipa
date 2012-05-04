@@ -44,6 +44,8 @@ ifneq ($(DEVELOPER_MODE),0)
 LINT_OPTIONS=--no-fail
 endif
 
+PYTHON ?= $(shell rpm -E %__python)
+
 all: bootstrap-autogen server
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
@@ -74,9 +76,9 @@ client-install: client client-dirs
 	done
 	cd install/po && $(MAKE) install || exit 1;
 	if [ "$(DESTDIR)" = "" ]; then \
-		python setup-client.py install; \
+		$(PYTHON) setup-client.py install; \
 	else \
-		python setup-client.py install --root $(DESTDIR); \
+		$(PYTHON) setup-client.py install --root $(DESTDIR); \
 	fi
 
 client-dirs:
@@ -132,13 +134,13 @@ version-update: release-update
 	fi
 
 server: version-update
-	python setup.py build
+	$(PYTHON) setup.py build
 
 server-install: server
 	if [ "$(DESTDIR)" = "" ]; then \
-		python setup.py install; \
+		$(PYTHON) setup.py install; \
 	else \
-		python setup.py install --root $(DESTDIR); \
+		$(PYTHON) setup.py install --root $(DESTDIR); \
 	fi
 
 archive:
