@@ -32,6 +32,10 @@ hostgroup1 = u'testhostgroup1'
 dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
          api.env.basedn)
 
+hostgroup_single = u'a'
+dn_single = DN(('cn',hostgroup_single),('cn','hostgroups'),('cn','accounts'),
+         api.env.basedn)
+
 fqdn1 = u'testhost1.%s' % api.env.domain
 host_dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
               api.env.basedn)
@@ -261,6 +265,39 @@ class test_hostgroup(Declarative):
             expected=dict(
                 value=hostgroup1,
                 summary=u'Deleted hostgroup "testhostgroup1"',
+                result=dict(failed=u''),
+            ),
+        ),
+
+
+        dict(
+            desc='Create  hostgroup with name containing only one letter: %r' % hostgroup_single,
+            command=('hostgroup_add', [hostgroup_single],
+                dict(description=u'Test hostgroup with single letter in name')
+            ),
+            expected=dict(
+                value=hostgroup_single,
+                summary=u'Added hostgroup "a"',
+                result=dict(
+                    dn=lambda x: DN(x) == dn_single,
+                    cn=[hostgroup_single],
+                    objectclass=objectclasses.hostgroup,
+                    description=[u'Test hostgroup with single letter in name'],
+                    ipauniqueid=[fuzzy_uuid],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',hostgroup_single),('cn','ng'),('cn','alt'),
+                            api.env.basedn)],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % hostgroup_single,
+            command=('hostgroup_del', [hostgroup_single], {}),
+            expected=dict(
+                value=hostgroup_single,
+                summary=u'Deleted hostgroup "a"',
                 result=dict(failed=u''),
             ),
         ),

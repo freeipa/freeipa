@@ -38,6 +38,7 @@ ccache = krbV.default_context().default_ccache().name
 
 netgroup1 = u'netgroup1'
 netgroup2 = u'netgroup2'
+netgroup_single = u'a'
 
 host1 = u'ipatesthost.%s' % api.env.domain
 host_dn1 = DN(('fqdn',host1),('cn','computers'),('cn','accounts'),
@@ -168,6 +169,37 @@ class test_netgroup(Declarative):
                     nisdomainname=['%s' % api.env.domain],
                     ipauniqueid=[fuzzy_uuid],
                 ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create netgroup with name containing only one letter: %r' % netgroup_single,
+            command=('netgroup_add', [netgroup_single],
+                dict(description=u'Test netgroup_single')
+            ),
+            expected=dict(
+                value=netgroup_single,
+                summary=u'Added netgroup "%s"' % netgroup_single,
+                result=dict(
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup_single],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test netgroup_single'],
+                    nisdomainname=['%s' % api.env.domain],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % netgroup_single,
+            command=('netgroup_del', [netgroup_single], {}),
+            expected=dict(
+                value=netgroup_single,
+                summary=u'Deleted netgroup "%s"' % netgroup_single,
+                result=dict(failed=u''),
             ),
         ),
 

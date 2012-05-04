@@ -50,7 +50,7 @@ EXAMPLES:
 """)
 
 
-NETGROUP_PATTERN='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]+$'
+NETGROUP_PATTERN='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$'
 NETGROUP_PATTERN_ERRMSG='may only include letters, numbers, _, -, and .'
 
 # according to most common use cases the netgroup pattern should fit
