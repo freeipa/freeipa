@@ -715,6 +715,14 @@ IPA.link_field = function(spec) {
 
     that.check_entity_link = function() {
 
+        //In some cases other entity may not be present.
+        //For example when DNS is not configured.
+        if (!that.other_entity) {
+            that.widget.is_link = false;
+            that.widget.update(that.values);
+            return;
+        }
+
         IPA.command({
             entity: that.other_entity.name,
             method: 'show',

@@ -353,6 +353,18 @@ IPA.host_adder_dialog = function(spec) {
     spec = spec || {};
     spec.retry = spec.retry !== undefined ? spec.retry : false;
 
+    if (!IPA.dns_enabled) {
+
+        //When server is installed without DNS support, a use of host_fqdn_widget
+        //is bad because there are no DNS zones. IP address field is useless as
+        //well. Special section and IP address field should be removed and normal
+        //fqdn textbox has to be added.
+        spec.sections.shift();
+        spec.sections[0].fields.shift();
+        spec.sections[0].fields.unshift('fqdn');
+        delete spec.height;
+    }
+
     var that = IPA.entity_adder_dialog(spec);
 
     that.create = function() {
