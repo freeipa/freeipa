@@ -933,12 +933,6 @@ last, after all sets and adds."""),
                     raise errors.ValidationError(name=attr, error=err.error)
                 except errors.ConversionError, err:
                     raise errors.ConversionError(name=attr, error=err.error)
-                # FIXME: We use `force` when encoding because we know this is
-                # an attribute, even if it does not have the `attribute` flag
-                # set. This happens with no_update attributes, which are
-                # not cloned to Update commands. This cloning is where the flag
-                # gets set.
-                value = param.encode(value, force=True)
                 entry_attrs[attr] = value
             else:
                 # unknown attribute: remove duplicite and invalid values

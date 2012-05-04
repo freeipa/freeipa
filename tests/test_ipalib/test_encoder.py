@@ -49,7 +49,7 @@ class test_Encoder(ClassChecker):
         assert_equal(o.encode('ahoj'), 'ahoj'.encode(encode_to))
         assert_equal(o.encode(_test_str_d), _test_str_e)
         # bool, float, int, long
-        assert_equal(o.encode(True), str(True).encode(encode_to))
+        assert_equal(o.encode(True), 'TRUE'.encode(encode_to))
         assert_equal(o.encode(1.01), str(1.01).encode(encode_to))
         assert_equal(o.encode(1000), str(1000).encode(encode_to))
         assert_equal(o.encode(long(1)), str(long(1)).encode(encode_to))

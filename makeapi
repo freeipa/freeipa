@@ -43,7 +43,6 @@ API_DOC_ERROR = 8
 PARAM_IGNORED_KW_ATTRIBUTES = ('label',
                                'doc',
                                'normalizer',
-                               'encoder',
                                'default_from',
                                'hint',
                                'flags',

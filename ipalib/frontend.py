@@ -429,8 +429,6 @@ class Command(HasParam):
         if not self.api.env.in_server and 'version' not in params:
             params['version'] = API_VERSION
         self.validate(**params)
-        if self.api.env.in_server:
-            params = self.encode(**params)
         (args, options) = self.params_2_args_options(**params)
         ret = self.run(*args, **options)
         if (
@@ -613,14 +611,6 @@ class Command(HasParam):
         """
         return dict(
             (k, self.params[k].convert(v)) for (k, v) in kw.iteritems()
-        )
-
-    def encode(self, **kw):
-        """
-        Return a dictionary of encoded values.
-        """
-        return dict(
-            (k, self.params[k].encode(v)) for (k, v) in kw.iteritems()
         )
 
     def __convert_iter(self, kw):

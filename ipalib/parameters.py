@@ -306,8 +306,6 @@ class Param(ReadOnly):
       - primary_key: Command's parameter primary key is used for unique
         identification of an LDAP object and for sorting
       - normalizer: a custom function for Param value normalization
-      - encoder: a custom function used to override Param subclass default
-        encoder
       - default_from: a custom function for generating default values of
         parameter instance
       - autofill: by default, only `required` parameters get a default value
@@ -381,7 +379,6 @@ class Param(ReadOnly):
         ('multivalue', bool, False),
         ('primary_key', bool, False),
         ('normalizer', callable, None),
-        ('encoder', callable, None),
         ('default_from', DefaultFrom, None),
         ('autofill', bool, False),
         ('query', bool, False),
@@ -900,36 +897,6 @@ class Param(ReadOnly):
                     error=error,
                     rule=rule,
                 )
-
-    def encode(self, value, force=False):
-        """
-        Encode Python native type value to chosen backend format. Encoding is
-        applied for parameters representing actual attributes (attribute=True).
-
-        The default encode method `Param._encode` can be overriden in a `Param`
-        instance with `encoder` attribute:
-
-        >>> s = Str('my_str', encoder=lambda x:encode(x))
-
-        Note that the default method of encoding values is defined in
-        `Param._encode()`.
-
-        :param value: Encoded value
-        :param force: If set to true, encoding takes place even for Params
-            not marked as attribute
-        """
-        if not self.attribute and not force: #pylint: disable=E1101
-            return value
-        if self.encoder is not None: #pylint: disable=E1101
-            return self.encoder(value) #pylint: disable=E1101
-
-        return self._encode(value)
-
-    def _encode(self, value):
-        """
-        Encode a value to backend format.
-        """
-        return value
 
     def get_default(self, **kw):
         """

@@ -79,7 +79,15 @@ class Encoder(object):
             return self.encoder_settings.encode_postprocessor(
                 var.encode(self.encoder_settings.encode_to)
             )
-        elif isinstance(var, (bool, float, Decimal, int, long)):
+        elif isinstance(var, bool):
+            if var:
+                var = 'TRUE'
+            else:
+                var = 'FALSE'
+            return self.encoder_settings.encode_postprocessor(
+                var.encode(self.encoder_settings.encode_to)
+            )
+        elif isinstance(var, (float, Decimal, int, long)):
             return self.encoder_settings.encode_postprocessor(
                 str(var).encode(self.encoder_settings.encode_to)
             )
