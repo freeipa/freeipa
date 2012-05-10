@@ -475,7 +475,12 @@ class BindInstance(service.Service):
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
-        self.ldap_enable('DNS', self.fqdn, self.dm_password, self.suffix)
+        try:
+            self.ldap_enable('DNS', self.fqdn, self.dm_password, self.suffix)
+        except errors.DuplicateEntry:
+            # service already exists (forced DNS reinstall)
+            # don't crash, just report error
+            root_logger.error("DNS service already exists")
 
     def __setup_sub_dict(self):
         if self.forwarders:
@@ -586,8 +591,22 @@ class BindInstance(service.Service):
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception, e:
-            root_logger.critical("Could not modify principal's %s entry" % dns_principal)
-            raise e
+            root_logger.critical("Could not modify principal's %s entry: %s" \
+                    % (dns_principal, str(e)))
+            raise
+
+        # bind-dyndb-ldap persistent search feature requires both size and time
+        # limit-free connection
+        mod = [(ldap.MOD_REPLACE, 'nsTimeLimit', '-1'),
+               (ldap.MOD_REPLACE, 'nsSizeLimit', '-1'),
+               (ldap.MOD_REPLACE, 'nsIdleTimeout', '-1'),
+               (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
+        try:
+            self.admin_conn.modify_s(dns_principal, mod)
+        except Exception, e:
+            root_logger.critical("Could not set principal's %s LDAP limits: %s" \
+                    % (dns_principal, str(e)))
+            raise
 
     def __setup_named_conf(self):
         self.fstore.backup_file('/etc/named.conf')

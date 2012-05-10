@@ -23,6 +23,7 @@ from ipaserver.install.plugins import baseupdate
 from ipalib import api, errors, util
 from ipalib.dn import DN
 from ipalib.plugins.dns import dns_container_exists
+from ipapython.ipa_log_manager import *
 
 class update_dnszones(PostUpdate):
     """
@@ -142,3 +143,51 @@ class update_dns_permissions(PostUpdate):
         return (False, True, [dnsupdates])
 
 api.register(update_dns_permissions)
+
+class update_dns_limits(PostUpdate):
+    """
+    bind-dyndb-ldap persistent search queries LDAP for all DNS records.
+    The LDAP connection must have no size or time limits to work
+    properly. This plugin updates limits of the existing DNS service
+    principal to match there requirements.
+    """
+    limit_attributes = ['nsTimeLimit', 'nsSizeLimit', 'nsIdleTimeout', 'nsLookThroughLimit']
+    limit_value = '-1'
+
+    def execute(self, **options):
+        ldap = self.obj.backend
+
+        if not dns_container_exists(ldap):
+            return (False, False, [])
+
+        dns_principal = 'DNS/%s@%s' % (self.env.host, self.env.realm)
+        dns_service_dn = str(DN(('krbprincipalname', dns_principal),
+                                self.env.container_service,
+                                self.env.basedn))
+
+        try:
+            (dn, entry) = ldap.get_entry(dns_service_dn, self.limit_attributes)
+        except errors.NotFound:
+            # this host may not have DNS service set
+            root_logger.debug("DNS: service %s not found, no need to update limits" % dns_service_dn)
+            return (False, False, [])
+
+        if all(entry.get(limit.lower(), [None])[0] == self.limit_value for limit in self.limit_attributes):
+            root_logger.debug("DNS: limits for service %s already set" % dns_service_dn)
+            # service is already updated
+            return (False, False, [])
+
+        limit_updates = []
+
+        for limit in self.limit_attributes:
+            limit_updates.append('only:%s:%s' % (limit, self.limit_value))
+
+        dnsupdates = {}
+        dnsupdates[dns_service_dn] = {'dn': dns_service_dn,
+                                      'updates': limit_updates}
+        root_logger.debug("DNS: limits for service %s will be updated" % dns_service_dn)
+
+
+        return (False, True, [dnsupdates])
+
+api.register(update_dns_limits)
