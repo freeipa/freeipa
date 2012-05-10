@@ -817,6 +817,15 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             ret = slapi_search_internal_get_entry(tmp_dn, NULL, &e, getPluginID());
             slapi_sdn_free(&tmp_dn);
 
+            if (ret == LDAP_REFERRAL) {
+                /* we have a referral so nothing for us to do, but return
+                 * success so we allow the MOD to proceed.
+                 */
+                ret = LDAP_SUCCESS;
+                free_entry = true;
+                goto done;
+            }
+
             if (ret) {
                 /* ok a client tried to modify an entry that doesn't exist.
                  * Nothing to see here, move along ... */
