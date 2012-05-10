@@ -246,6 +246,7 @@ IPA.dns.zone_entity = function(spec) {
             deleter_dialog: IPA.dns.record_search_deleter_dialog,
             title: IPA.metadata.objects.dnszone.label_singular,
             label: IPA.metadata.objects.dnsrecord.label,
+            tab_label: IPA.metadata.objects.dnsrecord.label,
             columns: [
                 {
                     name: 'idnsname',

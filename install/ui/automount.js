@@ -41,6 +41,7 @@ IPA.automount.location_entity = function(spec) {
             facet_group: 'automountmap',
             nested_entity: 'automountmap',
             label: IPA.metadata.objects.automountmap.label,
+            tab_label: IPA.metadata.objects.automountmap.label,
             name: 'maps',
             columns: [ 'automountmapname' ]
         }).
@@ -76,6 +77,7 @@ IPA.automount.map_entity = function(spec) {
             nested_entity: 'automountkey',
             search_all_entries: true,
             label: IPA.metadata.objects.automountkey.label,
+            tab_label: IPA.metadata.objects.automountkey.label,
             name: 'keys',
             columns: [
                 {
