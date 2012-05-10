@@ -21,6 +21,7 @@
 Test the `ipalib/plugins/config.py` module.
 """
 
+from ipalib import errors
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 class test_config(Declarative):
@@ -50,6 +51,13 @@ class test_config(Declarative):
                     value=u'',
                     summary=None,
                 ),
+        ),
+
+        dict(
+            desc='Try to remove ipausersearchfields',
+            command=('config_mod', [],
+                dict(delattr=u'ipausersearchfields=uid,givenname,sn,telephonenumber,ou,title')),
+            expected=errors.RequirementError(name='ipausersearchfields'),
         ),
 
     ]

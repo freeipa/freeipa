@@ -1255,6 +1255,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 set(self.obj.default_attributes + entry_attrs.keys())
             )
 
+        _check_single_value_attrs(self.params, entry_attrs)
+        _check_empty_attrs(self.obj.params, entry_attrs)
+
         for callback in self.PRE_CALLBACKS:
             if hasattr(callback, 'im_self'):
                 dn = callback(
@@ -1265,8 +1268,6 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                     self, ldap, dn, entry_attrs, attrs_list, *keys, **options
                 )
 
-        _check_single_value_attrs(self.params, entry_attrs)
-        _check_empty_attrs(self.obj.params, entry_attrs)
         ldap.get_schema()
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
