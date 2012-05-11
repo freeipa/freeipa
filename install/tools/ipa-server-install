@@ -102,12 +102,14 @@ def validate_dm_password(password):
         raise ValueError("Password must be at least 8 characters long")
     if any(ord(c) < 0x20 for c in password):
         raise ValueError("Password must not contain control characters")
-    if ' ' in password:
-        raise ValueError("Password must not contain a space (\" \")")
-    if '&' in password:
-        raise ValueError("Password must not contain an ampersand (\"&\")")
-    if '\\' in password:
-        raise ValueError("Password must not contain a backslash (\"\\\")")
+    if any(ord(c) >= 0x7F for c in password):
+        raise ValueError("Password must only contain ASCII characters")
+
+    # Disallow characters that pkisilent doesn't process properly:
+    bad_characters = ' &\\<'
+    if any(c in bad_characters for c in password):
+        raise ValueError('Password must not contain these characters: %s' %
+            ', '.join('"%s"' % c for c in bad_characters))
 
 def parse_options():
     # Guaranteed to give a random 200k range below the 2G mark (uint32_t limit)
