@@ -518,4 +518,37 @@ class test_attr(Declarative):
                 error='must be an integer'),
         ),
 
+        dict(
+            desc='Try deleting bogus attribute',
+            command=('config_mod', [], dict(delattr=u'bogusattribute=xyz')),
+            expected=errors.ValidationError(name='bogusattribute',
+                error='No such attribute on this entry'),
+        ),
+
+        dict(
+            desc='Try deleting empty attribute',
+            command=('config_mod', [],
+                dict(delattr=u'ipaCustomFields=See Also,seealso,false')),
+            expected=errors.ValidationError(name='ipacustomfields',
+                error='No such attribute on this entry'),
+        ),
+
+        dict(
+            desc='Set and delete one value, plus try deleting a missing one',
+            command=('config_mod', [], dict(
+                delattr=[u'ipaCustomFields=See Also,seealso,false',
+                    u'ipaCustomFields=Country,c,false'],
+                addattr=u'ipaCustomFields=See Also,seealso,false')),
+            expected=errors.AttrValueNotFound(attr='ipacustomfields',
+                value='Country,c,false'),
+        ),
+
+        dict(
+            desc='Try to delete an operational attribute with --delattr',
+            command=('config_mod', [], dict(
+                delattr=u'creatorsName=cn=directory manager')),
+            expected=errors.DatabaseError(
+                desc='Server is unwilling to perform', info=''),
+        ),
+
     ]

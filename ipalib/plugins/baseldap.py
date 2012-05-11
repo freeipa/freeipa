@@ -906,6 +906,16 @@ last, after all sets and adds."""),
                 )
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
+
+            # Provide a nice error message when user tries to delete an
+            # attribute that does not exist on the entry (and user is not
+            # adding it)
+            names = set(n.lower() for n in old_entry)
+            del_nonexisting = delattrs - (names | setattrs | addattrs)
+            if del_nonexisting:
+                raise errors.ValidationError(name=del_nonexisting.pop(),
+                    error=_('No such attribute on this entry'))
+
             for attr in needldapattrs:
                 entry_attrs[attr] = old_entry.get(attr, [])
 
