@@ -227,6 +227,38 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Search for %r using --name' % permission1,
+            command=('permission_find', [], {'cn': permission1}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': lambda x: DN(x) == permission1_dn,
+                        'cn': [permission1],
+                        'member_privilege': [privilege1],
+                        'type': u'user',
+                        'permissions': [u'write'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for non-existence permission using --name',
+            command=('permission_find', [], {'cn': u'notfound'}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 permissions matched',
+                result=[],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % privilege1,
             command=('permission_find', [privilege1], {}),
             expected=dict(

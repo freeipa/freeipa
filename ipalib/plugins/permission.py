@@ -387,10 +387,17 @@ class permission_find(LDAPSearch):
             del opts['raw']
         except:
             pass
+        if 'cn' in options:
+            # the attribute for name is difference in acis
+            opts['aciname'] = options['cn']
         aciresults = self.api.Command.aci_find(*args, **opts)
         truncated = truncated or aciresults['truncated']
         results = aciresults['result']
 
+        if 'cn' in options:
+            # there is an option/param overlap if --name is in the
+            # search list, we don't need cn anymore so drop it.
+            options.pop('cn')
         for aci in results:
             found = False
             if 'permission' in aci:
