@@ -322,7 +322,7 @@ class i18n_messages(Command):
                 "privilege_withdrawn": _("Privilege Withdrawn"),
                 "reason": _("Reason for Revocation"),
                 "remove_from_crl": _("Remove from CRL"),
-                "request_message": _("<ol><li>Create a private key in a secure location, for example:<br/># openssl genrsa -out key.pem</li><li>Create a CSR with subject CN=${hostname},O=${realm}, for example:<br/># openssl req -new -key key.pem -out cert.csr \\<br/>&nbsp;&nbsp;&nbsp;&nbsp;-subj '/O=${realm}/CN=${hostname}'</li><li>Copy and paste the CSR below:</li></ol>"),
+                "request_message": _("<ol><li>Examples uses NSS database located in current directory. Replace \"-d  .\" in example with \"-d /path/to/database\" if NSS database is located elsewhere. If you don't have a NSS database you can create one in current directory by \"certutil -N -d .\" </li><li>Create a CSR with \"CN=${hostname},O=${realm}\", for example:<br/># certutil -R -d . -a <em title=\"key size in bits\">-g 2048</em> -s 'CN=${hostname},O=${realm}'</li><li>Copy and paste the CSR (the text block which starts with \"-----BEGIN NEW CERTIFICATE REQUEST-----\" and ends with \"-----END NEW CERTIFICATE REQUEST-----\") below:</li></ol>"),
                 "restore_certificate": _("Restore Certificate for ${entity} ${primary_key}"),
                 "restore_confirmation": _("To confirm your intention to restore this certificate, click the \"Restore\" button."),
                 "revoke_certificate": _("Revoke Certificate for ${entity} ${primary_key}"),
