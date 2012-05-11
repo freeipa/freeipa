@@ -30,8 +30,7 @@ from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         validate_hostname, validate_dns_label, validate_domain_name)
-from ipapython import dnsclient
-from ipapython.ipautil import valid_ip, CheckedIPAddress
+from ipapython.ipautil import valid_ip, CheckedIPAddress, is_host_resolvable
 from ldap import explode_dn
 
 __doc__ = _("""
@@ -2610,17 +2609,8 @@ class dns_resolve(Command):
             query = '%s.%s.' % (query, api.env.domain)
         if query[-1] != '.':
             query = query + '.'
-        reca = dnsclient.query(query, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
-        rec6 = dnsclient.query(query, dnsclient.DNS_C_IN, dnsclient.DNS_T_AAAA)
-        records = reca + rec6
-        found = False
-        for rec in records:
-            if rec.dns_type == dnsclient.DNS_T_A or \
-              rec.dns_type == dnsclient.DNS_T_AAAA:
-                found = True
-                break
 
-        if not found:
+        if not is_host_resolvable(query):
             raise errors.NotFound(
                 reason=_('Host \'%(host)s\' not found') % {'host': query}
             )

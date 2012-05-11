@@ -20,9 +20,11 @@
 import ConfigParser
 from optparse import Option, Values, OptionParser, IndentedHelpFormatter, OptionValueError
 from copy import copy
+from dns import resolver, rdatatype
+from dns.exception import DNSException
+import dns.name
 
 import socket
-import ipapython.dnsclient
 import re
 import urlparse
 
@@ -163,7 +165,7 @@ def __parse_config(discover_server = True):
         pass
 
 def __discover_config(discover_server = True):
-    rl = 0
+    servers = []
     try:
         if not config.default_realm:
             try:
@@ -177,34 +179,44 @@ def __discover_config(discover_server = True):
                 return False
 
         if not config.default_domain:
-            #try once with REALM -> domain
-            dom_name = str(config.default_realm).lower()
-            name = "_ldap._tcp."+dom_name+"."
-            rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
-            rl = len(rs)
-            if rl == 0:
-                #try cycling on domain components of FQDN
-                dom_name = socket.getfqdn()
-            while rl == 0:
-                tok = dom_name.find(".")
-                if tok == -1:
-                    return False
-                dom_name = dom_name[tok+1:]
-                name = "_ldap._tcp." + dom_name + "."
-                rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
-                rl = len(rs)
+            # try once with REALM -> domain
+            domain = str(config.default_realm).lower()
+            name = "_ldap._tcp." + domain
 
-            config.default_domain = dom_name
+            try:
+                servers = resolver.query(name, rdatatype.SRV)
+            except DNSException:
+                # try cycling on domain components of FQDN
+                try:
+                    domain = dns.name.from_text(socket.getfqdn())
+                except DNSException:
+                    return False
+
+                while True:
+                    domain = domain.parent()
+
+                    if str(domain) == '.':
+                        return False
+                    name = "_ldap._tcp.%s" % domain
+                    try:
+                        servers = resolver.query(name, rdatatype.SRV)
+                        break
+                    except DNSException:
+                        pass
+
+            config.default_domain = str(domain).rstrip(".")
 
         if discover_server:
-            if rl == 0:
-                name = "_ldap._tcp."+config.default_domain+"."
-                rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
+            if not servers:
+                name = "_ldap._tcp.%s." % config.default_domain
+                try:
+                    servers = resolver.query(name, rdatatype.SRV)
+                except DNSException:
+                    pass
 
-            for r in rs:
-                if r.dns_type == ipapython.dnsclient.DNS_T_SRV:
-                    rsrv = r.rdata.server.rstrip(".")
-                    config.default_server.append(rsrv)
+            for server in servers:
+                hostname = str(server.target).rstrip(".")
+                config.default_server.append(hostname)
 
     except:
         pass

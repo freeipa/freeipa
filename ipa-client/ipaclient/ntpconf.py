@@ -133,7 +133,7 @@ def config_ntp(server_fqdn, fstore = None, sysstore = None):
     # Restart ntpd
     ipaservices.knownservices.ntpd.restart()
 
-def synconce_ntp(server_fqdn):
+def synconce_ntp(server_fqdn, debug=False):
     """
     Syncs time with specified server using ntpdate.
     Primarily designed to be used before Kerberos setup
@@ -142,15 +142,17 @@ def synconce_ntp(server_fqdn):
     Returns True if sync was successful
     """
     ntpdate="/usr/sbin/ntpdate"
-    result = False
     if os.path.exists(ntpdate):
         # retry several times -- logic follows /etc/init.d/ntpdate
         # implementation
+        cmd = [ntpdate, "-U", "ntp", "-s", "-b"]
+        if debug:
+            cmd.append('-d')
+        cmd.append(server_fqdn)
         for retry in range(0,3):
             try:
-                ipautil.run([ntpdate, "-U", "ntp", "-s", "-b", server_fqdn])
-                result = True
-                break
+                ipautil.run(cmd)
+                return True
             except:
                 pass
-    return result
+    return False

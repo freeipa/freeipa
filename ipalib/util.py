@@ -28,11 +28,12 @@ import socket
 import re
 from types import NoneType
 from weakref import WeakKeyDictionary
+from dns import resolver, rdatatype
+from dns.exception import DNSException
 
 from ipalib import errors
 from ipalib.text import _
 from ipalib.dn import DN, RDN
-from ipapython import dnsclient
 from ipapython.ipautil import decode_ssh_pubkey
 
 
@@ -88,16 +89,17 @@ def validate_host_dns(log, fqdn):
     """
     See if the hostname has a DNS A record.
     """
-    rs = dnsclient.query(fqdn + '.', dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
-    if len(rs) == 0:
+    try:
+        answers = resolver.query(fqdn, rdatatype.A)
+        log.debug(
+            'IPA: found %d records for %s: %s' % (len(answers), fqdn,
+                ' '.join(str(answer) for answer in answers))
+        )
+    except DNSException, e:
         log.debug(
             'IPA: DNS A record lookup failed for %s' % fqdn
         )
         raise errors.DNSNotARecordError()
-    else:
-        log.debug(
-            'IPA: found %d records for %s' % (len(rs), fqdn)
-        )
 
 def isvalid_base64(data):
     """

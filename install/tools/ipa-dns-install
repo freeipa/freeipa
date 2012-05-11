@@ -223,7 +223,7 @@ def main():
                zone_notif=options.zone_notif)
     bind.create_instance()
 
-    # Restart http instance to make sure acutil has the right resolver
+    # Restart http instance to make sure that python-dns has the right resolver
     # https://bugzilla.redhat.com/show_bug.cgi?id=800368
     http = httpinstance.HTTPInstance(fstore)
     service.print_msg("Restarting the web server")

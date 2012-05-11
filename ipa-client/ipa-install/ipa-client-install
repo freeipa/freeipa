@@ -25,6 +25,7 @@ try:
     import os
     import time
     import socket
+
     from ipapython.ipa_log_manager import *
     import tempfile
     import getpass
@@ -35,7 +36,6 @@ try:
     from ipapython.ipautil import run, user_input, CalledProcessError, file_exists, realm_to_suffix
     import ipapython.services as ipaservices
     from ipapython import ipautil
-    from ipapython import dnsclient
     from ipapython import sysrestore
     from ipapython import version
     from ipapython import certmonger
@@ -996,18 +996,10 @@ def update_dns(server, hostname):
 
 def client_dns(server, hostname, dns_updates=False):
 
-    dns_ok = False
+    dns_ok = ipautil.is_host_resolvable(hostname)
 
-    # Check if the client has an A record registered in its name.
-    rs = dnsclient.query(hostname+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
-    if len([ rec for rec in rs if rec.dns_type is not dnsclient.DNS_T_SOA ]) > 0:
-        dns_ok = True
-    else:
-        rs = dnsclient.query(hostname+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_AAAA)
-        if len([ rec for rec in rs if rec.dns_type is not dnsclient.DNS_T_SOA ]) > 0:
-            dns_ok = True
-        else:
-            print "Warning: Hostname (%s) not found in DNS" % hostname
+    if not dns_ok:
+        print "Warning: Hostname (%s) not found in DNS" % hostname
 
     if dns_updates or not dns_ok:
         update_dns(server, hostname)
@@ -1243,15 +1235,15 @@ def install(options, env, fstore, statestore):
             # We assume that NTP servers are discoverable through SRV records in the DNS
             # If that fails, we try to sync directly with IPA server, assuming it runs NTP
             print 'Synchronizing time with KDC...'
-            ntp_servers = ipautil.parse_items(ds.ipadnssearchntp(cli_domain))
+            ntp_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp', None, break_on_first=False)
             synced_ntp = False
-            if len(ntp_servers) > 0:
+            if ntp_servers:
                 for s in ntp_servers:
-                   synced_ntp = ipaclient.ntpconf.synconce_ntp(s)
+                   synced_ntp = ipaclient.ntpconf.synconce_ntp(s, debug=True)
                    if synced_ntp:
                        break
             if not synced_ntp:
-                synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server)
+                synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server, debug=True)
             if not synced_ntp:
                 print "Unable to sync time with IPA NTP server, assuming the time is in sync."
             (krb_fd, krb_name) = tempfile.mkstemp()

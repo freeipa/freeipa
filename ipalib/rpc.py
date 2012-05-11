@@ -39,11 +39,15 @@ import errno
 import locale
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport, ProtocolError
 import kerberos
+from dns import resolver, rdatatype
+from dns.exception import DNSException
+
 from ipalib.backend import Connectible
 from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError, KerberosError, XMLRPCMarshallError
 from ipalib import errors
 from ipalib.request import context, Connection
-from ipapython import ipautil, dnsclient
+from ipapython import ipautil
+
 import httplib
 import socket
 from ipapython.nsslib import NSSHTTPS, NSSConnection
@@ -349,11 +353,16 @@ class xmlclient(Connectible):
         (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(self.env.xmlrpc_uri)
         servers = []
         name = '_ldap._tcp.%s.' % self.env.domain
-        rs = dnsclient.query(name, dnsclient.DNS_C_IN, dnsclient.DNS_T_SRV)
-        for r in rs:
-            if r.dns_type == dnsclient.DNS_T_SRV:
-                rsrv = r.rdata.server.rstrip('.')
-                servers.append('https://%s%s' % (ipautil.format_netloc(rsrv), path))
+
+        try:
+            answers = resolver.query(name, rdatatype.SRV)
+        except DNSException, e:
+            answers = []
+
+        for answer in answers:
+            server = str(answer.target).rstrip(".")
+            servers.append('https://%s%s' % (ipautil.format_netloc(server), path))
+
         servers = list(set(servers))
         # the list/set conversion won't preserve order so stick in the
         # local config file version here.

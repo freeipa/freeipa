@@ -20,12 +20,14 @@
 import socket
 import os
 from ipapython.ipa_log_manager import *
-import ipapython.dnsclient
 import tempfile
 import ldap
 from ldap import LDAPError
+from dns import resolver, rdatatype
+from dns.exception import DNSException
+
 from ipapython.ipautil import run, CalledProcessError, valid_ip, get_ipa_basedn, \
-                              realm_to_suffix, format_netloc, parse_items
+                              realm_to_suffix, format_netloc
 
 
 NOT_FQDN = -1
@@ -93,11 +95,12 @@ class IPADiscovery:
         isn't found.
         """
         server = None
+        root_logger.debug("Start searching for LDAP SRV record in %s and"
+                          " its sub-domains", domain)
         while not server:
-            root_logger.debug("[ipadnssearchldap("+domain+")]")
-            server = self.ipadnssearchldap(domain)
+            server = self.ipadns_search_srv(domain, '_ldap._tcp', 389)
             if server:
-                return (server, domain)
+                return (server[0], domain)
             else:
                 p = domain.find(".")
                 if p == -1: #no ldap server found and last component of the domain already tested
@@ -148,11 +151,13 @@ class IPADiscovery:
                 if not self.domain: #no ldap server found
                     return NO_LDAP_SERVER
             else:
-                root_logger.debug("[ipadnssearchldap]")
-                self.server = self.ipadnssearchldap(domain)
-                if self.server:
+                root_logger.debug("Search for LDAP SRV record in %s", domain)
+                server = self.ipadns_search_srv(domain, '_ldap._tcp', 389)
+                if server:
+                    self.server = server[0]
                     self.domain = domain
                 else:
+                    self.server = None
                     return NO_LDAP_SERVER
 
         else: #server forced on us, this means DNS doesn't work :/
@@ -172,19 +177,16 @@ class IPADiscovery:
         root_logger.debug("[ipacheckldap]")
         # We may have received multiple servers corresponding to the domain
         # Iterate through all of those to check if it is IPA LDAP server
-        servers = parse_items(self.server)
         ldapret = [NOT_IPA_SERVER]
         ldapaccess = True
-        for server in servers:
+        if self.server:
             # check ldap now
-            ldapret = self.ipacheckldap(server, self.realm)
+            ldapret = self.ipacheckldap(self.server, self.realm)
 
             if ldapret[0] == 0:
                 self.server = ldapret[1]
                 self.realm = ldapret[2]
-                break
-
-            if ldapret[0] == NO_ACCESS_TO_LDAP:
+            elif ldapret[0] == NO_ACCESS_TO_LDAP:
                 ldapaccess = False
 
         # If one of LDAP servers checked rejects access (may be anonymous
@@ -310,46 +312,43 @@ class IPADiscovery:
             os.rmdir(temp_ca_dir)
 
 
-    def ipadnssearchldap(self, tdomain):
-        servers = ""
-        rserver = ""
+    def ipadns_search_srv(self, domain, srv_record_name, default_port,
+                          break_on_first=True):
+        """
+        Search for SRV records in given domain. When no record is found,
+        en empty string is returned
 
-        qname = "_ldap._tcp."+tdomain
-        # terminate the name
-        if not qname.endswith("."):
-            qname += "."
-        results = ipapython.dnsclient.query(qname, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
+        :param domain: Search domain name
+        :param srv_record_name: SRV record name, e.g. "_ldap._tcp"
+        :param default_port: When default_port is not None, it is being
+                    checked with the port in SRV record and if they don't
+                    match, the port from SRV record is appended to
+                    found hostname in this format: "hostname:port"
+        :param break_on_first: break on the first find and return just one
+                    entry
+        """
+        servers = []
 
-        for result in results:
-            if result.dns_type == ipapython.dnsclient.DNS_T_SRV:
-                rserver = result.rdata.server.rstrip(".")
-                if result.rdata.port and result.rdata.port != 389:
-                    rserver += ":" + str(result.rdata.port)
-                if servers:
-                    servers += "," + rserver
-                else:
-                    servers = rserver
-                break
+        qname = '%s.%s' % (srv_record_name, domain)
 
-        return servers
+        root_logger.debug("Search DNS for SRV record of %s", qname)
 
-    def ipadnssearchntp(self, tdomain):
-        servers = ""
-        rserver = ""
+        try:
+            answers = resolver.query(qname, rdatatype.SRV)
+        except DNSException, e:
+            root_logger.debug("DNS record not found: %s", e.__class__.__name__)
+            answers = []
 
-        qname = "_ntp._udp."+tdomain
-        # terminate the name
-        if not qname.endswith("."):
-            qname += "."
-        results = ipapython.dnsclient.query(qname, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
-
-        for result in results:
-            if result.dns_type == ipapython.dnsclient.DNS_T_SRV:
-                rserver = result.rdata.server.rstrip(".")
-                if servers:
-                    servers += "," + rserver
-                else:
-                    servers = rserver
+        for answer in answers:
+            root_logger.debug("DNS record found: %s", answer)
+            server = str(answer.target).rstrip(".")
+            if not server:
+                root_logger.debug("Cannot parse the hostname from SRV record: %s", answer)
+                continue
+            if default_port is not None and answer.port != default_port:
+                server = "%s:%s" % (server, str(answer.port))
+            servers.append(server)
+            if break_on_first:
                 break
 
         return servers
@@ -359,35 +358,32 @@ class IPADiscovery:
         kdc = None
         # now, check for a Kerberos realm the local host or domain is in
         qname = "_kerberos." + tdomain
-        # terminate the name
-        if not qname.endswith("."):
-            qname += "."
-        results = ipapython.dnsclient.query(qname, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_TXT)
 
-        for result in results:
-            if result.dns_type == ipapython.dnsclient.DNS_T_TXT:
-                realm = result.rdata.data
+        root_logger.debug("Search DNS for TXT record of %s", qname)
+
+        try:
+            answers = resolver.query(qname, rdatatype.TXT)
+        except DNSException, e:
+            root_logger.debug("DNS record not found: %s", e.__class__.__name__)
+            answers = []
+
+        for answer in answers:
+            root_logger.debug("DNS record found: %s", answer)
+            if answer.strings:
+                realm = answer.strings[0]
                 if realm:
                     break
 
         if realm:
             # now fetch server information for the realm
-            qname = "_kerberos._udp." + realm.lower()
-            # terminate the name
-            if not qname.endswith("."):
-                qname += "."
-            results = ipapython.dnsclient.query(qname, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
-            for result in results:
-                if result.dns_type == ipapython.dnsclient.DNS_T_SRV:
-                    qname = result.rdata.server.rstrip(".")
-                    if result.rdata.port and result.rdata.port != 88:
-                        qname += ":" + str(result.rdata.port)
-                    if kdc:
-                        kdc += "," + qname
-                    else:
-                        kdc = qname
+            domain = realm.lower()
+
+            kdc = self.ipadns_search_srv(domain, '_kerberos._udp', 88,
+                    break_on_first=False)
 
             if not kdc:
                 root_logger.debug("SRV record for KDC not found! Realm: %s, SRV record: %s" % (realm, qname))
+                kdc = None
+            kdc = ','.join(kdc)
 
         return [realm, kdc]

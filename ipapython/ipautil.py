@@ -41,6 +41,8 @@ import re
 import xmlrpclib
 import datetime
 import netaddr
+from dns import resolver, rdatatype
+from dns.exception import DNSException
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipavalidate
@@ -611,17 +613,6 @@ def ipa_generate_password(characters=None,pwd_len=None):
         rndpwd += rndchar
     return rndpwd
 
-def parse_items(text):
-    '''Given text with items separated by whitespace or comma, return a list of those items
-
-    The returned list only contains non-empty items.
-    '''
-    split_re = re.compile('[ ,\t\n]+')
-    items = split_re.split(text)
-    for item in items[:]:
-        if not item: items.remove(item)
-    return items
-
 def user_input(prompt, default = None, allow_empty = True):
     if default == None:
         while True:
@@ -746,6 +737,17 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
                 s.sendto(responder_data, addr)
     finally:
         s.close()
+
+def is_host_resolvable(fqdn):
+    for rdtype in (rdatatype.A, rdatatype.AAAA):
+        try:
+            resolver.query(fqdn, rdtype)
+        except DNSException:
+            continue
+        else:
+            return True
+
+    return False
 
 def get_ipa_basedn(conn):
     """

@@ -30,9 +30,11 @@ import netaddr
 import time
 import tempfile
 import shutil
-from ConfigParser import SafeConfigParser
+from dns import resolver, rdatatype
+from dns.exception import DNSException
 
-from ipapython import ipautil, dnsclient, sysrestore
+from ConfigParser import SafeConfigParser
+from ipapython import ipautil, sysrestore
 from ipapython.ipa_log_manager import *
 from ipalib.util import validate_hostname
 
@@ -76,68 +78,6 @@ def get_fqdn():
             fqdn = ""
     return fqdn
 
-def verify_dns_records(host_name, responses, resaddr, family):
-    familykw = { 'ipv4' : {
-                             'dns_type' : dnsclient.DNS_T_A,
-                             'socket_family' : socket.AF_INET,
-                          },
-                 'ipv6' : {
-                             'dns_type' : dnsclient.DNS_T_AAAA,
-                             'socket_family' : socket.AF_INET6,
-                          },
-               }
-
-    family = family.lower()
-    if family not in familykw.keys():
-        raise RuntimeError("Unknown faimily %s\n" % family)
-
-    rec_list = []
-    for rsn in responses:
-        if rsn.section == dnsclient.DNS_S_ANSWER and \
-                rsn.dns_type == familykw[family]['dns_type']:
-            rec_list.append(rsn)
-
-    if not rec_list:
-        raise IOError(errno.ENOENT,
-                      "Warning: Hostname (%s) not found in DNS" % host_name)
-
-    if family == 'ipv4':
-        familykw[family]['address'] = [socket.inet_ntop(socket.AF_INET,
-                                                        struct.pack('!L',rec.rdata.address)) \
-                                                                for rec in rec_list]
-    else:
-        familykw[family]['address'] = [socket.inet_ntop(socket.AF_INET6,
-                                                        struct.pack('!16B', *rec.rdata.address)) \
-                                                                for rec in rec_list]
-
-    # Check that DNS address is the same is address returned via standard glibc calls
-    dns_addrs = [netaddr.IPAddress(addr) for addr in familykw[family]['address']]
-    dns_addr = None
-    for addr in dns_addrs:
-        if addr.format() == resaddr:
-            dns_addr = addr
-            break
-
-    if dns_addr is None:
-        raise RuntimeError("Host address %s does not match any address in DNS lookup."  % resaddr)
-
-    rs = dnsclient.query(dns_addr.reverse_dns, dnsclient.DNS_C_IN, dnsclient.DNS_T_PTR)
-    if len(rs) == 0:
-        raise RuntimeError("Cannot find Reverse Address for %s (%s)" % (host_name, dns_addr.format()))
-
-    rev = None
-    for rsn in rs:
-        if rsn.dns_type == dnsclient.DNS_T_PTR:
-            rev = rsn
-            break
-
-    if rev == None:
-        raise RuntimeError("Cannot find Reverse Address for %s (%s)" % (host_name, dns_addr.format()))
-
-    if rec.dns_name != rev.rdata.ptrdname:
-        raise RuntimeError("The DNS forward record %s does not match the reverse address %s" % (rec.dns_name, rev.rdata.ptrdname))
-
-
 def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
     """
     Run fqdn checks for given host:
@@ -168,7 +108,9 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
 
     if local_hostname:
         try:
+            root_logger.debug('Check if %s is a primary hostname for localhost', host_name)
             ex_name = socket.gethostbyaddr(host_name)
+            root_logger.debug('Primary hostname for localhost: %s', ex_name[0])
             if host_name != ex_name[0]:
                 raise HostLookupError("The host name %s does not match the primary host name %s. "\
                         "Please check /etc/hosts or DNS name resolution" % (host_name, ex_name[0]))
@@ -180,43 +122,41 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         return
 
     try:
+        root_logger.debug('Search DNS for %s', host_name)
         hostaddr = socket.getaddrinfo(host_name, None)
-    except:
+    except Exception, e:
+        root_logger.debug('Search failed: %s', e)
         raise HostForwardLookupError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
 
     if len(hostaddr) == 0:
         raise HostForwardLookupError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
 
+    # Verify this is NOT a CNAME
+    try:
+        root_logger.debug('Check if %s is not a CNAME', host_name)
+        resolver.query(host_name, rdatatype.CNAME)
+        raise HostReverseLookupError("The IPA Server Hostname cannot be a CNAME, only A and AAAA names are allowed.")
+    except DNSException:
+        pass
+
+    # list of verified addresses to prevent multiple searches for the same address
+    verified = set()
     for a in hostaddr:
-        if a[4][0] == '127.0.0.1' or a[4][0] == '::1':
-            raise HostForwardLookupError("The IPA Server hostname must not resolve to localhost (%s). A routable IP address must be used. Check /etc/hosts to see if %s is an alias for %s" % (a[4][0], host_name, a[4][0]))
+        address = a[4][0]
+        if address in verified:
+            continue
+        if address == '127.0.0.1' or address == '::1':
+            raise HostForwardLookupError("The IPA Server hostname must not resolve to localhost (%s). A routable IP address must be used. Check /etc/hosts to see if %s is an alias for %s" % (address, host_name, address))
         try:
-            resaddr = a[4][0]
-            revname = socket.gethostbyaddr(a[4][0])[0]
-        except:
+            root_logger.debug('Check reverse address of %s', address)
+            revname = socket.gethostbyaddr(address)[0]
+        except Exception, e:
+            root_logger.debug('Check failed: %s', e)
             raise HostReverseLookupError("Unable to resolve the reverse ip address, check /etc/hosts or DNS name resolution")
+        root_logger.debug('Found reverse name: %s', revname)
         if revname != host_name:
             raise HostReverseLookupError("The host name %s does not match the reverse lookup %s" % (host_name, revname))
-
-    # Verify this is NOT a CNAME
-    rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_CNAME)
-    if len(rs) != 0:
-        for rsn in rs:
-            if rsn.dns_type == dnsclient.DNS_T_CNAME:
-                raise HostReverseLookupError("The IPA Server Hostname cannot be a CNAME, only A and AAAA names are allowed.")
-
-    # Verify that it is a DNS A or AAAA record
-    rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
-    if len([ rec for rec in rs if rec.dns_type is not dnsclient.DNS_T_SOA ]) > 0:
-        verify_dns_records(host_name, rs, resaddr, 'ipv4')
-        return
-
-    rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_AAAA)
-    if len([ rec for rec in rs if rec.dns_type is not dnsclient.DNS_T_SOA ]) > 0:
-        verify_dns_records(host_name, rs, resaddr, 'ipv6')
-        return
-    else:
-        print "Warning: Hostname (%s) not found in DNS" % host_name
+        verified.add(address)
 
 def record_in_hosts(ip, host_name=None, file="/etc/hosts"):
     """
