@@ -63,6 +63,7 @@ from ipapython.config import IPAOptionParser
 from ipalib.dn import DN
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 from ipalib.constants import DNS_ZONE_REFRESH
+from ipalib.util import validate_domain_name
 from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 
@@ -227,6 +228,12 @@ def parse_options():
             parser.error("DS admin password: " + str(e))
     if options.admin_password is not None and len(options.admin_password) < 8:
         parser.error("Admin user password must be at least 8 characters long")
+
+    if options.domain_name is not None:
+        try:
+            validate_domain_name(options.domain_name)
+        except ValueError, e:
+            parser.error("invalid domain: " + unicode(e))
 
     if not options.setup_dns:
         if options.forwarders:
@@ -726,6 +733,10 @@ def main():
     if not options.domain_name:
         domain_name = read_domain_name(host_name[host_name.find(".")+1:], options.unattended)
         root_logger.debug("read domain_name: %s\n" % domain_name)
+        try:
+            validate_domain_name(domain_name)
+        except ValueError, e:
+            sys.exit("Invalid domain name: %s" % unicode(e))
     else:
         domain_name = options.domain_name
 
@@ -1111,9 +1122,9 @@ try:
     except Exception, e:
         success = False
         if uninstalling:
-            message = "Unexpected error - see ipaserver-uninstall.log for details:\n %s" % str(e)
+            message = "Unexpected error - see ipaserver-uninstall.log for details:\n %s" % unicode(e)
         else:
-            message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
+            message = "Unexpected error - see ipaserver-install.log for details:\n %s" % unicode(e)
         print message
         message = str(e)
         for str in traceback.format_tb(sys.exc_info()[2]):
