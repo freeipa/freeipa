@@ -649,7 +649,14 @@ class LDAPUpdate:
                         # addifexist may result in an entry with only a
                         # dn defined. In that case there is nothing to do.
                         # It means the entry doesn't exist, so skip it.
-                        self.conn.addEntry(entry)
+                        try:
+                            self.conn.addEntry(entry)
+                        except errors.NotFound:
+                            # parent entry of the added entry does not exist
+                            # this may not be an error (e.g. entries in NIS container)
+                            root_logger.info("Parent DN of %s may not exist, cannot create the entry",
+                                    entry.dn)
+                            return
                 self.modified = True
             except Exception, e:
                 root_logger.error("Add failure %s", e)

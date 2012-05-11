@@ -492,7 +492,7 @@ class IPAdmin(IPAEntryLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(entry.dn, entry.toTupleList())
         except ldap.LDAPError, e:
-            arg_desc = 'entry=%s' % (entry)
+            arg_desc = 'entry=%s' % (entry.toTupleList())
             self.__handle_errors(e, arg_desc=arg_desc)
         return True
 
