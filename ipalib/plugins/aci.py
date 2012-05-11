@@ -836,7 +836,18 @@ class aci_find(crud.Search):
                     a.target['targetfilter']['expression'] != kw['filter']:
                     results.remove(a)
 
-        # TODO: searching by: subtree
+        if kw.get('subtree'):
+            for a in acis:
+                if 'target' in a.target:
+                    target = a.target['target']['expression']
+                else:
+                    results.remove(a)
+                    continue
+                if kw['subtree'].lower() != target.lower():
+                    try:
+                        results.remove(a)
+                    except ValueError:
+                        pass
 
         acis = []
         for result in results:

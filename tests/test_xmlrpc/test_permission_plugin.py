@@ -510,6 +510,47 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Change %r to a subtree type' % permission1_renamed_ucase,
+            command=(
+                'permission_mod', [permission1_renamed_ucase], dict(subtree=u'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn, type=None)
+            ),
+            expected=dict(
+                value=permission1_renamed_ucase,
+                summary=u'Modified permission "%s"' % permission1_renamed_ucase,
+                result=dict(
+                    dn=lambda x: DN(x) == permission1_renamed_ucase_dn,
+                    cn=[permission1_renamed_ucase.lower()],
+                    member_privilege=[privilege1],
+                    subtree=u'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn,
+                    permissions=[u'write'],
+                    memberof=u'ipausers',
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r using --subtree' % permission1,
+            command=('permission_find', [], {'subtree': 'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn':lambda x: DN(x) == permission1_renamed_ucase_dn,
+                        'cn':[permission1_renamed_ucase.lower()],
+                        'member_privilege':[privilege1],
+                        'subtree':u'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn,
+                        'permissions':[u'write'],
+                        'memberof':u'ipausers',
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Delete %r' % permission1_renamed_ucase,
             command=('permission_del', [permission1_renamed_ucase], {}),
             expected=dict(
