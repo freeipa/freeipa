@@ -227,6 +227,7 @@ class automountlocation_add(LDAPCreate):
     msg_summary = _('Added automount location "%(value)s"')
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         # create auto.master for the new location
         self.api.Command['automountmap_add'](keys[-1], u'auto.master')
 
@@ -595,6 +596,7 @@ class automountmap_del(LDAPDelete):
     msg_summary = _('Deleted automount map "%(value)s"')
 
     def post_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         # delete optional parental connection (direct maps may not have this)
         try:
             (dn_, entry_attrs) = ldap.find_entry_by_attr(
@@ -718,7 +720,7 @@ class automountkey(LDAPObject):
                     (kwargs['automountkey'], kwargs['automountinformation'])
             else:
                 sfilter = '(automountkey=%s)' % kwargs['automountkey']
-            basedn = 'automountmapname=%s,cn=%s,%s' % (parent_keys[1], parent_keys[0], self.container_dn)
+            basedn = DN(('automountmapname', parent_keys[1]), ('cn', parent_keys[0]), self.container_dn)
             attrs_list = ['*']
             (entries, truncated) = ldap.find_entries(sfilter, attrs_list,
                 basedn, _ldap.SCOPE_ONELEVEL)
@@ -790,6 +792,7 @@ class automountkey_add(LDAPCreate):
     internal_options = ['description', 'add_operation']
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         options.pop('add_operation', None)
         options.pop('description', None)
         self.obj.check_key_uniqueness(keys[-2], keys[-1], **options)
@@ -926,6 +929,7 @@ class automountkey_mod(LDAPUpdate):
             yield key
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if 'newautomountkey' in options:
             entry_attrs['automountkey'] = options['newautomountkey']
         if 'newautomountinformation' in options:

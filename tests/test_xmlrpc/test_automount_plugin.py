@@ -28,7 +28,7 @@ import shutil
 
 from ipalib import api
 from ipalib import errors
-from ipalib.dn import DN
+from ipapython.dn import DN
 
 from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
@@ -238,40 +238,36 @@ class test_automount(AutomountTest):
             result=dict(
                 keys={'auto.direct': ()},
                 orphanmaps=(dict(
-                    dn=lambda dn: DN(dn) == DN(
-                            ('automountmapname', self.mapname),
-                            ('cn', self.locname),
-                            ('cn', 'automount'), api.env.basedn),
+                    dn=DN(('automountmapname', self.mapname),
+                          ('cn', self.locname),
+                          ('cn', 'automount'), api.env.basedn),
                     description=(u'description of map',),
                     automountmapname=(u'testmap',)),),
                 orphankeys=[(
                     dict(
-                        dn=lambda dn: DN(dn) == DN(
-                            ('description', self.keyname2),
-                            ('automountmapname', 'testmap'),
-                            ('cn', self.locname),
-                            ('cn', 'automount'), api.env.basedn),
+                        dn=DN(('description', self.keyname2),
+                              ('automountmapname', 'testmap'),
+                              ('cn', self.locname),
+                              ('cn', 'automount'), api.env.basedn),
                         automountkey=(self.keyname2,),
                         description=(self.keyname2,),
                         automountinformation=(u'ro',),
                     ),
                     dict(
-                        dn=lambda dn: DN(dn) == DN(
-                            ('description', self.keyname_rename),
-                            ('automountmapname', 'testmap'),
-                            ('cn', self.locname),
-                            ('cn', 'automount'), api.env.basedn),
+                        dn=DN(('description', self.keyname_rename),
+                              ('automountmapname', 'testmap'),
+                              ('cn', self.locname),
+                              ('cn', 'automount'), api.env.basedn),
                         automountkey=(self.keyname_rename,),
                         description=(self.keyname_rename,),
                         automountinformation=(u'rw',),
                     ))],
                 maps=(
                     dict(
-                        dn=lambda dn: DN(dn) == DN(
-                            ('description', '/- auto.direct'),
-                            ('automountmapname', 'auto.master'),
-                            ('cn', self.locname),
-                            ('cn', 'automount'), api.env.basedn),
+                        dn=DN(('description', '/- auto.direct'),
+                              ('automountmapname', 'auto.master'),
+                              ('cn', self.locname),
+                              ('cn', 'automount'), api.env.basedn),
                         automountkey=(u'/-',),
                         description=(u'/- auto.direct',),
                         automountinformation=(u'auto.direct',)

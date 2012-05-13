@@ -29,7 +29,7 @@ from ipapython import ipautil
 from ipaserver.install import certs
 from ipaserver.install.cainstance import DEFAULT_DSPORT
 from ipalib import api
-from ipalib.dn import DN
+from ipapython.dn import DN
 from ipalib import x509
 from ipalib import errors
 from ipaserver.plugins.ldap2 import ldap2
@@ -45,7 +45,7 @@ subject = x509.get_subject(cert, datatype=x509.DER)
 issuer = x509.get_issuer(cert, datatype=x509.DER)
 
 # Load it into dogtag
-dn = str(DN(('uid','ipara'),('ou','People'),('o','ipaca')))
+dn = DN(('uid','ipara'),('ou','People'),('o','ipaca'))
 
 try:
     dm_password = get_pin('internaldb')
@@ -55,7 +55,7 @@ except IOError, e:
 
 try:
     conn = ldap2(shared_instance=False, ldap_uri='ldap://localhost:%d' % DEFAULT_DSPORT)
-    conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+    conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
     (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'], normalize=False)
     entry_attrs['usercertificate'].append(cert)
     entry_attrs['description'] = '2;%d;%s;%s' % (serial_number, issuer, subject)
@@ -68,7 +68,7 @@ except Exception, e:
 # Store it in the IPA LDAP server
 tmpdir = tempfile.mkdtemp(prefix = "tmp-")
 try:
-    dn = str(DN(('cn','ipaCert'),('cn=ca_renewal,cn=ipa,cn=etc'),(api.env.basedn)))
+    dn = DN(('cn','ipaCert'), ('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     principal = str('host/%s@%s' % (api.env.host, api.env.realm))
     ccache = ipautil.kinit_hostprincipal('/etc/krb5.keytab', tmpdir, principal)
     conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)

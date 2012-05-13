@@ -1,5 +1,5 @@
 dn: uid=tuser, cn=test, cn=accounts, $SUFFIX
-deleteentry: reset: nada
+deleteentry:
 
 dn: cn=test, cn=accounts, $SUFFIX
 deleteentry: reset: nada

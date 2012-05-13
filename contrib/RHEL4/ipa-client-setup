@@ -31,6 +31,7 @@ from optparse import OptionParser
 import ipachangeconf
 import ldap
 from ldap import LDAPError
+from ipapython.dn import DN
 
 class ipaserver:
 
@@ -90,7 +91,8 @@ class ipaserver:
 
             #search and return known realms
             root_logger.debug("Search for (objectClass=krbRealmContainer) in "+self.basedn+"(sub)")
-            lret = lh.search_s("cn=kerberos,"+self.basedn, ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
+            lret = lh.search_s(str(DN(('cn', 'kerberos'), self.basedn)),
+                               ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
             if not lret:
                 #something very wrong
                 return False
@@ -272,8 +274,8 @@ def main():
             {'name':'ldap_version', 'type':'option', 'value':'3'},
             {'name':'base', 'type':'option', 'value':ipasrv.getBaseDN()},
             {'name':'empty', 'type':'empty'},
-            {'name':'nss_base_passwd', 'type':'option', 'value':'cn=users,cn=accounts,'+ipasrv.getBaseDN()+'?sub'},
-            {'name':'nss_base_group', 'type':'option', 'value':'cn=users,cn=accounts,'+ipasrv.getBaseDN()+'?sub'},
+            {'name':'nss_base_passwd', 'type':'option', 'value':str(DN(('cn', 'users'), ('cn', 'accounts'), ipasrv.getBaseDN()))+'?sub'},
+            {'name':'nss_base_group', 'type':'option', 'value':str(DN(('cn', 'users'), ('cn', 'accounts'), ipasrv.getBaseDN()))+'?sub'},
             {'name':'nss_schema', 'type':'option', 'value':'rfc2307bis'},
             {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
             {'name':'nss_initgroups_ignoreusers', 'type':'option', 'value':'root,dirsrv'},

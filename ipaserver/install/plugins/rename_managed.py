@@ -24,6 +24,7 @@ from ipalib.frontend import Updater
 from ipaserver.install.plugins import baseupdate
 from ipalib import api, errors
 from ipapython import ipautil
+from ipapython.dn import DN, EditableDN
 import ldap as _ldap
 
 def entry_to_update(entry):
@@ -44,67 +45,99 @@ def entry_to_update(entry):
 
     return update
 
-def generate_update(ldap, deletes=False):
-    """
-    We need to separate the deletes that need to happen from the
-    new entries that need to be added.
-    """
-    suffix = ipautil.realm_to_suffix(api.env.realm)
-    searchfilter = '(objectclass=*)'
-    definitions_managed_entries = []
-    old_template_container = 'cn=etc,%s' % suffix
-    old_definition_container = 'cn=managed entries,cn=plugins,cn=config'
-    new = 'cn=Managed Entries,cn=etc,%s' % suffix
-    sub = ['cn=Definitions,', 'cn=Templates,']
-    new_managed_entries = []
-    old_templates = []
-    template = None
-    restart = False
+class GenerateUpdateMixin(object):
+    def generate_update(self, deletes=False):
+        """
+        We need to separate the deletes that need to happen from the
+        new entries that need to be added.
+        """
+        ldap = self.obj.backend
 
-    # If the old entries don't exist the server has already been updated.
-    try:
-        (definitions_managed_entries, truncated) = ldap.find_entries(
-            searchfilter, ['*'], old_definition_container, _ldap.SCOPE_ONELEVEL, normalize=False
-        )
-    except errors.NotFound, e:
-        return (False, new_managed_entries)
+        suffix = ipautil.realm_to_suffix(api.env.realm)
+        searchfilter = '(objectclass=*)'
+        definitions_managed_entries = []
 
-    for entry in definitions_managed_entries:
-        new_definition = {}
-        definition_managed_entry_updates = {}
-        if deletes:
-            old_definition = {'dn': str(entry[0]), 'deleteentry': ['dn: %s' % str(entry[0])]}
-            old_template = str(entry[1]['managedtemplate'][0])
-            definition_managed_entry_updates[old_definition['dn']] = old_definition
-            old_templates.append(old_template)
-        else:
-            entry[1]['managedtemplate'] = str(entry[1]['managedtemplate'][0].replace(old_template_container, sub[1] + new))
-            new_definition['dn'] = str(entry[0].replace(old_definition_container, sub[0] + new))
-            new_definition['default'] = entry_to_update(entry[1])
-            definition_managed_entry_updates[new_definition['dn']] = new_definition
-            new_managed_entries.append(definition_managed_entry_updates)
-    for old_template in old_templates: # Only happens when deletes is True
+        old_template_container = DN(('cn', 'etc'), suffix)
+        new_template_container = DN(('cn', 'Templates'), ('cn', 'Managed Entries'), ('cn', 'etc'), suffix)
+
+        old_definition_container = DN(('cn', 'managed entries'), ('cn', 'plugins'), ('cn', 'config'), suffix)
+        new_definition_container = DN(('cn', 'Definitions'), ('cn', 'Managed Entries'), ('cn', 'etc'), suffix)
+
+        definitions_dn = DN(('cn', 'Definitions'))
+        update_list = []
+        restart = False
+
+        # If the old entries don't exist the server has already been updated.
         try:
-            (dn, template) = ldap.get_entry(old_template, ['*'], normalize=False)
-            dn = str(dn)
-            new_template = {}
-            template_managed_entry_updates = {}
-            old_template = {'dn': dn, 'deleteentry': ['dn: %s' % dn]}
-            new_template['dn'] = str(dn.replace(old_template_container, sub[1] + new))
-            new_template['default'] = entry_to_update(template)
-            template_managed_entry_updates[new_template['dn']] = new_template
-            template_managed_entry_updates[old_template['dn']] = old_template
-            new_managed_entries.append(template_managed_entry_updates)
+            (definitions_managed_entries, truncated) = ldap.find_entries(
+                searchfilter, ['*'], old_definition_container, _ldap.SCOPE_ONELEVEL, normalize=False
+            )
         except errors.NotFound, e:
-            pass
+            return (False, update_list)
 
-    if len(new_managed_entries) > 0:
-        restart = True
-        new_managed_entries.sort(reverse=True)
+        for entry in definitions_managed_entries:
+            assert isinstance(entry.dn, DN)
+            if deletes:
+                old_dn = entry.data['managedtemplate'][0]
+                assert isinstance(old_dn, DN)
+                try:
+                    (old_dn, entry) = ldap.get_entry(old_dn, ['*'], normalize=False)
+                except errors.NotFound, e:
+                    pass
+                else:
+                    # Compute the new dn by replacing the old container with the new container
+                    new_dn = EditableDN(old_dn)
+                    if new_dn.replace(old_template_container, new_template_container) != 1:
+                        self.error("unable to replace '%s' with '%s' in '%s'",
+                                   old_template_container, new_template_container, old_dn)
+                        continue
 
-    return (restart, new_managed_entries)
+                    new_dn = DN(new_dn)
 
-class update_managed_post_first(PreUpdate):
+                    # The old attributes become defaults for the new entry
+                    new_update = {'dn': new_dn,
+                                  'default': entry_to_update(entry)}
+
+                    # Delete the old entry
+                    old_update = {'dn': old_dn, 'deleteentry': None}
+
+                    # Add the delete and replacement updates to the list of all updates
+                    update_list.append({old_dn: old_update, new_dn: new_update})
+
+            else:
+                # Update the template dn by replacing the old containter with the new container
+                old_dn = entry.data['managedtemplate'][0]
+                new_dn = EditableDN(old_dn)
+                if new_dn.replace(old_template_container, new_template_container) != 1:
+                    self.error("unable to replace '%s' with '%s' in '%s'",
+                               old_template_container, new_template_container, old_dn)
+                    continue
+                new_dn = DN(new_dn)
+                entry.data['managedtemplate'] = new_dn
+
+                # Edit the dn, then convert it back to an immutable DN
+                old_dn = entry.dn
+                new_dn = EditableDN(old_dn)
+                if new_dn.replace(old_definition_container, new_definition_container) != 1:
+                    self.error("unable to replace '%s' with '%s' in '%s'",
+                               old_definition_container, new_definition_container, old_dn)
+                    continue
+                new_dn = DN(new_dn)
+
+                # The old attributes become defaults for the new entry
+                new_update = {'dn': new_dn,
+                              'default': entry_to_update(entry.data)}
+
+                # Add the replacement update to the collection of all updates
+                update_list.append({new_dn: new_update})
+
+        if len(update_list) > 0:
+            restart = True
+            update_list.sort(reverse=True)
+
+        return (restart, update_list)
+
+class update_managed_post_first(PreUpdate, GenerateUpdateMixin):
     """
     Update managed entries
     """
@@ -112,21 +145,21 @@ class update_managed_post_first(PreUpdate):
 
     def execute(self, **options):
         # Never need to restart with the pre-update changes
-        (ignore, new_managed_entries) = generate_update(self.obj.backend, False)
+        (ignore, update_list) = self.generate_update(False)
 
-        return (False, True, new_managed_entries)
+        return (False, True, update_list)
 
 api.register(update_managed_post_first)
 
-class update_managed_post(PostUpdate):
+class update_managed_post(PostUpdate, GenerateUpdateMixin):
     """
     Update managed entries
     """
     order=LAST
 
     def execute(self, **options):
-        (restart, new_managed_entries) = generate_update(self.obj.backend, True)
+        (restart, update_list) = self.generate_update(True)
 
-        return (restart, True, new_managed_entries)
+        return (restart, True, update_list)
 
 api.register(update_managed_post)

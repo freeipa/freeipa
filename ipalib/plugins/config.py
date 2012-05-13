@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api
-from ipalib import Bool, Int, Str, IA5Str, StrEnum
+from ipalib import Bool, Int, Str, IA5Str, StrEnum, DNParam
 from ipalib.plugins.baseldap import *
 from ipalib import _
 from ipalib.errors import ValidationError
@@ -149,7 +149,7 @@ class config(LDAPObject):
             label=_('Enable migration mode'),
             doc=_('Enable migration mode'),
         ),
-        Str('ipacertificatesubjectbase',
+        DNParam('ipacertificatesubjectbase',
             cli_name='subject',
             label=_('Certificate Subject base'),
             doc=_('Base for certificate subjects (OU=Test,O=Example)'),
@@ -199,7 +199,7 @@ class config(LDAPObject):
     )
 
     def get_dn(self, *keys, **kwargs):
-        return 'cn=ipaconfig,cn=etc'
+        return DN(('cn', 'ipaconfig'), ('cn', 'etc'))
 
 api.register(config)
 
@@ -208,6 +208,7 @@ class config_mod(LDAPUpdate):
     __doc__ = _('Modify configuration options.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if 'ipadefaultprimarygroup' in entry_attrs:
             group=entry_attrs['ipadefaultprimarygroup']
             try:

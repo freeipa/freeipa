@@ -21,6 +21,7 @@ from ipalib import api, errors
 from ipalib import Int, Str
 from ipalib import Object, Command
 from ipalib import _
+from ipapython.dn import DN
 
 __doc__ = _("""
 Kerberos pkinit options
@@ -67,9 +68,7 @@ class pkinit_anonymous(Command):
     __doc__ = _('Enable or Disable Anonymous PKINIT.')
 
     princ_name = 'WELLKNOWN/ANONYMOUS@%s' % api.env.realm
-    default_dn = 'krbprincipalname=%s,cn=%s,cn=kerberos,%s' % (
-        princ_name, api.env.realm, api.env.basedn
-    )
+    default_dn = DN(('krbprincipalname', princ_name), ('cn', api.env.realm), ('cn', 'kerberos'), api.env.basedn)
 
     takes_args = (
         Str('action', valid_arg),

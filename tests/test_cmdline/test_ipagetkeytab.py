@@ -31,7 +31,7 @@ import nose
 import tempfile
 import krbV
 from ipaserver.plugins.ldap2 import ldap2
-from ipalib.dn import *
+from ipapython.dn import DN
 
 def use_keytab(principal, keytab):
     try:

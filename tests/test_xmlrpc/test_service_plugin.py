@@ -27,7 +27,7 @@ from tests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date, fuzzy_issuer
 from tests.test_xmlrpc.xmlrpc_test import fuzzy_hex
 from tests.test_xmlrpc import objectclasses
 import base64
-from ipalib.dn import *
+from ipapython.dn import DN
 
 fqdn1 = u'testhost1.%s' % api.env.domain
 fqdn2 = u'testhost2.%s' % api.env.domain
@@ -93,7 +93,7 @@ class test_service(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    dn=lambda x: DN(x) == host1dn,
+                    dn=host1dn,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -121,7 +121,7 @@ class test_service(Declarative):
                 value=fqdn2,
                 summary=u'Added host "%s"' % fqdn2,
                 result=dict(
-                    dn=lambda x: DN(x) == host2dn,
+                    dn=host2dn,
                     fqdn=[fqdn2],
                     description=[u'Test host 2'],
                     l=[u'Undisclosed location 2'],
@@ -149,7 +149,7 @@ class test_service(Declarative):
                 value=fqdn3.lower(),
                 summary=u'Added host "%s"' % fqdn3.lower(),
                 result=dict(
-                    dn=lambda x: DN(x) == host3dn,
+                    dn=host3dn,
                     fqdn=[fqdn3.lower()],
                     description=[u'Test host 3'],
                     l=[u'Undisclosed location 3'],
@@ -175,7 +175,7 @@ class test_service(Declarative):
                 value=service1,
                 summary=u'Added service "%s"' % service1,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
@@ -205,7 +205,7 @@ class test_service(Declarative):
                 value=service1,
                 summary=None,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     has_keytab=False,
                     ipakrbauthzdata=[u'MS-PAC'],
@@ -222,7 +222,7 @@ class test_service(Declarative):
                 value=service1,
                 summary=None,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     ipakrbprincipalalias=[service1],
                     objectclass=objectclasses.service,
@@ -244,7 +244,7 @@ class test_service(Declarative):
                 summary=u'1 service matched',
                 result=[
                     dict(
-                        dn=lambda x: DN(x) == service1dn,
+                        dn=service1dn,
                         krbprincipalname=[service1],
                         managedby_host=[fqdn1],
                         ipakrbauthzdata=[u'MS-PAC'],
@@ -264,7 +264,7 @@ class test_service(Declarative):
                 summary=u'1 service matched',
                 result=[
                     dict(
-                        dn=lambda x: DN(x) == service1dn,
+                        dn=service1dn,
                         krbprincipalname=[service1],
                         ipakrbprincipalalias=[service1],
                         objectclass=objectclasses.service,
@@ -285,7 +285,7 @@ class test_service(Declarative):
                 failed=dict(managedby=dict(host=[(u'notfound', u'no such entry')])),
                 completed=0,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
@@ -301,7 +301,7 @@ class test_service(Declarative):
                 failed=dict(managedby=dict(host=[(u'notfound', u'This entry is not a member')])),
                 completed=0,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
@@ -317,7 +317,7 @@ class test_service(Declarative):
                 failed=dict(managedby=dict(host=[])),
                 completed=1,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1, fqdn2],
@@ -333,7 +333,7 @@ class test_service(Declarative):
                 failed=dict(managedby=dict(host=[])),
                 completed=1,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
@@ -349,7 +349,7 @@ class test_service(Declarative):
                 failed=dict(managedby=dict(host=[])),
                 completed=1,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1, fqdn3.lower()],
@@ -365,7 +365,7 @@ class test_service(Declarative):
                 failed=dict(managedby=dict(host=[])),
                 completed=1,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     krbprincipalname=[service1],
                     ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
@@ -396,8 +396,7 @@ class test_service(Declarative):
                     managedby_host=[fqdn1],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
-                    subject=lambda x: DN(x) == \
-                        DN(('CN',api.env.host),x509.subject_base()),
+                    subject=DN(('CN',api.env.host),x509.subject_base()),
                     serial_number=fuzzy_digits,
                     serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,
@@ -415,7 +414,7 @@ class test_service(Declarative):
                 value=service1,
                 summary=None,
                 result=dict(
-                    dn=lambda x: DN(x) == service1dn,
+                    dn=service1dn,
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     has_keytab=False,
@@ -425,8 +424,7 @@ class test_service(Declarative):
                     # test case.
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
-                    subject=lambda x: DN(x) == \
-                        DN(('CN',api.env.host),x509.subject_base()),
+                    subject=DN(('CN',api.env.host),x509.subject_base()),
                     serial_number=fuzzy_digits,
                     serial_number_hex=fuzzy_hex,
                     md5_fingerprint=fuzzy_hash,

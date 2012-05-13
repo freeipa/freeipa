@@ -238,6 +238,8 @@ digits and nothing else follows.
 
 from lxml import etree
 import datetime
+from ipapython.dn import DN
+from ldap.filter import escape_filter_chars
 
 # These are general status return values used when
 # CMSServlet.outputError() is invoked.
@@ -1239,8 +1241,8 @@ class ra(rabase.rabase):
 
         Check if a specified host is a master for a specified service.
         """
-        base_dn = 'cn=%s,cn=masters,cn=ipa,cn=etc,%s' % (host, api.env.basedn)
-        filter = '(&(objectClass=ipaConfigObject)(cn=%s)(ipaConfigString=enabledService))' % service
+        base_dn = DN(('cn', host), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+        filter = '(&(objectClass=ipaConfigObject)(cn=%s)(ipaConfigString=enabledService))' % escape_filter_chars(service)
         try:
             ldap2 = self.api.Backend.ldap2
             ent,trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
@@ -1258,14 +1260,16 @@ class ra(rabase.rabase):
 
         Select any host which is a master for a specified service.
         """
-        base_dn = 'cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn
-        filter = '(&(objectClass=ipaConfigObject)(cn=%s)(ipaConfigString=enabledService))' % service
+        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+        filter = '(&(objectClass=ipaConfigObject)(cn=%s)(ipaConfigString=enabledService))' % escape_filter_chars(service)
         try:
             ldap2 = self.api.Backend.ldap2
             ent,trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
             if len(ent):
                 entry = random.choice(ent)
-                return ldap.explode_dn(dn=entry[0],notypes=True)[1]
+                dn = entry[0]
+                assert isinstance(dn, DN)
+                return dn[1].value
         except Exception, e:
             pass
         return None

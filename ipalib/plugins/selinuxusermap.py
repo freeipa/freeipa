@@ -234,6 +234,7 @@ class selinuxusermap_add(LDAPCreate):
     msg_summary = _('Added SELinux User Map "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
         validate_selinuxuser_inlist(ldap, entry_attrs['ipaselinuxuser'])
@@ -243,6 +244,7 @@ class selinuxusermap_add(LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj._convert_seealso(ldap, entry_attrs, **options)
 
         return dn
@@ -264,6 +266,7 @@ class selinuxusermap_mod(LDAPUpdate):
     msg_summary = _('Modified SELinux User Map "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (_dn, _entry_attrs) = ldap.get_entry(dn, attrs_list)
         except errors.NotFound:
@@ -288,6 +291,7 @@ class selinuxusermap_mod(LDAPUpdate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj._convert_seealso(ldap, entry_attrs, **options)
         return dn
 
@@ -331,6 +335,7 @@ class selinuxusermap_show(LDAPRetrieve):
     __doc__ = _('Display the properties of a SELinux User Map rule.')
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj._convert_seealso(ldap, entry_attrs, **options)
         return dn
 
@@ -398,6 +403,7 @@ class selinuxusermap_add_user(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
@@ -428,6 +434,7 @@ class selinuxusermap_add_host(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:

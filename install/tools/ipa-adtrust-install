@@ -32,6 +32,7 @@ from ipapython.config import IPAOptionParser
 import krbV
 import ldap
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 
 log_file_name = "/var/log/ipaserver-install.log"
 

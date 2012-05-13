@@ -278,6 +278,7 @@ class service_add(LDAPCreate):
         ),
     )
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         (service, hostname, realm) = split_principal(keys[-1])
         if service.lower() == 'host' and not options['force']:
             raise errors.HostService()
@@ -322,6 +323,7 @@ class service_del(LDAPDelete):
     msg_summary = _('Deleted service "%(value)s"')
     member_attributes = ['managedby']
     def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         # In the case of services we don't want IPA master services to be
         # deleted. This is a limited few though. If the user has their own
         # custom services allow them to manage them.
@@ -367,6 +369,7 @@ class service_mod(LDAPUpdate):
     member_attributes = ['managedby']
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if 'usercertificate' in options:
             (service, hostname, realm) = split_principal(keys[-1])
             cert = options.get('usercertificate')
@@ -386,7 +389,9 @@ class service_mod(LDAPUpdate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         set_certificate_attrs(entry_attrs)
+        return dn
 
 api.register(service_mod)
 
@@ -402,6 +407,7 @@ class service_find(LDAPSearch):
     has_output_params = LDAPSearch.has_output_params + output_params
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         # lisp style!
         custom_filter = '(&(objectclass=ipaService)' \
                           '(!(objectClass=posixAccount))' \
@@ -439,6 +445,7 @@ class service_show(LDAPRetrieve):
     has_output_params = LDAPRetrieve.has_output_params + output_params
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
 
         set_certificate_attrs(entry_attrs)

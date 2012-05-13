@@ -31,12 +31,12 @@ import SSSDConfig
 
 from optparse import OptionParser
 from ipalib import api, errors
-from ipalib.dn import DN
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipaclient import ipadiscovery
 from ipaclient import ipachangeconf
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 from ipapython import services as ipaservices
 
 AUTOFS_CONF = '/etc/sysconfig/autofs'

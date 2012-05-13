@@ -35,7 +35,6 @@ from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         validate_hostname, validate_dns_label, validate_domain_name,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy)
 from ipapython.ipautil import valid_ip, CheckedIPAddress, is_host_resolvable
-from ldap import explode_dn
 
 __doc__ = _("""
 Domain Name System (DNS)
@@ -802,10 +801,10 @@ class DNSRecord(Str):
 
     # callbacks for per-type special record behavior
     def dnsrecord_add_pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        pass
+        assert isinstance(dn, DN)
 
     def dnsrecord_add_post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        pass
+        assert isinstance(dn, DN)
 
 class ForwardRecord(DNSRecord):
     extra = (
@@ -817,6 +816,7 @@ class ForwardRecord(DNSRecord):
     )
 
     def dnsrecord_add_pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         reverse_option = self._convert_dnsrecord_extra(self.extra[0])
         if options.get(reverse_option.name):
             records = entry_attrs.get(self.name, [])
@@ -832,6 +832,7 @@ class ForwardRecord(DNSRecord):
             setattr(context, '%s_reverse' % self.name, entry_attrs.get(self.name))
 
     def dnsrecord_add_post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         rev_records = getattr(context, '%s_reverse' % self.name, [])
 
         if rev_records:
@@ -1727,6 +1728,7 @@ class dnszone_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if not dns_container_exists(self.api.Backend.ldap2):
             raise errors.NotFound(reason=_('DNS is not configured'))
 
@@ -1751,6 +1753,7 @@ class dnszone_add(LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if 'ip_address' in options:
             nameserver = entry_attrs['idnssoamname'][0][:-1] # ends with a dot
             nsparts = nameserver.split('.')
@@ -1813,6 +1816,7 @@ class dnszone_find(LDAPSearch):
     )
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         if options.get('forward_only', False):
             search_kw = {}
             search_kw['idnsname'] = _valid_reverse_zones.keys()
@@ -1980,6 +1984,7 @@ class dnsrecord(LDAPObject):
                            )
 
     def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         nsrecords = entry_attrs.get('nsrecord')
         if options.get('force', False) or nsrecords is None:
             return
@@ -1987,6 +1992,7 @@ class dnsrecord(LDAPObject):
             check_ns_rec_resolvable(keys[0], nsrecord)
 
     def _ptrrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         ptrrecords = entry_attrs.get('ptrrecord')
         if ptrrecords is None:
             return
@@ -2015,6 +2021,7 @@ class dnsrecord(LDAPObject):
                 % dict(name=zone_name, count=zone_len, user_count=ip_addr_comp_count)))
 
     def run_precallback_validators(self, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         ldap = self.api.Backend.ldap2
 
         for rtype in entry_attrs:
@@ -2049,7 +2056,7 @@ class dnsrecord(LDAPObject):
 
     def get_dns_masters(self):
         ldap = self.api.Backend.ldap2
-        base_dn = 'cn=masters,cn=ipa,cn=etc,%s' % self.api.env.basedn
+        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), self.api.env.basedn)
         ldap_filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
         dns_masters = []
 
@@ -2058,9 +2065,12 @@ class dnsrecord(LDAPObject):
 
             for entry in entries:
                 master_dn = entry[0]
-                if master_dn.startswith('cn='):
-                    master = explode_dn(master_dn)[1].replace('cn=','')
+                assert isinstance(master_dn, DN)
+                try:
+                    master = master_dn[1]['cn']
                     dns_masters.append(master)
+                except (IndexError, KeyError):
+                    pass
         except errors.NotFound:
             return []
 
@@ -2254,6 +2264,7 @@ class dnsrecord_add(LDAPCreate):
         kw.update(user_options)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         precallback_attrs = []
         processed_attrs = []
         for option in options:
@@ -2354,6 +2365,7 @@ class dnsrecord_add(LDAPCreate):
         raise exc
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         for attr in getattr(context, 'dnsrecord_precallback_attrs', []):
             param = self.params[attr]
             param.dnsrecord_add_post_callback(ldap, dn, entry_attrs, *keys, **options)
@@ -2382,6 +2394,7 @@ class dnsrecord_mod(LDAPUpdate):
         return super(dnsrecord_mod, self).args_options_2_entry(*keys, **options)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list,  *keys, **options):
+        assert isinstance(dn, DN)
         if options.get('rename') and self.obj.is_pkey_zone_record(*keys):
             # zone rename is not allowed
             raise errors.ValidationError(name='rename',
@@ -2466,10 +2479,12 @@ class dnsrecord_mod(LDAPUpdate):
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if self.obj.is_pkey_zone_record(*keys):
             entry_attrs[self.obj.primary_key.name] = [_dns_zone_record]
 
         self.obj.postprocess_record(entry_attrs, **options)
+        return dn
 
     def interactive_prompt_callback(self, kw):
         try:
@@ -2564,6 +2579,7 @@ class dnsrecord_del(LDAPUpdate):
             yield option
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn_, old_entry) = ldap.get_entry(
                     dn, _record_attributes,
@@ -2626,9 +2642,11 @@ class dnsrecord_del(LDAPUpdate):
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if self.obj.is_pkey_zone_record(*keys):
             entry_attrs[self.obj.primary_key.name] = [_dns_zone_record]
         self.obj.postprocess_record(entry_attrs, **options)
+        return dn
 
     def args_options_2_entry(self, *keys, **options):
         self.obj.has_cli_options(options, self.no_option_msg)
@@ -2697,6 +2715,7 @@ class dnsrecord_show(LDAPRetrieve):
     )
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if self.obj.is_pkey_zone_record(*keys):
             entry_attrs[self.obj.primary_key.name] = [_dns_zone_record]
         self.obj.postprocess_record(entry_attrs, **options)
@@ -2723,6 +2742,7 @@ class dnsrecord_find(LDAPSearch):
             yield option
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         # include zone record (root entry) in the search
         return (filter, base_dn, ldap.SCOPE_SUBTREE)
 
@@ -2774,7 +2794,7 @@ class dns_is_enabled(Command):
     NO_CLI = True
     has_output = output.standard_value
 
-    base_dn = 'cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn
+    base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
 
     def execute(self, *args, **options):

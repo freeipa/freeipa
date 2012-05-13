@@ -27,6 +27,7 @@ import ldap
 import wsgiref
 from ipapython.ipa_log_manager import *
 from ipapython.ipautil import get_ipa_basedn
+from ipapython.dn import DN
 
 BASE_DN = ''
 LDAP_URI = 'ldaps://localhost:636'
@@ -80,10 +81,10 @@ def bind(username, password):
     if not base_dn:
         root_logger.error('migration unable to get base dn')
         raise IOError(errno.EIO, 'Cannot get Base DN')
-    bind_dn = 'uid=%s,cn=users,cn=accounts,%s' % (username, base_dn)
+    bind_dn = DN(('uid', username), ('cn', 'users'), ('cn', 'accounts'), base_dn)
     try:
         conn = ldap.initialize(LDAP_URI)
-        conn.simple_bind_s(bind_dn, password)
+        conn.simple_bind_s(str(bind_dn), password)
     except (ldap.INVALID_CREDENTIALS, ldap.UNWILLING_TO_PERFORM,
             ldap.NO_SUCH_OBJECT), e:
         root_logger.error('migration invalid credentials for %s: %s' % (bind_dn, convert_exception(e)))

@@ -101,10 +101,10 @@ class IPALogManager(LogManager):
           in the Env config must begin with "log_logger_level\_" and then be
           followed by a symbolic or numeric log level, for example::
 
-            log_logger_level_debug = ipalib\.dn\..*
+            log_logger_level_debug = ipapython\.dn\..*
             log_logger_level_35 = ipalib\.plugins\.dogtag
 
-          The first line says any logger belonging to the ipalib.dn module
+          The first line says any logger belonging to the ipapython.dn module
           will have it's level configured to debug.
 
           The second line say the ipa.plugins.dogtag logger will be

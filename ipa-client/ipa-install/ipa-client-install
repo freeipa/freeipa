@@ -41,6 +41,7 @@ try:
     from ipapython import certmonger
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
+    from ipapython.dn import DN
     import SSSDConfig
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup
@@ -510,8 +511,8 @@ def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
             {'name':'ldap_version', 'type':'option', 'value':'3'},
             {'name':'base', 'type':'option', 'value':cli_basedn},
             {'name':'empty', 'type':'empty'},
-            {'name':'nss_base_passwd', 'type':'option', 'value':'cn=users,cn=accounts,'+cli_basedn+'?sub'},
-            {'name':'nss_base_group', 'type':'option', 'value':'cn=groups,cn=accounts,'+cli_basedn+'?sub'},
+            {'name':'nss_base_passwd', 'type':'option', 'value':str(DN(('cn', 'users'), ('cn', 'accounts'), cli_basedn))+'?sub'},
+            {'name':'nss_base_group', 'type':'option', 'value':str(DN(('cn', 'groups'), ('cn', 'accounts'), cli_basedn))+'?sub'},
             {'name':'nss_schema', 'type':'option', 'value':'rfc2307bis'},
             {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
             {'name':'nss_initgroups_ignoreusers', 'type':'option', 'value':'root,dirsrv'},
@@ -555,8 +556,8 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
             {'name':'ldap_version', 'type':'option', 'value':'3'},
             {'name':'base', 'type':'option', 'value':cli_basedn},
             {'name':'empty', 'type':'empty'},
-            {'name':'base passwd', 'type':'option', 'value':'cn=users,cn=accounts,'+cli_basedn},
-            {'name':'base group', 'type':'option', 'value':'cn=groups,cn=accounts,'+cli_basedn},
+            {'name':'base passwd', 'type':'option', 'value':str(DN(('cn', 'users'), ('cn', 'accounts'), cli_basedn))},
+            {'name':'base group', 'type':'option', 'value':str(DN(('cn', 'groups'), ('cn', 'accounts'), cli_basedn))},
             {'name':'map group', 'type':'option', 'value':'uniqueMember member'},
             {'name':'timelimit', 'type':'option', 'value':'15'},
             {'name':'empty', 'type':'empty'}]
@@ -743,9 +744,9 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
     # Request our host cert
     if started:
         client_nss_nickname = client_nss_nickname_format % hostname
-        subject = 'CN=%s,%s' % (hostname, subject_base)
+        subject = DN(('CN', hostname), subject_base)
         try:
-            run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname, "-N", subject, "-K", principal])
+            run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname, "-N", str(subject), "-K", principal])
         except:
             root_logger.error(
                 "%s request for host certificate failed", cmonger.service_name)
@@ -1337,7 +1338,7 @@ def install(options, env, fstore, statestore):
     cli_basedn = ds.basedn
     cli_basedn_source = ds.basedn_source
     root_logger.debug("will use discovered basedn: %s", cli_basedn)
-    subject_base = "O=%s" % cli_realm
+    subject_base = DN(('O', cli_realm))
 
     # Now do a sanity check on the other servers
     if options.server and len(options.server) > 1:
@@ -1431,7 +1432,7 @@ def install(options, env, fstore, statestore):
                 root_logger.error("Test kerberos configuration failed")
                 return CLIENT_INSTALL_ERROR
             env['KRB5_CONFIG'] = krb_name
-            join_args = ["/usr/sbin/ipa-join", "-s", cli_server[0], "-b", realm_to_suffix(cli_realm)]
+            join_args = ["/usr/sbin/ipa-join", "-s", cli_server[0], "-b", str(realm_to_suffix(cli_realm))]
             if options.debug:
                 join_args.append("-d")
                 env['XMLRPC_TRACE_CURL'] = 'yes'
@@ -1508,6 +1509,7 @@ def install(options, env, fstore, statestore):
                 start = start + 29
                 subject_base = stderr[start:]
                 subject_base = subject_base.strip()
+                subject_base = DN(subject_base)
 
         finally:
             if options.principal is not None:

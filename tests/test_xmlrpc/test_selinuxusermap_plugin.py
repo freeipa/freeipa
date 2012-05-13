@@ -23,7 +23,7 @@ Test the `ipalib/plugins/selinuxusermap.py` module.
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
-from ipalib.dn import *
+from ipapython.dn import DN
 from tests.util import Fuzzy
 
 rule1 = u'selinuxrule1'
@@ -34,15 +34,16 @@ user1 = u'tuser1'
 group1 = u'testgroup1'
 host1 = u'testhost1.%s' % api.env.domain
 hostdn1 = DN(('fqdn',host1),('cn','computers'),('cn','accounts'),
-         api.env.basedn)
+             api.env.basedn)
 hbacrule1 = u'testhbacrule1'
 hbacrule2 = u'testhbacrule12'
 
+# Note (?i) at the beginning of the regexp is the ingnore case flag
 fuzzy_selinuxusermapdn = Fuzzy(
-    'ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s' % (api.env.container_selinux, api.env.basedn)
+    '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s' % (api.env.container_selinux, api.env.basedn)
 )
 fuzzy_hbacruledn = Fuzzy(
-    'ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s' % (api.env.container_hbac, api.env.basedn)
+    '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s' % (api.env.container_hbac, api.env.basedn)
 )
 
 class test_selinuxusermap(Declarative):
@@ -204,16 +205,13 @@ class test_selinuxusermap(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=lambda x: DN(x) == \
-                        DN(('uid',user1),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid',user1),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                     has_keytab=False,
                     has_password=False,
                 ),
@@ -234,9 +232,8 @@ class test_selinuxusermap(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('cn',group1),('cn','groups'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -256,9 +253,8 @@ class test_selinuxusermap(Declarative):
                     ),
                 ),
                 result={
-                        'dn': lambda x: DN(x) == \
-                            DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        'dn': DN(('cn',group1),('cn','groups'),('cn','accounts'),
+                                 api.env.basedn),
                         'member_user': (user1,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
@@ -281,7 +277,7 @@ class test_selinuxusermap(Declarative):
                 value=host1,
                 summary=u'Added host "%s"' % host1,
                 result=dict(
-                    dn=lambda x: DN(x) == hostdn1,
+                    dn=hostdn1,
                     fqdn=[host1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],

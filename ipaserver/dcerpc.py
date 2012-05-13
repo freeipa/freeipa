@@ -101,7 +101,7 @@ class DomainValidator(object):
     def is_configured(self):
         cn_trust_local = DN(('cn', self.api.env.domain), self.api.env.container_cifsdomains, self.api.env.basedn)
         try:
-            (dn, entry_attrs) = self.ldap.get_entry(unicode(cn_trust_local), [self.ATTR_FLATNAME, self.ATTR_SID])
+            (dn, entry_attrs) = self.ldap.get_entry(cn_trust_local, [self.ATTR_FLATNAME, self.ATTR_SID])
             self.flatname = entry_attrs[self.ATTR_FLATNAME][0]
             self.sid = entry_attrs[self.ATTR_SID][0]
             self.dn = dn
@@ -115,7 +115,7 @@ class DomainValidator(object):
         try:
             search_kw = {'objectClass': 'ipaNTTrustedDomain'}
             filter = self.ldap.make_filter(search_kw, rules=self.ldap.MATCH_ALL)
-            (entries, truncated) = self.ldap.find_entries(filter=filter, base_dn=unicode(cn_trust),
+            (entries, truncated) = self.ldap.find_entries(filter=filter, base_dn=cn_trust,
                                                           attrs_list=[self.ATTR_TRUSTED_SID, 'dn'])
 
             return entries
@@ -447,5 +447,3 @@ class TrustDomainJoins(object):
         self.__populate_remote_domain(realm, realm_server, realm_passwd=None)
         self.local_domain.establish_trust(self.remote_domain, trustdom_passwd)
         return dict(local=self.local_domain, remote=self.remote_domain)
-
-

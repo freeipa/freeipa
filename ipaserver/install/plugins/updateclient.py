@@ -25,6 +25,7 @@ from ipaserver.install.ldapupdate import LDAPUpdate
 from ipapython.ipautil import wait_for_open_socket
 from ipalib import api
 from ipalib import backend
+from ipapython.dn import DN
 import ldap as _ldap
 
 class updateclient(backend.Executioner):
@@ -44,7 +45,7 @@ class updateclient(backend.Executioner):
 
     updates is a dictionary keyed on dn. The value of an update is a
     dictionary with the following possible values:
-      - dn: str, duplicate of the key
+      - dn: DN, equal to the dn attribute
       - updates: list of updates against the dn
       - default: list of the default entry to be added if it doesn't
                  exist
@@ -103,7 +104,7 @@ class updateclient(backend.Executioner):
             autobind = False
         else:
             autobind = True
-        self.Backend.ldap2.connect(bind_dn='cn=Directory Manager', bind_pw=dm_password, autobind=autobind)
+        self.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password, autobind=autobind)
 
     def order(self, updatetype):
         """Return plugins of the given updatetype in sorted order.
@@ -125,22 +126,12 @@ class updateclient(backend.Executioner):
             (restart, apply_now, res) = self.run(update.name, **kw)
             if restart:
                 self.restart(dm_password, live_run)
-            dn_list = {}
-            for upd in res:
-                for dn in upd:
-                    dn_explode = _ldap.explode_dn(dn.lower())
-                    l = len(dn_explode)
-                    if dn_list.get(l):
-                        if dn not in dn_list[l]:
-                            dn_list[l].append(dn)
-                    else:
-                        dn_list[l] = [dn]
-            updates = {}
-            for entry in res:
-                updates.update(entry)
 
             if apply_now:
-                ld.update_from_dict(dn_list, updates)
+                updates = {}
+                for entry in res:
+                    updates.update(entry)
+                ld.update_from_dict(updates)
             elif res:
                 result.extend(res)
 

@@ -28,6 +28,7 @@ try:
     from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors
     from ipapython.ipa_log_manager import *
+    from ipapython.dn import DN
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -37,8 +38,8 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-compat_dn = "cn=Schema Compatibility,cn=plugins,cn=config"
-nis_config_dn = "cn=NIS Server,cn=plugins,cn=config"
+compat_dn = DN(('cn', 'Schema Compatibility'), ('cn', 'plugins'), ('cn', 'config'))
+nis_config_dn = DN(('cn', 'NIS Server'), ('cn', 'plugins'), ('cn', 'config'))
 
 def parse_options():
     usage = "%prog [options] <enable|disable>\n"
@@ -107,7 +108,7 @@ def main():
         try:
             conn = ldap2(shared_instance=False, base_dn='')
             conn.connect(
-                bind_dn='cn=directory manager', bind_pw=dirman_password
+                bind_dn=DN(('cn', 'directory manager')), bind_pw=dirman_password
             )
         except errors.ExecutionError, lde:
             sys.exit("An error occurred while connecting to the server.\n%s\n" % str(lde))

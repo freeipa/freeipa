@@ -150,6 +150,8 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
 
 
 class LDAPUpdater_NonUpgrade(LDAPUpdater):
+    log_file_name = '/var/log/ipaupgrade.log'
+
     def validate_options(self):
         super(LDAPUpdater_NonUpgrade, self).validate_options()
         options = self.options

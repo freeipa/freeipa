@@ -33,7 +33,7 @@ from ipalib.plugins.host import host
 import nss.nss as nss
 from ipalib import api, x509, create_api, errors
 from ipapython import ipautil
-from ipalib.dn import *
+from ipapython.dn import DN
 
 class test_ldap(object):
     """
@@ -45,8 +45,8 @@ class test_ldap(object):
         self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
         self.ccache = '/tmp/krb5cc_%d' % os.getuid()
         nss.nss_init_nodb()
-        self.dn = str(DN(('krbprincipalname','ldap/%s@%s' % (api.env.host, api.env.realm)),
-                         ('cn','services'),('cn','accounts'),api.env.basedn))
+        self.dn = DN(('krbprincipalname','ldap/%s@%s' % (api.env.host, api.env.realm)),
+                     ('cn','services'),('cn','accounts'),api.env.basedn)
 
     def tearDown(self):
         if self.conn and self.conn.isconnected():
@@ -90,7 +90,7 @@ class test_ldap(object):
         else:
             raise nose.SkipTest("No directory manager password in %s" % pwfile)
         self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
-        self.conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+        self.conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
         (dn, entry_attrs) = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
@@ -120,7 +120,7 @@ class test_ldap(object):
             fp.close()
         else:
             raise nose.SkipTest("No directory manager password in %s" % pwfile)
-        myapi.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
+        myapi.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)
 
         result = myapi.Command['service_show']('ldap/%s@%s' %  (api.env.host, api.env.realm,))
         entry_attrs = result['result']
@@ -145,4 +145,3 @@ class test_ldap(object):
         cert = cert[0]
         serial = unicode(x509.get_serial_number(cert, x509.DER))
         assert serial is not None
-

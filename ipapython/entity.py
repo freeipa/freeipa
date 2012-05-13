@@ -18,6 +18,7 @@
 import copy
 
 from ipapython import ipautil
+from ipapython.dn import DN
 
 def copy_CIDict(x):
     """Do a deep copy of a CIDict"""
@@ -45,18 +46,24 @@ class Entity:
             if isinstance(entrydata,tuple):
                 self.dn = entrydata[0]
                 self.data = ipautil.CIDict(entrydata[1])
-            elif isinstance(entrydata,str) or isinstance(entrydata,unicode):
+            elif isinstance(entrydata, DN):
                 self.dn = entrydata
+                self.data = ipautil.CIDict()
+            elif isinstance(entrydata, basestring):
+                self.dn = DN(entrydata)
                 self.data = ipautil.CIDict()
             elif isinstance(entrydata,dict):
                 self.dn = entrydata['dn']
                 del entrydata['dn']
                 self.data = ipautil.CIDict(entrydata)
         else:
-            self.dn = ''
+            self.dn = DN()
             self.data = ipautil.CIDict()
 
+        assert isinstance(self.dn, DN)
         self.orig_data = ipautil.CIDict(copy_CIDict(self.data))
+
+    dn = ipautil.dn_attribute_property('_dn')
 
     def __nonzero__(self):
         """This allows us to do tests like if entry: returns false if there is no data,
@@ -67,23 +74,8 @@ class Entity:
         """Return True if this entry has an attribute named name, False otherwise"""
         return self.data and self.data.has_key(name)
 
-    def __setattr__(self,name,value):
-        """One should use setValue() or setValues() to set values except for
-           dn and data which are special."""
-        if name != 'dn' and name != 'data' and name != 'orig_data':
-            raise KeyError, 'use setValue() or setValues()'
-        else:
-            self.__dict__[name] = value
-
-    def __getattr__(self,name):
-        """If name is the name of an LDAP attribute, return the first value for that
-        attribute - equivalent to getValue - this allows the use of
-        entry.cn
-        instead of
-        entry.getValue('cn')
-        This also allows us to return None if an attribute is not found rather than
-        throwing an exception"""
-        return self.getValue(name)
+    def __str__(self):
+        return "dn: %s data: %s" % (self.dn, self.data)
 
     def getValues(self,name):
         """Get the list (array) of values for the attribute named name"""
@@ -150,6 +142,7 @@ class Entity:
     def toDict(self):
         """Convert the attrs and values to a dict. The dict is keyed on the
         attribute name.  The value is either single value or a list of values."""
+        assert isinstance(self.dn, DN)
         result = ipautil.CIDict(self.data)
         result['dn'] = self.dn
         return result
@@ -160,6 +153,7 @@ class Entity:
 
     def origDataDict(self):
         """Returns a dict of the original values of the user.  Used for updates."""
+        assert isinstance(self.dn, DN)
         result = ipautil.CIDict(self.orig_data)
         result['dn'] = self.dn
         return result

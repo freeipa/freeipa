@@ -32,7 +32,7 @@ from ipalib.errors import PublicError, InternalError, CommandError, JSONError, C
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import parse_time_duration
-from ipalib.dn import DN
+from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython.compat import json
 from ipalib.session import session_mgr, AuthManager, get_ipa_ccache_name, load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time, default_max_session_duration
@@ -418,29 +418,17 @@ def json_encode_binary(val):
     if isinstance(val, dict):
         new_dict = {}
         for k,v in val.items():
-            if isinstance(v, str):
-                new_dict[k] = {'__base64__' : base64.b64encode(v)}
-            else:
-                new_dict[k] = json_encode_binary(v)
-        del val
+            new_dict[k] = json_encode_binary(v)
         return new_dict
     elif isinstance(val, (list, tuple)):
-        new_list = []
-        n = len(val)
-        i = 0
-        while i < n:
-            v = val[i]
-            if isinstance(v, str):
-                new_list.append({'__base64__' : base64.b64encode(v)})
-            else:
-                new_list.append(json_encode_binary(v))
-            i += 1
-        del val
+        new_list = [json_encode_binary(v) for v in val]
         return new_list
     elif isinstance(val, str):
         return {'__base64__' : base64.b64encode(val)}
     elif isinstance(val, Decimal):
         return {'__base64__' : base64.b64encode(str(val))}
+    elif isinstance(val, DN):
+        return str(val)
     else:
         return val
 
@@ -474,7 +462,6 @@ def json_decode_binary(val):
                         new_dict[k] = base64.b64decode(v['__base64__'])
                 else:
                     new_dict[k] = json_decode_binary(v)
-            del val
             return new_dict
     elif isinstance(val, list):
         new_list = []
@@ -488,7 +475,6 @@ def json_decode_binary(val):
             else:
                 new_list.append(json_decode_binary(v))
             i += 1
-        del val
         return new_list
     else:
         if isinstance(val, basestring):
@@ -963,9 +949,9 @@ class login_password(Backend, KerberosSession, HTTP_Status):
             # Ok, now why is this bad. Is the password simply bad or is the
             # password expired?
             try:
-                dn = str(DN(('uid', user),
-                            self.api.env.container_user,
-                            self.api.env.basedn))
+                dn = DN(('uid', user),
+                        self.api.env.container_user,
+                        self.api.env.basedn)
                 conn = ldap2(shared_instance=False,
                              ldap_uri=self.api.env.ldap_uri)
                 conn.connect(bind_dn=dn, bind_pw=password)
@@ -1059,8 +1045,8 @@ class change_password(Backend, HTTP_Status):
         result = 'error'
         policy_error = None
 
-        bind_dn = str(DN((self.api.Object.user.primary_key.name, data['user']),
-                      self.api.env.container_user, self.api.env.basedn))
+        bind_dn = DN((self.api.Object.user.primary_key.name, data['user']),
+                     self.api.env.container_user, self.api.env.basedn)
 
         try:
             conn = ldap2(shared_instance=False,

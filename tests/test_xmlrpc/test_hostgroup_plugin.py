@@ -23,10 +23,9 @@ Test the `ipalib.plugins.hostgroup` module.
 """
 
 from ipalib import api, errors
-from ipalib.dn import *
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
-from ipalib.dn import *
+from ipapython.dn import DN
 
 hostgroup1 = u'testhostgroup1'
 dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
@@ -95,14 +94,13 @@ class test_hostgroup(Declarative):
                 value=hostgroup1,
                 summary=u'Added hostgroup "testhostgroup1"',
                 result=dict(
-                    dn=lambda x: DN(x) == dn1,
+                    dn=dn1,
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup 1'],
                     ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
-                            api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
+                                        api.env.basedn)],
                 ),
             ),
         ),
@@ -131,7 +129,7 @@ class test_hostgroup(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    dn=lambda x: DN(x) == host_dn1,
+                    dn=host_dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -160,7 +158,7 @@ class test_hostgroup(Declarative):
                     ),
                 ),
                 result={
-                    'dn': lambda x: DN(x) == dn1,
+                    'dn': dn1,
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
                     'member_host': [fqdn1],
@@ -176,7 +174,7 @@ class test_hostgroup(Declarative):
                 value=hostgroup1,
                 summary=None,
                 result={
-                    'dn': lambda x: DN(x) == dn1,
+                    'dn': dn1,
                     'member_host': [u'testhost1.%s' % api.env.domain],
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
@@ -194,7 +192,7 @@ class test_hostgroup(Declarative):
                 summary=u'1 hostgroup matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == dn1,
+                        'dn': dn1,
                         'member_host': [u'testhost1.%s' % api.env.domain],
                         'cn': [hostgroup1],
                         'description': [u'Test hostgroup 1'],
@@ -228,7 +226,7 @@ class test_hostgroup(Declarative):
                 value=hostgroup1,
                 summary=None,
                 result={
-                    'dn': lambda x: DN(x) == dn1,
+                    'dn': dn1,
                     'member_host': [u'testhost1.%s' % api.env.domain],
                     'cn': [hostgroup1],
                     'description': [u'Updated hostgroup 1'],
@@ -251,7 +249,7 @@ class test_hostgroup(Declarative):
                 ),
                 completed=1,
                 result={
-                    'dn': lambda x: DN(x) == dn1,
+                    'dn': dn1,
                     'cn': [hostgroup1],
                     'description': [u'Updated hostgroup 1'],
                 },
@@ -279,14 +277,13 @@ class test_hostgroup(Declarative):
                 value=hostgroup_single,
                 summary=u'Added hostgroup "a"',
                 result=dict(
-                    dn=lambda x: DN(x) == dn_single,
+                    dn=dn_single,
                     cn=[hostgroup_single],
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup with single letter in name'],
                     ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',hostgroup_single),('cn','ng'),('cn','alt'),
-                            api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',hostgroup_single),('cn','ng'),('cn','alt'),
+                                        api.env.basedn)],
                 ),
             ),
         ),

@@ -35,6 +35,7 @@ from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipapython.config import IPAOptionParser
 from ipalib import api, errors, util
+from ipapython.dn import DN
 
 def parse_options():
     usage = "%prog [options] FQDN (e.g. replica.example.com)"
@@ -99,13 +100,16 @@ def parse_options():
 def get_subject_base(host_name, dm_password, suffix):
     try:
         conn = ldap2(shared_instance=False, base_dn=suffix)
-        conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+        conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
     except errors.ExecutionError, e:
         root_logger.critical("Could not connect to the Directory Server on %s" % host_name)
         raise e
     (dn, entry_attrs) = conn.get_ipa_config()
     conn.disconnect()
-    return entry_attrs.get('ipacertificatesubjectbase', [None])[0]
+    subject_base = entry_attrs.get('ipacertificatesubjectbase', [None])[0]
+    if subject_base is not None:
+        subject_base = DN(subject_base)
+    return subject_base
 
 def check_ipa_configuration(realm_name):
     config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
@@ -200,7 +204,7 @@ def save_config(dir, realm_name, host_name,
     config.set("realm", "master_host_name", host_name)
     config.set("realm", "domain_name", domain_name)
     config.set("realm", "destination_host", dest_host)
-    config.set("realm", "subject_base", subject_base)
+    config.set("realm", "subject_base", str(subject_base))
     fd = open(dir + "/realm_info", "w")
     config.write(fd)
 
@@ -260,7 +264,7 @@ def main():
     # Try out the password
     try:
         conn = ldap2(shared_instance=False)
-        conn.connect(bind_dn='cn=directory manager', bind_pw=dirman_password)
+        conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dirman_password)
         conn.disconnect()
     except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
@@ -431,7 +435,7 @@ def main():
 
     if options.ip_address:
         print "Adding DNS records for %s" % replica_fqdn
-        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dirman_password)
+        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dirman_password)
 
         domain = replica_fqdn.split(".")
         name = domain.pop(0)

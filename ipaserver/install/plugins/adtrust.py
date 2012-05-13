@@ -20,7 +20,7 @@
 from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipalib import api, errors
-from ipalib.dn import DN
+from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 
 DEFAULT_ID_RANGE_SIZE = 200000
@@ -34,7 +34,7 @@ class update_default_range(PostUpdate):
     def execute(self, **options):
         ldap = self.obj.backend
 
-        dn = str(DN(api.env.container_ranges, api.env.basedn))
+        dn = DN(api.env.container_ranges, api.env.basedn)
         search_filter = "objectclass=ipaDomainIDRange"
         try:
             (entries, truncated) = ldap.find_entries(search_filter, [], dn)
@@ -44,7 +44,7 @@ class update_default_range(PostUpdate):
             root_logger.debug("default_range: ipaDomainIDRange entry found, skip plugin")
             return (False, False, [])
 
-        dn = str(DN(('cn', 'admins'), api.env.container_group, api.env.basedn))
+        dn = DN(('cn', 'admins'), api.env.container_group, api.env.basedn)
         try:
             (dn, admins_entry) = ldap.get_entry(dn, ['gidnumber'])
         except errors.NotFound:
@@ -65,12 +65,10 @@ class update_default_range(PostUpdate):
                       ]
 
         updates = {}
-        dn = str(DN(('cn', '%s_id_range' % api.env.realm),
-                 api.env.container_ranges, api.env.basedn))
+        dn = DN(('cn', '%s_id_range' % api.env.realm),
+                api.env.container_ranges, api.env.basedn)
 
-        # make sure everything is str or otherwise python-ldap would complain
-        range_entry = map(str, range_entry)
-        updates[dn] = {'dn' : dn, 'default' : range_entry}
+        updates[dn] = {'dn': dn, 'default': range_entry}
 
         # Default range entry has a hard-coded range size to 200000 which is
         # a default range size in ipa-server-install. This could cause issues
@@ -78,7 +76,7 @@ class update_default_range(PostUpdate):
         # bigger range (option --idmax).
         # We should make our best to check if this is the case and provide
         # user with an information how to fix it.
-        dn = str(DN(api.env.container_dna_posix_ids, api.env.basedn))
+        dn = DN(api.env.container_dna_posix_ids, api.env.basedn)
         search_filter = "objectclass=dnaSharedConfig"
         attrs = ['dnaHostname', 'dnaRemainingValues']
         try:

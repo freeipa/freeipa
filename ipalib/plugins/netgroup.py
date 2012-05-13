@@ -162,6 +162,7 @@ class netgroup_add(LDAPCreate):
                       u'Hostgroups and netgroups share a common namespace')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         entry_attrs.setdefault('nisdomainname', self.api.env.domain)
 
         try:
@@ -203,6 +204,7 @@ class netgroup_mod(LDAPUpdate):
     msg_summary = _('Modified netgroup "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
         except errors.NotFound:
@@ -238,6 +240,7 @@ class netgroup_find(LDAPSearch):
     )
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         # Do not display private mepManagedEntry netgroups by default
         # If looking for managed groups, we need to omit the negation search filter
 
@@ -267,8 +270,11 @@ class netgroup_add_member(LDAPAddMember):
     member_attributes = ['memberuser', 'memberhost', 'member']
     has_output_params = LDAPAddMember.has_output_params + output_params
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         return add_external_pre_callback('host', ldap, dn, keys, options)
+
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(netgroup_add_member)
@@ -280,6 +286,7 @@ class netgroup_remove_member(LDAPRemoveMember):
     member_attributes = ['memberuser', 'memberhost', 'member']
     has_output_params = LDAPRemoveMember.has_output_params + output_params
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return remove_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(netgroup_remove_member)

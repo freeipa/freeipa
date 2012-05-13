@@ -28,7 +28,7 @@ from dns.exception import DNSException
 
 from ipapython.ipautil import run, CalledProcessError, valid_ip, get_ipa_basedn, \
                               realm_to_suffix, format_netloc
-
+from ipapython.dn import DN
 
 NOT_FQDN = -1
 NO_LDAP_SERVER = -2
@@ -320,7 +320,7 @@ class IPADiscovery(object):
             root_logger.debug(
                 "Search for (objectClass=krbRealmContainer) in %s (sub)",
                 self.basedn)
-            lret = lh.search_s("cn=kerberos,"+self.basedn, ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
+            lret = lh.search_s(str(DN(('cn', 'kerberos'), self.basedn)), ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
             if not lret:
                 #something very wrong
                 return [REALM_NOT_FOUND]

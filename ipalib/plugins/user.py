@@ -375,11 +375,12 @@ class user(LDAPObject):
         if not manager:
             return None
 
-        if isinstance(manager, basestring):
+        if not isinstance(manager, list):
             manager = [manager]
         try:
+            container_dn = DN(self.container_dn, api.env.basedn)
             for m in xrange(len(manager)):
-                if manager[m].endswith('%s,%s' % (self.container_dn, api.env.basedn)):
+                if isinstance(manager[m], DN) and manager[m].endswith(container_dn):
                     continue
                 (dn, entry_attrs) = self.backend.find_entry_by_attr(
                         self.primary_key.name, manager[m], self.object_class, [''],
@@ -420,6 +421,7 @@ class user_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if not options.get('noprivate', False):
             try:
                 # The Managed Entries plugin will allow a user to be created
@@ -459,7 +461,9 @@ class user_add(LDAPCreate):
             homes_root = config.get('ipahomesrootdir', ['/home'])[0]
             # build user's home directory based on his uid
             entry_attrs['homedirectory'] = posixpath.join(homes_root, keys[-1])
-        entry_attrs.setdefault('krbpwdpolicyreference', 'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn))
+        entry_attrs.setdefault('krbpwdpolicyreference',
+                               DN(('cn', 'global_policy'), ('cn', api.env.realm), ('cn', 'kerberos'),
+                                  api.env.basedn))
         entry_attrs.setdefault('krbprincipalname', '%s@%s' % (entry_attrs['uid'], api.env.realm))
 
         if entry_attrs.get('gidnumber', DNA_MAGIC) == DNA_MAGIC:
@@ -496,6 +500,7 @@ class user_add(LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         config = ldap.get_ipa_config()[1]
         # add the user we just created into the default primary group
         def_primary_group = config.get('ipadefaultprimarygroup')
@@ -544,6 +549,7 @@ class user_del(LDAPDelete):
     msg_summary = _('Deleted user "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         protected_group_name = u'admins'
         result = api.Command.group_show(protected_group_name)
         if result['result'].get('member_user', []) == [keys[-1]]:
@@ -562,6 +568,7 @@ class user_mod(LDAPUpdate):
     has_output_params = LDAPUpdate.has_output_params + user_output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if options.get('rename') is not None:
             config = ldap.get_ipa_config()[1]
             if 'ipamaxusernamelength' in config:
@@ -592,6 +599,7 @@ class user_mod(LDAPUpdate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if options.get('random', False):
             try:
                 entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
@@ -621,6 +629,7 @@ class user_find(LDAPSearch):
     )
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
+        assert isinstance(base_dn, DN)
         if options.get('whoami'):
             return ("(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
                         getattr(context, 'principal'), base_dn, scope)
@@ -651,6 +660,7 @@ class user_show(LDAPRetrieve):
     has_output_params = LDAPRetrieve.has_output_params + user_output_params
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
@@ -763,7 +773,7 @@ class user_status(LDAPQuery):
         # Get list of masters
         try:
             (masters, truncated) = ldap.find_entries(
-                None, ['*'], 'cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn,
+                None, ['*'], DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn),
                 ldap.SCOPE_ONELEVEL
             )
         except errors.NotFound:

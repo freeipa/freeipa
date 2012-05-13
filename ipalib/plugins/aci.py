@@ -123,24 +123,22 @@ from ipalib import api, crud, errors
 from ipalib import Object, Command
 from ipalib import Flag, Int, Str, StrEnum
 from ipalib.aci import ACI
-from ipalib.dn import DN
 from ipalib import output
 from ipalib import _, ngettext
 from ipalib.plugins.baseldap import gen_pkey_only_option
-if api.env.in_server and api.env.context in ['lite', 'server']:
-    from ldap import explode_dn
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 
 ACI_NAME_PREFIX_SEP = ":"
 
 _type_map = {
-    'user': 'ldap:///uid=*,%s,%s' % (api.env.container_user, api.env.basedn),
-    'group': 'ldap:///cn=*,%s,%s' % (api.env.container_group, api.env.basedn),
-    'host': 'ldap:///fqdn=*,%s,%s' % (api.env.container_host, api.env.basedn),
-    'hostgroup': 'ldap:///cn=*,%s,%s' % (api.env.container_hostgroup, api.env.basedn),
-    'service': 'ldap:///krbprincipalname=*,%s,%s' % (api.env.container_service, api.env.basedn),
-    'netgroup': 'ldap:///ipauniqueid=*,%s,%s' % (api.env.container_netgroup, api.env.basedn),
-    'dnsrecord': 'ldap:///idnsname=*,%s,%s' % (api.env.container_dns, api.env.basedn),
+    'user': 'ldap:///' + str(DN(('uid', '*'), api.env.container_user, api.env.basedn)),
+    'group': 'ldap:///' + str(DN(('cn', '*'), api.env.container_group, api.env.basedn)),
+    'host': 'ldap:///' + str(DN(('fqdn', '*'), api.env.container_host, api.env.basedn)),
+    'hostgroup': 'ldap:///' + str(DN(('cn', '*'), api.env.container_hostgroup, api.env.basedn)),
+    'service': 'ldap:///' + str(DN(('krbprincipalname', '*'), api.env.container_service, api.env.basedn)),
+    'netgroup': 'ldap:///' + str(DN(('ipauniqueid', '*'), api.env.container_netgroup, api.env.basedn)),
+    'dnsrecord': 'ldap:///' + str(DN(('idnsname', '*'), api.env.container_dns, api.env.basedn)),
 }
 
 _valid_permissions_values = [
@@ -247,7 +245,7 @@ def _make_aci(ldap, current, aciname, kw):
             if 'test' in kw and not kw.get('test'):
                 raise e
             else:
-                entry_attrs = {'dn': 'cn=%s,%s' % (kw['permission'], api.env.container_permission)}
+                entry_attrs = {'dn': DN(('cn', kw['permission']), api.env.container_permission)}
     elif group:
         # Not so friendly with groups. This will raise
         try:
@@ -343,10 +341,9 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
             else:
                 # See if the target is a group. If so we set the
                 # targetgroup attr, otherwise we consider it a subtree
-                if api.env.container_group in target:
-                    targetdn = unicode(target.replace('ldap:///',''))
-                    target = DN(targetdn)
-                    kw['targetgroup'] = target['cn']
+                targetdn = DN(target.replace('ldap:///',''))
+                if targetdn.endswith(DN(api.env.container_group, api.env.basedn)):
+                    kw['targetgroup'] = targetdn[0]['cn']
                 else:
                     kw['subtree'] = unicode(target)
 
@@ -357,15 +354,16 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
     elif groupdn == 'anyone':
         pass
     else:
-        if groupdn.startswith('cn='):
-            dn = ''
+        groupdn = DN(groupdn)
+        if len(groupdn) and groupdn[0].attr == 'cn':
+            dn = DN()
             entry_attrs = {}
             try:
                 (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
             except errors.NotFound, e:
                 # FIXME, use real name here
                 if test:
-                    dn = 'cn=%s,%s' % ('test', api.env.container_permission)
+                    dn = DN(('cn', 'test'), api.env.container_permission)
                     entry_attrs = {'cn': [u'test']}
             if api.env.container_permission in dn:
                 kw['permission'] = entry_attrs['cn'][0]
@@ -801,11 +799,11 @@ class aci_find(crud.Search):
         if kw.get('group'):
             for a in acis:
                 groupdn = a.bindrule['expression']
-                groupdn = groupdn.replace('ldap:///','')
-                cn = None
-                if groupdn.startswith('cn='):
-                    cn = explode_dn(groupdn)[0]
-                    cn = cn.replace('cn=','')
+                groupdn = DN(groupdn.replace('ldap:///',''))
+                try:
+                    cn = groupdn[0]['cn'].value
+                except (IndexError, KeyError):
+                    cn = None
                 if cn is None or cn != kw['group']:
                     try:
                         results.remove(a)
@@ -818,9 +816,11 @@ class aci_find(crud.Search):
                 if 'target' in a.target:
                     target = a.target['target']['expression']
                     if api.env.container_group in target:
-                        targetdn = unicode(target.replace('ldap:///',''))
-                        cn = explode_dn(targetdn)[0]
-                        cn = cn.replace('cn=','')
+                        targetdn = DN(target.replace('ldap:///',''))
+                        try:
+                            cn = targetdn[0]['cn']
+                        except (IndexError, KeyError):
+                            cn = None
                         if cn == kw['targetgroup']:
                             found = True
                 if not found:

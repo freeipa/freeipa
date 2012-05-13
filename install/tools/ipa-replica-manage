@@ -29,8 +29,8 @@ from ipaserver.install import bindinstance
 from ipaserver import ipaldap
 from ipapython import version
 from ipalib import api, errors, util
-from ipalib.dn import DN
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 
 CACERT = "/etc/ipa/ca.crt"
 
@@ -125,23 +125,28 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
             conn.do_simple_bind(bindpw=dirman_passwd)
         else:
             conn.do_sasl_gssapi_bind()
-
-        dn = 'cn=masters,cn=ipa,cn=etc,%s' % ipautil.realm_to_suffix(realm)
-        entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
-
-        for ent in entries:
-            peers[ent.cn] = ['master', '']
-
-        dn = 'cn=replicas,cn=ipa,cn=etc,%s' % ipautil.realm_to_suffix(realm)
-        entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
-
-        for ent in entries:
-            peers[ent.cn] = ent.ipaconfigstring.split(':')
-
     except Exception, e:
-        print "Failed to get data from '%s': %s" % (host, str(e))
+        print "Failed to connect to host '%s': %s" % (host, str(e))
         return
 
+    dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
+    try:
+        entries = conn.getList(dn, ldap.SCOPE_ONELEVEL)
+    except:
+        print "Failed read master data from '%s': %s" % (host, str(e))
+        return
+    else:
+        for ent in entries:
+            peers[ent.getValue('cn')] = ['master', '']
+
+    dn = DN(('cn', 'replicas'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
+    try:
+        entries = conn.getList(dn, ldap.SCOPE_ONELEVEL)
+    except:
+        pass
+    else:
+        for ent in entries:
+            peers[ent.getValue('cn')] = ent.getValue('ipaConfigString').split(':')
 
     if not replica:
         for k, p in peers.iteritems():
@@ -164,8 +169,8 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
             repl = replication.ReplicationManager(realm, winsync_peer,
                                                   dirman_passwd)
             cn, dn = repl.agreement_dn(replica)
-            entries = repl.conn.search_s(dn, ldap.SCOPE_BASE,
-                                         "(objectclass=nsDSWindowsReplicationAgreement)")
+            entries = repl.conn.getList(dn, ldap.SCOPE_BASE,
+                                        "(objectclass=nsDSWindowsReplicationAgreement)")
             ent_type = 'winsync'
         else:
             repl = replication.ReplicationManager(realm, replica,
@@ -177,13 +182,13 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
         return
 
     for entry in entries:
-        print '%s: %s' % (entry.nsds5replicahost, ent_type)
+        print '%s: %s' % (entry.getValue('nsds5replicahost'), ent_type)
 
         if verbose:
-            print "  last init status: %s" % entry.nsds5replicalastinitstatus
-            print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
-            print "  last update status: %s" % entry.nsds5replicalastupdatestatus
-            print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
+            print "  last init status: %s" % entry.getValue('nsds5replicalastinitstatus')
+            print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.getValue('nsds5replicalastinitend')))
+            print "  last update status: %s" % entry.getValue('nsds5replicalastupdatestatus')
+            print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.getValue('nsds5replicalastupdateend')))
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
@@ -254,9 +259,9 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
     if type1 == replication.WINSYNC:
         try:
-            dn = 'cn=%s,cn=replicas,cn=ipa,cn=etc,%s' % (replica2,
-                                                         ipautil.realm_to_suffix(realm))
-            entries = repl1.conn.search_s(dn, ldap.SCOPE_SUBTREE)
+            dn = DN(('cn', replica2), ('cn', 'replicas'), ('cn', 'ipa'), ('cn', 'etc'),
+                    ipautil.realm_to_suffix(realm))
+            entries = repl1.conn.getList(dn, ldap.SCOPE_SUBTREE)
             if len(entries) != 0:
                 dnset = repl1.conn.get_dns_sorted_by_length(entries,
                                                             reverse=True)
@@ -300,11 +305,11 @@ def del_master(realm, hostname, options):
                 force_del = True
 
         if force_del:
-            dn = 'cn=masters,cn=ipa,cn=etc,%s' % thisrepl.suffix
-            res = thisrepl.conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+            dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), thisrepl.suffix)
+            entries = thisrepl.conn.getList(dn, ldap.SCOPE_ONELEVEL)
             replica_names = []
-            for entry in res:
-                replica_names.append(entry.cn)
+            for entry in entries:
+                replica_names.append(entry.getValue('cn'))
         else:
             # Get list of agreements.
             replica_names = delrepl.find_ipa_replication_agreements()
@@ -340,7 +345,7 @@ def del_master(realm, hostname, options):
         if bindinstance.dns_container_exists(options.host, thisrepl.suffix,
                                              dm_password=options.dirman_passwd):
             if options.dirman_passwd:
-                api.Backend.ldap2.connect(bind_dn='cn=Directory Manager',
+                api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
                                           bind_pw=options.dirman_passwd)
             else:
                 ccache = krbV.default_context().default_ccache().name
@@ -366,7 +371,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         repl = replication.ReplicationManager(realm, replica1, dirman_passwd)
         if repl.get_agreement_type(replica2) == replication.WINSYNC:
             agreement = repl.get_replication_agreement(replica2)
-            sys.exit("winsync agreement already exists on subtree %s" % 
+            sys.exit("winsync agreement already exists on subtree %s" %
                 agreement.getValue('nsds7WindowsReplicaSubtree'))
         else:
             sys.exit("A replication agreement to %s already exists" % replica2)
@@ -407,8 +412,8 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         # from scratch
         try:
             masters_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), (api.env.basedn))
-            master1_dn = str(DN(('cn', replica1), masters_dn))
-            master2_dn = str(DN(('cn', replica2), masters_dn))
+            master1_dn = DN(('cn', replica1), masters_dn)
+            master2_dn = DN(('cn', replica2), masters_dn)
 
             repl1.conn.getEntry(master1_dn, ldap.SCOPE_BASE)
             repl1.conn.getEntry(master2_dn, ldap.SCOPE_BASE)

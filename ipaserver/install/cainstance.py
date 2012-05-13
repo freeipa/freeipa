@@ -39,7 +39,7 @@ from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
 from ipapython import certmonger
 from ipalib import pkcs10, x509
-from ipalib.dn import DN
+from ipapython.dn import DN
 import subprocess
 
 from nss.error import NSPRError
@@ -243,7 +243,9 @@ class CADSInstance(service.Service):
             self.suffix = ipautil.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
         else:
-            self.suffix = None
+            self.suffix = DN()
+
+    subject_base = ipautil.dn_attribute_property('_subject_base')
 
     def create_instance(self, realm_name, host_name, domain_name,
                         dm_password, pkcs12_info=None, ds_port=DEFAULT_DSPORT,
@@ -268,7 +270,7 @@ class CADSInstance(service.Service):
     def __setup_sub_dict(self):
         server_root = dsinstance.find_server_root()
         self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
-                             PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
+                             PASSWORD=self.dm_password, SUFFIX=self.suffix,
                              REALM=self.realm_name, USER=PKI_DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), DSPORT=self.ds_port,
@@ -342,7 +344,7 @@ class CADSInstance(service.Service):
 
     def enable_ssl(self):
         conn = ipaldap.IPAdmin("127.0.0.1", port=DEFAULT_DSPORT)
-        conn.simple_bind_s("cn=directory manager", self.dm_password)
+        conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
                (ldap.MOD_REPLACE, "nsSSL3Ciphers",
@@ -350,13 +352,13 @@ class CADSInstance(service.Service):
 +rsa_des_sha,+rsa_fips_des_sha,+rsa_3des_sha,+rsa_fips_3des_sha,+fortezza,\
 +fortezza_rc4_128_sha,+fortezza_null,+tls_rsa_export1024_with_rc4_56_sha,\
 +tls_rsa_export1024_with_des_cbc_sha")]
-        conn.modify_s("cn=encryption,cn=config", mod)
+        conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
 
         mod = [(ldap.MOD_ADD, "nsslapd-security", "on"),
                (ldap.MOD_ADD, "nsslapd-secureport", str(DEFAULT_DSPORT+1))]
-        conn.modify_s("cn=config", mod)
+        conn.modify_s(DN(('cn', 'config')), mod)
 
-        entry = ipaldap.Entry("cn=RSA,cn=encryption,cn=config")
+        entry = ipaldap.Entry(DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')))
 
         entry.setValues("objectclass", "top", "nsEncryptionModule")
         entry.setValues("cn", "RSA")
@@ -460,7 +462,7 @@ class CAInstance(service.Service):
         # will already have been initialized by Apache by the time
         # mod_python wants to do things.
         self.canickname = get_ca_nickname(realm)
-        self.basedn = "o=ipaca"
+        self.basedn = DN(('o', 'ipaca'))
         self.ca_agent_db = tempfile.mkdtemp(prefix = "tmp-")
         self.ra_agent_db = ra_db
         self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
@@ -506,7 +508,7 @@ class CAInstance(service.Service):
             self.clone = True
         self.master_host = master_host
         if subject_base is None:
-            self.subject_base = "O=%s" % self.realm
+            self.subject_base = DN(('O', self.realm))
         else:
             self.subject_base = subject_base
 
@@ -615,12 +617,12 @@ class CAInstance(service.Service):
                     "-agent_name", "ipa-ca-agent",
                     "-agent_key_size", "2048",
                     "-agent_key_type", "rsa",
-                    "-agent_cert_subject", "CN=ipa-ca-agent,%s" % self.subject_base,
+                    "-agent_cert_subject", str(DN(('CN', 'ipa-ca-agent'), self.subject_base)),
                     "-ldap_host", self.fqdn,
                     "-ldap_port", str(self.ds_port),
                     "-bind_dn", "cn=Directory Manager",
                     "-bind_password", self.dm_password,
-                    "-base_dn", self.basedn,
+                    "-base_dn", str(self.basedn),
                     "-db_name", "ipaca",
                     "-key_size", "2048",
                     "-key_type", "rsa",
@@ -629,11 +631,12 @@ class CAInstance(service.Service):
                     "-backup_pwd", self.admin_password,
                     "-subsystem_name", self.service_name,
                     "-token_name", "internal",
-                    "-ca_subsystem_cert_subject_name", "CN=CA Subsystem,%s" % self.subject_base,
-                    "-ca_ocsp_cert_subject_name", "CN=OCSP Subsystem,%s" % self.subject_base,
-                    "-ca_server_cert_subject_name", "CN=%s,%s" % (self.fqdn, self.subject_base),
-                    "-ca_audit_signing_cert_subject_name", "CN=CA Audit,%s" % self.subject_base,
-                    "-ca_sign_cert_subject_name", "CN=Certificate Authority,%s" % self.subject_base ]
+                    "-ca_subsystem_cert_subject_name", str(DN(('CN', 'CA Subsystem'), self.subject_base)),
+                    "-ca_subsystem_cert_subject_name", str(DN(('CN', 'CA Subsystem'), self.subject_base)),
+                    "-ca_ocsp_cert_subject_name", str(DN(('CN', 'OCSP Subsystem'), self.subject_base)),
+                    "-ca_server_cert_subject_name", str(DN(('CN', self.fqdn), self.subject_base)),
+                    "-ca_audit_signing_cert_subject_name", str(DN(('CN', 'CA Audit'), self.subject_base)),
+                    "-ca_sign_cert_subject_name", str(DN(('CN', 'Certificate Authority'), self.subject_base)) ]
             if self.external == 1:
                 args.append("-external")
                 args.append("true")
@@ -836,13 +839,12 @@ class CAInstance(service.Service):
         # Create an RA user in the CA LDAP server and add that user to
         # the appropriate groups so it can issue certificates without
         # manual intervention.
-        ld = ldap.initialize("ldap://%s" % ipautil.format_netloc(self.fqdn, self.ds_port))
-        ld.protocol_version=ldap.VERSION3
-        ld.simple_bind_s("cn=Directory Manager", self.dm_password)
+        conn = ipaldap.IPAdmin(self.fqdn, self.ds_port)
+        conn.simple_bind_s(DN(('cn', 'Directory Manager')), self.dm_password)
 
         decoded = base64.b64decode(self.ra_cert)
 
-        entry_dn = "uid=%s,ou=People,%s" % ("ipara", self.basedn)
+        entry_dn = DN(('uid', "ipara"), ('ou', 'People'), self.basedn)
         entry = [
         ('objectClass', ['top', 'person', 'organizationalPerson', 'inetOrgPerson', 'cmsuser']),
         ('uid', "ipara"),
@@ -851,19 +853,23 @@ class CAInstance(service.Service):
         ('usertype', "agentType"),
         ('userstate', "1"),
         ('userCertificate', decoded),
-        ('description', '2;%s;CN=Certificate Authority,%s;CN=IPA RA,%s' % (str(self.requestId), self.subject_base, self.subject_base)),]
+        ('description', '2;%s;%s;%s' % \
+             (str(self.requestId),
+              DN(('CN', 'Certificate Authority'), self.subject_base),
+              DN(('CN', 'IPA RA'), self.subject_base))),
+        ]
 
-        ld.add_s(entry_dn, entry)
+        conn.add_s(entry_dn, entry)
 
-        dn = "cn=Certificate Manager Agents,ou=groups,%s" % self.basedn
+        dn = DN(('cn', 'Certificate Manager Agents'), ('ou', 'groups'), self.basedn)
         modlist = [(0, 'uniqueMember', '%s' % entry_dn)]
-        ld.modify_s(dn, modlist)
+        conn.modify_s(dn, modlist)
 
-        dn = "cn=Registration Manager Agents,ou=groups,%s" % self.basedn
+        dn = DN(('cn', 'Registration Manager Agents'), ('ou', 'groups'), self.basedn)
         modlist = [(0, 'uniqueMember', '%s' % entry_dn)]
-        ld.modify_s(dn, modlist)
+        conn.modify_s(dn, modlist)
 
-        ld.unbind_s()
+        conn.unbind_s()
 
     def __run_certutil(self, args, database=None, pwd_file=None,stdin=None):
         if not database:
@@ -969,7 +975,7 @@ class CAInstance(service.Service):
 
         # Generate our CSR. The result gets put into stdout
         try:
-            (stdout, stderr, returncode) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", "CN=IPA RA,%s" % self.subject_base, "-z", noise_name, "-a"])
+            (stdout, stderr, returncode) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", str(DN(('CN', 'IPA RA'), self.subject_base)), "-z", noise_name, "-a"])
         finally:
             os.remove(noise_name)
 
@@ -1071,7 +1077,7 @@ class CAInstance(service.Service):
     def __set_subject_in_config(self):
         # dogtag ships with an IPA-specific profile that forces a subject
         # format. We need to update that template with our base subject
-        if installutils.update_file(IPA_SERVICE_PROFILE, 'OU=pki-ipa, O=IPA', self.subject_base):
+        if installutils.update_file(IPA_SERVICE_PROFILE, 'OU=pki-ipa, O=IPA', str(self.subject_base)):
             print "Updating subject_base in CA template failed"
 
     def uninstall(self):

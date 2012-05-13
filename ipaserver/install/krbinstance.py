@@ -33,6 +33,7 @@ from ipapython import services as ipaservices
 from ipalib import util
 from ipalib import errors
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 
 from ipaserver import ipaldap
 from ipaserver.install import replication
@@ -84,6 +85,7 @@ class KrbInstance(service.Service):
         self.admin_password = None
         self.master_password = None
         self.suffix = None
+        self.subject_base = None
         self.kdc_password = None
         self.sub_dict = None
         self.pkcs12_info = None
@@ -94,8 +96,11 @@ class KrbInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
+    suffix = ipautil.dn_attribute_property('_suffix')
+    subject_base = ipautil.dn_attribute_property('_subject_base')
+
     def get_realm_suffix(self):
-        return "cn=%s,cn=kerberos,%s" % (self.realm, self.suffix)
+        return DN(('cn', self.realm), ('cn', 'kerberos'), self.suffix)
 
     def move_service_to_host(self, principal):
         """
@@ -103,12 +108,12 @@ class KrbInstance(service.Service):
         cn=kerberos to reside under the host entry.
         """
 
-        service_dn = "krbprincipalname=%s,%s" % (principal, self.get_realm_suffix())
+        service_dn = DN(('krbprincipalname', principal), self.get_realm_suffix())
         service_entry = self.admin_conn.getEntry(service_dn, ldap.SCOPE_BASE)
         self.admin_conn.deleteEntry(service_dn)
 
         # Create a host entry for this master
-        host_dn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
+        host_dn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
         host_entry = ipaldap.Entry(host_dn)
         host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux', 'ipasshhost'])
         host_entry.setValues('krbextradata', service_entry.getValues('krbextradata'))
@@ -251,7 +256,7 @@ class KrbInstance(service.Service):
         # they may conflict.
 
         try:
-            res = self.admin_conn.search_s("cn=mapping,cn=sasl,cn=config",
+            res = self.admin_conn.search_s(DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),
                                      ldap.SCOPE_ONELEVEL,
                                      "(objectclass=nsSaslMapping)")
             for r in res:
@@ -264,7 +269,7 @@ class KrbInstance(service.Service):
             root_logger.critical("Error while enumerating SASL mappings %s" % str(e))
             raise e
 
-        entry = ipaldap.Entry("cn=Full Principal,cn=mapping,cn=sasl,cn=config")
+        entry = ipaldap.Entry(DN(('cn', 'Full Principal'), ('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')))
         entry.setValues("objectclass", "top", "nsSaslMapping")
         entry.setValues("cn", "Full Principal")
         entry.setValues("nsSaslMapRegexString", '\(.*\)@\(.*\)')
@@ -277,7 +282,7 @@ class KrbInstance(service.Service):
             root_logger.critical("failed to add Full Principal Sasl mapping")
             raise e
 
-        entry = ipaldap.Entry("cn=Name Only,cn=mapping,cn=sasl,cn=config")
+        entry = ipaldap.Entry(DN(('cn', 'Name Only'), ('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')))
         entry.setValues("objectclass", "top", "nsSaslMapping")
         entry.setValues("cn", "Name Only")
         entry.setValues("nsSaslMapRegexString", '^[^:@]+$')
@@ -358,7 +363,7 @@ class KrbInstance(service.Service):
             root_logger.critical("Could not find master key in DS")
             raise e
 
-        krbMKey = pyasn1.codec.ber.decoder.decode(entry.krbmkey)
+        krbMKey = pyasn1.codec.ber.decoder.decode(entry.getValue('krbmkey'))
         keytype = int(krbMKey[0][1][0])
         keydata = str(krbMKey[0][1][1])
 
@@ -431,7 +436,7 @@ class KrbInstance(service.Service):
 
         # Create the special anonymous principal
         installutils.kadmin_addprinc(princ_realm)
-        dn = "krbprincipalname=%s,%s" % (princ_realm, self.get_realm_suffix())
+        dn = DN(('krbprincipalname', princ_realm), self.get_realm_suffix())
         self.admin_conn.inactivateEntry(dn, False)
 
     def __convert_to_gssapi_replication(self):
@@ -439,7 +444,7 @@ class KrbInstance(service.Service):
                                               self.fqdn,
                                               self.dm_password)
         repl.convert_to_gssapi_replication(self.master_fqdn,
-                                           r_binddn="cn=Directory Manager",
+                                           r_binddn=DN(('cn', 'Directory Manager')),
                                            r_bindpw=self.dm_password)
 
     def uninstall(self):

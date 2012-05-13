@@ -34,9 +34,11 @@ import ldap.sasl
 import ldapurl
 from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
+from ipapython.ipa_log_manager import *
 from ipapython import ipautil
 from ipalib import errors
 from ipapython.ipautil import format_netloc, wait_for_open_socket, wait_for_open_ports
+from ipapython.dn import DN
 from ipapython.entity import Entity
 from ipaserver.plugins.ldap2 import IPASimpleLDAPObject
 
@@ -92,7 +94,7 @@ class Entry:
     a list of values.  In python-ldap, entries are returned as a list of
     2-tuples.  Instance variables:
 
-        * dn - string - the string DN of the entry
+        * dn - DN object - the DN of the entry
         * data - CIDict - case insensitive dict of the attributes and values
     """
     def __init__(self,entrydata):
@@ -103,12 +105,21 @@ class Entry:
             if isinstance(entrydata,tuple):
                 self.dn = entrydata[0]
                 self.data = ipautil.CIDict(entrydata[1])
-            elif isinstance(entrydata,str) or isinstance(entrydata,unicode):
+            elif isinstance(entrydata,DN):
                 self.dn = entrydata
                 self.data = ipautil.CIDict()
+            elif isinstance(entrydata, basestring):
+                self.dn = DN(entrydata)
+                self.data = ipautil.CIDict()
+            else:
+                raise TypeError("entrydata must be 2-tuple, DN, or basestring, got %s" % type(entrydata))
         else:
-            self.dn = ''
+            self.dn = DN()
             self.data = ipautil.CIDict()
+
+        assert isinstance(self.dn, DN)
+
+    dn = ipautil.dn_attribute_property('_dn')
 
     def __nonzero__(self):
         """This allows us to do tests like if entry: returns false if there is no data,
@@ -119,23 +130,16 @@ class Entry:
         """Return True if this entry has an attribute named name, False otherwise"""
         return self.data and self.data.has_key(name)
 
-    def __getattr__(self,name):
-        """If name is the name of an LDAP attribute, return the first value for that
-        attribute - equivalent to getValue - this allows the use of
-        entry.cn
-        instead of
-        entry.getValue('cn')
-        This also allows us to return None if an attribute is not found rather than
-        throwing an exception"""
-        return self.getValue(name)
-
     def getValues(self,name):
         """Get the list (array) of values for the attribute named name"""
         return self.data.get(name)
 
-    def getValue(self,name):
+    def getValue(self,name, default=None):
         """Get the first value for the attribute named name"""
-        return self.data.get(name,[None])[0]
+        value = self.data.get(name, default)
+        if isinstance(value, (list, tuple)):
+            return value[0]
+        return value
 
     def setValue(self, name, *value):
         """
@@ -179,6 +183,7 @@ class Entry:
     def toDict(self):
         """Convert the attrs and values to a dict. The dict is keyed on the
         attribute name.  The value is either single value or a list of values."""
+        assert isinstance(self.dn, DN)
         result = ipautil.CIDict(self.data)
         for i in result.keys():
             result[i] = ipautil.utf8_encode_values(result[i])
@@ -206,7 +211,7 @@ class Entry:
         # (1000)
         newdata = {}
         newdata.update(self.data)
-        ldif.LDIFWriter(sio,Entry.base64_attrs,1000).unparse(self.dn,newdata)
+        ldif.LDIFWriter(sio,Entry.base64_attrs,1000).unparse(str(self.dn),newdata)
         return sio.getvalue()
 
 class IPAdmin(IPAEntryLDAPObject):
@@ -233,6 +238,7 @@ class IPAdmin(IPAEntryLDAPObject):
            that we can call it from places other than instance creation
            e.g. when we just need to reconnect
            """
+        log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
             ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
         if cacert is not None:
@@ -251,7 +257,6 @@ class IPAdmin(IPAEntryLDAPObject):
         self.ldapi = ldapi
         self.realm = realm
         self.suffixes = {}
-        self.schema = None
         self.__localinit()
 
     def __lateinit(self):
@@ -260,7 +265,7 @@ class IPAdmin(IPAEntryLDAPObject):
         values.
         """
         try:
-            ent = self.getEntry('cn=config,cn=ldbm database,cn=plugins,cn=config',
+            ent = self.getEntry(DN(('cn', 'config'), ('cn', 'ldbm database'), ('cn', 'plugins'), ('cn', 'config')),
                                 ldap.SCOPE_BASE, '(objectclass=*)',
                                 [ 'nsslapd-directory' ])
 
@@ -299,6 +304,9 @@ class IPAdmin(IPAEntryLDAPObject):
         if not isinstance(e,ldap.TIMEOUT):
             desc = e.args[0]['desc'].strip()
             info = e.args[0].get('info','').strip()
+            arg_desc = kw.get('arg_desc')
+            if arg_desc is not None:
+                info += " arguments: %s" % arg_desc
         else:
             desc = ''
             info = ''
@@ -334,7 +342,7 @@ class IPAdmin(IPAEntryLDAPObject):
             raise errors.DatabaseError(desc=desc,info=info)
 
     def __wait_for_connection(self, timeout):
-        lurl = ldapurl.LDAPUrl(self._uri)
+        lurl = ldapurl.LDAPUrl(self.uri)
         if lurl.urlscheme == 'ldapi':
             wait_for_open_socket(lurl.hostport, timeout)
         else:
@@ -365,25 +373,25 @@ class IPAdmin(IPAEntryLDAPObject):
         try:
             if krbccache is not None:
                 os.environ["KRB5CCNAME"] = krbccache
-                self.sasl_interactive_bind_s("", SASL_AUTH)
+                self.sasl_interactive_bind_s(None, SASL_AUTH)
                 self.principal = principal
             self.proxydn = None
         except ldap.LDAPError, e:
             self.__handle_errors(e)
 
-    def do_simple_bind(self, binddn="cn=directory manager", bindpw="", timeout=DEFAULT_TIMEOUT):
-        self.binddn = binddn
+    def do_simple_bind(self, binddn=DN(('cn', 'directory manager')), bindpw="", timeout=DEFAULT_TIMEOUT):
+        self.binddn = binddn    # FIXME, self.binddn & self.bindpwd never referenced.
         self.bindpwd = bindpw
         self.__bind_with_wait(self.simple_bind_s, timeout, binddn, bindpw)
         self.__lateinit()
 
     def do_sasl_gssapi_bind(self, timeout=DEFAULT_TIMEOUT):
-        self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, '', SASL_AUTH)
+        self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, None, SASL_AUTH)
         self.__lateinit()
 
     def do_external_bind(self, user_name=None, timeout=DEFAULT_TIMEOUT):
         auth_tokens = ldap.sasl.external(user_name)
-        self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, '', auth_tokens)
+        self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, None, auth_tokens)
         self.__lateinit()
 
     def getEntry(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
@@ -491,13 +499,15 @@ class IPAdmin(IPAEntryLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(entry.dn, entry.toTupleList())
         except ldap.LDAPError, e:
-            arg_desc = 'entry=%s' % (entry.toTupleList())
+            arg_desc = 'entry=%s: %s' % (entry.dn, entry.toTupleList())
             self.__handle_errors(e, arg_desc=arg_desc)
         return True
 
     def updateRDN(self, dn, newrdn):
         """Wrap the modrdn function."""
 
+        assert isinstance(dn, DN)
+        assert isinstance(newrdn, DN)
         sctrl = self.__get_server_controls()
 
         if dn == newrdn:
@@ -516,6 +526,7 @@ class IPAdmin(IPAEntryLDAPObject):
         """This wraps the mod function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
 
+        assert isinstance(dn, DN)
         sctrl = self.__get_server_controls()
 
         modlist = self.generateModList(oldentry, newentry)
@@ -575,7 +586,7 @@ class IPAdmin(IPAEntryLDAPObject):
 
             # You can't remove schema online. An add will automatically
             # replace any existing schema.
-            if old_entry.get('dn') == 'cn=schema':
+            if old_entry.get('dn', DN()) == DN(('cn', 'schema')):
                 if len(adds) > 0:
                     modlist.append((ldap.MOD_ADD, key, adds))
             else:
@@ -590,11 +601,12 @@ class IPAdmin(IPAEntryLDAPObject):
 
         return modlist
 
-    def inactivateEntry(self,dn,has_key):
+    def inactivateEntry(self,dn, has_key):
         """Rather than deleting entries we mark them as inactive.
            has_key defines whether the entry already has nsAccountlock
            set so we can determine which type of mod operation to run."""
 
+        assert isinstance(dn, DN)
         sctrl = self.__get_server_controls()
         modlist=[]
 
@@ -616,6 +628,7 @@ class IPAdmin(IPAEntryLDAPObject):
     def deleteEntry(self, dn):
         """This wraps the delete function. Use with caution."""
 
+        assert isinstance(dn, DN)
         sctrl = self.__get_server_controls()
 
         try:
@@ -627,7 +640,7 @@ class IPAdmin(IPAEntryLDAPObject):
             self.__handle_errors(e, arg_desc=arg_desc)
         return True
 
-    def modifyPassword(self,dn,oldpass,newpass):
+    def modifyPassword(self, dn, oldpass, newpass):
         """Set the user password using RFC 3062, LDAP Password Modify Extended
            Operation. This ends up calling the IPA password slapi plugin
            handler so the Kerberos password gets set properly.
@@ -635,6 +648,7 @@ class IPAdmin(IPAEntryLDAPObject):
            oldpass is not mandatory
         """
 
+        assert isinstance(dn, DN)
         sctrl = self.__get_server_controls()
 
         try:
@@ -656,6 +670,7 @@ class IPAdmin(IPAEntryLDAPObject):
 
         if isinstance(dn,Entry):
             dn = dn.dn
+        assert isinstance(dn, DN)
 
         # wait for entry and/or attr to show up
         if not quiet:
@@ -691,6 +706,7 @@ class IPAdmin(IPAEntryLDAPObject):
            running, true if done - if true, second is the exit code - if dowait
            is True, this function will block until the task is complete
         """
+        assert isinstance(dn, DN)
         attrlist = ['nsTaskLog', 'nsTaskStatus', 'nsTaskExitCode', 'nsTaskCurrentItem', 'nsTaskTotalItems']
         done = False
         exitCode = 0
@@ -701,25 +717,12 @@ class IPAdmin(IPAEntryLDAPObject):
                 break
             if verbose:
                 print entry
-            if entry.nsTaskExitCode:
-                exitCode = int(entry.nsTaskExitCode)
+            if entry.getValue('nsTaskExitCode'):
+                exitCode = int(entry.getValue('nsTaskExitCode'))
                 done = True
             if dowait: time.sleep(1)
             else: break
         return (done, exitCode)
-
-    def get_schema(self):
-        """
-        Retrieve cn=schema and convert it into a python-ldap schema
-        object.
-        """
-        if self.schema:
-            return self.schema
-        schema = self.getEntry('cn=schema', ldap.SCOPE_BASE,
-            '(objectclass=*)', ['attributetypes', 'objectclasses'])
-        schema = schema.toDict()
-        self.schema = ldap.schema.SubSchema(schema)
-        return self.schema
 
     def get_single_value(self, attr):
         """
@@ -730,8 +733,6 @@ class IPAdmin(IPAEntryLDAPObject):
         If there is a problem loading the schema or the attribute is
         not in the schema return None
         """
-        if not self.schema:
-            self.get_schema()
         obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
         return obj and obj.single_value
 
@@ -744,19 +745,27 @@ class IPAdmin(IPAEntryLDAPObject):
         starting from the leafs and go up to delete nodes only when all its
         leafs are removed.
 
-        Returns a "sorted" dict keyed by dn lengths and corresponding list
-        of DNs.
-        {'1': [dn1, dn2, dn3], '2': [dn4, dn5], ..}
+        Returns a list of list of dn's. Every dn in the dn list has
+        the same number of RDN's. The outer list is sorted according
+        to the number of RDN's in each inner list.
+
+        Example:
+
+        [['cn=bob', cn=tom], ['cn=bob,ou=people', cn=tom,ou=people]]
+
+        dn's in list[0] have 1 RDN
+        dn's in list[1] have 2 RDN's
         """
 
         res = dict()
 
         for e in entries:
-            sdn = ldap.dn.str2dn(e.dn)
-            l = len(sdn)
-            if not l in res:
-                res[l] = []
-            res[l].append(e.dn)
+            dn = e.dn
+            assert isinstance(dn, DN)
+            rdn_count = len(dn)
+            rdn_count_list = res.setdefault(rdn_count, [])
+            if dn not in rdn_count_list:
+                rdn_count_list.append(dn)
 
         keys = res.keys()
         keys.sort(reverse=reverse)

@@ -21,7 +21,7 @@ from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipaserver.install.plugins import baseupdate
 from ipalib import api, errors, util
-from ipalib.dn import DN
+from ipapython.dn import DN
 from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipa_log_manager import *
 
@@ -89,31 +89,29 @@ class update_dns_permissions(PostUpdate):
     entries otherwise.
     """
 
-    _write_dns_perm_dn = DN('cn=Write DNS Configuration',
-                            api.env.container_permission,
-                            api.env.basedn)
+    _write_dns_perm_dn = DN(('cn', 'Write DNS Configuration'),
+                            api.env.container_permission, api.env.basedn)
     _write_dns_perm_entry = ['objectClass:groupofnames',
                              'objectClass:top',
                              'cn:Write DNS Configuration',
                              'description:Write DNS Configuration',
-                             'member:cn=DNS Administrators,cn=privileges,cn=pbac,%s' \
-                                     % api.env.basedn,
-                             'member:cn=DNS Servers,cn=privileges,cn=pbac,%s' \
-                                     % api.env.basedn]
+                             'member:%s' % DN(('cn', 'DNS Administrators'), ('cn', 'privileges'), ('cn', 'pbac'),
+                                              api.env.basedn),
+                             'member:%s' % DN(('cn', 'DNS Servers'), ('cn', 'privileges'), ('cn', 'pbac'),
+                                              api.env.basedn)]
 
-    _read_dns_perm_dn = DN('cn=Read DNS Entries',
-                            api.env.container_permission,
-                            api.env.basedn)
+    _read_dns_perm_dn = DN(('cn', 'Read DNS Entries'),
+                            api.env.container_permission, api.env.basedn)
     _read_dns_perm_entry = ['objectClass:top',
                             'objectClass:groupofnames',
                             'objectClass:ipapermission',
                             'cn:Read DNS Entries',
                             'description:Read DNS entries',
                             'ipapermissiontype:SYSTEM',
-                            'member:cn=DNS Administrators,cn=privileges,cn=pbac,%s' \
-                                     % api.env.basedn,
-                            'member:cn=DNS Servers,cn=privileges,cn=pbac,%s' \
-                                     % api.env.basedn,]
+                            'member:%s' % DN(('cn', 'DNS Administrators'), ('cn', 'privileges'), ('cn', 'pbac'),
+                                             api.env.basedn),
+                            'member:%s' % DN(('cn', 'DNS Servers'), ('cn', 'privileges'), ('cn', 'pbac'),
+                                             api.env.basedn),]
 
     _write_dns_aci_dn = DN(api.env.basedn)
     _write_dns_aci_entry = ['add:aci:\'(targetattr = "idnsforwardpolicy || idnsforwarders || idnsallowsyncptr || idnszonerefresh || idnspersistentsearch")(target = "ldap:///cn=dns,%(realm)s")(version 3.0;acl "permission:Write DNS Configuration";allow (write) groupdn = "ldap:///cn=Write DNS Configuration,cn=permissions,cn=pbac,%(realm)s";)\'' % dict(realm=api.env.basedn)]
@@ -135,10 +133,7 @@ class update_dns_permissions(PostUpdate):
                                      (self._write_dns_aci_dn, 'updates', self._write_dns_aci_entry),
                                      (self._read_dns_aci_dn, 'updates', self._read_dns_aci_entry)):
 
-            dn = str(dn)
-            # make sure everything is str or otherwise python-ldap would complain
-            entry = map(str, entry)
-            dnsupdates[dn] = {'dn' : dn, container : entry}
+            dnsupdates[dn] = {'dn': dn, container: entry}
 
         return (False, True, [dnsupdates])
 
@@ -161,9 +156,9 @@ class update_dns_limits(PostUpdate):
             return (False, False, [])
 
         dns_principal = 'DNS/%s@%s' % (self.env.host, self.env.realm)
-        dns_service_dn = str(DN(('krbprincipalname', dns_principal),
-                                self.env.container_service,
-                                self.env.basedn))
+        dns_service_dn = DN(('krbprincipalname', dns_principal),
+                            self.env.container_service,
+                            self.env.basedn)
 
         try:
             (dn, entry) = ldap.get_entry(dns_service_dn, self.limit_attributes)

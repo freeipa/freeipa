@@ -112,7 +112,7 @@ from errors import ConversionError, RequirementError, ValidationError
 from errors import PasswordMismatch
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 from text import Gettext, FixMe
-
+from ipapython.dn import DN
 
 class DefaultFrom(ReadOnly):
     """
@@ -1844,6 +1844,23 @@ class AccessTime(Str):
             )
         return None
 
+
+class DNParam(Param):
+    type = DN
+
+    def _convert_scalar(self, value, index=None):
+        """
+        Convert a single scalar value.
+        """
+        if type(value) is self.type:
+            return value
+
+        try:
+            dn = DN(value)
+        except Exception, e:
+            raise ConversionError(name=self.get_param_name(), index=index,
+                                  error=ugettext(e))
+        return dn
 
 def create_param(spec):
     """

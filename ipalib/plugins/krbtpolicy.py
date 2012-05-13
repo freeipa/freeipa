@@ -71,7 +71,7 @@ class krbtpolicy(LDAPObject):
     """
     Kerberos Ticket Policy object
     """
-    container_dn = 'cn=%s,cn=kerberos' % api.env.realm
+    container_dn = DN(('cn', api.env.realm), ('cn', 'kerberos'))
     object_name = _('kerberos ticket policy settings')
     default_attributes = ['krbmaxticketlife', 'krbmaxrenewableage']
     limit_object_classes = ['krbticketpolicyaux']
@@ -112,6 +112,7 @@ class krbtpolicy_mod(LDAPUpdate):
     __doc__ = _('Modify Kerberos ticket policy.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # disable all flag
         #  ticket policies are attached to objects with unrelated attributes
         if options.get('all'):
@@ -125,6 +126,7 @@ class krbtpolicy_show(LDAPRetrieve):
     __doc__ = _('Display the current Kerberos ticket policy.')
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # disable all flag
         #  ticket policies are attached to objects with unrelated attributes
         if options.get('all'):
@@ -132,6 +134,7 @@ class krbtpolicy_show(LDAPRetrieve):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if keys[-1] is not None:
             # if policy for a specific user isn't set, display global values
             if 'krbmaxticketlife' not in entry_attrs or \

@@ -20,19 +20,18 @@
 Test the `ipaserver/install/ldapupdate.py` module.
 """
 
+import unittest
 import os
 import sys
 import ldap
 import nose
-from nose.tools import raises
-from tests.util import PluginTester
-from tests.data import unicode_str
 from ipalib import api
 from ipalib import errors
 from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
 from ipaserver.install import installutils
 from ipaserver import ipaldap
 from ipapython import ipautil
+from ipapython.dn import DN
 
 """
 The updater works through files only so this is just a thin-wrapper controlling
@@ -46,7 +45,7 @@ have occurred as expected.
 The DM password needs to be set in ~/.ipa/.dmpw
 """
 
-class test_update(object):
+class test_update(unittest.TestCase):
     """
     Test the LDAP updater.
     """
@@ -70,13 +69,16 @@ class test_update(object):
         else:
             raise nose.SkipTest("Unable to find test update files")
 
+        self.container_dn = DN(self.updater._template_str('cn=test, cn=accounts, $SUFFIX'))
+        self.user_dn = DN(self.updater._template_str('uid=tuser, cn=test, cn=accounts, $SUFFIX'))
+
     def tearDown(self):
         if self.ld:
             self.ld.unbind()
 
     def test_0_reset(self):
         """
-        Reset the updater test data to a known initial state
+        Reset the updater test data to a known initial state (test_0_reset)
         """
         try:
             modified = self.updater.update([self.testdir + "0_reset.update"])
@@ -84,96 +86,121 @@ class test_update(object):
             # Just means the entry doesn't exist yet
             modified = True
 
-        assert(modified == True)
+        self.assertTrue(modified)
+
+        with self.assertRaises(errors.NotFound):
+            entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+
+        with self.assertRaises(errors.NotFound):
+            entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
 
     def test_1_add(self):
         """
-        Test the updater with an add directive
+        Test the updater with an add directive (test_1_add)
         """
         modified = self.updater.update([self.testdir + "1_add.update"])
 
-        assert(modified == True)
+        self.assertTrue(modified)
+
+        entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+
+        objectclasses = entry.getValues('objectclass')
+        for item in ('top', 'nsContainer'):
+            self.assertTrue(item in objectclasses)
+
+        self.assertEqual(entry.getValue('cn'), 'test')
+
+        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+
+        objectclasses = entry.getValues('objectclass')
+        for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
+            self.assertTrue(item in objectclasses)
+
+        self.assertEqual(entry.getValue('loginshell'), '/bin/bash')
+        self.assertEqual(entry.getValue('sn'), 'User')
+        self.assertEqual(entry.getValue('uid'), 'tuser')
+        self.assertEqual(entry.getValue('cn'), 'Test User')
+
 
     def test_2_update(self):
         """
-        Test the updater when adding an attribute to an existing entry
+        Test the updater when adding an attribute to an existing entry (test_2_update)
         """
         modified = self.updater.update([self.testdir + "2_update.update"])
-        assert(modified == True)
+        self.assertTrue(modified)
 
-        # The update passed, lets look at the record and see if it is
-        # really updated
-        dn = self.updater._template_str('uid=tuser, cn=test, cn=accounts, $SUFFIX')
-        entry = self.ld.getList(dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
-        assert (len(entry) == 1)
-        assert(entry[0].gecos == 'Test User')
+        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual(entry.getValue('gecos'), 'Test User')
 
     def test_3_update(self):
         """
-        Test the updater forcing an attribute to a given value
+        Test the updater forcing an attribute to a given value (test_3_update)
         """
         modified = self.updater.update([self.testdir + "3_update.update"])
-        assert(modified == True)
+        self.assertTrue(modified)
 
-        # The update passed, lets look at the record and see if it is
-        # really updated
-        dn = self.updater._template_str('uid=tuser, cn=test, cn=accounts, $SUFFIX')
-        entry = self.ld.getList(dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
-        assert (len(entry) == 1)
-        assert(entry[0].gecos == 'Test User New')
+        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual(entry.getValue('gecos'), 'Test User New')
 
     def test_4_update(self):
         """
-        Test the updater adding a new value to a single-valued attribute
+        Test the updater adding a new value to a single-valued attribute (test_4_update)
         """
         modified = self.updater.update([self.testdir + "4_update.update"])
-        assert(modified == True)
+        self.assertTrue(modified)
+
+        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual(entry.getValue('gecos'), 'Test User New2')
 
     def test_5_update(self):
         """
-        Test the updater adding a new value to a multi-valued attribute
+        Test the updater adding a new value to a multi-valued attribute (test_5_update)
         """
         modified = self.updater.update([self.testdir + "5_update.update"])
-        assert(modified == True)
+        self.assertTrue(modified)
 
-        # The update passed, lets look at the record and see if it is
-        # really updated
-        dn = self.updater._template_str('uid=tuser, cn=test, cn=accounts, $SUFFIX')
-        entry = self.ld.getList(dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
-        assert (len(entry) == 1)
-        assert(entry[0].getValues('cn') == ['Test User', 'Test User New'])
+        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual(sorted(entry.getValues('cn')), sorted(['Test User', 'Test User New']))
 
     def test_6_update(self):
         """
-        Test the updater removing a value from a multi-valued attribute
+        Test the updater removing a value from a multi-valued attribute (test_6_update)
         """
         modified = self.updater.update([self.testdir + "6_update.update"])
-        assert(modified == True)
+        self.assertTrue(modified)
 
-        # The update passed, lets look at the record and see if it is
-        # really updated
-        dn = self.updater._template_str('uid=tuser, cn=test, cn=accounts, $SUFFIX')
-        entry = self.ld.getList(dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
-        assert (len(entry) == 1)
-        assert(entry[0].cn == 'Test User')
+        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual(sorted(entry.getValues('cn')), sorted(['Test User']))
 
     def test_6_update_1(self):
         """
-        Test the updater removing a non-existent value from a multi-valued attribute
+        Test the updater removing a non-existent value from a multi-valued attribute (test_6_update_1)
         """
         modified = self.updater.update([self.testdir + "6_update.update"])
-        assert(modified == False)
+        self.assertFalse(modified)
 
-        # The update passed, lets look at the record and see if it is
-        # really updated
-        dn = self.updater._template_str('uid=tuser, cn=test, cn=accounts, $SUFFIX')
-        entry = self.ld.getList(dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
-        assert (len(entry) == 1)
-        assert(entry[0].cn == 'Test User')
+        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual(sorted(entry.getValues('cn')), sorted(['Test User']))
 
     def test_7_cleanup(self):
         """
-        Reset the test data to a known initial state
+        Reset the test data to a known initial state (test_7_cleanup)
         """
         try:
             modified = self.updater.update([self.testdir + "0_reset.update"])
@@ -181,18 +208,113 @@ class test_update(object):
             # Just means the entry doesn't exist yet
             modified = True
 
-        assert(modified == True)
+        self.assertTrue(modified)
 
-    @raises(BadSyntax)
+        with self.assertRaises(errors.NotFound):
+            entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+
+        with self.assertRaises(errors.NotFound):
+            entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+
     def test_8_badsyntax(self):
         """
-        Test the updater with an unknown keyword
+        Test the updater with an unknown keyword (test_8_badsyntax)
         """
-        modified = self.updater.update([self.testdir + "8_badsyntax.update"])
+        with self.assertRaises(BadSyntax):
+            modified = self.updater.update([self.testdir + "8_badsyntax.update"])
 
-    @raises(BadSyntax)
     def test_9_badsyntax(self):
         """
-        Test the updater with an incomplete line
+        Test the updater with an incomplete line (test_9_badsyntax)
         """
-        modified = self.updater.update([self.testdir + "9_badsyntax.update"])
+        with self.assertRaises(BadSyntax):
+            modified = self.updater.update([self.testdir + "9_badsyntax.update"])
+
+    def test_from_dict(self):
+        """
+        Test updating from a dict.
+
+        This replicates what was done in test 1.
+        """
+
+        # First make sure we're clean
+        with self.assertRaises(errors.NotFound):
+            entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+
+        with self.assertRaises(errors.NotFound):
+            entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+
+
+        update = {
+            self.container_dn:
+                {'dn': self.container_dn,
+                 'updates': ['add:objectClass: top',
+                             'add:objectClass: nsContainer',
+                             'add:cn: test'
+                            ],
+                },
+            self.user_dn:
+                {'dn': self.user_dn,
+                 'updates': ['add:objectclass: top',
+                             'add:objectclass: person',
+                             'add:objectclass: posixaccount',
+                             'add:objectclass: krbprincipalaux',
+                             'add:objectclass: inetuser',
+                             'add:homedirectory: /home/tuser',
+                             'add:loginshell: /bin/bash',
+                             'add:sn: User',
+                             'add:uid: tuser',
+                             'add:uidnumber: 999',
+                             'add:gidnumber: 999',
+                             'add:cn: Test User',
+                            ],
+                },
+        }
+
+        modified = self.updater.update_from_dict(update)
+        self.assertTrue(modified)
+
+        entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+
+        objectclasses = entry.getValues('objectclass')
+        for item in ('top', 'nsContainer'):
+            self.assertTrue(item in objectclasses)
+
+        self.assertEqual(entry.getValue('cn'), 'test')
+
+        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+
+        objectclasses = entry.getValues('objectclass')
+        for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
+            self.assertTrue(item in objectclasses)
+
+        self.assertEqual(entry.getValue('loginshell'), '/bin/bash')
+        self.assertEqual(entry.getValue('sn'), 'User')
+        self.assertEqual(entry.getValue('uid'), 'tuser')
+        self.assertEqual(entry.getValue('cn'), 'Test User')
+
+        # Now delete
+
+        update = {
+            self.container_dn:
+                {'dn': self.container_dn,
+                 'deleteentry': None,
+                },
+            self.user_dn:
+                {'dn': self.user_dn,
+                 'deleteentry': 'deleteentry: reset: nada',
+                },
+        }
+
+        modified = self.updater.update_from_dict(update)
+        self.assertTrue(modified)
+
+        with self.assertRaises(errors.NotFound):
+            entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+
+        with self.assertRaises(errors.NotFound):
+            entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])

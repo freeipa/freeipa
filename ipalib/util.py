@@ -33,8 +33,8 @@ from dns.exception import DNSException
 
 from ipalib import errors
 from ipalib.text import _
-from ipalib.dn import DN, RDN
 from ipapython.ipautil import decode_ssh_pubkey
+from ipapython.dn import DN, RDN
 
 
 def json_serialize(obj):
@@ -469,13 +469,6 @@ def get_dns_reverse_zone_update_policy(realm, reverse_zone, rrtypes=('PTR',)):
 def validate_rdn_param(ugettext, value):
     try:
         rdn = RDN(value)
-    except Exception, e:
-        return str(e)
-    return None
-
-def validate_dn_param(ugettext, value):
-    try:
-        rdn = DN(value)
     except Exception, e:
         return str(e)
     return None

@@ -19,11 +19,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api
-from ipalib import Int, Str
+from ipalib import Int, Str, DNParam
 from ipalib.plugins.baseldap import *
 from ipalib import _
 from ipalib.request import context
 from ipapython.ipautil import run
+from ipapython.dn import DN
 from distutils import version
 
 __doc__ = _("""
@@ -75,13 +76,13 @@ class cosentry(LDAPObject):
     """
     NO_CLI = True
 
-    container_dn = 'cn=costemplates,%s' % api.env.container_accounts
+    container_dn = DN(('cn', 'costemplates'), api.env.container_accounts)
     object_class = ['top', 'costemplate', 'extensibleobject', 'krbcontainer']
     default_attributes = ['cn', 'cospriority', 'krbpwdpolicyreference']
 
     takes_params = (
         Str('cn', primary_key=True),
-        Str('krbpwdpolicyreference'),
+        DNParam('krbpwdpolicyreference'),
         Int('cospriority', minvalue=0),
     )
 
@@ -102,8 +103,7 @@ class cosentry(LDAPObject):
             )['result']
             if len(entries) > 0:
                 group_name = self.api.Object.group.get_primary_key_from_dn(
-                    entries[0]['cn'][0]
-                )
+                    DN(entries[0]['cn'][0]))
                 raise errors.ValidationError(
                     name='priority',
                     error=self.priority_not_unique_msg % {
@@ -119,6 +119,7 @@ class cosentry_add(LDAPCreate):
     NO_CLI = True
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # check for existence of the group
         result = self.api.Command.group_show(keys[-1], all=True)['result']
         oc = map(lambda x:x.lower(),result['objectclass'])
@@ -141,6 +142,7 @@ class cosentry_mod(LDAPUpdate):
     NO_CLI = True
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         new_cospriority = options.get('cospriority')
         if new_cospriority is not None:
             cos_entry = self.api.Command.cosentry_show(keys[-1])['result']
@@ -167,13 +169,13 @@ api.register(cosentry_find)
 
 
 global_policy_name = 'global_policy'
-global_policy_dn = 'cn=%s,cn=%s,cn=kerberos,%s' % (global_policy_name, api.env.realm, api.env.basedn)
+global_policy_dn = DN(('cn', global_policy_name), ('cn', api.env.realm), ('cn', 'kerberos'), api.env.basedn)
 
 class pwpolicy(LDAPObject):
     """
     Password Policy object
     """
-    container_dn = 'cn=%s,cn=kerberos' % api.env.realm
+    container_dn = DN(('cn', api.env.realm), ('cn', 'kerberos'))
     object_name = _('password policy')
     object_name_plural = _('password policies')
     object_class = ['top', 'nscontainer', 'krbpwdpolicy']
@@ -339,6 +341,7 @@ class pwpolicy_add(LDAPCreate):
         yield self.obj.primary_key.clone(attribute=True, required=True)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.convert_time_on_input(entry_attrs)
         self.obj.validate_lifetime(entry_attrs, True)
         self.api.Command.cosentry_add(
@@ -348,6 +351,7 @@ class pwpolicy_add(LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.log.info('%r' % entry_attrs)
         # attribute rights are not allowed for pwpolicy_add
         self.obj.add_cospriority(entry_attrs, keys[-1], rights=False)
@@ -366,7 +370,8 @@ class pwpolicy_del(LDAPDelete):
         )
 
     def pre_callback(self, ldap, dn, *keys, **options):
-        if dn.lower() == global_policy_dn.lower():
+        assert isinstance(dn, DN)
+        if dn == global_policy_dn:
             raise errors.ValidationError(
                 name='group',
                 error=_('cannot delete global password policy')
@@ -374,6 +379,7 @@ class pwpolicy_del(LDAPDelete):
         return dn
 
     def post_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             self.api.Command.cosentry_del(keys[-1])
         except errors.NotFound:
@@ -387,6 +393,7 @@ class pwpolicy_mod(LDAPUpdate):
     __doc__ = _('Modify a group password policy.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.convert_time_on_input(entry_attrs)
         self.obj.validate_lifetime(entry_attrs, False, *keys)
         setattr(context, 'cosupdate', False)
@@ -408,6 +415,7 @@ class pwpolicy_mod(LDAPUpdate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         rights = options.get('all', False) and options.get('rights', False)
         self.obj.add_cospriority(entry_attrs, keys[-1], rights)
         self.obj.convert_time_for_output(entry_attrs, **options)
@@ -436,6 +444,7 @@ class pwpolicy_show(LDAPRetrieve):
     )
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if options.get('user') is not None:
             user_entry = self.api.Command.user_show(
                 options['user'], all=True
@@ -445,6 +454,7 @@ class pwpolicy_show(LDAPRetrieve):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         rights = options.get('all', False) and options.get('rights', False)
         self.obj.add_cospriority(entry_attrs, keys[-1], rights)
         self.obj.convert_time_for_output(entry_attrs, **options)

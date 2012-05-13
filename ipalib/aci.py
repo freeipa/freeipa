@@ -254,32 +254,6 @@ class ACI:
         # We got this far so lets declare them the same
         return True
 
-def extract_group_cns(aci_list, client):
-    """
-    Extracts all the cn's from a list of aci's and returns them as a hash
-    from group_dn to group_cn.
-
-    It first tries to cheat by looking at the first rdn for the
-    group dn.  If that's not cn for some reason, it looks up the group.
-    """
-    group_dn_to_cn = {}
-    for aci in aci_list:
-        for dn in (aci.source_group, aci.dest_group):
-            if not group_dn_to_cn.has_key(dn):
-                rdn_list = ldap.explode_dn(dn, 0)
-                first_rdn = rdn_list[0]
-                (type,value) = first_rdn.split('=')
-                if type == "cn":
-                    group_dn_to_cn[dn] = value
-                else:
-                    try:
-                        group = client.get_entry_by_dn(dn, ['cn'])
-                        group_dn_to_cn[dn] = group.getValue('cn')
-                    except Exception:
-                        group_dn_to_cn[dn] = 'unknown'
-
-    return group_dn_to_cn
-
 if __name__ == '__main__':
 #    a = ACI('(targetattr="title")(targetfilter="(memberOf=cn=bar,cn=groups,cn=accounts ,dc=example,dc=com)")(version 3.0;acl "foobar";allow (write) groupdn="ldap:///cn=foo,cn=groups,cn=accounts,dc=example,dc=com";)')
 #    print a

@@ -253,7 +253,7 @@ def update_dbmodules(realm, filename="/etc/krb5.conf"):
             newfile.append('#%s' % line)
             prefix = ''
             continue
-      
+
         newfile.append('%s%s' % (prefix, line))
 
     # Append updated dbmodules information

@@ -628,7 +628,7 @@ mod_auth_kerb. Everything else remains the same.
 
 default_max_session_duration = 60*60 # number of seconds
 
-ISO8601_DATETIME_FMT = '%Y-%m-%dT%H:%M:%S' # FIXME jrd, this should be defined elsewhere
+ISO8601_DATETIME_FMT = '%Y-%m-%dT%H:%M:%S' # FIXME, this should be defined elsewhere
 def fmt_time(timestamp):
     return time.strftime(ISO8601_DATETIME_FMT, time.localtime(timestamp))
 

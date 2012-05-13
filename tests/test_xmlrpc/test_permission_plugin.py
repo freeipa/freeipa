@@ -25,7 +25,7 @@ Test the `ipalib/plugins/permission.py` module.
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
-from ipalib.dn import *
+from ipapython.dn import DN
 
 permission1 = u'testperm'
 permission1_dn = DN(('cn',permission1),
@@ -110,7 +110,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
                 result=dict(
-                    dn=lambda x: DN(x) == permission1_dn,
+                    dn=permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
                     type=u'user',
@@ -141,7 +141,7 @@ class test_permission(Declarative):
                 value=privilege1,
                 summary=u'Added privilege "%s"' % privilege1,
                 result=dict(
-                    dn=lambda x: DN(x) == privilege1_dn,
+                    dn=privilege1_dn,
                     cn=[privilege1],
                     description=[u'privilege desc. 1'],
                     objectclass=objectclasses.privilege,
@@ -163,7 +163,7 @@ class test_permission(Declarative):
                     ),
                 ),
                 result={
-                    'dn': lambda x: DN(x) == privilege1_dn,
+                    'dn': privilege1_dn,
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1],
@@ -179,7 +179,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=None,
                 result={
-                    'dn': lambda x: DN(x) == permission1_dn,
+                    'dn': permission1_dn,
                     'cn': [permission1],
                     'member_privilege': [privilege1],
                     'type': u'user',
@@ -196,11 +196,12 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=None,
                 result={
-                    'dn': unicode(permission1_dn),
+                    'dn': permission1_dn,
                     'cn': [permission1],
-                    'member': [unicode(privilege1_dn)],
-                    'aci': u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///cn=testperm,cn=permissions,cn=pbac,%s";)' \
-                            % (api.env.basedn, api.env.basedn),
+                    'member': [privilege1_dn],
+                    'aci': u'(target = "ldap:///%s")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///%s";)' % \
+                        (DN(('uid', '*'), ('cn', 'users'), ('cn', 'accounts'), api.env.basedn),
+                         DN(('cn', 'testperm'), ('cn', 'permissions'), ('cn', 'pbac'), api.env.basedn))
                 },
             ),
         ),
@@ -215,7 +216,7 @@ class test_permission(Declarative):
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == permission1_dn,
+                        'dn': permission1_dn,
                         'cn': [permission1],
                         'member_privilege': [privilege1],
                         'type': u'user',
@@ -235,7 +236,7 @@ class test_permission(Declarative):
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == permission1_dn,
+                        'dn': permission1_dn,
                         'cn': [permission1],
                         'member_privilege': [privilege1],
                         'type': u'user',
@@ -267,7 +268,7 @@ class test_permission(Declarative):
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == permission1_dn,
+                        'dn': permission1_dn,
                         'cn': [permission1],
                         'member_privilege': [privilege1],
                         'type': u'user',
@@ -287,11 +288,12 @@ class test_permission(Declarative):
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn': unicode(permission1_dn),
+                        'dn': permission1_dn,
                         'cn': [permission1],
-                        'member': [unicode(privilege1_dn)],
-                        'aci': u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///cn=testperm,cn=permissions,cn=pbac,%s";)' \
-                                % (api.env.basedn, api.env.basedn),
+                        'member': [privilege1_dn],
+                        'aci': u'(target = "ldap:///%s")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///%s";)' % \
+                            (DN(('uid', '*'), ('cn', 'users'), ('cn', 'accounts'), api.env.basedn),
+                             DN(('cn', 'testperm'), ('cn', 'permissions'), ('cn', 'pbac'), api.env.basedn)),
                     },
                 ],
             ),
@@ -312,7 +314,7 @@ class test_permission(Declarative):
                 value=permission2,
                 summary=u'Added permission "%s"' % permission2,
                 result=dict(
-                    dn=lambda x: DN(x) == permission2_dn,
+                    dn=permission2_dn,
                     cn=[permission2],
                     objectclass=objectclasses.permission,
                     type=u'user',
@@ -332,14 +334,14 @@ class test_permission(Declarative):
                 summary=u'2 permissions matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == permission1_dn,
+                        'dn': permission1_dn,
                         'cn': [permission1],
                         'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
                     },
                     {
-                        'dn': lambda x: DN(x) == permission2_dn,
+                        'dn': permission2_dn,
                         'cn': [permission2],
                         'type': u'user',
                         'permissions': [u'write'],
@@ -358,11 +360,11 @@ class test_permission(Declarative):
                 summary=u'2 permissions matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == permission1_dn,
+                        'dn': permission1_dn,
                         'cn': [permission1],
                     },
                     {
-                        'dn': lambda x: DN(x) == permission2_dn,
+                        'dn': permission2_dn,
                         'cn': [permission2],
                     },
                 ],
@@ -380,8 +382,8 @@ class test_permission(Declarative):
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == DN(('cn','Modify Group Password Policy'),
-                                                     api.env.container_permission,api.env.basedn),
+                        'dn': DN(('cn','Modify Group Password Policy'),
+                                 api.env.container_permission, api.env.basedn),
                         'cn': [u'Modify Group Password Policy'],
                     },
                 ],
@@ -398,7 +400,7 @@ class test_permission(Declarative):
                 summary=u'1 privilege matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == privilege1_dn,
+                        'dn': privilege1_dn,
                         'cn': [privilege1],
                         'description': [u'privilege desc. 1'],
                         'memberof_permission': [permission1],
@@ -417,7 +419,7 @@ class test_permission(Declarative):
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == permission1_dn,
+                        'dn': permission1_dn,
                         'cn': [permission1],
                         'member_privilege': [privilege1],
                         'type': u'user',
@@ -437,14 +439,14 @@ class test_permission(Declarative):
                 summary=u'2 permissions matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == permission1_dn,
+                        'dn': permission1_dn,
                         'cn': [permission1],
                         'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
                     },
                     {
-                        'dn': lambda x: DN(x) == permission2_dn,
+                        'dn': permission2_dn,
                         'cn': [permission2],
                         'type': u'user',
                         'permissions': [u'write'],
@@ -468,14 +470,14 @@ class test_permission(Declarative):
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn': lambda x: DN(x) == DN(('cn', 'Modify HBAC rule'),
-                                                    api.env.container_permission,api.env.basedn),
+                        'dn': DN(('cn', 'Modify HBAC rule'),
+                                 api.env.container_permission, api.env.basedn),
                         'cn': [u'Modify HBAC rule'],
                         'member_privilege': [u'HBAC Administrator'],
                         'permissions' : [u'write'],
                         'attrs': [u'servicecategory', u'sourcehostcategory', u'cn', u'description', u'ipaenabledflag', u'accesstime', u'usercategory', u'hostcategory', u'accessruletype', u'sourcehost'],
-                        'subtree' : u'ldap:///ipauniqueid=*,cn=hbac,%s' % api.env.basedn,
-                        'memberindirect': [u'cn=hbac administrator,cn=privileges,cn=pbac,%s' % api.env.basedn, u'cn=it security specialist,cn=roles,cn=accounts,%s' % api.env.basedn],
+                        'subtree' : u'ldap:///%s' % DN(('ipauniqueid', '*'), ('cn', 'hbac'), api.env.basedn),
+                        'memberindirect': [DN(('cn', 'it security specialist'), ('cn', 'roles'), ('cn', 'accounts'), api.env.basedn)],
                     },
                 ],
             ),
@@ -496,7 +498,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
                 result=dict(
-                    dn=lambda x: DN(x) == permission1_dn,
+                    dn=permission1_dn,
                     cn=[permission1],
                     member_privilege=[privilege1],
                     type=u'user',
@@ -515,7 +517,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=None,
                 result={
-                    'dn': lambda x: DN(x) == permission1_dn,
+                    'dn': permission1_dn,
                     'cn': [permission1],
                     'member_privilege': [privilege1],
                     'type': u'user',
@@ -556,7 +558,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=None,
                 result={
-                    'dn': lambda x: DN(x) == permission1_dn,
+                    'dn': permission1_dn,
                     'cn': [permission1],
                     'member_privilege': [privilege1],
                     'type': u'user',
@@ -578,7 +580,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
                 result={
-                    'dn': lambda x: DN(x) == permission1_renamed_dn,
+                    'dn': permission1_renamed_dn,
                     'cn': [permission1_renamed],
                     'member_privilege': [privilege1],
                     'type': u'user',
@@ -600,7 +602,7 @@ class test_permission(Declarative):
                 value=permission1_renamed,
                 summary=u'Modified permission "%s"' % permission1_renamed,
                 result={
-                    'dn': lambda x: DN(x) == permission1_renamed_ucase_dn,
+                    'dn': permission1_renamed_ucase_dn,
                     'cn': [permission1_renamed_ucase],
                     'member_privilege': [privilege1],
                     'type': u'user',
@@ -614,16 +616,18 @@ class test_permission(Declarative):
         dict(
             desc='Change %r to a subtree type' % permission1_renamed_ucase,
             command=(
-                'permission_mod', [permission1_renamed_ucase], dict(subtree=u'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn, type=None)
+                'permission_mod', [permission1_renamed_ucase],
+                dict(subtree=u'ldap:///%s' % DN(('cn', '*'), ('cn', 'test'), ('cn', 'accounts'), api.env.basedn),
+                     type=None)
             ),
             expected=dict(
                 value=permission1_renamed_ucase,
                 summary=u'Modified permission "%s"' % permission1_renamed_ucase,
                 result=dict(
-                    dn=lambda x: DN(x) == permission1_renamed_ucase_dn,
+                    dn=permission1_renamed_ucase_dn,
                     cn=[permission1_renamed_ucase],
                     member_privilege=[privilege1],
-                    subtree=u'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn,
+                    subtree=u'ldap:///%s' % DN(('cn', '*'), ('cn', 'test'), ('cn', 'accounts'), api.env.basedn),
                     permissions=[u'write'],
                     memberof=u'ipausers',
                 ),
@@ -633,17 +637,18 @@ class test_permission(Declarative):
 
         dict(
             desc='Search for %r using --subtree' % permission1,
-            command=('permission_find', [], {'subtree': 'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn}),
+            command=('permission_find', [],
+                     {'subtree': u'ldap:///%s' % DN(('cn', '*'), ('cn', 'test'), ('cn', 'accounts'), api.env.basedn)}),
             expected=dict(
                 count=1,
                 truncated=False,
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn':lambda x: DN(x) == permission1_renamed_ucase_dn,
+                        'dn':permission1_renamed_ucase_dn,
                         'cn':[permission1_renamed_ucase],
                         'member_privilege':[privilege1],
-                        'subtree':u'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn,
+                        'subtree':u'ldap:///%s' % DN(('cn', '*'), ('cn', 'test'), ('cn', 'accounts'), api.env.basedn),
                         'permissions':[u'write'],
                         'memberof':u'ipausers',
                     },
@@ -756,7 +761,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
                 result=dict(
-                    dn=lambda x: DN(x) == permission1_dn,
+                    dn=permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
                     memberof=u'editors',
@@ -784,7 +789,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=u'Modified permission "%s"' % permission1,
                 result=dict(
-                    dn=lambda x: DN(x) == permission1_dn,
+                    dn=permission1_dn,
                     cn=[permission1],
                     memberof=u'admins',
                     permissions=[u'write'],
@@ -804,7 +809,7 @@ class test_permission(Declarative):
                 summary=u'Modified permission "%s"' % permission1,
                 value=permission1,
                 result=dict(
-                    dn=lambda x: DN(x) == permission1_dn,
+                    dn=permission1_dn,
                     cn=[permission1],
                     permissions=[u'write'],
                     type=u'user',
@@ -836,7 +841,7 @@ class test_permission(Declarative):
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
                 result=dict(
-                    dn=lambda x: DN(x) == permission1_dn,
+                    dn=permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
                     targetgroup=u'editors',

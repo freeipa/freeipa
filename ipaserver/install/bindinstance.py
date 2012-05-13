@@ -38,6 +38,7 @@ from ipapython.ipa_log_manager import *
 
 import ipalib
 from ipalib import api, util, errors
+from ipapython.dn import DN
 
 NAMED_CONF = '/etc/named.conf'
 RESOLV_CONF = '/etc/resolv.conf'
@@ -166,10 +167,11 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
     Test whether the dns container exists.
     """
 
-    def object_exists(dn):
+    def object_exists(dn):      # FIXME, this should be a IPAdmin/ldap2 method so it can be shared
         """
         Test whether the given object exists in LDAP.
         """
+        assert isinstance(dn, DN)
         try:
             conn.search_ext_s(dn, ldap.SCOPE_BASE)
         except ldap.NO_SUCH_OBJECT:
@@ -177,6 +179,7 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
         else:
             return True
 
+    assert isinstance(suffix, DN)
     try:
         # At install time we may need to use LDAPI to avoid chicken/egg
         # issues with SSL certs and truting CAs
@@ -192,7 +195,7 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
     except ldap.SERVER_DOWN:
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 
-    ret = object_exists("cn=dns,%s" % suffix)
+    ret = object_exists(DN(('cn', 'dns'), suffix))
     conn.unbind_s()
 
     return ret
@@ -288,11 +291,14 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
         ns_main = ns_hostname
         ns_replicas = []
 
+    if ns_ip_address is not None:
+        ns_ip_address = unicode(ns_ip_address)
+
     try:
         api.Command.dnszone_add(unicode(name),
                                 idnssoamname=unicode(ns_main+'.'),
                                 idnssoarname=unicode(zonemgr),
-                                ip_address=unicode(ns_ip_address),
+                                ip_address=ns_ip_address,
                                 idnsallowdynupdate=True,
                                 idnsupdatepolicy=unicode(update_policy),
                                 idnsallowquery=u'any',
@@ -329,11 +335,14 @@ def add_reverse_zone(zone, ns_hostname=None, ns_ip_address=None,
         ns_main = ns_hostname
         ns_replicas = []
 
+    if ns_ip_address is not None:
+        ns_ip_address = unicode(ns_ip_address)
+
     try:
         api.Command.dnszone_add(unicode(zone),
                                 idnssoamname=unicode(ns_main+'.'),
                                 idnsallowdynupdate=True,
-                                ip_address=unicode(ns_ip_address),
+                                ip_address=ns_ip_address,
                                 idnsupdatepolicy=unicode(update_policy),
                                 idnsallowquery=u'any',
                                 idnsallowtransfer=u'none',)
@@ -465,6 +474,8 @@ class BindInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
+    suffix = ipautil.dn_attribute_property('_suffix')
+
     def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp,
               reverse_zone, named_user="named", zonemgr=None,
               zone_refresh=0, persistent_search=True, serial_autoincrement=True):
@@ -574,7 +585,7 @@ class BindInstance(service.Service):
 
         if self.ntp:
             optional_ntp =  "\n;ntp server\n"
-            optional_ntp += "_ntp._udp\t\tIN SRV 0 100 123\t%s""" % self.host_in_rr
+            optional_ntp += "_ntp._udp\t\tIN SRV 0 100 123\t%s" % self.host_in_rr
         else:
             optional_ntp = ""
 
@@ -654,7 +665,8 @@ class BindInstance(service.Service):
         p = self.move_service(dns_principal)
         if p is None:
             # the service has already been moved, perhaps we're doing a DNS reinstall
-            dns_principal = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (dns_principal, self.suffix)
+            dns_principal = DN(('krbprincipalname', dns_principal),
+                               ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         else:
             dns_principal = p
 
@@ -667,9 +679,7 @@ class BindInstance(service.Service):
         # it can host the memberof attribute, then also add it to the
         # dnsserver role group, this way the DNS is allowed to perform
         # DNS Updates
-        dns_group = "cn=DNS Servers,cn=privileges,cn=pbac,%s" % self.suffix
-        if isinstance(dns_principal, unicode):
-            dns_principal = dns_principal.encode('utf-8')
+        dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'), ('cn', 'pbac'), self.suffix)
         mod = [(ldap.MOD_ADD, 'member', dns_principal)]
 
         try:

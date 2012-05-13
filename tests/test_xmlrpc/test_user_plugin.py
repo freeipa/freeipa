@@ -27,7 +27,7 @@ from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from tests.util import assert_equal, assert_not_equal
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password, fuzzy_string, fuzzy_dergeneralizedtime
-from ipalib.dn import *
+from ipapython.dn import DN
 
 user1=u'tuser1'
 user2=u'tuser2'
@@ -52,7 +52,7 @@ def not_upg_check(response):
 class test_user(Declarative):
 
     cleanup_commands = [
-        ('user_del', [user1, user2], {}),
+        ('user_del', [user1, user2, renameduser1], {}),
         ('group_del', [group1], {}),
     ]
 
@@ -81,7 +81,7 @@ class test_user(Declarative):
 
         dict(
             desc='Try to rename non-existent %r' % user1,
-            command=('user_mod', [user1], dict(setattr=u'uid=tuser')),
+            command=('user_mod', [user1], dict(setattr=u'uid=%s' % renameduser1)),
             expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
@@ -109,18 +109,15 @@ class test_user(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
             extra_check = upg_check,
@@ -144,9 +141,8 @@ class test_user(Declarative):
             ),
             expected=dict(
                 result=dict(
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     loginshell=[u'/bin/sh'],
@@ -173,9 +169,8 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     {
-                        'dn': lambda x: DN(x) == \
-                            DN(('uid','tuser1'),('cn','users'),
-                               ('cn','accounts'),api.env.basedn),
+                        'dn': DN(('uid','tuser1'),('cn','users'),
+                                 ('cn','accounts'),api.env.basedn),
                         'cn': [u'Test User1'],
                         'gecos': [u'Test User1'],
                         'givenname': [u'Test'],
@@ -189,12 +184,10 @@ class test_user(Declarative):
                         'uidnumber': [fuzzy_digits],
                         'gidnumber': [fuzzy_digits],
                         'ipauniqueid': [fuzzy_uuid],
-                        'mepmanagedentry': lambda x: [DN(i) for i in x] == \
-                            [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                api.env.basedn)],
-                        'krbpwdpolicyreference': lambda x: [DN(i) for i in x] == \
-                            [DN(('cn','global_policy'),('cn',api.env.realm),
-                                ('cn','kerberos'),api.env.basedn)],
+                        'mepmanagedentry': [DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                               api.env.basedn)],
+                        'krbpwdpolicyreference': [DN(('cn','global_policy'),('cn',api.env.realm),
+                                                     ('cn','kerberos'),api.env.basedn)],
                         'nsaccountlock': False,
                         'has_keytab': False,
                         'has_password': False,
@@ -217,9 +210,8 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     {
-                        'dn':lambda x: DN(x) == \
-                                DN(('uid',user1),('cn','users'),
-                                   ('cn','accounts'),api.env.basedn),
+                        'dn':DN(('uid',user1),('cn','users'),
+                                ('cn','accounts'),api.env.basedn),
                         'uid': [user1],
                     },
                 ],
@@ -237,9 +229,8 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('uid','tuser1'),('cn','users'),
-                               ('cn','accounts'),api.env.basedn),
+                        dn=DN(('uid','tuser1'),('cn','users'),
+                              ('cn','accounts'),api.env.basedn),
                         givenname=[u'Test'],
                         homedirectory=[u'/home/tuser1'],
                         loginshell=[u'/bin/sh'],
@@ -267,9 +258,8 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('uid','admin'),('cn','users'),('cn','accounts'),
-                               api.env.basedn),
+                        dn=DN(('uid','admin'),('cn','users'),('cn','accounts'),
+                              api.env.basedn),
                         homedirectory=[u'/home/admin'],
                         loginshell=[u'/bin/bash'],
                         sn=[u'Administrator'],
@@ -281,9 +271,8 @@ class test_user(Declarative):
                         gidnumber=[fuzzy_digits],
                     ),
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('uid','tuser1'),('cn','users'),
-                               ('cn','accounts'),api.env.basedn),
+                        dn=DN(('uid','tuser1'),('cn','users'),
+                              ('cn','accounts'),api.env.basedn),
                         givenname=[u'Test'],
                         homedirectory=[u'/home/tuser1'],
                         loginshell=[u'/bin/sh'],
@@ -311,9 +300,8 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('uid','admin'),('cn','users'),('cn','accounts'),
-                               api.env.basedn),
+                        dn=DN(('uid','admin'),('cn','users'),('cn','accounts'),
+                              api.env.basedn),
                         homedirectory=[u'/home/admin'],
                         loginshell=[u'/bin/bash'],
                         sn=[u'Administrator'],
@@ -465,9 +453,8 @@ class test_user(Declarative):
             command=('user_show', [user1], {}),
             expected=dict(
                 result=dict(
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                     givenname=[u'Finkle'],
                     homedirectory=[u'/home/tuser1'],
                     loginshell=[u'/bin/sh'],
@@ -591,18 +578,15 @@ class test_user(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
             extra_check = upg_check,
@@ -632,18 +616,15 @@ class test_user(Declarative):
                     cn=[u'Test User2'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user2),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user2),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
             extra_check = upg_check,
@@ -783,9 +764,8 @@ class test_user(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('cn',group1),('cn','groups'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -830,18 +810,15 @@ class test_user(Declarative):
                     postalcode=[u'01234-5678'],
                     telephonenumber=[u'410-555-1212'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -880,12 +857,10 @@ class test_user(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=True,
                     has_password=True,
@@ -893,9 +868,8 @@ class test_user(Declarative):
                     krbextradata=[fuzzy_string],
                     krbpasswordexpiration=[fuzzy_dergeneralizedtime],
                     krblastpwdchange=[fuzzy_dergeneralizedtime],
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -933,18 +907,15 @@ class test_user(Declarative):
                     cn=[u'Test User2'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user2),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user2),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -1008,18 +979,15 @@ class test_user(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -1085,18 +1053,15 @@ class test_user(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -1151,18 +1116,15 @@ class test_user(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                                        api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -1217,15 +1179,13 @@ class test_user(Declarative):
                     cn=[u'Test User2'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -1272,15 +1232,13 @@ class test_user(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
                     memberof_group=[group1],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
             extra_check = not_upg_check,
@@ -1310,15 +1268,13 @@ class test_user(Declarative):
                     cn=[u'Test User2'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn','global_policy'),('cn',api.env.realm),
-                            ('cn','kerberos'),api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
                     memberof_group=[group1],
                     has_keytab=False,
                     has_password=False,
-                    dn=lambda x: DN(x) == \
-                        DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
+                          api.env.basedn),
                 ),
             ),
         ),
@@ -1350,9 +1306,8 @@ class test_user(Declarative):
                     ),
                 ),
                 result={
-                        'dn': lambda x: DN(x) == \
-                            DN(('cn', 'admins'), ('cn', 'groups'),
-                                ('cn', 'accounts'), api.env.basedn),
+                        'dn': DN(('cn', 'admins'), ('cn', 'groups'),
+                                 ('cn', 'accounts'), api.env.basedn),
                         'member_user': [u'admin', user2],
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],

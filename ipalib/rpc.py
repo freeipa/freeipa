@@ -57,6 +57,7 @@ from nss.error import NSPRError
 from urllib2 import urlparse
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
+from ipapython.dn import DN
 
 COOKIE_NAME = 'ipa_session_cookie:%s'
 
@@ -83,7 +84,7 @@ def xml_wrap(value):
     """
     if type(value) in (list, tuple):
         return tuple(xml_wrap(v) for v in value)
-    if type(value) is dict:
+    if isinstance(value, dict):
         return dict(
             (k, xml_wrap(v)) for (k, v) in value.iteritems()
         )
@@ -92,6 +93,8 @@ def xml_wrap(value):
     if type(value) is Decimal:
         # transfer Decimal as a string
         return unicode(value)
+    if isinstance(value, DN):
+        return str(value)
     assert type(value) in (unicode, int, float, bool, NoneType)
     return value
 

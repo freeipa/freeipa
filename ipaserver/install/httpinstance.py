@@ -57,6 +57,8 @@ class HTTPInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
+    subject_base = ipautil.dn_attribute_property('_subject_base')
+
     def create_instance(self, realm, fqdn, domain_name, dm_password=None, autoconfig=True, pkcs12_info=None, self_signed_ca=False, subject_base=None, auto_redirect=True):
         self.fqdn = fqdn
         self.realm = realm

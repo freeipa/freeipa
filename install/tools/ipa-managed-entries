@@ -28,8 +28,8 @@ try:
     from ipaserver import ipaldap
     from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors
-    from ipalib.dn import *
     from ipapython.ipa_log_manager import *
+    from ipapython.dn import DN
 
 except ImportError:
     print >> sys.stderr, """\
@@ -92,9 +92,8 @@ def main():
         ('cn', 'Definitions'),
         ('cn', 'Managed Entries'),
         ('cn', 'etc'),
-        DN(api.env.basedn)
+        api.env.basedn
     )
-    managed_entry_definitions_dn = str(managed_entry_definitions_dn)
 
     conn = None
     try:
@@ -125,13 +124,13 @@ def main():
         # List available Managed Entry Plugins
         managed_entries = None
         try:
-            entries = conn.search_s(
+            entries = conn.getList(
                 managed_entry_definitions_dn, ldap.SCOPE_SUBTREE, filter
                 )
         except Exception, e:
             root_logger.debug("Search for managed entries failed: %s" % str(e))
             sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
-        managed_entries = [entry.cn for entry in entries]
+        managed_entries = [entry.getValue('cn') for entry in entries]
         if managed_entries:
             print "Available Managed Entry Definitions:"
             for managed_entry in managed_entries:
@@ -142,22 +141,18 @@ def main():
     if not options.managed_entry:
         sys.exit("\nYou must specify a managed entry definition")
     else:
-        rdn = DN(
-            ('cn', options.managed_entry),
-            DN(managed_entry_definitions_dn)
-        )
-        def_dn = str(rdn)
+        def_dn = DN(('cn', options.managed_entry), managed_entry_definitions_dn)
 
         disabled = True
         try:
-            entries = conn.search_s(def_dn,
+            entry = conn.getEntry(def_dn,
                 ldap.SCOPE_BASE,
                 filter,
                 ['originfilter'],
             )
             disable_attr = '(objectclass=disable)'
             try:
-                org_filter = entries[0].originfilter
+                org_filter = entry.getValue('originfilter')
                 disabled = re.search(r'%s' % disable_attr, org_filter)
             except KeyError:
                 sys.exit("%s is not a valid Managed Entry" % def_dn)

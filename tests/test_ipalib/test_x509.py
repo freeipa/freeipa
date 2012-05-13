@@ -32,7 +32,7 @@ from ipalib.constants import NAME_REGEX, NAME_ERROR
 import base64
 from ipalib import x509
 from nss.error import NSPRError
-from ipalib.dn import *
+from ipapython.dn import DN
 
 # certutil -
 

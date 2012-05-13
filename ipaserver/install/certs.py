@@ -39,7 +39,7 @@ from ipalib import pkcs10
 from ConfigParser import RawConfigParser, MissingSectionHeaderError
 from ipapython import services as ipaservices
 from ipalib import x509
-from ipalib.dn import DN
+from ipapython.dn import DN
 from ipalib.errors import CertificateOperationError
 
 from nss.error import NSPRError
@@ -224,8 +224,7 @@ class CertDB(object):
         self.self_signed_ca = ipa_self_signed()
 
         if not subject_base:
-            self.subject_base = "O=IPA"
-        self.subject_format = "CN=%%s,%s" % self.subject_base
+            self.subject_base = DN(('O', 'IPA'))
 
         self.cacert_name = get_ca_nickname(self.realm)
         self.valid_months = "120"
@@ -244,6 +243,8 @@ class CertDB(object):
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+    subject_base = ipautil.dn_attribute_property('_subject_base')
 
     def __del__(self):
         if self.reqdir is not None:
@@ -381,11 +382,11 @@ class CertDB(object):
 
     def create_ca_cert(self):
         os.chdir(self.secdir)
-        subject = "cn=%s Certificate Authority" % self.realm
+        subject = DN(('cn', '%s Certificate Authority' % self.realm))
         p = subprocess.Popen(["/usr/bin/certutil",
                               "-d", self.secdir,
                               "-S", "-n", self.cacert_name,
-                              "-s", subject,
+                              "-s", str(subject),
                               "-x",
                               "-t", "CT,,C",
                               "-1",
@@ -565,7 +566,7 @@ class CertDB(object):
         if not cdb:
             cdb = self
         if subject is None:
-            subject=self.subject_format % hostname
+            subject=DN(('CN', hostname), self.subject_base)
         self.request_cert(subject)
         cdb.issue_server_cert(self.certreq_fname, self.certder_fname)
         self.add_cert(self.certder_fname, nickname)
@@ -583,7 +584,7 @@ class CertDB(object):
         if not cdb:
             cdb = self
         if subject is None:
-            subject=self.subject_format % hostname
+            subject=DN(('CN', hostname), self.subject_base)
         self.request_cert(subject)
         cdb.issue_signing_cert(self.certreq_fname, self.certder_fname)
         self.add_cert(self.certder_fname, nickname)
@@ -591,9 +592,10 @@ class CertDB(object):
         os.unlink(self.certder_fname)
 
     def request_cert(self, subject, certtype="rsa", keysize="2048"):
+        assert isinstance(subject, DN)
         self.create_noise_file()
         self.setup_cert_request()
-        args = ["-R", "-s", subject,
+        args = ["-R", "-s", str(subject),
                 "-o", self.certreq_fname,
                 "-k", certtype,
                 "-g", keysize,
@@ -1046,19 +1048,19 @@ class CertDB(object):
         # Prepare a simple cert request
         req_dict = dict(PASSWORD=self.gen_password(),
                         SUBJBASE=self.subject_base,
-                        CERTNAME="CN="+nickname)
+                        CERTNAME=DN(('CN', nickname)))
         req_template = ipautil.SHARE_DIR + reqcfg + ".template"
         conf = ipautil.template_file(req_template, req_dict)
         fd = open(reqcfg, "w+")
         fd.write(conf)
         fd.close()
 
-        base = self.subject_base.replace(",", "/")
-        esc_subject = "CN=%s/%s" % (nickname, base)
+        base = str(self.subject_base).replace(",", "/")
+        esc_subject = DN(('CN', '%s/%s' % (nickname, base)))
 
         ipautil.run(["/usr/bin/openssl", "req", "-new",
                      "-config", reqcfg,
-                     "-subj", esc_subject,
+                     "-subj", str(esc_subject),
                      "-key", key_fname,
                      "-out", "kdc.req"])
 

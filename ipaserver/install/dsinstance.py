@@ -36,12 +36,12 @@ import service
 import installutils
 import certs
 import ldap
-from ldap.dn import escape_dn_chars
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import httpinstance
 from ipaserver.install import replication
 from ipalib import util, errors
+from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
@@ -177,13 +177,15 @@ class DsInstance(service.Service):
             self.suffix = ipautil.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
         else:
-            self.suffix = None
+            self.suffix = DN()
 
         if fstore:
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
+
+    subject_base = ipautil.dn_attribute_property('_subject_base')
 
     def __common_setup(self):
 
@@ -299,7 +301,7 @@ class DsInstance(service.Service):
                                               self.fqdn,
                                               self.dm_password)
         repl.setup_replication(self.master_fqdn,
-                               r_binddn="cn=Directory Manager",
+                               r_binddn=DN(('cn', 'Directory Manager')),
                                r_bindpw=self.dm_password)
         self.run_init_memberof = repl.needs_memberof_fixup()
 
@@ -314,12 +316,12 @@ class DsInstance(service.Service):
         self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password,
                              RANDOM_PASSWORD=self.generate_random(),
-                             SUFFIX=self.suffix.lower(),
+                             SUFFIX=self.suffix,
                              REALM=self.realm_name, USER=DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), IDSTART=self.idstart,
                              IDMAX=self.idmax, HOST=self.fqdn,
-                             ESCAPED_SUFFIX= escape_dn_chars(self.suffix.lower()),
+                             ESCAPED_SUFFIX=str(self.suffix),
                              GROUP=DS_GROUP,
                              IDRANGE_SIZE=self.idmax-self.idstart+1
                          )
@@ -445,11 +447,12 @@ class DsInstance(service.Service):
 
         self._ldap_mod("memberof-task.ldif", self.sub_dict)
         # Note, keep dn in sync with dn in install/share/memberof-task.ldif
-        dn = "cn=IPA install %s,cn=memberof task,cn=tasks,cn=config" % self.sub_dict["TIME"]
+        dn = DN(('cn', 'IPA install %s' % self.sub_dict["TIME"]), ('cn', 'memberof task'),
+                ('cn', 'tasks'), ('cn', 'config'))
         root_logger.debug("Waiting for memberof task to complete.")
         conn = ipaldap.IPAdmin("127.0.0.1")
         if self.dm_password:
-            conn.simple_bind_s("cn=directory manager", self.dm_password)
+            conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
         else:
             conn.do_sasl_gssapi_bind()
         conn.checkTask(dn, dowait=True)
@@ -543,7 +546,7 @@ class DsInstance(service.Service):
                 dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin("127.0.0.1")
-        conn.simple_bind_s("cn=directory manager", self.dm_password)
+        conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
                (ldap.MOD_REPLACE, "nsSSL3Ciphers",
@@ -551,12 +554,12 @@ class DsInstance(service.Service):
 +rsa_des_sha,+rsa_fips_des_sha,+rsa_3des_sha,+rsa_fips_3des_sha,+fortezza,\
 +fortezza_rc4_128_sha,+fortezza_null,+tls_rsa_export1024_with_rc4_56_sha,\
 +tls_rsa_export1024_with_des_cbc_sha")]
-        conn.modify_s("cn=encryption,cn=config", mod)
+        conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
 
         mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
-        conn.modify_s("cn=config", mod)
+        conn.modify_s(DN(('cn', 'config')), mod)
 
-        entry = ipaldap.Entry("cn=RSA,cn=encryption,cn=config")
+        entry = ipaldap.Entry(DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')))
 
         entry.setValues("objectclass", "top", "nsEncryptionModule")
         entry.setValues("cn", "RSA")
@@ -612,9 +615,9 @@ class DsInstance(service.Service):
             os.close(admpwdfd)
 
             args = ["/usr/bin/ldappasswd", "-h", self.fqdn,
-                    "-ZZ", "-x", "-D", "cn=Directory Manager",
+                    "-ZZ", "-x", "-D", str(DN(('cn', 'Directory Manager'))),
                     "-y", dmpwdfile, "-T", admpwdfile,
-                    "uid=admin,cn=users,cn=accounts,"+self.suffix]
+                    str(DN(('uid', 'admin'), ('cn', 'users'), ('cn', 'accounts'), self.suffix))]
             try:
                 env = { 'LDAPTLS_CACERTDIR':os.path.dirname(CACERT),
                         'LDAPTLS_CACERT':CACERT }
@@ -801,22 +804,19 @@ class DsInstance(service.Service):
     def replica_populate(self):
         self.ldap_connect()
 
-        dn = "cn=default,ou=profile,%s" % self.suffix
+        dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
         try:
-            ret = self.admin_conn.search_s(dn, ldap.SCOPE_BASE,
-                                           '(objectclass=*)')[0]
-            srvlist = ret.data.get('defaultServerList')
-            if len(srvlist) > 0:
-                srvlist = srvlist[0].split()
+            entry = self.admin_conn.getEntry(dn, ldap.SCOPE_BASE, '(objectclass=*)')
+            srvlist = entry.getValue('defaultServerList', '')
+            srvlist = srvlist.split()
             if not self.fqdn in srvlist:
                 srvlist.append(self.fqdn)
                 attr = ' '.join(srvlist)
                 mod = [(ldap.MOD_REPLACE, 'defaultServerList', attr)]
                 self.admin_conn.modify_s(dn, mod)
-        except ldap.NO_SUCH_OBJECT:
+        except errors.NotFound:
             pass
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
 
         self.ldap_disconnect()
-

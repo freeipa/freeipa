@@ -246,6 +246,7 @@ class sudorule_add(LDAPCreate):
     __doc__ = _('Create new Sudo Rule.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.check_order_uniqueness(*keys, **options)
         # Sudo Rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
@@ -269,6 +270,7 @@ class sudorule_mod(LDAPUpdate):
 
     msg_summary = _('Modified Sudo Rule "%(value)s"')
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if 'sudoorder' in options:
             new_order = options.get('sudoorder')
             old_entry = self.api.Command.sudorule_show(keys[-1])['result']
@@ -371,6 +373,7 @@ class sudorule_add_allow_command(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
@@ -399,6 +402,7 @@ class sudorule_add_deny_command(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
@@ -426,6 +430,7 @@ class sudorule_add_user(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
@@ -435,6 +440,7 @@ class sudorule_add_user(LDAPAddMember):
         return add_external_pre_callback('user', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return add_external_post_callback('memberuser', 'user', 'externaluser', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(sudorule_add_user)
@@ -447,6 +453,7 @@ class sudorule_remove_user(LDAPRemoveMember):
     member_count_out = ('%i object removed.', '%i objects removed.')
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return remove_external_post_callback('memberuser', 'user', 'externaluser', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(sudorule_remove_user)
@@ -459,6 +466,7 @@ class sudorule_add_host(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
@@ -468,6 +476,7 @@ class sudorule_add_host(LDAPAddMember):
         return add_external_pre_callback('host', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(sudorule_add_host)
@@ -480,6 +489,7 @@ class sudorule_remove_host(LDAPRemoveMember):
     member_count_out = ('%i object removed.', '%i objects removed.')
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return remove_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(sudorule_remove_host)
@@ -491,6 +501,7 @@ class sudorule_add_runasuser(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         def check_validity(runas):
             v = unicode(runas)
             if v.upper() == u'ALL':
@@ -521,6 +532,7 @@ class sudorule_add_runasuser(LDAPAddMember):
         return add_external_pre_callback('user', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return add_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(sudorule_add_runasuser)
@@ -533,6 +545,7 @@ class sudorule_remove_runasuser(LDAPRemoveMember):
     member_count_out = ('%i object removed.', '%i objects removed.')
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return remove_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(sudorule_remove_runasuser)
@@ -545,6 +558,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         def check_validity(runas):
             v = unicode(runas)
             if v.upper() == u'ALL':
@@ -569,6 +583,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
         return add_external_pre_callback('group', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return add_external_post_callback('ipasudorunasgroup', 'group', 'ipasudorunasextgroup', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(sudorule_add_runasgroup)
@@ -581,6 +596,7 @@ class sudorule_remove_runasgroup(LDAPRemoveMember):
     member_count_out = ('%i object removed.', '%i objects removed.')
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return remove_external_post_callback('ipasudorunasgroup', 'group', 'ipasudorunasextgroup', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(sudorule_remove_runasgroup)

@@ -24,7 +24,7 @@ Test the `ipalib/plugins/range.py` module, and XML-RPC in general.
 from ipalib import api, errors, _
 from tests.util import assert_equal, Fuzzy
 from xmlrpc_test import Declarative
-from ipalib.dn import *
+from ipapython.dn import *
 
 testrange1 = u't-range-1'
 
@@ -41,9 +41,8 @@ class test_range(Declarative):
                            ipabaserid=1000, ipasecondarybaserid=20000)),
             expected=dict(
                 result=dict(
-                    dn=lambda x: DN(x) == \
-                        DN(('cn',testrange1),('cn','ranges'),('cn','etc'),
-                           api.env.basedn),
+                    dn=DN(('cn',testrange1),('cn','ranges'),('cn','etc'),
+                          api.env.basedn),
                     cn=[testrange1],
                     objectclass=[u'ipaIDrange', u'ipadomainidrange'],
                     ipabaseid=[u'900000'],
@@ -62,9 +61,8 @@ class test_range(Declarative):
             command=('range_show', [testrange1], dict()),
             expected=dict(
                 result=dict(
-                    dn=lambda x: DN(x) == \
-                        DN(('cn',testrange1),('cn','ranges'),('cn','etc'),
-                           api.env.basedn),
+                    dn=DN(('cn',testrange1),('cn','ranges'),('cn','etc'),
+                          api.env.basedn),
                     cn=[testrange1],
                     ipabaseid=[u'900000'],
                     ipabaserid=[u'1000'],

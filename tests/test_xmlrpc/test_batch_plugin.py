@@ -25,7 +25,7 @@ from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from tests.util import assert_equal, Fuzzy, assert_deepequal
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
-from ipalib.dn import DN
+from ipapython.dn import DN
 
 group1 = u'testgroup1'
 
@@ -96,11 +96,10 @@ class test_batch(Declarative):
                             objectclass=objectclasses.group + [u'posixgroup'],
                             ipauniqueid=[fuzzy_uuid],
                             gidnumber=[fuzzy_digits],
-                            dn=lambda x: DN(x) == \
-                                DN(('cn', 'testgroup1'),
-                                ('cn', 'groups'),
-                                ('cn', 'accounts'),
-                                api.env.basedn),
+                            dn=DN(('cn', 'testgroup1'),
+                                  ('cn', 'groups'),
+                                  ('cn', 'accounts'),
+                                  api.env.basedn),
                             ),
                         error=None),
                     dict(
@@ -159,11 +158,10 @@ class test_batch(Declarative):
                             objectclass=objectclasses.group + [u'posixgroup'],
                             ipauniqueid=[fuzzy_uuid],
                             gidnumber=[fuzzy_digits],
-                            dn=lambda x: DN(x) == \
-                                DN(('cn', 'testgroup1'),
-                                ('cn', 'groups'),
-                                ('cn', 'accounts'),
-                                api.env.basedn),
+                            dn=DN(('cn', 'testgroup1'),
+                                  ('cn', 'groups'),
+                                  ('cn', 'accounts'),
+                                  api.env.basedn),
                             ),
                         error=None),
                 ),

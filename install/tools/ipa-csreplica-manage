@@ -30,7 +30,7 @@ from ipaserver.install import replication, installutils
 from ipaserver import ipaldap
 from ipapython import version
 from ipalib import api, errors, util
-from ipalib.dn import DN
+from ipapython.dn import DN
 
 CACERT = "/etc/ipa/ca.crt"
 PORT = 7389
@@ -63,7 +63,7 @@ class CSReplicationManager(replication.ReplicationManager):
 
     def __init__(self, realm, hostname, dirman_passwd, port=PORT, starttls=True):
         super(CSReplicationManager, self).__init__(realm, hostname, dirman_passwd, port, starttls)
-        self.suffix = 'o=ipaca'
+        self.suffix = DN(('o', 'ipaca'))
         self.hostnames = [] # set before calling or agreement_dn() will fail
 
     def agreement_dn(self, hostname, master=None):
@@ -89,14 +89,14 @@ class CSReplicationManager(replication.ReplicationManager):
             else:
                 name = "clone"
             cn="%sAgreement1-%s-%s" % (name, hostname, instance_name)
-            dn = str(DN("cn=%s, %s" % (cn, self.replica_dn())))
+            dn = DN(('cn', cn), self.replica_dn())
             return (cn, dn)
 
         for host in self.hostnames:
             for master in ["master", "clone"]:
                 try:
                     cn="%sAgreement1-%s-%s" % (master, host, instance_name)
-                    dn = "cn=%s, %s" % (cn, self.replica_dn())
+                    dn = DN(('cn', cn), self.replica_dn())
                     self.conn.getEntry(dn, ldap.SCOPE_BASE)
                     return (cn, dn)
                 except errors.NotFound:
@@ -106,12 +106,10 @@ class CSReplicationManager(replication.ReplicationManager):
         raise errors.NotFound(reason='No agreement found for %s' % hostname)
 
     def delete_referral(self, hostname):
-        esc1_suffix = self.suffix.replace('=', '\\3D').replace(',', '\\2C')
-        esc2_suffix = self.suffix.replace('=', '%3D').replace(',', '%2C')
-        dn = 'cn=%s,cn=mapping tree,cn=config' % esc1_suffix
+        dn = DN(('cn', self.suffix), ('cn', 'mapping tree'), ('cn', 'config'))
         # TODO: should we detect proto/port somehow ?
         mod = [(ldap.MOD_DELETE, 'nsslapd-referral',
-                'ldap://%s/%s' % (ipautil.format_netloc(hostname, PORT), esc2_suffix))]
+                'ldap://%s/%s' % (ipautil.format_netloc(hostname, PORT), self.suffix))]
 
         try:
             self.conn.modify_s(dn, mod)
@@ -165,16 +163,16 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
         conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
         conn.do_simple_bind(bindpw=dirman_passwd)
 
-        dn = str(DN('cn=masters,cn=ipa,cn=etc,%s' % ipautil.realm_to_suffix(realm)))
-        entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+        dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
+        entries = conn.getList(dn, ldap.SCOPE_ONELEVEL)
 
         for ent in entries:
             try:
                 cadn = DN(('cn', 'CA'), DN(ent.dn))
-                entry = conn.getEntry(str(cadn), ldap.SCOPE_BASE)
-                peers[ent.cn] = ['master', '']
+                entry = conn.getEntry(cadn, ldap.SCOPE_BASE)
+                peers[ent.getValue('cn')] = ['master', '']
             except errors.NotFound:
-                peers[ent.cn] = ['CA not configured', '']
+                peers[ent.getValue('cn')] = ['CA not configured', '']
 
     except Exception, e:
         sys.exit("Failed to get data from '%s': %s" % (host, convert_error(e)))
@@ -190,13 +188,13 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
     entries = repl.find_replication_agreements()
 
     for entry in entries:
-        print '%s' % entry.nsds5replicahost
+        print '%s' % entry.getValue('nsds5replicahost')
 
         if verbose:
-            print "  last init status: %s" % entry.nsds5replicalastinitstatus
-            print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
-            print "  last update status: %s" % entry.nsds5replicalastupdatestatus
-            print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
+            print "  last init status: %s" % entry.getValue('nsds5replicalastinitstatus')
+            print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.getValue('nsds5replicalastinitend')))
+            print "  last update status: %s" % entry.getValue('nsds5replicalastupdatestatus')
+            print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.getValue('nsds5replicalastupdateend')))
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
@@ -316,7 +314,8 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         conn = ipaldap.IPAdmin(replica2, 636, cacert=CACERT)
         conn.do_simple_bind(bindpw=dirman_passwd)
 
-        dn = str(DN('cn=CA,cn=%s,cn=masters,cn=ipa,cn=etc,%s' % (replica2, ipautil.realm_to_suffix(realm))))
+        dn = DN(('cn', 'CA'), ('cn', replica2), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                ipautil.realm_to_suffix(realm))
         conn.search_s(dn, ldap.SCOPE_ONELEVEL)
         conn.unbind_s()
     except ldap.NO_SUCH_OBJECT:
@@ -341,7 +340,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except Exception, e:
         sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
 
-    repl1.setup_replication(replica2, PORT, 0, "cn=Directory Manager", dirman_passwd, True, True)
+    repl1.setup_replication(replica2, PORT, 0, DN(('cn', 'Directory Manager')), dirman_passwd, True, True)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
 def re_initialize(realm, options):
@@ -355,7 +354,7 @@ def re_initialize(realm, options):
     thishost = installutils.get_fqdn()
 
     filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
-    entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
+    entry = repl.conn.search_s(DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
         root_logger.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
         sys.exit(1)

@@ -156,6 +156,7 @@ class group_add(LDAPCreate):
         # As both 'external' and 'nonposix' options have default= set for
         # them, they will always be present in options dict, thus we can
         # safely reference the values
+        assert isinstance(dn, DN)
         if options['external']:
             entry_attrs['objectclass'].append('ipaexternalgroup')
             if 'gidnumber' in options:
@@ -176,6 +177,7 @@ class group_del(LDAPDelete):
     msg_summary = _('Deleted group "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         config = ldap.get_ipa_config()[1]
         def_primary_group = config.get('ipadefaultprimarygroup', '')
         def_primary_group_dn = group_dn = self.obj.get_dn(def_primary_group)
@@ -192,6 +194,7 @@ class group_del(LDAPDelete):
         return dn
 
     def post_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             api.Command['pwpolicy_del'](keys[-1])
         except errors.NotFound:
@@ -220,6 +223,7 @@ class group_mod(LDAPUpdate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if ('posix' in options and options['posix']) or 'gidnumber' in options:
             (dn, old_entry_attrs) = ldap.get_entry(dn, ['objectclass'])
             if 'ipaexternalgroup' in old_entry_attrs['objectclass']:
@@ -275,6 +279,7 @@ class group_find(LDAPSearch):
     )
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         # if looking for private groups, we need to create a new search filter,
         # because private groups have different object classes
         if options['private']:
@@ -319,6 +324,7 @@ class group_add_member(LDAPAddMember):
     )
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         result = (completed, dn)
         if 'ipaexternalmember' in options:
             if not _dcerpc_bindings_installed:
@@ -367,6 +373,7 @@ class group_remove_member(LDAPRemoveMember):
     )
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         if keys[0] == protected_group_name:
             result = api.Command.group_show(protected_group_name)
             users_left = set(result['result'].get('member_user', []))
@@ -377,6 +384,7 @@ class group_remove_member(LDAPRemoveMember):
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         result = (completed, dn)
         if 'ipaexternalmember' in options:
             sids = options['ipaexternalmember']

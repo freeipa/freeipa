@@ -44,6 +44,7 @@ from ipapython.ipa_log_manager import *
 from ipalib.util import validate_hostname
 from ipapython import config
 from ipalib import errors
+from ipapython.dn import DN
 
 # Used to determine install status
 IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
@@ -71,8 +72,10 @@ class ReplicaConfig:
         self.dirman_password = ""
         self.host_name = ""
         self.dir = ""
-        self.subject_base = ""
+        self.subject_base = None
         self.setup_ca = False
+
+    subject_base = ipautil.dn_attribute_property('_subject_base')
 
 def get_fqdn():
     fqdn = ""

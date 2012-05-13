@@ -22,6 +22,7 @@ from ipalib import api, _, ngettext
 from ipalib import Flag, Str, StrEnum
 from ipalib.request import context
 from ipalib import errors
+from ipapython.dn import DN, EditableDN
 
 __doc__ = _("""
 Permissions
@@ -202,6 +203,7 @@ class permission_add(LDAPCreate):
     has_output_params = LDAPCreate.has_output_params + output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # Test the ACI before going any further
         opts = self.obj.filter_aci_attributes(options)
         opts['test'] = True
@@ -219,6 +221,7 @@ class permission_add(LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         # Now actually add the aci.
         opts = self.obj.filter_aci_attributes(options)
         opts['test'] = False
@@ -275,6 +278,7 @@ class permission_add_noaci(LDAPCreate):
             yield option
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         permission_type = options.get('permissiontype')
         if permission_type:
             entry_attrs['ipapermissiontype'] = [ permission_type ]
@@ -297,6 +301,7 @@ class permission_del(LDAPDelete):
     )
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         if not options.get('force') and not self.obj.check_system(ldap, dn, *keys):
             raise errors.ACIError(info='A SYSTEM permission may not be removed')
         # remove permission even when the underlying ACI is missing
@@ -316,6 +321,7 @@ class permission_mod(LDAPUpdate):
     has_output_params = LDAPUpdate.has_output_params + output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if not self.obj.check_system(ldap, dn, *keys):
             raise errors.ACIError(info='A SYSTEM permission may not be modified')
 
@@ -332,10 +338,13 @@ class permission_mod(LDAPUpdate):
         if 'rename' in options:
             if options['rename']:
                 try:
-                    new_dn = dn.replace(keys[-1].lower(), options['rename'], 1)
-                    (new_dn, attrs) = ldap.get_entry(
-                        new_dn, attrs_list, normalize=self.obj.normalize_dn
-                    )
+                    try:
+                        new_dn = EditableDN(dn)
+                        new_dn[0]['cn'] # assure the first RDN has cn as it's type
+                    except (IndexError, KeyError), e:
+                        raise ValueError("expected dn starting with 'cn=' but got '%s'" % dn)
+                    new_dn[0].value = options['rename']
+                    (new_dn, attrs) = ldap.get_entry(new_dn, attrs_list, normalize=self.obj.normalize_dn)
                     raise errors.DuplicateEntry()
                 except errors.NotFound:
                     pass    # permission may be renamed, continue
@@ -371,6 +380,7 @@ class permission_mod(LDAPUpdate):
         raise exc
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         # rename the underlying ACI after the change to permission
         cn = keys[-1]
 
@@ -480,6 +490,7 @@ class permission_show(LDAPRetrieve):
 
     has_output_params = LDAPRetrieve.has_output_params + output_params
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             common_options = filter_options(options, ['all', 'raw'])
             aci = self.api.Command.aci_show(keys[-1], aciprefix=ACI_PREFIX,

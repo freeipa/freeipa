@@ -36,12 +36,13 @@ from ipaserver.install.installutils import ReplicaConfig, expand_replica_info, r
 from ipaserver.install.installutils import get_host_name, BadHostError
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
-from ipapython import version
 from ipalib import api, errors, util
+from ipapython import version
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
 from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 
 log_file_name = "/var/log/ipareplica-install.log"
 CACERT = "/etc/ipa/ca.crt"
@@ -204,7 +205,7 @@ def install_http(config, auto_redirect):
     return http
 
 def install_bind(config, options):
-    api.Backend.ldap2.connect(bind_dn="cn=Directory Manager",
+    api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
                               bind_pw=config.dirman_password)
     if options.forwarders:
         forwarders = options.forwarders
@@ -246,7 +247,7 @@ def install_dns_records(config, options):
     cur_uri = api.Backend.ldap2.ldap_uri
     object.__setattr__(api.Backend.ldap2, 'ldap_uri',
                        'ldaps://%s' % ipautil.format_netloc(config.master_host_name))
-    api.Backend.ldap2.connect(bind_dn="cn=Directory Manager",
+    api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
                               bind_pw=config.dirman_password,
                               tls_cacertfile=CACERT)
     bind = bindinstance.BindInstance(dm_password=config.dirman_password)
@@ -360,10 +361,10 @@ def main():
     try:
         fd = open("/etc/ipa/default.conf", "w")
         fd.write("[global]\n")
-        fd.write("host=" + config.host_name + "\n")
-        fd.write("basedn=" + ipautil.realm_to_suffix(config.realm_name) + "\n")
-        fd.write("realm=" + config.realm_name + "\n")
-        fd.write("domain=" + config.domain_name + "\n")
+        fd.write("host=%s\n" % config.host_name)
+        fd.write("basedn=%s\n" % str(ipautil.realm_to_suffix(config.realm_name)))
+        fd.write("realm=%s\n" % config.realm_name)
+        fd.write("domain=%s\n" % config.domain_name)
         fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % ipautil.format_netloc(config.host_name))
         fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(config.realm_name))
         if ipautil.file_exists(config.dir + "/cacert.p12"):
@@ -404,14 +405,14 @@ def main():
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
     try:
         conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
-        conn.connect(bind_dn='cn=directory manager',
+        conn.connect(bind_dn=DN(('cn', 'directory manager')),
                      bind_pw=config.dirman_password,
                      tls_cacertfile=CACERT)
         replman = ReplicationManager(config.realm_name, config.master_host_name,
                                      config.dirman_password)
         found = False
         try:
-            entry = conn.find_entries(u'fqdn=%s' % host, ['dn', 'fqdn'], u'%s,%s' % (api.env.container_host, api.env.basedn))
+            entry = conn.find_entries(u'fqdn=%s' % host, ['dn', 'fqdn'], DN(api.env.container_host, api.env.basedn))
             print "The host %s already exists on the master server.\nYou should remove it before proceeding:" % host
             print "    %% ipa host-del %s" % host
             found = True

@@ -36,6 +36,7 @@ try:
     from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors, backend
     from ipaserver.install import installutils
+    from ipapython.dn import DN
 except ImportError, e:
     # If python-rhsm isn't installed exit gracefully and quietly.
     if e.args[0] == 'No module named rhsm.certificate':
@@ -116,7 +117,7 @@ def check_compliance(tmpdir, debug=False):
     # Get the hosts first
     try:
         (entries, truncated) = conn.find_entries('(krblastpwdchange=*)', ['dn'],
-            '%s,%s' % (api.env.container_host, api.env.basedn),
+            DN(api.env.container_host, api.env.basedn),
             conn.SCOPE_ONELEVEL,
             size_limit = -1)
     except errors.NotFound:
@@ -136,7 +137,7 @@ def check_compliance(tmpdir, debug=False):
     try:
         (entries, truncated) = conn.find_entries('(objectclass=ipaentitlement)',
         ['dn', 'userCertificate'],
-        '%s,%s' % (api.env.container_entitlements, api.env.basedn),
+        DN(api.env.container_entitlements, api.env.basedn),
         conn.SCOPE_ONELEVEL,
         size_limit = -1)
 

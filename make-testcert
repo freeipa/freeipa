@@ -31,6 +31,7 @@ import nss.nss as nss
 from ipalib import api, x509, backend, errors
 from ipaserver.plugins import rabase
 from ipapython import ipautil
+from ipapython.dn import DN
 
 CERTPATH = 'tests/test_xmlrpc/service.crt'
 
@@ -101,9 +102,9 @@ def makecert(reqdir):
     subject_base = res['result']['ipacertificatesubjectbase'][0]
 
     cert = None
-    subject = 'CN=%s,%s' % (api.env.host, subject_base)
+    subject = DN(('CN', api.env.host), subject_base)
     princ = 'unittest/%s@%s' % (api.env.host, api.env.realm)
-    csr = unicode(generateCSR(reqdir, pwname, subject))
+    csr = unicode(generateCSR(reqdir, pwname, str(subject)))
 
     try:
         res = api.Backend.client.run('cert_request', csr, principal=princ,

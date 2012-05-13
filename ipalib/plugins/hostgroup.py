@@ -21,7 +21,7 @@
 from ipalib.plugins.baseldap import *
 from ipalib import api, Int, _, ngettext, errors
 from ipalib.plugins.netgroup import NETGROUP_PATTERN, NETGROUP_PATTERN_ERRMSG
-from ipalib.dn import DN
+from ipapython.dn import DN
 
 __doc__ = _("""
 Groups of hosts.
@@ -119,6 +119,7 @@ class hostgroup_add(LDAPCreate):
     msg_summary = _('Added hostgroup "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             # check duplicity with hostgroups first to provide proper error
             netgroup = api.Command['hostgroup_show'](keys[-1])
@@ -140,6 +141,7 @@ class hostgroup_add(LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         # Always wait for the associated netgroup to be created so we can
         # be sure to ignore it in memberOf
         newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
@@ -166,6 +168,7 @@ class hostgroup_mod(LDAPUpdate):
     msg_summary = _('Modified hostgroup "%(value)s"')
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(dn, entry_attrs)
         return dn
 
@@ -195,6 +198,7 @@ class hostgroup_show(LDAPRetrieve):
     __doc__ = _('Display information about a hostgroup.')
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof( dn, entry_attrs)
         return dn
 
@@ -205,6 +209,7 @@ class hostgroup_add_member(LDAPAddMember):
     __doc__ = _('Add members to a hostgroup.')
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(dn, entry_attrs)
         return (completed, dn)
 
@@ -215,6 +220,7 @@ class hostgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a hostgroup.')
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(dn, entry_attrs)
         return (completed, dn)
 

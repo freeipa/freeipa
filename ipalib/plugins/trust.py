@@ -107,9 +107,10 @@ class trust(LDAPObject):
     )
 
 def make_trust_dn(env, trust_type, dn):
+    assert isinstance(dn, DN)
     if trust_type in trust.trust_types:
         container_dn = DN(('cn', trust_type), env.container_trusts, env.basedn)
-        return unicode(DN(DN(dn)[0], container_dn))
+        return DN(dn[0], container_dn)
     return dn
 
 class trust_add(LDAPCreate):
@@ -214,6 +215,7 @@ class trust_del(LDAPDelete):
     msg_summary = _('Deleted trust "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             result = self.api.Command.trust_show(keys[-1])
         except errors.NotFound, e:
@@ -226,6 +228,7 @@ class trust_mod(LDAPUpdate):
     msg_summary = _('Modified trust "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         result = None
         try:
             result = self.api.Command.trust_show(keys[-1])
@@ -245,6 +248,7 @@ class trust_find(LDAPSearch):
     # Since all trusts types are stored within separate containers under 'cn=trusts',
     # search needs to be done on a sub-tree scope
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         return (filters, base_dn, ldap.SCOPE_SUBTREE)
 
 class trust_show(LDAPRetrieve):
@@ -271,6 +275,7 @@ class trust_show(LDAPRetrieve):
         return result
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if 'trust_show_type' in options:
             return make_trust_dn(self.env, options['trust_show_type'], dn)
         return dn
@@ -281,4 +286,3 @@ api.register(trust_mod)
 api.register(trust_del)
 api.register(trust_find)
 api.register(trust_show)
-

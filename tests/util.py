@@ -30,6 +30,7 @@ import re
 import ipalib
 from ipalib.plugable import Plugin
 from ipalib.request import context
+from ipapython.dn import DN
 
 class TempDir(object):
     def __init__(self):
@@ -303,6 +304,9 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
         expected = list(expected)
     if isinstance(got, tuple):
         got = list(got)
+    if isinstance(expected, DN):
+        if isinstance(got, basestring):
+            got = DN(got)
     if not (isinstance(expected, Fuzzy) or callable(expected) or type(expected) is type(got)):
         raise AssertionError(
             TYPE % (doc, type(expected), type(got), expected, got, stack)

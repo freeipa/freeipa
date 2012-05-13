@@ -49,6 +49,7 @@ from dns.exception import DNSException
 from ipapython.ipa_log_manager import *
 from ipapython import ipavalidate
 from ipapython import config
+from ipapython.dn import DN
 
 try:
     from subprocess import CalledProcessError
@@ -200,10 +201,16 @@ def format_netloc(host, port=None):
         return '%s:%s' % (host, str(port))
 
 def realm_to_suffix(realm_name):
-    """Convert a kerberos realm into the IPA suffix."""
+    'Convert a kerberos realm to a IPA suffix.'
     s = realm_name.split(".")
-    terms = ["dc=" + x.lower() for x in s]
-    return ",".join(terms)
+    suffix_dn = DN(*[('dc', x.lower()) for x in s])
+    return suffix_dn
+
+def suffix_to_realm(suffix_dn):
+    'Convert a IPA suffix to a kerberos realm.'
+    assert isinstance(suffix_dn, DN)
+    realm = '.'.join([x.value for x in suffix_dn])
+    return realm
 
 def template_str(txt, vars):
     val = string.Template(txt).substitute(vars)
@@ -1111,3 +1118,33 @@ def kinit_hostprincipal(keytab, ccachedir, principal):
         return ccache_file
     except krbV.Krb5Error, e:
         raise StandardError('Error initializing principal %s in %s: %s' % (principal, keytab, str(e)))
+
+def dn_attribute_property(private_name):
+    '''
+    Create a property for a dn attribute which assures the attribute
+    is a DN or None. If the value is not None the setter converts it to
+    a DN. The getter assures it's either None or a DN instance.
+
+    The private_name parameter is the class internal attribute the property
+    shadows.
+
+    For example if a class has an attribute called base_dn, then:
+
+        base_dn = dn_attribute_property('_base_dn')
+
+    Thus the class with have an attriubte called base_dn which can only
+    ever be None or a DN instance. The actual value is stored in _base_dn.
+    '''
+
+    def setter(self, value):
+        if value is not None:
+            value = DN(value)
+        setattr(self, private_name, value)
+
+    def getter(self):
+        value = getattr(self, private_name)
+        if value is not None:
+            assert isinstance(value, DN)
+        return value
+
+    return property(getter, setter)

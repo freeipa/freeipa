@@ -40,9 +40,9 @@ fuzzy_uuid = Fuzzy(
     '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 )
 
-# Matches netgroup dn
+# Matches netgroup dn. Note (?i) at the beginning of the regexp is the ingnore case flag
 fuzzy_netgroupdn = Fuzzy(
-    'ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},cn=ng,cn=alt,%s' % api.env.basedn
+    '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},cn=ng,cn=alt,%s' % api.env.basedn
 )
 
 # Matches a hash signature, not enforcing length

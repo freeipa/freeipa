@@ -26,10 +26,10 @@ try:
     from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
     from ipaserver.install.installutils import is_ipa_configured, ScriptError
     from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
+    from ipalib import api, errors
     from ipapython import sysrestore
     from ipapython import config
-    from ipalib import api, errors
-    from ipalib.dn import DN
+    from ipapython.dn import DN
     import ldap
     import ldap.sasl
     import ldapurl
@@ -107,8 +107,7 @@ def emit_err(err):
     sys.stderr.write(err + '\n')
 
 def get_config(dirsrv):
-    base = "cn=%s,cn=masters,cn=ipa,cn=etc,%s" % (api.env.host,
-                                                  api.env.basedn)
+    base = DN(('cn', api.env.host), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     srcfilter = '(ipaConfigString=enabledService)'
     attrs = ['cn', 'ipaConfigString']
     if not dirsrv.is_running():
@@ -127,7 +126,7 @@ def get_config(dirsrv):
             wait_for_open_ports(host, [int(port)], timeout=api.env.startup_timeout)
         con = ldap.initialize(api.env.ldap_uri)
         con.sasl_interactive_bind_s('', SASL_EXTERNAL)
-        res = con.search_st(base,
+        res = con.search_st(str(base),
                             ldap.SCOPE_SUBTREE,
                             filterstr=srcfilter,
                             attrlist=attrs,
@@ -138,12 +137,10 @@ def get_config(dirsrv):
                           "Directory Server is stopped", 3)
     except ldap.NO_SUCH_OBJECT:
         masters_list = []
-        dn = str(DN('cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn))
+        dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
         attrs = ['cn']
         try:
-            entries = con.search_s(dn,
-                                    ldap.SCOPE_ONELEVEL,
-                                    attrlist=attrs,)
+            entries = con.search_s(str(dn), ldap.SCOPE_ONELEVEL, attrlist=attrs)
         except Exception, e:
             masters_list.append("No master found because of error: %s" % str(e))
         else:

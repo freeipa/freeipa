@@ -25,6 +25,7 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import services as ipaservices
 from ipalib import errors
+from ipapython.dn import DN
 import ldap
 from ipaserver import ipaldap
 import base64
@@ -78,7 +79,7 @@ class Service(object):
             self.sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
 
         self.realm = None
-        self.suffix = None
+        self.suffix = DN()
         self.principal = None
         self.dercert = None
 
@@ -150,7 +151,7 @@ class Service(object):
         # use URI of admin connection
         if not self.admin_conn:
             self.ldap_connect()
-        args += ["-H", self.admin_conn._uri]
+        args += ["-H", self.admin_conn.uri]
 
         auth_parms = []
         if self.dm_password:
@@ -183,15 +184,15 @@ class Service(object):
         cn=kerberos to cn=services
         """
 
-        dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (principal, self.realm, self.suffix)
+        dn = DN(('krbprincipalname', principal), ('cn', self.realm), ('cn', 'kerberos'), self.suffix)
         try:
             entry = self.admin_conn.getEntry(dn, ldap.SCOPE_BASE)
         except errors.NotFound:
             # There is no service in the wrong location, nothing to do.
             # This can happen when installing a replica
-            return
-        newdn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (principal, self.suffix)
-        hostdn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
+            return None
+        newdn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
+        hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
         self.admin_conn.deleteEntry(dn)
         entry.dn = newdn
         classes = entry.getValues("objectclass")
@@ -211,8 +212,8 @@ class Service(object):
         if not self.admin_conn:
             self.ldap_connect()
 
-        dn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (principal, self.suffix)
-        hostdn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
+        dn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
+        hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
         entry = ipaldap.Entry(dn)
         entry.setValues("objectclass", ["krbprincipal", "krbprincipalaux", "krbticketpolicyaux", "ipaobject", "ipaservice", "pkiuser"])
         entry.setValue("krbprincipalname", principal)
@@ -242,7 +243,7 @@ class Service(object):
             self.ldap_disconnect()
         self.ldap_connect()
 
-        dn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (self.principal, self.suffix)
+        dn = DN(('krbprincipalname', self.principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         mod = [(ldap.MOD_ADD, 'userCertificate', self.dercert)]
         try:
             self.admin_conn.modify_s(dn, mod)
@@ -327,13 +328,12 @@ class Service(object):
         self.steps = []
 
     def ldap_enable(self, name, fqdn, dm_password, ldap_suffix):
+        assert isinstance(ldap_suffix, DN)
         self.disable()
         if not self.admin_conn:
             self.ldap_connect()
 
-        entry_name = "cn=%s,cn=%s,%s,%s" % (name, fqdn,
-                                            "cn=masters,cn=ipa,cn=etc",
-                                            ldap_suffix)
+        entry_name = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
         order = SERVICE_LIST[name][1]
         entry = ipaldap.Entry(entry_name)
         entry.setValues("objectclass",
@@ -361,6 +361,8 @@ class SimpleServiceInstance(Service):
         self.step("starting %s " % self.service_name, self.__start)
         self.step("configuring %s to start on boot" % self.service_name, self.__enable)
         self.start_creation("Configuring %s" % self.service_name)
+
+    suffix = ipautil.dn_attribute_property('_ldap_suffix')
 
     def __start(self):
         self.backup_state("running", self.is_running())

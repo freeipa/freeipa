@@ -96,6 +96,7 @@ class range_add(LDAPCreate):
     msg_summary = _('Added ID range "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if ('ipanttrusteddomainsid' not in options and
             'ipasecondarybaserid' not in options):
             raise errors.ValidationError(name=_('Range setup'),
@@ -110,6 +111,7 @@ class range_add(LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.handle_iparangetype(entry_attrs, options, keep_objectclass=True)
         return dn
 
@@ -128,6 +130,7 @@ class range_find(LDAPSearch):
     # Since all range types are stored within separate containers under
     # 'cn=ranges,cn=etc' search can be done on a one-level scope
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         attrs_list.append('objectclass')
         return (filters, base_dn, ldap.SCOPE_ONELEVEL)
 
@@ -140,10 +143,12 @@ class range_show(LDAPRetrieve):
     __doc__ = _('Display information about a range.')
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         attrs_list.append('objectclass')
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
 
@@ -153,10 +158,12 @@ class range_mod(LDAPUpdate):
     msg_summary = _('Modified ID range "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         attrs_list.append('objectclass')
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
 
@@ -166,4 +173,3 @@ api.register(range_mod)
 api.register(range_del)
 api.register(range_find)
 api.register(range_show)
-

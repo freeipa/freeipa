@@ -29,7 +29,7 @@ import tempfile
 import krbV
 import syslog
 from ipalib import api
-from ipalib.dn import DN
+from ipapython.dn import DN
 from ipalib import errors
 from ipalib import x509
 from ipapython import services as ipaservices
@@ -52,7 +52,7 @@ api.finalize()
 # Update or add it
 tmpdir = tempfile.mkdtemp(prefix = "tmp-")
 try:
-    dn = str(DN(('cn',nickname),('cn=ca_renewal,cn=ipa,cn=etc'),(api.env.basedn)))
+    dn = DN(('cn', nickname), ('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     principal = str('host/%s@%s' % (api.env.host, api.env.realm))
     ccache = ipautil.kinit_hostprincipal('/etc/krb5.keytab', tmpdir, principal)
     conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)

@@ -33,7 +33,7 @@ import tempfile
 from ipapython import ipautil
 import nose
 import base64
-from ipalib.dn import *
+from ipapython.dn import DN
 
 # So we can save the cert from issuance and compare it later
 cert = None

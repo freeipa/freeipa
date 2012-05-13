@@ -44,7 +44,7 @@ class update_replica_exclude_attribute_list(PreUpdate):
         entries = repl.find_replication_agreements()
         self.log.debug("Found %d agreement(s)", len(entries))
         for replica in entries:
-            self.log.debug(replica.description)
+            self.log.debug(replica.getValue('description'))
             attrlist = replica.getValue('nsDS5ReplicatedAttributeList')
             if attrlist is None:
                 self.log.debug("Adding nsDS5ReplicatedAttributeList and nsDS5ReplicatedAttributeListTotal")
@@ -68,7 +68,7 @@ class update_replica_exclude_attribute_list(PreUpdate):
                     self.log.debug("Attribute list needs updating")
                     current = replica.toDict()
                     replica.setValue('nsDS5ReplicatedAttributeList',
-                        replica.nsDS5ReplicatedAttributeList + ' %s' % ' '.join(missing))
+                        replica.getValue('nsDS5ReplicatedAttributeList') + ' %s' % ' '.join(missing))
                     try:
                         repl.conn.updateEntry(replica.dn, current, replica.toDict())
                         self.log.debug("Updated")

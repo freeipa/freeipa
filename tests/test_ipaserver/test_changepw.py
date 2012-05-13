@@ -23,7 +23,7 @@ from httptest import Unauthorized_HTTP_test
 from tests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from tests.util import assert_equal, assert_not_equal
 from ipalib import api, errors
-from ipalib.dn import DN
+from ipapython.dn import DN
 import ldap
 
 testuser = u'tuser'
@@ -57,9 +57,7 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
                                  )
 
     def _checkpw(self, user, password):
-        dn = str(DN(('uid', user),
-                    api.env.container_user,
-                    api.env.basedn))
+        dn = str(DN(('uid', user), api.env.container_user, api.env.basedn))
         conn = ldap.initialize(api.env.ldap_uri)
         try:
             conn.simple_bind_s(dn, password)

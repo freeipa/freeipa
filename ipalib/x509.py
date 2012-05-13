@@ -42,7 +42,7 @@ from ipalib import api
 from ipalib import _
 from ipalib import util
 from ipalib import errors
-from ipalib.dn import DN
+from ipapython.dn import DN
 
 PEM = 0
 DER = 1

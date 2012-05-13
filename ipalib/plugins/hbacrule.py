@@ -231,6 +231,7 @@ class hbacrule_add(LDAPCreate):
     msg_summary = _('Added HBAC rule "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # HBAC rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
         return dn
@@ -244,6 +245,7 @@ class hbacrule_del(LDAPDelete):
     msg_summary = _('Deleted HBAC rule "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         kw = dict(seealso=keys[0])
         _entries = api.Command.selinuxusermap_find(None, **kw)
         if _entries['count']:
@@ -260,6 +262,7 @@ class hbacrule_mod(LDAPUpdate):
     msg_summary = _('Modified HBAC rule "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
         except errors.NotFound:
@@ -436,6 +439,7 @@ class hbacrule_add_user(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
@@ -464,6 +468,7 @@ class hbacrule_add_host(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
@@ -492,6 +497,7 @@ class hbacrule_add_sourcehost(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
@@ -502,6 +508,7 @@ class hbacrule_add_sourcehost(LDAPAddMember):
         return add_external_pre_callback('host', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return add_external_post_callback('sourcehost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(hbacrule_add_sourcehost)
@@ -514,6 +521,7 @@ class hbacrule_remove_sourcehost(LDAPRemoveMember):
     member_count_out = ('%i object removed.', '%i objects removed.')
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         return remove_external_post_callback('sourcehost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(hbacrule_remove_sourcehost)
@@ -526,6 +534,7 @@ class hbacrule_add_service(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:

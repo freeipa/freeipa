@@ -38,10 +38,10 @@ from ipalib.plugins.dns import (dns_container_exists, _record_types,
 from ipalib.plugins.dns import get_reverse_zone
 from ipalib import _, ngettext
 from ipalib import x509
-from ipalib.dn import *
 from ipalib.request import context
 from ipalib.util import validate_sshpubkey, output_sshpubkey
 from ipapython.ipautil import ipa_generate_password, CheckedIPAddress, make_sshfp
+from ipapython.dn import DN
 
 __doc__ = _("""
 Hosts/Machines
@@ -379,6 +379,7 @@ class host_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         if options.get('ip_address') and dns_container_exists(ldap):
             parts = keys[-1].split('.')
             host = parts[0]
@@ -423,6 +424,7 @@ class host_add(LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         exc = None
         if dns_container_exists(ldap):
             try:
@@ -483,6 +485,7 @@ class host_del(LDAPDelete):
     )
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
         # If we aren't given a fqdn, find it
         if _hostname_validator(None, keys[-1]) is not None:
             hostentry = api.Command['host_show'](keys[-1])['result']
@@ -599,6 +602,7 @@ class host_mod(LDAPUpdate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # Allow an existing OTP to be reset but don't allow a OTP to be
         # added to an enrolled host.
         if options.get('userpassword') or options.get('random'):
@@ -690,6 +694,7 @@ class host_mod(LDAPUpdate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if options.get('random', False):
             entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
         set_certificate_attrs(entry_attrs)
@@ -728,6 +733,7 @@ class host_find(LDAPSearch):
             yield option
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         if 'locality' in attrs_list:
             attrs_list.remove('locality')
             attrs_list.append('l')
@@ -808,6 +814,7 @@ class host_show(LDAPRetrieve):
     member_attributes = ['managedby']
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         if entry_attrs['has_password']:
             # If an OTP is set there is no keytab, at least not one
@@ -891,8 +898,7 @@ class host_disable(LDAPQuery):
             try:
                 serial = unicode(x509.get_serial_number(cert, x509.DER))
                 try:
-                    result = api.Command['cert_show'](unicode(serial))['result'
-]
+                    result = api.Command['cert_show'](unicode(serial))['result']
                     if 'revocation_reason' not in result:
                         try:
                             api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
@@ -928,6 +934,7 @@ class host_disable(LDAPQuery):
         )
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(entry_attrs)
         return dn
 
@@ -941,6 +948,7 @@ class host_add_managedby(LDAPAddMember):
     allow_same = True
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(entry_attrs)
         return (completed, dn)
 
@@ -954,6 +962,7 @@ class host_remove_managedby(LDAPRemoveMember):
     has_output_params = LDAPRemoveMember.has_output_params + host_output_params
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(entry_attrs)
         return (completed, dn)
 

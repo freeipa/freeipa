@@ -60,11 +60,11 @@ from ipapython.ipautil import *
 from ipapython import ipautil
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
-from ipalib.dn import DN
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 from ipalib.util import validate_domain_name
 from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 
 pw_name = None
 uninstalling = False
@@ -530,13 +530,13 @@ def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
         )
         try:
             conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn=suffix)
-            conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+            conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
         except errors.ExecutionError, e:
             root_logger.critical("Could not connect to the Directory Server on %s" % realm_name)
             raise e
         (dn, entry_attrs) = conn.get_ipa_config()
         if 'ipacertificatesubjectbase' not in entry_attrs:
-            mod = {'ipacertificatesubjectbase': subject_base}
+            mod = {'ipacertificatesubjectbase': str(subject_base)}
             conn.update_entry(dn, mod)
         conn.disconnect()
 
@@ -770,7 +770,7 @@ def main():
         realm_name = options.realm_name.upper()
 
     if not options.subject:
-        options.subject = "O=%s" % realm_name
+        options.subject = DN(('O', realm_name))
 
     if not options.dm_password:
         dm_password = read_dm_password()
@@ -840,10 +840,10 @@ def main():
     target_fname = '/etc/ipa/default.conf'
     fd = open(target_fname, "w")
     fd.write("[global]\n")
-    fd.write("host=" + host_name + "\n")
-    fd.write("basedn=" + ipautil.realm_to_suffix(realm_name) + "\n")
-    fd.write("realm=" + realm_name + "\n")
-    fd.write("domain=" + domain_name + "\n")
+    fd.write("host=%s\n" % host_name)
+    fd.write("basedn=%s\n" % ipautil.realm_to_suffix(realm_name))
+    fd.write("realm=%s\n" % realm_name)
+    fd.write("domain=%s\n" % domain_name)
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % format_netloc(host_name))
     fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
     fd.write("enable_ra=True\n")
@@ -1046,7 +1046,7 @@ def main():
                persistent_search=options.persistent_search,
                serial_autoincrement=options.serial_autoincrement)
     if options.setup_dns:
-        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
+        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)
 
         bind.create_instance()
         print ""

@@ -491,7 +491,7 @@ output: Output('value', <type 'unicode'>, None)
 command: cosentry_add
 args: 1,7,3
 arg: Str('cn', attribute=True, cli_name='cn', multivalue=False, primary_key=True, required=True)
-option: Str('krbpwdpolicyreference', attribute=True, cli_name='krbpwdpolicyreference', multivalue=False, required=True)
+option: DNParam('krbpwdpolicyreference', attribute=True, cli_name='krbpwdpolicyreference', multivalue=False, required=True)
 option: Int('cospriority', attribute=True, cli_name='cospriority', minvalue=0, multivalue=False, required=True)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -512,7 +512,7 @@ command: cosentry_find
 args: 1,9,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='cn', multivalue=False, primary_key=True, query=True, required=False)
-option: Str('krbpwdpolicyreference', attribute=True, autofill=False, cli_name='krbpwdpolicyreference', multivalue=False, query=True, required=False)
+option: DNParam('krbpwdpolicyreference', attribute=True, autofill=False, cli_name='krbpwdpolicyreference', multivalue=False, query=True, required=False)
 option: Int('cospriority', attribute=True, autofill=False, cli_name='cospriority', minvalue=0, multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
@@ -527,7 +527,7 @@ output: Output('truncated', <type 'bool'>, None)
 command: cosentry_mod
 args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='cn', multivalue=False, primary_key=True, query=True, required=True)
-option: Str('krbpwdpolicyreference', attribute=True, autofill=False, cli_name='krbpwdpolicyreference', multivalue=False, required=False)
+option: DNParam('krbpwdpolicyreference', attribute=True, autofill=False, cli_name='krbpwdpolicyreference', multivalue=False, required=False)
 option: Int('cospriority', attribute=True, autofill=False, cli_name='cospriority', minvalue=0, multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -1931,9 +1931,9 @@ command: migrate_ds
 args: 2,16,4
 arg: Str('ldapuri', cli_name='ldap_uri')
 arg: Password('bindpw', cli_name='password', confirm=False)
-option: Str('binddn?', autofill=True, cli_name='bind_dn', default=u'cn=directory manager')
-option: Str('usercontainer', autofill=True, cli_name='user_container', default=u'ou=people')
-option: Str('groupcontainer', autofill=True, cli_name='group_container', default=u'ou=groups')
+option: DNParam('binddn?', autofill=True, cli_name='bind_dn', default=ipapython.dn.DN('cn=directory manager'))
+option: DNParam('usercontainer', autofill=True, cli_name='user_container', default=ipapython.dn.DN('ou=people'))
+option: DNParam('groupcontainer', autofill=True, cli_name='group_container', default=ipapython.dn.DN('ou=groups'))
 option: Str('userobjectclass+', autofill=True, cli_name='user_objectclass', csv=True, default=(u'person',))
 option: Str('groupobjectclass+', autofill=True, cli_name='group_objectclass', csv=True, default=(u'groupOfUniqueNames', u'groupOfNames'))
 option: Str('userignoreobjectclass*', autofill=True, cli_name='user_ignore_objectclass', csv=True, default=())
@@ -1943,7 +1943,7 @@ option: Str('groupignoreattribute*', autofill=True, cli_name='group_ignore_attri
 option: Flag('groupoverwritegid', autofill=True, cli_name='group_overwrite_gid', default=False)
 option: StrEnum('schema?', autofill=True, cli_name='schema', default=u'RFC2307bis', values=(u'RFC2307bis', u'RFC2307'))
 option: Flag('continue?', autofill=True, default=False)
-option: Str('basedn?', cli_name='base_dn')
+option: DNParam('basedn?', cli_name='base_dn')
 option: Flag('compat?', autofill=True, cli_name='with_compat', default=False)
 option: Str('exclude_groups*', autofill=True, cli_name='exclude_groups', csv=True, default=())
 option: Str('exclude_users*', autofill=True, cli_name='exclude_users', csv=True, default=())

@@ -22,7 +22,7 @@ Test the `ipalib/plugins/dns.py` module.
 
 import nose
 from ipalib import api, errors
-from ipalib.dn import *
+from ipapython.dn import DN
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
@@ -139,7 +139,7 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnszone1_dn),
+                    'dn': dnszone1_dn,
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [dnszone1_mname],
@@ -200,7 +200,7 @@ class test_dns(Declarative):
                 'value': dnszone2,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnszone2_dn),
+                    'dn': dnszone2_dn,
                     'idnsname': [dnszone2],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [dnszone2_mname],
@@ -240,7 +240,7 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnszone1_dn),
+                    'dn': dnszone1_dn,
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [dnszone1_mname],
@@ -295,7 +295,7 @@ class test_dns(Declarative):
                 'value': revdnszone1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(revdnszone1_dn),
+                    'dn': revdnszone1_dn,
                     'idnsname': [revdnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [dnszone1_mname],
@@ -325,7 +325,7 @@ class test_dns(Declarative):
                 'count': 2,
                 'truncated': False,
                 'result': [{
-                    'dn': unicode(revdnszone1_dn),
+                    'dn': revdnszone1_dn,
                     'idnsname': [revdnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [dnszone1_mname],
@@ -340,7 +340,7 @@ class test_dns(Declarative):
                     'idnsallowquery': [u'any;'],
                 },
                 {
-                    'dn': unicode(dnszone1_dn),
+                    'dn': dnszone1_dn,
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [dnszone1_mname],
@@ -366,7 +366,7 @@ class test_dns(Declarative):
                 'count': 1,
                 'truncated': False,
                 'result': [{
-                    'dn': unicode(dnszone1_dn),
+                    'dn': dnszone1_dn,
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [dnszone1_mname],
@@ -413,7 +413,7 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnszone1_dn),
+                    'dn': dnszone1_dn,
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'FALSE'],
                     'nsrecord': [dnszone1_mname],
@@ -449,7 +449,7 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnszone1_dn),
+                    'dn': dnszone1_dn,
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [dnszone1_mname],
@@ -507,7 +507,7 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnsres1_dn),
+                    'dn': dnsres1_dn,
                     'idnsname': [dnsres1],
                     'objectclass': objectclasses.dnsrecord,
                     'arecord': [u'127.0.0.1'],
@@ -525,17 +525,17 @@ class test_dns(Declarative):
                 'truncated': False,
                 'result': [
                     {
-                        'dn': unicode(dnszone1_dn),
+                        'dn': dnszone1_dn,
                         'nsrecord': (dnszone1_mname,),
                         'idnsname': [u'@'],
                     },
                     {
-                        'dn': unicode(dnszone1_mname_dn),
+                        'dn': dnszone1_mname_dn,
                         'idnsname': [u'ns1'],
                         'arecord': [u'1.2.3.4'],
                     },
                     {
-                        'dn': unicode(dnsres1_dn),
+                        'dn': dnsres1_dn,
                         'idnsname': [dnsres1],
                         'arecord': [u'127.0.0.1'],
                     },
@@ -551,7 +551,7 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnsres1_dn),
+                    'dn': dnsres1_dn,
                     'idnsname': [dnsres1],
                     'arecord': [u'127.0.0.1', u'10.10.0.1'],
                     'objectclass': objectclasses.dnsrecord,
@@ -633,7 +633,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnszone,
-                    'dn': unicode(dnszone1_dn),
+                    'dn': dnszone1_dn,
                     'idnsname': [u'@'],
                     'mxrecord': [u"0 %s" % dnszone1_mname],
                     'nsrecord': [dnszone1_mname],
@@ -681,7 +681,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(DN(('idnsname', u'_foo._tcp'), dnszone1_dn)),
+                    'dn': DN(('idnsname', u'_foo._tcp'), dnszone1_dn),
                     'idnsname': [u'_foo._tcp'],
                     'srvrecord': [u"0 100 1234 %s" % dnszone1_mname],
                 },
@@ -738,7 +738,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnszone,
-                    'dn': unicode(dnszone1_dn),
+                    'dn': dnszone1_dn,
                     'idnsname': [u'@'],
                     'mxrecord': [u"0 %s" % dnszone1_mname],
                     'nsrecord': [dnszone1_mname],
@@ -770,7 +770,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(dnsrescname_dn),
+                    'dn': dnsrescname_dn,
                     'idnsname': [dnsrescname],
                     'cnamerecord': [u'foo-1.example.com.'],
                 },
@@ -821,7 +821,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(dnsres1_dn),
+                    'dn': dnsres1_dn,
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
                     'kxrecord': [u'1 foo-1'],
@@ -837,7 +837,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(dnsres1_dn),
+                    'dn': dnsres1_dn,
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
                     'kxrecord': [u'1 foo-1'],
@@ -856,7 +856,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(dnsres1_dn),
+                    'dn': dnsres1_dn,
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
                     'kxrecord': [u'1 foo-1'],
@@ -887,7 +887,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(dnsres1_dn),
+                    'dn': dnsres1_dn,
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
                     'kxrecord': [u'1 foo-1'],
@@ -962,7 +962,7 @@ class test_dns(Declarative):
                 'value': revdnszone1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(revdnszone1_dn),
+                    'dn': revdnszone1_dn,
                     'idnsname': [revdnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [dnszone1_mname],
@@ -1000,7 +1000,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(dnsrev1_dn),
+                    'dn': dnsrev1_dn,
                     'idnsname': [dnsrev1],
                     'ptrrecord': [u'foo-1.example.com.'],
                 },
@@ -1015,7 +1015,7 @@ class test_dns(Declarative):
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(dnsrev1_dn),
+                    'dn': dnsrev1_dn,
                     'idnsname': [dnsrev1],
                     'ptrrecord': [u'foo-1.example.com.'],
                     'cnamerecord': [u'foo-1.example.com.'],
@@ -1120,7 +1120,7 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnsres1_dn),
+                    'dn': dnsres1_dn,
                     'idnsname': [dnsres1],
                     'objectclass': objectclasses.dnsrecord,
                     'arecord': [u'80.142.15.81'],
@@ -1136,7 +1136,7 @@ class test_dns(Declarative):
                 'value': dnsrev2,
                 'summary': None,
                 'result': {
-                    'dn': unicode(dnsrev2_dn),
+                    'dn': dnsrev2_dn,
                     'idnsname': [dnsrev2],
                     'ptrrecord': [dnsres1 + '.' + dnszone1 + '.'],
                 },
@@ -1183,7 +1183,7 @@ class test_dns(Declarative):
                 value=dnszone1_permission,
                 summary=None,
                 result={
-                    'dn': lambda x: DN(x) == dnszone1_permission_dn,
+                    'dn': dnszone1_permission_dn,
                     'cn': [dnszone1_permission],
                     'ipapermissiontype': [u'SYSTEM'],
                 },
@@ -1232,4 +1232,3 @@ class test_dns(Declarative):
         ),
 
     ]
-

@@ -23,6 +23,7 @@ Base classes for non-LDAP backend plugins.
 from ipalib import api
 from ipalib import Command
 from ipalib import errors
+from ipapython.dn import DN
 
 class VirtualCommand(Command):
     """
@@ -55,7 +56,7 @@ class VirtualCommand(Command):
         ldap = self.api.Backend.ldap2
         self.log.debug("IPA: virtual verify %s" % operation)
 
-        operationdn = "cn=%s,%s,%s" % (operation, self.api.env.container_virtual, self.api.env.basedn)
+        operationdn = DN(('cn', operation), self.api.env.container_virtual, self.api.env.basedn)
 
         try:
             if not ldap.can_write(operationdn, "objectclass"):

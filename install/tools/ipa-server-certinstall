@@ -32,6 +32,7 @@ from ipapython.ipautil import user_input
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
 from ipalib import api
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 
 def get_realm_name():
@@ -66,9 +67,9 @@ def parse_options():
 
 def set_ds_cert_name(cert_name, dm_password):
     conn = ldap2(shared_instance=False, base_dn='')
-    conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+    conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
     mod = {'nssslpersonalityssl': cert_name}
-    conn.update_entry('cn=RSA,cn=encryption,cn=config', mod)
+    conn.update_entry(DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')), mod)
     conn.disconnect()
 
 def choose_server_cert(server_certs):

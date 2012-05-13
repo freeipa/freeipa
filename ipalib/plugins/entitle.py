@@ -318,6 +318,7 @@ class entitle_consume(LDAPUpdate):
         return result
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         quantity = keys[-1]
 
         os.environ['LANG'] = 'en_US'
@@ -361,6 +362,7 @@ class entitle_consume(LDAPUpdate):
         Returning the certificates isn't very interesting. Return the
         status of entitlements instead.
         """
+        assert isinstance(dn, DN)
         if 'usercertificate' in entry_attrs:
             del entry_attrs['usercertificate']
         if 'userpkcs12' in entry_attrs:
@@ -504,7 +506,7 @@ class entitle_register(LDAPCreate):
     """
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        dn = '%s,%s' % (self.obj.container_dn, self.api.env.basedn)
+        dn = DN(self.obj.container_dn, self.api.env.basedn)
         if not ldap.can_add(dn):
             raise errors.ACIError(info='No permission to register')
         os.environ['LANG'] = 'en_US'
@@ -604,6 +606,7 @@ class entitle_import(LDAPUpdate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         try:
             (db, uuid, certfile, keyfile) = get_uuid(ldap)
             if db is not None:
@@ -622,7 +625,7 @@ class entitle_import(LDAPUpdate):
                     raise errors.CertificateFormatError(error=_('Not an entitlement certificate'))
             except M2Crypto.X509.X509Error:
                 raise errors.CertificateFormatError(error=_('Not an entitlement certificate'))
-            dn = 'ipaentitlementid=%s,%s' % (entry_attrs['ipaentitlementid'], dn)
+            dn = DN(('ipaentitlementid', entry_attrs['ipaentitlementid']), dn)
             (dn, current_attrs) = ldap.get_entry(
                 dn, ['*'], normalize=self.obj.normalize_dn
             )
@@ -689,6 +692,7 @@ class entitle_sync(LDAPUpdate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         os.environ['LANG'] = 'en_US'
         locale.setlocale(locale.LC_ALL, '')
 
@@ -719,6 +723,7 @@ class entitle_sync(LDAPUpdate):
         Returning the certificates isn't very interesting. Return the
         status of entitlements instead.
         """
+        assert isinstance(dn, DN)
         if 'usercertificate' in entry_attrs:
             del entry_attrs['usercertificate']
         if 'userpkcs12' in entry_attrs:

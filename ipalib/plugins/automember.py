@@ -22,8 +22,8 @@ from ipalib import Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.request import context
-from ipalib.dn import *
 import ldap as _ldap
+from ipapython.dn import DN
 
 __doc__ = _("""
 Auto Membership Rule.
@@ -200,19 +200,16 @@ class automember(LDAPObject):
             parent_dn = self.container_dn
         grouptype = options['type']
         try:
-            ndn = DN(('cn', keys[-1]), ('cn', grouptype), DN(parent_dn))
+            ndn = DN(('cn', keys[-1]), ('cn', grouptype), parent_dn)
         except IndexError:
-            ndn = DN(('cn', grouptype), DN(parent_dn))
-        parent_dn = str(ndn)
-        return parent_dn
+            ndn = DN(('cn', grouptype), parent_dn)
+        return ndn
 
     def check_attr(self, attr):
         """
         Verify that the user supplied key is a valid attribute in the schema
         """
         ldap = self.api.Backend.ldap2
-        if not ldap.schema:
-            ldap.get_schema()
         obj = ldap.schema.get_obj(_ldap.schema.AttributeType, attr)
         if obj is not None:
             return obj
@@ -238,6 +235,7 @@ class automember_add(LDAPCreate):
     msg_summary = _('Added automember rule "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
 
         entry_attrs['cn'] = keys[-1]
         if not automember_container_exists(self.api.Backend.ldap2):
@@ -284,6 +282,7 @@ class automember_add_condition(LDAPUpdate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # Check to see if the automember rule exists
         try:
             (tdn, test_attrs) = ldap.get_entry(dn, [])
@@ -370,6 +369,7 @@ class automember_remove_condition(LDAPUpdate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
         # Check to see if the automember rule exists
         try:
             (tdn, test_attrs) = ldap.get_entry(dn, [])
@@ -479,10 +479,10 @@ class automember_find(LDAPSearch):
     )
 
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
         scope = ldap.SCOPE_SUBTREE
-        ndn = DN(('cn', options['type']), DN(base_dn))
-        base_dn = str(ndn)
-        return (filters, base_dn, scope)
+        ndn = DN(('cn', options['type']), base_dn)
+        return (filters, ndn, scope)
 
 api.register(automember_find)
 
@@ -520,7 +520,6 @@ class automember_default_group_set(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn = DN(('cn', options['type']), api.env.container_automember)
-        dn = str(dn)
         entry_attrs['automemberdefaultgroup'] = self.obj.dn_exists(options['type'], options['automemberdefaultgroup'])
         return dn
 
@@ -542,7 +541,6 @@ class automember_default_group_remove(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn = DN(('cn', options['type']), api.env.container_automember)
-        dn = str(dn)
         attr = 'automemberdefaultgroup'
 
         (dn, entry_attrs_) = ldap.get_entry(
@@ -556,6 +554,7 @@ class automember_default_group_remove(LDAPUpdate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if 'automemberdefaultgroup' not in entry_attrs:
             entry_attrs['automemberdefaultgroup'] = unicode(_('No default (fallback) group set'))
         return dn
@@ -576,10 +575,10 @@ class automember_default_group_show(LDAPRetrieve):
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         dn = DN(('cn', options['type']), api.env.container_automember)
-        dn = str(dn)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
         if 'automemberdefaultgroup' not in entry_attrs:
             entry_attrs['automemberdefaultgroup'] = unicode(_('No default (fallback) group set'))
         return dn

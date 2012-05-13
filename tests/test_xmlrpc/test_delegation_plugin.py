@@ -24,6 +24,7 @@ Test the `ipalib/plugins/delegation.py` module.
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipapython.dn import DN
 
 delegation1 = u'testdelegation'
 member1 = u'admins'
@@ -148,8 +149,9 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=None,
                 result={
-                    'aci': u'(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=cn=admins,cn=groups,cn=accounts,%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///cn=editors,cn=groups,cn=accounts,%s";)' \
-                            % (api.env.basedn, api.env.basedn)
+                    'aci': u'(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///%s";)' % \
+                        (DN(('cn', 'admins'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn),
+                         DN(('cn', 'editors'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn))
                 },
             ),
         ),
@@ -200,8 +202,9 @@ class test_delegation(Declarative):
                 summary=u'1 delegation matched',
                 result=[
                     {
-                    'aci': u'(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=cn=admins,cn=groups,cn=accounts,%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///cn=editors,cn=groups,cn=accounts,%s";)' \
-                            % (api.env.basedn, api.env.basedn),
+                    'aci': u'(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///%s";)' % \
+                        (DN(('cn', 'admins'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn),
+                         DN(('cn', 'editors'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn)),
                     },
                 ],
             ),

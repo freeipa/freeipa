@@ -33,9 +33,8 @@ import uuid
 from ipalib import util
 from ipalib import errors
 from ipalib import api
-from ipalib.dn import DN
+from ipapython.dn import DN
 import ldap
-from ldap.dn import escape_dn_chars
 from ipapython.ipa_log_manager import *
 import krbV
 import platform
@@ -52,22 +51,62 @@ from ipaserver.install.plugins import FIRST, MIDDLE, LAST
 class BadSyntax(installutils.ScriptError):
     def __init__(self, value):
         self.value = value
-        self.msg = "There is a syntax error in this update file: \n  %s" % value
+        self.msg = "LDAPUpdate: syntax error: \n  %s" % value
         self.rval = 1
 
     def __str__(self):
         return repr(self.value)
 
 class LDAPUpdate:
+    action_keywords = ["default", "add", "remove", "only", "deleteentry", "replace", "addifnew", "addifexist"]
+
     def __init__(self, dm_password, sub_dict={}, live_run=True,
                  online=True, ldapi=False, plugins=False):
-        """dm_password = Directory Manager password
-           sub_dict = substitution dictionary
-           live_run = Apply the changes or just test
-           online = do an online LDAP update or use an experimental LDIF updater
-           ldapi = bind using ldapi. This assumes autobind is enabled.
-           plugins = execute the pre/post update plugins
-        """
+        '''
+        :parameters:
+            dm_password
+                Directory Manager password
+            sub_dict
+                substitution dictionary
+            live_run
+                Apply the changes or just test
+            online
+                Do an online LDAP update or use an experimental LDIF updater
+            ldapi
+                Bind using ldapi. This assumes autobind is enabled.
+            plugins
+                execute the pre/post update plugins
+
+        Data Structure Example:
+        -----------------------
+
+        dn_by_rdn_count = {
+            3: 'cn=config,dc=example,dc=com':
+            4: 'cn=bob,ou=people,dc=example,dc=com',
+        }
+
+        all_updates = {
+        'dn': 'cn=config,dc=example,dc=com':
+            {
+                'dn': 'cn=config,dc=example,dc=com',
+                'default': ['attr1':default1'],
+                'updates': ['action:attr1:value1',
+                            'action:attr2:value2]
+            },
+        'dn': 'cn=bob,ou=people,dc=example,dc=com':
+            {
+                'dn': 'cn=bob,ou=people,dc=example,dc=com',
+                'default': ['attr3':default3'],
+                'updates': ['action:attr3:value3',
+                            'action:attr4:value4],
+            }
+        }
+
+        The default and update lists are "dispositions"
+
+
+        '''
+        log_mgr.get_logger(self, True)
         self.sub_dict = sub_dict
         self.live_run = live_run
         self.dm_password = dm_password
@@ -77,6 +116,8 @@ class LDAPUpdate:
         self.ldapi = ldapi
         self.plugins = plugins
         self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
+        self.realm = None
+        suffix = None
 
         if sub_dict.get("REALM"):
             self.realm = sub_dict["REALM"]
@@ -89,8 +130,10 @@ class LDAPUpdate:
                 self.realm = None
                 suffix = None
 
+        if suffix is not None:
+            assert isinstance(suffix, DN)
         domain = ipautil.get_domain_name()
-        libarch = self.__identify_arch()
+        libarch = self._identify_arch()
 
         fqdn = installutils.get_fqdn()
         if fqdn is None:
@@ -110,7 +153,7 @@ class LDAPUpdate:
         if not self.sub_dict.get("SUFFIX") and suffix is not None:
             self.sub_dict["SUFFIX"] = suffix
         if not self.sub_dict.get("ESCAPED_SUFFIX"):
-            self.sub_dict["ESCAPED_SUFFIX"] = escape_dn_chars(suffix)
+            self.sub_dict["ESCAPED_SUFFIX"] = str(suffix)
         if not self.sub_dict.get("LIBARCH"):
             self.sub_dict["LIBARCH"] = libarch
         if not self.sub_dict.get("TIME"):
@@ -123,7 +166,7 @@ class LDAPUpdate:
             try:
                 conn = ipaldap.IPAdmin(fqdn, ldapi=self.ldapi, realm=self.realm)
                 if self.dm_password:
-                    conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
+                    conn.do_simple_bind(binddn=DN(('cn', 'directory manager')), bindpw=self.dm_password)
                 elif os.getegid() == 0:
                     try:
                         # autobind
@@ -145,13 +188,13 @@ class LDAPUpdate:
 
     # The following 2 functions were taken from the Python
     # documentation at http://docs.python.org/library/csv.html
-    def __utf_8_encoder(self, unicode_csv_data):
+    def _utf_8_encoder(self, unicode_csv_data):
         for line in unicode_csv_data:
             yield line.encode('utf-8')
 
-    def __unicode_csv_reader(self, unicode_csv_data, quote_char="'", dialect=csv.excel, **kwargs):
+    def _unicode_csv_reader(self, unicode_csv_data, quote_char="'", dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-        csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
+        csv_reader = csv.reader(self._utf_8_encoder(unicode_csv_data),
                                 dialect=dialect, delimiter=',',
                                 quotechar=quote_char,
                                 skipinitialspace=True,
@@ -160,7 +203,7 @@ class LDAPUpdate:
             # decode UTF-8 back to Unicode, cell by cell:
             yield [unicode(cell, 'utf-8') for cell in row]
 
-    def __identify_arch(self):
+    def _identify_arch(self):
         """On multi-arch systems some libraries may be in /lib64, /usr/lib64,
            etc.  Determine if a suffix is needed based on the current
            architecture.
@@ -178,7 +221,7 @@ class LDAPUpdate:
         except KeyError, e:
             raise BadSyntax("Unknown template keyword %s" % e)
 
-    def __parse_values(self, line):
+    def _parse_values(self, line):
         """Parse a comma-separated string into separate values and convert them
            into a list. This should handle quoted-strings with embedded commas
         """
@@ -186,7 +229,7 @@ class LDAPUpdate:
             quote_char = "'"
         else:
             quote_char = '"'
-        reader = self.__unicode_csv_reader([line], quote_char)
+        reader = self._unicode_csv_reader([line], quote_char)
         value = []
         for row in reader:
             value = value + row
@@ -201,7 +244,7 @@ class LDAPUpdate:
         if fd != sys.stdin: fd.close()
         return text
 
-    def __entry_to_entity(self, ent):
+    def _entry_to_entity(self, ent):
         """Tne Entry class is a bare LDAP entry. The Entity class has a lot more
            helper functions that we need, so convert to dict and then to Entity.
         """
@@ -215,113 +258,158 @@ class LDAPUpdate:
                     entry[key] = value[0]
         return entity.Entity(entry)
 
-    def __combine_updates(self, dn_list, all_updates, update):
-        """Combine a new update with the list of total updates
-
-           Updates are stored in 2 lists:
-               dn_list: contains a unique list of DNs in the updates
-               all_updates: the actual updates that need to be applied
-
-           We want to apply the updates from the shortest to the longest
-           path so if new child and parent entries are in different updates
-           we can be sure the parent gets written first. This also lets
-           us apply any schema first since it is in the very short cn=schema.
-        """
+    def _combine_updates(self, all_updates, update):
+        'Combine a new update with the list of total updates'
         dn = update.get('dn')
-        dns = ldap.explode_dn(dn.lower())
-        l = len(dns)
-        if dn_list.get(l):
-            if dn not in dn_list[l]:
-                dn_list[l].append(dn)
-        else:
-            dn_list[l] = [dn]
+        assert isinstance(dn, DN)
+
         if not all_updates.get(dn):
             all_updates[dn] = update
             return all_updates
 
-        e = all_updates[dn]
+        existing_update = all_updates[dn]
         if 'default' in update:
-            if 'default' in e:
-                e['default'] = e['default'] + update['default']
-            else:
-                e['default'] = update['default']
+            disposition_list = existing_update.setdefault('default', [])
+            disposition_list.extend(update['default'])
         elif 'updates' in update:
-            if 'updates' in e:
-                e['updates'] = e['updates'] + update['updates']
-            else:
-                e['updates'] = update['updates']
+            disposition_list = existing_update.setdefault('updates', [])
+            disposition_list.extend(update['updates'])
         else:
-            root_logger.debug("Unknown key in updates %s" % update.keys())
+            self.debug("Unknown key in updates %s" % update.keys())
 
-        all_updates[dn] = e
+    def merge_updates(self, all_updates, updates):
+        '''
+        Add the new_update dict to the all_updates dict.  If an entry
+        in the new_update already has an entry in all_updates merge
+        the two entries sensibly assuming the new entries take
+        precedence. Otherwise just add the new entry.
+        '''
 
-        return all_updates
+        for new_update in updates:
+            for new_dn, new_entry in new_update.iteritems():
+                existing_entry = all_updates.get(new_dn)
+                if existing_entry:
+                    # If the existing entry is marked for deletion but the
+                    # new entry is not also a delete then clear the delete
+                    # flag otherwise the newer update will be lost.
+                    if existing_entry.has_key('deleteentry') and not new_entry.has_key('deleteentry'):
+                        self.warning("ldapupdate: entry '%s' previously marked for deletion but" +
+                                     " this subsequent update reestablishes it: %s", new_dn, new_entry)
+                        del existing_entry['deleteentry']
+                    existing_entry.update(new_entry)
+                else:
+                    all_updates[new_dn] = new_entry
 
-    def parse_update_file(self, data, all_updates, dn_list):
+
+    def parse_update_file(self, data_source_name, source_data, all_updates):
         """Parse the update file into a dictonary of lists and apply the update
            for each DN in the file."""
-        valid_keywords = ["default", "add", "remove", "only", "deleteentry", "replace", "addifnew", "addifexist"]
         update = {}
-        d = ""
-        index = ""
+        logical_line = ""
+        action = ""
         dn = None
         lcount = 0
-        for line in data:
-            # Strip out \n and extra white space
-            lcount = lcount + 1
+
+        def emit_item(logical_line):
+            '''
+            Given a logical line containing an item to process perform the following:
+
+            * Strip leading & trailing whitespace
+            * Substitute any variables
+            * Get the action, attribute, and value
+            * Each update has one list per disposition, append to specified disposition list
+            '''
+
+            logical_line = logical_line.strip()
+            if logical_line == '':
+                return
+
+            # Perform variable substitution on constructued line
+            logical_line = self._template_str(logical_line)
+
+            items = logical_line.split(':', 2)
+
+            if len(items) == 0:
+                raise BadSyntax, "Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line)
+
+            action = items[0].strip().lower()
+
+            if action not in self.action_keywords:
+                raise BadSyntax, "Unknown update action '%s', data source=%s" % (action, data_source_name)
+
+            if action == 'deleteentry':
+                new_value = None
+                disposition = "deleteentry"
+            else:
+                if len(items) != 3:
+                    raise BadSyntax, "Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line)
+
+                attr = items[1].strip()
+                value = items[2].strip()
+
+                if action == "default":
+                    new_value = attr + ":" + value
+                    disposition = "default"
+                else:
+                    new_value = action + ":" + attr + ":" + value
+                    disposition = "updates"
+
+            disposition_list = update.setdefault(disposition, [])
+            disposition_list.append(new_value)
+
+        def emit_update(update):
+            '''
+            When processing a dn is completed emit the update by merging it into
+            the set of all updates.
+            '''
+
+            self._combine_updates(all_updates, update)
+
+        # Iterate over source input lines
+        for source_line in source_data:
+            lcount += 1
+
+            # strip trailing whitespace and newline
+            source_line = source_line.rstrip()
 
             # skip comments and empty lines
-            line = line.rstrip()
-            if line.startswith('#') or line == '': continue
+            if source_line.startswith('#') or source_line == '':
+                continue
 
-            if line.lower().startswith('dn:'):
+            if source_line.lower().startswith('dn:'):
+                # Starting new dn
                 if dn is not None:
-                    all_updates = self.__combine_updates(dn_list, all_updates, update)
+                    # Emit previous dn
+                    emit_item(logical_line)
+                    logical_line = ''
+                    emit_update(update)
+                    update = {}
 
-                update = {}
-                dn = line[3:].strip()
-                update['dn'] = self._template_str(dn)
+                dn = source_line[3:].strip()
+                dn = DN(self._template_str(dn))
+                update['dn'] = dn
             else:
+                # Process items belonging to dn
                 if dn is None:
-                    raise BadSyntax, "dn is not defined in the update"
+                    raise BadSyntax, "dn is not defined in the update, data source=%s" % (data_source_name)
 
-                line = self._template_str(line)
-                if line.startswith(' '):
-                    v = d[len(d) - 1]
-                    v = v + line[1:]
-                    d[len(d) - 1] = v
-                    update[index] = d
+                # If continuation line, append to existing logical line & continue,
+                # otherwise flush the previous item.
+                if source_line.startswith(' '):
+                    logical_line += source_line[1:]
                     continue
-                line = line.strip()
-                values = line.split(':', 2)
-                if len(values) != 3:
-                    raise BadSyntax, "Bad formatting on line %d: %s" % (lcount,line)
-
-                index = values[0].strip().lower()
-
-                if index not in valid_keywords:
-                    raise BadSyntax, "Unknown keyword %s" % index
-
-                attr = values[1].strip()
-                value = values[2].strip()
-
-                new_value = ""
-                if index == "default":
-                    new_value = attr + ":" + value
                 else:
-                    new_value = index + ":" + attr + ":" + value
-                    index = "updates"
-
-                d = update.get(index, [])
-
-                d.append(new_value)
-
-                update[index] = d
+                    emit_item(logical_line)
+                    logical_line = ''
+                    logical_line = source_line
 
         if dn is not None:
-            all_updates = self.__combine_updates(dn_list, all_updates, update)
+            emit_item(logical_line)
+            logical_line = ''
+            emit_update(update)
+            update = {}
 
-        return (all_updates, dn_list)
+        return all_updates
 
     def create_index_task(self, attribute):
         """Create a task to update an index for an attribute"""
@@ -337,15 +425,15 @@ class LDAPUpdate:
         cn = "indextask_%s_%s_%s" % (attribute, cn_uuid.time, cn_uuid.clock_seq)
         dn = DN(('cn', cn), ('cn', 'index'), ('cn', 'tasks'), ('cn', 'config'))
 
-        e = ipaldap.Entry(str(dn))
+        e = ipaldap.Entry(dn)
 
         e.setValues('objectClass', ['top', 'extensibleObject'])
         e.setValue('cn', cn)
         e.setValue('nsInstance', 'userRoot')
         e.setValues('nsIndexAttribute', attribute)
 
-        root_logger.info("Creating task to index attribute: %s", attribute)
-        root_logger.debug("Task id: %s", dn)
+        self.info("Creating task to index attribute: %s", attribute)
+        self.debug("Task id: %s", dn)
 
         if self.live_run:
             self.conn.addEntry(e)
@@ -355,6 +443,8 @@ class LDAPUpdate:
     def monitor_index_task(self, dn):
         """Give a task DN monitor it and wait until it has completed (or failed)
         """
+
+        assert isinstance(dn, DN)
 
         if not self.live_run:
             # If not doing this live there is nothing to monitor
@@ -370,10 +460,10 @@ class LDAPUpdate:
             try:
                 entry = self.conn.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
             except errors.NotFound, e:
-                root_logger.error("Task not found: %s", dn)
+                self.error("Task not found: %s", dn)
                 return
             except errors.DatabaseError, e:
-                root_logger.error("Task lookup failure %s", e)
+                self.error("Task lookup failure %s", e)
                 return
 
             status = entry.getValue('nstaskstatus')
@@ -383,200 +473,158 @@ class LDAPUpdate:
                 continue
 
             if status.lower().find("finished") > -1:
-                root_logger.info("Indexing finished")
+                self.info("Indexing finished")
                 break
 
-            root_logger.debug("Indexing in progress")
+            self.debug("Indexing in progress")
             time.sleep(1)
 
         return
 
-    def __create_default_entry(self, dn, default):
+    def _create_default_entry(self, dn, default):
         """Create the default entry from the values provided.
 
            The return type is entity.Entity
         """
+        assert isinstance(dn, DN)
         entry = ipaldap.Entry(dn)
 
         if not default:
             # This means that the entire entry needs to be created with add
-            return self.__entry_to_entity(entry)
+            return self._entry_to_entity(entry)
 
-        for line in default:
+        for item in default:
             # We already do syntax-parsing so this is safe
-            (k, v) = line.split(':',1)
-            e = entry.getValues(k)
+            (attr, value) = item.split(':',1)
+            e = entry.getValues(attr)
             if e:
                 # multi-valued attribute
                 e = list(e)
-                e.append(v)
+                e.append(value)
             else:
-                e = v
-            entry.setValues(k, e)
+                e = value
+            entry.setValues(attr, e)
 
-        return self.__entry_to_entity(entry)
+        return self._entry_to_entity(entry)
 
-    def __get_entry(self, dn):
+    def _get_entry(self, dn):
         """Retrieve an object from LDAP.
 
            The return type is ipaldap.Entry
         """
+        assert isinstance(dn, DN)
         searchfilter="objectclass=*"
         sattrs = ["*", "aci", "attributeTypes", "objectClasses"]
         scope = ldap.SCOPE_BASE
 
         return self.conn.getList(dn, scope, searchfilter, sattrs)
 
-    def __update_managed_entries(self):
-        """Update and move legacy Managed Entry Plugins."""
+    def _apply_update_disposition(self, updates, entry):
+        """
+        updates is a list of changes to apply
+        entry is the thing to apply them to
 
-        suffix = ipautil.realm_to_suffix(self.realm)
-        searchfilter = '(objectclass=*)'
-        definitions_managed_entries = []
-        old_template_container = 'cn=etc,%s' % suffix
-        old_definition_container = 'cn=Managed Entries,cn=plugins,cn=config'
-        new = 'cn=Managed Entries,cn=etc,%s' % suffix
-        sub = ['cn=Definitions,', 'cn=Templates,']
-        new_managed_entries = []
-        old_templates = []
-        template = None
-        try:
-            definitions_managed_entries = self.conn.getList(old_definition_container, ldap.SCOPE_ONELEVEL, searchfilter,[])
-        except errors.NotFound, e:
-            return new_managed_entries
-        for entry in definitions_managed_entries:
-            new_definition = {}
-            definition_managed_entry_updates = {}
-            definitions_managed_entries
-            old_definition = {'dn': entry.dn, 'deleteentry': ['dn: %s' % entry.dn]}
-            old_template = entry.getValue('managedtemplate')
-            entry.setValues('managedtemplate', entry.getValue('managedtemplate').replace(old_template_container, sub[1] + new))
-            new_definition['dn'] = entry.dn.replace(old_definition_container, sub[0] + new)
-            new_definition['default'] = str(entry).strip().replace(': ', ':').split('\n')[1:]
-            definition_managed_entry_updates[new_definition['dn']] = new_definition
-            definition_managed_entry_updates[old_definition['dn']] = old_definition
-            old_templates.append(old_template)
-            new_managed_entries.append(definition_managed_entry_updates)
-        for old_template in old_templates:
-            try:
-                template = self.conn.getEntry(old_template, ldap.SCOPE_BASE, searchfilter,[])
-                new_template = {}
-                template_managed_entry_updates = {}
-                old_template = {'dn': template.dn, 'deleteentry': ['dn: %s' % template.dn]}
-                new_template['dn'] = template.dn.replace(old_template_container, sub[1] + new)
-                new_template['default'] = str(template).strip().replace(': ', ':').split('\n')[1:]
-                template_managed_entry_updates[new_template['dn']] = new_template
-                template_managed_entry_updates[old_template['dn']] = old_template
-                new_managed_entries.append(template_managed_entry_updates)
-            except errors.NotFound, e:
-                pass
-        if len(new_managed_entries) > 0:
-            new_managed_entries.sort(reverse=True)
-
-        return new_managed_entries
-
-    def __apply_updates(self, updates, entry):
-        """updates is a list of changes to apply
-           entry is the thing to apply them to
-
-           Returns the modified entry
+        Returns the modified entry
         """
         if not updates:
             return entry
 
         only = {}
-        for u in updates:
+        for update in updates:
             # We already do syntax-parsing so this is safe
-            (utype, k, values) = u.split(':',2)
-            values = self.__parse_values(values)
+            (action, attr, update_values) = update.split(':',2)
+            update_values = self._parse_values(update_values)
 
-            e = entry.getValues(k)
-            if not isinstance(e, list):
-                if e is None:
-                    e = []
+            # If the attribute is known to be a DN convert it to a DN object.
+            # This has to be done after _parse_values() due to quoting and comma separated lists.
+            if self.conn.has_dn_syntax(attr):
+                update_values = [DN(x) for x in update_values]
+
+            entry_values = entry.getValues(attr)
+            if not isinstance(entry_values, list):
+                if entry_values is None:
+                    entry_values = []
                 else:
-                    e = [e]
-            for v in values:
-                if utype == 'remove':
-                    root_logger.debug("remove: '%s' from %s, current value %s", v, k, e)
+                    entry_values = [entry_values]
+            for update_value in update_values:
+                if action == 'remove':
+                    self.debug("remove: '%s' from %s, current value %s", update_value, attr, entry_values)
                     try:
-                        e.remove(v)
+                        entry_values.remove(update_value)
                     except ValueError:
-                        root_logger.warning("remove: '%s' not in %s", v, k)
+                        self.warning("remove: '%s' not in %s", update_value, attr)
                         pass
-                    entry.setValues(k, e)
-                    root_logger.debug('remove: updated value %s', e)
-                elif utype == 'add':
-                    root_logger.debug("add: '%s' to %s, current value %s", v, k, e)
+                    entry.setValues(attr, entry_values)
+                    self.debug('remove: updated value %s', entry_values)
+                elif action == 'add':
+                    self.debug("add: '%s' to %s, current value %s", update_value, attr, entry_values)
                     # Remove it, ignoring errors so we can blindly add it later
                     try:
-                        e.remove(v)
+                        entry_values.remove(update_value)
                     except ValueError:
                         pass
-                    e.append(v)
-                    root_logger.debug('add: updated value %s', e)
-                    entry.setValues(k, e)
-                elif utype == 'addifnew':
-                    root_logger.debug("addifnew: '%s' to %s, current value %s", v, k, e)
+                    entry_values.append(update_value)
+                    self.debug('add: updated value %s', entry_values)
+                    entry.setValues(attr, entry_values)
+                elif action == 'addifnew':
+                    self.debug("addifnew: '%s' to %s, current value %s", update_value, attr, entry_values)
                     # Only add the attribute if it doesn't exist. Only works
                     # with single-value attributes.
-                    if len(e) == 0:
-                        e.append(v)
-                        root_logger.debug('addifnew: set %s to %s', k, e)
-                        entry.setValues(k, e)
-                elif utype == 'addifexist':
-                    root_logger.debug("addifexist: '%s' to %s, current value %s", v, k, e)
+                    if len(entry_values) == 0:
+                        entry_values.append(update_value)
+                        self.debug('addifnew: set %s to %s', attr, entry_values)
+                        entry.setValues(attr, entry_values)
+                elif action == 'addifexist':
+                    self.debug("addifexist: '%s' to %s, current value %s", update_value, attr, entry_values)
                     # Only add the attribute if the entry doesn't exist. We
                     # determine this based on whether it has an objectclass
                     if entry.getValues('objectclass'):
-                        e.append(v)
-                        root_logger.debug('addifexist: set %s to %s', k, e)
-                        entry.setValues(k, e)
-                elif utype == 'only':
-                    root_logger.debug("only: set %s to '%s', current value %s", k, v, e)
-                    if only.get(k):
-                        e.append(v)
+                        entry_values.append(update_value)
+                        self.debug('addifexist: set %s to %s', attr, entry_values)
+                        entry.setValues(attr, entry_values)
+                elif action == 'only':
+                    self.debug("only: set %s to '%s', current value %s", attr, update_value, entry_values)
+                    if only.get(attr):
+                        entry_values.append(update_value)
                     else:
-                        e = [v]
-                        only[k] = True
-                    entry.setValues(k, e)
-                    root_logger.debug('only: updated value %s', e)
-                elif utype == 'deleteentry':
+                        entry_values = [update_value]
+                        only[attr] = True
+                    entry.setValues(attr, entry_values)
+                    self.debug('only: updated value %s', entry_values)
+                elif action == 'deleteentry':
                     # skip this update type, it occurs in  __delete_entries()
                     return None
-                elif utype == 'replace':
-                    # v has the format "old::new"
+                elif action == 'replace':
+                    # value has the format "old::new"
                     try:
-                        (old, new) = v.split('::', 1)
+                        (old, new) = update_value.split('::', 1)
                     except ValueError:
-                        raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % v
+                        raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % update_value
                     try:
-                        e.remove(old)
-                        e.append(new)
-                        root_logger.debug('replace: updated value %s', e)
-                        entry.setValues(k, e)
+                        entry_values.remove(old)
+                        entry_values.append(new)
+                        self.debug('replace: updated value %s', entry_values)
+                        entry.setValues(attr, entry_values)
                     except ValueError:
-                        root_logger.debug('replace: %s not found, skipping', old)
-
-                self.print_entity(entry)
+                        self.debug('replace: %s not found, skipping', old)
 
         return entry
 
     def print_entity(self, e, message=None):
         """The entity object currently lacks a str() method"""
-        root_logger.debug("---------------------------------------------")
+        self.debug("---------------------------------------------")
         if message:
-            root_logger.debug("%s", message)
-        root_logger.debug("dn: " + e.dn)
+            self.debug("%s", message)
+        self.debug("dn: %s", e.dn)
         attr = e.attrList()
         for a in attr:
             value = e.getValues(a)
-            if isinstance(value,str):
-                root_logger.debug(a + ": " + value)
-            else:
-                root_logger.debug(a + ": ")
+            if isinstance(value, (list, tuple)):
+                self.debug('%s:', a)
                 for l in value:
-                    root_logger.debug("\t" + l)
+                    self.debug("\t%s", l)
+            else:
+                self.debug('%s: %s', a, value)
 
     def is_schema_updated(self, s):
         """Compare the schema in 's' with the current schema in the DS to
@@ -598,48 +646,59 @@ class LDAPUpdate:
         s = s.ldap_entry()
 
         # Get a fresh copy and convert into a SubSchema
-        n = self.__get_entry("cn=schema")[0]
-        n = dict(n.data)
-        n = ldap.schema.SubSchema(n)
+        n = self._get_entry(DN(('cn', 'schema')))[0]
+
+        # Convert IPA data types back to strings
+        d = dict()
+        for k,v in n.data.items():
+            d[k] = [str(x) for x in v]
+
+        # Convert to subschema dict
+        n = ldap.schema.SubSchema(d)
         n = n.ldap_entry()
 
+        # Are they equal?
         if s == n:
             return False
         else:
             return True
 
-    def __update_record(self, update):
+    def _update_record(self, update):
         found = False
 
-        new_entry = self.__create_default_entry(update.get('dn'),
-                                                update.get('default'))
+        # If the entry is going to be deleted no point in processing it.
+        if update.has_key('deleteentry'):
+            return
+
+        new_entry = self._create_default_entry(update.get('dn'),
+                                               update.get('default'))
 
         try:
-            e = self.__get_entry(new_entry.dn)
+            e = self._get_entry(new_entry.dn)
             if len(e) > 1:
                 # we should only ever get back one entry
                 raise BadSyntax, "More than 1 entry returned on a dn search!? %s" % new_entry.dn
-            entry = self.__entry_to_entity(e[0])
+            entry = self._entry_to_entity(e[0])
             found = True
-            root_logger.info("Updating existing entry: %s", entry.dn)
+            self.info("Updating existing entry: %s", entry.dn)
         except errors.NotFound:
             # Doesn't exist, start with the default entry
             entry = new_entry
-            root_logger.info("New entry: %s", entry.dn)
+            self.info("New entry: %s", entry.dn)
         except errors.DatabaseError:
             # Doesn't exist, start with the default entry
             entry = new_entry
-            root_logger.info("New entry, using default value: %s", entry.dn)
+            self.info("New entry, using default value: %s", entry.dn)
 
-        self.print_entity(entry)
+        self.print_entity(entry, "Initial value")
 
         # Bring this entry up to date
-        entry = self.__apply_updates(update.get('updates'), entry)
+        entry = self._apply_update_disposition(update.get('updates'), entry)
         if entry is None:
             # It might be None if it is just deleting an entry
             return
 
-        self.print_entity(entry, "Final value")
+        self.print_entity(entry, "Final value after applying updates")
 
         if not found:
             # New entries get their orig_data set to the entry itself. We want to
@@ -657,47 +716,47 @@ class LDAPUpdate:
                         except errors.NotFound:
                             # parent entry of the added entry does not exist
                             # this may not be an error (e.g. entries in NIS container)
-                            root_logger.info("Parent DN of %s may not exist, cannot create the entry",
+                            self.info("Parent DN of %s may not exist, cannot create the entry",
                                     entry.dn)
                             return
                 self.modified = True
             except Exception, e:
-                root_logger.error("Add failure %s", e)
+                self.error("Add failure %s", e)
         else:
             # Update LDAP
             try:
                 updated = False
                 changes = self.conn.generateModList(entry.origDataDict(), entry.toDict())
-                if (entry.dn == "cn=schema"):
+                if (entry.dn == DN(('cn', 'schema'))):
                     updated = self.is_schema_updated(entry.toDict())
                 else:
                     if len(changes) >= 1:
                         updated = True
-                root_logger.debug("%s" % changes)
-                root_logger.debug("Live %d, updated %d" % (self.live_run, updated))
+                self.debug("%s" % changes)
+                self.debug("Live %d, updated %d" % (self.live_run, updated))
                 if self.live_run and updated:
                     self.conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
-                root_logger.info("Done")
+                self.info("Done")
             except errors.EmptyModlist:
-                root_logger.info("Entry already up-to-date")
+                self.info("Entry already up-to-date")
                 updated = False
             except errors.DatabaseError, e:
-                root_logger.error("Update failed: %s", e)
+                self.error("Update failed: %s", e)
                 updated = False
             except errors.ACIError, e:
-                root_logger.error("Update failed: %s", e)
+                self.error("Update failed: %s", e)
                 updated = False
 
-            if ("cn=index" in entry.dn and
-                "cn=userRoot" in entry.dn):
-                taskid = self.create_index_task(entry.cn)
+            if (DN(('cn', 'index')) in entry.dn and
+                DN(('cn', 'userRoot')) in entry.dn):
+                taskid = self.create_index_task(entry.getValue('cn'))
                 self.monitor_index_task(taskid)
 
             if updated:
                 self.modified = True
         return
 
-    def __delete_record(self, updates):
+    def _delete_record(self, updates):
         """
         Run through all the updates again looking for any that should be
         deleted.
@@ -706,38 +765,21 @@ class LDAPUpdate:
         considered first so we don't end up trying to delete a parent
         and child in the wrong order.
         """
+
+        if not updates.has_key('deleteentry'):
+            return
+
         dn = updates['dn']
-        deletes = updates.get('deleteentry', [])
-        for d in deletes:
-            try:
-                root_logger.info("Deleting entry %s", dn)
-                if self.live_run:
-                    self.conn.deleteEntry(dn)
-                self.modified = True
-            except errors.NotFound, e:
-                root_logger.info("%s did not exist:%s", dn, e)
-                self.modified = True
-            except errors.DatabaseError, e:
-                root_logger.error("Delete failed: %s", e)
-
-        updates = updates.get('updates', [])
-        for u in updates:
-            # We already do syntax-parsing so this is safe
-            (utype, k, values) = u.split(':',2)
-
-            if utype == 'deleteentry':
-                try:
-                    root_logger.info("Deleting entry %s", dn)
-                    if self.live_run:
-                        self.conn.deleteEntry(dn)
-                    self.modified = True
-                except errors.NotFound, e:
-                    root_logger.info("%s did not exist:%s", dn, e)
-                    self.modified = True
-                except errors.DatabaseError, e:
-                    root_logger.error("Delete failed: %s", e)
-
-        return
+        try:
+            self.info("Deleting entry %s", dn)
+            if self.live_run:
+                self.conn.deleteEntry(dn)
+            self.modified = True
+        except errors.NotFound, e:
+            self.info("%s did not exist:%s", dn, e)
+            self.modified = True
+        except errors.DatabaseError, e:
+            self.error("Delete failed: %s", e)
 
     def get_all_files(self, root, recursive=False):
         """Get all update files"""
@@ -761,7 +803,7 @@ class LDAPUpdate:
                                             realm=self.realm)
             try:
                 if self.dm_password:
-                    self.conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
+                    self.conn.do_simple_bind(binddn=DN(('cn', 'directory manager')), bindpw=self.dm_password)
                 elif os.getegid() == 0:
                     try:
                         # autobind
@@ -776,19 +818,28 @@ class LDAPUpdate:
         else:
             raise RuntimeError("Offline updates are not supported.")
 
-    def __run_updates(self, dn_list, all_updates):
+    def _run_updates(self, all_updates):
         # For adds and updates we want to apply updates from shortest
         # to greatest length of the DN. For deletes we want the reverse.
-        sortedkeys = dn_list.keys()
+
+        dn_by_rdn_count = {}
+        for dn in all_updates.keys():
+            assert isinstance(dn, DN)
+            rdn_count = len(dn)
+            rdn_count_list = dn_by_rdn_count.setdefault(rdn_count, [])
+            if dn not in rdn_count_list:
+                rdn_count_list.append(dn)
+
+        sortedkeys = dn_by_rdn_count.keys()
         sortedkeys.sort()
-        for k in sortedkeys:
-            for dn in dn_list[k]:
-                self.__update_record(all_updates[dn])
+        for rdn_count in sortedkeys:
+            for dn in dn_by_rdn_count[rdn_count]:
+                self._update_record(all_updates[dn])
 
         sortedkeys.reverse()
-        for k in sortedkeys:
-            for dn in dn_list[k]:
-                self.__delete_record(all_updates[dn])
+        for rdn_count in sortedkeys:
+            for dn in dn_by_rdn_count[rdn_count]:
+                self._delete_record(all_updates[dn])
 
     def update(self, files):
         """Execute the update. files is a list of the update files to use.
@@ -796,71 +847,46 @@ class LDAPUpdate:
            returns True if anything was changed, otherwise False
         """
 
-        updates = None
+        all_updates = {}
         if self.plugins:
-            root_logger.info('PRE_UPDATE')
+            self.info('PRE_UPDATE')
             updates = api.Backend.updateclient.update(PRE_UPDATE, self.dm_password, self.ldapi, self.live_run)
-
+            self.merge_updates(all_updates, updates)
         try:
             self.create_connection()
-            all_updates = {}
-            dn_list = {}
-            # Start with any updates passed in from pre-update plugins
-            if updates:
-                for entry in updates:
-                    all_updates.update(entry)
-                for upd in updates:
-                    for dn in upd:
-                        dn_explode = ldap.explode_dn(dn.lower())
-                        l = len(dn_explode)
-                        if dn_list.get(l):
-                            if dn not in dn_list[l]:
-                                dn_list[l].append(dn)
-                        else:
-                            dn_list[l] = [dn]
 
             for f in files:
                 try:
-                    root_logger.info("Parsing file %s" % f)
+                    self.info("Parsing update file '%s'" % f)
                     data = self.read_file(f)
                 except Exception, e:
-                    print e
+                    self.error("error reading update file '%s'", f)
                     sys.exit(e)
 
-                (all_updates, dn_list) = self.parse_update_file(data, all_updates, dn_list)
+                self.parse_update_file(f, data, all_updates)
 
-            self.__run_updates(dn_list, all_updates)
+            self._run_updates(all_updates)
         finally:
             if self.conn: self.conn.unbind()
 
         if self.plugins:
-            root_logger.info('POST_UPDATE')
+            self.info('POST_UPDATE')
+            all_updates = {}
             updates = api.Backend.updateclient.update(POST_UPDATE, self.dm_password, self.ldapi, self.live_run)
-            dn_list = {}
-            for upd in updates:
-                for dn in upd:
-                    dn_explode = ldap.explode_dn(dn.lower())
-                    l = len(dn_explode)
-                    if dn_list.get(l):
-                        if dn not in dn_list[l]:
-                            dn_list[l].append(dn)
-                    else:
-                        dn_list[l] = [dn]
-            self.__run_updates(dn_list, updates)
+            self.merge_updates(all_updates, updates)
+            self._run_updates(all_updates)
 
         return self.modified
 
 
-    def update_from_dict(self, dn_list, updates):
+    def update_from_dict(self, updates):
         """
         Apply updates internally as opposed to from a file.
-
-        dn_list is a list of dns to be updated
         updates is a dictionary containing the updates
         """
         if not self.conn:
             self.create_connection()
 
-        self.__run_updates(dn_list, updates)
+        self._run_updates(updates)
 
         return self.modified
