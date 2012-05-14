@@ -314,6 +314,14 @@ IPA.service_provisioning_status_widget = function (spec) {
             }
         });
 
+        dialog.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                dialog.close();
+            }
+        });
+
         dialog.open(that.container);
 
         return false;
