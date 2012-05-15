@@ -26,6 +26,10 @@
 
 #include <passdb.h>
 
+#include <sasl/sasl.h>
+#include <krb5/krb5.h>
+#include <time.h>
+
 /* TODO: remove if smbrunsecret() is removed */
 typedef struct connection_structi {} connection_struct;
 struct current_user {
@@ -600,7 +604,6 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 
 		*gid = strtoul(gid_str, NULL, 10);
 		*type = SID_NAME_DOM_GRP;
-		store_gid_sid_cache(sid, *gid);
 		ret = true;
 		goto done;
 	}
@@ -617,7 +620,6 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 
 	*uid = strtoul(value, NULL, 10);
 	*type = SID_NAME_USER;
-	store_uid_sid_cache(sid, *uid);
 
 	ret = true;
  done:
@@ -683,8 +685,6 @@ static bool ldapsam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 
 	sid_copy(sid, &user_sid);
 
-	store_uid_sid_cache(sid, uid);
-
 	ret = true;
 
  done:
@@ -747,8 +747,6 @@ static bool ldapsam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 	}
 
 	sid_copy(sid, &group_sid);
-
-	store_gid_sid_cache(sid, gid);
 
 	ret = true;
 
@@ -3048,6 +3046,115 @@ done:
 	return status;
 }
 
+struct ipasam_sasl_interact_priv {
+	krb5_context context;
+	krb5_principal principal;
+	krb5_keytab keytab;
+	krb5_get_init_creds_opt *options;
+	krb5_creds creds;
+	krb5_ccache ccache;
+	const char *name;
+	int name_len;
+};
+
+static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
+{
+	sasl_interact_t *in = NULL;
+	int ret = LDAP_OTHER;
+	struct ipasam_sasl_interact_priv *data = (struct ipasam_sasl_interact_priv*) priv_data;
+	krb5_context krbctx;
+	char *outname = NULL;
+	krb5_error_code krberr;
+
+	if (!ld) return LDAP_PARAM_ERROR;
+
+	for (in = sit; in && in->id != SASL_CB_LIST_END; in++) {
+		switch(in->id) {
+		case SASL_CB_USER:
+			in->result = data->name;
+			in->len = data->name_len;
+			ret = LDAP_SUCCESS;
+			break;
+		case SASL_CB_GETREALM:
+			in->result = data->principal->realm.data;
+			in->len = data->principal->realm.length;
+			ret = LDAP_SUCCESS;
+			break;
+		default:
+			in->result = NULL;
+			in->len = 0;
+			ret = LDAP_OTHER;
+		}
+	}
+	return ret;
+}
+
+extern const char *lp_parm_const_string(int snum, const char *type, const char *option, const char *def);
+extern void become_root();
+extern void unbecome_root();
+static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state)
+{
+	char *ccache_name = NULL;
+	krb5_error_code rc;
+
+	struct ipasam_sasl_interact_priv data;
+	int ret;
+
+	data.name = lp_parm_const_string(-1, "ipasam", "principal", NULL);
+	if (data.name == NULL) {
+		DEBUG(0, ("bind_callback: ipasam:principal is not set, cannot use GSSAPI bind\n"));
+		return LDAP_LOCAL_ERROR;
+	}
+
+	/*
+	 * In order to modify the ccache we need to wrap in become/unbecome root here
+	 */
+	become_root();
+	data.name_len = strlen(data.name);
+
+	rc = krb5_init_context(&data.context);
+
+	rc = krb5_parse_name(data.context, data.name, &data.principal);
+	DEBUG(0,("principal is %p (%d)\n", (void*) data.principal, rc));
+
+	rc = krb5_cc_default(data.context, &data.ccache);
+
+	rc = krb5_cc_initialize(data.context, data.ccache, data.principal);
+
+	rc = krb5_cc_get_full_name(data.context, data.ccache, &ccache_name);
+	rc = krb5_cc_set_default_name(data.context,  ccache_name);
+	DEBUG(0, ("default ccache is %s\n", krb5_cc_default_name(data.context)));
+
+	rc = krb5_kt_resolve(data.context, "FILE:/etc/samba/samba.keytab", &data.keytab);
+	DEBUG(0,("keytab is %p (%d)\n", (void*) data.keytab, rc));
+
+	rc = krb5_get_init_creds_opt_alloc(data.context, &data.options);
+	DEBUG(0,("options are %p (%d)\n", (void*) data.options, rc));
+
+	rc = krb5_get_init_creds_opt_set_out_ccache(data.context, data.options, data.ccache);
+	DEBUG(0,("options are using the ccache (%d)\n", rc));
+
+	rc = krb5_get_init_creds_keytab(data.context, &data.creds, data.principal, data.keytab, 
+					0, NULL, data.options);
+	DEBUG(0,("creds uses keytab (%d)\n", rc));
+
+	ret = ldap_sasl_interactive_bind_s(ldap_struct,
+					   NULL, "GSSAPI",
+					   NULL, NULL,
+					   LDAP_SASL_QUIET,
+					   ldap_sasl_interact, &data);
+	if (ret != LDAP_SUCCESS) {
+		DEBUG(0, ("bind_callback: cannot perform interactive SASL bind with GSSAPI\n"));
+	}
+
+	krb5_get_init_creds_opt_free(data.context, data.options);
+	krb5_kt_close(data.context, data.keytab);
+	krb5_cc_close(data.context, data.ccache);
+	krb5_free_context(data.context);
+	unbecome_root();
+	return ret;
+}
+
 static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				const char *location)
 {
@@ -3060,6 +3167,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	struct dom_sid ldap_domain_sid;
 	char *bind_dn = NULL;
 	char *bind_secret = NULL;
+	const char *service_principal = NULL;
 
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
@@ -3088,13 +3196,27 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		return NT_STATUS_NO_MEMORY;
 	}
 	trim_char( uri, '\"', '\"' );
-	if (!fetch_ldap_pw(&bind_dn, &bind_secret)) {
-		DEBUG(0, ("pdb_init_ipasam: Failed to retrieve LDAP password from secrets.tdb\n"));
-		return NT_STATUS_NO_MEMORY;
-	}
-	status = smbldap_init(*pdb_method, pdb_get_tevent_context(),
+
+	service_principal = lp_parm_const_string(-1, "ipasam", "principal", NULL);
+
+	if (service_principal == NULL) {
+		if (!fetch_ldap_pw(&bind_dn, &bind_secret)) {
+			DEBUG(0, ("pdb_init_ipasam: Failed to retrieve LDAP password from secrets.tdb\n"));
+			return NT_STATUS_NO_MEMORY;
+		}
+		status = smbldap_init(*pdb_method, pdb_get_tevent_context(),
 			      uri, false, bind_dn, bind_secret,
 			      &ldap_state->smbldap_state);
+	} else {
+		/* We authenticate via GSSAPI and thus will use kerberos principal to bind our access */
+		status = smbldap_init(*pdb_method, pdb_get_tevent_context(),
+			      uri, false, NULL, NULL,
+			      &ldap_state->smbldap_state);
+		if (NT_STATUS_IS_OK(status)) {
+			ldap_state->smbldap_state->bind_callback = bind_callback;
+		}
+	}
+
 	talloc_free(uri);
 	if (!NT_STATUS_IS_OK(status)) {
 		return status;

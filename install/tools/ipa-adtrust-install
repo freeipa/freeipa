@@ -224,13 +224,16 @@ def main():
     print "\t\t  * 389: (C)LDAP"
     print "\t\t  * 445: microsoft-ds"
     print ""
-    print "\tAdditionally you have to make sure the FreeIPA LDAP server cannot reached"
+    print "\tAdditionally you have to make sure the FreeIPA LDAP server cannot be reached"
     print "\tby any domain controller in the Active Directory domain by closing the"
     print "\tfollowing ports for these servers:"
     print "\t\tTCP Ports:"
     print "\t\t  * 389, 636: LDAP/LDAPS"
     print "\tYou may want to choose to REJECT the network packets instead of DROPing them"
     print "\tto avoid timeouts on the AD domain controllers."
+    print ""
+    print "\tWARNING: you MUST re-kinit admin user before using 'ipa trust-*' commands family"
+    print "\tin order to re-generate Kerberos tickets to include AD-specific information"
 
     return 0
 

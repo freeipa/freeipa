@@ -103,6 +103,8 @@ class ADTRUSTInstance(service.Service):
         self.trust_dn = None
         self.smb_dom_dn = None
         self.sub_dict = None
+        self.cifs_principal = None
+        self.cifs_agent = None
 
         service.Service.__init__(self, "smb", dm_password=dm_password)
 
@@ -110,55 +112,6 @@ class ADTRUSTInstance(service.Service):
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
-
-    def __create_samba_user(self):
-        print "The user for Samba is %s" % self.smb_dn
-        try:
-            self.admin_conn.getEntry(self.smb_dn, ldap.SCOPE_BASE)
-            root_logger.info("Samba user entry exists, resetting password")
-
-            self.admin_conn.modify_s(self.smb_dn, \
-                          [(ldap.MOD_REPLACE, "userPassword", self.smb_dn_pwd)])
-            return
-
-        except errors.NotFound:
-            pass
-
-        # The user doesn't exist, add it
-        entry = ipaldap.Entry(self.smb_dn)
-        entry.setValues("objectclass", ["account", "simplesecurityobject"])
-        entry.setValues("uid", "samba")
-        entry.setValues("userPassword", self.smb_dn_pwd)
-        self.admin_conn.addEntry(entry)
-
-        # And finally grant it permission to read NT passwords, we do not want
-        # to support LM passwords so there is no need to allow access to them.
-        # Also the premission to create trusted domain objects below the
-        # domain object is granted.
-        mod = [(ldap.MOD_ADD, 'aci',
-            str('(targetattr = "ipaNTHash")' \
-                '(version 3.0; acl "Samba user can read NT passwords";' \
-                'allow (read) userdn="ldap:///%s";)' % self.smb_dn)),
-               (ldap.MOD_ADD, 'aci',
-            str('(target = "ldap:///cn=ad,cn=trusts,%s")' \
-                '(targetattr = "ipaNTTrustType || ipaNTTrustAttributes || ' \
-                               'ipaNTTrustDirection || ' \
-                               'ipaNTTrustPartner || ipaNTFlatName || ' \
-                               'ipaNTTrustAuthOutgoing || ' \
-                               'ipaNTTrustAuthIncoming || ' \
-                               'ipaNTSecurityIdentifier || ' \
-                               'ipaNTTrustForestTrustInfo || ' \
-                               'ipaNTTrustPosixOffset || ' \
-                               'ipaNTSupportedEncryptionTypes")' \
-                '(version 3.0;acl "Allow samba user to create and delete ' \
-                                  'trust accounts";' \
-                'allow (write,add,delete) userdn = "ldap:///%s";)' % \
-                 (self.suffix, self.smb_dn)))]
-
-        try:
-            self.admin_conn.modify_s(self.suffix, mod)
-        except ldap.TYPE_OR_VALUE_EXISTS:
-            root_logger.debug("samba user aci already exists in suffix %s on %s" % (self.suffix, self.admin_conn.host))
 
     def __gen_sid_string(self):
         sub_ids = struct.unpack("<LLL", os.urandom(12))
@@ -275,17 +228,18 @@ class ADTRUSTInstance(service.Service):
         finally:
             os.remove(tmp_name)
 
-    def __set_smb_ldap_password(self):
-        args = ["/usr/bin/smbpasswd", "-c", self.smb_conf, "-s", "-W" ]
-
-        ipautil.run(args, stdin = self.smb_dn_pwd + "\n" + \
-                                  self.smb_dn_pwd + "\n" )
-
     def __setup_principal(self):
-        cifs_principal = "cifs/" + self.fqdn + "@" + self.realm_name
-
         try:
-            api.Command.service_add(unicode(cifs_principal))
+            api.Command.service_add(unicode(self.cifs_principal))
+            # Add the principal to the 'adtrust agents' group
+            # as 389-ds only operates with GroupOfNames, we have to use
+            # the principal's proper dn as defined in self.cifs_agent
+            entry = self.admin_conn.getEntry(self.smb_dn, ldap.SCOPE_BASE)
+            current = ipaldap.Entry(self.smb_dn, entry.toDict())
+            if not('member' in current):
+                current['member'] = []
+            entry.setValues("member", current['member'] + [self.cifs_agent])
+            self.admin_conn.updateEntry(self.smb_dn, current, entry)
         except Exception, e:
             # CIFS principal already exists, it is not the first time adtrustinstance is managed
             # That's fine, we we'll re-extract the key again.
@@ -294,18 +248,18 @@ class ADTRUSTInstance(service.Service):
         samba_keytab = "/etc/samba/samba.keytab"
         if os.path.exists(samba_keytab):
             try:
-                ipautil.run(["ipa-rmkeytab", "--principal", cifs_principal,
+                ipautil.run(["ipa-rmkeytab", "--principal", self.cifs_principal,
                                          "-k", samba_keytab])
             except ipautil.CalledProcessError, e:
                 if e.returncode != 5:
-                    root_logger.critical("Failed to remove old key for %s" % cifs_principal)
+                    root_logger.critical("Failed to remove old key for %s" % self.cifs_principal)
 
         try:
             ipautil.run(["ipa-getkeytab", "--server", self.fqdn,
-                                          "--principal", cifs_principal,
+                                          "--principal", self.cifs_principal,
                                           "-k", samba_keytab])
         except ipautil.CalledProcessError, e:
-            root_logger.critical("Failed to add key for %s" % cifs_principal)
+            root_logger.critical("Failed to add key for %s" % self.cifs_principal)
 
     def __add_dns_service_records(self):
         """
@@ -393,7 +347,8 @@ class ADTRUSTInstance(service.Service):
                              SUFFIX = self.suffix,
                              NETBIOS_NAME = self.netbios_name,
                              SMB_DN = self.smb_dn,
-                             LDAPI_SOCKET = self.ldapi_socket)
+                             LDAPI_SOCKET = self.ldapi_socket,
+                             FQDN = self.fqdn)
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, netbios_name,
               no_msdcs=False, smbd_user="samba"):
@@ -410,12 +365,14 @@ class ADTRUSTInstance(service.Service):
 
         self.smb_conf = "/etc/samba/smb.conf"
 
-        self.smb_dn = "uid=samba,cn=sysaccounts,cn=etc,%s" % self.suffix
-        self.smb_dn_pwd = ipautil.ipa_generate_password()
+        self.smb_dn = "cn=adtrust agents,cn=sysaccounts,cn=etc,%s" % self.suffix
 
         self.trust_dn = "cn=trusts,%s" % self.suffix
         self.smb_dom_dn = "cn=%s,cn=ad,cn=etc,%s" % (self.domain_name, \
                                                      self.suffix)
+        self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm_name
+        self.cifs_agent = "krbprincipalname=%s,cn=services,cn=accounts,%s" % \
+                          (self.cifs_principal.lower(), self.suffix)
 
         self.__setup_sub_dict()
 
@@ -425,13 +382,10 @@ class ADTRUSTInstance(service.Service):
         self.ldap_connect()
 
         self.step("stopping smbd", self.__stop)
-        self.step("creating samba user", self.__create_samba_user)
         self.step("creating samba domain object", \
                   self.__create_samba_domain_object)
         self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
-        self.step("setting password for the samba user", \
-                  self.__set_smb_ldap_password)
         self.step("adding cifs Kerberos principal", self.__setup_principal)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
         self.step("activating CLDAP plugin", self.__add_cldap_module)

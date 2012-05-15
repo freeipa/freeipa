@@ -24,3 +24,39 @@ add:objectClasses: (2.16.840.1.113730.3.8.12.4 NAME 'ipaNTDomainAttrs' SUP top A
 replace:objectClasses: (2.16.840.1.113730.3.8.12.5 NAME 'ipaNTTrustedDomain' SUP top STRUCTURAL DESC 'Trusted Domain Object' MUST ( cn ) MAY ( ipaNTTrustType $$ ipaNTTrustAttributes $$ ipaNTTrustDirection $$ ipaNTTrustPartner $$ ipaNTFlatName $$ ipaNTTrustAuthOutgoing $$ ipaNTTrustAuthIncoming $$ ipaNTSecurityIdentifier $$ ipaNTTrustForestTrustInfo $$ ipaNTTrustPosixOffset $$ ipaNTSupportedEncryptionTypes) )::objectClasses: (2.16.840.1.113730.3.8.12.5 NAME 'ipaNTTrustedDomain' SUP top STRUCTURAL DESC 'Trusted Domain Object' MUST ( cn ) MAY ( ipaNTTrustType $$ ipaNTTrustAttributes $$ ipaNTTrustDirection $$ ipaNTTrustPartner $$ ipaNTFlatName $$ ipaNTTrustAuthOutgoing $$ ipaNTTrustAuthIncoming $$ ipaNTTrustedDomainSID $$ ipaNTTrustForestTrustInfo $$ ipaNTTrustPosixOffset $$ ipaNTSupportedEncryptionTypes) )
 add:objectClasses: (2.16.840.1.113730.3.8.12.5 NAME 'ipaNTTrustedDomain' SUP top STRUCTURAL DESC 'Trusted Domain Object' MUST ( cn ) MAY ( ipaNTTrustType $$ ipaNTTrustAttributes $$ ipaNTTrustDirection $$ ipaNTTrustPartner $$ ipaNTFlatName $$ ipaNTTrustAuthOutgoing $$ ipaNTTrustAuthIncoming $$ ipaNTTrustedDomainSID $$ ipaNTTrustForestTrustInfo $$ ipaNTTrustPosixOffset $$ ipaNTSupportedEncryptionTypes) )
 
+dn: cn=trust admins,cn=groups,cn=accounts,$SUFFIX
+default: objectClass: top
+default: objectClass: groupofnames
+default: objectClass: ipausergroup
+default: objectClass: nestedgroup
+default: objectClass: ipaobject
+default: cn: trust admins
+default: description: Trusts administrators group
+default: member: uid=admin,cn=users,cn=accounts,$SUFFIX
+default: nsAccountLock: FALSE
+default: ipaUniqueID: autogenerate
+
+dn: cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX
+default: objectClass: GroupOfNames
+default: objectClass: top
+default: cn: adtrust agents
+default: member: krbprincipalname=cifs/$FQDN@$REALM,cn=services,cn=accounts,$SUFFIX
+
+dn: cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX
+add: member: krbprincipalname=cifs/$FQDN@$REALM,cn=services,cn=accounts,$SUFFIX
+
+dn: cn=trusts,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: trusts
+
+# Trust management
+# 1. cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX can manage trusts, to allow modification via CIFS
+# 2. cn=trust admins,cn=groups,cn=accounts,$SUFFIX can manage trusts (via ipa tools)
+dn: cn=trusts,$SUFFIX
+add:aci: '(target = "ldap:///cn=trusts,$SUFFIX")(targetattr = "ipaNTTrustType || ipaNTTrustAttributes || ipaNTTrustDirection || ipaNTTrustPartner || ipaNTFlatName || ipaNTTrustAuthOutgoing || ipaNTTrustAuthIncoming || ipaNTSecurityIdentifier || ipaNTTrustForestTrustInfo || ipaNTTrustPosixOffset || ipaNTSupportedEncryptionTypes")(version 3.0;acl "Allow trust system user to create and delete trust accounts"; allow (read,write,add,delete) groupdn="ldap:///cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=trusts,$SUFFIX")(targetattr = "ipaNTTrustType || ipaNTTrustAttributes || ipaNTTrustDirection || ipaNTTrustPartner || ipaNTFlatName || ipaNTTrustAuthOutgoing || ipaNTTrustAuthIncoming || ipaNTSecurityIdentifier || ipaNTTrustForestTrustInfo || ipaNTTrustPosixOffset || ipaNTSupportedEncryptionTypes")(version 3.0;acl "Allow trust admins manage trust accounts"; allow (read,write,add,delete) groupdn="ldap:///cn=trust admins,cn=groups,cn=accounts,$SUFFIX";)'
+
+# Samba user should be able to read NT passwords to authenticate
+dn: $SUFFIX
+add:aci: '(targetattr = "ipaNTHash")(version 3.0; acl "Samba system principals can read NT passwords"; allow (read) groupdn="ldap:///cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX";)'
