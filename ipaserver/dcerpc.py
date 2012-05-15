@@ -28,7 +28,7 @@ from ipalib.parameters import Enum
 from ipalib import Command
 from ipalib import errors
 from ipapython import ipautil
-from ipalib import util
+from ipaserver.install import installutils
 
 import os, string, struct, copy
 import uuid
@@ -269,7 +269,7 @@ class TrustDomainJoins(object):
         ld.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
         ld.creds.guess(ld.parm)
         ld.creds.set_workstation(ld.hostname)
-        ld.retrieve(util.get_fqdn())
+        ld.retrieve(installutils.get_fqdn())
         self.local_domain = ld
 
     def __populate_remote_domain(self, realm, realm_server=None, realm_admin=None, realm_passwd=None):
