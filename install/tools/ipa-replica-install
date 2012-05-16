@@ -30,7 +30,7 @@ from ipapython import ipautil
 from ipaserver.install import dsinstance, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
 from ipaserver.install import memcacheinstance
-from ipaserver.install.replication import replica_conn_check
+from ipaserver.install.replication import replica_conn_check, ReplicationManager
 from ipaserver.install.installutils import HostnameLocalhost, resolve_host
 from ipaserver.install.installutils import ReplicaConfig, expand_replica_info, read_replica_info
 from ipaserver.install.installutils import get_host_name, BadHostError
@@ -401,21 +401,35 @@ def main():
         conn.connect(bind_dn='cn=directory manager',
                      bind_pw=config.dirman_password,
                      tls_cacertfile=CACERT)
+        replman = ReplicationManager(config.realm_name, config.master_host_name,
+                                     config.dirman_password)
+        found = False
         try:
             entry = conn.find_entries(u'fqdn=%s' % host, ['dn', 'fqdn'], u'%s,%s' % (api.env.container_host, api.env.basedn))
-            print "The host %s already exists on the master server. Depending on your configuration, you may perform the following:\n" % host
-            print "Remove the replication agreement, if any:"
-            print "    %% ipa-replica-manage del %s" % host
-            print "Remove the host entry:"
+            print "The host %s already exists on the master server.\nYou should remove it before proceeding:" % host
             print "    %% ipa host-del %s" % host
-            sys.exit(3)
+            found = True
         except errors.NotFound:
             pass
-        conn.disconnect()
+        try:
+            (agreement_cn, agreement_dn) = replman.agreement_dn(host)
+            entry = conn.get_entry(agreement_dn, ['*'])
+            print "A replication agreement for this host already exists. It needs to be removed. Run this on the master that generated the info file:"
+            print "    %% ipa-replica-manage del %s --force" % host
+            found = True
+        except errors.NotFound:
+            pass
+        if found:
+            sys.exit(3)
     except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
     except errors.LDAPError:
         sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
+    finally:
+        if conn and conn.isconnected():
+            conn.disconnect()
+        if replman and replman.conn:
+            replman.conn.unbind_s()
 
     # Configure ntpd
     if options.conf_ntp:
