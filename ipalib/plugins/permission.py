@@ -133,38 +133,38 @@ class permission(LDAPObject):
             doc=_('Comma-separated list of attributes'),
             csv=True,
             normalizer=lambda value: value.lower(),
-            flags=('ask_create', 'ask_update'),
+            flags=('ask_create'),
         ),
         StrEnum('type?',
             cli_name='type',
             label=_('Type'),
             doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
             values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dnsrecord',),
-            flags=('ask_create', 'ask_update'),
+            flags=('ask_create'),
         ),
         Str('memberof?',
             cli_name='memberof',
             label=_('Member of group'),  # FIXME: Does this label make sense?
             doc=_('Target members of a group'),
-            flags=('ask_create', 'ask_update'),
+            flags=('ask_create'),
         ),
         Str('filter?',
             cli_name='filter',
             label=_('Filter'),
             doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
-            flags=('ask_create', 'ask_update'),
+            flags=('ask_create'),
         ),
         Str('subtree?',
             cli_name='subtree',
             label=_('Subtree'),
             doc=_('Subtree to apply permissions to'),
-            flags=('ask_create', 'ask_update'),
+            flags=('ask_create'),
         ),
         Str('targetgroup?',
             cli_name='targetgroup',
             label=_('Target group'),
             doc=_('User group to apply permissions to'),
-            flags=('ask_create', 'ask_update'),
+            flags=('ask_create'),
         ),
     )
 
@@ -314,14 +314,7 @@ class permission_mod(LDAPUpdate):
         if call_func.func_name == 'update_entry':
             if isinstance(exc, errors.EmptyModlist):
                 aciupdate = getattr(context, 'aciupdate')
-                opts = copy.copy(options)
-                # Clear the aci attributes out of the permission entry
-                for o in self.obj.aci_attributes + ['all', 'raw', 'rights']:
-                    try:
-                        del opts[o]
-                    except:
-                        pass
-                if len(opts) == 0 or aciupdate:
+                if aciupdate:
                     return
         raise exc
 
