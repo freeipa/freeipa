@@ -574,7 +574,10 @@ def get_server_ip_address(host_name, fstore, unattended, options):
             else:
                 ip = read_ip_address(host_name, fstore)
     elif len(hostaddr) == 1:
-        ip = ipautil.CheckedIPAddress(hostaddr[0], match_local=True)
+        try:
+            ip = ipautil.CheckedIPAddress(hostaddr[0], match_local=True)
+        except ValueError, e:
+            sys.exit("Invalid IP Address %s for %s: %s" % (hostaddr[0], host_name, unicode(e)))
     else:
         # hostname is not resolvable
         ip = options.ip_address
