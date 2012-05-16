@@ -4,7 +4,6 @@ SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 			-lcliauth		\
 			-lpdb			\
 			-lsecurity		\
-			-lutil_str		\
 			-lsmbconf		\
 			$(NULL)
 

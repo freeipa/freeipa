@@ -528,8 +528,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 
 static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 			      const struct dom_sid *sid,
-			      uid_t *uid, gid_t *gid,
-			      enum lsa_SidType *type)
+			      struct unixid *id)
 {
 	struct ldapsam_privates *priv =
 		(struct ldapsam_privates *)methods->private_data;
@@ -602,8 +601,7 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 			goto done;
 		}
 
-		*gid = strtoul(gid_str, NULL, 10);
-		*type = SID_NAME_DOM_GRP;
+		unixid_from_gid(id, strtoul(gid_str, NULL, 10));
 		ret = true;
 		goto done;
 	}
@@ -618,8 +616,7 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 		goto done;
 	}
 
-	*uid = strtoul(value, NULL, 10);
-	*type = SID_NAME_USER;
+	unixid_from_uid(id, strtoul(value, NULL, 10));
 
 	ret = true;
  done:
@@ -3106,16 +3103,11 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state)
 		return LDAP_LOCAL_ERROR;
 	}
 
-	/*
-	 * In order to modify the ccache we need to wrap in become/unbecome root here
-	 */
-	become_root();
 	data.name_len = strlen(data.name);
 
 	rc = krb5_init_context(&data.context);
 
 	rc = krb5_parse_name(data.context, data.name, &data.principal);
-	DEBUG(0,("principal is %p (%d)\n", (void*) data.principal, rc));
 
 	rc = krb5_cc_default(data.context, &data.ccache);
 
@@ -3123,20 +3115,15 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state)
 
 	rc = krb5_cc_get_full_name(data.context, data.ccache, &ccache_name);
 	rc = krb5_cc_set_default_name(data.context,  ccache_name);
-	DEBUG(0, ("default ccache is %s\n", krb5_cc_default_name(data.context)));
 
 	rc = krb5_kt_resolve(data.context, "FILE:/etc/samba/samba.keytab", &data.keytab);
-	DEBUG(0,("keytab is %p (%d)\n", (void*) data.keytab, rc));
 
 	rc = krb5_get_init_creds_opt_alloc(data.context, &data.options);
-	DEBUG(0,("options are %p (%d)\n", (void*) data.options, rc));
 
 	rc = krb5_get_init_creds_opt_set_out_ccache(data.context, data.options, data.ccache);
-	DEBUG(0,("options are using the ccache (%d)\n", rc));
 
 	rc = krb5_get_init_creds_keytab(data.context, &data.creds, data.principal, data.keytab, 
 					0, NULL, data.options);
-	DEBUG(0,("creds uses keytab (%d)\n", rc));
 
 	ret = ldap_sasl_interactive_bind_s(ldap_struct,
 					   NULL, "GSSAPI",
@@ -3151,7 +3138,6 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state)
 	krb5_kt_close(data.context, data.keytab);
 	krb5_cc_close(data.context, data.ccache);
 	krb5_free_context(data.context);
-	unbecome_root();
 	return ret;
 }
 
