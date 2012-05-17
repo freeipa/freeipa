@@ -978,6 +978,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     Slapi_Value *objectclass;
     int method; /* authentication method */
     int ret = 0;
+    char *principal = NULL;
 
     LOG_TRACE("=>\n");
 
@@ -1118,9 +1119,19 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         goto done;
     }
 
+    /* we need to make sure the ExtraData is set, otherwise kadmin
+     * will not like the object */
+    principal = slapi_entry_attr_get_charptr(entry, "krbPrincipalName");
+    if (!principal) {
+        LOG_OOM();
+        goto done;
+    }
+    ipapwd_set_extradata(pwdata.dn, principal, pwdata.timeNow);
+
     LOG("kerberos key generated for user entry: %s\n", dn);
 
 done:
+    slapi_ch_free_string(&principal);
     slapi_ch_free_string(&expire);
     if (entry)
         slapi_entry_free(entry);
