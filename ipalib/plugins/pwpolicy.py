@@ -459,34 +459,36 @@ class pwpolicy_find(LDAPSearch):
     # this command does custom sorting in post_callback
     sort_result_entries = False
 
-    def sort_priority(self,x,y):
+    def priority_sort_key(self, entry):
+        """Key for sorting password policies
+
+        returns a pair: (is_global, priority)
+        """
         # global policy will be always last in the output
-        if x[1]['cn'][0] == global_policy_name:
-            return 1
-        elif y[1]['cn'][0] == global_policy_name:
-            return -1
+        if entry[1]['cn'][0] == global_policy_name:
+            return True, 0
         else:
-            # policies with higher priority will be at the beginning of the list
+            # policies with higher priority (lower number) will be at the
+            # beginning of the list
             try:
-                x =  cmp(int(x[1]['cospriority'][0]), int(y[1]['cospriority'][0]))
+                cospriority = entry[1]['cospriority'][0]
             except KeyError:
                 # if cospriority is not present in the entry, rather return 0
                 # than crash
-                x = 0
-            return x
+                cospriority = 0
+            return False, cospriority
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for e in entries:
-            # attribute rights are not allowed for pwpolicy_find
+            # When pkey_only flag is on, entries should contain only a cn.
+            # Add a cospriority attribute that will be used for sorting.
+            # Attribute rights are not allowed for pwpolicy_find.
             self.obj.add_cospriority(e[1], e[1]['cn'][0], rights=False)
-            if options.get('pkey_only', False):
-                # when pkey_only flag is on, entries should contain only a cn
-                # and a cospriority attribute that will be used for sorting
-                # When the entries are sorted, cosentry is removed
-                self.obj.convert_time_for_output(e[1], **options)
+
+            self.obj.convert_time_for_output(e[1], **options)
 
         # do custom entry sorting by its cospriority
-        entries.sort(self.sort_priority)
+        entries.sort(key=self.priority_sort_key)
 
         if options.get('pkey_only', False):
             # remove cospriority that was used for sorting
@@ -497,4 +499,3 @@ class pwpolicy_find(LDAPSearch):
                     pass
 
 api.register(pwpolicy_find)
-

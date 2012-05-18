@@ -180,6 +180,21 @@ class test_pwpolicy(XMLRPC_test):
         assert_attr_equal(entry, 'cospriority', '3')
 
     def test_c_pwpolicy_find(self):
+        """Test that password policies are sorted and reported properly"""
+        result = api.Command['pwpolicy_find']()['result']
+        assert len(result) == 4
+        assert result[0]['cn'] == (self.group,)
+        assert result[1]['cn'] == (self.group2,)
+        assert result[2]['cn'] == (self.group3,)
+        assert result[3]['cn'] == ('global_policy',)
+
+        # Test that returned values match the arguments
+        # Only test the second and third results; the first one was modified
+        for entry, expected in (result[1], self.kw2), (result[2], self.kw3):
+            for name, value in expected.iteritems():
+                assert_attr_equal(entry, name, str(value))
+
+    def test_c_pwpolicy_find_pkey_only(self):
         """Test that password policies are sorted properly with --pkey-only"""
         result = api.Command['pwpolicy_find'](pkey_only=True)['result']
         assert len(result) == 4
@@ -225,4 +240,3 @@ class test_pwpolicy(XMLRPC_test):
 
         # Remove the user we created
         api.Command['user_del'](self.user)
-
