@@ -518,6 +518,59 @@ class ReplicationManager(object):
     def needs_memberof_fixup(self):
         return self.need_memberof_fixup
 
+    def get_replica_principal_dns(self, a, b, retries):
+        """
+        Get the DNs of the ldap principals we are going to convert
+        to using GSSAPI replication.
+
+        Arguments a and b are LDAP connections. retries is the number
+        of attempts that should be made to find the entries. It could
+        be that replication is slow.
+
+        If successful this returns a tuple (dn_a, dn_b).
+
+        If either of the DNs doesn't exist after the retries are
+        exhausted an exception is raised.
+        """
+        filter_a = '(krbprincipalname=ldap/%s@%s)' % (a.host, self.realm)
+        filter_b = '(krbprincipalname=ldap/%s@%s)' % (b.host, self.realm)
+
+        a_entry = None
+        b_entry = None
+
+        while (retries > 0 ):
+            root_logger.info('Getting ldap service principals for conversion: %s and %s' % (filter_a, filter_b))
+            a_entry = b.search_s(self.suffix, ldap.SCOPE_SUBTREE,
+                                 filterstr=filter_a)
+            b_entry = a.search_s(self.suffix, ldap.SCOPE_SUBTREE,
+                                 filterstr=filter_b)
+
+            if a_entry and b_entry:
+                root_logger.debug('Found both principals.')
+                break
+
+            # One or both is missing, force sync again
+            if not a_entry:
+                root_logger.debug('Unable to find entry for %s on %s'
+                    % (filter_a, str(b)))
+                self.force_sync(a, b.host)
+                cn, dn = self.agreement_dn(b.host)
+                self.wait_for_repl_update(a, dn, 30)
+
+            if not b_entry:
+                root_logger.debug('Unable to find entry for %s on %s'
+                    % (filter_b, str(a)))
+                self.force_sync(b, a.host)
+                cn, dn = self.agreement_dn(a.host)
+                self.wait_for_repl_update(b, dn, 30)
+
+            retries -= 1
+
+        if not a_entry or not b_entry:
+            raise RuntimeError('One of the ldap service principals is missing. Replication agreement cannot be converted')
+
+        return (a_entry[0].dn, b_entry[0].dn)
+
     def setup_krb_princs_as_replica_binddns(self, a, b):
         """
         Search the appropriate principal names so we can get
@@ -527,27 +580,16 @@ class ReplicationManager(object):
         """
 
         rep_dn = self.replica_dn()
-        filter_a = '(krbprincipalname=ldap/%s@%s)' % (a.host, self.realm)
-        filter_b = '(krbprincipalname=ldap/%s@%s)' % (b.host, self.realm)
-
-        a_pn = b.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_a)
-        b_pn = a.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_b)
-
-        if a_pn is None:
-            root_logger.critical('Unable to find entry for %s on %s' % (filter_a, str(b)))
-        if b_pn is None:
-            root_logger.critical('Unable to find entry for %s on %s' % (filter_b, str(a)))
-        if a_pn is None or b_pn is None:
-            raise RuntimeError('Replication agreement cannot be converted')
+        (a_dn, b_dn) = self.get_replica_principal_dns(a, b, retries=10)
 
         # Add kerberos principal DNs as valid bindDNs for replication
         try:
-            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", b_pn[0].dn)]
+            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", b_dn)]
             a.modify_s(rep_dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         try:
-            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", a_pn[0].dn)]
+            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", a_dn)]
             b.modify_s(rep_dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
@@ -792,7 +834,7 @@ class ReplicationManager(object):
                              iswinsync=True, win_subtree=ad_subtree)
         root_logger.info("Added new sync agreement, waiting for it to become ready . . .")
         cn, dn = self.agreement_dn(ad_dc_name)
-        self.wait_for_repl_update(self.conn, dn, 30)
+        self.wait_for_repl_update(self.conn, dn, 300)
         root_logger.info("Agreement is ready, starting replication . . .")
 
         # Add winsync replica to the public DIT
@@ -820,16 +862,16 @@ class ReplicationManager(object):
             r_conn.do_sasl_gssapi_bind()
 
         # First off make sure servers are in sync so that both KDCs
-        # have all princiapls and their passwords and can release
+        # have all principals and their passwords and can release
         # the right tickets. We do this by force pushing all our changes
         self.force_sync(self.conn, r_hostname)
         cn, dn = self.agreement_dn(r_hostname)
-        self.wait_for_repl_update(self.conn, dn, 30)
+        self.wait_for_repl_update(self.conn, dn, 300)
 
         # now in the opposite direction
         self.force_sync(r_conn, self.hostname)
         cn, dn = self.agreement_dn(self.hostname)
-        self.wait_for_repl_update(r_conn, dn, 30)
+        self.wait_for_repl_update(r_conn, dn, 300)
 
         # now that directories are in sync,
         # change the agreements to use GSSAPI
