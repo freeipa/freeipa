@@ -47,48 +47,56 @@ IPA.hbac.rule_entity = function(spec) {
                 },
                 'description'
             ],
-            control_buttons: {
-                buttons: [
-                    {
-                        name: 'disable',
-                        label: IPA.messages.buttons.disable,
-                        icon: 'disabled-icon',
-                        needs_confirm: true,
-                        action: {
-                            factory: IPA.batch_items_action,
-                            method: 'disable',
-                            enable_cond: ['item-selected']
-                        }
-                    },
-                    {
-                        name: 'enable',
-                        label: IPA.messages.buttons.enable,
-                        icon: 'enabled-icon',
-                        needs_confirm: true,
-                        action: {
-                            factory: IPA.batch_items_action,
-                            method: 'enable',
-                            enable_cond: ['item-selected']
-                        }
-                    }
-                ]
-            }
+            actions: [
+                {
+                    name: 'disable',
+                    factory: IPA.batch_items_action,
+                    method: 'disable',
+                    needs_confirm: true,
+                    enable_cond: ['item-selected']
+                },
+                {
+                    name: 'enable',
+                    factory: IPA.batch_items_action,
+                    method: 'enable',
+                    needs_confirm: true,
+                    enable_cond: ['item-selected']
+                }
+            ],
+            control_buttons: [
+                {
+                    name: 'disable',
+                    label: IPA.messages.buttons.disable,
+                    icon: 'disabled-icon'
+                },
+                {
+                    name: 'enable',
+                    label: IPA.messages.buttons.enable,
+                    icon: 'enabled-icon'
+                }
+            ]
         }).
         details_facet({
             factory: IPA.hbacrule_details_facet,
             entity: that,
             command_mode: 'info',
-            action_list: {
-                factory: IPA.action_list_widget,
-                name: 'action',
-                state_evaluator: {
-                    factory: IPA.enable_state_evaluator,
-                    field: 'ipaenabledflag'
-                },
-                actions: [
-                    IPA.enable_action,
-                    IPA.disable_action,
-                    IPA.delete_action
+            actions: [
+                IPA.select_action,
+                IPA.enable_action,
+                IPA.disable_action,
+                IPA.delete_action
+            ],
+            header_actions: ['select_action', 'enable', 'disable', 'delete'],
+            state: {
+                evaluators: [
+                    {
+                        factory: IPA.enable_state_evaluator,
+                        field: 'ipaenabledflag'
+                    }
+                ],
+                summary_conditions: [
+                    IPA.enabled_summary_cond(),
+                    IPA.disabled_summary_cond()
                 ]
             }
         }).
