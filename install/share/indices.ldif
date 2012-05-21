@@ -91,3 +91,12 @@ dn: cn=ntUserDomainId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: modify
 replace: nsIndexType
 nsIndexType: eq,pres
+
+dn: cn=fqdn,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+ObjectClass: top
+ObjectClass: nsIndex
+cn: fqdn
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
