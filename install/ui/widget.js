@@ -839,9 +839,26 @@ IPA.select_widget = function(spec) {
 
         container.addClass('select-widget');
 
-        var select = $('<select/>', {
-            name: that.name
+        that.select = $('<select/>', {
+            name: that.name,
+            change: function() {
+                that.value_changed.notify([], that);
+                return false;
+            }
         }).appendTo(container);
+
+        that.create_options();
+
+        if (that.undo) {
+            that.create_undo(container);
+        }
+
+        that.create_error_link(container);
+    };
+
+    that.create_options = function() {
+
+        that.select.empty();
 
         for (var i=0; i<that.options.length; i++) {
             var option = that.options[i];
@@ -849,19 +866,8 @@ IPA.select_widget = function(spec) {
             $('<option/>', {
                 text: option.label,
                 value: option.value
-            }).appendTo(select);
+            }).appendTo(that.select);
         }
-
-        if (that.undo) {
-            that.create_undo(container);
-        }
-
-        that.select = $('select[name="'+that.name+'"]', that.container);
-        that.select.change(function() {
-            that.value_changed.notify([], that);
-        });
-
-        that.create_error_link(container);
     };
 
     that.save = function() {
@@ -891,17 +897,29 @@ IPA.select_widget = function(spec) {
         $('option', that.select).attr('selected', '');
     };
 
-    that.enable_options = function() {
-        $('option', that.select).attr('disabled', '');
+    that.set_options_enabled = function(enabled, options) {
+
+        var html_value = enabled ? '' : 'disabled';
+
+        if (!options) {
+            $('option', that.select).attr('disabled', html_value);
+        } else {
+            for (var i=0; i<options.length;i++) {
+                var value = options[i];
+                var option = $('option[value="'+value+'"]', that.select);
+                option.attr('disabled', html_value);
+            }
+        }
+    };
+
+    that.enable_options = function(options) {
+
+        that.set_options_enabled(true, options);
     };
 
     that.disable_options = function(options) {
 
-        for (var i=0; i<options.length;i++) {
-            var value = options[i];
-            var option = $('option[value="'+value+'"]', that.select);
-            option.attr('disabled', 'disabled');
-        }
+        that.set_options_enabled(false, options);
     };
 
     // methods that should be invoked by subclasses

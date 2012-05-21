@@ -28,6 +28,8 @@
 IPA.facet = function(spec, no_init) {
 
     spec = spec || {};
+    spec.state = spec.state || {};
+    $.extend(spec.state, { factory: IPA.state });
 
     var that = {};
 
@@ -42,7 +44,10 @@ IPA.facet = function(spec, no_init) {
     that.disable_breadcrumb = spec.disable_breadcrumb;
     that.disable_facet_tabs = spec.disable_facet_tabs;
 
-    that.action_list = spec.action_list;
+    that.action_state = IPA.build(spec.state);
+    that.actions = IPA.build({ actions: spec.actions }, IPA.action_holder_builder);
+
+    that.header_actions = spec.header_actions;
     that.header = spec.header || IPA.facet_header({ facet: that });
 
     that._needs_update = spec.needs_update;
@@ -299,15 +304,16 @@ IPA.facet = function(spec, no_init) {
 
     that.init_facet = function() {
 
+        that.action_state.init(that);
+        that.actions.init(that);
+        that.header.init();
+
         var buttons_spec = {
             factory: IPA.control_buttons_widget,
             name: 'control-buttons',
-            'class': 'control-buttons'
+            'class': 'control-buttons',
+            buttons: spec.control_buttons
         };
-
-        if (spec.control_buttons) {
-            $.extend(buttons_spec, spec.control_buttons);
-        }
 
         that.control_buttons = IPA.build(buttons_spec);
         that.control_buttons.init(that);
@@ -335,9 +341,9 @@ IPA.facet_header = function(spec) {
 
     that.facet = spec.facet;
 
-    var init = function() {
+    that.init = function() {
 
-        if (that.facet.action_list) {
+        if (that.facet.header_actions) {
 
             var widget_builder = IPA.widget_builder({
                 widget_options: {
@@ -345,9 +351,16 @@ IPA.facet_header = function(spec) {
                 }
             });
 
-            that.action_list = widget_builder.build_widget(that.facet.action_list);
-            that.action_list.init();
+            var widget = {
+                factory: IPA.action_list_widget,
+                actions: that.facet.header_actions
+            };
+
+            that.action_list = widget_builder.build_widget(widget);
+            that.action_list.init(that.facet);
         }
+
+        that.facet.action_state.changed.attach(that.update_summary);
 
         that.title_widget = IPA.facet_title();
     };
@@ -587,17 +600,15 @@ IPA.facet_header = function(spec) {
                 }
             }
         }
+    };
 
-        if (that.action_list) {
-            that.action_list.update(result);
+    that.update_summary = function() {
+        var summary = that.facet.action_state.summary();
 
-            var state = that.action_list.state;
-            var icon_tooltip = that.action_list.state_evaluator.get_description();
-            if (state.length > 0) {
-                var css_class = state.join(' ');
-                that.title_widget.set_class(css_class);
-                that.title_widget.set_icon_tooltip(icon_tooltip);
-            }
+        if (summary.state.length > 0) {
+            var css_class = summary.state.join(' ');
+            that.title_widget.set_class(css_class);
+            that.title_widget.set_icon_tooltip(summary.description);
         }
 
         that.adjust_elements();
@@ -644,8 +655,6 @@ IPA.facet_header = function(spec) {
     that.clear = function() {
         that.load();
     };
-
-    init();
 
     return that;
 };
@@ -801,7 +810,7 @@ IPA.table_facet = function(spec, no_init) {
 
         that.table.pagination_control.css('visibility', 'visible');
 
-        that.post_load.notify();
+        that.post_load.notify([data], that);
         that.clear_expired_flag();
     };
 
@@ -1245,194 +1254,33 @@ IPA.action = function(spec) {
 
     that.name = spec.name;
     that.label = spec.label;
+
+    that.enabled = spec.enabled !== undefined ? spec.enabled : true;
     that.enable_cond = spec.enable_cond || [];
     that.disable_cond = spec.disable_cond || [];
+    that.enabled_changed = IPA.observer();
+
+    that.visible = spec.visible !== undefined ? spec.visible : true;
+    that.show_cond = spec.show_cond || [];
+    that.hide_cond = spec.hide_cond || [];
+    that.visible_changed = IPA.observer();
+
     that.handler = spec.handler;
-    that.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+
+    that.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
     that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
 
-    that.execute = function(facet, on_success, on_error) {
+
+    that.execute_action = function(facet, on_success, on_error) {
 
         if (that.handler) {
             that.handler(facet, on_success, on_error);
         }
     };
 
-    return that;
-};
+    that.execute = function(facet, on_success, on_error) {
 
-IPA.action_builder = function(spec) {
-
-    spec = spec || {};
-    spec.factory = spec.factory || IPA.action;
-    var that = IPA.builder(spec);
-    return that;
-};
-
-IPA.state_evaluator = function(spec) {
-
-    spec = spec || {};
-
-    var that = {};
-
-    that.evaluate = function() {
-        that.state = [];
-        return that.state;
-    };
-
-    that.get_description = function() {
-        return that.description || '';
-    };
-
-    return that;
-};
-
-IPA.state_listener = function(spec) {
-
-    spec = spec || {};
-
-    var that = {};
-
-    that.event_name = spec.event;
-    that.state_changed = IPA.observer();
-    that.state = [];
-
-    that.init = function(facet) {
-
-        if (that.event_name && facet[that.event_name]) {
-            facet[that.event_name].attach(that.on_event);
-        }
-    };
-
-    that.on_event = function() {
-        that.state_changed.notify();
-    };
-
-    that.get_description = function() {
-        return that.description || '';
-    };
-
-    return that;
-};
-
-IPA.state_listener_builder = function(spec) {
-
-    spec = spec || {};
-    spec.factory = spec.factory || IPA.state_listener;
-    var that = IPA.builder(spec);
-    return that;
-};
-
-IPA.dirty_state_listener = function(spec) {
-
-    spec = spec || {};
-
-    spec.event = spec.event || 'dirty_changed';
-
-    var that = IPA.state_listener(spec);
-
-    that.on_event = function(dirty) {
-        that.state = [];
-
-        if (dirty) {
-            that.state.push('dirty');
-        }
-
-        that.state_changed.notify();
-    };
-
-    return that;
-};
-
-IPA.selected_state_listener = function(spec) {
-
-    spec = spec || {};
-
-    spec.event = spec.event || 'select_changed';
-
-    var that = IPA.state_listener(spec);
-
-    that.on_event = function(selected) {
-        that.state = [];
-
-        if (selected && selected.length > 0) {
-            that.state.push('item-selected');
-        }
-
-        that.state_changed.notify();
-    };
-
-    return that;
-};
-
-IPA.self_service_state_listener = function(spec) {
-
-    spec = spec || {};
-
-    spec.event = spec.event || 'post_load';
-
-    var that = IPA.state_listener(spec);
-
-    that.on_event = function() {
-        that.state = [];
-
-        var self_service = IPA.nav.name === 'self-service';
-
-        if (self_service) {
-            that.state.push('self-service');
-        }
-
-        that.state_changed.notify();
-    };
-
-    return that;
-};
-
-IPA.action_button_widget = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.widget(spec);
-
-    that.name = spec.name;
-    that.label = spec.label;
-    that.tooltip = spec.tooltip;
-    that.href = spec.href || that.name;
-    that.icon = spec.icon;
-
-    that.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
-    that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
-    that.confirm_dialog = spec.confirm_dialog;
-
-    that.action = IPA.build(spec.action, IPA.action_builder);
-    that.enabled = spec.enabled !== undefined ? spec.enabled : true;
-    that.visible = spec.visible !== undefined ? spec.visible : true;
-
-    that.show_cond = spec.show_cond || [];
-    that.hide_cond = spec.hide_cond || [];
-
-    that.create = function(container) {
-
-        that.widget_create(container);
-
-        that.button_element = IPA.action_button({
-            name: that.name,
-            href: that.href,
-            label: that.label,
-            icon: that.icon,
-            click: function() {
-                that.on_click();
-                return false;
-            }
-        }).appendTo(container);
-
-        that.set_enabled(that.enabled);
-        that.set_visible(that.visible);
-    };
-
-    that.on_click = function() {
-
-        if (!that.enabled) return;
+        if (!that.enabled || !that.visible) return;
 
         if (that.needs_confirm) {
 
@@ -1450,18 +1298,385 @@ IPA.action_button_widget = function(spec) {
             if (!confirmed) return;
         }
 
-        that.execute_action();
+        that.execute_action(facet, on_success, on_error);
     };
 
     that.get_confirm_message = function() {
         return that.confirm_msg;
     };
 
-    that.execute_action = function() {
+    that.set_enabled = function(enabled) {
 
-        if (that.action) {
-            that.action.execute(that.facet);
+        var old = that.enabled;
+
+        that.enabled = enabled;
+
+        if (old !== that.enabled) {
+            that.enabled_changed.notify([that.enabled], that);
         }
+    };
+
+    that.set_visible = function(visible) {
+
+        var old = that.visible;
+
+        that.visible = visible;
+
+        if (old !== that.visible) {
+            that.visible_changed.notify([that.visible], that);
+        }
+    };
+
+    return that;
+};
+
+IPA.action_builder = function(spec) {
+
+    spec = spec || {};
+    spec.factory = spec.factory || IPA.action;
+    var that = IPA.builder(spec);
+    return that;
+};
+
+
+IPA.action_holder = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.actions = $.ordered_map();
+
+    that.init = function(facet) {
+
+        var i, action, actions;
+
+        that.facet = facet;
+        actions = IPA.build(spec.actions, IPA.action_builder) || [];
+
+        for (i=0; i<actions.length; i++) {
+            action = actions[i];
+            that.actions.put(action.name, action);
+        }
+
+        that.facet.action_state.changed.attach(that.state_changed);
+        that.facet.post_load.attach(that.on_load);
+    };
+
+    that.state_changed = function(state) {
+
+        var actions, action, i, enabled, visible;
+
+        actions = that.actions.values;
+
+        for (i=0; i<actions.length; i++) {
+
+            action = actions[i];
+
+            enabled = IPA.eval_cond(action.enable_cond, action.disable_cond, state);
+            visible = IPA.eval_cond(action.show_cond, action.hide_cond, state);
+            action.set_enabled(enabled);
+            action.set_visible(visible);
+        }
+    };
+
+    that.get = function(name) {
+        return that.actions.get(name);
+    };
+
+    that.add = function(action) {
+        that.actions.put(action.name, action);
+    };
+
+    that.on_load = function() {
+        var state = that.facet.action_state.get();
+        that.state_changed(state);
+    };
+
+    return that;
+};
+
+IPA.action_holder_builder = function(spec) {
+
+    spec = spec || {};
+    spec.factory = spec.factory || IPA.action_holder;
+    var that = IPA.builder(spec);
+    return that;
+};
+
+
+IPA.state = function(spec) {
+
+    spec = spec || {};
+    spec.summary_evaluator = spec.summary_evaluator || IPA.summary_evaluator;
+
+    var that = {};
+
+    that.state = $.ordered_map();
+
+    //when state changes. Params: state, Context: this
+    that.changed = IPA.observer();
+
+    that.evaluators = IPA.build(spec.evaluators, IPA.state_evaluator_builder) || [];
+    that.summary_evaluator = IPA.build(spec.summary_evaluator);
+
+    that.summary_conditions = spec.summary_conditions || [];
+
+    that.init = function(facet) {
+
+        var i, evaluator;
+
+        that.facet = facet;
+
+        for (i=0; i<that.evaluators.length; i++) {
+            evaluator = that.evaluators[i];
+            evaluator.init(facet);
+            evaluator.changed.attach(that.on_eval_changed);
+        }
+    };
+
+    that.on_eval_changed = function() {
+
+        var evaluator = this;
+
+        that.state.put(evaluator.name, evaluator.state);
+
+        that.notify();
+    };
+
+    that.get = function() {
+
+        var state, i;
+
+        state = [];
+
+        var values = that.state.values;
+
+        for (i=0; i<values.length; i++) {
+            $.merge(state, values[i]);
+        }
+
+        return state;
+    };
+
+    that.summary = function() {
+
+        var summary = that.summary_evaluator.evaluate(that);
+        return summary;
+    };
+
+    that.notify = function(state) {
+
+        state = state || that.get();
+
+        that.changed.notify([state], that);
+    };
+
+    return that;
+};
+
+IPA.summary_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.evaluate = function(state) {
+
+        var conds, cond, i, summary, state_a;
+
+        conds = state.summary_conditions;
+        state_a = state.get();
+
+        for (i=0; i<conds.length; i++) {
+            cond = conds[i];
+            if (IPA.eval_cond(cond.pos, cond.neg, state_a)) {
+                summary = {
+                    state: cond.state,
+                    description: cond.description
+                };
+                break;
+            }
+        }
+
+        summary = summary ||  {
+            state: state_a,
+            description: ''
+        };
+
+        return summary;
+    };
+
+    return that;
+};
+
+IPA.state_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.name = spec.name || 'state_evaluator';
+    that.event_name = spec.event;
+
+    //when state changes. Params: state, Context: this
+    that.changed = IPA.observer();
+    that.state = [];
+
+    that.init = function(facet) {
+
+        if (that.event_name && facet[that.event_name]) {
+            facet[that.event_name].attach(that.on_event);
+        }
+    };
+
+    that.on_event = function() {
+    };
+
+    that.notify_on_change = function(old_state) {
+
+        if (IPA.array_diff(that.state, old_state)) {
+            that.changed.notify([that.state], that);
+        }
+    };
+
+    return that;
+};
+
+IPA.state_evaluator_builder = function(spec) {
+
+    spec = spec || {};
+    spec.factory = spec.factory || IPA.state_evaluator;
+    var that = IPA.builder(spec);
+    return that;
+};
+
+IPA.dirty_state_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    spec.event = spec.event || 'dirty_changed';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'dirty_state_evaluator';
+
+    that.on_event = function(dirty) {
+
+        var old_state = that.state;
+        that.state = [];
+
+        if (dirty) {
+            that.state.push('dirty');
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+IPA.selected_state_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    spec.event = spec.event || 'select_changed';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'selected_state_evaluator';
+
+    that.on_event = function(selected) {
+
+        var old_state = that.state;
+        that.state = [];
+
+        if (selected && selected.length > 0) {
+            that.state.push('item-selected');
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+IPA.self_service_state_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'self_service_state_evaluator';
+
+    that.on_event = function() {
+
+        var old_state = that.state;
+        that.state = [];
+
+        var self_service = IPA.nav.name === 'self-service';
+
+        if (self_service) {
+            that.state.push('self-service');
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+IPA.action_button_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.name = spec.name;
+    that.label = spec.label;
+    that.tooltip = spec.tooltip;
+    that.href = spec.href || that.name;
+    that.icon = spec.icon;
+
+    that.action_name = spec.action || that.name;
+
+    that.enabled = spec.enabled !== undefined ? spec.enabled : true;
+    that.visible = spec.visible !== undefined ? spec.visible : true;
+
+    that.show_cond = spec.show_cond || [];
+    that.hide_cond = spec.hide_cond || [];
+
+    that.init = function(facet) {
+
+        that.facet = facet;
+        that.action = that.facet.actions.get(that.action_name);
+        that.action.enabled_changed.attach(that.set_enabled);
+        that.action.visible_changed.attach(that.set_visible);
+    };
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        that.button_element = IPA.action_button({
+            name: that.name,
+            href: that.href,
+            label: that.label,
+            icon: that.icon,
+            click: function() {
+                that.on_click();
+                return false;
+            }
+        }).appendTo(container);
+
+        that.set_enabled(that.action.enabled);
+        that.set_visible(that.action.visible);
+    };
+
+    that.on_click = function() {
+
+        if (!that.enabled) return;
+
+        that.action.execute(that.facet);
     };
 
     that.set_enabled = function(enabled) {
@@ -1508,27 +1723,16 @@ IPA.control_buttons_widget = function(spec) {
     var that = IPA.widget(spec);
 
     that.buttons = IPA.build(spec.buttons, IPA.action_button_widget_builder) || [];
-    that.state_listeners = IPA.build(spec.state_listeners, IPA.state_listener_builder) || [];
-    that.state = [];
 
     that.init = function(facet) {
 
         var i;
 
-        for (i=0; i<that.state_listeners.length; i++) {
-
-            var listener = that.state_listeners[i];
-            listener.init(facet);
-            listener.state_changed.attach(that.on_state_change);
-        }
-
         for (i=0; i<that.buttons.length; i++) {
 
             var button = that.buttons[i];
-            button.facet = facet;
+            button.init(facet);
         }
-
-        that.on_state_change();
     };
 
     that.create = function(container) {
@@ -1541,36 +1745,6 @@ IPA.control_buttons_widget = function(spec) {
 
             var button = that.buttons[i];
             button.create(that.container);
-        }
-    };
-
-    that.on_state_change = function() {
-
-        that.get_state();
-        that.reevaluate();
-    };
-
-    that.get_state = function() {
-
-        that.state = [];
-
-        for (var i=0; i<that.state_listeners.length; i++) {
-
-            var listener = that.state_listeners[i];
-            that.state.push.apply(that.state, listener.state);
-        }
-    };
-
-    that.reevaluate = function() {
-
-        for (var i=0; i<that.buttons.length; i++) {
-
-            var button = that.buttons[i];
-            var action = button.action;
-            var enabled = IPA.eval_cond(action.enable_cond, action.disable_cond, that.state);
-            var visible = IPA.eval_cond(button.show_cond, button.hide_cond, that.state);
-            button.set_enabled(enabled);
-            button.set_visible(visible);
         }
     };
 
@@ -1626,21 +1800,51 @@ IPA.action_list_widget = function(spec) {
 
     var that = IPA.composite_widget(spec);
 
-    that.actions = IPA.build(spec.actions, IPA.action_builder) || [];
-    that.state_evaluator = IPA.build(spec.state_evaluator);
-    that.state = [];
+    that.action_names = spec.actions || [];
+    that.actions = $.ordered_map();
 
-    that.init = function() {
+    that.init = function(facet) {
+
+        var options, actions, action, name, i;
+
+        that.facet = facet;
+
         that.action_select = that.widgets.get_widget('action');
         that.apply_button = that.widgets.get_widget('apply');
 
         that.action_select.value_changed.attach(that.on_action_change);
         that.apply_button.click = that.on_apply;
 
-        var options = [];
+        for (i=0; i<that.action_names.length; i++) {
+            name = that.action_names[i];
+            action = that.facet.actions.get(name);
+            that.add_action(action, true);
+        }
 
-        for (var i=0; i< that.actions.length; i++) {
-            var action = that.actions[i];
+        that.init_options();
+    };
+
+    that.add_action = function(action, batch) {
+        that.actions.put(action.name, action);
+        action.enabled_changed.attach(that.action_enabled_changed);
+        action.visible_changed.attach(that.action_visible_changed);
+
+        if(!batch) {
+            that.init_options();
+            that.recreate_options();
+            that.select_first_enabled();
+        }
+    };
+
+    that.init_options = function() {
+
+        var options, actions, action, i;
+
+        options = [];
+        actions = that.actions.values;
+
+        for (i=0; i< actions.length; i++) {
+            action = actions[i];
             options.push({
                 label: action.label,
                 value: action.name
@@ -1650,71 +1854,62 @@ IPA.action_list_widget = function(spec) {
         that.action_select.options = options;
     };
 
+    that.recreate_options = function() {
+
+        that.action_select.create_options();
+    };
+
     that.on_action_change = function() {
 
-        var selected = that.action_select.save()[0];
-        var action = that.get_action(selected);
-        var enabled = that.action_enabled(action);
-        that.apply_button.set_enabled(enabled);
+        var action = that.get_selected();
+        that.apply_button.set_enabled(action.enabled);
     };
 
     that.on_apply = function() {
-        var selected = that.action_select.save()[0];
-        var action = that.get_action(selected);
-        var enabled = that.action_enabled(action);
-        var facet = that.entity.get_facet();
 
-        if (enabled) {
-            action.execute(facet,
+        var action = that.get_selected();
+
+        if (action.enabled) {
+            action.execute(that.facet,
                            that.on_action_success,
                            that.on_action_error);
         }
     };
 
     that.on_action_success = function() {
-        var facet = that.entity.get_facet();
-        facet.refresh();
+
+        that.facet.refresh();
     };
 
     that.on_action_error = function() {
-        var facet = that.entity.get_facet();
-        facet.refresh();
+
+        that.facet.refresh();
     };
 
-    that.update = function(result) {
+    that.action_enabled_changed = function(enabled) {
+        var action = this;
+        var selected_action = that.get_selected();
+        that.action_select.set_options_enabled(action.enabled, [action.name]);
 
-        that.get_state(result);
-        var disabled = that.get_disabled();
-        that.action_select.enable_options();
-        that.action_select.disable_options(disabled);
-        that.select_first_enabled();
-    };
-
-    that.get_state = function(result) {
-
-        if (that.state_evaluator) {
-            that.state = that.state_evaluator.evaluate(result);
+        if (!action.enabled && action === selected_action) {
+            that.select_first_enabled();
         }
     };
 
-    that.get_action = function(name) {
-
-        for (var i=0; i< that.actions.length; i++) {
-            var action = that.actions[i];
-            if (action.name === name) {
-                return action;
-            }
-        }
-        return null;
+    that.get_selected = function() {
+        var selected = that.action_select.save()[0];
+        var action = that.actions.get(selected);
+        return action;
     };
 
     that.get_disabled = function() {
 
         var disabled = [];
+        var actions = that.action.values;
 
-        for (var i=0; i< that.actions.length; i++) {
-            var action = that.actions[i];
-            if (!that.action_enabled(action)) {
+        for (var i=0; i< actions.length; i++) {
+            var action = actions[i];
+            if (!that.action.enabled) {
                 disabled.push(action.name);
             }
         }
@@ -1722,21 +1917,15 @@ IPA.action_list_widget = function(spec) {
         return disabled;
     };
 
-    that.action_enabled = function(action) {
-
-        var enabled = IPA.eval_cond(action.enable_cond,
-                                    action.disable_cond,
-                                    that.state);
-        return enabled;
-    };
-
     that.select_first_enabled = function() {
 
-        var first = that.actions[0].name;
+        var actions = that.actions.values;
 
-        for (var i=0; i< that.actions.length; i++) {
-            var action = that.actions[i];
-            if (that.action_enabled(action)) {
+        var first = actions[0].name;
+
+        for (var i=0; i< actions.length; i++) {
+            var action = actions[i];
+            if (action.enabled) {
                 first = action.name;
                 break;
             }

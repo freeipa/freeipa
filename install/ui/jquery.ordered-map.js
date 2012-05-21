@@ -36,10 +36,17 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function() {
     };
 
     that.put = function(key, value) {
-        that.keys.push(key);
-        that.values.push(value);
+
+        var i = that.get_key_index(key);
+        if (i >= 0) {
+            that.values[i] = value;
+        } else {
+            that.keys.push(key);
+            that.values.push(value);
+            that.length = that.keys.length;
+        }
+
         that.map[key] = value;
-        that.length = that.keys.length;
     };
 
     that.remove = function(key) {

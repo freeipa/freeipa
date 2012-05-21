@@ -231,57 +231,34 @@ IPA.details_facet = function(spec, no_init) {
 
     spec = spec || {};
     spec.name = spec.name || 'details';
-    spec.control_buttons = spec.control_buttons || {};
 
-    var cb = spec.control_buttons;
-    cb.factory = cb.factory || IPA.control_buttons_widget;
-    cb.buttons = cb.buttons || [];
-    cb.state_listeners = cb.state_listeners || [];
-    cb.buttons.unshift(
+    spec.actions = spec.actions || [];
+    spec.actions.unshift(
+        IPA.refresh_action,
+        IPA.reset_action,
+        IPA.update_action);
+
+    spec.control_buttons = spec.control_buttons || [];
+    spec.control_buttons.unshift(
         {
             name: 'refresh',
             label: IPA.messages.buttons.refresh,
-            icon: 'reset-icon',
-            action: {
-                handler: function(facet) {
-                    facet.refresh();
-                }
-            }
+            icon: 'reset-icon'
         },
         {
             name: 'reset',
             label: IPA.messages.buttons.reset,
-            icon: 'reset-icon',
-            needs_confirm: true,
-            action: {
-                enable_cond: ['dirty'],
-                handler: function(facet) {
-                    facet.reset();
-                }
-            }
+            icon: 'reset-icon'
         },
         {
             name: 'update',
             label: IPA.messages.buttons.update,
-            icon: 'update-icon',
-            action: {
-                enable_cond: ['dirty'],
-                handler: function(facet) {
-                    if (!facet.validate()) {
-                        facet.show_validation_error();
-                        return;
-                    }
+            icon: 'update-icon'
+        });
 
-                    facet.update();
-                }
-            }
-        }
-    );
-    cb.state_listeners.push(
-        {
-            factory: IPA.dirty_state_listener
-        }
-    );
+    spec.state = spec.state || {};
+    spec.state.evaluators = spec.state.evaluators || [];
+    spec.state.evaluators.push(IPA.dirty_state_evaluator);
 
     var that = IPA.facet(spec, true);
 
@@ -476,7 +453,7 @@ IPA.details_facet = function(spec, no_init) {
             field.load(data.result.result);
         }
         that.policies.post_load(data);
-        that.post_load.notify();
+        that.post_load.notify([data], that);
         that.clear_expired_flag();
     };
 
@@ -719,7 +696,8 @@ IPA.details_facet = function(spec, no_init) {
 
         var widget_builder = IPA.widget_builder({
             widget_options: {
-                entity: that.entity
+                entity: that.entity,
+                facet: that
             }
         });
         var field_builder = IPA.field_builder({
@@ -872,38 +850,107 @@ IPA.command_builder = function() {
     return that;
 }();
 
+IPA.select_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'select_action';
+    spec.label = spec.label || '-- select action --';
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+    };
+
+    return that;
+};
+
+IPA.refresh_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'refresh';
+    spec.label = spec.label || IPA.messages.buttons.refresh;
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+        facet.refresh();
+    };
+
+    return that;
+};
+
+IPA.reset_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'reset';
+    spec.label = spec.label || IPA.messages.buttons.reset;
+    spec.enable_cond = spec.enable_cond || ['dirty'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+        facet.reset();
+    };
+
+    return that;
+};
+
+IPA.update_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'update';
+    spec.label = spec.label || IPA.messages.buttons.update;
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+    spec.enable_cond = spec.enable_cond || ['dirty'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        if (!facet.validate()) {
+            facet.show_validation_error();
+            return;
+        }
+
+        facet.update();
+    };
+
+    return that;
+};
+
 IPA.boolean_state_evaluator = function(spec) {
 
     spec = spec || {};
 
+    spec.event = spec.event || 'post_load';
+
     var that = IPA.state_evaluator(spec);
 
+    that.name = spec.name || 'boolean_state_evaluator';
     that.field = spec.field;
     that.true_state = spec.true_state || that.field_name + '-true';
     that.false_state = spec.false_state || that.field_name + '-false';
-    that.true_desc = spec.true_desc || IPA.messages['true'];
-    that.false_desc = spec.false_desc || IPA.messages['false'];
     that.invert_value = spec.invert_value;
     that.parser = IPA.build({
         factory: spec.parser || IPA.boolean_formatter,
         invert_value: that.invert_value
     });
 
-    that.evaluate = function(record) {
+    that.on_event = function(data) {
 
+        var old_state = that.state;
+        var record = data.result.result;
         that.state = [];
 
         var value = that.parser.parse(record[that.field]);
 
         if (value === true) {
             that.state.push(that.true_state);
-            that.description = that.true_desc;
         } else {
             that.state.push(that.false_state);
-            that.description = that.false_desc;
         }
 
-        return that.state;
+        that.notify_on_change(old_state);
     };
 
     return that;
@@ -912,10 +959,9 @@ IPA.boolean_state_evaluator = function(spec) {
 IPA.enable_state_evaluator = function(spec) {
 
     spec = spec || {};
+    spec.name = spec.name || 'enable_state_evaluator';
     spec.true_state = spec.true_state || 'enabled';
     spec.false_state = spec.false_state || 'disabled';
-    spec.true_desc = spec.true_desc || IPA.messages.status.enabled;
-    spec.false_desc = spec.false_desc || IPA.messages.status.disabled;
 
     var that = IPA.boolean_state_evaluator(spec);
 
@@ -931,7 +977,7 @@ IPA.object_action = function(spec) {
     that.method = spec.method;
     that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
 
-    that.execute = function(facet, on_success, on_error) {
+    that.execute_action = function(facet, on_success, on_error) {
 
         var entity_name = facet.entity.name;
         var pkey = IPA.nav.get_state(entity_name+'-pkey');
@@ -1020,4 +1066,23 @@ IPA.delete_action = function(spec) {
     };
 
     return that;
+};
+
+
+IPA.enabled_summary_cond = function() {
+    return {
+        pos: ['enabled'],
+        neg: [],
+        description: IPA.messages.status.enabled,
+        state: ['enabled']
+    };
+};
+
+IPA.disabled_summary_cond = function() {
+    return {
+        pos: [],
+        neg: ['enabled'],
+        description: IPA.messages.status.disabled,
+        state: ['disabled']
+    };
 };

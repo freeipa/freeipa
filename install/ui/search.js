@@ -37,58 +37,35 @@ IPA.search_facet = function(spec, no_init) {
     spec.disable_facet_tabs =
         spec.disable_facet_tabs === undefined ? true : spec.disable_facet_tabs;
 
-    spec.control_buttons = spec.control_buttons || {};
+    spec.actions = spec.actions || [];
+    spec.actions.unshift(
+        IPA.refresh_action,
+        IPA.batch_remove_action,
+        IPA.add_action);
 
-    var cb = spec.control_buttons;
-    cb.factory = cb.factory || IPA.control_buttons_widget;
-    cb.buttons = cb.buttons || [];
-    cb.state_listeners = cb.state_listeners || [];
-    cb.buttons.unshift(
+    spec.control_buttons = spec.control_buttons || [];
+    spec.control_buttons.unshift(
         {
             name: 'refresh',
             label: IPA.messages.buttons.refresh,
-            icon: 'reset-icon',
-            action: {
-                handler: function(facet) {
-                    facet.refresh();
-                }
-            }
+            icon: 'reset-icon'
         },
         {
             name: 'remove',
             label: IPA.messages.buttons.remove,
-            icon: 'remove-icon',
-            needs_confirm: true,
-            hide_cond: ['self-service'],
-            action: {
-                enable_cond: ['item-selected'],
-                handler: function(facet) {
-                    facet.show_remove_dialog();
-                }
-            }
+            icon: 'remove-icon'
         },
         {
             name: 'add',
             label: IPA.messages.buttons.add,
-            icon: 'add-icon',
-            hide_cond: ['self-service'],
-            action: {
-                handler: function(facet) {
-                    facet.show_add_dialog();
-                }
-            }
-        }
-    );
-    cb.state_listeners.push(
-        {
-            factory: IPA.selected_state_listener
-        },
-        {
-            factory: IPA.self_service_state_listener
-        }
-    );
+            icon: 'add-icon'
+        });
 
-    //TODO: make buttons invisible on self-service. Currently regression.
+    spec.state = spec.state || {};
+    spec.state.evaluators = spec.state.evaluators || [];
+    spec.state.evaluators.push(
+        IPA.selected_state_evaluator,
+        IPA.self_service_state_evaluator);
 
     var that = IPA.table_facet(spec, true);
 
@@ -387,6 +364,39 @@ IPA.nested_search_facet = function(spec) {
         }
 
         that.search_facet_refresh();
+    };
+
+    return that;
+};
+
+IPA.batch_remove_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'remove';
+    spec.label = spec.label || IPA.messages.buttons.remove;
+    spec.enable_cond = spec.enable_cond || ['item-selected'];
+    spec.hide_cond = spec.hide_cond || ['self-service'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+        facet.show_remove_dialog();
+    };
+
+    return that;
+};
+
+IPA.add_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'add';
+    spec.label = spec.label || IPA.messages.buttons.add;
+    spec.hide_cond = spec.hide_cond || ['self-service'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+        facet.show_add_dialog();
     };
 
     return that;
