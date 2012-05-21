@@ -338,7 +338,7 @@ class user(LDAPObject):
         ),
         Bool('nsaccountlock?',
             label=_('Account disabled'),
-            flags=['no_create', 'no_update', 'no_search'],
+            flags=['no_option'],
         ),
         Bytes('ipasshpubkey*', validate_sshpubkey,
             cli_name='sshpubkey',

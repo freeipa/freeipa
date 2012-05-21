@@ -646,7 +646,7 @@ class API(DictProxy):
                 if self.env.startup_traceback:
                     import traceback
                     self.log.error('could not load plugin module %r\n%s', pyfile, traceback.format_exc())
-                raise e
+                raise
 
     def finalize(self):
         """

@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
-from ipalib import Str, StrEnum
+from ipalib import Str, StrEnum, Bool
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.plugins.hbacrule import is_all
@@ -172,9 +172,9 @@ class selinuxusermap(LDAPObject):
             cli_name='desc',
             label=_('Description'),
         ),
-        Flag('ipaenabledflag?',
+        Bool('ipaenabledflag?',
              label=_('Enabled'),
-             flags=['no_create', 'no_update', 'no_search'],
+             flags=['no_option'],
         ),
         Str('memberuser_user?',
             label=_('Users'),

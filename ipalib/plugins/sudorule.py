@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
-from ipalib import Str, StrEnum
+from ipalib import Str, StrEnum, Bool
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.hbacrule import is_all
 from ipalib import _, ngettext
@@ -110,9 +110,9 @@ class sudorule(LDAPObject):
             cli_name='desc',
             label=_('Description'),
         ),
-        Flag('ipaenabledflag?',
+        Bool('ipaenabledflag?',
              label=_('Enabled'),
-             flags=['no_create', 'no_update', 'no_search'],
+             flags=['no_option'],
         ),
         StrEnum('usercategory?',
             cli_name='usercat',

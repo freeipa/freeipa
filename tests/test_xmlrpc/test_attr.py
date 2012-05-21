@@ -471,7 +471,8 @@ class test_attr(Declarative):
             command=(
                 'config_mod', [], dict(addattr=u'ipacertificatesubjectbase=0=DOMAIN.COM')
             ),
-            expected=errors.OnlyOneValueAllowed(attr='ipacertificatesubjectbase'),
+            expected=errors.ValidationError(name='ipacertificatesubjectbase',
+                error='attribute is not configurable'),
         ),
 
         dict(

@@ -344,6 +344,16 @@ class test_user(Declarative):
             ),
         ),
 
+        dict(
+            desc='Assert user is disabled',
+            command=('user_find', [user1], {}),
+            expected=dict(
+                result=[lambda d: d['nsaccountlock'] == True],
+                summary=u'1 user matched',
+                count=1,
+                truncated=False,
+            ),
+        ),
 
         dict(
             desc='Enable %r'  % user1,
@@ -357,6 +367,63 @@ class test_user(Declarative):
             ),
         ),
 
+        dict(
+            desc='Assert user is enabled',
+            command=('user_find', [user1], {}),
+            expected=dict(
+                result=[lambda d: d['nsaccountlock'] == False],
+                summary=u'1 user matched',
+                count=1,
+                truncated=False,
+            ),
+        ),
+
+        dict(
+            desc='Disable %r using setattr' % user1,
+            command=('user_mod', [user1], dict(setattr=u'nsaccountlock=True')),
+            expected=dict(
+                result=lambda d: d['nsaccountlock'] == True,
+                value=user1,
+                summary=u'Modified user "tuser1"',
+            ),
+        ),
+
+        dict(
+            desc='Enable %r using setattr' % user1,
+            command=('user_mod', [user1], dict(setattr=u'nsaccountlock=False')),
+            expected=dict(
+                result=lambda d: d['nsaccountlock'] == False,
+                value=user1,
+                summary=u'Modified user "tuser1"',
+            ),
+        ),
+
+        dict(
+            desc='Disable %r using user_mod' % user1,
+            command=('user_mod', [user1], dict(nsaccountlock=True)),
+            expected=dict(
+                result=lambda d: d['nsaccountlock'] == True,
+                value=user1,
+                summary=u'Modified user "tuser1"',
+            ),
+        ),
+
+        dict(
+            desc='Enable %r using user_mod' % user1,
+            command=('user_mod', [user1], dict(nsaccountlock=False)),
+            expected=dict(
+                result=lambda d: d['nsaccountlock'] == False,
+                value=user1,
+                summary=u'Modified user "tuser1"',
+            ),
+        ),
+
+        dict(
+            desc='Try setting virtual attribute on %r using setattr' % user1,
+            command=('user_mod', [user1], dict(setattr=u'random=xyz123')),
+            expected=errors.ObjectclassViolation(
+                info='attribute "random" not allowed'),
+        ),
 
         dict(
             desc='Update %r' % user1,

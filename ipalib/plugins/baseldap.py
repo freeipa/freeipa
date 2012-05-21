@@ -320,7 +320,7 @@ def validate_externalhost(ugettext, hostname):
 
 external_host_param = Str('externalhost*', validate_externalhost,
         label=_('External host'),
-        flags=['no_create', 'no_update', 'no_search'],
+        flags=['no_option'],
 )
 
 
@@ -819,6 +819,11 @@ last, after all sets and adds."""),
             m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", a)
             attr = str(m.group(1)).lower()
             value = m.group(2)
+            if attr in self.obj.params and attr not in self.params:
+                # The attribute is managed by IPA, but it didn't get cloned
+                # to the command. This happens with no_update/no_create attrs.
+                raise errors.ValidationError(
+                    name=attr, error=_('attribute is not configurable'))
             if len(value) == 0:
                 # None means "delete this attribute"
                 value = None
@@ -919,17 +924,10 @@ last, after all sets and adds."""),
         # normalize all values
         changedattrs = setattrs | addattrs | delattrs
         for attr in changedattrs:
-            if attr in self.obj.params:
+            if attr in self.params and self.params[attr].attribute:
                 # convert single-value params to scalars
+                param = self.params[attr]
                 value = entry_attrs[attr]
-                try:
-                    param = self.params[attr]
-                except KeyError:
-                    # The CRUD classes filter their disallowed parameters out.
-                    # Yet {set,add,del}attr are powerful enough to change these
-                    # (e.g. Config's ipacertificatesubjectbase)
-                    # So, use the parent's attribute
-                    param = self.obj.params[attr]
                 if not param.multivalue:
                     if len(value) == 1:
                         value = value[0]

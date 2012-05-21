@@ -1302,7 +1302,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: hbacrule_add
-args: 1,11,3
+args: 1,13,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: StrEnum('accessruletype', attribute=True, autofill=True, cli_name='type', default=u'allow', exclude='webui', multivalue=False, required=True, values=(u'allow', u'deny'))
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
@@ -1310,6 +1310,8 @@ option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', multivalue=F
 option: StrEnum('sourcehostcategory', attribute=True, cli_name='srchostcat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('servicecategory', attribute=True, cli_name='servicecat', multivalue=False, required=False, values=(u'all',))
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
+option: Bool('ipaenabledflag', attribute=True, cli_name='ipaenabledflag', multivalue=False, required=False)
+option: Str('externalhost', attribute=True, cli_name='externalhost', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1382,7 +1384,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: hbacrule_find
-args: 1,13,4
+args: 1,15,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: StrEnum('accessruletype', attribute=True, autofill=False, cli_name='type', default=u'allow', exclude='webui', multivalue=False, query=True, required=False, values=(u'allow', u'deny'))
@@ -1391,6 +1393,8 @@ option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostca
 option: StrEnum('sourcehostcategory', attribute=True, autofill=False, cli_name='srchostcat', multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('servicecategory', attribute=True, autofill=False, cli_name='servicecat', multivalue=False, query=True, required=False, values=(u'all',))
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
+option: Bool('ipaenabledflag', attribute=True, autofill=False, cli_name='ipaenabledflag', multivalue=False, query=True, required=False)
+option: Str('externalhost', attribute=True, autofill=False, cli_name='externalhost', multivalue=True, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1402,7 +1406,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: hbacrule_mod
-args: 1,13,3
+args: 1,15,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: StrEnum('accessruletype', attribute=True, autofill=False, cli_name='type', default=u'allow', exclude='webui', multivalue=False, required=False, values=(u'allow', u'deny'))
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
@@ -1410,6 +1414,8 @@ option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostca
 option: StrEnum('sourcehostcategory', attribute=True, autofill=False, cli_name='srchostcat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('servicecategory', attribute=True, autofill=False, cli_name='servicecat', multivalue=False, required=False, values=(u'all',))
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
+option: Bool('ipaenabledflag', attribute=True, autofill=False, cli_name='ipaenabledflag', multivalue=False, required=False)
+option: Str('externalhost', attribute=True, autofill=False, cli_name='externalhost', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
@@ -1920,12 +1926,13 @@ output: Output('failed', <type 'dict'>, None)
 output: Output('enabled', <type 'bool'>, None)
 output: Output('compat', <type 'bool'>, None)
 command: netgroup_add
-args: 1,9,3
+args: 1,10,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
 option: Str('nisdomainname', attribute=True, cli_name='nisdomain', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$', required=False)
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
+option: Str('externalhost', attribute=True, cli_name='externalhost', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1956,7 +1963,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: netgroup_find
-args: 1,26,4
+args: 1,27,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
@@ -1964,6 +1971,7 @@ option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain
 option: Str('ipauniqueid', attribute=True, autofill=False, cli_name='uuid', multivalue=False, query=True, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, query=True, required=False, values=(u'all',))
+option: Str('externalhost', attribute=True, autofill=False, cli_name='externalhost', multivalue=True, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('private', autofill=True, default=False, exclude='webui')
@@ -1989,12 +1997,13 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: netgroup_mod
-args: 1,11,3
+args: 1,12,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$', required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
+option: Str('externalhost', attribute=True, autofill=False, cli_name='externalhost', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
@@ -2487,13 +2496,14 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: selinuxusermap_add
-args: 1,10,3
+args: 1,11,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('ipaselinuxuser', attribute=True, cli_name='selinuxuser', multivalue=False, required=True)
 option: Str('seealso', attribute=True, cli_name='hbacrule', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
+option: Bool('ipaenabledflag', attribute=True, cli_name='ipaenabledflag', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2544,7 +2554,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: selinuxusermap_find
-args: 1,12,4
+args: 1,13,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('ipaselinuxuser', attribute=True, autofill=False, cli_name='selinuxuser', multivalue=False, query=True, required=False)
@@ -2552,6 +2562,7 @@ option: Str('seealso', attribute=True, autofill=False, cli_name='hbacrule', mult
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, query=True, required=False, values=(u'all',))
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
+option: Bool('ipaenabledflag', attribute=True, autofill=False, cli_name='ipaenabledflag', multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2563,13 +2574,14 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: selinuxusermap_mod
-args: 1,12,3
+args: 1,13,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('ipaselinuxuser', attribute=True, autofill=False, cli_name='selinuxuser', multivalue=False, required=False)
 option: Str('seealso', attribute=True, autofill=False, cli_name='hbacrule', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
+option: Bool('ipaenabledflag', attribute=True, autofill=False, cli_name='ipaenabledflag', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
@@ -2834,9 +2846,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: sudorule_add
-args: 1,15,3
+args: 1,17,3
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
+option: Bool('ipaenabledflag', attribute=True, cli_name='ipaenabledflag', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('cmdcategory', attribute=True, cli_name='cmdcat', multivalue=False, required=False, values=(u'all',))
@@ -2846,6 +2859,7 @@ option: Int('sudoorder', attribute=True, cli_name='order', default=0, minvalue=0
 option: Str('externaluser', attribute=True, cli_name='externaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextuser', attribute=True, cli_name='runasexternaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextgroup', attribute=True, cli_name='runasexternalgroup', multivalue=False, required=False)
+option: Str('externalhost', attribute=True, cli_name='externalhost', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2940,10 +2954,11 @@ args: 1,0,1
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 output: Output('result', None, None)
 command: sudorule_find
-args: 1,17,4
+args: 1,19,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
+option: Bool('ipaenabledflag', attribute=True, autofill=False, cli_name='ipaenabledflag', multivalue=False, query=True, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('cmdcategory', attribute=True, autofill=False, cli_name='cmdcat', multivalue=False, query=True, required=False, values=(u'all',))
@@ -2953,6 +2968,7 @@ option: Int('sudoorder', attribute=True, autofill=False, cli_name='order', defau
 option: Str('externaluser', attribute=True, autofill=False, cli_name='externaluser', multivalue=False, query=True, required=False)
 option: Str('ipasudorunasextuser', attribute=True, autofill=False, cli_name='runasexternaluser', multivalue=False, query=True, required=False)
 option: Str('ipasudorunasextgroup', attribute=True, autofill=False, cli_name='runasexternalgroup', multivalue=False, query=True, required=False)
+option: Str('externalhost', attribute=True, autofill=False, cli_name='externalhost', multivalue=True, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2964,9 +2980,10 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: sudorule_mod
-args: 1,17,3
+args: 1,19,3
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
+option: Bool('ipaenabledflag', attribute=True, autofill=False, cli_name='ipaenabledflag', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('cmdcategory', attribute=True, autofill=False, cli_name='cmdcat', multivalue=False, required=False, values=(u'all',))
@@ -2976,6 +2993,7 @@ option: Int('sudoorder', attribute=True, autofill=False, cli_name='order', defau
 option: Str('externaluser', attribute=True, autofill=False, cli_name='externaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextuser', attribute=True, autofill=False, cli_name='runasexternaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextgroup', attribute=True, autofill=False, cli_name='runasexternalgroup', multivalue=False, required=False)
+option: Str('externalhost', attribute=True, autofill=False, cli_name='externalhost', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
@@ -3067,7 +3085,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: user_add
-args: 1,33,3
+args: 1,34,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, required=True)
 option: Str('givenname', attribute=True, cli_name='first', multivalue=False, required=True)
 option: Str('sn', attribute=True, cli_name='last', multivalue=False, required=True)
@@ -3095,6 +3113,7 @@ option: Str('ou', attribute=True, cli_name='orgunit', multivalue=False, required
 option: Str('title', attribute=True, cli_name='title', multivalue=False, required=False)
 option: Str('manager', attribute=True, cli_name='manager', multivalue=False, required=False)
 option: Str('carlicense', attribute=True, cli_name='carlicense', multivalue=False, required=False)
+option: Bool('nsaccountlock', attribute=True, cli_name='nsaccountlock', multivalue=False, required=False)
 option: Bytes('ipasshpubkey', attribute=True, cli_name='sshpubkey', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -3125,7 +3144,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: user_find
-args: 1,43,4
+args: 1,44,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('uid', attribute=True, autofill=False, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=False)
 option: Str('givenname', attribute=True, autofill=False, cli_name='first', multivalue=False, query=True, required=False)
@@ -3153,6 +3172,7 @@ option: Str('ou', attribute=True, autofill=False, cli_name='orgunit', multivalue
 option: Str('title', attribute=True, autofill=False, cli_name='title', multivalue=False, query=True, required=False)
 option: Str('manager', attribute=True, autofill=False, cli_name='manager', multivalue=False, query=True, required=False)
 option: Str('carlicense', attribute=True, autofill=False, cli_name='carlicense', multivalue=False, query=True, required=False)
+option: Bool('nsaccountlock', attribute=True, autofill=False, cli_name='nsaccountlock', multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('whoami', autofill=True, default=False)
@@ -3175,7 +3195,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: user_mod
-args: 1,34,3
+args: 1,35,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
 option: Str('givenname', attribute=True, autofill=False, cli_name='first', multivalue=False, required=False)
 option: Str('sn', attribute=True, autofill=False, cli_name='last', multivalue=False, required=False)
@@ -3202,6 +3222,7 @@ option: Str('ou', attribute=True, autofill=False, cli_name='orgunit', multivalue
 option: Str('title', attribute=True, autofill=False, cli_name='title', multivalue=False, required=False)
 option: Str('manager', attribute=True, autofill=False, cli_name='manager', multivalue=False, required=False)
 option: Str('carlicense', attribute=True, autofill=False, cli_name='carlicense', multivalue=False, required=False)
+option: Bool('nsaccountlock', attribute=True, autofill=False, cli_name='nsaccountlock', multivalue=False, required=False)
 option: Bytes('ipasshpubkey', attribute=True, autofill=False, cli_name='sshpubkey', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')

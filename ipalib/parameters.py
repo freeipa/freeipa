@@ -330,6 +330,9 @@ class Param(ReadOnly):
               commands
             * no_update: do not include the parameter for crud.update based
               commands
+            * no_option: this attribute is not displayed in the CLI, usually
+              because there's a better way of setting it (for example, a
+              separate command)
             * virtual_attribute: the parameter is not stored physically in the
               LDAP and thus attribute `attribute` is not enabled
             * suppress_empty (Output parameters only): do not display parameter
