@@ -37,6 +37,7 @@ IPA.widget = function(spec) {
     that.label = spec.label;
     that.tooltip = spec.tooltip;
     that.entity = IPA.get_entity(spec.entity); //some old widgets still need it
+    that.facet = spec.facet;
 
     that.create = function(container) {
         container.addClass('widget');
@@ -53,6 +54,24 @@ IPA.widget = function(spec) {
         } else {
             that.container.hide();
         }
+    };
+
+    that.build_child = function(spec, factory) {
+
+        if (typeof spec === 'function') {
+            spec = {
+                factory: spec
+            };
+        }
+
+        $.extend(spec, {
+            parent: that,
+            entity: that.entity,
+            facet: that.facet
+        });
+
+        var child = IPA.build(spec, factory);
+        return child;
     };
 
     that.widget_create = that.create;
@@ -2639,11 +2658,17 @@ IPA.details_table_section = function(spec) {
 
     var that = IPA.details_section(spec);
 
+    that.action_panel = that.build_child(spec.action_panel);
+
     that.rows = $.ordered_map();
 
     that.composite_widget_create = function(container) {
 
         that.widget_create(container);
+
+        if (that.action_panel) {
+            that.action_panel.create(container);
+        }
 
         var table = $('<table/>', {
             'class': 'section-table'
@@ -3130,6 +3155,127 @@ IPA.sshkey_widget = function(spec) {
 
         return dialog;
     };
+
+    return that;
+};
+
+IPA.action_panel = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.action_names = spec.actions;
+    that.actions = $.ordered_map();
+    that.facet = spec.facet;
+    that.initialized = false;
+
+    that.init = function() {
+
+        for (var i=0; i<that.action_names.length; i++) {
+            var name = that.action_names[i];
+            var action = that.facet.actions.get(name);
+
+            that.add_action(action, true);
+
+            that.actions.put(name, action);
+        }
+
+        that.initialized = true;
+    };
+
+    that.add_action = function(action, batch) {
+        that.actions.put(action.name, action);
+        action.enabled_changed.attach(that.action_enabled_changed);
+        action.visible_changed.attach(that.action_visible_changed);
+
+        if (!batch) {
+            that.create_items();
+        }
+    };
+
+    that.create = function(container) {
+
+        if (!that.initialized) that.init();
+
+        that.element = $('<div/>', {
+            'data-name': that.name,
+            'class': 'action-panel'
+        });
+
+        that.header_element = $('<h3/>', {
+            'class': 'action-title'
+        }).appendTo(that.element);
+
+        that.list_element = $('<ul/>', {
+            'class': 'action-panel-list'
+        }).appendTo(that.element);
+
+        that.element.appendTo(container);
+
+        that.create_items();
+    };
+
+    that.create_item = function(action) {
+
+        var classes, state, li, a;
+
+        classes = ['action'];
+        state = action.enabled ? 'enabled' : 'disabled';
+        classes.push(state);
+
+        li = $('<li/>');
+        a = $('<a/>', {
+            'data-name': action.name,
+            href: '#',
+            text: action.label,
+            'class': classes.join(' '),
+            onclick: function() {
+                that.action_clicked(action);
+                return false;
+            }
+        }).appendTo(li);
+        li.appendTo(that.list_element);
+    };
+
+    that.clear_items = function() {
+
+        that.list_element.empty();
+    };
+
+    that.create_items = function() {
+
+        if (!that.element) return;
+
+        that.clear_items();
+
+        var actions = that.actions.values;
+
+        for (var i=0; i<actions.length; i++) {
+            var action = actions[i];
+            that.create_item(action);
+        }
+
+        that.header_element.text(that.label);
+    };
+
+    that.action_clicked = function(action) {
+
+        if (!action.enabled || !action.visible) return;
+
+        action.execute(that.facet);
+    };
+
+    that.action_enabled_changed = function() {
+
+        that.create_items();
+    };
+
+    that.action_visible_changed = function() {
+
+        that.create_items();
+    };
+
 
     return that;
 };

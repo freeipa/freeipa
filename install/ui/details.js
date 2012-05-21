@@ -122,7 +122,8 @@ IPA.section_builder = function(spec) {
     };
 
     that.build_section = function(section_spec, index) {
-        section_spec.entity = that.entity;
+        section_spec.entity = that.container.entity;
+        section_spec.facet = that.container;
 
         if (!section_spec.label && section_spec.name) {
             var obj_messages = IPA.messages.objects[that.container.entity.name];

@@ -892,6 +892,7 @@ hr {
 }
 
 .details-section {
+    position: relative;
     margin-top: 1em;
     margin-left: 4.5em;
     margin-right: 3.3em;
@@ -1708,4 +1709,32 @@ form#login {
 .facet-title.disabled h3,
 .facet-title.disabled h3 .facet-pkey{
     color: gray;
+}
+
+.action-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    width: 150px;
+
+    -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+}
+
+.action-panel-list {
+    list-style: none;
+    padding-left: 15px;
+}
+
+.action-title {
+    font-size: 1em;
+    font-weight: bold;
+    margin-left: 15px;
+}
+
+.disabled {
+    color: gray;
+    cursor: default;
 }

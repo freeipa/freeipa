@@ -347,7 +347,8 @@ IPA.facet_header = function(spec) {
 
             var widget_builder = IPA.widget_builder({
                 widget_options: {
-                    entity: that.facet.entity
+                    entity: that.facet.entity,
+                    facet: that.facet
                 }
             });
 
