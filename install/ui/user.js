@@ -103,6 +103,12 @@ IPA.user.entity = function(spec) {
                 },
                 {
                     name: 'account',
+                    action_panel: {
+                        factory: IPA.action_panel,
+                        name: 'account_actions',
+                        label: 'Actions', //TODO: translate
+                        actions: ['reset_password']
+                    },
                     fields: [
                         'uid',
                         {
@@ -224,7 +230,8 @@ IPA.user.entity = function(spec) {
                 IPA.select_action,
                 IPA.enable_action,
                 IPA.disable_action,
-                IPA.delete_action
+                IPA.delete_action,
+                IPA.user.reset_password_action
             ],
             header_actions: ['select_action', 'enable', 'disable', 'delete'],
             state: {
@@ -598,6 +605,27 @@ IPA.user_password_dialog = function(spec) {
     };
 
     that.create_buttons();
+
+    return that;
+};
+
+IPA.user.reset_password_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'reset_password';
+    spec.label = spec.label || IPA.messages.password.reset_password;
+    //TODO: add enable condition based on ACL
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        var dialog = IPA.user_password_dialog({
+            entity: facet.entity
+        });
+
+        dialog.open();
+    };
 
     return that;
 };
