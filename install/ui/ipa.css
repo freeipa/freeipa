@@ -953,6 +953,12 @@ a, .ui-widget-content a {
 
 /* ---- Dialog ---- */
 
+.ui-dialog {
+    -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+}
+
 .ui-dialog .ui-dialog-titlebar-close span {
     background-color: transparent !important;
 }
