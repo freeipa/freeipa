@@ -386,7 +386,7 @@ def read_host_name(host_default,no_host_dns=False):
     return host_name
 
 def read_domain_name(domain_name, unattended):
-    print "The domain name has been calculated based on the host name."
+    print "The domain name has been determined based on the host name."
     print ""
     if not unattended:
         domain_name = user_input("Please confirm the domain name", domain_name)
