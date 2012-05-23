@@ -155,7 +155,7 @@ def __parse_config(discover_server = True):
         try:
             s = p.get("global", "xmlrpc_uri")
             server = urlparse.urlsplit(s)
-            config.default_server.extend(server.netloc)
+            config.default_server.append(server.netloc)
         except:
             pass
     try:
