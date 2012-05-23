@@ -72,6 +72,8 @@ EXAMPLES:
    ipa group-show localadmins
 """)
 
+protected_group_name = u'admins'
+
 class group(LDAPObject):
     """
     Group object.
@@ -164,7 +166,9 @@ class group_del(LDAPDelete):
         group_attrs = self.obj.methods.show(
             self.obj.get_primary_key_from_dn(dn), all=True
         )['result']
-
+        if keys[0] == protected_group_name:
+            raise errors.ProtectedEntryError(label=_(u'group'), key=keys[0],
+                reason=_(u'privileged group'))
         if 'mepmanagedby' in group_attrs:
             raise errors.ManagedGroupError()
         return dn
@@ -275,6 +279,16 @@ api.register(group_add_member)
 
 class group_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a group.')
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        if keys[0] == protected_group_name:
+            result = api.Command.group_show(protected_group_name)
+            users_left = set(result['result'].get('member_user', []))
+            users_deleted = set(options['user'])
+            if users_left.issubset(users_deleted):
+                raise errors.LastMemberError(key=sorted(users_deleted)[0],
+                    label=_(u'group'), container=protected_group_name)
+        return dn
 
 api.register(group_remove_member)
 

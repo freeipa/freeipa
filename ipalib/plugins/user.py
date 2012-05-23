@@ -544,8 +544,13 @@ class user_del(LDAPDelete):
 
     msg_summary = _('Deleted user "%(value)s"')
 
-    def post_callback(self, ldap, dn, *keys, **options):
-        return True
+    def pre_callback(self, ldap, dn, *keys, **options):
+        protected_group_name = u'admins'
+        result = api.Command.group_show(protected_group_name)
+        if result['result'].get('member_user', []) == [keys[-1]]:
+            raise errors.LastMemberError(key=keys[-1], label=_(u'group'),
+                container=protected_group_name)
+        return dn
 
 api.register(user_del)
 

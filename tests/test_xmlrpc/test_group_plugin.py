@@ -797,4 +797,59 @@ class test_group(Declarative):
             expected=errors.NotFound(reason=u'%s: group not found' % user1),
         ),
 
+        dict(
+            desc='Try to remove the admin user from the admins group',
+            command=('group_remove_member', [u'admins'], dict(user=[u'admin'])),
+            expected=errors.LastMemberError(key=u'admin', label=u'group',
+                container='admins'),
+        ),
+
+        dict(
+            desc='Add %r to the admins group' % user1,
+            command=('group_add_member', [u'admins'], dict(user=user1)),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn', 'admins'), ('cn', 'groups'),
+                                ('cn', 'accounts'), api.env.basedn),
+                        'member_user': [u'admin', user1],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [u'admins'],
+                        'description': [u'Account administrators group'],
+                },
+            ),
+        ),
+
+        dict(
+            desc='Try to remove admin and %r from the admins group' % user1,
+            command=('group_remove_member', [u'admins'],
+                dict(user=[u'admin', user1])),
+            expected=errors.LastMemberError(key=u'admin', label=u'group',
+                container='admins'),
+        ),
+
+        dict(
+            desc='Try to delete the admins group',
+            command=('group_del', [u'admins'], {}),
+            expected=errors.ProtectedEntryError(label=u'group',
+                key='admins', reason='privileged group'),
+        ),
+
+        dict(
+            desc='Delete %r' % user1,
+            command=('user_del', [user1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % user1,
+                value=user1,
+            ),
+        ),
+
     ]

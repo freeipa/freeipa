@@ -1575,6 +1575,38 @@ class DependentEntry(ExecutionError):
     format = _('%(key)s cannot be deleted because %(label)s %(dependent)s requires it')
 
 
+class LastMemberError(ExecutionError):
+    """
+    **4308** Raised when an entry being deleted is last member of a protected group
+
+    For example:
+    >>> raise LastMemberError(key=u'admin', label=u'group', container=u'admins')
+    Traceback (most recent call last):
+      ...
+    LastMemberError: admin cannot be deleted because it is the last member of group admins
+
+    """
+
+    errno = 4308
+    format = _('%(key)s cannot be deleted because it is the last member of %(label)s %(container)s')
+
+
+class ProtectedEntryError(ExecutionError):
+    """
+    **4309** Raised when an entry being deleted is protected
+
+    For example:
+    >>> raise ProtectedEntryError(label=u'group', key=u'admins', reason=u'privileged group')
+    Traceback (most recent call last):
+      ...
+    ProtectedEntryError: group admins cannot be deleted: privileged group
+
+    """
+
+    errno = 4309
+    format = _('%(label)s %(key)s cannot be deleted: %(reason)s')
+
+
 ##############################################################################
 # 5000 - 5999: Generic errors
 

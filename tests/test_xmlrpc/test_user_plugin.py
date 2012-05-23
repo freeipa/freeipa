@@ -1330,4 +1330,45 @@ class test_user(Declarative):
             ),
             expected=lambda x: True,
         ),
+
+        dict(
+            desc='Try to remove the admin user',
+            command=('user_del', [u'admin'], {}),
+            expected=errors.LastMemberError(key=u'admin', label=u'group',
+                container='admins'),
+        ),
+
+        dict(
+            desc='Add %r to the admins group' % user2,
+            command=('group_add_member', [u'admins'], dict(user=user2)),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn', 'admins'), ('cn', 'groups'),
+                                ('cn', 'accounts'), api.env.basedn),
+                        'member_user': [u'admin', user2],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [u'admins'],
+                        'description': [u'Account administrators group'],
+                },
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % user2,
+            command=('user_del', [user2], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % user2,
+                value=user2,
+            ),
+        ),
+
     ]
