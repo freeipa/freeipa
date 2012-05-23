@@ -1795,7 +1795,7 @@ IPA.action_list_widget = function(spec) {
         {
             type: 'button',
             name: 'apply',
-            label: "Apply" //TODO: translate
+            label: IPA.messages.actions.apply
         }
     ];
 

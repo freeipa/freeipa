@@ -3162,6 +3162,7 @@ IPA.sshkey_widget = function(spec) {
 IPA.action_panel = function(spec) {
 
     spec = spec || {};
+    spec.label = spec.label || IPA.messages.actions.title;
 
     var that = IPA.widget(spec);
 

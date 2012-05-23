@@ -106,7 +106,6 @@ IPA.user.entity = function(spec) {
                     action_panel: {
                         factory: IPA.action_panel,
                         name: 'account_actions',
-                        label: 'Actions', //TODO: translate
                         actions: ['reset_password']
                     },
                     fields: [
