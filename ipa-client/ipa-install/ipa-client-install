@@ -857,12 +857,16 @@ def configure_ssh(fstore, ssh_dir, options):
     if file_exists(ssh_config):
         fstore.backup_file(ssh_config)
 
-        changes = {}
+        changes = {
+            'PubkeyAuthentication': 'yes',
+        }
+
         if options.trust_sshfp:
             changes['VerifyHostKeyDNS'] = 'yes'
+            changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
         elif options.sssd and file_exists('/usr/bin/sss_ssh_knownhostsproxy'):
             changes['ProxyCommand'] = '/usr/bin/sss_ssh_knownhostsproxy -p %p %h'
-            changes['GlobalKnownHostsFile2'] = '/var/lib/sss/pubconf/known_hosts'
+            changes['GlobalKnownHostsFile'] = '/var/lib/sss/pubconf/known_hosts'
 
         change_ssh_config(ssh_config, changes, ['Host'])
         print 'Configured', ssh_config
@@ -878,6 +882,7 @@ def configure_ssh(fstore, ssh_dir, options):
     fstore.backup_file(sshd_config)
 
     changes = {
+        'PubkeyAuthentication': 'yes',
         'KerberosAuthentication': 'no',
         'GSSAPIAuthentication': 'yes',
         'UsePAM': 'yes',
