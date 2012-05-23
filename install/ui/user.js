@@ -239,7 +239,8 @@ IPA.user.entity = function(spec) {
                         factory: IPA.enable_state_evaluator,
                         field: 'nsaccountlock',
                         invert_value: true
-                    }
+                    },
+                    IPA.user.reset_password_acl_evaluator
                 ],
                 summary_conditions: [
                     IPA.enabled_summary_cond(),
@@ -613,7 +614,7 @@ IPA.user.reset_password_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'reset_password';
     spec.label = spec.label || IPA.messages.password.reset_password;
-    //TODO: add enable condition based on ACL
+    spec.enable_cond = spec.enable_cond || ['userpassword_w'];
 
     var that = IPA.action(spec);
 
@@ -626,6 +627,15 @@ IPA.user.reset_password_action = function(spec) {
         dialog.open();
     };
 
+    return that;
+};
+
+IPA.user.reset_password_acl_evaluator = function(spec) {
+
+    spec.name = spec.name || 'reset_password_acl_evaluator';
+    spec.attribute = spec.attribute || 'userpassword';
+
+    var that = IPA.acl_state_evaluator(spec);
     return that;
 };
 

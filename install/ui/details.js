@@ -969,6 +969,40 @@ IPA.enable_state_evaluator = function(spec) {
     return that;
 };
 
+IPA.acl_state_evaluator = function(spec) {
+
+    spec.name = spec.name || 'acl_state_evaluator';
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.attribute = spec.attribute;
+
+    that.on_event = function(data) {
+
+        var old_state, record, rights, i, state;
+
+        old_state = that.state;
+        record = data.result.result;
+
+        that.state = [];
+
+        if (record.attributelevelrights) {
+            rights = record.attributelevelrights[that.attribute];
+        }
+
+        rights = rights || '';
+
+        for (i=0; i<rights.length; i++) {
+            state = that.attribute + '_' + rights.charAt(i);
+            that.state.push(state);
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
 IPA.object_action = function(spec) {
 
     spec = spec || {};
