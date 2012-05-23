@@ -399,11 +399,12 @@ class service_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
-            return
+            return truncated
         for entry in entries:
             (dn, entry_attrs) = entry
             self.obj.get_password_attributes(ldap, dn, entry_attrs)
             set_certificate_attrs(entry_attrs)
+        return truncated
 
 api.register(service_find)
 

@@ -1857,9 +1857,9 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
-                callback(ldap, entries, truncated, *args, **options)
+                truncated = callback(ldap, entries, truncated, *args, **options)
             else:
-                callback(self, ldap, entries, truncated, *args, **options)
+                truncated = callback(self, ldap, entries, truncated, *args, **options)
 
         if self.sort_result_entries:
             if self.obj.primary_key:
@@ -1884,7 +1884,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         return (filters, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        pass
+        return truncated
 
     def exc_callback(self, args, options, exc, call_func, *call_args, **call_kwargs):
         raise exc

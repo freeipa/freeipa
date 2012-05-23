@@ -498,4 +498,6 @@ class pwpolicy_find(LDAPSearch):
                 except KeyError:
                     pass
 
+        return truncated
+
 api.register(pwpolicy_find)

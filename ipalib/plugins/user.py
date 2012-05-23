@@ -625,13 +625,14 @@ class user_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
-            return
+            return truncated
         for entry in entries:
             (dn, attrs) = entry
             self.obj._convert_manager(attrs, **options)
             self.obj.get_password_attributes(ldap, dn, attrs)
             convert_nsaccountlock(attrs)
             output_sshpubkey(ldap, dn, attrs)
+        return truncated
 
     msg_summary = ngettext(
         '%(count)d user matched', '%(count)d users matched', 0

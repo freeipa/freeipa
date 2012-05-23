@@ -318,10 +318,11 @@ all=True)['result']
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
-            return
+            return truncated
         for entry in entries:
             (dn, attrs) = entry
             self.obj._convert_seealso(ldap, attrs, **options)
+        return truncated
 
 api.register(selinuxusermap_find)
 

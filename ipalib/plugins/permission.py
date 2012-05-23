@@ -351,7 +351,7 @@ class permission_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.pop('pkey_only', False):
-            return
+            return truncated
         for entry in entries:
             (dn, attrs) = entry
             try:
@@ -363,6 +363,15 @@ class permission_find(LDAPSearch):
                         attrs[attr] = aci[attr]
             except errors.NotFound:
                 self.debug('ACI not found for %s' % attrs['cn'][0])
+        if truncated:
+            # size/time limit met, no need to search acis
+            return truncated
+
+        if 'sizelimit' in options:
+            max_entries = options['sizelimit']
+        else:
+            config = ldap.get_ipa_config()[1]
+            max_entries = config['ipasearchrecordslimit']
 
         # Now find all the ACIs that match. Once we find them, add any that
         # aren't already in the list along with their permission info.
@@ -398,7 +407,12 @@ class permission_find(LDAPSearch):
                     dn = permission['dn']
                     del permission['dn']
                     if (dn, permission) not in entries:
-                        entries.append((dn, permission))
+                       if len(entries) < max_entries:
+                           entries.append((dn, permission))
+                       else:
+                           truncated = True
+                           break
+        return truncated
 
 api.register(permission_find)
 

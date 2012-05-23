@@ -769,7 +769,7 @@ class host_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
-            return
+            return truncated
         for entry in entries:
             (dn, entry_attrs) = entry
             set_certificate_attrs(entry_attrs)
@@ -784,6 +784,8 @@ class host_find(LDAPSearch):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(entry[0])
 
             output_sshpubkey(ldap, dn, entry_attrs)
+
+        return truncated
 
 api.register(host_find)
 

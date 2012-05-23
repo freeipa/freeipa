@@ -132,7 +132,7 @@ EXAMPLES:
 
   SRV record: 0 3 389 fast.example.com, 0 1 389 slow.example.com, 1 1 389 backup.example.com
 
-  Modify SRV record '0 3 389 fast.example.com'? Yes/No (default No): 
+  Modify SRV record '0 3 389 fast.example.com'? Yes/No (default No):
   Modify SRV record '0 1 389 slow.example.com'? Yes/No (default No): y
   SRV Priority [0]:                     (keep the default value)
   SRV Weight [1]: 2                     (modified value)
@@ -2588,6 +2588,8 @@ class dnsrecord_find(LDAPSearch):
                 entries[0][1][zone_obj.primary_key.name] = [_dns_zone_record]
             for entry in entries:
                 self.obj.postprocess_record(entry[1], **options)
+
+        return truncated
 
 api.register(dnsrecord_find)
 

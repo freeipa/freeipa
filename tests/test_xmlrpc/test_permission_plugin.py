@@ -387,6 +387,80 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Search for %r with a limit of 1 (truncated)' % permission1,
+            command=('permission_find', [permission1], dict(sizelimit=1)),
+            expected=dict(
+                count=1,
+                truncated=True,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': lambda x: DN(x) == permission1_dn,
+                        'cn': [permission1],
+                        'member_privilege': [privilege1],
+                        'type': u'user',
+                        'permissions': [u'write'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with a limit of 2' % permission1,
+            command=('permission_find', [permission1], dict(sizelimit=2)),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 permissions matched',
+                result=[
+                    {
+                        'dn': lambda x: DN(x) == permission1_dn,
+                        'cn': [permission1],
+                        'member_privilege': [privilege1],
+                        'type': u'user',
+                        'permissions': [u'write'],
+                    },
+                    {
+                        'dn': lambda x: DN(x) == permission2_dn,
+                        'cn': [permission2],
+                        'type': u'user',
+                        'permissions': [u'write'],
+                    },
+                ],
+            ),
+        ),
+
+
+        # This tests setting truncated to True in the post_callback of
+        # permission_find(). The return order in LDAP is not guaranteed
+        # but in practice this is the first entry it finds. This is subject
+        # to change.
+        dict(
+            desc='Search for permissions by attr with a limit of 1 (truncated)',
+            command=('permission_find', [], dict(attrs=u'ipaenabledflag',
+                                                 sizelimit=1)),
+            expected=dict(
+                count=1,
+                truncated=True,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': lambda x: DN(x) == DN(('cn', 'Modify HBAC rule'),
+                                                    api.env.container_permission,api.env.basedn),
+                        'cn': [u'Modify HBAC rule'],
+                        'member_privilege': [u'HBAC Administrator'],
+                        'permissions' : [u'write'],
+                        'attrs': [u'servicecategory', u'sourcehostcategory', u'cn', u'description', u'ipaenabledflag', u'accesstime', u'usercategory', u'hostcategory', u'accessruletype', u'sourcehost'],
+                        'subtree' : u'ldap:///ipauniqueid=*,cn=hbac,%s' % api.env.basedn,
+                        'memberindirect': [u'cn=hbac administrator,cn=privileges,cn=pbac,%s' % api.env.basedn, u'cn=it security specialist,cn=roles,cn=accounts,%s' % api.env.basedn],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Update %r' % permission1,
             command=(
                 'permission_mod', [permission1], dict(permissions=u'read', memberof=u'ipausers')

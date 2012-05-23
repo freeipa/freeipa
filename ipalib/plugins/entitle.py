@@ -461,6 +461,7 @@ class entitle_find(LDAPSearch):
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if len(entries) == 0:
             raise errors.NotRegisteredError()
+        return truncated
 
 api.register(entitle_find)
 
