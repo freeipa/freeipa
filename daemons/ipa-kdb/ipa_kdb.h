@@ -92,6 +92,8 @@ struct ipadb_context {
     krb5_key_salt_tuple *supp_encs;
     int n_supp_encs;
     struct ipadb_wincompat wc;
+    bool disable_last_success;
+    bool disable_lockout;
 };
 
 #define IPA_E_DATA_MAGIC 0x0eda7a

@@ -72,6 +72,9 @@ void ipadb_audit_as_req(krb5_context kcontext,
                 client->fail_auth_count = 0;
                 client->mask |= KMASK_FAIL_AUTH_COUNT;
             }
+            if (ipactx->disable_last_success) {
+                break;
+            }
             client->last_success = authtime;
             client->mask |= KMASK_LAST_SUCCESS;
         }
@@ -79,6 +82,10 @@ void ipadb_audit_as_req(krb5_context kcontext,
 
     case KRB5KDC_ERR_PREAUTH_FAILED:
     case KRB5KRB_AP_ERR_BAD_INTEGRITY:
+
+        if (ipactx->disable_lockout) {
+            break;
+        }
 
         if (client->last_failed <= ied->last_admin_unlock) {
             /* Reset fail_auth_count, and admin unlocked the account */

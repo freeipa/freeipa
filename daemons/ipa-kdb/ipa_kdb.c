@@ -159,6 +159,65 @@ done:
     return base;
 }
 
+int ipadb_get_global_configs(struct ipadb_context *ipactx)
+{
+    char *attrs[] = { "ipaConfigString", NULL };
+    struct berval **vals = NULL;
+    LDAPMessage *res = NULL;
+    LDAPMessage *first;
+    char *base = NULL;
+    int i;
+    int ret;
+
+    ret = asprintf(&base, "cn=ipaConfig,cn=etc,%s", ipactx->base);
+    if (ret == -1) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    ret = ipadb_simple_search(ipactx, base, LDAP_SCOPE_BASE,
+                              "(objectclass=*)", attrs, &res);
+    if (ret) {
+        goto done;
+    }
+
+    first = ldap_first_entry(ipactx->lcontext, res);
+    if (!first) {
+        /* no results, set nothing */
+        ret = 0;
+        goto done;
+    }
+
+    vals = ldap_get_values_len(ipactx->lcontext, first,
+                               "ipaConfigString");
+    if (!vals || !vals[0]) {
+        /* no config, set nothing */
+        ret = 0;
+        goto done;
+    }
+
+    for (i = 0; vals[i]; i++) {
+        if (strncasecmp("KDC:Disable Last Success",
+                        vals[i]->bv_val, vals[i]->bv_len) == 0) {
+            ipactx->disable_last_success = true;
+            continue;
+        }
+        if (strncasecmp("KDC:Disable Lockout",
+                        vals[i]->bv_val, vals[i]->bv_len) == 0) {
+            ipactx->disable_lockout = true;
+            continue;
+        }
+    }
+
+    ret = 0;
+
+done:
+    ldap_value_free_len(vals);
+    ldap_msgfree(res);
+    free(base);
+    return ret;
+}
+
 int ipadb_get_connection(struct ipadb_context *ipactx)
 {
     struct berval **vals = NULL;
@@ -259,6 +318,13 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
     ipactx->supp_encs = kst;
     ipactx->n_supp_encs = n_kst;
 
+    /* get additional options */
+    ret = ipadb_get_global_configs(ipactx);
+    if (ret) {
+        goto done;
+    }
+
+    /* get adtrust options */
     ret = ipadb_reinit_mspac(ipactx);
     if (ret && ret != ENOENT) {
         /* TODO: log that there is an issue with adtrust settings */
