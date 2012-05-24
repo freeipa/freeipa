@@ -61,6 +61,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "plstr.h"
 
 static void
@@ -81,6 +82,25 @@ do_force_sync(
     Slapi_Mods *smods, /* the mod list */
     int *do_modify /* set to true if mods were applied */
 );
+
+static char *
+str_tolower(char *str)
+{
+    char *lstr, *t;
+
+    lstr = strdup(str);
+    if (!lstr) {
+        /* the caller should log OOM if this returns NULL */
+        return NULL;
+    }
+
+    for (t = lstr; *t; t++)
+        if (isalpha(*t))
+            *t = tolower(*t);
+
+    return lstr;
+}
+
 
 /* This is called when a new agreement is created or loaded
    at startup.
@@ -278,11 +298,22 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
     if (slapi_entry_attr_find(ds_entry, type, &e_attr) || !e_attr) {
         char *upn = NULL;
         char *uid = NULL;
+        char *lower = NULL;
         char *samAccountName = NULL;
         /* if the ds_entry already has a uid, use that */
         if ((uid = slapi_entry_attr_get_charptr(ds_entry, "uid"))) {
-            upn = slapi_ch_smprintf("%s@%s", uid, ipaconfig->realm_name);
+            lower = str_tolower(uid);
+            if (!lower) {
+                LOG_OOM();
+                return;
+            }
+            /* Now reset UID to be lower-case */
             slapi_ch_free_string(&uid);
+            slapi_entry_attr_delete(ds_entry, "uid");
+            slapi_entry_attr_set_charptr(ds_entry, "uid", lower);
+            /* And create a normalized principal */
+            upn = slapi_ch_smprintf("%s@%s", lower, ipaconfig->realm_name);
+            free(lower);
         /* otherwise, use the samAccountName from the ad_entry */
         } else if ((samAccountName =
                     slapi_entry_attr_get_charptr(ad_entry, "samAccountName"))) {
