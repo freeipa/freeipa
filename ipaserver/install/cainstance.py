@@ -681,7 +681,6 @@ class CAInstance(service.Service):
     def __restart_instance(self):
         try:
             self.restart(PKI_INSTANCE_NAME)
-            installutils.wait_for_open_ports('localhost', 9180, 300)
         except Exception:
             # TODO: roll back here?
             root_logger.critical("Failed to restart the certificate server. See the installation log for details.")

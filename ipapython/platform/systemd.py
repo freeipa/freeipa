@@ -20,6 +20,7 @@
 from ipapython import ipautil
 from ipapython.platform import base
 import sys, os, shutil
+from ipalib import api
 
 class SystemdService(base.PlatformService):
     SYSTEMD_ETC_PATH = "/etc/systemd/system/"
@@ -73,16 +74,34 @@ class SystemdService(base.PlatformService):
             return (None,None)
         return dict(map(lambda x: splitter(x, separator=separator), text.split("\n")))
 
+    def __wait_for_open_ports(self, instance_name=""):
+        """
+        If this is a service we need to wait for do so.
+        """
+        ports = None
+        if instance_name in base.wellknownports:
+            ports = base.wellknownports[instance_name]
+        else:
+            elements = self.service_name.split("@")
+            if elements[0] in base.wellknownports:
+                ports = base.wellknownports[elements[0]]
+        if ports:
+            ipautil.wait_for_open_ports('localhost', ports, api.env.startup_timeout)
+
     def stop(self, instance_name="", capture_output=True):
         ipautil.run(["/bin/systemctl", "stop", self.service_instance(instance_name)], capture_output=capture_output)
 
-    def start(self, instance_name="", capture_output=True):
+    def start(self, instance_name="", capture_output=True, wait=True):
         ipautil.run(["/bin/systemctl", "start", self.service_instance(instance_name)], capture_output=capture_output)
+        if wait and self.is_running(instance_name):
+            self.__wait_for_open_ports(self.service_instance(instance_name))
 
-    def restart(self, instance_name="", capture_output=True):
+    def restart(self, instance_name="", capture_output=True, wait=True):
         # Restart command is broken before systemd-36-3.fc16
         # If you have older systemd version, restart of dependent services will hang systemd indefinetly
         ipautil.run(["/bin/systemctl", "restart", self.service_instance(instance_name)], capture_output=capture_output)
+        if wait and self.is_running(instance_name):
+            self.__wait_for_open_ports(self.service_instance(instance_name))
 
     def is_running(self, instance_name=""):
         ret = True

@@ -36,10 +36,9 @@ from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
 from ipapython import ipautil
 from ipalib import errors
-from ipapython.ipautil import format_netloc
+from ipapython.ipautil import format_netloc, wait_for_open_socket, wait_for_open_ports
 from ipapython.entity import Entity
 from ipaserver.plugins.ldap2 import IPASimpleLDAPObject
-from ipaserver.install import installutils
 
 # Global variable to define SASL auth
 SASL_AUTH = ldap.sasl.sasl({},'GSSAPI')
@@ -337,10 +336,10 @@ class IPAdmin(IPAEntryLDAPObject):
     def __wait_for_connection(self, timeout):
         lurl = ldapurl.LDAPUrl(self._uri)
         if lurl.urlscheme == 'ldapi':
-            installutils.wait_for_open_socket(lurl.hostport, timeout)
+            wait_for_open_socket(lurl.hostport, timeout)
         else:
             (host,port) = lurl.hostport.split(':')
-            installutils.wait_for_open_ports(host, int(port), timeout)
+            wait_for_open_ports(host, int(port), timeout)
 
     def __bind_with_wait(self, bind_func, timeout, *args, **kwargs):
         try:

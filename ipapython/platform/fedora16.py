@@ -98,7 +98,7 @@ class Fedora16DirectoryService(Fedora16Service):
             restore_context(dirsrv_systemd)
             ipautil.run(["/bin/systemctl", "--system", "daemon-reload"],raiseonerr=False)
 
-    def restart(self, instance_name="", capture_output=True):
+    def restart(self, instance_name="", capture_output=True, wait=True):
         if len(instance_name) > 0:
             elements = self.service_name.split("@")
             srv_etc = os.path.join(self.SYSTEMD_ETC_PATH, self.service_name)
@@ -109,7 +109,7 @@ class Fedora16DirectoryService(Fedora16Service):
             elif not os.path.samefile(srv_etc, srv_lnk):
                 os.unlink(srv_lnk)
                 os.symlink(srv_etc, srv_lnk)
-        super(Fedora16DirectoryService, self).restart(instance_name, capture_output=capture_output)
+        super(Fedora16DirectoryService, self).restart(instance_name, capture_output=capture_output, wait=wait)
 
 # Enforce restart of IPA services when we do enable it
 # This gets around the fact that after ipa-server-install systemd thinks

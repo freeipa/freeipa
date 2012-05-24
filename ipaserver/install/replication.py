@@ -25,7 +25,6 @@ import sys
 import ldap
 from ipaserver import ipaldap
 from ipapython import services as ipaservices
-import installutils
 from ldap import modlist
 from ipalib import api, util, errors
 from ipapython import ipautil
@@ -92,7 +91,6 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
         conn.unbind()
         serverid = "-".join(realm.split("."))
         ipaservices.knownservices.dirsrv.restart(instance_name=serverid)
-        installutils.wait_for_open_ports('localhost', [389, 636], 300)
     else:
         conn.unbind()
 

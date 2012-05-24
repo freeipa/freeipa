@@ -26,6 +26,7 @@ import sys
 import socket
 from ipapython import ipautil
 from ipapython.platform import base
+from ipalib import api
 
 # All what we allow exporting directly from this module
 # Everything else is made available through these symbols when they are
@@ -46,14 +47,31 @@ from ipapython.platform import base
 __all__ = ['authconfig', 'service', 'knownservices', 'backup_and_replace_hostname', 'restore_context', 'check_selinux_status']
 
 class RedHatService(base.PlatformService):
+    def __wait_for_open_ports(self, instance_name=""):
+        """
+        If this is a service we need to wait for do so.
+        """
+        ports = None
+        if instance_name in base.wellknownports:
+            ports = base.wellknownports[instance_name]
+        else:
+            if self.service_name in base.wellknownports:
+                ports = base.wellknownports[self.service_name]
+        if ports:
+            ipautil.wait_for_open_ports('localhost', ports, api.env.startup_timeout)
+
     def stop(self, instance_name="", capture_output=True):
         ipautil.run(["/sbin/service", self.service_name, "stop", instance_name], capture_output=capture_output)
 
-    def start(self, instance_name="", capture_output=True):
+    def start(self, instance_name="", capture_output=True, wait=True):
         ipautil.run(["/sbin/service", self.service_name, "start", instance_name], capture_output=capture_output)
+        if wait and self.is_running(instance_name):
+            self.__wait_for_open_ports(instance_name)
 
-    def restart(self, instance_name="", capture_output=True):
+    def restart(self, instance_name="", capture_output=True, wait=True):
         ipautil.run(["/sbin/service", self.service_name, "restart", instance_name], capture_output=capture_output)
+        if wait and self.is_running(instance_name):
+            self.__wait_for_open_ports(instance_name)
 
     def is_running(self, instance_name=""):
         ret = True

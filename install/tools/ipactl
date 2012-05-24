@@ -24,7 +24,8 @@ try:
     from ipaserver.install import service, installutils
     from ipapython import services as ipaservices
     from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
-    from ipaserver.install.installutils import is_ipa_configured, wait_for_open_ports, wait_for_open_socket, ScriptError
+    from ipaserver.install.installutils import is_ipa_configured, ScriptError
+    from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
     from ipapython import sysrestore
     from ipapython import config
     from ipalib import api, errors
@@ -105,22 +106,25 @@ def parse_options():
 def emit_err(err):
     sys.stderr.write(err + '\n')
 
-def get_config():
+def get_config(dirsrv):
     base = "cn=%s,cn=masters,cn=ipa,cn=etc,%s" % (api.env.host,
                                                   api.env.basedn)
     srcfilter = '(ipaConfigString=enabledService)'
     attrs = ['cn', 'ipaConfigString']
+    if not dirsrv.is_running():
+        raise IpactlError("Failed to get list of services to probe status:\n" +
+                          "Directory Server is stopped", 3)
 
     try:
-        # systemd services are so fast that we come here before
-        # Directory Server actually starts listening. Wait for
-        # the socket/port be really available.
+        # The start/restart functions already wait for the server to be
+        # started. What we are doing with this wait is really checking to see
+        # if the server is listening at all.
         lurl = ldapurl.LDAPUrl(api.env.ldap_uri)
         if lurl.urlscheme == 'ldapi':
-            wait_for_open_socket(lurl.hostport, timeout=6)
+            wait_for_open_socket(lurl.hostport, timeout=api.env.startup_timeout)
         else:
             (host,port) = lurl.hostport.split(':')
-            wait_for_open_ports(host, [int(port)], timeout=6)
+            wait_for_open_ports(host, [int(port)], timeout=api.env.startup_timeout)
         con = ldap.initialize(api.env.ldap_uri)
         con.sasl_interactive_bind_s('', SASL_EXTERNAL)
         res = con.search_st(base,
@@ -175,7 +179,7 @@ def ipa_start(options):
 
     svc_list = []
     try:
-        svc_list = get_config()
+        svc_list = get_config(dirsrv)
     except Exception, e:
         emit_err("Failed to read data from Directory Service: " + str(e))
         emit_err("Shutting down")
@@ -219,14 +223,14 @@ def ipa_stop(options):
     dirsrv = ipaservices.knownservices.dirsrv
     svc_list = []
     try:
-        svc_list = get_config()
+        svc_list = get_config(dirsrv)
     except Exception, e:
         # ok if dirsrv died this may fail, so let's try to quickly restart it
         # and see if we can get anything. If not throw our hands up and just
         # exit
         try:
             dirsrv.start(capture_output=False)
-            svc_list = get_config()
+            svc_list = get_config(dirsrv)
         except Exception, e:
             emit_err("Failed to read data from Directory Service: " + str(e))
             emit_err("Shutting down")
@@ -266,7 +270,7 @@ def ipa_restart(options):
 
     svc_list = []
     try:
-        svc_list = get_config()
+        svc_list = get_config(dirsrv)
     except Exception, e:
         emit_err("Failed to read data from Directory Service: " + str(e))
         emit_err("Shutting down")
@@ -318,7 +322,7 @@ def ipa_status(options):
 
     svc_list = []
     try:
-        svc_list = get_config()
+        svc_list = get_config(dirsrv)
     except IpactlError, e:
         raise e
     except Exception, e:

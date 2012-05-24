@@ -111,6 +111,8 @@ DEFAULT_CONFIG = (
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
     ('rpc_json_uri', 'http://localhost:8888/ipa/json'),
     ('ldap_uri', 'ldap://localhost:389'),
+    # Time to wait for a service to start, in seconds
+    ('startup_timeout', 120),
 
     # Web Application mount points
     ('mount_ipa', '/ipa/'),

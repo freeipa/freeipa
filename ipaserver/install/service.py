@@ -35,6 +35,8 @@ from ipapython.ipa_log_manager import *
 
 CACERT = "/etc/ipa/ca.crt"
 
+# The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
+# the first value is the *nix service name, the second the start order.
 SERVICE_LIST = {
     'KDC':('krb5kdc', 10),
     'KPASSWD':('kadmin', 20),
@@ -198,11 +200,11 @@ class Service(object):
     def stop(self, instance_name="", capture_output=True):
         self.service.stop(instance_name, capture_output=capture_output)
 
-    def start(self, instance_name="", capture_output=True):
-        self.service.start(instance_name, capture_output=capture_output)
+    def start(self, instance_name="", capture_output=True, wait=True):
+        self.service.start(instance_name, capture_output=capture_output, wait=wait)
 
-    def restart(self, instance_name="", capture_output=True):
-        self.service.restart(instance_name, capture_output=capture_output)
+    def restart(self, instance_name="", capture_output=True, wait=True):
+        self.service.restart(instance_name, capture_output=capture_output, wait=wait)
 
     def is_running(self):
         return self.service.is_running()

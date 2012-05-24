@@ -60,6 +60,11 @@ class IPAUpgrade(service.Service):
         self.badsyntax = False
         self.upgradefailed = False
 
+    def start(self, instance_name="", capture_output=True, wait=True):
+        # Don't wait here because we've turned off port 389. The connection
+        # we make will wait for the socket.
+        super(IPAUpgrade, self).start(instance_name, capture_output, wait=False)
+
     def create_instance(self):
         self.step("stopping directory server", self.stop)
         self.step("saving configuration", self.__save_config)

@@ -41,6 +41,7 @@ import re
 import xmlrpclib
 import datetime
 import netaddr
+import time
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 
@@ -1010,3 +1011,56 @@ def utf8_encode_values(values):
         return map(utf8_encode_value, values)
     else:
         return utf8_encode_value(values)
+
+def wait_for_open_ports(host, ports, timeout=0):
+    """
+    Wait until the specified port(s) on the remote host are open. Timeout
+    in seconds may be specified to limit the wait.
+    """
+    if not isinstance(ports, (tuple, list)):
+        ports = [ports]
+
+    root_logger.debug('wait_for_open_ports: %s %s timeout %d' % (host, ports, timeout))
+    op_timeout = time.time() + timeout
+    ipv6_failover = False
+
+    for port in ports:
+        while True:
+            try:
+                if ipv6_failover:
+                    s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                else:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((host, port))
+                s.close()
+                break
+            except socket.error, e:
+                if e.errno == 111:  # 111: Connection refused
+                    if timeout and time.time() > op_timeout: # timeout exceeded
+                        raise e
+                    time.sleep(1)
+                elif not ipv6_failover: # fallback to IPv6 connection
+                    ipv6_failover = True
+                else:
+                    raise e
+
+def wait_for_open_socket(socket_name, timeout=0):
+    """
+    Wait until the specified socket on the local host is open. Timeout
+    in seconds may be specified to limit the wait.
+    """
+    op_timeout = time.time() + timeout
+
+    while True:
+        try:
+            s = socket.socket(socket.AF_UNIX)
+            s.connect(socket_name)
+            s.close()
+            break
+        except socket.error, e:
+            if e.errno in (2,111):  # 111: Connection refused, 2: File not found
+                if timeout and time.time() > op_timeout: # timeout exceeded
+                    raise e
+                time.sleep(1)
+            else:
+                raise e

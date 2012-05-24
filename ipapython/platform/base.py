@@ -18,14 +18,24 @@
 
 from ipalib.plugable import MagicDict
 
-# Canonical names of services as IPA wants to see them. As we need to have *some* naming,
-# set them as in Red Hat distributions. Actual implementation should make them available
-# through knownservices.<name> and take care of remapping internally, if needed
+# Canonical names of services as IPA wants to see them. As we need to have
+# *some* naming, set them as in Red Hat distributions. Actual implementation
+# should make them available through knownservices.<name> and take care of
+# re-mapping internally, if needed
 wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc',
                      'messagebus', 'nslcd', 'nscd', 'ntpd', 'portmap',
                      'rpcbind', 'kadmin', 'sshd', 'autofs', 'rpcgssd',
                      'rpcidmapd']
 
+
+# The common ports for these services. This is used to wait for the
+# service to become available.
+wellknownports = {
+    'dirsrv@PKI-IPA.service': [7389],
+    'PKI-IPA': [7389],
+    'dirsrv': [389], # this is only used if the incoming instance name is blank
+    'pki-cad': [9180],
+}
 
 class AuthConfig(object):
     """
@@ -33,14 +43,17 @@ class AuthConfig(object):
     system authentication resources. In Red Hat systems this is done with
     authconfig(8) utility.
 
-    AuthConfig class is nothing more than a tool to gather configuration options
-    and execute their processing. These options then converted by an actual implementation
-    to series of a system calls to appropriate utilities performing real configuration.
+    AuthConfig class is nothing more than a tool to gather configuration
+    options and execute their processing. These options then converted by
+    an actual implementation to series of a system calls to appropriate
+    utilities performing real configuration.
 
-    IPA *expects* names of AuthConfig's options to follow authconfig(8) naming scheme!
+    IPA *expects* names of AuthConfig's options to follow authconfig(8)
+    naming scheme!
 
-    Actual implementation should be done in ipapython/platform/<platform>.py by inheriting from
-    platform.AuthConfig and redefining __build_args() and execute() methods.
+    Actual implementation should be done in ipapython/platform/<platform>.py
+    by inheriting from platform.AuthConfig and redefining __build_args()
+    and execute() methods.
 
     from ipapython.platform import platform
     class PlatformAuthConfig(platform.AuthConfig):
@@ -53,9 +66,11 @@ class AuthConfig(object):
     authconfig = PlatformAuthConfig
     ....
 
-    See ipapython/platform/redhat.py for a sample implementation that uses authconfig(8) as its backend.
+    See ipapython/platform/redhat.py for a sample implementation that uses
+    authconfig(8) as its backend.
 
-    From IPA code perspective, the authentication configuration should be done with use of ipapython.services.authconfig:
+    From IPA code perspective, the authentication configuration should be
+    done with use of ipapython.services.authconfig:
 
     from ipapython import services as ipaservices
     auth_config = ipaservices.authconfig()
@@ -69,8 +84,8 @@ class AuthConfig(object):
                 add_parameter("nisdomain","foobar")
     auth_config.execute()
 
-    If you need to re-use existing AuthConfig instance for multiple runs, make sure to
-    call 'AuthConfig.reset()' between the runs.
+    If you need to re-use existing AuthConfig instance for multiple runs,
+    make sure to call 'AuthConfig.reset()' between the runs.
     """
 
     def __init__(self):
@@ -106,21 +121,21 @@ class AuthConfig(object):
 
 class PlatformService(object):
     """
-    PlatformService abstracts out external process running on the system which is possible
-    to administer (start, stop, check status, etc).
+    PlatformService abstracts out external process running on the system
+    which is possible to administer (start, stop, check status, etc).
 
     """
 
     def __init__(self, service_name):
         self.service_name = service_name
 
-    def start(self, instance_name="", capture_output=True):
+    def start(self, instance_name="", capture_output=True, wait=True):
         return
 
     def stop(self, instance_name="", capture_output=True):
         return
 
-    def restart(self, instance_name="", capture_output=True):
+    def restart(self, instance_name="", capture_output=True, wait=True):
         return
 
     def is_running(self, instance_name=""):
@@ -149,8 +164,9 @@ class PlatformService(object):
 
 class KnownServices(MagicDict):
     """
-    KnownServices is an abstract class factory that should give out instances of well-known
-    platform services. Actual implementation must create these instances as its own attributes
-    on first access (or instance creation) and cache them.
+    KnownServices is an abstract class factory that should give out instances
+    of well-known platform services. Actual implementation must create these
+    instances as its own attributes on first access (or instance creation)
+    and cache them.
     """
 

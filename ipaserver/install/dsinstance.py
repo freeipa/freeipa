@@ -416,7 +416,6 @@ class DsInstance(service.Service):
             if not is_ds_running(instance):
                 root_logger.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
-            installutils.wait_for_open_ports('localhost', self.open_ports, 300)
         except SystemExit, e:
             raise e
         except Exception, e:
@@ -667,7 +666,7 @@ class DsInstance(service.Service):
         # (re)start them.
         for ds_instance in get_ds_instances():
             try:
-                ipaservices.knownservices.dirsrv.restart(ds_instance)
+                ipaservices.knownservices.dirsrv.restart(ds_instance, wait=False)
             except Exception, e:
                 root_logger.error('Unable to restart ds instance %s: %s', ds_instance, e)
 

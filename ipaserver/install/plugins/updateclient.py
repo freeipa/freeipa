@@ -18,11 +18,11 @@
 #
 
 import os
-from ipaserver.install import installutils
 from ipaserver.install.plugins import FIRST, MIDDLE, LAST
 from ipaserver.install.plugins import POST_UPDATE
 from ipaserver.install.plugins.baseupdate import DSRestart
 from ipaserver.install.ldapupdate import LDAPUpdate
+from ipapython.ipautil import wait_for_open_socket
 from ipalib import api
 from ipalib import backend
 import ldap as _ldap
@@ -161,7 +161,7 @@ class updateclient(backend.Executioner):
         if live_run:
             self.destroy_context()
             dsrestart.create_instance()
-            installutils.wait_for_open_socket(socket_name)
+            wait_for_open_socket(socket_name)
             self.create_context(dm_password)
         else:
             self.log.warn("Test mode, skipping restart")

@@ -34,6 +34,14 @@ class DSRestart(service.Service):
         """
         service.Service.__init__(self, "dirsrv")
 
+    def start(self, instance_name="", capture_output=True, wait=True):
+        """
+        During upgrades the server is listening only on the socket so
+        we don't want to wait on ports. The caller is responsible for
+        waiting for the socket to be ready.
+        """
+        super(DSRestart, self).start(wait=False)
+
     def create_instance(self):
         self.step("stopping directory server", self.stop)
         self.step("starting directory server", self.start)
