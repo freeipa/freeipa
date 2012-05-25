@@ -166,7 +166,8 @@ IPA.netgroup.details_facet = function(spec) {
                             columns: [
                                 {
                                     name: 'memberuser_user',
-                                    label: IPA.messages.objects.netgroup.users
+                                    label: IPA.messages.objects.netgroup.users,
+                                    link: true
                                 }
                             ]
                         },
@@ -181,7 +182,8 @@ IPA.netgroup.details_facet = function(spec) {
                             columns: [
                                 {
                                     name: 'memberuser_group',
-                                    label: IPA.messages.objects.netgroup.usergroups
+                                    label: IPA.messages.objects.netgroup.usergroups,
+                                    link: true
                                 }
                             ]
                         }
@@ -253,7 +255,8 @@ IPA.netgroup.details_facet = function(spec) {
                             columns: [
                                 {
                                     name: 'memberhost_host',
-                                    label: IPA.messages.objects.netgroup.hosts
+                                    label: IPA.messages.objects.netgroup.hosts,
+                                    link: true
                                 },
                                 {
                                     name: 'externalhost',
@@ -274,7 +277,8 @@ IPA.netgroup.details_facet = function(spec) {
                             columns: [
                                 {
                                     name: 'memberhost_hostgroup',
-                                    label: IPA.messages.objects.netgroup.hostgroups
+                                    label: IPA.messages.objects.netgroup.hostgroups,
+                                    link: true
                                 }
                             ]
                         }
