@@ -30,7 +30,6 @@ from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.installutils import resolve_host
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipalib.constants import DNS_ZONE_REFRESH
 from ipalib.parameters import IA5Str
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy)
@@ -388,7 +387,7 @@ class BindInstance(service.Service):
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp,
               reverse_zone, named_user="named", zonemgr=None,
-              zone_refresh=DNS_ZONE_REFRESH, zone_notif=False):
+              zone_refresh=0, persistent_search=True):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -400,7 +399,7 @@ class BindInstance(service.Service):
         self.ntp = ntp
         self.reverse_zone = reverse_zone
         self.zone_refresh = zone_refresh
-        self.zone_notif = zone_notif
+        self.persistent_search = persistent_search
 
         if not zonemgr:
             self.zonemgr = 'hostmaster.%s' % self.domain
@@ -497,6 +496,7 @@ class BindInstance(service.Service):
             optional_ntp += "_ntp._udp\t\tIN SRV 0 100 123\t%s""" % self.host_in_rr
         else:
             optional_ntp = ""
+        persistent_search = "yes" if self.persistent_search else "no"
 
         self.sub_dict = dict(FQDN=self.fqdn,
                              IP=self.ip_address,
@@ -509,7 +509,7 @@ class BindInstance(service.Service):
                              OPTIONAL_NTP=optional_ntp,
                              ZONEMGR=self.zonemgr,
                              ZONE_REFRESH=self.zone_refresh,
-                             PERSISTENT_SEARCH=self.zone_notif and "yes" or "no")
+                             PERSISTENT_SEARCH=persistent_search)
 
     def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)

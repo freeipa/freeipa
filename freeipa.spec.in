@@ -158,7 +158,7 @@ Requires: python-dns
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
 # that work for us.
-Conflicts: bind-dyndb-ldap < 1.1.0-0.9.b1
+Conflicts: bind-dyndb-ldap < 1.1.0-0.12.rc1
 Conflicts: bind < 9.8.2-0.4.rc2
 
 # mod_proxy provides a single API to communicate over SSL. If mod_ssl
@@ -705,6 +705,8 @@ fi
 %changelog
 * Fri Jun 8 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-32
 - Add directory /var/lib/ipa/sysupgrade for package upgrade metadata
+- Set min for bind-dyndb-ldap to 1.1.0-0.12.rc1 to pick up persistent search
+  related bug fixes
 
 * Mon Jun  4 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-31
 - Add python-crypto to build dependencies for AD server-side code
