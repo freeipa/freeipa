@@ -349,7 +349,7 @@ class automountlocation_tofiles(LDAPQuery):
         textui.print_plain(_('maps not connected to /etc/auto.master:'))
         for m in orphanmaps:
             textui.print_plain('---------------------------')
-            textui.print_plain('/etc/%s: ' % m['automountmapname'])
+            textui.print_plain('/etc/%s:' % m['automountmapname'])
             for k in orphankeys:
                 if len(k) == 0: continue
                 dn = DN(k[0]['dn'])
@@ -391,7 +391,7 @@ class automountlocation_import(LDAPQuery):
                     reason=_('File %(file)s not found') % {'file': filename}
                 )
             else:
-                raise e
+                raise
         return map
 
     def forward(self, *args, **options):
