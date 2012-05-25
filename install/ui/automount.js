@@ -112,6 +112,7 @@ IPA.automount.map_entity = function(spec) {
                         {
                             type: 'radio',
                             name: 'method',
+                            enabled: false, //don't use value in add command
                             label: IPA.messages.objects.automountmap.map_type,
                             options: [
                                 {
@@ -285,10 +286,14 @@ IPA.automountmap_adder_dialog = function(spec) {
         var method_widget = that.widgets.get_widget('general.method');
         var indirect_section = that.widgets.get_widget('indirect');
         var key_field = that.fields.get_field('key');
+        var parentmap_field = that.fields.get_field('parentmap');
 
         var direct_input = $('input[value="add"]', method_widget.container);
         direct_input.change(function() {
             that.method = 'add';
+
+            key_field.set_enabled(false);
+            parentmap_field.set_enabled(false);
 
             key_field.set_required(false);
             indirect_section.set_visible(false);
@@ -297,6 +302,9 @@ IPA.automountmap_adder_dialog = function(spec) {
         var indirect_input = $('input[value="add_indirect"]', method_widget.container);
         indirect_input.change(function() {
             that.method = 'add_indirect';
+
+            key_field.set_enabled(true);
+            parentmap_field.set_enabled(true);
 
             key_field.set_required(true);
             indirect_section.set_visible(true);

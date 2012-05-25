@@ -58,6 +58,7 @@ IPA.automember.entity = function(spec) {
             group_type: 'group',
             label: IPA.messages.objects.automember.usergrouprules,
             details_facet: 'usergrouprule',
+            pagination: false,
             columns: [
                 'cn',
                 'description'
@@ -69,6 +70,7 @@ IPA.automember.entity = function(spec) {
             group_type: 'hostgroup',
             label: IPA.messages.objects.automember.hostgrouprules,
             details_facet: 'hostgrouprule',
+            pagination: false,
             columns: [
                 'cn',
                 'description'
@@ -80,6 +82,7 @@ IPA.automember.entity = function(spec) {
             group_type: 'group',
             label: IPA.messages.objects.automember.usergrouprule,
             disable_facet_tabs: true,
+            check_rights: false,
             redirect_info: { tab: 'amgroup' }
         }).
         details_facet({
@@ -88,6 +91,7 @@ IPA.automember.entity = function(spec) {
             group_type: 'hostgroup',
             label: IPA.messages.objects.automember.hostgrouprule,
             disable_facet_tabs: true,
+            check_rights: false,
             redirect_info: { tab: 'amhostgroup' }
         }).
         adder_dialog({

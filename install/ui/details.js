@@ -266,6 +266,7 @@ IPA.details_facet = function(spec, no_init) {
     that.entity = IPA.get_entity(spec.entity);
     that.update_command_name = spec.update_command_name || 'mod';
     that.command_mode = spec.command_mode || 'save'; // [save, info]
+    that.check_rights = spec.check_rights !== undefined ? spec.check_rights : true;
 
     that.label = spec.label || IPA.messages && IPA.messages.facets && IPA.messages.facets.details;
     that.facet_group = spec.facet_group || 'settings';
@@ -531,14 +532,15 @@ IPA.details_facet = function(spec, no_init) {
     that.create_fields_update_command = function(update_info) {
 
         var args = that.get_primary_key();
+
+        var options = { all: true };
+        if (that.check_rights) options.rights = true;
+
         var command = IPA.command({
             entity: that.entity.name,
             method: that.update_command_name,
             args: args,
-            options: {
-                all: true,
-                rights: true
-            }
+            options: options
         });
 
         //set command options
@@ -623,11 +625,14 @@ IPA.details_facet = function(spec, no_init) {
 
     that.create_refresh_command = function() {
 
+        var options = { all: true };
+        if (that.check_rights) options.rights = true;
+
         var command = IPA.command({
             name: that.get_refresh_command_name(),
             entity: that.entity.name,
             method: 'show',
-            options: { all: true, rights: true }
+            options: options
         });
 
         if (that.pkey) {
