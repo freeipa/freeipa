@@ -33,27 +33,33 @@
 
 <script type="text/javascript">
   function setPreferences() {
+    var privilege, setIntPref, setCharPref, setBoolPref;
+
     if (typeof navigator.preference == 'undefined') {
       // From Firefox 4 and SeaMonkey 2.1, navigator.preference intefrace is dropped
       // Use new Gecko2 Services.jsm JavaScript code module instead.
-      var privilege = 'UniversalXPConnect';
+      privilege = 'UniversalXPConnect';
       netscape.security.PrivilegeManager.enablePrivilege(privilege);
       Components.utils.import("resource://gre/modules/Services.jsm");
-      var prefFuncChar = function(par, val) {Services.prefs.setCharPref(par, val)};
-      var prefFuncBool = function(par, val) {Services.prefs.setBoolPref(par, val)};
+
+      setIntPref = function(par, val) {Services.prefs.setIntPref(par, val)};
+      setCharPref = function(par, val) {Services.prefs.setCharPref(par, val)};
+      setBoolPref = function(par, val) {Services.prefs.setBoolPref(par, val)};
     } else {
-      var privilege = 'UniversalPreferencesWrite';
+      privilege = 'UniversalPreferencesWrite';
       netscape.security.PrivilegeManager.enablePrivilege(privilege);
-      var prefFuncChar = function(par, val) {navigator.preference(par, val)};
-      var prefFuncBool = prefFuncChar;  // same function for bool and char
+      setCharPref = function(par, val) {navigator.preference(par, val)};
+      setBoolPref = setCharPref;  // same function for bool and char and int
+      setIntPref = setCharPref;
     }
 
     try {
 
       try {
-        prefFuncBool('network.negotiate-auth.using-native-gsslib', true);
-        prefFuncChar('network.negotiate-auth.trusted-uris', '.$DOMAIN');
-        prefFuncBool('network.negotiate-auth.allow-proxies', true);
+        setIntPref('network.http.sendRefererHeader', 2);
+        setBoolPref('network.negotiate-auth.using-native-gsslib', true);
+        setCharPref('network.negotiate-auth.trusted-uris', '.$DOMAIN');
+        setBoolPref('network.negotiate-auth.allow-proxies', true);
       } catch (e) {
         alert("Unable to store preferences: " + e);
         return;
