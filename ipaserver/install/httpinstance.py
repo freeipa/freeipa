@@ -104,6 +104,18 @@ class HTTPInstance(service.Service):
         self.ldap_enable('HTTP', self.fqdn, self.dm_password, self.suffix)
 
     def configure_selinux_for_httpd(self):
+        def get_setsebool_args(changes):
+            if len(changes) == 1:
+                # workaround https://bugzilla.redhat.com/show_bug.cgi?id=825163
+                updates = changes.items()[0]
+            else:
+                updates = ["%s=%s" % update for update in changes.iteritems()]
+
+            args = ["/usr/sbin/setsebool", "-P"]
+            args.extend(updates)
+
+            return args
+
         selinux = False
         try:
             if (os.path.exists('/usr/sbin/selinuxenabled')):
@@ -115,26 +127,44 @@ class HTTPInstance(service.Service):
 
         if selinux:
             # Don't assume all vars are available
-            vars = []
-            for var in ["httpd_can_network_connect", "httpd_manage_ipa"]:
+            updated_vars = {}
+            failed_vars = {}
+            required_settings = (("httpd_can_network_connect", "on"),
+                                 ("httpd_manage_ipa", "on"))
+            for setting, state in required_settings:
                 try:
-                    (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/getsebool", var])
-                    self.backup_state(var, stdout.split()[2])
-                    vars.append(var)
-                except:
-                    pass
+                    (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/getsebool", setting])
+                    original_state = stdout.split()[2]
+                    self.backup_state(setting, original_state)
+
+                    if original_state != state:
+                        updated_vars[setting] = state
+                except ipautil.CalledProcessError, e:
+                    root_logger.debug("Cannot get SELinux boolean '%s': %s", setting, e)
+                    failed_vars[setting] = state
 
             # Allow apache to connect to the dogtag UI and the session cache
             # This can still fail even if selinux is enabled. Execute these
             # together so it is speedier.
-            if vars:
-                bools = [var + "=true" for var in vars]
-                args = ["/usr/sbin/setsebool", "-P"]
-                args.extend(bools);
+            if updated_vars:
+                args = get_setsebool_args(updated_vars)
                 try:
                     ipautil.run(args)
-                except:
-                    self.print_msg(selinux_warning % dict(var=','.join(vars)))
+                except ipautil.CalledProcessError:
+                    failed_vars.update(updated_vars)
+
+            if failed_vars:
+                args = get_setsebool_args(failed_vars)
+                names = [update[0] for update in updated_vars]
+                message = ['WARNING: could not set the following SELinux boolean(s):']
+                for update in failed_vars.iteritems():
+                    message.append('  %s -> %s' % update)
+                message.append('The web interface may not function correctly until the booleans')
+                message.append('are successfully changed with the command:')
+                message.append(' '.join(args))
+                message.append('Try updating the policycoreutils and selinux-policy packages.')
+
+                self.print_msg("\n".join(message))
 
     def __create_http_keytab(self):
         installutils.kadmin_addprinc(self.principal)
@@ -306,8 +336,9 @@ class HTTPInstance(service.Service):
             if not sebool_state is None:
                 try:
                     ipautil.run(["/usr/sbin/setsebool", "-P", var, sebool_state])
-                except:
-                    self.print_msg(selinux_warning % dict(var=var))
+                except ipautil.CalledProcessError, e:
+                    self.print_msg("Cannot restore SELinux boolean '%s' back to '%s': %s" \
+                            % (var, sebool_state, e))
 
         if not running is None and running:
             self.start()
