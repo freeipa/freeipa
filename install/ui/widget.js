@@ -193,6 +193,11 @@ IPA.input_widget = function(spec) {
         }
     };
 
+    that.on_value_changed = function() {
+        var value = that.save();
+        that.value_changed.notify([value], that);
+    };
+
     that.focus_input = function() {};
     that.set_deleted = function() {};
 
@@ -249,9 +254,13 @@ IPA.text_widget = function(spec) {
             size: that.size,
             title: that.tooltip,
             keyup: function() {
-                that.value_changed.notify([], that);
+                that.on_value_changed();
             }
         }).appendTo(container);
+
+        that.input.bind('input', function() {
+            that.on_value_changed();
+        });
 
         if (that.undo) {
             that.create_undo(container);
@@ -970,9 +979,13 @@ IPA.textarea_widget = function (spec) {
             disabled: that.disabled,
             title: that.tooltip,
             keyup: function() {
-                that.value_changed.notify([], that);
+                that.on_value_changed();
             }
         }).appendTo(container);
+
+        that.input.bind('input', function() {
+            that.on_value_changed();
+        });
 
         if (that.undo) {
             that.create_undo(container);
@@ -2127,6 +2140,10 @@ IPA.combobox_widget = function(spec) {
                 return false;
             }
         }).appendTo(that.input_container);
+
+        that.input.bind('input', function() {
+            that.input_field_changed.notify([], that);
+        });
 
         that.open_button = IPA.action_button({
             name: 'open',
