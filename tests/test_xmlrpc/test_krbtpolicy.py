@@ -30,6 +30,7 @@ user1 = u'tuser1'
 class test_krbtpolicy(Declarative):
     cleanup_commands = [
         ('user_del', [user1], {}),
+        ('krbtpolicy_reset', [], {}),
     ]
 
     tests = [
