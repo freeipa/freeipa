@@ -43,6 +43,9 @@ __all__ = ['authconfig', 'service', 'knownservices', 'backup_and_replace_hostnam
 # mapping will be kept in this dictionary
 system_units = dict(map(lambda x: (x, "%s.service" % (x)), base.wellknownservices))
 
+system_units['rpcgssd'] = 'nfs-secure.service'
+system_units['rpcidmapd'] = 'nfs-idmap.service'
+
 # Rewrite dirsrv and pki-cad services as they support instances via separate
 # service generator. To make this working, one needs to have both foo@.servic
 # and foo.target -- the latter is used when request should be coming for

@@ -242,6 +242,10 @@ Requires: bind-utils
 Requires: oddjob-mkhomedir
 Requires: python-krbV
 Requires: python-dns
+Requires: libsss_autofs
+Requires: autofs
+Requires: libnfsidmap
+Requires: nfs-utils
 
 Obsoletes: ipa-client >= 1.0
 
@@ -673,6 +677,7 @@ fi
 %defattr(-,root,root,-)
 %doc COPYING README Contributors.txt
 %{_sbindir}/ipa-client-install
+%{_sbindir}/ipa-client-automount
 %{_sbindir}/ipa-getkeytab
 %{_sbindir}/ipa-rmkeytab
 %{_sbindir}/ipa-join
@@ -687,6 +692,7 @@ fi
 %{_mandir}/man1/ipa-getkeytab.1.gz
 %{_mandir}/man1/ipa-rmkeytab.1.gz
 %{_mandir}/man1/ipa-client-install.1.gz
+%{_mandir}/man1/ipa-client-automount.1.gz
 %{_mandir}/man1/ipa-join.1.gz
 %{_mandir}/man5/default.conf.5.gz
 
@@ -718,6 +724,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Fri Jun 21 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-35
+- Add client requires on libsss-autofs, autofs, libnfsidmap and nfs-utils
+  for configuring automount and NFS.
+
 * Fri Jun 21 2012 Petr Vobornik <pvoborni@redhat.com> - 2.99.0-34
 - Add Web UI reset password pages
 

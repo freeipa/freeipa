@@ -23,7 +23,9 @@ from ipalib.plugable import MagicDict
 # through knownservices.<name> and take care of remapping internally, if needed
 wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc',
                      'messagebus', 'nslcd', 'nscd', 'ntpd', 'portmap',
-                     'rpcbind', 'kadmin', 'sshd']
+                     'rpcbind', 'kadmin', 'sshd', 'autofs', 'rpcgssd',
+                     'rpcidmapd']
+
 
 class AuthConfig(object):
     """

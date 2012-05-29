@@ -1,0 +1,89 @@
+.\" A man page for ipa-client-automount
+.\" Copyright (C) 2012 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.TH "ipa-client-automount" "1" "May 25 2012" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-client\-automount \- Configure automount and NFS for IPA
+.SH "SYNOPSIS"
+ipa\-client\-automount [\fIOPTION\fR]... <location>
+.SH "DESCRIPTION"
+Configures automount for IPA.
+
+The automount configuration consists of three files:
+.PP
+.IP  o
+/etc/nsswitch.conf
+.IP  o
+/etc/sysconfig/autofs
+.IP  o
+/etc/autofs_ldap_auth.conf
+
+.TP
+By default this will use DNS discovery to attempt to determine the IPA server(s) to use. If IPA servers are discovered then the automount client will be configured to use DNS discovery.
+.TP
+If DNS discovery fails or a specific server is desired, use the \-\-server option.
+.TP
+The default automount location is named default. To specify a different one use the \-\-location option.
+.TP
+The IPA client must already be configured in order to configure automount. The IPA client is configured as part of a server installation.
+.TP
+There are two ways to configure automount. The default is to use sssd to manage the automount maps. Alternatively autofs can configured to bind to LDAP over GSSAPI and authenticate using the machine's host principal.
+.TP
+The nsswitch automount service is configured to use either sss or ldap and files depending on whether SSSD is configured or not.
+.TP
+NFSv4 is also configured. The rpc.gssd and rpc.idmapd are started on clients to support Kerberos\-secured mounts.
+.SH "OPTIONS"
+\fB\-\-server\fR=\fISERVER\fR
+Set the IPA server to connect to
+.TP
+\fB\-\-location\fR=\fILOCATION\fR
+Automount location
+.TP
+\fB\-S\fR, \fB\-\-no\-sssd\fR
+Do not configure the client to use SSSD for automount
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Print debugging information to stdout
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+Unattended installation. The user will not be prompted
+.TP
+\fB\-\-uninstall\fR
+Restore the automount configuration files
+
+.SH "FILES"
+.TP
+Files that will be always be configured:
+
+/etc/nsswitch.conf
+.TP
+Files that will be configured when SSSD is the automount client (default):
+
+/etc/sssd/sssd.conf
+
+.TP
+Files that will be configured when using the ldap automount client:
+
+/etc/sysconfig/autofs
+
+/etc/autofs_ldap_auth.conf
+
+.SH "EXIT STATUS"
+0 if the installation was successful
+
+1 if an error occurred

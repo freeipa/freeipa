@@ -1,0 +1,470 @@
+#!/usr/bin/env python
+#
+# Authors:
+#   Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2012  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Configure the automount client for ldap.
+
+import sys
+import os
+import urlparse
+import time
+import tempfile
+
+import SSSDConfig
+
+from optparse import OptionParser
+from ipalib import api, errors
+from ipalib.dn import DN
+from ipapython import sysrestore
+from ipapython import ipautil
+from ipaclient import ipadiscovery
+from ipaclient import ipachangeconf
+from ipapython.ipa_log_manager import *
+from ipapython import services as ipaservices
+
+AUTOFS_CONF = '/etc/sysconfig/autofs'
+NSSWITCH_CONF = '/etc/nsswitch.conf'
+AUTOFS_LDAP_AUTH = '/etc/autofs_ldap_auth.conf'
+NFS_CONF = '/etc/sysconfig/nfs'
+IDMAPD_CONF = '/etc/idmapd.conf'
+
+def parse_options():
+    usage = "%prog [options]\n"
+    parser = OptionParser(usage=usage)
+    parser.add_option("--server", dest="server", help="IPA server")
+    parser.add_option("--location", dest="location", help="Automount location",
+        default="default")
+    parser.add_option("-S", "--no-sssd", dest="sssd",
+                      action="store_false", default=True,
+                      help="Do not configure the client to use SSSD for automount")
+    parser.add_option("--debug", dest="debug", action="store_true",
+        default=False, help="enable debugging")
+    parser.add_option("-U", "--unattended", dest="unattended",
+        action="store_true", default=False,
+        help="unattended installation never prompts the user")
+    parser.add_option("--uninstall", dest="uninstall", action="store_true",
+        default=False, help="Unconfigure automount")
+
+    options, args = parser.parse_args()
+    return options, args
+
+def wait_for_sssd():
+    """
+    It takes a bit for sssd to get going, lets loop until it is
+    serving data.
+
+    This function returns nothing.
+    """
+    n = 0
+    found = False
+    time.sleep(1)
+    while n < 10 and not found:
+        try:
+            ipautil.run(["getent", "passwd", "admin"])
+            found = True
+        except Exception, e:
+            time.sleep(1)
+            n = n + 1
+
+    # This should never happen but if it does, may as well warn the user
+    if not found:
+        root_logger.debug("Unable to find 'admin' user with 'getent passwd admin'!")
+        print "Unable to find 'admin' user with 'getent passwd admin'!"
+        print "This may mean that sssd didn't re-start properly after the configuration changes."
+
+def configure_xml(fstore):
+    from lxml import etree
+
+    fstore.backup_file(AUTOFS_LDAP_AUTH)
+
+    try:
+        f = open(AUTOFS_LDAP_AUTH, 'r')
+        lines = f.read()
+        f.close()
+
+        saslconf = etree.fromstring(lines)
+        element = saslconf.xpath('//autofs_ldap_sasl_conf')
+        root = saslconf.getroottree()
+    except IOError, e:
+        root_logger.debug('Unable to open file %s' % e)
+        root_logger.debug('Creating new from template')
+        element = [etree.Element('autofs_ldap_sasl_conf')]
+        root = element[0].getroottree()
+
+    if len(element) != 1:
+        raise RuntimeError('Unable to parse %s' % AUTOFS_LDAP_AUTH)
+
+    element[0].set('usetls', 'no')
+    element[0].set('tlsrequired', 'no')
+    element[0].set('authrequired', 'yes')
+    element[0].set('authtype', 'GSSAPI')
+    element[0].set('clientprinc', 'host/%s@%s' % (api.env.host, api.env.realm))
+
+    newconf = open(AUTOFS_LDAP_AUTH, 'w')
+    try:
+        root.write(newconf, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        newconf.close()
+    except IOError, e:
+        print "Unable to write %s: %s" % (AUTOFS_LDAP_AUTH, e)
+    print "Configured %s" % AUTOFS_LDAP_AUTH
+
+def configure_nsswitch(fstore, options):
+    """
+    Point automount to ldap in nsswitch.conf
+    """
+    fstore.backup_file(NSSWITCH_CONF)
+
+    conf = ipachangeconf.IPAChangeConf("IPA Installer")
+    conf.setOptionAssignment(':')
+
+    if options.sssd:
+        nss_value = ' sss files'
+    else:
+        nss_value = ' ldap files'
+
+    opts = [{'name':'automount', 'type':'option', 'action':'set', 'value':nss_value},
+            {'name':'empty', 'type':'empty'}]
+
+    conf.changeConf(NSSWITCH_CONF, opts)
+
+    print "Configured %s" % NSSWITCH_CONF
+
+def configure_autofs_sssd(fstore, statestore, autodiscover, options):
+    try:
+        sssdconfig = SSSDConfig.SSSDConfig()
+        sssdconfig.import_config()
+        domains = sssdconfig.list_active_domains()
+    except Exception, e:
+        sys.exit(e)
+
+    try:
+        sssdconfig.activate_service('autofs')
+    except SSSDConfig.NoServiceError:
+        print "Unable to activate the autofs service in SSSD config."
+        root_logger.debug("Unable to activate the autofs service in SSSD config.")
+
+    domain = None
+    for name in domains:
+        domain = sssdconfig.get_domain(name)
+        try:
+            provider = domain.get_option('id_provider')
+        except SSSDConfig.NoOptionError:
+            continue
+        if provider == "ipa":
+            domain.add_provider('ipa', 'autofs')
+            try:
+                location = domain.get_option('ipa_automount_location')
+                sys.exit('An automount location is already configured')
+            except SSSDConfig.NoOptionError:
+                domain.set_option('ipa_automount_location', options.location)
+                break
+
+    if domain is None:
+        sys.exit('SSSD is not configured.')
+
+    sssdconfig.save_domain(domain)
+    sssdconfig.write("/etc/sssd/sssd.conf")
+    statestore.backup_state('autofs', 'sssd', True)
+
+    sssd = ipaservices.service('sssd')
+    sssd.restart()
+    print "Restarting sssd, waiting for it to become available."
+    wait_for_sssd()
+
+def configure_autofs(fstore, statestore, autodiscover, server, options):
+    """
+    fstore: the FileStore to back up files in
+    options.server: the IPA server to use
+    options.location: the Automount location to use
+    """
+    if not autodiscover:
+        ldap_uri = "ldap://%s" % server
+    else:
+        ldap_uri = "ldap:///%s" % api.env.basedn
+
+    search_base = str(DN(('cn', options.location), api.env.container_automount, api.env.basedn))
+    replacevars = {
+        'MAP_OBJECT_CLASS': 'automountMap',
+        'ENTRY_OBJECT_CLASS': 'automount',
+        'MAP_ATTRIBUTE': 'automountMapName',
+        'ENTRY_ATTRIBUTE': 'automountKey',
+        'VALUE_ATTRIBUTE': 'automountInformation',
+        'SEARCH_BASE': search_base,
+        'LDAP_URI': ldap_uri,
+    }
+
+    ipautil.backup_config_and_replace_variables(fstore,
+        AUTOFS_CONF, replacevars=replacevars)
+    ipaservices.restore_context(AUTOFS_CONF)
+    statestore.backup_state('autofs', 'sssd', False)
+
+    print "Configured %s" % AUTOFS_CONF
+
+def configure_autofs_common(fstore, statestore, options):
+    autofs = ipaservices.knownservices.autofs
+    statestore.backup_state('autofs', 'enabled', autofs.is_enabled())
+    statestore.backup_state('autofs', 'running', autofs.is_running())
+    try:
+        autofs.restart()
+        print "Started %s" % autofs.service_name
+    except Exception, e:
+        root_logger.error("%s failed to restart: %s", autofs.service_name, e)
+    try:
+        autofs.enable()
+    except Exception, e:
+        print "Failed to configure automatic startup of the %s daemon" % (autofs.service_name)
+        root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (autofs.service_name, str(e)))
+
+def uninstall(fstore, statestore):
+    print "Restoring configuration"
+    if fstore.has_file(AUTOFS_CONF):
+        fstore.restore_file(AUTOFS_CONF)
+    if fstore.has_file(NSSWITCH_CONF):
+        fstore.restore_file(NSSWITCH_CONF)
+    if fstore.has_file(AUTOFS_LDAP_AUTH):
+        fstore.restore_file(AUTOFS_LDAP_AUTH)
+    if fstore.has_file(NFS_CONF):
+        fstore.restore_file(NFS_CONF)
+    if fstore.has_file(IDMAPD_CONF):
+        fstore.restore_file(IDMAPD_CONF)
+    if statestore.has_state('autofs'):
+        enabled = statestore.restore_state('autofs', 'enabled')
+        running = statestore.restore_state('autofs', 'running')
+        sssd = statestore.restore_state('autofs', 'sssd')
+        autofs = ipaservices.knownservices.autofs
+        if not enabled:
+            autofs.disable()
+        if not running:
+            autofs.stop()
+        if sssd:
+            try:
+                sssdconfig = SSSDConfig.SSSDConfig()
+                sssdconfig.import_config()
+                sssdconfig.deactivate_service('autofs')
+                domains = sssdconfig.list_active_domains()
+                for name in domains:
+                    domain = sssdconfig.get_domain(name)
+                    try:
+                        provider = domain.get_option('id_provider')
+                    except SSSDConfig.NoOptionError:
+                        continue
+                    if provider == "ipa":
+                        domain.remove_option('ipa_automount_location')
+                        domain.remove_provider('autofs')
+                        break
+                sssdconfig.save_domain(domain)
+                sssdconfig.write("/etc/sssd/sssd.conf")
+                sssd = ipaservices.service('sssd')
+                sssd.restart()
+                wait_for_sssd()
+            except Exception, e:
+                print 'Unable to restore SSSD configuration: %s' % str(e)
+                root_logger.debug('Unable to restore SSSD configuration: %s' % str(e))
+    if statestore.has_state('rpcidmapd'):
+        enabled = statestore.restore_state('rpcidmapd', 'enabled')
+        running = statestore.restore_state('rpcidmapd', 'running')
+        rpcidmapd = ipaservices.knownservices.rpcidmapd
+        if not enabled:
+            rpcidmapd.disable()
+        if not running:
+            rpcidmapd.stop()
+    if statestore.has_state('rpcgssd'):
+        enabled = statestore.restore_state('rpcgssd', 'enabled')
+        running = statestore.restore_state('rpcgssd', 'running')
+        rpcgssd = ipaservices.knownservices.rpcgssd
+        if not enabled:
+            rpcgssd.disable()
+        if not running:
+            rpcgssd.stop()
+
+    return 0
+
+def configure_nfs(fstore, statestore):
+    """
+    Configure secure NFS
+    """
+    replacevars = {
+        'SECURE_NFS': 'YES',
+    }
+    ipautil.backup_config_and_replace_variables(fstore,
+        NFS_CONF, replacevars=replacevars)
+    ipaservices.restore_context(NFS_CONF)
+
+    print "Configured %s" % NFS_CONF
+
+    replacevars = {
+        'Domain': api.env.domain,
+    }
+    ipautil.backup_config_and_replace_variables(fstore,
+        IDMAPD_CONF, replacevars=replacevars)
+    ipaservices.restore_context(IDMAPD_CONF)
+
+    print "Configured %s" % IDMAPD_CONF
+
+    rpcidmapd = ipaservices.knownservices.rpcidmapd
+    statestore.backup_state('rpcidmapd', 'enabled', rpcidmapd.is_enabled())
+    statestore.backup_state('rpcidmapd', 'running', rpcidmapd.is_running())
+    try:
+        rpcidmapd.restart()
+        print "Started %s" % rpcidmapd.service_name
+    except Exception, e:
+        root_logger.error("%s failed to restart: %s", rpcidmapd.service_name, e)
+    try:
+        rpcidmapd.enable()
+    except Exception, e:
+        print "Failed to configure automatic startup of the %s daemon" % (rpcidmapd.service_name)
+        root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (rpcidmapd.service_name, str(e)))
+
+    rpcgssd = ipaservices.knownservices.rpcgssd
+    statestore.backup_state('rpcgssd', 'enabled', rpcgssd.is_enabled())
+    statestore.backup_state('rpcgssd', 'running', rpcgssd.is_running())
+    try:
+        rpcgssd.restart()
+        print "Started %s" % rpcgssd.service_name
+    except Exception, e:
+        root_logger.error("%s failed to restart: %s", rpcgssd.service_name, e)
+    try:
+        rpcgssd.enable()
+    except Exception, e:
+        print "Failed to configure automatic startup of the %s daemon" % (rpcgssd.service_name)
+        root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (rpcgssd.service_name, str(e)))
+
+def main():
+
+    fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
+    statestore = sysrestore.StateFile('/var/lib/ipa-client/sysrestore')
+    if not fstore.has_files():
+        sys.exit('IPA client is not configured on this system.\n')
+
+    options, args = parse_options()
+
+    standard_logging_setup(
+        '/var/log/ipaclient-install.log', verbose=False, debug=options.debug,
+        filemode='a', console_format='%(message)s')
+
+    cfg = dict(
+        context='cli_installer',
+        in_server=False,
+        debug=options.debug,
+        verbose=0,
+    )
+
+    api.bootstrap(**cfg)
+    api.finalize()
+
+    if options.uninstall:
+        return uninstall(fstore, statestore)
+
+    if statestore.has_state('autofs'):
+        sys.exit('automount is already configured on this system.\n')
+
+    autodiscover = False
+    server = options.server
+    ds = ipadiscovery.IPADiscovery()
+    if not server:
+        print "Searching for IPA server..."
+        ret = ds.search()
+        root_logger.debug('Executing DNS discovery')
+        if ret == ipadiscovery.NO_LDAP_SERVER:
+            root_logger.debug('Autodiscovery did not find LDAP server')
+            if not server:
+                s = urlparse.urlsplit(api.env.xmlrpc_uri)
+                server = s.netloc
+                root_logger.debug('Setting server to %s' % s.netloc)
+        else:
+            autodiscover = True
+            server = ds.getServerName()
+            if not server:
+                sys.exit('Autodiscovery was successful but didn\'t return a server')
+            root_logger.debug('Autodiscovery success, setting server to %s' % server)
+
+    # Now confirm that our server is an IPA server
+    root_logger.debug("Verifying that %s is an IPA server" % server)
+    ldapret = ds.ipacheckldap(server, api.env.realm)
+    if ldapret[0] != 0:
+        sys.exit('Unable to confirm that %s is an IPA v2 server' % server)
+
+    if not autodiscover:
+        print "IPA server: %s" % server
+        root_logger.debug('Using fixed server %s' % server)
+    else:
+        print "IPA server: DNS discovery"
+        root_logger.debug('Configuring to use DNS discovery')
+
+    search_base = str(DN(('cn', options.location), api.env.container_automount, api.env.basedn))
+    print "Location: %s" % options.location
+    root_logger.debug('Using automount location %s' % options.location)
+
+    # Verify that the location is valid
+    (ccache_fd, ccache_name) = tempfile.mkstemp()
+    os.close(ccache_fd)
+    try:
+        try:
+            os.environ['KRB5CCNAME'] = ccache_name
+            ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', 'host/%s@%s' % (api.env.host, api.env.realm)])
+        except ipautil.CalledProcessError, e:
+            sys.exit("Failed to obtain host TGT.")
+        # Now we have a TGT, connect to IPA
+        try:
+            api.Backend.xmlclient.connect()
+        except errors.KerberosError, e:
+            sys.exit('Cannot connect to the server due to ' + str(e))
+        try:
+            api.Command['automountlocation_show'](unicode(options.location))
+        except errors.VersionError, e:
+            sys.exit('This client is incompatible: ' + str(e))
+        except errors.NotFound:
+            sys.exit("Automount location '%s' does not exist" % options.location)
+        except errors.PublicError, e:
+            sys.exit("Cannot connect to the server due to generic error: %s", str(e))
+    finally:
+        os.remove(ccache_name)
+
+    if not options.unattended and not ipautil.user_input("Continue to configure the system with these values?", False):
+        sys.exit("Installation aborted")
+
+    try:
+        configure_nsswitch(fstore, options)
+        configure_nfs(fstore, statestore)
+        if options.sssd:
+            configure_autofs_sssd(fstore, statestore, autodiscover, options)
+        else:
+            configure_xml(fstore)
+            configure_autofs(fstore, statestore, autodiscover, server, options)
+        configure_autofs_common(fstore, statestore, options)
+    except Exception, e:
+        root_logger.debug('Raised exception %s' % e)
+        print "Installation failed. Rolling back changes."
+        uninstall(fstore, statestore)
+        return 1
+
+    return 0
+
+try:
+    if not os.geteuid()==0:
+        sys.exit("\nMust be run as root\n")
+
+    sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except RuntimeError, e:
+    sys.exit(e)
+except (KeyboardInterrupt, EOFError):
+    sys.exit(1)
