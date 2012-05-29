@@ -415,7 +415,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     }
 
     /* we got the domain SID for the user sid */
-    info3->base.domain_sid = &sid;
+    info3->base.domain_sid = talloc_memdup(memctx, &sid, sizeof(sid));
 
     /* always zero out, not used for Krb, only NTLM */
     memset(&info3->base.LMSessKey, '\0', sizeof(info3->base.key));
