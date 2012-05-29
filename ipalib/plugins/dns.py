@@ -1843,6 +1843,7 @@ class dnsrecord(LDAPObject):
     object_name_plural = _('DNS resource records')
     object_class = ['top', 'idnsrecord']
     default_attributes = ['idnsname'] + _record_attributes
+    rdn_is_primary_key = True
 
     label = _('DNS Resource Records')
     label_singular = _('DNS Resource Record')
@@ -1960,7 +1961,7 @@ class dnsrecord(LDAPObject):
         return dns_masters
 
     def has_cli_options(self, options, no_option_msg, allow_empty_attrs=False):
-        if any(k in options for k in ('setattr', 'addattr', 'delattr')):
+        if any(k in options for k in ('setattr', 'addattr', 'delattr', 'rename')):
             return
 
         has_options = False
@@ -2250,6 +2251,11 @@ class dnsrecord_mod(LDAPUpdate):
         return super(dnsrecord_mod, self).args_options_2_entry(*keys, **options)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list,  *keys, **options):
+        if options.get('rename') and self.obj.is_pkey_zone_record(*keys):
+            # zone rename is not allowed
+            raise errors.ValidationError(name='rename',
+                           error=_('DNS zone root record cannot be renamed'))
+
         # check if any attr should be updated using structured instead of replaced
         # format is recordname : (old_value, new_parts)
         updated_attrs = {}
@@ -2306,6 +2312,9 @@ class dnsrecord_mod(LDAPUpdate):
 
         # remove if empty
         if not self.obj.is_pkey_zone_record(*keys):
+            rename = options.get('rename')
+            if rename is not None:
+                keys = keys[:-1] + (rename,)
             dn = self.obj.get_dn(*keys, **options)
             ldap = self.obj.backend
             (dn_, old_entry) = ldap.get_entry(
@@ -2411,6 +2420,9 @@ class dnsrecord_del(LDAPUpdate):
         for option in super(dnsrecord_del, self).get_options():
             if any(flag in option.flags for flag in \
                     ('dnsrecord_part', 'dnsrecord_extra',)):
+                continue
+            elif option.name in ('rename', ):
+                # options only valid for dnsrecord-mod
                 continue
             elif isinstance(option, DNSRecord):
                 yield option.clone(option_group=None)

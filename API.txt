@@ -867,7 +867,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnsrecord_mod
-args: 2,115,3
+args: 2,116,3
 arg: Str('dnszoneidnsname', cli_name='dnszone', query=True, required=True)
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Int('dnsttl', attribute=True, autofill=False, cli_name='ttl', multivalue=False, required=False)
@@ -985,6 +985,7 @@ option: Flag('structured', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
+option: Str('rename', cli_name='rename', multivalue=False, primary_key=True, required=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)

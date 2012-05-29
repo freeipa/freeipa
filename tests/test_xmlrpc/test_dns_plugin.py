@@ -40,6 +40,7 @@ revdnszone1_ip = u'80.142.15.0/24'
 revdnszone1_dn = DN(('idnsname',revdnszone1),('cn','dns'),api.env.basedn)
 dnsres1 = u'testdnsres'
 dnsres1_dn = DN(('idnsname',dnsres1), dnszone1_dn)
+dnsres1_renamed = u'testdnsres-renamed'
 dnsrev1 = u'80'
 dnsrev1_dn = DN(('idnsname',dnsrev1), revdnszone1_dn)
 dnsrev2 = u'81'
@@ -68,6 +69,7 @@ class test_dns(Declarative):
     cleanup_commands = [
         ('dnszone_del', [dnszone1], {}),
         ('dnsrecord_del', [dnszone1, dnsres1], {'del_all' : True}),
+        ('dnsrecord_del', [dnszone1, dnsres1_renamed], {'del_all' : True}),
         ('dnszone_del', [dnszone2], {}),
         ('dnszone_del', [revdnszone1], {}),
         ('dnsconfig_mod', [], {'idnsforwarders' : None,
@@ -845,11 +847,37 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Delete record %r in zone %r' % (dnsres1, dnszone1),
-            command=('dnsrecord_del', [dnszone1, dnsres1], {'del_all': True }),
+            desc='Try to to rename DNS zone %r root record' % (dnszone1),
+            command=('dnsrecord_mod', [dnszone1, u'@'], {'rename': dnsres1_renamed,}),
+            expected=errors.ValidationError(name='rename',
+                           error=u'DNS zone root record cannot be renamed')
+        ),
+
+        dict(
+            desc='Rename DNS record %r to %r' % (dnsres1, dnsres1_renamed),
+            command=('dnsrecord_mod', [dnszone1, dnsres1], {'rename': dnsres1_renamed,}),
             expected={
                 'value': dnsres1,
-                'summary': u'Deleted record "%s"' % dnsres1,
+                'summary': None,
+                'result': {
+                    'idnsname': [dnsres1_renamed],
+                    'arecord': [u'10.10.0.1'],
+                    'cnamerecord': [u'foo-1.example.com.'],
+                    'kxrecord': [u'1 foo-1'],
+                    'txtrecord': [u'foo bar'],
+                    'nsecrecord': [dnszone1 + u' TXT A'],
+                    'nsrecord': [u'does.not.exist'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete record %r in zone %r' % (dnsres1_renamed, dnszone1),
+            command=('dnsrecord_del', [dnszone1, dnsres1_renamed], {'del_all': True }),
+            expected={
+                'value': dnsres1_renamed,
+                'summary': u'Deleted record "%s"' % dnsres1_renamed,
                 'result': {'failed': u''},
             },
         ),
