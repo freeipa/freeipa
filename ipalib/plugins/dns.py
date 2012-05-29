@@ -18,9 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
 import netaddr
 import time
 import re
+import dns.name
 
 from ipalib.request import context
 from ipalib import api, errors, output
@@ -1488,7 +1491,11 @@ def zone_is_reverse(zone_name):
 
     return False
 
-def check_ns_rec_resolvable(name):
+def check_ns_rec_resolvable(zone, name):
+    if not name.endswith('.'):
+        # this is a DNS name relative to the zone
+        zone = dns.name.from_text(zone)
+        name = unicode(dns.name.from_text(name, origin=zone))
     try:
         return api.Command['dns_resolve'](name)
     except errors.NotFound:
@@ -1707,11 +1714,11 @@ class dnszone_add(LDAPCreate):
             raise errors.ValidationError(name='name-server',
                     error=unicode(_("Nameserver address is not a fully qualified domain name")))
 
-        if not 'ip_address' in options and not options['force']:
-            check_ns_rec_resolvable(nameserver)
-
         if nameserver[-1] != '.':
             nameserver += '.'
+
+        if not 'ip_address' in options and not options['force']:
+            check_ns_rec_resolvable(keys[0], nameserver)
 
         entry_attrs['nsrecord'] = nameserver
         entry_attrs['idnssoamname'] = nameserver
@@ -1878,7 +1885,8 @@ class dnsrecord(LDAPObject):
         nsrecords = entry_attrs.get('nsrecord')
         if options.get('force', False) or nsrecords is None:
             return
-        map(check_ns_rec_resolvable, nsrecords)
+        for nsrecord in nsrecords:
+            check_ns_rec_resolvable(keys[0], nsrecord)
 
     def _ptrrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         ptrrecords = entry_attrs.get('ptrrecord')

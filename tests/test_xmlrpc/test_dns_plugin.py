@@ -820,14 +820,20 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Try to add unresolvable NS record to %r using dnsrecord_add' % (dnsres1),
+            desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add' % (dnsres1),
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'nsrecord': u'does.not.exist.'}),
+            expected=errors.NotFound(reason=u"Nameserver 'does.not.exist.' does not have a corresponding A/AAAA record"),
+        ),
+
+        dict(
+            desc='Try to add unresolvable relative NS record to %r using dnsrecord_add' % (dnsres1),
             command=('dnsrecord_add', [dnszone1, dnsres1], {'nsrecord': u'does.not.exist'}),
-            expected=errors.NotFound(reason=u"Nameserver 'does.not.exist' does not have a corresponding A/AAAA record"),
+            expected=errors.NotFound(reason=u"Nameserver 'does.not.exist.%s.' does not have a corresponding A/AAAA record" % dnszone1),
         ),
 
         dict(
             desc='Add unresolvable NS record with --force to %r using dnsrecord_add' % (dnsres1),
-            command=('dnsrecord_add', [dnszone1, dnsres1], {'nsrecord': u'does.not.exist',
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'nsrecord': u'does.not.exist.',
                                                             'force' : True}),
             expected={
                 'value': dnsres1,
@@ -841,7 +847,7 @@ class test_dns(Declarative):
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
                     'nsecrecord': [dnszone1 + u' TXT A'],
-                    'nsrecord': [u'does.not.exist'],
+                    'nsrecord': [u'does.not.exist.'],
                 },
             },
         ),
@@ -866,7 +872,7 @@ class test_dns(Declarative):
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
                     'nsecrecord': [dnszone1 + u' TXT A'],
-                    'nsrecord': [u'does.not.exist'],
+                    'nsrecord': [u'does.not.exist.'],
                 },
             },
         ),
