@@ -961,15 +961,28 @@ class Param(ReadOnly):
                     pass
         return self.default
 
+    json_exclude_attrs = (
+        'alwaysask', 'autofill', 'cli_name', 'cli_short_name', 'csv',
+        'csv_separator', 'csv_skipspace', 'sortorder', 'falsehoods', 'truths',
+        'version',
+    )
+
     def __json__(self):
         json_dict = {}
         for (a, k, d) in self.kwargs:
+            if a in self.json_exclude_attrs:
+                continue
             if k in (callable, DefaultFrom):
                 continue
             elif isinstance(getattr(self, a), frozenset):
                 json_dict[a] = [k for k in getattr(self, a, [])]
             else:
-                json_dict[a] = getattr(self, a, '')
+                val = getattr(self, a, '')
+                if val is None or not val:
+                    # ignore false and not set because lack of their presence is
+                    # the information itself
+                    continue;
+                json_dict[a] = val
         json_dict['class'] = self.__class__.__name__
         json_dict['name'] = self.name
         json_dict['type'] = self.type.__name__

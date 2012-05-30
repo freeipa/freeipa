@@ -1003,13 +1003,32 @@ class Command(HasParam):
 
     # list of attributes we want exported to JSON
     json_friendly_attributes = (
-        'name', 'takes_args', 'takes_options',
+        'name', 'takes_args',
     )
+
+    # list of options we want only to mention their presence and not to write
+    # their attributes
+    json_only_presence_options = (
+        'all', 'raw', 'attrs', 'addattr', 'delattr', 'setattr', 'version',
+    )
+
+    def get_json_options(self):
+        """
+        Get only options we want exported to JSON
+        """
+        for option in self.get_options():
+            if option.name not in self.json_only_presence_options:
+                yield option
+            else:
+                yield { 'name': option.name }
 
     def __json__(self):
         json_dict = dict(
             (a, getattr(self, a)) for a in self.json_friendly_attributes
         )
+
+        json_dict['takes_options'] = list(self.get_json_options())
+
         return json_dict
 
 class LocalOrRemote(Command):
