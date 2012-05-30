@@ -106,22 +106,12 @@ class updateclient(backend.Executioner):
         self.Backend.ldap2.connect(bind_dn='cn=Directory Manager', bind_pw=dm_password, autobind=autobind)
 
     def order(self, updatetype):
+        """Return plugins of the given updatetype in sorted order.
         """
-        Calculate rough order of plugins.
-        """
-        order = []
-        for plugin in api.Updater(): #pylint: disable=E1101
-            if plugin.updatetype != updatetype:
-                continue
-            if plugin.order == FIRST:
-                order.insert(0, plugin)
-            elif plugin.order == MIDDLE:
-                order.insert(len(order)/2, plugin)
-            else:
-                order.append(plugin)
-
-        for o in order:
-            yield o
+        ordered = [plugin for plugin in api.Updater()  # pylint: disable=E1101
+                   if plugin.updatetype == updatetype]
+        ordered.sort(key=lambda p: p.order)
+        return ordered
 
     def update(self, updatetype, dm_password, ldapi, live_run):
         """
