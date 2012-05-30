@@ -39,6 +39,14 @@ import struct
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
 
+SELINUX_WARNING = """
+WARNING: could not set selinux boolean(s) %(var)s to true.  The adtrust
+service may not function correctly until this boolean is successfully
+change with the command:
+   /usr/sbin/setsebool -P %(var)s true
+Try updating the policycoreutils and selinux-policy packages.
+"""
+
 def check_inst():
     for smbfile in ['/usr/sbin/smbd', '/usr/bin/net', '/usr/bin/smbpasswd']:
         if not os.path.exists(smbfile):
@@ -105,6 +113,7 @@ class ADTRUSTInstance(service.Service):
         self.sub_dict = None
         self.cifs_principal = None
         self.cifs_agent = None
+        self.selinux_booleans = None
 
         service.Service.__init__(self, "smb", dm_password=dm_password)
 
@@ -311,6 +320,37 @@ class ADTRUSTInstance(service.Service):
                 for rec in ipa_rdata:
                     add_rr(zone, win_srv, "SRV", rec)
 
+    def __configure_selinux_for_smbd(self):
+        selinux = False
+        try:
+            if (os.path.exists('/usr/sbin/selinuxenabled')):
+                ipautil.run(["/usr/sbin/selinuxenabled"])
+                selinux = True
+        except ipautil.CalledProcessError:
+            # selinuxenabled returns 1 if not enabled
+            pass
+
+        if selinux:
+            # Don't assume all booleans are available
+            sebools = []
+            for var in self.selinux_booleans:
+                try:
+                    (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/getsebool", var])
+                    if stdout and not stderr and returncode == 0:
+                        self.backup_state(var, stdout.split()[2])
+                        sebools.append(var)
+                except:
+                    pass
+
+            if sebools:
+                bools = [var + "=true" for var in sebools]
+                args = ["/usr/sbin/setsebool", "-P"]
+                args.extend(bools);
+                try:
+                    ipautil.run(args)
+                except:
+                    self.print_msg(SELINUX_WARNING % dict(var=','.join(sebools)))
+
     def __start(self):
         try:
             self.start()
@@ -373,6 +413,7 @@ class ADTRUSTInstance(service.Service):
         self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm_name
         self.cifs_agent = "krbprincipalname=%s,cn=services,cn=accounts,%s" % \
                           (self.cifs_principal.lower(), self.suffix)
+        self.selinux_booleans = ["samba_portmapper"]
 
         self.__setup_sub_dict()
 
@@ -395,6 +436,8 @@ class ADTRUSTInstance(service.Service):
                       self.__add_dns_service_records)
         self.step("restarting KDC to take MS PAC changes into account", \
                   self.__restart_kdc)
+        self.step("setting SELinux booleans", \
+                  self.__configure_selinux_for_smbd)
         self.step("starting smbd", self.__start)
 
         self.start_creation("Configuring smbd:")
@@ -417,6 +460,14 @@ class ADTRUSTInstance(service.Service):
             except ValueError, error:
                 root_logger.debug(error)
                 pass
+
+        for var in self.selinux_booleans:
+            sebool_state = self.restore_state(var)
+            if not sebool_state is None:
+                try:
+                    ipautil.run(["/usr/sbin/setsebool", "-P", var, sebool_state])
+                except:
+                    self.print_msg(SELINUX_WARNING % dict(var=var))
 
         if not enabled is None and not enabled:
             self.disable()
