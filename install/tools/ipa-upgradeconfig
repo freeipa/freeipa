@@ -25,14 +25,18 @@ Upgrade configuration files to a newer template.
 
 import sys
 try:
-    from ipapython import ipautil, sysrestore
+    from ipapython import ipautil, sysrestore, version
+    from ipapython.config import IPAOptionParser
+    from ipapython.ipa_log_manager import *
     from ipaserver.install import installutils
     from ipaserver.install import dsinstance
     from ipaserver.install import httpinstance
     from ipaserver.install import memcacheinstance
+    from ipaserver.install import bindinstance
     from ipaserver.install import service
     from ipaserver.install import cainstance
     from ipaserver.install import certs
+    from ipaserver.install import sysupgrade
     import ldap
     import krbV
     import re
@@ -48,6 +52,16 @@ error was:
     %s
 """ % sys.exc_value
     sys.exit(1)
+
+def parse_options():
+    parser = IPAOptionParser(version=version.VERSION)
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                      default=False, help="print debugging information")
+
+    options, args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
+
+    return safe_options, options
 
 class KpasswdInstance(service.SimpleServiceInstance):
     def __init__(self):
@@ -249,6 +263,70 @@ def upgrade_httpd_selinux(fstore):
     http = httpinstance.HTTPInstance(fstore)
     http.configure_selinux_for_httpd()
 
+def enable_psearch_for_named():
+    """
+    From IPA 3.0, persistent search is a preferred mechanism for new DNS zone
+    detection and is also needed for other features (DNSSEC, SOA serial
+    updates). Enable psearch and make sure connections attribute is right.
+    This step is done just once for a case when user switched the persistent
+    search back to disabled.
+
+    When some change in named.conf is done, this functions returns True
+    """
+    changed = False
+
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        return
+
+    try:
+        psearch = bindinstance.named_conf_get_directive('psearch').lower()
+    except IOError, e:
+        root_logger.debug('Cannot retrieve psearch option from %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return
+    if not sysupgrade.get_upgrade_state('named.conf', 'psearch_enabled'):
+        if psearch != "yes":
+            try:
+                bindinstance.named_conf_set_directive('zone_refresh', 0)
+                bindinstance.named_conf_set_directive('psearch', 'yes')
+            except IOError, e:
+                root_logger.error('Cannot enable psearch in %s: %s',
+                        bindinstance.NAMED_CONF, e)
+            else:
+                changed = True
+        sysupgrade.set_upgrade_state('named.conf', 'psearch_enabled', True)
+
+    # make sure number of connections is right
+    minimum_connections = 2
+    if psearch == 'yes':
+        minimum_connections = 3
+    try:
+        connections = bindinstance.named_conf_get_directive('connections')
+    except IOError, e:
+        root_logger.debug('Cannot retrieve connections option from %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return
+    if connections is not None:
+        try:
+            connections = int(connections)
+        except ValueError:
+            # this should not happend, but there is some bad value in
+            # "connections" option, bail out
+            pass
+        else:
+            if connections < minimum_connections:
+                try:
+                    bindinstance.named_conf_set_directive('connections',
+                                                          minimum_connections)
+                except IOError, e:
+                    root_logger.error('Cannot update connections in %s: %s',
+                            bindinstance.NAMED_CONF, e)
+                else:
+                    changed = True
+
+    return changed
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -258,6 +336,10 @@ def main():
 
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")
+
+    safe_options, options = parse_options()
+
+    standard_logging_setup(None, debug=options.debug)
 
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
@@ -304,6 +386,10 @@ def main():
 
     cleanup_kdc(fstore)
     upgrade_ipa_profile(krbctx.default_realm)
+    changed = enable_psearch_for_named()
+    if changed:
+        # configuration has changed, restart the name server
+        bindinstance.BindInstance(fstore).restart()
 
 if __name__ == '__main__':
     installutils.run_script(main, operation_name='ipa-upgradeconfig')

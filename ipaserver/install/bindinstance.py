@@ -21,6 +21,7 @@ import tempfile
 import os
 import pwd
 import netaddr
+import re
 
 import installutils
 import ldap
@@ -37,6 +38,12 @@ from ipapython.ipa_log_manager import *
 
 import ipalib
 from ipalib import api, util, errors
+
+NAMED_CONF = '/etc/named.conf'
+RESOLV_CONF = '/etc/resolv.conf'
+
+named_conf_ipa_re = re.compile(r'(?P<indent>\s*)arg\s+"(?P<name>\S+)\s(?P<value>[^"]+)";')
+named_conf_ipa_template = "%(indent)sarg \"%(name)s %(value)s\";\n"
 
 def check_inst(unattended):
     has_bind = True
@@ -57,7 +64,7 @@ def check_inst(unattended):
     if not has_bind:
         return False
 
-    if not unattended and os.path.exists('/etc/named.conf'):
+    if not unattended and os.path.exists(NAMED_CONF):
         msg = "Existing BIND configuration detected, overwrite?"
         return ipautil.user_input(msg, False)
 
@@ -73,13 +80,86 @@ def create_reverse():
     return ipautil.user_input("Do you want to configure the reverse zone?", True)
 
 def named_conf_exists():
-    named_fd = open('/etc/named.conf', 'r')
+    try:
+        named_fd = open(NAMED_CONF, 'r')
+    except IOError:
+        return False
     lines = named_fd.readlines()
     named_fd.close()
     for line in lines:
         if line.startswith('dynamic-db "ipa"'):
             return True
     return False
+
+def named_conf_get_directive(name):
+    """Get a configuration option in bind-dyndb-ldap section of named.conf"""
+
+    with open(NAMED_CONF, 'r') as f:
+        ipa_section = False
+        for line in f:
+            if line.startswith('dynamic-db "ipa"'):
+                ipa_section = True
+                continue
+            if line.startswith('};'):
+                if ipa_section:
+                    break
+
+            if ipa_section:
+                match = named_conf_ipa_re.match(line)
+
+                if match and name == match.group('name'):
+                    return match.group('value')
+
+def named_conf_set_directive(name, value):
+    """
+    Set configuration option in bind-dyndb-ldap section of named.conf.
+
+    When the configuration option with given name does not exist, it
+    is added at the end of ipa section in named.conf.
+
+    If the value is set to None, the configuration option is removed
+    from named.conf.
+    """
+    new_lines = []
+
+    with open(NAMED_CONF, 'r') as f:
+        ipa_section = False
+        matched = False
+        last_indent = "\t"
+        for line in f:
+            if line.startswith('dynamic-db "ipa"'):
+                ipa_section = True
+            if line.startswith('};'):
+                if ipa_section and not matched:
+                    # create a new conf
+                    new_conf = named_conf_ipa_template \
+                            % dict(indent=last_indent,
+                                   name=name,
+                                   value=value)
+                    new_lines.append(new_conf)
+                ipa_section = False
+
+            if ipa_section and not matched:
+                match = named_conf_ipa_re.match(line)
+
+                if match:
+                    last_indent = match.group('indent')
+                    if name == match.group('name'):
+                        matched = True
+                        if value is not None:
+                            if not isinstance(value, basestring):
+                                value = str(value)
+                            new_conf = named_conf_ipa_template \
+                                    % dict(indent=last_indent,
+                                           name=name,
+                                           value=value)
+                            new_lines.append(new_conf)
+                        continue
+            new_lines.append(line)
+
+    # write new configuration
+    with open(NAMED_CONF, 'w') as f:
+        f.write("".join(new_lines))
 
 def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None):
     """
@@ -610,18 +690,18 @@ class BindInstance(service.Service):
             raise
 
     def __setup_named_conf(self):
-        self.fstore.backup_file('/etc/named.conf')
+        self.fstore.backup_file(NAMED_CONF)
         named_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.named.conf.template", self.sub_dict)
-        named_fd = open('/etc/named.conf', 'w')
+        named_fd = open(NAMED_CONF, 'w')
         named_fd.seek(0)
         named_fd.truncate(0)
         named_fd.write(named_txt)
         named_fd.close()
 
     def __setup_resolv_conf(self):
-        self.fstore.backup_file('/etc/resolv.conf')
+        self.fstore.backup_file(RESOLV_CONF)
         resolv_txt = "search "+self.domain+"\nnameserver "+self.ip_address+"\n"
-        resolv_fd = open('/etc/resolv.conf', 'w')
+        resolv_fd = open(RESOLV_CONF, 'w')
         resolv_fd.seek(0)
         resolv_fd.truncate(0)
         resolv_fd.write(resolv_txt)
@@ -704,7 +784,7 @@ class BindInstance(service.Service):
         if not running is None:
             self.stop()
 
-        for f in ["/etc/named.conf", "/etc/resolv.conf"]:
+        for f in [NAMED_CONF, RESOLV_CONF]:
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
