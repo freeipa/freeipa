@@ -1539,6 +1539,7 @@ def main():
 
     if not os.getegid() == 0:
         sys.exit("\nYou must be root to run ipa-client-install.\n")
+    ipaservices.check_selinux_status()
     logging_setup(options)
     root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     root_logger.debug("missing options might be asked for interactively later\n")

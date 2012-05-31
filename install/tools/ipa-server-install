@@ -539,6 +539,8 @@ def main():
     if os.getegid() != 0:
         sys.exit("Must be root to set up server")
 
+    ipaservices.check_selinux_status()
+
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 

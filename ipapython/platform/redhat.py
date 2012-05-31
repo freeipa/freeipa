@@ -28,13 +28,22 @@ from ipapython import ipautil
 from ipapython.platform import base
 
 # All what we allow exporting directly from this module
-# Everything else is made available through these symbols when they directly imported into ipapython.services:
-# authconfig -- class reference for platform-specific implementation of authconfig(8)
-# service    -- class reference for platform-specific implementation of a PlatformService class
-# knownservices -- factory instance to access named services IPA cares about, names are ipapython.services.wellknownservices
-# backup_and_replace_hostname -- platform-specific way to set hostname and make it persistent over reboots
-# restore_context -- platform-sepcific way to restore security context, if applicable
-__all__ = ['authconfig', 'service', 'knownservices', 'backup_and_replace_hostname', 'restore_context']
+# Everything else is made available through these symbols when they are
+# directly imported into ipapython.services:
+#
+# authconfig -- class reference for platform-specific implementation of
+#               authconfig(8)
+# service    -- class reference for platform-specific implementation of a
+#               PlatformService class
+# knownservices -- factory instance to access named services IPA cares about,
+#                  names are ipapython.services.wellknownservices
+# backup_and_replace_hostname -- platform-specific way to set hostname and
+#                                make it persistent over reboots
+# restore_context -- platform-sepcific way to restore security context, if
+#                    applicable
+# check_selinux_status -- platform-specific way to see if SELinux is enabled
+#                         and restorecon is installed.
+__all__ = ['authconfig', 'service', 'knownservices', 'backup_and_replace_hostname', 'restore_context', 'check_selinux_status']
 
 class RedHatService(base.PlatformService):
     def stop(self, instance_name="", capture_output=True):
@@ -130,10 +139,10 @@ authconfig = RedHatAuthConfig
 service = redhat_service
 knownservices = RedHatServices()
 
-def restore_context(filepath):
+def restore_context(filepath, restorecon='/sbin/restorecon'):
     """
     restore security context on the file path
-    SELinux equivalent is /sbin/restorecon <filepath>
+    SELinux equivalent is /path/to/restorecon <filepath>
 
     restorecon's return values are not reliable so we have to
     ignore them (BZ #739604).
@@ -150,8 +159,8 @@ def restore_context(filepath):
         # selinuxenabled returns 1 if not enabled
         return
 
-    if (os.path.exists('/sbin/restorecon')):
-        ipautil.run(["/sbin/restorecon", filepath], raiseonerr=False)
+    if (os.path.exists(restorecon)):
+        ipautil.run([restorecon, filepath], raiseonerr=False)
 
 def backup_and_replace_hostname(fstore, statestore, hostname):
     old_hostname = socket.gethostname()
@@ -168,3 +177,26 @@ def backup_and_replace_hostname(fstore, statestore, hostname):
         statestore.backup_state('network', 'hostname', old_values['HOSTNAME'])
     else:
         statestore.backup_state('network', 'hostname', old_hostname)
+
+def check_selinux_status(restorecon='/sbin/restorecon'):
+    """
+    We don't have a specific package requirement for policycoreutils
+    which provides restorecon. This is because we don't require
+    SELinux on client installs. However if SELinux is enabled then
+    this package is required.
+
+    This function returns nothing but may raise a Runtime exception
+    if SELinux is enabled but restorecon is not available.
+    """
+    try:
+        if (os.path.exists('/usr/sbin/selinuxenabled')):
+            ipautil.run(["/usr/sbin/selinuxenabled"])
+        else:
+            # No selinuxenabled, no SELinux
+            return
+    except ipautil.CalledProcessError:
+        # selinuxenabled returns 1 if not enabled
+        return
+
+    if not os.path.exists(restorecon):
+        raise RuntimeError('SELinux is enabled but %s does not exist.\nInstall the policycoreutils package and start the installation again.' % restorecon)
