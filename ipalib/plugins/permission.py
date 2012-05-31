@@ -350,19 +350,19 @@ class permission_find(LDAPSearch):
     has_output_params = LDAPSearch.has_output_params + output_params
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        if options.pop('pkey_only', False):
-            return truncated
-        for entry in entries:
-            (dn, attrs) = entry
-            try:
-                aci = self.api.Command.aci_show(attrs['cn'][0], aciprefix=ACI_PREFIX, **options)['result']
+        pkey_only = options.pop('pkey_only', False)
+        if not pkey_only:
+            for entry in entries:
+                (dn, attrs) = entry
+                try:
+                    aci = self.api.Command.aci_show(attrs['cn'][0], aciprefix=ACI_PREFIX, **options)['result']
 
-                # copy information from respective ACI to permission entry
-                for attr in self.obj.aci_attributes:
-                    if attr in aci:
-                        attrs[attr] = aci[attr]
-            except errors.NotFound:
-                self.debug('ACI not found for %s' % attrs['cn'][0])
+                    # copy information from respective ACI to permission entry
+                    for attr in self.obj.aci_attributes:
+                        if attr in aci:
+                            attrs[attr] = aci[attr]
+                except errors.NotFound:
+                    self.debug('ACI not found for %s' % attrs['cn'][0])
         if truncated:
             # size/time limit met, no need to search acis
             return truncated
@@ -406,9 +406,15 @@ class permission_find(LDAPSearch):
                     permission = self.api.Command.permission_show(aci['permission'], **options)['result']
                     dn = permission['dn']
                     del permission['dn']
+                    if pkey_only:
+                        new_entry = (dn, {self.obj.primary_key.name: \
+                                          permission[self.obj.primary_key.name]})
+                    else:
+                        new_entry = (dn, permission)
+
                     if (dn, permission) not in entries:
                        if len(entries) < max_entries:
-                           entries.append((dn, permission))
+                           entries.append(new_entry)
                        else:
                            truncated = True
                            break

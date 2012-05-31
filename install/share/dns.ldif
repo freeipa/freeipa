@@ -34,6 +34,7 @@ dn: cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: groupofnames
 objectClass: top
+objectClass: ipapermission
 cn: add dns entries
 description: Add DNS entries
 member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
@@ -43,6 +44,7 @@ dn: cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: groupofnames
 objectClass: top
+objectClass: ipapermission
 cn: remove dns entries
 description: Remove DNS entries
 member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
@@ -52,6 +54,7 @@ dn: cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: groupofnames
 objectClass: top
+objectClass: ipapermission
 cn: update dns entries
 description: Update DNS entries
 member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
@@ -72,6 +75,7 @@ dn: cn=Write DNS Configuration,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: groupofnames
 objectClass: top
+objectClass: ipapermission
 cn: Write DNS Configuration
 description: Write DNS Configuration
 member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX

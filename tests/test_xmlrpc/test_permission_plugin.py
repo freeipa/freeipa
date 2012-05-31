@@ -368,6 +368,25 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Search by ACI attribute with --pkey-only',
+            command=('permission_find', [], {'pkey_only': True,
+                                             'attrs': [u'krbminpwdlife']}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': lambda x: DN(x) == DN(('cn','Modify Group Password Policy'),
+                                                     api.env.container_permission,api.env.basedn),
+                        'cn': [u'Modify Group Password Policy'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % privilege1,
             command=('privilege_find', [privilege1], {}),
             expected=dict(
