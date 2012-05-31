@@ -47,9 +47,12 @@ import inspect
 from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
 from ipaserver.install.plugins import FIRST, MIDDLE, LAST
 
-class BadSyntax(Exception):
+class BadSyntax(installutils.ScriptError):
     def __init__(self, value):
         self.value = value
+        self.msg = "There is a syntax error in this update file: \n  %s" % value
+        self.rval = 1
+
     def __str__(self):
         return repr(self.value)
 

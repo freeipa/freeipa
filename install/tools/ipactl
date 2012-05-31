@@ -21,10 +21,10 @@
 import sys
 try:
     import os
-    from ipaserver.install import service
+    from ipaserver.install import service, installutils
     from ipapython import services as ipaservices
     from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
-    from ipaserver.install.installutils import is_ipa_configured, wait_for_open_ports, wait_for_open_socket
+    from ipaserver.install.installutils import is_ipa_configured, wait_for_open_ports, wait_for_open_socket, ScriptError
     from ipapython import sysrestore
     from ipapython import config
     from ipalib import api, errors
@@ -44,13 +44,8 @@ error was:
 
 SASL_EXTERNAL = ldap.sasl.sasl({}, 'EXTERNAL')
 
-class IpactlError(StandardError):
-    def __init__(self, msg = '', rval = 1):
-        self.msg = msg
-        self.rval = rval
-
-    def __str__(self):
-        return self.msg
+class IpactlError(ScriptError):
+    pass
 
 def check_IPA_configuration():
     if not is_ipa_configured():
@@ -386,17 +381,6 @@ def main():
     elif args[0].lower() == "status":
         ipa_status(options)
 
-try:
-    if __name__ == "__main__":
-        sys.exit(main())
-except IpactlError, e:
-    if e.msg:
-        emit_err(e.msg)
-    sys.exit(e.rval)
-except RuntimeError, e:
-    emit_err("%s" % e)
-    sys.exit(1)
-except SystemExit, e:
-    sys.exit(e)
-except KeyboardInterrupt, e:
-    sys.exit(1)
+
+if __name__ == '__main__':
+    installutils.run_script(main, operation_name='ipactl')

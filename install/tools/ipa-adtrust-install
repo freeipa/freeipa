@@ -21,8 +21,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import traceback
-
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import adtrustinstance
 from ipaserver.install.installutils import *
@@ -34,6 +32,8 @@ from ipapython.config import IPAOptionParser
 import krbV
 import ldap
 from ipapython.ipa_log_manager import *
+
+log_file_name = "/var/log/ipaserver-install.log"
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -86,8 +86,8 @@ def main():
     if os.getegid() != 0:
         sys.exit("Must be root to setup AD trusts on server")
 
-    standard_logging_setup("/var/log/ipaserver-install.log", debug=options.debug, filemode='a')
-    print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
+    standard_logging_setup(log_file_name, debug=options.debug, filemode='a')
+    print "\nThe log file for this installation can be found in %s" % log_file_name
 
     root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     root_logger.debug("missing options might be asked for interactively later\n")
@@ -227,26 +227,6 @@ def main():
 
     return 0
 
-try:
-    sys.exit(main())
-except SystemExit, e:
-    sys.exit(e)
-except KeyboardInterrupt:
-    print "Installation cancelled."
-except RuntimeError, e:
-    print str(e)
-except HostnameLocalhost:
-    print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-    print "Please change your /etc/hosts file so that the hostname"
-    print "resolves to the ip address of your network interface."
-    print "The KDC service does not listen on localhost"
-    print ""
-    print "Please fix your /etc/hosts file and restart the setup program"
-except Exception, e:
-    message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
-    print message
-    message = str(e)
-    for str in traceback.format_tb(sys.exc_info()[2]):
-        message = message + "\n" + str
-    root_logger.debug(message)
-    sys.exit(1)
+if __name__ == '__main__':
+    installutils.run_script(main, log_file_name=log_file_name,
+            operation_name='ipa-adtrust-install')

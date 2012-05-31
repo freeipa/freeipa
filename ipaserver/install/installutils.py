@@ -30,13 +30,18 @@ import netaddr
 import time
 import tempfile
 import shutil
+from ConfigParser import SafeConfigParser
+import traceback
+
 from dns import resolver, rdatatype
 from dns.exception import DNSException
+import ldap
 
-from ConfigParser import SafeConfigParser
 from ipapython import ipautil, sysrestore
 from ipapython.ipa_log_manager import *
 from ipalib.util import validate_hostname
+from ipapython import config
+from ipalib import errors
 
 # Used to determine install status
 IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
@@ -55,6 +60,18 @@ class HostReverseLookupError(HostLookupError):
 
 class HostnameLocalhost(HostLookupError):
     pass
+
+
+class ScriptError(StandardError):
+    """An exception that records an error message and a return value
+    """
+    def __init__(self, msg = '', rval = 1):
+        self.msg = msg
+        self.rval = rval
+
+    def __str__(self):
+        return self.msg
+
 
 class ReplicaConfig:
     def __init__(self):
@@ -655,3 +672,114 @@ def is_ipa_configured():
         root_logger.debug('filestore is tracking no files')
 
     return installed
+
+
+def run_script(main_function, operation_name, log_file_name=None,
+        fail_message=None):
+    """Run the given function as a command-line utility
+
+    This function:
+
+    - Runs the given function
+    - Formats any errors
+    - Exits with the appropriate code
+
+    :param main_function: Function to call
+    :param log_file_name: Name of the log file (displayed on unexpected errors)
+    :param operation_name: Name of the script
+    :param fail_message: Optional message displayed on failure
+    """
+
+    root_logger.info('Starting script: %s', operation_name)
+    try:
+        try:
+            return_value = main_function()
+        except BaseException, e:
+            if isinstance(e, SystemExit) and (e.code is None or e.code == 0):
+                # Not an error after all
+                root_logger.info('The %s command was successful',
+                    operation_name)
+            else:
+                # Log at the INFO level, which is not output to the console
+                # (unless in debug/verbose mode), but is written to a logfile
+                # if one is open.
+                tb = sys.exc_info()[2]
+                root_logger.info('\n'.join(traceback.format_tb(tb)))
+                root_logger.info('The %s command failed, exception: %s: %s',
+                    operation_name, type(e).__name__, e)
+                exception = e
+                if fail_message and not isinstance(e, SystemExit):
+                    print fail_message
+                raise
+        else:
+            if return_value:
+                root_logger.info('The %s command failed, return value %s',
+                    operation_name, return_value)
+            else:
+                root_logger.info('The %s command was successful',
+                    operation_name)
+            sys.exit(return_value)
+
+    except BaseException, error:
+        handle_error(error, log_file_name)
+
+
+def handle_error(error, log_file_name=None):
+    """Handle specific errors"""
+
+    if isinstance(error, SystemExit):
+        sys.exit(error)
+    if isinstance(error, RuntimeError):
+        sys.exit(error)
+    if isinstance(error, KeyboardInterrupt):
+        print >> sys.stderr, "Cancelled."
+        sys.exit(1)
+
+    if isinstance(error, ScriptError):
+        if error.msg:
+            print >> sys.stderr, error.msg
+        sys.exit(error.rval)
+
+    if isinstance(error, socket.error):
+        print >> sys.stderr, error
+        sys.exit(1)
+
+    if isinstance(error, ldap.INVALID_CREDENTIALS):
+        print >> sys.stderr, "Invalid password"
+        sys.exit(1)
+    if isinstance(error, ldap.INSUFFICIENT_ACCESS):
+        print >> sys.stderr, "Insufficient access"
+        sys.exit(1)
+    if isinstance(error, ldap.LOCAL_ERROR):
+        print >> sys.stderr, error.args[0]['info']
+        sys.exit(1)
+    if isinstance(error, ldap.SERVER_DOWN):
+        print >> sys.stderr, error.args[0]['desc']
+        sys.exit(1)
+    if isinstance(error, ldap.LDAPError):
+        print >> sys.stderr, 'LDAP error: %s' % type(error).__name__
+        print >> sys.stderr, error.args[0]['info']
+        sys.exit(1)
+
+    if isinstance(error, config.IPAConfigError):
+        print >> sys.stderr, "An IPA server to update cannot be found. Has one been configured yet?"
+        print >> sys.stderr, "The error was: %s" % error
+        sys.exit(1)
+    if isinstance(error, errors.LDAPError):
+        print >> sys.stderr, "An error occurred while performing operations: %s" % error
+        sys.exit(1)
+
+    if isinstance(error, HostnameLocalhost):
+        print >> sys.stderr, "The hostname resolves to the localhost address (127.0.0.1/::1)"
+        print >> sys.stderr, "Please change your /etc/hosts file so that the hostname"
+        print >> sys.stderr, "resolves to the ip address of your network interface."
+        print >> sys.stderr, ""
+        print >> sys.stderr, "Please fix your /etc/hosts file and restart the setup program"
+        sys.exit(1)
+
+    if log_file_name:
+        print >> sys.stderr, "Unexpected error - see %s for details:" % log_file_name
+    else:
+        print >> sys.stderr, "Unexpected error"
+    print >> sys.stderr, '%s: %s' % (type(error).__name__, error)
+    sys.exit(1)

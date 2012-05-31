@@ -34,7 +34,6 @@ import subprocess
 import signal
 import shutil
 import glob
-import traceback
 import pickle
 import random
 import tempfile
@@ -50,7 +49,7 @@ from ipaserver.install import certs
 from ipaserver.install import cainstance
 from ipaserver.install import memcacheinstance
 
-from ipaserver.install import service
+from ipaserver.install import service, installutils
 from ipapython import version
 from ipaserver.install.installutils import *
 from ipaserver.plugins.ldap2 import ldap2
@@ -1110,37 +1109,29 @@ def main():
         os.remove(ANSWER_CACHE)
     return 0
 
-try:
-    success = True
+if __name__ == '__main__':
+    success = False
     try:
-        rval = main()
-        if rval != 0:
-            success = False
-        sys.exit(rval)
-    except SystemExit, e:
-        if e.code is not None or e.code != 0:
-            success = False
-        sys.exit(e)
-    except Exception, e:
-        success = False
-        if uninstalling:
-            message = "Unexpected error - see ipaserver-uninstall.log for details:\n %s" % unicode(e)
+        # FIXME: Common option parsing, logging setup, etc should be factored
+        # out from all install scripts
+        safe_options, options = parse_options()
+        if options.uninstall:
+            log_file_name = "/var/log/ipaserver-uninstall.log"
         else:
-            message = "Unexpected error - see ipaserver-install.log for details:\n %s" % unicode(e)
-        print message
-        message = str(e)
-        for str in traceback.format_tb(sys.exc_info()[2]):
-            message = message + "\n" + str
-        root_logger.debug(message)
-        sys.exit(1)
-finally:
-    if pw_name and ipautil.file_exists(pw_name):
-        os.remove(pw_name)
+            log_file_name = "/var/log/ipaserver-install.log"
 
-    if not success and installation_cleanup:
-        # Do a cautious clean up as we don't know what failed and what is
-        # the state of the environment
-        try:
-            fstore.restore_file('/etc/hosts')
-        except:
-            pass
+        installutils.run_script(main, log_file_name=log_file_name,
+            operation_name='ipa-server-install')
+        success = True
+
+    finally:
+        if pw_name and ipautil.file_exists(pw_name):
+            os.remove(pw_name)
+
+        if not success and installation_cleanup:
+            # Do a cautious clean up as we don't know what failed and what is
+            # the state of the environment
+            try:
+                fstore.restore_file('/etc/hosts')
+            except:
+                pass

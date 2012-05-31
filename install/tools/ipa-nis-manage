@@ -200,24 +200,5 @@ def main():
 
     return retval
 
-try:
-    if __name__ == "__main__":
-        sys.exit(main())
-except BadSyntax, e:
-    print "There is a syntax error in this update file:"
-    print "  %s" % e
-    sys.exit(1)
-except RuntimeError, e:
-    print "%s" % e
-    sys.exit(1)
-except SystemExit, e:
-    sys.exit(e)
-except KeyboardInterrupt, e:
-    sys.exit(1)
-except config.IPAConfigError, e:
-    print "An IPA server to update cannot be found. Has one been configured yet?"
-    print "The error was: %s" % e
-    sys.exit(1)
-except errors.LDAPError, e:
-    print "An error occurred while performing operations: %s" % e
-    sys.exit(1)
+if __name__ == '__main__':
+    installutils.run_script(main, operation_name='ipa-nis-manage')

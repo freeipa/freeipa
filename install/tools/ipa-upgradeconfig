@@ -305,10 +305,5 @@ def main():
     cleanup_kdc(fstore)
     upgrade_ipa_profile(krbctx.default_realm)
 
-try:
-    if __name__ == "__main__":
-        sys.exit(main())
-except SystemExit, e:
-    sys.exit(e)
-except KeyboardInterrupt, e:
-    sys.exit(1)
+if __name__ == '__main__':
+    installutils.run_script(main, operation_name='ipa-upgradeconfig')

@@ -31,6 +31,7 @@ from ipapython.ipautil import user_input
 
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
 from ipalib import api
+from ipapython.ipa_log_manager import *
 from ipaserver.plugins.ldap2 import ldap2
 
 def get_realm_name():
@@ -120,11 +121,16 @@ def import_cert(dirname, pkcs12_fname, pkcs12_passwd, db_password):
     return server_cert
 
 def main():
+    if os.geteuid() != 0:
+        sys.exit("\nYou must be root to run this script.\n")
+
     installutils.check_server_configuration()
 
     options, pkcs12_fname = parse_options()
 
     cfg = dict(in_server=True,)
+
+    standard_logging_setup("/var/log/ipa/default.log")
 
     api.bootstrap(**cfg)
     api.finalize()
@@ -165,12 +171,5 @@ def main():
 
     return 0
 
-try:
-    if not os.geteuid()==0:
-        sys.exit("\nYou must be root to run this script.\n")
-
-    main()
-except SystemExit, e:
-    sys.exit(e)
-except RuntimeError, e:
-    sys.exit(e)
+if __name__ == '__main__':
+    installutils.run_script(main, operation_name='ipa-server-certinstall')

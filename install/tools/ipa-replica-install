@@ -21,7 +21,7 @@
 import sys
 import socket
 
-import os, pwd, traceback, shutil
+import os, pwd, shutil
 import grp
 from optparse import OptionGroup
 
@@ -43,8 +43,9 @@ from ipapython import sysrestore
 from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 
-CACERT="/etc/ipa/ca.crt"
-REPLICA_INFO_TOP_DIR=None
+log_file_name = "/var/log/ipareplica-install.log"
+CACERT = "/etc/ipa/ca.crt"
+REPLICA_INFO_TOP_DIR = None
 
 def parse_options():
     usage = "%prog [options] REPLICA_FILE"
@@ -278,7 +279,11 @@ def check_bind():
 def main():
     ipaservices.check_selinux_status()
     safe_options, options, filename = parse_options()
-    standard_logging_setup("/var/log/ipareplica-install.log", debug=options.debug)
+
+    if os.geteuid() != 0:
+        sys.exit("\nYou must be root to run this script.\n")
+
+    standard_logging_setup(log_file_name, debug=options.debug)
     root_logger.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
 
     if not ipautil.file_exists(filename):
@@ -502,41 +507,20 @@ def main():
     #Everything installed properly, activate ipa service.
     ipaservices.knownservices.ipa.enable()
 
-try:
-    if not os.geteuid()==0:
-        sys.exit("\nYou must be root to run this script.\n")
+fail_message = '''
+Your system may be partly configured.
+Run /usr/sbin/ipa-server-install --uninstall to clean up.
+'''
 
-    main()
-    sys.exit(0)
-except SystemExit, e:
-    sys.exit(e)
-except socket.error, (errno, errstr):
-    print errstr
-except HostnameLocalhost:
-    print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-    print "Please change your /etc/hosts file so that the hostname"
-    print "resolves to the ip address of your network interface."
-    print ""
-    print "Please fix your /etc/hosts file and restart the setup program"
-except Exception, e:
-    print "creation of replica failed: %s" % str(e)
-    message = str(e)
-    for str in traceback.format_tb(sys.exc_info()[2]):
-        message = message + "\n" + str
-    root_logger.debug(message)
-except KeyboardInterrupt:
-    print "Installation cancelled."
-finally:
-    # always try to remove decrypted replica file
+if __name__ == '__main__':
     try:
-        if REPLICA_INFO_TOP_DIR:
-            shutil.rmtree(REPLICA_INFO_TOP_DIR)
-    except OSError:
-        pass
-
-print ""
-print "Your system may be partly configured."
-print "Run /usr/sbin/ipa-server-install --uninstall to clean up."
-
-# the only way to get here is on error or ^C
-sys.exit(1)
+        installutils.run_script(main, log_file_name=log_file_name,
+                operation_name='ipa-replica-install',
+                fail_message=fail_message)
+    finally:
+        # always try to remove decrypted replica file
+        try:
+            if REPLICA_INFO_TOP_DIR:
+                shutil.rmtree(REPLICA_INFO_TOP_DIR)
+        except OSError:
+            pass
