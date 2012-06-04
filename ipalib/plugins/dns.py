@@ -32,7 +32,8 @@ from ipalib.parameters import Flag, Bool, Int, Decimal, Str, StrEnum, Any
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
-        validate_hostname, validate_dns_label, validate_domain_name)
+        validate_hostname, validate_dns_label, validate_domain_name,
+        get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy)
 from ipapython.ipautil import valid_ip, CheckedIPAddress, is_host_resolvable
 from ldap import explode_dn
 
@@ -75,8 +76,11 @@ EXAMPLES:
                                --admin-email=admin@example.com
 
  Modify the zone to allow dynamic updates for hosts own records in realm EXAMPLE.COM:
-   ipa dnszone-mod example.com --dynamic-update=TRUE \\
-        --update-policy="grant EXAMPLE.COM krb5-self * A; grant EXAMPLE.COM krb5-self * AAAA;"
+   ipa dnszone-mod example.com --dynamic-update=TRUE
+
+   This is the equivalent of:
+     ipa dnszone-mod example.com --dynamic-update=TRUE \\
+      --update-policy="grant EXAMPLE.COM krb5-self * A; grant EXAMPLE.COM krb5-self * AAAA; grant EXAMPLE.COM krb5-self * SSHFP;"
 
  Modify the zone to allow zone transfers for local network only:
    ipa dnszone-mod example.com --allow-transfer=10.0.0.0/8
@@ -1510,6 +1514,12 @@ def dns_container_exists(ldap):
         return False
     return True
 
+def default_zone_update_policy(zone):
+    if zone_is_reverse(zone):
+        return get_dns_reverse_zone_update_policy(api.env.realm, zone)
+    else:
+        return get_dns_forward_zone_update_policy(api.env.realm)
+
 class dnszone(LDAPObject):
     """
     DNS Zone, container for resource records.
@@ -1611,6 +1621,8 @@ class dnszone(LDAPObject):
             cli_name='update_policy',
             label=_('BIND update policy'),
             doc=_('BIND update policy'),
+            default_from=lambda idnsname: default_zone_update_policy(idnsname),
+            autofill=True
         ),
         Bool('idnszoneactive?',
             cli_name='zone_active',

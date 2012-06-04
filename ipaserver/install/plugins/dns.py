@@ -70,9 +70,9 @@ class update_dnszones(PostUpdate):
                 # do not open zone transfers by default
                 update['idnsallowtransfer'] = u'none;'
 
-            old_policy = util.gen_dns_update_policy(api.env.realm, ('A', 'AAAA'))
+            old_policy = util.get_dns_forward_zone_update_policy(api.env.realm, ('A', 'AAAA'))
             if zone.get('idnsupdatepolicy', [''])[0] == old_policy:
-                update['idnsupdatepolicy'] = util.gen_dns_update_policy(\
+                update['idnsupdatepolicy'] = util.get_dns_forward_zone_update_policy(\
                         api.env.realm)
 
             if update:

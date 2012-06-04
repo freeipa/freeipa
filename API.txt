@@ -1014,7 +1014,7 @@ option: Int('idnssoaexpire', attribute=True, autofill=True, cli_name='expire', d
 option: Int('idnssoaminimum', attribute=True, autofill=True, cli_name='minimum', default=3600, maxvalue=10800, minvalue=0, multivalue=False, required=True)
 option: Int('dnsttl', attribute=True, cli_name='ttl', multivalue=False, required=False)
 option: StrEnum('dnsclass', attribute=True, cli_name='class', multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
-option: Str('idnsupdatepolicy', attribute=True, cli_name='update_policy', multivalue=False, required=False)
+option: Str('idnsupdatepolicy', attribute=True, autofill=True, cli_name='update_policy', multivalue=False, required=False)
 option: Bool('idnsallowdynupdate', attribute=True, autofill=True, cli_name='dynamic_update', default=False, multivalue=False, required=False)
 option: Str('idnsallowquery', attribute=True, autofill=True, cli_name='allow_query', default=u'any;', multivalue=False, required=False)
 option: Str('idnsallowtransfer', attribute=True, autofill=True, cli_name='allow_transfer', default=u'none;', multivalue=False, required=False)

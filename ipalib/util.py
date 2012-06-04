@@ -427,11 +427,11 @@ def parse_time_duration(value):
 
     return duration
 
-def gen_dns_update_policy(realm, rrtypes=('A', 'AAAA', 'SSHFP')):
+def get_dns_forward_zone_update_policy(realm, rrtypes=('A', 'AAAA', 'SSHFP')):
     """
-    Generate update policy for a DNS zone (idnsUpdatePolicy attribute). Bind
-    uses this policy to grant/reject access for client machines trying to
-    dynamically update their records.
+    Generate update policy for a forward DNS zone (idnsUpdatePolicy
+    attribute). Bind uses this policy to grant/reject access for client
+    machines trying to dynamically update their records.
 
     :param realm: A realm of the of the client
     :param rrtypes: A list of resource records types that client shall be
@@ -440,6 +440,27 @@ def gen_dns_update_policy(realm, rrtypes=('A', 'AAAA', 'SSHFP')):
     policy_element = "grant %(realm)s krb5-self * %(rrtype)s"
     policies = [ policy_element % dict(realm=realm, rrtype=rrtype) \
                for rrtype in rrtypes ]
+    policy = "; ".join(policies)
+    policy += ";"
+
+    return policy
+
+def get_dns_reverse_zone_update_policy(realm, reverse_zone, rrtypes=('PTR',)):
+    """
+    Generate update policy for a reverse DNS zone (idnsUpdatePolicy
+    attribute). Bind uses this policy to grant/reject access for client
+    machines trying to dynamically update their records.
+
+    :param realm: A realm of the of the client
+    :param reverse_zone: Name of the actual zone. All clients with IPs in this
+                         sub-domain will be allowed to perform changes
+    :param rrtypes: A list of resource records types that client shall be
+                    allowed to update
+    """
+    policy_element = "grant %(realm)s krb5-subdomain %(zone)s %(rrtype)s"
+    policies = [ policy_element \
+                    % dict(realm=realm, zone=reverse_zone, rrtype=rrtype) \
+                 for rrtype in rrtypes ]
     policy = "; ".join(policies)
     policy += ";"
 
