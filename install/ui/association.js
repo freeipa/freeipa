@@ -201,7 +201,11 @@ IPA.association_adder_dialog = function(spec) {
         var relationship = relationships[other_attribute_member];
         if (relationship) {
             var param_name = relationship[2] + that.entity.name;
-            options[param_name] = that.pkey;
+            var cmd_opt = IPA.get_command_option(that.other_entity.name + '_find',
+                                                 param_name);
+            if (cmd_opt) {
+                options[param_name] = that.pkey;
+            }
         }
 
         IPA.command({
