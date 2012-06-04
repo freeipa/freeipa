@@ -79,6 +79,7 @@ BuildRequires:  sssd >= 1.8.0
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-dns
+BuildRequires:  python-crypto
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -699,6 +700,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Mon Jun  4 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-31
+- Add python-crypto to build dependencies for AD server-side code
+
 * Tue May 29 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-30
 - Add freeipa-server-trust-ad virtual package to capture all required dependencies
   for Active Directory trust management
