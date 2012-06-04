@@ -444,7 +444,7 @@ class migrate_ds(Command):
             default=u'ou=groups',
             autofill=True,
         ),
-        Str('userobjectclass*',
+        Str('userobjectclass+',
             cli_name='user_objectclass',
             label=_('User object class'),
             doc=_('Comma-separated list of objectclasses used to search for user entries in DS'),
@@ -452,7 +452,7 @@ class migrate_ds(Command):
             default=(u'person',),
             autofill=True,
         ),
-        Str('groupobjectclass*',
+        Str('groupobjectclass+',
             cli_name='group_objectclass',
             label=_('Group object class'),
             doc=_('Comma-separated list of objectclasses used to search for group entries in DS'),
@@ -619,8 +619,10 @@ can use their Kerberos accounts.''')
         for ldap_obj_name in self.migrate_order:
             ldap_obj = self.api.Object[ldap_obj_name]
 
-            search_filter = construct_filter(self.migrate_objects[ldap_obj_name]['filter_template'],
-                                             options[to_cli(self.migrate_objects[ldap_obj_name]['oc_option'])])
+            template = self.migrate_objects[ldap_obj_name]['filter_template']
+            oc_list = options[to_cli(self.migrate_objects[ldap_obj_name]['oc_option'])]
+            search_filter = construct_filter(template, oc_list)
+
             exclude = options['exclude_%ss' % to_cli(ldap_obj_name)]
             context = dict(ds_ldap = ds_ldap)
 
@@ -637,7 +639,12 @@ can use their Kerberos accounts.''')
             except errors.NotFound:
                 if not options.get('continue',False):
                     raise errors.NotFound(
-                        reason=_('Container for %(container)s not found at %(search_base)s') % {'container': ldap_obj_name, 'search_base': search_bases[ldap_obj_name]}
+                        reason=_('%(container)s LDAP search did not return any result '
+                                 '(search base: %(search_base)s, '
+                                 'objectclass: %(objectclass)s)')
+                                 % {'container': ldap_obj_name,
+                                    'search_base': search_bases[ldap_obj_name],
+                                    'objectclass': ', '.join(oc_list)}
                     )
                 else:
                     truncated = False
