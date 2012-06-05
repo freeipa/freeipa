@@ -49,8 +49,8 @@ class Output(ReadOnly):
     If you have values that you don't want to be printed then add
     ``'no_display'`` to flags.
 
-    The difference between ``'no_dipslay`` and ``'no_output'`` is
-    that ``'no_output`` will prevent a Param value from being returned
+    The difference between ``'no_display'`` and ``'no_output'`` is
+    that ``'no_output'`` will prevent a Param value from being returned
     at all. ``'no_display'`` will cause the API to return a value, it
     simply won't be displayed to the user. This is so some things may
     be returned that while not interesting to us, but may be to others.

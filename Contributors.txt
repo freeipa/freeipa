@@ -19,7 +19,7 @@ Developers:
 	Rich Megginson
 	Martin Nagy
 	Simo Sorce
-	Petr Viktorín
+	Petr Viktorin
 	Andrew Wnuk
 	Adam Young
 	Jan Zeleny

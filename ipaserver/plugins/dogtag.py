@@ -203,7 +203,7 @@ name begins with 'chapter' it's a match. Here is how you can do that.
 
     >>> doc.xpath("//book/*[starts-with(name(), 'chapter')]/section[2]")
 
-The built-in starts-with() returns true if it's first argument starts with it's
+The built-in starts-with() returns true if its first argument starts with its
 second argument. Thus the example above says if the node name of the second
 location step begins with 'chapter' consider it a match and the search
 proceeds to the next location step, which in this example is any node named
@@ -214,7 +214,7 @@ the test against the node name? In this case we can use the EXSLT regular
 expression extension. EXSLT extensions are accessed by using XML
 namespaces. The regular expression name space identifier is 're:' In lxml we
 need to pass a set of namespaces to XPath object constructor in order to allow
-it to bind to those namespaces during it's evaluation. Then we just use the
+it to bind to those namespaces during its evaluation. Then we just use the
 EXSLT regular expression match() function on the node name. Here is how this is
 done:
 
@@ -227,8 +227,8 @@ What is happening here is that etree.XPath() has returned us an evaluator
 function which we bind to the name 'find'. We've passed it a set of namespaces
 as a dict via the 'namespaces' keyword parameter of etree.XPath(). The predicate
 for the second location step uses the 're:' namespace to find the function name
-'match'. The re:match() takes a string to search as it's first argument and a
-regular expression pattern as it's second argument. In this example the string
+'match'. The re:match() takes a string to search as its first argument and a
+regular expression pattern as its second argument. In this example the string
 to seach is the node name of the location step because we called the built-in
 node() function of XPath. The regular expression pattern we've passed says it's
 a match if the string begins with 'chapter' is followed by any number of
