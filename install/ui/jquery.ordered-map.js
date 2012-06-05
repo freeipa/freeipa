@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-jQuery.ordered_map = jQuery.fn.ordered_map = function() {
+jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
 
     var that = {};
 
@@ -47,6 +47,18 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function() {
         }
 
         that.map[key] = value;
+    };
+
+    that.put_map = function(map) {
+
+        if (typeof map !== 'object') return;
+
+        for (name in map) {
+
+            if (map.hasOwnProperty(name)) {
+                that.put(name, map[name]);
+            }
+        }
     };
 
     that.remove = function(key) {
@@ -104,6 +116,9 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function() {
 
         return new_map;
     };
+
+    that.put_map(map);
+
 
     return that;
 };

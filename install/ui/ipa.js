@@ -491,6 +491,9 @@ IPA.command = function(spec) {
     that.retry = typeof spec.retry == 'undefined' ? true : spec.retry;
 
     that.error_message = spec.error_message || IPA.get_message('dialogs.batch_error_message', 'Some operations failed.');
+    that.error_messages = $.ordered_map({
+        911: 'Missing HTTP referer. <br/> You have to configure your browser to send HTTP referer header.'
+    });
 
     that.get_command = function() {
         return (that.entity ? that.entity+'_' : '') + that.method;
@@ -618,6 +621,13 @@ IPA.command = function(spec) {
                     name: error_thrown,
                     message: error_thrown
                 };
+            }
+
+            // custom messages for set of codes
+            var error_msg = that.error_messages.get(error_thrown.code);
+            if (error_msg) {
+                error_msg = error_msg.replace('${message}', error_thrown.message);
+                error_thrown.message = error_msg;
             }
 
             if (that.retry) {
