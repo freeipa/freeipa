@@ -1661,7 +1661,7 @@ class dnszone(LDAPObject):
             _validate_bind_forwarder,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('A list of global forwarders. A custom port can be specified ' \
+            doc=_('A list of per-zone forwarders. A custom port can be specified '
                   'for each forwarder using a standard format "IP_ADDRESS port PORT"'),
             csv=True,
         ),
