@@ -77,6 +77,11 @@ IPA.host.entity = function(spec) {
                 },
                 {
                     name: 'enrollment',
+                    action_panel: {
+                        factory: IPA.action_panel,
+                        name: 'enrollment_actions',
+                        actions: ['unprovision', 'set_otp', 'reset_otp']
+                    },
                     fields: [
                         {
                             factory: IPA.host_keytab_widget,
@@ -101,6 +106,31 @@ IPA.host.entity = function(spec) {
                     ]
                 }
             ],
+            actions: [
+                IPA.host.unprovision_action,
+                {
+                    factory: IPA.host.set_otp_action,
+                    name: 'set_otp',
+                    label: IPA.messages.objects.host.password_set_title,
+                    status: 'missing',
+                    hide_cond: ['has_password']
+                },
+                {
+                    factory: IPA.host.set_otp_action,
+                    name: 'reset_otp',
+                    label: IPA.messages.objects.host.password_reset_title,
+                    status: 'present',
+                    show_cond: ['has_password']
+                }
+            ],
+            state: {
+                evaluators: [
+                    IPA.host.has_password_evaluator,
+                    IPA.host.has_keytab_evaluator,
+                    IPA.host.userpassword_acl_evaluator,
+                    IPA.host.krbprincipalkey_acl_evaluator
+                ]
+            },
             policies: [
                 IPA.host_enrollment_policy()
             ]
@@ -530,75 +560,6 @@ IPA.host_keytab_widget = function(spec) {
         that.present_span.append(' ');
 
         that.present_span.append(IPA.messages.objects.host.keytab_present);
-
-        that.present_span.append(': ');
-
-        IPA.button({
-            name: 'unprovision',
-            label: IPA.messages.objects.host.delete_key_unprovision,
-            click: function() {
-                that.show_unprovision_dialog();
-                return false;
-            }
-        }).appendTo(that.present_span);
-    };
-
-    that.show_unprovision_dialog = function() {
-
-        var label = that.entity.metadata.label_singular;
-        var title = IPA.messages.objects.host.unprovision_title;
-        title = title.replace('${entity}', label);
-
-        var dialog = IPA.dialog({
-            'title': title
-        });
-
-        dialog.create = function() {
-            dialog.container.append(IPA.messages.objects.host.unprovision_confirmation);
-        };
-
-        dialog.create_button({
-            name: 'unprovision',
-            label: IPA.messages.objects.host.unprovision,
-            click: function() {
-                that.unprovision(
-                    function(data, text_status, xhr) {
-                        set_status('missing');
-                        dialog.close();
-                    },
-                    function(xhr, text_status, error_thrown) {
-                        dialog.close();
-                    }
-                );
-            }
-        });
-
-        dialog.create_button({
-            name: 'cancel',
-            label: IPA.messages.buttons.cancel,
-            click: function() {
-                dialog.close();
-            }
-        });
-
-        dialog.open(that.container);
-    };
-
-    that.unprovision = function(on_success, on_error) {
-
-        var pkey = that.entity.get_primary_key();
-
-        var command = IPA.command({
-            name: that.entity.name+'_disable_'+pkey,
-            entity: that.entity.name,
-            method: 'disable',
-            args: pkey,
-            options: { all: true, rights: true },
-            on_success: on_success,
-            on_error: on_error
-        });
-
-        command.execute();
     };
 
     that.update = function(values) {
@@ -618,13 +579,117 @@ IPA.host_keytab_widget = function(spec) {
     return that;
 };
 
+IPA.host_unprovision_dialog = function(spec) {
+
+    spec.title = spec.title || IPA.messages.objects.host.unprovision_title;
+
+    spec = spec || {};
+
+    var that = IPA.dialog(spec);
+    that.facet = spec.facet;
+
+    that.title = that.title.replace('${entity}', that.entity.metadata.label_singular);
+
+    that.create = function() {
+        that.container.append(IPA.messages.objects.host.unprovision_confirmation);
+    };
+
+    that.create_buttons = function() {
+
+        that.create_button({
+            name: 'unprovision',
+            label: IPA.messages.objects.host.unprovision,
+            click: function() {
+                that.unprovision(
+                    function(data, text_status, xhr) {
+                        that.facet.refresh();
+                        that.close();
+                    },
+                    function(xhr, text_status, error_thrown) {
+                        that.close();
+                    }
+                );
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                that.close();
+            }
+        });
+    };
+
+    that.unprovision = function(on_success, on_error) {
+
+        var pkey = that.entity.get_primary_key();
+
+        var command = IPA.command({
+            name: that.entity.name+'_disable_'+pkey,
+            entity: that.entity.name,
+            method: 'disable',
+            args: pkey,
+            options: { all: true, rights: true },
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        command.execute();
+    };
+
+    that.create_buttons();
+
+    return that;
+};
+
+IPA.host.unprovision_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'unprovision';
+    spec.label = spec.label || IPA.messages.objects.host.unprovision;
+    spec.enable_cond = spec.enable_cond || ['has_keytab', 'krbprincipalkey_w'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        var dialog = IPA.host_unprovision_dialog({
+            entity: facet.entity,
+            facet: facet
+        });
+
+        dialog.open();
+    };
+
+    return that;
+};
+
+IPA.host.krbprincipalkey_acl_evaluator = function(spec) {
+
+    spec.name = spec.name || 'unprovision_acl_evaluator';
+    spec.attribute = spec.attribute || 'krbprincipalkey';
+
+    var that = IPA.acl_state_evaluator(spec);
+    return that;
+};
+
+IPA.host.has_keytab_evaluator = function(spec) {
+
+    spec.name = spec.name || 'has_keytab_evaluator';
+    spec.attribute = spec.attribute || 'has_keytab';
+    spec.value = spec.value || [true];
+    spec.representation = spec.representation || 'has_keytab';
+
+    var that = IPA.value_state_evaluator(spec);
+    return that;
+};
+
 IPA.host_password_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.input_widget(spec);
-
-    that.password_change_request = IPA.observer();
 
     that.create = function(container) {
 
@@ -656,86 +721,6 @@ IPA.host_password_widget = function(spec) {
         that.present_span.append(' ');
 
         that.present_span.append(IPA.messages.objects.host.password_present);
-
-        container.append(': ');
-
-        that.set_password_button = IPA.button({
-            name: 'set_password',
-            label: IPA.messages.objects.host.password_set_button,
-            click: function() {
-                that.show_password_dialog();
-                return false;
-            }
-        }).appendTo(container);
-    };
-
-    that.show_password_dialog = function() {
-
-        var title;
-        var label;
-
-        if (that.status == 'missing') {
-            title = IPA.messages.objects.host.password_set_title;
-            label = IPA.messages.objects.host.password_set_button;
-        } else {
-            title = IPA.messages.objects.host.password_reset_title;
-            label = IPA.messages.objects.host.password_reset_button;
-        }
-
-
-        var dialog = that.dialog = IPA.dialog({
-            title: title,
-            width: 400,
-            sections: [
-                {
-                    fields: [
-                        {
-                            name: 'password1',
-                            label: IPA.messages.password.new_password,
-                            type: 'password'
-                        },
-                        {
-                            name: 'password2',
-                            label: IPA.messages.password.verify_password,
-                            type: 'password'
-                        }
-                    ]
-                }
-            ]
-        });
-
-
-        dialog.create_button({
-            name: 'set_password',
-            label: label,
-            click: function() {
-
-                var record = {};
-                dialog.save(record);
-
-                var new_password = record.password1[0];
-                var repeat_password = record.password2[0];
-
-                if (new_password != repeat_password) {
-                    alert(IPA.messages.password.password_must_match);
-                    return;
-                }
-
-                that.password_change_request.notify([new_password], that);
-
-                dialog.close();
-            }
-        });
-
-        dialog.create_button({
-            name: 'cancel',
-            label: IPA.messages.buttons.cancel,
-            click: function() {
-                dialog.close();
-            }
-        });
-
-        dialog.open(that.container);
     };
 
     that.update = function(values) {
@@ -745,44 +730,98 @@ IPA.host_password_widget = function(spec) {
     that.clear = function() {
         that.missing_span.css('display', 'none');
         that.present_span.css('display', 'none');
-        var password_label = $('.button-label', that.set_password_button);
-        password_label.text('');
     };
 
     function set_status(status) {
 
         that.status = status;
-        var password_label = $('.button-label', that.set_password_button);
 
         if (status == 'missing') {
             that.missing_span.css('display', 'inline');
             that.present_span.css('display', 'none');
-            password_label.text(IPA.messages.objects.host.password_set_button);
-
         } else {
             that.missing_span.css('display', 'none');
             that.present_span.css('display', 'inline');
-            password_label.text(IPA.messages.objects.host.password_reset_button);
         }
     }
 
     return that;
 };
 
-IPA.host_password_field = function (spec) {
+IPA.widget_factories['host_password'] = IPA.host_password_widget;
+IPA.field_factories['host_password'] = IPA.field;
+
+IPA.host.set_otp_dialog = function(spec) {
 
     spec = spec || {};
+    spec.width = spec.width || 400;
+    spec.sections = spec.sections || [
+        {
+            fields: [
+                {
+                    name: 'password1',
+                    label: IPA.messages.password.new_password,
+                    type: 'password'
+                },
+                {
+                    name: 'password2',
+                    label: IPA.messages.password.verify_password,
+                    type: 'password'
+                }
+            ]
+        }
+    ];
 
-    var that = IPA.field(spec);
+    var that = IPA.dialog(spec);
+    that.facet = spec.facet;
 
-    that.widgets_created = function() {
+    that.set_status = function(status) {
 
-        that.field_widgets_created();
-        that.widget.password_change_request.attach(that.set_password);
-        that.widget.search = that.search;
+        var button = that.get_button('set_password');
+
+        if (status == 'missing') {
+            that.title = IPA.messages.objects.host.password_set_title;
+            button.label = IPA.messages.objects.host.password_set_button;
+        } else {
+            that.title = IPA.messages.objects.host.password_reset_title;
+            button.label = IPA.messages.objects.host.password_reset_button;
+        }
     };
 
-    that.set_password = function(password) {
+    that.create_buttons = function() {
+
+        that.create_button({
+            name: 'set_password',
+            label: IPA.messages.objects.host.password_set_button,
+            click: function() {
+
+                var record = {};
+                that.save(record);
+
+                var new_password = record.password1[0];
+                var repeat_password = record.password2[0];
+
+                if (new_password != repeat_password) {
+                    alert(IPA.messages.password.password_must_match);
+                    return;
+                }
+
+                that.set_otp(new_password);
+
+                that.close();
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                that.close();
+            }
+        });
+    };
+
+    that.set_otp = function(password) {
         var pkey = that.entity.get_primary_key();
 
         var command = IPA.command({
@@ -794,24 +833,67 @@ IPA.host_password_field = function (spec) {
                 rights: true,
                 userpassword: password
             },
-            on_success: function(result) {
-                that.load(result.result.result);
-                that.widget.dialog.close();
+            on_success: function(data) {
+                that.facet.load(data);
+                that.close();
             },
             on_error: function() {
-                that.widget.dialog.close();
+                that.close();
             }
         });
 
         command.execute();
     };
 
+    that.create_buttons();
 
     return that;
 };
 
-IPA.widget_factories['host_password'] = IPA.host_password_widget;
-IPA.field_factories['host_password'] = IPA.host_password_field;
+IPA.host.set_otp_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'set_otp';
+    spec.label = spec.label || IPA.messages.objects.host.password_set_title;
+    spec.enable_cond = spec.enable_cond || ['userpassword_w'];
+
+    var that = IPA.action(spec);
+    that.status = spec.status || 'missing';
+
+    that.execute_action = function(facet) {
+
+        var dialog = IPA.host.set_otp_dialog({
+            entity: facet.entity,
+            facet: facet
+        });
+
+        dialog.set_status(that.status);
+
+        dialog.open();
+    };
+
+    return that;
+};
+
+IPA.host.userpassword_acl_evaluator = function(spec) {
+
+    spec.name = spec.name || 'userpassword_acl_evaluator';
+    spec.attribute = spec.attribute || 'userpassword';
+
+    var that = IPA.acl_state_evaluator(spec);
+    return that;
+};
+
+IPA.host.has_password_evaluator = function(spec) {
+
+    spec.name = spec.name || 'has_password_evaluator';
+    spec.attribute = spec.attribute || 'has_password';
+    spec.value = spec.value || [true];
+    spec.representation = spec.representation || 'has_password';
+
+    var that = IPA.value_state_evaluator(spec);
+    return that;
+};
 
 IPA.host.certificate_status_field = function(spec) {
 

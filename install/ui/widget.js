@@ -3238,6 +3238,8 @@ IPA.action_panel = function(spec) {
 
         var classes, state, li, a;
 
+        if (!action.visible) return;
+
         classes = ['action'];
         state = action.enabled ? 'enabled' : 'disabled';
         classes.push(state);

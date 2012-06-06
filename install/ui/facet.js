@@ -1523,6 +1523,7 @@ IPA.state_evaluator = function(spec) {
     //when state changes. Params: state, Context: this
     that.changed = IPA.observer();
     that.state = [];
+    that.first_pass = true;
 
     that.init = function(facet) {
 
@@ -1536,8 +1537,9 @@ IPA.state_evaluator = function(spec) {
 
     that.notify_on_change = function(old_state) {
 
-        if (IPA.array_diff(that.state, old_state)) {
+        if (that.first_pass || IPA.array_diff(that.state, old_state)) {
             that.changed.notify([that.state], that);
+            that.first_pass = false;
         }
     };
 

@@ -1008,6 +1008,62 @@ IPA.acl_state_evaluator = function(spec) {
     return that;
 };
 
+IPA.value_state_evaluator = function(spec) {
+
+    spec.name = spec.name || 'value_state_evaluator';
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.attribute = spec.attribute;
+    that.value = spec.value;
+    that.representation = spec.representation;
+
+    that.on_event = function(data) {
+
+        var old_state, record, state, value, loaded_value;
+
+        old_state = that.state;
+        record = data.result.result;
+        value = that.normalize_value(that.value);
+        loaded_value = record[that.attribute];
+        loaded_value = that.normalize_value(loaded_value);
+
+        that.state = [];
+
+        if (!IPA.array_diff(value, loaded_value)) {
+            that.state.push(that.get_state_text());
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    that.normalize_value = function(original) {
+
+        var value = original;
+
+        if (!(value instanceof Array)) {
+            value = [value];
+        }
+        return value;
+    };
+
+    that.get_state_text = function() {
+
+        var representation, value;
+
+        representation = that.representation;
+
+        if (!representation) {
+            value = that.normalize_value(that.value);
+            representation = that.attribute + '_' + value[0];
+        }
+
+        return representation;
+    };
+
+    return that;
+};
+
 IPA.object_action = function(spec) {
 
     spec = spec || {};
