@@ -28,7 +28,7 @@ from xml.sax.saxutils import escape
 from xmlrpclib import Fault
 from ipalib import plugable
 from ipalib.backend import Executioner
-from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword
+from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError, ExecutionError
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import parse_time_duration
@@ -94,6 +94,18 @@ _unauthorized_template = """<html>
 </head>
 <body>
 <h1>Invalid Authentication</h1>
+<p>
+<strong>%(message)s</strong>
+</p>
+</body>
+</html>"""
+
+_pwchange_template = """<html>
+<head>
+<title>200 Success</title>
+</head>
+<body>
+<h1>%(title)s</h1>
 <p>
 <strong>%(message)s</strong>
 </p>
@@ -992,3 +1004,97 @@ class login_password(Backend, KerberosSession, HTTP_Status):
         if returncode != 0:
             raise InvalidSessionPassword(principal=principal, message=unicode(stderr))
 
+class change_password(Backend, HTTP_Status):
+
+    content_type = 'text/plain'
+    key = '/session/change_password'
+
+    def __init__(self):
+        super(change_password, self).__init__()
+
+    def _on_finalize(self):
+        super(change_password, self)._on_finalize()
+        self.api.Backend.wsgi_dispatch.mount(self, self.key)
+
+    def __call__(self, environ, start_response):
+        self.info('WSGI change_password.__call__:')
+
+        # Get the user and password parameters from the request
+        content_type = environ.get('CONTENT_TYPE', '').lower()
+        if not content_type.startswith('application/x-www-form-urlencoded'):
+            return self.bad_request(environ, start_response, "Content-Type must be application/x-www-form-urlencoded")
+
+        method = environ.get('REQUEST_METHOD', '').upper()
+        if method == 'POST':
+            query_string = read_input(environ)
+        else:
+            return self.bad_request(environ, start_response, "HTTP request method must be POST")
+
+        try:
+            query_dict = urlparse.parse_qs(query_string)
+        except Exception, e:
+            return self.bad_request(environ, start_response, "cannot parse query data")
+
+        data = {}
+        for field in ('user', 'old_password', 'new_password'):
+            value = query_dict.get(field, None)
+            if value is not None:
+                if len(value) == 1:
+                    data[field] = value[0]
+                else:
+                    return self.bad_request(environ, start_response, "more than one %s parameter"
+                                            % field)
+            else:
+                return self.bad_request(environ, start_response, "no %s specified" % field)
+
+        # start building the response
+        self.info("WSGI change_password: start password change of user '%s'", data['user'])
+        status = HTTP_STATUS_SUCCESS
+        response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+        title = 'Password change rejected'
+        result = 'error'
+        policy_error = None
+
+        bind_dn = str(DN((self.api.Object.user.primary_key.name, data['user']),
+                      self.api.env.container_user, self.api.env.basedn))
+
+        try:
+            conn = ldap2(shared_instance=False,
+                         ldap_uri=self.api.env.ldap_uri)
+            conn.connect(bind_dn=bind_dn, bind_pw=data['old_password'])
+        except (NotFound, ACIError):
+            result = 'invalid-password'
+            message = 'The old password or username is not correct.'
+        except Exception, e:
+            message = "Could not connect to LDAP server."
+            self.error("change_password: cannot authenticate '%s' to LDAP server: %s",
+                    data['user'], str(e))
+        else:
+            try:
+                conn.modify_password(bind_dn, data['new_password'], data['old_password'])
+            except ExecutionError, e:
+                result = 'policy-error'
+                policy_error = escape(str(e))
+                message = "Password change was rejected: %s" % escape(str(e))
+            except Exception, e:
+                message = "Could not change the password"
+                self.error("change_password: cannot change password of '%s': %s",
+                        data['user'], str(e))
+            else:
+                result = 'ok'
+                title = "Password change successful"
+                message = "Password was changed."
+            finally:
+                if conn.isconnected():
+                    conn.destroy_connection()
+
+        self.info('%s: %s', status, message)
+
+        response_headers.append(('X-IPA-Pwchange-Result', result))
+        if policy_error:
+            response_headers.append(('X-IPA-Pwchange-Policy-Error', policy_error))
+
+        start_response(status, response_headers)
+        output = _pwchange_template % dict(title=str(title),
+                                           message=str(message))
+        return [output]
