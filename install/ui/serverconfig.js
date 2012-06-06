@@ -62,7 +62,10 @@ IPA.config.entity = function(spec) {
                         {
                             name: 'ipaconfigstring',
                             type: 'checkboxes',
-                            options: IPA.create_options(['AllowLMhash','AllowNThash'])
+                            options: IPA.create_options([
+                                'AllowLMhash', 'AllowNThash',
+                                'KDC:Disable Last Success', 'KDC:Disable Lockout'
+                            ])
                         },
                         {
                             type: 'checkbox',
