@@ -165,9 +165,6 @@ class updateclient(backend.Executioner):
         return self.Updater[method](**kw) #pylint: disable=E1101
 
     def restart(self, dm_password, live_run):
-        if os.getegid() != 0:
-            self.log.warn("Not root, skipping restart")
-            return
         dsrestart = DSRestart()
         socket_name = '/var/run/slapd-%s.socket' % \
             api.env.realm.replace('.','-')
