@@ -1206,6 +1206,21 @@ def install(options, env, fstore, statestore):
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
         return CLIENT_INSTALL_ERROR
 
+    if not options.on_master:
+        # Try removing old principals from the keytab
+        try:
+            ipautil.run(['/usr/sbin/ipa-rmkeytab',
+                '-k', '/etc/krb5.keytab', '-r', cli_realm])
+        except CalledProcessError, e:
+            if e.returncode not in (3, 5):
+                # 3 - Unable to open keytab
+                # 5 - Principal name or realm not found in keytab
+                root_logger.error("Error trying to clean keytab: " +
+                    "/usr/sbin/ipa-rmkeytab returned %s" % e.returncode)
+        else:
+            root_logger.info("Removed old keys for realm %s from %s" % (
+                cli_realm, '/etc/krb5.keytab'))
+
     if options.hostname and not options.on_master:
         # configure /etc/sysconfig/network to contain the hostname we set.
         # skip this step when run by ipa-server-install as it always configures
