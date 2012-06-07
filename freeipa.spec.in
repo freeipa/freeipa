@@ -31,7 +31,8 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 %if 0%{?fedora} >= 16
 BuildRequires:  systemd-units
 %endif
-BuildRequires: samba4-devel
+BuildRequires:  samba4-devel
+BuildRequires:  samba4-python
 %endif
 BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
