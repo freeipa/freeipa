@@ -154,6 +154,7 @@ Requires(preun):  python initscripts chkconfig
 Requires(postun): python initscripts chkconfig
 %endif
 Requires: python-dns
+Requires: keyutils
 
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions

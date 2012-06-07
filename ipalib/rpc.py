@@ -47,6 +47,7 @@ from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError
 from ipalib import errors
 from ipalib.request import context, Connection
 from ipapython import ipautil
+from ipapython import kernel_keyring
 
 import httplib
 import socket
@@ -257,6 +258,13 @@ class SSLTransport(LanguageAwareTransport):
         conn.connect()
         return conn
 
+    def parse_response(self, response):
+        session_cookie = response.getheader('Set-Cookie')
+        if session_cookie:
+            kernel_keyring.update_key('ipa_session_cookie', session_cookie)
+        return LanguageAwareTransport.parse_response(self, response)
+
+
 class KerbTransport(SSLTransport):
     """
     Handles Kerberos Negotiation authentication to an XML-RPC server.
@@ -281,7 +289,19 @@ class KerbTransport(SSLTransport):
             raise errors.KerberosError(major=major, minor=minor)
 
     def get_host_info(self, host):
+        """
+        Two things can happen here. If we have a session we will add
+        a cookie for that. If not we will set an Authorization header.
+        """
         (host, extra_headers, x509) = SSLTransport.get_host_info(self, host)
+
+        if not isinstance(extra_headers, list):
+            extra_headers = []
+
+        session_data = getattr(context, 'session_data', None)
+        if session_data:
+            extra_headers.append(('Cookie', session_data))
+            return (host, extra_headers, x509)
 
         # Set the remote host principal
         service = "HTTP@" + host.split(':')[0]
@@ -295,9 +315,6 @@ class KerbTransport(SSLTransport):
             kerberos.authGSSClientStep(vc, "")
         except kerberos.GSSError, e:
             self._handle_exception(e, service=service)
-
-        if not isinstance(extra_headers, list):
-            extra_headers = []
 
         for (h, v) in extra_headers:
             if h == 'Authorization':
@@ -345,12 +362,12 @@ class xmlclient(Connectible):
         server = '%s://%s%s' % (scheme, ipautil.format_netloc(self.conn._ServerProxy__host), self.conn._ServerProxy__handler)
         return server
 
-    def get_url_list(self):
+    def get_url_list(self, xmlrpc_uri):
         """
         Create a list of urls consisting of the available IPA servers.
         """
         # the configured URL defines what we use for the discovered servers
-        (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(self.env.xmlrpc_uri)
+        (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(xmlrpc_uri)
         servers = []
         name = '_ldap._tcp.%s.' % self.env.domain
 
@@ -366,7 +383,7 @@ class xmlclient(Connectible):
         servers = list(set(servers))
         # the list/set conversion won't preserve order so stick in the
         # local config file version here.
-        cfg_server = self.env.xmlrpc_uri
+        cfg_server = xmlrpc_uri
         if cfg_server in servers:
             # make sure the configured master server is there just once and
             # it is the first one
@@ -379,7 +396,22 @@ class xmlclient(Connectible):
 
     def create_connection(self, ccache=None, verbose=False, fallback=True,
                           delegate=False):
-        servers = self.get_url_list()
+        try:
+            session = False
+            session_data = None
+            xmlrpc_uri = self.env.xmlrpc_uri
+            # We have a session cookie, try using the session URI to see if it
+            # is still valid
+            if not delegate:
+                session_data = kernel_keyring.read_key('ipa_session_cookie')
+                setattr(context, 'session_data', session_data)
+                (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(self.env.xmlrpc_uri)
+                xmlrpc_uri = urlparse.urlunparse((scheme, netloc, '/ipa/session/xml', params, query, fragment))
+                session = True
+        except ValueError:
+            # No session key, do full Kerberos auth
+            pass
+        servers = self.get_url_list(xmlrpc_uri)
         serverproxy = None
         for server in servers:
             kw = dict(allow_none=True, encoding='UTF-8')
@@ -393,9 +425,10 @@ class xmlclient(Connectible):
                 kw['transport'] = LanguageAwareTransport()
             self.log.info('trying %s' % server)
             serverproxy = ServerProxy(server, **kw)
-            if len(servers) == 1 or not fallback:
-                # if we have only 1 server to try then let the main
-                # requester handle any errors
+            if len(servers) == 1:
+                # if we have only 1 server and then let the
+                # main requester handle any errors. This also means it
+                # must handle a 401 but we save a ping.
                 return serverproxy
             try:
                 command = getattr(serverproxy, 'ping')
@@ -417,9 +450,23 @@ class xmlclient(Connectible):
             except KerberosError, krberr:
                 # kerberos error on one server is likely on all
                 raise errors.KerberosError(major=str(krberr), minor='')
+            except ProtocolError, e:
+                if session_data and e.errcode == 401:
+                    # Unauthorized. Remove the session and try again.
+                    try:
+                        kernel_keyring.del_key('ipa_session_cookie')
+                        delattr(context, 'session_data')
+                    except ValueError:
+                        # This shouldn't happen if we have a session but
+                        # it isn't fatal.
+                        pass
+                    return self.create_connection(ccache, verbose, fallback, delegate)
+                if not fallback:
+                    raise
+                serverproxy = None
             except Exception, e:
                 if not fallback:
-                    raise e
+                    raise
                 serverproxy = None
 
         if serverproxy is None:
@@ -466,6 +513,22 @@ class xmlclient(Connectible):
         except NSPRError, e:
             raise NetworkError(uri=server, error=str(e))
         except ProtocolError, e:
+            # By catching a 401 here we can detect the case where we have
+            # a single IPA server and the session is invalid. Otherwise
+            # we always have to do a ping().
+            session_data = getattr(context, 'session_data', None)
+            if session_data and e.errcode == 401:
+                # Unauthorized. Remove the session and try again.
+                try:
+                    kernel_keyring.del_key('ipa_session_cookie')
+                    delattr(context, 'session_data')
+                except ValueError:
+                    # This shouldn't happen if we have a session but
+                    # it isn't fatal.
+                    pass
+                serverproxy = self.create_connection(os.environ.get('KRB5CCNAME'), self.env.verbose, self.env.fallback, self.env.delegate)
+                setattr(context, self.id, Connection(serverproxy, self.disconnect))
+                return self.forward(name, *args, **kw)
             raise NetworkError(uri=server, error=e.errmsg)
         except socket.error, e:
             raise NetworkError(uri=server, error=str(e))

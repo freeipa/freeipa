@@ -395,72 +395,6 @@ class WSGIExecutioner(Executioner):
         raise NotImplementedError('%s.marshal()' % self.fullname)
 
 
-class xmlserver(WSGIExecutioner, HTTP_Status):
-    """
-    Execution backend plugin for XML-RPC server.
-
-    Also see the `ipalib.rpc.xmlclient` plugin.
-    """
-
-    content_type = 'text/xml'
-    key = '/xml'
-
-    def _on_finalize(self):
-        self.__system = {
-            'system.listMethods': self.listMethods,
-            'system.methodSignature': self.methodSignature,
-            'system.methodHelp': self.methodHelp,
-        }
-        super(xmlserver, self)._on_finalize()
-
-    def __call__(self, environ, start_response):
-        '''
-        '''
-
-        self.debug('WSGI xmlserver.__call__:')
-        user_ccache=environ.get('KRB5CCNAME')
-        if user_ccache is None:
-            self.internal_error(environ, start_response,
-                                'xmlserver.__call__: KRB5CCNAME not defined in HTTP request environment')
-            return self.marshal(None, CCacheError())
-        try:
-            self.create_context(ccache=user_ccache)
-            response = super(xmlserver, self).__call__(environ, start_response)
-        except PublicError, e:
-            status = HTTP_STATUS_SUCCESS
-            response = status
-            headers = [('Content-Type', 'text/plain; charset=utf-8')]
-            start_response(status, headers)
-            return self.marshal(None, e)
-        finally:
-            destroy_context()
-        return response
-
-    def listMethods(self, *params):
-        return tuple(name.decode('UTF-8') for name in self.Command)
-
-    def methodSignature(self, *params):
-        return u'methodSignature not implemented'
-
-    def methodHelp(self, *params):
-        return u'methodHelp not implemented'
-
-    def unmarshal(self, data):
-        (params, name) = xml_loads(data)
-        (args, options) = params_2_args_options(params)
-        return (name, args, options, None)
-
-    def marshal(self, result, error, _id=None):
-        if error:
-            self.debug('response: %s: %s', error.__class__.__name__, str(error))
-            response = Fault(error.errno, error.strerror)
-        else:
-            if isinstance(result, dict):
-                self.debug('response: entries returned %d', result.get('count', 1))
-            response = (result,)
-        return xml_dumps(response, methodresponse=True)
-
-
 def json_encode_binary(val):
     '''
    JSON cannot encode binary values. We encode binary values in Python str
@@ -755,6 +689,76 @@ class KerberosSession(object):
 
         start_response(HTTP_STATUS_SUCCESS, headers)
         return ['']
+
+
+class xmlserver(WSGIExecutioner, HTTP_Status, KerberosSession):
+    """
+    Execution backend plugin for XML-RPC server.
+
+    Also see the `ipalib.rpc.xmlclient` plugin.
+    """
+
+    content_type = 'text/xml'
+    key = '/xml'
+
+    def _on_finalize(self):
+        self.__system = {
+            'system.listMethods': self.listMethods,
+            'system.methodSignature': self.methodSignature,
+            'system.methodHelp': self.methodHelp,
+        }
+        super(xmlserver, self)._on_finalize()
+        self.kerb_session_on_finalize()
+
+    def __call__(self, environ, start_response):
+        '''
+        '''
+
+        self.debug('WSGI xmlserver.__call__:')
+        user_ccache=environ.get('KRB5CCNAME')
+        if user_ccache is None:
+            self.internal_error(environ, start_response,
+                                'xmlserver.__call__: KRB5CCNAME not defined in HTTP request environment')
+            return self.marshal(None, CCacheError())
+        try:
+            self.create_context(ccache=user_ccache)
+            response = super(xmlserver, self).__call__(environ, start_response)
+            if getattr(context, 'session_data', None) is None and \
+              self.env.context != 'lite':
+                self.finalize_kerberos_acquisition('xmlserver', user_ccache, environ, start_response)
+        except PublicError, e:
+            status = HTTP_STATUS_SUCCESS
+            response = status
+            headers = [('Content-Type', 'text/plain; charset=utf-8')]
+            start_response(status, headers)
+            return self.marshal(None, e)
+        finally:
+            destroy_context()
+        return response
+
+    def listMethods(self, *params):
+        return tuple(name.decode('UTF-8') for name in self.Command)
+
+    def methodSignature(self, *params):
+        return u'methodSignature not implemented'
+
+    def methodHelp(self, *params):
+        return u'methodHelp not implemented'
+
+    def unmarshal(self, data):
+        (params, name) = xml_loads(data)
+        (args, options) = params_2_args_options(params)
+        return (name, args, options, None)
+
+    def marshal(self, result, error, _id=None):
+        if error:
+            self.debug('response: %s: %s', error.__class__.__name__, str(error))
+            response = Fault(error.errno, error.strerror)
+        else:
+            if isinstance(result, dict):
+                self.debug('response: entries returned %d', result.get('count', 1))
+            response = (result,)
+        return xml_dumps(response, methodresponse=True)
 
 
 class jsonserver_session(jsonserver, KerberosSession):
@@ -1098,3 +1102,97 @@ class change_password(Backend, HTTP_Status):
         output = _pwchange_template % dict(title=str(title),
                                            message=str(message))
         return [output]
+
+
+class xmlserver_session(xmlserver, KerberosSession):
+    """
+    XML RPC server protected with session auth.
+    """
+
+    key = '/session/xml'
+
+    def __init__(self):
+        super(xmlserver_session, self).__init__()
+        auth_mgr = AuthManagerKerb(self.__class__.__name__)
+        session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
+
+    def _on_finalize(self):
+        super(xmlserver_session, self)._on_finalize()
+        self.kerb_session_on_finalize()
+
+    def need_login(self, start_response):
+        status = '401 Unauthorized'
+        headers = []
+        response = ''
+
+        self.debug('xmlserver_session: %s need login', status)
+
+        start_response(status, headers)
+        return [response]
+
+    def __call__(self, environ, start_response):
+        '''
+        '''
+
+        self.debug('WSGI xmlserver_session.__call__:')
+
+        # Load the session data
+        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
+        session_id = session_data['session_id']
+
+        self.debug('xmlserver_session.__call__: session_id=%s start_timestamp=%s access_timestamp=%s expiration_timestamp=%s',
+                   session_id,
+                   fmt_time(session_data['session_start_timestamp']),
+                   fmt_time(session_data['session_access_timestamp']),
+                   fmt_time(session_data['session_expiration_timestamp']))
+
+        ccache_data = session_data.get('ccache_data')
+
+        # Redirect to /ipa/xml if no Kerberos credentials
+        if ccache_data is None:
+            self.debug('xmlserver_session.__call_: no ccache, need TGT')
+            return self.need_login(start_response)
+
+        ipa_ccache_name = bind_ipa_ccache(ccache_data)
+
+        # Redirect to /ipa/xml if Kerberos credentials are expired
+        cc = KRB5_CCache(ipa_ccache_name)
+        if not cc.valid(self.api.env.host, self.api.env.realm):
+            self.debug('xmlserver_session.__call_: ccache expired, deleting session, need login')
+            # The request is finished with the ccache, destroy it.
+            release_ipa_ccache(ipa_ccache_name)
+            return self.need_login(start_response)
+
+        # Update the session expiration based on the Kerberos expiration
+        endtime = cc.endtime(self.api.env.host, self.api.env.realm)
+        self.update_session_expiration(session_data, endtime)
+
+        # Store the session data in the per-thread context
+        setattr(context, 'session_data', session_data)
+
+        environ['KRB5CCNAME'] = ipa_ccache_name
+
+        try:
+            response = super(xmlserver_session, self).__call__(environ, start_response)
+        finally:
+            # Kerberos may have updated the ccache data during the
+            # execution of the command therefore we need refresh our
+            # copy of it in the session data so the next command sees
+            # the same state of the ccache.
+            #
+            # However we must be careful not to restore the ccache
+            # data in the session data if it was explicitly deleted
+            # during the execution of the command. For example the
+            # logout command removes the ccache data from the session
+            # data to invalidate the session credentials.
+
+            if session_data.has_key('ccache_data'):
+                session_data['ccache_data'] = load_ccache_data(ipa_ccache_name)
+
+            # The request is finished with the ccache, destroy it.
+            release_ipa_ccache(ipa_ccache_name)
+            # Store the session data.
+            session_mgr.store_session_data(session_data)
+            destroy_context()
+
+        return response
