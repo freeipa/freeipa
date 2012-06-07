@@ -57,10 +57,15 @@ IPA.service.entity = function(spec) {
                 },
                 {
                     name: 'provisioning',
+                    action_panel: {
+                        factory: IPA.action_panel,
+                        name: 'provisioning_actions',
+                        actions: ['unprovision']
+                    },
                     fields: [
                         {
                             type: 'service_provisioning_status',
-                            name: 'krblastpwdchange',
+                            name: 'has_keytab',
                             label: IPA.messages.objects.service.status
                         }
                     ]
@@ -75,7 +80,16 @@ IPA.service.entity = function(spec) {
                         }
                     ]
                 }
-            ]
+            ],
+            actions: [
+                IPA.service.unprovision_action
+            ],
+            state: {
+                evaluators: [
+                    IPA.service.has_keytab_evaluator,
+                    IPA.service.krbprincipalkey_acl_evaluator
+                ]
+            }
         }).
         association_facet({
             name: 'managedby_host',
@@ -227,7 +241,7 @@ IPA.service_provisioning_status_widget = function (spec) {
 
         that.widget_create(container);
 
-        var div = $('<div/>', {
+        that.status_valid = $('<div/>', {
             name: 'kerberos-key-valid',
             style: 'display: none;'
         }).appendTo(container);
@@ -236,23 +250,15 @@ IPA.service_provisioning_status_widget = function (spec) {
             src: 'images/check-icon.png',
             style: 'float: left;',
             'class': 'status-icon'
-        }).appendTo(div);
+        }).appendTo(that.status_valid);
 
         var content_div = $('<div/>', {
             style: 'float: left;'
-        }).appendTo(div);
+        }).appendTo(that.status_valid);
 
-        content_div.append('<b>'+IPA.messages.objects.service.valid+':</b>');
+        content_div.append('<b>'+IPA.messages.objects.service.valid+'</b>');
 
-        content_div.append(' ');
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'unprovision',
-            'value': IPA.messages.objects.service.delete_key_unprovision
-        }).appendTo(content_div);
-
-        div = $('<div/>', {
+        that.status_missing = $('<div/>', {
             name: 'kerberos-key-missing',
             style: 'display: none;'
         }).appendTo(container);
@@ -261,76 +267,18 @@ IPA.service_provisioning_status_widget = function (spec) {
             src: 'images/caution-icon.png',
             style: 'float: left;',
             'class': 'status-icon'
-        }).appendTo(div);
+        }).appendTo(that.status_missing);
 
         content_div = $('<div/>', {
             style: 'float: left;'
-        }).appendTo(div);
+        }).appendTo(that.status_missing);
 
         content_div.append('<b>'+IPA.messages.objects.service.missing+'</b>');
-
-        that.status_valid = $('div[name=kerberos-key-valid]', that.container);
-        that.status_missing = $('div[name=kerberos-key-missing]', that.container);
-
-        var button = $('input[name=unprovision]', that.container);
-        that.unprovision_button = IPA.button({
-            name: 'unprovision',
-            'label': IPA.messages.objects.service.delete_key_unprovision,
-            'click': that.unprovision
-        });
-        button.replaceWith(that.unprovision_button);
-    };
-
-    that.unprovision = function() {
-
-        var label = that.entity.metadata.label_singular;
-        var title = IPA.messages.objects.service.unprovision_title;
-        title = title.replace('${entity}', label);
-
-        var dialog = IPA.dialog({
-            'title': title
-        });
-
-        dialog.create = function() {
-            dialog.container.append(IPA.messages.objects.service.unprovision_confirmation);
-        };
-
-        dialog.create_button({
-            name: 'unprovision',
-            label: IPA.messages.objects.service.unprovision,
-            click: function() {
-                IPA.command({
-                    entity: that.entity.name,
-                    method: 'disable',
-                    args: [that.pkey],
-                    on_success: function(data, text_status, xhr) {
-                        set_status('missing');
-                        dialog.close();
-                    },
-                    on_error: function(xhr, text_status, error_thrown) {
-                        dialog.close();
-                    }
-                }).execute();
-            }
-        });
-
-        dialog.create_button({
-            name: 'cancel',
-            label: IPA.messages.buttons.cancel,
-            click: function() {
-                dialog.close();
-            }
-        });
-
-        dialog.open(that.container);
-
-        return false;
     };
 
     that.update = function(values) {
-        that.pkey = values.pkey;
-        that.status = values.value;
-        set_status(values.value ? 'valid' : 'missing');
+        that.status = values && values.length ? values[0] : false;
+        set_status(that.status ? 'valid' : 'missing');
     };
 
     that.clear = function() {
@@ -346,29 +294,109 @@ IPA.service_provisioning_status_widget = function (spec) {
     return that;
 };
 
-IPA.service_provisioning_status_field = function (spec) {
+IPA.field_factories['service_provisioning_status'] = IPA.field;
+IPA.widget_factories['service_provisioning_status'] = IPA.service_provisioning_status_widget;
+
+
+IPA.service.unprovision_dialog = function(spec) {
 
     spec = spec || {};
+    spec.title = spec.title || IPA.messages.objects.service.unprovision_title;
 
-    var that = IPA.field(spec);
+    var that = IPA.dialog(spec);
+    that.facet = spec.facet;
 
-    that.load = function(record) {
+    var entity_singular = that.entity.metadata.label_singular;
+    that.title = that.title.replace('${entity}', entity_singular);
 
-        that.values = {
-            value: record[that.param],
-            pkey: record['krbprincipalname'][0]
-        };
+    that.create = function() {
+        that.container.append(IPA.messages.objects.service.unprovision_confirmation);
+    };
 
-        that.load_writable(record);
+    that.create_buttons = function() {
 
-        that.reset();
+        that.create_button({
+            name: 'unprovision',
+            label: IPA.messages.objects.service.unprovision,
+            click: function() {
+                that.unprovision();
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                that.close();
+            }
+        });
+    };
+
+    that.unprovision = function() {
+
+        var principal_f  = that.facet.fields.get_field('krbprincipalname');
+        var pkey = principal_f.values[0];
+
+        IPA.command({
+            entity: that.entity.name,
+            method: 'disable',
+            args: [pkey],
+            on_success: function(data, text_status, xhr) {
+                that.facet.refresh();
+                that.close();
+            },
+            on_error: function(xhr, text_status, error_thrown) {
+                that.close();
+            }
+        }).execute();
+    };
+
+    that.create_buttons();
+
+    return that;
+};
+
+IPA.service.unprovision_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'unprovision';
+    spec.label = spec.label || IPA.messages.objects.service.delete_key_unprovision;
+    spec.enable_cond = spec.enable_cond || ['has_keytab', 'krbprincipalkey_w'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        var dialog = IPA.service.unprovision_dialog({
+            entity: facet.entity,
+            facet: facet
+        });
+
+        dialog.open();
     };
 
     return that;
 };
 
-IPA.field_factories['service_provisioning_status'] = IPA.service_provisioning_status_field;
-IPA.widget_factories['service_provisioning_status'] = IPA.service_provisioning_status_widget;
+IPA.service.krbprincipalkey_acl_evaluator = function(spec) {
+
+    spec.name = spec.name || 'unprovision_acl_evaluator';
+    spec.attribute = spec.attribute || 'krbprincipalkey';
+
+    var that = IPA.acl_state_evaluator(spec);
+    return that;
+};
+
+IPA.service.has_keytab_evaluator = function(spec) {
+
+    spec.name = spec.name || 'has_keytab_evaluator';
+    spec.attribute = spec.attribute || 'has_keytab';
+    spec.value = spec.value || [true];
+    spec.representation = spec.representation || 'has_keytab';
+
+    var that = IPA.value_state_evaluator(spec);
+    return that;
+};
 
 IPA.service.certificate_status_field = function(spec) {
 
