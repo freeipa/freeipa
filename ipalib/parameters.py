@@ -1206,7 +1206,12 @@ class Decimal(Number):
     kwargs = Param.kwargs + (
         ('minvalue', decimal.Decimal, None),
         ('maxvalue', decimal.Decimal, None),
+        # round Decimal to given precision
         ('precision', int, None),
+        # when False, number is normalized to non-exponential form
+        ('exponential', bool, False),
+        # set of allowed decimal number classes
+        ('numberclass', tuple, ('-Normal', '+Zero', '+Normal')),
     )
 
     def __init__(self, name, *rules, **kw):
@@ -1256,31 +1261,70 @@ class Decimal(Number):
                 maxvalue=self.maxvalue,
             )
 
+    def _enforce_numberclass(self, value):
+        #pylint: disable=E1101
+        numberclass = value.number_class()
+        if numberclass not in self.numberclass:
+            raise ValidationError(name=self.get_param_name(),
+                    error=_("number class '%(cls)s' is not included in a list "
+                            "of allowed number classes: %(allowed)s") \
+                            % dict(cls=numberclass,
+                                   allowed=u', '.join(self.numberclass))
+                )
+
     def _enforce_precision(self, value):
         assert type(value) is decimal.Decimal
         if self.precision is not None:
             quantize_exp = decimal.Decimal(10) ** -self.precision
-            return value.quantize(quantize_exp)
+            try:
+                value = value.quantize(quantize_exp)
+            except decimal.DecimalException, e:
+                raise ConversionError(name=self.get_param_name(),
+                                      error=unicode(e))
+        return value
 
+    def _remove_exponent(self, value):
+        assert type(value) is decimal.Decimal
+
+        if not self.exponential: #pylint: disable=E1101
+            try:
+                # adopted from http://docs.python.org/library/decimal.html
+                value = value.quantize(decimal.Decimal(1)) \
+                        if value == value.to_integral() \
+                        else value.normalize()
+            except decimal.DecimalException, e:
+                raise ConversionError(name=self.get_param_name(),
+                                      error=unicode(e))
+
+        return value
+
+    def _test_and_normalize(self, value):
+        """
+        This method is run in conversion and normalization methods to test
+        that the Decimal number conforms to Parameter boundaries and then
+        normalizes the value.
+        """
+        self._enforce_numberclass(value)
+        value = self._remove_exponent(value)
+        value = self._enforce_precision(value)
         return value
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, (basestring, float)):
             try:
                 value = decimal.Decimal(value)
-            except Exception, e:
+            except decimal.DecimalException, e:
                 raise ConversionError(name=self.get_param_name(), index=index,
                                       error=unicode(e))
 
         if isinstance(value, decimal.Decimal):
-            x = self._enforce_precision(value)
-            return x
+            return self._test_and_normalize(value)
 
         return super(Decimal, self)._convert_scalar(value, index)
 
     def _normalize_scalar(self, value):
         if isinstance(value, decimal.Decimal):
-            value = self._enforce_precision(value)
+            return self._test_and_normalize(value)
 
         return super(Decimal, self)._normalize_scalar(value)
 

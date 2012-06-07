@@ -32,7 +32,7 @@ from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib import parameters, text, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
-from ipalib.errors import ValidationError
+from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
 from xmlrpclib import MAXINT, MININT
 
@@ -1357,6 +1357,97 @@ class test_Decimal(ClassChecker):
             assert dummy.message == 'can be at most %(maxvalue)s'
             assert dummy.called() is True
             dummy.reset()
+
+    def test_precision(self):
+        """
+        Test the `ipalib.parameters.Decimal` precision attribute
+        """
+        # precission is None
+        param = self.cls('my_number')
+
+        for value in (Decimal('0'), Decimal('4.4'), Decimal('4.67')):
+            assert_equal(
+                param(value),
+                value)
+
+        # precision is 0
+        param = self.cls('my_number', precision=0)
+        for original,expected in ((Decimal('0'), '0'),
+                                  (Decimal('1.1'), '1'),
+                                  (Decimal('4.67'), '5')):
+            assert_equal(
+                str(param(original)),
+                expected)
+
+        # precision is 1
+        param = self.cls('my_number', precision=1)
+        for original,expected in ((Decimal('0'), '0.0'),
+                                  (Decimal('1.1'), '1.1'),
+                                  (Decimal('4.67'), '4.7')):
+            assert_equal(
+                str(param(original)),
+                expected)
+
+        # value has too many digits
+        param = self.cls('my_number', precision=1)
+        e = raises(ConversionError, param, '123456789012345678901234567890')
+
+        assert str(e) == \
+        "invalid 'my_number': quantize result has too many digits for current context"
+
+    def test_exponential(self):
+        """
+        Test the `ipalib.parameters.Decimal` exponential attribute
+        """
+        param = self.cls('my_number', exponential=True)
+        for original,expected in ((Decimal('0'), '0'),
+                                  (Decimal('1E3'), '1E+3'),
+                                  (Decimal('3.4E2'), '3.4E+2')):
+            assert_equal(
+                str(param(original)),
+                expected)
+
+
+        param = self.cls('my_number', exponential=False)
+        for original,expected in ((Decimal('0'), '0'),
+                                  (Decimal('1E3'), '1000'),
+                                  (Decimal('3.4E2'), '340')):
+            assert_equal(
+                str(param(original)),
+                expected)
+
+    def test_numberclass(self):
+        """
+        Test the `ipalib.parameters.Decimal` numberclass attribute
+        """
+        # test default value: '-Normal', '+Zero', '+Normal'
+        param = self.cls('my_number')
+        for value,raises_verror in ((Decimal('0'), False),
+                                    (Decimal('-0'), True),
+                                    (Decimal('1E8'), False),
+                                    (Decimal('-1.1'), False),
+                                    (Decimal('-Infinity'), True),
+                                    (Decimal('+Infinity'), True),
+                                    (Decimal('NaN'), True)):
+            if raises_verror:
+                raises(ValidationError, param, value)
+            else:
+                param(value)
+
+
+        param = self.cls('my_number', exponential=True,
+                numberclass=('-Normal', '+Zero', '+Infinity'))
+        for value,raises_verror in ((Decimal('0'), False),
+                                    (Decimal('-0'), True),
+                                    (Decimal('1E8'), True),
+                                    (Decimal('-1.1'), False),
+                                    (Decimal('-Infinity'), True),
+                                    (Decimal('+Infinity'), False),
+                                    (Decimal('NaN'), True)):
+            if raises_verror:
+                raises(ValidationError, param, value)
+            else:
+                param(value)
 
 class test_AccessTime(ClassChecker):
     """
