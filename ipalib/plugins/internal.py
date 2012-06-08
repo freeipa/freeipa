@@ -144,8 +144,7 @@ class i18n_messages(Command):
     messages = {
         "ajax": {
             "401": {
-                "message": _("Your Kerberos ticket is no longer valid. Please run kinit and then click 'Retry'. If this is your first time running the IPA Web UI <a href='/ipa/config/unauthorized.html'>follow these directions</a> to configure your browser."),
-                "title": _("Kerberos ticket no longer valid."),
+                "message": _("Your session has expired. Please re-login."),
             },
         },
         "actions": {
@@ -202,6 +201,7 @@ class i18n_messages(Command):
             "refresh": _("Refresh"),
             "remove": _("Delete"),
             "reset": _("Reset"),
+            "reset_password_and_login": _("Reset Password and Login"),
             "restore": _("Restore"),
             "retry": _("Retry"),
             "revoke": _("Revoke"),
@@ -264,13 +264,13 @@ class i18n_messages(Command):
         },
         "false": _("False"),
         "login": {
-            "form_auth": _("form-based authentication"),
+            "form_auth": _("To login with username and password, enter them in the fields below then click Login."),
             "header": _("Logged In As"),
+            "krb_auth_msg": _("To login with Kerberos, please make sure you have valid tickets (obtainable via kinit) and <a href='/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login."),
             "login": _("Login"),
             "logout": _("Logout"),
             "logout_error": _("Logout error"),
             "password": _("Password"),
-            "use": _("Or you can use "),
             "username": _("Username"),
         },
         "objects": {
@@ -565,10 +565,12 @@ class i18n_messages(Command):
         "password": {
             "current_password": _("Current Password"),
             "current_password_required": _("Current password is required"),
+            "invalid_password": _("The password or username you entered is incorrect."),
             "new_password": _("New Password"),
             "new_password_required": _("New password is required"),
             "password_change_complete": _("Password change complete"),
             "password_must_match": _("Passwords must match"),
+            "reset_failure": _("Password reset was not successful."),
             "reset_password": _("Reset Password"),
             "verify_password": _("Verify Password"),
         },

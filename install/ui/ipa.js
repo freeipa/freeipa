@@ -4,6 +4,7 @@
  *    Adam Young <ayoung@redhat.com>
  *    Endi Dewata <edewata@redhat.com>
  *    John Dennis <jdennis@redhat.com>
+ *    Petr Vobornik <pvoborni@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -385,6 +386,62 @@ IPA.login_password = function(username, password) {
 
     var request = {
         url: '/ipa/session/login_password',
+        data: data,
+        contentType: 'application/x-www-form-urlencoded',
+        processData: true,
+        dataType: 'html',
+        async: false,
+        type: 'POST',
+        success: success_handler,
+        error: error_handler
+    };
+
+    IPA.display_activity_icon();
+    $.ajax(request);
+    IPA.hide_activity_icon();
+
+    return result;
+};
+
+IPA.reset_password = function(username, old_password, new_password) {
+
+    //possible results: 'ok', 'invalid-password', 'policy-error'
+
+    var status, result, reason, invalid, failure, data, request;
+
+    status = 'invalid';
+    result = {
+        status: status,
+        message: IPA.get_message('password.reset_failure',
+                "Password reset was not successful.")
+    };
+
+    function success_handler(data, text_status, xhr) {
+
+        result.status = xhr.getResponseHeader("X-IPA-Pwchange-Result") || status;
+
+        if (result.status === 'policy-error') {
+            result.message = xhr.getResponseHeader("X-IPA-Pwchange-Policy-Error");
+        } else if (result.status === 'invalid-password') {
+            result.message = IPA.get_message('password.invalid_password',
+                          "The password or username you entered is incorrect.");
+        }
+
+        return result;
+    }
+
+    function error_handler(xhr, text_status, error_thrown) {
+        return result;
+    }
+
+    data = {
+        user: username,
+        old_password: old_password,
+        new_password: new_password
+    };
+
+    request = {
+        url: '/ipa/session/change_password',
         data: data,
         contentType: 'application/x-www-form-urlencoded',
         processData: true,
@@ -1386,17 +1443,40 @@ IPA.unauthorized_dialog = function(spec) {
 
     spec.sections = [
         {
+            name: 'login',
+            label: 'Login',
             fields: [
                 {
                     name: 'username',
-                    required: true,
                     label: IPA.get_message('login.username', "Username")
                 },
                 {
                     name: 'password',
                     type: 'password',
-                    required: true,
                     label: IPA.get_message('login.password', "Password")
+                }
+            ]
+        },
+        {
+            name: 'reset',
+            label: 'Reset',
+            fields: [
+                {
+                    name: 'username_r',
+                    read_only: true,
+                    label: IPA.get_message('login.username', "Username")
+                },
+                {
+                    name: 'new_password',
+                    type: 'password',
+                    required: true,
+                    label: IPA.get_message('password.new_password)', "New Password")
+                },
+                {
+                    name: 'verify_password',
+                    type: 'password',
+                    required: true,
+                    label: IPA.get_message('password.verify_password', "Verify Password")
                 }
             ]
         }
@@ -1406,93 +1486,104 @@ IPA.unauthorized_dialog = function(spec) {
 
     var that = IPA.error_dialog(spec);
 
-    that.title = spec.title || IPA.get_message('ajax.401.title',
-                    'Kerberos ticket no longer valid.');
+    that.title = spec.title || IPA.get_message('login.login', "Login");
 
     that.message = spec.message || IPA.get_message('ajax.401.message',
-                    "Your kerberos ticket is no longer valid. "+
-                    "Please run kinit and then click 'Retry'. "+
-                    "If this is your first time running the IPA Web UI "+
-                    "<a href='/ipa/config/unauthorized.html'>"+
-                    "follow these directions</a> to configure your browser.");
+                    "Your session has expired. Please re-login.");
+
+    that.form_auth_msg = spec.form_auth_msg || IPA.get_message('login.form_auth',
+                    "To login with username and password, enter them in the fields below then click Login.");
+
+    that.krb_auth_msg = spec.krb_auth_msg || IPA.get_message('login.krb_auth_msg',
+                    " To login with Kerberos, please make sure you" +
+                    " have valid tickets (obtainable via kinit) and " +
+                    "<a href='/ipa/config/unauthorized.html'>configured</a>" +
+                    " the browser correctly, then click Login. ");
 
     that.form_auth_failed = "<p><strong>Please re-enter your username or password</strong></p>" +
                 "<p>The password or username you entered is incorrect. " +
                 "Please try again (make sure your caps lock is off).</p>" +
                 "<p>If the problem persists, contact your administrator.</p>";
 
-    that.password_expired = "<p><strong>Password expired</strong></p>" +
-                "<p>Please run kinit to reset the password and then try to login again.</p>" +
-                "<p>If the problem persists, contact your administrator.</p>";
+    that.password_expired = "Your password has expired. Please enter a new password.";
 
     that.create = function() {
 
-        that.krb_message_contatiner = $('<div\>').appendTo(that.container);
-
-        $('<p/>', {
-            html: that.message
-        }).appendTo(that.krb_message_contatiner);
-
-        var text = IPA.get_message('login.use', "Or you can use ");
-        var fb_title = $('<p/>', {
-            text: text
-        }).appendTo(that.krb_message_contatiner);
-
-        text = IPA.get_message('login.form_auth', "form-based authentication");
-        that.form_auth_link = $('<a/>', {
-            text: text,
-            href: '#',
-            click: function() {
-                that.show_form();
-                return false;
-            },
-            keydown: function(event) {
-                if (event.keyCode === 13) { //enter
-                    that.show_form();
-                    return false;
-                }
-            }
-        }).appendTo(fb_title);
-
-        fb_title.append('.');
-
-        that.create_form();
+        that.session_expired_form();
+        that.create_reset_form();
     };
 
-    that.create_form = function() {
-
-        that.form = $('<div>', {
-            'class': 'auth-dialog',
-            style: 'display: none;',
-            keyup: that.on_form_keyup
+    that.session_expired_form = function() {
+        that.session_form = $('<div\>', {
+            keyup: that.on_login_keyup
         }).appendTo(that.container);
 
-        var text = IPA.get_message('login.login', "Login");
-        $('<h3/>', {
-            text: text
-        }).appendTo(that.form);
-
-        that.error_box = $('<div/>', {
+        that.login_error_box = $('<div/>', {
             'class': 'error-box',
             style: 'display:none',
             html: that.form_auth_failed
-        }).appendTo(that.form);
+        }).appendTo(that.session_form);
+
+        $('<p/>', {
+            html: that.message
+        }).appendTo(that.session_form);
+
+        $('<p/>', {
+            html: that.krb_auth_msg
+        }).appendTo(that.session_form);
+
+        $('<p/>', {
+            html: that.form_auth_msg
+        }).appendTo(that.session_form);
+
+        $('<div>', {
+            'class': 'auth-dialog'
+        }).appendTo(that.session_form);
 
 
-        var widgets = that.widgets.get_widgets();
-        for (var i=0; i<widgets.length; i++) {
-            var widget = widgets[i];
+        var section = that.widgets.get_widget('login');
+        var div = $('<div/>', {
+            name: 'login',
+            'class': 'dialog-section'
+        }).appendTo(that.session_form);
+        section.create(div);
 
-            var div = $('<div/>', {
-                name: widget.name,
-                'class': 'dialog-section'
-            }).appendTo(that.form);
+        that.username_widget = that.widgets.get_widget('login.username');
+        that.password_widget = that.widgets.get_widget('login.password');
 
-            widget.create(div);
-        }
+        that.username_widget.value_changed.attach(that.on_username_change);
     };
 
-    that.create_login_buttons = function() {
+    that.create_reset_form = function() {
+
+        that.reset_form = $('<div\>', {
+            keyup: that.on_reset_keyup,
+            style: 'display:none'
+        }).appendTo(that.container);
+
+        that.reset_error_box =  $('<div/>', {
+            'class': 'error-box'
+        }).appendTo(that.reset_form);
+
+        $('<p/>', {
+            html: that.password_expired
+        }).appendTo(that.reset_form);
+
+        var section = that.widgets.get_widget('reset');
+        var div = $('<div/>', {
+            name: 'reset',
+            'class': 'dialog-section'
+        }).appendTo(that.reset_form);
+        section.create(div);
+
+        that.username_r_widget = that.widgets.get_widget('reset.username_r');
+        that.new_password_widget = that.widgets.get_widget('reset.new_password');
+        that.verify_password_widget = that.widgets.get_widget('reset.verify_password');
+    };
+
+    that.create_buttons = function() {
+
+        that.buttons.empty();
 
         var visible = that.visible_buttons.indexOf('login') > -1;
         var label = IPA.get_message('login.login', "Login");
@@ -1505,24 +1596,75 @@ IPA.unauthorized_dialog = function(spec) {
             }
         });
 
-        visible = that.visible_buttons.indexOf('back') > -1;
-        label = IPA.get_message('buttons.back', "Back");
+        visible = that.visible_buttons.indexOf('reset') > -1;
+        label = IPA.get_message('buttons.reset_password_and_login', "Reset Password and Login");
         that.create_button({
-            name: 'back',
+            name: 'reset',
             label: label,
             visible: visible,
             click: function() {
-                that.on_back();
+                that.on_reset();
+            }
+        });
+
+        visible = that.visible_buttons.indexOf('cancel') > -1;
+        label = IPA.get_message('buttons.cancel', "Cancel");
+        that.create_button({
+            name: 'cancel',
+            label: label,
+            visible: visible,
+            click: function() {
+                that.on_cancel();
             }
         });
     };
 
     that.open = function() {
         that.dialog_open();
-        that.form_auth_link.focus();
+        that.show_session_form();
     };
 
-    that.on_form_keyup = function(event) {
+    that.on_username_change = function() {
+
+        var password_field = that.fields.get_field('password');
+        var user_specified = !IPA.is_empty(that.username_widget.save());
+        password_field.set_required(user_specified);
+        if (!user_specified) that.password_widget.clear();
+    };
+
+    that.enable_fields = function(field_names) {
+
+        var field, fields, i, enable;
+        fields = that.fields.get_fields();
+        for (i=0; i<fields.length; i++) {
+            field = fields[i];
+            enable = field_names.indexOf(field.name) > -1;
+            field.set_enabled(enable);
+        }
+    };
+
+    that.show_session_form = function() {
+
+        that.enable_fields(['username', 'password']);
+        that.session_form.css('display', 'block');
+        that.reset_form.css('display', 'none');
+        that.display_buttons(['login']);
+        that.username_widget.focus_input();
+    };
+
+    that.show_reset_form = function() {
+
+        that.enable_fields(['new_password', 'verify_password']);
+        that.session_form.css('display', 'none');
+        that.reset_form.css('display', 'block');
+        that.display_buttons(['reset', 'cancel']);
+
+        var username = that.username_widget.save();
+        that.username_r_widget.update(username);
+        that.new_password_widget.focus_input();
+    };
+
+    that.on_login_keyup = function(event) {
 
         if (that.switching) {
             that.switching = false;
@@ -1532,62 +1674,126 @@ IPA.unauthorized_dialog = function(spec) {
         if (event.keyCode === 13) { // enter
             that.on_login();
             event.preventDefault();
-        } else if (event.keyCode === 27) { // escape
-            that.on_back();
-            event.preventDefault();
         }
     };
 
-    that.show_form = function() {
+    that.on_cancel = function() {
 
-        that.switching = true;
+        that.username_widget.clear();
+        that.password_widget.clear();
+        that.username_r_widget.clear();
+        that.new_password_widget.clear();
+        that.verify_password_widget.clear();
 
-        that.krb_message_contatiner.css('display', 'none');
-        that.form.css('display', 'block');
-        that.display_buttons(['login', 'back']);
-
-        var user_field = that.fields.get_field('username');
-        user_field.widget.focus_input();
-    };
-
-    that.on_back = function() {
-
-        that.krb_message_contatiner.css('display', 'block');
-        that.form.css('display', 'none');
-        that.display_buttons(['retry']);
-        that.form_auth_link.focus();
+        that.show_session_form();
     };
 
     that.on_login = function() {
 
-        if (!that.validate()) return;
+        var username = that.username_widget.save();
+        var password = that.password_widget.save();
 
-        var record = {};
-        that.save(record);
+        //if user doesn't specify username and password try kerberos auth
+        if (IPA.is_empty(username) && IPA.is_empty(password)) {
+            that.on_retry();
+            return;
+        }
+
+        if (!that.validate()) return;
 
         IPA.display_activity_icon();
 
-        var result = IPA.login_password(record.username[0], record.password[0]);
+        var result = IPA.login_password(username[0], password[0]);
 
         IPA.hide_activity_icon();
 
         if (result === 'success') {
             that.on_login_success();
         } else if (result === 'expired') {
-            that.error_box.html(that.password_expired);
-            that.error_box.css('display', 'block');
-        }else {
-            that.error_box.html(that.form_auth_failed);
-            that.error_box.css('display', 'block');
+            that.reset_error_box.css('display', 'none');
+            that.show_reset_form();
+        } else {
+            that.login_error_box.html(that.form_auth_failed);
+            that.login_error_box.css('display', 'block');
         }
     };
 
     that.on_login_success = function() {
-        that.error_box.css('display', 'none');
+        that.login_error_box.css('display', 'none');
+
+        that.username_widget.clear();
+        that.password_widget.clear();
+
         that.on_retry();
     };
 
-    that.create_login_buttons();
+    that.on_reset_keyup = function(event) {
+
+        if (that.switching) {
+            that.switching = false;
+            return;
+        }
+
+        if (event.keyCode === 13) { // enter
+            that.on_reset();
+            event.preventDefault();
+        } else if (event.keyCode === 27) { // escape
+            that.on_cancel();
+            event.preventDefault();
+        }
+    };
+
+    that.on_reset = function() {
+        if (!that.validate()) return;
+
+        var username = that.username_widget.save();
+        var password = that.password_widget.save();
+        var new_password = that.new_password_widget.save();
+        var verify_password = that.verify_password_widget.save();
+
+        if (new_password[0] !== verify_password[0]) {
+            var message = IPA.get_message('password.password_must_match',
+                            "Passwords must match");
+            that.reset_error_box.html(message);
+            that.reset_error_box.css('display', 'block');
+            return;
+        } else {
+            that.reset_error_box.css('display', 'none');
+        }
+
+        IPA.display_activity_icon();
+
+        var result = IPA.reset_password(username[0],
+                                        password[0],
+                                        new_password[0]);
+
+        IPA.hide_activity_icon();
+
+        if (result.status === 'ok') {
+            that.on_reset_success();
+        } else {
+            that.reset_error_box.html(result.message);
+            that.reset_error_box.css('display', 'block');
+        }
+    };
+
+    that.on_reset_success = function() {
+
+        that.login_error_box.css('display', 'none');
+        that.reset_error_box.css('display', 'none');
+
+        that.password_widget.update(that.new_password_widget.save());
+
+        that.new_password_widget.clear();
+        that.verify_password_widget.clear();
+
+        that.show_session_form();
+
+        //re-login
+        that.on_login();
+    };
+
+    that.create_buttons();
 
     return that;
 };
