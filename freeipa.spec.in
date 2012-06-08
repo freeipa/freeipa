@@ -590,6 +590,7 @@ fi
 %{_usr}/share/ipa/ui/index.html
 %{_usr}/share/ipa/ui/login.html
 %{_usr}/share/ipa/ui/logout.html
+%{_usr}/share/ipa/ui/reset_password.html
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
 %{_usr}/share/ipa/ui/*.js
@@ -717,6 +718,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Fri Jun 21 2012 Petr Vobornik <pvoborni@redhat.com> - 2.99.0-34
+- Add Web UI reset password pages
+
 * Wed Jun 20 2012 Ondrej Hamada <ohamada@redhat.com> - 2.99.0-33
 - Set min for 389-ds-base to 1.2.11.5-1 on F17 to fix installation issue
 - Set min for 389-ds-base to 1.2.10.10-1 on F16 (and lower) to fix CN case persistence

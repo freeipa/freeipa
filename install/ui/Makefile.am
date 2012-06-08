@@ -53,6 +53,8 @@ app_DATA =				\
 	overpass_regular-web.ttf	\
 	overpass_regular-web.woff	\
 	policy.js			\
+	reset_password.js			\
+	reset_password.html			\
 	rule.js 			\
 	search.js 			\
 	selinux.js 			\
