@@ -171,7 +171,8 @@ class IPALogManager(LogManager):
 
 #-------------------------------------------------------------------------------
 
-def standard_logging_setup(filename=None, verbose=False, debug=False, filemode='w'):
+def standard_logging_setup(filename=None, verbose=False, debug=False,
+        filemode='w', console_format=LOGGING_FORMAT_STANDARD_CONSOLE):
     handlers = []
 
     # File output is always logged at debug level
@@ -195,7 +196,7 @@ def standard_logging_setup(filename=None, verbose=False, debug=False, filemode='
     console_handler = dict(name='console',
                            stream=sys.stderr,
                            level=level,
-                           format=LOGGING_FORMAT_STANDARD_CONSOLE)
+                           format=console_format)
     handlers.append(console_handler)
 
 
