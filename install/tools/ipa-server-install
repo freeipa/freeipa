@@ -48,6 +48,7 @@ from ipaserver.install import ntpinstance
 from ipaserver.install import certs
 from ipaserver.install import cainstance
 from ipaserver.install import memcacheinstance
+from ipaserver.install import sysupgrade
 
 from ipaserver.install import service, installutils
 from ipapython import version
@@ -494,6 +495,9 @@ def uninstall():
             ipautil.run(['/bin/hostname', old_hostname])
         except CalledProcessError, e:
             print >>sys.stderr, "Failed to set this machine hostname back to %s (%s)." % (old_hostname, str(e))
+
+    # remove upgrade state file
+    sysupgrade.remove_upgrade_file()
 
     if fstore.has_files():
         root_logger.error('Some files have not been restored, see /var/lib/ipa/sysrestore/sysrestore.index')

@@ -41,7 +41,7 @@ SYSRESTORE_STATEFILE = "sysrestore.state"
 class FileStore:
     """Class for handling backup and restore of files"""
 
-    def __init__(self, path = SYSRESTORE_PATH):
+    def __init__(self, path = SYSRESTORE_PATH, index_file = SYSRESTORE_INDEXFILE):
         """Create a _StoreFiles object, that uses @path as the
         base directory.
 
@@ -49,7 +49,7 @@ class FileStore:
         about the original location of the saved files.
         """
         self._path = path
-        self._index = self._path + "/" + SYSRESTORE_INDEXFILE
+        self._index = os.path.join(self._path, index_file)
 
         self.random = random.Random()
 
@@ -279,7 +279,7 @@ class StateFile:
     enabled=False
     """
 
-    def __init__(self, path = SYSRESTORE_PATH):
+    def __init__(self, path = SYSRESTORE_PATH, state_file = SYSRESTORE_STATEFILE):
         """Create a StateFile object, loading from @path.
 
         The dictionary @modules, a member of the returned object,
@@ -290,7 +290,7 @@ class StateFile:
         The keys in these latter dictionaries are arbitrary strings
         and the values may either be strings or booleans.
         """
-        self._path = path+"/"+SYSRESTORE_STATEFILE
+        self._path = os.path.join(path, state_file)
 
         self.modules = {}
 
@@ -359,6 +359,31 @@ class StateFile:
 
         self.save()
 
+    def get_state(self, module, key):
+        """Return the value of an item of system state from @module,
+        identified by the string @key.
+
+        If the item doesn't exist, #None will be returned, otherwise
+        the original string or boolean value is returned.
+        """
+        if not self.modules.has_key(module):
+            return None
+
+        return self.modules[module].get(key, None)
+
+    def delete_state(self, module, key):
+        """Delete system state from @module, identified by the string
+        @key.
+
+        If the item doesn't exist, no change is done.
+        """
+        try:
+            del self.modules[module][key]
+        except KeyError:
+            pass
+        else:
+            self.save()
+
     def restore_state(self, module, key):
         """Return the value of an item of system state from @module,
         identified by the string @key, and remove it from the backed
@@ -368,16 +393,10 @@ class StateFile:
         the original string or boolean value is returned.
         """
 
-        if not self.modules.has_key(module):
-            return None
+        value = self.get_state(module, key)
 
-        if not self.modules[module].has_key(key):
-            return None
-
-        value = self.modules[module][key]
-        del self.modules[module][key]
-
-        self.save()
+        if value is not None:
+            self.delete_state(module, key)
 
         return value
 
