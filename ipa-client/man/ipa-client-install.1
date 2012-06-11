@@ -33,7 +33,7 @@ This same tool is used to unconfigure IPA and attemps to return the machine to i
 .SS "HOSTNAME REQUIREMENTS"
 Client must use a \fBstatic hostname\fR. If the machine hostname changes for example due to a dynamic hostname assignment by a DHCP server, client enrollment to IPA server breaks and user then would not be able to perform Kerberos authentication.
 
---hostname option may be used to specify a static hostname that is set in machine system configuration and persist over reboot.
+\-\-hostname option may be used to specify a static hostname that persists over reboot.
 
 .SH "OPTIONS"
 .SS "BASIC OPTIONS"
@@ -46,6 +46,9 @@ Set the IPA server to connect to
 .TP
 \fB\-\-realm\fR=\fIREALM_NAME\fR
 Set the IPA realm name to REALM_NAME
+.TP
+\fB\-\-fixed\-primary\fR
+Configure sssd to use a fixed server as the primary IPA server. The default is to use DNS SRV records to determine the primary server to use and fall back to the server the client is enrolled with.
 .TP
 \fB\-p\fR, \fB\-\-principal\fR
 Authorized kerberos principal to use to join the IPA realm.

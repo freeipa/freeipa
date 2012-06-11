@@ -67,6 +67,8 @@ def parse_options():
     basic_group.add_option("--domain", dest="domain", help="domain name")
     basic_group.add_option("--server", dest="server", help="IPA server")
     basic_group.add_option("--realm", dest="realm_name", help="realm name")
+    basic_group.add_option("--fixed-primary", dest="primary", action="store_true",
+                      default=False, help="Configure sssd to use fixed server as primary IPA server")
     basic_group.add_option("-p", "--principal", dest="principal",
                       help="principal to use to join the IPA realm"),
     basic_group.add_option("-w", "--password", dest="password", sensitive=True,
@@ -753,7 +755,10 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
         domain.set_option('dns_discovery_domain', cli_domain)
 
     if not options.on_master:
-        domain.set_option('ipa_server', '_srv_, %s' % cli_server)
+        if options.primary:
+            domain.set_option('ipa_server', '%s, _srv_' % cli_server)
+        else:
+            domain.set_option('ipa_server', '_srv_, %s' % cli_server)
     else:
         # the master should only use itself for Kerberos
         domain.set_option('ipa_server', cli_server)
