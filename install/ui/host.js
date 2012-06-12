@@ -97,9 +97,17 @@ IPA.host.entity = function(spec) {
                 },
                 {
                     name: 'certificate',
+                    action_panel: {
+                        factory: IPA.action_panel,
+                        name: 'cert_actions',
+                        actions: [
+                            'request_cert', 'view_cert', 'get_cert',
+                            'revoke_cert', 'restore_cert'
+                        ]
+                    },
                     fields: [
                         {
-                            type: 'host_certificate_status',
+                            type: 'certificate_status',
                             name: 'certificate_status',
                             label: IPA.messages.objects.host.status
                         }
@@ -121,18 +129,25 @@ IPA.host.entity = function(spec) {
                     label: IPA.messages.objects.host.password_reset_title,
                     status: 'present',
                     show_cond: ['has_password']
-                }
+                },
+                IPA.cert.view_action,
+                IPA.cert.get_action,
+                IPA.cert.request_action,
+                IPA.cert.revoke_action,
+                IPA.cert.restore_action
             ],
             state: {
                 evaluators: [
                     IPA.host.has_password_evaluator,
                     IPA.host.has_keytab_evaluator,
                     IPA.host.userpassword_acl_evaluator,
-                    IPA.host.krbprincipalkey_acl_evaluator
+                    IPA.host.krbprincipalkey_acl_evaluator,
+                    IPA.cert.certificate_evaluator
                 ]
             },
             policies: [
-                IPA.host_enrollment_policy()
+                IPA.host.enrollment_policy(),
+                IPA.host.certificate_policy()
             ]
         }).
         association_facet({
@@ -205,13 +220,16 @@ IPA.host.entity = function(spec) {
     return that;
 };
 
-IPA.host.details_facet = function(spec) {
+IPA.host.details_facet = function(spec, no_init) {
 
-    var that = IPA.details_facet(spec);
+    var that = IPA.details_facet(spec, true);
+    that.certificate_loaded = IPA.observer();
 
     that.get_refresh_command_name = function() {
         return that.entity.name+'_show_'+that.pkey;
     };
+
+    if (!no_init) that.init_details_facet();
 
     return that;
 };
@@ -498,7 +516,7 @@ IPA.force_host_add_checkbox_widget = function(spec) {
 IPA.widget_factories['force_host_add_checkbox'] = IPA.force_host_add_checkbox_widget;
 IPA.field_factories['force_host_add_checkbox'] = IPA.checkbox_field;
 
-IPA.host_enrollment_policy = function(spec) {
+IPA.host.enrollment_policy = function(spec) {
 
     var that =  IPA.facet_policy();
 
@@ -895,56 +913,29 @@ IPA.host.has_password_evaluator = function(spec) {
     return that;
 };
 
-IPA.host.certificate_status_field = function(spec) {
+IPA.host.certificate_policy = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.cert.status_field(spec);
-
-    that.load = function(result) {
-
-        that.widget.result = result;
-
-        var message = IPA.messages.objects.cert.request_message;
-        message = message.replace(/\$\{hostname\}/g, result.fqdn[0]);
-        message = message.replace(/\$\{realm\}/g, IPA.env.realm);
-        that.widget.request_message = message;
-
-        that.reset();
-    };
-
-    return that;
-};
-
-IPA.host.certificate_status_widget = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.cert.status_widget(spec);
-
-    that.get_entity_pkey = function(result) {
+    spec.get_pkey = spec.get_pkey || function(result) {
         var values = result.fqdn;
         return values ? values[0] : null;
     };
 
-    that.get_entity_name = function(result) {
-        return that.get_entity_pkey(result);
+    spec.get_name = spec.get_name || function(result) {
+        var values = result.fqdn;
+        return values ? values[0] : null;
     };
 
-    that.get_entity_principal = function(result) {
+    spec.get_principal = spec.get_principal || function(result) {
         var values = result.krbprincipalname;
         return values ? values[0] : null;
     };
 
-    that.get_entity_certificate = function(result) {
-        var values = result.usercertificate;
-        return values ? values[0].__base64__ : null;
-    };
+    spec.get_hostname = spec.get_hostname || spec.get_name;
 
+    var that = IPA.cert.load_policy(spec);
     return that;
 };
-
-IPA.widget_factories['host_certificate_status'] = IPA.host.certificate_status_widget;
-IPA.field_factories['host_certificate_status'] = IPA.host.certificate_status_field;
 
 IPA.register('host', IPA.host.entity);

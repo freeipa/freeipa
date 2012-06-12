@@ -36,6 +36,7 @@ IPA.service.entity = function(spec) {
             columns: [ 'krbprincipalname' ]
         }).
         details_facet({
+            factory: IPA.service.details_facet,
             sections: [
                 {
                     name: 'details',
@@ -72,9 +73,17 @@ IPA.service.entity = function(spec) {
                 },
                 {
                     name: 'certificate',
+                    action_panel: {
+                        factory: IPA.action_panel,
+                        name: 'cert_actions',
+                        actions: [
+                            'request_cert', 'view_cert', 'get_cert',
+                            'revoke_cert', 'restore_cert'
+                        ]
+                    },
                     fields: [
                         {
-                            type: 'service_certificate_status',
+                            type: 'certificate_status',
                             name: 'certificate_status',
                             label: IPA.messages.objects.service.status
                         }
@@ -82,14 +91,23 @@ IPA.service.entity = function(spec) {
                 }
             ],
             actions: [
-                IPA.service.unprovision_action
+                IPA.service.unprovision_action,
+                IPA.cert.view_action,
+                IPA.cert.get_action,
+                IPA.cert.request_action,
+                IPA.cert.revoke_action,
+                IPA.cert.restore_action
             ],
             state: {
                 evaluators: [
                     IPA.service.has_keytab_evaluator,
-                    IPA.service.krbprincipalkey_acl_evaluator
+                    IPA.service.krbprincipalkey_acl_evaluator,
+                    IPA.cert.certificate_evaluator
                 ]
-            }
+            },
+            policies: [
+                IPA.service.certificate_policy()
+            ]
         }).
         association_facet({
             name: 'managedby_host',
@@ -141,6 +159,16 @@ IPA.service.entity = function(spec) {
             ]
         });
     };
+
+    return that;
+};
+
+IPA.service.details_facet = function(spec, no_init) {
+
+    var that = IPA.details_facet(spec, true);
+    that.certificate_loaded = IPA.observer();
+
+    if (!no_init) that.init_details_facet();
 
     return that;
 };
@@ -398,59 +426,34 @@ IPA.service.has_keytab_evaluator = function(spec) {
     return that;
 };
 
-IPA.service.certificate_status_field = function(spec) {
+IPA.service.certificate_policy = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.cert.status_field(spec);
-
-    that.load = function(result) {
-
-        that.widget.result = result;
-
-        var krbprincipalname = result.krbprincipalname[0];
-        var hostname = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
-
-        var message = IPA.messages.objects.cert.request_message;
-        message = message.replace(/\$\{hostname\}/g, hostname);
-        message = message.replace(/\$\{realm\}/g, IPA.env.realm);
-        that.widget.request_message = message;
-
-        that.reset();
-    };
-
-    return that;
-};
-
-IPA.service.certificate_status_widget = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.cert.status_widget(spec);
-
-    that.get_entity_pkey = function(result) {
+    function get_pkey(result) {
         var values = result.krbprincipalname;
         return values ? values[0] : null;
-    };
+    }
 
-    that.get_entity_name = function(result) {
-        var value = that.get_entity_pkey(result);
+    spec.get_pkey = spec.get_pkey || get_pkey;
+
+    spec.get_name = spec.get_name || function(result) {
+        var value = get_pkey(result);
         return value ? value.replace(/@.*$/, '') : null;
     };
 
-    that.get_entity_principal = function(result) {
-        return that.get_entity_pkey(result);
+    spec.get_principal = spec.get_principal || get_pkey;
+
+    spec.get_hostname = spec.get_hostname || function(result) {
+        var value = get_pkey(result);
+        if (value) {
+            value = value.replace(/@.*$/, '').replace(/^.*\//, '');
+        }
+        return value;
     };
 
-    that.get_entity_certificate = function(result) {
-        var values = result.usercertificate;
-        return values ? values[0].__base64__ : null;
-    };
-
+    var that = IPA.cert.load_policy(spec);
     return that;
 };
-
-IPA.widget_factories['service_certificate_status'] = IPA.service.certificate_status_widget;
-IPA.field_factories['service_certificate_status'] = IPA.service.certificate_status_field;
 
 IPA.register('service', IPA.service.entity);
