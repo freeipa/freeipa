@@ -313,6 +313,7 @@ class DsInstance(service.Service):
                              IDMAX=self.idmax, HOST=self.fqdn,
                              ESCAPED_SUFFIX= escape_dn_chars(self.suffix.lower()),
                              GROUP=DS_GROUP,
+                             IDRANGE_SIZE=self.idmax-self.idstart+1
                          )
 
     def __create_ds_user(self):

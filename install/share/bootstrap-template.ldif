@@ -409,3 +409,17 @@ objectClass: top
 objectClass: nsContainer
 cn: usermap
 
+dn: cn=ranges,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: ranges
+
+dn: cn=$REALM_id_range,cn=ranges,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ipaIDrange
+objectClass: ipaDomainIDRange
+cn: $REALM_id_range
+ipaBaseID: $IDSTART
+ipaIDRangeSize: $IDRANGE_SIZE

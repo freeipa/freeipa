@@ -35,6 +35,7 @@ app_DATA =				\
 	55-pbacmemberof.update		\
 	60-trusts.update		\
 	61-trusts-s4u2proxy.update	\
+	62-ranges.update		\
 	$(NULL)
 
 EXTRA_DIST =				\
