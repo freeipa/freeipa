@@ -415,6 +415,11 @@ mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 install -pm 644 ipa-compliance.cron %{buildroot}%{_sysconfdir}/cron.d/ipa-compliance
 %endif
 
+(cd %{buildroot}/%{python_sitelib}/ipaserver && find . -type f  | \
+	grep -v dcerpc | grep -v adtrustinstance | \
+	sed -e 's,\.py.*$,.*,g' | sort -u | \
+	sed -e 's,\./,%%{python_sitelib}/ipaserver/,g' ) >server-python.list
+
 %clean
 rm -rf %{buildroot}
 
@@ -521,12 +526,11 @@ fi
 
 
 %if ! %{ONLY_CLIENT}
-%files server
+%files server -f server-python.list
 %defattr(-,root,root,-)
 %doc COPYING README Contributors.txt
 %{_sbindir}/ipa-ca-install
 %{_sbindir}/ipa-dns-install
-%{_sbindir}/ipa-adtrust-install
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-conncheck
 %{_sbindir}/ipa-replica-install
@@ -557,7 +561,9 @@ fi
 %attr(755,root,root) %{_initrddir}/ipa_memcached
 %endif
 %dir %{python_sitelib}/ipaserver
-%{python_sitelib}/ipaserver/*
+%dir %{python_sitelib}/ipaserver/install
+%dir %{python_sitelib}/ipaserver/install/plugins
+%dir %{python_sitelib}/ipaserver/plugins
 %dir %{_libdir}/ipa/certmonger
 %attr(755,root,root) %{_libdir}/ipa/certmonger/*
 %dir %{_usr}/share/ipa
@@ -625,7 +631,6 @@ fi
 %dir %{_localstatedir}/cache/ipa
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 %attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
-%attr(755,root,root) %{_libdir}/samba/pdb/ipasam.so
 %{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
 %{_mandir}/man1/ipa-replica-manage.1.gz
@@ -634,7 +639,6 @@ fi
 %{_mandir}/man1/ipa-server-certinstall.1.gz
 %{_mandir}/man1/ipa-server-install.1.gz
 %{_mandir}/man1/ipa-dns-install.1.gz
-%{_mandir}/man1/ipa-adtrust-install.1.gz
 %{_mandir}/man1/ipa-ca-install.1.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
 %{_mandir}/man1/ipa-nis-manage.1.gz
@@ -651,7 +655,12 @@ fi
 %{_usr}/share/selinux/targeted/ipa_dogtag.pp
 
 %files server-trust-ad
+%{_sbindir}/ipa-adtrust-install
 %{_usr}/share/ipa/smb.conf.empty
+%attr(755,root,root) %{_libdir}/samba/pdb/ipasam.so
+%{_mandir}/man1/ipa-adtrust-install.1.gz
+%{python_sitelib}/ipaserver/dcerpc*
+%{python_sitelib}/ipaserver/install/adtrustinstance*
 %endif
 
 %files client
