@@ -114,6 +114,8 @@ class ADTRUSTInstance(service.Service):
         self.cifs_principal = None
         self.cifs_agent = None
         self.selinux_booleans = None
+        self.rid_base = None
+        self.secondary_rid_base = None
 
         service.Service.__init__(self, "smb", dm_password=dm_password)
 
@@ -173,6 +175,47 @@ class ADTRUSTInstance(service.Service):
                          (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-512")])
         except:
             print "Failed to modify IPA admin group object"
+
+    def __add_rid_bases(self):
+        """
+        Add RID bases to the range object for the local ID range.
+
+        TODO: handle missing or multiple ranges more gracefully.
+        """
+
+        try:
+            res = self.admin_conn.search_s("cn=ranges,cn=etc,"+self.suffix,
+                                           ldap.SCOPE_ONELEVEL,
+                                           "(objectclass=ipaDomainIDRange)")
+            if len(res) != 1:
+                root_logger.critical("Found more than one ID range for the " \
+                                     "local domain.")
+                raise RuntimeError("Too many ID ranges\n")
+
+            if res[0].getValue('ipaBaseRID') or \
+               res[0].getValue('ipaSecondaryBaseRID'):
+                print "RID bases already set, nothing to do"
+                return
+
+            size = res[0].getValue('ipaIDRangeSize')
+            if abs(self.rid_base - self.secondary_rid_base) > size:
+                print "Primary and secondary RID base are too close. " \
+                      "They have to differ at least by %d." % size
+                raise RuntimeError("RID bases too close.\n")
+
+            try:
+                self.admin_conn.modify_s(res[0].dn,
+                                         [(ldap.MOD_ADD, "ipaBaseRID", \
+                                                 str(self.rid_base)), \
+                                         (ldap.MOD_ADD, "ipaSecondaryBaseRID", \
+                                                 str(self.secondary_rid_base))])
+            except:
+                print "Failed to add RID bases to the local range object"
+
+        except errors.NotFound as e:
+            root_logger.critical("ID range of the local domain not found, " \
+                                 "define it and run again.")
+            raise e
 
     def __create_samba_domain_object(self):
 
@@ -410,12 +453,14 @@ class ADTRUSTInstance(service.Service):
                              FQDN = self.fqdn)
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, netbios_name,
-              no_msdcs=False, smbd_user="samba"):
+              rid_base, secondary_rid_base, no_msdcs=False, smbd_user="samba"):
         self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm_name = realm_name
         self.domain_name = domain_name
         self.netbios_name = netbios_name
+        self.rid_base = rid_base
+        self.secondary_rid_base = secondary_rid_base
         self.no_msdcs = no_msdcs
         self.smbd_user = smbd_user
         self.suffix = ipautil.realm_to_suffix(self.realm_name)
@@ -436,6 +481,46 @@ class ADTRUSTInstance(service.Service):
 
         self.__setup_sub_dict()
 
+    def find_local_id_range(self):
+        self.ldap_connect()
+
+        if self.admin_conn.search_s("cn=ranges,cn=etc," + self.suffix,
+                                    ldap.SCOPE_ONELEVEL,
+                                    "objectclass=ipaDomainIDRange"):
+            return
+
+        try:
+            entry = self.admin_conn.getEntry("cn=admins,cn=groups,cn=accounts," \
+                                                                  + self.suffix,
+                                             ldap.SCOPE_BASE)
+        except errors.NotFound:
+            raise ValueError("No local ID range and no admins group found.\n" \
+                             "Add local ID range manually and try again!")
+
+        base_id = int(entry.getValue('gidNumber'))
+        id_range_size = 200000
+
+        id_filter = "(&" \
+                      "(|(objectclass=posixAccount)" \
+                        "(objectclass=posixGroup)" \
+                        "(objectclass=ipaIDObject))" \
+                      "(|(uidNumber<=%d)(uidNumber>=%d)" \
+                        "(gidNumber<=%d)(gidNumner>=%d)))" % \
+                     ((base_id - 1), (base_id + id_range_size),
+                      (base_id - 1), (base_id + id_range_size))
+        if self.admin_conn.search_s("cn=accounts," + self.suffix,
+                                   ldap.SCOPE_SUBTREE, id_filter):
+            raise ValueError("There are objects with IDs out of the expected" \
+                             "range.\nAdd local ID range manually and try " \
+                             "again!")
+
+        entry = ipaldap.Entry("cn=%s_id_range,cn=ranges,cn=etc,%s" % \
+                              (self.realm_name, self.suffix))
+        entry.setValue('objectclass', 'ipaDomainIDRange')
+        entry.setValue('cn', ('%s_id_range' % self.realm_name))
+        entry.setValue('ipaBaseID', str(base_id))
+        entry.setValue('ipaIDRangeSize', str(id_range_size))
+        self.admin_conn.addEntry(entry)
 
     def create_instance(self):
 
@@ -448,6 +533,7 @@ class ADTRUSTInstance(service.Service):
         self.step("writing samba config file", self.__write_smb_conf)
         self.step("adding cifs Kerberos principal", self.__setup_principal)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
+        self.step("adding RID bases", self.__add_rid_bases)
         self.step("activating CLDAP plugin", self.__add_cldap_module)
         self.step("activating sidgen plugin and task", self.__add_sidgen_module)
         self.step("activating extdom plugin", self.__add_extdom_module)

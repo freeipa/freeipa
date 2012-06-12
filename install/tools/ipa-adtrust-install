@@ -48,6 +48,12 @@ def parse_options():
     parser.add_option("--no-msdcs", dest="no_msdcs", action="store_true",
                       default=False, help="Do not create DNS service records " \
                                           "for Windows in managed DNS server")
+    parser.add_option("--rid-base", dest="rid_base", type=int, default=1000,
+                      help="Start value for mapping UIDs and GIDs to RIDs")
+    parser.add_option("--secondary-rid-base", dest="secondary_rid_base",
+                      type=int, default=100000000,
+                      help="Start value of the secondary range for mapping " \
+                           "UIDs and GIDs to RIDs")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
 
@@ -207,7 +213,9 @@ def main():
         api.Backend.ldap2.connect(ccache)
 
     smb.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
-              netbios_name, options.no_msdcs)
+              netbios_name, options.rid_base, options.secondary_rid_base,
+              options.no_msdcs)
+    smb.find_local_id_range()
     smb.create_instance()
 
     print """
