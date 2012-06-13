@@ -1112,9 +1112,10 @@ def install(options, env, fstore, statestore):
 
     cli_domain = None
     cli_server = None
-    cli_realm = None
-    cli_basedn = None
     subject_base = None
+
+    cli_domain_source = 'Unknown source'
+    cli_server_source = 'Unknown source'
 
     if options.unattended and (options.password is None and options.principal is None and options.prompt_password is False) and not options.on_master:
         root_logger.error("One of password and principal are required.")
@@ -1122,8 +1123,10 @@ def install(options, env, fstore, statestore):
 
     if options.hostname:
         hostname = options.hostname
+        hostname_source = 'Provided as option'
     else:
         hostname = socket.getfqdn()
+        hostname_source = "Machine's FQDN"
     if hostname != hostname.lower():
         root_logger.error(
             "Invalid hostname '%s', must be lower-case.", hostname)
@@ -1153,10 +1156,22 @@ def install(options, env, fstore, statestore):
         root_logger.error("%s is not a fully-qualified hostname", hostname)
         return CLIENT_INSTALL_ERROR
     if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
-            or not ds.getDomainName():
-        root_logger.debug("Domain not found")
+            or not ds.domain:
+        if ret == ipadiscovery.NO_LDAP_SERVER:
+            if ds.server:
+                root_logger.debug("%s is not an LDAP server" % ds.server)
+            else:
+                root_logger.debug("No LDAP server found")
+        elif ret == ipadiscovery.NOT_IPA_SERVER:
+            if ds.server:
+                root_logger.debug("%s is not an IPA server" % ds.server)
+            else:
+                root_logger.debug("No IPA server found")
+        else:
+            root_logger.debug("Domain not found")
         if options.domain:
             cli_domain = options.domain
+            cli_domain_source = 'Provided as option'
         elif options.unattended:
             root_logger.error(
                 "Unable to discover domain, not provided on command line")
@@ -1165,38 +1180,45 @@ def install(options, env, fstore, statestore):
             root_logger.info(
                 "DNS discovery failed to determine your DNS domain")
             cli_domain = user_input("Provide the domain name of your IPA server (ex: example.com)", allow_empty = False)
-            root_logger.debug("will use domain: %s", cli_domain)
+            cli_domain_source = 'Provided interactively'
+            root_logger.debug(
+                "will use interactively provided domain: %s", cli_domain)
         ret = ds.search(domain=cli_domain, server=options.server, hostname=hostname)
 
     if not cli_domain:
-        if ds.getDomainName():
-            cli_domain = ds.getDomainName()
-            root_logger.debug("will use domain: %s", cli_domain)
+        if ds.domain:
+            cli_domain = ds.domain
+            cli_domain_source = ds.domain_source
+            root_logger.debug("will use discovered domain: %s", cli_domain)
 
     client_domain = hostname[hostname.find(".")+1:]
 
     if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
-            or not ds.getServerName():
+            or not ds.server:
         root_logger.debug("IPA Server not found")
         if options.server:
             cli_server = options.server
+            cli_server_source = 'Provided as option'
         elif options.unattended:
             root_logger.error("Unable to find IPA Server to join")
             return CLIENT_INSTALL_ERROR
         else:
             root_logger.debug("DNS discovery failed to find the IPA Server")
             cli_server = user_input("Provide your IPA server name (ex: ipa.example.com)", allow_empty = False)
-            root_logger.debug("will use server: %s", cli_server)
+            cli_server_source = 'Provided interactively'
+            root_logger.debug("will use interactively provided server: %s", cli_server)
         ret = ds.search(domain=cli_domain, server=cli_server, hostname=hostname)
     else:
         dnsok = True
     if not cli_server:
-        if ds.getServerName():
-            cli_server = ds.getServerName()
-            root_logger.debug("will use server: %s", cli_server)
+        if ds.server:
+            cli_server = ds.server
+            cli_server_source = ds.server_source
+            root_logger.debug("will use discovered server: %s", cli_server)
 
     if ret == ipadiscovery.NOT_IPA_SERVER:
         root_logger.error("%s is not an IPA v2 Server.", cli_server)
+        root_logger.debug("(%s: %s)", cli_server, cli_server_source)
         return CLIENT_INSTALL_ERROR
 
     if ret == ipadiscovery.NO_ACCESS_TO_LDAP:
@@ -1211,12 +1233,14 @@ def install(options, env, fstore, statestore):
             cli_server)
         root_logger.error("This may mean that the remote server is not up " +
             "or is not reachable due to network or firewall settings.")
+        root_logger.debug("(%s: %s)", cli_server, cli_server_source)
         return CLIENT_INSTALL_ERROR
 
-    cli_kdc = ds.getKDCName()
+    cli_kdc = ds.kdc
     if dnsok and not cli_kdc:
         root_logger.error("DNS domain '%s' is not configured for automatic " +
-            "KDC address lookup.", ds.getRealmName().lower())
+            "KDC address lookup.", ds.realm.lower())
+        root_logger.debug("(%s: %s)", ds.realm, ds.realm_source)
         root_logger.error("KDC address will be set to fixed value.")
 
     if dnsok:
@@ -1233,23 +1257,32 @@ def install(options, env, fstore, statestore):
         if not user_input("Proceed with fixed values and no DNS discovery?", False):
             return CLIENT_INSTALL_ERROR
 
-    if options.realm_name and options.realm_name != ds.getRealmName():
+    cli_realm = ds.realm
+    cli_realm_source = ds.realm_source
+    root_logger.debug("will use discovered realm: %s", cli_realm)
+
+    if options.realm_name and options.realm_name != cli_realm:
         root_logger.error(
             "The provided realm name [%s] does not match discovered one [%s]",
-            options.realm_name, ds.getRealmName())
+            options.realm_name, cli_realm)
+        root_logger.debug("(%s: %s)", cli_realm, cli_realm_source)
         return CLIENT_INSTALL_ERROR
 
-    cli_realm = ds.getRealmName()
-    root_logger.info("Will use cli_realm: %s", cli_realm)
-    cli_basedn = ds.getBaseDN()
-    root_logger.info("will use cli_basedn: %s", cli_basedn)
-    subject_base = "O=%s" % ds.getRealmName()
+    cli_basedn = ds.basedn
+    cli_basedn_source = ds.basedn_source
+    root_logger.debug("will use discovered basedn: %s", cli_basedn)
+    subject_base = "O=%s" % cli_realm
 
     root_logger.info("Hostname: %s", hostname)
+    root_logger.debug("Hostname source: %s", hostname_source)
     root_logger.info("Realm: %s", cli_realm)
+    root_logger.debug("Realm source: %s", cli_realm_source)
     root_logger.info("DNS Domain: %s", cli_domain)
+    root_logger.debug("DNS Domain source: %s", cli_domain_source)
     root_logger.info("IPA Server: %s", cli_server)
+    root_logger.debug("IPA Server source: %s", cli_server_source)
     root_logger.info("BaseDN: %s", cli_basedn)
+    root_logger.debug("BaseDN source: %s", cli_basedn_source)
 
     print
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
@@ -1279,7 +1312,8 @@ def install(options, env, fstore, statestore):
     if not options.unattended:
         if options.principal is None and options.password is None and options.prompt_password is False:
             options.principal = user_input("User authorized to enroll computers", allow_empty=False)
-            root_logger.debug("will use principal: %s\n", options.principal)
+            root_logger.debug(
+                "will use principal provided as option: %s", options.principal)
 
     # Get the CA certificate
     try:
