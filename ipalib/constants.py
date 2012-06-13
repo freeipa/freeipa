@@ -104,7 +104,8 @@ DEFAULT_CONFIG = (
     ('container_cifsdomains', 'cn=ad,cn=etc'),
     ('container_trusts', 'cn=trusts'),
     ('container_adtrusts', 'cn=ad,cn=trusts'),
- 
+    ('container_ranges', 'cn=ranges,cn=etc'),
+
     # Ports, hosts, and URIs:
     # FIXME: let's renamed xmlrpc_uri to rpc_xml_uri
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
