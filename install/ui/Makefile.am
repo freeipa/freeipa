@@ -61,6 +61,7 @@ app_DATA =				\
 	serverconfig.js			\
 	service.js 			\
 	sudo.js				\
+	trust.js			\
 	user.js 			\
 	webui.js 			\
 	widget.js 			\

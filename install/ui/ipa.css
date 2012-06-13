@@ -1757,3 +1757,14 @@ form#login {
     color: gray;
     cursor: default;
 }
+
+/* --- Multiple choice widget --- */
+
+.multiple-choice-section-header {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.choice-header {
+    font-weight: bold;
+}

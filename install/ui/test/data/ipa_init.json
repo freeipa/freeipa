@@ -410,6 +410,19 @@
                             "specified_users": "Specified Users and Groups",
                             "user": "Who"
                         },
+                        "trust": {
+                            "account": "Account",
+                            "admin_account": "Administrative account",
+                            "details": "Trust Settings",
+                            "domain": "Domain",
+                            "establish_using": "Establish using",
+                            "ipantflatname": "Domain NetBIOS name",
+                            "ipanttrusteddomainsid": "Domain Security Identifier",
+                            "preshared_password": "Pre-shared password",
+                            "trustdirection": "Trust direction",
+                            "truststatus": "Trust status",
+                            "trusttype": "Trust type"
+                        },
                         "user": {
                             "account": "Account Settings",
                             "account_status": "Account Status",
@@ -429,6 +442,7 @@
                         "invalid_password": "The password or username you entered is incorrect.",
                         "new_password": "New Password",
                         "new_password_required": "New password is required",
+                        "password": "Password",
                         "password_change_complete": "Password change complete",
                         "password_must_match": "Passwords must match",
                         "reset_failure": "Password reset was not successful.",

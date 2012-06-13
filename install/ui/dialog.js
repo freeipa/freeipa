@@ -232,13 +232,15 @@ IPA.dialog = function(spec) {
 
         var widget_builder = IPA.widget_builder({
             widget_options: {
-                entity: that.entity
+                entity: that.entity,
+                facet: that
             }
         });
         var field_builder = IPA.field_builder({
             field_options: {
                 undo: false,
-                entity: that.entity
+                entity: that.entity,
+                facet: that
             }
         });
         var section_builder = IPA.section_builder({

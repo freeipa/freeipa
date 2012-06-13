@@ -580,7 +580,9 @@
                         "type": "unicode",
                         "values": [
                             "AllowLMhash",
-                            "AllowNThash"
+                            "AllowNThash",
+                            "KDC:Disable Last Success",
+                            "KDC:Disable Lockout"
                         ]
                     },
                     {
@@ -817,8 +819,28 @@
                     "ipagroupobjectclasses",
                     "ipagroupsearchfields",
                     "ipahomesrootdir",
+                    "ipakrbprincipalalias",
                     "ipamaxusernamelength",
                     "ipamigrationenabled",
+                    "ipantdomainguid",
+                    "ipantfallbackprimarygroup",
+                    "ipantflatname",
+                    "ipanthash",
+                    "ipanthomedirectory",
+                    "ipanthomedirectorydrive",
+                    "ipantlogonscript",
+                    "ipantprofilepath",
+                    "ipantsecurityidentifier",
+                    "ipantsupportedencryptiontypes",
+                    "ipanttrustattributes",
+                    "ipanttrustauthincoming",
+                    "ipanttrustauthoutgoing",
+                    "ipanttrustdirection",
+                    "ipanttrusteddomainsid",
+                    "ipanttrustforesttrustinfo",
+                    "ipanttrustpartner",
+                    "ipanttrustposixoffset",
+                    "ipanttrusttype",
                     "ipapermissiontype",
                     "ipapwdexpadvnotify",
                     "ipasearchrecordslimit",
@@ -3915,6 +3937,67 @@
                 ],
                 "uuid_attribute": ""
             },
+            "entitle": {
+                "aciattrs": [
+                    "ipaentitlementid",
+                    "ipauniqueid",
+                    "usercertificate",
+                    "userpkcs12"
+                ],
+                "attribute_members": {},
+                "bindable": false,
+                "container_dn": "cn=entitlements,cn=etc",
+                "default_attributes": [
+                    "ipaentitlement"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "Entitlements",
+                "label_singular": "Entitlement",
+                "methods": [
+                    "consume",
+                    "find",
+                    "import",
+                    "register",
+                    "sync"
+                ],
+                "name": "entitle",
+                "object_class": [
+                    "ipaobject",
+                    "ipaentitlement"
+                ],
+                "object_class_config": null,
+                "object_name": "entitlement",
+                "object_name_plural": "entitlements",
+                "parent_object": "",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [],
+                "uuid_attribute": "ipaentitlementid"
+            },
             "group": {
                 "aciattrs": [
                     "businesscategory",
@@ -6063,6 +6146,7 @@
             },
             "service": {
                 "aciattrs": [
+                    "ipakrbprincipalalias",
                     "ipauniqueid",
                     "krbcanonicalname",
                     "krbextradata",
@@ -6125,7 +6209,8 @@
                     "krbticketpolicyaux",
                     "ipaobject",
                     "ipaservice",
-                    "pkiuser"
+                    "pkiuser",
+                    "ipakrbprincipal"
                 ],
                 "object_class_config": null,
                 "object_name": "service",
@@ -6806,6 +6891,99 @@
                     }
                 ],
                 "uuid_attribute": "ipauniqueid"
+            },
+            "trust": {
+                "aciattrs": [
+                    "cn",
+                    "ipantflatname",
+                    "ipantsupportedencryptiontypes",
+                    "ipanttrustattributes",
+                    "ipanttrustauthincoming",
+                    "ipanttrustauthoutgoing",
+                    "ipanttrustdirection",
+                    "ipanttrusteddomainsid",
+                    "ipanttrustforesttrustinfo",
+                    "ipanttrustpartner",
+                    "ipanttrustposixoffset",
+                    "ipanttrusttype",
+                    "objectclass"
+                ],
+                "attribute_members": {},
+                "bindable": false,
+                "container_dn": "cn=trusts",
+                "default_attributes": [
+                    "cn",
+                    "ipantflatname",
+                    "ipanttrusteddomainsid",
+                    "ipanttrusttype",
+                    "ipanttrustattributes",
+                    "ipanttrustdirection",
+                    "ipanttrustpartner",
+                    "ipantauthtrustoutgoing",
+                    "ipanttrustauthincoming",
+                    "ipanttrustforesttrustinfo",
+                    "ipanttrustposixoffset",
+                    "ipantsupportedencryptiontypes"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "Trusts",
+                "label_singular": "Trust",
+                "methods": [
+                    "add_ad",
+                    "del",
+                    "find",
+                    "mod",
+                    "show"
+                ],
+                "name": "trust",
+                "object_class": [
+                    "ipaNTTrustedDomain"
+                ],
+                "object_class_config": null,
+                "object_name": "trust",
+                "object_name_plural": "trusts",
+                "parent_object": "",
+                "primary_key": "cn",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [
+                    {
+                        "class": "Str",
+                        "doc": "Realm name",
+                        "flags": [],
+                        "label": "Realm name",
+                        "name": "cn",
+                        "noextrawhitespace": true,
+                        "primary_key": true,
+                        "required": true,
+                        "type": "unicode"
+                    }
+                ],
+                "uuid_attribute": ""
             },
             "user": {
                 "aciattrs": [

@@ -2669,12 +2669,80 @@ IPA.collapsible_section = function(spec) {
 
 IPA.details_section = IPA.collapsible_section;
 
+IPA.layout = function(spec) {
+    return {};
+};
+
+// Creates list of widgets into table with two columns: label and widget
+IPA.table_layout = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.layout(spec);
+    that.table_class = spec.table_class || 'section-table';
+    that.label_cell_class = spec.label_cell_class || 'section-cell-label';
+    that.field_cell_class = spec.field_cell_class || 'section-cell-field';
+    that.label_class = spec.label_class || 'field-label';
+    that.field_class = spec.field_class || 'field';
+
+    that.create = function(widgets) {
+
+        that.rows = $.ordered_map();
+
+        var table = $('<table/>', {
+            'class': that.table_class
+        });
+
+        for (var i=0; i<widgets.length; i++) {
+            var widget = widgets[i];
+            var tr = $('<tr/>');
+            that.rows.put(widget.name, tr);
+
+            if (widget.hidden) {
+                tr.css('display', 'none');
+            }
+
+            tr.appendTo(table);
+
+            var td = $('<td/>', {
+                'class': that.label_cell_class,
+                title: widget.label
+            }).appendTo(tr);
+
+            $('<label/>', {
+                name: widget.name,
+                'class': that.label_class,
+                text: widget.label+':'
+            }).appendTo(td);
+
+            if(widget.create_required) {
+                widget.create_required(td);
+            }
+
+            td = $('<td/>', {
+                'class': that.field_cell_class,
+                title: widget.label
+            }).appendTo(tr);
+
+            var widget_container = $('<div/>', {
+                name: widget.name,
+                'class': that.field_class
+            }).appendTo(td);
+
+            widget.create(widget_container);
+        }
+        return table;
+    };
+
+    return that;
+};
+
 IPA.details_table_section = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.details_section(spec);
-
+    that.layout = IPA.build_default(spec.layout, IPA.table_layout);
     that.action_panel = that.build_child(spec.action_panel);
 
     that.rows = $.ordered_map();
@@ -2686,50 +2754,10 @@ IPA.details_table_section = function(spec) {
         if (that.action_panel) {
             that.action_panel.create(container);
         }
-
-        var table = $('<table/>', {
-            'class': 'section-table'
-        }).appendTo(container);
-
         var widgets = that.widgets.get_widgets();
-        for (var i=0; i<widgets.length; i++) {
-            var widget = widgets[i];
-            var tr = $('<tr/>');
-            that.add_row(widget.name, tr);
-
-            if (widget.hidden) {
-                tr.css('display', 'none');
-            }
-
-            tr.appendTo(table);
-
-            var td = $('<td/>', {
-                'class': 'section-cell-label',
-                title: widget.label
-            }).appendTo(tr);
-
-            $('<label/>', {
-                name: widget.name,
-                'class': 'field-label',
-                text: widget.label+':'
-            }).appendTo(td);
-
-            if(widget.create_required) {
-                widget.create_required(td);
-            }
-
-            td = $('<td/>', {
-                'class': 'section-cell-field',
-                title: widget.label
-            }).appendTo(tr);
-
-            var widget_container = $('<div/>', {
-                name: widget.name,
-                'class': 'field'
-            }).appendTo(td);
-
-            widget.create(widget_container);
-        }
+        var table = that.layout.create(widgets);
+        table.appendTo(container);
+        that.rows = that.layout.rows;
     };
 
 
@@ -2759,6 +2787,151 @@ IPA.details_table_section_nc = function(spec) {
     var that = IPA.details_table_section(spec);
 
     that.create = that.table_section_create;
+
+    return that;
+};
+
+IPA.multiple_choice_section = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.composite_widget(spec);
+    that.choices = $.ordered_map().put_array(spec.choices, 'name');
+    that.layout = IPA.build_default(spec.layout, IPA.table_layout);
+
+    that.create = function(container) {
+
+        var i, choice, choices;
+
+        that.widget_create(container);
+        that.container.addClass('multiple-choice-section');
+
+        that.header_element = $('<div/>', {
+            'class': 'multiple-choice-section-header',
+            text: that.label
+        }).appendTo(container);
+
+        that.choice_container = $('<div/>', {
+            'class': 'choices'
+        }).appendTo(container);
+
+        choices = that.choices.values;
+        for (i=0; i<choices.length; i++) {
+            choice = choices[i];
+            that.create_choice(choice);
+        }
+    };
+
+    that.create_choice = function(choice) {
+
+        var widgets, i, widget, field, section, choice_el, header, radio,
+            enabled, radio_id;
+
+        widgets = [];
+
+        if (choice.widgets) {
+            for (i=0; i<choice.widgets.length; i++) {
+                widget = that.widgets.get_widget(choice.widgets[i]);
+                widgets.push(widget);
+            }
+        } else if (choice.fields) {
+            for (i=0; i<choice.fields.length; i++) {
+                field = that.facet.fields.get_field(choice.fields[i]);
+                widgets.push(field.widget);
+            }
+        }
+
+        choice_el = $('<div/>',{
+            'class': 'choice',
+            name: choice.name
+        });
+
+        header = $('<div/>',{
+            'class': 'choice-header'
+        }).appendTo(choice_el);
+
+        enabled = choice.enabled !== undefined ? choice.enabled : false;
+
+        radio_id = that.name + '_' + choice.name;
+
+        $('<input/>',{
+            type: 'radio',
+            name: that.name,
+            id: radio_id,
+            value: choice.name,
+            checked: enabled,
+            change: function() {
+                that.select_choice(this.value);
+            }
+        }).appendTo(header);
+
+        $('<label/>',{
+            text: choice.label,
+            'for': radio_id
+        }).appendTo(header);
+
+        section = that.layout.create(widgets);
+        section.appendTo(choice_el);
+        choice_el.appendTo(that.choice_container);
+    };
+
+    that.select_choice = function(choice_name) {
+
+        var i, choice, enabled;
+
+        for (i=0; i<that.choices.values.length; i++) {
+            choice = that.choices.values[i];
+            enabled = choice.name === choice_name;
+            that.set_enabled(choice, enabled);
+        }
+    };
+
+    that.set_enabled = function (choice, enabled) {
+
+        var i, field_name, field, fields, required;
+
+        fields = that.facet.fields;
+
+        for (i=0; i<choice.fields.length; i++) {
+            field_name = choice.fields[i];
+            field = fields.get_field(field_name);
+            field.set_enabled(enabled);
+            required = enabled && choice.required.indexOf(field_name) > -1;
+            field.set_required(required);
+            field.validate(); //hide validation errors
+        }
+    };
+
+    that.init_enabled = function() {
+
+        var i, choice;
+
+        for (i=0; i<that.choices.values.length; i++) {
+            choice = that.choices.values[i];
+            if (choice.enabled) {
+                that.select_choice(choice.name);
+                break;
+            }
+        }
+    };
+
+    return that;
+};
+
+IPA.multiple_choice_section_policy = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.facet_policy(spec);
+    that.widget_name = spec.widget;
+
+    that.init = function() {
+        that.widget = that.container.widgets.get_widget(that.widget_name);
+    };
+
+    that.post_create = function() {
+        that.widget.init_enabled();
+    };
 
     return that;
 };
@@ -3309,6 +3482,7 @@ IPA.widget_factories['combobox'] = IPA.combobox_widget;
 IPA.widget_factories['composite_widget'] = IPA.composite_widget;
 IPA.widget_factories['details_table_section'] = IPA.details_table_section;
 IPA.widget_factories['details_table_section_nc'] = IPA.details_table_section_nc;
+IPA.widget_factories['multiple_choice_section'] = IPA.multiple_choice_section;
 IPA.widget_factories['enable'] = IPA.enable_widget;
 IPA.widget_factories['entity_select'] = IPA.entity_select_widget;
 IPA.widget_factories['header'] = IPA.header_widget;

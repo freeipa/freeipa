@@ -1087,6 +1087,34 @@ IPA.build = function(spec, builder_fac) {
     return product;
 };
 
+IPA.build_default = function(spec, def_spec) {
+
+    var builder, factory, default_object;
+
+    if (!spec && !def_spec) return null;
+
+    if (typeof def_spec === 'function') { //factory function
+        factory = def_spec;
+    } else if (typeof def_spec === 'object') {
+        default_object = def_spec;
+    }
+
+    builder = IPA.builder({
+        factory: factory
+    });
+
+    var product;
+    spec = spec || default_object || {};
+
+    if ($.isArray(spec)) {
+        product = builder.build_objects(spec);
+    } else {
+        product = builder.build(spec);
+    }
+
+    return product;
+};
+
 IPA.default_factory = function(spec) {
 
     spec = spec || {};

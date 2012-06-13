@@ -1,0 +1,67 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "result": {
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "cn": "rscwo",
+                "ipantflatname": "rscwo",
+                "ipantsupportedencryptiontypes": "rscwo",
+                "ipanttrustattributes": "rscwo",
+                "ipanttrustauthincoming": "rscwo",
+                "ipanttrustauthoutgoing": "rscwo",
+                "ipanttrustdirection": "rscwo",
+                "ipanttrusteddomainsid": "rscwo",
+                "ipanttrustforesttrustinfo": "rscwo",
+                "ipanttrustpartner": "rscwo",
+                "ipanttrustposixoffset": "rscwo",
+                "ipanttrusttype": "rscwo",
+                "nsaccountlock": "rscwo"
+            },
+            "cn": [
+                "ad.test"
+            ],
+            "dn": "cn=ad.test,cn=ad,cn=trusts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+            "ipantflatname": [
+                "AD"
+            ],
+            "ipanttrustattributes": [
+                "136"
+            ],
+            "ipanttrustauthincoming": [
+                {
+                    "__base64__": "AQAAAAwAAAAwAAAAgKOs1XFQzQECAAAAEgAAAGEAYQBhAEEAQQBBADEAMQAxAAAA"
+                }
+            ],
+            "ipanttrustauthoutgoing": [
+                {
+                    "__base64__": "AQAAAAwAAAAwAAAAgKOs1XFQzQECAAAAEgAAAGEAYQBhAEEAQQBBADEAMQAxAAAA"
+                }
+            ],
+            "ipanttrustdirection": [
+                "3"
+            ],
+            "ipanttrusteddomainsid": [
+                "S-1-5-21-2085708479-1865276630-1146473440"
+            ],
+            "ipanttrustpartner": [
+                "ad.test"
+            ],
+            "ipanttrusttype": [
+                "2"
+            ],
+            "objectclass": [
+                "ipaNTTrustedDomain"
+            ],
+            "trustdirection": [
+                "Two-way trust"
+            ],
+            "trusttype": [
+                "Active Directory domain"
+            ]
+        },
+        "summary": null,
+        "value": "ad.test"
+    }
+}

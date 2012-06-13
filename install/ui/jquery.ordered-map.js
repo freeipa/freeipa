@@ -47,11 +47,13 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
         }
 
         that.map[key] = value;
+
+        return that;
     };
 
     that.put_map = function(map) {
 
-        if (typeof map !== 'object') return;
+        if (typeof map !== 'object') return that;
 
         for (name in map) {
 
@@ -59,6 +61,35 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
                 that.put(name, map[name]);
             }
         }
+
+        return that;
+    };
+
+    that.put_array = function(array, key_name, operation) {
+
+        var i, item, type, key;
+
+        array = array || [];
+
+        for (i=0; i<array.length; i++) {
+            item = array[i];
+            type = typeof item;
+            if (type === 'string') {
+                key = item;
+            } if (type === 'object') {
+                key = item[key_name];
+            }
+
+            if (operation) {
+                item = operation(item);
+            }
+
+            if (key) {
+                that.put(key, item);
+            }
+        }
+
+        return that;
     };
 
     that.remove = function(key) {
@@ -80,6 +111,7 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
         that.values = [];
         that.map = {};
         that.length = that.keys.length;
+        return that;
     };
 
     that.get_key_index = function(key) {
@@ -118,7 +150,6 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
     };
 
     that.put_map(map);
-
 
     return that;
 };
