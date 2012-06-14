@@ -222,6 +222,7 @@ class test_service(Declarative):
                 result=dict(
                     dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
+                    ipakrbprincipalalias=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
@@ -261,6 +262,7 @@ class test_service(Declarative):
                     dict(
                         dn=lambda x: DN(x) == service1dn,
                         krbprincipalname=[service1],
+                        ipakrbprincipalalias=[service1],
                         objectclass=objectclasses.service,
                         ipauniqueid=[fuzzy_uuid],
                         has_keytab=False,

@@ -33,6 +33,8 @@ user1 = u'tuser1'
 
 invalidgroup1=u'+tgroup1'
 
+def get_group_dn(cn):
+    return DN(('cn', cn), api.env.container_group, api.env.basedn)
 
 class test_group(Declarative):
     cleanup_commands = [
@@ -86,9 +88,7 @@ class test_group(Declarative):
                     description=[u'Test desc 1'],
                     objectclass=objectclasses.group,
                     ipauniqueid=[fuzzy_uuid],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn','testgroup1'),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=lambda x: DN(x) == get_group_dn('testgroup1'),
                 ),
             ),
         ),
@@ -113,9 +113,7 @@ class test_group(Declarative):
                 result=dict(
                     cn=[group1],
                     description=[u'Test desc 1'],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn','testgroup1'),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=lambda x: DN(x) == get_group_dn('testgroup1'),
                 ),
             ),
         ),
@@ -145,9 +143,7 @@ class test_group(Declarative):
                 result=dict(
                     cn=[group1],
                     description=[u'New desc 1'],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn','testgroup1'),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=lambda x: DN(x) == get_group_dn('testgroup1'),
                 ),
                 summary=None,
             ),
@@ -180,9 +176,7 @@ class test_group(Declarative):
                 result=dict(
                     cn=[group1],
                     description=(u'New desc 1',),
-                    dn=lambda x: DN(x) == \
-                        DN(('cn','testgroup1'),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=lambda x: DN(x) == get_group_dn('testgroup1'),
                     gidnumber=[fuzzy_digits],
                 ),
                 summary=None,
@@ -198,9 +192,7 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        dn=lambda x: DN(x) == get_group_dn(group1),
                         cn=[group1],
                         description=[u'New desc 1'],
                         gidnumber=[fuzzy_digits],
@@ -249,9 +241,7 @@ class test_group(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn','testgroup2'),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=lambda x: DN(x) == get_group_dn('testgroup2'),
                 ),
             ),
         ),
@@ -277,9 +267,7 @@ class test_group(Declarative):
                     cn=[group2],
                     description=[u'Test desc 2'],
                     gidnumber=[fuzzy_digits],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn','testgroup2'),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=lambda x: DN(x) == get_group_dn('testgroup2'),
                 ),
             ),
         ),
@@ -311,9 +299,7 @@ class test_group(Declarative):
                     cn=[group2],
                     description=[u'New desc 2'],
                     gidnumber=[fuzzy_digits],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn','testgroup2'),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=lambda x: DN(x) == get_group_dn('testgroup2'),
                 ),
                 summary=None,
             ),
@@ -328,9 +314,7 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('cn',group2),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        dn=lambda x: DN(x) == get_group_dn('testgroup2'),
                         cn=[group2],
                         description=[u'New desc 2'],
                         gidnumber=[fuzzy_digits],
@@ -345,50 +329,46 @@ class test_group(Declarative):
             desc='Search for all groups',
             command=('group_find', [], {}),
             expected=dict(
-                summary=u'5 groups matched',
-                count=5,
+                summary=u'6 groups matched',
+                count=6,
                 truncated=False,
                 result=[
                     {
-                        'dn': lambda x: DN(x) == \
-                            DN(('cn','admins'),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        'dn': lambda x: DN(x) == get_group_dn('admins'),
                         'member_user': [u'admin'],
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],
                         'description': [u'Account administrators group'],
                     },
                     {
-                        'dn': lambda x: DN(x) == \
-                            DN(('cn','editors'),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        'dn': lambda x: DN(x) == get_group_dn('editors'),
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'editors'],
                         'description': [u'Limited admins who can edit other users'],
                     },
                     {
-                        'dn': lambda x: DN(x) == \
-                            DN(('cn','ipausers'),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        'dn': lambda x: DN(x) == get_group_dn('ipausers'),
                         'cn': [u'ipausers'],
                         'description': [u'Default group for all users'],
                     },
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        dn=lambda x: DN(x) == get_group_dn(group1),
                         cn=[group1],
                         description=[u'New desc 1'],
                         gidnumber=[fuzzy_digits],
                     ),
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('cn',group2),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        dn=lambda x: DN(x) == get_group_dn(group2),
                         cn=[group2],
                         description=[u'New desc 2'],
                         gidnumber=[fuzzy_digits],
                     ),
+                    {
+                        'dn': lambda x: DN(x) == get_group_dn('trust admins'),
+                        'member_user': [u'admin'],
+                        'cn': [u'trust admins'],
+                        'description': [u'Trusts administrators group'],
+                    },
                 ],
             ),
         ),
@@ -411,9 +391,7 @@ class test_group(Declarative):
                     ),
                 ),
                 result={
-                        'dn': lambda x: DN(x) == \
-                            DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        'dn': lambda x: DN(x) == get_group_dn(group1),
                         'member_group': (group2,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
@@ -437,9 +415,7 @@ class test_group(Declarative):
                     ),
                 ),
                 result={
-                        'dn': lambda x: DN(x) == \
-                            DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        'dn': lambda x: DN(x) == get_group_dn(group1),
                         'member_group': (group2,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
@@ -462,9 +438,7 @@ class test_group(Declarative):
                     ),
                 ),
                 result={
-                    'dn': lambda x: DN(x) == \
-                        DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    'dn': lambda x: DN(x) == get_group_dn(group1),
                     'cn': [group1],
                     'gidnumber': [fuzzy_digits],
                     'description': [u'New desc 1'],
@@ -487,9 +461,7 @@ class test_group(Declarative):
                     ),
                 ),
                 result={
-                    'dn': lambda x: DN(x) == \
-                        DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    'dn': lambda x: DN(x) == get_group_dn(group1),
                     'cn': [group1],
                     'gidnumber': [fuzzy_digits],
                     'description': [u'New desc 1'],
@@ -658,8 +630,7 @@ class test_group(Declarative):
                         [DN(('cn','global_policy'),('cn',api.env.realm),
                             ('cn','kerberos'),api.env.basedn)],
                     mepmanagedentry=lambda x: [DN(i) for i in x] == \
-                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                            api.env.basedn)],
+                        [get_group_dn(user1)],
                     memberof_group=[u'ipausers'],
                     dn=lambda x: DN(x) == \
                         DN(('uid',user1),('cn','users'),('cn','accounts'),
@@ -681,9 +652,7 @@ class test_group(Declarative):
                     cn=[user1],
                     description=[u'User private group for %s' % user1],
                     gidnumber=[fuzzy_digits],
-                    dn=lambda x: DN(x) == \
-                        DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                           api.env.basedn),
+                    dn=lambda x: DN(x) == get_group_dn(user1),
                 ),
             ),
         ),
@@ -697,9 +666,7 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=lambda x: DN(x) == \
-                            DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                               api.env.basedn),
+                        dn=lambda x: DN(x) == get_group_dn(user1),
                         cn=[user1],
                         description=[u'User private group for %s' % user1],
                         gidnumber=[fuzzy_digits],
@@ -816,9 +783,7 @@ class test_group(Declarative):
                     ),
                 ),
                 result={
-                        'dn': lambda x: DN(x) == \
-                            DN(('cn', 'admins'), ('cn', 'groups'),
-                                ('cn', 'accounts'), api.env.basedn),
+                        'dn': lambda x: DN(x) == get_group_dn('admins'),
                         'member_user': [u'admin', user1],
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],
