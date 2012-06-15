@@ -913,16 +913,19 @@ class Command(HasParam):
             raise TypeError('%s: need a %r; got a %r: %r' % (
                 nice, dict, type(output), output)
             )
-        if len(output) < len(self.output):
-            missing = sorted(set(self.output).difference(output))
-            raise ValueError('%s: missing keys %r in %r' % (
-                nice, missing, output)
-            )
-        if len(output) > len(self.output):
-            extra = sorted(set(output).difference(self.output))
-            raise ValueError('%s: unexpected keys %r in %r' % (
-                nice, extra, output)
-            )
+        expected_set = set(self.output)
+        actual_set = set(output)
+        if expected_set != actual_set:
+            missing = expected_set - actual_set
+            if missing:
+                raise ValueError('%s: missing keys %r in %r' % (
+                    nice, sorted(missing), output)
+                )
+            extra = actual_set - expected_set
+            if extra:
+                raise ValueError('%s: unexpected keys %r in %r' % (
+                    nice, sorted(extra), output)
+                )
         for o in self.output():
             value = output[o.name]
             if not (o.type is None or isinstance(value, o.type)):
