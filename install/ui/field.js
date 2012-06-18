@@ -50,6 +50,7 @@ IPA.field = function(spec) {
     that.writable = true;
 
     that.enabled = spec.enabled === undefined ? true : spec.enabled;
+    that.flags = spec.flags || [];
 
     that.undo = spec.undo === undefined ? true : spec.undo;
 
@@ -473,6 +474,29 @@ IPA.unsupported_validator = function(spec) {
         if (IPA.is_empty(value)) return that.true_result();
 
         if (that.unsupported.indexOf(value) > -1) return that.false_result();
+
+        return that.true_result();
+    };
+
+    return that;
+};
+
+IPA.same_password_validator = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.validator(spec);
+    that.other_field = spec.other_field;
+
+    that.message = spec.message || IPA.messages.password.password_must_match;
+
+    that.validate = function(value, context) {
+
+        var other_field = context.container.fields.get_field(that.other_field);
+        var other_value = other_field.save();
+        var this_value = context.save();
+
+        if (IPA.array_diff(this_value, other_value)) return that.false_result();
 
         return that.true_result();
     };

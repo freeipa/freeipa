@@ -128,6 +128,7 @@ IPA.entity_adder_dialog = function(spec) {
 
             var values = record[field.param];
             if (!values || values.length === 0) continue;
+            if (field.flags.indexOf('no_command') > -1) continue;
 
             if (field.param === pkey_name) {
                 command.add_arg(values[0]);

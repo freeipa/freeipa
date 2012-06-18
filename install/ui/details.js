@@ -521,6 +521,7 @@ IPA.details_facet = function(spec, no_init) {
 
         for (var i=0; i < update_info.fields.length; i++) {
             var field_info = update_info.fields[i];
+            if (field_info.field.flags.indexOf('no_command') > -1) continue;
             var values = field_info.field.save();
             IPA.command_builder.add_field_option(
                 command,
