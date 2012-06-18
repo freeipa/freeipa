@@ -440,7 +440,7 @@ if [ $1 = 1 ]; then
 fi
 %endif
 if [ $1 -gt 1 ] ; then
-    /usr/sbin/ipa-upgradeconfig || :
+    /usr/sbin/ipa-upgradeconfig >/dev/null 2>&1 || :
 fi
 
 %posttrans server

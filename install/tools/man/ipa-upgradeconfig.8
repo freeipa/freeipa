@@ -16,7 +16,7 @@
 .\" 
 .\" Author: Rob Crittenden <rcritten@redhat.com>
 .\" 
-.TH "ipa-upgradeconfig" "8" "Sep 9 2010" "freeipa" ""
+.TH "ipa-upgradeconfig" "8" "Jun 18 2012" "freeipa" ""
 .SH "NAME"
 ipa\-upgradeconfig \- Upgrade the IPA Apache configuration
 .SH "SYNOPSIS"
@@ -29,6 +29,9 @@ It examines the VERSION value in the head of \fI/etc/httpd/conf.d/ipa.conf\fR an
 It also will convert a CA configured to be accessible via ports 9443, 9444, 9445 and 9446 to be proxied by the IPA web server on ports 80 and 443.
 
 This is not intended to be run by an end\-user. It is executed when the IPA rpms are upgraded. This must be run as the root user.
+.SH "OPTIONS"
+\fB\-d\fR, \fB\-\-debug\fR
+Enable debug logging when more verbose output is needed
 .SH "EXIT STATUS"
 0 if the update was successful or there was nothing to do
 

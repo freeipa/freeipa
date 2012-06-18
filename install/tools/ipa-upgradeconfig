@@ -152,19 +152,20 @@ def upgrade(sub_dict, filename, template, add=False):
     new = int(find_version(template))
 
     if old < 0 and not add:
-        print "%s not found." % filename
+        root_logger.error("%s not found." % filename)
         sys.exit(1)
 
     if new < 0:
-        print "%s not found." % template
+        root_logger.error("%s not found." % template)
 
     if old < new or (add and old == 0):
         backup_file(filename, new)
         update_conf(sub_dict, filename, template)
-        print "Upgraded %s to version %d" % (filename, new)
+        root_logger.info("Upgraded %s to version %d", filename, new)
 
 def check_certs():
     """Check ca.crt is in the right place, and try to fix if not"""
+    root_logger.info('[Verifying that root certificate is published]')
     if not os.path.exists("/usr/share/ipa/html/ca.crt"):
         ca_file = "/etc/httpd/alias/cacert.asc"
         if os.path.exists(ca_file):
@@ -174,8 +175,10 @@ def check_certs():
             finally:
                 os.umask(old_umask)
         else:
-            print "Missing Certification Authority file."
-            print "You should place a copy of the CA certificate in /usr/share/ipa/html/ca.crt"
+            root_logger.error("Missing Certification Authority file.")
+            root_logger.error("You should place a copy of the CA certificate in /usr/share/ipa/html/ca.crt")
+    else:
+        root_logger.debug('Certificate file exists')
 
 def upgrade_pki(fstore):
     """
@@ -184,7 +187,9 @@ def upgrade_pki(fstore):
 
     This requires enabling SSL renegotiation.
     """
+    root_logger.info('[Verifying that CA proxy configuration is correct]')
     if not os.path.exists('/etc/pki-ca/CS.cfg'):
+        root_logger.debug('No CA detected in /etc/pki-ca')
         return
 
     http = httpinstance.HTTPInstance(fstore)
@@ -194,6 +199,9 @@ def upgrade_pki(fstore):
             os.path.exists('/usr/bin/pki-setup-proxy'):
         ipautil.run(['/usr/bin/pki-setup-proxy', '-pki_instance_root=/var/lib'
                      ,'-pki_instance_name=pki-ca','-subsystem_type=ca'])
+        root_logger.debug('Proxy configuration updated')
+    else:
+        root_logger.debug('Proxy configuration up-to-date')
 
 def update_dbmodules(realm, filename="/etc/krb5.conf"):
     newfile = []
@@ -201,6 +209,7 @@ def update_dbmodules(realm, filename="/etc/krb5.conf"):
     found_realm = False
     prefix = ''
 
+    root_logger.info('[Verifying that KDC configuration is using ipa-kdb backend]')
     st = os.stat(filename)
     fd = open(filename)
 
@@ -208,7 +217,7 @@ def update_dbmodules(realm, filename="/etc/krb5.conf"):
     fd.close()
 
     if '    db_library = ipadb.so\n' in lines:
-        # Already updated
+        root_logger.debug('dbmodules already updated in %s', filename)
         return
 
     for line in lines:
@@ -234,32 +243,42 @@ def update_dbmodules(realm, filename="/etc/krb5.conf"):
     fd = open(filename, 'w')
     fd.write("".join(newfile))
     fd.close()
+    root_logger.debug('%s updated', filename)
 
 def cleanup_kdc(fstore):
     """
     Clean up old KDC files if they exist. We need to remove the actual
     file and any references in the uninstall configuration.
     """
+    root_logger.info('[Checking for deprecated KDC configuration files]')
     for file in ['kpasswd.keytab', 'ldappwd']:
         filename = '/var/kerberos/krb5kdc/%s' % file
         installutils.remove_file(filename)
         if fstore.has_file(filename):
             fstore.untrack_file(filename)
+            root_logger.debug('Uninstalling %s', filename)
 
 def upgrade_ipa_profile(realm):
     """
     Update the IPA Profile provided by dogtag
     """
+    root_logger.info('[Verifying that CA service certificate profile is updated]')
     ca = cainstance.CAInstance(realm, certs.NSS_DIR)
     if ca.is_configured():
         if ca.enable_subject_key_identifier():
+            root_logger.debug('Subject Key Identifier updated, restarting CA')
             ca.restart()
+        else:
+            root_logger.debug('Subject Key Identifier already set.')
+    else:
+        root_logger.debug('CA is not configured')
 
 def upgrade_httpd_selinux(fstore):
     """
     Update SElinux configuration for httpd instance in the same way as the
     new server installation does.
     """
+    root_logger.info('[Verifying the Apache SELinux configuration]')
     http = httpinstance.HTTPInstance(fstore)
     http.configure_selinux_for_httpd()
 
@@ -275,8 +294,11 @@ def enable_psearch_for_named():
     """
     changed = False
 
+    root_logger.info('[Enabling persistent search in DNS]')
+
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
+        root_logger.debug('DNS not configured')
         return
 
     try:
@@ -296,6 +318,7 @@ def enable_psearch_for_named():
             else:
                 changed = True
         sysupgrade.set_upgrade_state('named.conf', 'psearch_enabled', True)
+        root_logger.debug('Persistent search enabled')
 
     # make sure number of connections is right
     minimum_connections = 2
@@ -319,12 +342,15 @@ def enable_psearch_for_named():
                 try:
                     bindinstance.named_conf_set_directive('connections',
                                                           minimum_connections)
+                    root_logger.debug('Connections set to %d', minimum_connections)
                 except IOError, e:
                     root_logger.error('Cannot update connections in %s: %s',
                             bindinstance.NAMED_CONF, e)
                 else:
                     changed = True
 
+    if not changed:
+        root_logger.debug('No changes made')
     return changed
 
 def main():
@@ -339,7 +365,9 @@ def main():
 
     safe_options, options = parse_options()
 
-    standard_logging_setup(None, debug=options.debug)
+    standard_logging_setup('/var/log/ipaupgrade.log', verbose=True,
+        debug=options.debug, console_format='%(message)s',
+        filemode='a')
 
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
