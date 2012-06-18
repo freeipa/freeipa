@@ -1,0 +1,16 @@
+dn: cn=IPA Range-Check,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: IPA Range-Check
+nsslapd-pluginpath: libipa_range_check
+nsslapd-plugininitfunc: ipa_range_check_init
+nsslapd-plugintype: preoperation
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipa_range_check_version
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: Red Hat, Inc.
+nsslapd-plugindescription: IPA Range-Check plugin
+nsslapd-plugin-depends-on-type: database
+nsslapd-basedn: $SUFFIX

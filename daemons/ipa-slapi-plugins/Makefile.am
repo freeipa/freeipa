@@ -11,6 +11,7 @@ SUBDIRS =			\
 	ipa-version		\
 	ipa-winsync		\
 	ipa-sidgen		\
+	ipa-range-check		\
 	$(NULL)
 
 EXTRA_DIST =			\

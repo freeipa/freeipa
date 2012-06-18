@@ -240,6 +240,7 @@ class DsInstance(service.Service):
         self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
         self.step("creating default Sudo bind user", self.__add_sudo_binduser)
         self.step("creating default Auto Member layout", self.__add_automember_config)
+        self.step("adding range check plugin", self.__add_range_check_plugin)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
 
@@ -787,6 +788,9 @@ class DsInstance(service.Service):
 
     def __add_replica_automember_config(self):
         self._ldap_mod("replica-automember.ldif", self.sub_dict)
+
+    def __add_range_check_plugin(self):
+        self._ldap_mod("range-check-conf.ldif", self.sub_dict)
 
     def replica_populate(self):
         self.ldap_connect()
