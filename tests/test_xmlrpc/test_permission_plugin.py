@@ -37,7 +37,7 @@ permission1_renamed_dn = DN(('cn',permission1_renamed),
                             api.env.container_permission,api.env.basedn)
 
 permission1_renamed_ucase = u'Testperm_RN'
-permission1_renamed_ucase_dn = DN(('cn',permission1_renamed_ucase.lower()),
+permission1_renamed_ucase_dn = DN(('cn',permission1_renamed_ucase),
                             api.env.container_permission,api.env.basedn)
 
 
@@ -592,7 +592,7 @@ class test_permission(Declarative):
                 summary=u'Modified permission "%s"' % permission1_renamed,
                 result={
                     'dn': lambda x: DN(x) == permission1_renamed_ucase_dn,
-                    'cn': [permission1_renamed_ucase.lower()],
+                    'cn': [permission1_renamed_ucase],
                     'member_privilege': [privilege1],
                     'type': u'user',
                     'permissions': [u'write'],
@@ -612,7 +612,7 @@ class test_permission(Declarative):
                 summary=u'Modified permission "%s"' % permission1_renamed_ucase,
                 result=dict(
                     dn=lambda x: DN(x) == permission1_renamed_ucase_dn,
-                    cn=[permission1_renamed_ucase.lower()],
+                    cn=[permission1_renamed_ucase],
                     member_privilege=[privilege1],
                     subtree=u'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn,
                     permissions=[u'write'],
@@ -632,7 +632,7 @@ class test_permission(Declarative):
                 result=[
                     {
                         'dn':lambda x: DN(x) == permission1_renamed_ucase_dn,
-                        'cn':[permission1_renamed_ucase.lower()],
+                        'cn':[permission1_renamed_ucase],
                         'member_privilege':[privilege1],
                         'subtree':u'ldap:///cn=*,cn=test,cn=accounts,%s' % api.env.basedn,
                         'permissions':[u'write'],

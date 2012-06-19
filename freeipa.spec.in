@@ -96,7 +96,11 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires: %{name}-server-selinux = %{version}-%{release}
-Requires(pre): 389-ds-base >= 1.2.10.4-2
+%if 0%{?fedora} >= 17
+Requires(pre): 389-ds-base >= 1.2.11.5-1
+%else
+Requires(pre): 389-ds-base >= 1.2.10.10-1
+%endif
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -713,6 +717,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Jun 20 2012 Ondrej Hamada <ohamada@redhat.com> - 2.99.0-33
+- Set min for 389-ds-base to 1.2.11.5-1 on F17 to fix installation issue
+- Set min for 389-ds-base to 1.2.10.10-1 on F16 (and lower) to fix CN case persistence
+
 * Fri Jun 8 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-32
 - Add directory /var/lib/ipa/sysupgrade for package upgrade metadata
 - Set min for bind-dyndb-ldap to 1.1.0-0.12.rc1 to pick up persistent search
