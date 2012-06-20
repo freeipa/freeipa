@@ -171,6 +171,10 @@ class trust_add(LDAPCreate):
             realm_server = options['realm_server']
 
         trustinstance = ipaserver.dcerpc.TrustDomainJoins(self.api)
+        if not trustinstance.configured:
+            raise errors.NotFound(name=_('AD Trust setup'),
+                  reason=_('''Cannot perform join operation without own domain configured.
+                              Make sure you have run ipa-adtrust-install on the IPA server first'''))
 
         # 1. Full access to the remote domain. Use admin credentials and
         # generate random trustdom password to do work on both sides

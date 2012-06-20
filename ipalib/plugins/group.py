@@ -22,6 +22,12 @@ from ipalib import api
 from ipalib import Int, Str
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
+if api.env.in_server and api.env.context in ['lite', 'server']:
+    try:
+        import ipaserver.dcerpc
+        _dcerpc_bindings_installed = True
+    except Exception, e:
+        _dcerpc_bindings_installed = False
 
 __doc__ = _("""
 Groups of users
@@ -83,11 +89,11 @@ class group(LDAPObject):
     object_name_plural = _('groups')
     object_class = ['ipausergroup']
     object_class_config = 'ipagroupobjectclasses'
-    possible_objectclasses = ['posixGroup', 'mepManagedEntry']
+    possible_objectclasses = ['posixGroup', 'mepManagedEntry', 'ipaExternalGroup']
     search_attributes_config = 'ipagroupsearchfields'
     default_attributes = [
         'cn', 'description', 'gidnumber', 'member', 'memberof',
-        'memberindirect', 'memberofindirect',
+        'memberindirect', 'memberofindirect', 'ipaexternalmember',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -139,10 +145,22 @@ class group_add(LDAPCreate):
              doc=_('Create as a non-POSIX group'),
              default=False,
         ),
+        Flag('external',
+             cli_name='external',
+             doc=_('Allow adding external non-IPA members from trusted domains'),
+             default=False,
+        ),
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if not options['nonposix']:
+        # As both 'external' and 'nonposix' options have default= set for
+        # them, they will always be present in options dict, thus we can
+        # safely reference the values
+        if options['external']:
+            entry_attrs['objectclass'].append('ipaexternalgroup')
+            if 'gidnumber' in options:
+                raise errors.RequirementError(name='gid')
+        elif not options['nonposix']:
             entry_attrs['objectclass'].append('posixgroup')
             if not 'gidnumber' in options:
                 entry_attrs['gidnumber'] = 999
@@ -194,11 +212,18 @@ class group_mod(LDAPUpdate):
              cli_name='posix',
              doc=_('change to a POSIX group'),
         ),
+        Flag('external',
+             cli_name='external',
+             doc=_('change to support external non-IPA members from trusted domains'),
+             default=False,
+        ),
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if options['posix'] or 'gidnumber' in options:
+        if ('posix' in options and options['posix']) or 'gidnumber' in options:
             (dn, old_entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+            if 'ipaexternalgroup' in old_entry_attrs['objectclass']:
+                raise errors.ExternalGroupViolation()
             if 'posixgroup' in old_entry_attrs['objectclass']:
                 if options['posix']:
                     raise errors.AlreadyPosixGroup()
@@ -207,6 +232,15 @@ class group_mod(LDAPUpdate):
                 entry_attrs['objectclass'] = old_entry_attrs['objectclass']
                 if not 'gidnumber' in options:
                     entry_attrs['gidnumber'] = 999
+        if options['external']:
+            (dn, old_entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+            if 'posixgroup' in old_entry_attrs['objectclass']:
+                raise errors.PosixGroupViolation()
+            if 'ipaexternalgroup' in old_entry_attrs['objectclass']:
+                raise errors.AlreadyExternalGroup()
+            else:
+                old_entry_attrs['objectclass'].append('ipaexternalgroup')
+                entry_attrs['objectclass'] = old_entry_attrs['objectclass']
         # Can't check for this in a validator because we lack context
         if 'gidnumber' in options and options['gidnumber'] is None:
             raise errors.RequirementError(name='gid')
@@ -274,11 +308,63 @@ api.register(group_show)
 class group_add_member(LDAPAddMember):
     __doc__ = _('Add members to a group.')
 
+    takes_options = (
+        Str('ipaexternalmember*',
+            cli_name='external',
+            label=_('External member'),
+            doc=_('comma-separated SIDs of members of a trusted domain'),
+            csv=True,
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        result = (completed, dn)
+        if 'ipaexternalmember' in options:
+            if not _dcerpc_bindings_installed:
+                raise errors.NotFound(name=_('AD Trust'),
+                      reason=_('''Cannot perform external member validation without Samba 4 support installed.
+                                  Make sure you have installed server-trust-ad sub-package of IPA on the server'''))
+            domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+            if not domain_validator.is_configured():
+                raise errors.NotFound(name=_('AD Trust setup'),
+                      reason=_('''Cannot perform join operation without own domain configured.
+                                  Make sure you have run ipa-adtrust-install on the IPA server first'''))
+            sids = []
+            failed_sids = []
+            for sid in options['ipaexternalmember']:
+                if domain_validator.is_trusted_sid_valid(sid):
+                    sids.append(sid)
+                else:
+                    failed_sids.append((sid, 'Not a trusted domain SID'))
+            if len(sids) == 0:
+                raise errors.ValidationError(name=_('external member'),
+                                             error=_('values are not recognized as valid SIDs from trusted domain'))
+            restore = []
+            if 'member' in failed and 'group' in failed['member']:
+                restore = failed['member']['group']
+            failed['member']['group'] = list((id,id) for id in sids)
+            result = add_external_post_callback('member', 'group', 'ipaexternalmember',
+                                                ldap, completed, failed, dn, entry_attrs,
+                                                keys, options, external_callback_normalize=False)
+            failed['member']['group'] = restore + failed_sids
+        return result
+
 api.register(group_add_member)
 
 
 class group_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a group.')
+
+    takes_options = (
+        Str('ipaexternalmember*',
+            cli_name='external',
+            label=_('External member'),
+            doc=_('comma-separated SIDs of members of a trusted domain'),
+            csv=True,
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         if keys[0] == protected_group_name:
@@ -289,6 +375,20 @@ class group_remove_member(LDAPRemoveMember):
                 raise errors.LastMemberError(key=sorted(users_deleted)[0],
                     label=_(u'group'), container=protected_group_name)
         return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        result = (completed, dn)
+        if 'ipaexternalmember' in options:
+            sids = options['ipaexternalmember']
+            restore = list()
+            if 'member' in failed and 'group' in failed['member']:
+                restore = failed['member']['group']
+            failed['member']['group'] = list((id,id) for id in sids)
+            result = remove_external_post_callback('member', 'group', 'ipaexternalmember',
+                                                ldap, completed, failed, dn, entry_attrs,
+                                                keys, options)
+            failed['member']['group'] = restore
+        return result
 
 api.register(group_remove_member)
 

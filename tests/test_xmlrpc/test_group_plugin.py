@@ -28,10 +28,17 @@ from ipalib.dn import *
 
 group1 = u'testgroup1'
 group2 = u'testgroup2'
+group3 = u'testgroup3'
 renamedgroup1 = u'testgroup'
 user1 = u'tuser1'
 
 invalidgroup1=u'+tgroup1'
+
+# When adding external SID member to a group we can't test
+# it fully due to possibly missing Samba 4 python bindings
+# and/or not configured AD trusts. Thus, we'll use incorrect
+# SID value to merely test that proper exceptions are raised
+external_sid1=u'S-1-1-123456-789-1'
 
 def get_group_dn(cn):
     return DN(('cn', cn), api.env.container_group, api.env.basedn)
@@ -40,6 +47,7 @@ class test_group(Declarative):
     cleanup_commands = [
         ('group_del', [group1], {}),
         ('group_del', [group2], {}),
+        ('group_del', [group3], {}),
         ('user_del', [user1], {}),
     ]
 
@@ -373,6 +381,63 @@ class test_group(Declarative):
             ),
         ),
 
+        ###############
+        # test external SID members for group3:
+        dict(
+            desc='Create external %r' % group3,
+            command=(
+                'group_add', [group3], dict(description=u'Test desc 3',external=True)
+            ),
+            expected=dict(
+                value=group3,
+                summary=u'Added group "testgroup3"',
+                result=dict(
+                    cn=[group3],
+                    description=[u'Test desc 3'],
+                    objectclass=objectclasses.externalgroup,
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=lambda x: DN(x) == get_group_dn(group3),
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Convert posix group %r to support external membership' % (group2),
+            command=(
+                'group_mod', [group2], dict(external=True)
+            ),
+            expected=errors.PosixGroupViolation(),
+        ),
+
+
+        dict(
+            desc='Convert external members group %r to posix' % (group3),
+            command=(
+                'group_mod', [group3], dict(posix=True)
+            ),
+            expected=errors.ExternalGroupViolation(),
+        ),
+
+
+        dict(
+            desc='Add external member %r to %r' % (external_sid1, group3),
+            command=(
+                'group_add_member', [group3], dict(ipaexternalmember=external_sid1)
+            ),
+            expected=lambda x, output: type(x) == errors.ValidationError or type(x) == errors.NotFound,
+        ),
+
+
+        dict(
+            desc='Remove group %r with external membership' % (group3),
+            command=('group_del', [group3], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=group3,
+                summary=u'Deleted group "testgroup3"',
+            ),
+        ),
 
 
         ###############

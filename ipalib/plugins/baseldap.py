@@ -362,23 +362,29 @@ def add_external_post_callback(memberattr, membertype, externalattr, ldap, compl
     externalattr is one of externaluser,
     """
     completed_external = 0
+    normalize = options.get('external_callback_normalize', True)
     # Sift through the failures. We assume that these are all
     # entries that aren't stored in IPA, aka external entries.
     if memberattr in failed and membertype in failed[memberattr]:
         (dn, entry_attrs_) = ldap.get_entry(dn, [externalattr])
         members = entry_attrs.get(memberattr, [])
         external_entries = entry_attrs_.get(externalattr, [])
+        lc_external_entries = set(e.lower() for e in external_entries)
         failed_entries = []
         for entry in failed[memberattr][membertype]:
             membername = entry[0].lower()
             member_dn = api.Object[membertype].get_dn(membername)
-            if membername not in external_entries and \
-              member_dn not in members:
+            if (membername not in lc_external_entries and
+                member_dn not in members):
                 # Not an IPA entry, assume external
-                external_entries.append(membername)
+                if normalize:
+                    external_entries.append(membername)
+                else:
+                    external_entries.append(entry[0])
+                lc_external_entries.add(membername)
                 completed_external += 1
-            elif membername in external_entries and \
-              member_dn not in members:
+            elif (membername in lc_external_entries and
+               member_dn not in members):
                 # Already an external member, reset the error message
                 msg = unicode(errors.AlreadyGroupMember().message)
                 newerror = (entry[0], msg)
@@ -409,8 +415,11 @@ def remove_external_post_callback(memberattr, membertype, externalattr, ldap, co
         completed_external = 0
         for entry in failed[memberattr][membertype]:
             membername = entry[0].lower()
-            if membername in external_entries:
-                external_entries.remove(membername)
+            if membername in external_entries or entry[0] in external_entries:
+                try:
+                    external_entries.remove(membername)
+                except ValueError:
+                    external_entries.remove(entry[0])
                 completed_external += 1
             else:
                 failed_entries.append(membername)

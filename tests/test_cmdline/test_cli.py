@@ -66,6 +66,7 @@ class TestCLIParsing(object):
             cn=u'tgroup1',
             description=u'Test group',
             nonposix=False,
+            external=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -88,6 +89,7 @@ class TestCLIParsing(object):
             cn=u'tgroup1',
             description=u'Test group',
             nonposix=True,
+            external=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -99,6 +101,7 @@ class TestCLIParsing(object):
             description=u'Test group',
             gidnumber=u'1234',
             nonposix=False,
+            external=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -109,6 +112,7 @@ class TestCLIParsing(object):
                 cn=u'tgroup1',
                 description=u'Test group',
                 nonposix=False,
+                external=False,
                 raw=False,
                 all=False,
                 version=API_VERSION)

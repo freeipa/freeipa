@@ -45,6 +45,8 @@ group = [
     u'ipaobject',
 ]
 
+externalgroup = group + [u'ipaexternalgroup']
+
 host = [
     u'ipasshhost',
     u'ipaSshGroupOfPubKeys',

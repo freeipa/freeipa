@@ -1208,13 +1208,14 @@ output: Output('total', <type 'int'>, None)
 output: Output('count', <type 'int'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 command: group_add
-args: 1,8,3
+args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
 option: Int('gidnumber', attribute=True, cli_name='gid', minvalue=1, multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('nonposix', autofill=True, cli_name='nonposix', default=False)
+option: Flag('external', autofill=True, cli_name='external', default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1222,8 +1223,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: group_add_member
-args: 1,5,3
+args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
+option: Str('ipaexternalmember*', cli_name='external', csv=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1277,7 +1279,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: group_mod
-args: 1,11,3
+args: 1,12,3
 arg: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Int('gidnumber', attribute=True, autofill=False, cli_name='gid', minvalue=1, multivalue=False, required=False)
@@ -1286,6 +1288,7 @@ option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('posix', autofill=True, cli_name='posix', default=False)
+option: Flag('external', autofill=True, cli_name='external', default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1294,8 +1297,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: group_remove_member
-args: 1,5,3
+args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
+option: Str('ipaexternalmember*', cli_name='external', csv=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')

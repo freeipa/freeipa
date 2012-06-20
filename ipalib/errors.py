@@ -1277,6 +1277,56 @@ class SingleMatchExpected(ExecutionError):
     format = _('The search criteria was not specific enough. Expected 1 and found %(found)d.')
 
 
+class AlreadyExternalGroup(ExecutionError):
+    """
+    **4028** Raised when a group is already an external member group
+
+    For example:
+
+    >>> raise AlreadyExternalGroup
+    Traceback (most recent call last):
+      ...
+    AlreadyExternalGroup: This group already allows external members
+
+    """
+
+    errno = 4028
+    format = _('This group already allows external members')
+
+class ExternalGroupViolation(ExecutionError):
+    """
+    **4029** Raised when a group is already an external member group
+             and an attempt is made to use it as posix group
+
+    For example:
+
+    >>> raise ExternalGroupViolation
+    Traceback (most recent call last):
+      ...
+    ExternalGroupViolation: This group cannot be posix because it is external
+
+    """
+
+    errno = 4029
+    format = _('This group cannot be posix because it is external')
+
+class PosixGroupViolation(ExecutionError):
+    """
+    **4030** Raised when a group is already a posix group
+             and cannot be converted to external
+
+    For example:
+
+    >>> raise PosixGroupViolation
+    Traceback (most recent call last):
+      ...
+    PosixGroupViolation: This is already a posix group and cannot be converted to external one
+
+    """
+
+    errno = 4030
+    format = _('This is already a posix group and cannot be converted to external one')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

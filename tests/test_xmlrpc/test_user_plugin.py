@@ -1059,7 +1059,7 @@ class test_user(Declarative):
             command=(
                 'config_mod', [], dict(ipahomesrootdir=u'/other-home'),
             ),
-            expected=lambda x: True,
+            expected=lambda x, output: x is None,
         ),
 
         dict(
@@ -1107,7 +1107,7 @@ class test_user(Declarative):
             command=(
                 'config_mod', [], dict(ipahomesrootdir=u'/home'),
             ),
-            expected=lambda x: True,
+            expected=lambda x, output: x is None,
         ),
 
         dict(
@@ -1125,7 +1125,7 @@ class test_user(Declarative):
             command=(
                 'config_mod', [], dict(ipadefaultloginshell=u'/usr/bin/ipython'),
             ),
-            expected=lambda x: True,
+            expected=lambda x, output: x is None,
         ),
 
         dict(
@@ -1172,7 +1172,7 @@ class test_user(Declarative):
             command=(
                 'config_mod', [], dict(ipadefaultloginshell=u'/bin/sh'),
             ),
-            expected=lambda x: True,
+            expected=lambda x, output: x is None,
         ),
 
         dict(
@@ -1245,7 +1245,7 @@ class test_user(Declarative):
             command=(
                 'config_mod', [], dict(ipadefaultprimarygroup=group1),
             ),
-            expected=lambda x: True,
+            expected=lambda x, output: x is None,
         ),
 
         dict(
@@ -1328,7 +1328,7 @@ class test_user(Declarative):
             command=(
                 'config_mod', [], dict(ipadefaultprimarygroup=u'ipausers'),
             ),
-            expected=lambda x: True,
+            expected=lambda x, output: x is None,
         ),
 
         dict(

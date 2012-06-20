@@ -260,6 +260,8 @@ class Declarative(XMLRPC_test):
             raise nose.SkipTest('%r not in api.Command' % cmd)
         if isinstance(expected, errors.PublicError):
             self.check_exception(nice, cmd, args, options, expected)
+        elif hasattr(expected, '__call__'):
+            self.check_callable(nice, cmd, args, options, expected)
         else:
             self.check_output(nice, cmd, args, options, expected, extra_check)
 
@@ -284,6 +286,18 @@ class Declarative(XMLRPC_test):
         # transport, the exception is a free-form data structure (dict).
         # For now just compare the strings
         assert_deepequal(expected.strerror, e.strerror)
+
+    def check_callable(self, nice, cmd, args, options, expected):
+        output = dict()
+        e = None
+        try:
+            output = api.Command[cmd](*args, **options)
+        except StandardError, e:
+           pass
+        if not expected(e, output):
+            raise AssertionError(
+                UNEXPECTED % (cmd, args, options, e.__class__.__name__, e)
+            )
 
     def check_output(self, nice, cmd, args, options, expected, extra_check):
         got = api.Command[cmd](*args, **options)
