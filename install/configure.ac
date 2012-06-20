@@ -48,6 +48,11 @@ if test "x$MSGCMP" = "xno"; then
     AC_MSG_ERROR([msgcmp not found, install gettext])
 fi
 
+AC_PATH_PROG(MSGATTRIB, msgattrib, [no])
+if test "x$MSGATTRIB" = "xno"; then
+    AC_MSG_ERROR([msgattrib not found, install gettext])
+fi
+
 AC_PATH_PROG(TX, tx, [/usr/bin/tx])
 
 AC_ARG_WITH([gettext_domain],

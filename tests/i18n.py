@@ -367,7 +367,7 @@ def validate_positional_substitutions(s, prog_langs, s_name='string'):
 
     return errors
 
-def validate_file(file_path, validation_mode):
+def validate_file(file_path, validation_mode, reference_pot=None):
     '''
     Given a pot or po file scan all it's entries looking for problems
     with variable substitutions. See the following functions for
@@ -378,6 +378,9 @@ def validate_file(file_path, validation_mode):
     * validate_positional_substitutions()
 
     Returns the number of entries with errors.
+
+    For po files, ``reference_pot`` gives a pot file to merge with (to recover
+    comments and file locations)
     '''
 
     def emit_messages():
@@ -419,6 +422,9 @@ def validate_file(file_path, validation_mode):
         emit_messages()
         return Result(n_entries=n_entries, n_msgids=n_msgids, n_msgstrs=n_msgstrs, n_warnings=n_warnings, n_errors=n_errors)
 
+    if validation_mode == 'po' and reference_pot:
+        # Merge the .pot file for comments and file locations
+        po.merge(reference_pot)
 
     if validation_mode == 'po':
         plural_forms = po.metadata.get('Plural-Forms')
@@ -754,12 +760,14 @@ def main():
             if not files:
                 files = [options.pot_file]
             validation_mode = 'pot'
+            reference_pot = None
         elif options.mode == 'validate_po':
             files = args
             if not files:
                 print >> sys.stderr, 'ERROR: no po files specified'
                 return 1
             validation_mode = 'po'
+            reference_pot = polib.pofile(options.pot_file)
         else:
             print >> sys.stderr, 'ERROR: unknown validation mode "%s"' % (options.mode)
             return 1
@@ -771,7 +779,7 @@ def main():
         total_errors = 0
 
         for f in files:
-            result = validate_file(f, validation_mode)
+            result = validate_file(f, validation_mode, reference_pot)
             total_entries += result.n_entries
             total_msgids += result.n_msgids
             total_msgstrs += result.n_msgstrs

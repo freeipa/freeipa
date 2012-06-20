@@ -14,6 +14,7 @@ MSGFMT = @MSGFMT@
 MSGINIT = @MSGINIT@
 MSGMERGE = @MSGMERGE@
 MSGCMP = @MSGCMP@
+MSGATTRIB = @MSGATTRIB@
 TX = @TX@
 IPA_TEST_I18N = ../../tests/i18n.py
 
@@ -67,7 +68,7 @@ C_POTFILES = $(C_FILES) $(H_FILES)
 
 .SUFFIXES:
 .SUFFIXES: .po .mo
-.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test mo-files debug
+.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test mo-files debug strip-po merge-po $(po_files)
 
 all:
 
@@ -86,6 +87,19 @@ $(po_files): $(DOMAIN).pot
 	echo Merging $(DOMAIN).pot into $@; \
 	$(MSGMERGE) --no-fuzzy-matching -o $@ $@ $(DOMAIN).pot
 
+strip-po:
+	@for po_file in $(po_files); do \
+		echo Stripping $$po_file; \
+		$(MSGATTRIB) --translated --no-fuzzy --no-location $$po_file > $$po_file.tmp; \
+		mv $$po_file.tmp $$po_file; \
+	done
+	@export FILES_TO_REMOVE=`find . -name '*.po' -empty`; \
+	if [ "$$FILES_TO_REMOVE" != "" ]; then \
+		echo Removing empty translation files; \
+		rm -v $$FILES_TO_REMOVE; \
+		echo; echo Please remove the deleted files from LINGUAS!; echo; \
+	fi
+
 create-po: $(DOMAIN).pot
 	@for po_file in $(po_files); do \
 	    if [ ! -e $$po_file ]; then \
@@ -98,9 +112,13 @@ create-po: $(DOMAIN).pot
 
 pull-po:
 	cd ../..; $(TX) pull -f
+	$(MAKE) strip-po
 
-update-po: update-pot
+merge-po: update-pot
 	$(MAKE) $(po_files)
+
+update-po: merge-po
+	$(MAKE) strip-po
 
 update-pot:
 	@rm -f $(DOMAIN).pot.update
