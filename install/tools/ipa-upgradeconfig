@@ -125,6 +125,26 @@ def find_hostname():
 
     raise RuntimeError("Unable to determine the fully qualified hostname from %s" % filename)
 
+def find_autoredirect(fqdn):
+    """
+    When upgrading ipa-rewrite.conf we need to see if the automatic redirect
+    was disabled during install time (or afterward). So sift through the
+    configuration file and see if we can determine the status.
+
+    Returns True if autoredirect is enabled, False otherwise
+    """
+    filename = '/etc/httpd/conf.d/ipa-rewrite.conf'
+    if os.path.exists(filename):
+        pattern = "^RewriteRule \^/\$ https://%s/ipa/ui \[L,NC,R=301\]" % fqdn
+        p = re.compile(pattern)
+        for line in fileinput.input(filename):
+            if p.search(line):
+                fileinput.close()
+                return True
+        fileinput.close()
+        return False
+    return True
+
 def find_version(filename):
     """Find the version of a configuration file"""
     if os.path.exists(filename):
@@ -386,7 +406,8 @@ def main():
 
     check_certs()
 
-    sub_dict = { "REALM" : krbctx.default_realm, "FQDN": fqdn }
+    auto_redirect = find_autoredirect(fqdn)
+    sub_dict = { "REALM" : krbctx.default_realm, "FQDN": fqdn, "AUTOREDIR": '' if auto_redirect else '#'}
 
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")

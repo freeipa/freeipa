@@ -112,7 +112,11 @@ Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd
 Requires: mod_wsgi
+%if 0%{?fedora} >= 18
+Requires: mod_auth_kerb >= 5.4-16
+%else
 Requires: mod_auth_kerb >= 5.4-8
+%endif
 Requires: mod_nss >= 1.0.8-10
 Requires: python-ldap
 Requires: python-krbV
@@ -145,9 +149,13 @@ Requires: pki-silent >= 9.0.18
 Requires: pki-setup  >= 9.0.18
 Requires: dogtag-pki-common-theme
 Requires: dogtag-pki-ca-theme
+%if 0%{?fedora} >= 18
+Requires: tomcat6 >= 6.0.35-4
+%else
 %if 0%{?fedora} >= 16
 # Only tomcat6 greater than this version provides proper systemd support
 Requires: tomcat6 >= 6.0.32-17
+%endif
 %endif
 %if 0%{?rhel}
 Requires: subscription-manager
@@ -735,6 +743,11 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Fri Jun 29 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-37
+- Add Requires on openssl
+- Set minimum tomcat6 to 6.0.35-4 in F-18
+- Set minimum mod_auth_kerb to 5.4-16 in F-18
+
 * Fri Jun 21 2012 Sumit Bose <sbose@redhat.com> - 2.99.0-36
 - Add extdom extop plugin
 
