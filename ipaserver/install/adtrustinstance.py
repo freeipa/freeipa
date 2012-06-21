@@ -364,9 +364,9 @@ class ADTRUSTInstance(service.Service):
         except:
             pass
 
-    def __restart_kdc(self):
+    def __restart_dirsrv(self):
         try:
-            ipaservices.knownservices.krb5kdc.restart()
+            ipaservices.knownservices.dirsrv.restart()
         except:
             pass
 
@@ -434,8 +434,8 @@ class ADTRUSTInstance(service.Service):
         if not self.no_msdcs:
             self.step("adding special DNS service records", \
                       self.__add_dns_service_records)
-        self.step("restarting KDC to take MS PAC changes into account", \
-                  self.__restart_kdc)
+        self.step("restarting Directory Server to take MS PAC and CLDAP changes into account", \
+                  self.__restart_dirsrv)
         self.step("setting SELinux booleans", \
                   self.__configure_selinux_for_smbd)
         self.step("starting smbd", self.__start)
