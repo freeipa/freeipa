@@ -566,7 +566,7 @@ class aci_del(crud.Delete):
 
     takes_options = (_prefix_option,)
 
-    def execute(self, aciname, aciprefix):
+    def execute(self, aciname, aciprefix, **options):
         """
         Execute the aci-delete operation.
 

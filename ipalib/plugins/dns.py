@@ -2730,13 +2730,13 @@ class dnsrecord_del(LDAPUpdate):
                         error=_('Zone record \'%s\' cannot be deleted') \
                                 % _dns_zone_record
                       )
-            return self.obj.methods.delentry(*keys)
+            return self.obj.methods.delentry(*keys, version=options['version'])
 
         result = super(dnsrecord_del, self).execute(*keys, **options)
 
         if getattr(context, 'del_all', False) and not \
                 self.obj.is_pkey_zone_record(*keys):
-            return self.obj.methods.delentry(*keys)
+            return self.obj.methods.delentry(*keys, version=options['version'])
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

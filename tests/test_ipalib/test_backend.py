@@ -27,6 +27,7 @@ from tests.data import unicode_str
 from ipalib.request import context, Connection
 from ipalib.frontend import Command
 from ipalib import  backend, plugable, errors, base
+from ipapython.version import API_VERSION
 
 
 
@@ -184,7 +185,7 @@ class test_Executioner(ClassChecker):
         api.register(echo)
 
         class good(Command):
-            def execute(self):
+            def execute(self, **options):
                 raise errors.ValidationError(
                     name='nurse',
                     error=u'Not naughty!',
@@ -192,7 +193,7 @@ class test_Executioner(ClassChecker):
         api.register(good)
 
         class bad(Command):
-            def execute(self):
+            def execute(self, **options):
                 raise ValueError('This is private.')
         api.register(bad)
 
@@ -224,10 +225,15 @@ class test_Executioner(ClassChecker):
         arg1 = unicode_str
         arg2 = (u'Hello', unicode_str, u'world!')
         args = (arg1,) + arg2
-        options = dict(option1=u'How are you?', option2=unicode_str)
+        options = dict(option1=u'How are you?', option2=unicode_str,
+                       version=API_VERSION)
 
         conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
+        print o.execute('echo', arg1, arg2, **options)
+        print dict(
+            result=(arg1, arg2, options)
+        )
         assert o.execute('echo', arg1, arg2, **options) == dict(
             result=(arg1, arg2, options)
         )
@@ -261,4 +267,6 @@ class test_Executioner(ClassChecker):
         # Test with option 'name':
         conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
-        assert o.execute('with_name', name=u'test') == dict(result=u'TEST')
+        expected = dict(result=u'TEST')
+        assert expected == o.execute('with_name', name=u'test',
+                                     version=API_VERSION)

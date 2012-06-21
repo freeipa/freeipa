@@ -889,7 +889,7 @@ class automountkey_del(LDAPDelete):
         ),
     )
     def get_options(self):
-        for option in self.takes_options:
+        for option in super(automountkey_del, self).get_options():
             if option.name == 'continue':
                 # TODO: hide for now - remove in future major release
                 yield option.clone(exclude='webui',

@@ -526,7 +526,6 @@ class Command(HasParam):
                 yield (name, options.pop(name))
         # If any options remain, they are either internal or unknown
         unused_keys = set(options).difference(self.internal_options)
-        unused_keys.discard('version')
         if unused_keys:
             raise OptionError(_('Unknown option: %(option)s'),
                 option=unused_keys.pop())
@@ -743,7 +742,8 @@ class Command(HasParam):
         if self.api.env.in_server:
             if 'version' in options:
                 self.verify_client_version(options['version'])
-                del options['version']
+            else:
+                options['version'] = API_VERSION
             return self.execute(*args, **options)
         return self.forward(*args, **options)
 
@@ -897,12 +897,12 @@ class Command(HasParam):
                     exclude='webui',
                     flags=['no_output'],
                 )
-                yield Str('version?',
-                    doc=_('Client version. Used to determine if server will accept request.'),
-                    exclude='webui',
-                    flags=['no_option', 'no_output'],
-                )
-                return
+                break
+        yield Str('version?',
+            doc=_('Client version. Used to determine if server will accept request.'),
+            exclude='webui',
+            flags=['no_option', 'no_output'],
+        )
 
     def validate_output(self, output):
         """
@@ -1282,7 +1282,7 @@ class Method(Attribute, Command):
     >>> from ipalib import create_api
     >>> api = create_api()
     >>> class user_add(Method):
-    ...     def run(self):
+    ...     def run(self, **options):
     ...             return dict(result='Added the user!')
     ...
     >>> class user(Object):

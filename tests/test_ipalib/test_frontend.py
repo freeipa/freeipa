@@ -243,10 +243,14 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.get_options` method.
         """
-        assert list(self.cls().get_options()) == []
+        options = list(self.cls().get_options())
+        assert len(options) == 1
+        assert options[0].name == 'version'
         options = ('verbose', 'debug')
         o = self.get_instance(options=options)
-        assert tuple(o.get_options()) == options
+        assert len(tuple(o.get_options())) == 3
+        assert 'verbose' in tuple(o.get_options())
+        assert 'debug' in tuple(o.get_options())
 
     def test_args(self):
         """
@@ -305,12 +309,12 @@ class test_Command(ClassChecker):
         o = self.cls()
         o.finalize()
         assert type(o.options) is plugable.NameSpace
-        assert len(o.options) == 0
+        assert len(o.options) == 1
         options = ('target', 'files*')
         ns = self.get_instance(options=options).options
         assert type(ns) is plugable.NameSpace
-        assert len(ns) == len(options)
-        assert list(ns) == ['target', 'files']
+        assert len(ns) == len(options) + 1
+        assert list(ns) == ['target', 'files', 'version']
         assert type(ns.target) is parameters.Str
         assert type(ns.files) is parameters.Str
         assert ns.target.required is True
@@ -377,12 +381,13 @@ class test_Command(ClassChecker):
         cmd = user_add()
         cmd.env = config.Env(context='cli')
         cmd.finalize()
-        assert list(cmd.params) == ['givenname', 'sn', 'uid']
+        assert list(cmd.params) == ['givenname', 'sn', 'uid', 'version']
         ret = cmd.soft_validate({})
-        assert len(ret['values']) == 0
-        assert len(ret['errors']) == 3
+        assert sorted(ret['values']) == ['version']
+        assert sorted(ret['errors']) == ['givenname', 'sn', 'uid']
         assert cmd.soft_validate(dict(givenname=u'First', sn=u'Last')) == dict(
-            values=dict(givenname=u'First', sn=u'Last', uid=u'flast'),
+            values=dict(givenname=u'First', sn=u'Last', uid=u'flast',
+                        version=None),
             errors=dict(),
         )
 
@@ -604,7 +609,6 @@ class test_Command(ClassChecker):
         o.set_api(api)
         assert o.run.im_func is self.cls.run.im_func
         out = o.run(*args, **kw)
-        del kw['version']
         assert ('execute', args, kw) == out
 
         # Test in non-server context
@@ -749,7 +753,7 @@ class test_LocalOrRemote(ClassChecker):
         o = self.cls()
         o.finalize()
         assert list(o.args) == []
-        assert list(o.options) == ['server']
+        assert list(o.options) == ['server', 'version']
         op = o.options.server
         assert op.required is False
         assert op.default is False
@@ -772,17 +776,17 @@ class test_LocalOrRemote(ClassChecker):
         api.register(example)
         api.finalize()
         cmd = api.Command.example
-        assert cmd() == dict(
-            result=('execute', (None,), dict(server=False))
+        assert cmd(version=u'2.47') == dict(
+            result=('execute', (None,), dict(version=u'2.47', server=False))
         )
-        assert cmd(u'var') == dict(
-            result=('execute', (u'var',), dict(server=False))
+        assert cmd(u'var', version=u'2.47') == dict(
+            result=('execute', (u'var',), dict(version=u'2.47', server=False))
         )
-        assert cmd(server=True) == dict(
-            result=('forward', (None,), dict(server=True))
+        assert cmd(server=True, version=u'2.47') == dict(
+            result=('forward', (None,), dict(version=u'2.47', server=True))
         )
-        assert cmd(u'var', server=True) == dict(
-            result=('forward', (u'var',), dict(server=True))
+        assert cmd(u'var', server=True, version=u'2.47') == dict(
+            result=('forward', (u'var',), dict(version=u'2.47', server=True))
         )
 
         # Test when in_server=True (should always call execute):
@@ -790,17 +794,17 @@ class test_LocalOrRemote(ClassChecker):
         api.register(example)
         api.finalize()
         cmd = api.Command.example
-        assert cmd() == dict(
-            result=('execute', (None,), dict(server=False))
+        assert cmd(version=u'2.47') == dict(
+            result=('execute', (None,), dict(version=u'2.47', server=False))
         )
-        assert cmd(u'var') == dict(
-            result=('execute', (u'var',), dict(server=False))
+        assert cmd(u'var', version=u'2.47') == dict(
+            result=('execute', (u'var',), dict(version=u'2.47', server=False))
         )
-        assert cmd(server=True) == dict(
-            result=('execute', (None,), dict(server=True))
+        assert cmd(server=True, version=u'2.47') == dict(
+            result=('execute', (None,), dict(version=u'2.47', server=True))
         )
-        assert cmd(u'var', server=True) == dict(
-            result=('execute', (u'var',), dict(server=True))
+        assert cmd(u'var', server=True, version=u'2.47') == dict(
+            result=('execute', (u'var',), dict(version=u'2.47', server=True))
         )
 
 
