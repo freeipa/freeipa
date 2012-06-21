@@ -359,6 +359,8 @@ rm %{buildroot}/%{plugin_dir}/libipa_uuid.la
 rm %{buildroot}/%{plugin_dir}/libipa_modrdn.la
 rm %{buildroot}/%{plugin_dir}/libipa_lockout.la
 rm %{buildroot}/%{plugin_dir}/libipa_cldap.la
+rm %{buildroot}/%{plugin_dir}/libipa_sidgen.la
+rm %{buildroot}/%{plugin_dir}/libipa_sidgen_task.la
 rm %{buildroot}/%{_libdir}/krb5/plugins/kdb/ipadb.la
 rm %{buildroot}/%{_libdir}/samba/pdb/ipasam.la
 
@@ -668,6 +670,8 @@ fi
 %{_sbindir}/ipa-adtrust-install
 %{_usr}/share/ipa/smb.conf.empty
 %attr(755,root,root) %{_libdir}/samba/pdb/ipasam.so
+%attr(755,root,root) %{plugin_dir}/libipa_sidgen.so
+%attr(755,root,root) %{plugin_dir}/libipa_sidgen_task.so
 %{_mandir}/man1/ipa-adtrust-install.1.gz
 %{python_sitelib}/ipaserver/dcerpc*
 %{python_sitelib}/ipaserver/install/adtrustinstance*

@@ -9,6 +9,7 @@ SUBDIRS =			\
 	ipa-uuid		\
 	ipa-version		\
 	ipa-winsync		\
+	ipa-sidgen		\
 	$(NULL)
 
 EXTRA_DIST =			\

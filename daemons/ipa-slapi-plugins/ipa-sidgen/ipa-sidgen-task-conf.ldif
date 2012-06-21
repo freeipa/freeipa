@@ -1,0 +1,20 @@
+dn: cn=ipa-sidgen-task,cn=plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: nsSlapdPlugin
+objectClass: extensibleObject
+cn: ipa-sidgen-task
+nsslapd-pluginPath: libipa_sidgen_task
+nsslapd-pluginInitfunc: sidgen_task_init
+nsslapd-pluginType: object
+nsslapd-pluginEnabled: on
+nsslapd-pluginId: ipa_sidgen_task
+nsslapd-pluginVersion: 1.0
+nsslapd-pluginVendor: RedHat
+nsslapd-pluginDescription: Generate SIDs for existing user and group entries
+
+dn: cn=ipa-sidgen-task,cn=tasks,cn=config
+changetype: add
+objectClass: top
+objectClass: extensibleObject
+cn: ipa-sidgen-task

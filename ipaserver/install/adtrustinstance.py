@@ -223,6 +223,13 @@ class ADTRUSTInstance(service.Service):
         except:
             pass
 
+    def __add_sidgen_module(self):
+        try:
+            self._ldap_mod("ipa-sidgen-conf.ldif", self.sub_dict)
+            self._ldap_mod("ipa-sidgen-task-conf.ldif", self.sub_dict)
+        except:
+            pass
+
     def __write_smb_registry(self):
         template = os.path.join(ipautil.SHARE_DIR, "smb.conf.template")
         conf = ipautil.template_file(template, self.sub_dict)
@@ -430,6 +437,7 @@ class ADTRUSTInstance(service.Service):
         self.step("adding cifs Kerberos principal", self.__setup_principal)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
         self.step("activating CLDAP plugin", self.__add_cldap_module)
+        self.step("activating sidgen plugin and task", self.__add_sidgen_module)
         self.step("configuring smbd to start on boot", self.__enable)
         if not self.no_msdcs:
             self.step("adding special DNS service records", \
