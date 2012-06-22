@@ -38,7 +38,7 @@ Manage trust relationship between realms
 trust_output_params = (
     Str('ipantflatname',
         label=_('Domain NetBIOS name')),
-    Str('ipantsecurityidentifier',
+    Str('ipanttrusteddomainsid',
         label=_('Domain Security Identifier')),
     Str('trustdirection',
         label=_('Trust direction')),
@@ -90,7 +90,7 @@ class trust(LDAPObject):
     object_name = _('trust')
     object_name_plural = _('trusts')
     object_class = ['ipaNTTrustedDomain']
-    default_attributes = ['cn', 'ipantflatname', 'ipantsecurityidentifier', 
+    default_attributes = ['cn', 'ipantflatname', 'ipanttrusteddomainsid',
         'ipanttrusttype', 'ipanttrustattributes', 'ipanttrustdirection', 'ipanttrustpartner',
         'ipantauthtrustoutgoing', 'ipanttrustauthincoming', 'ipanttrustforesttrustinfo',
         'ipanttrustposixoffset', 'ipantsupportedencryptiontypes' ]
