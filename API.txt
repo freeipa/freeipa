@@ -3085,9 +3085,10 @@ option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
-command: trust_add_ad
-args: 1,7,3
+command: trust_add
+args: 1,8,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, required=True)
+option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', values=(u'ad',))
 option: Str('realm_admin?', cli_name='admin')
 option: Password('realm_passwd?', cli_name='password', confirm=False)
 option: Str('realm_server?', cli_name='server')
