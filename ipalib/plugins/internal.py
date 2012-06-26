@@ -578,6 +578,7 @@ class i18n_messages(Command):
         "password": {
             "current_password": _("Current Password"),
             "current_password_required": _("Current password is required"),
+            "expires_in": _("Your password expires in ${days} days."),
             "invalid_password": _("The password or username you entered is incorrect."),
             "new_password": _("New Password"),
             "new_password_required": _("New password is required"),
@@ -586,6 +587,7 @@ class i18n_messages(Command):
             "password_must_match": _("Passwords must match"),
             "reset_failure": _("Password reset was not successful."),
             "reset_password": _("Reset Password"),
+            "reset_password_sentence": _("Reset your password."),
             "verify_password": _("Verify Password"),
         },
         "search": {

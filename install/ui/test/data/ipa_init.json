@@ -439,6 +439,7 @@
                     "password": {
                         "current_password": "Current Password",
                         "current_password_required": "Current password is required",
+                        "expires_in": "Your password expires in ${days} days.",
                         "invalid_password": "The password or username you entered is incorrect.",
                         "new_password": "New Password",
                         "new_password_required": "New password is required",
@@ -447,6 +448,7 @@
                         "password_must_match": "Passwords must match",
                         "reset_failure": "Password reset was not successful.",
                         "reset_password": "Reset Password",
+                        "reset_password_sentence": "Reset your password.",
                         "verify_password": "Verify Password"
                     },
                     "search": {
@@ -500,6 +502,59 @@
                 }
             },
             {
+                "error": null,
+                "result": {
+                    "dn": "cn=ipaconfig,cn=etc,dc=test,dc=example,dc=com",
+                    "ipacertificatesubjectbase": [
+                        "O=EXAMPLE.COM"
+                    ],
+                    "ipaconfigstring": [
+                        "AllowNThash"
+                    ],
+                    "ipadefaultemaildomain": [
+                        "example.com"
+                    ],
+                    "ipadefaultloginshell": [
+                        "/bin/sh"
+                    ],
+                    "ipadefaultprimarygroup": [
+                        "ipausers"
+                    ],
+                    "ipagroupsearchfields": [
+                        "cn,description"
+                    ],
+                    "ipahomesrootdir": [
+                        "/home"
+                    ],
+                    "ipamaxusernamelength": [
+                        "32"
+                    ],
+                    "ipamigrationenabled": [
+                        "FALSE"
+                    ],
+                    "ipapwdexpadvnotify": [
+                        "4"
+                    ],
+                    "ipasearchrecordslimit": [
+                        "100"
+                    ],
+                    "ipasearchtimelimit": [
+                        "2"
+                    ],
+                    "ipaselinuxusermapdefault": [
+                        "guest_u:s0"
+                    ],
+                    "ipaselinuxusermaporder": [
+                        "guest_u:s0$xguest_u:s0$user_u:s0-s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023"
+                    ],
+                    "ipausersearchfields": [
+                        "uid,givenname,sn,telephonenumber,ou,title"
+                    ]
+                },
+                "summary": null,
+                "value": ""
+            },
+            {
                 "count": 1,
                 "error": null,
                 "result": [
@@ -534,7 +589,7 @@
                             "20120110142413Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20111212052109Z"
+                            "20141212052109Z"
                         ],
                         "krbprincipalname": [
                             "admin@DEV.EXAMPLE.COM"

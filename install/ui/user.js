@@ -503,9 +503,18 @@ IPA.user_password_dialog = function(spec) {
         });
 
     var that = IPA.dialog(spec);
+    that.success_handler = spec.on_success;
+    that.error_handler = spec.on_error;
+    that.self_service = spec.self_service; //option to force self-service
 
     that.get_pkey = function() {
-        return IPA.nav.get_state('user-pkey');
+        var pkey;
+        if (that.self_service) {
+            pkey = IPA.whoami.uid[0];
+        } else {
+            pkey = IPA.nav.get_state('user-pkey');
+        }
+        return pkey;
     };
 
     that.is_self_service = function() {
@@ -575,17 +584,8 @@ IPA.user_password_dialog = function(spec) {
             pkey,
             current_password,
             new_password,
-            function(data, text_status, xhr) {
-                alert(IPA.messages.password.password_change_complete);
-                that.close();
-                // refresh password expiration field
-                var facet = IPA.current_entity.get_facet();
-                facet.refresh();
-            },
-            function(xhr, text_status, error_thrown) {
-                that.close();
-            }
-        );
+            that.on_reset_success,
+            that.on_reset_error);
     };
 
     that.set_password = function(pkey, current_password, password, on_success, on_error) {
@@ -602,6 +602,34 @@ IPA.user_password_dialog = function(spec) {
         });
 
         command.execute();
+    };
+
+    that.on_reset_success = function(data, text_status, xhr) {
+
+        if (that.success_handler) {
+            that.success_handler.call(this, data, text_status, xhr);
+        } else {
+            alert(IPA.messages.password.password_change_complete);
+            that.close();
+
+            // refresh password expiration field
+            var facet = IPA.current_entity.get_facet();
+            facet.refresh();
+
+            if (that.is_self_service()) {
+                var command = IPA.get_whoami_command();
+                command.execute();
+            }
+        }
+    };
+
+    that.on_reset_error = function(xhr, text_status, error_thrown) {
+
+        if (that.error_handler) {
+            that.error_handler.call(this, xhr, text_status, error_thrown);
+        } else {
+            that.close();
+        }
     };
 
     that.create_buttons();

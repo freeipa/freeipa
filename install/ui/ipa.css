@@ -240,6 +240,18 @@ body {
     border: 0;
 }
 
+/* ---- Password expiration */
+
+.header-passwordexpires {
+    margin-right: 30px;
+    color: red;
+    font-weight: bold;
+}
+
+.header-passwordexpires a {
+    font-weight: bold;
+}
+
 /* ---- Logged-in As ---- */
 .header-right {
     float: right;

@@ -116,17 +116,14 @@ var IPA = function() {
         }));
 
         batch.add_command(IPA.command({
-            entity: 'user',
-            method: 'find',
-            options: {
-                whoami: true,
-                all: true
-            },
+            entity: 'config',
+            method: 'show',
             on_success: function(data, text_status, xhr) {
-                that.whoami = data.result[0];
-                that.principal = that.whoami.krbprincipalname[0];
+                that.server_config = data.result;
             }
         }));
+
+        batch.add_command(that.get_whoami_command(true));
 
         batch.add_command(IPA.command({
             method: 'env',
@@ -144,7 +141,25 @@ var IPA = function() {
             }
         }));
 
+
+
         batch.execute();
+    };
+
+    that.get_whoami_command = function(batch) {
+        return IPA.command({
+            entity: 'user',
+            method: 'find',
+            options: {
+                whoami: true,
+                all: true
+            },
+            on_success: function(data, text_status, xhr) {
+                that.whoami = batch ? data.result[0] : data.result.result[0];
+                that.principal = that.whoami.krbprincipalname[0];
+                that.update_password_expiration();
+            }
+        });
     };
 
     that.init_metadata = function(params) {
@@ -457,6 +472,86 @@ IPA.reset_password = function(username, old_password, new_password) {
     IPA.hide_activity_icon();
 
     return result;
+};
+
+IPA.update_password_expiration = function() {
+
+    var now, expires, notify_days, diff, message, container;
+
+    expires = IPA.whoami.krbpasswordexpiration;
+    expires = expires ? IPA.parse_utc_date(expires[0]) : null;
+
+    notify_days = IPA.server_config.ipapwdexpadvnotify;
+    notify_days = notify_days ? notify_days[0] : 0;
+
+    now = new Date();
+
+    container = $('.header-passwordexpires');
+    container.empty();
+
+    if (expires) {
+
+        diff = expires.getTime() - now.getTime();
+        diff = Math.floor(diff / 86400000);
+
+        if (diff <= notify_days) {
+            message = IPA.messages.password.expires_in;
+            message = message.replace('${days}', diff);
+            container.append(message + ' ');
+            $('<a/>', {
+                href: '#reset-password',
+                click: function() {
+                    IPA.password_selfservice();
+                    return false;
+                },
+                text: IPA.messages.password.reset_password_sentence,
+                title: IPA.messages.password.reset_password
+            }).appendTo(container);
+        }
+    }
+};
+
+IPA.password_selfservice = function() {
+    var reset_dialog = IPA.user_password_dialog({
+        self_service: true,
+        on_success: function() {
+            var command = IPA.get_whoami_command();
+            command.execute();
+
+            alert(IPA.messages.password.password_change_complete);
+            reset_dialog.close();
+        }
+    });
+    reset_dialog.open();
+};
+
+IPA.parse_utc_date = function(value) {
+
+    if (!value) return null;
+
+    // verify length
+    if (value.length  != 'YYYYmmddHHMMSSZ'.length) {
+        return null;
+    }
+
+    // We only handle GMT
+    if (value.charAt(value.length -1) !== 'Z') {
+        return null;
+    }
+
+    var date = new Date();
+
+    date.setUTCFullYear(
+        value.substring(0, 4),    // YYYY
+        value.substring(4, 6)-1,  // mm (0-11)
+        value.substring(6, 8));   // dd (1-31)
+
+    date.setUTCHours(
+        value.substring(8, 10),   // HH (0-23)
+        value.substring(10, 12),  // MM (0-59)
+        value.substring(12, 14)); // SS (0-59)
+
+    return date;
 };
 
 /**
