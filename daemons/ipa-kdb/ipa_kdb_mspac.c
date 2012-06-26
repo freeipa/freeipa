@@ -1267,7 +1267,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
 
     kerr = krb5_encode_authdata_container(context,
                                           KRB5_AUTHDATA_IF_RELEVANT,
-                                          &authdata,
+                                          authdata,
                                           signed_auth_data);
     if (kerr != 0) {
         goto done;
