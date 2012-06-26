@@ -24,6 +24,7 @@ import sys
 from nss.error import NSPRError
 import nss.nss as nss
 import netaddr
+import string
 
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes
@@ -98,6 +99,10 @@ EXAMPLES:
  Add a host that can manage this host's keytab and certificate:
    ipa host-add-managedby --hosts=test2 test
 """)
+
+# Characters to be used by random password generator
+# The set was chosen to avoid the need for escaping the characters by user
+host_pwd_chars=string.digits + string.ascii_letters + '_,.@+-='
 
 def remove_fwd_ptr(ipaddr, host, domain, recordtype):
     api.log.debug('deleting ipaddr %s' % ipaddr)
@@ -404,7 +409,7 @@ class host_add(LDAPCreate):
             if 'krbprincipal' in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].remove('krbprincipal')
         if options.get('random'):
-            entry_attrs['userpassword'] = ipa_generate_password()
+            entry_attrs['userpassword'] = ipa_generate_password(characters=host_pwd_chars)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
         cert = options.get('usercertificate')
@@ -596,7 +601,7 @@ class host_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # Allow an existing OTP to be reset but don't allow a OTP to be
         # added to an enrolled host.
-        if 'userpassword' in options:
+        if options.get('userpassword') or options.get('random'):
             entry = {}
             self.obj.get_password_attributes(ldap, dn, entry)
             if not entry['has_password'] and entry['has_keytab']:
@@ -649,7 +654,7 @@ class host_mod(LDAPUpdate):
             entry_attrs['usercertificate'] = cert
 
         if options.get('random'):
-            entry_attrs['userpassword'] = ipa_generate_password()
+            entry_attrs['userpassword'] = ipa_generate_password(characters=host_pwd_chars)
             setattr(context, 'randompassword', entry_attrs['userpassword'])
         if 'macaddress' in entry_attrs:
             if 'objectclass' in entry_attrs:

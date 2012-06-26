@@ -22,11 +22,15 @@
 Test the `ipalib.plugins.host` module.
 """
 
+import os
+import tempfile
+from ipapython import ipautil
 from ipalib import api, errors, x509
 from ipalib.dn import *
-from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_digits
-from tests.test_xmlrpc.xmlrpc_test import fuzzy_hash, fuzzy_date, fuzzy_issuer
-from tests.test_xmlrpc.xmlrpc_test import fuzzy_hex
+from nose.tools import raises, assert_raises
+from tests.test_xmlrpc.xmlrpc_test import (Declarative, XMLRPC_test,
+    fuzzy_uuid, fuzzy_digits, fuzzy_hash, fuzzy_date, fuzzy_issuer,
+    fuzzy_hex)
 from tests.test_xmlrpc import objectclasses
 import base64
 
@@ -740,3 +744,68 @@ class test_host(Declarative):
         ),
 
     ]
+
+class test_host_false_pwd_change(XMLRPC_test):
+
+    fqdn1 = u'testhost1.%s' % api.env.domain
+    short1 = u'testhost1'
+    new_pass = u'pass_123'
+
+    command = "ipa-client/ipa-join"
+    [keytabfd, keytabname] = tempfile.mkstemp()
+    os.close(keytabfd)
+
+    # auxiliary function for checking whether the join operation has set
+    # correct attributes
+    def host_joined(self):
+        ret = api.Command['host_show'](self.fqdn1, all=True)
+        assert (ret['result']['has_keytab'] == True)
+        assert (ret['result']['has_password'] == False)
+
+    def test_a_join_host(self):
+        """
+        Create a test host and join him into IPA.
+        """
+        # create a test host with bulk enrollment password
+        random_pass = api.Command['host_add'](self.fqdn1, random=True, force=True)['result']['randompassword']
+
+        # joint the host with the bulk password
+        new_args = [self.command,
+                    "-s", api.env.host,
+                    "-h", self.fqdn1,
+                    "-k", self.keytabname,
+                    "-w", random_pass,
+                    "-q",
+                   ]
+        try:
+            # join operation may fail on 'adding key into keytab', but
+            # the keytab is not necessary for further tests
+            (out, err, rc) = ipautil.run(new_args, None)
+        except ipautil.CalledProcessError, e:
+            pass
+        finally:
+            self.host_joined()
+
+    @raises(errors.ValidationError)
+    def test_b_try_password(self):
+        """
+        Try to change the password of enrolled host with specified password
+        """
+        api.Command['host_mod'](self.fqdn1, userpassword=self.new_pass)
+
+    @raises(errors.ValidationError)
+    def test_c_try_random(self):
+        """
+        Try to change the password of enrolled host with random password
+        """
+        api.Command['host_mod'](self.fqdn1, random=True)
+
+    def test_d_cleanup(self):
+        """
+        Clean up test data
+        """
+        os.unlink(self.keytabname)
+        api.Command['host_del'](self.fqdn1)
+        # verify that it's gone
+        with assert_raises(errors.NotFound):
+            api.Command['host_show'](self.fqdn1)
