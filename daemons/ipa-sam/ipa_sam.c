@@ -2545,22 +2545,18 @@ fn_exit:
 
 static NTSTATUS getsam_interdom_trust_account(struct pdb_methods *methods,
 					      struct samu *user,
-					      const char *sname)
+					      const char *sname, int lastidx)
 {
 	char *dom_name;
 	struct ldapsam_privates *ldap_state =
 			(struct ldapsam_privates *) methods->private_data;
-	int slen;
 	TALLOC_CTX *tmp_ctx;
 	struct pdb_trusted_domain *td;
 	NTSTATUS status;
 
-	slen = strlen(sname);
-	if (sname[slen - 1] != '.') {
-		DEBUG(5, ("Requested account [%s] is not a inter domain "
-			  "trust account.\n", sname));
-		return NT_STATUS_NO_SUCH_USER;
-	}
+	/* The caller must check that (sname[lastidx] == '.') || (sname[lastidx] == '$'))
+	 * before calling this function.
+	 */
 
 	tmp_ctx = talloc_new(NULL);
 	if (tmp_ctx == NULL) {
@@ -2572,7 +2568,7 @@ static NTSTATUS getsam_interdom_trust_account(struct pdb_methods *methods,
 		status = NT_STATUS_NO_MEMORY;
 		goto done;
 	}
-	dom_name[slen - 1] = '\0';
+	dom_name[lastidx] = '\0';
 
 	status = ipasam_get_trusted_domain(methods, tmp_ctx, dom_name, &td);
 	if (!NT_STATUS_IS_OK(status)) {
@@ -2598,7 +2594,7 @@ static NTSTATUS ldapsam_getsampwnam(struct pdb_methods *methods,
 {
 	struct ldapsam_privates *ldap_state =
 			(struct ldapsam_privates *) methods->private_data;
-	int slen;
+	int lastidx;
 	TALLOC_CTX *tmp_ctx;
 	NTSTATUS status;
 	char *filter;
@@ -2608,9 +2604,20 @@ static NTSTATUS ldapsam_getsampwnam(struct pdb_methods *methods,
 	int ret;
 	int count;
 
-	slen = strlen(sname);
-	if (sname[slen - 1] == '.') {
-		return getsam_interdom_trust_account(methods, user, sname);
+	lastidx = strlen(sname);
+	if (lastidx > 0) {
+		lastidx--;
+	} else {
+		/* strlen() must return >= 0 so it means we've got an empty name */
+		return NT_STATUS_NO_SUCH_USER;
+	}
+	if ((sname[lastidx] == '.') || (sname[lastidx] == '$')) {
+		status = getsam_interdom_trust_account(methods, user, sname, lastidx);
+		/* If last character was '$', we should ignore failure and continue
+		 * as this could still be a machine account */
+		if ((sname[lastidx] == '.') || NT_STATUS_IS_OK(status)) {
+			return status;
+		}
 	}
 
 	tmp_ctx = talloc_new(NULL);
