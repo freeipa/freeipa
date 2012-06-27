@@ -648,7 +648,6 @@ IPA.host_unprovision_dialog = function(spec) {
             entity: that.entity.name,
             method: 'disable',
             args: pkey,
-            options: { all: true, rights: true },
             on_success: on_success,
             on_error: on_error
         });

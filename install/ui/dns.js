@@ -1042,7 +1042,7 @@ IPA.dns.record_entity = function(spec) {
                 {
                     name: 'record_type',
                     type: 'dnsrecord_type',
-                    enabled: false,
+                    flags: ['no_command'],
                     widget: 'general.record_type'
                 }
             ],
