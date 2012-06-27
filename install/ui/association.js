@@ -2,6 +2,7 @@
 
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
+ *    Petr Vobornik <pvoborni@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -684,7 +685,7 @@ IPA.widget_factories['association_table'] = IPA.association_table_widget;
 IPA.field_factories['association_table'] = IPA.association_table_field;
 
 
-IPA.association_facet = function (spec) {
+IPA.association_facet = function (spec, no_init) {
 
     spec = spec || {};
 
@@ -698,7 +699,56 @@ IPA.association_facet = function (spec) {
     spec.link = spec.link === undefined ? true : spec.link;
     spec.managed_entity = IPA.get_entity(spec.other_entity);
 
-    var that = IPA.table_facet(spec);
+
+    //default buttons and their actions
+    spec.actions = spec.actions || [];
+    spec.actions.unshift(
+        IPA.refresh_action,
+        {
+            name: 'remove',
+            hide_cond: ['read-only'],
+            show_cond: ['direct'],
+            enable_cond: ['item-selected'],
+            handler: function(facet) {
+                facet.show_remove_dialog();
+            }
+        },
+        {
+            name: 'add',
+            hide_cond: ['read-only'],
+            show_cond: ['direct'],
+            handler: function(facet) {
+                facet.show_add_dialog();
+            }
+        }
+    );
+
+    spec.control_buttons = spec.control_buttons || [];
+    spec.control_buttons.unshift(
+        {
+            name: 'refresh',
+            label: IPA.messages.buttons.refresh,
+            icon: 'reset-icon'
+        },
+        {
+            name: 'remove',
+            label: IPA.messages.buttons.remove,
+            icon: 'remove-icon'
+        },
+        {
+            name: 'add',
+            label: IPA.messages.buttons.add,
+            icon: 'add-icon'
+        });
+
+    spec.state = spec.state || {};
+    spec.state.evaluators = spec.state.evaluators || [];
+    spec.state.evaluators.push(
+        IPA.selected_state_evaluator,
+        IPA.association_type_state_evaluator,
+        IPA.read_only_state_evaluator);
+
+    var that = IPA.table_facet(spec, true);
 
     that.attribute_member = spec.attribute_member;
     that.indirect_attribute_member = spec.indirect_attribute_member;
@@ -795,44 +845,6 @@ IPA.association_facet = function (spec) {
 
         that.facet_create_header(container);
 
-        that.refresh_button = IPA.action_button({
-            name: 'refresh',
-            href: 'refresh',
-            label: IPA.messages.buttons.refresh,
-            icon: 'reset-icon',
-            click: function() {
-                that.refresh();
-                return false;
-            }
-        }).appendTo(that.controls);
-
-        if (!that.read_only) {
-            that.remove_button = IPA.action_button({
-                name: 'remove',
-                label: IPA.messages.buttons.remove,
-                icon: 'remove-icon',
-                'class': 'action-button-disabled',
-                click: function() {
-                    if (!that.remove_button.hasClass('action-button-disabled')) {
-                        that.show_remove_dialog();
-                    }
-                    return false;
-                }
-            }).appendTo(that.controls);
-
-            that.add_button = IPA.action_button({
-                name: 'add',
-                label: IPA.messages.buttons.add,
-                icon: 'add-icon',
-                click: function() {
-                    if (!that.add_button.hasClass('action-button-disabled')) {
-                        that.show_add_dialog();
-                    }
-                    return false;
-                }
-            }).appendTo(that.controls);
-        }
-
         if (that.indirect_attribute_member) {
 
             var div = $('<div/>', {
@@ -883,6 +895,8 @@ IPA.association_facet = function (spec) {
                 'for': indirect_id
             }).appendTo(div);
         }
+
+        that.create_control_buttons(that.controls);
     };
 
     that.get_attribute_name = function() {
@@ -1025,12 +1039,8 @@ IPA.association_facet = function (spec) {
 
         if (that.association_type == 'direct') {
             if (that.direct_radio) that.direct_radio.attr('checked', true);
-            if (that.add_button) that.add_button.css('display', 'inline-block');
-            if (that.remove_button) that.remove_button.css('display', 'inline-block');
         } else {
             if (that.indirect_radio) that.indirect_radio.attr('checked', true);
-            if (that.add_button) that.add_button.css('display', 'none');
-            if (that.remove_button) that.remove_button.css('display', 'none');
         }
 
         var pkey = that.entity.get_primary_key();
@@ -1071,7 +1081,15 @@ IPA.association_facet = function (spec) {
         return that.facet_needs_update();
     };
 
-    init();
+    that.init_association_facet = function() {
+
+        that.init_facet();
+        that.init_table_columns();
+        init();
+    };
+
+    if (!no_init) that.init_association_facet();
+
 
     return that;
 };

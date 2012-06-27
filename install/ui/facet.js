@@ -1628,6 +1628,62 @@ IPA.self_service_state_evaluator = function(spec) {
     return that;
 };
 
+IPA.facet_attr_state_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'facet_attr_se';
+    that.attribute = spec.attribute;
+    that.value = spec.value;
+    that.state_value = spec.state_value;
+
+    that.on_event = function() {
+
+        var old_state = that.state;
+        that.state = [];
+
+        var facet = this;
+
+        if (facet[that.attribute] === that.value) {
+            that.state.push(that.state_value);
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+IPA.read_only_state_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'read_only_se';
+    spec.attribute = spec.attribute || 'read_only';
+    spec.state_value = spec.state_value || 'read-only';
+    spec.value = spec.value !== undefined ? spec.value : true;
+
+    var that = IPA.facet_attr_state_evaluator(spec);
+    return that;
+};
+
+IPA.association_type_state_evaluator = function(spec) {
+
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'association_type_se';
+    spec.attribute = spec.attribute || 'association_type';
+    spec.state_value = spec.state_value || 'direct';
+    spec.value = spec.value !== undefined ? spec.value : 'direct';
+
+    var that = IPA.facet_attr_state_evaluator(spec);
+    return that;
+};
+
 IPA.action_button_widget = function(spec) {
 
     spec = spec || {};
