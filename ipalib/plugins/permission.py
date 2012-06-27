@@ -246,14 +246,55 @@ class permission_add(LDAPCreate):
 
 api.register(permission_add)
 
+class permission_add_noaci(LDAPCreate):
+    __doc__ = _('Add a system permission without an ACI')
+
+    msg_summary = _('Added permission "%(value)s"')
+    has_output_params = LDAPCreate.has_output_params + output_params
+    NO_CLI = True
+
+    takes_options = (
+        StrEnum('permissiontype?',
+            label=_('Permission type'),
+            values=(u'SYSTEM',),
+        ),
+    )
+
+    def get_args(self):
+        # do not validate system permission names
+        yield self.obj.primary_key.clone(pattern=None, pattern_errmsg=None)
+
+    def get_options(self):
+        for option in super(permission_add_noaci, self).get_options():
+            # filter out ACI options
+            if option.name in self.obj.aci_attributes:
+                continue
+            yield option
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        permission_type = options.get('permissiontype')
+        if permission_type:
+            entry_attrs['ipapermissiontype'] = [ permission_type ]
+        return dn
+
+api.register(permission_add_noaci)
+
 
 class permission_del(LDAPDelete):
     __doc__ = _('Delete a permission.')
 
     msg_summary = _('Deleted permission "%(value)s"')
 
+    takes_options = LDAPDelete.takes_options + (
+        Flag('force',
+             label=_('Force'),
+             flags=['no_option', 'no_output'],
+             doc=_('force delete of SYSTEM permissions'),
+        ),
+    )
+
     def pre_callback(self, ldap, dn, *keys, **options):
-        if not self.obj.check_system(ldap, dn, *keys):
+        if not options.get('force') and not self.obj.check_system(ldap, dn, *keys):
             raise errors.ACIError(info='A SYSTEM permission may not be removed')
         # remove permission even when the underlying ACI is missing
         try:

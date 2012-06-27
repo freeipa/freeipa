@@ -75,6 +75,9 @@ EXAMPLES:
    ipa dnszone-add example.com --name-server=nameserver.example.com \\
                                --admin-email=admin@example.com
 
+ Add system permission that can be used for per-zone privilege delegation:
+   ipa dnszone-add-permission example.com
+
  Modify the zone to allow dynamic updates for hosts own records in realm EXAMPLE.COM:
    ipa dnszone-mod example.com --dynamic-update=TRUE
 
@@ -1528,6 +1531,7 @@ class dnszone(LDAPObject):
     object_name = _('DNS zone')
     object_name_plural = _('DNS zones')
     object_class = ['top', 'idnsrecord', 'idnszone']
+    possible_objectclasses = ['ipadnszone']
     default_attributes = [
         'idnsname', 'idnszoneactive', 'idnssoamname', 'idnssoarname',
         'idnssoaserial', 'idnssoarefresh', 'idnssoaretry', 'idnssoaexpire',
@@ -1696,6 +1700,9 @@ class dnszone(LDAPObject):
 
         return dn
 
+    def permission_name(self, zone):
+        return u"Manage DNS zone %s" % zone
+
 api.register(dnszone)
 
 
@@ -1751,6 +1758,14 @@ api.register(dnszone_add)
 
 class dnszone_del(LDAPDelete):
     __doc__ = _('Delete DNS zone (SOA record).')
+
+    def post_callback(self, ldap, dn, *keys, **options):
+        try:
+            api.Command['permission_del'](self.obj.permission_name(keys[-1]),
+                    force=True)
+        except errors.NotFound:
+            pass
+        return True
 
 api.register(dnszone_del)
 
@@ -1851,6 +1866,70 @@ class dnszone_enable(LDAPQuery):
 
 api.register(dnszone_enable)
 
+class dnszone_add_permission(LDAPQuery):
+    __doc__ = _('Add a permission for per-zone access delegation.')
+
+    has_output = output.standard_value
+    msg_summary = _('Added system permission "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+        dn = self.obj.get_dn(*keys, **options)
+
+        try:
+            (dn_, entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        permission_name = self.obj.permission_name(keys[-1])
+        permission = api.Command['permission_add_noaci'](permission_name,
+                         permissiontype=u'SYSTEM'
+                     )['result']
+
+        update = {}
+        dnszone_ocs = entry_attrs.get('objectclass')
+        if dnszone_ocs:
+            dnszone_ocs.append('ipadnszone')
+            update['objectclass'] = list(set(dnszone_ocs))
+
+        update['managedby'] = [permission['dn']]
+        ldap.update_entry(dn, update)
+
+        return dict(
+            result=True,
+            value=permission_name,
+        )
+
+api.register(dnszone_add_permission)
+
+class dnszone_remove_permission(LDAPQuery):
+    __doc__ = _('Remove a permission for per-zone access delegation.')
+
+    has_output = output.standard_value
+    msg_summary = _('Removed system permission "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+        dn = self.obj.get_dn(*keys, **options)
+
+        try:
+            ldap.update_entry(dn, {'managedby': None})
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+        except errors.EmptyModlist:
+            # managedBy attribute is clean, lets make sure there is also no
+            # dangling DNS zone permission
+            pass
+
+        permission_name = self.obj.permission_name(keys[-1])
+        api.Command['permission_del'](permission_name, force=True)
+
+        return dict(
+            result=True,
+            value=permission_name,
+        )
+
+api.register(dnszone_remove_permission)
 
 class dnsrecord(LDAPObject):
     """

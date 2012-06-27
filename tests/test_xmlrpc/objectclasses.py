@@ -141,3 +141,14 @@ hbacrule = [
     u'ipaassociation',
     u'ipahbacrule',
 ]
+
+dnszone = [
+    u'top',
+    u'idnsrecord',
+    u'idnszone',
+]
+
+dnsrecord = [
+    u'top',
+    u'idnsrecord',
+]

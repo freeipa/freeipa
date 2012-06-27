@@ -68,4 +68,11 @@ add:objectClasses:
       MAY ( idnsForwardPolicy $$ idnsForwarders $$ idnsAllowSyncPTR $$
         idnsZoneRefresh $$ idnsPersistentSearch
       ) )
+add:objectClasses:
+    ( 2.16.840.1.113730.3.8.12.18
+      NAME 'ipaDNSZone'
+      SUP top AUXILIARY
+      MUST idnsName
+      MAY managedBy
+      X-ORIGIN 'IPA v3' )
 replace:objectClasses:( 2.16.840.1.113730.3.8.6.1 NAME 'idnsZone' DESC 'Zone class' SUP idnsRecord STRUCTURAL MUST ( idnsZoneActive $$ idnsSOAmName $$ idnsSOArName $$ idnsSOAserial $$ idnsSOArefresh $$ idnsSOAretry $$ idnsSOAexpire $$ idnsSOAminimum ) MAY idnsUpdatePolicy )::( 2.16.840.1.113730.3.8.6.1 NAME 'idnsZone' DESC 'Zone class' SUP idnsRecord    STRUCTURAL MUST ( idnsName $$ idnsZoneActive $$ idnsSOAmName $$ idnsSOArName $$ idnsSOAserial $$ idnsSOArefresh $$ idnsSOAretry $$ idnsSOAexpire $$ idnsSOAminimum ) MAY ( idnsUpdatePolicy $$ idnsAllowQuery $$ idnsAllowTransfer $$ idnsAllowSyncPTR $$ idnsForwardPolicy $$ idnsForwarders ) )

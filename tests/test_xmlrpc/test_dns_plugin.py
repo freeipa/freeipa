@@ -31,6 +31,9 @@ dnszone1_dn = DN(('idnsname',dnszone1),('cn','dns'),api.env.basedn)
 dnszone1_mname = u'ns1.%s.' % dnszone1
 dnszone1_mname_dn = DN(('idnsname','ns1'), dnszone1_dn)
 dnszone1_rname = u'root.%s.' % dnszone1
+dnszone1_permission = u'Manage DNS zone %s' % dnszone1
+dnszone1_permission_dn = DN(('cn',dnszone1_permission),
+                            api.env.container_permission,api.env.basedn)
 dnszone2 = u'dnszone2.test'
 dnszone2_dn = DN(('idnsname',dnszone2),('cn','dns'),api.env.basedn)
 dnszone2_mname = u'ns1.%s.' % dnszone2
@@ -76,7 +79,8 @@ class test_dns(Declarative):
                                'idnsforwardpolicy' : None,
                                'idnsallowsyncptr' : None,
                                'idnszonerefresh' : None,
-                               })
+                               }),
+        ('permission_del', [dnszone1_permission], {'force': True}),
     ]
 
     tests = [
@@ -151,7 +155,7 @@ class test_dns(Declarative):
                                          % dict(realm=api.env.realm)],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                    'objectclass': objectclasses.dnszone,
                 },
             },
         ),
@@ -212,7 +216,7 @@ class test_dns(Declarative):
                                          % dict(realm=api.env.realm)],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                    'objectclass': objectclasses.dnszone,
                 },
             },
         ),
@@ -305,7 +309,7 @@ class test_dns(Declarative):
                                          % dict(realm=api.env.realm, zone=revdnszone1)],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                    'objectclass': objectclasses.dnszone,
                 },
             },
         ),
@@ -503,7 +507,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'arecord': [u'127.0.0.1'],
                 },
             },
@@ -548,7 +552,7 @@ class test_dns(Declarative):
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'127.0.0.1', u'10.10.0.1'],
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                 },
             },
         ),
@@ -626,7 +630,7 @@ class test_dns(Declarative):
                 'value': u'@',
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                    'objectclass': objectclasses.dnszone,
                     'dn': unicode(dnszone1_dn),
                     'idnsname': [u'@'],
                     'mxrecord': [u"0 %s" % dnszone1_mname],
@@ -674,7 +678,7 @@ class test_dns(Declarative):
                 'value': u'_foo._tcp',
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'dn': unicode(DN(('idnsname', u'_foo._tcp'), dnszone1_dn)),
                     'idnsname': [u'_foo._tcp'],
                     'srvrecord': [u"0 100 1234 %s" % dnszone1_mname],
@@ -731,7 +735,7 @@ class test_dns(Declarative):
                 'value': u'@',
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                    'objectclass': objectclasses.dnszone,
                     'dn': unicode(dnszone1_dn),
                     'idnsname': [u'@'],
                     'mxrecord': [u"0 %s" % dnszone1_mname],
@@ -756,7 +760,7 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
@@ -780,7 +784,7 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
@@ -797,7 +801,7 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
@@ -817,7 +821,7 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
@@ -849,7 +853,7 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
@@ -943,7 +947,7 @@ class test_dns(Declarative):
                                          % dict(realm=api.env.realm, zone=revdnszone1)],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
-                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                    'objectclass': objectclasses.dnszone,
                 },
             },
         ),
@@ -964,7 +968,7 @@ class test_dns(Declarative):
                 'value': dnsrev1,
                 'summary': None,
                 'result': {
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'dn': unicode(dnsrev1_dn),
                     'idnsname': [dnsrev1],
                     'ptrrecord': [u'foo-1.example.com.'],
@@ -1072,7 +1076,7 @@ class test_dns(Declarative):
                 'result': {
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
-                    'objectclass': [u'top', u'idnsrecord'],
+                    'objectclass': objectclasses.dnsrecord,
                     'arecord': [u'80.142.15.81'],
                 },
             },
@@ -1091,6 +1095,83 @@ class test_dns(Declarative):
                     'ptrrecord': [dnsres1 + '.' + dnszone1 + '.'],
                 },
             },
+        ),
+
+
+        dict(
+            desc='Try to add per-zone permission for unknown zone',
+            command=('dnszone_add_permission', [u'does.not.exist'], {}),
+            expected=errors.NotFound(reason=u'does.not.exist: DNS zone not found')
+        ),
+
+
+        dict(
+            desc='Add per-zone permission for zone %r' % dnszone1,
+            command=(
+                'dnszone_add_permission', [dnszone1], {}
+            ),
+            expected=dict(
+                result=True,
+                value=dnszone1_permission,
+                summary=u'Added system permission "%s"' % dnszone1_permission,
+            ),
+        ),
+
+
+        dict(
+            desc='Try to add duplicate per-zone permission for zone %r' % dnszone1,
+            command=(
+                'dnszone_add_permission', [dnszone1], {}
+            ),
+            expected=errors.DuplicateEntry(message=u'permission with name '
+                '"%s" already exists' % dnszone1_permission)
+        ),
+
+
+        dict(
+            desc='Make sure the permission was created %r' % dnszone1,
+            command=(
+                'permission_show', [dnszone1_permission], {}
+            ),
+            expected=dict(
+                value=dnszone1_permission,
+                summary=None,
+                result={
+                    'dn': lambda x: DN(x) == dnszone1_permission_dn,
+                    'cn': [dnszone1_permission],
+                    'ipapermissiontype': [u'SYSTEM'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Try to remove per-zone permission for unknown zone',
+            command=('dnszone_remove_permission', [u'does.not.exist'], {}),
+            expected=errors.NotFound(reason=u'does.not.exist: DNS zone not found')
+        ),
+
+
+        dict(
+            desc='Remove per-zone permission for zone %r' % dnszone1,
+            command=(
+                'dnszone_remove_permission', [dnszone1], {}
+            ),
+            expected=dict(
+                result=True,
+                value=dnszone1_permission,
+                summary=u'Removed system permission "%s"' % dnszone1_permission,
+            ),
+        ),
+
+
+        dict(
+            desc='Make sure the permission for zone %r was deleted' % dnszone1,
+            command=(
+                'permission_show', [dnszone1_permission], {}
+            ),
+            expected=errors.NotFound(reason=u'%s: permission not found'
+                                     % dnszone1_permission)
         ),
 
 

@@ -119,7 +119,7 @@ class update_dns_permissions(PostUpdate):
     _write_dns_aci_entry = ['add:aci:\'(targetattr = "idnsforwardpolicy || idnsforwarders || idnsallowsyncptr || idnszonerefresh || idnspersistentsearch")(target = "ldap:///cn=dns,%(realm)s")(version 3.0;acl "permission:Write DNS Configuration";allow (write) groupdn = "ldap:///cn=Write DNS Configuration,cn=permissions,cn=pbac,%(realm)s";)\'' % dict(realm=api.env.basedn)]
 
     _read_dns_aci_dn = DN(api.env.container_dns, api.env.basedn)
-    _read_dns_aci_entry = ['add:aci:\'(targetattr = "*")(version 3.0; acl "No access to DNS tree without a permission"; deny (read,search,compare) (groupdn != "ldap:///cn=admins,cn=groups,cn=accounts,%(realm)s") and (groupdn != "ldap:///cn=Read DNS Entries,cn=permissions,cn=pbac,%(realm)s");)\''  % dict(realm=api.env.basedn) ]
+    _read_dns_aci_entry = ['add:aci:\'(targetattr = "*")(version 3.0; acl "Allow read access"; allow (read,search,compare) groupdn = "ldap:///cn=Read DNS Entries,cn=permissions,cn=pbac,%(realm)s" or userattr = "parent[0,1].managedby#GROUPDN";)\''  % dict(realm=api.env.basedn) ]
 
     def execute(self, **options):
         ldap = self.obj.backend
