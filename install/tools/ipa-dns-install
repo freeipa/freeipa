@@ -62,6 +62,9 @@ def parse_options():
                       default=0, type="int",
                       help="When set to non-zero the name server will use DNS zone "
                            "detection based on polling instead of a persistent search")
+    parser.add_option("--no-serial-autoincrement", dest="serial_autoincrement",
+                      default=True, action="store_false",
+                      help="Do not enable SOA serial autoincrement")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
 
@@ -84,6 +87,10 @@ def parse_options():
 
     if options.zone_notif:
         print >>sys.stderr, "WARNING: --zone-notif option is deprecated and has no effect"
+
+    if options.serial_autoincrement and not options.persistent_search:
+        parser.error('persistent search feature is required for '
+                     'DNS SOA serial autoincrement')
 
     return safe_options, options
 
@@ -224,7 +231,8 @@ def main():
     bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
                dns_forwarders, conf_ntp, reverse_zone, zonemgr=options.zonemgr,
                zone_refresh=options.zone_refresh,
-               persistent_search=options.persistent_search)
+               persistent_search=options.persistent_search,
+               serial_autoincrement=options.serial_autoincrement)
     bind.create_instance()
 
     # Restart http instance to make sure that python-dns has the right resolver

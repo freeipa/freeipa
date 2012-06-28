@@ -244,8 +244,15 @@ def _rname_validator(ugettext, zonemgr):
     return None
 
 def _create_zone_serial():
-    """ Generate serial number for zones. The format follows RFC 1912 """
-    return int('%s01' % time.strftime('%Y%m%d'))
+    """
+    Generate serial number for zones. bind-dyndb-ldap expects unix time in
+    to be used for SOA serial.
+
+    SOA serial in a date format would also work, but it may be set to far
+    future when many DNS updates are done per day (more than 100). Unix
+    timestamp is more resilient to this issue.
+    """
+    return int(time.time())
 
 def _reverse_zone_name(netstr):
     net = netaddr.IPNetwork(netstr)

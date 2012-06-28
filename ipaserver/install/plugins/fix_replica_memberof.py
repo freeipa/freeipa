@@ -25,28 +25,24 @@ from ipaserver import ipaldap
 from ipaserver.install import replication
 from ipalib import api
 
-class update_replica_memberof(PreUpdate):
+class update_replica_exclude_attribute_list(PreUpdate):
     """
-    Run through all replication agreements and ensure that memberOf is
-    included in the EXCLUDE list so we don't cause replication storms.
+    Run through all replication agreements and ensure that EXCLUDE list
+    has all the required attributes so that we don't cause replication
+    storms.
     """
     order=MIDDLE
 
     def execute(self, **options):
-        totalexcludes = ('entryusn',
-                         'krblastsuccessfulauth',
-                         'krblastfailedauth',
-                         'krbloginfailedcount')
-        excludes = ('memberof', ) + totalexcludes
-
         # We need an IPAdmin connection to the backend
+        self.log.debug("Start replication agreement exclude list update task")
         conn = ipaldap.IPAdmin(api.env.host, ldapi=True, realm=api.env.realm)
         conn.do_external_bind(pwd.getpwuid(os.geteuid()).pw_name)
 
         repl = replication.ReplicationManager(api.env.realm, api.env.host,
                                               None, conn=conn)
         entries = repl.find_replication_agreements()
-        self.log.debug("Found %d agreement(s)" % len(entries))
+        self.log.debug("Found %d agreement(s)", len(entries))
         for replica in entries:
             self.log.debug(replica.description)
             attrlist = replica.getValue('nsDS5ReplicatedAttributeList')
@@ -55,28 +51,33 @@ class update_replica_memberof(PreUpdate):
                 current = replica.toDict()
                 # Need to add it altogether
                 replica.setValues('nsDS5ReplicatedAttributeList',
-                    '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
+                    '(objectclass=*) $ EXCLUDE %s' % " ".join(replication.EXCLUDES))
                 replica.setValues('nsDS5ReplicatedAttributeListTotal',
-                    '(objectclass=*) $ EXCLUDE %s' % " ".join(totalexcludes))
+                    '(objectclass=*) $ EXCLUDE %s' % " ".join(replication.TOTAL_EXCLUDES))
                 try:
                     repl.conn.updateEntry(replica.dn, current, replica.toDict())
                     self.log.debug("Updated")
                 except Exception, e:
-                    self.log.error("Error caught updating replica: %s" % str(e))
-            elif 'memberof' not in attrlist.lower():
-                self.log.debug("Attribute list needs updating")
-                current = replica.toDict()
-                replica.setValue('nsDS5ReplicatedAttributeList',
-                    replica.nsDS5ReplicatedAttributeList + ' memberof')
-                try:
-                    repl.conn.updateEntry(replica.dn, current, replica.toDict())
-                    self.log.debug("Updated")
-                except Exception, e:
-                    self.log.error("Error caught updating replica: %s" % str(e))
+                    self.log.error("Error caught updating replica: %s", str(e))
             else:
-                self.log.debug("No update necessary")
+                attrlist_normalized = attrlist.lower()
+                missing = [attr for attr in replication.EXCLUDES
+                                if attr not in attrlist_normalized]
+
+                if missing:
+                    self.log.debug("Attribute list needs updating")
+                    current = replica.toDict()
+                    replica.setValue('nsDS5ReplicatedAttributeList',
+                        replica.nsDS5ReplicatedAttributeList + ' %s' % ' '.join(missing))
+                    try:
+                        repl.conn.updateEntry(replica.dn, current, replica.toDict())
+                        self.log.debug("Updated")
+                    except Exception, e:
+                        self.log.error("Error caught updating replica: %s", str(e))
+                else:
+                    self.log.debug("No update necessary")
         self.log.debug("Done updating agreements")
 
         return (False, False, []) # No restart, no apply now, no updates
 
-api.register(update_replica_memberof)
+api.register(update_replica_exclude_attribute_list)

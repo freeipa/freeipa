@@ -467,7 +467,7 @@ class BindInstance(service.Service):
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp,
               reverse_zone, named_user="named", zonemgr=None,
-              zone_refresh=0, persistent_search=True):
+              zone_refresh=0, persistent_search=True, serial_autoincrement=True):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -480,6 +480,7 @@ class BindInstance(service.Service):
         self.reverse_zone = reverse_zone
         self.zone_refresh = zone_refresh
         self.persistent_search = persistent_search
+        self.serial_autoincrement = True
 
         if not zonemgr:
             self.zonemgr = 'hostmaster.%s' % self.domain
@@ -576,7 +577,10 @@ class BindInstance(service.Service):
             optional_ntp += "_ntp._udp\t\tIN SRV 0 100 123\t%s""" % self.host_in_rr
         else:
             optional_ntp = ""
-        persistent_search = "yes" if self.persistent_search else "no"
+
+        boolean_var = {}
+        for var in ('persistent_search', 'serial_autoincrement'):
+            boolean_var[var] = "yes" if getattr(self, var, False) else "no"
 
         self.sub_dict = dict(FQDN=self.fqdn,
                              IP=self.ip_address,
@@ -589,7 +593,8 @@ class BindInstance(service.Service):
                              OPTIONAL_NTP=optional_ntp,
                              ZONEMGR=self.zonemgr,
                              ZONE_REFRESH=self.zone_refresh,
-                             PERSISTENT_SEARCH=persistent_search)
+                             PERSISTENT_SEARCH=boolean_var['persistent_search'],
+                             SERIAL_AUTOINCREMENT=boolean_var['serial_autoincrement'],)
 
     def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)

@@ -16,7 +16,7 @@
 .\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
 .\"
-.TH "ipa-server-install" "1" "Sep 5 2011" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-server-install" "1" "Jun 28 2012" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-server\-install \- Configure an IPA server
 .SH "SYNOPSIS"
@@ -156,6 +156,9 @@ Do not use DNS for hostname lookup during installation
 .TP
 \fB\-\-no\-dns\-sshfp\fR
 Do not automatically create DNS SSHFP records.
+.TP
+\fB\-\-no\-serial\-autoincrement\fR
+Do not enable SOA serial autoincrement feature. SOA serial will have to be updated automatically or other DNS features like zone transfer od DNSSEC will not function properly. This feature requires persistent search zone update mechanism.
 
 .SS "UNINSTALL OPTIONS"
 .TP

@@ -46,4 +46,5 @@ dynamic-db "ipa" {
 	arg "sasl_user DNS/$FQDN";
 	arg "zone_refresh $ZONE_REFRESH";
 	arg "psearch $PERSISTENT_SEARCH";
+	arg "serial_autoincrement $SERIAL_AUTOINCREMENT";
 };

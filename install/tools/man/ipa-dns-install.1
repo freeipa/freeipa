@@ -16,7 +16,7 @@
 .\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
 .\"
-.TH "ipa-dns-install" "1" "Sep 9, 2010" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-dns-install" "1" "Jun 28, 2012" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-dns\-install \- Add DNS as a service to an IPA server
 .SH "SYNOPSIS"
@@ -54,6 +54,9 @@ Do not enable persistent search mechanism for updating the list of DNS zones in 
 .TP
 \fB\-\-zone\-refresh=\fIZONE_REFRESH\fR
 When set to non-zero value, persistent search zone update mechanism will be disabled and the name server will use a polling mechanism to load new DNS zones every \fIZONE_REFRESH\fR seconds.
+.TP
+\fB\-\-no\-serial\-autoincrement\fR
+Do not enable SOA serial autoincrement feature. SOA serial will have to be updated automatically or other DNS features like zone transfer od DNSSEC will not function properly. This feature requires persistent search zone update mechanism.
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input

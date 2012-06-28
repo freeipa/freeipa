@@ -43,6 +43,15 @@ REPL_MAN_DN = "cn=replication manager,cn=config"
 IPA_REPLICA = 1
 WINSYNC = 2
 
+# List of attributes that need to be excluded from replication initialization.
+TOTAL_EXCLUDES = ('entryusn',
+                 'krblastsuccessfulauth',
+                 'krblastfailedauth',
+                 'krbloginfailedcount')
+
+# List of attributes that need to be excluded from normal replication.
+EXCLUDES = ('memberof', 'idnssoaserial') + TOTAL_EXCLUDES
+
 def replica_conn_check(master_host, host_name, realm, check_ca,
                        admin_password=None):
     """
@@ -467,15 +476,6 @@ class ReplicationManager(object):
         except errors.NotFound:
             pass
 
-        # List of attributes that need to be excluded from replication initialization.
-        totalexcludes = ('entryusn',
-                         'krblastsuccessfulauth',
-                         'krblastfailedauth',
-                         'krbloginfailedcount')
-
-        # List of attributes that need to be excluded from normal replication.
-        excludes = ('memberof', ) + totalexcludes
-
         entry = ipaldap.Entry(dn)
         entry.setValues('objectclass', "nsds5replicationagreement")
         entry.setValues('cn', cn)
@@ -485,7 +485,7 @@ class ReplicationManager(object):
         entry.setValues('nsds5replicaroot', self.suffix)
         if master is None:
             entry.setValues('nsDS5ReplicatedAttributeList',
-                            '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
+                            '(objectclass=*) $ EXCLUDE %s' % " ".join(EXCLUDES))
         entry.setValues('description', "me to %s" % b_hostname)
         if isgssapi:
             entry.setValues('nsds5replicatransportinfo', 'LDAP')
@@ -503,7 +503,7 @@ class ReplicationManager(object):
 
         try:
             mod = [(ldap.MOD_ADD, 'nsDS5ReplicatedAttributeListTotal',
-                   '(objectclass=*) $ EXCLUDE %s' % " ".join(totalexcludes))]
+                   '(objectclass=*) $ EXCLUDE %s' % " ".join(TOTAL_EXCLUDES))]
             a_conn.modify_s(dn, mod)
         except ldap.LDAPError, e:
             # Apparently there are problems set the total list
