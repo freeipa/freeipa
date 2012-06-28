@@ -206,6 +206,7 @@ Requires: %{name}-server = %version-%release
 Requires: python-crypto
 Requires: samba4-python
 Requires: samba4
+Requires: libsss_idmap
 
 %description server-trust-ad
 Cross-realm trusts with Active Directory in IPA require working Samba 4 installation.
