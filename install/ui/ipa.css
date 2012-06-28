@@ -262,6 +262,10 @@ body {
     color: #fff;
 }
 
+.header-loggedinas .login {
+    font-weight: bold;
+}
+
 /* ---- Navigation ---- */
 #navigation {
     position: absolute;

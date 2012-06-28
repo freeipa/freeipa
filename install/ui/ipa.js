@@ -157,7 +157,6 @@ var IPA = function() {
             on_success: function(data, text_status, xhr) {
                 that.whoami = batch ? data.result[0] : data.result.result[0];
                 that.principal = that.whoami.krbprincipalname[0];
-                that.update_password_expiration();
             }
         });
     };
@@ -516,6 +515,11 @@ IPA.password_selfservice = function() {
         self_service: true,
         on_success: function() {
             var command = IPA.get_whoami_command();
+            var orig_on_success = command.on_success;
+            command.on_success = function(data, text_status, xhr) {
+                orig_on_success.call(this, data, text_status, xhr);
+                IPA.update_password_expiration();
+            };
             command.execute();
 
             alert(IPA.messages.password.password_change_complete);
