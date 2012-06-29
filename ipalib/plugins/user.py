@@ -19,7 +19,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from time import gmtime, strftime, strptime
-import copy
 import string
 
 from ipalib import api, errors

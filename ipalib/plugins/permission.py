@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import copy
-
 from ipalib.plugins.baseldap import *
 from ipalib import api, _, ngettext
 from ipalib import Flag, Str, StrEnum
@@ -189,6 +187,11 @@ class permission(LDAPObject):
                 return False
         return True
 
+    def filter_aci_attributes(self, options):
+        """Return option dictionary that only includes ACI attributes"""
+        return dict((k, v) for k, v in options.items() if
+            k in self.aci_attributes)
+
 api.register(permission)
 
 
@@ -200,7 +203,7 @@ class permission_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # Test the ACI before going any further
-        opts = copy.copy(options)
+        opts = self.obj.filter_aci_attributes(options)
         opts['test'] = True
         opts['permission'] = keys[-1]
         opts['aciprefix'] = ACI_PREFIX
@@ -217,7 +220,7 @@ class permission_add(LDAPCreate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # Now actually add the aci.
-        opts = copy.copy(options)
+        opts = self.obj.filter_aci_attributes(options)
         opts['test'] = False
         opts['permission'] = keys[-1]
         opts['aciprefix'] = ACI_PREFIX
@@ -340,9 +343,7 @@ class permission_mod(LDAPUpdate):
                 raise errors.ValidationError(
                     name='rename',error=_('New name can not be empty'))
 
-        opts = copy.copy(options)
-        for o in ['all', 'raw', 'rights', 'test', 'rename']:
-            opts.pop(o, None)
+        opts = self.obj.filter_aci_attributes(options)
         setattr(context, 'aciupdate', False)
         # If there are no options left we don't need to do anything to the
         # underlying ACI.
@@ -434,13 +435,11 @@ class permission_find(LDAPSearch):
         # Now find all the ACIs that match. Once we find them, add any that
         # aren't already in the list along with their permission info.
 
-        opts = copy.copy(options)
+        opts = self.obj.filter_aci_attributes(options)
         if aciname:
             opts['aciname'] = aciname
         opts['aciprefix'] = ACI_PREFIX
         # permission ACI attribute is needed
-        opts.pop('raw', None)
-        opts.pop('sizelimit', None)
         aciresults = self.api.Command.aci_find(*args, **opts)
         truncated = truncated or aciresults['truncated']
         results = aciresults['result']

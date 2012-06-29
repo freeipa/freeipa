@@ -304,6 +304,8 @@ class test_permission(Declarative):
                 'permission_add', [permission2], dict(
                      type=u'user',
                      permissions=u'write',
+                     setattr=u'owner=cn=test',
+                     addattr=u'owner=cn=test2',
                 )
             ),
             expected=dict(
@@ -315,6 +317,7 @@ class test_permission(Declarative):
                     objectclass=objectclasses.permission,
                     type=u'user',
                     permissions=[u'write'],
+                    owner=[u'cn=test', u'cn=test2'],
                 ),
             ),
         ),
@@ -482,7 +485,12 @@ class test_permission(Declarative):
         dict(
             desc='Update %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(permissions=u'read', memberof=u'ipausers')
+                'permission_mod', [permission1], dict(
+                    permissions=u'read',
+                    memberof=u'ipausers',
+                    setattr=u'owner=cn=other-test',
+                    addattr=u'owner=cn=other-test2',
+                )
             ),
             expected=dict(
                 value=permission1,
@@ -494,6 +502,7 @@ class test_permission(Declarative):
                     type=u'user',
                     permissions=[u'read'],
                     memberof=u'ipausers',
+                    owner=[u'cn=other-test', u'cn=other-test2'],
                 ),
             ),
         ),
