@@ -42,17 +42,17 @@
 
 #define OBJECTCLASS "objectclass"
 #define IPA_OBJECT "ipaobject"
-#define MEP_MANAGED_ENTRY "mepManagedEntry"
-#define UID_NUMBER "uidNumber"
-#define GID_NUMBER "gidNumber"
-#define IPA_SID "ipaNTSecurityIdentifier"
-#define DOM_ATTRS_FILTER OBJECTCLASS"=ipaNTDomainAttrs"
-#define DOMAIN_ID_RANGE_FILTER OBJECTCLASS"=ipaDomainIDRange"
-#define POSIX_ACCOUNT "posixAccount"
-#define POSIX_GROUP "posixGroup"
-#define IPA_ID_OBJECT "ipaIDObject"
-#define IPANT_USER_ATTRS "ipaNTUserAttrs"
-#define IPANT_GROUP_ATTRS "ipaNTGroupAttrs"
+#define MEP_MANAGED_ENTRY "mepmanagedentry"
+#define UID_NUMBER "uidnumber"
+#define GID_NUMBER "gidnumber"
+#define IPA_SID "ipantsecurityidentifier"
+#define DOM_ATTRS_FILTER OBJECTCLASS"=ipantdomainattrs"
+#define DOMAIN_ID_RANGE_FILTER OBJECTCLASS"=ipadomainidrange"
+#define POSIX_ACCOUNT "posixaccount"
+#define POSIX_GROUP "posixgroup"
+#define IPA_ID_OBJECT "ipaidobject"
+#define IPANT_USER_ATTRS "ipantuserattrs"
+#define IPANT_GROUP_ATTRS "ipantgroupattrs"
 
 #define IPA_DNA_MAGIC 999
 
