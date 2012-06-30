@@ -2368,13 +2368,14 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: range_add
-args: 1,10,3
+args: 1,11,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Int('ipabaseid', attribute=True, cli_name='base_id', multivalue=False, required=True)
 option: Int('ipaidrangesize', attribute=True, cli_name='range_size', multivalue=False, required=True)
 option: Int('ipabaserid', attribute=True, cli_name='rid_base', multivalue=False, required=True)
 option: Int('ipasecondarybaserid', attribute=True, cli_name='secondary_rid_base', multivalue=False, required=False)
 option: Str('ipanttrusteddomainsid', attribute=True, cli_name='dom_sid', multivalue=False, required=False)
+option: Str('iparangetype', attribute=True, cli_name='iparangetype', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2391,7 +2392,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: range_find
-args: 1,12,4
+args: 1,13,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Int('ipabaseid', attribute=True, autofill=False, cli_name='base_id', multivalue=False, query=True, required=False)
@@ -2399,6 +2400,7 @@ option: Int('ipaidrangesize', attribute=True, autofill=False, cli_name='range_si
 option: Int('ipabaserid', attribute=True, autofill=False, cli_name='rid_base', multivalue=False, query=True, required=False)
 option: Int('ipasecondarybaserid', attribute=True, autofill=False, cli_name='secondary_rid_base', multivalue=False, query=True, required=False)
 option: Str('ipanttrusteddomainsid', attribute=True, autofill=False, cli_name='dom_sid', multivalue=False, query=True, required=False)
+option: Str('iparangetype', attribute=True, autofill=False, cli_name='iparangetype', multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
