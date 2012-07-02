@@ -29,6 +29,7 @@ from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
                                            dns_zone_exists
 from ipalib import errors, api
+from ipalib.dn import DN
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import *
@@ -129,8 +130,10 @@ class ADTRUSTInstance(service.Service):
         return "S-1-5-21-%d-%d-%d" % (sub_ids[0], sub_ids[1], sub_ids[2])
 
     def __add_admin_sids(self):
-        admin_dn = "uid=admin,cn=users,cn=accounts,%s" % self.suffix
-        admin_group_dn = "cn=admins,cn=groups,cn=accounts,%s" % self.suffix
+        admin_dn = str(DN(('uid', 'admin'), api.env.container_user,
+                          self.suffix))
+        admin_group_dn = str(DN(('cn', 'admins'), api.env.container_group,
+                                self.suffix))
 
         try:
             dom_entry = self.admin_conn.getEntry(self.smb_dom_dn, \
@@ -184,7 +187,8 @@ class ADTRUSTInstance(service.Service):
         """
 
         try:
-            res = self.admin_conn.search_s("cn=ranges,cn=etc,"+self.suffix,
+            res = self.admin_conn.search_s(str(DN(api.env.container_ranges,
+                                                  self.suffix)),
                                            ldap.SCOPE_ONELEVEL,
                                            "(objectclass=ipaDomainIDRange)")
             if len(res) != 1:
@@ -227,8 +231,8 @@ class ADTRUSTInstance(service.Service):
             pass
 
         for new_dn in (self.trust_dn, \
-                       "cn=ad,"+self.trust_dn, \
-                       "cn=ad,cn=etc,"+self.suffix):
+                       str(DN(('cn', 'ad'), self.trust_dn)), \
+                       str(DN(api.env.container_cifsdomains, self.suffix))):
             try:
                 self.admin_conn.getEntry(new_dn, ldap.SCOPE_BASE)
             except errors.NotFound:
@@ -469,14 +473,16 @@ class ADTRUSTInstance(service.Service):
 
         self.smb_conf = "/etc/samba/smb.conf"
 
-        self.smb_dn = "cn=adtrust agents,cn=sysaccounts,cn=etc,%s" % self.suffix
+        self.smb_dn = str(DN(('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
+                             ('cn', 'etc'), self.suffix))
 
-        self.trust_dn = "cn=trusts,%s" % self.suffix
-        self.smb_dom_dn = "cn=%s,cn=ad,cn=etc,%s" % (self.domain_name, \
-                                                     self.suffix)
+        self.trust_dn = str(DN(api.env.container_trusts, self.suffix))
+        self.smb_dom_dn = str(DN(('cn', self.domain_name),
+                                 api.env.container_cifsdomains, self.suffix))
         self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm_name
-        self.cifs_agent = "krbprincipalname=%s,cn=services,cn=accounts,%s" % \
-                          (self.cifs_principal.lower(), self.suffix)
+        self.cifs_agent = str(DN(('krbprincipalname', self.cifs_principal.lower()),
+                                 api.env.container_service,
+                                 self.suffix))
         self.selinux_booleans = ["samba_portmapper"]
 
         self.__setup_sub_dict()
@@ -484,14 +490,16 @@ class ADTRUSTInstance(service.Service):
     def find_local_id_range(self):
         self.ldap_connect()
 
-        if self.admin_conn.search_s("cn=ranges,cn=etc," + self.suffix,
+        if self.admin_conn.search_s(str(DN(api.env.container_ranges,
+                                           self.suffix)),
                                     ldap.SCOPE_ONELEVEL,
                                     "objectclass=ipaDomainIDRange"):
             return
 
         try:
-            entry = self.admin_conn.getEntry("cn=admins,cn=groups,cn=accounts," \
-                                                                  + self.suffix,
+            entry = self.admin_conn.getEntry(str(DN(('cn', 'admins'),
+                                                    api.env.container_group,
+                                                    self.suffix)),
                                              ldap.SCOPE_BASE)
         except errors.NotFound:
             raise ValueError("No local ID range and no admins group found.\n" \
@@ -514,8 +522,9 @@ class ADTRUSTInstance(service.Service):
                              "range.\nAdd local ID range manually and try " \
                              "again!")
 
-        entry = ipaldap.Entry("cn=%s_id_range,cn=ranges,cn=etc,%s" % \
-                              (self.realm_name, self.suffix))
+        entry = ipaldap.Entry(str(DN(('cn', ('%s_id_range' % self.realm_name)),
+                                     api.env.container_ranges,
+                                     self.suffix)))
         entry.setValue('objectclass', 'ipaDomainIDRange')
         entry.setValue('cn', ('%s_id_range' % self.realm_name))
         entry.setValue('ipaBaseID', str(base_id))
