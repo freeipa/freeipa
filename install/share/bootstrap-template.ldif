@@ -415,11 +415,11 @@ objectClass: top
 objectClass: nsContainer
 cn: ranges
 
-dn: cn=$REALM_id_range,cn=ranges,cn=etc,$SUFFIX
+dn: cn=${REALM}_id_range,cn=ranges,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: ipaIDrange
 objectClass: ipaDomainIDRange
-cn: $REALM_id_range
+cn: ${REALM}_id_range
 ipaBaseID: $IDSTART
 ipaIDRangeSize: $IDRANGE_SIZE

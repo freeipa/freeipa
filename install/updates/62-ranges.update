@@ -3,11 +3,29 @@ add:attributeTypes: (2.16.840.1.113730.3.8.11.33 NAME 'ipaBaseID' DESC 'First va
 add:attributeTypes: (2.16.840.1.113730.3.8.11.34 NAME 'ipaIDRangeSize' DESC 'Size of a Posix ID range' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 add:attributeTypes: (2.16.840.1.113730.3.8.11.35 NAME 'ipaBaseRID' DESC 'First value of a RID range' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 add:attributeTypes: (2.16.840.1.113730.3.8.11.36 NAME 'ipaSecondaryBaseRID' DESC 'First value of a secondary RID range' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+add:objectClasses: (2.16.840.1.113730.3.8.12.14 NAME 'ipaIDobject' SUP top AUXILIARY MAY ( uidNumber $$ gidNumber $$ ipaNTSecurityIdentifier ) X-ORIGIN 'IPA v3' )
 add:objectClasses: (2.16.840.1.113730.3.8.12.15 NAME 'ipaIDrange' ABSTRACT MUST ( cn $$ ipaBaseID $$ ipaIDRangeSize ) X-ORIGIN 'IPA v3' )
 add:objectClasses: (2.16.840.1.113730.3.8.12.16 NAME 'ipaDomainIDRange' SUP ipaIDrange STRUCTURAL MAY ( ipaBaseRID $$ ipaSecondaryBaseRID ) X-ORIGIN 'IPA v3' )
 add:objectClasses: (2.16.840.1.113730.3.8.12.17 NAME 'ipaTrustedADDomainRange' SUP ipaIDrange STRUCTURAL MUST ( ipaBaseRID $$ ipaNTTrustedDomainSID ) X-ORIGIN 'IPA v3' )
 
 dn: cn=ranges,cn=etc,$SUFFIX
-default: obectClass: top
+default: objectClass: top
 default: objectClass: nsContainer
 default: cn: ranges
+
+dn: cn=IPA Range-Check,cn=plugins,cn=config
+default: changetype: add
+default: objectclass: top
+default: objectclass: nsSlapdPlugin
+default: objectclass: extensibleObject
+default: cn: IPA Range-Check
+default: nsslapd-pluginpath: libipa_range_check
+default: nsslapd-plugininitfunc: ipa_range_check_init
+default: nsslapd-plugintype: preoperation
+default: nsslapd-pluginenabled: on
+default: nsslapd-pluginid: ipa_range_check_version
+default: nsslapd-pluginversion: 1.0
+default: nsslapd-pluginvendor: Red Hat, Inc.
+default: nsslapd-plugindescription: IPA Range-Check plugin
+default: nsslapd-plugin-depends-on-type: database
+default: nsslapd-basedn: $SUFFIX
