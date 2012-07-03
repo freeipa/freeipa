@@ -378,6 +378,8 @@ class i18n_messages(Command):
             },
             "dnszone": {
                 "identity": _("DNS Zone Settings"),
+                "add_permission":_("Add Permission"),
+                "remove_permission": _("Remove Permission"),
             },
             "entitle": {
                 "account": _("Account"),

@@ -929,10 +929,11 @@ IPA.batch_command = function (spec) {
                 );
 
             } else if (result.error) {
-                name = IPA.get_message('errors.ipa_error', 'IPA Error')+(result.error.code ? ' '+result.error.code : '');
+                var code = result.error.code || result.error_code;
+                name = IPA.get_message('errors.ipa_error', 'IPA Error')+(code ? ' '+code : '');
                 message = result.error.message || result.error;
 
-                that.errors.add(command, name, message, text_status);
+                if (command.retry) that.errors.add(command, name, message, text_status);
 
                 if (command.on_error) command.on_error.call(
                     this,
@@ -940,7 +941,7 @@ IPA.batch_command = function (spec) {
                     text_status,
                     {
                         name: name,
-                        code: result.error.code,
+                        code: code,
                         message: message,
                         data: result
                     }

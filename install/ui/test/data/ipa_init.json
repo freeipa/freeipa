@@ -240,7 +240,9 @@
                             "type": "Record Type"
                         },
                         "dnszone": {
-                            "identity": "DNS Zone Settings"
+                            "identity": "DNS Zone Settings",
+                            "add_permission": "Add Permission",
+                            "remove_permission": "Remove Permission"
                         },
                         "entitle": {
                             "account": "Account",

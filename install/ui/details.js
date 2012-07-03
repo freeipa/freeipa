@@ -996,7 +996,9 @@ IPA.acl_state_evaluator = function(spec) {
             rights = record.attributelevelrights[that.attribute];
         }
 
-        rights = rights || '';
+        // Full rights if we don't know the rights.  Better to allow action and
+        // then to show error dialog than not be able to do something.
+        rights = rights || 'rscwo';
 
         for (i=0; i<rights.length; i++) {
             state = that.attribute + '_' + rights.charAt(i);

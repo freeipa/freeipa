@@ -26,7 +26,9 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js,
  *           net.js, widget.js */
 
-IPA.dns = {};
+IPA.dns = {
+    zone_permission_name: 'Manage DNS zone ${dnszone}'
+};
 
 IPA.dns.config_entity = function(spec) {
 
@@ -230,15 +232,23 @@ IPA.dns.zone_entity = function(spec) {
                 IPA.select_action,
                 IPA.enable_action,
                 IPA.disable_action,
-                IPA.delete_action
+                IPA.delete_action,
+                IPA.dns.add_permission_action,
+                IPA.dns.remove_permission_action
             ],
-            header_actions: ['select_action', 'enable', 'disable', 'delete'],
+            header_actions: ['select_action', 'enable', 'disable', 'delete',
+                'add_permission', 'remove_permission'],
             state: {
                 evaluators: [
                     {
                         factory: IPA.enable_state_evaluator,
                         field: 'idnszoneactive'
-                    }
+                    },
+                    {
+                        factory: IPA.acl_state_evaluator,
+                        attribute: 'managedby'
+                    },
+                    IPA.dns.zone_has_permission_evaluator
                 ],
                 summary_conditions: [
                     IPA.enabled_summary_cond(),
@@ -319,11 +329,69 @@ IPA.dns.zone_entity = function(spec) {
     return that;
 };
 
-IPA.dnszone_details_facet = function(spec) {
+IPA.dnszone_details_facet = function(spec, no_init) {
 
     spec = spec || {};
 
-    var that = IPA.details_facet(spec);
+    var that = IPA.details_facet(spec, true);
+    that.permission_load = IPA.observer();
+    that.permission_status = 'unknown'; // [unknown, set, none]
+
+    that.refresh_on_success = function(data, text_status, xhr) {
+        // do not load data from batch
+
+        that.show_content();
+    };
+
+    that.create_refresh_command = function() {
+
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+
+        var batch = IPA.batch_command({
+            name: 'dnszone_details_refresh'
+        });
+
+        var dnszone_command = that.details_facet_create_refresh_command();
+
+        dnszone_command.on_success = function(data, text_status, xhr) {
+            // create data that mimics dnszone-show output
+            var dnszone_data = {};
+            dnszone_data.result = data;
+            that.load(dnszone_data);
+        };
+
+        batch.add_command(dnszone_command);
+
+        var permission_name = IPA.dns.zone_permission_name.replace('${dnszone}', pkey);
+
+        var permission_command = IPA.command({
+            entity: 'permission',
+            method: 'show',
+            args: [permission_name],
+            options: {},
+            retry: false
+        });
+
+        permission_command.on_success = function(data, text_status, xhr) {
+            that.permission_status = 'set';
+            that.permission_load.notify([that.permission_status], that);
+        };
+
+        permission_command.on_error = function(xhr, text_status, error_thrown) {
+            if (error_thrown && error_thrown.code === 4001) {
+                //NotFound error
+                that.permission_status = 'none';
+            } else {
+                that.permission_status = 'unknown';
+            }
+
+            that.permission_load.notify([that.permission_status], that);
+        };
+
+        batch.add_command(permission_command);
+
+        return batch;
+    };
 
     that.update_on_success = function(data, text_status, xhr) {
         that.refresh();
@@ -333,6 +401,8 @@ IPA.dnszone_details_facet = function(spec) {
     that.update_on_error = function(xhr, text_status, error_thrown) {
         that.refresh();
     };
+
+    if (!no_init) that.init_details_facet();
 
     return that;
 };
@@ -523,6 +593,84 @@ IPA.dnszone_adder_dialog = function(spec) {
     that.create = function() {
         that.entity_adder_dialog_create();
         that.container.addClass('dnszone-adder-dialog');
+    };
+
+    return that;
+};
+
+IPA.dns.add_permission_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'add_permission';
+    spec.label = spec.label || IPA.messages.objects.dnszone.add_permission;
+    spec.enable_cond = spec.enable_cond || ['permission-none', 'managedby_w'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        var pkey = IPA.nav.get_state('dnszone-pkey');
+
+         var command = IPA.command({
+            entity: 'dnszone',
+            method: 'add_permission',
+            args: [pkey],
+            options: {},
+            on_success: function() {
+                facet.refresh();
+            }
+        });
+
+        command.execute();
+    };
+
+    return that;
+};
+
+IPA.dns.remove_permission_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'remove_permission';
+    spec.label = spec.label || IPA.messages.objects.dnszone.remove_permission;
+    spec.enable_cond = spec.enable_cond || ['permission-set', 'managedby_w'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        var pkey = IPA.nav.get_state('dnszone-pkey');
+
+         var command = IPA.command({
+            entity: 'dnszone',
+            method: 'remove_permission',
+            args: [pkey],
+            options: {},
+            on_success: function() {
+                facet.refresh();
+            }
+        });
+
+        command.execute();
+    };
+
+    return that;
+};
+
+IPA.dns.zone_has_permission_evaluator = function(spec) {
+    spec = spec || {};
+
+    spec.event = spec.event || 'permission_load';
+
+    var that = IPA.state_evaluator(spec);
+
+    that.on_event = function(permission_status) {
+
+        var old_state = that.state;
+        that.state = [
+            'permission-'+permission_status
+        ];
+
+        that.notify_on_change(old_state);
     };
 
     return that;
