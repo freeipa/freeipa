@@ -65,7 +65,7 @@ def parse_options():
 
     basic_group = OptionGroup(parser, "basic options")
     basic_group.add_option("--domain", dest="domain", help="domain name")
-    basic_group.add_option("--server", dest="server", help="IPA server")
+    basic_group.add_option("--server", dest="server", help="IPA server", action="append")
     basic_group.add_option("--realm", dest="realm_name", help="realm name")
     basic_group.add_option("--fixed-primary", dest="primary", action="store_true",
                       default=False, help="Configure sssd to use fixed server as primary IPA server")
@@ -487,8 +487,8 @@ def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
     defopts = [{'name':'basedn', 'type':'option', 'value':cli_basedn},
                {'name':'realm', 'type':'option', 'value':cli_realm},
                {'name':'domain', 'type':'option', 'value':cli_domain},
-               {'name':'server', 'type':'option', 'value':cli_server},
-               {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % ipautil.format_netloc(cli_server)},
+               {'name':'server', 'type':'option', 'value':cli_server[0]},
+               {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % ipautil.format_netloc(cli_server[0])},
                {'name':'enable_ra', 'type':'option', 'value':'True'}]
 
     opts.append({'name':'global', 'type':'section', 'value':defopts})
@@ -525,7 +525,7 @@ def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
         if options.on_master:
             opts.append({'name':'uri', 'type':'option', 'value':'ldap://localhost'})
         else:
-            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ipautil.format_netloc(cli_server)})
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ipautil.format_netloc(cli_server[0])})
     else:
         opts.append({'name':'nss_srv_domain', 'type':'option', 'value':cli_domain})
 
@@ -564,7 +564,7 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
         if options.on_master:
             opts.append({'name':'uri', 'type':'option', 'value':'ldap://localhost'})
         else:
-            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ipautil.format_netloc(cli_server)})
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ipautil.format_netloc(cli_server[0])})
     else:
         opts.append({'name':'uri', 'type':'option', 'value':'DNS'})
 
@@ -604,7 +604,7 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
 
     opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
             {'name':'empty', 'type':'empty'},
-            {'name':'URI', 'type':'option', 'value':'ldaps://'+  cli_server},
+            {'name':'URI', 'type':'option', 'value':'ldaps://'+  cli_server[0]},
             {'name':'BASE', 'type':'option', 'value':cli_basedn},
             {'name':'TLS_CACERT', 'type':'option', 'value':'/etc/ipa/ca.crt'},
             {'name':'empty', 'type':'empty'}]
@@ -625,13 +625,13 @@ def hardcode_ldap_server(cli_server):
     ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     ldapconf.setOptionAssignment(" ")
 
-    opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+ipautil.format_netloc(cli_server)},
+    opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+ipautil.format_netloc(cli_server[0])},
             {'name':'empty', 'type':'empty'}]
 
     # Errors raised by this should be caught by the caller
     ldapconf.changeConf("/etc/ldap.conf", opts)
     root_logger.info("Changed configuration of /etc/ldap.conf to use " +
-        "hardcoded server name: %s", cli_server)
+        "hardcoded server name: %s", cli_server[0])
 
     return
 
@@ -662,13 +662,13 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, c
     opts.append({'name':'empty', 'type':'empty'})
 
     #the following are necessary only if DNS discovery does not work
+    kropts = []
     if not dnsok or not cli_kdc or options.force:
         #[realms]
-        kropts =[{'name':'kdc', 'type':'option', 'value':ipautil.format_netloc(cli_server, 88)},
-                 {'name':'admin_server', 'type':'option', 'value':ipautil.format_netloc(cli_server, 749)},
-                 {'name':'default_domain', 'type':'option', 'value':cli_domain}]
-    else:
-        kropts = []
+        for server in cli_server:
+            kropts.append({'name':'kdc', 'type':'option', 'value':ipautil.format_netloc(server, 88)})
+            kropts.append({'name':'admin_server', 'type':'option', 'value':ipautil.format_netloc(server, 749)})
+        kropts.append({'name':'default_domain', 'type':'option', 'value':cli_domain})
     kropts.append({'name':'pkinit_anchors', 'type':'option', 'value':'FILE:/etc/ipa/ca.crt'})
     ropts = [{'name':cli_realm, 'type':'subsection', 'value':kropts}]
 
@@ -814,12 +814,12 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
 
     if not options.on_master:
         if options.primary:
-            domain.set_option('ipa_server', '%s, _srv_' % cli_server)
+            domain.set_option('ipa_server', ', '.join(cli_server))
         else:
-            domain.set_option('ipa_server', '_srv_, %s' % cli_server)
+            domain.set_option('ipa_server', '_srv_, %s' % ', '.join(cli_server))
     else:
         # the master should only use itself for Kerberos
-        domain.set_option('ipa_server', cli_server)
+        domain.set_option('ipa_server', cli_server[0])
     domain.set_option('ipa_domain', cli_domain)
     domain.set_option('ipa_hostname', client_hostname)
     if cli_domain.lower() != cli_realm.lower():
@@ -1169,6 +1169,8 @@ def install(options, env, fstore, statestore):
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
 
+    # Do discovery on the first server passed in, we'll do sanity checking
+    # on any others
     ret = ds.search(domain=options.domain, server=options.server, hostname=hostname)
 
     if ret == ipadiscovery.BAD_HOST_CONFIG:
@@ -1227,21 +1229,37 @@ def install(options, env, fstore, statestore):
             return CLIENT_INSTALL_ERROR
         else:
             root_logger.debug("DNS discovery failed to find the IPA Server")
-            cli_server = user_input("Provide your IPA server name (ex: ipa.example.com)", allow_empty = False)
+            cli_server = [user_input("Provide your IPA server name (ex: ipa.example.com)", allow_empty = False)]
             cli_server_source = 'Provided interactively'
-            root_logger.debug("will use interactively provided server: %s", cli_server)
+            root_logger.debug("will use interactively provided server: %s", cli_server[0])
         ret = ds.search(domain=cli_domain, server=cli_server, hostname=hostname)
+
     else:
-        dnsok = True
+        # Only set dnsok to True if we were not passed in one or more servers
+        # and if DNS discovery actually worked.
+        if not options.server:
+            (server, domain) = ds.check_domain(ds.domain, set(), "Validating DNS Discovery")
+            if server and domain:
+                root_logger.debug("DNS validated, enabling discovery")
+                dnsok = True
+            else:
+                root_logger.debug("DNS discovery failed, disabling discovery")
+        else:
+            root_logger.debug("Using servers from command line, disabling DNS discovery")
+
     if not cli_server:
-        if ds.server:
-            cli_server = ds.server
+        if options.server:
+            cli_server = options.server
+            cli_server_source = 'Provided as option'
+            root_logger.debug("will use provided server: %s", ', '.join(options.server))
+        elif ds.server:
+            cli_server = [ds.server]
             cli_server_source = ds.server_source
-            root_logger.debug("will use discovered server: %s", cli_server)
+            root_logger.debug("will use discovered server: %s", cli_server[0])
 
     if ret == ipadiscovery.NOT_IPA_SERVER:
-        root_logger.error("%s is not an IPA v2 Server.", cli_server)
-        root_logger.debug("(%s: %s)", cli_server, cli_server_source)
+        root_logger.error("%s is not an IPA v2 Server.", cli_server[0])
+        root_logger.debug("(%s: %s)", cli_server[0], cli_server_source)
         return CLIENT_INSTALL_ERROR
 
     if ret == ipadiscovery.NO_ACCESS_TO_LDAP:
@@ -1253,10 +1271,10 @@ def install(options, env, fstore, statestore):
 
     if ret != 0:
         root_logger.error("Failed to verify that %s is an IPA Server.",
-            cli_server)
+            cli_server[0])
         root_logger.error("This may mean that the remote server is not up " +
             "or is not reachable due to network or firewall settings.")
-        root_logger.debug("(%s: %s)", cli_server, cli_server_source)
+        root_logger.debug("(%s: %s)", cli_server[0], cli_server_source)
         return CLIENT_INSTALL_ERROR
 
     cli_kdc = ds.kdc
@@ -1269,8 +1287,10 @@ def install(options, env, fstore, statestore):
     if dnsok:
         root_logger.info("Discovery was successful!")
     elif not options.unattended:
-        root_logger.warning("The failure to use DNS to find your IPA server " +
-            "indicates that your resolv.conf file is not properly configured.")
+        if not options.server:
+            root_logger.warning("The failure to use DNS to find your IPA" +
+                " server indicates that your resolv.conf file is not properly" +
+                " configured.")
         root_logger.info("Autodiscovery of servers for failover cannot work " +
             "with this configuration.")
         root_logger.info("If you proceed with the installation, services " +
@@ -1296,13 +1316,22 @@ def install(options, env, fstore, statestore):
     root_logger.debug("will use discovered basedn: %s", cli_basedn)
     subject_base = "O=%s" % cli_realm
 
+    # Now do a sanity check on the other servers
+    if options.server and len(options.server) > 1:
+        for server in options.server[1:]:
+            ret = ds.search(domain=cli_domain, server=server, hostname=hostname)
+            if ret == ipadiscovery.NOT_IPA_SERVER:
+                root_logger.error("%s is not an IPA v2 Server.", server)
+                root_logger.debug("(%s: %s)", server, cli_server_source)
+                return CLIENT_INSTALL_ERROR
+
     root_logger.info("Hostname: %s", hostname)
     root_logger.debug("Hostname source: %s", hostname_source)
     root_logger.info("Realm: %s", cli_realm)
     root_logger.debug("Realm source: %s", cli_realm_source)
     root_logger.info("DNS Domain: %s", cli_domain)
     root_logger.debug("DNS Domain source: %s", cli_domain_source)
-    root_logger.info("IPA Server: %s", cli_server)
+    root_logger.info("IPA Server: %s", ', '.join(cli_server))
     root_logger.debug("IPA Server source: %s", cli_server_source)
     root_logger.info("BaseDN: %s", cli_basedn)
     root_logger.debug("BaseDN source: %s", cli_basedn_source)
@@ -1347,10 +1376,10 @@ def install(options, env, fstore, statestore):
         pass
 
     try:
-        run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % ipautil.format_netloc(cli_server)])
+        run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % ipautil.format_netloc(cli_server[0])])
     except CalledProcessError, e:
         root_logger.error(
-            'Retrieving CA from %s failed: %s', cli_server, str(e))
+            'Retrieving CA from %s failed: %s', cli_server[0], str(e))
         return CLIENT_INSTALL_ERROR
 
     if not options.on_master:
@@ -1369,7 +1398,7 @@ def install(options, env, fstore, statestore):
                     if synced_ntp:
                         break
             if not synced_ntp:
-                synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server, debug=True)
+                synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server[0], debug=True)
             if not synced_ntp:
                 root_logger.warning("Unable to sync time with IPA NTP " +
                     "server, assuming the time is in sync.")
@@ -1379,7 +1408,7 @@ def install(options, env, fstore, statestore):
                 root_logger.error("Test kerberos configuration failed")
                 return CLIENT_INSTALL_ERROR
             env['KRB5_CONFIG'] = krb_name
-            join_args = ["/usr/sbin/ipa-join", "-s", cli_server, "-b", realm_to_suffix(cli_realm)]
+            join_args = ["/usr/sbin/ipa-join", "-s", cli_server[0], "-b", realm_to_suffix(cli_realm)]
             if options.debug:
                 join_args.append("-d")
                 env['XMLRPC_TRACE_CURL'] = 'yes'
@@ -1542,10 +1571,10 @@ def install(options, env, fstore, statestore):
         return CLIENT_INSTALL_ERROR
 
     if not options.on_master:
-        client_dns(cli_server, hostname, options.dns_updates)
+        client_dns(cli_server[0], hostname, options.dns_updates)
         configure_certmonger(fstore, subject_base, cli_realm, hostname, options)
 
-    update_ssh_keys(cli_server, hostname, ipaservices.knownservices.sshd.get_config_dir(), options.create_sshfp)
+    update_ssh_keys(cli_server[0], hostname, ipaservices.knownservices.sshd.get_config_dir(), options.create_sshfp)
 
     try:
         os.remove(CCACHE_FILE)
@@ -1677,7 +1706,7 @@ def install(options, env, fstore, statestore):
         if options.ntp_server:
             ntp_server = options.ntp_server
         else:
-            ntp_server = cli_server
+            ntp_server = cli_server[0]
         ipaclient.ntpconf.config_ntp(ntp_server, fstore, statestore)
         root_logger.info("NTP enabled")
 

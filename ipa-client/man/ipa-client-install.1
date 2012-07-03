@@ -42,13 +42,13 @@ Client must use a \fBstatic hostname\fR. If the machine hostname changes for exa
 Set the domain name to DOMAIN
 .TP
 \fB\-\-server\fR=\fISERVER\fR
-Set the IPA server to connect to
+Set the IPA server to connect to. May be specified multiple times to add multiple servers to ipa_server value in sssd.conf. Only the first value is considered when used with \-\-no\-sssd.
 .TP
 \fB\-\-realm\fR=\fIREALM_NAME\fR
 Set the IPA realm name to REALM_NAME
 .TP
 \fB\-\-fixed\-primary\fR
-Configure sssd to use a fixed server as the primary IPA server. The default is to use DNS SRV records to determine the primary server to use and fall back to the server the client is enrolled with.
+Configure sssd to use a fixed server as the primary IPA server. The default is to use DNS SRV records to determine the primary server to use and fall back to the server the client is enrolled with. When used in conjunction with \-\-server then no _srv_ value is set in the ipa_server option in sssd.conf.
 .TP
 \fB\-p\fR, \fB\-\-principal\fR
 Authorized kerberos principal to use to join the IPA realm.

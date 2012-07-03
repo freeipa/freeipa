@@ -141,6 +141,9 @@ class IPADiscovery(object):
             'Starting IPA discovery with domain=%s, server=%s, hostname=%s',
             domain, server, hostname)
 
+        if type(server) in (list, tuple):
+            server = server[0]
+
         if not server:
 
             if not domain: #domain not provided do full DNS discovery
