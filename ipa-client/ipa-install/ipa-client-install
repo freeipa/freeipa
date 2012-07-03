@@ -979,19 +979,36 @@ def configure_ssh(fstore, ssh_dir, options):
 def resolve_ipaddress(server):
     """ Connect to the server's LDAP port in order to determine what ip
         address this machine uses as "public" ip (relative to the server).
+
+        Returns a tuple with the IP address and address family when
+        connection was successful. Socket error is raised otherwise.
     """
+    last_socket_error = None
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    try:
-        s.connect((server, 389))
-        addr, port = s.getsockname()
-    except socket.gaierror:
-        s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-        s.connect((server, 389))
-        addr, port, foo, bar = s.getsockname()
-    s.close()
+    for res in socket.getaddrinfo(server, 389, socket.AF_UNSPEC,
+            socket.SOCK_STREAM):
+        af, socktype, proto, canonname, sa = res
+        try:
+            s = socket.socket(af, socktype, proto)
+        except socket.error, e:
+            last_socket_error = e
+            s = None
+            continue
 
-    return addr
+        try:
+            s.connect(sa)
+            sockname = s.getsockname()
+
+            # For both IPv4 and IPv6 own IP address is always the first item
+            return (sockname[0], af)
+        except socket.error, e:
+            last_socket_error = e
+        finally:
+            if s:
+                s.close()
+
+    if last_socket_error is not None:
+        raise last_socket_error  # pylint: disable=E0702
 
 def do_nsupdate(update_txt):
     root_logger.debug("Writing nsupdate commands to %s:", UPDATE_FILE)
@@ -1037,7 +1054,13 @@ CCACHE_FILE = "/etc/ipa/.dns_ccache"
 
 def update_dns(server, hostname):
 
-    ip = resolve_ipaddress(server)
+    try:
+        (ip, af) = resolve_ipaddress(server)
+    except socket.gaierror, e:
+        root_logger.debug("update_dns: could not connect to server: %s", e)
+        root_logger.error("Cannot update DNS records! "
+                          "Failed to connect to server '%s'.", server)
+        return
 
     sub_dict = dict(HOSTNAME=hostname,
                     IPADDRESS=ip,
@@ -1045,9 +1068,9 @@ def update_dns(server, hostname):
                     ZONE='.'.join(hostname.split('.')[1:])
                 )
 
-    if len(ip.split('.')) == 4:
+    if af == socket.AF_INET:
         template = UPDATE_TEMPLATE_A
-    elif ':' in ip:
+    elif af == socket.AF_INET6:
         template = UPDATE_TEMPLATE_AAAA
     else:
         root_logger.info("Failed to determine this machine's ip address.")

@@ -236,15 +236,15 @@ class PortResponder(threading.Thread):
         self._stop_request = True
 
 def port_check(host, port_list):
-    ip = installutils.resolve_host(host)
-
-    if not ip:
-        raise RuntimeError("Port check failed! Unable to resolve host name '%s'" % host)
-
     ports_failed = []
     ports_udp_warning = []  # conncheck could not verify that port is open
     for port in port_list:
-        if ipautil.host_port_open(host, port.port, port.port_type, socket_timeout=CONNECT_TIMEOUT):
+        try:
+            port_open = ipautil.host_port_open(host, port.port,
+                    port.port_type, socket_timeout=CONNECT_TIMEOUT)
+        except socket.gaierror:
+            raise RuntimeError("Port check failed! Unable to resolve host name '%s'" % host)
+        if port_open:
             result = "OK"
         else:
             if port.port_type == socket.SOCK_DGRAM:

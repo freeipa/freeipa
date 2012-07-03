@@ -256,36 +256,6 @@ def read_dns_forwarders():
 
     return addrs
 
-def port_available(port):
-    """Try to bind to a port on the wildcard host
-       Return 1 if the port is available
-       Return 0 if the port is in use
-    """
-    rv = 1
-
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        fcntl.fcntl(s, fcntl.F_SETFD, fcntl.FD_CLOEXEC)
-        s.bind(('', port))
-        s.close()
-    except socket.error, e:
-        if e[0] == errno.EADDRINUSE:
-            rv = 0
-
-    if rv:
-        try:
-            s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            fcntl.fcntl(s, fcntl.F_SETFD, fcntl.FD_CLOEXEC)
-            s.bind(('', port))
-            s.close()
-        except socket.error, e:
-            if e[0] == errno.EADDRINUSE:
-                rv = 0
-
-    return rv
-
 def get_password(prompt):
     if os.isatty(sys.stdin.fileno()):
         return getpass.getpass(prompt)

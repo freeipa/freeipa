@@ -119,8 +119,15 @@ def get_ds_instances():
     return instances
 
 def check_ports():
-    ds_unsecure = installutils.port_available(389)
-    ds_secure = installutils.port_available(636)
+    """
+    Check of Directory server ports are open.
+
+    Returns a tuple with two booleans, one for unsecure port 389 and one for
+    secure port 636. True means that the port is free, False means that the
+    port is taken.
+    """
+    ds_unsecure = not ipautil.host_port_open(None, 389)
+    ds_secure = not ipautil.host_port_open(None, 636)
     return (ds_unsecure, ds_secure)
 
 def is_ds_running(server_id=''):

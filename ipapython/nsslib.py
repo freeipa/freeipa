@@ -115,6 +115,12 @@ def client_auth_data_callback(ca_names, chosen_nickname, password, certdb):
                 return False
         return False
 
+_af_dict = {
+    socket.AF_INET: io.PR_AF_INET,
+    socket.AF_INET6: io.PR_AF_INET6,
+    socket.AF_UNSPEC: io.PR_AF_UNSPEC
+}
+
 class NSSAddressFamilyFallback(object):
     def __init__(self, family):
         self.sock_family = family
@@ -124,67 +130,39 @@ class NSSAddressFamilyFallback(object):
         """
         Translate a family from python socket module to nss family.
         """
-        if sock_family in [ socket.AF_INET, socket.AF_UNSPEC ]:
-            return io.PR_AF_INET
-        elif sock_family == socket.AF_INET6:
-            return io.PR_AF_INET6
-        else:
+        try:
+            return _af_dict[sock_family]
+        except KeyError:
             raise ValueError('Uknown socket family %d\n', sock_family)
-
-    def _get_next_family(self):
-        if self.sock_family == socket.AF_UNSPEC and \
-           self.family == io.PR_AF_INET:
-            return io.PR_AF_INET6
-
-        return None
 
     def _create_socket(self):
         self.sock = io.Socket(family=self.family)
 
-    def _connect_socket_family(self, host, port, family):
-        root_logger.debug("connect_socket_family: host=%s port=%s family=%s",
-                                  host, port, io.addr_family_name(family))
-        try:
-            addr_info = [ ai for ai in io.AddrInfo(host) if ai.family == family ]
-            # No suitable families
-            if len(addr_info) == 0:
-                raise NSPRError(error.PR_ADDRESS_NOT_SUPPORTED_ERROR,
-                                "Cannot resolve %s using family %s" % (host, io.addr_family_name(family)))
-
-            # Try connecting to the NetworkAddresses
-            for net_addr in addr_info:
-                net_addr.port = port
-                root_logger.debug("connecting: %s", net_addr)
-                try:
-                    self.sock.connect(net_addr)
-                except Exception, e:
-                    root_logger.debug("Could not connect socket to %s, error: %s, retrying..",
-                                              net_addr, str(e))
-                    continue
-                else:
-                    return
-
-            # Could not connect with any of NetworkAddresses
-            raise NSPRError(error.PR_ADDRESS_NOT_SUPPORTED_ERROR,
-                            "Could not connect to %s using any address" % host)
-        except ValueError, e:
-            raise NSPRError(error.PR_ADDRESS_NOT_SUPPORTED_ERROR, e.message)
-
     def connect_socket(self, host, port):
         try:
-            self._connect_socket_family(host, port, self.family)
-        except NSPRError, e:
-            if e.errno == error.PR_ADDRESS_NOT_SUPPORTED_ERROR:
-                next_family = self._get_next_family()
-                if next_family:
-                    self.family = next_family
-                    self._create_socket()
-                    self._connect_socket_family(host, port, self.family)
-                else:
-                    root_logger.debug('No next family to try..')
-                    raise e
-            else:
-                raise e
+            addr_info = io.AddrInfo(host, family=self.family)
+        except Exception:
+             raise NSPRError(error.PR_ADDRESS_NOT_SUPPORTED_ERROR,
+                             "Cannot resolve %s using family %s" % (host,
+                                 io.addr_family_name(self.family)))
+
+        for net_addr in addr_info:
+            root_logger.debug("Connecting: %s", net_addr)
+            net_addr.port = port
+            self.family = net_addr.family
+            try:
+                self._create_socket()
+                self.sock.connect(net_addr)
+                return
+            except Exception, e:
+                root_logger.debug("Could not connect socket to %s, error: %s",
+                        net_addr, str(e))
+                root_logger.debug("Try to continue with next family...")
+                continue
+
+        raise NSPRError(error.PR_ADDRESS_NOT_SUPPORTED_ERROR,
+                "Could not connect to %s using any address" % host)
+
 
 class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
     default_port = httplib.HTTPSConnection.default_port
@@ -218,12 +196,10 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         nss.nss_init(dbdir)
         ssl.set_domestic_policy()
         nss.set_password_callback(self.password_callback)
-        self._create_socket()
 
     def _create_socket(self):
-
-        #TODO remove the try block once python-nss is guaranteed to
-	#contain these values
+        # TODO: remove the try block once python-nss is guaranteed to contain
+        # these values
         try :
                 ssl_enable_renegotiation  = SSL_ENABLE_RENEGOTIATION   #pylint: disable=E0602
                 ssl_require_safe_negotiation = SSL_REQUIRE_SAFE_NEGOTIATION  #pylint: disable=E0602

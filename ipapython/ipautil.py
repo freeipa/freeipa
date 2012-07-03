@@ -48,6 +48,7 @@ from dns.exception import DNSException
 from ipapython.ipa_log_manager import *
 from ipapython import ipavalidate
 from ipapython import config
+
 try:
     from subprocess import CalledProcessError
 except ImportError:
@@ -672,72 +673,103 @@ def get_gsserror(e):
 
 
 def host_port_open(host, port, socket_type=socket.SOCK_STREAM, socket_timeout=None):
-    families = (socket.AF_INET, socket.AF_INET6)
-    success = False
-
-    for family in families:
+    for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket_type):
+        af, socktype, proto, canonname, sa = res
         try:
             try:
-                s = socket.socket(family, socket_type)
+                s = socket.socket(af, socktype, proto)
             except socket.error:
+                s = None
                 continue
 
             if socket_timeout is not None:
                 s.settimeout(socket_timeout)
 
-            s.connect((host, port))
+            s.connect(sa)
 
             if socket_type == socket.SOCK_DGRAM:
                 s.send('')
                 s.recv(512)
 
-            success = True
+            return True
         except socket.error, e:
             pass
         finally:
-            s.close()
-
-        if success:
-            return True
+            if s:
+                s.close()
 
     return False
 
 def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=None, responder_data=None):
-    families = (socket.AF_INET, socket.AF_INET6)
+    host = None   # all available interfaces
+    last_socket_error = None
 
-    host = ''   # all available interfaces
+    # At first try to create IPv6 socket as it is able to accept both IPv6 and
+    # IPv4 connections (when not turned off)
+    families = (socket.AF_INET6, socket.AF_INET)
+    s = None
 
     for family in families:
         try:
-            s = socket.socket(family, socket_type)
+            addr_infos = socket.getaddrinfo(host, port, family, socket_type, 0,
+                            socket.AI_PASSIVE)
         except socket.error, e:
-            if family == families[-1]:  # last available family
-                raise e
-
-    if socket_timeout is not None:
-        s.settimeout(socket_timeout)
-
-    if socket_type == socket.SOCK_STREAM:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    try:
-        s.bind((host, port))
-
-        if socket_type == socket.SOCK_STREAM:
-            s.listen(1)
-            connection, client_address = s.accept()
+            last_socket_error = e
+            continue
+        for res in addr_infos:
+            af, socktype, proto, canonname, sa = res
             try:
-                if responder_data:
-                    connection.sendall(responder_data) #pylint: disable=E1101
-            finally:
-                connection.close()
-        elif socket_type == socket.SOCK_DGRAM:
-            data, addr = s.recvfrom(1)
+                s = socket.socket(af, socktype, proto)
+            except socket.error, e:
+                last_socket_error = e
+                s = None
+                continue
 
-            if responder_data:
-                s.sendto(responder_data, addr)
-    finally:
-        s.close()
+            if socket_timeout is not None:
+                s.settimeout(1)
+
+            if af == socket.AF_INET6:
+                try:
+                    # Make sure IPv4 clients can connect to IPv6 socket
+                    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+                except socket.error:
+                    pass
+
+            if socket_type == socket.SOCK_STREAM:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+            try:
+                s.bind(sa)
+
+                while True:
+                    if socket_type == socket.SOCK_STREAM:
+                        s.listen(1)
+                        connection, client_address = s.accept()
+                        try:
+                            if responder_data:
+                                connection.sendall(responder_data) #pylint: disable=E1101
+                        finally:
+                            connection.close()
+                    elif socket_type == socket.SOCK_DGRAM:
+                        data, addr = s.recvfrom(1)
+
+                        if responder_data:
+                            s.sendto(responder_data, addr)
+            except socket.timeout:
+                # Timeout is expectable as it was requested by caller, raise
+                # the exception back to him
+                raise
+            except socket.error, e:
+                last_socket_error = e
+                s.close()
+                s = None
+                continue
+            finally:
+                if s:
+                    s.close()
+
+    if s is None and last_socket_error is not None:
+        raise last_socket_error # pylint: disable=E0702
 
 def is_host_resolvable(fqdn):
     for rdtype in (rdatatype.A, rdatatype.AAAA):
@@ -1015,34 +1047,24 @@ def utf8_encode_values(values):
 def wait_for_open_ports(host, ports, timeout=0):
     """
     Wait until the specified port(s) on the remote host are open. Timeout
-    in seconds may be specified to limit the wait.
+    in seconds may be specified to limit the wait. If the timeout is
+    exceeded, socket.timeout exception is raised.
     """
     if not isinstance(ports, (tuple, list)):
         ports = [ports]
 
-    root_logger.debug('wait_for_open_ports: %s %s timeout %d' % (host, ports, timeout))
+    root_logger.debug('wait_for_open_ports: %s %s timeout %d', host, ports, timeout)
     op_timeout = time.time() + timeout
-    ipv6_failover = False
 
     for port in ports:
         while True:
-            try:
-                if ipv6_failover:
-                    s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-                else:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((host, port))
-                s.close()
+            port_open = host_port_open(host, port)
+
+            if port_open:
                 break
-            except socket.error, e:
-                if e.errno == 111:  # 111: Connection refused
-                    if timeout and time.time() > op_timeout: # timeout exceeded
-                        raise e
-                    time.sleep(1)
-                elif not ipv6_failover: # fallback to IPv6 connection
-                    ipv6_failover = True
-                else:
-                    raise e
+            if timeout and time.time() > op_timeout: # timeout exceeded
+                raise socket.timeout()
+            time.sleep(1)
 
 def wait_for_open_socket(socket_name, timeout=0):
     """
