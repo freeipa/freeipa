@@ -100,7 +100,7 @@ bool sid_peek_check_rid(const struct dom_sid *exp_dom_sid, const struct dom_sid 
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
 extern const struct dom_sid global_sid_Builtin; /* available in libsecurity.so */
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
-#define LDAP_SUFFIX "dc=ipa,dc=devel" /* FIXME !!! */
+
 #define LDAP_PAGE_SIZE 1024
 #define LDAP_OBJ_SAMBASAMACCOUNT "ipaNTUserAttrs"
 #define LDAP_OBJ_TRUSTED_DOMAIN "ipaNTTrustedDomain"
@@ -1045,12 +1045,12 @@ static bool ldapsam_search_users(struct pdb_methods *methods,
 	state->connection = ldap_state->smbldap_state;
 
 	if ((acct_flags != 0) && ((acct_flags & ACB_NORMAL) != 0))
-		state->base = LDAP_SUFFIX;
+		state->base = ldap_state->ipasam_privates->base_dn;
 	else if ((acct_flags != 0) &&
 		 ((acct_flags & (ACB_WSTRUST|ACB_SVRTRUST|ACB_DOMTRUST)) != 0))
-		state->base = LDAP_SUFFIX;
+		state->base = ldap_state->ipasam_privates->base_dn;
 	else
-		state->base = LDAP_SUFFIX;
+		state->base = ldap_state->ipasam_privates->base_dn;
 
 	state->acct_flags = acct_flags;
 	state->base = talloc_strdup(search, state->base);
@@ -1204,7 +1204,7 @@ static bool ldapsam_search_grouptype(struct pdb_methods *methods,
 		return false;
 	}
 
-	state->base = talloc_strdup(search, LDAP_SUFFIX);
+	state->base = talloc_strdup(search, ldap_state->ipasam_privates->base_dn);
 	state->connection = ldap_state->smbldap_state;
 	state->scope = LDAP_SCOPE_SUBTREE;
 	state->filter =	talloc_asprintf(search, "(&(objectclass=%s)"
