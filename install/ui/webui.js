@@ -151,6 +151,9 @@ $(function() {
         } else if (whoami.hasOwnProperty('memberof_role') &&
                    whoami.memberof_role.length > 0) {
             factory = IPA.admin_navigation;
+        } else if (whoami.hasOwnProperty('memberofindirect_role') &&
+                   whoami.memberofindirect_role.length > 0) {
+            factory = IPA.admin_navigation;
         } else {
             factory = IPA.self_serv_navigation;
         }
