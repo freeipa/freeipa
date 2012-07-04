@@ -100,19 +100,6 @@ bool sid_peek_check_rid(const struct dom_sid *exp_dom_sid, const struct dom_sid 
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
 extern const struct dom_sid global_sid_Builtin; /* available in libsecurity.so */
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
-/* from smb_macros.h */
-#define SMB_REALLOC_ARRAY(p,type,count) (type *)realloc_array((p),sizeof(type),(count),true) /* Always frees p on error or s == 0 */
-#define ADD_TO_ARRAY(mem_ctx, type, elem, array, num) \
-do { \
-	*(array) = ((mem_ctx) != NULL) ? \
-		talloc_realloc(mem_ctx, (*(array)), type, (*(num))+1) : \
-		SMB_REALLOC_ARRAY((*(array)), type, (*(num))+1); \
-	SMB_ASSERT((*(array)) != NULL); \
-	(*(array))[*(num)] = (elem); \
-	(*(num)) += 1; \
-} while (0)
-
-
 #define LDAP_SUFFIX "dc=ipa,dc=devel" /* FIXME !!! */
 #define LDAP_PAGE_SIZE 1024
 #define LDAP_OBJ_SAMBASAMACCOUNT "ipaNTUserAttrs"
@@ -1217,8 +1204,6 @@ static bool ldapsam_search_grouptype(struct pdb_methods *methods,
 		return false;
 	}
 
-	state->connection = ldap_state->smbldap_state;
-
 	state->base = talloc_strdup(search, LDAP_SUFFIX);
 	state->connection = ldap_state->smbldap_state;
 	state->scope = LDAP_SCOPE_SUBTREE;
@@ -1403,7 +1388,9 @@ static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
 		goto done;
 	}
 
-	ret = create_keys(krbctx, service_princ, discard_const(pwd), NULL, &keys, &err_msg);
+	ret = create_keys(krbctx, service_princ, discard_const(pwd), NULL,
+                          &keys, &err_msg);
+	krb5_free_principal(krbctx, service_princ);
 	if (!ret) {
 		if (err_msg != NULL) {
 			DEBUG(1, ("create_keys returned [%s]\n", err_msg));
@@ -1438,7 +1425,6 @@ done:
 	    ber_bvfree(reqdata);
 	}
 	free_keys_contents(krbctx, &keys);
-	krb5_free_principal(krbctx, service_princ);
 	krb5_free_context(krbctx);
 
 	return ret;
@@ -2246,6 +2232,7 @@ static NTSTATUS ipasam_enum_trusted_domains(struct pdb_methods *methods,
 	int scope = LDAP_SCOPE_SUBTREE;
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
+	struct pdb_trusted_domain **tmp;
 
 	filter = talloc_asprintf(mem_ctx, "(objectClass=%s)",
 				 LDAP_OBJ_TRUSTED_DOMAIN);
@@ -2286,16 +2273,20 @@ static NTSTATUS ipasam_enum_trusted_domains(struct pdb_methods *methods,
 
 		if (!fill_pdb_trusted_domain(*domains, ldap_state, entry,
 					     &dom_info)) {
+			talloc_free(*domains);
 			return NT_STATUS_UNSUCCESSFUL;
 		}
 
-		ADD_TO_ARRAY(*domains, struct pdb_trusted_domain *, dom_info,
-			     domains, num_domains);
-
-		if (*domains == NULL) {
-			DEBUG(1, ("talloc failed\n"));
+		tmp = talloc_realloc(*domains, *domains,
+		                     struct pdb_trusted_domain *,
+		                     (*(num_domains))+1);
+		if (tmp == NULL) {
+			talloc_free(*domains);
 			return NT_STATUS_NO_MEMORY;
 		}
+		*domains = tmp;
+		(*(domains))[*(num_domains)] = dom_info;
+		(*(num_domains)) += 1;
 	}
 
 	DEBUG(5, ("ipasam_enum_trusted_domains: got %d domains\n", *num_domains));
@@ -2700,14 +2691,15 @@ static bool ipasam_get_trusteddom_pw(struct pdb_methods *methods,
 		goto done;
 	}
 
+	status = get_trust_pwd(tmp_ctx, &td->trust_auth_incoming,
+			       &trustpw, &last_update);
+	if (!NT_STATUS_IS_OK(status)) {
+		ret = false;
+		goto done;
+	}
+
 	/* trusteddom_pw routines do not use talloc yet... */
 	if (pwd != NULL) {
-		status = get_trust_pwd(tmp_ctx, &td->trust_auth_incoming,
-				       &trustpw, &last_update);
-		if (!NT_STATUS_IS_OK(status)) {
-			ret = false;
-			goto done;
-		}
 		*pwd = strdup(trustpw);
 		memset(trustpw, 0, strlen(trustpw));
 		talloc_free(trustpw);
