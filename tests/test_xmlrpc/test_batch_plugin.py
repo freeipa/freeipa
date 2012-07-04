@@ -121,8 +121,16 @@ class test_batch(Declarative):
             expected=dict(
                 count=2,
                 results=[
-                    dict(error=u'%s: group not found' % group1),
-                    dict(error=u'%s: group not found' % group1),
+                    dict(
+                        error=u'%s: group not found' % group1,
+                        error_name=u'NotFound',
+                        error_code=4001,
+                    ),
+                    dict(
+                        error=u'%s: group not found' % group1,
+                        error_name=u'NotFound',
+                        error_code=4001,
+                    ),
                 ],
             ),
         ),
@@ -137,7 +145,11 @@ class test_batch(Declarative):
             expected=dict(
                 count=2,
                 results=deepequal_list(
-                    dict(error=u'%s: group not found' % group1),
+                    dict(
+                        error=u'%s: group not found' % group1,
+                        error_name=u'NotFound',
+                        error_code=4001,
+                    ),
                     dict(
                         value=group1,
                         summary=u'Added group "testgroup1"',
@@ -180,13 +192,41 @@ class test_batch(Declarative):
             expected=dict(
                 count=7,
                 results=deepequal_list(
-                    dict(error=u"unknown command 'nonexistent_ipa_command'"),
-                    dict(error=u"unknown command 'user-del'"),
-                    dict(error=u"'method' is required"),
-                    dict(error=u"'params' is required"),
-                    dict(error=u"'givenname' is required"),
-                    dict(error=u"'description' is required"),
-                    dict(error=Fuzzy(u"invalid 'gid'.*")),
+                    dict(
+                        error=u"unknown command 'nonexistent_ipa_command'",
+                        error_name=u'CommandError',
+                        error_code=905,
+                    ),
+                    dict(
+                        error=u"unknown command 'user-del'",
+                        error_name=u'CommandError',
+                        error_code=905,
+                    ),
+                    dict(
+                        error=u"'method' is required",
+                        error_name=u'RequirementError',
+                        error_code=3007,
+                    ),
+                    dict(
+                        error=u"'params' is required",
+                        error_name=u'RequirementError',
+                        error_code=3007,
+                    ),
+                    dict(
+                        error=u"'givenname' is required",
+                        error_name=u'RequirementError',
+                        error_code=3007,
+                    ),
+                    dict(
+                        error=u"'description' is required",
+                        error_name=u'RequirementError',
+                        error_code=3007,
+                    ),
+                    dict(
+                        error=Fuzzy(u"invalid 'gid'.*"),
+                        error_name=u'ConversionError',
+                        error_code=3008,
+                    ),
                 ),
             ),
         ),

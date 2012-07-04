@@ -102,8 +102,6 @@ class batch(Command):
                 )
                 result['error']=None
             except Exception, e:
-                result = dict()
-                result['error'] = unicode(e)
                 if isinstance(e, errors.RequirementError) or \
                     isinstance(e, errors.CommandError):
                     self.info(
@@ -113,6 +111,15 @@ class batch(Command):
                     self.info(
                         '%s: batch: %s(%s): %s', context.principal, name, ', '.join(api.Command[name]._repr_iter(**params)),  e.__class__.__name__
                     )
+                if isinstance(e, errors.PublicError):
+                    reported_error = e
+                else:
+                    reported_error = errors.InternalError()
+                result = dict(
+                    error=reported_error.strerror,
+                    error_code=reported_error.errno,
+                    error_name=unicode(type(reported_error).__name__),
+                )
             results.append(result)
         return dict(count=len(results) , results=results)
 
