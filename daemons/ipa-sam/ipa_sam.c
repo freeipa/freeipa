@@ -177,6 +177,8 @@ struct ipasam_privates {
 	char *trust_dn;
 	char *flat_name;
 	char *fallback_primary_group;
+	char *server_princ;
+	char *client_princ;
 };
 
 static LDAP *priv2ld(struct ldapsam_privates *priv)
@@ -3125,10 +3127,18 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 	return ret;
 }
 
-static void bind_callback_cleanup(struct ipasam_sasl_interact_priv *data)
+static void bind_callback_cleanup(struct ipasam_sasl_interact_priv *data, krb5_error_code rc)
 {
+	const char *errstring = NULL;
+
 	if (!data->context) {
 		return;
+	}
+
+	if (rc) {
+		errstring = krb5_get_error_message(data->context, rc);
+		DEBUG(0,("kerberos error: code=%d, message=%s\n", rc, errstring));
+		krb5_free_error_message(data->context, errstring);
 	}
 
 	krb5_free_cred_contents(data->context, &data->creds);
@@ -3157,22 +3167,27 @@ static void bind_callback_cleanup(struct ipasam_sasl_interact_priv *data)
 	data->context = NULL;
 }
 
-extern const char *lp_parm_const_string(int snum, const char *type, const char *option, const char *def);
-static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, void* ipasam_principal)
+static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, void* ipasam_priv)
 {
-	char *ccache_name = NULL;
 	krb5_error_code rc;
+	krb5_creds *out_creds = NULL;
+	krb5_creds in_creds;
 
 	struct ipasam_sasl_interact_priv data;
+	struct ipasam_privates *ipasam_private = NULL;
 	int ret;
 
 	memset(&data, 0, sizeof(struct ipasam_sasl_interact_priv));
-	data.name = (const char*)ipasam_principal;
-	if (data.name == NULL) {
-		DEBUG(0, ("bind_callback: ipasam:principal is not set, cannot use GSSAPI bind\n"));
+	memset(&in_creds, 0, sizeof(krb5_creds));
+
+	ipasam_private = (struct ipasam_privates*)ipasam_priv;
+
+	if ((ipasam_private->client_princ == NULL) || (ipasam_private->server_princ == NULL)) {
+		DEBUG(0, ("bind_callback: ipasam service principals are not set, cannot use GSSAPI bind\n"));
 		return LDAP_LOCAL_ERROR;
 	}
 
+	data.name = ipasam_private->client_princ;
 	data.name_len = strlen(data.name);
 
 	rc = krb5_init_context(&data.context);
@@ -3182,60 +3197,60 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 
 	rc = krb5_parse_name(data.context, data.name, &data.principal);
 	if (rc) {
-		bind_callback_cleanup(&data);
+		bind_callback_cleanup(&data, rc);
 		return LDAP_LOCAL_ERROR;
 	}
 
 	rc = krb5_cc_default(data.context, &data.ccache);
-	if (rc) {
-		bind_callback_cleanup(&data);
-		return LDAP_LOCAL_ERROR;
-	}
 
-	rc = krb5_cc_initialize(data.context, data.ccache, data.principal);
 	if (rc) {
-		bind_callback_cleanup(&data);
-		return LDAP_LOCAL_ERROR;
-	}
-
-	rc = krb5_cc_get_full_name(data.context, data.ccache, &ccache_name);
-	if (rc) {
-		if (ccache_name) {
-			krb5_free_string(data.context, ccache_name);
-		}
-		bind_callback_cleanup(&data);
-		return LDAP_LOCAL_ERROR;
-	}
-
-	rc = krb5_cc_set_default_name(data.context,  ccache_name);
-	if (rc) {
-		bind_callback_cleanup(&data);
+		bind_callback_cleanup(&data, rc);
 		return LDAP_LOCAL_ERROR;
 	}
 
 	rc = krb5_kt_resolve(data.context, "FILE:/etc/samba/samba.keytab", &data.keytab);
 	if (rc) {
-		bind_callback_cleanup(&data);
+		bind_callback_cleanup(&data, rc);
 		return LDAP_LOCAL_ERROR;
 	}
 
-	rc = krb5_get_init_creds_opt_alloc(data.context, &data.options);
+	rc = krb5_parse_name(data.context, ipasam_private->client_princ, &in_creds.client);
 	if (rc) {
-		bind_callback_cleanup(&data);
+		krb5_free_principal(data.context, data.creds.client);
+		bind_callback_cleanup(&data, rc);
 		return LDAP_LOCAL_ERROR;
 	}
 
-	rc = krb5_get_init_creds_opt_set_out_ccache(data.context, data.options, data.ccache);
+	rc = krb5_parse_name(data.context, ipasam_private->server_princ, &in_creds.server);
 	if (rc) {
-		bind_callback_cleanup(&data);
+		krb5_free_principal(data.context, in_creds.server);
+		bind_callback_cleanup(&data, rc);
 		return LDAP_LOCAL_ERROR;
 	}
 
-	rc = krb5_get_init_creds_keytab(data.context, &data.creds, data.principal, data.keytab, 
-					0, NULL, data.options);
+	rc = krb5_get_credentials(data.context, KRB5_GC_CACHED, data.ccache, &in_creds, &out_creds);
+	krb5_free_principal(data.context, in_creds.server);
+	krb5_free_principal(data.context, in_creds.client);
+
 	if (rc) {
-		bind_callback_cleanup(&data);
-		return LDAP_LOCAL_ERROR;
+		rc = krb5_get_init_creds_opt_alloc(data.context, &data.options);
+		if (rc) {
+			bind_callback_cleanup(&data, rc);
+			return LDAP_LOCAL_ERROR;
+		}
+
+		rc = krb5_get_init_creds_opt_set_out_ccache(data.context, data.options, data.ccache);
+		if (rc) {
+			bind_callback_cleanup(&data, rc);
+			return LDAP_LOCAL_ERROR;
+		}
+
+		rc = krb5_get_init_creds_keytab(data.context, &data.creds, data.principal, data.keytab,
+						0, NULL, data.options);
+		if (rc) {
+			bind_callback_cleanup(&data, rc);
+			return LDAP_LOCAL_ERROR;
+		}
 	}
 
 	ret = ldap_sasl_interactive_bind_s(ldap_struct,
@@ -3247,9 +3262,89 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 		DEBUG(0, ("bind_callback: cannot perform interactive SASL bind with GSSAPI\n"));
 	}
 
-	bind_callback_cleanup(&data);
+	if (out_creds) {
+		krb5_free_creds(data.context, out_creds);
+	}
+	bind_callback_cleanup(&data, 0);
 	return ret;
 }
+
+static NTSTATUS ipasam_generate_principals(struct ipasam_privates *privates) {
+
+	krb5_error_code rc;
+	int ret;
+	krb5_context context;
+	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
+	char hostname[255];
+	char *default_realm = NULL;
+
+	if (!privates) {
+		return status;
+	}
+
+	rc = krb5_init_context(&context);
+	if (rc) {
+		return status;
+	}
+
+	ret = gethostname(hostname, sizeof(hostname));
+	if (ret == -1) {
+		DEBUG(1, ("gethostname failed.\n"));
+		goto done;
+	}
+	hostname[sizeof(hostname)-1] = '\0';
+
+	rc = krb5_get_default_realm(context, &default_realm);
+	if (rc) {
+		goto done;
+	};
+
+	if (privates->client_princ) {
+		talloc_free(privates->client_princ);
+		privates->client_princ = NULL;
+	}
+
+	privates->client_princ = talloc_asprintf(privates,
+						"cifs/%s@%s",
+						hostname,
+						default_realm);
+
+	if (privates->client_princ == NULL) {
+		DEBUG(0, ("Failed to create ipasam client principal.\n"));
+		status = NT_STATUS_NO_MEMORY;
+		goto done;
+	}
+
+	if (privates->server_princ) {
+		talloc_free(privates->server_princ);
+		privates->server_princ = NULL;
+	}
+
+	privates->server_princ = talloc_asprintf(privates,
+						"ldap/%s@%s",
+						hostname,
+						default_realm);
+
+	if (privates->server_princ == NULL) {
+		DEBUG(0, ("Failed to create ipasam server principal.\n"));
+		status = NT_STATUS_NO_MEMORY;
+		goto done;
+	}
+
+	status = NT_STATUS_OK;
+
+done:
+
+	if (default_realm) {
+		krb5_free_default_realm(context, default_realm);
+	}
+
+	if (context) {
+		krb5_free_context(context);
+	}
+	return status;
+}
+
 
 static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				const char *location)
@@ -3263,7 +3358,6 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	struct dom_sid ldap_domain_sid;
 	char *bind_dn = NULL;
 	char *bind_secret = NULL;
-	const char *service_principal = NULL;
 
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
@@ -3293,9 +3387,9 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	}
 	trim_char( uri, '\"', '\"' );
 
-	service_principal = lp_parm_const_string(-1, "ipasam", "principal", NULL);
+	status = ipasam_generate_principals(ldap_state->ipasam_privates);
 
-	if (service_principal == NULL) {
+	if (!NT_STATUS_IS_OK(status)) {
 		if (!fetch_ldap_pw(&bind_dn, &bind_secret)) {
 			DEBUG(0, ("pdb_init_ipasam: Failed to retrieve LDAP password from secrets.tdb\n"));
 			return NT_STATUS_NO_MEMORY;
@@ -3310,7 +3404,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 			      &ldap_state->smbldap_state);
 		if (NT_STATUS_IS_OK(status)) {
 			ldap_state->smbldap_state->bind_callback = bind_callback;
-			ldap_state->smbldap_state->bind_callback_data = service_principal;
+			ldap_state->smbldap_state->bind_callback_data = ldap_state->ipasam_privates;
 		}
 	}
 

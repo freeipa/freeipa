@@ -18,7 +18,6 @@ ldap suffix = $SUFFIX
 ldap user suffix = cn=users,cn=accounts
 ldap group suffix = cn=groups,cn=accounts
 ldap machine suffix = cn=computers,cn=accounts
-ipasam:principal = cifs/$FQDN@$REALM
 rpc_server:epmapper = external
 rpc_server:lsarpc = external
 rpc_server:lsass = external
