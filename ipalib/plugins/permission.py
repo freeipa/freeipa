@@ -303,7 +303,8 @@ class permission_del(LDAPDelete):
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
         if not options.get('force') and not self.obj.check_system(ldap, dn, *keys):
-            raise errors.ACIError(info='A SYSTEM permission may not be removed')
+            raise errors.ACIError(
+                info=_('A SYSTEM permission may not be removed'))
         # remove permission even when the underlying ACI is missing
         try:
             self.api.Command.aci_del(keys[-1], aciprefix=ACI_PREFIX)
@@ -323,7 +324,8 @@ class permission_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         if not self.obj.check_system(ldap, dn, *keys):
-            raise errors.ACIError(info='A SYSTEM permission may not be modified')
+            raise errors.ACIError(
+                info=_('A SYSTEM permission may not be modified'))
 
         # check if permission is in LDAP
         try:
@@ -350,7 +352,7 @@ class permission_mod(LDAPUpdate):
                     pass    # permission may be renamed, continue
             else:
                 raise errors.ValidationError(
-                    name='rename',error=_('New name can not be empty'))
+                    name='rename', error=_('New name can not be empty'))
 
         opts = self.obj.filter_aci_attributes(options)
         setattr(context, 'aciupdate', False)

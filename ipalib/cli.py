@@ -621,7 +621,7 @@ class textui(backend.Backend):
 
         counter = len(entries)
         if counter == 0:
-            raise NotFound(reason="No matching entries found")
+            raise NotFound(reason=_("No matching entries found"))
 
         i = 1
         for e in entries:

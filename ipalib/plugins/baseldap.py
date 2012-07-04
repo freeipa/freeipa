@@ -194,7 +194,8 @@ def validate_del_attribute(ugettext, attr):
 def validate_attribute(ugettext, name, attr):
     m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", attr)
     if not m or len(m.groups()) != 2:
-        raise errors.ValidationError(name=name, error='Invalid format. Should be name=value')
+        raise errors.ValidationError(
+            name=name, error=_('Invalid format. Should be name=value'))
 
 def get_effective_rights(ldap, dn, attrs=None):
     assert isinstance(dn, DN)
@@ -690,16 +691,22 @@ def _check_limit_object_class(attributes, attrs, allow_only):
     for (oid, attr) in attributes[0].iteritems():
         if attr.names[0].lower() in limitattrs:
             if not allow_only:
-                raise errors.ObjectclassViolation(info='attribute "%(attribute)s" not allowed' % dict(attribute=attr.names[0].lower()))
+                raise errors.ObjectclassViolation(
+                    info=_('attribute "%(attribute)s" not allowed') % dict(
+                        attribute=attr.names[0].lower()))
             limitattrs.remove(attr.names[0].lower())
     # And now the MAY
     for (oid, attr) in attributes[1].iteritems():
         if attr.names[0].lower() in limitattrs:
             if not allow_only:
-                raise errors.ObjectclassViolation(info='attribute "%(attribute)s" not allowed' % dict(attribute=attr.names[0].lower()))
+                raise errors.ObjectclassViolation(
+                    info=_('attribute "%(attribute)s" not allowed') % dict(
+                        attribute=attr.names[0].lower()))
             limitattrs.remove(attr.names[0].lower())
     if len(limitattrs) > 0 and allow_only:
-        raise errors.ObjectclassViolation(info='attribute "%(attribute)s" not allowed' % dict(attribute=limitattrs[0]))
+        raise errors.ObjectclassViolation(
+            info=_('attribute "%(attribute)s" not allowed') % dict(
+                attribute=limitattrs[0]))
 
 
 class CallbackInterface(Method):
@@ -882,8 +889,7 @@ last, after all sets and adds."""),
                 try:
                     entry_attrs[attr].remove(delval)
                 except ValueError:
-                    raise errors.AttrValueNotFound(attr=attr,
-                                                   value=delval)
+                    raise errors.AttrValueNotFound(attr=attr, value=delval)
 
         if needldapattrs:
             try:

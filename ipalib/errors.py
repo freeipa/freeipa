@@ -400,7 +400,7 @@ class NetworkError(PublicError):
 
     For example:
 
-    >>> raise NetworkError(uri='ldap://localhost:389', error=u'Connection refused')
+    >>> raise NetworkError(uri='ldap://localhost:389', error=_(u'Connection refused'))
     Traceback (most recent call last):
       ...
     NetworkError: cannot connect to 'ldap://localhost:389': Connection refused
@@ -434,7 +434,7 @@ class XMLRPCMarshallError(PublicError):
 
     For example:
 
-    >>> raise XMLRPCMarshallError(error='int exceeds XML-RPC limits')
+    >>> raise XMLRPCMarshallError(error=_('int exceeds XML-RPC limits'))
     Traceback (most recent call last):
       ...
     XMLRPCMarshallError: error marshalling data for XML-RPC transport: int exceeds XML-RPC limits
@@ -476,7 +476,7 @@ class KerberosError(AuthenticationError):
 
     For example:
 
-    >>> raise KerberosError(major='Unspecified GSS failure.  Minor code may provide more information', minor='No credentials cache found')
+    >>> raise KerberosError(major=_('Unspecified GSS failure.  Minor code may provide more information'), minor=_('No credentials cache found'))
     Traceback (most recent call last):
       ...
     KerberosError: Kerberos error: Unspecified GSS failure.  Minor code may provide more information/No credentials cache found
@@ -754,7 +754,7 @@ class ConversionError(InvocationError):
 
     For example:
 
-    >>> raise ConversionError(name='age', error=u'must be an integer')
+    >>> raise ConversionError(name='age', error=_(u'must be an integer'))
     Traceback (most recent call last):
       ...
     ConversionError: invalid 'age': must be an integer
@@ -770,7 +770,7 @@ class ValidationError(InvocationError):
 
     For example:
 
-    >>> raise ValidationError(name='sn', error=u'can be at most 128 characters')
+    >>> raise ValidationError(name='sn', error=_(u'can be at most 128 characters'))
     Traceback (most recent call last):
       ...
     ValidationError: invalid 'sn': can be at most 128 characters
@@ -897,7 +897,7 @@ class MalformedServicePrincipal(ExecutionError):
 
     For example:
 
-    >>> raise MalformedServicePrincipal(reason='missing service')
+    >>> raise MalformedServicePrincipal(reason=_('missing service'))
     Traceback (most recent call last):
       ...
     MalformedServicePrincipal: Service principal is not of the form: service/fully-qualified host name: missing service
@@ -1073,7 +1073,7 @@ class Base64DecodeError(ExecutionError):
 
     For example:
 
-    >>> raise Base64DecodeError(reason='Incorrect padding')
+    >>> raise Base64DecodeError(reason=_('Incorrect padding'))
     Traceback (most recent call last):
       ...
     Base64DecodeError: Base64 decoding failed: Incorrect padding
@@ -1089,10 +1089,10 @@ class RemoteRetrieveError(ExecutionError):
 
     For example:
 
-    >>> raise RemoteRetrieveError(reason="Error: Failed to get certificate chain.")
+    >>> raise RemoteRetrieveError(reason=_("Failed to get certificate chain."))
     Traceback (most recent call last):
       ...
-    RemoteRetrieveError: Error: Failed to get certificate chain.
+    RemoteRetrieveError: Failed to get certificate chain.
 
     """
 
@@ -1184,7 +1184,7 @@ class FileError(ExecutionError):
 
     For example:
 
-    >>> raise FileError(reason="cannot write file \'test\'")
+    >>> raise FileError(reason=_("cannot write file \'test\'"))
     Traceback (most recent call last):
       ...
     FileError: cannot write file 'test'
@@ -1232,7 +1232,7 @@ class ReverseMemberError(ExecutionError):
 
     For example:
 
-    >>> raise ReverseMemberError(verb='added', exc="Group 'foo' not found.")
+    >>> raise ReverseMemberError(verb=_('added'), exc=_("Group 'foo' not found."))
     Traceback (most recent call last):
       ...
     ReverseMemberError: A problem was encountered when verifying that all members were added: Group 'foo' not found.
@@ -1397,7 +1397,7 @@ class DatabaseError(ExecutionError):
 
     For example:
 
-    >>> raise DatabaseError(desc="Can't contact LDAP server", info='Info goes here')
+    >>> raise DatabaseError(desc=_("Can't contact LDAP server"), info=_('Info goes here'))
     Traceback (most recent call last):
       ...
     DatabaseError: Can't contact LDAP server: Info goes here
@@ -1428,7 +1428,7 @@ class ObjectclassViolation(ExecutionError):
 
     For example:
 
-    >>> raise ObjectclassViolation(info='attribute "krbPrincipalName" not allowed')
+    >>> raise ObjectclassViolation(info=_('attribute "krbPrincipalName" not allowed'))
     Traceback (most recent call last):
       ...
     ObjectclassViolation: attribute "krbPrincipalName" not allowed
@@ -1491,7 +1491,7 @@ class BadSearchFilter(ExecutionError):
 
     For example:
 
-    >>> raise BadSearchFilter(info='invalid syntax')
+    >>> raise BadSearchFilter(info=_('invalid syntax'))
     Traceback (most recent call last):
       ...
     BadSearchFilter: Bad search filter invalid syntax
@@ -1515,7 +1515,7 @@ class CertificateOperationError(CertificateError):
 
     For example:
 
-    >>> raise CertificateOperationError(error=u'bad serial number')
+    >>> raise CertificateOperationError(error=_(u'bad serial number'))
     Traceback (most recent call last):
       ...
     CertificateOperationError: Certificate operation cannot be completed: bad serial number
@@ -1531,7 +1531,7 @@ class CertificateFormatError(CertificateError):
 
     For example:
 
-    >>> raise CertificateFormatError(error=u'improperly formated DER-encoded certificate')
+    >>> raise CertificateFormatError(error=_(u'improperly formated DER-encoded certificate'))
     Traceback (most recent call last):
       ...
     CertificateFormatError: Certificate format error: improperly formated DER-encoded certificate
@@ -1548,7 +1548,7 @@ class MutuallyExclusiveError(ExecutionError):
 
     For example:
 
-    >>> raise MutuallyExclusiveError(reason=u'hosts may not be added when hostcategory=all')
+    >>> raise MutuallyExclusiveError(reason=_(u'hosts may not be added when hostcategory=all'))
     Traceback (most recent call last):
       ...
     MutuallyExclusiveError: hosts may not be added when hostcategory=all
@@ -1565,7 +1565,7 @@ class NonFatalError(ExecutionError):
 
     For example:
 
-    >>> raise NonFatalError(reason=u'The host was added but the DNS update failed')
+    >>> raise NonFatalError(reason=_(u'The host was added but the DNS update failed'))
     Traceback (most recent call last):
       ...
     NonFatalError: The host was added but the DNS update failed
@@ -1646,7 +1646,7 @@ class ProtectedEntryError(ExecutionError):
     **4309** Raised when an entry being deleted is protected
 
     For example:
-    >>> raise ProtectedEntryError(label=u'group', key=u'admins', reason=u'privileged group')
+    >>> raise ProtectedEntryError(label=u'group', key=u'admins', reason=_(u'privileged group'))
     Traceback (most recent call last):
       ...
     ProtectedEntryError: group admins cannot be deleted: privileged group

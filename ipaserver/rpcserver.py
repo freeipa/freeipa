@@ -26,6 +26,15 @@ Also see the `ipalib.rpc` module.
 from cgi import parse_qs
 from xml.sax.saxutils import escape
 from xmlrpclib import Fault
+from wsgiref.util import shift_path_info
+import base64
+import os
+import string
+import datetime
+from decimal import Decimal
+import urlparse
+import time
+
 from ipalib import plugable
 from ipalib.backend import Executioner
 from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError, ExecutionError
@@ -39,15 +48,8 @@ from ipalib.session import session_mgr, AuthManager, get_ipa_ccache_name, load_c
 from ipalib.backend import Backend
 from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name
 from ipapython import ipautil
-from wsgiref.util import shift_path_info
 from ipapython.version import VERSION
-import base64
-import os
-import string
-import datetime
-from decimal import Decimal
-import urlparse
-import time
+from ipalib.text import _
 
 HTTP_STATUS_SUCCESS = '200 Success'
 HTTP_STATUS_SERVER_ERROR = '500 Internal Server Error'
@@ -533,31 +535,25 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
         except ValueError, e:
             raise JSONError(error=e)
         if not isinstance(d, dict):
-            raise JSONError(error='Request must be a dict')
+            raise JSONError(error=_('Request must be a dict'))
         if 'method' not in d:
-            raise JSONError(error='Request is missing "method"')
+            raise JSONError(error=_('Request is missing "method"'))
         if 'params' not in d:
-            raise JSONError(error='Request is missing "params"')
+            raise JSONError(error=_('Request is missing "params"'))
         d = json_decode_binary(d)
         method = d['method']
         params = d['params']
         _id = d.get('id')
         if not isinstance(params, (list, tuple)):
-            raise JSONError(error='params must be a list')
+            raise JSONError(error=_('params must be a list'))
         if len(params) != 2:
-            raise JSONError(
-                error='params must contain [args, options]'
-            )
+            raise JSONError(error=_('params must contain [args, options]'))
         args = params[0]
         if not isinstance(args, (list, tuple)):
-            raise JSONError(
-                error='params[0] (aka args) must be a list'
-            )
+            raise JSONError(error=_('params[0] (aka args) must be a list'))
         options = params[1]
         if not isinstance(options, dict):
-            raise JSONError(
-                error='params[1] (aka options) must be a dict'
-            )
+            raise JSONError(error=_('params[1] (aka options) must be a dict'))
         options = dict((str(k), v) for (k, v) in options.iteritems())
         return (method, args, options, _id)
 

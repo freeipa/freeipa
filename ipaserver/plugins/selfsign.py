@@ -208,7 +208,8 @@ class ra(rabase.rabase):
             serial = x509.get_serial_number(cert)
         except NSPRError, e:
             self.log.error('Unable to decode certificate in entry: %s' % str(e))
-            raise errors.CertificateOperationError(error='Unable to decode certificate in entry: %s' % str(e))
+            raise errors.CertificateOperationError(
+                error=_('Unable to decode certificate in entry: %s') % str(e))
 
         # To make it look like dogtag return just the base64 data.
         cert = cert.replace('\n','')

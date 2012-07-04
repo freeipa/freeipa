@@ -35,6 +35,7 @@ from ipalib.parameters import IA5Str
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy)
 from ipapython.ipa_log_manager import *
+from ipalib.text import _
 
 import ipalib
 from ipalib import api, util, errors
@@ -277,7 +278,8 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
         # automatically retrieve list of DNS masters
         dns_masters = api.Object.dnsrecord.get_dns_masters()
         if not dns_masters:
-            raise errors.NotFound("No IPA server with DNS support found!")
+            raise installutils.ScriptError(
+                "No IPA server with DNS support found!")
         ns_main = dns_masters.pop(0)
         ns_replicas = dns_masters
         addresses = resolve_host(ns_main)
@@ -321,7 +323,8 @@ def add_reverse_zone(zone, ns_hostname=None, ns_ip_address=None,
         # automatically retrieve list of DNS masters
         dns_masters = api.Object.dnsrecord.get_dns_masters()
         if not dns_masters:
-            raise errors.NotFound("No IPA server with DNS support found!")
+            raise installutils.ScriptError(
+                "No IPA server with DNS support found!")
         ns_main = dns_masters.pop(0)
         ns_replicas = dns_masters
         addresses = resolve_host(ns_main)

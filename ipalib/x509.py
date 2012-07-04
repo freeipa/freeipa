@@ -195,7 +195,8 @@ def normalize_certificate(rawcert):
         serial = unicode(get_serial_number(dercert, DER))
     except NSPRError, nsprerr:
         if nsprerr.errno == -8183: # SEC_ERROR_BAD_DER
-            raise errors.CertificateFormatError(error='improperly formatted DER-encoded certificate')
+            raise errors.CertificateFormatError(
+                error=_('improperly formatted DER-encoded certificate'))
         else:
             raise errors.CertificateFormatError(error=str(nsprerr))
 

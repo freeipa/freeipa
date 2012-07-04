@@ -446,7 +446,8 @@ class hbacrule_add_user(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if 'usercategory' in entry_attrs and \
             entry_attrs['usercategory'][0].lower() == 'all':
-            raise errors.MutuallyExclusiveError(reason="users cannot be added when user category='all'")
+            raise errors.MutuallyExclusiveError(
+                reason=_("users cannot be added when user category='all'"))
         return dn
 
 api.register(hbacrule_add_user)
@@ -475,7 +476,8 @@ class hbacrule_add_host(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if 'hostcategory' in entry_attrs and \
             entry_attrs['hostcategory'][0].lower() == 'all':
-            raise errors.MutuallyExclusiveError(reason="hosts cannot be added when host category='all'")
+            raise errors.MutuallyExclusiveError(
+                reason=_("hosts cannot be added when host category='all'"))
         return dn
 
 api.register(hbacrule_add_host)
@@ -504,7 +506,8 @@ class hbacrule_add_sourcehost(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if 'sourcehostcategory' in entry_attrs and \
             entry_attrs['sourcehostcategory'][0].lower() == 'all':
-            raise errors.MutuallyExclusiveError(reason="source hosts cannot be added when sourcehost category='all'")
+            raise errors.MutuallyExclusiveError(reason=_(
+                "source hosts cannot be added when sourcehost category='all'"))
         return add_external_pre_callback('host', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -541,7 +544,8 @@ class hbacrule_add_service(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if 'servicecategory' in entry_attrs and \
             entry_attrs['servicecategory'][0].lower() == 'all':
-            raise errors.MutuallyExclusiveError(reason="services cannot be added when service category='all'")
+            raise errors.MutuallyExclusiveError(reason=_(
+                "services cannot be added when service category='all'"))
         return dn
 
 api.register(hbacrule_add_service)

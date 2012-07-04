@@ -49,6 +49,7 @@ from ipalib.request import context, Connection
 from ipalib.util import get_current_principal
 from ipapython import ipautil
 from ipapython import kernel_keyring
+from ipalib.text import _
 
 import httplib
 import socket
@@ -484,7 +485,8 @@ class xmlclient(Connectible):
                 serverproxy = None
 
         if serverproxy is None:
-            raise NetworkError(uri='any of the configured servers', error=', '.join(servers))
+            raise NetworkError(uri=_('any of the configured servers'),
+                error=', '.join(servers))
         return serverproxy
 
     def destroy_connection(self):

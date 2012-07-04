@@ -298,7 +298,10 @@ class cert_request(VirtualCommand):
         subject_host = get_csr_hostname(csr)
         (servicename, hostname, realm) = split_principal(principal)
         if subject_host.lower() != hostname.lower():
-            raise errors.ACIError(info="hostname in subject of request '%s' does not match principal hostname '%s'" % (subject_host, hostname))
+            raise errors.ACIError(
+                info=_("hostname in subject of request '%(subject_host)s' "
+                    "does not match principal hostname '%(hostname)s'") % dict(
+                        subject_host=subject_host, hostname=hostname))
 
         dn = None
         service = None
@@ -314,16 +317,19 @@ class cert_request(VirtualCommand):
                 dn = service['dn']
         except errors.NotFound, e:
             if not add:
-                raise errors.NotFound(reason="The service principal for this request doesn't exist.")
+                raise errors.NotFound(reason=_("The service principal for "
+                    "this request doesn't exist."))
             try:
                 service = api.Command['service_add'](principal, **{'force': True})['result']
                 dn = service['dn']
             except errors.ACIError:
-                raise errors.ACIError(info='You need to be a member of the serviceadmin role to add services')
+                raise errors.ACIError(info=_('You need to be a member of '
+                    'the serviceadmin role to add services'))
 
         # We got this far so the service entry exists, can we write it?
         if not ldap.can_write(dn, "usercertificate"):
-            raise errors.ACIError(info="Insufficient 'write' privilege to the 'userCertificate' attribute of entry '%s'." % dn)
+            raise errors.ACIError(info=_("Insufficient 'write' privilege "
+                "to the 'userCertificate' attribute of entry '%s'.") % dn)
 
         # Validate the subject alt name, if any
         request = pkcs10.load_certificate_request(csr)
@@ -337,11 +343,14 @@ class cert_request(VirtualCommand):
                     # We don't want to issue any certificates referencing
                     # machines we don't know about. Nothing is stored in this
                     # host record related to this certificate.
-                    raise errors.NotFound(reason='no host record for subject alt name %s in certificate request' % name)
+                    raise errors.NotFound(reason=_('no host record for '
+                        'subject alt name %s in certificate request') % name)
                 authprincipal = getattr(context, 'principal')
                 if authprincipal.startswith("host/"):
                     if not hostdn in service.get('managedby', []):
-                        raise errors.ACIError(info="Insufficient privilege to create a certificate with subject alt name '%s'." % name)
+                        raise errors.ACIError(info=_(
+                            "Insufficient privilege to create a certificate "
+                            "with subject alt name '%s'.") % name)
 
         if 'usercertificate' in service:
             serial = x509.get_serial_number(service['usercertificate'][0], datatype=x509.DER)
