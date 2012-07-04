@@ -2617,8 +2617,7 @@ class dnsrecord_del(LDAPUpdate):
                         attr_name = unicode(param.label or param.name)
                     except:
                         attr_name = attr
-                    raise errors.AttrValueNotFound(attr=attr_name,
-                                                   value=val)
+                    raise errors.AttrValueNotFound(attr=attr_name, value=val)
             entry_attrs[attr] = list(set(old_entry[attr]))
 
         del_all = False

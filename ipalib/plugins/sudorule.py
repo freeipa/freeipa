@@ -286,9 +286,9 @@ class sudorule_mod(LDAPUpdate):
             self.obj.handle_not_found(*keys)
 
         if is_all(options, 'usercategory') and 'memberuser' in _entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("user category cannot be set to 'all' while there are users"))
+            raise errors.MutuallyExclusiveError(reason=_("user category cannot be set to 'all' while there are allowed users"))
         if is_all(options, 'hostcategory') and 'memberhost' in _entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are hosts"))
+            raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are allowed hosts"))
         if is_all(options, 'cmdcategory') and ('memberallowcmd' or
             'memberdenywcmd') in _entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_("command category cannot be set to 'all' while there are allow or deny commands"))

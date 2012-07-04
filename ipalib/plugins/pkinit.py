@@ -61,7 +61,7 @@ def valid_arg(ugettext, action):
     if a != 'enable' and a != 'disable':
         raise errors.ValidationError(
             name='action',
-            error='Unknown command %s' % action
+            error=_('Unknown command %s') % action
         )
 
 class pkinit_anonymous(Command):

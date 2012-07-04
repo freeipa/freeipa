@@ -114,8 +114,9 @@ def validate_nsaccountlock(entry_attrs):
         if not isinstance(nsaccountlock, (bool, Bool)):
             if not isinstance(nsaccountlock, basestring):
                 raise errors.OnlyOneValueAllowed(attr='nsaccountlock')
-            if nsaccountlock.lower() not in ('true','false'):
-                raise errors.ValidationError(name='nsaccountlock', error='must be TRUE or FALSE')
+            if nsaccountlock.lower() not in ('true', 'false'):
+                raise errors.ValidationError(name='nsaccountlock',
+                    error=_('must be TRUE or FALSE'))
 
 def convert_nsaccountlock(entry_attrs):
     if not 'nsaccountlock' in entry_attrs:
@@ -134,9 +135,7 @@ def split_principal(principal):
     parts = principal.split('@')
     user = parts[0].lower()
     if len(parts) > 2:
-        raise errors.MalformedUserPrincipal(
-            principal=principal
-        )
+        raise errors.MalformedUserPrincipal(principal=principal)
 
     if len(parts) == 2:
         realm = parts[1].upper()

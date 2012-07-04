@@ -126,18 +126,15 @@ def split_principal(principal):
     # may not include the realm.
     sp = principal.split('/')
     if len(sp) != 2:
-        raise errors.MalformedServicePrincipal(reason='missing service')
+        raise errors.MalformedServicePrincipal(reason=_('missing service'))
 
     service = sp[0]
     if len(service) == 0:
-        raise errors.MalformedServicePrincipal(
-            reason='blank service'
-        )
+        raise errors.MalformedServicePrincipal(reason=_('blank service'))
     sr = sp[1].split('@')
     if len(sr) > 2:
         raise errors.MalformedServicePrincipal(
-            reason='unable to determine realm'
-        )
+            reason=_('unable to determine realm'))
 
     hostname = sr[0].lower()
     if len(sr) == 2:
@@ -286,7 +283,9 @@ class service_add(LDAPCreate):
         try:
             hostresult = api.Command['host_show'](hostname)['result']
         except errors.NotFound:
-            raise errors.NotFound(reason="The host '%s' does not exist to add a service to." % hostname)
+            raise errors.NotFound(
+                reason=_("The host '%s' does not exist to add a service to.") %
+                    hostname)
 
         cert = options.get('usercertificate')
         if cert:
@@ -330,7 +329,10 @@ class service_del(LDAPDelete):
         (service, hostname, realm) = split_principal(keys[-1])
         check_required_principal(ldap, hostname, service)
         if self.api.env.enable_ra:
-            (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+            try:
+                (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
             cert = entry_attrs.get('usercertificate')
             if cert:
                 cert = cert[0]
@@ -376,7 +378,11 @@ class service_mod(LDAPUpdate):
             if cert:
                 dercert = x509.normalize_certificate(cert)
                 x509.verify_cert_subject(ldap, hostname, dercert)
-                (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
+                try:
+                    (dn, entry_attrs_old) = ldap.get_entry(
+                        dn, ['usercertificate'])
+                except errors.NotFound:
+                    self.obj.handle_not_found(*keys)
                 if 'usercertificate' in entry_attrs_old:
                     # FIXME: what to do here? do we revoke the old cert?
                     fmt = 'entry already has a certificate, serial number: %s' % (

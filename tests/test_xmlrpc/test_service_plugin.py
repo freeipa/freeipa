@@ -69,14 +69,16 @@ class test_service(Declarative):
         dict(
             desc='Try to update non-existent %r' % service1,
             command=('service_mod', [service1], dict(usercertificate=servercert)),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: service not found' % service1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % service1,
             command=('service_del', [service1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: service not found' % service1),
         ),
 
 
@@ -457,14 +459,16 @@ class test_service(Declarative):
         dict(
             desc='Try to update non-existent %r' % service1,
             command=('service_mod', [service1], dict(usercertificate=servercert)),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: service not found' % service1),
         ),
 
 
         dict(
             desc='Try to delete non-existent %r' % service1,
             command=('service_del', [service1], {}),
-            expected=errors.NotFound(reason='no such entry'),
+            expected=errors.NotFound(
+                reason=u'%s: service not found' % service1),
         ),
 
 

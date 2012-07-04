@@ -621,7 +621,7 @@ class host_mod(LDAPUpdate):
 
         # Once a principal name is set it cannot be changed
         if 'cn' in entry_attrs:
-            raise errors.ACIError(info='cn is immutable')
+            raise errors.ACIError(info=_('cn is immutable'))
         if 'locality' in entry_attrs:
             entry_attrs['l'] = entry_attrs['locality']
             del entry_attrs['locality']

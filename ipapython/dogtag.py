@@ -17,15 +17,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ipalib import api, errors
 import httplib
 import xml.dom.minidom
-from ipapython import nsslib, ipautil
 import nss.nss as nss
 from nss.error import NSPRError
-from ipalib.errors import NetworkError, CertificateOperationError
 from urllib import urlencode
+
+from ipalib import api, errors
+from ipapython import nsslib, ipautil
+from ipalib.errors import NetworkError, CertificateOperationError
 from ipapython.ipa_log_manager import *
+from ipalib.text import _
 
 def get_ca_certchain(ca_host=None):
     """
@@ -52,12 +54,14 @@ def get_ca_certchain(ca_host=None):
                     reason = item_node[0].childNodes[0].data
                     raise errors.RemoteRetrieveError(reason=reason)
                 except Exception, e:
-                    raise errors.RemoteRetrieveError(reason="Retrieving CA cert chain failed: %s" % str(e))
+                    raise errors.RemoteRetrieveError(
+                        reason=_("Retrieving CA cert chain failed: %s") % e)
         finally:
             if doc:
                 doc.unlink()
     else:
-        raise errors.RemoteRetrieveError(reason="request failed with HTTP status %d" % res.status)
+        raise errors.RemoteRetrieveError(
+            reason=_("request failed with HTTP status %d") % res.status)
 
     return chain
 

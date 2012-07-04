@@ -1840,7 +1840,7 @@ class AccessTime(Str):
             raise ValidationError(name=self.get_param_name(), error=e.args[0])
         except IndexError:
             raise ValidationError(
-                name=self.get_param_name(), error='incomplete time value'
+                name=self.get_param_name(), error=ugettext('incomplete time value')
             )
         return None
 

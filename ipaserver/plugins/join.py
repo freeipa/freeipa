@@ -106,7 +106,7 @@ class join(Command):
             # It exists, can we write the password attributes?
             allowed = ldap.can_write(dn, 'krblastpwdchange')
             if not allowed:
-                raise errors.ACIError(info="Insufficient 'write' privilege to the 'krbLastPwdChange' attribute of entry '%s'." % dn)
+                raise errors.ACIError(info=_("Insufficient 'write' privilege to the 'krbLastPwdChange' attribute of entry '%s'.") % dn)
 
             kw = {'fqdn': hostname, 'all': True}
             attrs_list = api.Command['host_show'](**kw)['result']

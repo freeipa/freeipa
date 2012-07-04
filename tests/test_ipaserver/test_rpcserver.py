@@ -200,44 +200,44 @@ class test_jsonserver(PluginTester):
         # Test with invalid JSON-data:
         e = raises(errors.JSONError, o.unmarshal, 'this wont work')
         assert isinstance(e.error, ValueError)
-        assert str(e.error) == 'No JSON object could be decoded'
+        assert unicode(e.error) == 'No JSON object could be decoded'
 
         # Test with non-dict type:
         e = raises(errors.JSONError, o.unmarshal, json.dumps([1, 2, 3]))
-        assert str(e.error) == 'Request must be a dict'
+        assert unicode(e.error) == 'Request must be a dict'
 
         params = [[1, 2], dict(three=3, four=4)]
         # Test with missing method:
         d = dict(params=params, id=18)
         e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-        assert str(e.error) == 'Request is missing "method"'
+        assert unicode(e.error) == 'Request is missing "method"'
 
         # Test with missing params:
         d = dict(method='echo', id=18)
         e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-        assert str(e.error) == 'Request is missing "params"'
+        assert unicode(e.error) == 'Request is missing "params"'
 
         # Test with non-list params:
         for p in ('hello', dict(args=tuple(), options=dict())):
             d = dict(method='echo', id=18, params=p)
             e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-            assert str(e.error) == 'params must be a list'
+            assert unicode(e.error) == 'params must be a list'
 
         # Test with other than 2 params:
         for p in ([], [tuple()], [None, dict(), tuple()]):
             d = dict(method='echo', id=18, params=p)
             e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-            assert str(e.error) == 'params must contain [args, options]'
+            assert unicode(e.error) == 'params must contain [args, options]'
 
         # Test when args is not a list:
         d = dict(method='echo', id=18, params=['args', dict()])
         e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-        assert str(e.error) == 'params[0] (aka args) must be a list'
+        assert unicode(e.error) == 'params[0] (aka args) must be a list'
 
         # Test when options is not a dict:
         d = dict(method='echo', id=18, params=[('hello', 'world'), 'options'])
         e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-        assert str(e.error) == 'params[1] (aka options) must be a dict'
+        assert unicode(e.error) == 'params[1] (aka options) must be a dict'
 
         # Test with valid values:
         args = [u'jdoe']

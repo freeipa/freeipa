@@ -112,7 +112,7 @@ class passwd(Command):
             current_password == MAGIC_VALUE:
             # No cheating
             self.log.warn('User attempted to change password using magic value')
-            raise errors.ACIError(info='Invalid credentials')
+            raise errors.ACIError(info=_('Invalid credentials'))
 
         if current_password == MAGIC_VALUE:
             ldap.modify_password(dn, password)

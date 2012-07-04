@@ -143,7 +143,7 @@ def check_writable_file(filename):
     open the file to test writability.
     """
     if filename is None:
-        raise errors.FileError(reason='Filename is empty')
+        raise errors.FileError(reason=_('Filename is empty'))
     try:
         if os.path.exists(filename):
             if not os.access(filename, os.W_OK):

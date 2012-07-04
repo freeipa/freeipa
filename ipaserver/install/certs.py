@@ -41,6 +41,7 @@ from ipapython import services as ipaservices
 from ipalib import x509
 from ipapython.dn import DN
 from ipalib.errors import CertificateOperationError
+from ipalib.text import _
 
 from nss.error import NSPRError
 import nss.nss as nss
@@ -663,8 +664,9 @@ class CertDB(object):
                 dogtag.https_request(self.host_name, api.env.ca_ee_install_port, "/ca/ee/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
 
             if http_status != 200:
-                raise CertificateOperationError(error='Unable to communicate with CMS (%s)' % \
-                      http_reason_phrase)
+                raise CertificateOperationError(
+                    error=_('Unable to communicate with CMS (%s)') %
+                        http_reason_phrase)
 
             # The result is an XML blob. Pull the certificate out of that
             doc = xml.dom.minidom.parseString(http_body)

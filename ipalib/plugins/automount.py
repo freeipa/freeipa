@@ -440,7 +440,9 @@ class automountlocation_import(LDAPQuery):
                     result['duplicatekeys'].append(am[0])
                     pass
                 else:
-                    raise errors.DuplicateEntry(message=unicode('key %(key)s already exists' % {'key':am[0]}))
+                    raise errors.DuplicateEntry(
+                        message=_('key %(key)s already exists') % dict(
+                            key=am[0]))
             # Add the new map
             if not am[1].startswith('-'):
                 try:
@@ -454,7 +456,9 @@ class automountlocation_import(LDAPQuery):
                         result['duplicatemaps'].append(am[0])
                         pass
                     else:
-                        raise errors.DuplicateEntry(message=unicode('map %(map)s already exists' % {'map':am[1]}))
+                        raise errors.DuplicateEntry(
+                            message=_('map %(map)s already exists') % dict(
+                                map=am[1]))
                 except errors.DuplicateEntry:
                     # This means the same map is used on several mount points.
                     pass

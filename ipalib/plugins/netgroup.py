@@ -210,9 +210,9 @@ class netgroup_mod(LDAPUpdate):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="user category cannot be set to 'all' while there are allowed users")
+            raise errors.MutuallyExclusiveError(reason=_("user category cannot be set to 'all' while there are allowed users"))
         if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="host category cannot be set to 'all' while there are allowed hosts")
+            raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are allowed hosts"))
         return dn
 
 api.register(netgroup_mod)

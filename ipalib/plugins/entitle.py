@@ -147,7 +147,8 @@ def get_uuid(ldap):
             entry_attrs, 'ipaentitlementid', api.env.container_entitlements,
         )
         if not ldap.can_read(dn, 'userpkcs12'):
-            raise errors.ACIError(info='not allowed to perform this command')
+            raise errors.ACIError(
+                info=_('not allowed to perform this command'))
 
         if not 'userpkcs12' in result:
             return (None, uuid, None, None)
@@ -338,7 +339,9 @@ class entitle_consume(LDAPUpdate):
             available = result['quantity'] - result['consumed']
 
             if quantity > available:
-                raise errors.ValidationError(name='quantity', error='There are only %d entitlements left' % available)
+                raise errors.ValidationError(
+                    name='quantity',
+                    error=_('There are only %d entitlements left') % available)
 
             try:
                 cp = UEPConnection(handler='/candlepin', cert_file=certfile, key_file=keyfile)
@@ -508,12 +511,13 @@ class entitle_register(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn = DN(self.obj.container_dn, self.api.env.basedn)
         if not ldap.can_add(dn):
-            raise errors.ACIError(info='No permission to register')
+            raise errors.ACIError(info=_('No permission to register'))
         os.environ['LANG'] = 'en_US'
         locale.setlocale(locale.LC_ALL, '')
 
         if 'ipaentitlementid' in options:
-            raise errors.ValidationError(name='ipaentitlementid', error='Registering to specific UUID is not supported yet.')
+            raise errors.ValidationError(name='ipaentitlementid',
+                error=_('Registering to specific UUID is not supported yet.'))
 
         try:
             registrations = api.Command['entitle_find']()

@@ -283,9 +283,11 @@ class selinuxusermap_mod(LDAPUpdate):
             raise errors.MutuallyExclusiveError(reason=notboth_err)
 
         if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="user category cannot be set to 'all' while there are allowed users")
+            raise errors.MutuallyExclusiveError(reason=_("user category "
+                "cannot be set to 'all' while there are allowed users"))
         if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="host category cannot be set to 'all' while there are allowed hosts")
+            raise errors.MutuallyExclusiveError(reason=_("host category "
+                "cannot be set to 'all' while there are allowed hosts"))
 
         if 'ipaselinuxuser' in entry_attrs:
             validate_selinuxuser_inlist(ldap, entry_attrs['ipaselinuxuser'])
@@ -414,7 +416,8 @@ class selinuxusermap_add_user(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if 'usercategory' in entry_attrs and \
             entry_attrs['usercategory'][0].lower() == 'all':
-            raise errors.MutuallyExclusiveError(reason="users cannot be added when user category='all'")
+            raise errors.MutuallyExclusiveError(
+                reason=_("users cannot be added when user category='all'"))
         if 'seealso' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=notboth_err)
         return dn
@@ -445,7 +448,8 @@ class selinuxusermap_add_host(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if 'hostcategory' in entry_attrs and \
             entry_attrs['hostcategory'][0].lower() == 'all':
-            raise errors.MutuallyExclusiveError(reason="hosts cannot be added when host category='all'")
+            raise errors.MutuallyExclusiveError(
+                reason=_("hosts cannot be added when host category='all'"))
         if 'seealso' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=notboth_err)
         return dn
