@@ -49,6 +49,8 @@ void ipa_krb5_free_key_data(krb5_key_data *keys, int num_keys);
 int ber_encode_krb5_key_data(krb5_key_data *data,
                              int numk, int mkvno,
                              struct berval **encoded);
+int ber_decode_krb5_key_data(struct berval *encoded, int *m_kvno,
+                             int *numk, krb5_key_data **data);
 
 krb5_error_code parse_bval_key_salt_tuples(krb5_context kcontext,
                                            const char * const *vals,

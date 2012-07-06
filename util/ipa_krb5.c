@@ -427,6 +427,156 @@ done:
     return ret;
 }
 
+int ber_decode_krb5_key_data(struct berval *encoded, int *m_kvno,
+                             int *numk, krb5_key_data **data)
+{
+    krb5_key_data *keys = NULL;
+    BerElement *be = NULL;
+    void *tmp;
+    int i = 0;
+    ber_tag_t tag;
+    ber_int_t major_vno;
+    ber_int_t minor_vno;
+    ber_int_t kvno;
+    ber_int_t mkvno;
+    ber_int_t type;
+    ber_tag_t seqtag;
+    ber_len_t seqlen;
+    ber_len_t setlen;
+    ber_tag_t retag;
+    ber_tag_t opttag;
+    struct berval tval;
+    int ret;
+
+    be = ber_alloc_t(LBER_USE_DER);
+    if (!be) {
+        return ENOMEM;
+    }
+
+    /* reinit the ber element with the new val */
+    ber_init2(be, encoded, LBER_USE_DER);
+
+    /* fill key_data struct with the data */
+    retag = ber_scanf(be, "{t[i]t[i]t[i]t[i]t[{",
+                      &tag, &major_vno,
+                      &tag, &minor_vno,
+                      &tag, &kvno,
+                      &tag, &mkvno,
+                      &seqtag);
+    if (retag == LBER_ERROR ||
+            major_vno != 1 ||
+            minor_vno != 1 ||
+            seqtag != (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 4)) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    retag = ber_skip_tag(be, &seqlen);
+
+    /* sequence of keys */
+    for (i = 0; retag == LBER_SEQUENCE; i++) {
+
+        tmp = realloc(keys, (i + 1) * sizeof(krb5_key_data));
+        if (!tmp) {
+            ret = ENOMEM;
+            goto done;
+        }
+        keys = tmp;
+
+        memset(&keys[i], 0, sizeof(krb5_key_data));
+
+        keys[i].key_data_kvno = kvno;
+
+        /* do we have a salt type ? (optional) */
+        retag = ber_scanf(be, "t", &opttag);
+        if (retag == LBER_ERROR) {
+            ret = EINVAL;
+            goto done;
+        }
+        if (opttag == (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0)) {
+            keys[i].key_data_ver = 2;
+
+            retag = ber_scanf(be, "[l{tl[i]",
+                              &seqlen, &tag, &setlen, &type);
+            if (tag != (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0)) {
+                ret = EINVAL;
+                goto done;
+            }
+            keys[i].key_data_type[1] = type;
+
+            /* do we have salt data ? (optional) */
+            if (seqlen > setlen + 2) {
+                retag = ber_scanf(be, "t[o]", &tag, &tval);
+                if (retag == LBER_ERROR ||
+                    tag != (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1)) {
+                    ret = EINVAL;
+                    goto done;
+                }
+                keys[i].key_data_length[1] = tval.bv_len;
+                keys[i].key_data_contents[1] = (krb5_octet *)tval.bv_val;
+            }
+
+            retag = ber_scanf(be, "}]t", &opttag);
+            if (retag == LBER_ERROR) {
+                ret = EINVAL;
+                goto done;
+            }
+
+        } else {
+            keys[i].key_data_ver = 1;
+        }
+
+        if (opttag != (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1)) {
+            ret = EINVAL;
+            goto done;
+        }
+
+        /* get the key */
+        retag = ber_scanf(be, "[{t[i]t[o]}]", &tag, &type, &tag, &tval);
+        if (retag == LBER_ERROR) {
+            ret = EINVAL;
+            goto done;
+        }
+        keys[i].key_data_type[0] = type;
+        keys[i].key_data_length[0] = tval.bv_len;
+        keys[i].key_data_contents[0] = (krb5_octet *)tval.bv_val;
+
+        /* check for sk2params */
+        retag = ber_peek_tag(be, &setlen);
+        if (retag == (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 2)) {
+            /* not supported yet, skip */
+            retag = ber_scanf(be, "t[x]}");
+        } else {
+            retag = ber_scanf(be, "}");
+        }
+        if (retag == LBER_ERROR) {
+            ret = EINVAL;
+            goto done;
+        }
+
+        retag = ber_skip_tag(be, &seqlen);
+    }
+
+    ret = 0;
+
+done:
+    ber_free(be, 0); /* internal buffer is 'encoded' */
+    if (ret) {
+        for (i -= 1; keys && i >= 0; i--) {
+            free(keys[i].key_data_contents[0]);
+            free(keys[i].key_data_contents[1]);
+        }
+        free(keys);
+        keys = NULL;
+        mkvno = 0;
+    }
+    *m_kvno = mkvno;
+    *numk = i;
+    *data = keys;
+    return ret;
+}
+
+
 krb5_error_code parse_bval_key_salt_tuples(krb5_context kcontext,
                                            const char * const *vals,
                                            int n_vals,
