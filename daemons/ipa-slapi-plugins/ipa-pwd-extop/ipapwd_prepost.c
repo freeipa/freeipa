@@ -41,7 +41,12 @@
 #  include <config.h>
 #endif
 
-#define _XOPEN_SOURCE /* strptime needs this */
+/* strptime needs _XOPEN_SOURCE and endian.h needs __USE_BSD
+ * _GNU_SOURCE imply both, and we use it elsewhere, so use this */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -53,6 +58,7 @@
 #include <dirsrv/slapi-plugin.h>
 #include <lber.h>
 #include <time.h>
+#include <endian.h>
 
 #include "ipapwd.h"
 #include "util.h"
@@ -379,6 +385,12 @@ done:
     return 0;
 }
 
+#define NTHASH_REGEN_VAL "MagicRegen"
+#define NTHASH_REGEN_LEN sizeof(NTHASH_REGEN_VAL)
+static int ipapwd_regen_nthash(Slapi_PBlock *pb, Slapi_Mods *smods,
+                               char *dn, struct slapi_entry *entry,
+                               struct ipapwd_krbcfg *krbcfg);
+
 /* PRE MOD Operation:
  * Gets the clean text password (fail the operation if the password came
  * pre-hashed, unless this is a replicated operation).
@@ -407,6 +419,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     int has_krb_keys = 0;
     int has_history = 0;
     int gen_krb_keys = 0;
+    int is_magic_regen = 0;
     int ret, rc;
 
     LOG_TRACE( "=>\n");
@@ -447,6 +460,27 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             default:
                 break;
             }
+        } else if (slapi_attr_types_equivalent(lmod->mod_type, "ipaNTHash")) {
+            /* check op filtering out LDAP_MOD_BVALUES */
+            switch (lmod->mod_op & 0x0f) {
+            case LDAP_MOD_ADD:
+                if (!lmod->mod_bvalues ||
+                    !lmod->mod_bvalues[0]) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                bv = lmod->mod_bvalues[0];
+                if ((bv->bv_len >= NTHASH_REGEN_LEN -1) &&
+                    (bv->bv_len <= NTHASH_REGEN_LEN) &&
+                    (strncmp(NTHASH_REGEN_VAL,
+                             bv->bv_val, bv->bv_len) == 0)) {
+                    is_magic_regen = 1;
+                    /* make sure the database will later ignore this mod */
+                    slapi_mods_remove(smods);
+                }
+            default:
+                break;
+            }
         } else if (slapi_attr_types_equivalent(lmod->mod_type,
                                                 "unhashed#user#password")) {
             /* we check for unahsehd password here so that we are sure to
@@ -472,8 +506,9 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         lmod = slapi_mods_get_next_mod(smods);
     }
 
-    /* If userPassword is not modified we are done here */
-    if (! is_pwd_op) {
+    /* If userPassword is not modified check if this is a request to generate
+     * NT hashes otherwise we are done here */
+    if (!is_pwd_op && !is_magic_regen) {
         rc = LDAP_SUCCESS;
         goto done;
     }
@@ -519,6 +554,22 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
     rc = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_DN);
     if (rc) {
+        goto done;
+    }
+
+    if (!is_pwd_op) {
+        /* This may be a magic op to ask us to generate the NT hashes */
+        if (is_magic_regen) {
+            /* Make sense to call only if this entry has krb keys to source
+             * the nthash from */
+            if (is_krb) {
+                rc = ipapwd_regen_nthash(pb, smods, dn, e, krbcfg);
+            } else {
+                rc = LDAP_UNWILLING_TO_PERFORM;
+            }
+        } else {
+            rc = LDAP_OPERATIONS_ERROR;
+        }
         goto done;
     }
 
@@ -829,6 +880,95 @@ done:
     }
 
     return 0;
+}
+
+static int ipapwd_regen_nthash(Slapi_PBlock *pb, Slapi_Mods *smods,
+                               char *dn, struct slapi_entry *entry,
+                               struct ipapwd_krbcfg *krbcfg)
+{
+    Slapi_Attr *attr;
+    Slapi_Value *value;
+    const struct berval *val;
+    struct berval *ntvals[2] = { NULL, NULL };
+    struct berval bval;
+    krb5_key_data *keys;
+    int num_keys;
+    int mkvno;
+    int ret;
+    int i;
+
+    ret = slapi_entry_attr_find(entry, "ipaNTHash", &attr);
+    if (ret == 0) {
+        /* We refuse to regen if there is already a value */
+        return LDAP_CONSTRAINT_VIOLATION;
+    }
+
+    /* ok let's see if we can find the RC4 hash in the keys */
+    ret = slapi_entry_attr_find(entry, "krbPrincipalKey", &attr);
+    if (ret) {
+        return LDAP_UNWILLING_TO_PERFORM;
+    }
+
+    ret = slapi_attr_first_value(attr, &value);
+    if (ret) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    val = slapi_value_get_berval(value);
+    if (!val) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ber_decode_krb5_key_data((struct berval *)val,
+                                    &mkvno, &num_keys, &keys);
+    if (ret) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = LDAP_UNWILLING_TO_PERFORM;
+
+    for (i = 0; i < num_keys; i++) {
+        char nthash[16];
+        krb5_enc_data cipher;
+        krb5_data plain;
+        krb5_int16 t;
+
+        if (keys[i].key_data_type[0] != ENCTYPE_ARCFOUR_HMAC) {
+            continue;
+        }
+
+        memcpy(&t, keys[i].key_data_contents[0], 2);
+        plain.length = le16toh(t);
+        if (plain.length != 16) {
+            continue;
+        }
+        plain.data = nthash;
+
+        memset(&cipher, 0, sizeof(krb5_enc_data));
+        cipher.enctype = krbcfg->kmkey->enctype;
+        cipher.ciphertext.length = keys[i].key_data_length[0] - 2;
+        cipher.ciphertext.data = ((char *)keys[i].key_data_contents[0]) + 2;
+
+        ret = krb5_c_decrypt(krbcfg->krbctx, krbcfg->kmkey,
+                             0, NULL, &cipher, &plain);
+        if (ret) {
+            ret = LDAP_OPERATIONS_ERROR;
+            break;
+        }
+
+        bval.bv_val = nthash;
+        bval.bv_len = 16;
+        ntvals[0] = &bval;
+
+        slapi_mods_add_modbvps(smods, LDAP_MOD_ADD, "ipaNTHash", ntvals);
+
+        ret = LDAP_SUCCESS;
+        break;
+    }
+
+    ipa_krb5_free_key_data(keys, num_keys);
+
+    return ret;
 }
 
 static int ipapwd_post_op(Slapi_PBlock *pb)
