@@ -3159,6 +3159,7 @@ static void bind_callback_cleanup(struct ipasam_sasl_interact_priv *data, krb5_e
 	data->context = NULL;
 }
 
+extern const char * lp_dedicated_keytab_file(void);
 static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, void* ipasam_priv)
 {
 	krb5_error_code rc;
@@ -3200,7 +3201,7 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 		return LDAP_LOCAL_ERROR;
 	}
 
-	rc = krb5_kt_resolve(data.context, "FILE:/etc/samba/samba.keytab", &data.keytab);
+	rc = krb5_kt_resolve(data.context, lp_dedicated_keytab_file(), &data.keytab);
 	if (rc) {
 		bind_callback_cleanup(&data, rc);
 		return LDAP_LOCAL_ERROR;
