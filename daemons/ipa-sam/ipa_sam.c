@@ -1044,16 +1044,9 @@ static bool ldapsam_search_users(struct pdb_methods *methods,
 
 	state->connection = ldap_state->smbldap_state;
 
-	if ((acct_flags != 0) && ((acct_flags & ACB_NORMAL) != 0))
-		state->base = ldap_state->ipasam_privates->base_dn;
-	else if ((acct_flags != 0) &&
-		 ((acct_flags & (ACB_WSTRUST|ACB_SVRTRUST|ACB_DOMTRUST)) != 0))
-		state->base = ldap_state->ipasam_privates->base_dn;
-	else
-		state->base = ldap_state->ipasam_privates->base_dn;
+	state->base = talloc_strdup(search, ldap_state->ipasam_privates->base_dn);
 
 	state->acct_flags = acct_flags;
-	state->base = talloc_strdup(search, state->base);
 	state->scope = LDAP_SCOPE_SUBTREE;
 	state->filter = get_ldap_filter(search, "*");
 	state->attrs = talloc_attrs(search, "uid", LDAP_ATTRIBUTE_SID,
