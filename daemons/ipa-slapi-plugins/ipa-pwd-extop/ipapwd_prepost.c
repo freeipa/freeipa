@@ -394,7 +394,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     struct ipapwd_krbcfg *krbcfg = NULL;
     char *errMesg = NULL;
     LDAPMod **mods;
-    Slapi_Mod *smod, *tmod;
+    LDAPMod *lmod;
     Slapi_Mods *smods = NULL;
     char *userpw = NULL;
     char *unhashedpw = NULL;
@@ -434,52 +434,43 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     /* In the first pass,
      * only check there is anything we are interested in */
     is_pwd_op = 0;
-    tmod = slapi_mod_new();
-    smod = slapi_mods_get_first_smod(smods, tmod);
-    while (smod) {
+    lmod = slapi_mods_get_first_mod(smods);
+    while (lmod) {
         struct berval *bv;
-        const char *type;
-        int mop;
 
-        type = slapi_mod_get_type(smod);
-        if (slapi_attr_types_equivalent(type, SLAPI_USERPWD_ATTR)) {
-            mop = slapi_mod_get_operation(smod);
+        if (slapi_attr_types_equivalent(lmod->mod_type, SLAPI_USERPWD_ATTR)) {
             /* check op filtering out LDAP_MOD_BVALUES */
-            switch (mop & 0x0f) {
+            switch (lmod->mod_op & 0x0f) {
             case LDAP_MOD_ADD:
             case LDAP_MOD_REPLACE:
                 is_pwd_op = 1;
             default:
                 break;
             }
-        }
-
-        /* we check for unahsehd password here so that we are sure to catch them
-         * early, before further checks go on, this helps checking
-         * LDAP_MOD_DELETE operations in some corner cases later */
-        /* we keep only the last one if multiple are provided for any absurd
-	 * reason */
-        if (slapi_attr_types_equivalent(type, "unhashed#user#password")) {
-            bv = slapi_mod_get_first_value(smod);
-            if (!bv) {
-                slapi_mod_free(&tmod);
+        } else if (slapi_attr_types_equivalent(lmod->mod_type,
+                                                "unhashed#user#password")) {
+            /* we check for unahsehd password here so that we are sure to
+             * catch them early, before further checks go on, this helps
+             * checking LDAP_MOD_DELETE operations in some corner cases later.
+             * We keep only the last one if multiple are provided for any
+             * reason */
+            if (!lmod->mod_bvalues ||
+                !lmod->mod_bvalues[0]) {
                 rc = LDAP_OPERATIONS_ERROR;
                 goto done;
             }
+            bv = lmod->mod_bvalues[0];
             slapi_ch_free_string(&unhashedpw);
             unhashedpw = slapi_ch_malloc(bv->bv_len+1);
             if (!unhashedpw) {
-                slapi_mod_free(&tmod);
                 rc = LDAP_OPERATIONS_ERROR;
                 goto done;
             }
             memcpy(unhashedpw, bv->bv_val, bv->bv_len);
             unhashedpw[bv->bv_len] = '\0';
         }
-        slapi_mod_done(tmod);
-        smod = slapi_mods_get_next_smod(smods, tmod);
+        lmod = slapi_mods_get_next_mod(smods);
     }
-    slapi_mod_free(&tmod);
 
     /* If userPassword is not modified we are done here */
     if (! is_pwd_op) {
@@ -487,7 +478,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         goto done;
     }
 
-    /* OK swe have something interesting here, start checking for
+    /* OK we have something interesting here, start checking for
      * pre-requisites */
 
     /* Get target DN */
@@ -532,33 +523,27 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     }
 
     /* run through the mods again and adjust flags if operations affect them */
-    tmod = slapi_mod_new();
-    smod = slapi_mods_get_first_smod(smods, tmod);
-    while (smod) {
+    lmod = slapi_mods_get_first_mod(smods);
+    while (lmod) {
         struct berval *bv;
-        const char *type;
-        int mop;
 
-        type = slapi_mod_get_type(smod);
-        if (slapi_attr_types_equivalent(type, SLAPI_USERPWD_ATTR)) {
-            mop = slapi_mod_get_operation(smod);
+        if (slapi_attr_types_equivalent(lmod->mod_type, SLAPI_USERPWD_ATTR)) {
             /* check op filtering out LDAP_MOD_BVALUES */
-            switch (mop & 0x0f) {
+            switch (lmod->mod_op & 0x0f) {
             case LDAP_MOD_ADD:
                 /* FIXME: should we try to track cases where we would end up
                  * with multiple userPassword entries ?? */
             case LDAP_MOD_REPLACE:
                 is_pwd_op = 1;
-                bv = slapi_mod_get_first_value(smod);
-                if (!bv) {
-                    slapi_mod_free(&tmod);
+                if (!lmod->mod_bvalues ||
+                    !lmod->mod_bvalues[0]) {
                     rc = LDAP_OPERATIONS_ERROR;
                     goto done;
                 }
+                bv = lmod->mod_bvalues[0];
                 slapi_ch_free_string(&userpw);
                 userpw = slapi_ch_malloc(bv->bv_len+1);
                 if (!userpw) {
-                    slapi_mod_free(&tmod);
                     rc = LDAP_OPERATIONS_ERROR;
                     goto done;
                 }
@@ -569,23 +554,27 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                 /* reset only if we are deleting all values, or the exact
                  * same value previously set, otherwise we are just trying to
                  * add a new value and delete an existing one */
-                bv = slapi_mod_get_first_value(smod);
-                if (!bv) {
+                if (!lmod->mod_bvalues ||
+                    !lmod->mod_bvalues[0]) {
                     is_pwd_op = 0;
                 } else {
-                    if ((userpw && 0 == strncmp(userpw, bv->bv_val, bv->bv_len)) ||
-                        (unhashedpw && 0 == strncmp(unhashedpw, bv->bv_val, bv->bv_len)))
+                    bv = lmod->mod_bvalues[0];
+                    if ((userpw &&
+                         strncmp(userpw, bv->bv_val, bv->bv_len) == 0) ||
+                        (unhashedpw &&
+                         strncmp(unhashedpw, bv->bv_val, bv->bv_len) == 0)) {
                         is_pwd_op = 0;
+                    }
                 }
             default:
                 break;
             }
-        }
 
-        if (slapi_attr_types_equivalent(type, SLAPI_ATTR_OBJECTCLASS)) {
-            mop = slapi_mod_get_operation(smod);
+        } else if (slapi_attr_types_equivalent(lmod->mod_type,
+                                                SLAPI_ATTR_OBJECTCLASS)) {
+            int i;
             /* check op filtering out LDAP_MOD_BVALUES */
-            switch (mop & 0x0f) {
+            switch (lmod->mod_op & 0x0f) {
             case LDAP_MOD_REPLACE:
                 /* if objectclasses are replaced we need to start clean with
                  * flags, so we sero them out and see if they get set again */
@@ -594,20 +583,23 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                 is_ipant = 0;
 
             case LDAP_MOD_ADD:
-                bv = slapi_mod_get_first_value(smod);
-                if (!bv) {
-                    slapi_mod_free(&tmod);
+                if (!lmod->mod_bvalues ||
+                    !lmod->mod_bvalues[0]) {
                     rc = LDAP_OPERATIONS_ERROR;
                     goto done;
                 }
-                do {
-                    if (0 == strncasecmp("krbPrincipalAux", bv->bv_val, bv->bv_len))
+                for (i = 0; (bv = lmod->mod_bvalues[i]) != NULL; i++) {
+                    if (strncasecmp("krbPrincipalAux",
+                                    bv->bv_val, bv->bv_len) == 0) {
                         is_krb = 1;
-                    if (0 == strncasecmp("sambaSamAccount", bv->bv_val, bv->bv_len))
+                    } else if (strncasecmp("sambaSamAccount",
+                                           bv->bv_val, bv->bv_len) == 0) {
                         is_smb = 1;
-                    if (0 == strncasecmp("ipaNTUserAttrs", bv->bv_val, bv->bv_len))
+                    } else if (strncasecmp("ipaNTUserAttrs",
+                                           bv->bv_val, bv->bv_len) == 0) {
                         is_ipant = 1;
-                } while ((bv = slapi_mod_get_next_value(smod)) != NULL);
+                    }
+                }
 
                 break;
 
@@ -620,32 +612,34 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             default:
                 break;
             }
-        }
 
-        /* if we are getting a krbPrincipalKey, also avoid regenerating the keys,
-         * it means kadmin has alredy done the job and is simply keeping
-         * userPassword and sambaXXPAssword in sync */
-        if (slapi_attr_types_equivalent(type, "krbPrincipalKey")) {
+        } else if (slapi_attr_types_equivalent(lmod->mod_type,
+                                               "krbPrincipalKey")) {
+
+            /* if we are getting a krbPrincipalKey, also avoid regenerating
+             * the keys, it means kadmin has alredy done the job and is simply
+             * keeping userPassword and sambaXXPAssword in sync */
+
             /* we also check we have enough authority */
             if (is_root) {
                 has_krb_keys = 1;
             }
-        }
 
-        /* if we are getting a passwordHistory, also avoid regenerating the hashes,
-         * it means kadmin has alredy done the job and is simply keeping
-         * userPassword and sambaXXPAssword in sync */
-        if (slapi_attr_types_equivalent(type, "passwordHistory")) {
+        } else if (slapi_attr_types_equivalent(lmod->mod_type,
+                                               "passwordHistory")) {
+
+            /* if we are getting a passwordHistory, also avoid regenerating
+             * the hashes, it means kadmin has alredy done the job and is
+             * simply keeping userPassword and sambaXXPAssword in sync */
+
             /* we also check we have enough authority */
             if (is_root) {
                 has_history = 1;
             }
         }
 
-        slapi_mod_done(tmod);
-        smod = slapi_mods_get_next_smod(smods, tmod);
+        lmod = slapi_mods_get_next_mod(smods);
     }
-    slapi_mod_free(&tmod);
 
     if (is_krb) {
         if (has_krb_keys) {
