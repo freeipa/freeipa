@@ -446,7 +446,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
         if (is_ipant) {
             *ntvals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
-            if (!svals) {
+            if (!*ntvals) {
                 LOG_OOM();
                 rc = LDAP_OPERATIONS_ERROR;
                 goto done;
