@@ -48,12 +48,21 @@ IPA.pwpolicy.entity = function(spec) {
                         },
                         'krbmaxpwdlife',
                         'krbminpwdlife',
-                        'krbpwdhistorylength',
+                        {
+                            name: 'krbpwdhistorylength',
+                            measurement_unit: 'number_of_passwords'
+                        },
                         'krbpwdmindiffchars',
                         'krbpwdminlength',
                         'krbpwdmaxfailure',
-                        'krbpwdfailurecountinterval',
-                        'krbpwdlockoutduration',
+                        {
+                            name: 'krbpwdfailurecountinterval',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbpwdlockoutduration',
+                            measurement_unit: 'seconds'
+                        },
                         'cospriority'
                     ]
                 }]}).

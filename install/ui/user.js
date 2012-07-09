@@ -149,7 +149,8 @@ IPA.user.entity = function(spec) {
                         {
                             name: 'krbpwdhistorylength',
                             label: IPA.get_entity_param('pwpolicy', 'krbpwdhistorylength').label,
-                            read_only: true
+                            read_only: true,
+                            measurement_unit: 'number_of_passwords'
                         },
                         {
                             name: 'krbpwdmindiffchars',
@@ -169,12 +170,14 @@ IPA.user.entity = function(spec) {
                         {
                             name: 'krbpwdfailurecountinterval',
                             label: IPA.get_entity_param('pwpolicy', 'krbpwdfailurecountinterval').label,
-                            read_only: true
+                            read_only: true,
+                            measurement_unit: 'seconds'
                         },
                         {
                             name: 'krbpwdlockoutduration',
                             label: IPA.get_entity_param('pwpolicy', 'krbpwdlockoutduration').label,
-                            read_only: true
+                            read_only: true,
+                            measurement_unit: 'seconds'
                         }
                     ]
                 },

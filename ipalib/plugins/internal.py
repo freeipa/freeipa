@@ -273,6 +273,10 @@ class i18n_messages(Command):
             "password": _("Password"),
             "username": _("Username"),
         },
+        "measurement_units": {
+            "number_of_passwords": _("number of passwords"),
+            "seconds": _("seconds"),
+        },
         "objects": {
             "aci": {
                 "attribute": _("Attribute"),

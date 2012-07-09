@@ -35,6 +35,7 @@ IPA.field = function(spec) {
     that.param = spec.param || spec.name;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
+    that.measurement_unit = spec.measurement_unit;
     that.formatter = spec.formatter;
 
     that.widget = null;
@@ -348,8 +349,9 @@ IPA.field = function(spec) {
     that.set_widget_flags = function() {
 
         if (that.widget) {
-            if(that.label) that.widget.label = that.label;
-            if(that.title) that.widget.title = that.title;
+            if (that.label) that.widget.label = that.label;
+            if (that.title) that.widget.title = that.title;
+            if (that.measurement_unit) that.widget.measurement_unit = that.measurement_unit;
             that.widget.undo = that.undo;
             that.widget.writable = that.writable;
             that.widget.read_only = that.read_only;

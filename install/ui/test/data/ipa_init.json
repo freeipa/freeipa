@@ -138,6 +138,10 @@
                         "password": "Password",
                         "username": "Username"
                     },
+                    "measurement_units": {
+                        "number_of_passwords": "number of passwords",
+                        "seconds": "seconds"
+                    },
                     "objects": {
                         "aci": {
                             "attribute": "Attribute"

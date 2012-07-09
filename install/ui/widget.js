@@ -36,6 +36,7 @@ IPA.widget = function(spec) {
     that.id = spec.id;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
+    that.measurement_unit = spec.measurement_unit;
     that.entity = IPA.get_entity(spec.entity); //some old widgets still need it
     that.facet = spec.facet;
 
@@ -2688,10 +2689,12 @@ IPA.table_layout = function(spec) {
                 title: widget.label
             }).appendTo(tr);
 
+            var label_text = widget.label + that.get_measurement_unit_text(widget) + ':';
+
             $('<label/>', {
                 name: widget.name,
                 'class': that.label_class,
-                text: widget.label+':'
+                text: label_text
             }).appendTo(td);
 
             if(widget.create_required) {
@@ -2711,6 +2714,16 @@ IPA.table_layout = function(spec) {
             widget.create(widget_container);
         }
         return table;
+    };
+
+
+    that.get_measurement_unit_text = function(widget) {
+
+        if (widget.measurement_unit) {
+            var unit = IPA.messages.measurement_units[widget.measurement_unit];
+            return ' (' + unit + ')';
+        }
+        return '';
     };
 
     return that;
