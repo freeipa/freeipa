@@ -635,7 +635,7 @@ class LDAPObject(Object):
             objectclasses = config.get(
                 self.object_class_config, objectclasses
             )
-        objectclasses += self.possible_objectclasses
+        objectclasses = objectclasses + self.possible_objectclasses
         # Get list of available attributes for this object for use
         # in the ACI UI.
         attrs = self.api.Backend.ldap2.schema.attribute_types(objectclasses)
