@@ -26,6 +26,13 @@
 #include "util/time.h"
 #include "gen_ndr/ndr_krb5pac.h"
 
+struct ipadb_mspac {
+    char *flat_domain_name;
+    char *flat_server_name;
+    char *fallback_group;
+    uint32_t fallback_rid;
+};
+
 
 int krb5_klog_syslog(int, const char *, ...);
 
@@ -460,8 +467,8 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     }
 
     if (info3->base.primary_gid == 0) {
-        if (ipactx->wc.fallback_rid) {
-            info3->base.primary_gid = ipactx->wc.fallback_rid;
+        if (ipactx->mspac->fallback_rid) {
+            info3->base.primary_gid = ipactx->mspac->fallback_rid;
         } else {
             /* can't give a pack without a primary group rid */
             return ENOENT;
@@ -474,9 +481,9 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     /* always zero out, not used for Krb, only NTLM */
     memset(&info3->base.key, '\0', sizeof(info3->base.key));
 
-    if (ipactx->wc.flat_server_name) {
+    if (ipactx->mspac->flat_server_name) {
         info3->base.logon_server.string =
-                    talloc_strdup(memctx, ipactx->wc.flat_server_name);
+                    talloc_strdup(memctx, ipactx->mspac->flat_server_name);
         if (!info3->base.logon_server.string) {
             return ENOMEM;
         }
@@ -485,9 +492,9 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         return ENOENT;
     }
 
-    if (ipactx->wc.flat_domain_name) {
+    if (ipactx->mspac->flat_domain_name) {
         info3->base.logon_domain.string =
-                    talloc_strdup(memctx, ipactx->wc.flat_domain_name);
+                    talloc_strdup(memctx, ipactx->mspac->flat_domain_name);
         if (!info3->base.logon_domain.string) {
             return ENOMEM;
         }
@@ -1318,11 +1325,17 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     int ret;
 
     /* clean up in case we had old values around */
-    free(ipactx->wc.flat_domain_name);
-    ipactx->wc.flat_domain_name = NULL;
-    free(ipactx->wc.fallback_group);
-    ipactx->wc.fallback_group = NULL;
-    ipactx->wc.fallback_rid = 0;
+    if (ipactx->mspac) {
+        free(ipactx->mspac->flat_domain_name);
+        free(ipactx->mspac->fallback_group);
+        free(ipactx->mspac);
+    }
+
+    ipactx->mspac = calloc(1, sizeof(struct ipadb_mspac));
+    if (!ipactx->mspac) {
+        kerr = ENOMEM;
+        goto done;
+    }
 
     kerr = ipadb_simple_search(ipactx, ipactx->base, LDAP_SCOPE_SUBTREE,
                                "(objectclass=ipaNTDomainAttrs)", dom_attrs,
@@ -1341,22 +1354,22 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
 
     ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                  "ipaNTFlatName",
-                                 &ipactx->wc.flat_domain_name);
+                                 &ipactx->mspac->flat_domain_name);
     if (ret) {
         kerr = ret;
         goto done;
     }
 
-    free(ipactx->wc.flat_server_name);
-    ipactx->wc.flat_server_name = get_server_netbios_name();
-    if (!ipactx->wc.flat_server_name) {
+    free(ipactx->mspac->flat_server_name);
+    ipactx->mspac->flat_server_name = get_server_netbios_name();
+    if (!ipactx->mspac->flat_server_name) {
         kerr = ENOMEM;
         goto done;
     }
 
     ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                  "ipaNTFallbackPrimaryGroup",
-                                 &ipactx->wc.fallback_group);
+                                 &ipactx->mspac->fallback_group);
     if (ret && ret != ENOENT) {
         kerr = ret;
         goto done;
@@ -1368,7 +1381,7 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     lentry = NULL;
 
     if (ret != ENOENT) {
-        kerr = ipadb_simple_search(ipactx, ipactx->wc.fallback_group,
+        kerr = ipadb_simple_search(ipactx, ipactx->mspac->fallback_group,
                                    LDAP_SCOPE_BASE,
                                    "(objectclass=posixGroup)",
                                    grp_attrs, &result);
@@ -1397,7 +1410,7 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
                     kerr = ret;
                     goto done;
                 }
-                ret = sid_split_rid(&gsid, &ipactx->wc.fallback_rid);
+                ret = sid_split_rid(&gsid, &ipactx->mspac->fallback_rid);
                 if (ret) {
                     kerr = ret;
                     goto done;

@@ -74,12 +74,7 @@
 
 #define IPA_SETUP "ipa-setup-override-restrictions"
 
-struct ipadb_wincompat {
-    char *flat_domain_name;
-    char *flat_server_name;
-    char *fallback_group;
-    uint32_t fallback_rid;
-};
+struct ipadb_mspac;
 
 struct ipadb_context {
     char *uri;
@@ -91,7 +86,7 @@ struct ipadb_context {
     bool override_restrictions;
     krb5_key_salt_tuple *supp_encs;
     int n_supp_encs;
-    struct ipadb_wincompat wc;
+    struct ipadb_mspac *mspac;
     bool disable_last_success;
     bool disable_lockout;
 };
