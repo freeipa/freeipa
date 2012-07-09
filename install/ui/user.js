@@ -188,12 +188,14 @@ IPA.user.entity = function(spec) {
                         {
                             name: 'krbmaxrenewableage',
                             label: IPA.get_entity_param('krbtpolicy', 'krbmaxrenewableage').label,
-                            read_only: true
+                            read_only: true,
+                            measurement_unit: 'seconds'
                         },
                         {
                             name: 'krbmaxticketlife',
                             label: IPA.get_entity_param('krbtpolicy', 'krbmaxticketlife').label,
-                            read_only: true
+                            read_only: true,
+                            measurement_unit: 'seconds'
                         }
                     ]
                 },

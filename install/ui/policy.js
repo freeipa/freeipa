@@ -100,8 +100,14 @@ IPA.krbtpolicy.entity = function(spec) {
                 {
                     name: 'identity',
                     fields: [
-                        'krbmaxrenewableage',
-                        'krbmaxticketlife'
+                        {
+                            name: 'krbmaxrenewableage',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'krbmaxticketlife',
+                            measurement_unit: 'seconds'
+                        }
                     ]
                 }
             ],
