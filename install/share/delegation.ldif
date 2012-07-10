@@ -417,12 +417,28 @@ objectClass: ipapermission
 cn: Remove Automount maps
 member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
 
+dn: cn=Modify Automount maps,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Modify Automount maps
+member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
+
 dn: cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 objectClass: ipapermission
 cn: Add Automount keys
+member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify Automount keys,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Modify Automount keys
 member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX
@@ -636,8 +652,10 @@ changetype: modify
 add: aci
 aci: (target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount maps";allow (add) groupdn = "ldap:///cn=Add Automount maps,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount maps";allow (delete) groupdn = "ldap:///cn=Remove Automount maps,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "automountmapname || description")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Modify Automount maps";allow (write) groupdn = "ldap:///cn=Modify Automount maps,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "automountkey || automountinformation || description")(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Modify Automount keys";allow (write) groupdn = "ldap:///cn=Modify Automount keys,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Netgroup administration
 
