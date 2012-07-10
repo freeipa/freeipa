@@ -26,11 +26,20 @@
 #include "util/time.h"
 #include "gen_ndr/ndr_krb5pac.h"
 
+struct ipadb_adtrusts {
+    char *domain_name;
+    char *flat_name;
+    char *domain_sid;
+};
+
 struct ipadb_mspac {
     char *flat_domain_name;
     char *flat_server_name;
     char *fallback_group;
     uint32_t fallback_rid;
+
+    int num_trusts;
+    struct ipadb_adtrusts *trusts;
 };
 
 
@@ -1311,6 +1320,99 @@ static char *get_server_netbios_name(void)
     return strdup(hostname);
 }
 
+void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
+{
+    int i;
+
+    if (!*mspac) return;
+
+    free((*mspac)->flat_domain_name);
+    free((*mspac)->fallback_group);
+
+    if ((*mspac)->num_trusts) {
+        for (i = 0; i < (*mspac)->num_trusts; i++) {
+            free((*mspac)->trusts[i].domain_name);
+            free((*mspac)->trusts[i].flat_name);
+            free((*mspac)->trusts[i].domain_sid);
+        }
+    }
+
+    *mspac = NULL;
+}
+
+krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
+{
+    struct ipadb_adtrusts *t;
+    LDAP *lc = ipactx->lcontext;
+    char *attrs[] = { "ipaNTTrustPartner", "ipaNTFlatName",
+                      "ipaNTTrustedDomainSID", NULL };
+    char *filter = "(objectclass=ipaNTTrustedDomain)";
+    krb5_error_code kerr;
+    LDAPMessage *res = NULL;
+    LDAPMessage *le;
+    char *base = NULL;
+    int ret, n;
+
+    ret = asprintf(&base, "cn=ad,cn=trusts,%s", ipactx->base);
+    if (ret == -1) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    kerr = ipadb_simple_search(ipactx, base, LDAP_SCOPE_SUBTREE,
+                               filter, attrs, &res);
+    if (kerr == KRB5_KDB_NOENTRY) {
+        /* nothing to do, there are no trusts */
+        ret = 0;
+        goto done;
+    } else if (kerr != 0) {
+        ret = EIO;
+        goto done;
+    }
+
+    for (le = ldap_first_entry(lc, res); le; le = ldap_next_entry(lc, le)) {
+        n = ipactx->mspac->num_trusts;
+        ipactx->mspac->num_trusts++;
+        t = realloc(ipactx->mspac->trusts,
+                    sizeof(struct ipadb_adtrusts) * ipactx->mspac->num_trusts);
+        if (!t) {
+            ret = ENOMEM;
+            goto done;
+        }
+        ipactx->mspac->trusts = t;
+
+        ret = ipadb_ldap_attr_to_str(lc, le, "ipaNTTrustPartner",
+                                     &t[n].domain_name);
+        if (ret) {
+            ret = EINVAL;
+            goto done;
+        }
+
+        ret = ipadb_ldap_attr_to_str(lc, le, "ipaNTFlatName",
+                                     &t[n].flat_name);
+        if (ret) {
+            ret = EINVAL;
+            goto done;
+        }
+
+        ret = ipadb_ldap_attr_to_str(lc, le, "ipaNTTrustedDomainSID",
+                                     &t[n].domain_sid);
+        if (ret) {
+            ret = EINVAL;
+            goto done;
+        }
+    }
+
+    ret = 0;
+
+done:
+    if (ret != 0) {
+        krb5_klog_syslog(LOG_ERR, "Failed to read list of trusted domains");
+    }
+    free(base);
+    return ret;
+}
+
 krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
 {
     char *dom_attrs[] = { "ipaNTFlatName",
@@ -1325,11 +1427,7 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     int ret;
 
     /* clean up in case we had old values around */
-    if (ipactx->mspac) {
-        free(ipactx->mspac->flat_domain_name);
-        free(ipactx->mspac->fallback_group);
-        free(ipactx->mspac);
-    }
+    ipadb_mspac_struct_free(&ipactx->mspac);
 
     ipactx->mspac = calloc(1, sizeof(struct ipadb_mspac));
     if (!ipactx->mspac) {
@@ -1419,7 +1517,7 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
         }
     }
 
-    kerr = 0;
+    kerr = ipadb_mspac_get_trusted_domains(ipactx);
 
 done:
     ldap_msgfree(result);
