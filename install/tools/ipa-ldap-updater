@@ -96,10 +96,15 @@ def main():
         run_plugins = True
 
     if os.getegid() == 0:
-        installutils.check_server_configuration()
+        try:
+            installutils.check_server_configuration()
+        except RuntimeError, e:
+            print unicode(e)
+            sys.exit(1)
     else:
         if not os.path.exists('/etc/ipa/default.conf'):
-            sys.exit("IPA is not configured on this system.")
+            print "IPA is not configured on this system."
+            sys.exit(1)
         if options.upgrade:
             sys.exit('Upgrade can only be done as root')
         if run_plugins:
@@ -115,10 +120,13 @@ def main():
             if dirman_password is None:
                 sys.exit("\nDirectory Manager password required")
 
+    console_format = '%(levelname)s: %(message)s'
     if options.upgrade:
-        standard_logging_setup('/var/log/ipaupgrade.log', verbose=True, debug=options.debug, filemode='a')
+        standard_logging_setup('/var/log/ipaupgrade.log', debug=options.debug,
+                console_format=console_format, filemode='a')
     else:
-        standard_logging_setup(None, verbose=True, debug=options.debug)
+        standard_logging_setup(None, console_format=console_format,
+                debug=options.debug)
 
     cfg = dict (
         in_server=True,
