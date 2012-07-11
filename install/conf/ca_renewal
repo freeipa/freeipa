@@ -1,0 +1,6 @@
+# A separate helper for fetching dogtag certificates that are renewed on
+# another system.
+id=dogtag-ipa-retrieve-agent-submit
+ca_is_default=0
+ca_type=EXTERNAL
+ca_external_helper=/usr/libexec/certmonger/dogtag-ipa-retrieve-agent-submit

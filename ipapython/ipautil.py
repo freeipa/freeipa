@@ -42,6 +42,7 @@ import xmlrpclib
 import datetime
 import netaddr
 import time
+import krbV
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 
@@ -1086,3 +1087,25 @@ def wait_for_open_socket(socket_name, timeout=0):
                 time.sleep(1)
             else:
                 raise e
+
+def kinit_hostprincipal(keytab, ccachedir, principal):
+    """
+    Given a ccache directory and a principal kinit as that user.
+
+    This blindly overwrites the current CCNAME so if you need to save
+    it do so before calling this function.
+
+    Thus far this is used to kinit as the local host.
+    """
+    try:
+        ccache_file = 'FILE:%s/ccache' % ccachedir
+        krbcontext = krbV.default_context()
+        ktab = krbV.Keytab(name=keytab, context=krbcontext)
+        princ = krbV.Principal(name=principal, context=krbcontext)
+        os.environ['KRB5CCNAME'] = ccache_file
+        ccache = krbV.CCache(name=ccache_file, context=krbcontext, primary_principal=princ)
+        ccache.init(princ)
+        ccache.init_creds_keytab(keytab=ktab, principal=princ)
+        return ccache_file
+    except krbV.Krb5Error, e:
+        raise StandardError('Error initializing principal %s in %s: %s' % (principal, keytab, str(e)))

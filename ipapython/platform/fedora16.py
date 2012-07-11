@@ -60,6 +60,7 @@ system_units['dirsrv'] = 'dirsrv@.service'
 system_units['pkids'] = 'dirsrv@PKI-IPA.service'
 # Our PKI instance is pki-cad@pki-ca.service
 system_units['pki-cad'] = 'pki-cad@pki-ca.service'
+system_units['pki_cad'] = system_units['pki-cad']
 
 class Fedora16Service(systemd.SystemdService):
     def __init__(self, service_name):

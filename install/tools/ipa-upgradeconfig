@@ -28,6 +28,7 @@ try:
     from ipapython import ipautil, sysrestore, version
     from ipapython.config import IPAOptionParser
     from ipapython.ipa_log_manager import *
+    from ipapython import certmonger
     from ipaserver.install import installutils
     from ipaserver.install import dsinstance
     from ipaserver.install import httpinstance
@@ -43,6 +44,7 @@ try:
     import os
     import shutil
     import fileinput
+    from ipalib import api
     import ipalib.errors
 except ImportError:
     print >> sys.stderr, """\
@@ -430,6 +432,35 @@ def named_enable_serial_autoincrement():
 
     return changed
 
+def enable_certificate_renewal(realm):
+    """
+    If the CA subsystem certificates are not being tracked for renewal then
+    tell certmonger to start tracking them.
+    """
+    ca = cainstance.CAInstance(realm, certs.NSS_DIR)
+    if not ca.is_configured():
+        root_logger.debug('dogtag not configured')
+        return
+
+    # Using the nickname find the certmonger request_id
+    criteria = (('cert_storage_location', '/etc/httpd/alias', certmonger.NPATH),('cert_nickname', 'ipaCert', None))
+    request_id = certmonger.get_request_id(criteria)
+    if request_id is not None:
+        root_logger.debug('Certificate renewal already configured')
+        return
+
+    if not sysupgrade.get_upgrade_state('dogtag', 'renewal_configured'):
+        if ca.is_master():
+            ca.configure_renewal()
+        else:
+            ca.configure_certmonger_renewal()
+            ca.configure_clone_renewal()
+            ca.configure_agent_renewal()
+        ca.track_servercert()
+        sysupgrade.set_upgrade_state('dogtag', 'renewal_configured', True)
+        ca.restart(cainstance.PKI_INSTANCE_NAME)
+        root_logger.debug('CA subsystem certificate renewal enabled')
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -440,6 +471,9 @@ def main():
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")
 
+    if not installutils.is_ipa_configured():
+        sys.exit(0)
+
     safe_options, options = parse_options()
 
     standard_logging_setup('/var/log/ipaupgrade.log', verbose=True,
@@ -448,11 +482,8 @@ def main():
 
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    try:
-        krbctx = krbV.default_context()
-    except krbV.Krb5Error, e:
-        # Unable to get default kerberos realm
-        sys.exit(0)
+    api.bootstrap(context='restart')
+    api.finalize()
 
     fqdn = find_hostname()
     if fqdn is None:
@@ -464,13 +495,13 @@ def main():
     check_certs()
 
     auto_redirect = find_autoredirect(fqdn)
-    sub_dict = { "REALM" : krbctx.default_realm, "FQDN": fqdn, "AUTOREDIR": '' if auto_redirect else '#'}
+    sub_dict = { "REALM" : api.env.realm, "FQDN": fqdn, "AUTOREDIR": '' if auto_redirect else '#'}
 
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
     upgrade_pki(fstore)
-    update_dbmodules(krbctx.default_realm)
+    update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()
 
     http = httpinstance.HTTPInstance(fstore)
@@ -479,25 +510,26 @@ def main():
 
     memcache = memcacheinstance.MemcacheInstance()
     memcache.ldapi = True
-    memcache.realm = krbctx.default_realm
+    memcache.realm = api.env.realm
     try:
         if not memcache.is_configured():
             # 389-ds needs to be running to create the memcache instance
             # because we record the new service in cn=masters.
             ds = dsinstance.DsInstance()
             ds.start()
-            memcache.create_instance('MEMCACHE', fqdn, None, ipautil.realm_to_suffix(krbctx.default_realm))
+            memcache.create_instance('MEMCACHE', fqdn, None, ipautil.realm_to_suffix(api.env.realm))
     except (ldap.ALREADY_EXISTS, ipalib.errors.DuplicateEntry):
         pass
 
     cleanup_kdc(fstore)
-    upgrade_ipa_profile(krbctx.default_realm)
+    upgrade_ipa_profile(api.env.realm)
     changed_psearch = named_enable_psearch()
     changed_autoincrement = named_enable_serial_autoincrement()
     if changed_psearch or changed_autoincrement:
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
         bindinstance.BindInstance(fstore).restart()
+    enable_certificate_renewal(api.env.realm)
 
 if __name__ == '__main__':
     installutils.run_script(main, operation_name='ipa-upgradeconfig')

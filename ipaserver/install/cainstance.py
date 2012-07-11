@@ -37,6 +37,7 @@ import stat
 import socket
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
+from ipapython import certmonger
 from ipalib import pkcs10, x509
 from ipalib.dn import DN
 import subprocess
@@ -324,7 +325,7 @@ class CADSInstance(service.Service):
             # We only handle one server cert
             self.nickname = server_certs[0][0]
             self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
-            dsdb.track_server_cert(self.nickname, self.principal, dsdb.passwd_fname)
+            dsdb.track_server_cert(self.nickname, self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid)
 
     def create_certdb(self):
         """
@@ -337,7 +338,7 @@ class CADSInstance(service.Service):
         cadb.export_ca_cert('ipaCert', False)
         dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
         self.dercert = dsdb.create_server_cert("Server-Cert", self.fqdn, cadb)
-        dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname)
+        dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid)
         dsdb.create_pin_file()
 
     def enable_ssl(self):
@@ -404,6 +405,24 @@ class CADSInstance(service.Service):
         # At one time we removed this user on uninstall. That can potentially
         # orphan files, or worse, if another useradd runs in the intermim,
         # cause files to have a new owner.
+        cmonger = ipaservices.knownservices.certmonger
+        ipaservices.knownservices.messagebus.start()
+        cmonger.start()
+
+        for nickname in ['Server-Cert cert-pki-ca',
+                         'auditSigningCert cert-pki-ca',
+                         'ocspSigningCert cert-pki-ca',
+                         'subsystemCert cert-pki-ca']:
+            try:
+                certmonger.stop_tracking('/var/lib/pki-ca/alias', nickname=nickname)
+            except (ipautil.CalledProcessError, RuntimeError), e:
+                root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
+
+        try:
+            certmonger.stop_tracking('/etc/httpd/alias', nickname='ipaCert')
+        except (ipautil.CalledProcessError, RuntimeError), e:
+            root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
+        cmonger.stop()
 
 class CAInstance(service.Service):
     """
@@ -526,6 +545,11 @@ class CAInstance(service.Service):
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
+                self.step("configure certificate renewals", self.configure_renewal)
+            else:
+                self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
+                self.step("configure clone certificate renewals", self.configure_clone_renewal)
+            self.step("configure Server-Cert certificate renewal", self.track_servercert)
             self.step("Configure HTTP to proxy connections", self.__http_proxy)
 
         self.start_creation("Configuring certificate server", 210)
@@ -797,6 +821,18 @@ class CAInstance(service.Service):
         finally:
             os.remove(agent_name)
 
+        self.configure_agent_renewal()
+
+    def configure_agent_renewal(self):
+        """
+        Set up the agent cert for renewal. No need to make any changes to
+        the dogtag LDAP here since the originator will do that so we
+        only call restart_httpd after retrieving the cert.
+
+        On upgrades this needs to be called from ipa-upgradeconfig.
+        """
+        certmonger.dogtag_start_tracking('dogtag-ipa-retrieve-agent-submit', 'ipaCert', None, '/etc/httpd/alias/pwdfile.txt', '/etc/httpd/alias', 'restart_httpd')
+
     def __configure_ra(self):
         # Create an RA user in the CA LDAP server and add that user to
         # the appropriate groups so it can issue certificates without
@@ -1058,6 +1094,8 @@ class CAInstance(service.Service):
         # cause files to have a new owner.
         user_exists = self.restore_state("user_exists")
 
+        installutils.remove_file("/var/lib/certmonger/cas/ca_renewal")
+
     def publish_ca_cert(self, location):
         args = ["-L", "-n", self.canickname, "-a"]
         (cert, err, returncode) = self.__run_certutil(args)
@@ -1069,6 +1107,77 @@ class CAInstance(service.Service):
     def __http_proxy(self):
         shutil.copy(ipautil.SHARE_DIR + "ipa-pki-proxy.conf",
                     HTTPD_CONFD + "ipa-pki-proxy.conf")
+
+    def track_servercert(self):
+        try:
+            pin = certmonger.get_pin('internal')
+        except IOError, e:
+            raise RuntimeError('Unable to determine PIN for CA instance: %s' % str(e))
+        certmonger.dogtag_start_tracking('dogtag-ipa-renew-agent', 'Server-Cert cert-pki-ca', pin, None, '/var/lib/pki-ca/alias', 'restart_pkicad "Server-Cert cert-pki-ca"')
+
+    def configure_renewal(self):
+        cmonger = ipaservices.knownservices.certmonger
+        cmonger.enable()
+        ipaservices.knownservices.messagebus.start()
+        cmonger.start()
+
+        try:
+            pin = certmonger.get_pin('internal')
+        except IOError, e:
+            raise RuntimeError('Unable to determine PIN for CA instance: %s' % str(e))
+
+        # Server-Cert cert-pki-ca is renewed per-server
+        for nickname in ['auditSigningCert cert-pki-ca',
+                         'ocspSigningCert cert-pki-ca',
+                         'subsystemCert cert-pki-ca']:
+            certmonger.dogtag_start_tracking('dogtag-ipa-renew-agent', nickname, pin, None, '/var/lib/pki-ca/alias', 'renew_ca_cert "%s"' % nickname)
+
+        # Set up the agent cert for renewal
+        certmonger.dogtag_start_tracking('dogtag-ipa-renew-agent', 'ipaCert', None, '/etc/httpd/alias/pwdfile.txt', '/etc/httpd/alias', 'renew_ra_cert')
+
+    def configure_certmonger_renewal(self):
+        """
+        Create a new CA type for certmonger that will retrieve updated
+        certificates from the dogtag master server.
+        """
+        target_fname = '/var/lib/certmonger/cas/ca_renewal'
+        if ipautil.file_exists(target_fname):
+            # This CA can be configured either during initial CA installation
+            # if the replica is created with --setup-ca or when Apache is
+            # being configured if not.
+            return
+        txt = ipautil.template_file(ipautil.SHARE_DIR + "ca_renewal", dict())
+        fd = open(target_fname, "w")
+        fd.write(txt)
+        fd.close()
+        os.chmod(target_fname, 0600)
+        ipaservices.restore_context(target_fname)
+
+        cmonger = ipaservices.knownservices.certmonger
+        cmonger.enable()
+        ipaservices.knownservices.messagebus.start()
+        cmonger.restart()
+
+    def configure_clone_renewal(self):
+        """
+        The actual renewal is done on the master. On the clone side we
+        use a separate certmonger CA that polls LDAP to see if an updated
+        certificate is available. If it is then it gets installed.
+        """
+
+        try:
+            pin = certmonger.get_pin('internal')
+        except IOError, e:
+            raise RuntimeError('Unable to determine PIN for CA instance: %s' % str(e))
+
+        # Server-Cert cert-pki-ca is renewed per-server
+        for nickname in ['auditSigningCert cert-pki-ca',
+                         'ocspSigningCert cert-pki-ca',
+                         'subsystemCert cert-pki-ca']:
+            certmonger.dogtag_start_tracking('dogtag-ipa-retrieve-agent-submit', nickname, pin, None, '/var/lib/pki-ca/alias', 'restart_pkicad "%s"' % nickname)
+
+        # The agent renewal is configured in import_ra_cert which is called
+        # after the HTTP instance is created.
 
     def enable_subject_key_identifier(self):
         """
@@ -1108,6 +1217,21 @@ class CAInstance(service.Service):
 
         # No update was done
         return False
+
+    def is_master(self):
+        """
+        There are some tasks that are only done on a single dogtag master.
+        By default this is the first one installed. Use this to determine if
+        that is the case.
+
+        If users have changed their topology so the initial master is either
+        gone or no longer performing certain duties then it is their
+        responsibility to handle changes on upgrades.
+        """
+        master = installutils.get_directive(
+            '/var/lib/pki-ca/conf/CS.cfg', 'subsystem.select', '=')
+
+        return master == 'New'
 
 def install_replica_ca(config, postinstall=False):
     """
@@ -1178,6 +1302,25 @@ def install_replica_ca(config, postinstall=False):
     ca.start()
 
     return (ca, cs)
+
+def update_cert_config(nickname, cert):
+    """
+    When renewing a CA subsystem certificate the configuration file
+    needs to get the new certificate as well.
+
+    nickname is one of the known nicknames.
+    cert is a DER-encoded certificate.
+    """
+    # The cert directive to update per nickname
+    directives = {'auditSigningCert cert-pki-ca': 'ca.audit_signing.cert',
+                  'ocspSigningCert cert-pki-ca': 'ca.ocsp_signing.cert',
+                  'caSigningCert cert-pki-ca': 'ca.signing.cert',
+                  'Server-Cert cert-pki-ca': 'ca.sslserver.cert' }
+
+    installutils.set_directive('/var/lib/%s/conf/CS.cfg' % PKI_INSTANCE_NAME,
+                                directives[nickname],
+                                base64.b64encode(cert),
+                                quotes=False, separator='=')
 
 if __name__ == "__main__":
     standard_logging_setup("install.log")

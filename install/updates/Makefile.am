@@ -22,6 +22,7 @@ app_DATA =				\
 	20-user_private_groups.update	\
 	20-winsync_index.update		\
 	21-replicas_container.update	\
+	21-ca_renewal_container.update	\
 	30-s4u2proxy.update		\
 	40-delegation.update		\
 	40-dns.update			\

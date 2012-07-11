@@ -461,6 +461,7 @@ def main():
     krb = install_krb(config, setup_pkinit=options.setup_pkinit)
     http = install_http(config, auto_redirect=options.ui_redirect)
     if CA:
+        CA.configure_certmonger_renewal()
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
         ipaservices.knownservices.httpd.restart()

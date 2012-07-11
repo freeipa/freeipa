@@ -75,6 +75,7 @@ AC_SUBST(IPA_SYSCONF_DIR)
 
 AC_CONFIG_FILES([
     Makefile
+    certmonger/Makefile
     conf/Makefile
     html/Makefile
     migration/Makefile

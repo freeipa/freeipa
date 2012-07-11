@@ -5,6 +5,7 @@ AUTOMAKE_OPTIONS = 1.7
 NULL =
 
 SUBDIRS =			\
+        certmonger		\
         conf			\
         html			\
         migration		\

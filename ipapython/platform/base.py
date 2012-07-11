@@ -25,7 +25,7 @@ from ipalib.plugable import MagicDict
 wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc',
                      'messagebus', 'nslcd', 'nscd', 'ntpd', 'portmap',
                      'rpcbind', 'kadmin', 'sshd', 'autofs', 'rpcgssd',
-                     'rpcidmapd']
+                     'rpcidmapd', 'pki_cad']
 
 
 # The common ports for these services. This is used to wait for the

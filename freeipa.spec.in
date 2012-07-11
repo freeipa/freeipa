@@ -249,7 +249,7 @@ Requires:  xmlrpc-c
 %endif
 %endif
 Requires: sssd >= 1.8.0
-Requires: certmonger >= 0.53
+Requires: certmonger >= 0.58
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
@@ -571,6 +571,7 @@ fi
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-compliance
+%{_libexecdir}/certmonger/dogtag-ipa-retrieve-agent-submit
 %{_sysconfdir}/cron.d/ipa-compliance
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
@@ -633,6 +634,7 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
+%{_usr}/share/ipa/ca_renewal
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
 %{_usr}/share/ipa/ipa-pki-proxy.conf
@@ -745,6 +747,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue Jul 24 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-39
+- Set minimum certmonger to 0.58 for dogtag cert renewal
+
 * Wed Jul 18 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-38
 - Require samba4-devel >= 4.0.0-128 due to passdb API change in beta4
 

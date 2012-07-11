@@ -22,6 +22,7 @@
 # server certificates created during the IPA server installation.
 
 import os
+import sys
 import re
 import time
 from ipapython import ipautil
@@ -328,6 +329,70 @@ def remove_principal_from_cas():
         for line in lines:
             fp.write(line)
         fp.close()
+
+# Routines specific to renewing dogtag CA certificates
+def get_pin(token):
+    """
+    Dogtag stores its NSS pin in a file formatted as token:PIN.
+
+    The caller is expected to handle any exceptions raised.
+    """
+    filename = '/var/lib/pki-ca/conf/password.conf'
+    with open(filename, 'r') as f:
+        for line in f:
+            (tok, pin) = line.split('=', 1)
+            if token == tok:
+                return pin.strip()
+    return None
+
+def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, command):
+    """
+    Tell certmonger to start tracking a dogtag CA certificate. These
+    are handled differently because their renewal must be done directly
+    and not through IPA.
+
+    This uses the generic certmonger command getcert so we can specify
+    a different helper.
+
+    command is the script to execute.
+
+    Returns the stdout, stderr and returncode from running ipa-getcert
+
+    This assumes that certmonger is already running.
+    """
+    if not cert_exists(nickname, os.path.abspath(secdir)):
+        raise RuntimeError('Nickname "%s" doesn\'t exist in NSS database "%s"' % (nickname, secdir))
+
+    if command is not None and not os.path.isabs(command):
+        if sys.maxsize > 2**32:
+            libpath = 'lib64'
+        else:
+            libpath = 'lib'
+        command = '/usr/%s/ipa/certmonger/%s' % (libpath, command)
+
+    args = ["/usr/bin/getcert", "start-tracking",
+            "-d", os.path.abspath(secdir),
+            "-n", nickname,
+            "-c", ca,
+            "-C", command,
+           ]
+
+    if pinfile:
+        args.append("-p")
+        args.append(pinfile)
+    else:
+        args.append("-P")
+        args.append(pin)
+
+    if ca == 'dogtag-ipa-retrieve-agent-submit':
+        # We cheat and pass in the nickname as the profile when
+        # renewing on a clone. The submit otherwise doesn't pass in the
+        # nickname and we need some way to find the right entry in LDAP.
+        args.append("-T")
+        args.append(nickname)
+
+    (stdout, stderr, returncode) = ipautil.run(args, nolog=[pin])
+
 
 if __name__ == '__main__':
     request_id = request_cert("/etc/httpd/alias", "Test", "cn=tiger.example.com,O=IPA", "HTTP/tiger.example.com@EXAMPLE.COM")

@@ -1,15 +1,19 @@
-module ipa_dogtag 1.4;
+module ipa_dogtag 1.5;
 
 require {
 	type httpd_t;
 	type cert_t;
 	type pki_ca_t;
 	type pki_ca_var_lib_t;
+	type certmonger_t;
 	class dir write;
 	class dir add_name;
 	class dir remove_name;
 	class dir search;
 	class dir getattr;
+	class file read;
+	class file getattr;
+	class file open;
 	class file create;
 	class file write;
 	class file rename;
@@ -35,3 +39,7 @@ allow pki_ca_t cert_t:lnk_file unlink;
 
 # Let apache read the CRLs
 allow httpd_t pki_ca_var_lib_t:dir { search getattr };
+
+# Let certmonger manage the dogtag certificate database for renewals
+allow certmonger_t pki_ca_var_lib_t:dir { search getattr} ;
+allow certmonger_t pki_ca_var_lib_t:file { read write getattr open };

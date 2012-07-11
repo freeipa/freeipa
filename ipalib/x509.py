@@ -141,6 +141,14 @@ def get_subject(certificate, datatype=PEM, dbdir=None):
     nsscert = load_certificate(certificate, datatype, dbdir)
     return nsscert.subject
 
+def get_issuer(certificate, datatype=PEM, dbdir=None):
+    """
+    Load an X509.3 certificate and get the issuer.
+    """
+
+    nsscert = load_certificate(certificate, datatype, dbdir)
+    return nsscert.issuer
+
 def get_serial_number(certificate, datatype=PEM, dbdir=None):
     """
     Return the decimal value of the serial number.

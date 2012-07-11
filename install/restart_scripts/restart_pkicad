@@ -19,12 +19,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import syslog
 from ipapython import services as ipaservices
+from ipaserver.install import certs
+from ipalib import api
 
-syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted httpd')
+nickname = sys.argv[1]
+
+api.bootstrap(context='restart')
+api.finalize()
+
+syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted pki-cad, nickname '%s'" % nickname)
+
+# Fix permissions on the audit cert if we're updating it
+if nickname == 'auditSigningCert cert-pki-ca':
+    db = certs.CertDB(api.env.realm, nssdir='/var/lib/pki-ca/alias')
+    args = ['-M',
+            '-n', nickname,
+            '-t', 'u,u,Pu',
+           ]
+    db.run_certutil(args)
 
 try:
-    ipaservices.knownservices.httpd.restart()
+    # I've seen times where systemd restart does not actually restart
+    # the process. A full stop/start is required. This works around that
+    ipaservices.knownservices.pki_cad.stop('pki-ca')
+    ipaservices.knownservices.pki_cad.start('pki-ca')
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % str(e))
+    syslog.syslog(syslog.LOG_ERR, "Cannot restart pki-cad: %s" % str(e))
