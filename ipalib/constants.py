@@ -105,6 +105,8 @@ DEFAULT_CONFIG = (
     ('container_trusts', 'cn=trusts'),
     ('container_adtrusts', 'cn=ad,cn=trusts'),
     ('container_ranges', 'cn=ranges,cn=etc'),
+    ('container_dna', 'cn=dna,cn=ipa,cn=etc'),
+    ('container_dna_posix_ids', 'cn=posix-ids,cn=dna,cn=ipa,cn=etc'),
 
     # Ports, hosts, and URIs:
     # FIXME: let's renamed xmlrpc_uri to rpc_xml_uri
