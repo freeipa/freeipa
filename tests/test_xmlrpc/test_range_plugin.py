@@ -49,7 +49,8 @@ class test_range(Declarative):
                     ipabaseid=[u'900000'],
                     ipabaserid=[u'1000'],
                     ipasecondarybaserid=[u'20000'],
-                    ipaidrangesize=[u'99999']
+                    ipaidrangesize=[u'99999'],
+                    iparangetype=[u'local domain range'],
                 ),
                 value=testrange1,
                 summary=u'Added ID range "%s"' % (testrange1),
@@ -69,10 +70,28 @@ class test_range(Declarative):
                     ipabaserid=[u'1000'],
                     ipasecondarybaserid=[u'20000'],
                     ipaidrangesize=[u'99999'],
-                    iparangetype=u'local domain range',
+                    iparangetype=[u'local domain range'],
                 ),
                 value=testrange1,
                 summary=None,
+            ),
+        ),
+
+
+        dict(
+            desc='Modify range %r' % (testrange1),
+            command=('range_mod', [testrange1], dict(ipaidrangesize=90000)),
+            expected=dict(
+                result=dict(
+                    cn=[testrange1],
+                    ipabaseid=[u'900000'],
+                    ipabaserid=[u'1000'],
+                    ipasecondarybaserid=[u'20000'],
+                    ipaidrangesize=[u'90000'],
+                    iparangetype=[u'local domain range'],
+                ),
+                value=testrange1,
+                summary=u'Modified ID range "%s"' % (testrange1),
             ),
         ),
 

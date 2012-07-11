@@ -80,6 +80,16 @@ class range(LDAPObject):
         )
     )
 
+    def handle_iparangetype(self, entry_attrs, options, keep_objectclass=False):
+        if not options.get('pkey_only', False):
+            if 'ipatrustedaddomainrange' in entry_attrs.get('objectclass', []):
+                entry_attrs['iparangetype'] = [unicode(_('Active Directory domain range'))]
+            else:
+                entry_attrs['iparangetype'] = [unicode(_(u'local domain range'))]
+        if not keep_objectclass:
+            if not options.get('all', False) or options.get('pkey_only', False):
+                entry_attrs.pop('objectclass', None)
+
 class range_add(LDAPCreate):
     __doc__ = _('Add new ID range.')
 
@@ -99,6 +109,10 @@ class range_add(LDAPCreate):
 
         return dn
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.handle_iparangetype(entry_attrs, options, keep_objectclass=True)
+        return dn
+
 class range_del(LDAPDelete):
     __doc__ = _('Delete an ID range.')
 
@@ -114,7 +128,13 @@ class range_find(LDAPSearch):
     # Since all range types are stored within separate containers under
     # 'cn=ranges,cn=etc' search can be done on a one-level scope
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
+        attrs_list.append('objectclass')
         return (filters, base_dn, ldap.SCOPE_ONELEVEL)
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for dn,entry in entries:
+            self.obj.handle_iparangetype(entry, options)
+        return truncated
 
 class range_show(LDAPRetrieve):
     __doc__ = _('Display information about a range.')
@@ -124,16 +144,25 @@ class range_show(LDAPRetrieve):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if 'ipatrustedaddomainrange' in entry_attrs['objectclass']:
-            entry_attrs['iparangetype']=(u'Active Directory domain range')
-        else:
-            entry_attrs['iparangetype']=(u'local domain range')
-        del entry_attrs['objectclass']
+        self.obj.handle_iparangetype(entry_attrs, options)
+        return dn
+
+class range_mod(LDAPUpdate):
+    __doc__ = _('Modify ID range.')
+
+    msg_summary = _('Modified ID range "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        attrs_list.append('objectclass')
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.handle_iparangetype(entry_attrs, options)
         return dn
 
 api.register(range)
 api.register(range_add)
-#api.register(range_mod)
+api.register(range_mod)
 api.register(range_del)
 api.register(range_find)
 api.register(range_show)
