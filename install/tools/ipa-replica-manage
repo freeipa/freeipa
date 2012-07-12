@@ -401,18 +401,24 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
                                         options.passsync, options.win_subtree,
                                         options.cacert)
     else:
-        # First see if we already exist on the remote master. If so this was
-        # a previously deleted connection.
+        # Check if the master entry exists for both servers.
+        # If one of the tree misses one of the entries, it means one of the
+        # replicas was fully deleted previously and needs to be reinstalled
+        # from scratch
         try:
+            masters_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), (api.env.basedn))
+            master1_dn = str(DN(('cn', replica1), masters_dn))
+            master2_dn = str(DN(('cn', replica2), masters_dn))
+
+            repl1.conn.getEntry(master1_dn, ldap.SCOPE_BASE)
+            repl1.conn.getEntry(master2_dn, ldap.SCOPE_BASE)
+
             repl2 = replication.ReplicationManager(realm, replica2, dirman_passwd)
-            master_dn = repl2.replica_dn()
-            binddn = str(DN(('krbprincipalname','ldap/%s@%s' % (replica1, api.env.realm)),(api.env.container_service),(api.env.basedn)))
-            master = repl2.conn.getEntry(master_dn, ldap.SCOPE_BASE)
-            binddns = master.getValues('nsDS5ReplicaBindDN')
-            if binddns and binddn in binddns:
-                sys.exit("You cannot connect to a previously deleted master")
+            repl2.conn.getEntry(master1_dn, ldap.SCOPE_BASE)
+            repl2.conn.getEntry(master2_dn, ldap.SCOPE_BASE)
+
         except errors.NotFound:
-            pass
+            sys.exit("You cannot connect to a previously deleted master")
         repl1.setup_gssapi_replication(replica2, "cn=Directory Manager", dirman_passwd)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
