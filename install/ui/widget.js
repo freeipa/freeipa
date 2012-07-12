@@ -231,7 +231,7 @@ IPA.text_widget = function(spec) {
     var that = IPA.input_widget(spec);
 
     that.size = spec.size || 30;
-    that.type = spec.type || 'text';
+    that.input_type = spec.input_type || 'text';
 
     that.select_range = function(start, end){
         IPA.select_range(that.input, start, end);
@@ -249,7 +249,7 @@ IPA.text_widget = function(spec) {
         }).appendTo(container);
 
         that.input = $('<input/>', {
-            type: that.type,
+            type: that.input_type,
             name: that.name,
             disabled: that.disabled,
             size: that.size,
@@ -330,7 +330,7 @@ IPA.text_widget = function(spec) {
 IPA.password_widget = function(spec) {
 
     spec = spec || {};
-    spec.type = 'password';
+    spec.input_type = 'password';
 
     var that = IPA.text_widget(spec);
     return that;
