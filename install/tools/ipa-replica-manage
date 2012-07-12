@@ -211,7 +211,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         try:
             repl2 = replication.ReplicationManager(realm, replica2, dirman_passwd)
 
-            repl_list = repl1.find_ipa_replication_agreements()
+            repl_list = repl2.find_ipa_replication_agreements()
             if not force and len(repl_list) <= 1:
                 print "Cannot remove the last replication link of '%s'" % replica2
                 print "Please use the 'del' command to remove it from the domain"
