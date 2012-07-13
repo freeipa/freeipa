@@ -900,83 +900,112 @@ done:
     return kerr;
 }
 
-static krb5_error_code add_local_groups(krb5_context context,
-                                        krb5_data *pac_blob)
+static krb5_error_code get_logon_info(krb5_context context,
+                                      TALLOC_CTX *memctx,
+                                      krb5_data *pac_blob,
+                                      struct PAC_LOGON_INFO_CTR *info)
 {
     DATA_BLOB pac_data;
-    union PAC_INFO pac_info;
-    krb5_error_code kerr;
     enum ndr_err_code ndr_err;
-    TALLOC_CTX *tmpctx;
+
+    pac_data.length = pac_blob->length;
+    pac_data.data = (uint8_t *)pac_blob->data;
+
+    ndr_err = ndr_pull_union_blob(&pac_data, memctx, info,
+                                  PAC_TYPE_LOGON_INFO,
+                                  (ndr_pull_flags_fn_t)ndr_pull_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+        return KRB5_KDB_INTERNAL_ERROR;
+    }
+
+    return 0;
+}
+
+static krb5_error_code add_local_groups(krb5_context context,
+                                        TALLOC_CTX *memctx,
+                                        struct PAC_LOGON_INFO_CTR *info)
+{
     int ret;
     char **group_sids = NULL;
     size_t ipa_group_sids_count = 0;
     struct dom_sid *ipa_group_sids = NULL;
 
-    tmpctx = talloc_new(NULL);
-    if (!tmpctx) {
-        return ENOMEM;
-    }
-
-    pac_data.length = pac_blob->length;
-    pac_data.data = (uint8_t *)pac_blob->data;
-
-    ndr_err = ndr_pull_union_blob(&pac_data, tmpctx, &pac_info,
-                                  PAC_TYPE_LOGON_INFO,
-                                  (ndr_pull_flags_fn_t) ndr_pull_PAC_INFO);
-    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
-        krb5_klog_syslog(LOG_ERR, "ndr_pull_union_blob failed");
-        kerr = KRB5_KDB_INTERNAL_ERROR;
-        goto done;
-    }
-
-    ret = get_group_sids(tmpctx, &pac_info.logon_info, &group_sids);
+    ret = get_group_sids(memctx, info, &group_sids);
     if (ret != 0) {
-        krb5_klog_syslog(LOG_ERR, "get_group_sids failed");
-        kerr = KRB5_KDB_INTERNAL_ERROR;
-        goto done;
+        return KRB5_KDB_INTERNAL_ERROR;
     }
 
-    ret = map_groups(tmpctx, context, group_sids, &ipa_group_sids_count,
+    ret = map_groups(memctx, context, group_sids, &ipa_group_sids_count,
                      &ipa_group_sids);
     if (ret != 0) {
-        krb5_klog_syslog(LOG_ERR, "map_groups failed");
-        kerr = KRB5_KDB_INTERNAL_ERROR;
-        goto done;
+        return KRB5_KDB_INTERNAL_ERROR;
     }
 
-    ret = add_groups(tmpctx, &pac_info.logon_info, ipa_group_sids_count,
-                     ipa_group_sids);
+    ret = add_groups(memctx, info, ipa_group_sids_count, ipa_group_sids);
     if (ret != 0) {
         krb5_klog_syslog(LOG_ERR, "add_groups failed");
-        kerr = KRB5_KDB_INTERNAL_ERROR;
-        goto done;
+        return KRB5_KDB_INTERNAL_ERROR;
     }
 
-    ndr_err = ndr_push_union_blob(&pac_data, tmpctx, &pac_info,
+    return 0;
+}
+
+static krb5_error_code save_logon_info(krb5_context context,
+                                       TALLOC_CTX *memctx,
+                                       struct PAC_LOGON_INFO_CTR *info,
+                                       krb5_data *pac_blob)
+{
+    DATA_BLOB pac_data;
+    enum ndr_err_code ndr_err;
+
+    ndr_err = ndr_push_union_blob(&pac_data, memctx, info,
                                   PAC_TYPE_LOGON_INFO,
                                   (ndr_push_flags_fn_t)ndr_push_PAC_INFO);
     if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
-        krb5_klog_syslog(LOG_ERR, "ndr_push_union_blob failed");
-        kerr = KRB5_KDB_INTERNAL_ERROR;
-        goto done;
+        return KRB5_KDB_INTERNAL_ERROR;
     }
 
     free(pac_blob->data);
     pac_blob->data = malloc(pac_data.length);
     if (pac_blob->data == NULL) {
         pac_blob->length = 0;
-        kerr = ENOMEM;
-        goto done;
+        return ENOMEM;
     }
     memcpy(pac_blob->data, pac_data.data, pac_data.length);
     pac_blob->length = pac_data.length;
 
-    kerr = 0;
+    return 0;
+}
+
+static krb5_error_code ipadb_check_logon_info(krb5_context context,
+                                              krb5_data *pac_blob)
+{
+    struct PAC_LOGON_INFO_CTR info;
+    krb5_error_code kerr;
+    TALLOC_CTX *tmpctx;
+
+    tmpctx = talloc_new(NULL);
+    if (!tmpctx) {
+        return ENOMEM;
+    }
+
+    kerr = get_logon_info(context, tmpctx, pac_blob, &info);
+    if (kerr) {
+        goto done;
+    }
+
+    kerr = add_local_groups(context, tmpctx, &info);
+    if (kerr) {
+        goto done;
+    }
+
+    kerr = save_logon_info(context, tmpctx, &info, pac_blob);
+    if (kerr) {
+        goto done;
+    }
 
 done:
     talloc_free(tmpctx);
-
     return kerr;
 }
 
@@ -1050,7 +1079,7 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
             goto done;
         }
 
-        kerr = add_local_groups(context, &pac_blob);
+        kerr = ipadb_check_logon_info(context, &pac_blob);
         if (kerr != 0) {
             goto done;
         }
