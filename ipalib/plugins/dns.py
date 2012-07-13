@@ -2155,6 +2155,26 @@ class dnsrecord(LDAPObject):
                 processed.append(rrparam.name)
                 yield rrparam
 
+    def check_record_type_collisions(self, old_entry, entry_attrs):
+        # Test that only allowed combination of record types was created
+        attrs = set(attr for attr in entry_attrs if attr in _record_attributes
+                        and entry_attrs[attr])
+        attrs.update(attr for attr in old_entry if attr not in entry_attrs)
+        try:
+            attrs.remove('cnamerecord')
+        except KeyError:
+            rec_has_cname = False
+        else:
+            rec_has_cname = True
+        # CNAME and PTR record combination is allowed
+        attrs.discard('ptrrecord')
+        rec_has_other_types = True if attrs else False
+
+        if rec_has_cname and rec_has_other_types:
+            raise errors.ValidationError(name='cnamerecord',
+                      error=_('CNAME record is not allowed to coexist with any other '
+                              'records except PTR'))
+
 api.register(dnsrecord)
 
 
@@ -2297,11 +2317,16 @@ class dnsrecord_add(LDAPCreate):
         # new attributes only and not for all attributes in the LDAP entry
         setattr(context, 'dnsrecord_precallback_attrs', precallback_attrs)
 
+        # We always want to retrieve all DNS record attributes to test for
+        # record type collisions (#2601)
         try:
             (dn_, old_entry) = ldap.get_entry(
-                        dn, entry_attrs.keys(),
+                        dn, _record_attributes,
                         normalize=self.obj.normalize_dn)
-            for attr in old_entry.keys():
+        except errors.NotFound:
+            pass
+        else:
+            for attr in entry_attrs:
                 if attr not in _record_attributes:
                     continue
                 if entry_attrs[attr] is None:
@@ -2310,9 +2335,9 @@ class dnsrecord_add(LDAPCreate):
                     vals = [entry_attrs[attr]]
                 else:
                     vals = list(entry_attrs[attr])
-                entry_attrs[attr] = list(set(old_entry[attr] + vals))
-        except errors.NotFound:
-            pass
+                entry_attrs[attr] = list(set(old_entry.get(attr, []) + vals))
+
+            self.obj.check_record_type_collisions(old_entry, entry_attrs)
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
@@ -2386,14 +2411,16 @@ class dnsrecord_mod(LDAPUpdate):
         # Run pre_callback validators
         self.obj.run_precallback_validators(dn, entry_attrs, *keys, **options)
 
-        if len(updated_attrs):
-            try:
-                (dn_, old_entry) = ldap.get_entry(
-                            dn, updated_attrs.keys(),
-                            normalize=self.obj.normalize_dn)
-            except errors.NotFound:
+        # current entry is needed in case of per-dns-record-part updates and
+        # for record type collision check
+        try:
+            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes,
+                                              normalize=self.obj.normalize_dn)
+        except errors.NotFound:
+            if updated_attrs:
                 self.obj.handle_not_found(*keys)
 
+        if updated_attrs:
             for attr in updated_attrs:
                 param = self.params[attr]
                 old_dnsvalue, new_parts = updated_attrs[attr]
@@ -2411,6 +2438,7 @@ class dnsrecord_mod(LDAPUpdate):
                 new_dnsvalue = [param._convert_scalar(modified_parts)]
                 entry_attrs[attr] = list(set(old_entry[attr] + new_dnsvalue))
 
+        self.obj.check_record_type_collisions(old_entry, entry_attrs)
         return dn
 
     def execute(self, *keys, **options):

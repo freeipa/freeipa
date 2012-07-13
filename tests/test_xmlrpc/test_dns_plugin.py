@@ -48,6 +48,8 @@ dnsrev1 = u'80'
 dnsrev1_dn = DN(('idnsname',dnsrev1), revdnszone1_dn)
 dnsrev2 = u'81'
 dnsrev2_dn = DN(('idnsname',dnsrev2), revdnszone1_dn)
+dnsrescname = u'testcnamerec'
+dnsrescname_dn = DN(('idnsname',dnsrescname), dnszone1_dn)
 
 class test_dns(Declarative):
 
@@ -746,25 +748,59 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Try to add invalid CNAME record %r using dnsrecord_add' % (dnsres1),
-            command=('dnsrecord_add', [dnszone1, dnsres1], {'cnamerecord': u'-.example.com' }),
+            desc='Try to add CNAME record to %r using dnsrecord_add' % (dnsres1),
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'cnamerecord': u'foo-1.example.com.'}),
+            expected=errors.ValidationError(name='cnamerecord',
+                error=u'CNAME record is not allowed to coexist with any other records except PTR'),
+        ),
+
+        dict(
+            desc='Try to add invalid CNAME record %r using dnsrecord_add' % (dnsrescname),
+            command=('dnsrecord_add', [dnszone1, dnsrescname], {'cnamerecord': u'-.example.com'}),
             expected=errors.ValidationError(name='hostname',
                 error=u'invalid domain-name: only letters, numbers, and - ' +
                     u'are allowed. DNS label may not start or end with -'),
         ),
 
         dict(
-            desc='Add CNAME record to %r using dnsrecord_add' % (dnsres1),
-            command=('dnsrecord_add', [dnszone1, dnsres1], {'cnamerecord': u'foo-1.example.com.' }),
+            desc='Add CNAME record to %r using dnsrecord_add' % (dnsrescname),
+            command=('dnsrecord_add', [dnszone1, dnsrescname], {'cnamerecord': u'foo-1.example.com.'}),
             expected={
-                'value': dnsres1,
+                'value': dnsrescname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': unicode(dnsres1_dn),
-                    'idnsname': [dnsres1],
-                    'arecord': [u'10.10.0.1'],
+                    'dn': unicode(dnsrescname_dn),
+                    'idnsname': [dnsrescname],
                     'cnamerecord': [u'foo-1.example.com.'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Try to add other record to CNAME record %r using dnsrecord_add' % (dnsrescname),
+            command=('dnsrecord_add', [dnszone1, dnsrescname], {'arecord': u'10.0.0.1'}),
+            expected=errors.ValidationError(name='cnamerecord',
+                error=u'CNAME record is not allowed to coexist with any other records except PTR'),
+        ),
+
+        dict(
+            desc='Try to add other record to CNAME record %r using dnsrecord_mod' % (dnsrescname),
+            command=('dnsrecord_mod', [dnszone1, dnsrescname], {'arecord': u'10.0.0.1'}),
+            expected=errors.ValidationError(name='cnamerecord',
+                error=u'CNAME record is not allowed to coexist with any other records except PTR'),
+        ),
+
+        dict(
+            desc='Add A record and delete CNAME record in %r with dnsrecord_mod' % (dnsrescname),
+            command=('dnsrecord_mod', [dnszone1, dnsrescname], {'arecord': u'10.0.0.1',
+                                                                'cnamerecord': None}),
+            expected={
+                'value': dnsrescname,
+                'summary': None,
+                'result': {
+                    'idnsname': [dnsrescname],
+                    'arecord': [u'10.0.0.1'],
                 },
             },
         ),
@@ -788,7 +824,6 @@ class test_dns(Declarative):
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
-                    'cnamerecord': [u'foo-1.example.com.'],
                     'kxrecord': [u'1 foo-1'],
                 },
             },
@@ -805,7 +840,6 @@ class test_dns(Declarative):
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
-                    'cnamerecord': [u'foo-1.example.com.'],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
                 },
@@ -825,7 +859,6 @@ class test_dns(Declarative):
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
-                    'cnamerecord': [u'foo-1.example.com.'],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
                     'nsecrecord': [dnszone1 + u' TXT A'],
@@ -857,7 +890,6 @@ class test_dns(Declarative):
                     'dn': unicode(dnsres1_dn),
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
-                    'cnamerecord': [u'foo-1.example.com.'],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
                     'nsecrecord': [dnszone1 + u' TXT A'],
@@ -882,7 +914,6 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [dnsres1_renamed],
                     'arecord': [u'10.10.0.1'],
-                    'cnamerecord': [u'foo-1.example.com.'],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
                     'nsecrecord': [dnszone1 + u' TXT A'],
@@ -976,6 +1007,21 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc='Test that CNAME/PTR record type combination in record %r is allowed' % (dnsrev1),
+            command=('dnsrecord_add', [revdnszone1, dnsrev1], {'cnamerecord': u'foo-1.example.com.' }),
+            expected={
+                'value': dnsrev1,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': unicode(dnsrev1_dn),
+                    'idnsname': [dnsrev1],
+                    'ptrrecord': [u'foo-1.example.com.'],
+                    'cnamerecord': [u'foo-1.example.com.'],
+                },
+            },
+        ),
 
         dict(
             desc='Update global DNS settings',
