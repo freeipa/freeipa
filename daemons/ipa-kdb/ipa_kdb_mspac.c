@@ -977,7 +977,101 @@ static krb5_error_code save_logon_info(krb5_context context,
     return 0;
 }
 
+static struct ipadb_adtrusts *get_domain_from_realm(krb5_context context,
+                                                    krb5_data realm)
+{
+    struct ipadb_context *ipactx;
+    struct ipadb_adtrusts *domain;
+    int i;
+
+    ipactx = ipadb_get_context(context);
+    if (!ipactx) {
+        return NULL;
+    }
+
+    if (ipactx->mspac == NULL) {
+        return NULL;
+    }
+
+    for (i = 0; i < ipactx->mspac->num_trusts; i++) {
+        domain = &ipactx->mspac->trusts[i];
+        if (strlen(domain->domain_name) != realm.length) {
+            continue;
+        }
+        if (strncasecmp(domain->domain_name, realm.data, realm.length) == 0) {
+            return domain;
+        }
+    }
+
+    return NULL;
+}
+
+static krb5_error_code filter_logon_info(krb5_context context,
+                                         TALLOC_CTX *memctx,
+                                         krb5_data realm,
+                                         struct PAC_LOGON_INFO_CTR *info)
+{
+
+    /* We must refuse a PAC that comes signed with a cross realm TGT
+     * where the client pretends to be from a different realm. It is an
+     * attempt at getting us to sign fake credentials with the help of a
+     * compromised trusted realm */
+
+    struct ipadb_adtrusts *domain;
+    char *domsid;
+
+    domain = get_domain_from_realm(context, realm);
+    if (!domain) {
+        return EINVAL;
+    }
+
+    /* check netbios/flat name */
+    if (strcasecmp(info->info->info3.base.logon_domain.string,
+                   domain->flat_name) != 0) {
+        krb5_klog_syslog(LOG_ERR, "PAC Info mismatch: domain = %s, "
+                                  "expected flat name = %s, "
+                                  "found logon name = %s",
+                                  domain->domain_name, domain->flat_name,
+                                  info->info->info3.base.logon_domain.string);
+        return EINVAL;
+    }
+
+    /* check sid */
+    domsid = dom_sid_string(NULL, info->info->info3.base.domain_sid);
+    if (!domsid) {
+        return EINVAL;
+    }
+
+    if (strcmp(domsid, domain->domain_sid) != 0) {
+        krb5_klog_syslog(LOG_ERR, "PAC Info mismatch: domain = %s, "
+                                  "expected domain SID = %s, "
+                                  "found domain SID = %s",
+                                  domain->domain_name, domain->domain_sid,
+                                  domsid);
+        talloc_free(domsid);
+        return EINVAL;
+    }
+    talloc_free(domsid);
+
+    /* According to MS-KILE, info->info->info3.sids must be zero, so check
+     * that it is the case here */
+    if (info->info->info3.sidcount != 0) {
+        return EINVAL;
+    }
+
+    /* According to MS-KILE, ResourceGroups must be zero, so check
+     * that it is the case here */
+    if (info->info->res_group_dom_sid != NULL &&
+        info->info->res_groups.count != 0) {
+        return EINVAL;
+    }
+
+    return 0;
+}
+
+
 static krb5_error_code ipadb_check_logon_info(krb5_context context,
+                                              krb5_data origin_realm,
                                               krb5_data *pac_blob)
 {
     struct PAC_LOGON_INFO_CTR info;
@@ -990,6 +1084,11 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
     }
 
     kerr = get_logon_info(context, tmpctx, pac_blob, &info);
+    if (kerr) {
+        goto done;
+    }
+
+    kerr = filter_logon_info(context, tmpctx, origin_realm, &info);
     if (kerr) {
         goto done;
     }
@@ -1050,13 +1149,6 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         /* krbtgt from a trusted realm */
         is_cross_realm = true;
 
-        /* FIXME:
-         * We must refuse a PAC that comes signed with a cross realm TGT
-         * where the client pretends to be from our realm. It is an attempt
-         * at getting us to sign fake credentials with the help of a
-         * compromised trusted realm */
-
-        /* TODO: Here is where we need to plug our PAC Filtering, later on */
         srv_key = krbtgt_key;
 
     } else {
@@ -1079,7 +1171,7 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
             goto done;
         }
 
-        kerr = ipadb_check_logon_info(context, &pac_blob);
+        kerr = ipadb_check_logon_info(context, client_princ->realm, &pac_blob);
         if (kerr != 0) {
             goto done;
         }
