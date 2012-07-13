@@ -225,10 +225,9 @@ def get_outputList(data):
 
 class CADSInstance(service.Service):
     def __init__(self, host_name=None, realm_name=None, domain_name=None, dm_password=None):
-        service.Service.__init__(self, "pkids")
+        service.Service.__init__(self, "pkids", dm_password=dm_password, ldapi=False, autobind=service.DISABLED)
         self.serverid = "PKI-IPA"
         self.realm_name = realm_name
-        self.dm_password = dm_password
         self.sub_dict = None
         self.domain = domain_name
         self.fqdn = host_name

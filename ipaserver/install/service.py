@@ -35,6 +35,11 @@ from ipapython.ipa_log_manager import *
 
 CACERT = "/etc/ipa/ca.crt"
 
+# Autobind modes
+AUTO = 1
+ENABLED = 2
+DISABLED = 3
+
 # The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
 # the first value is the *nix service name, the second the start order.
 SERVICE_LIST = {
@@ -55,13 +60,14 @@ def print_msg(message, output_fd=sys.stdout):
 
 
 class Service(object):
-    def __init__(self, service_name, sstore=None, dm_password=None, ldapi=False):
+    def __init__(self, service_name, sstore=None, dm_password=None, ldapi=True, autobind=AUTO):
         self.service_name = service_name
         self.service = ipaservices.service(service_name)
         self.steps = []
         self.output_fd = sys.stdout
         self.dm_password = dm_password
         self.ldapi = ldapi
+        self.autobind = autobind
 
         self.fqdn = socket.gethostname()
         self.admin_conn = None
@@ -77,12 +83,44 @@ class Service(object):
         self.dercert = None
 
     def ldap_connect(self):
-        if self.ldapi:
-            if not self.realm:
-                raise RuntimeError('realm must be set to use ldapi connection')
-            self.admin_conn = self.__get_conn(None, None, ldapi=True, realm=self.realm)
-        else:
-            self.admin_conn = self.__get_conn(self.fqdn, self.dm_password)
+        # If DM password is provided, we use it
+        # If autobind was requested, attempt autobind when root and ldapi
+        # If autobind was disabled or not succeeded, go with GSSAPI
+        # LDAPI can be used with either autobind or GSSAPI
+        # LDAPI requires realm to be set
+        try:
+            if self.ldapi:
+                if not self.realm:
+                    raise errors.NotFound(reason="realm is missing for %s" % (self))
+                conn = ipaldap.IPAdmin(ldapi=self.ldapi, realm=self.realm)
+            else:
+                conn = ipaldap.IPAdmin(self.fqdn, port=389)
+            if self.dm_password:
+                conn.do_simple_bind(bindpw=self.dm_password)
+            elif self.autobind in [AUTO, ENABLED]:
+                if os.getegid() == 0 and self.ldapi:
+                    try:
+                        # autobind
+                        pw_name = pwd.getpwuid(os.geteuid()).pw_name
+                        conn.do_external_bind(pw_name)
+                    except errors.NotFound, e:
+                        if self.autobind == AUTO:
+                            # Fall back
+                            conn.do_sasl_gssapi_bind()
+                        else:
+                            # autobind was required and failed, raise
+                            # exception that it failed
+                            raise e
+                else:
+                    conn.do_sasl_gssapi_bind()
+            else:
+                conn.do_sasl_gssapi_bind()
+        except Exception, e:
+            root_logger.debug("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
+            raise e
+
+        self.admin_conn = conn
+
 
     def ldap_disconnect(self):
         self.admin_conn.unbind()
@@ -93,7 +131,6 @@ class Service(object):
         pw_name = None
         fd = None
         path = ipautil.SHARE_DIR + ldif
-        hostname = installutils.get_fqdn()
         nologlist=[]
 
         if sub_dict is not None:
@@ -107,15 +144,25 @@ class Service(object):
             if sub_dict.has_key('RANDOM_PASSWORD'):
                 nologlist.append(sub_dict['RANDOM_PASSWORD'])
 
+        args = ["/usr/bin/ldapmodify", "-v", "-f", path]
+
+        # As we always connect to the local host,
+        # use URI of admin connection
+        if not self.admin_conn:
+            self.ldap_connect()
+        args += ["-H", self.admin_conn._uri]
+
+        auth_parms = []
         if self.dm_password:
             [pw_fd, pw_name] = tempfile.mkstemp()
             os.write(pw_fd, self.dm_password)
             os.close(pw_fd)
             auth_parms = ["-x", "-D", "cn=Directory Manager", "-y", pw_name]
         else:
-            auth_parms = ["-Y", "GSSAPI"]
+            # always try GSSAPI auth when not using DM password or not being root
+            if os.getegid() != 0:
+                auth_parms = ["-Y", "GSSAPI"]
 
-        args = ["/usr/bin/ldapmodify", "-h", hostname, "-v", "-f", path]
         args += auth_parms
 
         try:
@@ -181,8 +228,19 @@ class Service(object):
         This server cert should be in DER format.
         """
 
-        if not self.admin_conn:
-            self.ldap_connect()
+        # add_cert_to_service() is relatively rare operation
+        # we actually call it twice during ipa-server-install, for different
+        # instances: ds and cs. Unfortunately, it may happen that admin
+        # connection was created well before add_cert_to_service() is called
+        # If there are other operations in between, it will become stale and
+        # since we are using SimpleLDAPObject, not ReconnectLDAPObject, the
+        # action will fail. Thus, explicitly disconnect and connect again.
+        # Using ReconnectLDAPObject instead of SimpleLDAPObject was considered
+        # but consequences for other parts of the framework are largely
+        # unknown.
+        if self.admin_conn:
+            self.ldap_disconnect()
+        self.ldap_connect()
 
         dn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (self.principal, self.suffix)
         mod = [(ldap.MOD_ADD, 'userCertificate', self.dercert)]
@@ -268,33 +326,6 @@ class Service(object):
 
         self.steps = []
 
-    def __get_conn(self, fqdn, dm_password, ldapi=False, realm=None):
-        # If we are passed a password we'll use it as the DM password
-        # otherwise we'll do a GSSAPI bind.
-        try:
-#            conn = ipaldap.IPAdmin(fqdn, port=636, cacert=CACERT)
-            if ldapi:
-                conn = ipaldap.IPAdmin(ldapi=ldapi, realm=realm)
-            else:
-                conn = ipaldap.IPAdmin(fqdn, port=389)
-            if dm_password:
-                conn.do_simple_bind(bindpw=dm_password)
-            elif os.getegid() == 0 and self.ldapi:
-                try:
-                    # autobind
-                    pw_name = pwd.getpwuid(os.geteuid()).pw_name
-                    conn.do_external_bind(pw_name)
-                except errors.NotFound:
-                    # Fall back
-                    conn.do_sasl_gssapi_bind()
-            else:
-                conn.do_sasl_gssapi_bind()
-        except Exception, e:
-            root_logger.debug("Could not connect to the Directory Server on %s: %s" % (fqdn, str(e)))
-            raise e
-
-        return conn
-
     def ldap_enable(self, name, fqdn, dm_password, ldap_suffix):
         self.disable()
         if not self.admin_conn:
@@ -318,11 +349,14 @@ class Service(object):
             raise e
 
 class SimpleServiceInstance(Service):
-    def create_instance(self, gensvc_name=None, fqdn=None, dm_password=None, ldap_suffix=None):
+    def create_instance(self, gensvc_name=None, fqdn=None, dm_password=None, ldap_suffix=None, realm=None):
         self.gensvc_name = gensvc_name
         self.fqdn = fqdn
         self.dm_password = dm_password
         self.suffix = ldap_suffix
+        self.realm = realm
+        if not realm:
+            self.ldapi = False
 
         self.step("starting %s " % self.service_name, self.__start)
         self.step("configuring %s to start on boot" % self.service_name, self.__enable)

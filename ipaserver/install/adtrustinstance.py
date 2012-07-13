@@ -96,10 +96,9 @@ class ADTRUSTInstance(service.Service):
     OBJC_GROUP = "ipaNTGroupAttrs"
     OBJC_DOMAIN = "ipaNTDomainAttrs"
 
-    def __init__(self, fstore=None, dm_password=None):
+    def __init__(self, fstore=None):
         self.fqdn = None
         self.ip_address = None
-        self.realm_name = None
         self.domain_name = None
         self.netbios_name = None
         self.no_msdcs = None
@@ -118,7 +117,7 @@ class ADTRUSTInstance(service.Service):
         self.rid_base = None
         self.secondary_rid_base = None
 
-        service.Service.__init__(self, "smb", dm_password=dm_password)
+        service.Service.__init__(self, "smb", dm_password=None, ldapi=True)
 
         if fstore:
             self.fstore = fstore
@@ -436,6 +435,8 @@ class ADTRUSTInstance(service.Service):
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
+        # Note that self.dm_password is None for ADTrustInstance because
+        # we ensure to be called as root and using ldapi to use autobind
         try:
             self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, \
                              self.suffix)
@@ -449,7 +450,7 @@ class ADTRUSTInstance(service.Service):
             root_logger.info("EXTID Service startup entry already exists.")
 
     def __setup_sub_dict(self):
-        self.sub_dict = dict(REALM = self.realm_name,
+        self.sub_dict = dict(REALM = self.realm,
                              SUFFIX = self.suffix,
                              NETBIOS_NAME = self.netbios_name,
                              SMB_DN = self.smb_dn,
@@ -460,16 +461,16 @@ class ADTRUSTInstance(service.Service):
               rid_base, secondary_rid_base, no_msdcs=False, smbd_user="samba"):
         self.fqdn = fqdn
         self.ip_address = ip_address
-        self.realm_name = realm_name
+        self.realm = realm_name
         self.domain_name = domain_name
         self.netbios_name = netbios_name
         self.rid_base = rid_base
         self.secondary_rid_base = secondary_rid_base
         self.no_msdcs = no_msdcs
         self.smbd_user = smbd_user
-        self.suffix = ipautil.realm_to_suffix(self.realm_name)
+        self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
-                            realm_to_serverid(self.realm_name)
+                            realm_to_serverid(self.realm)
 
         self.smb_conf = "/etc/samba/smb.conf"
 
@@ -479,7 +480,7 @@ class ADTRUSTInstance(service.Service):
         self.trust_dn = str(DN(api.env.container_trusts, self.suffix))
         self.smb_dom_dn = str(DN(('cn', self.domain_name),
                                  api.env.container_cifsdomains, self.suffix))
-        self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm_name
+        self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm
         self.cifs_agent = str(DN(('krbprincipalname', self.cifs_principal.lower()),
                                  api.env.container_service,
                                  self.suffix))
@@ -522,11 +523,11 @@ class ADTRUSTInstance(service.Service):
                              "range.\nAdd local ID range manually and try " \
                              "again!")
 
-        entry = ipaldap.Entry(str(DN(('cn', ('%s_id_range' % self.realm_name)),
+        entry = ipaldap.Entry(str(DN(('cn', ('%s_id_range' % self.realm)),
                                      api.env.container_ranges,
                                      self.suffix)))
         entry.setValue('objectclass', 'ipaDomainIDRange')
-        entry.setValue('cn', ('%s_id_range' % self.realm_name))
+        entry.setValue('cn', ('%s_id_range' % self.realm))
         entry.setValue('ipaBaseID', str(base_id))
         entry.setValue('ipaIDRangeSize', str(id_range_size))
         self.admin_conn.addEntry(entry)

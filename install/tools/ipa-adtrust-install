@@ -24,7 +24,7 @@
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import adtrustinstance
 from ipaserver.install.installutils import *
-from ipaserver.install import installutils
+from ipaserver.install import service
 from ipapython import version
 from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
@@ -37,8 +37,6 @@ log_file_name = "/var/log/ipaserver-install.log"
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
-    parser.add_option("-p", "--ds-password", dest="dm_password",
-                      sensitive=True, help="directory manager password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     parser.add_option("--ip-address", dest="ip_address",
@@ -98,7 +96,7 @@ def main():
     root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     root_logger.debug("missing options might be asked for interactively later\n")
 
-    installutils.check_server_configuration()
+    check_server_configuration()
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
@@ -194,24 +192,34 @@ def main():
     if not options.unattended and ( not netbios_name or not options.netbios_name):
         netbios_name = read_netbios_name(netbios_name)
 
-    dm_password = options.dm_password or read_password("Directory Manager",
-                                             confirm=False, validate=False)
-    smb = adtrustinstance.ADTRUSTInstance(fstore, dm_password)
-
-    # try the connection
     try:
-        smb.ldap_connect()
-        smb.ldap_disconnect()
-    except ldap.INVALID_CREDENTIALS, e:
-        sys.exit("Password is not valid!")
+        ctx = krbV.default_context()
+        ccache = ctx.default_ccache()
+        principal = ccache.principal()
+    except krbV.Krb5Error, e:
+        sys.exit("Must have Kerberos credentials to setup AD trusts on server")
 
-    if smb.dm_password:
-        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=smb.dm_password)
-    else:
-        # See if our LDAP server is up and we can talk to it over GSSAPI
-        ccache = krbV.default_context().default_ccache().name
-        api.Backend.ldap2.connect(ccache)
+    try:
+        api.Backend.ldap2.connect(ccache.name)
+    except errors.ACIError, e:
+        sys.exit("Outdated Kerberos credentials. Use kdestroy and kinit to update your ticket")
+    except errors.DatabaseError, e:
+        sys.exit("Cannot connect to the LDAP database. Please check if IPA is running")
 
+    try:
+        user = api.Command.user_show(unicode(principal[0]))['result']
+        group = api.Command.group_show(u'admins')['result']
+        if not (user['uid'][0] in group['member_user'] and
+                group['cn'][0] in user['memberof_group']):
+            raise errors.RequirementError(name='admins group membership')
+    except errors.RequirementError, e:
+        sys.exit("Must have administrative privileges to setup AD trusts on server")
+    except Exception, e:
+        sys.exit("Unrecognized error during check of admin rights: %s" % (str(e)))
+
+    smb = adtrustinstance.ADTRUSTInstance(fstore)
+    smb.realm = api.env.realm
+    smb.autobind = service.ENABLED
     smb.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
               netbios_name, options.rid_base, options.secondary_rid_base,
               options.no_msdcs)
@@ -250,5 +258,5 @@ information"""
     return 0
 
 if __name__ == '__main__':
-    installutils.run_script(main, log_file_name=log_file_name,
+    run_script(main, log_file_name=log_file_name,
             operation_name='ipa-adtrust-install')

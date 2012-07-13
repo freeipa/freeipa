@@ -178,7 +178,7 @@ class KrbInstance(service.Service):
         self.start_creation("Configuring Kerberos KDC", 30)
 
         self.kpasswd = KpasswdInstance()
-        self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)
+        self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix, realm=self.realm)
 
     def create_replica(self, realm_name,
                        master_fqdn, host_name,

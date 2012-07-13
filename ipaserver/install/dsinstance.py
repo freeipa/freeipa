@@ -160,7 +160,7 @@ info: IPA V2.0
 
 class DsInstance(service.Service):
     def __init__(self, realm_name=None, domain_name=None, dm_password=None, fstore=None):
-        service.Service.__init__(self, "dirsrv", dm_password=dm_password)
+        service.Service.__init__(self, "dirsrv", dm_password=dm_password, ldapi=False, autobind=service.DISABLED)
         self.realm_name = realm_name
         self.sub_dict = None
         self.domain = domain_name

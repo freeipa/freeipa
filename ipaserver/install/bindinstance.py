@@ -448,7 +448,7 @@ class DnsBackup(object):
 
 class BindInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None):
-        service.Service.__init__(self, "named", dm_password=dm_password)
+        service.Service.__init__(self, "named", dm_password=dm_password, ldapi=False, autobind=service.DISABLED)
         self.dns_backup = DnsBackup(self)
         self.named_user = None
         self.domain = None
