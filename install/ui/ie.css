@@ -1,0 +1,23 @@
+/* Authors:
+*   Petr Vobornik <pvobornik@redhat.com>
+*
+* Copyright (C) 2012 Red Hat
+*
+* Styles for IE only
+*/
+
+.aci-attribute-table-container {
+    overflow: auto !important;
+    overflow-x: hidden !important;
+    width: 348px !important;
+}
+
+.aci-attribute-table  {
+    float: left;
+    margin: 0;
+    width: 332px !important;
+}
+
+.aci-attribute-table tbody {
+    height: auto !important;
+}

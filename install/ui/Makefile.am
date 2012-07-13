@@ -30,6 +30,7 @@ app_DATA =				\
 	host.js 			\
 	hostgroup.js 			\
 	index.html 			\
+	ie.css				\
 	ipa.css				\
 	ipa.js				\
 	jquery-ui.css			\

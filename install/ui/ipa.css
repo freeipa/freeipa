@@ -1082,11 +1082,16 @@ span.main-separator{
 
 .aci-attribute-table tbody {
     border-bottom: 1px solid #8a8a8a;
-    height:10em;
+    height: 10em;
 }
 
 .aci-attribute-table .aci-attribute-column {
     width: 200em; /* it will fit actual width */
+}
+
+.aci-attribute-table-container {
+    height: 13.5em;
+    overflow: hidden;
 }
 
 .entity-views{

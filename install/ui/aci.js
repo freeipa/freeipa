@@ -473,13 +473,17 @@ IPA.attributes_widget = function(spec) {
     that.create = function(container) {
         that.container = container;
 
+        var attr_container = $('<div/>', {
+            'class': 'aci-attribute-table-container'
+        }).appendTo(container);
+
         that.table = $('<table/>', {
             id:id,
             'class':'search-table aci-attribute-table scrollable'
         }).
             append('<thead/>').
             append('<tbody/>').
-            appendTo(container);
+            appendTo(attr_container);
 
         var tr = $('<tr></tr>').appendTo($('thead', that.table));
 
