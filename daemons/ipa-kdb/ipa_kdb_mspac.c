@@ -900,8 +900,8 @@ done:
     return kerr;
 }
 
-static krb5_error_code filter_pac(krb5_context context, krb5_data *old_data,
-                                  krb5_data *new_data)
+static krb5_error_code add_local_groups(krb5_context context,
+                                        krb5_data *pac_blob)
 {
     DATA_BLOB pac_data;
     union PAC_INFO pac_info;
@@ -918,8 +918,8 @@ static krb5_error_code filter_pac(krb5_context context, krb5_data *old_data,
         return ENOMEM;
     }
 
-    pac_data.length = old_data->length;
-    pac_data.data = (uint8_t *) old_data->data;
+    pac_data.length = pac_blob->length;
+    pac_data.data = (uint8_t *)pac_blob->data;
 
     ndr_err = ndr_pull_union_blob(&pac_data, tmpctx, &pac_info,
                                   PAC_TYPE_LOGON_INFO,
@@ -962,14 +962,15 @@ static krb5_error_code filter_pac(krb5_context context, krb5_data *old_data,
         goto done;
     }
 
-    new_data->magic = KV5M_DATA;
-    new_data->data = malloc(pac_data.length);
-    if (new_data->data == NULL) {
+    free(pac_blob->data);
+    pac_blob->data = malloc(pac_data.length);
+    if (pac_blob->data == NULL) {
+        pac_blob->length = 0;
         kerr = ENOMEM;
         goto done;
     }
-    memcpy(new_data->data, pac_data.data, pac_data.length);
-    new_data->length = pac_data.length;
+    memcpy(pac_blob->data, pac_data.data, pac_data.length);
+    pac_blob->length = pac_data.length;
 
     kerr = 0;
 
@@ -993,12 +994,13 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
     krb5_keyblock *srv_key = NULL;
     krb5_keyblock *priv_key = NULL;
     krb5_error_code kerr;
-    krb5_ui_4 *buffer_types = NULL;
+    krb5_ui_4 *types = NULL;
     size_t num_buffers;
     krb5_pac old_pac = NULL;
     krb5_pac new_pac = NULL;
     krb5_data data;
-    krb5_data filtered_data;
+    krb5_data pac_blob = { 0 , 0, NULL};
+    bool is_cross_realm = false;
     size_t i;
 
     kerr = krb5_pac_parse(context,
@@ -1009,7 +1011,6 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         goto done;
     }
 
-    memset(&filtered_data, 0, sizeof(filtered_data));
     /* for cross realm trusts cases we need to check the right checksum.
      * when the PAC is signed by our realm, we can always just check it
      * passing our realm krbtgt key as the kdc checksum key (privsvr).
@@ -1018,6 +1019,7 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
      * realm krbtgt to check the 'server' checksum instead. */
     if (is_cross_realm_krbtgt(krbtgt->princ)) {
         /* krbtgt from a trusted realm */
+        is_cross_realm = true;
 
         /* FIXME:
          * We must refuse a PAC that comes signed with a cross realm TGT
@@ -1028,15 +1030,6 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         /* TODO: Here is where we need to plug our PAC Filtering, later on */
         srv_key = krbtgt_key;
 
-        kerr = krb5_pac_get_buffer(context, old_pac, KRB5_PAC_LOGON_INFO, &data);
-        if (kerr != 0) {
-            goto done;
-        }
-
-        kerr = filter_pac(context, &data, &filtered_data);
-        if (kerr != 0) {
-            goto done;
-        }
     } else {
         /* krbtgt from our own realm */
         priv_key = krbtgt_key;
@@ -1048,6 +1041,20 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         goto done;
     }
 
+    /* Now that the PAc is verified augment it with additional info if
+     * it is coming from a different realm */
+    if (is_cross_realm) {
+        kerr = krb5_pac_get_buffer(context, old_pac,
+                                   KRB5_PAC_LOGON_INFO, &pac_blob);
+        if (kerr != 0) {
+            goto done;
+        }
+
+        kerr = add_local_groups(context, &pac_blob);
+        if (kerr != 0) {
+            goto done;
+        }
+    }
     /* extract buffers and rebuilt pac from scratch so that when re-signing
      * with a different cksum type does not cause issues due to mismatching
      * signature buffer lengths */
@@ -1056,22 +1063,20 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         goto done;
     }
 
-    kerr = krb5_pac_get_types(context, old_pac, &num_buffers, &buffer_types);
+    kerr = krb5_pac_get_types(context, old_pac, &num_buffers, &types);
     if (kerr) {
         goto done;
     }
 
     for (i = 0; i < num_buffers; i++) {
-        if (buffer_types[i] == KRB5_PAC_SERVER_CHECKSUM ||
-            buffer_types[i] == KRB5_PAC_PRIVSVR_CHECKSUM) {
+        if (types[i] == KRB5_PAC_SERVER_CHECKSUM ||
+            types[i] == KRB5_PAC_PRIVSVR_CHECKSUM) {
             continue;
         }
 
-        if (buffer_types[i] == KRB5_PAC_LOGON_INFO &&
-            filtered_data.length != 0) {
-            kerr = krb5_pac_add_buffer(context, new_pac,
-                                       buffer_types[i], &filtered_data);
-            krb5_free_data_contents(context, &filtered_data);
+        if (types[i] == KRB5_PAC_LOGON_INFO &&
+            pac_blob.length != 0) {
+            kerr = krb5_pac_add_buffer(context, new_pac, types[i], &pac_blob);
             if (kerr) {
                 krb5_pac_free(context, new_pac);
                 goto done;
@@ -1080,13 +1085,11 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
             continue;
         }
 
-        kerr = krb5_pac_get_buffer(context, old_pac,
-                                    buffer_types[i], &data);
+        kerr = krb5_pac_get_buffer(context, old_pac, types[i], &data);
         if (kerr == 0) {
-            kerr = krb5_pac_add_buffer(context, new_pac,
-                                        buffer_types[i], &data);
+            kerr = krb5_pac_add_buffer(context, new_pac, types[i], &data);
+            krb5_free_data_contents(context, &data);
         }
-        krb5_free_data_contents(context, &data);
         if (kerr) {
             krb5_pac_free(context, new_pac);
             goto done;
@@ -1098,7 +1101,8 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
 done:
     krb5_free_authdata(context, authdata);
     krb5_pac_free(context, old_pac);
-    free(buffer_types);
+    krb5_free_data_contents(context, &pac_blob);
+    free(types);
     return kerr;
 }
 
