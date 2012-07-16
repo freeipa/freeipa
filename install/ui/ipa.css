@@ -1307,6 +1307,14 @@ table.scrollable tbody {
     width: 250px;
 }
 
+.textarea-widget textarea {
+    width: 250px;
+}
+
+.facet-content .textarea-widget textarea {
+    width: 400px;
+}
+
 .combobox-widget-input {
     display: inline-block;
     position: relative;

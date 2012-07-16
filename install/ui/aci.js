@@ -688,8 +688,6 @@ IPA.permission_target_widget = function(spec) {
         that.subtree_textarea = IPA.textarea_widget({
             entity: that.entity,
             name: 'subtree',
-            cols: 30,
-            rows: 1,
             hidden: true
         });
 
