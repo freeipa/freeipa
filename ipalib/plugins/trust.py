@@ -182,13 +182,13 @@ class trust_add(LDAPCreate):
             realm_admin = options['realm_admin']
 
             if 'realm_passwd' not in options:
-                raise errors.ValidationError(name=_('AD Trust setup'), reason=_('Realm administrator password should be specified'))
+                raise errors.ValidationError(name=_('AD Trust setup'), error=_('Realm administrator password should be specified'))
             realm_passwd = options['realm_passwd']
 
             result = trustinstance.join_ad_full_credentials(keys[-1], realm_server, realm_admin, realm_passwd)
 
             if result is None:
-                raise errors.ValidationError(name=_('AD Trust setup'), reason=_('Unable to verify write permissions to the AD'))
+                raise errors.ValidationError(name=_('AD Trust setup'), error=_('Unable to verify write permissions to the AD'))
 
             return dict(result=dict(), value=trustinstance.remote_domain.info['dns_domain'])
 
@@ -198,7 +198,7 @@ class trust_add(LDAPCreate):
         if 'trust_secret' in options:
             result = trustinstance.join_ad_ipa_half(keys[-1], realm_server, options['trust_secret'])
             return dict(result=dict(), value=trustinstance.remote_domain.info['dns_domain'])
-        raise errors.ValidationError(name=_('AD Trust setup'), reason=_('Not enough arguments specified to perform trust setup'))
+        raise errors.ValidationError(name=_('AD Trust setup'), error=_('Not enough arguments specified to perform trust setup'))
 
 class trust_del(LDAPDelete):
     __doc__ = _('Delete a trust.')
