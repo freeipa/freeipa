@@ -363,6 +363,11 @@ class TrustDomainJoins(object):
         rd.read_only = True
         if realm_admin and realm_passwd:
             if 'name' in rd.info:
+                names = realm_admin.split('\\')
+                if len(names) > 1:
+                    # realm admin is in DOMAIN\user format
+                    # strip DOMAIN part as we'll enforce the one discovered
+                    realm_admin = names[-1]
                 auth_string = u"%s\%s%%%s" % (rd.info['name'], realm_admin, realm_passwd)
                 td = get_instance(self)
                 td.creds.parse_string(auth_string)

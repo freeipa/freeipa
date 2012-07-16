@@ -180,6 +180,14 @@ class trust_add(LDAPCreate):
         # generate random trustdom password to do work on both sides
         if 'realm_admin' in options:
             realm_admin = options['realm_admin']
+            names = realm_admin.split('@')
+            if len(names) > 1:
+                # realm admin name is in UPN format, user@realm, check that
+                # realm is the same as the one that we are attempting to trust
+                if keys[-1].lower() != names[-1].lower():
+                    raise errors.ValidationError(name=_('AD Trust setup'),
+                                 error=_('Trusted domain and administrator account use different realms'))
+                realm_admin = names[0]
 
             if 'realm_passwd' not in options:
                 raise errors.ValidationError(name=_('AD Trust setup'), error=_('Realm administrator password should be specified'))
