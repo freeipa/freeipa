@@ -46,6 +46,7 @@ from ipalib.backend import Connectible
 from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError, KerberosError, XMLRPCMarshallError
 from ipalib import errors
 from ipalib.request import context, Connection
+from ipalib.util import get_current_principal
 from ipapython import ipautil
 from ipapython import kernel_keyring
 
@@ -56,6 +57,8 @@ from nss.error import NSPRError
 from urllib2 import urlparse
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
+
+COOKIE_NAME = 'ipa_session_cookie:%s'
 
 def xml_wrap(value):
     """
@@ -258,12 +261,6 @@ class SSLTransport(LanguageAwareTransport):
         conn.connect()
         return conn
 
-    def parse_response(self, response):
-        session_cookie = response.getheader('Set-Cookie')
-        if session_cookie:
-            kernel_keyring.update_key('ipa_session_cookie', session_cookie)
-        return LanguageAwareTransport.parse_response(self, response)
-
 
 class KerbTransport(SSLTransport):
     """
@@ -326,6 +323,18 @@ class KerbTransport(SSLTransport):
         )
 
         return (host, extra_headers, x509)
+
+    def parse_response(self, response):
+        session_cookie = response.getheader('Set-Cookie')
+        if session_cookie:
+            principal = getattr(context, 'principal', None)
+            try:
+                kernel_keyring.update_key(COOKIE_NAME % principal, session_cookie)
+            except ValueError, e:
+                # Not fatal, we just can't use the session cookie we were
+                # sent.
+                pass
+        return SSLTransport.parse_response(self, response)
 
 
 class DelegatedKerbTransport(KerbTransport):
@@ -400,10 +409,12 @@ class xmlclient(Connectible):
             session = False
             session_data = None
             xmlrpc_uri = self.env.xmlrpc_uri
+            principal = get_current_principal()
+            setattr(context, 'principal', principal)
             # We have a session cookie, try using the session URI to see if it
             # is still valid
             if not delegate:
-                session_data = kernel_keyring.read_key('ipa_session_cookie')
+                session_data = kernel_keyring.read_key(COOKIE_NAME % principal)
                 setattr(context, 'session_data', session_data)
                 (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(self.env.xmlrpc_uri)
                 xmlrpc_uri = urlparse.urlunparse((scheme, netloc, '/ipa/session/xml', params, query, fragment))
@@ -453,9 +464,9 @@ class xmlclient(Connectible):
             except ProtocolError, e:
                 if session_data and e.errcode == 401:
                     # Unauthorized. Remove the session and try again.
+                    delattr(context, 'session_data')
                     try:
-                        kernel_keyring.del_key('ipa_session_cookie')
-                        delattr(context, 'session_data')
+                        kernel_keyring.del_key(COOKIE_NAME % principal)
                     except ValueError:
                         # This shouldn't happen if we have a session but
                         # it isn't fatal.
@@ -519,9 +530,10 @@ class xmlclient(Connectible):
             session_data = getattr(context, 'session_data', None)
             if session_data and e.errcode == 401:
                 # Unauthorized. Remove the session and try again.
+                delattr(context, 'session_data')
                 try:
-                    kernel_keyring.del_key('ipa_session_cookie')
-                    delattr(context, 'session_data')
+                    principal = getattr(context, 'principal', None)
+                    kernel_keyring.del_key(COOKIE_NAME % principal)
                 except ValueError:
                     # This shouldn't happen if we have a session but
                     # it isn't fatal.
