@@ -51,6 +51,13 @@ TOTAL_EXCLUDES = ('entryusn',
 # List of attributes that need to be excluded from normal replication.
 EXCLUDES = ('memberof', 'idnssoaserial') + TOTAL_EXCLUDES
 
+# List of attributes that are not updated on empty replication
+STRIP_ATTRS = ('modifiersName',
+               'modifyTimestamp',
+               'internalModifiersName',
+               'internalModifyTimestamp')
+
+
 def replica_conn_check(master_host, host_name, realm, check_ca,
                        admin_password=None):
     """
@@ -518,6 +525,8 @@ class ReplicationManager(object):
             # Probably the master is an old 389-ds server, tell the caller
             # that we will have to set the memberof fixup task
             self.need_memberof_fixup = True
+
+        entry.setValues('nsds5ReplicaStripAttrs', " ".join(STRIP_ATTRS))
 
         entry = a_conn.waitForEntry(entry)
 
