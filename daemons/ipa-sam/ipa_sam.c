@@ -83,6 +83,8 @@ enum ndr_err_code ndr_pull_trustAuthInOutBlob(struct ndr_pull *ndr, int ndr_flag
 bool fetch_ldap_pw(char **dn, char** pw); /* available in libpdb.so */
 void nt_lm_owf_gen(const char *pwd, uint8_t nt_p16[16], uint8_t p16[16]); /* available in libcliauth.so */
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
+/* available in libpdb.so, renamed from sid_check_is_domain() in c43505b621725c9a754f0ee98318d451b093f2ed */
+bool sid_check_is_our_sam(const struct dom_sid *sid);
 void strlower_m(char *s); /* available in libutil_str.so */
 char *talloc_asprintf_strupper_m(TALLOC_CTX *t, const char *fmt, ...); /* available in libutil_str.so */
 void sid_copy(struct dom_sid *dst, const struct dom_sid *src); /* available in libsecurity.so */
@@ -300,7 +302,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 	}
 
 	if (!sid_check_is_builtin(domain_sid) &&
-	    !sid_check_is_domain(domain_sid)) {
+	    !sid_check_is_our_sam(domain_sid)) {
 		result = NT_STATUS_INVALID_PARAMETER;
 		goto done;
 	}

@@ -31,7 +31,7 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 %if 0%{?fedora} >= 16
 BuildRequires:  systemd-units
 %endif
-BuildRequires:  samba4-devel
+BuildRequires:  samba4-devel >= 4.0.0-128
 BuildRequires:  samba4-python
 %endif
 BuildRequires:  nspr-devel
@@ -743,6 +743,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Jul 18 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-38
+- Require samba4-devel >= 4.0.0-128 due to passdb API change in beta4
+
 * Fri Jun 29 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-37
 - Add Requires on openssl
 - Set minimum tomcat6 to 6.0.35-4 in F-18
