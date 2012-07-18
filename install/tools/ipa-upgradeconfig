@@ -339,6 +339,7 @@ def named_enable_psearch():
                         bindinstance.NAMED_CONF, e)
             else:
                 changed = True
+                psearch = "yes"
         sysupgrade.set_upgrade_state('named.conf', 'psearch_enabled', True)
         root_logger.debug('Persistent search enabled')
 
@@ -353,24 +354,24 @@ def named_enable_psearch():
         root_logger.debug('Cannot retrieve connections option from %s: %s',
                 bindinstance.NAMED_CONF, e)
         return
-    if connections is not None:
-        try:
+    try:
+        if connections is not None:
             connections = int(connections)
-        except ValueError:
-            # this should not happend, but there is some bad value in
-            # "connections" option, bail out
-            pass
-        else:
-            if connections < minimum_connections:
-                try:
-                    bindinstance.named_conf_set_directive('connections',
-                                                          minimum_connections)
-                    root_logger.debug('Connections set to %d', minimum_connections)
-                except IOError, e:
-                    root_logger.error('Cannot update connections in %s: %s',
-                            bindinstance.NAMED_CONF, e)
-                else:
-                    changed = True
+    except ValueError:
+        # this should not happend, but there is some bad value in
+        # "connections" option, bail out
+        pass
+    else:
+        if connections is None or connections < minimum_connections:
+            try:
+                bindinstance.named_conf_set_directive('connections',
+                                                        minimum_connections)
+                root_logger.debug('Connections set to %d', minimum_connections)
+            except IOError, e:
+                root_logger.error('Cannot update connections in %s: %s',
+                        bindinstance.NAMED_CONF, e)
+            else:
+                changed = True
 
     if not changed:
         root_logger.debug('No changes made')
@@ -408,7 +409,7 @@ def named_enable_serial_autoincrement():
     # enable SOA serial autoincrement
     if not sysupgrade.get_upgrade_state('named.conf', 'autoincrement_enabled'):
         if psearch != "yes":    # psearch is required
-            root_logger.debug('Persistent search is disabled, '
+            root_logger.error('Persistent search is disabled, '
                     'serial autoincrement cannot be enabled')
         else:
             if serial_autoincrement != 'yes':
