@@ -480,7 +480,7 @@ class BindInstance(service.Service):
         self.reverse_zone = reverse_zone
         self.zone_refresh = zone_refresh
         self.persistent_search = persistent_search
-        self.serial_autoincrement = True
+        self.serial_autoincrement = serial_autoincrement
 
         if not zonemgr:
             self.zonemgr = 'hostmaster.%s' % self.domain
