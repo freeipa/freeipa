@@ -3297,6 +3297,7 @@ IPA.sshkey_widget = function(spec) {
     that.create_edit_dialog = function() {
 
         var dialog = IPA.dialog({
+            name: 'sshkey-edit-dialog',
             title: IPA.messages.objects.sshkeystore.set_dialog_title,
             width: 500,
             height: 380

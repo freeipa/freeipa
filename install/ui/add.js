@@ -27,6 +27,8 @@ IPA.entity_adder_dialog = function(spec) {
 
     spec = spec || {};
 
+    spec.name = spec.name || 'entity_adder_dialog';
+
     var that = IPA.dialog(spec);
 
     that.method = spec.method || 'add';

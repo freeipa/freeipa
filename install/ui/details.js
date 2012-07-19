@@ -576,6 +576,7 @@ IPA.details_facet = function(spec, no_init) {
 
     that.show_validation_error = function() {
         var dialog = IPA.message_dialog({
+            name: 'validation_error',
             title: IPA.messages.dialogs.validation_title,
             message: IPA.messages.dialogs.validation_message
         });

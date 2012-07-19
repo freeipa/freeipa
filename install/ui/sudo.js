@@ -798,6 +798,7 @@ IPA.sudo.options_section = function(spec) {
         title = title.replace('${entity}', label);
 
         var dialog = IPA.dialog({
+            name: 'option-adder-dialog',
             title: title,
             sections: [
                 {

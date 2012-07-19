@@ -331,6 +331,7 @@ IPA.logout = function() {
 
     function show_error(message) {
         var dialog = IPA.message_dialog({
+            name: 'logout_error',
             message: message,
             title: IPA.messages.login.logout_error
         });
@@ -1023,6 +1024,7 @@ IPA.concurrent_command = function(spec) {
             command = command_info.command;
             if(!command) {
                 var dialog = IPA.message_dialog({
+                    name: 'internal_error',
                     title: IPA.get_message('errors.error', 'Error'),
                     message: IPA.get_message('errors.internal_error', 'Internal error.')
                 });
@@ -1118,6 +1120,7 @@ IPA.concurrent_command = function(spec) {
 
         } else {
             var dialog = IPA.message_dialog({
+                name: 'operation_error',
                 title: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
                 message: IPA.get_message('dialogs.batch_error_message', 'Some operations failed.')
             });
@@ -1377,7 +1380,7 @@ IPA.error_dialog = function(spec) {
     var init = function() {
         spec = spec || {};
 
-        that.id = 'error_dialog';
+        that.id = spec.id || 'error_dialog';
         that.xhr = spec.xhr || {};
         that.text_status = spec.text_status || '';
         that.error_thrown = spec.error_thrown || {};
@@ -1554,6 +1557,7 @@ IPA.create_4304_error_handler = function(adder_dialog) {
 
         if (data && data.error && data.error.code === 4304) {
             dialog = IPA.message_dialog({
+                name: 'error_4304_info',
                 message: data.error.message,
                 title: adder_dialog.title,
                 on_ok: function() {
@@ -1621,6 +1625,8 @@ IPA.unauthorized_dialog = function(spec) {
     ];
 
     spec.visible_buttons = spec.visible_buttons || ['retry'];
+    spec.name = spec.name || 'unauthorized_dialog';
+    spec.id = spec.id || spec.name;
 
     var that = IPA.error_dialog(spec);
 

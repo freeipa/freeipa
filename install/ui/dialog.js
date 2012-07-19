@@ -61,7 +61,7 @@ IPA.dialog = function(spec) {
     var that = {};
 
     that.entity = IPA.get_entity(spec.entity);
-    that.name = spec.name;
+    that.name = spec.name || 'dialog';
     that.id = spec.id;
     that.title = spec.title;
     that.width = spec.width || 500;
@@ -107,6 +107,12 @@ IPA.dialog = function(spec) {
         return valid;
     };
 
+    that.get_id = function() {
+        if (that.id) return that.id;
+        if (that.name) return that.name;
+        return null;
+    };
+
 
     /**
      * Create content layout
@@ -147,7 +153,11 @@ IPA.dialog = function(spec) {
      */
     that.open = function(container) {
 
-        that.container = $('<div/>', { id : that.id });
+        that.container = $('<div/>', {
+            id : that.get_id(),
+            'data-name': that.name
+        });
+
         if (container) {
             container.append(that.container);
         }
@@ -285,6 +295,8 @@ IPA.dialog = function(spec) {
 IPA.adder_dialog = function(spec) {
 
     spec = spec || {};
+
+    spec.name = spec.name || 'adder_dialog';
 
     var that = IPA.dialog(spec);
 
@@ -557,6 +569,7 @@ IPA.adder_dialog = function(spec) {
 IPA.deleter_dialog =  function (spec) {
 
     spec = spec || {};
+    spec.name = spec.name || 'deleter_dialog';
 
     var that = IPA.dialog(spec);
 
@@ -639,13 +652,13 @@ IPA.deleter_dialog =  function (spec) {
 
 IPA.message_dialog = function(spec) {
 
-    var that = IPA.dialog(spec);
+    spec = spec || {};
 
-    var init = function() {
-        spec = spec || {};
-        that.message = spec.message || '';
-        that.on_ok = spec.on_ok;
-    };
+    spec.name = spec.name || 'message_dialog';
+
+    var that = IPA.dialog(spec);
+    that.message = spec.message || '';
+    that.on_ok = spec.on_ok;
 
     that.create = function() {
         $('<p/>', {
@@ -663,8 +676,6 @@ IPA.message_dialog = function(spec) {
             }
         }
     });
-
-    init();
 
     that.message_dialog_create = that.create;
 
