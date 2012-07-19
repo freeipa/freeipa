@@ -336,7 +336,7 @@ def main():
     if config.host_name != host:
         try:
             print "This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host)
-            if not ipautil.user_input("This may cause problems. Continue?", True):
+            if not ipautil.user_input("This may cause problems. Continue?", False):
                 sys.exit(0)
             config.host_name = host
             print ""
