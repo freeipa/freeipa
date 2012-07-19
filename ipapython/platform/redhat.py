@@ -24,6 +24,8 @@ import os
 import stat
 import sys
 import socket
+import stat
+
 from ipapython import ipautil
 from ipapython.platform import base
 from ipalib import api
@@ -187,10 +189,18 @@ def backup_and_replace_hostname(fstore, statestore, hostname):
     except ipautil.CalledProcessError, e:
         print >>sys.stderr, "Failed to set this machine hostname to %s (%s)." % (hostname, str(e))
     replacevars = {'HOSTNAME':hostname}
-    old_values = ipautil.backup_config_and_replace_variables(fstore,
-                                                          "/etc/sysconfig/network",
-                                                          replacevars=replacevars)
+
+    filepath = '/etc/sysconfig/network'
+    if not os.path.exists(filepath):
+        # file doesn't exist; create it with correct ownership & mode
+        open(filepath, 'a').close()
+        os.chmod(filepath,
+            stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+        os.chown(filepath, 0, 0)
+    old_values = ipautil.backup_config_and_replace_variables(
+        fstore, filepath, replacevars=replacevars)
     restore_context("/etc/sysconfig/network")
+
     if 'HOSTNAME' in old_values:
         statestore.backup_state('network', 'hostname', old_values['HOSTNAME'])
     else:

@@ -991,13 +991,15 @@ $)''', re.VERBOSE)
 
     return old_values
 
-def backup_config_and_replace_variables(fstore, filepath, replacevars=dict(), appendvars=dict()):
+def backup_config_and_replace_variables(
+        fstore, filepath, replacevars=dict(), appendvars=dict()):
     """
     Take a key=value based configuration file, back up it, and
     write new version with certain values replaced or appended
 
     All (key,value) pairs from replacevars and appendvars that
     were not found in the configuration file, will be added there.
+    The file must exist before this function is called.
 
     It is responsibility of a caller to ensure that replacevars and
     appendvars do not overlap.
