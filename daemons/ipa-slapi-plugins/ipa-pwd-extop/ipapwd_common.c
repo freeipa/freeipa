@@ -948,7 +948,7 @@ Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods,
                                       data->policy.history_length,
                                       pwd_history, &new_pwd_history, &n);
 
-    if (ret) {
+    if (ret && data->policy.history_length) {
         LOG_FATAL("failed to generate new password history!\n");
         goto done;
     }
