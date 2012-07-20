@@ -2871,7 +2871,7 @@ IPA.sshkey_widget = function(spec) {
             href: '#show-certificate',
             title: that.tooltip,
             text: IPA.messages.objects.sshkeystore.show_set_key,
-            onclick: function() {
+            click: function() {
                 that.open_edit_dialog();
                 return false;
             }
