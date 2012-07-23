@@ -56,6 +56,7 @@ class test_attr(Declarative):
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
                     gidnumber=[fuzzy_digits],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
                     displayname=[u'Test User1'],
                     cn=[u'Test User1'],
                     initials=[u'TU'],

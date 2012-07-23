@@ -28,6 +28,7 @@ from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
 from ipapython.ipautil import ipa_generate_password
+from ipapython.ipavalidate import Email
 import posixpath
 from ipalib.util import validate_sshpubkey, output_sshpubkey
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -367,19 +368,26 @@ class user(LDAPObject):
         ),
     )
 
-    def _normalize_email(self, email, config=None):
+    def _normalize_and_validate_email(self, email, config=None):
         if not config:
             config = self.backend.get_ipa_config()[1]
 
         # check if default email domain should be added
-        if email and 'ipadefaultemaildomain' in config:
+        defaultdomain = config.get('ipadefaultemaildomain', [None])[0]
+        if email:
             norm_email = []
             if not isinstance(email, (list, tuple)):
                 email = [email]
             for m in email:
-                if isinstance(m, basestring) and m.find('@') == -1:
-                    norm_email.append(m + u'@' + config['ipadefaultemaildomain'][0])
+                if isinstance(m, basestring):
+                    if '@' not in m and defaultdomain:
+                        m = m + u'@' + defaultdomain
+                    if not Email(m):
+                        raise errors.ValidationError(name='email', error=_('invalid e-mail format: %(email)s') % dict(email=m))
+                    norm_email.append(m)
                 else:
+                    if not Email(m):
+                        raise errors.ValidationError(name='email', error=_('invalid e-mail format: %(email)s') % dict(email=m))
                     norm_email.append(m)
             return norm_email
 
@@ -509,7 +517,13 @@ class user_add(LDAPCreate):
             setattr(context, 'randompassword', entry_attrs['userpassword'])
 
         if 'mail' in entry_attrs:
-            entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'], config)
+            entry_attrs['mail'] = self.obj._normalize_and_validate_email(entry_attrs['mail'], config)
+        else:
+            # No e-mail passed in. If we have a default e-mail domain set
+            # then we'll add it automatically.
+            defaultdomain = config.get('ipadefaultemaildomain', [None])[0]
+            if defaultdomain:
+                entry_attrs['mail'] = self.obj._normalize_and_validate_email(keys[-1], config)
 
         if 'manager' in entry_attrs:
             entry_attrs['manager'] = self.obj._normalize_manager(entry_attrs['manager'])
@@ -593,7 +607,7 @@ class user_mod(LDAPUpdate):
                         )
                     )
         if 'mail' in entry_attrs:
-            entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'])
+            entry_attrs['mail'] = self.obj._normalize_and_validate_email(entry_attrs['mail'])
         if 'manager' in entry_attrs:
             entry_attrs['manager'] = self.obj._normalize_manager(entry_attrs['manager'])
         validate_nsaccountlock(entry_attrs)
