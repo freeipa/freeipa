@@ -1371,6 +1371,18 @@ IPA.table_widget = function (spec) {
 
         that.tbody = $('<tbody/>').appendTo(that.table);
 
+        // workaround for #2835
+        if ($.browser.msie) {
+            that.tbody.mousedown(function(event) {
+                that.scroll_top = that.tbody.scrollTop();
+                window.setTimeout(function() {
+                    if (that.tbody.scrollTop() === 0) {
+                        that.tbody.scrollTop(that.scroll_top);
+                    }
+                }, 0);
+            });
+        }
+
         if (that.height) {
             that.tbody.css('height', that.height);
         }

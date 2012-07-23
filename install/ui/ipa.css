@@ -39,6 +39,7 @@ html {
 
 body {
     overflow: auto;
+    position: relative;
     background: url(images/outer-background.png);
     background-repeat: repeat-x;
     background-position: left top;
