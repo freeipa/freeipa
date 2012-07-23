@@ -109,6 +109,7 @@ class test_range(Declarative):
                     displayname=[u'Test User1'],
                     cn=[u'Test User1'],
                     initials=[u'TU'],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
