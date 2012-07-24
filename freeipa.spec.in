@@ -83,6 +83,7 @@ BuildRequires:  python-dns
 BuildRequires:  python-crypto
 BuildRequires:  check >= 0.9.5
 BuildRequires:  libsss_idmap-devel
+BuildRequires:  libtalloc-devel
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
