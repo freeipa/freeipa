@@ -29,9 +29,11 @@ from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver import ipaldap
 from ipapython import entity, ipautil
+import uuid
 from ipalib import util
 from ipalib import errors
 from ipalib import api
+from ipalib.dn import DN
 import ldap
 from ldap.dn import escape_dn_chars
 from ipapython.ipa_log_manager import *
@@ -328,16 +330,14 @@ class LDAPUpdate:
         if self.live_run:
             time.sleep(5)
 
-        r = random.SystemRandom()
+        cn_uuid = uuid.uuid1()
+        # cn_uuid.time is in nanoseconds, but other users of LDAPUpdate expect
+        # seconds in 'TIME' so scale the value down
+        self.sub_dict['TIME'] = int(cn_uuid.time/1e9)
+        cn = "indextask_%s_%s_%s" % (attribute, cn_uuid.time, cn_uuid.clock_seq)
+        dn = DN(('cn', cn), ('cn', 'index'), ('cn', 'tasks'), ('cn', 'config'))
 
-        # Refresh the time to make uniqueness more probable. Add on some
-        # randomness for good measure.
-        self.sub_dict['TIME'] = int(time.time()) + r.randint(0,10000)
-
-        cn = self._template_str("indextask_$TIME")
-        dn = "cn=%s, cn=index, cn=tasks, cn=config" % cn
-
-        e = ipaldap.Entry(dn)
+        e = ipaldap.Entry(str(dn))
 
         e.setValues('objectClass', ['top', 'extensibleObject'])
         e.setValue('cn', cn)
