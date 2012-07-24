@@ -3212,7 +3212,7 @@ IPA.sshkey_widget = function(spec) {
             href: '#show-certificate',
             title: that.tooltip,
             text: IPA.messages.objects.sshkeystore.show_set_key,
-            onclick: function() {
+            click: function() {
                 that.open_edit_dialog();
                 return false;
             }
@@ -3430,7 +3430,7 @@ IPA.action_panel = function(spec) {
             href: '#',
             text: action.label,
             'class': classes.join(' '),
-            onclick: function() {
+            click: function() {
                 that.action_clicked(action);
                 return false;
             }
