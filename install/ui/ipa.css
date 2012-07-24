@@ -123,10 +123,6 @@ body {
     background-repeat: no-repeat;
 }
 
-.ui-widget {
-    font-size: 11px;
-}
-
 .icon {
     display: inline-block;
     height: 16px;
@@ -286,7 +282,15 @@ div.tabs {
     background: transparent;
 }
 
+.tabs.ui-tabs, .tabs .ui-tabs {
+    padding: 0;
+}
+
 /* ---- Tabs level 1 ---- */
+
+.tabs.ui-widget {
+    border: none;
+}
 
 .tabs1 > .ui-tabs-nav {
     background: transparent;
@@ -300,23 +304,22 @@ div.tabs {
     padding: 33px 0 0;
     margin: 0;
     border: none;
-    -moz-border-radius: 0;
-    -webkit-border-radius: 0;
 }
 
 .tabs1 > .ui-tabs-nav li {
     -moz-border-radius: 0 !important;
     -webkit-border-radius: 0 !important;
+    border-radius: 0 !important;
+    border: 1px solid #A0A0A0;
+    background: none;
     background-image: url(images/mainnav-tab-off.png);
     margin: 0 0.4em 0 0;
-    border-width: 0;
     text-align: center;
     vertical-align:baseline;
-    border: 1px solid #A0A0A0;
 }
 
 .tabs1 > .ui-tabs-nav > li.ui-tabs-selected {
-    padding: 0 0;
+    padding: 0;
     background-image: url(images/mainnav-tab-on.png);
     text-align: center;
 }
@@ -362,6 +365,7 @@ span.main-nav-off > a:visited{
     border: none;
     -moz-border-radius: 0;
     -webkit-border-radius: 0;
+    border-radius: 0;
     background: transparent;
 }
 
@@ -946,26 +950,11 @@ span.attrhint {
     overflow-x: hidden;
 }
 
-
-.ui-tabs {
-    padding:0;
-}
-
-.ui-widget-content {
-}
-
 a, .ui-widget-content a {
     text-decoration: none;
     color: #1d85d5;
     font-weight: normal;
     text-transform: none;
-}
-
-.ui-widget-header {
-    background: -moz-linear-gradient(center top , #225314, #1c400a) repeat scroll 0 0 transparent;
-    background: -webkit-gradient(linear, left top, left bottom, from(#225314), to(#1c400a));
-        border: 1px solid #319016;
-    font-weight: bold;
 }
 
 /* ---- Dialog ---- */
@@ -976,39 +965,11 @@ a, .ui-widget-content a {
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
 }
 
-.ui-dialog .ui-dialog-titlebar-close span {
-    background-color: transparent !important;
-}
 
 .ui-dialog .ui-dialog-content {
     word-wrap: break-word;
-    /* this should go away once we can fix table scrolling */
-    overflow: auto;
 }
 
-.ui-dialog .ui-dialog-titlebar {
-    padding: 0.5em 1em;
-    position: relative;
-}
-
-.ui-dialog .ui-dialog-buttonpane button {
-    cursor: pointer;
-    margin: 0.5em 0.4em 0.5em 0;
-    padding: 0.1em 0.2em;
-}
-
-.ui-dialog .ui-dialog-buttonpane {
-    background-image: none;
-    border-width: 1px 0 0;
-    padding: 0.3em 1em 0.5em 0.4em;
-    text-align: left;
-}
-
-/*
-.ui-dialog .ui-dialog-content {
-        min-height: 26em !important;
-}
-*/
 
 .dialog-message {
     margin: 5px 5px 10px;
@@ -1021,20 +982,7 @@ a, .ui-widget-content a {
 
 .ui-widget input, .ui-widget select,
 .ui-widget textarea, .ui-widget button {
-    font-family: "Liberation Sans", Arial, sans-serif;
-    font-size: 11px;
     margin-right: .1em;
-}
-
-.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, #content .ui-state-default {
-    -moz-border-radius: .3em;
-    -webkit-border-radius: .3em;
-    background: -moz-linear-gradient(top,  #959595,  #5e5e5e);
-    background: -webkit-gradient(linear, left top, left bottom, from(#959595), to(#5e5e5e));
-    border: 1px solid #777777;
-    color: #fff;
-    font-weight: normal;
-    padding: 0.4em 1em;
 }
 
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
@@ -1148,10 +1096,6 @@ table.kerberos-key-status {
 
 .status-missing-active {
     background-color: #daa520;
-}
-
-.ui-widget-content {
-    border:0;
 }
 
 /* ---- Table ---- */
@@ -1711,6 +1655,7 @@ form#login {
     margin-left: 10px;
 }
 
+/* TODO: replace with button */
  #content .facet-action-list div[name=apply] a.ui-state-default {
     padding: 3px 5px 1px 5px;
 }
