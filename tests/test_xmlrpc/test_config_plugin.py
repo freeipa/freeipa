@@ -60,4 +60,32 @@ class test_config(Declarative):
             expected=errors.RequirementError(name='ipausersearchfields'),
         ),
 
+        dict(
+            desc='Try to set invalid ipaselinuxusermapdefault',
+            command=('config_mod', [],
+                dict(ipaselinuxusermapdefault=u'unknown_u:s0')),
+            expected=errors.ValidationError(name='ipaselinuxusermapdefault', error='SELinux user map default user not in order list'),
+        ),
+
+        dict(
+            desc='Try to set invalid ipaselinuxusermapdefault with setattr',
+            command=('config_mod', [],
+                dict(setattr=u'ipaselinuxusermapdefault=unknown_u:s0')),
+            expected=errors.ValidationError(name='ipaselinuxusermapdefault', error='SELinux user map default user not in order list'),
+        ),
+
+        dict(
+            desc='Try to set invalid ipaselinuxusermaporder',
+            command=('config_mod', [],
+                dict(ipaselinuxusermaporder=u'notfound_u:s0')),
+            expected=errors.ValidationError(name='ipaselinuxusermaporder', error='SELinux user map default user not in order list'),
+        ),
+
+        dict(
+            desc='Try to set new selinux order and invalid default user',
+            command=('config_mod', [],
+                dict(ipaselinuxusermaporder=u'$xguest_u:s0$guest_u:s0$user_u:s0-s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023', ipaselinuxusermapdefault=u'unknown_u:s0')),
+            expected=errors.ValidationError(name='ipaselinuxusermapdefault', error='SELinux user map default user not in order list'),
+        ),
+
     ]
