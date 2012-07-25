@@ -315,7 +315,7 @@ test("IPA.entity_link_widget" ,function(){
     widget.is_link = true; //setting is_link is responsibility of field
     widget.update(mock_record.gidnumber);
 
-    link = widget_container.find('a[text=123456]');
+    link = widget_container.find('a:contains("123456")');
 
     same(link.length, 1,'link is populated');
     same(link.css('display'), 'inline','link is displayed');

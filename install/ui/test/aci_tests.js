@@ -22,7 +22,7 @@
 var target_container;
 var target_widget;
 var target_facet;
-var entity = IPA.entity({ name: 'bogus' });
+var entity = IPA.entity({ name: 'bogus', redirect_facet: 'details' });
 var group_entity = IPA.entity({ name: 'group' });
 
 module('aci', {
@@ -99,10 +99,11 @@ module('aci', {
                     IPA.permission_target_policy('target')
                 ]
             });
+           entity.add_facet('details', target_facet);
 
             target_container = $('<div id="target"/>').appendTo(document.body);
+            target_facet.create(target_container);
             target_widget = target_facet.widgets.get_widget('target');
-            target_widget.create(target_container);
         },
         teardown: function() {
                 target_container.remove();
