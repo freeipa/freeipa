@@ -33,6 +33,8 @@ BuildRequires:  systemd-units
 %endif
 BuildRequires:  samba4-devel >= 4.0.0-128
 BuildRequires:  samba4-python
+BuildRequires:  libtalloc-devel
+BuildRequires:  libtevent-devel
 %endif
 BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
@@ -83,7 +85,6 @@ BuildRequires:  python-dns
 BuildRequires:  python-crypto
 BuildRequires:  check >= 0.9.5
 BuildRequires:  libsss_idmap-devel
-BuildRequires:  libtalloc-devel
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
