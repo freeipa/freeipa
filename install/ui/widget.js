@@ -2455,12 +2455,6 @@ IPA.link_widget = function(spec) {
 };
 
 IPA.action_button = function(spec) {
-    var button = IPA.button(spec);
-    button.removeClass("ui-state-default").addClass("action-button");
-    return button;
-};
-
-IPA.button = function(spec) {
 
     spec = spec || {};
 
@@ -2469,7 +2463,7 @@ IPA.button = function(spec) {
         name: spec.name,
         href: spec.href || '#' + (spec.name || 'button'),
         title: spec.title || spec.label,
-        'class': 'ui-state-default ui-corner-all button',
+        'class': 'button action-button',
         style: spec.style,
         click: spec.click,
         blur: spec.blur
@@ -2489,6 +2483,29 @@ IPA.button = function(spec) {
             html: spec.label
         }).appendTo(button);
     }
+
+    return button;
+};
+
+IPA.button = function(spec) {
+
+    spec = spec || {};
+
+    var button = $('<a/>', {
+        id: spec.id,
+        name: spec.name,
+        href: spec.href || '#' + (spec.name || 'button')
+    });
+
+    var icons = { primary: spec.icon };
+    var label = spec.label;
+
+    button.button({
+        icons: icons,
+        label: label
+    });
+
+    button.click(spec.click);
 
     return button;
 };

@@ -1238,6 +1238,10 @@ table.scrollable tbody {
     width: 98%;
 }
 
+.adder-dialog-buttons > div:first-child{
+    margin-bottom: 0.5em;
+}
+
 /* ---- Widgets ---- */
 
 .text-widget input {
@@ -1653,11 +1657,6 @@ form#login {
 
 .facet-action-list div[name=apply] {
     margin-left: 10px;
-}
-
-/* TODO: replace with button */
- #content .facet-action-list div[name=apply] a.ui-state-default {
-    padding: 3px 5px 1px 5px;
 }
 
 .facet-action-list select {
