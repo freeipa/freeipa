@@ -479,12 +479,6 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
         goto done;
     }
 
-    if (uid_number == IPA_DNA_MAGIC || gid_number == IPA_DNA_MAGIC) {
-        LOG_FATAL("Looks that DNA plugin was not run before.\n");
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
     if (uid_number >= UINT32_MAX || gid_number >= UINT32_MAX) {
         LOG_FATAL("ID value too large.\n");
         ret = LDAP_CONSTRAINT_VIOLATION;

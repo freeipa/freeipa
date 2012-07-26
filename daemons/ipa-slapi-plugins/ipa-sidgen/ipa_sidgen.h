@@ -54,8 +54,6 @@
 #define IPANT_USER_ATTRS "ipantuserattrs"
 #define IPANT_GROUP_ATTRS "ipantgroupattrs"
 
-#define IPA_DNA_MAGIC 999
-
 #define IPA_PLUGIN_NAME "ipa-sidgen-postop"
 #define IPA_SIDGEN_FEATURE_DESC "IPA SIDGEN postop plugin"
 #define IPA_SIDGEN_PLUGIN_DESC "Add a SID to newly added or modified " \
