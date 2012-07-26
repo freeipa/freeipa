@@ -928,15 +928,13 @@ IPA.select_widget = function(spec) {
 
     that.set_options_enabled = function(enabled, options) {
 
-        var html_value = enabled ? '' : 'disabled';
-
         if (!options) {
-            $('option', that.select).attr('disabled', html_value);
+            $('option', that.select).prop('disabled', !enabled);
         } else {
             for (var i=0; i<options.length;i++) {
                 var value = options[i];
                 var option = $('option[value="'+value+'"]', that.select);
-                option.attr('disabled', html_value);
+                option.prop('disabled', !enabled);
             }
         }
     };
