@@ -2400,6 +2400,74 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 	return true;
 }
 
+static bool ipasam_nthash_retrieve(struct ldapsam_privates *ldap_state,
+				       TALLOC_CTX *mem_ctx,
+				       char *entry_dn,
+				       DATA_BLOB *nthash)
+{
+	int ret;
+	bool retval;
+	LDAPMessage *result;
+	LDAPMessage *entry = NULL;
+	int count;
+	struct smbldap_state *smbldap_state = ldap_state->smbldap_state;
+	const char *attr_list[] = {
+					LDAP_ATTRIBUTE_NTHASH,
+					NULL
+				  };
+
+	ret = smbldap_search(smbldap_state, entry_dn,
+			     LDAP_SCOPE_BASE, "", attr_list, 0,
+			     &result);
+	if (ret != LDAP_SUCCESS) {
+		DEBUG(1, ("Failed to get NT hash: %s\n",
+			  ldap_err2string (ret)));
+		return false;
+	}
+
+	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+
+	if (count != 1) {
+		DEBUG(1, ("Unexpected number of results [%d] for NT hash "
+			  "of the single entry search.\n", count));
+		ldap_msgfree(result);
+		return false;
+	}
+
+	entry = ldap_first_entry(smbldap_state->ldap_struct, result);
+	if (entry == NULL) {
+		DEBUG(0, ("Could not get entry\n"));
+		ldap_msgfree(result);
+		return false;
+	}
+
+	retval = smbldap_talloc_single_blob(mem_ctx,
+					smbldap_state->ldap_struct,
+					entry, LDAP_ATTRIBUTE_NTHASH,
+					nthash);
+	ldap_msgfree(result);
+	return retval;
+}
+
+static bool ipasam_nthash_regen(struct ldapsam_privates *ldap_state,
+				TALLOC_CTX *mem_ctx,
+				char * entry_dn)
+{
+	LDAPMod **mods;
+	int ret;
+
+	mods = NULL;
+	smbldap_make_mod(ldap_state->smbldap_state->ldap_struct,
+			 NULL, &mods, LDAP_ATTRIBUTE_NTHASH, "MagicRegen");
+
+	talloc_autofree_ldapmod(mem_ctx, mods);
+	ret = smbldap_add(ldap_state->smbldap_state, entry_dn, mods);
+	if (ret != LDAP_SUCCESS) {
+		DEBUG(5, ("ipasam: attempt to regen ipaNTHash failed\n"));
+	}
+	return (ret == LDAP_SUCCESS);
+}
+
 static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 				struct samu * sampass,
 				LDAPMessage * entry)
@@ -2414,6 +2482,7 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 	char *profile_path = NULL;
 	char *temp = NULL;
 	bool ret = false;
+	bool retval = false;
 	DATA_BLOB nthash;
 
 	TALLOC_CTX *tmp_ctx = talloc_init("init_sam_from_ldap");
@@ -2504,14 +2573,35 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 
 	pdb_set_acct_ctrl(sampass, ACB_NORMAL, PDB_SET);
 
-	if (!smbldap_talloc_single_blob(tmp_ctx,
+	retval = smbldap_talloc_single_blob(tmp_ctx,
 					ldap_state->smbldap_state->ldap_struct,
 					entry, LDAP_ATTRIBUTE_NTHASH,
-					&nthash)) {
+					&nthash);
+	if (!retval) {
+		/* NT Hash is not in place. Attempt to retrieve it from
+		 * the RC4-HMAC key if that exists in Kerberos credentials.
+		 * IPA 389-ds plugin allows to ask for it by setting
+		 * ipaNTHash to MagicRegen value.
+		 * */
+		temp = smbldap_talloc_dn(tmp_ctx, ldap_state->smbldap_state->ldap_struct, entry);
+		if (temp) {
+			retval = ipasam_nthash_regen(tmp_ctx,
+						     ldap_state->smbldap_state->ldap_struct,
+						     temp);
+			if (retval) {
+				retval = ipasam_nthash_retrieve(tmp_ctx,
+							ldap_state->smbldap_state->ldap_struct,
+							temp, &nthash);
+			}
+		}
+	}
+
+	if (!retval) {
 		DEBUG(5, ("Failed to read NT hash form LDAP response.\n"));
 	}
+
 	if (nthash.length != NT_HASH_LEN && nthash.length != 0) {
-		DEBUG(5, ("NT hash from LDAP has the wrong size.\n"));
+		DEBUG(5, ("NT hash from LDAP has the wrong size. Perhaps password was not re-set?\n"));
 	} else {
 		if (!pdb_set_nt_passwd(sampass, nthash.data, PDB_SET)) {
 			DEBUG(5, ("Failed to set NT hash.\n"));
