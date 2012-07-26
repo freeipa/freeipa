@@ -297,11 +297,7 @@ IPA.text_widget = function(spec) {
 
     that.set_enabled = function(value) {
 
-        if(value) {
-            that.input.removeAttr('disabled');
-        } else {
-            that.input.attr('disabled', 'disabled');
-        }
+        that.input.prop('disabled', !value);
     };
 
     that.clear = function() {
@@ -669,11 +665,11 @@ IPA.checkbox_widget = function (spec) {
             value = that.checked;
         }
 
-        that.input.attr('checked', value);
+        that.input.prop('checked', value);
     };
 
     that.clear = function() {
-        that.input.attr('checked', false);
+        that.input.prop('checked', false);
     };
 
     that.checkbox_save = that.save;
@@ -741,18 +737,18 @@ IPA.checkboxes_widget = function (spec) {
 
     that.update = function(values) {
         var inputs = $('input[name="'+that.name+'"]', that.container);
-        inputs.attr('checked', false);
+        inputs.prop('checked', false);
 
         for (var j=0; values && j<values.length; j++) {
             var value = values[j];
             var input = $('input[name="'+that.name+'"][value="'+value+'"]', that.container);
             if (!input.length) continue;
-            input.attr('checked', true);
+            input.prop('checked', true);
         }
     };
 
     that.clear = function() {
-        $('input[name="'+that.name+'"]').attr('checked', false);
+        $('input[name="'+that.name+'"]').prop('checked', false);
     };
 
     that.add_option = function(option) {
@@ -829,21 +825,21 @@ IPA.radio_widget = function(spec) {
         var value = values && values.length ? values[0] : '';
         var input = $(that.selector+'[value="'+value+'"]', that.container);
         if (input.length) {
-            input.attr('checked', true);
+            input.prop('checked', true);
         } else if (that.default_value) {
             input = $(that.selector+'[value="'+that.default_value+'"]', that.container);
-            input.attr('checked', true);
+            input.prop('checked', true);
         }
 
         that.value_changed.notify([that.save()], that);
     };
 
     that.clear = function() {
-        $(that.selector, that.container).attr('checked', false);
+        $(that.selector, that.container).prop('checked', false);
 
         if (that.default_value) {
             var input = $(that.selector+'[value="'+that.default_value+'"]', that.container);
-            input.attr('checked', true);
+            input.prop('checked', true);
         }
     };
 
@@ -915,7 +911,7 @@ IPA.select_widget = function(spec) {
         var value = values[0];
         var option = $('option[value="'+value+'"]', that.select);
         if (!option.length) return;
-        option.attr('selected', 'selected');
+        option.prop('selected', true);
     };
 
     that.empty = function() {
@@ -923,7 +919,7 @@ IPA.select_widget = function(spec) {
     };
 
     that.clear = function() {
-        $('option', that.select).attr('selected', '');
+        $('option', that.select).prop('selected', false);
     };
 
     that.set_options_enabled = function(enabled, options) {
@@ -1521,24 +1517,24 @@ IPA.table_widget = function (spec) {
     };
 
     that.select_all = function() {
-        $('input[name="'+that.name+'"]', that.thead).attr('checked', true).
+        $('input[name="'+that.name+'"]', that.thead).prop('checked', true).
             attr('title', IPA.messages.search.unselect_all);
-        $('input[name="'+that.name+'"]', that.tbody).attr('checked', true);
+        $('input[name="'+that.name+'"]', that.tbody).prop('checked', true);
         that.select_changed();
     };
 
     that.unselect_all = function() {
-        $('input[name="'+that.name+'"]', that.thead).attr('checked', false).
+        $('input[name="'+that.name+'"]', that.thead).prop('checked', false).
             attr('title', IPA.messages.search.select_all);
-        $('input[name="'+that.name+'"]', that.tbody).attr('checked', false);
+        $('input[name="'+that.name+'"]', that.tbody).prop('checked', false);
         that.select_changed();
     };
 
     that.set_values = function(values) {
-        $('input[name="'+that.name+'"]', that.tbody).attr('checked', false);
+        $('input[name="'+that.name+'"]', that.tbody).prop('checked', false);
         for (var i=0; values && i<values.length; i++) {
             var value = values[i];
-            $('input[name="'+that.name+'"][value="'+value+'"]', that.tbody).attr('checked', true);
+            $('input[name="'+that.name+'"][value="'+value+'"]', that.tbody).prop('checked', true);
         }
         that.select_changed();
     };
@@ -1697,11 +1693,7 @@ IPA.table_widget = function (spec) {
     };
 
     that.set_enabled = function(enabled) {
-        if (enabled) {
-            $('input[name="'+that.name+'"]', that.table).attr('disabled', false);
-        } else {
-            $('input[name="'+that.name+'"]', that.table).attr('disabled', true);
-        }
+        $('input[name="'+that.name+'"]', that.table).prop('disabled', !enabled);
     };
 
     that.clear = function() {
@@ -2316,7 +2308,7 @@ IPA.combobox_widget = function(spec) {
         // if no option found, skip
         if (!option.length) return;
 
-        option.attr('selected', 'selected');
+        option.prop('selected', true);
 
         that.set_value(option.val());
         that.value_changed.notify([], that);

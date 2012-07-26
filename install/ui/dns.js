@@ -512,8 +512,8 @@ IPA.add_dns_zone_name_policy = function() {
         var name_from_ip_f = this.container.fields.get_field('name_from_ip');
 
         idnsname_w.radio_clicked.attach(function() {
-            idnsname_w.input.attr('disabled', false);
-            name_from_ip_w.input.attr('disabled', true);
+            idnsname_w.input.prop('disabled', false);
+            name_from_ip_w.input.prop('disabled', true);
 
             idnsname_f.set_required(true);
             name_from_ip_f.set_required(false);
@@ -522,8 +522,8 @@ IPA.add_dns_zone_name_policy = function() {
         });
 
         name_from_ip_w.radio_clicked.attach(function() {
-            idnsname_w.input.attr('disabled', true);
-            name_from_ip_w.input.attr('disabled', false);
+            idnsname_w.input.prop('disabled', true);
+            name_from_ip_w.input.prop('disabled', false);
 
             idnsname_f.set_required(false);
             name_from_ip_f.set_required(true);

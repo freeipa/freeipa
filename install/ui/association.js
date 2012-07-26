@@ -1038,9 +1038,9 @@ IPA.association_facet = function (spec, no_init) {
     that.refresh = function() {
 
         if (that.association_type == 'direct') {
-            if (that.direct_radio) that.direct_radio.attr('checked', true);
+            if (that.direct_radio) that.direct_radio.prop('checked', true);
         } else {
-            if (that.indirect_radio) that.indirect_radio.attr('checked', true);
+            if (that.indirect_radio) that.indirect_radio.prop('checked', true);
         }
 
         var pkey = that.entity.get_primary_key();

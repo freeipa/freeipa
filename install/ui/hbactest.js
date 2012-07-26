@@ -279,7 +279,7 @@ IPA.hbac.test_select_facet = function(spec) {
 
         that.table.set_values = function(values) {
             if (values && values.length && values[0] === '__external__') {
-                if (that.external_radio) that.external_radio.attr('checked', true);
+                if (that.external_radio) that.external_radio.prop('checked', true);
             } else {
                 that.table.table_set_values(values);
             }
@@ -393,7 +393,7 @@ IPA.hbac.test_select_facet = function(spec) {
 
     that.reset = function() {
         delete that.selected_values;
-        if (that.external_radio) that.external_radio.attr('checked', false);
+        if (that.external_radio) that.external_radio.prop('checked', false);
         if (that.external_text) that.external_text.val('');
     };
 
@@ -482,8 +482,8 @@ IPA.hbac.test_rules_facet = function(spec) {
 
     that.reset = function() {
         delete that.selected_values;
-        if (that.enabled) that.enabled.attr('checked', false);
-        if (that.disabled) that.disabled.attr('checked', false);
+        if (that.enabled) that.enabled.prop('checked', false);
+        if (that.disabled) that.disabled.prop('checked', false);
     };
 
     that.save = function(record) {
@@ -655,8 +655,8 @@ IPA.hbac.test_run_facet = function(spec) {
         delete that.data;
         that.show_matched = true;
         that.show_unmatched = true;
-        if (that.matched_checkbox) that.matched_checkbox.attr('checked', true);
-        if (that.unmatched_checkbox) that.unmatched_checkbox.attr('checked', true);
+        if (that.matched_checkbox) that.matched_checkbox.prop('checked', true);
+        if (that.unmatched_checkbox) that.unmatched_checkbox.prop('checked', true);
         that.refresh();
     };
 

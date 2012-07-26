@@ -492,7 +492,7 @@ IPA.attributes_widget = function(spec) {
                 type: "checkbox",
                 click: function() {
                     $('.aci-attribute', that.table).
-                        attr('checked', $(this).attr('checked'));
+                        prop('checked', $(this).prop('checked'));
                     that.value_changed.notify([], that);
                 }
             })
