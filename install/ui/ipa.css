@@ -1343,7 +1343,6 @@ table.scrollable tbody {
     position: absolute;
     left: 0;
     right: 0;
-    z-index: 1010; /* need to be above dialog box */
 }
 
 .combobox-widget-list input {

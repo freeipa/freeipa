@@ -2093,6 +2093,7 @@ IPA.combobox_widget = function(spec) {
     that.empty_option = spec.empty_option === undefined ? true : spec.empty_option;
     that.options = spec.options || [];
     that.input_field_changed = IPA.observer();
+    that.z_index = spec.z_index ? spec.z_index + 9000000 : 9000000;
 
     that.create = function(container) {
         that.widget_create(container);
@@ -2151,7 +2152,8 @@ IPA.combobox_widget = function(spec) {
         }).appendTo(that.input_container);
 
         that.list_container = $('<div/>', {
-            'class': 'combobox-widget-list'
+            'class': 'combobox-widget-list',
+            css: { 'z-index': that.z_index }
         }).appendTo(that.input_container);
 
         var div = $('<div/>', {
@@ -2187,7 +2189,8 @@ IPA.combobox_widget = function(spec) {
             name: 'list',
             size: that.size,
             style: 'width: 100%',
-            change: that.select_on_change
+            change: that.select_on_change,
+            click: that.select_on_change
         }).appendTo(div);
 
         if (that.undo) {
@@ -2201,7 +2204,7 @@ IPA.combobox_widget = function(spec) {
 
         if (!that.is_open()) return;
 
-        var value = $('option:selected', that.list).val();
+        var value = that.list.val();
         that.input.val(value);
         IPA.select_range(that.input, 0, 0);
 
@@ -2327,10 +2330,9 @@ IPA.combobox_widget = function(spec) {
     };
 
     that.create_option = function(label, value) {
-        return $('<option/>', {
+        var option = $('<option/>', {
             text: label,
-            value: value,
-            click:that.select_on_change
+            value: value
         }).appendTo(that.list);
     };
 
