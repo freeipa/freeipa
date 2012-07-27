@@ -139,7 +139,8 @@ IPA.service.entity = function(spec) {
                             ],
                             editable: true,
                             size: 10,
-                            required: true
+                            required: true,
+                            z_index: 2
                         },
                         {
                             type: 'entity_select',
@@ -147,7 +148,8 @@ IPA.service.entity = function(spec) {
                             other_entity: 'host',
                             other_field: 'fqdn',
                             label: IPA.messages.objects.service.host,
-                            required: true
+                            required: true,
+                            z_index: 1
                         },
                         {
                             type: 'checkbox',
