@@ -111,10 +111,25 @@ IPA.group.entity = function(spec) {
                     name: 'description'
                 },
                 {
-                    type: 'nonposix_checkbox',
-                    name: 'nonposix',
-                    label: IPA.messages.objects.group.posix,
-                    checked: true
+                    type: 'radio',
+                    name: 'type',
+                    label: IPA.messages.objects.group.type,
+                    flags: ['no_command'],
+                    default_value: 'normal',
+                    options: [
+                        {
+                            value: 'normal',
+                            label: IPA.messages.objects.group.normal
+                        },
+                        {
+                            value: 'external',
+                            label: IPA.messages.objects.group.external
+                        },
+                        {
+                            value: 'posix',
+                            label: IPA.messages.objects.group.posix
+                        }
+                    ]
                 },
                 'gidnumber'
             ]
@@ -124,24 +139,6 @@ IPA.group.entity = function(spec) {
     return that;
 };
 
-IPA.group_nonposix_checkbox_widget = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.checkbox_widget(spec);
-
-    that.save = function() {
-        var value = that.checkbox_save()[0];
-        // convert posix into non-posix
-        return [!value];
-    };
-
-    return that;
-};
-
-IPA.widget_factories['nonposix_checkbox'] = IPA.group_nonposix_checkbox_widget;
-IPA.field_factories['nonposix_checkbox'] = IPA.checkbox_field;
-
 IPA.group_adder_dialog = function(spec) {
 
     spec = spec || {};
@@ -150,17 +147,38 @@ IPA.group_adder_dialog = function(spec) {
 
     var init = function() {
 
-        var posix_field = that.fields.get_field('nonposix');
-        posix_field.widget.value_changed.attach(that.on_posix_change);
+        var type_field = that.fields.get_field('type');
+        type_field.widget.value_changed.attach(that.on_type_change);
     };
 
-    that.on_posix_change = function (value) {
+    that.on_type_change = function(value) {
 
         var gid_field = that.fields.get_field('gidnumber');
-        if (value[0]) {
+        var external_field = that.fields.get_field('external');
+
+        var posix = value[0] === 'posix';
+
+        if (!posix) {
             gid_field.reset();
         }
-        gid_field.set_enabled(!value[0]);
+
+        gid_field.set_enabled(posix);
+    };
+
+    that.create_add_command = function(record) {
+
+        var command = that.entity_adder_dialog_create_add_command(record);
+
+        var type_field = that.fields.get_field('type');
+        var type = type_field.save()[0];
+
+        if (type === 'normal') {
+            command.set_option('nonposix', true);
+        } else if (type === 'external') {
+            command.set_option('external', true);
+        }
+
+        return command;
     };
 
     init();

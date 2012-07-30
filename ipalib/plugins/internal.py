@@ -405,7 +405,10 @@ class i18n_messages(Command):
             },
             "group": {
                 "details": _("Group Settings"),
-                "posix": _("POSIX group"),
+                "external": _("External"),
+                "normal": _("Normal"),
+                "posix": _("POSIX"),
+                "type": _("Group Type"),
             },
             "hbacrule": {
                 "any_host": _("Any Host"),

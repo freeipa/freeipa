@@ -268,7 +268,10 @@
                         },
                         "group": {
                             "details": "Group Settings",
-                            "posix": "POSIX group"
+                            "external": "External",
+                            "normal": "Normal",
+                            "posix": "POSIX",
+                            "type": "Group Type"
                         },
                         "hbacrule": {
                             "any_host": "Any Host",
