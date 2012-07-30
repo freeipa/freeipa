@@ -3487,6 +3487,55 @@ IPA.action_panel = function(spec) {
     return that;
 };
 
+IPA.value_map_widget = function(spec) {
+
+    spec = spec  || {};
+    spec.read_only = true;
+
+    var that = IPA.input_widget(spec);
+    that.value_map = spec.value_map || {};
+    that.default_label = spec.default_label || '';
+
+    that.create = function(container) {
+        that.widget_create(container);
+        container.addClass('status-widget');
+
+        that.display_control = $('<span/>', {
+            name: that.name
+        }).appendTo(container);
+    };
+
+    that.update = function(values) {
+
+        var value, found, label;
+
+        found = false;
+
+        if ($.isArray(values)) {
+            for (value in that.value_map) {
+
+                if (!that.value_map.hasOwnProperty(value)) continue;
+
+                if (values.indexOf(value) > -1) {
+                    label = that.value_map[value];
+                    found = true;
+                }
+            }
+        }
+
+        if (!found) {
+            label = that.default_label;
+        }
+
+        that.display_control.text(label);
+    };
+
+    that.clear = function() {
+        that.display_control.text('');
+    };
+
+    return that;
+};
 
 IPA.widget_factories['attribute_table'] = IPA.attribute_table_widget;
 IPA.widget_factories['button'] = IPA.button_widget;
@@ -3509,3 +3558,4 @@ IPA.widget_factories['select'] = IPA.select_widget;
 IPA.widget_factories['sshkeys'] = IPA.sshkeys_widget;
 IPA.widget_factories['textarea'] = IPA.textarea_widget;
 IPA.widget_factories['text'] = IPA.text_widget;
+IPA.widget_factories['value_map'] = IPA.value_map_widget;

@@ -50,6 +50,17 @@ IPA.group.entity = function(spec) {
                             type: 'textarea',
                             name: 'description'
                         },
+                        {
+                            type: 'value_map',
+                            name: 'external',
+                            param: 'objectclass',
+                            label: IPA.messages.objects.group.type,
+                            default_label: IPA.messages.objects.group.normal,
+                            value_map: {
+                                ipaexternalgroup: IPA.messages.objects.group.external,
+                                posixgroup: IPA.messages.objects.group.posix
+                            }
+                        },
                         'gidnumber'
                     ]
                 }

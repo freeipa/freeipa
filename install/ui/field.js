@@ -911,17 +911,18 @@ IPA.field_builder = function(spec) {
     return that;
 };
 
-IPA.field_factories['field'] = IPA.field;
-IPA.field_factories['text'] = IPA.field;
-IPA.field_factories['password'] = IPA.field;
 IPA.field_factories['checkbox'] = IPA.checkbox_field;
 IPA.field_factories['checkboxes'] = IPA.checkboxes_field;
-IPA.field_factories['radio'] = IPA.radio_field;
-IPA.field_factories['multivalued'] = IPA.multivalued_field;
-IPA.field_factories['select'] = IPA.select_field;
-IPA.field_factories['textarea'] = IPA.field;
-IPA.field_factories['entity_select'] = IPA.combobox_field;
 IPA.field_factories['combobox'] = IPA.combobox_field;
-IPA.field_factories['link'] = IPA.link_field;
 IPA.field_factories['enable'] = IPA.enable_field;
+IPA.field_factories['entity_select'] = IPA.combobox_field;
+IPA.field_factories['field'] = IPA.field;
+IPA.field_factories['link'] = IPA.link_field;
+IPA.field_factories['multivalued'] = IPA.multivalued_field;
+IPA.field_factories['password'] = IPA.field;
+IPA.field_factories['radio'] = IPA.radio_field;
+IPA.field_factories['select'] = IPA.select_field;
 IPA.field_factories['sshkeys'] = IPA.sshkeys_field;
+IPA.field_factories['textarea'] = IPA.field;
+IPA.field_factories['text'] = IPA.field;
+IPA.field_factories['value_map'] = IPA.field;
