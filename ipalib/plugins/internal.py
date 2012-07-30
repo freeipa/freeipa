@@ -407,6 +407,7 @@ class i18n_messages(Command):
                 "details": _("Group Settings"),
                 "external": _("External"),
                 "make_external": _("Change to external group"),
+                "make_posix": _("Change to POSIX group"),
                 "normal": _("Normal"),
                 "posix": _("POSIX"),
                 "type": _("Group Type"),

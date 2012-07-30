@@ -270,6 +270,7 @@
                             "details": "Group Settings",
                             "external": "External",
                             "make_external": "Change to external group",
+                            "make_posix": "Change to POSIX group",
                             "normal": "Normal",
                             "posix": "POSIX",
                             "type": "Group Type"

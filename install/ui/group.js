@@ -56,10 +56,11 @@ IPA.group.entity = function(spec) {
             ],
             actions: [
                 IPA.select_action,
+                IPA.group.make_posix_action,
                 IPA.group.make_external_action,
                 IPA.delete_action
             ],
-            header_actions: ['select_action', 'make_external', 'delete'],
+            header_actions: ['select_action', 'make_posix', 'make_external', 'delete'],
             state: {
                 evaluators: [
                     IPA.object_class_evaluator
@@ -193,6 +194,22 @@ IPA.group_adder_dialog = function(spec) {
     };
 
     init();
+
+    return that;
+};
+
+IPA.group.make_posix_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'make_posix';
+    spec.method = spec.method || 'mod';
+    spec.label = spec.label || IPA.messages.objects.group.make_posix;
+    spec.disable_cond = spec.disable_cond || ['oc_posixgroup', 'oc_ipaexternalgroup'];
+    spec.options = spec.options || {
+        posix: true
+    };
+
+    var that = IPA.object_action(spec);
 
     return that;
 };
