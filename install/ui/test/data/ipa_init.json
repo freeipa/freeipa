@@ -269,6 +269,7 @@
                         "group": {
                             "details": "Group Settings",
                             "external": "External",
+                            "make_external": "Change to external group",
                             "normal": "Normal",
                             "posix": "POSIX",
                             "type": "Group Type"

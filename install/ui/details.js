@@ -1068,6 +1068,33 @@ IPA.value_state_evaluator = function(spec) {
     return that;
 };
 
+IPA.object_class_evaluator = function(spec) {
+
+    spec.name = spec.name || 'object_class_evaluator';
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+
+
+    that.on_event = function(data) {
+
+        var old_state, classes, i;
+
+        old_state = that.state;
+        classes = data.result.result.objectclass;
+
+        that.state = [];
+
+        for (i=0; i<classes.length; i++) {
+            that.state.push('oc_'+classes[i]);
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
 IPA.object_action = function(spec) {
 
     spec = spec || {};
@@ -1076,6 +1103,7 @@ IPA.object_action = function(spec) {
 
     that.method = spec.method;
     that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
+    that.options = spec.options || {};
 
     that.execute_action = function(facet, on_success, on_error) {
 
@@ -1088,6 +1116,7 @@ IPA.object_action = function(spec) {
             entity: entity_name,
             method: that.method,
             args: [pkey],
+            options: that.options,
             on_success: that.get_on_success(facet, on_success),
             on_error: that.get_on_error(facet, on_error)
         }).execute();

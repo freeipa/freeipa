@@ -264,6 +264,14 @@
             ],
             "memberof_group": [
                 "editors"
+            ],
+            "objectclass": [
+                "top",
+                "groupofnames",
+                "nestedgroup",
+                "ipausergroup",
+                "ipaobject",
+                "posixgroup"
             ]
         },
         "summary": null,
