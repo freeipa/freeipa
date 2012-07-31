@@ -25,6 +25,7 @@
 # save undo files?
 
 import os
+import sys
 
 import krbV
 
@@ -83,10 +84,14 @@ class LDAPUpdater(admintool.AdminTool):
                 raise admintool.ScriptError("%s: file not found" % filename)
 
         if os.getegid() == 0:
-            installutils.check_server_configuration()
+            try:
+                installutils.check_server_configuration()
+            except RuntimeError, e:
+                print unicode(e)
+                sys.exit(1)
         elif not os.path.exists('/etc/ipa/default.conf'):
-            raise admintool.ScriptError(
-                "IPA is not configured on this system.")
+            print "IPA is not configured on this system."
+            sys.exit(1)
 
         if options.password:
             pw = ipautil.template_file(options.password, [])

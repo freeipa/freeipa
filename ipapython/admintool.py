@@ -212,7 +212,8 @@ class AdminTool(object):
             self.log
         except AttributeError:
             # Logging was not set up yet
-            print >> sys.stderr, '\n', error_message
+            if error_message:
+                print >> sys.stderr, '\n', error_message
         else:
             self.info(''.join(traceback.format_tb(backtrace)))
             self.info('The %s command failed, exception: %s: %s',
