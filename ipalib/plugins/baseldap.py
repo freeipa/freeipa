@@ -784,35 +784,44 @@ last, after all sets and adds."""),
         :param attrs: A list of name/value pair strings, in the "name=value"
             format. May also be a single string, or None.
         """
+        if attrs is None:
+            return {}
+
+        if not isinstance(attrs, (tuple, list)):
+            attrs = [attrs]
 
         newdict = {}
-        if attrs is None:
-            attrs = []
-        elif not type(attrs) in (list, tuple):
-            attrs = [attrs]
         for a in attrs:
-            m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", a)
-            attr = str(m.group(1)).lower()
-            value = m.group(2)
+            m = re.match("^\s*(?P<attr>.*?)\s*=\s*(?P<value>.*?)\s*$", a)
+            attr = str(m.group('attr').lower())
+            value = m.group('value')
+
             if attr in self.obj.params and attr not in self.params:
                 # The attribute is managed by IPA, but it didn't get cloned
                 # to the command. This happens with no_update/no_create attrs.
                 raise errors.ValidationError(
                     name=attr, error=_('attribute is not configurable'))
-            if len(value) == 0:
-                # None means "delete this attribute"
-                value = None
-            if attr in newdict:
-                if type(value) in (tuple,):
-                    newdict[attr] += list(value)
-                else:
-                    newdict[attr].append(value)
-            else:
-                if type(value) in (tuple,):
-                    newdict[attr] = list(value)
-                else:
-                    newdict[attr] = [value]
+
+            newdict.setdefault(attr, []).append(value)
+
         return newdict
+
+    def _convert_entry(self, entry_attrs):
+        result = {}
+        for attr, val in entry_attrs.iteritems():
+            if val is None:
+                val = []
+            elif not isinstance(val, (tuple, list)):
+                val = [val]
+
+            result[attr] = []
+            for v in val:
+                if isinstance(v, str):
+                    # This is a Binary value, base64 encode it
+                    v = base64.b64encode(v)
+                result[attr].append(unicode(v))
+
+        return result
 
     def process_attr_options(self, entry_attrs, dn, keys, options):
         """
@@ -860,19 +869,20 @@ last, after all sets and adds."""),
             direct_del = setattrs & delattrs
             needldapattrs = list((addattrs | delattrs) - setattrs)
 
+        mod_attrs = self._convert_entry(entry_attrs)
+
         for attr, val in setdict.iteritems():
-            entry_attrs[attr] = val
+            mod_attrs[attr] = val
 
         for attr in direct_add:
-            entry_attrs.setdefault(attr, []).extend(adddict[attr])
+            mod_attrs.setdefault(attr, []).extend(adddict[attr])
 
         for attr in direct_del:
             for delval in deldict[attr]:
                 try:
-                    entry_attrs[attr].remove(delval)
+                    mod_attrs[attr].remove(delval)
                 except ValueError:
-                    raise errors.AttrValueNotFound(attr=attr,
-                                                   value=delval)
+                    raise errors.AttrValueNotFound(attr=attr, value=delval)
 
         if needldapattrs:
             try:
@@ -891,28 +901,27 @@ last, after all sets and adds."""),
                 raise errors.ValidationError(name=del_nonexisting.pop(),
                     error=_('No such attribute on this entry'))
 
+            old_entry = self._convert_entry(old_entry)
+
             for attr in needldapattrs:
-                entry_attrs[attr] = old_entry.get(attr, [])
+                mod_attrs[attr] = old_entry.get(attr, [])
 
                 if attr in addattrs:
-                    entry_attrs[attr].extend(adddict.get(attr, []))
+                    mod_attrs[attr].extend(adddict.get(attr, []))
 
                 for delval in deldict.get(attr, []):
                     try:
-                        entry_attrs[attr].remove(delval)
+                        mod_attrs[attr].remove(delval)
                     except ValueError:
-                        if isinstance(delval, str):
-                            # This is a Binary value, base64 encode it
-                            delval = unicode(base64.b64encode(delval))
                         raise errors.AttrValueNotFound(attr=attr, value=delval)
 
         # normalize all values
         changedattrs = setattrs | addattrs | delattrs
         for attr in changedattrs:
+            value = mod_attrs[attr]
             if attr in self.params and self.params[attr].attribute:
-                # convert single-value params to scalars
                 param = self.params[attr]
-                value = entry_attrs[attr]
+                # convert single-value params to scalars
                 if not param.multivalue:
                     if len(value) == 1:
                         value = value[0]
@@ -922,19 +931,19 @@ last, after all sets and adds."""),
                         raise errors.OnlyOneValueAllowed(attr=attr)
                 # validate, convert and encode params
                 try:
-                   value = param(value)
+                    value = param(value)
                 except errors.ValidationError, err:
                     raise errors.ValidationError(name=attr, error=err.error)
                 except errors.ConversionError, err:
                     raise errors.ConversionError(name=attr, error=err.error)
-                entry_attrs[attr] = value
             else:
                 # unknown attribute: remove duplicite and invalid values
-                entry_attrs[attr] = list(set([val for val in entry_attrs[attr] if val]))
-                if not entry_attrs[attr]:
-                    entry_attrs[attr] = None
-                elif isinstance(entry_attrs[attr], (tuple, list)) and len(entry_attrs[attr]) == 1:
-                    entry_attrs[attr] = entry_attrs[attr][0]
+                value = list(set([val for val in value if val]))
+                if not value:
+                    value = None
+                elif isinstance(value, (tuple, list)) and len(value) == 1:
+                    value = value[0]
+            entry_attrs[attr] = value
 
     @classmethod
     def register_pre_callback(cls, callback, first=False):

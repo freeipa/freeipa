@@ -21,17 +21,29 @@
 Test --setattr and --addattr and other attribute-specific issues
 """
 
-from ipalib import api, errors
+from ipalib import api, errors, x509
 from tests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_date,
+    fuzzy_hex, fuzzy_hash, fuzzy_issuer)
 from ipalib.dn import *
+import base64
 
-user1=u'tuser1'
+user1 = u'tuser1'
+fqdn1 = u'testhost1.%s' % api.env.domain
+
+# We can use the same cert we generated for the service tests
+fd = open('tests/test_xmlrpc/service.crt', 'r')
+servercert = fd.readlines()
+servercert = u''.join(servercert)
+servercert = x509.strip_header(servercert)
+servercert = servercert.replace('\n', '')
+fd.close()
 
 class test_attr(Declarative):
 
     cleanup_commands = [
         ('user_del', [user1], {}),
+        ('host_del', [fqdn1], {}),
     ]
 
     tests = [
@@ -549,6 +561,73 @@ class test_attr(Declarative):
                 delattr=u'creatorsName=cn=directory manager')),
             expected=errors.DatabaseError(
                 desc='Server is unwilling to perform', info=''),
+        ),
+
+        dict(
+            desc='Try to create %r with description and --addattr description' % fqdn1,
+            command=('host_add', [fqdn1],
+                dict(
+                    description=u'Test host 1',
+                    addattr=u'description=Test host 2',
+                    force=True,
+                ),
+            ),
+            expected=errors.OnlyOneValueAllowed(attr='description'),
+        ),
+
+        dict(
+            desc='Create %r with a certificate' % fqdn1,
+            command=('host_add', [fqdn1],
+                dict(
+                    usercertificate=servercert,
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Added host "%s"' % fqdn1,
+                result=dict(
+                    dn=lambda x: DN(x) == DN(('fqdn',fqdn1),('cn','computers'),
+                        ('cn','accounts'),api.env.basedn),
+                    fqdn=[fqdn1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                    usercertificate=[base64.b64decode(servercert)],
+                    valid_not_before=fuzzy_date,
+                    valid_not_after=fuzzy_date,
+                    subject=lambda x: DN(x) == \
+                        DN(('CN',api.env.host),x509.subject_base()),
+                    serial_number=fuzzy_digits,
+                    serial_number_hex=fuzzy_hex,
+                    md5_fingerprint=fuzzy_hash,
+                    sha1_fingerprint=fuzzy_hash,
+                    issuer=fuzzy_issuer,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Remove %r certificate using --delattr' % fqdn1,
+            command=('host_mod', [fqdn1],
+                dict(
+                    delattr=u'usercertificate=%s' % servercert,
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Modified host "%s"' % fqdn1,
+                result=dict(
+                    fqdn=[fqdn1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
         ),
 
     ]
