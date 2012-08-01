@@ -21,6 +21,11 @@ add:attributeTypes:
      X-ORIGIN 'IPA v3')
 replace:objectClasses:( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $$ ipaGroupSearchFields $$ ipaSearchTimeLimit $$ ipaSearchRecordsLimit $$ ipaCustomFields $$ ipaHomesRootDir $$ ipaDefaultLoginShell $$ ipaDefaultPrimaryGroup $$ ipaMaxUsernameLength $$ ipaPwdExpAdvNotify $$ ipaUserObjectClasses $$ ipaGroupObjectClasses $$ ipaDefaultEmailDomain $$ ipaMigrationEnabled $$ ipaCertificateSubjectBase ) )::( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $$ ipaGroupSearchFields $$ ipaSearchTimeLimit $$ ipaSearchRecordsLimit $$ ipaCustomFields $$ ipaHomesRootDir $$ ipaDefaultLoginShell $$ ipaDefaultPrimaryGroup $$ ipaMaxUsernameLength $$ ipaPwdExpAdvNotify $$ ipaUserObjectClasses $$ ipaGroupObjectClasses $$ ipaDefaultEmailDomain $$ ipaMigrationEnabled $$ ipaCertificateSubjectBase $$ ipaSELinuxUserMapDefault $$ ipaSELinuxUserMapOrder) )
 
+# Add the default PAC service type relies on the new SELinux user map
+# values being there so add it here.
+dn: cn=schema
+replace:objectClasses:( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $$ ipaGroupSearchFields $$ ipaSearchTimeLimit $$ ipaSearchRecordsLimit $$ ipaCustomFields $$ ipaHomesRootDir $$ ipaDefaultLoginShell $$ ipaDefaultPrimaryGroup $$ ipaMaxUsernameLength $$ ipaPwdExpAdvNotify $$ ipaUserObjectClasses $$ ipaGroupObjectClasses $$ ipaDefaultEmailDomain $$ ipaMigrationEnabled $$ ipaCertificateSubjectBase $$ ipaSELinuxUserMapDefault $$ ipaSELinuxUserMapOrder ) )::( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $$ ipaGroupSearchFields $$ ipaSearchTimeLimit $$ ipaSearchRecordsLimit $$ ipaCustomFields $$ ipaHomesRootDir $$ ipaDefaultLoginShell $$ ipaDefaultPrimaryGroup $$ ipaMaxUsernameLength $$ ipaPwdExpAdvNotify $$ ipaUserObjectClasses $$ ipaGroupObjectClasses $$ ipaDefaultEmailDomain $$ ipaMigrationEnabled $$ ipaCertificateSubjectBase $$ ipaSELinuxUserMapDefault $$ ipaSELinuxUserMapOrder $$ ipaKrbAuthzData) )
+
 # Add the SELinux User map schema
 add:attributeTypes:
    ( 2.16.840.1.113730.3.8.11.30

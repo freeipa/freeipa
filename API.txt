@@ -445,7 +445,7 @@ args: 1,0,1
 arg: Str('request_id')
 output: Output('result', None, None)
 command: config_mod
-args: 0,23,3
+args: 0,24,3
 option: Int('ipamaxusernamelength', attribute=True, autofill=False, cli_name='maxusername', minvalue=1, multivalue=False, required=False)
 option: IA5Str('ipahomesrootdir', attribute=True, autofill=False, cli_name='homedirectory', multivalue=False, required=False)
 option: Str('ipadefaultloginshell', attribute=True, autofill=False, cli_name='defaultshell', multivalue=False, required=False)
@@ -462,6 +462,7 @@ option: Int('ipapwdexpadvnotify', attribute=True, autofill=False, cli_name='pwde
 option: StrEnum('ipaconfigstring', attribute=True, autofill=False, cli_name='ipaconfigstring', csv=True, multivalue=True, required=False, values=(u'AllowLMhash', u'AllowNThash', u'KDC:Disable Last Success', u'KDC:Disable Lockout'))
 option: Str('ipaselinuxusermaporder', attribute=True, autofill=False, cli_name='ipaselinuxusermaporder', multivalue=False, required=False)
 option: Str('ipaselinuxusermapdefault', attribute=True, autofill=False, cli_name='ipaselinuxusermapdefault', multivalue=False, required=False)
+option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD'))
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
@@ -2726,9 +2727,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: service_add
-args: 1,5,3
+args: 1,6,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, required=True)
 option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=False, required=False)
+option: StrEnum('ipakrbauthzdata', attribute=True, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD'))
 option: Flag('force', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2760,9 +2762,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: service_find
-args: 1,9,4
+args: 1,10,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('krbprincipalname', attribute=True, autofill=False, cli_name='principal', multivalue=False, primary_key=True, query=True, required=False)
+option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, query=True, required=False, values=(u'MS-PAC', u'PAD'))
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2776,9 +2779,10 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: service_mod
-args: 1,8,3
+args: 1,9,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, required=False)
+option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD'))
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')

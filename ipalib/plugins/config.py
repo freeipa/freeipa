@@ -90,7 +90,7 @@ class config(LDAPObject):
         'ipasearchrecordslimit', 'ipausersearchfields', 'ipagroupsearchfields',
         'ipamigrationenabled', 'ipacertificatesubjectbase',
         'ipapwdexpadvnotify', 'ipaselinuxusermaporder',
-        'ipaselinuxusermapdefault', 'ipaconfigstring',
+        'ipaselinuxusermapdefault', 'ipaconfigstring', 'ipakrbauthzdata',
     ]
 
     label = _('Configuration')
@@ -188,6 +188,13 @@ class config(LDAPObject):
         Str('ipaselinuxusermapdefault',
             label=_('Default SELinux user'),
             doc=_('Default SELinux user when no match is found in SELinux map rule'),
+        ),
+        StrEnum('ipakrbauthzdata*',
+            cli_name='pac_type',
+            label=_('PAC type'),
+            doc=_('Default types of PAC for new services'),
+            values=(u'MS-PAC', u'PAD'),
+            csv=True,
         ),
     )
 

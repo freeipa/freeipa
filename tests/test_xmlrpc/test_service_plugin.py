@@ -179,6 +179,7 @@ class test_service(Declarative):
                     krbprincipalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -207,6 +208,7 @@ class test_service(Declarative):
                     dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     has_keytab=False,
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -226,6 +228,7 @@ class test_service(Declarative):
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     has_keytab=False
                 ),
             ),
@@ -244,6 +247,7 @@ class test_service(Declarative):
                         dn=lambda x: DN(x) == service1dn,
                         krbprincipalname=[service1],
                         managedby_host=[fqdn1],
+                        ipakrbauthzdata=[u'MS-PAC'],
                         has_keytab=False,
                     ),
                 ],
@@ -265,6 +269,7 @@ class test_service(Declarative):
                         ipakrbprincipalalias=[service1],
                         objectclass=objectclasses.service,
                         ipauniqueid=[fuzzy_uuid],
+                        ipakrbauthzdata=[u'MS-PAC'],
                         has_keytab=False,
                         managedby_host=[fqdn1],
                     ),
@@ -282,6 +287,7 @@ class test_service(Declarative):
                 result=dict(
                     dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -297,6 +303,7 @@ class test_service(Declarative):
                 result=dict(
                     dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -312,6 +319,7 @@ class test_service(Declarative):
                 result=dict(
                     dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1, fqdn2],
                 ),
             ),
@@ -327,6 +335,7 @@ class test_service(Declarative):
                 result=dict(
                     dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -342,6 +351,7 @@ class test_service(Declarative):
                 result=dict(
                     dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1, fqdn3.lower()],
                 ),
             ),
@@ -357,6 +367,7 @@ class test_service(Declarative):
                 result=dict(
                     dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -381,6 +392,7 @@ class test_service(Declarative):
                 result=dict(
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
@@ -408,6 +420,7 @@ class test_service(Declarative):
                     krbprincipalname=[service1],
                     has_keytab=False,
                     managedby_host=[fqdn1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     # These values come from the servercert that is in this
                     # test case.
                     valid_not_before=fuzzy_date,

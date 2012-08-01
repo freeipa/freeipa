@@ -23,7 +23,7 @@ import base64
 import os
 
 from ipalib import api, errors, util
-from ipalib import Str, Flag, Bytes
+from ipalib import Str, Flag, Bytes, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import x509
 from ipalib import _, ngettext
@@ -223,8 +223,9 @@ class service(LDAPObject):
         'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux', 'ipaobject',
         'ipaservice', 'pkiuser', 'ipakrbprincipal'
     ]
-    search_attributes = ['krbprincipalname', 'managedby']
-    default_attributes = ['krbprincipalname', 'usercertificate', 'managedby']
+    search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
+    default_attributes = ['krbprincipalname', 'usercertificate', 'managedby',
+        'ipakrbauthzdata',]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
@@ -251,7 +252,14 @@ class service(LDAPObject):
             label=_('Certificate'),
             doc=_('Base-64 encoded server certificate'),
             flags=['no_search',],
-        )
+        ),
+        StrEnum('ipakrbauthzdata*',
+            cli_name='pac_type',
+            label=_('PAC type'),
+            doc=_('Types of PAC this service supports'),
+            values=(u'MS-PAC', u'PAD'),
+            csv=True,
+        ),
     )
 
 api.register(service)
@@ -291,7 +299,12 @@ class service_add(LDAPCreate):
              # don't exist in DNS.
              util.validate_host_dns(self.log, hostname)
         if not 'managedby' in entry_attrs:
-             entry_attrs['managedby'] = hostresult['dn']
+            entry_attrs['managedby'] = hostresult['dn']
+        if 'ipakrbauthzdata' not in entry_attrs:
+            config = ldap.get_ipa_config()[1]
+            default_pac_type = config.get('ipakrbauthzdata', [])
+            if default_pac_type:
+                entry_attrs['ipakrbauthzdata'] = default_pac_type
 
         # Enforce ipaKrbPrincipalAlias to aid case-insensitive searches
         # as krbPrincipalName/krbCanonicalName are case-sensitive in Kerberos

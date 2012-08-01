@@ -33,6 +33,7 @@ attributeTypes: (2.16.840.1.113730.3.8.11.33 NAME 'ipaBaseID' DESC 'First value 
 attributeTypes: (2.16.840.1.113730.3.8.11.34 NAME 'ipaIDRangeSize' DESC 'Size of a Posix ID range' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 attributeTypes: (2.16.840.1.113730.3.8.11.35 NAME 'ipaBaseRID' DESC 'First value of a RID range' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 attributeTypes: (2.16.840.1.113730.3.8.11.36 NAME 'ipaSecondaryBaseRID' DESC 'First value of a secondary RID range' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+# 2.16.840.1.113730.3.8.11.37 ipaKrbAuthzData
 objectClasses: (2.16.840.1.113730.3.8.12.1 NAME 'ipaExternalGroup' SUP top STRUCTURAL MUST ( cn ) MAY ( ipaExternalMember $ memberOf $ description $ owner) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.2 NAME 'ipaNTUserAttrs' SUP top AUXILIARY MUST ( ipaNTSecurityIdentifier ) MAY ( ipaNTHash $ ipaNTLogonScript $ ipaNTProfilePath $ ipaNTHomeDirectory $ ipaNTHomeDirectoryDrive ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.3 NAME 'ipaNTGroupAttrs' SUP top AUXILIARY MUST ( ipaNTSecurityIdentifier ) X-ORIGIN 'IPA v3' )
