@@ -28,6 +28,7 @@ from ipalib.parameters import Enum
 from ipalib import Command
 from ipalib import errors
 from ipapython import ipautil
+from ipapython.ipa_log_manager import *
 from ipaserver.install import installutils
 
 import os, string, struct, copy
@@ -48,6 +49,31 @@ Classes to manage trust joins using DCE-RPC calls
 The code in this module relies heavily on samba4-python package
 and Samba4 python bindings.
 """)
+
+access_denied_error =  errors.ACIError(info='CIFS server denied your credentials')
+dcerpc_error_codes = {
+    -1073741823: errors.RemoteRetrieveError(reason='communication with CIFS server was unsuccessful'),
+    -1073741790: access_denied_error,
+    -1073741715: access_denied_error,
+    -1073741614: access_denied_error,
+    -1073741603: errors.ValidationError(name='AD domain controller', error='unsupported functional level'),
+}
+
+dcerpc_error_messages = {
+    "NT_STATUS_OBJECT_NAME_NOT_FOUND": errors.NotFound(reason='Cannot find specified domain or server name'),
+    "NT_STATUS_INVALID_PARAMETER_MIX": errors.RequirementError(name='At least the domain or IP address should be specified'),
+}
+
+def assess_dcerpc_exception(num=None,message=None):
+    """
+    Takes error returned by Samba bindings and converts it into
+    an IPA error class.
+    """
+    if num and num in dcerpc_error_codes:
+        return dcerpc_error_codes[num]
+    if message and message in dcerpc_error_messages:
+        return dcerpc_error_messages[message]
+    return errors.RemoteRetrieveError(reason='CIFS server communication error: code "%s", message "%s" (both may be "None")' % (num, message))
 
 class ExtendedDNControl(_ldap.controls.RequestControl):
     def __init__(self):
@@ -151,8 +177,8 @@ class TrustDomainInstance(object):
        try:
            result = lsa.lsarpc(binding, self.parm, self.creds)
            return result
-       except:
-           return None
+       except RuntimeError, (num, message):
+           raise assess_dcerpc_exception(num=num, message=message)
 
     def __init_lsa_pipe(self, remote_host):
         """
@@ -168,13 +194,21 @@ class TrustDomainInstance(object):
         if self._pipe:
             return
 
+        attempts = 0
         bindings = self.__gen_lsa_bindings(remote_host)
         for binding in bindings:
-            self._pipe = self.__gen_lsa_connection(binding)
-            if self._pipe:
-                break
+            try:
+                self._pipe = self.__gen_lsa_connection(binding)
+                if self._pipe:
+                    break
+            except errors.ACIError, e:
+                attempts = attempts + 1
+
+        if self._pipe is None and attempts == len(bindings):
+            raise errors.ACIError(info='CIFS server %s denied your credentials' % (remote_host))
+
         if self._pipe is None:
-            raise errors.RequirementError(name='Working LSA pipe')
+            raise errors.RemoteRetrieveError(reason='Cannot establish LSA connection to %s. Is CIFS server running?' % (remote_host))
 
     def __gen_lsa_bindings(self, remote_host):
         """
@@ -195,10 +229,14 @@ class TrustDomainInstance(object):
         When retrieving DC information anonymously, we can't get SID of the domain
         """
         netrc = net.Net(creds=self.creds, lp=self.parm)
-        if discover_srv:
-            result = netrc.finddc(domain=remote_host, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
-        else:
-            result = netrc.finddc(address=remote_host, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+        try:
+            if discover_srv:
+                result = netrc.finddc(domain=remote_host, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+            else:
+                result = netrc.finddc(address=remote_host, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+        except RuntimeError, e:
+            raise assess_dcerpc_exception(message=str(e))
+
         if not result:
             return False
         self.info['name'] = unicode(result.domain_name)
@@ -217,7 +255,7 @@ class TrustDomainInstance(object):
             result = res['defaultNamingContext'][0]
             self.info['dns_hostname'] = res['dnsHostName'][0]
         except _ldap.LDAPError, e:
-            print "LDAP error when connecting to %s: %s" % (unicode(result.pdc_name), str(e))
+            root_logger.error("LDAP error when connecting to %s: %s" % (unicode(result.pdc_name), str(e)))
 
         if result:
            self.info['sid'] = self.parse_naming_context(result)
@@ -232,8 +270,12 @@ class TrustDomainInstance(object):
 
         objectAttribute = lsa.ObjectAttribute()
         objectAttribute.sec_qos = lsa.QosInfo()
-        self._policy_handle = self._pipe.OpenPolicy2(u"", objectAttribute, security.SEC_FLAG_MAXIMUM_ALLOWED)
-        result = self._pipe.QueryInfoPolicy2(self._policy_handle, lsa.LSA_POLICY_INFO_DNS)
+        try:
+            self._policy_handle = self._pipe.OpenPolicy2(u"", objectAttribute, security.SEC_FLAG_MAXIMUM_ALLOWED)
+            result = self._pipe.QueryInfoPolicy2(self._policy_handle, lsa.LSA_POLICY_INFO_DNS)
+        except RuntimeError, (num, message):
+            raise assess_dcerpc_exception(num=num, message=message)
+
         self.info['name'] = unicode(result.name.string)
         self.info['dns_domain'] = unicode(result.dns_domain.string)
         self.info['dns_forest'] = unicode(result.dns_forest.string)
@@ -315,9 +357,12 @@ class TrustDomainInstance(object):
             dname.string = another_domain.info['dns_domain']
             res = self._pipe.QueryTrustedDomainInfoByName(self._policy_handle, dname, lsa.LSA_TRUSTED_DOMAIN_INFO_FULL_INFO)
             self._pipe.DeleteTrustedDomain(self._policy_handle, res.info_ex.sid)
-        except:
+        except RuntimeError, e:
             pass
-        self._pipe.CreateTrustedDomainEx2(self._policy_handle, info, self.auth_info, security.SEC_STD_DELETE)
+        try:
+            self._pipe.CreateTrustedDomainEx2(self._policy_handle, info, self.auth_info, security.SEC_STD_DELETE)
+        except RuntimeError, (num, message):
+            raise assess_dcerpc_exception(num=num, message=message)
 
 class TrustDomainJoins(object):
     def __init__(self, api):
