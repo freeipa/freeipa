@@ -211,6 +211,7 @@
                             "group": "Group Options",
                             "search": "Search Options",
                             "selinux": "SELinux Options",
+                            "service": "Service Options",
                             "user": "User Options"
                         },
                         "delegation": {},

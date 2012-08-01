@@ -95,6 +95,17 @@ IPA.config.entity = function(spec) {
                         'ipaselinuxusermaporder',
                         'ipaselinuxusermapdefault'
                     ]
+                },
+                {
+                    name: 'service',
+                    label: IPA.messages.objects.config.service,
+                    fields: [
+                        {
+                            name: 'ipakrbauthzdata',
+                            type: 'checkboxes',
+                            options: IPA.create_options(['MS-PAC', 'PAD'])
+                        }
+                    ]
                 }
             ],
             needs_update: true

@@ -383,7 +383,8 @@
                     "ipapwdexpadvnotify",
                     "ipaselinuxusermaporder",
                     "ipaselinuxusermapdefault",
-                    "ipaconfigstring"
+                    "ipaconfigstring",
+                    "ipakrbauthzdata"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -604,6 +605,19 @@
                         "noextrawhitespace": true,
                         "required": true,
                         "type": "unicode"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "doc": "Default types of PAC for new services",
+                        "flags": [],
+                        "label": "PAC type",
+                        "multivalue": true,
+                        "name": "ipakrbauthzdata",
+                        "type": "unicode",
+                        "values": [
+                            "MS-PAC",
+                            "PAD"
+                        ]
                     }
                 ],
                 "uuid_attribute": ""
@@ -715,7 +729,23 @@
                     "ditcontentrules",
                     "ditredirect",
                     "ditstructurerules",
+                    "dnafilter",
+                    "dnahostname",
+                    "dnainterval",
+                    "dnamagicregen",
+                    "dnamaxvalue",
                     "dnamerecord",
+                    "dnanextrange",
+                    "dnanextvalue",
+                    "dnaportnum",
+                    "dnaprefix",
+                    "dnarangerequesttimeout",
+                    "dnaremainingvalues",
+                    "dnascope",
+                    "dnasecureportnum",
+                    "dnasharedcfgdn",
+                    "dnathreshold",
+                    "dnatype",
                     "dncomp",
                     "dnqualifier",
                     "dnsclass",
@@ -803,9 +833,13 @@
                     "info",
                     "initials",
                     "installationtimestamp",
+                    "internalcreatorsname",
+                    "internalmodifiersname",
                     "internationalisdnnumber",
                     "ipaallowedtarget",
                     "ipaallowtoimpersonate",
+                    "ipabaseid",
+                    "ipabaserid",
                     "ipacertificatesubjectbase",
                     "ipaclientversion",
                     "ipaconfigstring",
@@ -819,6 +853,8 @@
                     "ipagroupobjectclasses",
                     "ipagroupsearchfields",
                     "ipahomesrootdir",
+                    "ipaidrangesize",
+                    "ipakrbauthzdata",
                     "ipakrbprincipalalias",
                     "ipamaxusernamelength",
                     "ipamigrationenabled",
@@ -845,6 +881,7 @@
                     "ipapwdexpadvnotify",
                     "ipasearchrecordslimit",
                     "ipasearchtimelimit",
+                    "ipasecondarybaserid",
                     "ipaselinuxuser",
                     "ipaselinuxusermapdefault",
                     "ipaselinuxusermaporder",
@@ -1063,6 +1100,7 @@
                     "nsds5replicachangecount",
                     "nsds5replicachangessentsincestartup",
                     "nsds5replicacredentials",
+                    "nsds5replicaenabled",
                     "nsds5replicahost",
                     "nsds5replicaid",
                     "nsds5replicalastinitend",
@@ -1078,6 +1116,7 @@
                     "nsds5replicareferral",
                     "nsds5replicaroot",
                     "nsds5replicasessionpausetime",
+                    "nsds5replicastripattrs",
                     "nsds5replicatedattributelist",
                     "nsds5replicatedattributelisttotal",
                     "nsds5replicatimeout",
@@ -1187,6 +1226,7 @@
                     "nssystemindex",
                     "nstasklabel",
                     "nstimelimit",
+                    "nstls1",
                     "nsuniqueattribute",
                     "nsuniqueid",
                     "nsuseridformat",
@@ -1258,6 +1298,7 @@
                     "pager",
                     "pamexcludesuffix",
                     "pamfallback",
+                    "pamfilter",
                     "pamidattr",
                     "pamidmapmethod",
                     "pamincludesuffix",
@@ -1347,6 +1388,7 @@
                     "profilettl",
                     "ptrrecord",
                     "pwdpolicysubentry",
+                    "pwdupdatetime",
                     "ref",
                     "registeredaddress",
                     "replicaabandonedchanges",
@@ -1377,7 +1419,9 @@
                     "sambabadpasswordcount",
                     "sambabadpasswordtime",
                     "sambabooloption",
+                    "sambacleartextpassword",
                     "sambadomainname",
+                    "sambaflatname",
                     "sambaforcelogoff",
                     "sambagrouptype",
                     "sambahomedrive",
@@ -1403,6 +1447,7 @@
                     "sambantpassword",
                     "sambaoptionname",
                     "sambapasswordhistory",
+                    "sambapreviouscleartextpassword",
                     "sambaprimarygroupsid",
                     "sambaprofilepath",
                     "sambapwdcanchange",
@@ -1410,12 +1455,22 @@
                     "sambapwdlastset",
                     "sambapwdmustchange",
                     "sambarefusemachinepwdchange",
+                    "sambasecurityidentifier",
                     "sambasharename",
                     "sambasid",
                     "sambasidlist",
                     "sambastringlistoption",
                     "sambastringoption",
+                    "sambasupportedencryptiontypes",
+                    "sambatrustattributes",
+                    "sambatrustauthincoming",
+                    "sambatrustauthoutgoing",
+                    "sambatrustdirection",
                     "sambatrustflags",
+                    "sambatrustforesttrustinfo",
+                    "sambatrustpartner",
+                    "sambatrustposixoffset",
+                    "sambatrusttype",
                     "sambauserworkstations",
                     "searchguide",
                     "searchtimelimit",
@@ -2547,6 +2602,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_lat_sec",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 3,
                         "type": "Decimal"
@@ -2611,6 +2671,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_lon_sec",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 3,
                         "type": "Decimal"
@@ -2648,6 +2713,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_altitude",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -2666,6 +2736,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_size",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -2684,6 +2759,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_h_precision",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -2702,6 +2782,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_v_precision",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -3616,6 +3701,7 @@
                     "keyrecord",
                     "kxrecord",
                     "locrecord",
+                    "managedby",
                     "mdrecord",
                     "minforecord",
                     "mxrecord",
@@ -3691,11 +3777,13 @@
                 "label_singular": "DNS Zone",
                 "methods": [
                     "add",
+                    "add_permission",
                     "del",
                     "disable",
                     "enable",
                     "find",
                     "mod",
+                    "remove_permission",
                     "show"
                 ],
                 "name": "dnszone",
@@ -4004,6 +4092,7 @@
                     "cn",
                     "description",
                     "gidnumber",
+                    "ipaexternalmember",
                     "ipauniqueid",
                     "member",
                     "memberof",
@@ -4049,7 +4138,8 @@
                     "member",
                     "memberof",
                     "memberindirect",
-                    "memberofindirect"
+                    "memberofindirect",
+                    "ipaexternalmember"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -4656,6 +4746,7 @@
                     "enrolledby",
                     "fqdn",
                     "ipaclientversion",
+                    "ipakrbauthzdata",
                     "ipauniqueid",
                     "l",
                     "managedby",
@@ -5343,6 +5434,7 @@
                 "methods": [
                     "add",
                     "add_member",
+                    "add_noaci",
                     "del",
                     "find",
                     "mod",
@@ -5765,6 +5857,150 @@
                 ],
                 "uuid_attribute": ""
             },
+            "range": {
+                "aciattrs": [
+                    "cn",
+                    "ipabaseid",
+                    "ipabaserid",
+                    "ipaidrangesize",
+                    "ipanttrusteddomainsid",
+                    "ipasecondarybaserid"
+                ],
+                "attribute_members": {},
+                "bindable": false,
+                "container_dn": "cn=ranges,cn=etc",
+                "default_attributes": [
+                    "cn",
+                    "ipabaseid",
+                    "ipaidrangesize",
+                    "ipabaserid",
+                    "ipasecondarybaserid",
+                    "ipanttrusteddomainsid",
+                    "iparangetype"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "Ranges",
+                "label_singular": "Range",
+                "methods": [
+                    "add",
+                    "del",
+                    "find",
+                    "mod",
+                    "show"
+                ],
+                "name": "range",
+                "object_class": [
+                    "ipaIDrange"
+                ],
+                "object_class_config": null,
+                "object_name": "range",
+                "object_name_plural": "ranges",
+                "parent_object": "",
+                "primary_key": "cn",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [
+                    {
+                        "class": "Str",
+                        "doc": "Range name",
+                        "flags": [],
+                        "label": "Range name",
+                        "name": "cn",
+                        "noextrawhitespace": true,
+                        "primary_key": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "First Posix ID of the range",
+                        "flags": [],
+                        "label": "First Posix ID of the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaseid",
+                        "required": true,
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "Number of IDs in the range",
+                        "flags": [],
+                        "label": "Number of IDs in the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipaidrangesize",
+                        "required": true,
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "First RID of the corresponding RID range",
+                        "flags": [],
+                        "label": "First RID of the corresponding RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaserid",
+                        "required": true,
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "First RID of the secondary RID range",
+                        "flags": [],
+                        "label": "First RID of the secondary RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipasecondarybaserid",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Domain SID of the trusted domain",
+                        "flags": [],
+                        "label": "Domain SID of the trusted domain",
+                        "name": "ipanttrusteddomainsid",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Range type",
+                        "flags": [
+                            "no_option"
+                        ],
+                        "label": "Range type",
+                        "name": "iparangetype",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    }
+                ],
+                "uuid_attribute": ""
+            },
             "role": {
                 "aciattrs": [
                     "businesscategory",
@@ -6146,6 +6382,7 @@
             },
             "service": {
                 "aciattrs": [
+                    "ipakrbauthzdata",
                     "ipakrbprincipalalias",
                     "ipauniqueid",
                     "krbcanonicalname",
@@ -6184,7 +6421,8 @@
                 "default_attributes": [
                     "krbprincipalname",
                     "usercertificate",
-                    "managedby"
+                    "managedby",
+                    "ipakrbauthzdata"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -6246,6 +6484,19 @@
                         "label": "Certificate",
                         "name": "usercertificate",
                         "type": "str"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "doc": "Types of PAC this service supports",
+                        "flags": [],
+                        "label": "PAC type",
+                        "multivalue": true,
+                        "name": "ipakrbauthzdata",
+                        "type": "unicode",
+                        "values": [
+                            "MS-PAC",
+                            "PAD"
+                        ]
                     }
                 ],
                 "uuid_attribute": "ipauniqueid"
@@ -6932,7 +7183,7 @@
                 "label": "Trusts",
                 "label_singular": "Trust",
                 "methods": [
-                    "add_ad",
+                    "add",
                     "del",
                     "find",
                     "mod",

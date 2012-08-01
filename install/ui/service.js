@@ -53,6 +53,11 @@ IPA.service.entity = function(spec) {
                             name: 'host',
                             label: IPA.messages.objects.service.host,
                             read_only: true
+                        },
+                        {
+                            name: 'ipakrbauthzdata',
+                            type: 'checkboxes',
+                            options: IPA.create_options(['MS-PAC', 'PAD'])
                         }
                     ]
                 },

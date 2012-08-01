@@ -1825,7 +1825,7 @@
                 "takes_options": [
                     {
                         "class": "Str",
-                        "doc": "Service principal for this certificate (e.g. HTTP/dev.example.com)",
+                        "doc": "Service principal for this certificate (e.g. HTTP/test.example.com)",
                         "flags": [],
                         "label": "Principal",
                         "name": "principal",
@@ -2127,6 +2127,20 @@
                         "name": "ipaselinuxusermapdefault",
                         "noextrawhitespace": true,
                         "type": "unicode"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "StrEnum",
+                        "doc": "Default types of PAC for new services",
+                        "flags": [],
+                        "label": "PAC type",
+                        "multivalue": true,
+                        "name": "ipakrbauthzdata",
+                        "type": "unicode",
+                        "values": [
+                            "MS-PAC",
+                            "PAD"
+                        ]
                     },
                     {
                         "name": "setattr"
@@ -3353,6 +3367,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_lat_sec",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 3,
                         "type": "Decimal"
@@ -3417,6 +3436,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_lon_sec",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 3,
                         "type": "Decimal"
@@ -3454,6 +3478,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_altitude",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -3472,6 +3501,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_size",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -3490,6 +3524,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_h_precision",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -3508,6 +3547,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_v_precision",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -6193,6 +6237,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_lat_sec",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 3,
                         "type": "Decimal"
@@ -6257,6 +6306,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_lon_sec",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 3,
                         "type": "Decimal"
@@ -6294,6 +6348,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_altitude",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -6312,6 +6371,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_size",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -6330,6 +6394,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_h_precision",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -6348,6 +6417,11 @@
                             "__base64__": ""
                         },
                         "name": "loc_part_v_precision",
+                        "numberclass": [
+                            "-Normal",
+                            "+Zero",
+                            "+Normal"
+                        ],
                         "option_group": "LOC Record",
                         "precision": 2,
                         "type": "Decimal"
@@ -7554,6 +7628,10 @@
                     }
                 ]
             },
+            "dnszone_add_permission": {
+                "takes_args": [],
+                "takes_options": []
+            },
             "dnszone_del": {
                 "takes_args": [],
                 "takes_options": [
@@ -8089,6 +8167,10 @@
                     }
                 ]
             },
+            "dnszone_remove_permission": {
+                "takes_args": [],
+                "takes_options": []
+            },
             "dnszone_show": {
                 "takes_args": [],
                 "takes_options": [
@@ -8385,6 +8467,15 @@
                         "type": "bool"
                     },
                     {
+                        "class": "Flag",
+                        "doc": "Allow adding external non-IPA members from trusted domains",
+                        "flags": [],
+                        "label": "<external>",
+                        "name": "external",
+                        "required": true,
+                        "type": "bool"
+                    },
+                    {
                         "name": "all"
                     },
                     {
@@ -8398,6 +8489,20 @@
             "group_add_member": {
                 "takes_args": [],
                 "takes_options": [
+                    {
+                        "class": "Str",
+                        "doc": "comma-separated SIDs of members of a trusted domain",
+                        "flags": [
+                            "no_update",
+                            "no_create",
+                            "no_search"
+                        ],
+                        "label": "External member",
+                        "multivalue": true,
+                        "name": "ipaexternalmember",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
                     {
                         "name": "all"
                     },
@@ -8732,6 +8837,15 @@
                         "type": "bool"
                     },
                     {
+                        "class": "Flag",
+                        "doc": "change to support external non-IPA members from trusted domains",
+                        "flags": [],
+                        "label": "<external>",
+                        "name": "external",
+                        "required": true,
+                        "type": "bool"
+                    },
+                    {
                         "name": "all"
                     },
                     {
@@ -8758,6 +8872,20 @@
             "group_remove_member": {
                 "takes_args": [],
                 "takes_options": [
+                    {
+                        "class": "Str",
+                        "doc": "comma-separated SIDs of members of a trusted domain",
+                        "flags": [
+                            "no_update",
+                            "no_create",
+                            "no_search"
+                        ],
+                        "label": "External member",
+                        "multivalue": true,
+                        "name": "ipaexternalmember",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
                     {
                         "name": "all"
                     },
@@ -12291,6 +12419,31 @@
                     }
                 ]
             },
+            "permission_add_noaci": {
+                "takes_args": [],
+                "takes_options": [
+                    {
+                        "class": "StrEnum",
+                        "doc": "Permission type",
+                        "flags": [],
+                        "label": "Permission type",
+                        "name": "permissiontype",
+                        "type": "unicode",
+                        "values": [
+                            "SYSTEM"
+                        ]
+                    },
+                    {
+                        "name": "all"
+                    },
+                    {
+                        "name": "raw"
+                    },
+                    {
+                        "name": "version"
+                    }
+                ]
+            },
             "permission_del": {
                 "takes_args": [],
                 "takes_options": [
@@ -12300,6 +12453,18 @@
                         "flags": [],
                         "label": "<continue>",
                         "name": "continue",
+                        "required": true,
+                        "type": "bool"
+                    },
+                    {
+                        "class": "Flag",
+                        "doc": "force delete of SYSTEM permissions",
+                        "flags": [
+                            "no_option",
+                            "no_output"
+                        ],
+                        "label": "Force",
+                        "name": "force",
                         "required": true,
                         "type": "bool"
                     }
@@ -13387,6 +13552,364 @@
                     }
                 ]
             },
+            "range_add": {
+                "takes_args": [],
+                "takes_options": [
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First Posix ID of the range",
+                        "flags": [],
+                        "label": "First Posix ID of the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaseid",
+                        "required": true,
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "Number of IDs in the range",
+                        "flags": [],
+                        "label": "Number of IDs in the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipaidrangesize",
+                        "required": true,
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First RID of the corresponding RID range",
+                        "flags": [],
+                        "label": "First RID of the corresponding RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaserid",
+                        "required": true,
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First RID of the secondary RID range",
+                        "flags": [],
+                        "label": "First RID of the secondary RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipasecondarybaserid",
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Str",
+                        "doc": "Domain SID of the trusted domain",
+                        "flags": [],
+                        "label": "Domain SID of the trusted domain",
+                        "name": "ipanttrusteddomainsid",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Str",
+                        "doc": "Range type",
+                        "flags": [
+                            "no_option"
+                        ],
+                        "label": "Range type",
+                        "name": "iparangetype",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "name": "setattr"
+                    },
+                    {
+                        "name": "addattr"
+                    },
+                    {
+                        "name": "all"
+                    },
+                    {
+                        "name": "raw"
+                    },
+                    {
+                        "name": "version"
+                    }
+                ]
+            },
+            "range_del": {
+                "takes_args": [],
+                "takes_options": [
+                    {
+                        "class": "Flag",
+                        "doc": "Continuous mode: Don't stop on errors.",
+                        "flags": [],
+                        "label": "<continue>",
+                        "name": "continue",
+                        "required": true,
+                        "type": "bool"
+                    }
+                ]
+            },
+            "range_find": {
+                "takes_args": [],
+                "takes_options": [
+                    {
+                        "attribute": true,
+                        "class": "Str",
+                        "doc": "Range name",
+                        "flags": [],
+                        "label": "Range name",
+                        "name": "cn",
+                        "noextrawhitespace": true,
+                        "primary_key": true,
+                        "query": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First Posix ID of the range",
+                        "flags": [],
+                        "label": "First Posix ID of the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaseid",
+                        "query": true,
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "Number of IDs in the range",
+                        "flags": [],
+                        "label": "Number of IDs in the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipaidrangesize",
+                        "query": true,
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First RID of the corresponding RID range",
+                        "flags": [],
+                        "label": "First RID of the corresponding RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaserid",
+                        "query": true,
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First RID of the secondary RID range",
+                        "flags": [],
+                        "label": "First RID of the secondary RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipasecondarybaserid",
+                        "query": true,
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Str",
+                        "doc": "Domain SID of the trusted domain",
+                        "flags": [],
+                        "label": "Domain SID of the trusted domain",
+                        "name": "ipanttrusteddomainsid",
+                        "noextrawhitespace": true,
+                        "query": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Str",
+                        "doc": "Range type",
+                        "flags": [
+                            "no_option"
+                        ],
+                        "label": "Range type",
+                        "name": "iparangetype",
+                        "noextrawhitespace": true,
+                        "query": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "Time limit of search in seconds",
+                        "flags": [
+                            "no_display"
+                        ],
+                        "label": "Time Limit",
+                        "maxvalue": 2147483647,
+                        "name": "timelimit",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "Maximum number of entries returned",
+                        "flags": [
+                            "no_display"
+                        ],
+                        "label": "Size Limit",
+                        "maxvalue": 2147483647,
+                        "name": "sizelimit",
+                        "type": "int"
+                    },
+                    {
+                        "name": "all"
+                    },
+                    {
+                        "name": "raw"
+                    },
+                    {
+                        "name": "version"
+                    },
+                    {
+                        "class": "Flag",
+                        "doc": "Results should contain primary key attribute only (\"name\")",
+                        "flags": [],
+                        "label": "Primary key only",
+                        "name": "pkey_only",
+                        "type": "bool"
+                    }
+                ]
+            },
+            "range_mod": {
+                "takes_args": [],
+                "takes_options": [
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First Posix ID of the range",
+                        "flags": [
+                            "nonempty"
+                        ],
+                        "label": "First Posix ID of the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaseid",
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "Number of IDs in the range",
+                        "flags": [
+                            "nonempty"
+                        ],
+                        "label": "Number of IDs in the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipaidrangesize",
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First RID of the corresponding RID range",
+                        "flags": [
+                            "nonempty"
+                        ],
+                        "label": "First RID of the corresponding RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaserid",
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Int",
+                        "doc": "First RID of the secondary RID range",
+                        "flags": [],
+                        "label": "First RID of the secondary RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipasecondarybaserid",
+                        "type": "int"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Str",
+                        "doc": "Domain SID of the trusted domain",
+                        "flags": [],
+                        "label": "Domain SID of the trusted domain",
+                        "name": "ipanttrusteddomainsid",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Str",
+                        "doc": "Range type",
+                        "flags": [
+                            "no_option"
+                        ],
+                        "label": "Range type",
+                        "name": "iparangetype",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "name": "setattr"
+                    },
+                    {
+                        "name": "addattr"
+                    },
+                    {
+                        "name": "delattr"
+                    },
+                    {
+                        "class": "Flag",
+                        "doc": "Display the access rights of this entry (requires --all). See ipa man page for details.",
+                        "flags": [],
+                        "label": "Rights",
+                        "name": "rights",
+                        "required": true,
+                        "type": "bool"
+                    },
+                    {
+                        "name": "all"
+                    },
+                    {
+                        "name": "raw"
+                    },
+                    {
+                        "name": "version"
+                    }
+                ]
+            },
+            "range_show": {
+                "takes_args": [],
+                "takes_options": [
+                    {
+                        "class": "Flag",
+                        "doc": "Display the access rights of this entry (requires --all). See ipa man page for details.",
+                        "flags": [],
+                        "label": "Rights",
+                        "name": "rights",
+                        "required": true,
+                        "type": "bool"
+                    },
+                    {
+                        "name": "all"
+                    },
+                    {
+                        "name": "raw"
+                    },
+                    {
+                        "name": "version"
+                    }
+                ]
+            },
             "role_add": {
                 "takes_args": [],
                 "takes_options": [
@@ -14370,6 +14893,20 @@
                         "type": "str"
                     },
                     {
+                        "attribute": true,
+                        "class": "StrEnum",
+                        "doc": "Types of PAC this service supports",
+                        "flags": [],
+                        "label": "PAC type",
+                        "multivalue": true,
+                        "name": "ipakrbauthzdata",
+                        "type": "unicode",
+                        "values": [
+                            "MS-PAC",
+                            "PAD"
+                        ]
+                    },
+                    {
                         "class": "Flag",
                         "doc": "force principal name even if not in DNS",
                         "flags": [],
@@ -14447,6 +14984,21 @@
                         "type": "unicode"
                     },
                     {
+                        "attribute": true,
+                        "class": "StrEnum",
+                        "doc": "Types of PAC this service supports",
+                        "flags": [],
+                        "label": "PAC type",
+                        "multivalue": true,
+                        "name": "ipakrbauthzdata",
+                        "query": true,
+                        "type": "unicode",
+                        "values": [
+                            "MS-PAC",
+                            "PAD"
+                        ]
+                    },
+                    {
                         "class": "Int",
                         "doc": "Time limit of search in seconds",
                         "flags": [
@@ -14520,6 +15072,20 @@
                         "label": "Certificate",
                         "name": "usercertificate",
                         "type": "str"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "StrEnum",
+                        "doc": "Types of PAC this service supports",
+                        "flags": [],
+                        "label": "PAC type",
+                        "multivalue": true,
+                        "name": "ipakrbauthzdata",
+                        "type": "unicode",
+                        "values": [
+                            "MS-PAC",
+                            "PAD"
+                        ]
                     },
                     {
                         "name": "setattr"
