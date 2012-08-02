@@ -36,6 +36,7 @@ IPA.entity_adder_dialog = function(spec) {
     that.retry = typeof spec.retry !== 'undefined' ? spec.retry : true;
     that.command = null;
     that.added = IPA.observer();
+    that.subject = spec.subject || that.entity.metadata.label_singular;
 
     that.show_edit_page = spec.show_edit_page || show_edit_page;
 
@@ -64,9 +65,8 @@ IPA.entity_adder_dialog = function(spec) {
                 that.add(
                     function(data, text_status, xhr) {
                         that.added.notify();
-                        var label = that.entity.metadata.label_singular;
                         var message = IPA.messages.dialogs.add_confirmation;
-                        message = message.replace('${entity}', label);
+                        message = message.replace('${entity}', that.subject);
                         that.show_message(message);
 
                         var facet = IPA.current_entity.get_facet();
@@ -184,4 +184,3 @@ IPA.entity_adder_dialog = function(spec) {
 
     return that;
 };
-

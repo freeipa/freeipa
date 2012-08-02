@@ -747,6 +747,8 @@ IPA.table_facet = function(spec, no_init) {
     that.row_disabled_attribute = spec.row_disabled_attribute;
     that.details_facet_name = spec.details_facet || 'default';
 
+    that.table_name = spec.table_name;
+
     that.columns = $.ordered_map();
 
     that.get_columns = function() {
@@ -1003,7 +1005,7 @@ IPA.table_facet = function(spec, no_init) {
 
         that.table = IPA.table_widget({
             'class': 'content-table',
-            name: entity.metadata.primary_key,
+            name: that.table_name || entity.metadata.primary_key,
             label: entity.metadata.label,
             entity: entity,
             pagination: true,
@@ -1125,6 +1127,7 @@ IPA.facet_builder = function(entity) {
         that.prepare_methods.nested_search = that.prepare_nested_search_spec;
         that.prepare_methods.details = that.prepare_details_spec;
         that.prepare_methods.association = that.prepare_association_spec;
+        that.prepare_methods.attribute = that.prepare_attribute_spec;
     }
 
     that.build_facets = function() {
@@ -1191,6 +1194,17 @@ IPA.facet_builder = function(entity) {
         spec.label = spec.label || entity.metadata.label_singular;
         spec.tab_label = spec.tab_label || IPA.messages.facets.details;
         spec.factory = spec.factory || IPA.details_facet;
+
+        return spec;
+    };
+
+    that.prepare_attribute_spec = function(spec) {
+        spec.title = spec.title || entity.metadata.label_singular;
+        spec.label = spec.label || entity.metadata.label_singular;
+
+        var attr_metadata = IPA.get_entity_param(entity.name, spec.attribute);
+        spec.tab_label = spec.tab_label || attr_metadata.label;
+        spec.factory = spec.factory || IPA.attribute_facet;
 
         return spec;
     };

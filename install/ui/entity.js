@@ -420,6 +420,15 @@ IPA.entity_builder = function() {
         return that;
     };
 
+    that.attribute_facet = function(spec) {
+
+        spec.type = spec.type || 'attribute';
+
+        that.facet(spec);
+
+        return that;
+    };
+
     that.standard_association_facets = function(spec) {
 
         spec = spec || {};

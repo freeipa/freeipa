@@ -50,8 +50,8 @@ IPA.associator = function (spec) {
 
 
 /**
-*This associator is built for the case where each association requires a separate rpc
-*/
+ * This associator is built for the case where each association requires a separate rpc
+ */
 IPA.serial_associator = function(spec) {
 
     spec = spec || {};
@@ -95,9 +95,9 @@ IPA.serial_associator = function(spec) {
 };
 
 /**
-*This associator is for the common case where all the asociations can be sent
-in a single rpc
-*/
+ * This associator is for the common case where all the asociations can be sent
+ * in a single rpc
+ */
 IPA.bulk_associator = function(spec) {
 
     spec = spec || {};
@@ -126,6 +126,50 @@ IPA.bulk_associator = function(spec) {
 
         command.execute();
     };
+
+    return that;
+};
+
+/**
+ * This dialog is for adding value of multivalued attribute which behaves like
+ * association attribute.
+ */
+IPA.attribute_adder_dialog = function(spec) {
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'attr_adder_dialog';
+    spec.method = spec.method || 'add_member';
+
+    var metadata = IPA.get_command_option(spec.entity.name+'_'+spec.method, spec.attribute);
+
+    spec.fields = spec.fields || [
+        {
+            name: spec.attribute,
+            metadata: metadata,
+            required: true
+        }
+    ];
+    spec.title = spec.title || IPA.messages.dialogs.add_title.replace('${entity}', metadata.label);
+    spec.subject = metadata.label;
+
+    var that = IPA.entity_adder_dialog(spec);
+
+    that.create_add_command = function(record) {
+
+        var command = that.entity_adder_dialog_create_add_command(record);
+
+        command.add_args(that.entity.get_primary_key());
+
+        return command;
+    };
+
+    that.create_buttons = function() {
+
+        that.buttons.remove('add_and_edit');
+    };
+
+    that.create_buttons();
 
     return that;
 };
@@ -1090,6 +1134,207 @@ IPA.association_facet = function (spec, no_init) {
 
     if (!no_init) that.init_association_facet();
 
+
+    return that;
+};
+
+IPA.attribute_facet = function(spec, no_init) {
+
+    spec = spec || {};
+
+    //default buttons and their actions
+    spec.actions = spec.actions || [];
+    spec.actions.unshift(
+        IPA.refresh_action,
+        {
+            name: 'remove',
+            hide_cond: ['read-only'],
+            enable_cond: ['item-selected'],
+            handler: function(facet) {
+                facet.show_remove_dialog();
+            }
+        },
+        {
+            name: 'add',
+            hide_cond: ['read-only'],
+            handler: function(facet) {
+                facet.show_add_dialog();
+            }
+        }
+    );
+
+    spec.control_buttons = spec.control_buttons || [];
+    spec.control_buttons.unshift(
+        {
+            name: 'refresh',
+            label: IPA.messages.buttons.refresh,
+            icon: 'reset-icon'
+        },
+        {
+            name: 'remove',
+            label: IPA.messages.buttons.remove,
+            icon: 'remove-icon'
+        },
+        {
+            name: 'add',
+            label: IPA.messages.buttons.add,
+            icon: 'add-icon'
+        });
+
+    spec.state = spec.state || {};
+    spec.state.evaluators = spec.state.evaluators || [];
+    spec.state.evaluators.push(
+        IPA.selected_state_evaluator,
+        IPA.read_only_state_evaluator);
+
+    spec.columns = spec.columns || [ spec.attribute ];
+    spec.table_name = spec.table_name || spec.attribute;
+
+    var that = IPA.table_facet(spec, true);
+
+    that.attribute = spec.attribute;
+
+    that.add_method = spec.add_method || 'add_member';
+    that.remove_method = spec.remove_method || 'remove_member';
+
+    that.create_header = function(container) {
+
+        that.facet_create_header(container);
+        that.create_control_buttons(that.controls);
+    };
+
+    that.show = function() {
+        that.facet_show();
+
+        that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        that.header.set_pkey(that.pkey);
+    };
+
+    that.get_records_map = function(data) {
+
+        var records_map = $.ordered_map();
+        var pkeys = data.result.result[that.attribute];
+
+        for (var i=0; pkeys && i<pkeys.length; i++) {
+            var pkey = pkeys[i];
+            var record = {};
+            record[that.attribute] = pkey;
+            records_map.put(pkey, record);
+        }
+
+        return records_map;
+    };
+
+    that.refresh = function() {
+
+        var pkey = that.entity.get_primary_key();
+
+        var command = IPA.command({
+            entity: that.entity.name,
+            method: 'show',
+            args: pkey
+        });
+
+        command.on_success = function(data, text_status, xhr) {
+            that.load(data);
+            that.show_content();
+        };
+
+        command.on_error = function(xhr, text_status, error_thrown) {
+            that.redirect_error(error_thrown);
+            that.report_error(error_thrown);
+        };
+
+        command.execute();
+    };
+
+    that.clear = function() {
+        that.header.clear();
+        that.table.clear();
+    };
+
+    that.needs_update = function() {
+        if (that._needs_update !== undefined) return that._needs_update;
+
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        if (that.pkey !== pkey) return true;
+
+        var page = parseInt(IPA.nav.get_state(that.entity.name+'-page'), 10) || 1;
+        if (that.table.current_page !== page) return true;
+
+        return that.facet_needs_update();
+    };
+
+    that.show_add_dialog = function() {
+
+        var dialog = IPA.attribute_adder_dialog({
+            attribute: spec.attribute,
+            entity: that.entity
+        });
+
+        dialog.open(that.container);
+    };
+
+    that.show_remove_dialog = function() {
+
+        var selected_values = that.get_selected_values();
+
+        if (!selected_values.length) {
+            var message = IPA.messages.dialogs.remove_empty;
+            alert(message);
+            return;
+        }
+
+        var dialog = IPA.deleter_dialog({
+            entity: that.entity,
+            values: selected_values
+        });
+
+        dialog.execute = function() {
+            that.remove(
+                selected_values,
+                function(data) {
+                    that.load(data);
+                    that.show_content();
+                    dialog.close();
+                },
+                function() {
+                    that.refresh();
+                    dialog.close();
+                }
+            );
+        };
+
+
+        dialog.open(that.container);
+    };
+
+    that.remove = function(values, on_success, on_error) {
+
+        var pkey = that.entity.get_primary_key();
+
+        var command = IPA.command({
+            entity: that.entity.name,
+            method: that.remove_method,
+            args: pkey,
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        command.set_option(that.attribute, values);
+
+        command.execute();
+    };
+
+
+    that.init_attribute_facet = function() {
+
+        that.init_facet();
+        that.init_table_columns();
+        that.init_table(that.entity);
+    };
+
+    if (!no_init) that.init_attribute_facet();
 
     return that;
 };
