@@ -98,6 +98,21 @@ IPA.group.entity = function(spec) {
                     width: '100px'
                 }
             ]
+        }).
+        association_facet({
+            name: 'member_group'
+        }).
+        attribute_facet({
+            name: 'member_external',
+            attribute: 'ipaexternalmember',
+            tab_label: 'External',
+            facet_group: 'member',
+            columns: [
+                {
+                    name: 'ipaexternalmember',
+                    label: IPA.get_command_option('group_add_member', 'ipaexternalmember').label
+                }
+            ]
 
         }).
         association_facet({
