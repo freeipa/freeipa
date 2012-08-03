@@ -28,6 +28,7 @@ from ipapython import ipautil
 from ipalib import api, errors, x509
 from ipalib.dn import *
 from nose.tools import raises, assert_raises
+from nose.plugins.skip import Skip, SkipTest
 from tests.test_xmlrpc.xmlrpc_test import (Declarative, XMLRPC_test,
     fuzzy_uuid, fuzzy_digits, fuzzy_hash, fuzzy_date, fuzzy_issuer,
     fuzzy_hex)
@@ -751,10 +752,17 @@ class test_host_false_pwd_change(XMLRPC_test):
     fqdn1 = u'testhost1.%s' % api.env.domain
     short1 = u'testhost1'
     new_pass = u'pass_123'
-
     command = "ipa-client/ipa-join"
-    [keytabfd, keytabname] = tempfile.mkstemp()
-    os.close(keytabfd)
+
+    @classmethod
+    def setUpClass(cls):
+        [cls.keytabfd,cls.keytabname] = tempfile.mkstemp()
+        os.close(cls.keytabfd)
+
+        does_command_exist = os.path.isfile(cls.command)
+
+        if not does_command_exist:
+            raise SkipTest("Command '%s' not found" % cls.command)
 
     # auxiliary function for checking whether the join operation has set
     # correct attributes
@@ -767,6 +775,7 @@ class test_host_false_pwd_change(XMLRPC_test):
         """
         Create a test host and join him into IPA.
         """
+
         # create a test host with bulk enrollment password
         random_pass = api.Command['host_add'](self.fqdn1, random=True, force=True)['result']['randompassword']
 
