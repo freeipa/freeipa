@@ -499,6 +499,17 @@ class i18n_messages(Command):
             "pwpolicy": {
                 "identity": _("Password Policy"),
             },
+            "range": {
+                "details": _("Range Settings"),
+                "ipabaseid": _("Base ID"),
+                "ipabaserid": _("Primary RID base"),
+                "ipaidrangesize": _("Range size"),
+                "ipanttrusteddomainsid": _("Domain SID"),
+                "ipasecondarybaserid": _("Secondary RID base"),
+                "type": _("Range type"),
+                "type_ad": _("Active Directory domain"),
+                "type_local": _("Local domain"),
+            },
             "role": {
                 "identity": _("Role Settings"),
             },

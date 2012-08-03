@@ -350,7 +350,7 @@ IPA.field = function(spec) {
 
         if (that.widget) {
             if (that.label) that.widget.label = that.label;
-            if (that.title) that.widget.title = that.title;
+            if (that.tooltip) that.widget.tooltip = that.tooltip;
             if (that.measurement_unit) that.widget.measurement_unit = that.measurement_unit;
             that.widget.undo = that.undo;
             that.widget.writable = that.writable;

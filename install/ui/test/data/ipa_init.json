@@ -361,6 +361,17 @@
                         "pwpolicy": {
                             "identity": "Password Policy"
                         },
+                        "range": {
+                            "details": "Range Settings",
+                            "ipabaseid": "Base ID",
+                            "ipabaserid": "Primary RID base",
+                            "ipaidrangesize": "Range size",
+                            "ipanttrusteddomainsid": "Domain SID",
+                            "ipasecondarybaserid": "Secondary RID base",
+                            "type": "Range type",
+                            "type_ad": "Active Directory domain",
+                            "type_local": "Local domain"
+                        },
                         "role": {
                             "identity": "Role Settings"
                         },
