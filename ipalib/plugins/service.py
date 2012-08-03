@@ -271,7 +271,7 @@ class service_add(LDAPCreate):
     msg_summary = _('Added service "%(value)s"')
     member_attributes = ['managedby']
     has_output_params = LDAPCreate.has_output_params + output_params
-    takes_options = (
+    takes_options = LDAPCreate.takes_options + (
         Flag('force',
             label=_('Force'),
             doc=_('force principal name even if not in DNS'),

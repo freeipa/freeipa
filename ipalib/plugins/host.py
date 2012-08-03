@@ -364,7 +364,7 @@ class host_add(LDAPCreate):
     has_output_params = LDAPCreate.has_output_params + host_output_params
     msg_summary = _('Added host "%(value)s"')
     member_attributes = ['managedby']
-    takes_options = (
+    takes_options = LDAPCreate.takes_options + (
         Flag('force',
             label=_('Force'),
             doc=_('force host name even if not in DNS'),

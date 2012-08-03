@@ -233,7 +233,7 @@ class automember_add(LDAPCreate):
     __doc__ = _("""
     Add an automember rule.
     """)
-    takes_options = group_type
+    takes_options = LDAPCreate.takes_options + group_type
     takes_args = automember_rule
     msg_summary = _('Added automember rule "%(value)s"')
 
@@ -440,7 +440,7 @@ class automember_mod(LDAPUpdate):
     Modify an automember rule.
     """)
     takes_args = automember_rule
-    takes_options = group_type
+    takes_options = LDAPUpdate.takes_options + group_type
     msg_summary = _('Modified automember rule "%(value)s"')
 
     def execute(self, *keys, **options):

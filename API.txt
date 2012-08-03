@@ -101,9 +101,11 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: automember_add
-args: 1,5,3
+args: 1,7,3
 arg: Str('cn', cli_name='automember_rule')
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: StrEnum('type', values=(u'group', u'hostgroup'))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -177,9 +179,13 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: automember_mod
-args: 1,5,3
+args: 1,9,3
 arg: Str('cn', cli_name='automember_rule')
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Flag('rights', autofill=True, default=False)
 option: StrEnum('type', values=(u'group', u'hostgroup'))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1652,7 +1658,7 @@ output: Output('notmatched', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>),
 output: Output('error', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)
 output: Output('value', <type 'bool'>, None)
 command: host_add
-args: 1,16,3
+args: 1,18,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
 option: Str('l', attribute=True, cli_name='locality', multivalue=False, required=False)
@@ -1664,6 +1670,8 @@ option: Flag('random', attribute=False, autofill=True, cli_name='random', defaul
 option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=False, required=False)
 option: Str('macaddress', attribute=True, cli_name='macaddress', csv=True, multivalue=True, pattern='^([a-fA-F0-9]{2}[:|\\-]?){5}[a-fA-F0-9]{2}$', required=False)
 option: Bytes('ipasshpubkey', attribute=True, cli_name='sshpubkey', multivalue=True, required=False)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('force', autofill=True, default=False)
 option: Flag('no_reverse', autofill=True, default=False)
 option: Str('ip_address?')
@@ -2727,10 +2735,12 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: service_add
-args: 1,6,3
+args: 1,8,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, required=True)
 option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=False, required=False)
 option: StrEnum('ipakrbauthzdata', attribute=True, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD'))
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('force', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -3190,8 +3200,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: trust_add
-args: 1,8,3
+args: 1,10,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, required=True)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', values=(u'ad',))
 option: Str('realm_admin?', cli_name='admin')
 option: Password('realm_passwd?', cli_name='password', confirm=False)

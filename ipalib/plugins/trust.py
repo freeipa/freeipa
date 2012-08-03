@@ -115,7 +115,7 @@ def make_trust_dn(env, trust_type, dn):
 class trust_add(LDAPCreate):
     __doc__ = _('Add new trust to use')
 
-    takes_options = (
+    takes_options = LDAPCreate.takes_options + (
         StrEnum('trust_type',
             cli_name='type',
             label=_('Trust type (ad for Active Directory, default)'),
