@@ -833,6 +833,12 @@ IPA.command = function(spec) {
         return errors;
     };
 
+    that.check_option = function(option_name) {
+
+        var metadata = IPA.get_command_option(that.get_command(), option_name);
+        return metadata !== null;
+    };
+
     that.to_json = function() {
         var json = {};
 

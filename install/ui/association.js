@@ -1185,7 +1185,11 @@ IPA.attribute_facet = function(spec, no_init) {
     spec.state.evaluators = spec.state.evaluators || [];
     spec.state.evaluators.push(
         IPA.selected_state_evaluator,
-        IPA.read_only_state_evaluator);
+        IPA.read_only_state_evaluator,
+        {
+            factory: IPA.attr_read_only_evaluator,
+            attribute: spec.attribute
+        });
 
     spec.columns = spec.columns || [ spec.attribute ];
     spec.table_name = spec.table_name || spec.attribute;
@@ -1234,6 +1238,13 @@ IPA.attribute_facet = function(spec, no_init) {
             method: 'show',
             args: pkey
         });
+
+        if (command.check_option('all')) {
+            command.set_option('all', true);
+        }
+        if (command.check_option('rights')) {
+            command.set_option('rights', true);
+        }
 
         command.on_success = function(data, text_status, xhr) {
             that.load(data);
@@ -1323,6 +1334,13 @@ IPA.attribute_facet = function(spec, no_init) {
 
         command.set_option(that.attribute, values);
 
+        if (command.check_option('all')) {
+            command.set_option('all', true);
+        }
+        if (command.check_option('rights')) {
+            command.set_option('rights', true);
+        }
+
         command.execute();
     };
 
@@ -1335,6 +1353,38 @@ IPA.attribute_facet = function(spec, no_init) {
     };
 
     if (!no_init) that.init_attribute_facet();
+
+    return that;
+};
+
+IPA.attr_read_only_evaluator = function(spec) {
+
+    spec.name = spec.name || 'attr_read_only_evaluator';
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.attribute = spec.attribute;
+
+    that.on_event = function(data) {
+
+        var old_state, record, rights, i, state;
+
+        old_state = that.state;
+        record = data.result.result;
+
+        // ignore loads without --rights
+        if (!record.attributelevelrights) return;
+
+        that.state = [];
+
+        rights = record.attributelevelrights[that.attribute];
+
+        if (!rights || rights.indexOf('w') === -1) {
+            that.state.push('read-only');
+        }
+
+        that.notify_on_change(old_state);
+    };
 
     return that;
 };
