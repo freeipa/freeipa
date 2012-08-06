@@ -422,7 +422,9 @@ def main():
 
     print "Packaging replica information into %s" % encfile
     ipautil.run(["/bin/tar", "cf", replicafile, "-C", top_dir, "realm_info"])
-    ipautil.encrypt_file(replicafile, encfile, dirman_password, top_dir);
+    ipautil.encrypt_file(replicafile, encfile, dirman_password, top_dir)
+
+    os.chmod(encfile, 0600)
 
     remove_file(replicafile)
     shutil.rmtree(dir)
