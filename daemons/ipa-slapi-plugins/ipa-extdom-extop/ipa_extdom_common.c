@@ -162,6 +162,72 @@ static void free_domain_info(struct domain_info *domain_info)
     free(domain_info);
 }
 
+static int set_domain_range(struct ipa_extdom_ctx *ctx, const char *dom_sid_str,
+                            struct sss_idmap_range *range)
+{
+    Slapi_PBlock *pb = NULL;
+    Slapi_Entry **e = NULL;
+    char *filter = NULL;
+    int ret;
+    unsigned long ulong_val;
+
+    pb = slapi_pblock_new();
+    if (pb == NULL) {
+        return ENOMEM;
+    }
+
+    ret = asprintf(&filter, "(&(ipaNTTrustedDomainSID=%s)" \
+                              "(objectclass=ipaTrustedADDomainRange))",
+                            dom_sid_str);
+    if (ret == -1) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    slapi_search_internal_set_pb(pb, ctx->base_dn,
+                                 LDAP_SCOPE_SUBTREE, filter,
+                                 NULL, 0, NULL, NULL, ctx->plugin_id, 0);
+
+    slapi_search_internal_pb(pb);
+    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
+
+    if (ret != EOK) {
+        ret = ENOENT;
+        goto done;
+    }
+
+    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &e);
+    if (!e || !e[0]) {
+        /* no matches */
+        ret = ENOENT;
+        goto done;
+    }
+
+    /* TODO: handle more than one range per domain */
+    ulong_val = slapi_entry_attr_get_ulong(e[0], "ipaBaseID");
+    if (ulong_val >= UINT32_MAX) {
+        ret = EINVAL;
+        goto done;
+    }
+    range->min = (uint32_t) ulong_val;
+
+    ulong_val = slapi_entry_attr_get_ulong(e[0], "ipaIDRangeSize");
+    if ((range->min + ulong_val -1) >= UINT32_MAX) {
+        ret = EINVAL;
+        goto done;
+    }
+    range->max = (range->min + ulong_val -1);
+
+    ret = 0;
+
+done:
+    slapi_free_search_results_internal(pb);
+    slapi_pblock_destroy(pb);
+    free(filter);
+
+    return ret;
+}
+
 /* TODO: A similar call is used in ipa_cldap_netlogon.c, maybe a candidate for
  * a common library */
 static int get_domain_info(struct ipa_extdom_ctx *ctx, const char *domain_name,
@@ -219,8 +285,14 @@ static int get_domain_info(struct ipa_extdom_ctx *ctx, const char *domain_name,
                                                           "ipaNTFlatName");
 
     /* TODO: read range from LDAP server */
+/*
     range.min = 200000;
     range.max = 400000;
+*/
+    ret = set_domain_range(ctx, domain_info->sid, &range);
+    if (ret != 0) {
+        goto done;
+    }
 
     err = sss_idmap_init(NULL, NULL, NULL, &domain_info->idmap_ctx);
     if (err == IDMAP_SUCCESS) {
