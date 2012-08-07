@@ -437,7 +437,10 @@ def uninstall(options, env):
             "Original configuration file was restored, restarting SSSD " +
             "service.")
         sssd = ipaservices.service('sssd')
-        sssd.restart()
+        try:
+            sssd.restart()
+        except CalledProcessError:
+            root_logger.warning("SSSD service restart was unsuccessful.")
 
     if not options.unattended:
         root_logger.info(
