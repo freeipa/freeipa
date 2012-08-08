@@ -24,6 +24,7 @@ from ipalib import Command
 from ipalib import errors
 from ipapython import ipautil
 from ipalib import util
+from ipapython.dn import DN
 
 
 __doc__ = _("""

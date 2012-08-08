@@ -24,6 +24,12 @@ from ipalib import Command
 from ipalib import errors
 from ipapython import ipautil
 from ipalib import util
+try:
+    import pysss_murmur
+    _murmur_installed = True
+except Exception, e:
+    _murmur_installed = False
+
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc
@@ -142,8 +148,17 @@ class trust_add(LDAPCreate):
             label=_('Shared secret for the trust'),
             confirm=False,
         ),
+        Int('base_id?',
+            cli_name='base_id',
+            label=_('First Posix ID of the range reserved for the trusted domain'),
+        ),
+        Int('range_size?',
+            cli_name='range_size',
+            label=_('Size of the ID range reserved for the trusted domain'),
+            default=200000,
+            autofill=True
+        ),
     )
-
 
     msg_summary = _('Added Active Directory trust for realm "%(value)s"')
 
@@ -155,7 +170,53 @@ class trust_add(LDAPCreate):
                 raise errors.ValidationError(name=_('trust type'), error=_('only "ad" is supported'))
         else:
             raise errors.RequirementError(name=_('trust type'))
+
+        self.add_range(*keys, **options)
+
         return result
+
+    def add_range(self, *keys, **options):
+        new_obj = api.Command['trust_show'](keys[-1])
+        dom_sid = new_obj['result']['ipanttrusteddomainsid'][0];
+
+        range_name = keys[-1].upper()+'_id_range'
+
+        try:
+            old_range = api.Command['range_show'](range_name)
+        except errors.NotFound, e:
+            old_range = None
+
+        if old_range:
+            old_dom_sid = old_range['result']['ipanttrusteddomainsid'][0];
+
+            if old_dom_sid == dom_sid:
+                return
+
+            raise errors.ValidationError(name=_('range exists'),
+                    error=_('ID range with the same name but different ' \
+                            'domain SID already exists. The ID range for ' \
+                            'the new trusted domain must be created manually.'))
+
+        if 'base_id' in options:
+            base_id = options['base_id']
+        else:
+            if not _murmur_installed:
+                raise errors.ValidationError(name=_('missing base_id'),
+                    error=_('pysss_murmur is not available on the server ' \
+                            'and no base_id is given, ' \
+                            'ID range must be create manually'))
+
+            base_id = 200000 + (pysss_murmur.murmurhash3(dom_sid, len(dom_sid), 0xdeadbeef) % 10000) * 200000
+
+        try:
+            new_range = api.Command['range_add'](range_name,
+                                                 ipabaseid=base_id,
+                                                 ipaidrangesize=options['range_size'],
+                                                 ipabaserid=0,
+                                                 ipanttrusteddomainsid=dom_sid)
+        except Exception, e:
+            raise errors.ValidationError(name=_('ID range exists'),
+                   error = _('ID range already exists, must be added manually'))
 
     def execute_ad(self, *keys, **options):
         # Join domain using full credentials and with random trustdom

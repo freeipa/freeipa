@@ -3200,7 +3200,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: trust_add
-args: 1,10,3
+args: 1,12,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, required=True)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -3209,6 +3209,8 @@ option: Str('realm_admin?', cli_name='admin')
 option: Password('realm_passwd?', cli_name='password', confirm=False)
 option: Str('realm_server?', cli_name='server')
 option: Password('trust_secret?', cli_name='trust_secret', confirm=False)
+option: Int('base_id?', cli_name='base_id')
+option: Int('range_size?', autofill=True, cli_name='range_size', default=200000)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
