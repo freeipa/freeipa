@@ -1206,6 +1206,12 @@ IPA.facet_builder = function(entity) {
         spec.tab_label = spec.tab_label || attr_metadata.label;
         spec.factory = spec.factory || IPA.attribute_facet;
 
+        entity.policies.add_policy(IPA.build({
+            factory: IPA.facet_update_policy,
+            source_facet: 'search',
+            dest_facet: spec.name
+        }));
+
         return spec;
     };
 
@@ -1241,6 +1247,12 @@ IPA.facet_builder = function(entity) {
 
             spec.read_only = true;
         }
+
+        entity.policies.add_policy(IPA.build({
+            factory: IPA.facet_update_policy,
+            source_facet: 'search',
+            dest_facet: spec.name
+        }));
 
         return spec;
     };

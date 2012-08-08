@@ -310,6 +310,7 @@ IPA.search_deleter_dialog = function(spec) {
 
         batch.on_success = function() {
             that.facet.refresh();
+            that.facet.on_update.notify([],that.facet);
             that.close();
         };
 
@@ -421,9 +422,7 @@ IPA.batch_items_action = function(spec) {
 
         var batch = IPA.batch_command({
             name: entity.name + '_batch_'+ that.method,
-            on_success: function() {
-                facet.refresh();
-            }
+            on_success: that.get_on_success(facet, on_success)
         });
 
         for (var i=0; i<pkeys.length; i++) {
@@ -440,6 +439,19 @@ IPA.batch_items_action = function(spec) {
 
         batch.execute();
     };
+
+    that.on_success = function(facet, data, text_status, xhr) {
+        facet.on_update.notify();
+        facet.refresh();
+    };
+
+    that.get_on_success = function(facet, on_success) {
+        return function(data, text_status, xhr) {
+            that.on_success(facet, data, text_status, xhr);
+            if (on_success) on_success.call(this, data, text_status, xhr);
+        };
+    };
+
 
     return that;
 };
