@@ -40,26 +40,26 @@ EXAMPLES:
    ipa selinuxusermap-add-host --hosts=server.example.com test1
 
  Create a rule, "test2", that sets all users to guest_u:s0 and uses an existing HBAC rule for users and hosts:
-   ipa selinuxusermap-add --usercat=all --hbacrule=webserver --selinuxuser=guest_u:s0 test1
+   ipa selinuxusermap-add --usercat=all --hbacrule=webserver --selinuxuser=guest_u:s0 test2
 
- Display the properties of a named HBAC rule:
-   ipa selinuxusermap-show test1
+ Display the properties of a rule:
+   ipa selinuxusermap-show test2
 
  Create a rule for a specific user. This sets the SELinux context for
  user john to unconfined_u:s0-s0:c0.c1023 on any machine:
    ipa selinuxusermap-add --hostcat=all --selinuxuser=unconfined_u:s0-s0:c0.c1023 john_unconfined
    ipa selinuxusermap-add-user --users=john john_unconfined
 
- Disable a named rule:
+ Disable a rule:
    ipa selinuxusermap-disable test1
 
- Enable a named rule:
+ Enable a rule:
    ipa selinuxusermap-enable test1
 
  Find a rule referencing a specific HBAC rule:
    ipa selinuxusermap-find --hbacrule=allow_some
 
- Remove a named rule:
+ Remove a rule:
    ipa selinuxusermap-del john_unconfined
 
 SEEALSO:
