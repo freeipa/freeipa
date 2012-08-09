@@ -55,6 +55,8 @@ var IPA = function() {
 
     that.network_call_count = 0;
 
+    that.ui = {};
+
     /* initialize the IPA JSON-RPC helper */
     that.init = function(params) {
 
@@ -190,7 +192,10 @@ var IPA = function() {
                 objects,
                 commands
             ],
-            on_success: params.on_success,
+            on_success: function(data, text_status, xhr) {
+                IPA.ui.initialized = true;
+                params.on_success.call(this, data, text_status, xhr);
+            },
             on_error: params.on_error
         });
 
@@ -308,10 +313,12 @@ IPA.get_credentials = function() {
 
     function error_handler(xhr, text_status, error_thrown) {
         status = xhr.status;
+        IPA.ui.logged_kerberos = false;
     }
 
     function success_handler(data, text_status, xhr) {
         status = xhr.status;
+        IPA.ui.logged_kerberos = true;
     }
 
     var request = {
@@ -379,6 +386,7 @@ IPA.login_password = function(username, password) {
 
     function success_handler(data, text_status, xhr) {
         result = 'success';
+        IPA.ui.logged_password = true;
     }
 
     function error_handler(xhr, text_status, error_thrown) {
@@ -392,6 +400,8 @@ IPA.login_password = function(username, password) {
                 result = 'expired';
             }
         }
+
+        IPA.ui.logged_password = false;
     }
 
     var data = {
@@ -728,6 +738,16 @@ IPA.command = function(spec) {
             if (error_msg) {
                 error_msg = error_msg.replace('${message}', error_thrown.message);
                 error_thrown.message = error_msg;
+            }
+
+            // global specical cases error handlers section
+
+            // With trusts, user from trusted domain can use his ticket but he
+            // doesn't have rights for LDAP modify. It will throw internal errror.
+            // We should offer form base login.
+            if (xhr.status === 500 && IPA.ui.logged_kerberos && !IPA.ui.initialized) {
+                auth_dialog_open(xhr, text_status, error_thrown);
+                return;
             }
 
             if (that.retry) {
