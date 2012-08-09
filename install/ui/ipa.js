@@ -323,6 +323,7 @@ IPA.get_credentials = function() {
 
     var request = {
         url: IPA.login_url,
+        cache: false,
         async: false,
         type: "GET",
         success: success_handler,
