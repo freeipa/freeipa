@@ -65,6 +65,8 @@ def parse_options():
                       help="Location of CA PKCS#12 file, default /root/cacert.p12")
     parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
+    parser.add_option("--debug", dest="debug", action="store_true",
+                      default=False, help="enable debugging")
 
     options, args = parser.parse_args()
 
@@ -238,9 +240,11 @@ def main():
 
     replica_fqdn = args[0]
 
+    standard_logging_setup(None, debug=options.debug)
+
     # Just initialize the environment. This is so the installer can have
     # access to the plugin environment
-    api.bootstrap(in_server=True)
+    api.bootstrap(in_server=True, debug=options.debug)
     api.finalize()
 
     #Automatically disable pkinit w/ dogtag until that is supported
@@ -270,6 +274,8 @@ def main():
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
     except errors.LDAPError:
         sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
+    except errors.DatabaseError, e:
+        sys.exit("\n"+e.desc)
 
     try:
         installutils.verify_fqdn(replica_fqdn, local_hostname=False)
