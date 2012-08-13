@@ -50,18 +50,22 @@ The code in this module relies heavily on samba4-python package
 and Samba4 python bindings.
 """)
 
-access_denied_error =  errors.ACIError(info='CIFS server denied your credentials')
+access_denied_error =  errors.ACIError(info=_('CIFS server denied your credentials'))
 dcerpc_error_codes = {
-    -1073741823: errors.RemoteRetrieveError(reason='communication with CIFS server was unsuccessful'),
+    -1073741823:
+        errors.RemoteRetrieveError(reason=_('communication with CIFS server was unsuccessful')),
     -1073741790: access_denied_error,
     -1073741715: access_denied_error,
     -1073741614: access_denied_error,
-    -1073741603: errors.ValidationError(name='AD domain controller', error='unsupported functional level'),
+    -1073741603:
+        errors.ValidationError(name=_('AD domain controller'), error=_('unsupported functional level')),
 }
 
 dcerpc_error_messages = {
-    "NT_STATUS_OBJECT_NAME_NOT_FOUND": errors.NotFound(reason='Cannot find specified domain or server name'),
-    "NT_STATUS_INVALID_PARAMETER_MIX": errors.RequirementError(name='At least the domain or IP address should be specified'),
+    "NT_STATUS_OBJECT_NAME_NOT_FOUND":
+         errors.NotFound(reason=_('Cannot find specified domain or server name')),
+    "NT_STATUS_INVALID_PARAMETER_MIX":
+         errors.RequirementError(name=_('At least the domain or IP address should be specified')),
 }
 
 def assess_dcerpc_exception(num=None,message=None):
@@ -73,7 +77,9 @@ def assess_dcerpc_exception(num=None,message=None):
         return dcerpc_error_codes[num]
     if message and message in dcerpc_error_messages:
         return dcerpc_error_messages[message]
-    return errors.RemoteRetrieveError(reason='CIFS server communication error: code "%s", message "%s" (both may be "None")' % (num, message))
+    reason = _('''CIFS server communication error: code "%(num)s",
+                  message "%(message)s" (both may be "None")''') % dict(num=num, message=message)
+    return errors.RemoteRetrieveError(reason=reason)
 
 class ExtendedDNControl(_ldap.controls.RequestControl):
     def __init__(self):
@@ -173,7 +179,7 @@ class TrustDomainInstance(object):
 
     def __gen_lsa_connection(self, binding):
        if self.creds is None:
-           raise errors.RequirementError(name='CIFS credentials object')
+           raise errors.RequirementError(name=_('CIFS credentials object'))
        try:
            result = lsa.lsarpc(binding, self.parm, self.creds)
            return result
@@ -205,10 +211,12 @@ class TrustDomainInstance(object):
                 attempts = attempts + 1
 
         if self._pipe is None and attempts == len(bindings):
-            raise errors.ACIError(info='CIFS server %s denied your credentials' % (remote_host))
+            raise errors.ACIError(
+                info=_('CIFS server %(host)s denied your credentials') % dict(host=remote_host))
 
         if self._pipe is None:
-            raise errors.RemoteRetrieveError(reason='Cannot establish LSA connection to %s. Is CIFS server running?' % (remote_host))
+            raise errors.RemoteRetrieveError(
+                reason=_('Cannot establish LSA connection to %(host)s. Is CIFS server running?') % dict(host=remote_host))
 
     def __gen_lsa_bindings(self, remote_host):
         """
@@ -255,7 +263,9 @@ class TrustDomainInstance(object):
             result = res['defaultNamingContext'][0]
             self.info['dns_hostname'] = res['dnsHostName'][0]
         except _ldap.LDAPError, e:
-            root_logger.error("LDAP error when connecting to %s: %s" % (unicode(result.pdc_name), str(e)))
+            root_logger.error(
+                "LDAP error when connecting to %(host)s: %(error)s" %
+                    dict(host=unicode(result.pdc_name), error=str(e)))
 
         if result:
            self.info['sid'] = self.parse_naming_context(result)
