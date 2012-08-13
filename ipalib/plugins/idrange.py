@@ -28,7 +28,113 @@ from ipapython.dn import DN
 
 
 __doc__ = _("""
-Manage ID ranges
+ID ranges
+
+Manage ID ranges  used to map Posix IDs to SIDs and back.
+
+There are two type of ID ranges which are both handled by this utility:
+
+ - the ID ranges of the local domain
+ - the ID ranges of trusted remote domains
+
+Both types have the following attributes in common:
+
+ - base-id: the first ID of the Posix ID range
+ - range-size: the size of the range
+
+With those two attributes a range object can reserve the Posix IDs starting
+with base-id up to but not including base-id+range-size exclusively.
+
+Additionally an ID range of the local domain may set
+ - rid-base: the first RID(*) of the corresponding RID range
+ - secondary-rid-base: first RID of the secondary RID range
+
+and an ID range of a trusted domain must set
+ - rid-base: the first RID of the corresponding RID range
+ - dom_sid: domain SID of the trusted domain
+
+
+
+EXAMPLE: Add a new ID range for a trusted domain
+
+Since there might be more than one trusted domain the domain SID must be given
+while creating the ID range.
+
+  ipa range-add --base-id=1200000 --range-size=200000 --rid-base=0 \\
+                --dom-sid=S-1-5-21-123-456-789 trusted_dom_range
+
+This ID range is then used by the IPA server and the SSSD IPA provider to
+assign Posix UIDs to users from the trusted domain.
+
+If e.g a range for a trusted domain is configured with the following values:
+ base-id = 1200000
+ range-size = 200000
+ rid-base = 0
+the RIDs 0 to 199999 are mapped to the Posix ID from 1200000 to 13999999. So
+RID 1000 <-> Posix ID 1201000
+
+
+
+EXAMPLE: Add a new ID range for the local domain
+
+To create an ID range for the local domain it is not necessary to specify a
+domain SID. But since it is possible that a user and a group can have the same
+value as Posix ID a second RID interval is needed to handle conflicts.
+
+  ipa range-add --base-id=1200000 --range-size=200000 --rid-base=1000 \\
+                --secondary-rid-base=1000000 local_range
+
+The data from the ID ranges of the local domain are used by the IPA server
+internally to assign SIDs to IPA users and groups. The SID will then be stored
+in the user or group objects.
+
+If e.g. the ID range for the local domain is configured with the values from
+the example above then a new user with the UID 1200007 will get the RID 1007.
+If this RID is already used by a group the RID will be 1000007. This can only
+happen if a user or a group object was created with a fixed ID because the
+automatic assignment will not assign the same ID twice. Since there are only
+users and groups sharing the same ID namespace it is sufficient to have only
+one fallback range to handle conflicts.
+
+To find the Posix ID for a given RID from the local domain it has to be
+checked first if the RID falls in the primary or secondary RID range and
+the rid-base or the secondary-rid-base has to be subtracted, respectively,
+and the base-id has to be added to get the Posix ID.
+
+Typically the creation of ID ranges happens behind the scenes and this CLI
+must not be used at all. The ID range for the local domain will be created
+during installation or upgrade from an older version. The ID range for a
+trusted domain will be create together with the trust by 'ipa trust-add ...'.
+The use cases for this CLI are
+
+USE CASES:
+
+  Add an ID range from a transitively trusted domain
+
+    If the trusted domain (A) trusts another domain (B) as well and this trust
+    is transitive 'ipa trust-add domain-A' will only create a range for
+    domain A.  The ID range for domain B must be added manually.
+
+  Add an additional ID range for the local domain
+
+    If the ID range of the local domain is exhausted, i.e. no new IDs can be
+    assigned to Posix users or groups by the DNA plugin, a new range has to be
+    created to allow new users an groups to be added. (Currently there is no
+    connection between this range CLI and the DNA plugin, but a future version
+    might be able to modify the configuration of the DNS plugin as well)
+
+In general it is not necessary to modify or delete ID ranges. If there is no
+other way to achieve a certain configuration than to modify or delete an ID
+range it should be done with great care. Because UIDs are stored in the file
+system and are used for access control it might be possible that users are
+allowed to access files of other users if an ID range got deleted and reused
+for a different domain.
+
+(*) The RID is typically the last integer of a user or group SID which follows
+the domain SID. E.g. if the domain SID is S-1-5-21-123-456-789 and a user from
+this domain has the SID S-1-5-21-123-456-789-1010 then 1010 id the RID of the
+user. RIDs are unique in a domain, 32bit values and are used for users and
+groups.
 """)
 
 class idrange(LDAPObject):
@@ -144,7 +250,26 @@ class idrange(LDAPObject):
                             'of the defined range is not allowed'))
 
 class idrange_add(LDAPCreate):
-    __doc__ = _('Add new ID range.')
+    __doc__ = _("""
+    Add new ID range.
+
+    To add a new ID range you always have to specify
+
+        --base-id
+        --range-size
+
+    Additionally
+
+        --rid-base
+        --econdary-rid-base
+
+    may be given for a new ID range for the local domain while
+
+        --rid-bas
+        --dom-sid
+
+    must be given to add a new range for a trusted AD domain.
+    """)
 
     msg_summary = _('Added ID range "%(value)s"')
 
