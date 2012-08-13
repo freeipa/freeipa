@@ -313,6 +313,10 @@ class DsInstance(service.Service):
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
+        try:
+            idrange_size = self.idmax - self.idstart + 1
+        except TypeError:
+            idrange_size = None
         self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password,
                              RANDOM_PASSWORD=self.generate_random(),
@@ -323,7 +327,7 @@ class DsInstance(service.Service):
                              IDMAX=self.idmax, HOST=self.fqdn,
                              ESCAPED_SUFFIX=str(self.suffix),
                              GROUP=DS_GROUP,
-                             IDRANGE_SIZE=self.idmax-self.idstart+1
+                             IDRANGE_SIZE=idrange_size
                          )
 
     def __create_ds_user(self):

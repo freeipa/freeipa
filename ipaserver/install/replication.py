@@ -818,7 +818,7 @@ class ReplicationManager(object):
             ad_conn.set_option(ldap.OPT_X_TLS_CACERTFILE, cacert)
             ad_conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
             ad_conn.start_tls_s()
-            ad_conn.simple_bind_s(ad_binddn, ad_pwd)
+            ad_conn.simple_bind_s(str(ad_binddn), ad_pwd)
             res = ad_conn.search_s("", ldap.SCOPE_BASE, '(objectClass=*)',
                                    ['defaultNamingContext'])
             for dn,entry in res:

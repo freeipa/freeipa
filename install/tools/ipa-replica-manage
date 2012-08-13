@@ -31,6 +31,7 @@ from ipapython import version
 from ipalib import api, errors, util
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
+from ipapython.config import IPAOptionParser
 
 CACERT = "/etc/ipa/ca.crt"
 
@@ -48,16 +49,14 @@ commands = {
 }
 
 def parse_options():
-    from optparse import OptionParser
-
-    parser = OptionParser(version=version.VERSION)
+    parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("-H", "--host", dest="host", help="starting host")
     parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
                       help="provide additional information")
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
                       help="ignore some types of errors")
-    parser.add_option("--binddn", dest="binddn", default=None,
+    parser.add_option("--binddn", dest="binddn", default=None, type="dn",
                       help="Bind DN to use with remote server")
     parser.add_option("--bindpw", dest="bindpw", default=None,
                       help="Password for Bind DN to use with remote server")
