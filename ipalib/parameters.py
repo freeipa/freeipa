@@ -109,7 +109,7 @@ from types import NoneType
 from text import _ as ugettext
 from plugable import ReadOnly, lock, check_name
 from errors import ConversionError, RequirementError, ValidationError
-from errors import PasswordMismatch
+from errors import PasswordMismatch, Base64DecodeError
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 from text import Gettext, FixMe
 from ipapython.dn import DN
@@ -1452,8 +1452,8 @@ class Bytes(Data):
         if isinstance(value, unicode):
             try:
                 value = base64.b64decode(value)
-            except TypeError:
-                raise ConversionError(name=self.get_param_name(), index=index, error=self.type_error)
+            except TypeError, e:
+                raise Base64DecodeError(reason=str(e))
         return super(Bytes, self)._convert_scalar(value, index)
 
 
