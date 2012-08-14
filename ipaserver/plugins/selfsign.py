@@ -92,7 +92,7 @@ class ra(rabase.rabase):
             subject_base.insert(0, RDN(('CN', hostname)))
             request = pkcs10.load_certificate_request(csr)
             # python-nss normalizes the request subject
-            request_subject = DN(pkcs10.get_subject(request))
+            request_subject = DN(str(pkcs10.get_subject(request)))
 
             if subject_base != request_subject:
                 raise errors.CertificateOperationError(error=_('Request subject "%(request_subject)s" does not match the form "%(subject_base)s"') % \
