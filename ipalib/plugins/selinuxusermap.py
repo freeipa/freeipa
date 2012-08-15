@@ -72,10 +72,13 @@ notboth_err = _('HBAC rule and local members cannot both be set')
 
 def validate_selinuxuser(ugettext, user):
     """
-    An SELinux user has 3 components: user:MLS:MCS
-    user traditionally ends with _u but this is not mandatory. Regex is ^[a-zA-Z][a-zA-Z_]*
-    The MLS part can only be
-    Level: s[0-15](-s[0-15])
+    An SELinux user has 3 components: user:MLS:MCS. user and MLS are required.
+    user traditionally ends with _u but this is not mandatory.
+      The regex is ^[a-zA-Z][a-zA-Z_]*
+
+    The MLS part can only be:
+      Level: s[0-15](-s[0-15])
+
     Then MCS could be c[0-1023].c[0-1023] and/or c[0-1023]-c[0-c0123]
     Meaning
     s0 s0-s1 s0-s15:c0.c1023 s0-s1:c0,c2,c15.c26 s0-s0:c0.c1023
@@ -92,7 +95,7 @@ def validate_selinuxuser(ugettext, user):
 
     if not regex_name.match(name):
         return _('Invalid SELinux user name, only a-Z and _ are allowed')
-    if mls and not regex_mls.match(mls):
+    if not mls or not regex_mls.match(mls):
         return _('Invalid MLS value, must match s[0-15](-s[0-15])')
     if mcs and not regex_mcs.match(mcs):
         return _('Invalid MCS value, must match c[0-1023].c[0-1023] and/or c[0-1023]-c[0-c0123]')
@@ -283,11 +286,11 @@ class selinuxusermap_mod(LDAPUpdate):
         if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason="host category cannot be set to 'all' while there are allowed hosts")
 
-        if 'ipaselinuxuser' in options:
-            validate_selinuxuser_inlist(ldap, options['ipaselinuxuser'])
+        if 'ipaselinuxuser' in entry_attrs:
+            validate_selinuxuser_inlist(ldap, entry_attrs['ipaselinuxuser'])
 
-        if 'seealso' in options:
-            entry_attrs['seealso'] = self.obj._normalize_seealso(options['seealso'])
+        if 'seealso' in entry_attrs:
+            entry_attrs['seealso'] = self.obj._normalize_seealso(entry_attrs['seealso'])
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

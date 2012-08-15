@@ -605,9 +605,9 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule with unknown user %r' % rule1,
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'notfound')
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'notfound:s0:c0')
             ),
-            expected=errors.NotFound(reason=u'SELinux user notfound not ' +
+            expected=errors.NotFound(reason=u'SELinux user notfound:s0:c0 not ' +
                 u'found in ordering list (in config)'),
         ),
 
@@ -640,6 +640,16 @@ class test_selinuxusermap(Declarative):
             expected=errors.ValidationError(name='selinuxuser',
                 error=u'Invalid MCS value, must match c[0-1023].c[0-1023] ' +
                     u'and/or c[0-1023]-c[0-c0123]'),
+        ),
+
+
+        dict(
+            desc='Create rule with invalid user via setattr',
+            command=(
+                'selinuxusermap_mod', [rule1], dict(setattr=u'ipaselinuxuser=deny')
+            ),
+            expected=errors.ValidationError(name='ipaselinuxuser',
+                error=u'Invalid MLS value, must match s[0-15](-s[0-15])'),
         ),
 
     ]
