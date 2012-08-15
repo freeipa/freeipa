@@ -809,7 +809,10 @@ last, after all sets and adds."""),
                 value = None
 
             if ldap.has_dn_syntax(attr):
-                value = DN(value)
+                try:
+                    value = DN(value)
+                except ValueError:
+                    raise errors.InvalidSyntax(attr=attr)
 
             if attr in newdict:
                 if type(value) in (tuple,):
