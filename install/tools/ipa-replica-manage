@@ -423,7 +423,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
 
         except errors.NotFound:
             sys.exit("You cannot connect to a previously deleted master")
-        repl1.setup_gssapi_replication(replica2, "cn=Directory Manager", dirman_passwd)
+        repl1.setup_gssapi_replication(replica2, DN(('cn', 'Directory Manager')), dirman_passwd)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
 def re_initialize(realm, thishost, fromhost, dirman_passwd):
