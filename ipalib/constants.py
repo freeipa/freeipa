@@ -141,9 +141,9 @@ DEFAULT_CONFIG = (
     ('ca_port', 80),
     ('ca_agent_port', 443),
     ('ca_ee_port', 443),
-    ('ca_install_port', 9180),
-    ('ca_agent_install_port', 9443),
-    ('ca_ee_install_port', 9444),
+    ('ca_install_port', 8080),
+    ('ca_agent_install_port', 8443),
+    ('ca_ee_install_port', 8443),
 
 
     # Special CLI:

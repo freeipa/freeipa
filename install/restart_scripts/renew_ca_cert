@@ -45,8 +45,14 @@ nickname = sys.argv[1]
 api.bootstrap(context='restart')
 api.finalize()
 
+alias_dir = '/etc/pki/pki-tomcat/alias'
+dogtag_instance = 'pki-tomcat'
+if 'dogtag_version' not in api.env:
+    alias_dir = '/var/lib/pki-ca/alias'
+    dogtag_instance = 'pki-ca'
+
 # Fetch the new certificate
-db = certs.CertDB(api.env.realm, nssdir='/var/lib/pki-ca/alias')
+db = certs.CertDB(api.env.realm, nssdir=alias_dir)
 cert = db.get_cert_from_db(nickname, pem=False)
 
 if not cert:
@@ -79,7 +85,7 @@ finally:
 
 # Fix permissions on the audit cert if we're updating it
 if nickname == 'auditSigningCert cert-pki-ca':
-    db = certs.CertDB(api.env.realm, nssdir='/var/lib/pki-ca/alias')
+    db = certs.CertDB(api.env.realm, nssdir=alias_dir)
     args = ['-M',
             '-n', nickname,
             '-t', 'u,u,Pu',
@@ -91,7 +97,9 @@ if nickname == 'auditSigningCert cert-pki-ca':
 
 update_cert_config(nickname, cert)
 
-syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted pki-cad instance pki-ca to renew %s' % nickname)
+syslog.syslog(
+    syslog.LOG_NOTICE, 'certmonger restarted %sd instance %s to renew %s' %
+        (dogtag_instance, dogtag_instance, nickname))
 
 # We monitor 3 certs that are all likely to be renewed by certmonger more or
 # less at the same time. Each cert renewal is going to need to restart
@@ -102,6 +110,7 @@ pause = random.randint(10,360)
 syslog.syslog(syslog.LOG_NOTICE, 'Pausing %d seconds to restart pki-ca' % pause)
 time.sleep(pause)
 try:
-    ipaservices.knownservices.pki_cad.restart('pki-ca')
+    ipaservices.knownservices.pki_cad.restart(dogtag_instance)
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot restart pki-cad: %s" % str(e))
+    syslog.syslog(syslog.LOG_ERR, "Cannot restart %sd: %s" % \
+                  (dogtag_instance, str(e)))
