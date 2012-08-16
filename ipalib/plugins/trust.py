@@ -25,14 +25,14 @@ from ipalib import errors
 from ipapython import ipautil
 from ipalib import util
 try:
-    import pysss_murmur
+    import pysss_murmur #pylint: disable=F0401
     _murmur_installed = True
 except Exception, e:
     _murmur_installed = False
 
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
-        import ipaserver.dcerpc
+        import ipaserver.dcerpc #pylint: disable=F0401
         _bindings_installed = True
     except Exception, e:
         _bindings_installed = False
