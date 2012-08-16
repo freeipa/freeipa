@@ -8,6 +8,7 @@
         $REALM = {
                 admin_server = $FQDN
                 kdc = $FQDN
+                master_kdc = $FQDN
                 default_domain = $REALM
         }
 

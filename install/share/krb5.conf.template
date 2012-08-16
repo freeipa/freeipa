@@ -6,7 +6,7 @@
 [libdefaults]
  default_realm = $REALM
  dns_lookup_realm = false
- dns_lookup_kdc = false
+ dns_lookup_kdc = true
  rdns = false
  ticket_lifetime = 24h
  forwardable = yes
@@ -14,6 +14,7 @@
 [realms]
  $REALM = {
   kdc = $FQDN:88
+  master_kdc = $FQDN:88
   admin_server = $FQDN:749
   default_domain = $DOMAIN
   pkinit_anchors = FILE:/etc/ipa/ca.crt
