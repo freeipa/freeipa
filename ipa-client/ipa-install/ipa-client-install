@@ -756,6 +756,7 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
         #[realms]
         for server in cli_server:
             kropts.append({'name':'kdc', 'type':'option', 'value':ipautil.format_netloc(server, 88)})
+            kropts.append({'name':'master_kdc', 'type':'option', 'value':ipautil.format_netloc(server, 88)})
             kropts.append({'name':'admin_server', 'type':'option', 'value':ipautil.format_netloc(server, 749)})
         kropts.append({'name':'default_domain', 'type':'option', 'value':cli_domain})
     kropts.append({'name':'pkinit_anchors', 'type':'option', 'value':'FILE:/etc/ipa/ca.crt'})
