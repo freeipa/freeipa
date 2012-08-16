@@ -156,6 +156,16 @@ def main():
     # We need to restart apache as we drop a new config file in there
     ipaservices.knownservices.httpd.restart(capture_output=True)
 
+    #update dogtag version in config file to denote new instance
+    try:
+        fd = open("/etc/ipa/default.conf", "a")
+        fd.write("dogtag_version=10\n")
+        fd.close()
+    except IOError, e:
+        print "Failed to update /etc/ipa/default.conf"
+        root_logger.error(str(e))
+        sys.exit(1)
+
 fail_message = '''
 Your system may be partly configured.
 Run /usr/sbin/ipa-server-install --uninstall to clean up.

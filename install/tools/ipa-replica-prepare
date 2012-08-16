@@ -304,7 +304,7 @@ def main():
         if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, options.ip_address):
             sys.exit(1)
 
-    if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki-ca/conf/CS.cfg") and not options.dirsrv_pin:
+    if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki/pki-tomcat/conf/ca/CS.cfg") and not options.dirsrv_pin:
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
 
     check_ipa_configuration(api.env.realm)

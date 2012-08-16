@@ -30,11 +30,18 @@ nickname = sys.argv[1]
 api.bootstrap(context='restart')
 api.finalize()
 
-syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted pki-cad, nickname '%s'" % nickname)
+alias_dir = '/etc/pki/pki-tomcat/alias'
+dogtag_instance = 'pki-tomcat'
+if 'dogtag_version' not in api.env:
+    alias_dir = '/var/lib/pki-ca/alias'
+    dogtag_instance = 'pki-ca'
+
+syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted %sd, nickname '%s'" % \
+              (dogtag_instance, nickname))
 
 # Fix permissions on the audit cert if we're updating it
 if nickname == 'auditSigningCert cert-pki-ca':
-    db = certs.CertDB(api.env.realm, nssdir='/var/lib/pki-ca/alias')
+    db = certs.CertDB(api.env.realm, nssdir = alias_dir )
     args = ['-M',
             '-n', nickname,
             '-t', 'u,u,Pu',
@@ -44,7 +51,8 @@ if nickname == 'auditSigningCert cert-pki-ca':
 try:
     # I've seen times where systemd restart does not actually restart
     # the process. A full stop/start is required. This works around that
-    ipaservices.knownservices.pki_cad.stop('pki-ca')
-    ipaservices.knownservices.pki_cad.start('pki-ca')
+    ipaservices.knownservices.pki_cad.stop(dogtag_instance)
+    ipaservices.knownservices.pki_cad.start(dogtag_instance)
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot restart pki-cad: %s" % str(e))
+    syslog.syslog(syslog.LOG_ERR, "Cannot restart %sd: %s" % \
+                  (dogtag_instance, str(e)))

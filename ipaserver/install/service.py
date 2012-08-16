@@ -41,6 +41,17 @@ AUTO = 1
 ENABLED = 2
 DISABLED = 3
 
+# Determine if we have an updated dogtag instance (dogtag 10+) or
+# an older one.
+dogtag_service = 'pki-cad'
+try:
+    for line in open("/etc/ipa/default.conf", "r"):
+        if "dogtag_version" in line:
+            dogtag_service = 'pki-tomcatd'
+            break
+except IOError, e:
+    pass
+
 # The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
 # the first value is the *nix service name, the second the start order.
 SERVICE_LIST = {
@@ -49,7 +60,7 @@ SERVICE_LIST = {
     'DNS':('named', 30),
     'MEMCACHE':('ipa_memcached', 39),
     'HTTP':('httpd', 40),
-    'CA':('pki-cad', 50),
+    'CA':(dogtag_service, 50),
     'ADTRUST':('smb', 60),
     'EXTID':('winbind', 70)
 }

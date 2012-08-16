@@ -337,7 +337,7 @@ def get_pin(token):
 
     The caller is expected to handle any exceptions raised.
     """
-    filename = '/var/lib/pki-ca/conf/password.conf'
+    filename = '/var/lib/pki/pki-tomcat/conf/password.conf'
     with open(filename, 'r') as f:
         for line in f:
             (tok, pin) = line.split('=', 1)

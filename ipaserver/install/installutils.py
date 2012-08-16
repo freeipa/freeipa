@@ -47,7 +47,7 @@ from ipalib import errors
 from ipapython.dn import DN
 
 # Used to determine install status
-IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
+IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-tomcatd', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
 
 class BadHostError(Exception):
     pass

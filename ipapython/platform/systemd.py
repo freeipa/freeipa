@@ -41,10 +41,10 @@ class SystemdService(base.PlatformService):
         # Short-cut: if there is already exact service name, return it
         if self.lib_path_exists and len(instance_name) == 0:
             if len(elements) == 1:
-                # service name is like pki-cad.target or krb5kdc.service
+                # service name is like pki-tomcatd.target or krb5kdc.service
                 return self.service_name
             if len(elements) > 1 and elements[1][0] != '.':
-                # Service name is like pki-cad@pki-ca.service and that file exists
+                # Service name is like pki-tomcatd@pki-tomcat.service and that file exists
                 return self.service_name
 
         if len(elements) > 1:

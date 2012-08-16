@@ -80,7 +80,7 @@ class CSReplicationManager(replication.ReplicationManager):
         """
         dn = None
         cn = None
-        instance_name = 'pki-ca'
+        instance_name = 'pki-tomcat'
 
         # if master is not None we know what dn to return:
         if master is not None:
