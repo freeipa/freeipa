@@ -70,7 +70,7 @@ pw_name = None
 uninstalling = False
 installation_cleanup = True
 
-VALID_SUBJECT_ATTRS = ['cn', 'st', 'o', 'ou', 'dnqualifier', 'c',
+VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
                        'serialnumber', 'l', 'title', 'sn', 'givenname',
                        'initials', 'generationqualifier', 'dc', 'mail',
                        'uid', 'postaladdress', 'postalcode', 'postofficebox',
@@ -82,7 +82,6 @@ def subject_callback(option, opt_str, value, parser):
     """
     Make sure the certificate subject base is a valid DN
     """
-    name = opt_str.replace('--','')
     v = unicode(value, 'utf-8')
     if any(ord(c) < 0x20 for c in v):
         raise OptionValueError("Subject base must not contain control characters")
@@ -92,10 +91,10 @@ def subject_callback(option, opt_str, value, parser):
         dn = DN(v)
         for rdn in dn:
             if rdn.attr.lower() not in VALID_SUBJECT_ATTRS:
-                raise OptionValueError('invalid attribute: %s' % rdn.attr)
+                raise OptionValueError('%s=%s has invalid attribute: "%s"' % (opt_str, value, rdn.attr))
     except ValueError, e:
-        raise OptionValueError('Invalid subject base format: %s' % str(e))
-    parser.values.subject = str(dn) # may as well normalize it
+        raise OptionValueError('%s=%s has invalid subject base format: %s' % (opt_str, value, e))
+    parser.values.subject = dn
 
 def validate_dm_password(password):
     if len(password) < 8:
@@ -638,9 +637,9 @@ def main():
             print "'%s' is not a valid PEM-encoded certificate." % options.external_cert_file
             sys.exit(1)
 
-        certsubject = unicode(extcert.subject)
-        wantsubject = unicode(DN(('CN','Certificate Authority'), options.subject))
-        if certsubject.lower() != wantsubject.lower():
+        certsubject = DN(str(extcert.subject))
+        wantsubject = DN(('CN','Certificate Authority'), options.subject)
+        if certsubject != wantsubject:
             print "Subject of the PKCS#10 certificate is not correct (got %s, expected %s)." % (certsubject, wantsubject)
             sys.exit(1)
 
@@ -653,19 +652,19 @@ def main():
             print "'%s' is not a valid PEM-encoded certificate chain." % options.external_ca_file
             sys.exit(1)
 
-        certdict = dict((unicode(cert.subject).lower(), cert) for cert in extchain)
-        certissuer = unicode(extcert.issuer)
-        if certissuer.lower() not in certdict:
+        certdict = dict((DN(str(cert.subject)), cert) for cert in extchain)
+        certissuer = DN(str(extcert.issuer))
+        if certissuer not in certdict:
             print "The PKCS#10 certificate is not signed by the external CA (unknown issuer %s)." % certissuer
             sys.exit(1)
 
         cert = extcert
         while cert.issuer != cert.subject:
-            certissuer = unicode(cert.issuer)
-            if certissuer.lower() not in certdict:
+            certissuer = DN(str(cert.issuer))
+            if certissuer not in certdict:
                 print "The external CA chain is incomplete (%s is missing from the chain)." % certissuer
                 sys.exit(1)
-            cert = certdict[certissuer.lower()]
+            cert = certdict[certissuer]
 
     print "=============================================================================="
     print "This program will set up the FreeIPA Server."
