@@ -619,7 +619,10 @@ def main():
 
     # This will override any settings passed in on the cmdline
     if ipautil.file_exists(ANSWER_CACHE):
-        dm_password = read_password("Directory Manager", confirm=False)
+        if options.dm_password is not None:
+            dm_password = options.dm_password
+        else:
+            dm_password = read_password("Directory Manager", confirm=False)
         if dm_password is None:
             sys.exit("\nDirectory Manager password required")
         try:
