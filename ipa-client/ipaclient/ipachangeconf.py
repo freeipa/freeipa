@@ -174,9 +174,12 @@ class IPAChangeConf:
                                               self.subsectdel[1]))
                 continue
             if o['type'] == "option":
+                delim = o.get('delim', self.dassign)
+                if delim not in self.assign:
+                    raise ValueError('Unknown delim "%s" must be one of "%s"' % (delim, " ".join([d for d in self.assign])))
                 output.append(self._dump_line(self.indent[level],
                                               o['name'],
-                                              self.dassign,
+                                              delim,
                                               o['value']))
                 continue
             if o['type'] == "comment":
@@ -200,13 +203,21 @@ class IPAChangeConf:
                     'type': 'comment',
                     'value': value.rstrip()}  # pylint: disable=E1103
 
+        o = dict()
         parts = line.split(self.dassign, 1)
         if len(parts) < 2:
-            raise SyntaxError('Syntax Error: Unknown line format')
+            # The default assign didn't match, try the non-default
+            for d in self.assign[1:]:
+                parts = line.split(d, 1)
+                if len(parts) >= 2:
+                    o['delim'] = d
+                    break
 
-        return {'name': parts[0].strip(),
-                'type': 'option',
-                'value': parts[1].rstrip()}
+            if 'delim' not in o:
+                raise SyntaxError, 'Syntax Error: Unknown line format'
+
+        o.update({'name':parts[0].strip(), 'type':'option', 'value':parts[1].rstrip()})
+        return o
 
     def findOpts(self, opts, type, name, exclude_sections=False):
 
@@ -256,13 +267,13 @@ class IPAChangeConf:
                              'value': val})
                 continue
             if o['type'] == 'option':
-                val = self._dump_line(self.indent[level],
-                                      o['name'],
-                                      self.dassign,
-                                      o['value'])
-                opts.append({'name': 'comment',
-                             'type': 'comment',
-                             'value': val})
+                delim = o.get('delim', self.dassign)
+                if delim not in self.assign:
+                    val = self._dump_line(self.indent[level],
+                                          o['name'],
+                                          delim,
+                                          o['value'])
+                opts.append({'name':'comment', 'type':'comment', 'value':val})
                 continue
             if o['type'] == 'comment':
                 opts.append(o)
