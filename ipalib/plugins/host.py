@@ -172,6 +172,9 @@ host_output_params = (
     Str('revocation_reason?',
         label=_('Revocation reason'),
     ),
+    Str('managedby',
+        label=_('Failed managedby'),
+    ),
 )
 
 def validate_ipaddr(ugettext, ipaddr):

@@ -1531,6 +1531,12 @@ def default_zone_update_policy(zone):
     else:
         return get_dns_forward_zone_update_policy(api.env.realm)
 
+dnszone_output_params = (
+    Str('managedby',
+        label=_('Managedby permission'),
+    ),
+)
+
 class dnszone(LDAPObject):
     """
     DNS Zone, container for resource records.
@@ -1717,6 +1723,7 @@ api.register(dnszone)
 class dnszone_add(LDAPCreate):
     __doc__ = _('Create new DNS zone (SOA record).')
 
+    has_output_params = LDAPCreate.has_output_params + dnszone_output_params
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
              label=_('Force'),
@@ -1783,11 +1790,15 @@ api.register(dnszone_del)
 class dnszone_mod(LDAPUpdate):
     __doc__ = _('Modify DNS zone (SOA record).')
 
+    has_output_params = LDAPUpdate.has_output_params + dnszone_output_params
+
 api.register(dnszone_mod)
 
 
 class dnszone_find(LDAPSearch):
     __doc__ = _('Search for DNS zones (SOA records).')
+
+    has_output_params = LDAPSearch.has_output_params + dnszone_output_params
 
     def args_options_2_params(self, *args, **options):
         # FIXME: Check that name_from_ip is valid. This is necessary because
@@ -1832,6 +1843,8 @@ api.register(dnszone_find)
 
 class dnszone_show(LDAPRetrieve):
     __doc__ = _('Display information about a DNS zone (SOA record).')
+
+    has_output_params = LDAPRetrieve.has_output_params + dnszone_output_params
 
 api.register(dnszone_show)
 
