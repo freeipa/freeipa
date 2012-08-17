@@ -2,6 +2,7 @@
 #   Rob Crittenden <rcritten@redhat.com>
 #   Pavel Zuna <pzuna@redhat.com>
 #   Jason Gerard DeRose <jderose@redhat.com>
+#   John Dennis <jdennis@redhat.com>
 #
 # Copyright (C) 2008, 2009  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -31,11 +32,20 @@ from ipapython.dn import DN
 
 user1=u'tuser1'
 user2=u'tuser2'
+admin1=u'admin'
+admin2=u'admin2'
 renameduser1=u'tuser'
 group1=u'group1'
+admins_group=u'admins'
 
 invaliduser1=u'+tuser1'
 invaliduser2=u'tuser1234567890123456789012345678901234567890'
+
+def get_user_dn(uid):
+    return DN(('uid', uid), api.env.container_user, api.env.basedn)
+
+def get_group_dn(cn):
+    return DN(('cn', cn), api.env.container_group, api.env.basedn)
 
 def upg_check(response):
     """Check that the user was assigned to the corresponding private group."""
@@ -52,48 +62,48 @@ def not_upg_check(response):
 class test_user(Declarative):
 
     cleanup_commands = [
-        ('user_del', [user1, user2, renameduser1], {}),
+        ('user_del', [user1, user2, renameduser1, admin2], {}),
         ('group_del', [group1], {}),
     ]
 
     tests = [
 
         dict(
-            desc='Try to retrieve non-existent %r' % user1,
+            desc='Try to retrieve non-existent "%s"' % user1,
             command=('user_show', [user1], {}),
             expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
-            desc='Try to update non-existent %r' % user1,
+            desc='Try to update non-existent "%s"' % user1,
             command=('user_mod', [user1], dict(givenname=u'Foo')),
             expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
-            desc='Try to delete non-existent %r' % user1,
+            desc='Try to delete non-existent "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
-            desc='Try to rename non-existent %r' % user1,
+            desc='Try to rename non-existent "%s"' % user1,
             command=('user_mod', [user1], dict(setattr=u'uid=%s' % renameduser1)),
             expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
-            desc='Create %r' % user1,
+            desc='Create "%s"' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "tuser1"',
+                summary=u'Added user "%s"' % user1,
                 result=dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
@@ -111,13 +121,11 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                 ),
             ),
             extra_check = upg_check,
@@ -125,7 +133,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Try to create duplicate %r' % user1,
+            desc='Try to create duplicate "%s"' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
@@ -135,14 +143,13 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Retrieve %r' % user1,
+            desc='Retrieve "%s"' % user1,
             command=(
                 'user_show', [user1], {}
             ),
             expected=dict(
                 result=dict(
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     loginshell=[u'/bin/sh'],
@@ -162,15 +169,14 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Search for %r with all=True' % user1,
+            desc='Search for "%s" with all=True' % user1,
             command=(
                 'user_find', [user1], {'all': True}
             ),
             expected=dict(
                 result=[
                     {
-                        'dn': DN(('uid','tuser1'),('cn','users'),
-                                 ('cn','accounts'),api.env.basedn),
+                        'dn': get_user_dn(user1),
                         'cn': [u'Test User1'],
                         'gecos': [u'Test User1'],
                         'givenname': [u'Test'],
@@ -184,8 +190,7 @@ class test_user(Declarative):
                         'uidnumber': [fuzzy_digits],
                         'gidnumber': [fuzzy_digits],
                         'ipauniqueid': [fuzzy_uuid],
-                        'mepmanagedentry': [DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                               api.env.basedn)],
+                        'mepmanagedentry': [get_group_dn(user1)],
                         'krbpwdpolicyreference': [DN(('cn','global_policy'),('cn',api.env.realm),
                                                      ('cn','kerberos'),api.env.basedn)],
                         'nsaccountlock': False,
@@ -203,15 +208,14 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Search for %r with pkey-only=True' % user1,
+            desc='Search for "%s" with pkey-only=True' % user1,
             command=(
                 'user_find', [user1], {'pkey_only': True}
             ),
             expected=dict(
                 result=[
                     {
-                        'dn':DN(('uid',user1),('cn','users'),
-                                ('cn','accounts'),api.env.basedn),
+                        'dn': get_user_dn(user1),
                         'uid': [user1],
                     },
                 ],
@@ -222,15 +226,14 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Search for %r with minimal attributes' % user1,
+            desc='Search for "%s" with minimal attributes' % user1,
             command=(
                 'user_find', [user1], {}
             ),
             expected=dict(
                 result=[
                     dict(
-                        dn=DN(('uid','tuser1'),('cn','users'),
-                              ('cn','accounts'),api.env.basedn),
+                        dn=get_user_dn(user1),
                         givenname=[u'Test'],
                         homedirectory=[u'/home/tuser1'],
                         loginshell=[u'/bin/sh'],
@@ -258,12 +261,11 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
-                        dn=DN(('uid','admin'),('cn','users'),('cn','accounts'),
-                              api.env.basedn),
+                        dn=get_user_dn(admin1),
                         homedirectory=[u'/home/admin'],
                         loginshell=[u'/bin/bash'],
                         sn=[u'Administrator'],
-                        uid=[u'admin'],
+                        uid=[admin1],
                         nsaccountlock=False,
                         has_keytab=True,
                         has_password=True,
@@ -271,8 +273,7 @@ class test_user(Declarative):
                         gidnumber=[fuzzy_digits],
                     ),
                     dict(
-                        dn=DN(('uid','tuser1'),('cn','users'),
-                              ('cn','accounts'),api.env.basedn),
+                        dn=get_user_dn(user1),
                         givenname=[u'Test'],
                         homedirectory=[u'/home/tuser1'],
                         loginshell=[u'/bin/sh'],
@@ -300,12 +301,11 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
-                        dn=DN(('uid','admin'),('cn','users'),('cn','accounts'),
-                              api.env.basedn),
+                        dn=get_user_dn(admin1),
                         homedirectory=[u'/home/admin'],
                         loginshell=[u'/bin/bash'],
                         sn=[u'Administrator'],
-                        uid=[u'admin'],
+                        uid=[admin1],
                         nsaccountlock=False,
                         has_keytab=True,
                         has_password=True,
@@ -321,14 +321,14 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Disable %r' % user1,
+            desc='Disable "%s"' % user1,
             command=(
                 'user_disable', [user1], {}
             ),
             expected=dict(
                 result=True,
                 value=user1,
-                summary=u'Disabled user account "tuser1"',
+                summary=u'Disabled user account "%s"' % user1,
             ),
         ),
 
@@ -344,19 +344,19 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Enable %r'  % user1,
+            desc='Enable "%s"'  % user1,
             command=(
                 'user_enable', [user1], {}
             ),
             expected=dict(
                 result=True,
                 value=user1,
-                summary=u'Enabled user account "tuser1"',
+                summary=u'Enabled user account "%s"' % user1,
             ),
         ),
 
         dict(
-            desc='Assert user is enabled',
+            desc='Assert user "%s" is enabled' % user1,
             command=('user_find', [user1], {}),
             expected=dict(
                 result=[lambda d: d['nsaccountlock'] == False],
@@ -367,54 +367,54 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Disable %r using setattr' % user1,
+            desc='Disable "%s" using setattr' % user1,
             command=('user_mod', [user1], dict(setattr=u'nsaccountlock=True')),
             expected=dict(
                 result=lambda d: d['nsaccountlock'] == True,
                 value=user1,
-                summary=u'Modified user "tuser1"',
+                summary=u'Modified user "%s"' % user1,
             ),
         ),
 
         dict(
-            desc='Enable %r using setattr' % user1,
+            desc='Enable "%s" using setattr' % user1,
             command=('user_mod', [user1], dict(setattr=u'nsaccountlock=False')),
             expected=dict(
                 result=lambda d: d['nsaccountlock'] == False,
                 value=user1,
-                summary=u'Modified user "tuser1"',
+                summary=u'Modified user "%s"' % user1,
             ),
         ),
 
         dict(
-            desc='Disable %r using user_mod' % user1,
+            desc='Disable "%s" using user_mod' % user1,
             command=('user_mod', [user1], dict(nsaccountlock=True)),
             expected=dict(
                 result=lambda d: d['nsaccountlock'] == True,
                 value=user1,
-                summary=u'Modified user "tuser1"',
+                summary=u'Modified user "%s"' % user1,
             ),
         ),
 
         dict(
-            desc='Enable %r using user_mod' % user1,
+            desc='Enable "%s" using user_mod' % user1,
             command=('user_mod', [user1], dict(nsaccountlock=False)),
             expected=dict(
                 result=lambda d: d['nsaccountlock'] == False,
                 value=user1,
-                summary=u'Modified user "tuser1"',
+                summary=u'Modified user "%s"' % user1,
             ),
         ),
 
         dict(
-            desc='Try setting virtual attribute on %r using setattr' % user1,
+            desc='Try setting virtual attribute on "%s" using setattr' % user1,
             command=('user_mod', [user1], dict(setattr=u'random=xyz123')),
             expected=errors.ObjectclassViolation(
                 info='attribute "random" not allowed'),
         ),
 
         dict(
-            desc='Update %r' % user1,
+            desc='Update "%s"' % user1,
             command=(
                 'user_mod', [user1], dict(givenname=u'Finkle')
             ),
@@ -432,14 +432,14 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                 ),
-                summary=u'Modified user "tuser1"',
+                summary=u'Modified user "%s"' % user1,
                 value=user1,
             ),
         ),
 
 
         dict(
-            desc='Try updating the krb ticket policy of %r' % user1,
+            desc='Try updating the krb ticket policy of "%s"' % user1,
             command=(
                 'user_mod', [user1], dict(setattr=u'krbmaxticketlife=88000')
             ),
@@ -449,12 +449,11 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Retrieve %r to verify update' % user1,
+            desc='Retrieve "%s" to verify update' % user1,
             command=('user_show', [user1], {}),
             expected=dict(
                 result=dict(
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                     givenname=[u'Finkle'],
                     homedirectory=[u'/home/tuser1'],
                     loginshell=[u'/bin/sh'],
@@ -475,7 +474,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Rename %r' % user1,
+            desc='Rename "%s"' % user1,
             command=('user_mod', [user1], dict(setattr=u'uid=%s' % renameduser1)),
             expected=dict(
                 result=dict(
@@ -498,14 +497,14 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Rename %r to same value' % renameduser1,
+            desc='Rename "%s" to same value' % renameduser1,
             command=('user_mod', [renameduser1], dict(setattr=u'uid=%s' % renameduser1)),
             expected=errors.EmptyModlist(),
         ),
 
 
         dict(
-            desc='Rename back %r' % renameduser1,
+            desc='Rename back "%s"' % renameduser1,
             command=('user_mod', [renameduser1], dict(setattr=u'uid=%s' % user1)),
             expected=dict(
                 result=dict(
@@ -528,25 +527,25 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Delete %r' % user1,
+            desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
                 result=dict(failed=u''),
-                summary=u'Deleted user "tuser1"',
+                summary=u'Deleted user "%s"' % user1,
                 value=user1,
             ),
         ),
 
 
         dict(
-            desc='Try to delete non-existent %r' % user1,
+            desc='Try to delete non-existent "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=errors.NotFound(reason=u'tuser1: user not found'),
         ),
 
 
         dict(
-            desc='Create user %r with krb ticket policy' % user1,
+            desc='Create user "%s" with krb ticket policy' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                 setattr=u'krbmaxticketlife=88000')
@@ -556,13 +555,13 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Create %r' % user1,
+            desc='Create "%s"' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "tuser1"',
+                summary=u'Added user "%s"' % user1,
                 result=dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
@@ -580,13 +579,11 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                 ),
             ),
             extra_check = upg_check,
@@ -594,13 +591,13 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Create %r' % user2,
+            desc='Create "%s"' % user2,
             command=(
                 'user_add', [user2], dict(givenname=u'Test', sn=u'User2')
             ),
             expected=dict(
                 value=user2,
-                summary=u'Added user "tuser2"',
+                summary=u'Added user "%s"' % user2,
                 result=dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
@@ -618,13 +615,11 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user2),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user2)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user2),
                 ),
             ),
             extra_check = upg_check,
@@ -632,7 +627,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Make non-existent %r the manager of %r' % (renameduser1, user2),
+            desc='Make non-existent "%s" the manager of "%s"' % (renameduser1, user2),
             command=('user_mod', [user2], dict(manager=renameduser1)),
             expected=errors.NotFound(
                 reason=u'manager %s not found' % renameduser1),
@@ -640,7 +635,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Make %r the manager of %r' % (user1, user2),
+            desc='Make "%s" the manager of "%s"' % (user1, user2),
             command=('user_mod', [user2], dict(manager=user1)),
             expected=dict(
                 result=dict(
@@ -691,7 +686,7 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Delete %r and %r at the same time' % (user1, user2),
+            desc='Delete "%s" and "%s" at the same time' % (user1, user2),
             command=('user_del', [user1, user2], {}),
             expected=dict(
                 result=dict(failed=u''),
@@ -701,21 +696,21 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Try to retrieve non-existent %r' % user1,
+            desc='Try to retrieve non-existent "%s"' % user1,
             command=('user_show', [user1], {}),
             expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
-            desc='Try to update non-existent %r' % user1,
+            desc='Try to update non-existent "%s"' % user1,
             command=('user_mod', [user1], dict(givenname=u'Foo')),
             expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
 
         dict(
-            desc='Test an invalid login name %r' % invaliduser1,
+            desc='Test an invalid login name "%s"' % invaliduser1,
             command=('user_add', [invaliduser1], dict(givenname=u'Test', sn=u'User1')),
             expected=errors.ValidationError(name='login',
                 error=u'may only include letters, numbers, _, -, . and $'),
@@ -723,7 +718,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Test a login name that is too long %r' % invaliduser2,
+            desc='Test a login name that is too long "%s"' % invaliduser2,
             command=('user_add', [invaliduser2],
                 dict(givenname=u'Test', sn=u'User1')),
             expected=errors.ValidationError(name='login',
@@ -762,7 +757,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Try to rename to invalid username %r' % user1,
+            desc='Try to rename to invalid username "%s"' % user1,
             command=('user_mod', [user1], dict(rename=invaliduser1)),
             expected=errors.ValidationError(name='rename',
                 error=u'may only include letters, numbers, _, -, . and $'),
@@ -770,7 +765,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Try to rename to a username that is too long %r' % user1,
+            desc='Try to rename to a username that is too long "%s"' % user1,
             command=('user_mod', [user1], dict(rename=invaliduser2)),
             expected=errors.ValidationError(name='login',
                 error='can be at most 32 characters'),
@@ -778,7 +773,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Create %r' % group1,
+            desc='Create "%s"' % group1,
             command=(
                 'group_add', [group1], dict(description=u'Test desc')
             ),
@@ -791,15 +786,14 @@ class test_user(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_group_dn(group1),
                 ),
             ),
         ),
 
 
         dict(
-            desc='Try to user %r where the managed group exists' % group1,
+            desc='Try to user "%s" where the managed group exists' % group1,
             command=(
                 'user_add', [group1], dict(givenname=u'Test', sn=u'User1')
             ),
@@ -808,7 +802,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Create %r with a full address' % user1,
+            desc='Create "%s" with a full address' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                 street=u'123 Maple Rd', l=u'Anytown', st=u'MD',
@@ -816,7 +810,7 @@ class test_user(Declarative):
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "tuser1"',
+                summary=u'Added user "%s"' % user1,
                 result=dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
@@ -839,36 +833,34 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                 ),
             ),
         ),
 
 
         dict(
-            desc='Delete %r' % user1,
+            desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
                 result=dict(failed=u''),
-                summary=u'Deleted user "tuser1"',
+                summary=u'Deleted user "%s"' % user1,
                 value=user1,
             ),
         ),
 
         dict(
-            desc='Create %r with random password' % user1,
+            desc='Create "%s" with random password' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1', random=True)
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "tuser1"',
+                summary=u'Added user "%s"' % user1,
                 result=dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
@@ -886,8 +878,7 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
                     memberof_group=[u'ipausers'],
                     has_keytab=True,
                     has_password=True,
@@ -895,30 +886,29 @@ class test_user(Declarative):
                     krbextradata=[fuzzy_string],
                     krbpasswordexpiration=[fuzzy_dergeneralizedtime],
                     krblastpwdchange=[fuzzy_dergeneralizedtime],
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                 ),
             ),
         ),
 
         dict(
-            desc='Delete %r' % user1,
+            desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
                 result=dict(failed=u''),
-                summary=u'Deleted user "tuser1"',
+                summary=u'Deleted user "%s"' % user1,
                 value=user1,
             ),
         ),
 
         dict(
-            desc='Create %r' % user2,
+            desc='Create "%s"' % user2,
             command=(
                 'user_add', [user2], dict(givenname=u'Test', sn=u'User2')
             ),
             expected=dict(
                 value=user2,
-                summary=u'Added user "tuser2"',
+                summary=u'Added user "%s"' % user2,
                 result=dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
@@ -936,19 +926,17 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user2),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user2)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user2),
                 ),
             ),
         ),
 
         dict(
-            desc='Modify %r with random password' % user2,
+            desc='Modify "%s" with random password' % user2,
             command=(
                 'user_mod', [user2], dict(random=True)
             ),
@@ -967,30 +955,30 @@ class test_user(Declarative):
                     has_password=True,
                     randompassword=fuzzy_password,
                 ),
-                summary=u'Modified user "tuser2"',
+                summary=u'Modified user "%s"' % user2,
                 value=user2,
             ),
         ),
 
         dict(
-            desc='Delete %r' % user2,
+            desc='Delete "%s"' % user2,
             command=('user_del', [user2], {}),
             expected=dict(
                 result=dict(failed=u''),
-                summary=u'Deleted user "tuser2"',
+                summary=u'Deleted user "%s"' % user2,
                 value=user2,
             ),
         ),
 
         dict(
-            desc='Create user %r with upper-case principal' % user1,
+            desc='Create user "%s" with upper-case principal' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                 krbprincipalname=user1.upper())
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "tuser1"',
+                summary=u'Added user "%s"' % user1,
                 result=dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
@@ -1008,20 +996,18 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                 ),
             ),
         ),
 
 
         dict(
-            desc='Create user %r with bad realm in principal' % user1,
+            desc='Create user "%s" with bad realm in principal' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                 krbprincipalname='%s@NOTFOUND.ORG' % user1)
@@ -1031,7 +1017,7 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Create user %r with malformed principal' % user1,
+            desc='Create user "%s" with malformed principal' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                 krbprincipalname='%s@BAD@NOTFOUND.ORG' % user1)
@@ -1040,11 +1026,11 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Delete %r' % user1,
+            desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
                 result=dict(failed=u''),
-                summary=u'Deleted user "tuser1"',
+                summary=u'Deleted user "%s"' % user1,
                 value=user1,
             ),
         ),
@@ -1058,13 +1044,13 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Create user %r with different default home directory' % user1,
+            desc='Create user "%s" with different default home directory' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "tuser1"',
+                summary=u'Added user "%s"' % user1,
                 result=dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
@@ -1082,13 +1068,11 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                 ),
             ),
         ),
@@ -1103,7 +1087,7 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Delete %r' % user1,
+            desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
                 result=dict(failed=u''),
@@ -1121,13 +1105,13 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Create user %r with different default login shell' % user1,
+            desc='Create user "%s" with different default login shell' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "tuser1"',
+                summary=u'Added user "%s"' % user1,
                 result=dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
@@ -1145,13 +1129,11 @@ class test_user(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
                                               ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                 ),
             ),
         ),
@@ -1165,7 +1147,7 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Delete %r' % user1,
+            desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
                 result=dict(failed=u''),
@@ -1175,7 +1157,7 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Create %r without UPG' % user1,
+            desc='Create "%s" without UPG' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1', noprivate=True)
             ),
@@ -1183,13 +1165,13 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Create %r without UPG with GID explicitly set' % user2,
+            desc='Create "%s" without UPG with GID explicitly set' % user2,
             command=(
                 'user_add', [user2], dict(givenname=u'Test', sn=u'User2', noprivate=True, gidnumber=1000)
             ),
             expected=dict(
                 value=user2,
-                summary=u'Added user "tuser2"',
+                summary=u'Added user "%s"' % user2,
                 result=dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
@@ -1211,14 +1193,13 @@ class test_user(Declarative):
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user2),
                 ),
             ),
         ),
 
         dict(
-            desc='Delete %r' % user2,
+            desc='Delete "%s"' % user2,
             command=('user_del', [user2], {}),
             expected=dict(
                 result=dict(failed=u''),
@@ -1236,13 +1217,13 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Create %r without UPG' % user1,
+            desc='Create "%s" without UPG' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1', noprivate=True)
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "tuser1"',
+                summary=u'Added user "%s"' % user1,
                 result=dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
@@ -1264,21 +1245,20 @@ class test_user(Declarative):
                     memberof_group=[group1],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user1),
                 ),
             ),
             extra_check = not_upg_check,
         ),
 
         dict(
-            desc='Create %r without UPG with GID explicitly set' % user2,
+            desc='Create "%s" without UPG with GID explicitly set' % user2,
             command=(
                 'user_add', [user2], dict(givenname=u'Test', sn=u'User2', noprivate=True, gidnumber=1000)
             ),
             expected=dict(
                 value=user2,
-                summary=u'Added user "tuser2"',
+                summary=u'Added user "%s"' % user2,
                 result=dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
@@ -1300,8 +1280,7 @@ class test_user(Declarative):
                     memberof_group=[group1],
                     has_keytab=False,
                     has_password=False,
-                    dn=DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=get_user_dn(user2),
                 ),
             ),
         ),
@@ -1315,15 +1294,57 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Try to remove the admin user',
-            command=('user_del', [u'admin'], {}),
-            expected=errors.LastMemberError(key=u'admin', label=u'group',
-                container='admins'),
+            desc='Try to remove the original admin user "%s"' % admin1,
+            command=('user_del', [admin1], {}),
+            expected=errors.LastMemberError(key=admin1, label=u'group',
+                container=admins_group),
         ),
 
         dict(
-            desc='Add %r to the admins group' % user2,
-            command=('group_add_member', [u'admins'], dict(user=user2)),
+            desc='Try to disable the original admin user "%s"' % admin1,
+            command=('user_disable', [admin1], {}),
+            expected=errors.LastMemberError(key=admin1, label=u'group',
+                container=admins_group),
+        ),
+
+
+        dict(
+            desc='Create 2nd admin user "%s"' % admin2,
+            command=(
+                'user_add', [admin2], dict(givenname=u'Second', sn=u'Admin')
+            ),
+            expected=dict(
+                value=admin2,
+                summary=u'Added user "%s"' % admin2,
+                result=dict(
+                    gecos=[u'Second Admin'],
+                    givenname=[u'Second'],
+                    homedirectory=[u'/home/admin2'],
+                    krbprincipalname=[u'admin2@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'Admin'],
+                    uid=[admin2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Second Admin'],
+                    cn=[u'Second Admin'],
+                    initials=[u'SA'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(admin2)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=get_user_dn(admin2),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Add "%s" to the admins group "%s"' % (admin2, admins_group),
+            command=('group_add_member', [admins_group], dict(user=admin2)),
             expected=dict(
                 completed=1,
                 failed=dict(
@@ -1333,24 +1354,118 @@ class test_user(Declarative):
                     ),
                 ),
                 result={
-                        'dn': DN(('cn', 'admins'), ('cn', 'groups'),
-                                 ('cn', 'accounts'), api.env.basedn),
-                        'member_user': [u'admin', user2],
+                        'dn': get_group_dn(admins_group),
+                        'member_user': [admin1, admin2],
                         'gidnumber': [fuzzy_digits],
-                        'cn': [u'admins'],
+                        'cn': [admins_group],
                         'description': [u'Account administrators group'],
                 },
             ),
         ),
 
+
         dict(
-            desc='Delete %r' % user2,
-            command=('user_del', [user2], {}),
+            desc='Retrieve admins group "%s" to verify membership is "%s","%s"' % (admins_group, admin1, admin2),
+            command=('group_show', [admins_group], {}),
+            expected=dict(
+                value=admins_group,
+                result=dict(
+                    cn=[admins_group],
+                    gidnumber=[fuzzy_digits],
+                    description=[u'Account administrators group'],
+                    dn=get_group_dn(admins_group),
+                    member_user=[admin1, admin2],
+                ),
+                summary=None,
+            ),
+        ),
+
+        dict(
+            desc='Disable 2nd admin user "%s", admins group "%s" should also contain enabled "%s"' % (admin2, admins_group, admin1),
+            command=(
+                'user_disable', [admin2], {}
+            ),
+            expected=dict(
+                result=True,
+                value=admin2,
+                summary=u'Disabled user account "%s"' % admin2,
+            ),
+        ),
+
+        dict(
+            desc='Assert 2nd admin user "%s" is disabled' % admin2,
+            command=('user_find', [admin2], {}),
+            expected=dict(
+                result=[lambda d: d['nsaccountlock'] == True],
+                summary=u'1 user matched',
+                count=1,
+                truncated=False,
+            ),
+        ),
+
+        dict(
+            desc='Try to disable the origin admin user "%s"' % admin1,
+            command=('user_disable', [admin1], {}),
+            expected=errors.LastMemberError(key=admin1, label=u'group',
+                container=admins_group),
+        ),
+
+        dict(
+            desc='Try to remove the original admin user "%s"' % admin1,
+            command=('user_del', [admin1], {}),
+            expected=errors.LastMemberError(key=admin1, label=u'group',
+                container=admins_group),
+        ),
+
+        dict(
+            desc='Delete 2nd admin "%s"' % admin2,
+            command=('user_del', [admin2], {}),
             expected=dict(
                 result=dict(failed=u''),
-                summary=u'Deleted user "%s"' % user2,
-                value=user2,
+                summary=u'Deleted user "%s"' % admin2,
+                value=admin2,
             ),
+        ),
+
+        dict(
+            desc='Retrieve admins group "%s" to verify membership is "%s"' % (admins_group, admin1),
+            command=('group_show', [admins_group], {}),
+            expected=dict(
+                value=admins_group,
+                result=dict(
+                    cn=[admins_group],
+                    gidnumber=[fuzzy_digits],
+                    description=[u'Account administrators group'],
+                    dn=get_group_dn(admins_group),
+                    member_user=[admin1],
+                ),
+                summary=None,
+            ),
+        ),
+
+        dict(
+            desc='Assert original admin user "%s" is enabled' % admin1,
+            command=('user_find', [admin1], {}),
+            expected=dict(
+                result=[lambda d: d['nsaccountlock'] == False],
+                summary=u'1 user matched',
+                count=1,
+                truncated=False,
+            ),
+        ),
+
+        dict(
+            desc='Try to remove the original admin user "%s"' % admin1,
+            command=('user_del', [admin1], {}),
+            expected=errors.LastMemberError(key=admin1, label=u'group',
+                container=admins_group),
+        ),
+
+        dict(
+            desc='Try to disable the original admin user "%s"' % admin1,
+            command=('user_disable', [admin1], {}),
+            expected=errors.LastMemberError(key=admin1, label=u'group',
+                container=admins_group),
         ),
 
     ]

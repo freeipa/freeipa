@@ -166,6 +166,24 @@ def normalize_principal(principal):
     return unicode('%s@%s' % (user, realm))
 
 
+def check_protected_member(user, protected_group_name=u'admins'):
+    '''
+    Ensure the last enabled member of a protected group cannot be deleted or
+    disabled by raising LastMemberError.
+    '''
+
+    # Get all users in the protected group
+    result = api.Command.user_find(in_group=protected_group_name)
+
+    # Build list of users in the protected group who are enabled
+    result = result['result']
+    enabled_users = [entry['uid'][0] for entry in result if not entry['nsaccountlock']]
+
+    # If the user is the last enabled user raise LastMemberError exception
+    if enabled_users == [user]:
+        raise errors.LastMemberError(key=user, label=_(u'group'),
+            container=protected_group_name)
+
 class user(LDAPObject):
     """
     User object.
@@ -550,11 +568,7 @@ class user_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
-        protected_group_name = u'admins'
-        result = api.Command.group_show(protected_group_name)
-        if result['result'].get('member_user', []) == [keys[-1]]:
-            raise errors.LastMemberError(key=keys[-1], label=_(u'group'),
-                container=protected_group_name)
+        check_protected_member(keys[-1])
         return dn
 
 api.register(user_del)
@@ -686,8 +700,9 @@ class user_disable(LDAPQuery):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
-        dn = self.obj.get_dn(*keys, **options)
+        check_protected_member(keys[-1])
 
+        dn = self.obj.get_dn(*keys, **options)
         ldap.deactivate_entry(dn)
 
         return dict(
