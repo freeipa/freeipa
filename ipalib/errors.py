@@ -1627,18 +1627,18 @@ class DependentEntry(ExecutionError):
 
 class LastMemberError(ExecutionError):
     """
-    **4308** Raised when an entry being deleted is last member of a protected group
+    **4308** Raised when an entry being deleted or disabled is last member of a protected group
 
     For example:
     >>> raise LastMemberError(key=u'admin', label=u'group', container=u'admins')
     Traceback (most recent call last):
       ...
-    LastMemberError: admin cannot be deleted because it is the last member of group admins
+    LastMemberError: admin cannot be deleted or disabled because it is the last member of group admins
 
     """
 
     errno = 4308
-    format = _('%(key)s cannot be deleted because it is the last member of %(label)s %(container)s')
+    format = _('%(key)s cannot be deleted or disabled because it is the last member of %(label)s %(container)s')
 
 
 class ProtectedEntryError(ExecutionError):
