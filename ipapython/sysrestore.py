@@ -143,18 +143,26 @@ class FileStore:
                 break
         return result
 
-    def restore_file(self, path):
+    def restore_file(self, path, new_path = None):
         """Restore the copy of a file at @path to its original
         location and delete the copy.
+
+        Takes optional parameter @new_path which specifies the
+        location where the file is to be restored.
 
         Returns #True if the file was restored, #False if there
         was no backup file to restore
         """
 
-        root_logger.debug("Restoring system configuration file '%s'", path)
+        if new_path is None:
+            root_logger.debug("Restoring system configuration file '%s'", path)
+        else:
+            root_logger.debug("Restoring system configuration file '%s' to '%s'", path, new_path)
 
         if not os.path.isabs(path):
             raise ValueError("Absolute path required")
+        if new_path is not None and not os.path.isabs(new_path):
+            raise ValueError("Absolute new path required")
 
         mode = None
         uid = None
@@ -174,6 +182,9 @@ class FileStore:
         if not os.path.exists(backup_path):
             root_logger.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
             return False
+
+        if new_path is not None:
+            path = new_path
 
         shutil.move(backup_path, path)
         os.chown(path, int(uid), int(gid))
