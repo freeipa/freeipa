@@ -176,7 +176,7 @@ Requires: keyutils
 # IPA but if it is configured we need a way to require versions
 # that work for us.
 %if 0%{?fedora} >= 18
-Conflicts: bind-dyndb-ldap < 1.1.0-0.15.rc1
+Conflicts: bind-dyndb-ldap < 1.1.0-0.16.rc1
 %else
 Conflicts: bind-dyndb-ldap < 1.1.0-0.12.rc1
 %endif
@@ -751,6 +751,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Thu Aug 17 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-41
+- Set min for bind-dyndb-ldap to 1.1.0-0.16.rc1 to pick up complete zone transfer
+  support
+
 * Thu Aug 2 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-40
 - Set min for bind-dyndb-ldap to 1.1.0-0.15.rc1 to pick up SOA serial autoincrement
   feature
