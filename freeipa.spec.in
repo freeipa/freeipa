@@ -443,12 +443,12 @@ mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 install -pm 644 contrib/completion/ipa.bash_completion %{buildroot}%{_sysconfdir}/bash_completion.d/ipa
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 install -pm 644 ipa-compliance.cron %{buildroot}%{_sysconfdir}/cron.d/ipa-compliance
-%endif
 
 (cd %{buildroot}/%{python_sitelib}/ipaserver && find . -type f  | \
 	grep -v dcerpc | grep -v adtrustinstance | \
 	sed -e 's,\.py.*$,.*,g' | sort -u | \
 	sed -e 's,\./,%%{python_sitelib}/ipaserver/,g' ) >server-python.list
+%endif
 
 %clean
 rm -rf %{buildroot}
