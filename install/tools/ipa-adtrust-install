@@ -55,6 +55,12 @@ def parse_options():
                            "UIDs and GIDs to RIDs")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
+    parser.add_option("-a", "--admin-password",
+                      sensitive=True, dest="admin_password",
+                      help="admin user kerberos password")
+    parser.add_option("-A", "--admin-name",
+                      sensitive=True, dest="admin_name", default='admin',
+                      help="admin user principal")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -84,6 +90,21 @@ def read_netbios_name(netbios_default):
         netbios_name_error(netbios_name)
 
     return netbios_name
+
+def read_admin_password(admin_name):
+    print "Configuring cross-realm trusts for IPA server requires password for user '%s'." % (admin_name)
+    print "This user is a regular system account used for IPA server administration."
+    print ""
+    admin_password = read_password(admin_name, confirm=False, validate=None)
+    return admin_password
+
+def ensure_admin_kinit(admin_name, admin_password):
+    try:
+        ipautil.run(['kinit', admin_name], stdin=admin_password+'\n')
+    except ipautil.CalledProcessError, e:
+        print "There was error to automatically re-kinit your admin user ticket."
+        return False
+    return True
 
 def main():
     safe_options, options = parse_options()
@@ -193,6 +214,16 @@ def main():
     if not options.unattended and ( not netbios_name or not options.netbios_name):
         netbios_name = read_netbios_name(netbios_name)
 
+    admin_password = options.admin_password
+    if not (options.unattended or admin_password):
+        admin_password = read_admin_password(options.admin_name)
+
+    admin_kinited = None
+    if admin_password:
+        admin_kinited = ensure_admin_kinit(options.admin_name, admin_password)
+        if not admin_kinited:
+            print "Proceeding with credentials that existed before"
+
     try:
         ctx = krbV.default_context()
         ccache = ctx.default_ccache()
@@ -252,6 +283,12 @@ You may want to choose to REJECT the network packets instead of DROPing
 them to avoid timeouts on the AD domain controllers.
 
 =============================================================================
+"""
+    if admin_password:
+        admin_kinited = ensure_admin_kinit(options.admin_name, admin_password)
+
+    if not admin_kinited:
+        print """
 WARNING: you MUST re-kinit admin user before using 'ipa trust-*' commands
 family in order to re-generate Kerberos tickets to include AD-specific
 information"""
