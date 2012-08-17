@@ -185,6 +185,37 @@ def nssldap_exists():
 
     return (retval, files_found)
 
+# helper function for uninstall
+# deletes IPA domain from sssd.conf
+def delete_ipa_domain():
+    sssd = ipaservices.service('sssd')
+    try:
+        sssdconfig = SSSDConfig.SSSDConfig()
+        sssdconfig.import_config()
+        domains = sssdconfig.list_active_domains()
+
+        ipa_domain_name = None
+
+        for name in domains:
+            domain = sssdconfig.get_domain(name)
+            try:
+                provider = domain.get_option('id_provider')
+                if provider == "ipa":
+                    ipa_domain_name = name
+                    break
+            except SSSDConfig.NoOptionError:
+                continue
+
+        if ipa_domain_name is not None:
+            sssdconfig.delete_domain(ipa_domain_name)
+            sssdconfig.write()
+        else:
+            root_logger.warning("IPA domain could not be found in "
+                "/etc/sssd/sssd.conf and therefore not deleted")
+    except IOError:
+        root_logger.warning("IPA domain could not be deleted. "
+            "No access to the /etc/sssd/sssd.conf file.")
+
 def uninstall(options, env):
 
     if not fstore.has_files():
@@ -214,7 +245,12 @@ def uninstall(options, env):
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.import_config()
         domains = sssdconfig.list_active_domains()
-        if len(domains) > 1:
+        all_domains = sssdconfig.list_domains()
+
+        # we consider all the domains, because handling sssd.conf
+        # during uninstall is dependant on was_sssd_configured flag
+        # so the user does not lose info about inactive domains
+        if len(all_domains) > 1:
             # There was more than IPA domain configured
             was_sssd_configured = True
         for name in domains:
@@ -351,6 +387,66 @@ def uninstall(options, env):
             "Failed to remove krb5/LDAP configuration: %s", str(e))
         return CLIENT_INSTALL_ERROR
 
+    # Next if-elif-elif construction deals with sssd.conf file.
+    # Old pre-IPA domains are preserved due merging the old sssd.conf
+    # during the installation of ipa-client but any new domains are
+    # only present in sssd.conf now, so we don't want to delete them
+    # by rewriting sssd.conf file. IPA domain is removed gracefully.
+
+    # SSSD was installed before our installation and other non-IPA domains
+    # found, restore backed up sssd.conf to sssd.conf.bkp and remove IPA
+    # domain from the current sssd.conf
+    if was_sssd_installed and was_sssd_configured:
+        root_logger.info(
+            "The original configuration of SSSD included other domains than " +
+            "the IPA-based one.")
+
+        delete_ipa_domain()
+
+
+        restored = False
+        try:
+            restored = fstore.restore_file("/etc/sssd/sssd.conf","/etc/sssd/sssd.conf.bkp")
+        except OSError:
+            root_logger.debug("Error while restoring pre-IPA /etc/sssd/sssd.conf.")
+
+        if restored:
+            root_logger.info("Original pre-IPA SSSD configuration file was "
+                "restored to /etc/sssd/sssd.conf.bkp.")
+
+        root_logger.info("IPA domain removed from current one, " +
+                         "restarting SSSD service")
+        sssd = ipaservices.service('sssd')
+        try:
+            sssd.restart()
+        except CalledProcessError:
+            root_logger.warning("SSSD service restart was unsuccessful.")
+
+    # SSSD was not installed before our installation, but other domains found,
+    # delete IPA domain, but leave other domains intact
+    elif not was_sssd_installed and was_sssd_configured:
+        delete_ipa_domain()
+        root_logger.info("Other domains than IPA domain found, " +
+                         "IPA domain was removed from /etc/sssd/sssd.conf.")
+
+        sssd = ipaservices.service('sssd')
+        try:
+            sssd.restart()
+        except CalledProcessError:
+            root_logger.warning("SSSD service restart was unsuccessful.")
+
+    # SSSD was not installed before our installation, and no other domains
+    # than IPA are configured in sssd.conf - make sure config file is removed
+    elif not was_sssd_installed and not was_sssd_configured:
+        try:
+            os.rename("/etc/sssd/sssd.conf","/etc/sssd/sssd.conf.deleted")
+        except OSError:
+            root_logger.debug("Error while moving /etc/sssd/sssd.conf to "
+                "/etc/sssd/sssd.conf.deleted")
+
+        root_logger.info("Redundant SSSD configuration file " +
+            "/etc/sssd/sssd.conf was moved to /etc/sssd/sssd.conf.deleted")
+
     if fstore.has_files():
         root_logger.info("Restoring client configuration files")
         fstore.restore_all_files()
@@ -429,20 +525,6 @@ def uninstall(options, env):
 
     if was_sshd_configured and ipaservices.knownservices.sshd.is_running():
         ipaservices.knownservices.sshd.restart()
-
-    if was_sssd_installed and was_sssd_configured:
-        # SSSD was installed before our installation, config now is restored, restart it
-        root_logger.info(
-            "The original configuration of SSSD included other domains than " +
-            "the IPA-based one.")
-        root_logger.info(
-            "Original configuration file was restored, restarting SSSD " +
-            "service.")
-        sssd = ipaservices.service('sssd')
-        try:
-            sssd.restart()
-        except CalledProcessError:
-            root_logger.warning("SSSD service restart was unsuccessful.")
 
     if not options.unattended:
         root_logger.info(
