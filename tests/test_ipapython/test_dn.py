@@ -267,12 +267,12 @@ class TestAVA(unittest.TestCase):
             self.assertEqual(result, -1)
 
     def test_hashing(self):
-        # create AVA's that have the same value
-        immutable_ava1 = AVA((self.attr1, self.value1))
-        immutable_ava2 = AVA((self.attr1, self.value1))
+        # create AVA's that are equal but differ in case
+        immutable_ava1 = AVA((self.attr1.lower(), self.value1.upper()))
+        immutable_ava2 = AVA((self.attr1.upper(), self.value1.lower()))
 
-        mutable_ava1   = EditableAVA((self.attr1, self.value1))
-        mutable_ava2   = EditableAVA((self.attr1, self.value1))
+        mutable_ava1   = EditableAVA((self.attr1.lower(), self.value1.upper()))
+        mutable_ava2   = EditableAVA((self.attr1.upper(), self.value1.lower()))
 
         # Immutable AVA's that are equal should hash to the same value.
         # Mutable AVA's should not be hashable.
@@ -828,12 +828,12 @@ class TestRDN(unittest.TestCase):
 
 
     def test_hashing(self):
-        # create RDN's that have the same value
-        immutable_rdn1 = RDN((self.attr1, self.value1))
-        immutable_rdn2 = RDN((self.attr1, self.value1))
+        # create RDN's that are equal but differ in case
+        immutable_rdn1 = RDN((self.attr1.lower(), self.value1.upper()))
+        immutable_rdn2 = RDN((self.attr1.upper(), self.value1.lower()))
 
-        mutable_rdn1   = EditableRDN((self.attr1, self.value1))
-        mutable_rdn2   = EditableRDN((self.attr1, self.value1))
+        mutable_rdn1   = EditableRDN((self.attr1.lower(), self.value1.upper()))
+        mutable_rdn2   = EditableRDN((self.attr1.upper(), self.value1.lower()))
 
         # Immutable RDN's that are equal should hash to the same value.
         # Mutable RDN's should not be hashable.
@@ -1706,12 +1706,12 @@ class TestDN(unittest.TestCase):
                     self.assertExpectedClass(DN_class, dn[i][j], 'AVA')
 
     def test_hashing(self):
-        # create DN's that have the same value
-        immutable_dn1 = DN((self.attr1, self.value1))
-        immutable_dn2 = DN((self.attr1, self.value1))
+        # create DN's that are equal but differ in case
+        immutable_dn1 = DN((self.attr1.lower(), self.value1.upper()))
+        immutable_dn2 = DN((self.attr1.upper(), self.value1.lower()))
 
-        mutable_dn1   = EditableDN((self.attr1, self.value1))
-        mutable_dn2   = EditableDN((self.attr1, self.value1))
+        mutable_dn1   = EditableDN((self.attr1.lower(), self.value1.upper()))
+        mutable_dn2   = EditableDN((self.attr1.upper(), self.value1.lower()))
 
         # Immutable DN's that are equal should hash to the same value.
         # Mutable DN's should not be hashable.
