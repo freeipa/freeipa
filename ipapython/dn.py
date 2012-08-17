@@ -385,7 +385,7 @@ if container_dn in dn:
 # (e.g. cmp()). The general rule is for objects supporting multiple
 # values first their lengths are compared, then if the lengths match
 # the respective components of each are pair-wise compared until one
-# is discovered to be  non-equal. The comparision is case insensitive.
+# is discovered to be  non-equal. The comparison is case insensitive.
 
 Cloning (Object Copy):
 
@@ -544,7 +544,7 @@ class AVA(object):
 
     AVA objects support equality testing and comparsion (e.g. cmp()). When they
     are compared the attr is compared first, if the 2 attr's are equal then the
-    values are compared. The comparision is case insensitive (because attr's map
+    values are compared. The comparison is case insensitive (because attr's map
     to numeric OID's and their values derive from from the 'name' atribute type
     (OID 2.5.4.41) whose EQUALITY MATCH RULE is caseIgnoreMatch.
 
@@ -648,8 +648,13 @@ class AVA(object):
                                 (key.__class__.__name__))
 
     def __hash__(self):
-        # Hash is computed from AVA's string representation because it's immutable
-        return hash(str(self))
+        # Hash is computed from AVA's string representation because it's immutable.
+        #
+        # Because attrs & values are comparison case-insensitive the
+        # hash value between two objects which compare as equal but
+        # differ in case must yield the same hash value.
+
+        return hash(str(self).lower())
 
     def __eq__(self, other):
         '''
@@ -676,7 +681,7 @@ class AVA(object):
         if not isinstance(other, AVA):
             return False
 
-        # Perform comparision between objects of same type
+        # Perform comparison between objects of same type
         return self._attr_unicode.lower() == other.attr.lower() and \
             self._value_unicode.lower() == other.value.lower()
 
@@ -684,7 +689,7 @@ class AVA(object):
         return not self.__eq__(other)
 
     def __cmp__(self, other):
-        'comparision is case insensitive, see __eq__ doc for explanation'
+        'comparison is case insensitive, see __eq__ doc for explanation'
 
         if not isinstance(other, AVA):
             raise TypeError("expected AVA but got %s" % (other.__class__.__name__))
@@ -803,8 +808,8 @@ class RDN(object):
     the first AVA's properties, programmer beware! Recall the AVA's in the RDN
     are sorted according the to AVA collating semantics.
 
-    RDN objects support equality testing and comparision. See AVA for the
-    definition of the comparision method.
+    RDN objects support equality testing and comparison. See AVA for the
+    definition of the comparison method.
 
     RDN objects support concatenation and addition with other RDN's or AVA's
 
@@ -933,7 +938,12 @@ class RDN(object):
 
     def __hash__(self):
         # Hash is computed from RDN's string representation because it's immutable
-        return hash(str(self))
+        #
+        # Because attrs & values are comparison case-insensitive the
+        # hash value between two objects which compare as equal but
+        # differ in case must yield the same hash value.
+
+        return hash(str(self).lower())
 
     def __eq__(self, other):
         # Try coercing string to RDN, if successful compare to coerced object
@@ -948,7 +958,7 @@ class RDN(object):
         if not isinstance(other, RDN):
             return False
 
-        # Perform comparision between objects of same type
+        # Perform comparison between objects of same type
         return self.avas == other.avas
 
     def __ne__(self, other):
@@ -1170,8 +1180,8 @@ class DN(object):
     dn.insert(i, RDN(('cn','Bob')))
     dn[i:i] = [('cn','Bob')]
 
-    DN objects support equality testing and comparision. See RDN for the
-    definition of the comparision method.
+    DN objects support equality testing and comparison. See RDN for the
+    definition of the comparison method.
 
     DN objects implement startswith(), endswith() and the "in" membership
     operator. You may pass a DN or RDN object to these. Examples:
@@ -1290,7 +1300,12 @@ class DN(object):
 
     def __hash__(self):
         # Hash is computed from DN's string representation because it's immutable
-        return hash(str(self))
+        #
+        # Because attrs & values are comparison case-insensitive the
+        # hash value between two objects which compare as equal but
+        # differ in case must yield the same hash value.
+
+        return hash(str(self).lower())
 
     def __eq__(self, other):
         # Try coercing string to DN, if successful compare to coerced object
@@ -1305,7 +1320,7 @@ class DN(object):
         if not isinstance(other, DN):
             return False
 
-        # Perform comparision between objects of same type
+        # Perform comparison between objects of same type
         return self.rdns == other.rdns
 
     def __ne__(self, other):

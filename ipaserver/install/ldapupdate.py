@@ -265,7 +265,7 @@ class LDAPUpdate:
 
         if not all_updates.get(dn):
             all_updates[dn] = update
-            return all_updates
+            return
 
         existing_update = all_updates[dn]
         if 'default' in update:
