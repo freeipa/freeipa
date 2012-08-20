@@ -186,9 +186,9 @@ def ipa_start(options):
             pass
         if isinstance(e, IpactlError):
             # do not display any other error message
-            raise IpactlError(None, e.rval)
+            raise IpactlError(rval=e.rval)
         else:
-            raise IpactlError(None)
+            raise IpactlError()
 
     if len(svc_list) == 0:
         # no service to stop
@@ -235,7 +235,7 @@ def ipa_stop(options):
                 # just try to stop it, do not read a result
                 dirsrv.stop()
             finally:
-                raise IpactlError(None)
+                raise IpactlError()
 
     if len(svc_list) == 0:
         # no service to stop
@@ -277,9 +277,9 @@ def ipa_restart(options):
             pass
         if isinstance(e, IpactlError):
             # do not display any other error message
-            raise IpactlError(None, e.rval)
+            raise IpactlError(rval=e.rval)
         else:
-            raise IpactlError(None)
+            raise IpactlError()
 
     if len(svc_list) == 0:
         # no service to stop

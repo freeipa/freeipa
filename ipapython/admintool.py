@@ -36,11 +36,13 @@ class ScriptError(StandardError):
     """An exception that records an error message and a return value
     """
     def __init__(self, msg='', rval=1):
+        if msg is None:
+            msg = ''
         self.msg = msg
         self.rval = rval
 
     def __str__(self):
-        return self.msg or ''
+        return self.msg
 
 
 class AdminTool(object):
