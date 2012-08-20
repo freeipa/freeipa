@@ -3204,49 +3204,70 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 	return ret;
 }
 
-static void bind_callback_cleanup(struct ipasam_sasl_interact_priv *data, krb5_error_code rc)
-{
+
+static void bind_callback_cleanup_creds(struct ipasam_sasl_interact_priv *datap) {
+	krb5_free_cred_contents(datap->context, &datap->creds);
+
+	if (datap->options) {
+		krb5_get_init_creds_opt_free(datap->context, datap->options);
+		datap->options = NULL;
+	}
+}
+
+static void bind_callback_cleanup(struct ipasam_sasl_interact_priv *datap, krb5_error_code rc) {
 	const char *errstring = NULL;
 
-	if (!data->context) {
+	if (!datap->context) {
 		return;
 	}
 
 	if (rc) {
-		errstring = krb5_get_error_message(data->context, rc);
+		errstring = krb5_get_error_message(datap->context, rc);
 		DEBUG(0,("kerberos error: code=%d, message=%s\n", rc, errstring));
-		krb5_free_error_message(data->context, errstring);
+		krb5_free_error_message(datap->context, errstring);
 	}
 
-	krb5_free_cred_contents(data->context, &data->creds);
+	bind_callback_cleanup_creds(datap);
 
-	if (data->options) {
-		krb5_get_init_creds_opt_free(data->context, data->options);
-		data->options = NULL;
+	if (datap->keytab) {
+		krb5_kt_close(datap->context, datap->keytab);
+		datap->keytab = NULL;
 	}
 
-	if (data->keytab) {
-		krb5_kt_close(data->context, data->keytab);
-		data->keytab = NULL;
+	if (datap->ccache) {
+		krb5_cc_close(datap->context, datap->ccache);
+		datap->ccache = NULL;
 	}
 
-	if (data->ccache) {
-		krb5_cc_close(data->context, data->ccache);
-		data->ccache = NULL;
+	if (datap->principal) {
+		krb5_free_principal(datap->context, datap->principal);
+		datap->principal = NULL;
 	}
 
-	if (data->principal) {
-		krb5_free_principal(data->context, data->principal);
-		data->principal = NULL;
+	krb5_free_context(datap->context);
+	datap->context = NULL;
+}
+
+static krb5_error_code bind_callback_obtain_creds(struct ipasam_sasl_interact_priv *datap) {
+	krb5_error_code rc;
+
+	rc = krb5_get_init_creds_opt_alloc(datap->context, &datap->options);
+	if (rc) {
+		return rc;
 	}
 
-	krb5_free_context(data->context);
-	data->context = NULL;
+	rc = krb5_get_init_creds_opt_set_out_ccache(datap->context, datap->options, datap->ccache);
+	if (rc) {
+		return rc;
+	}
+
+	rc = krb5_get_init_creds_keytab(datap->context, &datap->creds, datap->principal, datap->keytab,
+					0, NULL, datap->options);
+	return rc;
 }
 
 extern const char * lp_dedicated_keytab_file(void);
-static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, void* ipasam_priv)
-{
+static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, void* ipasam_priv) {
 	krb5_error_code rc;
 	krb5_creds *out_creds = NULL;
 	krb5_creds in_creds;
@@ -3311,20 +3332,7 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 	krb5_free_principal(data.context, in_creds.client);
 
 	if (rc) {
-		rc = krb5_get_init_creds_opt_alloc(data.context, &data.options);
-		if (rc) {
-			bind_callback_cleanup(&data, rc);
-			return LDAP_LOCAL_ERROR;
-		}
-
-		rc = krb5_get_init_creds_opt_set_out_ccache(data.context, data.options, data.ccache);
-		if (rc) {
-			bind_callback_cleanup(&data, rc);
-			return LDAP_LOCAL_ERROR;
-		}
-
-		rc = krb5_get_init_creds_keytab(data.context, &data.creds, data.principal, data.keytab,
-						0, NULL, data.options);
+		rc = bind_callback_obtain_creds(&data);
 		if (rc) {
 			bind_callback_cleanup(&data, rc);
 			return LDAP_LOCAL_ERROR;
@@ -3336,8 +3344,40 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 					   NULL, NULL,
 					   LDAP_SASL_QUIET,
 					   ldap_sasl_interact, &data);
-	if (ret != LDAP_SUCCESS) {
-		DEBUG(0, ("bind_callback: cannot perform interactive SASL bind with GSSAPI\n"));
+
+	/* By now we have 'ret' for LDAP result and 'rc' for Kerberos result
+	 * if ret is LDAP_INVALID_CREDENTIALS, LDAP server rejected our ccache. There may be several issues:
+	 *
+	 * 1. Credentials are invalid due to outdated ccache leftover from previous install
+	 *    Wipe out old ccache and start again
+	 *
+	 * 2. Key in the keytab is not enough to obtain ticket for cifs/FQDN@REALM service
+	 *    Cannot continue without proper keytab
+	 *
+	 * Only process (1) because (2) and other errors will be taken care of by smbd after multiple retries.
+	 *
+	 * Since both smbd and winbindd will use this passdb module, on startup both will try to access the same
+	 * ccache. It may happen that if ccache was missing or contained invalid cached credentials, that one of
+	 * them will complain loudly about missing ccache file at the time when the other one will be creating
+	 * a new ccache file by the above call of bind_callback_obtain_creds(). This is expected and correct behavior.
+	 *
+	 */
+	if ((ret == LDAP_INVALID_CREDENTIALS) && (rc == 0)) {
+		bind_callback_cleanup_creds(&data);
+		rc = bind_callback_obtain_creds(&data);
+		if (rc) {
+			bind_callback_cleanup(&data, rc);
+			return LDAP_LOCAL_ERROR;
+		}
+		ret = ldap_sasl_interactive_bind_s(ldap_struct,
+						   NULL, "GSSAPI",
+						   NULL, NULL,
+						   LDAP_SASL_QUIET,
+						   ldap_sasl_interact, &data);
+	}
+
+	if (LDAP_SECURITY_ERROR(ret)) {
+		DEBUG(0, ("bind_callback: cannot perform interactive SASL bind with GSSAPI. LDAP security error is %d\n", ret));
 	}
 
 	if (out_creds) {
