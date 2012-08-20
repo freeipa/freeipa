@@ -221,6 +221,7 @@ Requires: python-crypto
 Requires: samba4-python
 Requires: samba4
 Requires: libsss_idmap
+Requires: samba4-winbind
 
 %description server-trust-ad
 Cross-realm trusts with Active Directory in IPA require working Samba 4 installation.
@@ -751,6 +752,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Mon Aug 20 2012 Tomas Babej <tbabej@redhat.com> - 2.99.0-42
+- Add samba4-winbind to build dependencies for AD server-side code
+
 * Thu Aug 17 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-41
 - Set min for bind-dyndb-ldap to 1.1.0-0.16.rc1 to pick up complete zone transfer
   support
