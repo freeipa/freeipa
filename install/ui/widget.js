@@ -2179,8 +2179,7 @@ IPA.combobox_widget = function(spec) {
             name: 'list',
             size: that.size,
             style: 'width: 100%',
-            change: that.select_on_change,
-            click: that.select_on_change
+            change: that.select_on_change
         }).appendTo(div);
 
         if (that.undo) {
@@ -2322,7 +2321,8 @@ IPA.combobox_widget = function(spec) {
     that.create_option = function(label, value) {
         var option = $('<option/>', {
             text: label,
-            value: value
+            value: value,
+            click: that.select_on_change
         }).appendTo(that.list);
     };
 
