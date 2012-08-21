@@ -374,10 +374,19 @@ IPA.hbac.test_select_facet = function(spec) {
     };
 
     that.find = function() {
+
+        var old_filter = IPA.nav.get_state(that.entity.name+'-'+that.name+'-filter');
         var filter = that.filter.val();
-        var state = {};
-        state[that.entity.name+'-'+that.name+'-filter'] = filter;
-        IPA.nav.push_state(state);
+
+        that.set_expired_flag();
+
+        if (old_filter === filter) {
+            that.refresh();
+        } else {
+            var state = {};
+            state[that.entity.name+'-'+that.name+'-filter'] = filter;
+            IPA.nav.push_state(state);
+        }
     };
 
     that.get_selected_values = function() {
