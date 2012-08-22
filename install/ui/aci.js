@@ -467,6 +467,7 @@ IPA.attributes_widget = function(spec) {
     var that = IPA.checkboxes_widget(spec);
 
     that.object_type = spec.object_type;
+    that.skip_unmatched = spec.skip_unmatched === undefined ? false : spec.skip_unmatched;
 
     var id = spec.name;
 
@@ -512,6 +513,30 @@ IPA.attributes_widget = function(spec) {
         that.create_error_link(container);
     };
 
+    that.create_options = function(options) {
+        var tbody = $('tbody', that.table);
+
+        for (var i=0; i<options.length ; i++){
+            var value = options[i].toLowerCase();
+            var tr = $('<tr/>').appendTo(tbody);
+
+            var td =  $('<td/>').appendTo(tr);
+            td.append($('<input/>',{
+                type: 'checkbox',
+                name: that.name,
+                value: value,
+                'class': 'aci-attribute',
+                change: function() {
+                    that.value_changed.notify([], that);
+                }
+            }));
+            td = $('<td/>').appendTo(tr);
+            td.append($('<label/>',{
+                text: value
+            }));
+        }
+    };
+
     that.update = function(values) {
 
         that.values = [];
@@ -543,26 +568,7 @@ IPA.attributes_widget = function(spec) {
 
         var aciattrs = metadata.aciattrs;
 
-        var tbody = $('tbody', that.table);
-
-        for (var i=0; i<aciattrs.length ; i++){
-            var value = aciattrs[i].toLowerCase();
-            var aci_tr = $('<tr/>').appendTo(tbody);
-
-            var td =  $('<td/>').appendTo(aci_tr);
-            td.append($('<input/>',{
-                type: 'checkbox',
-                name: that.name,
-                value: value,
-                'class': 'aci-attribute',
-                click: function() {
-                    that.value_changed.notify([], that);
-                }
-            }));
-            td =  $('<td/>').appendTo(aci_tr);
-            td.append($('<label/>',{
-                text:value}));
-        }
+        that.create_options(aciattrs);
     };
 
     that.append = function() {
@@ -579,29 +585,8 @@ IPA.attributes_widget = function(spec) {
             }
         }
 
-        if (unmatched.length > 0) {
-            var tbody = $('tbody', that.table);
-
-            for (var j=0; j<unmatched.length; j++) {
-                var value = unmatched[j].toLowerCase();
-                var tr = $('<tr/>').appendTo(tbody);
-
-                var td = $('<td/>').appendTo(tr);
-                td.append($('<input/>', {
-                    type: 'checkbox',
-                    name: that.name,
-                    value: value,
-                    'class': 'aci-attribute',
-                    change: function() {
-                        that.value_changed.notify([], that);
-                    }
-                }));
-
-                td = $('<td/>').appendTo(tr);
-                td.append($('<label/>', {
-                    text: value
-                }));
-            }
+        if (unmatched.length > 0 && !that.skip_unmatched) {
+            that.create_options(unmatched);
         }
     };
 
@@ -765,22 +750,33 @@ IPA.permission_target_policy = function (widget_name) {
 
         type_select.value_changed.attach(function() {
             var type = type_select.save()[0];
-            that.set_attrs_type(type);
+            that.set_attrs_type(type, true);
+        });
+
+        type_select.undo_clicked.attach(function() {
+            var type = type_select.save()[0];
+            that.set_attrs_type(type, true);
         });
     };
 
-    that.set_attrs_type = function(type) {
+    that.set_attrs_type = function(type, skip_unmatched) {
         var attribute_field = that.container.fields.get_field('attrs');
         var attribute_table = that.permission_target.widgets.get_widget('attrs');
+        var skip_unmatched_org = attribute_table.skip_unmatched;
         attribute_table.object_type = type;
+        // skip values which don't belong to new type. Bug #2617
+        attribute_table.skip_unmatched =  skip_unmatched || skip_unmatched_org;
         attribute_field.reset();
+        // force value_change to update dirty status if some unmatched values were skipped
+        attribute_table.value_changed.notify([], attribute_table);
+        attribute_table.skip_unmatched = skip_unmatched_org;
     };
 
     that.update_attrs = function() {
 
         var type_select = that.permission_target.widgets.get_widget('type');
         var type = type_select.save()[0];
-        that.set_attrs_type(type);
+        that.set_attrs_type(type, false);
     };
 
     that.post_create = function() {
@@ -868,7 +864,7 @@ IPA.permission_target_policy = function (widget_name) {
                 }
             ],
             action: function() {
-                that.set_attrs_type('group');
+                that.set_attrs_type('group', false);
             }
         },
         type: {
