@@ -31,7 +31,7 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 %if 0%{?fedora} >= 16
 BuildRequires:  systemd-units
 %endif
-BuildRequires:  samba4-devel >= 4.0.0-128
+BuildRequires:  samba4-devel >= 4.0.0-134
 BuildRequires:  samba4-python
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
