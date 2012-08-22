@@ -45,6 +45,32 @@ permission2 = u'testperm2'
 permission2_dn = DN(('cn',permission2),
                     api.env.container_permission,api.env.basedn)
 
+permission3 = u'testperm3'
+permission3_dn = DN(('cn',permission3),
+                    api.env.container_permission,api.env.basedn)
+permission3_attributelevelrights = {
+                                     'member': u'rscwo',
+                                     'seealso': u'rscwo',
+                                     'ipapermissiontype': u'rscwo',
+                                     'cn': u'rscwo',
+                                     'businesscategory': u'rscwo',
+                                     'objectclass': u'rscwo',
+                                     'memberof': u'rscwo',
+                                     'aci': u'rscwo',
+                                     'subtree': u'rscwo',
+                                     'o': u'rscwo',
+                                     'filter': u'rscwo',
+                                     'attrs': u'rscwo',
+                                     'owner': u'rscwo',
+                                     'group': u'rscwo',
+                                     'ou': u'rscwo',
+                                     'targetgroup': u'rscwo',
+                                     'type': u'rscwo',
+                                     'permissions': u'rscwo',
+                                     'nsaccountlock': u'rscwo',
+                                     'description': u'rscwo',
+                                   }
+
 privilege1 = u'testpriv1'
 privilege1_dn = DN(('cn',privilege1),
                    api.env.container_privilege,api.env.basedn)
@@ -57,6 +83,7 @@ class test_permission(Declarative):
     cleanup_commands = [
         ('permission_del', [permission1], {}),
         ('permission_del', [permission2], {}),
+        ('permission_del', [permission3], {}),
         ('privilege_del', [privilege1], {}),
     ]
 
@@ -860,4 +887,62 @@ class test_permission(Declarative):
                 error='May only contain letters, numbers, -, _, and space'),
         ),
 
+        dict(
+            desc='Create %r' % permission3,
+            command=(
+                'permission_add', [permission3], dict(
+                     type=u'user',
+                     permissions=u'write',
+		     attrs=[u'cn']
+                )
+            ),
+            expected=dict(
+                value=permission3,
+                summary=u'Added permission "%s"' % permission3,
+                result=dict(
+                    dn=permission3_dn,
+                    cn=[permission3],
+                    objectclass=objectclasses.permission,
+                    type=u'user',
+                    permissions=[u'write'],
+                    attrs=(u'cn',),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Retrieve %r with --all --rights' % permission3,
+            command=('permission_show', [permission3], {'all' : True, 'rights' : True}),
+            expected=dict(
+                value=permission3,
+                summary=None,
+                result=dict(
+		    dn=permission3_dn,
+                    cn=[permission3],
+                    objectclass=objectclasses.permission,
+                    type=u'user',
+                    attrs=(u'cn',),
+                    permissions=[u'write'],
+                    attributelevelrights=permission3_attributelevelrights
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Modify %r with --all -rights' % permission3,
+            command=('permission_mod', [permission3], {'all' : True, 'rights': True, 'attrs':[u'cn',u'uid']}),
+            expected=dict(
+                value=permission3,
+                summary=u'Modified permission "%s"' % permission3,
+                result=dict(
+		    dn=permission3_dn,
+                    cn=[permission3],
+                    objectclass=objectclasses.permission,
+                    type=u'user',
+                    attrs=(u'cn',u'uid'),
+                    permissions=[u'write'],
+                    attributelevelrights=permission3_attributelevelrights,
+                ),
+            ),
+        ),
     ]

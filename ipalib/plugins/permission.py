@@ -393,8 +393,10 @@ class permission_mod(LDAPUpdate):
 
             cn = options['rename']     # rename finished
 
-        common_options = filter_options(options, ['all', 'raw'])
+        # all common options to permission-mod and show need to be listed here
+        common_options = filter_options(options, ['all', 'raw', 'rights'])
         result = self.api.Command.permission_show(cn, **common_options)['result']
+
         for r in result:
             if not r.startswith('member_'):
                 entry_attrs[r] = result[r]
