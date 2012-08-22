@@ -2417,7 +2417,7 @@ static bool ipasam_nthash_retrieve(struct ldapsam_privates *ldap_state,
 				  };
 
 	ret = smbldap_search(smbldap_state, entry_dn,
-			     LDAP_SCOPE_BASE, "", attr_list, 0,
+			     LDAP_SCOPE_BASE, "(objectclass=*)", attr_list, 0,
 			     &result);
 	if (ret != LDAP_SUCCESS) {
 		DEBUG(1, ("Failed to get NT hash: %s\n",
@@ -2453,15 +2453,13 @@ static bool ipasam_nthash_regen(struct ldapsam_privates *ldap_state,
 				TALLOC_CTX *mem_ctx,
 				char * entry_dn)
 {
-	LDAPMod **mods;
+	LDAPMod **mods = NULL;
 	int ret;
 
-	mods = NULL;
-	smbldap_make_mod(ldap_state->smbldap_state->ldap_struct,
-			 NULL, &mods, LDAP_ATTRIBUTE_NTHASH, "MagicRegen");
-
+	smbldap_set_mod(&mods, LDAP_MOD_ADD, LDAP_ATTRIBUTE_NTHASH, "MagicRegen");
 	talloc_autofree_ldapmod(mem_ctx, mods);
-	ret = smbldap_add(ldap_state->smbldap_state, entry_dn, mods);
+
+	ret = smbldap_modify(ldap_state->smbldap_state, entry_dn, mods);
 	if (ret != LDAP_SUCCESS) {
 		DEBUG(5, ("ipasam: attempt to regen ipaNTHash failed\n"));
 	}
@@ -2585,13 +2583,11 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 		 * */
 		temp = smbldap_talloc_dn(tmp_ctx, ldap_state->smbldap_state->ldap_struct, entry);
 		if (temp) {
-			retval = ipasam_nthash_regen(tmp_ctx,
-						     ldap_state->smbldap_state->ldap_struct,
-						     temp);
+			retval = ipasam_nthash_regen(ldap_state,
+						     tmp_ctx, temp);
 			if (retval) {
-				retval = ipasam_nthash_retrieve(tmp_ctx,
-							ldap_state->smbldap_state->ldap_struct,
-							temp, &nthash);
+				retval = ipasam_nthash_retrieve(ldap_state,
+								tmp_ctx, temp, &nthash);
 			}
 		}
 	}
