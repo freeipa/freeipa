@@ -54,7 +54,7 @@ app_DATA =				\
 	overpass_regular-web.ttf	\
 	overpass_regular-web.woff	\
 	policy.js			\
-	range.js			\
+	idrange.js			\
 	reset_password.js		\
 	reset_password.html		\
 	rule.js 			\

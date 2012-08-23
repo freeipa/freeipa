@@ -182,7 +182,7 @@ class trust_add(LDAPCreate):
         range_name = keys[-1].upper()+'_id_range'
 
         try:
-            old_range = api.Command['range_show'](range_name)
+            old_range = api.Command['idrange_show'](range_name)
         except errors.NotFound, e:
             old_range = None
 
@@ -209,7 +209,7 @@ class trust_add(LDAPCreate):
             base_id = 200000 + (pysss_murmur.murmurhash3(dom_sid, len(dom_sid), 0xdeadbeef) % 10000) * 200000
 
         try:
-            new_range = api.Command['range_add'](range_name,
+            new_range = api.Command['idrange_add'](range_name,
                                                  ipabaseid=base_id,
                                                  ipaidrangesize=options['range_size'],
                                                  ipabaserid=0,

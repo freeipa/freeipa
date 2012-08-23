@@ -13708,7 +13708,7 @@
                     }
                 ]
             },
-            "range_add": {
+            "idrange_add": {
                 "takes_args": [],
                 "takes_options": [
                     {
@@ -13797,7 +13797,7 @@
                     }
                 ]
             },
-            "range_del": {
+            "idrange_del": {
                 "takes_args": [],
                 "takes_options": [
                     {
@@ -13811,7 +13811,7 @@
                     }
                 ]
             },
-            "range_find": {
+            "idrange_find": {
                 "takes_args": [],
                 "takes_options": [
                     {
@@ -13941,7 +13941,7 @@
                     }
                 ]
             },
-            "range_mod": {
+            "idrange_mod": {
                 "takes_args": [],
                 "takes_options": [
                     {
@@ -14045,7 +14045,7 @@
                     }
                 ]
             },
-            "range_show": {
+            "idrange_show": {
                 "takes_args": [],
                 "takes_options": [
                     {

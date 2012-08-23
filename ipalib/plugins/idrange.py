@@ -31,7 +31,7 @@ __doc__ = _("""
 Manage ID ranges
 """)
 
-class range(LDAPObject):
+class idrange(LDAPObject):
     """
     Range object.
     """
@@ -46,8 +46,8 @@ class range(LDAPObject):
                           'ipasecondarybaserid', 'ipanttrusteddomainsid',
                           'iparangetype']
 
-    label = _('Ranges')
-    label_singular = _('Range')
+    label = _('ID Ranges')
+    label_singular = _('ID Range')
 
     takes_params = (
         Str('cn',
@@ -143,7 +143,7 @@ class range(LDAPObject):
                     error=_('range modification leaving objects with ID out '
                             'of the defined range is not allowed'))
 
-class range_add(LDAPCreate):
+class idrange_add(LDAPCreate):
     __doc__ = _('Add new ID range.')
 
     msg_summary = _('Added ID range "%(value)s"')
@@ -168,7 +168,7 @@ class range_add(LDAPCreate):
         self.obj.handle_iparangetype(entry_attrs, options, keep_objectclass=True)
         return dn
 
-class range_del(LDAPDelete):
+class idrange_del(LDAPDelete):
     __doc__ = _('Delete an ID range.')
 
     msg_summary = _('Deleted ID range "%(value)s"')
@@ -185,7 +185,7 @@ class range_del(LDAPDelete):
                 old_base_id, old_range_size, 0, 0)
         return dn
 
-class range_find(LDAPSearch):
+class idrange_find(LDAPSearch):
     __doc__ = _('Search for ranges.')
 
     msg_summary = ngettext(
@@ -204,7 +204,7 @@ class range_find(LDAPSearch):
             self.obj.handle_iparangetype(entry, options)
         return truncated
 
-class range_show(LDAPRetrieve):
+class idrange_show(LDAPRetrieve):
     __doc__ = _('Display information about a range.')
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
@@ -217,7 +217,7 @@ class range_show(LDAPRetrieve):
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
 
-class range_mod(LDAPUpdate):
+class idrange_mod(LDAPUpdate):
     __doc__ = _('Modify ID range.')
 
     msg_summary = _('Modified ID range "%(value)s"')
@@ -249,9 +249,9 @@ class range_mod(LDAPUpdate):
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
 
-api.register(range)
-api.register(range_add)
-api.register(range_mod)
-api.register(range_del)
-api.register(range_find)
-api.register(range_show)
+api.register(idrange)
+api.register(idrange_add)
+api.register(idrange_mod)
+api.register(idrange_del)
+api.register(idrange_find)
+api.register(idrange_show)
