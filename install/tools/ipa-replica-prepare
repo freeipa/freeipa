@@ -33,6 +33,7 @@ from ipaserver.install.replication import enable_replication_version_checking
 from ipaserver.install.installutils import resolve_host, BadHostError, HostLookupError
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
+from ipapython import dogtag
 from ipapython.config import IPAOptionParser
 from ipalib import api, errors, util
 from ipapython.dn import DN
@@ -304,7 +305,9 @@ def main():
         if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, options.ip_address):
             sys.exit(1)
 
-    if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki/pki-tomcat/conf/ca/CS.cfg") and not options.dirsrv_pin:
+    if (not certs.ipa_self_signed() and
+            not ipautil.file_exists(dogtag.configured_constants().CS_CFG_PATH) and
+            not options.dirsrv_pin):
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
 
     check_ipa_configuration(api.env.realm)

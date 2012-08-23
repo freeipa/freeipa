@@ -58,6 +58,7 @@ from ipaserver.plugins.ldap2 import ldap2
 from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipapython import ipautil
+from ipapython import dogtag
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
@@ -465,6 +466,9 @@ def uninstall():
     except Exception, e:
         pass
 
+    # Need to get dogtag info before /etc/ipa/default.conf is removed
+    dogtag_constants = dogtag.configured_constants()
+
     print "Removing IPA client configuration"
     try:
         (stdout, stderr, rc) = run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"], raiseonerr=False)
@@ -477,10 +481,13 @@ def uninstall():
         print "ipa-client-install returned: " + str(e)
 
     ntpinstance.NTPInstance(fstore).uninstall()
-    if cainstance.CADSInstance().is_configured():
-        cainstance.CADSInstance().uninstall()
-    if cainstance.CAInstance(api.env.realm, certs.NSS_DIR).is_configured():
-        cainstance.CAInstance(api.env.realm, certs.NSS_DIR).uninstall()
+    cads_instance = cainstance.CADSInstance(dogtag_constants=dogtag_constants)
+    if cads_instance.is_configured():
+        cads_instance.uninstall()
+    ca_instance = cainstance.CAInstance(
+        api.env.realm, certs.NSS_DIR, dogtag_constants=dogtag_constants)
+    if ca_instance.is_configured():
+        ca_instance.uninstall()
     bindinstance.BindInstance(fstore).uninstall()
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
@@ -853,7 +860,8 @@ def main():
     fd.write("enable_ra=True\n")
     if not options.selfsign:
         fd.write("ra_plugin=dogtag\n")
-        fd.write("dogtag_version=10\n")
+        fd.write("dogtag_version=%s\n" %
+            dogtag.install_constants.DOGTAG_VERSION)
     fd.write("mode=production\n")
     fd.close()
 
@@ -916,7 +924,8 @@ def main():
         cs = cainstance.CADSInstance(host_name, realm_name, domain_name, dm_password)
         if not cs.is_configured():
             cs.create_instance(realm_name, host_name, domain_name, dm_password, subject_base=options.subject)
-        ca = cainstance.CAInstance(realm_name, certs.NSS_DIR)
+        ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
+            dogtag_constants=dogtag.install_constants)
         if external == 0:
             ca.configure_instance(host_name, dm_password, dm_password,
                                   subject_base=options.subject)

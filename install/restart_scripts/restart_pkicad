@@ -22,6 +22,7 @@
 import sys
 import syslog
 from ipapython import services as ipaservices
+from ipapython import dogtag
 from ipaserver.install import certs
 from ipalib import api
 
@@ -30,18 +31,16 @@ nickname = sys.argv[1]
 api.bootstrap(context='restart')
 api.finalize()
 
-alias_dir = '/etc/pki/pki-tomcat/alias'
-dogtag_instance = 'pki-tomcat'
-if 'dogtag_version' not in api.env:
-    alias_dir = '/var/lib/pki-ca/alias'
-    dogtag_instance = 'pki-ca'
+configured_constants = dogtag.configured_constants(api)
+alias_dir = configured_constants.ALIAS_DIR
+dogtag_instance = configured_constants.PKI_INSTANCE_NAME
 
-syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted %sd, nickname '%s'" % \
+syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted %sd, nickname '%s'" %
               (dogtag_instance, nickname))
 
 # Fix permissions on the audit cert if we're updating it
 if nickname == 'auditSigningCert cert-pki-ca':
-    db = certs.CertDB(api.env.realm, nssdir = alias_dir )
+    db = certs.CertDB(api.env.realm, nssdir=alias_dir)
     args = ['-M',
             '-n', nickname,
             '-t', 'u,u,Pu',
@@ -54,5 +53,5 @@ try:
     ipaservices.knownservices.pki_cad.stop(dogtag_instance)
     ipaservices.knownservices.pki_cad.start(dogtag_instance)
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot restart %sd: %s" % \
+    syslog.syslog(syslog.LOG_ERR, "Cannot restart %sd: %s" %
                   (dogtag_instance, str(e)))

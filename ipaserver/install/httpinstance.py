@@ -31,6 +31,7 @@ import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import services as ipaservices
+from ipapython import dogtag
 from ipalib import util, api
 
 HTTPD_DIR = "/etc/httpd"
@@ -70,7 +71,13 @@ class HTTPInstance(service.Service):
         self.principal = "HTTP/%s@%s" % (self.fqdn, self.realm)
         self.dercert = None
         self.subject_base = subject_base
-        self.sub_dict = {"REALM": realm, "FQDN": fqdn, "DOMAIN": self.domain, "AUTOREDIR": '' if auto_redirect else '#'}
+        self.sub_dict = dict(
+            REALM=realm,
+            FQDN=fqdn,
+            DOMAIN=self.domain,
+            AUTOREDIR='' if auto_redirect else '#',
+            CRL_PUBLISH_PATH=dogtag.install_constants.CRL_PUBLISH_PATH,
+        )
 
         # get a connection to the DS
         self.ldap_connect()

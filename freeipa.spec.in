@@ -250,7 +250,7 @@ Requires:  xmlrpc-c
 %endif
 %endif
 Requires: sssd >= 1.8.0
-Requires: certmonger >= 0.58
+Requires: certmonger >= 0.60
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
@@ -748,6 +748,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue Sep 18 2012 Petr Viktorin <pviktori@redhat.com> - 2.99.0-46
+- Set certmonger minimum version to 0.60 for Dogtag 10 support.
+
 * Mon Sep 17 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-45
 - Set min for 389-ds-base to 1.2.11.14-1 on F17+ to pull in updated
   RUV code and nsslapd-readonly schema.

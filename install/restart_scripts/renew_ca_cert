@@ -32,6 +32,7 @@ from ipapython.dn import DN
 from ipalib import errors
 from ipapython import services as ipaservices
 from ipapython import ipautil
+from ipapython import dogtag
 from ipaserver.install import certs
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install.cainstance import update_cert_config
@@ -45,11 +46,9 @@ nickname = sys.argv[1]
 api.bootstrap(context='restart')
 api.finalize()
 
-alias_dir = '/etc/pki/pki-tomcat/alias'
-dogtag_instance = 'pki-tomcat'
-if 'dogtag_version' not in api.env:
-    alias_dir = '/var/lib/pki-ca/alias'
-    dogtag_instance = 'pki-ca'
+configured_constants = dogtag.configured_constants(api)
+alias_dir = configured_constants.ALIAS_DIR
+dogtag_instance = configured_constants.PKI_INSTANCE_NAME
 
 # Fetch the new certificate
 db = certs.CertDB(api.env.realm, nssdir=alias_dir)
@@ -112,5 +111,5 @@ time.sleep(pause)
 try:
     ipaservices.knownservices.pki_cad.restart(dogtag_instance)
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot restart %sd: %s" % \
+    syslog.syslog(syslog.LOG_ERR, "Cannot restart %sd: %s" %
                   (dogtag_instance, str(e)))

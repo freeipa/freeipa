@@ -141,9 +141,11 @@ DEFAULT_CONFIG = (
     ('ca_port', 80),
     ('ca_agent_port', 443),
     ('ca_ee_port', 443),
-    ('ca_install_port', 8080),
-    ('ca_agent_install_port', 8443),
-    ('ca_ee_install_port', 8443),
+    # For the following ports, None means a default specific to the installed
+    # Dogtag version.
+    ('ca_install_port', None),
+    ('ca_agent_install_port', None),
+    ('ca_ee_install_port', None),
 
 
     # Special CLI:
@@ -156,6 +158,7 @@ DEFAULT_CONFIG = (
     ('enable_ra', False),
     ('ra_plugin', 'selfsign'),
     ('wait_for_attr', False),
+    ('dogtag_version', 9),
 
     # Used when verifying that the API hasn't changed. Not for production.
     ('validate_api', False),
