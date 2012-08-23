@@ -194,7 +194,9 @@ var IPA = function() {
             ],
             on_success: function(data, text_status, xhr) {
                 IPA.ui.initialized = true;
-                params.on_success.call(this, data, text_status, xhr);
+                if (params.on_success) {
+                    params.on_success.call(this, data, text_status, xhr);
+                }
             },
             on_error: params.on_error
         });
