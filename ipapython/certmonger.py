@@ -26,6 +26,7 @@ import sys
 import re
 import time
 from ipapython import ipautil
+from ipapython import dogtag
 
 REQUEST_DIR='/var/lib/certmonger/requests/'
 CA_DIR='/var/lib/certmonger/cas/'
@@ -337,8 +338,7 @@ def get_pin(token):
 
     The caller is expected to handle any exceptions raised.
     """
-    filename = '/var/lib/pki/pki-tomcat/conf/password.conf'
-    with open(filename, 'r') as f:
+    with open(dogtag.configured_constants().PASSWORD_CONF_PATH, 'r') as f:
         for line in f:
             (tok, pin) = line.split('=', 1)
             if token == tok:

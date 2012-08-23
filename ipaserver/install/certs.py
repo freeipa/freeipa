@@ -660,8 +660,13 @@ class CertDB(object):
             f = open(self.passwd_fname, "r")
             password = f.readline()
             f.close()
-            http_status, http_reason_phrase, http_headers, http_body = \
-                dogtag.https_request(self.host_name, api.env.ca_ee_install_port, "/ca/ee/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
+            result = dogtag.https_request(
+                self.host_name,
+                api.env.ca_ee_install_port or
+                    dogtag.install_constants.EE_SECURE_PORT,
+                "/ca/ee/ca/profileSubmitSSLClient",
+                self.secdir, password, "ipaCert", **params)
+            http_status, http_reason_phrase, http_headers, http_body = result
 
             if http_status != 200:
                 raise CertificateOperationError(
@@ -743,8 +748,13 @@ class CertDB(object):
             f = open(self.passwd_fname, "r")
             password = f.readline()
             f.close()
-            http_status, http_reason_phrase, http_headers, http_body = \
-                dogtag.https_request(self.host_name, api.env.ca_ee_install_port, "/ca/ee/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
+            result = dogtag.https_request(
+                self.host_name,
+                api.env.ca_ee_install_port or
+                    dogtag.install_constants.EE_SECURE_PORT,
+                "/ca/ee/ca/profileSubmitSSLClient",
+                self.secdir, password, "ipaCert", **params)
+            http_status, http_reason_phrase, http_headers, http_body = result
             if http_status != 200:
                 raise RuntimeError("Unable to submit cert request")
 

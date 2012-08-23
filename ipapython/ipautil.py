@@ -293,19 +293,12 @@ def run(args, stdin=None, raiseonerr=True,
         raise
 
     # The command and its output may include passwords that we don't want
-    # to log. Run through the nolog items.
+    # to log. Replace those.
     args = ' '.join(args)
-    for value in nolog:
-        if not isinstance(value, basestring):
-            continue
-
-        quoted = urllib2.quote(value)
-        shquoted = shell_quote(value)
-        for nolog_value in (shquoted, value, quoted):
-            if capture_output:
-                stdout = stdout.replace(nolog_value, 'XXXXXXXX')
-                stderr = stderr.replace(nolog_value, 'XXXXXXXX')
-            args = args.replace(nolog_value, 'XXXXXXXX')
+    if capture_output:
+        stdout = nolog_replace(stdout, nolog)
+        stderr = nolog_replace(stderr, nolog)
+    args = nolog_replace(args, nolog)
 
     root_logger.debug('args=%s' % args)
     if capture_output:
@@ -316,6 +309,20 @@ def run(args, stdin=None, raiseonerr=True,
         raise CalledProcessError(p.returncode, args)
 
     return (stdout, stderr, p.returncode)
+
+
+def nolog_replace(string, nolog):
+    """Replace occurences of strings given in `nolog` with XXXXXXXX"""
+    for value in nolog:
+        if not isinstance(value, basestring):
+            continue
+
+        quoted = urllib2.quote(value)
+        shquoted = shell_quote(value)
+        for nolog_value in (shquoted, value, quoted):
+            string = string.replace(nolog_value, 'XXXXXXXX')
+    return string
+
 
 def file_exists(filename):
     try:

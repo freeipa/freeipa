@@ -29,6 +29,7 @@ try:
     from ipapython.config import IPAOptionParser
     from ipapython.ipa_log_manager import *
     from ipapython import certmonger
+    from ipapython import dogtag
     from ipaserver.install import installutils
     from ipaserver.install import dsinstance
     from ipaserver.install import httpinstance
@@ -458,7 +459,7 @@ def enable_certificate_renewal(realm):
             ca.configure_agent_renewal()
         ca.track_servercert()
         sysupgrade.set_upgrade_state('dogtag', 'renewal_configured', True)
-        ca.restart(cainstance.PKI_INSTANCE_NAME)
+        ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
         root_logger.debug('CA subsystem certificate renewal enabled')
 
 def main():
@@ -495,7 +496,14 @@ def main():
     check_certs()
 
     auto_redirect = find_autoredirect(fqdn)
-    sub_dict = { "REALM" : api.env.realm, "FQDN": fqdn, "AUTOREDIR": '' if auto_redirect else '#'}
+    configured_constants = dogtag.configured_constants()
+    sub_dict = dict(
+        REALM=api.env.realm,
+        FQDN=fqdn,
+        AUTOREDIR='' if auto_redirect else '#',
+        CRL_PUBLISH_PATH=configured_constants.CRL_PUBLISH_PATH,
+        DOGTAG_PORT=configured_constants.AJP_PORT,
+    )
 
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")

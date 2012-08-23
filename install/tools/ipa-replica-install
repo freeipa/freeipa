@@ -42,6 +42,7 @@ from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
 from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
+from ipapython import dogtag
 from ipapython.dn import DN
 
 log_file_name = "/var/log/ipareplica-install.log"
@@ -376,7 +377,8 @@ def main():
         if ipautil.file_exists(config.dir + "/cacert.p12"):
             fd.write("enable_ra=True\n")
             fd.write("ra_plugin=dogtag\n")
-            fd.write("dogtag_version=10\n")
+            fd.write("dogtag_version=%s\n" %
+                dogtag.install_constants.DOGTAG_VERSION)
         fd.write("mode=production\n")
         fd.close()
     finally:
