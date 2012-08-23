@@ -506,7 +506,7 @@ class i18n_messages(Command):
             "pwpolicy": {
                 "identity": _("Password Policy"),
             },
-            "range": {
+            "idrange": {
                 "details": _("Range Settings"),
                 "ipabaseid": _("Base ID"),
                 "ipabaserid": _("Primary RID base"),

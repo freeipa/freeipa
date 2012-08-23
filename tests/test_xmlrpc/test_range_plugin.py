@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib/plugins/range.py` module, and XML-RPC in general.
+Test the `ipalib/plugins/idrange.py` module, and XML-RPC in general.
 """
 
 from ipalib import api, errors, _
@@ -38,15 +38,15 @@ group1_gid = 900100
 
 class test_range(Declarative):
     cleanup_commands = [
-        ('range_del', [testrange1], {}),
+        ('idrange_del', [testrange1], {}),
         ('user_del', [user1], {}),
         ('group_del', [group1], {}),
     ]
 
     tests = [
         dict(
-            desc='Create range %r' % (testrange1),
-            command=('range_add', [testrange1],
+            desc='Create ID range %r' % (testrange1),
+            command=('idrange_add', [testrange1],
                       dict(ipabaseid=testrange1_base_id, ipaidrangesize=testrange1_size,
                            ipabaserid=1000, ipasecondarybaserid=20000)),
             expected=dict(
@@ -67,8 +67,8 @@ class test_range(Declarative):
         ),
 
         dict(
-            desc='Retrieve range %r' % (testrange1),
-            command=('range_show', [testrange1], dict()),
+            desc='Retrieve ID range %r' % (testrange1),
+            command=('idrange_show', [testrange1], dict()),
             expected=dict(
                 result=dict(
                     dn=DN(('cn',testrange1),('cn','ranges'),('cn','etc'),
@@ -87,7 +87,7 @@ class test_range(Declarative):
 
 
         dict(
-            desc='Create user %r in range %r' % (user1, testrange1),
+            desc='Create user %r in ID range %r' % (user1, testrange1),
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                                           uidnumber=user1_uid)
@@ -125,7 +125,7 @@ class test_range(Declarative):
 
 
         dict(
-            desc='Create group %r in range %r' % (group1, testrange1),
+            desc='Create group %r in ID range %r' % (group1, testrange1),
             command=(
                 'group_add', [group1], dict(description=u'Test desc 1',
                                             gidnumber=group1_gid)
@@ -146,8 +146,8 @@ class test_range(Declarative):
 
 
         dict(
-            desc='Try to modify range %r to get out bounds object #1' % (testrange1),
-            command=('range_mod', [testrange1], dict(ipabaseid=90001)),
+            desc='Try to modify ID range %r to get out bounds object #1' % (testrange1),
+            command=('idrange_mod', [testrange1], dict(ipabaseid=90001)),
             expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
                 error=u'range modification leaving objects with ID out of the'
                       u' defined range is not allowed'),
@@ -155,8 +155,8 @@ class test_range(Declarative):
 
 
         dict(
-            desc='Try to modify range %r to get out bounds object #2' % (testrange1),
-            command=('range_mod', [testrange1], dict(ipaidrangesize=100)),
+            desc='Try to modify ID range %r to get out bounds object #2' % (testrange1),
+            command=('idrange_mod', [testrange1], dict(ipaidrangesize=100)),
             expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
                 error=u'range modification leaving objects with ID out of the'
                       u' defined range is not allowed'),
@@ -164,8 +164,8 @@ class test_range(Declarative):
 
 
         dict(
-            desc='Try to modify range %r to get out bounds object #3' % (testrange1),
-            command=('range_mod', [testrange1], dict(ipabaseid=100, ipaidrangesize=100)),
+            desc='Try to modify ID range %r to get out bounds object #3' % (testrange1),
+            command=('idrange_mod', [testrange1], dict(ipabaseid=100, ipaidrangesize=100)),
             expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
                 error=u'range modification leaving objects with ID out of the'
                       u' defined range is not allowed'),
@@ -173,8 +173,8 @@ class test_range(Declarative):
 
 
         dict(
-            desc='Modify range %r' % (testrange1),
-            command=('range_mod', [testrange1], dict(ipaidrangesize=90000)),
+            desc='Modify ID range %r' % (testrange1),
+            command=('idrange_mod', [testrange1], dict(ipaidrangesize=90000)),
             expected=dict(
                 result=dict(
                     cn=[testrange1],
@@ -191,8 +191,8 @@ class test_range(Declarative):
 
 
         dict(
-            desc='Try to delete range %r with active IDs inside it' % testrange1,
-            command=('range_del', [testrange1], {}),
+            desc='Try to delete ID range %r with active IDs inside it' % testrange1,
+            command=('idrange_del', [testrange1], {}),
             expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
                 error=u'range modification leaving objects with ID out of the'
                       u' defined range is not allowed'),
@@ -222,8 +222,8 @@ class test_range(Declarative):
 
 
         dict(
-            desc='Delete range %r' % testrange1,
-            command=('range_del', [testrange1], {}),
+            desc='Delete ID range %r' % testrange1,
+            command=('idrange_del', [testrange1], {}),
             expected=dict(
                 result=dict(failed=u''),
                 value=testrange1,

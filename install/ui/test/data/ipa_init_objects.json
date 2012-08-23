@@ -5882,7 +5882,7 @@
                 ],
                 "uuid_attribute": ""
             },
-            "range": {
+            "idrange": {
                 "aciattrs": [
                     "cn",
                     "ipabaseid",

@@ -368,7 +368,7 @@
                         "pwpolicy": {
                             "identity": "Password Policy"
                         },
-                        "range": {
+                        "idrange": {
                             "details": "Range Settings",
                             "ipabaseid": "Base ID",
                             "ipabaserid": "Primary RID base",
