@@ -91,7 +91,6 @@ void sid_copy(struct dom_sid *dst, const struct dom_sid *src); /* available in l
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
 bool string_to_sid(struct dom_sid *sidout, const char *sidstr); /* available in libsecurity.so */
 bool sid_compose(struct dom_sid *dst, const struct dom_sid *domain_sid, uint32_t rid); /* available in libsecurity.so */
-bool sid_peek_rid(const struct dom_sid *sid, uint32_t *rid); /* available in libsecurity.so */
 int dom_sid_compare_domain(const struct dom_sid *sid1, const struct dom_sid *sid2); /* available in libsecurity.so */
 char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* available in libsmbconf.so */
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
@@ -246,35 +245,43 @@ static bool ldapsam_extract_rid_from_entry(LDAP *ldap_struct,
 					   const struct dom_sid *domain_sid,
 					   uint32_t *rid)
 {
-	char *str;
+	char *str = NULL;
 	struct dom_sid sid;
+	bool res = false;
 
 	str = get_single_attribute(NULL, ldap_struct, entry,
 				   LDAP_ATTRIBUTE_SID);
 	if (str == NULL) {
 		DEBUG(10, ("Could not find SID attribute\n"));
-		return false;
+		res = false;
+		goto done;
 	}
 
 	if (!string_to_sid(&sid, str)) {
-		talloc_free(str);
 		DEBUG(10, ("Could not convert string %s to sid\n", str));
-		return false;
+		res = false;
+		goto done;
 	}
-	talloc_free(str);
 
 	if (dom_sid_compare_domain(&sid, domain_sid) != 0) {
 		DEBUG(10, ("SID %s is not in expected domain %s\n",
 			   str, sid_string_dbg(domain_sid)));
-		return false;
+		res = false;
+		goto done;
 	}
 
-	if (!sid_peek_rid(&sid, rid)) {
-		DEBUG(10, ("Could not peek into RID\n"));
-		return false;
+	if (sid.num_auths <= 0) {
+		DEBUG(10, ("Invalid num_auths in SID %s.\n", str));
+		res = false;
+		goto done;
 	}
 
-	return true;
+	*rid = sid.sub_auths[sid.num_auths - 1];
+
+	res = true;
+done:
+	talloc_free(str);
+	return res;
 }
 
 static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
