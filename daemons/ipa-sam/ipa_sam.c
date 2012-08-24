@@ -85,7 +85,6 @@ bool fetch_ldap_pw(char **dn, char** pw); /* available in libpdb.so */
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
 /* available in libpdb.so, renamed from sid_check_is_domain() in c43505b621725c9a754f0ee98318d451b093f2ed */
 bool sid_check_is_our_sam(const struct dom_sid *sid);
-char *talloc_asprintf_strupper_m(TALLOC_CTX *t, const char *fmt, ...); /* available in libutil_str.so */
 void sid_copy(struct dom_sid *dst, const struct dom_sid *src); /* available in libsecurity.so */
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
 bool string_to_sid(struct dom_sid *sidout, const char *sidstr); /* available in libsecurity.so */
@@ -3169,8 +3168,14 @@ static NTSTATUS ipasam_get_realm(struct ldapsam_privates *ldap_state,
 #define SECRETS_DOMAIN_SID    "SECRETS/SID"
 static char *sec_key(TALLOC_CTX *mem_ctx, const char *d)
 {
-	return talloc_asprintf_strupper_m(mem_ctx, "%s/%s",
-					  SECRETS_DOMAIN_SID, d);
+	char *tmp;
+	char *res;
+
+	tmp = talloc_asprintf(mem_ctx, "%s/%s", SECRETS_DOMAIN_SID, d);
+	res = talloc_strdup_upper(mem_ctx, tmp);
+	talloc_free(tmp);
+
+	return res;
 }
 
 static NTSTATUS save_sid_to_secret(struct ldapsam_privates *ldap_state)
