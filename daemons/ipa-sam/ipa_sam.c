@@ -95,7 +95,6 @@ int dom_sid_compare_domain(const struct dom_sid *sid1, const struct dom_sid *sid
 char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* available in libsmbconf.so */
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
 bool is_null_sid(const struct dom_sid *sid); /* available in libsecurity.so */
-bool strnequal(const char *s1,const char *s2,size_t n); /* available in libutil_str.so */
 bool trim_char(char *s,char cfront,char cback); /* available in libutil_str.so */
 bool sid_peek_check_rid(const struct dom_sid *exp_dom_sid, const struct dom_sid *sid, uint32_t *rid); /* available in libsecurity.so */
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
@@ -168,6 +167,22 @@ struct ipasam_privates {
 	char *server_princ;
 	char *client_princ;
 };
+
+static bool strnequal(const char *s1, const char *s2, size_t n) {
+	if (s1 == s2) {
+		return true;
+	}
+
+	if (s1 == NULL || s2 == NULL || n == 0) {
+		return false;
+	}
+
+	if (strncasecmp(s1, s2, n) == 0) {
+		return true;
+	}
+
+	return false;
+}
 
 static LDAP *priv2ld(struct ldapsam_privates *priv)
 {
