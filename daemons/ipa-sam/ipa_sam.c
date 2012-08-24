@@ -30,6 +30,7 @@
 #include <sasl/sasl.h>
 #include <krb5/krb5.h>
 #include "ipa_krb5.h"
+#include "ipa_pwd.h"
 
 /* from drsblobs.h */
 struct AuthInfoNone {
@@ -81,7 +82,6 @@ struct trustAuthInOutBlob {
 
 enum ndr_err_code ndr_pull_trustAuthInOutBlob(struct ndr_pull *ndr, int ndr_flags, struct trustAuthInOutBlob *r); /*available in libndr-samba.so */
 bool fetch_ldap_pw(char **dn, char** pw); /* available in libpdb.so */
-void nt_lm_owf_gen(const char *pwd, uint8_t nt_p16[16], uint8_t p16[16]); /* available in libcliauth.so */
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
 /* available in libpdb.so, renamed from sid_check_is_domain() in c43505b621725c9a754f0ee98318d451b093f2ed */
 bool sid_check_is_our_sam(const struct dom_sid *sid);
@@ -2348,9 +2348,14 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 	NTSTATUS status;
 	struct dom_sid u_sid;
 	char *name;
-	uint8_t smblmpwd[LM_HASH_LEN];
-	uint8_t smbntpwd[NT_HASH_LEN];
-	char *trustpw;
+	char *trustpw = NULL;
+	char *trustpw_utf8 = NULL;
+	char *trustpw_utf8_uc = NULL;
+	char *tmp_str = NULL;
+	int ret;
+	struct ntlm_keys ntlm_keys;
+	size_t converted_size;
+	bool res;
 
 	if (!pdb_set_acct_ctrl(user, ACB_DOMTRUST | ACB_TRUSTED_FOR_DELEGATION,
 			      PDB_SET)) {
@@ -2387,17 +2392,59 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 	if (!NT_STATUS_IS_OK(status)) {
 		return false;
 	}
-	nt_lm_owf_gen(trustpw, smbntpwd, smblmpwd);
-	memset(trustpw, 0, strlen(trustpw));
-	talloc_free(trustpw);
-	if (!pdb_set_lanman_passwd(user, smblmpwd, PDB_SET)) {
-		return false;
-	}
-	if (!pdb_set_nt_passwd(user, smbntpwd, PDB_SET)) {
-		return false;
+
+	if (!push_utf8_talloc(user, &trustpw_utf8, trustpw, &converted_size)) {
+		res = false;
+		goto done;
 	}
 
-	return true;
+	tmp_str = talloc_strdup_upper(user, trustpw);
+	if (tmp_str == NULL) {
+		res = false;
+		goto done;
+	}
+
+	if (!push_utf8_talloc(user, &trustpw_utf8_uc, tmp_str, &converted_size)) {
+		res = false;
+		goto done;
+	}
+
+	ret = encode_ntlm_keys(trustpw_utf8, trustpw_utf8_uc, true, true,
+			       &ntlm_keys);
+	if (ret != 0) {
+		res = false;
+		goto done;
+	}
+
+	if (!pdb_set_lanman_passwd(user, ntlm_keys.lm, PDB_SET)) {
+		res = false;
+		goto done;
+	}
+	if (!pdb_set_nt_passwd(user, ntlm_keys.nt, PDB_SET)) {
+		res = false;
+		goto done;
+	}
+
+	res = true;
+done:
+	if (trustpw != NULL) {
+		memset(trustpw, 0, strlen(trustpw));
+		talloc_free(trustpw);
+	}
+	if (trustpw_utf8 != NULL) {
+		memset(trustpw_utf8, 0, strlen(trustpw_utf8));
+		talloc_free(trustpw_utf8);
+	}
+	if (tmp_str != NULL) {
+		memset(tmp_str, 0, strlen(tmp_str));
+		talloc_free(tmp_str);
+	}
+	if (trustpw_utf8_uc != NULL) {
+		memset(trustpw_utf8_uc, 0, strlen(trustpw_utf8_uc));
+		talloc_free(trustpw_utf8_uc);
+	}
+
+	return res;
 }
 
 static bool ipasam_nthash_retrieve(struct ldapsam_privates *ldap_state,
