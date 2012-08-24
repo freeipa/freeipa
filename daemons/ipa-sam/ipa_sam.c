@@ -85,7 +85,6 @@ bool fetch_ldap_pw(char **dn, char** pw); /* available in libpdb.so */
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
 /* available in libpdb.so, renamed from sid_check_is_domain() in c43505b621725c9a754f0ee98318d451b093f2ed */
 bool sid_check_is_our_sam(const struct dom_sid *sid);
-void strlower_m(char *s); /* available in libutil_str.so */
 char *talloc_asprintf_strupper_m(TALLOC_CTX *t, const char *fmt, ...); /* available in libutil_str.so */
 void sid_copy(struct dom_sid *dst, const struct dom_sid *src); /* available in libsecurity.so */
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
@@ -2910,11 +2909,10 @@ static struct pdb_domain_info *pdb_ipasam_get_domain_info(struct pdb_methods *pd
 	}
 
 	/* TODO: read dns_domain, dns_forest and guid from LDAP */
-	info->dns_domain = talloc_strdup(info, ldap_state->ipasam_privates->realm);
+	info->dns_domain = strlower_talloc(info, ldap_state->ipasam_privates->realm);
 	if (info->dns_domain == NULL) {
 		goto fail;
 	}
-	strlower_m(info->dns_domain);
 	info->dns_forest = talloc_strdup(info, info->dns_domain);
 
 	/* we expect a domain SID to have 4 sub IDs */
