@@ -1,9 +1,7 @@
 NULL =
 SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 			-lsmbldap		\
-			-lcliauth		\
 			-lpdb			\
-			-lsamba-security	\
 			-lsmbconf		\
 			$(NULL)
 
