@@ -6,7 +6,7 @@ SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 			$(NULL)
 
 KRB5_UTIL_DIR=../../util
-KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
+KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c $(KRB5_UTIL_DIR)/ipa_pwd_ntlm.c
 
 INCLUDES =						\
 	-I.						\
@@ -48,6 +48,7 @@ ipasam_la_LIBADD = 		\
 	$(LDAP_LIBS)		\
 	$(KRB5_LIBS)		\
 	$(TALLOC_LIBS)		\
+	$(SSL_LIBS)		\
 	$(SAMBAUTIL_LIBS)	\
 	$(NDR_LIBS)		\
 	$(SAMBA40EXTRA_LIBS)	\
