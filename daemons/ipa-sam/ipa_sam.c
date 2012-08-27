@@ -90,7 +90,6 @@ char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* avai
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
 bool trim_char(char *s,char cfront,char cback); /* available in libutil_str.so */
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
-extern const struct dom_sid global_sid_Builtin; /* available in libsecurity.so */
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
 
 #define LDAP_PAGE_SIZE 1024
@@ -149,6 +148,9 @@ bool secrets_store(const char *key, const void *data, size_t size); /* available
 #define HAS_IPAUSERGROUP (1<<7)
 #define HAS_POSIXGROUP (1<<8)
 #define HAS_KRB_TICKET_POLICY_AUX (1<<9)
+
+const struct dom_sid global_sid_Builtin = { 1, 1, {0,0,0,0,0,5},
+					   {32,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
 
 struct ipasam_privates {
 	char *realm;
