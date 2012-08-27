@@ -90,7 +90,6 @@ bool string_to_sid(struct dom_sid *sidout, const char *sidstr); /* available in 
 int dom_sid_compare_domain(const struct dom_sid *sid1, const struct dom_sid *sid2); /* available in libsecurity.so */
 char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* available in libsmbconf.so */
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
-bool is_null_sid(const struct dom_sid *sid); /* available in libsecurity.so */
 bool trim_char(char *s,char cfront,char cback); /* available in libutil_str.so */
 bool sid_peek_check_rid(const struct dom_sid *exp_dom_sid, const struct dom_sid *sid, uint32_t *rid); /* available in libsecurity.so */
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
@@ -192,6 +191,30 @@ static bool sid_compose(struct dom_sid *dst, const struct dom_sid *dom_sid,
 
 	return true;
 }
+
+static bool is_null_sid(const struct dom_sid *sid)
+{
+	size_t c;
+
+	if (sid->sid_rev_num != 0 || sid->num_auths != 0) {
+		return false;
+	}
+
+	for (c = 0; c < 6; c++) {
+		if (sid->id_auth[c] != 0) {
+			return false;
+		}
+	}
+
+	for (c = 0; c < 15; c++) {
+		if (sid->sub_auths[c] != 0) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 
 static bool strnequal(const char *s1, const char *s2, size_t n) {
 	if (s1 == s2) {
