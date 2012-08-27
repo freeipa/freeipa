@@ -85,7 +85,6 @@ bool fetch_ldap_pw(char **dn, char** pw); /* available in libpdb.so */
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
 /* available in libpdb.so, renamed from sid_check_is_domain() in c43505b621725c9a754f0ee98318d451b093f2ed */
 bool sid_check_is_our_sam(const struct dom_sid *sid);
-void sid_copy(struct dom_sid *dst, const struct dom_sid *src); /* available in libsecurity.so */
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
 bool string_to_sid(struct dom_sid *sidout, const char *sidstr); /* available in libsecurity.so */
 bool sid_compose(struct dom_sid *dst, const struct dom_sid *domain_sid, uint32_t rid); /* available in libsecurity.so */
@@ -165,6 +164,21 @@ struct ipasam_privates {
 	char *server_princ;
 	char *client_princ;
 };
+
+static void sid_copy(struct dom_sid *dst, const struct dom_sid *src)
+{
+	size_t c;
+
+	memset(dst, 0, sizeof(*dst));
+
+	dst->sid_rev_num = src->sid_rev_num;
+	dst->num_auths = src->num_auths;
+	memcpy(&dst->id_auth[0], &src->id_auth[0], sizeof(src->id_auth));
+
+	for (c = 0; c < src->num_auths; c++) {
+		dst->sub_auths[c] = src->sub_auths[c];
+	}
+}
 
 static bool strnequal(const char *s1, const char *s2, size_t n) {
 	if (s1 == s2) {
