@@ -740,6 +740,7 @@ IPA.table_facet = function(spec, no_init) {
     that.pagination = spec.pagination === undefined ? true : spec.pagination;
     that.search_all_entries = spec.search_all_entries;
     that.search_all_attributes = spec.search_all_attributes;
+    that.sort_enabled = spec.sort_enabled === undefined ? true : spec.sort_enabled;
     that.selectable = spec.selectable === undefined ? true : spec.selectable;
     that.select_changed = IPA.observer();
 
@@ -833,7 +834,7 @@ IPA.table_facet = function(spec, no_init) {
             message = message.replace('${counter}', data.result.count);
             that.table.summary.text(message);
         } else {
-            that.table.summary.text(data.result.summary);
+            that.table.summary.text(data.result.summary || '');
         }
     };
 
@@ -895,7 +896,9 @@ IPA.table_facet = function(spec, no_init) {
         that.table.summary.text(summary);
 
         // sort map based on primary keys
-        records_map = records_map.sort();
+        if (that.sort_enabled) {
+            records_map = records_map.sort();
+        }
 
         // trim map leaving the entries visible in the current page only
         records_map = records_map.slice(start-1, end);

@@ -33,7 +33,7 @@ IPA.pwpolicy.entity = function(spec) {
         that.entity_init();
 
         that.builder.search_facet({
-            pagination: false,
+            sort_enabled: false,
             columns:['cn','cospriority']
         }).
         details_facet({
