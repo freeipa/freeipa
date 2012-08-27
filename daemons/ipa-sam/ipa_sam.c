@@ -87,7 +87,6 @@ bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so 
 bool sid_check_is_our_sam(const struct dom_sid *sid);
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
 bool string_to_sid(struct dom_sid *sidout, const char *sidstr); /* available in libsecurity.so */
-bool sid_compose(struct dom_sid *dst, const struct dom_sid *domain_sid, uint32_t rid); /* available in libsecurity.so */
 int dom_sid_compare_domain(const struct dom_sid *sid1, const struct dom_sid *sid2); /* available in libsecurity.so */
 char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* available in libsmbconf.so */
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
@@ -178,6 +177,20 @@ static void sid_copy(struct dom_sid *dst, const struct dom_sid *src)
 	for (c = 0; c < src->num_auths; c++) {
 		dst->sub_auths[c] = src->sub_auths[c];
 	}
+}
+
+static bool sid_compose(struct dom_sid *dst, const struct dom_sid *dom_sid,
+			uint32_t rid)
+{
+	if (dom_sid->num_auths >= 15) {
+		return false;
+	}
+
+	sid_copy(dst, dom_sid);
+
+	dst->sub_auths[dst->num_auths++] = rid;
+
+	return true;
 }
 
 static bool strnequal(const char *s1, const char *s2, size_t n) {
