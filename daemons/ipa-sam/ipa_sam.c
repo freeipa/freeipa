@@ -87,7 +87,6 @@ bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so 
 bool sid_check_is_our_sam(const struct dom_sid *sid);
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
 bool string_to_sid(struct dom_sid *sidout, const char *sidstr); /* available in libsecurity.so */
-int dom_sid_compare_domain(const struct dom_sid *sid1, const struct dom_sid *sid2); /* available in libsecurity.so */
 char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* available in libsmbconf.so */
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
 bool trim_char(char *s,char cfront,char cback); /* available in libutil_str.so */
@@ -215,6 +214,33 @@ static bool is_null_sid(const struct dom_sid *sid)
 	return true;
 }
 
+static int dom_sid_compare_domain(const struct dom_sid *sid1,
+				  const struct dom_sid *sid2)
+{
+	size_t c;
+	size_t n_sub_auths;
+
+	if (sid1->sid_rev_num != sid2->sid_rev_num) {
+		return sid1->sid_rev_num - sid2->sid_rev_num;
+	}
+
+	for (c = 0; c < 6; c++) {
+		if (sid1->id_auth[c] != sid2->id_auth[c]) {
+			return sid1->id_auth[c] - sid2->id_auth[c];
+		}
+	}
+
+	n_sub_auths = (sid1->num_auths < sid2->num_auths) ? sid1->num_auths :
+							sid2->num_auths;
+
+	for (c = 0; c < n_sub_auths; c++) {
+		if (sid1->sub_auths[c] != sid2->sub_auths[c]) {
+			return sid1->sub_auths[c] - sid2->sub_auths[c];
+		}
+	}
+
+	return 0;
+}
 
 static bool strnequal(const char *s1, const char *s2, size_t n) {
 	if (s1 == s2) {
