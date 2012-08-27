@@ -89,7 +89,6 @@ bool string_to_sid(struct dom_sid *sidout, const char *sidstr); /* available in 
 char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* available in libsmbconf.so */
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
 bool trim_char(char *s,char cfront,char cback); /* available in libutil_str.so */
-bool sid_peek_check_rid(const struct dom_sid *exp_dom_sid, const struct dom_sid *sid, uint32_t *rid); /* available in libsecurity.so */
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
 extern const struct dom_sid global_sid_Builtin; /* available in libsecurity.so */
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
@@ -239,6 +238,23 @@ static int dom_sid_compare_domain(const struct dom_sid *sid1,
 	}
 
 	return 0;
+}
+
+static bool sid_peek_check_rid(const struct dom_sid *exp_dom_sid,
+			       const struct dom_sid *sid, uint32_t *rid)
+{
+	if((exp_dom_sid->num_auths + 1) != sid->num_auths ||
+	    sid->num_auths <= 0) {
+		return false;
+	}
+
+	if (dom_sid_compare_domain(exp_dom_sid, sid) != 0) {
+		return false;
+	}
+
+	*rid = sid->sub_auths[sid->num_auths - 1];
+
+	return true;
 }
 
 static bool strnequal(const char *s1, const char *s2, size_t n) {
