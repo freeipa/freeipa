@@ -113,20 +113,8 @@ IPA.dns.zone_entity = function(spec) {
                 }
             ],
             actions: [
-                {
-                    name: 'disable',
-                    factory: IPA.batch_items_action,
-                    method: 'disable',
-                    needs_confirm: true,
-                    enable_cond: ['item-selected']
-                },
-                {
-                    name: 'enable',
-                    factory: IPA.batch_items_action,
-                    method: 'enable',
-                    needs_confirm: true,
-                    enable_cond: ['item-selected']
-                }
+                IPA.batch_disable_action,
+                IPA.batch_enable_action
             ],
             control_buttons: [
                 {
@@ -616,8 +604,9 @@ IPA.dns.add_permission_action = function(spec) {
             method: 'add_permission',
             args: [pkey],
             options: {},
-            on_success: function() {
+            on_success: function(data, text_status, xhr) {
                 facet.refresh();
+                IPA.notify_success(data.result.summary);
             }
         });
 
@@ -645,8 +634,9 @@ IPA.dns.remove_permission_action = function(spec) {
             method: 'remove_permission',
             args: [pkey],
             options: {},
-            on_success: function() {
+            on_success: function(data, text_status, xhr) {
                 facet.refresh();
+                IPA.notify_success(data.result.summary);
             }
         });
 

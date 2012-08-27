@@ -47,20 +47,8 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
                 'description'
             ],
             actions: [
-                {
-                    name: 'disable',
-                    factory: IPA.batch_items_action,
-                    method: 'disable',
-                    needs_confirm: true,
-                    enable_cond: ['item-selected']
-                },
-                {
-                    name: 'enable',
-                    factory: IPA.batch_items_action,
-                    method: 'enable',
-                    needs_confirm: true,
-                    enable_cond: ['item-selected']
-                }
+                IPA.batch_disable_action,
+                IPA.batch_enable_action
             ],
             control_buttons: [
                 {

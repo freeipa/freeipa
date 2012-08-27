@@ -23,9 +23,9 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
-IPA.config = {};
+IPA.serverconfig = {};
 
-IPA.config.entity = function(spec) {
+IPA.serverconfig.entity = function(spec) {
 
     var that = IPA.entity(spec);
 
@@ -115,4 +115,4 @@ IPA.config.entity = function(spec) {
     return that;
 };
 
-IPA.register('config', IPA.config.entity);
+IPA.register('config', IPA.serverconfig.entity);
