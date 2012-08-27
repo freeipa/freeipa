@@ -27,6 +27,7 @@ INCLUDES =						\
 	$(TALLOC_CFLAGS)				\
 	$(SAMBAUTIL_CFLAGS)				\
 	$(NDR_CFLAGS)					\
+	$(SSSIDMAP_CFLAGS)				\
 	$(NULL)
 
 plugindir = $(libdir)/samba/pdb
@@ -52,6 +53,7 @@ ipasam_la_LIBADD = 		\
 	$(SAMBAUTIL_LIBS)	\
 	$(NDR_LIBS)		\
 	$(SAMBA40EXTRA_LIBS)	\
+	$(SSSIDMAP_LIBS)	\
 	$(NULL)
 
 EXTRA_DIST =			\
