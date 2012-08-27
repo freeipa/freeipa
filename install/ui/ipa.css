@@ -263,6 +263,21 @@ body {
     font-weight: bold;
 }
 
+/* ---- Notification area ---- */
+
+.notification-area {
+    position: absolute;
+    top: 40px;
+    left: 380px;
+    right: 380px;
+    line-height: 1.5em;
+    z-index: 20;
+    padding: 4px;
+
+    font-weight: bold;
+    text-align: center;
+}
+
 /* ---- Navigation ---- */
 #navigation {
     position: absolute;

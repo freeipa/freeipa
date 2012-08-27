@@ -1123,6 +1123,8 @@ IPA.object_action = function(spec) {
     };
 
     that.on_success = function(facet, data, text_status, xhr) {
+
+        IPA.notify_success(data.result.summary);
         facet.on_update.notify();
     };
 
@@ -1190,6 +1192,8 @@ IPA.delete_action = function(spec) {
     var that = IPA.object_action(spec);
 
     that.on_success = function(facet, data, text_status, xhr) {
+
+        IPA.notify_success(data.result.summary);
         facet.on_update.notify();
         facet.redirect();
     };

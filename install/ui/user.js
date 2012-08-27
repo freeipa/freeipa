@@ -57,20 +57,12 @@ IPA.user.entity = function(spec) {
             ],
             actions: [
                 {
-                    name: 'disable',
-                    factory: IPA.batch_items_action,
-                    method: 'disable',
-                    needs_confirm: true,
-                    hide_cond: ['self-service'],
-                    enable_cond: ['item-selected']
+                    factory: IPA.batch_disable_action,
+                    hide_cond: ['self-service']
                 },
                 {
-                    name: 'enable',
-                    factory: IPA.batch_items_action,
-                    method: 'enable',
-                    needs_confirm: true,
-                    hide_cond: ['self-service'],
-                    enable_cond: ['item-selected']
+                    factory: IPA.batch_enable_action,
+                    hide_cond: ['self-service']
                 }
             ],
             control_buttons: [
@@ -614,7 +606,7 @@ IPA.user_password_dialog = function(spec) {
         if (that.success_handler) {
             that.success_handler.call(this, data, text_status, xhr);
         } else {
-            alert(IPA.messages.password.password_change_complete);
+            IPA.notify_success(IPA.messages.password.password_change_complete);
             that.close();
 
             // refresh password expiration field

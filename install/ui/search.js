@@ -308,10 +308,11 @@ IPA.search_deleter_dialog = function(spec) {
 
         var batch = that.create_command();
 
-        batch.on_success = function() {
+        batch.on_success = function(data, text_status, xhr) {
             that.facet.refresh();
             that.facet.on_update.notify([],that.facet);
             that.close();
+            IPA.notify_success(IPA.messages.search.deleted);
         };
 
         batch.on_error = function() {
@@ -414,13 +415,14 @@ IPA.batch_items_action = function(spec) {
     var that = IPA.action(spec);
 
     that.method = spec.method || 'disable';
+    that.success_msg = spec.success_msg;
 
-    that.execute = function(facet, on_success, on_error) {
+    that.execute_action = function(facet, on_success, on_error) {
 
         var entity = facet.managed_entity;
         var pkeys = facet.get_selected_values();
 
-        var batch = IPA.batch_command({
+        that.batch = IPA.batch_command({
             name: entity.name + '_batch_'+ that.method,
             on_success: that.get_on_success(facet, on_success)
         });
@@ -434,15 +436,21 @@ IPA.batch_items_action = function(spec) {
                 args: [pkey]
             });
 
-            batch.add_command(command);
+            that.batch.add_command(command);
         }
 
-        batch.execute();
+        that.batch.execute();
     };
 
     that.on_success = function(facet, data, text_status, xhr) {
         facet.on_update.notify();
         facet.refresh();
+
+        if (that.success_msg) {
+            var succeeded = that.batch.commands.length - that.batch.errors.errors.length;
+            var msg = that.success_msg.replace('${count}', succeeded);
+            IPA.notify_success(msg);
+        }
     };
 
     that.get_on_success = function(facet, on_success) {
@@ -454,4 +462,30 @@ IPA.batch_items_action = function(spec) {
 
 
     return that;
+};
+
+IPA.batch_disable_action = function(spec) {
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'disable';
+    spec.method = spec.method || 'disable';
+    spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
+    spec.enable_cond = spec.enable_cond || ['item-selected'];
+    spec.success_msg = spec.success_msg || IPA.messages.search.disabled;
+
+    return IPA.batch_items_action(spec);
+};
+
+IPA.batch_enable_action = function(spec) {
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'enable';
+    spec.method = spec.method || 'enable';
+    spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
+    spec.enable_cond = spec.enable_cond || ['item-selected'];
+    spec.success_msg = spec.success_msg || IPA.messages.search.enabled;
+
+    return IPA.batch_items_action(spec);
 };

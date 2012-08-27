@@ -696,6 +696,7 @@ IPA.cert.request_action = function(spec) {
                     },
                     on_success: function(data, text_status, xhr) {
                         facet.refresh();
+                        IPA.notify_success(IPA.messages.objects.cert.requested);
                     }
                 }).execute();
             }
@@ -746,6 +747,7 @@ IPA.cert.revoke_action = function(spec) {
                     },
                     on_success: function(data, text_status, xhr) {
                         facet.refresh();
+                        IPA.notify_success(IPA.messages.objects.cert.revoked);
                     }
                 }).execute();
             }
@@ -792,6 +794,7 @@ IPA.cert.restore_action = function(spec) {
                     args: [certificate.serial_number],
                     on_success: function(data, text_status, xhr) {
                         facet.refresh();
+                        IPA.notify_success(IPA.messages.objects.cert.restored);
                     }
                 }).execute();
             }

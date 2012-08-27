@@ -2040,6 +2040,39 @@ IPA.confirm = function(msg) {
     return window.confirm(msg);
 };
 
+IPA.notify_success = function(message) {
+
+    function destroy_timeout() {
+        if (IPA.notify_success.timeout) window.clearTimeout(IPA.notify_success.timeout);
+    }
+
+    var notification_area = $('.notification-area');
+
+    if (notification_area.length === 0) {
+        notification_area =  $('<div/>', {
+            'class': 'notification-area ui-corner-all ui-state-highlight',
+            click: function() {
+                destroy_timeout();
+                notification_area.fadeOut(100);
+            }
+        });
+
+        notification_area.appendTo('#container');
+    }
+
+    notification_area.text(message);
+
+    destroy_timeout();
+    notification_area.fadeIn(IPA.config.message_fadein_time);
+
+    IPA.notify_success.timeout = window.setTimeout(function() {
+        notification_area.fadeOut(IPA.config.message_fadeout_time);
+    }, IPA.config.message_timeout);
+};
+
 IPA.config = {
-    default_priority: 500
+    default_priority: 500,
+    message_timeout: 3000, // [ms]
+    message_fadeout_time: 800, // [ms]
+    message_fadein_time: 400 // [ms]
 };
