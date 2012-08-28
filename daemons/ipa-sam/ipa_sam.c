@@ -82,7 +82,6 @@ struct trustAuthInOutBlob {
 
 
 enum ndr_err_code ndr_pull_trustAuthInOutBlob(struct ndr_pull *ndr, int ndr_flags, struct trustAuthInOutBlob *r); /*available in libndr-samba.so */
-bool fetch_ldap_pw(char **dn, char** pw); /* available in libpdb.so */
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
 /* available in libpdb.so, renamed from sid_check_is_domain() in c43505b621725c9a754f0ee98318d451b093f2ed */
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
@@ -3688,8 +3687,6 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	char *dn = NULL;
 	char *domain_sid_string = NULL;
 	struct dom_sid *ldap_domain_sid = NULL;
-	char *bind_dn = NULL;
-	char *bind_secret = NULL;
 
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
@@ -3723,13 +3720,8 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	status = ipasam_generate_principals(ldap_state->ipasam_privates);
 
 	if (!NT_STATUS_IS_OK(status)) {
-		if (!fetch_ldap_pw(&bind_dn, &bind_secret)) {
-			DEBUG(0, ("pdb_init_ipasam: Failed to retrieve LDAP password from secrets.tdb\n"));
-			return NT_STATUS_NO_MEMORY;
-		}
-		status = smbldap_init(*pdb_method, pdb_get_tevent_context(),
-			      uri, false, bind_dn, bind_secret,
-			      &ldap_state->smbldap_state);
+		DEBUG(0, ("Failed to generate kerberos principal for LDAP authentication.\n"));
+		return status;
 	} else {
 		/* We authenticate via GSSAPI and thus will use kerberos principal to bind our access */
 		status = smbldap_init(*pdb_method, pdb_get_tevent_context(),
