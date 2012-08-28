@@ -97,7 +97,8 @@ def validate_selinuxuser(ugettext, user):
         return _('Invalid SELinux user name, only a-Z and _ are allowed')
     if not mls or not regex_mls.match(mls):
         return _('Invalid MLS value, must match s[0-15](-s[0-15])')
-    if mcs and not regex_mcs.match(mcs):
+    m = regex_mcs.match(mcs)
+    if mcs and (not m or (m.group(3) and (int(m.group(3)) > 1023))):
         return _('Invalid MCS value, must match c[0-1023].c[0-1023] and/or c[0-1023]-c[0-c0123]')
 
     return None
