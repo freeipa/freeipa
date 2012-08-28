@@ -644,6 +644,17 @@ class test_selinuxusermap(Declarative):
 
 
         dict(
+            desc='Create rule with invalid MLS xguest_u:s0:c0.c1028',
+            command=(
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'xguest_u:s0-s0:c0.c1028')
+            ),
+            expected=errors.ValidationError(name='selinuxuser',
+                error=u'Invalid MCS value, must match c[0-1023].c[0-1023] ' +
+                    u'and/or c[0-1023]-c[0-c0123]'),
+        ),
+
+
+        dict(
             desc='Create rule with invalid user via setattr',
             command=(
                 'selinuxusermap_mod', [rule1], dict(setattr=u'ipaselinuxuser=deny')
