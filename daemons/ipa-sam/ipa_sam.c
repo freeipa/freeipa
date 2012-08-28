@@ -87,7 +87,6 @@ bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so 
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
 char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* available in libsmbconf.so */
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
-bool trim_char(char *s,char cfront,char cback); /* available in libutil_str.so */
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
 
@@ -3715,7 +3714,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	if (uri == NULL) {
 		return NT_STATUS_NO_MEMORY;
 	}
-	trim_char( uri, '\"', '\"' );
+	trim_string( uri, "\"", "\"" );
 
 	status = ipasam_generate_principals(ldap_state->ipasam_privates);
 
