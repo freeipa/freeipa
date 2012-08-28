@@ -108,7 +108,12 @@ def remove_fwd_ptr(ipaddr, host, domain, recordtype):
     api.log.debug('deleting ipaddr %s' % ipaddr)
     try:
         revzone, revname = get_reverse_zone(ipaddr)
-        delkw = { 'ptrrecord' : "%s.%s." % (host, domain) }
+
+        # in case domain is in FQDN form with a trailing dot, we needn't add
+        # another one, in case it has no trailing dot, dnsrecord-del will
+        # normalize the entry
+        delkw = { 'ptrrecord' : "%s.%s" % (host, domain) }
+
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
     except errors.NotFound:
         pass
