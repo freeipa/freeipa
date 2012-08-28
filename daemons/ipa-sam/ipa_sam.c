@@ -924,6 +924,7 @@ struct ldap_search_state {
 	int attrsonly;
 	void *pagedresults_cookie;
 	struct sss_idmap_ctx *idmap_ctx;
+	const struct dom_sid *dom_sid;
 
 	LDAPMessage *entries, *current_entry;
 	bool (*ldap2displayentry)(struct ldap_search_state *state,
@@ -1165,7 +1166,7 @@ static bool ldapuser2displayentry(struct ldap_search_state *state,
 	}
 	ldap_value_free(vals);
 
-	res = sid_peek_check_rid(get_global_sam_sid(), sid, &result->rid);
+	res = sid_peek_check_rid(state->dom_sid, sid, &result->rid);
 	talloc_free(sid);
 	if (!res) {
 		DEBUG(0, ("sid does not belong to our domain\n"));
@@ -1203,6 +1204,7 @@ static bool ldapsam_search_users(struct pdb_methods *methods,
 	state->pagedresults_cookie = NULL;
 	state->entries = NULL;
 	state->idmap_ctx = ldap_state->ipasam_privates->idmap_ctx;
+	state->dom_sid = &ldap_state->domain_sid;
 	state->ldap2displayentry = ldapuser2displayentry;
 
 	if ((state->filter == NULL) || (state->attrs == NULL)) {
@@ -1315,7 +1317,7 @@ static bool ldapgroup2displayentry(struct ldap_search_state *state,
 		case SID_NAME_DOM_GRP:
 		case SID_NAME_ALIAS:
 
-			if (!sid_peek_check_rid(get_global_sam_sid(), sid, &result->rid)
+			if (!sid_peek_check_rid(state->dom_sid, sid, &result->rid)
 				&& !sid_peek_check_rid(&global_sid_Builtin, sid, &result->rid))
 			{
 				talloc_free(sid);
@@ -1338,7 +1340,7 @@ static bool ldapgroup2displayentry(struct ldap_search_state *state,
 
 static bool ldapsam_search_grouptype(struct pdb_methods *methods,
 				     struct pdb_search *search,
-                                     const struct dom_sid *sid,
+				     const struct dom_sid *sid,
 				     enum lsa_SidType type)
 {
 	struct ldapsam_privates *ldap_state =
@@ -1367,6 +1369,7 @@ static bool ldapsam_search_grouptype(struct pdb_methods *methods,
 	state->entries = NULL;
 	state->group_type = type;
 	state->idmap_ctx = ldap_state->ipasam_privates->idmap_ctx;
+	state->dom_sid = &ldap_state->domain_sid;
 	state->ldap2displayentry = ldapgroup2displayentry;
 
 	if ((state->filter == NULL) || (state->attrs == NULL)) {
@@ -1384,7 +1387,12 @@ static bool ldapsam_search_grouptype(struct pdb_methods *methods,
 static bool ldapsam_search_groups(struct pdb_methods *methods,
 				  struct pdb_search *search)
 {
-	return ldapsam_search_grouptype(methods, search, get_global_sam_sid(), SID_NAME_DOM_GRP);
+	struct ldapsam_privates *ldap_state =
+		(struct ldapsam_privates *)methods->private_data;
+
+	return ldapsam_search_grouptype(methods, search,
+					&ldap_state->domain_sid,
+                                        SID_NAME_DOM_GRP);
 }
 
 static bool ldapsam_search_aliases(struct pdb_methods *methods,
