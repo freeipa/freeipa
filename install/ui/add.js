@@ -52,6 +52,7 @@ IPA.entity_adder_dialog = function(spec) {
                         var facet = IPA.current_entity.get_facet();
                         facet.refresh();
                         that.close();
+                        IPA.notify_success(that.get_success_message());
                     },
                     that.on_error);
             }
@@ -65,10 +66,7 @@ IPA.entity_adder_dialog = function(spec) {
                 that.add(
                     function(data, text_status, xhr) {
                         that.added.notify();
-                        var message = IPA.messages.dialogs.add_confirmation;
-                        message = message.replace('${entity}', that.subject);
-                        that.show_message(message);
-
+                        that.show_message(that.get_success_message());
                         var facet = IPA.current_entity.get_facet();
                         facet.refresh();
                         that.reset();
@@ -88,6 +86,7 @@ IPA.entity_adder_dialog = function(spec) {
                         that.close();
                         var result = data.result.result;
                         that.show_edit_page(that.entity, result);
+                        IPA.notify_success(that.get_success_message());
                     },
                     that.on_error);
             }
@@ -101,6 +100,11 @@ IPA.entity_adder_dialog = function(spec) {
                 that.close();
             }
         });
+    };
+
+    that.get_success_message = function() {
+        var message = IPA.messages.dialogs.add_confirmation;
+        return  message.replace('${entity}', that.subject);
     };
 
     function show_edit_page(entity,result) {

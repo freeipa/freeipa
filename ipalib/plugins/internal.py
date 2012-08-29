@@ -166,6 +166,7 @@ class i18n_messages(Command):
                 "memberof": _("Add ${entity} ${primary_key} into ${other_entity}"),
                 "sourcehost": _("Add Source ${other_entity} into ${entity} ${primary_key}"),
             },
+            "added": _("Items added"),
             "direct_membership": _("Direct Membership"),
             "indirect_membership": _("Indirect Membership"),
             "no_entries": _("No entries."),
@@ -180,6 +181,7 @@ class i18n_messages(Command):
                 "memberof": _("Remove ${entity} ${primary_key} from ${other_entity}"),
                 "sourcehost": _("Remove Source ${other_entity} from ${entity} ${primary_key}"),
             },
+            "removed": _("Items removed"),
             "show_results": _("Show Results"),
         },
         "buttons": {
@@ -215,7 +217,8 @@ class i18n_messages(Command):
             "general": _("General"),
             "identity": _("Identity Settings"),
             "settings": _("${entity} ${primary_key} Settings"),
-            "to_top": _("Back to Top")
+            "to_top": _("Back to Top"),
+            "updated": _("${entity} ${primary_key} updated"),
         },
         "dialogs": {
             "add_confirmation": _("${entity} successfully added"),
@@ -569,6 +572,8 @@ class i18n_messages(Command):
                 "external": _("External"),
                 "host": _("Access this host"),
                 "ipaenabledflag": _("Rule status"),
+                "option_added": _("Option added"),
+                "option_removed": _("Option(s) removed"),
                 "options": _("Options"),
                 "runas": _("As Whom"),
                 "specified_commands": _("Specified Commands and Groups"),

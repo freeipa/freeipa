@@ -384,6 +384,7 @@ IPA.dnszone_details_facet = function(spec, no_init) {
     that.update_on_success = function(data, text_status, xhr) {
         that.refresh();
         that.on_update.notify();
+        that.nofify_update_success();
     };
 
     that.update_on_error = function(xhr, text_status, error_thrown) {
@@ -1815,6 +1816,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                     that.reload_facet(data);
                     dialog.close();
                     that.notify_facet_update();
+                    that.facet.nofify_update_success();
                 },
                 function() {
                     that.refresh_facet();
@@ -1872,6 +1874,13 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.on_error = IPA.create_4304_error_handler(dialog);
 
+        dialog.get_add_message = function() {
+            var label = that.entity.metadata.label_singular;
+            var message = IPA.messages.dialogs.add_confirmation;
+            message = message.replace('${entity}', label);
+            return message;
+        };
+
         dialog.create_button({
             name: 'add',
             label: IPA.messages.buttons.add,
@@ -1887,6 +1896,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                         }
                         dialog.close();
                         that.notify_facet_update();
+                        IPA.notify_success(dialog.get_add_message());
                     },
                     dialog.on_error);
             }
@@ -1899,10 +1909,8 @@ IPA.dns.record_type_table_widget = function(spec) {
                 dialog.hide_message();
                 dialog.add(
                     function(data, text_status, xhr) {
-                        var label = that.entity.metadata.label_singular;
-                        var message = IPA.messages.dialogs.add_confirmation;
-                        message = message.replace('${entity}', label);
-                        dialog.show_message(message);
+
+                        dialog.show_message(dialog.get_add_message());
 
                         if (data.result.result.dnsrecords) {
                             that.reload_facet(data);
@@ -2003,6 +2011,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                 that.reload_facet(data);
                 dialog.close();
                 that.notify_facet_update();
+                that.facet.nofify_update_success();
             };
             command.on_error = function() {
                 that.refresh_facet();

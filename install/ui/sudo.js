@@ -653,6 +653,7 @@ IPA.sudorule_details_facet = function(spec) {
     that.update_on_success = function(data, text_status, xhr) {
         that.refresh();
         that.on_update.notify();
+        that.nofify_update_success();
     };
 
     that.update_on_error = function(xhr, text_status, error_thrown) {
@@ -819,6 +820,7 @@ IPA.sudo.options_section = function(spec) {
                     on_success: function(data) {
                         that.table.load(data.result.result);
                         dialog.close();
+                        IPA.notify_success(IPA.messages.objects.sudorule.option_added);
                     },
                     on_error: function(data) {
                         that.reload();
@@ -880,6 +882,7 @@ IPA.sudo.options_section = function(spec) {
                     }
 
                     dialog.close();
+                    IPA.notify_success(IPA.messages.objects.sudorule.option_removed);
                 },
                 on_error: function(data) {
                     that.reload();
