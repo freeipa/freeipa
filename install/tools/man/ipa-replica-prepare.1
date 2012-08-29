@@ -1,21 +1,21 @@
 .\" A man page for ipa-replica-prepare
 .\" Copyright (C) 2008 Red Hat, Inc.
-.\" 
+.\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
 .\" the Free Software Foundation, either version 3 of the License, or
 .\" (at your option) any later version.
-.\" 
+.\"
 .\" This program is distributed in the hope that it will be useful, but
 .\" WITHOUT ANY WARRANTY; without even the implied warranty of
 .\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 .\" General Public License for more details.
-.\" 
+.\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
-.\" 
+.\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
-.\" 
+.\"
 .TH "ipa-replica-prepare" "1" "Mar 14 2008" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-replica\-prepare \- Create an IPA replica file
@@ -28,9 +28,11 @@ A replica can only be created on an IPA server installed with ipa\-server\-insta
 
 You must provide the fully\-qualified hostname of the machine you want to install the replica on and a host\-specific replica_file will be created. It is host\-specific because SSL server certificates are generated as part of the process and they are specific to a particular hostname.
 
-If IPA manages the DNS for your domain, you should either use the \fB\-\-ip-address\fR option or add the forward and reverse records manually using IPA plugins.
+If IPA manages the DNS for your domain, you should either use the \fB\-\-ip\-address\fR option or add the forward and reverse records manually using IPA plugins.
 
 Once the file has been created it will be named replica\-hostname. This file can then be moved across the network to the target machine and a new IPA replica setup by running ipa\-replica\-install replica\-hostname.
+
+A replica should only be installed on the same or higher version of IPA on the remote system.
 .SH "OPTIONS"
 .TP
 \fB\-\-dirsrv_pkcs12\fR=\fIFILE\fR

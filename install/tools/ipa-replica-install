@@ -328,6 +328,10 @@ def main():
 
     config = ReplicaConfig()
     read_replica_info(dir, config)
+    root_logger.debug('Installing replica file with version %d (0 means no version in prepared file).' % config.version)
+    if config.version and config.version > version.NUM_VERSION:
+        root_logger.error('A replica file from a newer release (%d) cannot be installed on an older version (%d)' % (config.version, version.NUM_VERSION))
+        sys.exit(1)
     config.dirman_password = dirman_password
     try:
         host = get_host_name(options.no_host_dns)
