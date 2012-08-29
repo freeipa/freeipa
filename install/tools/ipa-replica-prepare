@@ -207,6 +207,7 @@ def save_config(dir, realm_name, host_name,
     config.set("realm", "domain_name", domain_name)
     config.set("realm", "destination_host", dest_host)
     config.set("realm", "subject_base", str(subject_base))
+    config.set("realm", "version", str(version.NUM_VERSION))
     fd = open(dir + "/realm_info", "w")
     config.write(fd)
 

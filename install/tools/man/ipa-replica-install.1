@@ -29,6 +29,8 @@ The replica_file is created using the ipa\-replica\-prepare utility.
 If the installation fails you may need to run ipa\-server\-install \-\-uninstall before running ipa\-replica\-install again.
 
 The installation will fail if the host you are installing the replica on exists as a host in IPA or an existing replication agreement exists (for example, from a previously failed installation).
+
+A replica should only be installed on the same or higher version of IPA on the remote system.
 .SH "OPTIONS"
 .SS "BASIC OPTIONS"
 .TP

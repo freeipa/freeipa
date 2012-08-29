@@ -30,7 +30,7 @@ import netaddr
 import time
 import tempfile
 import shutil
-from ConfigParser import SafeConfigParser
+from ConfigParser import SafeConfigParser, NoOptionError
 import traceback
 import textwrap
 
@@ -74,6 +74,7 @@ class ReplicaConfig:
         self.dir = ""
         self.subject_base = None
         self.setup_ca = False
+        self.version = 0
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
@@ -522,6 +523,10 @@ def read_replica_info(dir, rconfig):
     rconfig.domain_name = config.get("realm", "domain_name")
     rconfig.host_name = config.get("realm", "destination_host")
     rconfig.subject_base = config.get("realm", "subject_base")
+    try:
+        rconfig.version = int(config.get("realm", "version"))
+    except NoOptionError:
+        pass
 
 def check_server_configuration():
     """
