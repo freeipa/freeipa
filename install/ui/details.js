@@ -508,10 +508,20 @@ IPA.details_facet = function(spec, no_init) {
         return valid;
     };
 
+    that.nofify_update_success = function() {
+        var msg = IPA.messages.details.updated;
+        var key = that.get_primary_key();
+        key = key[key.length -1] || '';
+        msg = msg.replace('${entity}', that.entity.metadata.label_singular);
+        msg = msg.replace('${primary_key}', key);
+        IPA.notify_success(msg);
+    };
+
 
     that.update_on_success = function(data, text_status, xhr) {
         that.load(data);
         that.on_update.notify();
+        that.nofify_update_success();
     };
 
     that.update_on_error = function(xhr, text_status, error_thrown) {

@@ -293,6 +293,7 @@ IPA.netgroup.details_facet = function(spec) {
     that.update_on_success = function(data, text_status, xhr) {
         that.refresh();
         that.on_update.notify();
+        that.nofify_update_success();
     };
 
     that.update_on_error = function(xhr, text_status, error_thrown) {

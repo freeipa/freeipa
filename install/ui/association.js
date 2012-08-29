@@ -571,6 +571,7 @@ IPA.association_table_widget = function (spec) {
                 function() {
                     that.refresh();
                     dialog.close();
+                    IPA.notify_success(IPA.messages.association.added);
                 },
                 function() {
                     that.refresh();
@@ -632,6 +633,7 @@ IPA.association_table_widget = function (spec) {
                 function() {
                     that.refresh();
                     dialog.close();
+                    IPA.notify_success(IPA.messages.association.removed);
                 },
                 function() {
                     that.refresh();
@@ -998,6 +1000,7 @@ IPA.association_facet = function (spec, no_init) {
                 on_success: function() {
                     that.refresh();
                     dialog.close();
+                    IPA.notify_success(IPA.messages.association.added);
                 },
                 on_error: function() {
                     that.refresh();
@@ -1049,6 +1052,7 @@ IPA.association_facet = function (spec, no_init) {
                 on_success: function() {
                     that.refresh();
                     dialog.close();
+                    IPA.notify_success(IPA.messages.association.removed);
                 },
                 on_error: function() {
                     that.refresh();
@@ -1308,6 +1312,7 @@ IPA.attribute_facet = function(spec, no_init) {
                     that.load(data);
                     that.show_content();
                     dialog.close();
+                    IPA.notify_success(IPA.messages.association.removed);
                 },
                 function() {
                     that.refresh();

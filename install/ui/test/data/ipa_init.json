@@ -31,6 +31,7 @@
                             "memberof": "Add ${entity} ${primary_key} into ${other_entity}",
                             "sourcehost": "Add Source ${other_entity} into ${entity} ${primary_key}"
                         },
+                        "added": "Items added",
                         "direct_membership": "Direct Membership",
                         "indirect_membership": "Indirect Membership",
                         "no_entries": "No entries.",
@@ -45,6 +46,7 @@
                             "memberof": "Remove ${entity} ${primary_key} from ${other_entity}",
                             "sourcehost": "Remove Source ${other_entity} from ${entity} ${primary_key}"
                         },
+                        "removed": "Items removed",
                         "show_results": "Show Results"
                     },
                     "buttons": {
@@ -80,7 +82,8 @@
                         "general": "General",
                         "identity": "Identity Settings",
                         "settings": "${entity} ${primary_key} Settings",
-                        "to_top": "Back to Top"
+                        "to_top": "Back to Top",
+                        "updated": "${entity} ${primary_key} updated"
                     },
                     "dialogs": {
                         "add_confirmation": "${entity} successfully added",
@@ -430,6 +433,8 @@
                             "external": "External",
                             "host": "Access this host",
                             "ipaenabledflag": "Rule status",
+                            "option_added": "Option added",
+                            "option_removed": "Option(s) removed",
                             "options": "Options",
                             "runas": "As Whom",
                             "specified_commands": "Specified Commands and Groups",
