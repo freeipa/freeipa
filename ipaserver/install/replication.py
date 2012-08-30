@@ -648,8 +648,20 @@ class ReplicationManager(object):
         except ldap.NO_SUCH_OBJECT:
             pass
 
-    def delete_agreement(self, hostname):
-        cn, dn = self.agreement_dn(hostname)
+    def delete_agreement(self, hostname, dn=None):
+        """
+        Delete a replication agreement.
+
+        @hostname: the hostname of the agreement to remove
+        @dn: optional dn of the agreement to remove
+
+        For IPA agreements we can easily calculate the DN of the agreement
+        to remove. Dogtag agreements are another matter, its agreement
+        names depend entirely on where it is created. In this case it is
+        better to pass the DN in directly.
+        """
+        if dn is None:
+            cn, dn = self.agreement_dn(hostname)
         return self.conn.deleteEntry(dn)
 
     def delete_referral(self, hostname):
@@ -808,11 +820,11 @@ class ReplicationManager(object):
             self.setup_agreement(r_conn, self.conn.host, port=r_port,
                                  repl_man_dn=self.repl_man_dn,
                                  repl_man_passwd=self.repl_man_passwd,
-                                 master=True)
+                                 master=False)
             self.setup_agreement(self.conn, r_hostname, port=r_port,
                                  repl_man_dn=self.repl_man_dn,
                                  repl_man_passwd=self.repl_man_passwd,
-                                 master=False)
+                                 master=True)
         else:
             self.setup_agreement(r_conn, self.conn.host, port=r_port,
                                  repl_man_dn=self.repl_man_dn,
@@ -822,7 +834,7 @@ class ReplicationManager(object):
                                  repl_man_passwd=self.repl_man_passwd)
 
         #Finally start replication
-        ret = self.start_replication(r_conn, master=True)
+        ret = self.start_replication(r_conn, master=False)
         if ret != 0:
             raise RuntimeError("Failed to start replication")
 
