@@ -42,3 +42,8 @@ add:nsslapd-defaultNamingContext:'$SUFFIX'
 # Allow the root DSE to be searched even with minssf set
 dn: cn=config
 only:nsslapd-minssf-exclude-rootdse:on
+
+# Set the IPA winsync precedence so it will run after the DS
+# POSIX winsync plugin
+dn: cn=ipa-winsync,cn=plugins,cn=config
+only: nsslapd-pluginPrecedence: 60
