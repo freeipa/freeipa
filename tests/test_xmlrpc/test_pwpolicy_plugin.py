@@ -39,7 +39,7 @@ class test_pwpolicy(XMLRPC_test):
     user = u'testuser12'
     kw = {'cospriority': 1, 'krbminpwdlife': 30, 'krbmaxpwdlife': 40, 'krbpwdhistorylength': 5, 'krbpwdminlength': 6 }
     kw2 = {'cospriority': 2, 'krbminpwdlife': 40, 'krbmaxpwdlife': 60, 'krbpwdhistorylength': 8, 'krbpwdminlength': 9 }
-    kw3 = {'cospriority': 3, 'krbminpwdlife': 50, 'krbmaxpwdlife': 30, 'krbpwdhistorylength': 3, 'krbpwdminlength': 4 }
+    kw3 = {'cospriority': 10, 'krbminpwdlife': 50, 'krbmaxpwdlife': 30, 'krbpwdhistorylength': 3, 'krbpwdminlength': 4 }
     global_policy = u'global_policy'
 
     def test_1_pwpolicy_add(self):
@@ -177,12 +177,14 @@ class test_pwpolicy(XMLRPC_test):
         assert_attr_equal(entry, 'krbmaxpwdlife', '30')
         assert_attr_equal(entry, 'krbpwdhistorylength', '3')
         assert_attr_equal(entry, 'krbpwdminlength', '4')
-        assert_attr_equal(entry, 'cospriority', '3')
+        assert_attr_equal(entry, 'cospriority', '10')
 
     def test_c_pwpolicy_find(self):
         """Test that password policies are sorted and reported properly"""
         result = api.Command['pwpolicy_find']()['result']
         assert len(result) == 4
+
+        # Test that policies are sorted in numerical order
         assert result[0]['cn'] == (self.group,)
         assert result[1]['cn'] == (self.group2,)
         assert result[2]['cn'] == (self.group3,)
