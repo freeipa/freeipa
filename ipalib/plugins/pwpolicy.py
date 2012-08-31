@@ -481,7 +481,7 @@ class pwpolicy_find(LDAPSearch):
             # policies with higher priority (lower number) will be at the
             # beginning of the list
             try:
-                cospriority = entry[1]['cospriority'][0]
+                cospriority = int(entry[1]['cospriority'][0])
             except KeyError:
                 # if cospriority is not present in the entry, rather return 0
                 # than crash
