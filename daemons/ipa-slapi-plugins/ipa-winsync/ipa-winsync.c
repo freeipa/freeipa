@@ -64,6 +64,8 @@
 #include <ctype.h>
 #include "plstr.h"
 
+static int ipa_winsync_precedence = 0;
+
 static void
 sync_acct_disable(
     void *cbdata, /* the usual domain config data */
@@ -268,7 +270,7 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
         if (!type) {
             continue; /* should never happen */
         }
-        
+
         if (!slapi_entry_attr_find(ds_entry, type, &e_attr) && e_attr) {
             /* already has attribute - add missing values */
             Slapi_Value *sv = NULL;
@@ -276,6 +278,14 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
             for (ii = slapi_attr_first_value(attr, &sv); ii != -1;
                  ii = slapi_attr_next_value(attr, ii, &sv))
             {
+                if (!PL_strcasecmp(type, "uidNumber") ||
+                    !PL_strcasecmp(type, "gidNumber")) {
+                    LOG("--> ipa_winsync_pre_ds_add_user_cb -- "
+                        "skipping [%s] for new entry [%s]\n",
+                        type, slapi_entry_get_dn_const(ds_entry));
+                    /* uid or gid already set in AD, skip it */
+                    continue;
+                }
                 if (!slapi_entry_attr_has_syntax_value(ds_entry, type, sv)) {
                     /* attr-value sv not found in ds_entry; add it */
                     LOG("--> ipa_winsync_pre_ds_add_user_cb -- "
@@ -290,6 +300,9 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
             slapi_attr_get_valueset(attr, &svs); /* makes a copy */
             slapi_entry_add_valueset(ds_entry, type, svs);
             slapi_valueset_free(svs); /* free the copy */
+            LOG("--> ipa_winsync_pre_ds_add_user_cb -- "
+                "adding attr [%s] to new entry [%s]\n",
+                type, slapi_entry_get_dn_const(ds_entry));
         }
     }
 
@@ -383,8 +396,11 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
 
     /* add a loginShell if we have a default */
     if (ipaconfig->login_shell) {
-        slapi_entry_attr_set_charptr(ds_entry, "loginShell",
-                                     ipaconfig->login_shell);
+        type = "loginShell";
+        if (slapi_entry_attr_find(ds_entry, type, &e_attr) || !e_attr) {
+            slapi_entry_attr_set_charptr(ds_entry, "loginShell",
+                                         ipaconfig->login_shell);
+        }
     }
 
     sync_acct_disable(cbdata, rawentry, ds_entry, ACCT_DISABLE_TO_DS,
@@ -545,6 +561,12 @@ ipa_winsync_destroy_agmt_cb(void *cbdata, const Slapi_DN *ds_subtree,
     return;
 }
 
+static int
+ipa_winsync_precedence_cb(void)
+{
+    return ipa_winsync_precedence;
+}
+
 static void *ipa_winsync_api[] = {
     NULL, /* reserved for api broker use, must be zero */
     ipa_winsync_agmt_init,
@@ -565,7 +587,20 @@ static void *ipa_winsync_api[] = {
     ipa_winsync_can_add_entry_to_ad_cb,
     ipa_winsync_begin_update_cb,
     ipa_winsync_end_update_cb,
-    ipa_winsync_destroy_agmt_cb
+    ipa_winsync_destroy_agmt_cb,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    ipa_winsync_precedence_cb
 };
 
 /**
@@ -602,7 +637,7 @@ ipa_winsync_plugin_start(Slapi_PBlock *pb)
 
     LOG("--> ipa_winsync_plugin_start -- begin\n");
 
-	if( slapi_apib_register(WINSYNC_v1_0_GUID, ipa_winsync_api) ) {
+	if( slapi_apib_register(WINSYNC_v3_0_GUID, ipa_winsync_api) ) {
             LOG_FATAL("<-- ipa_winsync_plugin_start -- failed to register winsync api -- end\n");
             return -1;
 	}
@@ -626,7 +661,7 @@ ipa_winsync_plugin_close(Slapi_PBlock *pb)
 {
     LOG("--> ipa_winsync_plugin_close -- begin\n");
 
-	slapi_apib_unregister(WINSYNC_v1_0_GUID);
+	slapi_apib_unregister(WINSYNC_v3_0_GUID);
 
     LOG("<-- ipa_winsync_plugin_close -- end\n");
 	return 0;
@@ -638,6 +673,15 @@ ipa_winsync_plugin_close(Slapi_PBlock *pb)
 int ipa_winsync_plugin_init(Slapi_PBlock *pb)
 {
     void *plugin_id = NULL;
+    Slapi_Entry *config = NULL;
+
+    if (slapi_pblock_get(pb, SLAPI_PLUGIN_CONFIG_ENTRY, &config) && config) {
+        ipa_winsync_precedence = slapi_entry_attr_get_int(config, "nsslapd-pluginprecedence");
+        if (!ipa_winsync_precedence) {
+            /* Make sure we have a higher precedence by default */
+            ipa_winsync_precedence = WINSYNC_PLUGIN_DEFAULT_PRECEDENCE + 10;
+        }
+    }
 
     LOG("--> ipa_winsync_plugin_init -- begin\n");
 
