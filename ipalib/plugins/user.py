@@ -628,6 +628,13 @@ class user_find(LDAPSearch):
         ),
     )
 
+    def execute(self, *args, **options):
+        # assure the manager attr is a dn, not just a bare uid
+        manager = options.get('manager')
+        if manager is not None:
+            options['manager'] = self.obj._normalize_manager(manager)
+        return super(user_find, self).execute(self, *args, **options)
+
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         assert isinstance(base_dn, DN)
         if options.get('whoami'):
