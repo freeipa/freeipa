@@ -487,7 +487,9 @@
                     "search": {
                         "delete_confirm": "Are you sure you want to delete selected entries?",
                         "deleted": "Selected entries were deleted.",
+                        "disable_confirm": "Are you sure you want to disable selected entries?",
                         "disabled": "${count} items were disabled",
+                        "enable_confirm": "Are you sure you want to enable selected entries?",
                         "enabled": "${count} items were enabled",
                         "partial_delete": "Some entries were not deleted",
                         "quick_links": "Quick Links",

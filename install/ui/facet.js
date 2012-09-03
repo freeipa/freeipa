@@ -655,6 +655,7 @@ IPA.facet_header = function(spec) {
 
     that.clear = function() {
         that.load();
+        if (that.action_list) that.action_list.clear();
     };
 
     return that;
@@ -1300,6 +1301,10 @@ IPA.action = function(spec) {
     that.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
     that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
 
+    that.confirm_dialog = spec.confirm_dialog !== undefined ? spec.confirm_dialog :
+                                                              IPA.confirm_dialog;
+
+
 
     that.execute_action = function(facet, on_success, on_error) {
 
@@ -1319,9 +1324,13 @@ IPA.action = function(spec) {
             if (that.confirm_dialog) {
 
                 var dialog = IPA.build(that.confirm_dialog);
-                confirmed = dialog.confirm(that.facet);
+                dialog.message = that.get_confirm_message(facet);
+                dialog.on_ok = function () {
+                    that.execute_action(facet, on_success, on_error);
+                };
+                dialog.open();
             } else {
-                var msg = that.get_confirm_message();
+                var msg = that.get_confirm_message(facet);
                 confirmed = IPA.confirm(msg);
             }
 
@@ -1331,7 +1340,7 @@ IPA.action = function(spec) {
         that.execute_action(facet, on_success, on_error);
     };
 
-    that.get_confirm_message = function() {
+    that.get_confirm_message = function(facet) {
         return that.confirm_msg;
     };
 
@@ -2020,6 +2029,11 @@ IPA.action_list_widget = function(spec) {
         }
 
         that.action_select.update([first]);
+    };
+
+    that.clear = function() {
+
+        that.select_first_enabled();
     };
 
     return that;
