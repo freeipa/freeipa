@@ -39,8 +39,10 @@ from ipalib.plugins.dns import get_reverse_zone
 from ipalib import _, ngettext
 from ipalib import x509
 from ipalib.request import context
-from ipalib.util import validate_sshpubkey, output_sshpubkey
-from ipapython.ipautil import ipa_generate_password, CheckedIPAddress, make_sshfp
+from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
+    convert_sshpubkey_post)
+from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
+from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
 
 __doc__ = _("""
@@ -131,7 +133,10 @@ def update_sshfp_record(zone, record, entry_attrs):
     pubkeys = entry_attrs['ipasshpubkey'] or ()
     sshfps=[]
     for pubkey in pubkeys:
-        sshfp = unicode(make_sshfp(pubkey))
+        try:
+            sshfp = SSHPublicKey(pubkey).fingerprint_dns_sha1()
+        except ValueError, UnicodeDecodeError:
+            continue
         if sshfp is not None:
             sshfps.append(sshfp)
 
@@ -180,6 +185,9 @@ host_output_params = (
     Str('managedby',
         label=_('Failed managedby'),
     ),
+    Str('sshpubkeyfp*',
+        label=_('SSH public key fingerprint'),
+    ),
 )
 
 def validate_ipaddr(ugettext, ipaddr):
@@ -216,7 +224,6 @@ class host(LDAPObject):
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
         'managedby', 'memberindirect', 'memberofindirect', 'macaddress',
-        'sshpubkeyfp',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -303,14 +310,12 @@ class host(LDAPObject):
             label=_('MAC address'),
             doc=_('Hardware MAC address(es) on this host'),
         ),
-        Bytes('ipasshpubkey*', validate_sshpubkey,
+        Str('ipasshpubkey*', validate_sshpubkey_no_options,
             cli_name='sshpubkey',
-            label=_('Base-64 encoded SSH public key'),
+            label=_('SSH public key'),
+            normalizer=normalize_sshpubkey,
+            csv=True,
             flags=['no_search'],
-        ),
-        Str('sshpubkeyfp*',
-            label=_('SSH public key fingerprint'),
-            flags=['virtual_attribute', 'no_create', 'no_update', 'no_search'],
         ),
     )
 
@@ -472,7 +477,7 @@ class host_add(LDAPCreate):
             # fetched anywhere.
             entry_attrs['has_keytab'] = False
 
-        output_sshpubkey(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
 
         return dn
 
@@ -717,7 +722,7 @@ class host_mod(LDAPUpdate):
 
         self.obj.suppress_netgroup_memberof(entry_attrs)
 
-        output_sshpubkey(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
 
         return dn
 
@@ -802,7 +807,7 @@ class host_find(LDAPSearch):
             if options.get('all', False):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(entry[0])
 
-            output_sshpubkey(ldap, dn, entry_attrs)
+            convert_sshpubkey_post(ldap, dn, entry_attrs)
 
         return truncated
 
@@ -836,7 +841,7 @@ class host_show(LDAPRetrieve):
 
         self.obj.suppress_netgroup_memberof(entry_attrs)
 
-        output_sshpubkey(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
 
         return dn
 

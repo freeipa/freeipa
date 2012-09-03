@@ -40,6 +40,9 @@ admins_group=u'admins'
 invaliduser1=u'+tuser1'
 invaliduser2=u'tuser1234567890123456789012345678901234567890'
 
+sshpubkey = u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L public key test'
+sshpubkeyfp = u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B public key test (ssh-rsa)'
+
 def get_user_dn(uid):
     return DN(('uid', uid), api.env.container_user, api.env.basedn)
 
@@ -559,6 +562,64 @@ class test_user(Declarative):
                 setattr=u'krbmaxticketlife=88000')
             ),
             expected=errors.ObjectclassViolation(info='attribute "krbmaxticketlife" not allowed'),
+        ),
+
+
+        dict(
+            desc='Create "%s" with SSH public key' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', ipasshpubkey=[sshpubkey])
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "%s"' % user1,
+                result=dict(
+                    gecos=[u'Test User1'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    initials=[u'TU'],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    ipasshpubkey=[sshpubkey],
+                    sshpubkeyfp=[sshpubkeyfp],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=get_user_dn(user1),
+                ),
+            ),
+            extra_check = upg_check,
+        ),
+
+
+        dict(
+            desc='Add an illegal SSH public key to "%r"' % user1,
+            command=('user_mod', [user1], dict(ipasshpubkey=[u"anal nathrach orth' bhais's bethad do che'l de'nmha"])),
+            expected=errors.ValidationError(name='sshpubkey',
+                error=u'invalid SSH public key'),
+        ),
+
+
+        dict(
+            desc='Delete "%s"' % user1,
+            command=('user_del', [user1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % user1,
+                value=user1,
+            ),
         ),
 
 

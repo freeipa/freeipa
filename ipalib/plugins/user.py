@@ -30,7 +30,8 @@ from ipalib import output
 from ipapython.ipautil import ipa_generate_password
 from ipapython.ipavalidate import Email
 import posixpath
-from ipalib.util import validate_sshpubkey, output_sshpubkey
+from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
+    convert_sshpubkey_post)
 if api.env.in_server and api.env.context in ['lite', 'server']:
     from ipaserver.plugins.ldap2 import ldap2
     import os
@@ -85,6 +86,9 @@ DNA_MAGIC = 999
 user_output_params = (
     Flag('has_keytab',
         label=_('Kerberos keys available'),
+    ),
+    Str('sshpubkeyfp*',
+        label=_('SSH public key fingerprint'),
     ),
    )
 
@@ -200,7 +204,7 @@ class user(LDAPObject):
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
         'uidnumber', 'gidnumber', 'mail', 'ou',
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
-        'memberofindirect', 'sshpubkeyfp',
+        'memberofindirect',
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
@@ -357,14 +361,12 @@ class user(LDAPObject):
             label=_('Account disabled'),
             flags=['no_option'],
         ),
-        Bytes('ipasshpubkey*', validate_sshpubkey,
+        Str('ipasshpubkey*', validate_sshpubkey,
             cli_name='sshpubkey',
-            label=_('Base-64 encoded SSH public key'),
+            label=_('SSH public key'),
+            normalizer=normalize_sshpubkey,
+            csv=True,
             flags=['no_search'],
-        ),
-        Str('sshpubkeyfp*',
-            label=_('SSH public key fingerprint'),
-            flags=['virtual_attribute', 'no_create', 'no_update', 'no_search'],
         ),
     )
 
@@ -567,7 +569,7 @@ class user_add(LDAPCreate):
 
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
 
-        output_sshpubkey(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
 
         return dn
 
@@ -636,7 +638,7 @@ class user_mod(LDAPUpdate):
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
-        output_sshpubkey(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
         return dn
 
 api.register(user_mod)
@@ -678,7 +680,7 @@ class user_find(LDAPSearch):
             self.obj._convert_manager(attrs, **options)
             self.obj.get_password_attributes(ldap, dn, attrs)
             convert_nsaccountlock(attrs)
-            output_sshpubkey(ldap, dn, attrs)
+            convert_sshpubkey_post(ldap, dn, attrs)
         return truncated
 
     msg_summary = ngettext(
@@ -698,7 +700,7 @@ class user_show(LDAPRetrieve):
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
-        output_sshpubkey(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
         return dn
 
 api.register(user_show)

@@ -772,8 +772,6 @@ class Param(ReadOnly):
 
         This method is called once for each value in a multivalue.
         """
-        if type(value) is not unicode:
-            return value
         if self.normalizer is None:
             return value
         try:
