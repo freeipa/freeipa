@@ -626,7 +626,9 @@ class i18n_messages(Command):
         "search": {
             "delete_confirm": _("Are you sure you want to delete selected entries?"),
             "deleted": _("Selected entries were deleted."),
+            "disable_confirm": _("Are you sure you want to disable selected entries?"),
             "disabled": _("${count} items were disabled"),
+            "enable_confirm": _("Are you sure you want to enable selected entries?"),
             "enabled": _("${count} items were enabled"),
             "partial_delete": _("Some entries were not deleted"),
             "quick_links": _("Quick Links"),

@@ -671,13 +671,89 @@ IPA.message_dialog = function(spec) {
         label: IPA.messages.buttons.ok,
         click: function() {
             that.close();
-            if(that.on_ok) {
+            if (that.on_ok) {
                 that.on_ok();
             }
         }
     });
 
     that.message_dialog_create = that.create;
+
+    return that;
+};
+
+IPA.confirm_dialog = function(spec) {
+
+    spec = spec || {};
+    spec.message = spec.message || IPA.messages.actions.confirm;
+    spec.title = spec.title || IPA.messages.dialogs.confirmation;
+
+    var that = IPA.message_dialog(spec);
+    that.on_cancel = spec.on_cancel;
+    that.ok_label = spec.ok_label || IPA.messages.buttons.ok;
+    that.cancel_label = spec.cancel_label || IPA.messages.buttons.cancel;
+    that.confirmed = false;
+    that.confirm_on_enter = spec.confirm_on_enter !== undefined ? spec.confirm_on_enter : true;
+
+    that.close = function() {
+
+        that.dialog_close();
+        $(document).unbind('keyup', that.on_key_up);
+
+        if (that.confirmed) {
+            if (that.on_ok) {
+                that.on_ok();
+            }
+        } else {
+            if (that.on_cancel) {
+                that.on_cancel();
+            }
+        }
+    };
+
+    that.open = function(container) {
+
+        that.confirmed = false;
+        that.dialog_open(container);
+        $(document).bind('keyup', that.on_key_up);
+    };
+
+    that.on_key_up = function(event) {
+
+        if (event.keyCode === $.ui.keyCode.ENTER) {
+            event.preventDefault();
+            that.confirmed = true;
+            that.close();
+        }
+    };
+
+    that.create_buttons = function() {
+
+        that.buttons.empty();
+
+        that.create_button({
+            name: 'ok',
+            label: that.ok_label,
+            click: function() {
+                that.confirmed = true;
+                that.close();
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: that.cancel_label,
+            click: function() {
+                that.confirmed = false;
+                that.close();
+            }
+        });
+    };
+
+    that.create_buttons();
+
+    that.confirm_dialog_close = that.close;
+    that.confirm_dialog_open = that.open;
 
     return that;
 };

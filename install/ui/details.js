@@ -918,7 +918,7 @@ IPA.update_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'update';
     spec.label = spec.label || IPA.messages.buttons.update;
-    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
     spec.enable_cond = spec.enable_cond || ['dirty'];
 
     var that = IPA.action(spec);
@@ -1120,8 +1120,6 @@ IPA.object_action = function(spec) {
         var entity_name = facet.entity.name;
         var pkey = IPA.nav.get_state(entity_name+'-pkey');
 
-        if (that.needs_confirm && !that.confirm_object(pkey)) return;
-
         IPA.command({
             entity: entity_name,
             method: that.method,
@@ -1155,9 +1153,10 @@ IPA.object_action = function(spec) {
         };
     };
 
-    that.confirm_object = function(obj_name) {
-        var msg = that.confirm_msg.replace('${object}', obj_name);
-        return IPA.confirm(msg);
+    that.get_confirm_message = function(facet) {
+        var pkey = IPA.nav.get_state(facet.entity.name+'-pkey');
+        var msg = that.confirm_msg.replace('${object}', pkey);
+        return msg;
     };
 
     that.object_execute_action = that.execute_action;

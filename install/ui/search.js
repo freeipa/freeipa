@@ -473,6 +473,7 @@ IPA.batch_disable_action = function(spec) {
     spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
     spec.enable_cond = spec.enable_cond || ['item-selected'];
     spec.success_msg = spec.success_msg || IPA.messages.search.disabled;
+    spec.confirm_msg = spec.confirm_msg || IPA.messages.search.disable_confirm;
 
     return IPA.batch_items_action(spec);
 };
@@ -486,6 +487,7 @@ IPA.batch_enable_action = function(spec) {
     spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
     spec.enable_cond = spec.enable_cond || ['item-selected'];
     spec.success_msg = spec.success_msg || IPA.messages.search.enabled;
+    spec.confirm_msg = spec.confirm_msg || IPA.messages.search.enable_confirm;
 
     return IPA.batch_items_action(spec);
 };
