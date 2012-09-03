@@ -662,6 +662,33 @@ class test_user(Declarative):
             ),
         ),
 
+        dict(
+            desc='Search for "%s" with manager "%s"' % (user2, user1),
+            command=(
+                'user_find', [user2], {'manager': user1}
+            ),
+            expected=dict(
+                result=[
+                    dict(
+                        dn=get_user_dn(user2),
+                        givenname=[u'Test'],
+                        homedirectory=[u'/home/tuser2'],
+                        loginshell=[u'/bin/sh'],
+                        sn=[u'User2'],
+                        uid=[user2],
+                        nsaccountlock=False,
+                        has_keytab=False,
+                        has_password=False,
+                        uidnumber=[fuzzy_digits],
+                        gidnumber=[fuzzy_digits],
+                        manager=[user1],
+                    ),
+                ],
+                summary=u'1 user matched',
+                count=1,
+                truncated=False,
+            ),
+        ),
 
         dict(
             desc='Delete %r and %r at the same time' % (user1, user2),
