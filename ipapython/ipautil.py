@@ -64,7 +64,6 @@ except ImportError:
             self.cmd = cmd
         def __str__(self):
             return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
-from ipapython.compat import sha1, md5
 
 def get_domain_name():
     try:
@@ -1021,25 +1020,6 @@ def backup_config_and_replace_variables(
     old_values = config_replace_variables(filepath, replacevars, appendvars)
 
     return old_values
-
-def decode_ssh_pubkey(data, fptype=md5):
-    try:
-        (algolen,) = struct.unpack('>I', data[:4])
-        if algolen > 0 and algolen <= len(data) - 4:
-            return (data[4:algolen+4], data[algolen+4:], fptype(data).hexdigest().upper())
-    except struct.error:
-        pass
-    raise ValueError('not a SSH public key')
-
-def make_sshfp(key):
-    algo, data, fp = decode_ssh_pubkey(key, fptype=sha1)
-    if algo == 'ssh-rsa':
-        algo = 1
-    elif algo == 'ssh-dss':
-        algo = 2
-    else:
-        return
-    return '%d 1 %s' % (algo, fp)
 
 
 def utf8_encode_value(value):

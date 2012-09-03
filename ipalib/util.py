@@ -34,7 +34,7 @@ from dns.exception import DNSException
 
 from ipalib import errors
 from ipalib.text import _
-from ipapython.ipautil import decode_ssh_pubkey
+from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 
 
@@ -266,36 +266,54 @@ def validate_hostname(hostname, check_fqdn=True, allow_underscore=False):
     else:
         validate_domain_name(hostname,allow_underscore)
 
-def validate_sshpubkey(ugettext, pubkey):
+def normalize_sshpubkey(value):
+    return SSHPublicKey(value).openssh()
+
+def validate_sshpubkey(ugettext, value):
     try:
-        algo, data, fp = decode_ssh_pubkey(pubkey)
-    except ValueError:
+        SSHPublicKey(value)
+    except ValueError, UnicodeDecodeError:
         return _('invalid SSH public key')
 
-def output_sshpubkey(ldap, dn, entry_attrs):
+def validate_sshpubkey_no_options(ugettext, value):
+    try:
+        pubkey = SSHPublicKey(value)
+    except ValueError, UnicodeDecodeError:
+        return _('invalid SSH public key')
+
+    if pubkey.has_options():
+        return _('options are not allowed')
+
+def convert_sshpubkey_post(ldap, dn, entry_attrs):
     if 'ipasshpubkey' in entry_attrs:
-        pubkeys = entry_attrs.get('ipasshpubkey')
+        pubkeys = entry_attrs.pop('ipasshpubkey')
     else:
-        entry = ldap.get_entry(dn, ['ipasshpubkey'])
-        pubkeys = entry[1].get('ipasshpubkey')
-    if pubkeys is None:
+        old_entry_attrs = ldap.get_entry(dn, ['ipasshpubkey'])
+        pubkeys = old_entry_attrs[1].get('ipasshpubkey')
+    if not pubkeys:
         return
 
+    newpubkeys = []
     fingerprints = []
     for pubkey in pubkeys:
         try:
-            algo, data, fp = decode_ssh_pubkey(pubkey)
-            fp = u':'.join([fp[j:j+2] for j in range(0, len(fp), 2)])
-            fingerprints.append(u'%s (%s)' % (fp, algo))
-        except ValueError:
-            pass
+            pubkey = SSHPublicKey(pubkey)
+        except ValueError, UnicodeDecodeError:
+            continue
+
+        fp = pubkey.fingerprint_hex_md5()
+        comment = pubkey.comment()
+        if comment:
+            fp = u'%s %s' % (fp, comment)
+        fp = u'%s (%s)' % (fp, pubkey.keytype())
+
+        newpubkeys.append(pubkey.openssh())
+        fingerprints.append(fp)
+
+    if newpubkeys:
+        entry_attrs['ipasshpubkey'] = newpubkeys
     if fingerprints:
         entry_attrs['sshpubkeyfp'] = fingerprints
-
-def normalize_sshpubkeyfp(value):
-    value = value.split()[0]
-    value = unicode(c for c in value if c in '0123456789ABCDEFabcdef')
-    return value
 
 class cachedproperty(object):
     """

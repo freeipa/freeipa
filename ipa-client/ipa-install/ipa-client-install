@@ -29,7 +29,6 @@ try:
     from ipapython.ipa_log_manager import *
     import tempfile
     import getpass
-    from base64 import b64decode
     from ipaclient import ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
@@ -42,6 +41,7 @@ try:
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
     from ipapython.dn import DN
+    from ipapython.ssh import SSHPublicKey
     import SSSDConfig
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup
@@ -1112,29 +1112,23 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
             continue
 
         for line in f:
-            line = line[:-1]
-            if line.startswith('#'):
-                continue
-            parts = line.split()
-            if len(parts) < 2:
+            line = line[:-1].lstrip()
+            if not line or line.startswith('#'):
                 continue
             try:
-                pubkey = b64decode(parts[1])
-            except TypeError:
-                continue
-            try:
-                algo, data, fp = ipautil.decode_ssh_pubkey(pubkey)
-            except ValueError:
-                continue
-            if parts[0] != algo:
+                pubkey = SSHPublicKey(line)
+            except ValueError, UnicodeDecodeError:
                 continue
             root_logger.info("Adding SSH public key from %s", filename)
-            pubkeys.append(unicode(parts[1]))
+            pubkeys.append(pubkey)
 
         f.close()
 
     try:
-        result = api.Command['host_mod'](unicode(hostname), ipasshpubkey=pubkeys, updatedns=False)
+        result = api.Command['host_mod'](unicode(hostname),
+            ipasshpubkey=[pk.openssh() for pk in pubkeys],
+            updatedns=False
+        )
     except errors.EmptyModlist:
         pass
     except StandardError, e:
@@ -1148,8 +1142,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
 
         update_txt = 'zone %s.\nupdate delete %s. IN SSHFP\nsend\n' % (zone, hostname)
         for pubkey in pubkeys:
-            pubkey = b64decode(pubkey)
-            sshfp = ipautil.make_sshfp(pubkey)
+            sshfp = pubkey.fingerprint_dns_sha1()
             if sshfp is not None:
                 update_txt += 'update add %s. %s IN SSHFP %s\n' % (hostname, ttl, sshfp)
         update_txt += 'send\n'
