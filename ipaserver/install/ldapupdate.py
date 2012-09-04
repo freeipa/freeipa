@@ -35,6 +35,7 @@ from ipalib import errors
 from ipalib import api
 from ipapython.dn import DN
 import ldap
+from ldap.schema.models import ObjectClass
 from ipapython.ipa_log_manager import *
 import krbV
 import platform
@@ -546,6 +547,28 @@ class LDAPUpdate:
                     entry_values = []
                 else:
                     entry_values = [entry_values]
+
+            # Replacing objectClassess needs a special handling and
+            # normalization of OC definitions to avoid update failures for
+            # example when X-ORIGIN is the only difference
+            objectclass_replacement = False
+            if action == "replace" and entry.dn == DN(('cn', 'schema')) and \
+                    attr.lower() == "objectclasses":
+                objectclass_replacement = True
+                oid_index = {}
+                # build the OID index for replacing
+                for objectclass in entry_values:
+                    try:
+                        objectclass_object = ObjectClass(str(objectclass))
+                    except Exception, e:
+                        self.error('replace: cannot parse ObjectClass "%s": %s',
+                                        objectclass, e)
+                        continue
+                    # In a corner case, there may be more representations of
+                    # the same objectclass due to the previous updates
+                    # We want to replace them all
+                    oid_index.setdefault(objectclass_object.oid, []).append(objectclass)
+
             for update_value in update_values:
                 if action == 'remove':
                     self.debug("remove: '%s' from %s, current value %s", update_value, attr, entry_values)
@@ -601,7 +624,28 @@ class LDAPUpdate:
                     except ValueError:
                         raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % update_value
                     try:
-                        entry_values.remove(old)
+                        if objectclass_replacement:
+                            try:
+                                objectclass_old = ObjectClass(str(old))
+                            except Exception, e:
+                                self.error('replace: cannot parse replaced ObjectClass "%s": %s',
+                                        old, e)
+                                continue
+                            replaced_values = []
+                            for objectclass in oid_index.get(objectclass_old.oid, []):
+                                objectclass_object = ObjectClass(str(objectclass))
+                                if str(objectclass_old).lower() == str(objectclass_object).lower():
+                                    # compare normalized values
+                                    replaced_values.append(objectclass)
+                                    self.debug('replace: replace ObjectClass "%s" with "%s"',
+                                            old, new)
+                            if not replaced_values:
+                                self.debug('replace: no match for replaced ObjectClass "%s"', old)
+                                continue
+                            for value in replaced_values:
+                                entry_values.remove(value)
+                        else:
+                            entry_values.remove(old)
                         entry_values.append(new)
                         self.debug('replace: updated value %s', entry_values)
                         entry.setValues(attr, entry_values)
@@ -728,7 +772,11 @@ class LDAPUpdate:
                 updated = False
                 changes = self.conn.generateModList(entry.origDataDict(), entry.toDict())
                 if (entry.dn == DN(('cn', 'schema'))):
-                    updated = self.is_schema_updated(entry.toDict())
+                    d = dict()
+                    e = entry.toDict()
+                    for k,v in e.items():
+                        d[k] = [str(x) for x in v]
+                    updated = self.is_schema_updated(d)
                 else:
                     if len(changes) >= 1:
                         updated = True
