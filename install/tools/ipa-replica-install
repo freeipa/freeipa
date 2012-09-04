@@ -24,6 +24,11 @@ import socket
 import os, pwd, shutil
 import grp
 from optparse import OptionGroup
+from contextlib import contextmanager
+
+import dns.resolver
+import dns.reversename
+import dns.exception
 
 from ipapython import ipautil
 
@@ -48,6 +53,7 @@ from ipapython.dn import DN
 log_file_name = "/var/log/ipareplica-install.log"
 CACERT = "/etc/ipa/ca.crt"
 REPLICA_INFO_TOP_DIR = None
+DIRMAN_DN = DN(('cn', 'directory manager'))
 
 def parse_options():
     usage = "%prog [options] REPLICA_FILE"
@@ -208,7 +214,7 @@ def install_http(config, auto_redirect):
     return http
 
 def install_bind(config, options):
-    api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
+    api.Backend.ldap2.connect(bind_dn=DIRMAN_DN,
                               bind_pw=config.dirman_password)
     if options.forwarders:
         forwarders = options.forwarders
@@ -238,6 +244,32 @@ def install_bind(config, options):
     bind.check_global_configuration()
     print ""
 
+
+@contextmanager
+def temporary_ldap2_connection(host_name, bind_pw, bind_dn=DIRMAN_DN):
+    """Context in which the ldap2 backend is connected to the given host
+
+    When the context is entered, forcefully change the ldap2's URI and connect
+    with the given password.
+    When it's exited, disconnect and restore ldap2 to previous configuration.
+
+    Needed to use the standard IPA tools on the remote master, before the
+    DS on localhost is installed.
+    """
+    # TODO: We shouldn't have to resort to such hacks
+    cur_uri = api.Backend.ldap2.ldap_uri
+    # ldap2 is finalized at this point, so use __setattr__ directly
+    object.__setattr__(api.Backend.ldap2, 'ldap_uri',
+                       'ldaps://%s' % ipautil.format_netloc(host_name))
+    api.Backend.ldap2.connect(bind_dn=DIRMAN_DN, bind_pw=bind_pw,
+                              tls_cacertfile=CACERT)
+    yield
+
+    api.Backend.ldap2.disconnect()
+    #set it back to the default
+    object.__setattr__(api.Backend.ldap2, 'ldap_uri', cur_uri)
+
+
 def install_dns_records(config, options):
 
     if not bindinstance.dns_container_exists(config.master_host_name,
@@ -247,22 +279,14 @@ def install_dns_records(config, options):
 
     # We have to force to connect to the remote master because we do this step
     # before our DS server is installed.
-    cur_uri = api.Backend.ldap2.ldap_uri
-    object.__setattr__(api.Backend.ldap2, 'ldap_uri',
-                       'ldaps://%s' % ipautil.format_netloc(config.master_host_name))
-    api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                              bind_pw=config.dirman_password,
-                              tls_cacertfile=CACERT)
-    bind = bindinstance.BindInstance(dm_password=config.dirman_password)
-    reverse_zone = bindinstance.find_reverse_zone(config.ip)
+    with temporary_ldap2_connection(
+            config.master_host_name, config.dirman_password):
+        bind = bindinstance.BindInstance(dm_password=config.dirman_password)
+        reverse_zone = bindinstance.find_reverse_zone(config.ip)
 
-    bind.add_master_dns_records(config.host_name, config.ip_address,
-                                config.realm_name, config.domain_name,
-                                reverse_zone, options.conf_ntp)
-
-    #set it back to the default
-    api.Backend.ldap2.disconnect()
-    object.__setattr__(api.Backend.ldap2, 'ldap_uri', cur_uri)
+        bind.add_master_dns_records(config.host_name, config.ip_address,
+                                    config.realm_name, config.domain_name,
+                                    reverse_zone, options.conf_ntp)
 
 def check_dirsrv():
     (ds_unsecure, ds_secure) = dsinstance.check_ports()
@@ -279,6 +303,86 @@ def check_bind():
     if not bindinstance.check_inst(unattended=True):
         print "Aborting installation"
         sys.exit(1)
+
+
+def check_dns_resolution(host_name, dns_server):
+    """Check forward and reverse resolution of host_name using dns_server
+    """
+    # Point the resolver at specified DNS server
+    server_ips = list(
+            a[4][0] for a in socket.getaddrinfo(dns_server, None))
+    resolver = dns.resolver.Resolver()
+    resolver.nameservers = server_ips
+
+    root_logger.debug('Search DNS server %s (%s) for %s',
+        dns_server, server_ips, host_name)
+
+    # Get IP addresses of host_name
+    addresses = set()
+    for rtype in 'A', 'AAAA':
+        try:
+            result = resolver.query(host_name, rtype)
+        except dns.exception.DNSException:
+            rrset = []
+        else:
+            rrset = result.rrset
+        if rrset:
+            addresses.update(r.address for r in result.rrset)
+
+    if not addresses:
+        root_logger.error(
+            'Could not resolve hostname %s using DNS. '
+            'Clients may not function properly. '
+            'Please check your DNS setup. '
+            '(Note that this check queries IPA DNS directly and '
+            'ignores /etc/hosts.)',
+            host_name)
+        return False
+
+    no_errors = True
+
+    # Check each of the IP addresses
+    checked = set()
+    for address in addresses:
+        if address in checked:
+            continue
+        checked.add(address)
+        try:
+            root_logger.debug('Check reverse address %s (%s)',
+                address, host_name)
+            revname = dns.reversename.from_address(address)
+            rrset = resolver.query(revname, 'PTR').rrset
+        except Exception, e:
+            root_logger.debug('Check failed: %s %s', type(e).__name__, e)
+            root_logger.error(
+                'Reverse DNS resolution of address %s (%s) failed. '
+                'Clients may not function properly. '
+                'Please check your DNS setup. '
+                '(Note that this check queries IPA DNS directly and '
+                'ignores /etc/hosts.)',
+                address, host_name)
+            no_errors = False
+        else:
+            host_name_obj = dns.name.from_text(host_name)
+            if rrset:
+                names = [r.target.to_text() for r in rrset]
+            else:
+                names = []
+            root_logger.debug(
+                'Address %s resolves to: %s. ', address, ', '.join(names))
+            if not rrset or not any(
+                    r.target == host_name_obj for r in rrset):
+                root_logger.error(
+                    'The IP address %s of host %s resolves to: %s. '
+                    'Clients may not function properly. '
+                    'Please check your DNS setup. '
+                    '(Note that this check queries IPA DNS directly and '
+                    'ignores /etc/hosts.)',
+                    address, host_name, ', '.join(names))
+                no_errors = False
+
+    return no_errors
+
 
 def main():
     ipaservices.check_selinux_status()
@@ -353,6 +457,7 @@ def main():
     config.dir = dir
     config.setup_ca = options.setup_ca
 
+    installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
     # check connection
     if not options.skip_conncheck:
@@ -410,12 +515,12 @@ def main():
     # Install CA cert so that we can do SSL connections with ldap
     install_ca_cert(config)
 
-    # Try out the password
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
+    replman = conn = None
     try:
+        # Try out the password
         conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
-        conn.connect(bind_dn=DN(('cn', 'directory manager')),
-                     bind_pw=config.dirman_password,
+        conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
                      tls_cacertfile=CACERT)
         replman = ReplicationManager(config.realm_name, config.master_host_name,
                                      config.dirman_password)
@@ -427,6 +532,23 @@ def main():
             found = True
         except errors.NotFound:
             pass
+
+        # If remote host has DNS, check forward/reverse resolution
+        with temporary_ldap2_connection(
+                config.master_host_name, config.dirman_password):
+            dns_masters = api.Object['dnsrecord'].get_dns_masters()
+        if dns_masters:
+            master = config.master_host_name
+            if not options.no_host_dns:
+                resolution_ok = (
+                    check_dns_resolution(master, master) and
+                    check_dns_resolution(config.host_name, master))
+                root_logger.debug('Check forward/reverse DNS resolution')
+                if not resolution_ok and not options.unattended:
+                    if not ipautil.user_input("Continue?", False):
+                        sys.exit(0)
+
+        # Check that we don't already have a replication agreement
         try:
             (agreement_cn, agreement_dn) = replman.agreement_dn(host)
             entry = conn.get_entry(agreement_dn, ['*'])
