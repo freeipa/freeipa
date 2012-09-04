@@ -471,7 +471,7 @@ ipa_winsync_pre_ad_mod_user_mods_cb(void *cbdata, const Slapi_Entry *rawentry,
 
     /* wrap the modstosend in a Slapi_Mods for convenience */
     smods = slapi_mods_new();
-    slapi_mods_init_byref(smods, *modstosend);
+    slapi_mods_init_passin(smods, *modstosend);
     sync_acct_disable(cbdata, rawentry, (Slapi_Entry *)ds_entry,
                       ACCT_DISABLE_TO_AD, NULL, smods, NULL);
 
