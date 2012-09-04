@@ -1103,6 +1103,32 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Set SOA serial of zone %r to high number' % dnszone1,
+            command=('dnszone_mod', [dnszone1], {'idnssoaserial': 4294967295}),
+            expected={
+                'value': dnszone1,
+                'summary': None,
+                'result': {
+                    'idnsname': [dnszone1],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [dnszone1_mname],
+                    'mxrecord': [u'0 ns1.dnszone.test.'],
+                    'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64"],
+                    'idnssoamname': [dnszone1_mname],
+                    'idnssoarname': [dnszone1_rname],
+                    'idnssoaserial': [u'4294967295'],
+                    'idnssoarefresh': [u'5478'],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowquery': [u'!10.0.0.0/8;any;'],
+                    'idnsallowtransfer': [u'80.142.15.80;'],
+                },
+            },
+        ),
+
+
+        dict(
             desc='Try to create duplicate PTR record for %r with --a-create-reverse' % dnsres1,
             command=('dnsrecord_add', [dnszone1, dnsres1], {'arecord': u'80.142.15.80',
                                                             'a_extra_create_reverse' : True}),
