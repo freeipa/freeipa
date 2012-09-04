@@ -37,7 +37,8 @@ import sys
 import os
 import errno
 import locale
-from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport, ProtocolError
+from xmlrpclib import (Binary, Fault, dumps, loads, ServerProxy, Transport,
+        ProtocolError, MININT, MAXINT)
 import kerberos
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -94,9 +95,11 @@ def xml_wrap(value):
     if type(value) is Decimal:
         # transfer Decimal as a string
         return unicode(value)
+    if isinstance(value, (int, long)) and (value < MININT or value > MAXINT):
+        return unicode(value)
     if isinstance(value, DN):
         return str(value)
-    assert type(value) in (unicode, int, float, bool, NoneType)
+    assert type(value) in (unicode, int, long, float, bool, NoneType)
     return value
 
 

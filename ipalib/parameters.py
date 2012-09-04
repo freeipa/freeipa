@@ -1078,7 +1078,7 @@ class Number(Param):
         """
         if type(value) is self.type:
             return value
-        if type(value) in (unicode, int, float):
+        if type(value) in (unicode, int, long, float):
             try:
                 return self.type(value)
             except ValueError:
@@ -1100,8 +1100,8 @@ class Int(Number):
     type_error = _('must be an integer')
 
     kwargs = Param.kwargs + (
-        ('minvalue', int, int(MININT)),
-        ('maxvalue', int, int(MAXINT)),
+        ('minvalue', (int, long), int(MININT)),
+        ('maxvalue', (int, long), int(MAXINT)),
     )
 
     def __init__(self, name, *rules, **kw):
@@ -1148,7 +1148,7 @@ class Int(Number):
         Check min constraint.
         """
         assert type(value) in (int, long)
-        if value < self.minvalue or value < MININT:
+        if value < self.minvalue:
             return _('must be at least %(minvalue)d') % dict(
                 minvalue=self.minvalue,
             )
@@ -1158,7 +1158,7 @@ class Int(Number):
         Check max constraint.
         """
         assert type(value) in (int, long)
-        if value > self.maxvalue or value > MAXINT:
+        if value > self.maxvalue:
             return _('can be at most %(maxvalue)d') % dict(
                 maxvalue=self.maxvalue,
             )
@@ -1491,7 +1491,7 @@ class Str(Data):
         """
         if type(value) is self.type:
             return value
-        if type(value) in (int, float, decimal.Decimal):
+        if type(value) in (int, long, float, decimal.Decimal):
             return self.type(value)
         if type(value) in (tuple, list):
             raise ConversionError(name=self.name, index=index,
