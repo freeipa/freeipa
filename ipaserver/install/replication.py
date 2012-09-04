@@ -543,6 +543,7 @@ class ReplicationManager(object):
 
         a_entry = None
         b_entry = None
+        error_message = ''
 
         while (retries > 0 ):
             root_logger.info('Getting ldap service principals for conversion: %s and %s' % (filter_a, filter_b))
@@ -566,19 +567,23 @@ class ReplicationManager(object):
                     % (filter_a, str(b)))
                 self.force_sync(a, b.host)
                 cn, dn = self.agreement_dn(b.host)
-                self.wait_for_repl_update(a, dn, 30)
+                haserror, error_message = self.wait_for_repl_update(a, dn, 60)
 
             if not b_entry:
                 root_logger.debug('Unable to find entry for %s on %s'
                     % (filter_b, str(a)))
                 self.force_sync(b, a.host)
                 cn, dn = self.agreement_dn(a.host)
-                self.wait_for_repl_update(b, dn, 30)
+                haserror, error_message = self.wait_for_repl_update(b, dn, 60)
 
             retries -= 1
 
         if not a_entry or not b_entry:
-            raise RuntimeError('One of the ldap service principals is missing. Replication agreement cannot be converted')
+            error = 'One of the ldap service principals is missing. ' \
+                    'Replication agreement cannot be converted.'
+            if error_message:
+                error += '\nReplication error message: %s' % error_message
+            raise RuntimeError(error)
 
         return (a_entry[0].dn, b_entry[0].dn)
 
@@ -592,7 +597,7 @@ class ReplicationManager(object):
 
         rep_dn = self.replica_dn()
         assert isinstance(rep_dn, DN)
-        (a_dn, b_dn) = self.get_replica_principal_dns(a, b, retries=10)
+        (a_dn, b_dn) = self.get_replica_principal_dns(a, b, retries=100)
         assert isinstance(a_dn, DN)
         assert isinstance(b_dn, DN)
 
@@ -689,6 +694,7 @@ class ReplicationManager(object):
     def check_repl_update(self, conn, agmtdn):
         done = False
         hasError = 0
+        error_message = ''
         attrlist = ['cn', 'nsds5replicaUpdateInProgress',
                     'nsds5ReplicaLastUpdateStatus', 'nsds5ReplicaLastUpdateStart',
                     'nsds5ReplicaLastUpdateEnd']
@@ -699,21 +705,28 @@ class ReplicationManager(object):
         else:
             inprogress = entry.getValue('nsds5replicaUpdateInProgress')
             status = entry.getValue('nsds5ReplicaLastUpdateStatus')
-            start = entry.getValue('nsds5ReplicaLastUpdateStart')
-            end = entry.getValue('nsds5ReplicaLastUpdateEnd')
+            try:
+                start = int(entry.getValue('nsds5ReplicaLastUpdateStart'))
+            except (ValueError, TypeError):
+                start = 0
+            try:
+                end = int(entry.getValue('nsds5ReplicaLastUpdateEnd'))
+            except (ValueError, TypeError):
+                end = 0
             # incremental update is done if inprogress is false and end >= start
-            done = inprogress and inprogress.lower() == 'false' and start and end and (start <= end)
-            root_logger.info("Replication Update in progress: %s: status: %s: start: %s: end: %s" %
+            done = inprogress and inprogress.lower() == 'false' and start <= end
+            root_logger.info("Replication Update in progress: %s: status: %s: start: %d: end: %d" %
                          (inprogress, status, start, end))
-            if not done and status: # check for errors
+            if status: # always check for errors
                 # status will usually be a number followed by a string
                 # number != 0 means error
                 rc, msg = status.split(' ', 1)
                 if rc != '0':
                     hasError = 1
+                    error_message = msg
                     done = True
 
-        return done, hasError
+        return done, hasError, error_message
 
     def wait_for_repl_init(self, conn, agmtdn):
         done = False
@@ -726,14 +739,15 @@ class ReplicationManager(object):
     def wait_for_repl_update(self, conn, agmtdn, maxtries=600):
         done = False
         haserror = 0
+        error_message = ''
         while not done and not haserror and maxtries > 0:
             time.sleep(1)  # give it a few seconds to get going
-            done, haserror = self.check_repl_update(conn, agmtdn)
+            done, haserror, error_message = self.check_repl_update(conn, agmtdn)
             maxtries -= 1
         if maxtries == 0: # too many tries
             print "Error: timeout: could not determine agreement status: please check your directory server logs for possible errors"
             haserror = 1
-        return haserror
+        return haserror, error_message
 
     def start_replication(self, conn, hostname=None, master=None):
         print "Starting replication, please wait until this has completed."
