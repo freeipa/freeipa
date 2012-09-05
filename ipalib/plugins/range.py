@@ -91,6 +91,58 @@ class range(LDAPObject):
             if not options.get('all', False) or options.get('pkey_only', False):
                 entry_attrs.pop('objectclass', None)
 
+    def check_ids_in_modified_range(self, old_base, old_size, new_base, new_size):
+        if new_base is None and new_size is None:
+            # nothing to check
+            return
+        if new_base is None:
+            new_base = old_base
+        if new_size is None:
+            new_size = old_size
+        old_interval = (old_base, old_base + old_size - 1)
+        new_interval = (new_base, new_base + new_size - 1)
+        checked_intervals = []
+        low_diff = new_interval[0] - old_interval[0]
+        if low_diff > 0:
+            checked_intervals.append(
+                    (old_interval[0], min(old_interval[1], new_interval[0] - 1)))
+        high_diff = old_interval[1] - new_interval[1]
+        if high_diff > 0:
+            checked_intervals.append(
+                    (max(old_interval[0], new_interval[1] + 1), old_interval[1]))
+
+        if not checked_intervals:
+            # range is equal or covers the entire old range, nothing to check
+            return
+
+        ldap = self.backend
+        id_filter_base = ["(objectclass=posixAccount)",
+                          "(objectclass=posixGroup)",
+                          "(objectclass=ipaIDObject)"]
+        id_filter_ids = []
+
+        for id_low, id_high in checked_intervals:
+            id_filter_ids.append("(&(uidNumber>=%(low)d)(uidNumber<=%(high)d))"
+                                 % dict(low=id_low, high=id_high))
+            id_filter_ids.append("(&(gidNumber>=%(low)d)(gidNumber<=%(high)d))"
+                                 % dict(low=id_low, high=id_high))
+        id_filter = ldap.combine_filters(
+                        [ldap.combine_filters(id_filter_base, "|"),
+                          ldap.combine_filters(id_filter_ids, "|")],
+                        "&")
+
+        try:
+            (objects, truncated) = ldap.find_entries(filter=id_filter,
+                    attrs_list=['uid', 'cn'],
+                    base_dn=DN(api.env.container_accounts, api.env.basedn))
+        except errors.NotFound:
+            # no objects in this range found, allow the command
+            pass
+        else:
+            raise errors.ValidationError(name="ipabaseid,ipaidrangesize",
+                    error=_('range modification leaving objects with ID out '
+                            'of the defined range is not allowed'))
+
 class range_add(LDAPCreate):
     __doc__ = _('Add new ID range.')
 
@@ -120,6 +172,18 @@ class range_del(LDAPDelete):
     __doc__ = _('Delete an ID range.')
 
     msg_summary = _('Deleted ID range "%(value)s"')
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        try:
+            (old_dn, old_attrs) = ldap.get_entry(dn, ['ipabaseid', 'ipaidrangesize'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        old_base_id = int(old_attrs.get('ipabaseid', [0])[0])
+        old_range_size = int(old_attrs.get('ipaidrangesize', [0])[0])
+        self.obj.check_ids_in_modified_range(
+                old_base_id, old_range_size, 0, 0)
+        return dn
 
 class range_find(LDAPSearch):
     __doc__ = _('Search for ranges.')
@@ -161,6 +225,23 @@ class range_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         attrs_list.append('objectclass')
+
+        try:
+            (old_dn, old_attrs) = ldap.get_entry(dn, ['ipabaseid', 'ipaidrangesize'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        old_base_id = int(old_attrs.get('ipabaseid', [0])[0])
+        old_range_size = int(old_attrs.get('ipaidrangesize', [0])[0])
+        new_base_id = entry_attrs.get('ipabaseid')
+        if new_base_id is not None:
+            new_base_id = int(new_base_id)
+        new_range_size = entry_attrs.get('ipaidrangesize')
+        if new_range_size is not None:
+            new_range_size = int(new_range_size)
+        self.obj.check_ids_in_modified_range(old_base_id, old_range_size,
+                                             new_base_id, new_range_size)
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
