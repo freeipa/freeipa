@@ -523,6 +523,7 @@
                         "undo_all": "undo all",
                         "validation": {
                             "error": "Text does not match field pattern",
+                            "decimal": "Must be a decimal number",
                             "integer": "Must be an integer",
                             "ip_address": "Not a valid IP address",
                             "ip_v4_address": "Not a valid IPv4 address",

@@ -430,21 +430,31 @@ IPA.metadata_validator = function(spec) {
 
         var message;
         var metadata = context.metadata;
+        var number = false;
 
         if (!metadata || IPA.is_empty(value)) return that.true_result();
 
-        if (metadata.type == 'int') {
+        if (metadata.type === 'int') {
+            number = true;
             if (!value.match(/^-?\d+$/)) {
                 return that.false_result(IPA.messages.widget.validation.integer);
             }
+        } else if (metadata.type === 'Decimal') {
+            number = true;
+            if (!value.match(/^-?\d+(\.\d+)?$/)) {
+                return that.false_result(IPA.messages.widget.validation.decimal);
+            }
+        }
 
-            if (metadata.minvalue !== undefined && value < metadata.minvalue) {
+        if (number) {
+
+            if (metadata.minvalue !== undefined && Number(value) < Number(metadata.minvalue)) {
                 message = IPA.messages.widget.validation.min_value;
                 message = message.replace('${value}', metadata.minvalue);
                 return that.false_result(message);
             }
 
-            if (metadata.maxvalue !== undefined && value > metadata.maxvalue) {
+            if (metadata.maxvalue !== undefined && Number(value) > Number(metadata.maxvalue)) {
                 message = IPA.messages.widget.validation.max_value;
                 message = message.replace('${value}', metadata.maxvalue);
                 return that.false_result(message);
