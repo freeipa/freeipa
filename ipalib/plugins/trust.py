@@ -163,6 +163,7 @@ class trust_add(LDAPCreate):
     )
 
     msg_summary = _('Added Active Directory trust for realm "%(value)s"')
+    has_output_params = LDAPCreate.has_output_params + trust_output_params
 
     def execute(self, *keys, **options):
         if not _murmur_installed and 'base_id' not in options:
@@ -179,6 +180,16 @@ class trust_add(LDAPCreate):
             raise errors.RequirementError(name=_('trust type'))
 
         self.add_range(*keys, **options)
+
+        trust_filter = "cn=%s" % result['value']
+        ldap = self.obj.backend
+        (trusts, truncated) = ldap.find_entries(
+                         base_dn = DN(api.env.container_trusts, api.env.basedn),
+                         filter = trust_filter)
+
+        result['result'] = trusts[0][1]
+        result['result']['trusttype'] = [trust_type_string(result['result']['ipanttrusttype'][0])]
+        result['result']['trustdirection'] = [trust_direction_string(result['result']['ipanttrustdirection'][0])]
 
         return result
 
