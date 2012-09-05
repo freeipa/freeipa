@@ -112,6 +112,7 @@ from errors import ConversionError, RequirementError, ValidationError
 from errors import PasswordMismatch, Base64DecodeError
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 from text import Gettext, FixMe
+from util import json_serialize
 from ipapython.dn import DN
 
 class DefaultFrom(ReadOnly):
@@ -978,11 +979,11 @@ class Param(ReadOnly):
                 json_dict[a] = [k for k in getattr(self, a, [])]
             else:
                 val = getattr(self, a, '')
-                if val is None or not val:
-                    # ignore false and not set because lack of their presence is
+                if val is None or val is False:
+                    # ignore False and not set because lack of their presence is
                     # the information itself
                     continue;
-                json_dict[a] = val
+                json_dict[a] = json_serialize(val)
         json_dict['class'] = self.__class__.__name__
         json_dict['name'] = self.name
         json_dict['type'] = self.type.__name__

@@ -628,7 +628,7 @@ class LDAPObject(Object):
     def __json__(self):
         ldap = self.backend
         json_dict = dict(
-            (a, getattr(self, a)) for a in self.json_friendly_attributes
+            (a, json_serialize(getattr(self, a))) for a in self.json_friendly_attributes
         )
         if self.primary_key:
             json_dict['primary_key'] = self.primary_key.name
