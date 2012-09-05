@@ -689,6 +689,12 @@
                         "type": "unicode"
                     },
                     {
+                        "name": "setattr"
+                    },
+                    {
+                        "name": "addattr"
+                    },
+                    {
                         "class": "StrEnum",
                         "doc": "Grouping to which the rule applies",
                         "flags": [],
@@ -1000,6 +1006,24 @@
                         "type": "unicode"
                     },
                     {
+                        "name": "setattr"
+                    },
+                    {
+                        "name": "addattr"
+                    },
+                    {
+                        "name": "delattr"
+                    },
+                    {
+                        "class": "Flag",
+                        "doc": "Display the access rights of this entry (requires --all). See ipa man page for details.",
+                        "flags": [],
+                        "label": "Rights",
+                        "name": "rights",
+                        "required": true,
+                        "type": "bool"
+                    },
+                    {
                         "class": "StrEnum",
                         "doc": "Grouping to which the rule applies",
                         "flags": [],
@@ -1261,6 +1285,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -1272,6 +1297,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -1470,6 +1496,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -1481,6 +1508,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -1682,6 +1710,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -1693,6 +1722,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -1870,10 +1900,12 @@
                 "takes_options": [
                     {
                         "class": "Int",
+                        "default": 0,
                         "doc": "Reason for revoking the certificate (0-10)",
                         "flags": [],
                         "label": "Reason",
                         "maxvalue": 10,
+                        "minvalue": 0,
                         "name": "revocation_reason",
                         "required": true,
                         "type": "int"
@@ -2085,6 +2117,7 @@
                         ],
                         "label": "Password Expiration Notification (days)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "ipapwdexpadvnotify",
                         "type": "int"
                     },
@@ -2199,14 +2232,13 @@
                 "takes_options": [
                     {
                         "attribute": true,
-                        "class": "Str",
+                        "class": "DNParam",
                         "doc": "<krbpwdpolicyreference>",
                         "flags": [],
                         "label": "<krbpwdpolicyreference>",
                         "name": "krbpwdpolicyreference",
-                        "noextrawhitespace": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
                         "attribute": true,
@@ -2215,6 +2247,7 @@
                         "flags": [],
                         "label": "<cospriority>",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "cospriority",
                         "required": true,
                         "type": "int"
@@ -2267,14 +2300,13 @@
                     },
                     {
                         "attribute": true,
-                        "class": "Str",
+                        "class": "DNParam",
                         "doc": "<krbpwdpolicyreference>",
                         "flags": [],
                         "label": "<krbpwdpolicyreference>",
                         "name": "krbpwdpolicyreference",
-                        "noextrawhitespace": true,
                         "query": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
                         "attribute": true,
@@ -2283,6 +2315,7 @@
                         "flags": [],
                         "label": "<cospriority>",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "cospriority",
                         "query": true,
                         "type": "int"
@@ -2295,6 +2328,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -2306,6 +2340,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -2333,15 +2368,14 @@
                 "takes_options": [
                     {
                         "attribute": true,
-                        "class": "Str",
+                        "class": "DNParam",
                         "doc": "<krbpwdpolicyreference>",
                         "flags": [
                             "nonempty"
                         ],
                         "label": "<krbpwdpolicyreference>",
                         "name": "krbpwdpolicyreference",
-                        "noextrawhitespace": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
                         "attribute": true,
@@ -2352,6 +2386,7 @@
                         ],
                         "label": "<cospriority>",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "cospriority",
                         "type": "int"
                     },
@@ -2667,6 +2702,7 @@
                         "flags": [],
                         "label": "Zone refresh interval",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnszonerefresh",
                         "type": "int"
                     },
@@ -2888,6 +2924,7 @@
                         "hint": "afsdbrecord",
                         "label": "AFSDB Subtype",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "afsdb_part_subtype",
                         "option_group": "AFSDB Record",
                         "type": "int"
@@ -2946,6 +2983,7 @@
                         "hint": "certrecord",
                         "label": "CERT Certificate Type",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "cert_part_type",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -2960,6 +2998,7 @@
                         "hint": "certrecord",
                         "label": "CERT Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "cert_part_key_tag",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -2974,6 +3013,7 @@
                         "hint": "certrecord",
                         "label": "CERT Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "cert_part_algorithm",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -3120,6 +3160,7 @@
                         "hint": "dsrecord",
                         "label": "DS Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "ds_part_key_tag",
                         "option_group": "DS Record",
                         "type": "int"
@@ -3134,6 +3175,7 @@
                         "hint": "dsrecord",
                         "label": "DS Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "ds_part_algorithm",
                         "option_group": "DS Record",
                         "type": "int"
@@ -3148,6 +3190,7 @@
                         "hint": "dsrecord",
                         "label": "DS Digest Type",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "ds_part_digest_type",
                         "option_group": "DS Record",
                         "type": "int"
@@ -3222,6 +3265,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Flags",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "key_part_flags",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -3236,6 +3280,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Protocol",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "key_part_protocol",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -3250,6 +3295,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "key_part_algorithm",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -3292,6 +3338,7 @@
                         "hint": "kxrecord",
                         "label": "KX Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "kx_part_preference",
                         "option_group": "KX Record",
                         "type": "int"
@@ -3334,6 +3381,7 @@
                         "hint": "locrecord",
                         "label": "LOC Degrees Latitude",
                         "maxvalue": 90,
+                        "minvalue": 0,
                         "name": "loc_part_lat_deg",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -3349,6 +3397,7 @@
                         "hint": "locrecord",
                         "label": "LOC Minutes Latitude",
                         "maxvalue": 59,
+                        "minvalue": 0,
                         "name": "loc_part_lat_min",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -3363,9 +3412,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Seconds Latitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "59.999",
+                        "minvalue": "0.0",
                         "name": "loc_part_lat_sec",
                         "numberclass": [
                             "-Normal",
@@ -3403,6 +3451,7 @@
                         "hint": "locrecord",
                         "label": "LOC Degrees Longitude",
                         "maxvalue": 180,
+                        "minvalue": 0,
                         "name": "loc_part_lon_deg",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -3418,6 +3467,7 @@
                         "hint": "locrecord",
                         "label": "LOC Minutes Longitude",
                         "maxvalue": 59,
+                        "minvalue": 0,
                         "name": "loc_part_lon_min",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -3432,9 +3482,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Seconds Longitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "59.999",
+                        "minvalue": "0.0",
                         "name": "loc_part_lon_sec",
                         "numberclass": [
                             "-Normal",
@@ -3471,12 +3520,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Altitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
-                        "minvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "42849672.95",
+                        "minvalue": "-100000.00",
                         "name": "loc_part_altitude",
                         "numberclass": [
                             "-Normal",
@@ -3497,9 +3542,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Size",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_size",
                         "numberclass": [
                             "-Normal",
@@ -3520,9 +3564,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Horizontal Precision",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_h_precision",
                         "numberclass": [
                             "-Normal",
@@ -3543,9 +3586,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Vertical Precision",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_v_precision",
                         "numberclass": [
                             "-Normal",
@@ -3580,6 +3622,7 @@
                         "hint": "mxrecord",
                         "label": "MX Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "mx_part_preference",
                         "option_group": "MX Record",
                         "type": "int"
@@ -3622,6 +3665,7 @@
                         "hint": "naptrrecord",
                         "label": "NAPTR Order",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "naptr_part_order",
                         "option_group": "NAPTR Record",
                         "type": "int"
@@ -3636,6 +3680,7 @@
                         "hint": "naptrrecord",
                         "label": "NAPTR Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "naptr_part_preference",
                         "option_group": "NAPTR Record",
                         "type": "int"
@@ -3936,6 +3981,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "rrsig_part_algorithm",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -3950,6 +3996,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Labels",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "rrsig_part_labels",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -3964,6 +4011,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Original TTL",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "rrsig_part_original_ttl",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -4006,6 +4054,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "rrsig_part_key_tag",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -4127,6 +4176,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sig_part_algorithm",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -4141,6 +4191,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Labels",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sig_part_labels",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -4155,6 +4206,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Original TTL",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sig_part_original_ttl",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -4197,6 +4249,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "sig_part_key_tag",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -4269,6 +4322,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Priority",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_priority",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -4283,6 +4337,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Weight",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_weight",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -4297,6 +4352,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Port",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_port",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -4339,6 +4395,7 @@
                         "hint": "sshfprecord",
                         "label": "SSHFP Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sshfp_part_algorithm",
                         "option_group": "SSHFP Record",
                         "type": "int"
@@ -4353,6 +4410,7 @@
                         "hint": "sshfprecord",
                         "label": "SSHFP Fingerprint Type",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sshfp_part_fp_type",
                         "option_group": "SSHFP Record",
                         "type": "int"
@@ -5578,6 +5636,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -5589,6 +5648,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -5758,6 +5818,7 @@
                         "hint": "afsdbrecord",
                         "label": "AFSDB Subtype",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "afsdb_part_subtype",
                         "option_group": "AFSDB Record",
                         "type": "int"
@@ -5816,6 +5877,7 @@
                         "hint": "certrecord",
                         "label": "CERT Certificate Type",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "cert_part_type",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -5830,6 +5892,7 @@
                         "hint": "certrecord",
                         "label": "CERT Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "cert_part_key_tag",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -5844,6 +5907,7 @@
                         "hint": "certrecord",
                         "label": "CERT Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "cert_part_algorithm",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -5990,6 +6054,7 @@
                         "hint": "dsrecord",
                         "label": "DS Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "ds_part_key_tag",
                         "option_group": "DS Record",
                         "type": "int"
@@ -6004,6 +6069,7 @@
                         "hint": "dsrecord",
                         "label": "DS Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "ds_part_algorithm",
                         "option_group": "DS Record",
                         "type": "int"
@@ -6018,6 +6084,7 @@
                         "hint": "dsrecord",
                         "label": "DS Digest Type",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "ds_part_digest_type",
                         "option_group": "DS Record",
                         "type": "int"
@@ -6092,6 +6159,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Flags",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "key_part_flags",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -6106,6 +6174,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Protocol",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "key_part_protocol",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -6120,6 +6189,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "key_part_algorithm",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -6162,6 +6232,7 @@
                         "hint": "kxrecord",
                         "label": "KX Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "kx_part_preference",
                         "option_group": "KX Record",
                         "type": "int"
@@ -6204,6 +6275,7 @@
                         "hint": "locrecord",
                         "label": "LOC Degrees Latitude",
                         "maxvalue": 90,
+                        "minvalue": 0,
                         "name": "loc_part_lat_deg",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -6219,6 +6291,7 @@
                         "hint": "locrecord",
                         "label": "LOC Minutes Latitude",
                         "maxvalue": 59,
+                        "minvalue": 0,
                         "name": "loc_part_lat_min",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -6233,9 +6306,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Seconds Latitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "59.999",
+                        "minvalue": "0.0",
                         "name": "loc_part_lat_sec",
                         "numberclass": [
                             "-Normal",
@@ -6273,6 +6345,7 @@
                         "hint": "locrecord",
                         "label": "LOC Degrees Longitude",
                         "maxvalue": 180,
+                        "minvalue": 0,
                         "name": "loc_part_lon_deg",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -6288,6 +6361,7 @@
                         "hint": "locrecord",
                         "label": "LOC Minutes Longitude",
                         "maxvalue": 59,
+                        "minvalue": 0,
                         "name": "loc_part_lon_min",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -6302,9 +6376,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Seconds Longitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "59.999",
+                        "minvalue": "0.0",
                         "name": "loc_part_lon_sec",
                         "numberclass": [
                             "-Normal",
@@ -6341,12 +6414,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Altitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
-                        "minvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "42849672.95",
+                        "minvalue": "-100000.00",
                         "name": "loc_part_altitude",
                         "numberclass": [
                             "-Normal",
@@ -6367,9 +6436,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Size",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_size",
                         "numberclass": [
                             "-Normal",
@@ -6390,9 +6458,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Horizontal Precision",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_h_precision",
                         "numberclass": [
                             "-Normal",
@@ -6413,9 +6480,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Vertical Precision",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_v_precision",
                         "numberclass": [
                             "-Normal",
@@ -6450,6 +6516,7 @@
                         "hint": "mxrecord",
                         "label": "MX Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "mx_part_preference",
                         "option_group": "MX Record",
                         "type": "int"
@@ -6492,6 +6559,7 @@
                         "hint": "naptrrecord",
                         "label": "NAPTR Order",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "naptr_part_order",
                         "option_group": "NAPTR Record",
                         "type": "int"
@@ -6506,6 +6574,7 @@
                         "hint": "naptrrecord",
                         "label": "NAPTR Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "naptr_part_preference",
                         "option_group": "NAPTR Record",
                         "type": "int"
@@ -6806,6 +6875,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "rrsig_part_algorithm",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -6820,6 +6890,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Labels",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "rrsig_part_labels",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -6834,6 +6905,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Original TTL",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "rrsig_part_original_ttl",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -6876,6 +6948,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "rrsig_part_key_tag",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -6997,6 +7070,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sig_part_algorithm",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -7011,6 +7085,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Labels",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sig_part_labels",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -7025,6 +7100,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Original TTL",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sig_part_original_ttl",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -7067,6 +7143,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "sig_part_key_tag",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -7139,6 +7216,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Priority",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_priority",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -7153,6 +7231,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Weight",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_weight",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -7167,6 +7246,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Port",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_port",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -7209,6 +7289,7 @@
                         "hint": "sshfprecord",
                         "label": "SSHFP Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sshfp_part_algorithm",
                         "option_group": "SSHFP Record",
                         "type": "int"
@@ -7223,6 +7304,7 @@
                         "hint": "sshfprecord",
                         "label": "SSHFP Fingerprint Type",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sshfp_part_fp_type",
                         "option_group": "SSHFP Record",
                         "type": "int"
@@ -7453,6 +7535,7 @@
                         "flags": [],
                         "label": "SOA refresh",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoarefresh",
                         "required": true,
                         "type": "int"
@@ -7465,6 +7548,7 @@
                         "flags": [],
                         "label": "SOA retry",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoaretry",
                         "required": true,
                         "type": "int"
@@ -7477,6 +7561,7 @@
                         "flags": [],
                         "label": "SOA expire",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoaexpire",
                         "required": true,
                         "type": "int"
@@ -7489,6 +7574,7 @@
                         "flags": [],
                         "label": "SOA minimum",
                         "maxvalue": 10800,
+                        "minvalue": 0,
                         "name": "idnssoaminimum",
                         "required": true,
                         "type": "int"
@@ -7723,6 +7809,7 @@
                         "flags": [],
                         "label": "SOA refresh",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoarefresh",
                         "query": true,
                         "type": "int"
@@ -7735,6 +7822,7 @@
                         "flags": [],
                         "label": "SOA retry",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoaretry",
                         "query": true,
                         "type": "int"
@@ -7747,6 +7835,7 @@
                         "flags": [],
                         "label": "SOA expire",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoaexpire",
                         "query": true,
                         "type": "int"
@@ -7759,6 +7848,7 @@
                         "flags": [],
                         "label": "SOA minimum",
                         "maxvalue": 10800,
+                        "minvalue": 0,
                         "name": "idnssoaminimum",
                         "query": true,
                         "type": "int"
@@ -7893,6 +7983,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -7904,6 +7995,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -7996,6 +8088,7 @@
                         ],
                         "label": "SOA refresh",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoarefresh",
                         "type": "int"
                     },
@@ -8009,6 +8102,7 @@
                         ],
                         "label": "SOA retry",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoaretry",
                         "type": "int"
                     },
@@ -8022,6 +8116,7 @@
                         ],
                         "label": "SOA expire",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoaexpire",
                         "type": "int"
                     },
@@ -8035,6 +8130,7 @@
                         ],
                         "label": "SOA minimum",
                         "maxvalue": 10800,
+                        "minvalue": 0,
                         "name": "idnssoaminimum",
                         "type": "int"
                     },
@@ -8246,6 +8342,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -8257,6 +8354,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -8601,6 +8699,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -8612,6 +8711,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -9354,6 +9454,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -9365,6 +9466,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -9759,6 +9861,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -9770,6 +9873,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -9960,6 +10064,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -9971,6 +10076,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -10170,6 +10276,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     }
@@ -10273,15 +10380,22 @@
                     },
                     {
                         "attribute": true,
-                        "class": "Bytes",
-                        "doc": "Base-64 encoded SSH public key",
+                        "class": "Str",
+                        "doc": "SSH public key",
                         "flags": [
                             "no_search"
                         ],
-                        "label": "Base-64 encoded SSH public key",
+                        "label": "SSH public key",
                         "multivalue": true,
                         "name": "ipasshpubkey",
-                        "type": "str"
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "name": "setattr"
+                    },
+                    {
+                        "name": "addattr"
                     },
                     {
                         "class": "Flag",
@@ -10475,6 +10589,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -10486,6 +10601,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -10766,15 +10882,16 @@
                     },
                     {
                         "attribute": true,
-                        "class": "Bytes",
-                        "doc": "Base-64 encoded SSH public key",
+                        "class": "Str",
+                        "doc": "SSH public key",
                         "flags": [
                             "no_search"
                         ],
-                        "label": "Base-64 encoded SSH public key",
+                        "label": "SSH public key",
                         "multivalue": true,
                         "name": "ipasshpubkey",
-                        "type": "str"
+                        "noextrawhitespace": true,
+                        "type": "unicode"
                     },
                     {
                         "name": "setattr"
@@ -10994,6 +11111,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -11005,6 +11123,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -11467,36 +11586,33 @@
                 ],
                 "takes_options": [
                     {
-                        "class": "Str",
+                        "class": "DNParam",
                         "default": "cn=directory manager",
                         "doc": "Bind DN",
                         "flags": [],
                         "label": "Bind DN",
                         "name": "binddn",
-                        "noextrawhitespace": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNParam",
                         "default": "ou=people",
                         "doc": "DN of container for users in DS relative to base DN",
                         "flags": [],
                         "label": "User container",
                         "name": "usercontainer",
-                        "noextrawhitespace": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNParam",
                         "default": "ou=groups",
                         "doc": "DN of container for groups in DS relative to base DN",
                         "flags": [],
                         "label": "Group container",
                         "name": "groupcontainer",
-                        "noextrawhitespace": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
                         "class": "Str",
@@ -11529,6 +11645,7 @@
                     },
                     {
                         "class": "Str",
+                        "default": [],
                         "doc": "Comma-separated list of objectclasses to be ignored for user entries in DS",
                         "flags": [],
                         "label": "Ignore user object class",
@@ -11539,6 +11656,7 @@
                     },
                     {
                         "class": "Str",
+                        "default": [],
                         "doc": "Comma-separated list of attributes to be ignored for user entries in DS",
                         "flags": [],
                         "label": "Ignore user attribute",
@@ -11549,6 +11667,7 @@
                     },
                     {
                         "class": "Str",
+                        "default": [],
                         "doc": "Comma-separated list of objectclasses to be ignored for group entries in DS",
                         "flags": [],
                         "label": "Ignore group object class",
@@ -11559,6 +11678,7 @@
                     },
                     {
                         "class": "Str",
+                        "default": [],
                         "doc": "Comma-separated list of attributes to be ignored for group entries in DS",
                         "flags": [],
                         "label": "Ignore group attribute",
@@ -11598,13 +11718,12 @@
                         "type": "bool"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNParam",
                         "doc": "Base DN on remote LDAP server",
                         "flags": [],
                         "label": "Base DN",
                         "name": "basedn",
-                        "noextrawhitespace": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
                         "class": "Flag",
@@ -11616,6 +11735,7 @@
                     },
                     {
                         "class": "Str",
+                        "default": [],
                         "doc": "comma-separated list of groups to exclude from migration",
                         "flags": [],
                         "label": "<exclude_groups>",
@@ -11626,6 +11746,7 @@
                     },
                     {
                         "class": "Str",
+                        "default": [],
                         "doc": "comma-separated list of users to exclude from migration",
                         "flags": [],
                         "label": "<exclude_users>",
@@ -11897,6 +12018,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -11908,6 +12030,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -12583,6 +12706,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -12594,6 +12718,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -12956,6 +13081,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -12967,6 +13093,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -13124,6 +13251,7 @@
                         "flags": [],
                         "label": "Max lifetime (days)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbmaxpwdlife",
                         "type": "int"
                     },
@@ -13134,6 +13262,7 @@
                         "flags": [],
                         "label": "Min lifetime (hours)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbminpwdlife",
                         "type": "int"
                     },
@@ -13144,6 +13273,7 @@
                         "flags": [],
                         "label": "History size",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdhistorylength",
                         "type": "int"
                     },
@@ -13154,6 +13284,7 @@
                         "flags": [],
                         "label": "Character classes",
                         "maxvalue": 5,
+                        "minvalue": 0,
                         "name": "krbpwdmindiffchars",
                         "type": "int"
                     },
@@ -13164,6 +13295,7 @@
                         "flags": [],
                         "label": "Min length",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdminlength",
                         "type": "int"
                     },
@@ -13175,6 +13307,7 @@
                         ],
                         "label": "Priority",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "cospriority",
                         "required": true,
                         "type": "int"
@@ -13186,6 +13319,7 @@
                         "flags": [],
                         "label": "Max failures",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdmaxfailure",
                         "type": "int"
                     },
@@ -13196,6 +13330,7 @@
                         "flags": [],
                         "label": "Failure reset interval",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdfailurecountinterval",
                         "type": "int"
                     },
@@ -13206,6 +13341,7 @@
                         "flags": [],
                         "label": "Lockout duration",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdlockoutduration",
                         "type": "int"
                     },
@@ -13262,6 +13398,7 @@
                         "flags": [],
                         "label": "Max lifetime (days)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbmaxpwdlife",
                         "query": true,
                         "type": "int"
@@ -13273,6 +13410,7 @@
                         "flags": [],
                         "label": "Min lifetime (hours)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbminpwdlife",
                         "query": true,
                         "type": "int"
@@ -13284,6 +13422,7 @@
                         "flags": [],
                         "label": "History size",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdhistorylength",
                         "query": true,
                         "type": "int"
@@ -13295,6 +13434,7 @@
                         "flags": [],
                         "label": "Character classes",
                         "maxvalue": 5,
+                        "minvalue": 0,
                         "name": "krbpwdmindiffchars",
                         "query": true,
                         "type": "int"
@@ -13306,6 +13446,7 @@
                         "flags": [],
                         "label": "Min length",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdminlength",
                         "query": true,
                         "type": "int"
@@ -13318,6 +13459,7 @@
                         ],
                         "label": "Priority",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "cospriority",
                         "query": true,
                         "type": "int"
@@ -13329,6 +13471,7 @@
                         "flags": [],
                         "label": "Max failures",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdmaxfailure",
                         "query": true,
                         "type": "int"
@@ -13340,6 +13483,7 @@
                         "flags": [],
                         "label": "Failure reset interval",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdfailurecountinterval",
                         "query": true,
                         "type": "int"
@@ -13351,6 +13495,7 @@
                         "flags": [],
                         "label": "Lockout duration",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdlockoutduration",
                         "query": true,
                         "type": "int"
@@ -13363,6 +13508,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -13374,6 +13520,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -13406,6 +13553,7 @@
                         "flags": [],
                         "label": "Max lifetime (days)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbmaxpwdlife",
                         "type": "int"
                     },
@@ -13416,6 +13564,7 @@
                         "flags": [],
                         "label": "Min lifetime (hours)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbminpwdlife",
                         "type": "int"
                     },
@@ -13426,6 +13575,7 @@
                         "flags": [],
                         "label": "History size",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdhistorylength",
                         "type": "int"
                     },
@@ -13436,6 +13586,7 @@
                         "flags": [],
                         "label": "Character classes",
                         "maxvalue": 5,
+                        "minvalue": 0,
                         "name": "krbpwdmindiffchars",
                         "type": "int"
                     },
@@ -13446,6 +13597,7 @@
                         "flags": [],
                         "label": "Min length",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdminlength",
                         "type": "int"
                     },
@@ -13458,6 +13610,7 @@
                         ],
                         "label": "Priority",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "cospriority",
                         "type": "int"
                     },
@@ -13468,6 +13621,7 @@
                         "flags": [],
                         "label": "Max failures",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdmaxfailure",
                         "type": "int"
                     },
@@ -13478,6 +13632,7 @@
                         "flags": [],
                         "label": "Failure reset interval",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdfailurecountinterval",
                         "type": "int"
                     },
@@ -13488,6 +13643,7 @@
                         "flags": [],
                         "label": "Lockout duration",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdlockoutduration",
                         "type": "int"
                     },
@@ -13750,6 +13906,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -13761,6 +13918,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -14067,6 +14225,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -14078,6 +14237,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -14655,6 +14815,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -14666,6 +14827,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -14907,6 +15069,12 @@
                         ]
                     },
                     {
+                        "name": "setattr"
+                    },
+                    {
+                        "name": "addattr"
+                    },
+                    {
                         "class": "Flag",
                         "doc": "force principal name even if not in DNS",
                         "flags": [],
@@ -15006,6 +15174,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -15017,6 +15186,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -15255,6 +15425,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -15266,6 +15437,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -15456,6 +15628,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -15467,6 +15640,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -15667,10 +15841,12 @@
                     {
                         "attribute": true,
                         "class": "Int",
+                        "default": 0,
                         "doc": "integer to order the Sudo rules",
                         "flags": [],
                         "label": "Sudo order",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sudoorder",
                         "type": "int"
                     },
@@ -16071,10 +16247,12 @@
                     {
                         "attribute": true,
                         "class": "Int",
+                        "default": 0,
                         "doc": "integer to order the Sudo rules",
                         "flags": [],
                         "label": "Sudo order",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sudoorder",
                         "query": true,
                         "type": "int"
@@ -16134,6 +16312,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -16145,6 +16324,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -16254,10 +16434,12 @@
                     {
                         "attribute": true,
                         "class": "Int",
+                        "default": 0,
                         "doc": "integer to order the Sudo rules",
                         "flags": [],
                         "label": "Sudo order",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sudoorder",
                         "type": "int"
                     },
@@ -16569,6 +16751,12 @@
                 "takes_args": [],
                 "takes_options": [
                     {
+                        "name": "setattr"
+                    },
+                    {
+                        "name": "addattr"
+                    },
+                    {
                         "class": "StrEnum",
                         "default": "ad",
                         "doc": "Trust type (ad for Active Directory, default)",
@@ -16618,6 +16806,27 @@
                         "type": "unicode"
                     },
                     {
+                        "class": "Int",
+                        "doc": "First Posix ID of the range reserved for the trusted domain",
+                        "flags": [],
+                        "label": "First Posix ID of the range reserved for the trusted domain",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "base_id",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "default": 200000,
+                        "doc": "Size of the ID range reserved for the trusted domain",
+                        "flags": [],
+                        "label": "Size of the ID range reserved for the trusted domain",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "range_size",
+                        "type": "int"
+                    },
+                    {
                         "name": "all"
                     },
                     {
@@ -16665,6 +16874,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -16676,6 +16886,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -17050,15 +17261,16 @@
                     },
                     {
                         "attribute": true,
-                        "class": "Bytes",
-                        "doc": "Base-64 encoded SSH public key",
+                        "class": "Str",
+                        "doc": "SSH public key",
                         "flags": [
                             "no_search"
                         ],
-                        "label": "Base-64 encoded SSH public key",
+                        "label": "SSH public key",
                         "multivalue": true,
                         "name": "ipasshpubkey",
-                        "type": "str"
+                        "noextrawhitespace": true,
+                        "type": "unicode"
                     },
                     {
                         "name": "setattr"
@@ -17436,6 +17648,7 @@
                         ],
                         "label": "Time Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "timelimit",
                         "type": "int"
                     },
@@ -17447,6 +17660,7 @@
                         ],
                         "label": "Size Limit",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sizelimit",
                         "type": "int"
                     },
@@ -17868,15 +18082,16 @@
                     },
                     {
                         "attribute": true,
-                        "class": "Bytes",
-                        "doc": "Base-64 encoded SSH public key",
+                        "class": "Str",
+                        "doc": "SSH public key",
                         "flags": [
                             "no_search"
                         ],
-                        "label": "Base-64 encoded SSH public key",
+                        "label": "SSH public key",
                         "multivalue": true,
                         "name": "ipasshpubkey",
-                        "type": "str"
+                        "noextrawhitespace": true,
+                        "type": "unicode"
                     },
                     {
                         "name": "setattr"

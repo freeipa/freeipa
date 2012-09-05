@@ -528,16 +528,15 @@
                         "type": "bool"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNParam",
                         "doc": "Base for certificate subjects (OU=Test,O=Example)",
                         "flags": [
                             "no_update"
                         ],
                         "label": "Certificate Subject base",
                         "name": "ipacertificatesubjectbase",
-                        "noextrawhitespace": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
                         "class": "Str",
@@ -567,6 +566,7 @@
                         "flags": [],
                         "label": "Password Expiration Notification (days)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "ipapwdexpadvnotify",
                         "required": true,
                         "type": "int"
@@ -1093,12 +1093,15 @@
                     "nsds5debugreplicatimeout",
                     "nsds5flags",
                     "nsds5replconflict",
+                    "nsds5replicaabortcleanruv",
                     "nsds5replicaautoreferral",
                     "nsds5replicabinddn",
                     "nsds5replicabindmethod",
                     "nsds5replicabusywaittime",
                     "nsds5replicachangecount",
                     "nsds5replicachangessentsincestartup",
+                    "nsds5replicacleanruv",
+                    "nsds5replicacleanruvnotified",
                     "nsds5replicacredentials",
                     "nsds5replicaenabled",
                     "nsds5replicahost",
@@ -1198,6 +1201,7 @@
                     "nsslapd-plugintype",
                     "nsslapd-pluginvendor",
                     "nsslapd-pluginversion",
+                    "nsslapd-readonly",
                     "nsslapd-suffix",
                     "nssnmpcontact",
                     "nssnmpdescription",
@@ -1623,14 +1627,13 @@
                         "type": "unicode"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNParam",
                         "doc": "<krbpwdpolicyreference>",
                         "flags": [],
                         "label": "<krbpwdpolicyreference>",
                         "name": "krbpwdpolicyreference",
-                        "noextrawhitespace": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DN"
                     },
                     {
                         "class": "Int",
@@ -1638,6 +1641,7 @@
                         "flags": [],
                         "label": "<cospriority>",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "cospriority",
                         "required": true,
                         "type": "int"
@@ -1802,6 +1806,7 @@
                         "flags": [],
                         "label": "Zone refresh interval",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnszonerefresh",
                         "type": "int"
                     }
@@ -2136,6 +2141,7 @@
                         "hint": "afsdbrecord",
                         "label": "AFSDB Subtype",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "afsdb_part_subtype",
                         "option_group": "AFSDB Record",
                         "type": "int"
@@ -2192,6 +2198,7 @@
                         "hint": "certrecord",
                         "label": "CERT Certificate Type",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "cert_part_type",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -2206,6 +2213,7 @@
                         "hint": "certrecord",
                         "label": "CERT Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "cert_part_key_tag",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -2220,6 +2228,7 @@
                         "hint": "certrecord",
                         "label": "CERT Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "cert_part_algorithm",
                         "option_group": "CERT Record",
                         "type": "int"
@@ -2360,6 +2369,7 @@
                         "hint": "dsrecord",
                         "label": "DS Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "ds_part_key_tag",
                         "option_group": "DS Record",
                         "type": "int"
@@ -2374,6 +2384,7 @@
                         "hint": "dsrecord",
                         "label": "DS Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "ds_part_algorithm",
                         "option_group": "DS Record",
                         "type": "int"
@@ -2388,6 +2399,7 @@
                         "hint": "dsrecord",
                         "label": "DS Digest Type",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "ds_part_digest_type",
                         "option_group": "DS Record",
                         "type": "int"
@@ -2459,6 +2471,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Flags",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "key_part_flags",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -2473,6 +2486,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Protocol",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "key_part_protocol",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -2487,6 +2501,7 @@
                         "hint": "keyrecord",
                         "label": "KEY Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "key_part_algorithm",
                         "option_group": "KEY Record",
                         "type": "int"
@@ -2528,6 +2543,7 @@
                         "hint": "kxrecord",
                         "label": "KX Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "kx_part_preference",
                         "option_group": "KX Record",
                         "type": "int"
@@ -2569,6 +2585,7 @@
                         "hint": "locrecord",
                         "label": "LOC Degrees Latitude",
                         "maxvalue": 90,
+                        "minvalue": 0,
                         "name": "loc_part_lat_deg",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -2584,6 +2601,7 @@
                         "hint": "locrecord",
                         "label": "LOC Minutes Latitude",
                         "maxvalue": 59,
+                        "minvalue": 0,
                         "name": "loc_part_lat_min",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -2598,9 +2616,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Seconds Latitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "59.999",
+                        "minvalue": "0.0",
                         "name": "loc_part_lat_sec",
                         "numberclass": [
                             "-Normal",
@@ -2638,6 +2655,7 @@
                         "hint": "locrecord",
                         "label": "LOC Degrees Longitude",
                         "maxvalue": 180,
+                        "minvalue": 0,
                         "name": "loc_part_lon_deg",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -2653,6 +2671,7 @@
                         "hint": "locrecord",
                         "label": "LOC Minutes Longitude",
                         "maxvalue": 59,
+                        "minvalue": 0,
                         "name": "loc_part_lon_min",
                         "option_group": "LOC Record",
                         "type": "int"
@@ -2667,9 +2686,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Seconds Longitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "59.999",
+                        "minvalue": "0.0",
                         "name": "loc_part_lon_sec",
                         "numberclass": [
                             "-Normal",
@@ -2706,12 +2724,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Altitude",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
-                        "minvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "42849672.95",
+                        "minvalue": "-100000.00",
                         "name": "loc_part_altitude",
                         "numberclass": [
                             "-Normal",
@@ -2732,9 +2746,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Size",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_size",
                         "numberclass": [
                             "-Normal",
@@ -2755,9 +2768,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Horizontal Precision",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_h_precision",
                         "numberclass": [
                             "-Normal",
@@ -2778,9 +2790,8 @@
                         ],
                         "hint": "locrecord",
                         "label": "LOC Vertical Precision",
-                        "maxvalue": {
-                            "__base64__": ""
-                        },
+                        "maxvalue": "90000000.00",
+                        "minvalue": "0.0",
                         "name": "loc_part_v_precision",
                         "numberclass": [
                             "-Normal",
@@ -2814,6 +2825,7 @@
                         "hint": "mxrecord",
                         "label": "MX Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "mx_part_preference",
                         "option_group": "MX Record",
                         "type": "int"
@@ -2855,6 +2867,7 @@
                         "hint": "naptrrecord",
                         "label": "NAPTR Order",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "naptr_part_order",
                         "option_group": "NAPTR Record",
                         "type": "int"
@@ -2869,6 +2882,7 @@
                         "hint": "naptrrecord",
                         "label": "NAPTR Preference",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "naptr_part_preference",
                         "option_group": "NAPTR Record",
                         "type": "int"
@@ -3163,6 +3177,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "rrsig_part_algorithm",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -3177,6 +3192,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Labels",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "rrsig_part_labels",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -3191,6 +3207,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Original TTL",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "rrsig_part_original_ttl",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -3233,6 +3250,7 @@
                         "hint": "rrsigrecord",
                         "label": "RRSIG Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "rrsig_part_key_tag",
                         "option_group": "RRSIG Record",
                         "type": "int"
@@ -3352,6 +3370,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sig_part_algorithm",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -3366,6 +3385,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Labels",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sig_part_labels",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -3380,6 +3400,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Original TTL",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sig_part_original_ttl",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -3422,6 +3443,7 @@
                         "hint": "sigrecord",
                         "label": "SIG Key Tag",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "sig_part_key_tag",
                         "option_group": "SIG Record",
                         "type": "int"
@@ -3492,6 +3514,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Priority",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_priority",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -3506,6 +3529,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Weight",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_weight",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -3520,6 +3544,7 @@
                         "hint": "srvrecord",
                         "label": "SRV Port",
                         "maxvalue": 65535,
+                        "minvalue": 0,
                         "name": "srv_part_port",
                         "option_group": "SRV Record",
                         "type": "int"
@@ -3561,6 +3586,7 @@
                         "hint": "sshfprecord",
                         "label": "SSHFP Algorithm",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sshfp_part_algorithm",
                         "option_group": "SSHFP Record",
                         "type": "int"
@@ -3575,6 +3601,7 @@
                         "hint": "sshfprecord",
                         "label": "SSHFP Fingerprint Type",
                         "maxvalue": 255,
+                        "minvalue": 0,
                         "name": "sshfp_part_fp_type",
                         "option_group": "SSHFP Record",
                         "type": "int"
@@ -3881,6 +3908,7 @@
                         "flags": [],
                         "label": "SOA refresh",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoarefresh",
                         "required": true,
                         "type": "int"
@@ -3892,6 +3920,7 @@
                         "flags": [],
                         "label": "SOA retry",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoaretry",
                         "required": true,
                         "type": "int"
@@ -3903,6 +3932,7 @@
                         "flags": [],
                         "label": "SOA expire",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "idnssoaexpire",
                         "required": true,
                         "type": "int"
@@ -3914,6 +3944,7 @@
                         "flags": [],
                         "label": "SOA minimum",
                         "maxvalue": 10800,
+                        "minvalue": 0,
                         "name": "idnssoaminimum",
                         "required": true,
                         "type": "int"
@@ -4799,8 +4830,7 @@
                     "managedby",
                     "memberindirect",
                     "memberofindirect",
-                    "macaddress",
-                    "sshpubkeyfp"
+                    "macaddress"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -4979,28 +5009,14 @@
                         "type": "unicode"
                     },
                     {
-                        "class": "Bytes",
-                        "doc": "Base-64 encoded SSH public key",
+                        "class": "Str",
+                        "doc": "SSH public key",
                         "flags": [
                             "no_search"
                         ],
-                        "label": "Base-64 encoded SSH public key",
+                        "label": "SSH public key",
                         "multivalue": true,
                         "name": "ipasshpubkey",
-                        "type": "str"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "SSH public key fingerprint",
-                        "flags": [
-                            "no_update",
-                            "virtual_attribute",
-                            "no_search",
-                            "no_create"
-                        ],
-                        "label": "SSH public key fingerprint",
-                        "multivalue": true,
-                        "name": "sshpubkeyfp",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     }
@@ -5776,6 +5792,7 @@
                         "flags": [],
                         "label": "Max lifetime (days)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbmaxpwdlife",
                         "type": "int"
                     },
@@ -5785,6 +5802,7 @@
                         "flags": [],
                         "label": "Min lifetime (hours)",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbminpwdlife",
                         "type": "int"
                     },
@@ -5794,6 +5812,7 @@
                         "flags": [],
                         "label": "History size",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdhistorylength",
                         "type": "int"
                     },
@@ -5803,6 +5822,7 @@
                         "flags": [],
                         "label": "Character classes",
                         "maxvalue": 5,
+                        "minvalue": 0,
                         "name": "krbpwdmindiffchars",
                         "type": "int"
                     },
@@ -5812,6 +5832,7 @@
                         "flags": [],
                         "label": "Min length",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdminlength",
                         "type": "int"
                     },
@@ -5823,6 +5844,7 @@
                         ],
                         "label": "Priority",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "cospriority",
                         "required": true,
                         "type": "int"
@@ -5833,6 +5855,7 @@
                         "flags": [],
                         "label": "Max failures",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdmaxfailure",
                         "type": "int"
                     },
@@ -5842,6 +5865,7 @@
                         "flags": [],
                         "label": "Failure reset interval",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdfailurecountinterval",
                         "type": "int"
                     },
@@ -5851,6 +5875,7 @@
                         "flags": [],
                         "label": "Lockout duration",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "krbpwdlockoutduration",
                         "type": "int"
                     }
@@ -6938,10 +6963,12 @@
                     },
                     {
                         "class": "Int",
+                        "default": 0,
                         "doc": "integer to order the Sudo rules",
                         "flags": [],
                         "label": "Sudo order",
                         "maxvalue": 2147483647,
+                        "minvalue": 0,
                         "name": "sudoorder",
                         "type": "int"
                     },
@@ -7353,8 +7380,7 @@
                     "title",
                     "memberof",
                     "nsaccountlock",
-                    "memberofindirect",
-                    "sshpubkeyfp"
+                    "memberofindirect"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -7701,28 +7727,14 @@
                         "type": "bool"
                     },
                     {
-                        "class": "Bytes",
-                        "doc": "Base-64 encoded SSH public key",
+                        "class": "Str",
+                        "doc": "SSH public key",
                         "flags": [
                             "no_search"
                         ],
-                        "label": "Base-64 encoded SSH public key",
+                        "label": "SSH public key",
                         "multivalue": true,
                         "name": "ipasshpubkey",
-                        "type": "str"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "SSH public key fingerprint",
-                        "flags": [
-                            "no_update",
-                            "virtual_attribute",
-                            "no_search",
-                            "no_create"
-                        ],
-                        "label": "SSH public key fingerprint",
-                        "multivalue": true,
-                        "name": "sshpubkeyfp",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     }
