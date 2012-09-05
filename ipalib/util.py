@@ -26,6 +26,7 @@ import imp
 import time
 import socket
 import re
+import decimal
 from types import NoneType
 from weakref import WeakKeyDictionary
 from dns import resolver, rdatatype
@@ -46,6 +47,8 @@ def json_serialize(obj):
         return obj
     if isinstance(obj, str):
         return obj.decode('utf-8')
+    if isinstance(obj, (decimal.Decimal, DN)):
+        return str(obj)
     if not callable(getattr(obj, '__json__', None)):
         # raise TypeError('%r is not JSON serializable')
         return ''
