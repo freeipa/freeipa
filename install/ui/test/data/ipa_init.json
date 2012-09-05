@@ -408,7 +408,7 @@
                         },
                         "sshkeystore": {
                             "keys": "SSH public keys",
-                            "set_dialog_help": "Base-64 encoded SSH public key:",
+                            "set_dialog_help": "SSH public key:",
                             "set_dialog_title": "Set SSH key",
                             "show_set_key": "Show/Set key",
                             "status_mod_ns": "Modified: key not set",
