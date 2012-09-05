@@ -63,7 +63,7 @@ class idrange(LDAPObject):
             cli_name='range_size',
             label=_("Number of IDs in the range"),
         ),
-        Int('ipabaserid',
+        Int('ipabaserid?',
             cli_name='rid_base',
             label=_('First RID of the corresponding RID range'),
         ),
@@ -150,15 +150,25 @@ class idrange_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
-        if ('ipanttrusteddomainsid' not in options and
-            'ipasecondarybaserid' not in options):
-            raise errors.ValidationError(name=_('Range setup'),
-                error=_('Ranges for local domain ' \
-                         'must have a secondary RID base'))
 
         if 'ipanttrusteddomainsid' in options:
+            if 'ipasecondarybaserid' in options:
+                raise errors.ValidationError(name=_('ID Range setup'),
+                    error=_('Options dom_sid and secondary_rid_base cannot ' \
+                            'be used together'))
+
+            if 'ipabaserid' not in options:
+                raise errors.ValidationError(name=_('ID Range setup'),
+                    error=_('Options dom_sid and rid_base must ' \
+                            'be used together'))
+
             entry_attrs['objectclass'].append('ipatrustedaddomainrange')
         else:
+            if (('ipasecondarybaserid' in options) != ('ipabaserid' in options)):
+                raise errors.ValidationError(name=_('ID Range setup'),
+                    error=_('Options secondary_rid_base and rid_base must ' \
+                            'be used together'))
+
             entry_attrs['objectclass'].append('ipadomainidrange')
 
         return dn
