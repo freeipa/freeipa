@@ -1160,6 +1160,8 @@ IPA.object_action = function(spec) {
         return IPA.confirm(msg);
     };
 
+    that.object_execute_action = that.execute_action;
+
     return that;
 };
 
@@ -1200,6 +1202,13 @@ IPA.delete_action = function(spec) {
     spec.label = spec.label || IPA.messages.buttons.remove;
 
     var that = IPA.object_action(spec);
+
+    that.execute_action = function(facet, on_success, on_error) {
+
+        if (facet.is_dirty()) facet.reset();
+
+        that.object_execute_action(facet, on_success, on_error);
+    };
 
     that.on_success = function(facet, data, text_status, xhr) {
 
