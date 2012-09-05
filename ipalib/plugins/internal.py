@@ -547,7 +547,7 @@ class i18n_messages(Command):
             },
             "sshkeystore": {
                 "keys": _("SSH public keys"),
-                "set_dialog_help": _("Base-64 encoded SSH public key:"),
+                "set_dialog_help": _("SSH public key:"),
                 "set_dialog_title": _("Set SSH key"),
                 "show_set_key": _("Show/Set key"),
                 "status_mod_ns": _("Modified: key not set"),

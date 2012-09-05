@@ -659,7 +659,7 @@ IPA.sshkeys_field = function(spec) {
                 if (keys[i] === '') continue;
 
                 var value = {
-                    key: keys[i].__base64__,
+                    key: keys[i],
                     fingerprint: fingerprints[i]
                 };
                 values.push(value);
