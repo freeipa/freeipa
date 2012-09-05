@@ -30,6 +30,10 @@ char *ipadb_filter_escape(const char *input, bool star)
     size_t i = 0;
     size_t j = 0;
 
+    if (!input) {
+        return NULL;
+    }
+
     /* Assume the worst-case. */
     output = malloc(strlen(input) * 3 + 1);
     if (!output) {

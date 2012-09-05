@@ -1879,6 +1879,12 @@ krb5_error_code ipadb_iterate(krb5_context kcontext,
         return KRB5_KDB_DBNOTINITED;
     }
 
+    /* If no match_entry is given iterate through all krb princs like the db2
+     * or ldap plugin */
+    if (match_entry == NULL) {
+        match_entry = "*";
+    }
+
     /* fetch list of principal matching filter */
     kerr = ipadb_fetch_principals(ipactx, 0, match_entry, &res);
     if (kerr != 0) {
