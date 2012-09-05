@@ -27,7 +27,7 @@ from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 dnszone1 = u'dnszone.test'
-dnszone1_dn = DN(('idnsname',dnszone1),('cn','dns'),api.env.basedn)
+dnszone1_dn = DN(('idnsname',dnszone1), api.env.container_dns, api.env.basedn)
 dnszone1_mname = u'ns1.%s.' % dnszone1
 dnszone1_mname_dn = DN(('idnsname','ns1'), dnszone1_dn)
 dnszone1_rname = u'root.%s.' % dnszone1
@@ -35,12 +35,15 @@ dnszone1_permission = u'Manage DNS zone %s' % dnszone1
 dnszone1_permission_dn = DN(('cn',dnszone1_permission),
                             api.env.container_permission,api.env.basedn)
 dnszone2 = u'dnszone2.test'
-dnszone2_dn = DN(('idnsname',dnszone2),('cn','dns'),api.env.basedn)
+dnszone2_dn = DN(('idnsname', dnszone2), api.env.container_dns, api.env.basedn)
 dnszone2_mname = u'ns1.%s.' % dnszone2
 dnszone2_rname = u'root.%s.' % dnszone2
 revdnszone1 = u'15.142.80.in-addr.arpa.'
 revdnszone1_ip = u'80.142.15.0/24'
-revdnszone1_dn = DN(('idnsname',revdnszone1),('cn','dns'),api.env.basedn)
+revdnszone1_dn = DN(('idnsname', revdnszone1), api.env.container_dns, api.env.basedn)
+revdnszone2 = u'16.142.80.in-addr.arpa.'
+revdnszone2_ip = u'80.142.16.0'
+revdnszone2_dn = DN(('idnsname',revdnszone2), api.env.container_dns, api.env.basedn)
 dnsres1 = u'testdnsres'
 dnsres1_dn = DN(('idnsname',dnsres1), dnszone1_dn)
 dnsres1_renamed = u'testdnsres-renamed'
@@ -72,11 +75,8 @@ class test_dns(Declarative):
             pass
 
     cleanup_commands = [
-        ('dnszone_del', [dnszone1], {}),
-        ('dnsrecord_del', [dnszone1, dnsres1], {'del_all' : True}),
-        ('dnsrecord_del', [dnszone1, dnsres1_renamed], {'del_all' : True}),
-        ('dnszone_del', [dnszone2], {}),
-        ('dnszone_del', [revdnszone1], {}),
+        ('dnszone_del', [dnszone1, dnszone2, revdnszone1, revdnszone2],
+            {'continue': True}),
         ('dnsconfig_mod', [], {'idnsforwarders' : None,
                                'idnsforwardpolicy' : None,
                                'idnsallowsyncptr' : None,
@@ -949,7 +949,7 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Create reverse from IP %s zone using name_from_ip option' % revdnszone1_ip,
+            desc='Create reverse zone from IP/netmask %r using name_from_ip option' % revdnszone1_ip,
             command=(
                 'dnszone_add', [], {
                     'name_from_ip': revdnszone1_ip,
@@ -976,6 +976,42 @@ class test_dns(Declarative):
                     'idnsallowdynupdate': [u'FALSE'],
                     'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
                                          % dict(realm=api.env.realm, zone=revdnszone1)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Create reverse zone from IP %r using name_from_ip option' % revdnszone2_ip,
+            command=(
+                'dnszone_add', [], {
+                    'name_from_ip': revdnszone2_ip,
+                    'idnssoamname': dnszone1_mname,
+                    'idnssoarname': dnszone1_rname,
+                    'ip_address' : u'1.2.3.4',
+                }
+            ),
+            expected={
+                'value': revdnszone2,
+                'summary': None,
+                'result': {
+                    'dn': revdnszone2_dn,
+                    'idnsname': [revdnszone2],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [dnszone1_mname],
+                    'nsrecord': [dnszone1_mname],
+                    'idnssoarname': [dnszone1_rname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                                         % dict(realm=api.env.realm, zone=revdnszone2)],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
                     'objectclass': objectclasses.dnszone,

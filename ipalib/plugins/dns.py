@@ -33,7 +33,8 @@ from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         validate_hostname, validate_dns_label, validate_domain_name,
-        get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy)
+        get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
+        get_reverse_zone_default)
 from ipapython.ipautil import valid_ip, CheckedIPAddress, is_host_resolvable
 
 __doc__ = _("""
@@ -254,6 +255,14 @@ def _create_zone_serial():
     return int(time.time())
 
 def _reverse_zone_name(netstr):
+    try:
+        netaddr.IPAddress(netstr)
+    except (netaddr.AddrFormatError, ValueError):
+        pass
+    else:
+        # use more sensible default prefix than netaddr default
+        return unicode(get_reverse_zone_default(netstr))
+
     net = netaddr.IPNetwork(netstr)
     items = net.ip.reverse_dns.split('.')
     if net.version == 4:

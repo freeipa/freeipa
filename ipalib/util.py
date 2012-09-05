@@ -27,6 +27,7 @@ import time
 import socket
 import re
 import decimal
+import netaddr
 from types import NoneType
 from weakref import WeakKeyDictionary
 from dns import resolver, rdatatype
@@ -171,6 +172,12 @@ def normalize_zonemgr(zonemgr):
         zonemgr = zonemgr + u'.'
 
     return zonemgr
+
+def normalize_zone(zone):
+    if zone[-1] != '.':
+        return zone + '.'
+    else:
+        return zone
 
 def validate_dns_label(dns_label, allow_underscore=False):
     label_chars = r'a-z0-9'
@@ -486,6 +493,17 @@ def get_dns_reverse_zone_update_policy(realm, reverse_zone, rrtypes=('PTR',)):
     policy += ";"
 
     return policy
+
+def get_reverse_zone_default(ip_address):
+    ip = netaddr.IPAddress(ip_address)
+    items = ip.reverse_dns.split('.')
+
+    if ip.version == 4:
+        items = items[1:]   # /24 for IPv4
+    elif ip.version == 6:
+        items = items[16:]  # /64 for IPv6
+
+    return normalize_zone('.'.join(items))
 
 def validate_rdn_param(ugettext, value):
     try:
