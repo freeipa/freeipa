@@ -662,6 +662,7 @@ class i18n_messages(Command):
             "undo_all": _("undo all"),
             "validation": {
                 "error": _("Text does not match field pattern"),
+                "decimal": _("Must be a decimal number"),
                 "integer": _("Must be an integer"),
                 "ip_address": _('Not a valid IP address'),
                 "ip_v4_address": _('Not a valid IPv4 address'),
