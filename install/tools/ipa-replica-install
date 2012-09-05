@@ -223,7 +223,7 @@ def install_bind(config, options):
     else:
         reverse_zone = bindinstance.find_reverse_zone(config.ip)
         if reverse_zone is None and not options.no_reverse:
-            reverse_zone = bindinstance.get_reverse_zone_default(config.ip)
+            reverse_zone = util.get_reverse_zone_default(config.ip)
             if not options.unattended and bindinstance.create_reverse():
                 reverse_zone = bindinstance.read_reverse_zone(reverse_zone, config.ip)
 

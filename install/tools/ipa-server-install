@@ -814,7 +814,7 @@ def main():
         if options.reverse_zone:
             reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
         elif not options.no_reverse:
-            reverse_zone = bindinstance.get_reverse_zone_default(ip)
+            reverse_zone = util.get_reverse_zone_default(ip)
             if not options.unattended and bindinstance.create_reverse():
                 reverse_zone = bindinstance.read_reverse_zone(reverse_zone, ip)
 

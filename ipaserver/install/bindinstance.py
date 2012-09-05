@@ -33,7 +33,8 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib.parameters import IA5Str
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
-        get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy)
+        get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
+        normalize_zone, get_reverse_zone_default)
 from ipapython.ipa_log_manager import *
 from ipalib.text import _
 
@@ -71,12 +72,6 @@ def check_inst(unattended):
         return ipautil.user_input(msg, False)
 
     return True
-
-def normalize_zone(zone):
-    if zone[-1] != '.':
-        return zone + '.'
-    else:
-        return zone
 
 def create_reverse():
     return ipautil.user_input("Do you want to configure the reverse zone?", True)
@@ -230,17 +225,6 @@ def verify_reverse_zone(zone, ip_address):
         return False
 
     return True
-
-def get_reverse_zone_default(ip_address):
-    ip = netaddr.IPAddress(ip_address)
-    items = ip.reverse_dns.split('.')
-
-    if ip.version == 4:
-        items = items[1:]   # /24 for IPv4
-    elif ip.version == 6:
-        items = items[16:]  # /64 for IPv6
-
-    return normalize_zone('.'.join(items))
 
 def find_reverse_zone(ip_address):
     ip = netaddr.IPAddress(ip_address)
