@@ -100,6 +100,8 @@ class trust(LDAPObject):
         'ipanttrusttype', 'ipanttrustattributes', 'ipanttrustdirection', 'ipanttrustpartner',
         'ipantauthtrustoutgoing', 'ipanttrustauthincoming', 'ipanttrustforesttrustinfo',
         'ipanttrustposixoffset', 'ipantsupportedencryptiontypes' ]
+    search_display_attributes = ['cn', 'ipantflatname',
+                                 'ipanttrusteddomainsid', 'ipanttrusttype' ]
 
     label = _('Trusts')
     label_singular = _('Trust')
@@ -300,6 +302,7 @@ class trust_mod(LDAPUpdate):
 
 class trust_find(LDAPSearch):
     __doc__ = _('Search for trusts.')
+    has_output_params = LDAPSearch.has_output_params + trust_output_params
 
     msg_summary = ngettext(
         '%(count)d trust matched', '%(count)d trusts matched', 0
@@ -310,6 +313,16 @@ class trust_find(LDAPSearch):
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         assert isinstance(base_dn, DN)
         return (filters, base_dn, ldap.SCOPE_SUBTREE)
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return truncated
+
+        for entry in entries:
+            (dn, attrs) = entry
+            attrs['trusttype'] = trust_type_string(attrs['ipanttrusttype'][0])
+
+        return truncated
 
 class trust_show(LDAPRetrieve):
     __doc__ = _('Display information about a trust.')
