@@ -163,6 +163,11 @@ class trust_add(LDAPCreate):
     msg_summary = _('Added Active Directory trust for realm "%(value)s"')
 
     def execute(self, *keys, **options):
+        if not _murmur_installed and 'base_id' not in options:
+            raise errors.ValidationError(name=_('missing base_id'),
+                error=_('pysss_murmur is not available on the server ' \
+                        'and no base-id is given.'))
+
         if 'trust_type' in options:
             if options['trust_type'] == u'ad':
                 result = self.execute_ad(*keys, **options)
@@ -200,12 +205,6 @@ class trust_add(LDAPCreate):
         if 'base_id' in options:
             base_id = options['base_id']
         else:
-            if not _murmur_installed:
-                raise errors.ValidationError(name=_('missing base_id'),
-                    error=_('pysss_murmur is not available on the server ' \
-                            'and no base_id is given, ' \
-                            'ID range must be create manually'))
-
             base_id = 200000 + (pysss_murmur.murmurhash3(dom_sid, len(dom_sid), 0xdeadbeef) % 10000) * 200000
 
         try:
