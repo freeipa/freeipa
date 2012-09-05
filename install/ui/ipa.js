@@ -2042,6 +2042,8 @@ IPA.confirm = function(msg) {
 
 IPA.notify_success = function(message) {
 
+    if (!message) return; // don't show undefined, null and such
+
     function destroy_timeout() {
         if (IPA.notify_success.timeout) window.clearTimeout(IPA.notify_success.timeout);
     }
