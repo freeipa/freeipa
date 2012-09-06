@@ -664,4 +664,183 @@ class test_selinuxusermap(Declarative):
                 error=u'Invalid MLS value, must match s[0-15](-s[0-15])'),
         ),
 
+        dict(
+            desc='Create rule with both --hbacrule and --usercat set',
+            command=(
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1,usercategory=u'all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Create rule with both --hbacrule and --hostcat set',
+            command=(
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1,hostcategory=u'all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Create rule with both --hbacrule and --usercat set via setattr',
+            command=(
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1,setattr=u'usercategory=all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Create rule with both --hbacrule and --hostcat set via setattr',
+            command=(
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1,setattr=u'hostcategory=all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Create rule %r with --hbacrule' % rule1,
+            command=(
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1)
+            ),
+            expected=dict(
+                value=rule1,
+                summary=u'Added SELinux User Map "%s"' % rule1,
+                result=dict(
+                    cn=[rule1],
+                    ipaselinuxuser=[selinuxuser1],
+                    objectclass=objectclasses.selinuxusermap,
+                    ipauniqueid=[fuzzy_uuid],
+                    ipaenabledflag = [u'TRUE'],
+                    dn=fuzzy_selinuxusermapdn,
+                    seealso=hbacrule1
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Add an --usercat to %r that has HBAC set' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1], dict(usercategory=u'all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Add an --hostcat to %r that has HBAC set' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1], dict(hostcategory=u'all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Add an usercat via setattr to %r that has HBAC set' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1], dict(setattr=u'usercategory=all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Add an hostcat via setattr to %r that has HBAC set' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1], dict(setattr=u'hostcategory=all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Delete %r' % rule1,
+            command=('selinuxusermap_del', [rule1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=rule1,
+                summary=u'Deleted SELinux User Map "%s"' % rule1,
+            )
+        ),
+
+        dict(
+            desc='Create rule %r with usercat and hostcat set' % rule1,
+            command=(
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,usercategory=u'all',hostcategory=u'all')
+            ),
+            expected=dict(
+                value=rule1,
+                summary=u'Added SELinux User Map "%s"' % rule1,
+                result=dict(
+                    cn=[rule1],
+                    ipaselinuxuser=[selinuxuser1],
+                    objectclass=objectclasses.selinuxusermap,
+                    ipauniqueid=[fuzzy_uuid],
+                    ipaenabledflag = [u'TRUE'],
+                    dn=fuzzy_selinuxusermapdn,
+                    usercategory = [u'all'],
+                    hostcategory = [u'all']
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Add HBAC rule to %r that has usercat and hostcat' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1], dict(seealso=hbacrule1)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Delete %r' % rule1,
+            command=('selinuxusermap_del', [rule1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=rule1,
+                summary=u'Deleted SELinux User Map "%s"' % rule1,
+            )
+        ),
+
+        dict(
+            desc='Create rule %r' % rule1,
+            command=(
+                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1)
+            ),
+            expected=dict(
+                value=rule1,
+                summary=u'Added SELinux User Map "%s"' % rule1,
+                result=dict(
+                    cn=[rule1],
+                    ipaselinuxuser=[selinuxuser1],
+                    objectclass=objectclasses.selinuxusermap,
+                    ipauniqueid=[fuzzy_uuid],
+                    ipaenabledflag = [u'TRUE'],
+                    dn=fuzzy_selinuxusermapdn,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Add HBAC rule, hostcat and usercat to %r' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1], dict(seealso=hbacrule1,usercategory=u'all',hostcategory=u'all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Delete %r' % rule1,
+            command=('selinuxusermap_del', [rule1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=rule1,
+                summary=u'Deleted SELinux User Map "%s"' % rule1,
+            )
+        ),
     ]

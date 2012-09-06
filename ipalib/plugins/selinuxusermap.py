@@ -70,6 +70,7 @@ SEEALSO:
 
 notboth_err = _('HBAC rule and local members cannot both be set')
 
+
 def validate_selinuxuser(ugettext, user):
     """
     An SELinux user has 3 components: user:MLS:MCS. user and MLS are required.
@@ -91,7 +92,7 @@ def validate_selinuxuser(ugettext, user):
 
     # If we add in ::: we don't have to check to see if some values are
     # empty
-    (name, mls, mcs, ignore) = (user + ':::').split(':',3)
+    (name, mls, mcs, ignore) = (user + ':::').split(':', 3)
 
     if not regex_name.match(name):
         return _('Invalid SELinux user name, only a-Z and _ are allowed')
@@ -99,9 +100,11 @@ def validate_selinuxuser(ugettext, user):
         return _('Invalid MLS value, must match s[0-15](-s[0-15])')
     m = regex_mcs.match(mcs)
     if mcs and (not m or (m.group(3) and (int(m.group(3)) > 1023))):
-        return _('Invalid MCS value, must match c[0-1023].c[0-1023] and/or c[0-1023]-c[0-c0123]')
+        return _('Invalid MCS value, must match c[0-1023].c[0-1023] '
+                 'and/or c[0-1023]-c[0-c0123]')
 
     return None
+
 
 def validate_selinuxuser_inlist(ldap, user):
     """
@@ -112,12 +115,16 @@ def validate_selinuxuser_inlist(ldap, user):
     config = ldap.get_ipa_config()[1]
     item = config.get('ipaselinuxusermaporder', [])
     if len(item) != 1:
-        raise errors.NotFound(reason=_('SELinux user map list not found in configuration'))
+        raise errors.NotFound(reason=_('SELinux user map list not '
+                                       'found in configuration'))
     userlist = item[0].split('$')
     if user not in userlist:
-        raise errors.NotFound(reason=_('SELinux user %(user)s not found in ordering list (in config)') % dict(user=user))
+        raise errors.NotFound(
+            reason=_('SELinux user %(user)s not found in '
+                     'ordering list (in config)') % dict(user=user))
 
     return
+
 
 class selinuxusermap(LDAPObject):
     """
@@ -211,7 +218,11 @@ class selinuxusermap(LDAPObject):
         except ValueError:
             try:
                 (dn, entry_attrs) = self.backend.find_entry_by_attr(
-                    self.api.Object['hbacrule'].primary_key.name, seealso, self.api.Object['hbacrule'].object_class, [''], self.api.Object['hbacrule'].container_dn)
+                    self.api.Object['hbacrule'].primary_key.name,
+                    seealso,
+                    self.api.Object['hbacrule'].object_class,
+                    [''],
+                    self.api.Object['hbacrule'].container_dn)
                 seealso = dn
             except errors.NotFound:
                 raise errors.NotFound(reason=_('HBAC rule %(rule)s not found') % dict(rule=seealso))
@@ -223,7 +234,7 @@ class selinuxusermap(LDAPObject):
         Convert an HBAC rule dn into a name
         """
         if options.get('raw', False):
-             return
+            return
 
         if 'seealso' in entry_attrs:
             (hbac_dn, hbac_attrs) = ldap.get_entry(entry_attrs['seealso'][0], ['cn'])
@@ -242,8 +253,21 @@ class selinuxusermap_add(LDAPCreate):
         # rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
         validate_selinuxuser_inlist(ldap, entry_attrs['ipaselinuxuser'])
-        if 'seealso' in options:
-            entry_attrs['seealso'] = self.obj._normalize_seealso(options['seealso'])
+
+        # hbacrule is not allowed when usercat or hostcat is set
+        is_to_be_set = lambda x: x in entry_attrs and entry_attrs[x] != None
+
+        are_local_members_to_be_set = any(is_to_be_set(attr)
+                                          for attr in ('usercategory',
+                                                       'hostcategory'))
+
+        is_hbacrule_to_be_set = is_to_be_set('seealso')
+
+        if is_hbacrule_to_be_set and are_local_members_to_be_set:
+            raise errors.MutuallyExclusiveError(reason=notboth_err)
+
+        if is_hbacrule_to_be_set:
+            entry_attrs['seealso'] = self.obj._normalize_seealso(entry_attrs['seealso'])
 
         return dn
 
@@ -276,18 +300,34 @@ class selinuxusermap_mod(LDAPUpdate):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        if 'seealso' in options and ('usercategory' in _entry_attrs or
-          'hostcategory' in _entry_attrs or
-          'memberuser' in _entry_attrs or
-          'memberhost' in _entry_attrs):
+        is_to_be_deleted = lambda x: (x in _entry_attrs and x in entry_attrs) and \
+                                     entry_attrs[x] == None
+
+        # makes sure the local members and hbacrule is not set at the same time
+        # memberuser or memberhost could have been set using --setattr
+        is_to_be_set = lambda x: ((x in _entry_attrs and _entry_attrs[x] != None) or \
+                                 (x in entry_attrs and entry_attrs[x] != None)) and \
+                                 not is_to_be_deleted(x)
+
+        are_local_members_to_be_set = any(is_to_be_set(attr)
+                                          for attr in ('usercategory',
+                                                       'hostcategory',
+                                                       'memberuser',
+                                                       'memberhost'))
+
+        is_hbacrule_to_be_set = is_to_be_set('seealso')
+
+        # this can disable all modifications if hbacrule and local members were
+        # set at the same time bypassing this commad, e.g. using ldapmodify
+        if are_local_members_to_be_set and is_hbacrule_to_be_set:
             raise errors.MutuallyExclusiveError(reason=notboth_err)
 
-        if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("user category "
-                "cannot be set to 'all' while there are allowed users"))
-        if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("host category "
-                "cannot be set to 'all' while there are allowed hosts"))
+        if is_all(entry_attrs, 'usercategory') and 'memberuser' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason="user category "
+                 "cannot be set to 'all' while there are allowed users")
+        if is_all(entry_attrs, 'hostcategory') and 'memberhost' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason="host category "
+                 "cannot be set to 'all' while there are allowed hosts")
 
         if 'ipaselinuxuser' in entry_attrs:
             validate_selinuxuser_inlist(ldap, entry_attrs['ipaselinuxuser'])
