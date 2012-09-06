@@ -296,7 +296,12 @@ class trust_del(LDAPDelete):
         return result['result']['dn']
 
 class trust_mod(LDAPUpdate):
-    __doc__ = _('Modify a trust.')
+    __doc__ = _("""
+    Modify a trust (for future use).
+
+    Currently only the default option to modify the LDAP attributes are
+    available. More specific options will be added in coming releases.
+    """)
 
     msg_summary = _('Modified trust "%(value)s"')
 
