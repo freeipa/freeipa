@@ -639,7 +639,8 @@ def hardcode_ldap_server(cli_server):
 
     return
 
-def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, filename, client_domain):
+def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
+        options, filename, client_domain):
 
     krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     krbconf.setOptionAssignment(" = ")
@@ -1424,7 +1425,15 @@ def install(options, env, fstore, statestore):
                     "server, assuming the time is in sync.")
             (krb_fd, krb_name) = tempfile.mkstemp()
             os.close(krb_fd)
-            if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, krb_name, client_domain):
+            if configure_krb5_conf(
+                    cli_realm=cli_realm,
+                    cli_domain=cli_domain,
+                    cli_server=cli_server,
+                    cli_kdc=cli_kdc,
+                    dnsok=False,
+                    options=options,
+                    filename=krb_name,
+                    client_domain=client_domain):
                 root_logger.error("Test kerberos configuration failed")
                 return CLIENT_INSTALL_ERROR
             env['KRB5_CONFIG'] = krb_name
@@ -1507,9 +1516,25 @@ def install(options, env, fstore, statestore):
                 subject_base = subject_base.strip()
                 subject_base = DN(subject_base)
 
-        finally:
             if options.principal is not None:
-                (stderr, stdout, returncode) = run(["kdestroy"], raiseonerr=False, env=env)
+                stderr, stdout, returncode = run(
+                        ["kdestroy"], raiseonerr=False, env=env)
+
+            # Obtain the TGT. We do it with the temporary krb5.conf, so that
+            # only the KDC we're installing under is contacted.
+            # Other KDCs might not have replicated the principal yet.
+            # Once we have the TGT, it's usable on any server.
+            env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
+            try:
+                run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab',
+                        'host/%s@%s' % (hostname, cli_realm)], env=env)
+            except CalledProcessError, e:
+                root_logger.error("Failed to obtain host TGT.")
+                # failure to get ticket makes it impossible to login and bind
+                # from sssd to LDAP, abort installation and rollback changes
+                return CLIENT_INSTALL_ERROR
+
+        finally:
             try:
                 os.remove(krb_name)
             except OSError:
@@ -1548,22 +1573,21 @@ def install(options, env, fstore, statestore):
     if not options.on_master:
         # Configure krb5.conf
         fstore.backup_file("/etc/krb5.conf")
-        if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, "/etc/krb5.conf", client_domain):
+        if configure_krb5_conf(
+                cli_realm=cli_realm,
+                cli_domain=cli_domain,
+                cli_server=cli_server,
+                cli_kdc=cli_kdc,
+                dnsok=dnsok,
+                options=options,
+                filename="/etc/krb5.conf",
+                client_domain=client_domain):
             return CLIENT_INSTALL_ERROR
 
         root_logger.info(
             "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
 
-    os.environ['KRB5CCNAME'] = CCACHE_FILE
-    try:
-        ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', 'host/%s@%s' % (hostname, cli_realm)])
-    except CalledProcessError, e:
-        root_logger.error("Failed to obtain host TGT.")
-        # fail to obtain ticket makes it impossible to login and bind from sssd to LDAP,
-        # abort installation and rollback changes
-        return CLIENT_INSTALL_ERROR
-
-    # Now, we have a TGT, lets try to connect to the server's XML-RPC interface
+    # Now, let's try to connect to the server's XML-RPC interface
     try:
         api.Backend.xmlclient.connect()
     except errors.KerberosError, e:
