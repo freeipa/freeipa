@@ -134,6 +134,11 @@ IPA.navigation = function(spec) {
                 });
 
                 dialog.callback = function() {
+
+                    // Some facet's might not call reset before this call but after
+                    // so they are still dirty. Calling reset prevent's opening of
+                    // dirty dialog again.
+                    if (prev_facet.is_dirty()) prev_facet.reset();
                     $.bbq.pushState(params);
                 };
 
