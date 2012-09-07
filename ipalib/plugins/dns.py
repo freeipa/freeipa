@@ -1585,7 +1585,7 @@ class dnszone(LDAPObject):
             label=_('SOA serial'),
             doc=_('SOA record serial number'),
             minvalue=1,
-            maxvalue=4294967295,
+            maxvalue=4294967295L,
             default_from=_create_zone_serial,
             autofill=True,
         ),
