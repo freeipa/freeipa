@@ -36,8 +36,11 @@ from ipapython.ipa_log_manager import *
 from ipapython import services as ipaservices
 from ipapython.dn import DN
 
+import ipaclient.ipachangeconf
+
 import string
 import struct
+import re
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
 
@@ -100,6 +103,7 @@ class ADTRUSTInstance(service.Service):
     def __init__(self, fstore=None):
         self.fqdn = None
         self.ip_address = None
+        self.realm = None
         self.domain_name = None
         self.netbios_name = None
         self.no_msdcs = None
@@ -410,6 +414,63 @@ class ADTRUSTInstance(service.Service):
                 except:
                     self.print_msg(SELINUX_WARNING % dict(var=','.join(sebools)))
 
+    def __mod_krb5_conf(self):
+        """
+        Set dns_lookup_kdc to true and master_kdc in /etc/krb5.conf
+        """
+
+        if not self.fqdn or not self.realm:
+            self.print_msg("Cannot modify /etc/krb5.conf")
+
+        krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+        krbconf.setOptionAssignment(" = ")
+        krbconf.setSectionNameDelimiters(("[", "]"))
+        krbconf.setSubSectionDelimiters(("{", "}"))
+        krbconf.setIndent(("", "  ", "    "))
+
+        libopts = [{'name':'dns_lookup_kdc', 'type':'option', 'action':'set',
+                    'value':'true'}]
+
+        master_kdc = self.fqdn + ":88"
+        kropts = [{'name':'master_kdc', 'type':'option', 'action':'set',
+                   'value':master_kdc}]
+
+        ropts = [{'name':self.realm, 'type':'subsection', 'action':'set',
+                  'value':kropts}]
+
+        opts = [{'name':'libdefaults', 'type':'section', 'action':'set',
+                 'value':libopts},
+                {'name':'realms', 'type':'section', 'action':'set',
+                 'value':ropts}]
+
+        krbconf.changeConf("/etc/krb5.conf", opts)
+
+    def __update_krb5_conf(self):
+        """
+        Update /etc/krb5.conf if needed
+        """
+
+        try:
+            krb5conf = open("/etc/krb5.conf", 'r')
+        except IOError, e:
+            self.print_msg("Cannot open /etc/krb5.conf (%s)\n" % str(e))
+            return
+
+        has_dns_lookup_kdc_true = False
+        for line in krb5conf:
+            if re.match("^\s*dns_lookup_kdc\s*=\s*[Tt][Rr][Uu][Ee]\s*$", line):
+                has_dns_lookup_kdc_true = True
+                break
+        krb5conf.close()
+
+        if not has_dns_lookup_kdc_true:
+            self.__mod_krb5_conf()
+        else:
+            self.print_msg("'dns_lookup_kdc' already set to 'true', "
+                           "nothing to do.")
+
+
+
     def __start(self):
         try:
             self.start()
@@ -541,6 +602,7 @@ class ADTRUSTInstance(service.Service):
         self.step("adding cifs Kerberos principal", self.__setup_principal)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
         self.step("adding RID bases", self.__add_rid_bases)
+        self.step("updating Kerberos config", self.__update_krb5_conf)
         self.step("activating CLDAP plugin", self.__add_cldap_module)
         self.step("activating sidgen plugin and task", self.__add_sidgen_module)
         self.step("activating extdom plugin", self.__add_extdom_module)
