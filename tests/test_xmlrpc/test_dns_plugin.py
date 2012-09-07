@@ -1038,9 +1038,9 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add invalid allow-query to zone %r' % dnszone1,
-            command=('dnszone_mod', [dnszone1], {'idnsallowquery': u'localhost'}),
+            command=('dnszone_mod', [dnszone1], {'idnsallowquery': u'foo'}),
             expected=errors.ValidationError(name='allow_query',
-                error=u'ACL name "localhost" is not supported'),
+                error=u"failed to detect a valid IP address from u'foo'"),
         ),
 
         dict(
