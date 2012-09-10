@@ -185,7 +185,7 @@ class config(LDAPObject):
             label=_('SELinux user map order'),
             doc=_('Order in increasing priority of SELinux users, delimited by $'),
         ),
-        Str('ipaselinuxusermapdefault',
+        Str('ipaselinuxusermapdefault?',
             label=_('Default SELinux user'),
             doc=_('Default SELinux user when no match is found in SELinux map rule'),
         ),
@@ -274,7 +274,10 @@ class config_mod(LDAPUpdate):
                 failedattr = 'ipaselinuxusermapdefault'
             else:
                 config = ldap.get_ipa_config()[1]
-                defaultuser = config['ipaselinuxusermapdefault'][0]
+                if 'ipaselinuxusermapdefault' in config:
+                    defaultuser = config['ipaselinuxusermapdefault'][0]
+                else:
+                    defaultuser = None
 
             if 'ipaselinuxusermaporder' in validate:
                 order = validate['ipaselinuxusermaporder']
@@ -284,7 +287,7 @@ class config_mod(LDAPUpdate):
                     config = ldap.get_ipa_config()[1]
                 order = config['ipaselinuxusermaporder']
                 userlist = order[0].split('$')
-            if defaultuser not in userlist:
+            if defaultuser and defaultuser not in userlist:
                 raise errors.ValidationError(name=failedattr,
                     error=_('SELinux user map default user not in order list'))
 
