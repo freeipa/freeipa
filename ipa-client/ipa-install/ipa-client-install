@@ -1921,7 +1921,8 @@ def main():
     if fstore.has_files():
         root_logger.error("IPA client is already configured on this system.")
         root_logger.info(
-            "If you want to reinstall the IPA client, uninstall it first.")
+            "If you want to reinstall the IPA client, uninstall it first " +
+            "using 'ipa-client-install --uninstall'.")
         return CLIENT_ALREADY_CONFIGURED
 
     rval = install(options, env, fstore, statestore)
