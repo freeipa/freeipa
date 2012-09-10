@@ -407,8 +407,9 @@ def main():
 
     client_fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
     if client_fstore.has_files():
-        sys.exit("IPA client is already configured on this system.\n"
-                 + "Please uninstall it first before configuring the replica.")
+        sys.exit("IPA client is already configured on this system.\n" +
+            "Please uninstall it first before configuring the replica, " +
+            "using 'ipa-client-install --uninstall'.")
 
     global sstore
     sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')

@@ -574,14 +574,16 @@ def main():
         print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
         if not options.external_ca and not options.external_cert_file and is_ipa_configured():
             installation_cleanup = False
-            sys.exit("IPA server is already configured on this system.\n"
-                     + "If you want to reinstall the IPA server please uninstall it first.")
+            sys.exit("IPA server is already configured on this system.\n" +
+                "If you want to reinstall the IPA server, please uninstall " +
+                "it first using 'ipa-server-install --uninstall'.")
 
         client_fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
         if client_fstore.has_files():
             installation_cleanup = False
-            sys.exit("IPA client is already configured on this system.\n"
-                     + "Please uninstall it first before configuring the IPA server.")
+            sys.exit("IPA client is already configured on this system.\n" +
+                "Please uninstall it before configuring the IPA server, " +
+                "using 'ipa-client-install --uninstall'")
 
     root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     root_logger.debug("missing options might be asked for interactively later\n")
