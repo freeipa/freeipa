@@ -803,13 +803,17 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
         domain = sssdconfig.new_domain(cli_domain)
 
     try:
-        sssdconfig.activate_service('ssh')
-    except SSSDConfig.NoServiceError:
+        sssdconfig.new_service('ssh')
+    except SSSDConfig.ServiceAlreadyExists:
+        pass
+    except SSSDConfig.ServiceNotRecognizedError:
         root_logger.error("Unable to activate the SSH service in SSSD config.")
         root_logger.info(
             "Please make sure you have SSSD built with SSH support installed.")
         root_logger.info(
             "Configure SSH support manually in /etc/sssd/sssd.conf.")
+
+    sssdconfig.activate_service('ssh')
 
     domain.add_provider('ipa', 'id')
 
