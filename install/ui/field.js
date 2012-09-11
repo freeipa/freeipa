@@ -448,13 +448,13 @@ IPA.metadata_validator = function(spec) {
 
         if (number) {
 
-            if (metadata.minvalue !== undefined && Number(value) < Number(metadata.minvalue)) {
+            if (IPA.defined(metadata.minvalue, true) && Number(value) < Number(metadata.minvalue)) {
                 message = IPA.messages.widget.validation.min_value;
                 message = message.replace('${value}', metadata.minvalue);
                 return that.false_result(message);
             }
 
-            if (metadata.maxvalue !== undefined && Number(value) > Number(metadata.maxvalue)) {
+            if (IPA.defined(metadata.maxvalue, true) && Number(value) > Number(metadata.maxvalue)) {
                 message = IPA.messages.widget.validation.max_value;
                 message = message.replace('${value}', metadata.maxvalue);
                 return that.false_result(message);
