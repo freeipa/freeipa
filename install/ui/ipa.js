@@ -2021,6 +2021,11 @@ IPA.is_empty = function(value) {
     return empty;
 };
 
+IPA.defined = function(value, check_empty_str) {
+    return value !== null && value !== undefined &&
+        ((check_empty_str && value !== '') || !check_empty_str);
+};
+
 IPA.array_diff = function(a, b) {
 
     if (a === b || (!a && !b)) return false;
