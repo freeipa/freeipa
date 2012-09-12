@@ -754,6 +754,8 @@ class LDAPUpdate:
 
         self.print_entity(entry, "Final value after applying updates")
 
+        added = False
+        updated = False
         if not found:
             # New entries get their orig_data set to the entry itself. We want to
             # empty that so that everything appears new when generating the
@@ -773,13 +775,13 @@ class LDAPUpdate:
                             self.info("Parent DN of %s may not exist, cannot create the entry",
                                     entry.dn)
                             return
+                added = True
                 self.modified = True
             except Exception, e:
                 self.error("Add failure %s", e)
         else:
             # Update LDAP
             try:
-                updated = False
                 changes = self.conn.generateModList(entry.origDataDict(), entry.toDict())
                 if (entry.dn == DN(('cn', 'schema'))):
                     d = dict()
@@ -805,13 +807,14 @@ class LDAPUpdate:
                 self.error("Update failed: %s", e)
                 updated = False
 
-            if (DN(('cn', 'index')) in entry.dn and
-                DN(('cn', 'userRoot')) in entry.dn):
-                taskid = self.create_index_task(entry.getValue('cn'))
-                self.monitor_index_task(taskid)
-
             if updated:
                 self.modified = True
+
+        if entry.dn.endswith(DN(('cn', 'index'), ('cn', 'userRoot'),
+                                ('cn', 'ldbm database'), ('cn', 'plugins'),
+                                ('cn', 'config'))) and (added or updated):
+            taskid = self.create_index_task(entry.getValue('cn'))
+            self.monitor_index_task(taskid)
         return
 
     def _delete_record(self, updates):
