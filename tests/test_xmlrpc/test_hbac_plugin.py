@@ -547,6 +547,23 @@ class test_hbac(XMLRPC_test):
             accessruletype=u'deny',
         )
 
+    def test_n_hbacrule_links(self):
+        """
+        Test adding various links to HBAC rule
+        """
+        api.Command['hbacrule_add_sourcehost'](
+            self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
+        )
+        api.Command['hbacrule_add_service'](
+            self.rule_name, hbacsvc=self.test_service
+        )
+
+        entry = api.Command['hbacrule_show'](self.rule_name)['result']
+        assert_attr_equal(entry, 'cn', self.rule_name)
+        assert_attr_equal(entry, 'sourcehost_host', self.test_host)
+        assert_attr_equal(entry, 'sourcehost_hostgroup', self.test_hostgroup)
+        assert_attr_equal(entry, 'memberservice_hbacsvc', self.test_service)
+
     def test_y_hbacrule_zap_testing_data(self):
         """
         Clear data for HBAC plugin testing.
@@ -560,6 +577,16 @@ class test_hbac(XMLRPC_test):
         api.Command['host_del'](self.test_sourcehost)
         api.Command['hostgroup_del'](self.test_sourcehostgroup)
         api.Command['hbacsvc_del'](self.test_service)
+
+    def test_k_2_sudorule_referential_integrity(self):
+        """
+        Test that links in HBAC rule were removed by referential integrity plugin
+        """
+        entry = api.Command['hbacrule_show'](self.rule_name)['result']
+        assert_attr_equal(entry, 'cn', self.rule_name)
+        assert 'sourcehost_host' not in entry
+        assert 'sourcehost_hostgroup' not in entry
+        assert 'memberservice_hbacsvc' not in entry
 
     def test_z_hbacrule_del(self):
         """

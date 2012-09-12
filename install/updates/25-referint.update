@@ -1,0 +1,13 @@
+# Expand attributes checked by Referential Integrity plugin
+# pres and eq indexes defined in 20-indices.update must be set for all these
+# attributes
+dn: cn=referential integrity postoperation,cn=plugins,cn=config
+add: nsslapd-pluginArg9: memberuser
+add: nsslapd-pluginArg10: memberhost
+add: nsslapd-pluginArg11: sourcehost
+add: nsslapd-pluginArg12: memberservice
+add: nsslapd-pluginArg13: managedby
+add: nsslapd-pluginArg14: memberallowcmd
+add: nsslapd-pluginArg15: memberdenycmd
+add: nsslapd-pluginArg16: ipasudorunas
+add: nsslapd-pluginArg17: ipasudorunasgroup

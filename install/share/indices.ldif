@@ -41,6 +41,7 @@ objectClass:nsIndex
 cn:manager
 nsSystemIndex:false
 nsIndexType:eq
+nsIndexType:pres
 
 dn: cn=secretary,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: add
@@ -49,6 +50,7 @@ objectClass:nsIndex
 cn:secretary
 nsSystemIndex:false
 nsIndexType:eq
+nsIndexType:pres
 
 dn: cn=displayname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: add
@@ -110,3 +112,83 @@ nsSystemIndex: false
 nsIndexType: eq
 nsIndexType: pres
 
+dn: cn=memberHost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: memberHost
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=memberUser,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: memberUser
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=sourcehost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: sourcehost
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=memberservice,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: memberservice
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=managedby,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: managedby
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=memberallowcmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: memberallowcmd
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=memberdenycmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: memberdenycmd
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=ipasudorunas,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipasudorunas
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+
+dn: cn=ipasudorunasgroup,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipasudorunasgroup
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres

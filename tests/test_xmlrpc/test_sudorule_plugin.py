@@ -674,7 +674,7 @@ class test_sudorule(XMLRPC_test):
             api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'')
 
     @raises(errors.MutuallyExclusiveError)
-    def test_j_sudorule_exclusiverunas(self):
+    def test_j_1_sudorule_exclusiverunas(self):
         """
         Test setting ipasudorunasusercategory='all' in an Sudo rule when there are runas users
         """
@@ -684,7 +684,32 @@ class test_sudorule(XMLRPC_test):
         finally:
             api.Command['sudorule_remove_runasuser'](self.rule_name, user=self.test_command)
 
-    def test_k_sudorule_clear_testing_data(self):
+    def test_j_2_sudorule_referential_integrity(self):
+        """
+        Test adding various links to Sudo rule
+        """
+        api.Command['sudorule_add_user'](self.rule_name, user=self.test_user)
+        api.Command['sudorule_add_runasuser'](self.rule_name, user=self.test_runasuser,
+                                              group=self.test_group)
+        api.Command['sudorule_add_runasgroup'](self.rule_name, group=self.test_group)
+        api.Command['sudorule_add_host'](self.rule_name, host=self.test_host)
+        api.Command['sudorule_add_allow_command'](self.rule_name,
+                                                  sudocmd=self.test_command)
+        api.Command['sudorule_add_deny_command'](self.rule_name,
+                                                 sudocmdgroup=self.test_sudodenycmdgroup)
+        entry = api.Command['sudorule_show'](self.rule_name)['result']
+        assert_attr_equal(entry, 'cn', self.rule_name)
+        assert_attr_equal(entry, 'memberuser_user', self.test_user)
+        assert_attr_equal(entry, 'memberallowcmd_sudocmd', self.test_command)
+        assert_attr_equal(entry, 'memberdenycmd_sudocmdgroup',
+            self.test_sudodenycmdgroup)
+        assert_attr_equal(entry, 'memberhost_host', self.test_host)
+        assert_attr_equal(entry, 'ipasudorunas_user', self.test_runasuser)
+        assert_attr_equal(entry, 'ipasudorunas_group', self.test_group)
+        assert_attr_equal(entry, 'ipasudorunasgroup_group', self.test_group)
+
+
+    def test_k_1_sudorule_clear_testing_data(self):
         """
         Clear data for Sudo rule plugin testing.
         """
@@ -696,6 +721,20 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudocmd_del'](self.test_command)
         api.Command['sudocmdgroup_del'](self.test_sudoallowcmdgroup)
         api.Command['sudocmdgroup_del'](self.test_sudodenycmdgroup)
+
+    def test_k_2_sudorule_referential_integrity(self):
+        """
+        Test that links in Sudo rule were removed by referential integrity plugin
+        """
+        entry = api.Command['sudorule_show'](self.rule_name)['result']
+        assert_attr_equal(entry, 'cn', self.rule_name)
+        assert 'memberuser_user' not in entry
+        assert 'memberallowcmd_sudocmd' not in entry
+        assert 'memberdenycmd_sudocmdgroup' not in entry
+        assert 'memberhost_host' not in entry
+        assert 'ipasudorunas_user' not in entry
+        assert 'ipasudorunas_group' not in entry
+        assert 'ipasudorunasgroup_group' not in entry
 
     def test_l_sudorule_order(self):
         """
