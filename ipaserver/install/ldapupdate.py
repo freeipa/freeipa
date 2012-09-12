@@ -35,7 +35,7 @@ from ipalib import errors
 from ipalib import api
 from ipapython.dn import DN
 import ldap
-from ldap.schema.models import ObjectClass
+from ldap.schema.models import ObjectClass, AttributeType
 from ipapython.ipa_log_manager import *
 import krbV
 import platform
@@ -551,23 +551,32 @@ class LDAPUpdate:
             # Replacing objectClassess needs a special handling and
             # normalization of OC definitions to avoid update failures for
             # example when X-ORIGIN is the only difference
-            objectclass_replacement = False
-            if action == "replace" and entry.dn == DN(('cn', 'schema')) and \
-                    attr.lower() == "objectclasses":
-                objectclass_replacement = True
-                oid_index = {}
-                # build the OID index for replacing
-                for objectclass in entry_values:
-                    try:
-                        objectclass_object = ObjectClass(str(objectclass))
-                    except Exception, e:
-                        self.error('replace: cannot parse ObjectClass "%s": %s',
-                                        objectclass, e)
-                        continue
-                    # In a corner case, there may be more representations of
-                    # the same objectclass due to the previous updates
-                    # We want to replace them all
-                    oid_index.setdefault(objectclass_object.oid, []).append(objectclass)
+            schema_update = False
+            schema_elem_class = None
+            schema_elem_name = None
+            if action == "replace" and entry.dn == DN(('cn', 'schema')):
+                if attr.lower() == "objectclasses":
+                    schema_elem_class = ObjectClass
+                    schema_elem_name = "ObjectClass"
+                elif attr.lower() == "attributetypes":
+                    schema_elem_class = AttributeType
+                    schema_elem_name = "AttributeType"
+
+                if schema_elem_class is not None:
+                    schema_update = True
+                    oid_index = {}
+                    # build the OID index for replacing
+                    for schema_elem in entry_values:
+                        try:
+                            schema_elem_object = schema_elem_class(str(schema_elem))
+                        except Exception, e:
+                            self.error('replace: cannot parse %s "%s": %s',
+                                            schema_elem_name, schema_elem, e)
+                            continue
+                        # In a corner case, there may be more representations of
+                        # the same objectclass/attributetype due to the previous updates
+                        # We want to replace them all
+                        oid_index.setdefault(schema_elem_object.oid, []).append(schema_elem)
 
             for update_value in update_values:
                 if action == 'remove':
@@ -624,23 +633,24 @@ class LDAPUpdate:
                     except ValueError:
                         raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % update_value
                     try:
-                        if objectclass_replacement:
+                        if schema_update:
                             try:
-                                objectclass_old = ObjectClass(str(old))
+                                schema_elem_old = schema_elem_class(str(old))
                             except Exception, e:
-                                self.error('replace: cannot parse replaced ObjectClass "%s": %s',
-                                        old, e)
+                                self.error('replace: cannot parse replaced %s "%s": %s',
+                                        schema_elem_name, old, e)
                                 continue
                             replaced_values = []
-                            for objectclass in oid_index.get(objectclass_old.oid, []):
-                                objectclass_object = ObjectClass(str(objectclass))
-                                if str(objectclass_old).lower() == str(objectclass_object).lower():
+                            for schema_elem in oid_index.get(schema_elem_old.oid, []):
+                                schema_elem_object = schema_elem_class(str(schema_elem))
+                                if str(schema_elem_old).lower() == str(schema_elem_object).lower():
                                     # compare normalized values
-                                    replaced_values.append(objectclass)
-                                    self.debug('replace: replace ObjectClass "%s" with "%s"',
-                                            old, new)
+                                    replaced_values.append(schema_elem)
+                                    self.debug('replace: replace %s "%s" with "%s"',
+                                            schema_elem_name, old, new)
                             if not replaced_values:
-                                self.debug('replace: no match for replaced ObjectClass "%s"', old)
+                                self.debug('replace: no match for replaced %s "%s"',
+                                        schema_elem_name, old)
                                 continue
                             for value in replaced_values:
                                 entry_values.remove(value)
