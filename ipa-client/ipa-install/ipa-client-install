@@ -89,6 +89,8 @@ def parse_options():
                       help="do not configure ntp", default=True, dest="conf_ntp")
     basic_group.add_option("--ssh-trust-dns", dest="trust_sshfp", default=False, action="store_true",
                       help="configure OpenSSH client to trust DNS SSHFP records")
+    basic_group.add_option("--no-ssh", dest="conf_ssh", default=True, action="store_false",
+                      help="do not configure OpenSSH client")
     basic_group.add_option("--no-sshd", dest="conf_sshd", default=True, action="store_false",
                       help="do not configure OpenSSH server")
     basic_group.add_option("--no-dns-sshfp", dest="create_sshfp", default=True, action="store_false",
@@ -802,18 +804,23 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
         sssdconfig.new_config()
         domain = sssdconfig.new_domain(cli_domain)
 
-    try:
-        sssdconfig.new_service('ssh')
-    except SSSDConfig.ServiceAlreadyExists:
-        pass
-    except SSSDConfig.ServiceNotRecognizedError:
-        root_logger.error("Unable to activate the SSH service in SSSD config.")
-        root_logger.info(
-            "Please make sure you have SSSD built with SSH support installed.")
-        root_logger.info(
-            "Configure SSH support manually in /etc/sssd/sssd.conf.")
+    ssh_dir = ipaservices.knownservices.sshd.get_config_dir()
+    ssh_config = os.path.join(ssh_dir, 'ssh_config')
+    sshd_config = os.path.join(ssh_dir, 'sshd_config')
 
-    sssdconfig.activate_service('ssh')
+    if (options.conf_ssh and file_exists(ssh_config)) or (options.conf_sshd and file_exists(sshd_config)):
+        try:
+            sssdconfig.new_service('ssh')
+        except SSSDConfig.ServiceAlreadyExists:
+            pass
+        except SSSDConfig.ServiceNotRecognizedError:
+            root_logger.error("Unable to activate the SSH service in SSSD config.")
+            root_logger.info(
+                "Please make sure you have SSSD built with SSH support installed.")
+            root_logger.info(
+                "Configure SSH support manually in /etc/sssd/sssd.conf.")
+
+        sssdconfig.activate_service('ssh')
 
     domain.add_provider('ipa', 'id')
 
@@ -921,34 +928,37 @@ def change_ssh_config(filename, changes, sections):
 
     return True
 
-def configure_ssh(fstore, ssh_dir, options):
+def configure_ssh_config(fstore, options):
+    ssh_dir = ipaservices.knownservices.sshd.get_config_dir()
     ssh_config = os.path.join(ssh_dir, 'ssh_config')
-    sshd_config = os.path.join(ssh_dir, 'sshd_config')
 
-    if file_exists(ssh_config):
-        fstore.backup_file(ssh_config)
-
-        changes = {
-            'PubkeyAuthentication': 'yes',
-        }
-
-        if options.trust_sshfp:
-            changes['VerifyHostKeyDNS'] = 'yes'
-            changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
-        elif options.sssd and file_exists('/usr/bin/sss_ssh_knownhostsproxy'):
-            changes['ProxyCommand'] = '/usr/bin/sss_ssh_knownhostsproxy -p %p %h'
-            changes['GlobalKnownHostsFile'] = '/var/lib/sss/pubconf/known_hosts'
-
-        change_ssh_config(ssh_config, changes, ['Host'])
-        root_logger.info('Configured %s', ssh_config)
-
-    if not options.conf_sshd:
+    if not file_exists(ssh_config):
+        root_logger.info("%s not found, skipping configuration" % ssh_config)
         return
 
+    fstore.backup_file(ssh_config)
+
+    changes = {
+        'PubkeyAuthentication': 'yes',
+    }
+
+    if options.trust_sshfp:
+        changes['VerifyHostKeyDNS'] = 'yes'
+        changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
+    elif options.sssd and file_exists('/usr/bin/sss_ssh_knownhostsproxy'):
+        changes['ProxyCommand'] = '/usr/bin/sss_ssh_knownhostsproxy -p %p %h'
+        changes['GlobalKnownHostsFile'] = '/var/lib/sss/pubconf/known_hosts'
+
+    change_ssh_config(ssh_config, changes, ['Host'])
+    root_logger.info('Configured %s', ssh_config)
+
+def configure_sshd_config(fstore, options):
     sshd = ipaservices.knownservices.sshd
-    if not sshd.is_installed():
-        root_logger.info("%s daemon is not installed, skip configuration",
-            sshd.service_name)
+    ssh_dir = sshd.get_config_dir()
+    sshd_config = os.path.join(ssh_dir, 'sshd_config')
+
+    if not file_exists(sshd_config):
+        root_logger.info("%s not found, skipping configuration" % sshd_config)
         return
 
     fstore.backup_file(sshd_config)
@@ -1768,7 +1778,11 @@ def install(options, env, fstore, statestore):
         ipaclient.ntpconf.config_ntp(ntp_server, fstore, statestore)
         root_logger.info("NTP enabled")
 
-    configure_ssh(fstore, ipaservices.knownservices.sshd.get_config_dir(), options)
+    if options.conf_ssh:
+        configure_ssh_config(fstore, options)
+
+    if options.conf_sshd:
+        configure_sshd_config(fstore, options)
 
     root_logger.info('Client configuration complete.')
 

@@ -145,6 +145,8 @@ def parse_options():
                       default=True, help="Do not automatically redirect to the Web UI")
     basic_group.add_option("--ssh-trust-dns", dest="trust_sshfp", default=False, action="store_true",
                       help="configure OpenSSH client to trust DNS SSHFP records")
+    basic_group.add_option("--no-ssh", dest="conf_ssh", default=True, action="store_false",
+                      help="do not configure OpenSSH client")
     basic_group.add_option("--no-sshd", dest="conf_sshd", default=True, action="store_false",
                       help="do not configure OpenSSH server")
     basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
@@ -1071,6 +1073,8 @@ def main():
             args.append("--no-dns-sshfp")
         if options.trust_sshfp:
             args.append("--ssh-trust-dns")
+        if not options.conf_ssh:
+            args.append("--no-ssh")
         if not options.conf_sshd:
             args.append("--no-sshd")
         run(args)
