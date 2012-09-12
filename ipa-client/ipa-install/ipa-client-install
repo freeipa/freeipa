@@ -1569,8 +1569,16 @@ def install(options, env, fstore, statestore):
         root_logger.info("Failed to add CA to the default NSS database.")
         return CLIENT_INSTALL_ERROR
 
-    # If on master assume kerberos is already configured properly.
-    if not options.on_master:
+    if options.on_master:
+        # If on master assume kerberos is already configured properly.
+        # Get the host TGT.
+        try:
+            run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab',
+                    'host/%s@%s' % (hostname, cli_realm)], env=env)
+        except CalledProcessError, e:
+            root_logger.error("Failed to obtain host TGT.")
+            return CLIENT_INSTALL_ERROR
+    else:
         # Configure krb5.conf
         fstore.backup_file("/etc/krb5.conf")
         if configure_krb5_conf(
