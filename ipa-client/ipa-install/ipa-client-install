@@ -1572,9 +1572,10 @@ def install(options, env, fstore, statestore):
     if options.on_master:
         # If on master assume kerberos is already configured properly.
         # Get the host TGT.
+        os.environ['KRB5CCNAME'] = CCACHE_FILE
         try:
             run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab',
-                    'host/%s@%s' % (hostname, cli_realm)], env=env)
+                    'host/%s@%s' % (hostname, cli_realm)])
         except CalledProcessError, e:
             root_logger.error("Failed to obtain host TGT.")
             return CLIENT_INSTALL_ERROR
