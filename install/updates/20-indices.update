@@ -26,12 +26,18 @@ default:ObjectClass: nsIndex
 default:nsSystemIndex: false
 default:nsIndexType: eq
 
+dn: cn=memberHost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+add:nsIndexType: pres
+
 dn: cn=memberUser,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: memberUser
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
 default:nsIndexType: eq
+
+dn: cn=memberUser,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only: nsIndexType: eq,pres
 
 dn: cn=fqdn,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: fqdn
@@ -43,6 +49,68 @@ default:nsIndexType: pres
 
 dn: cn=macAddress,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: macAddress
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
+default:nsIndexType: pres
+
+dn: cn=manager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only: nsIndexType: eq,pres
+
+dn: cn=secretary,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only: nsIndexType: eq,pres
+
+dn: cn=sourcehost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: sourcehost
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
+default:nsIndexType: pres
+
+dn: cn=memberservice,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: memberservice
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
+default:nsIndexType: pres
+
+dn: cn=managedby,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: managedby
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
+default:nsIndexType: pres
+
+dn: cn=memberallowcmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: memberallowcmd
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
+default:nsIndexType: pres
+
+dn: cn=memberdenycmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: memberdenycmd
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
+default:nsIndexType: pres
+
+dn: cn=ipasudorunas,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: ipasudorunas
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
+default:nsIndexType: pres
+
+dn: cn=ipasudorunasgroup,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: ipasudorunasgroup
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false

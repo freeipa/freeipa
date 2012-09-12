@@ -783,6 +783,60 @@ class test_host(Declarative):
             ),
         ),
 
+
+        dict(
+            desc='Add managedby_host %r to %r' % (fqdn3, fqdn4),
+            command=('host_add_managedby', [fqdn4], dict(host=fqdn3,),
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    managedby = dict(
+                        host=tuple(),
+                    ),
+                ),
+                result=dict(
+                    dn=dn4,
+                    fqdn=[fqdn4],
+                    description=[u'Test host 4'],
+                    l=[u'Undisclosed location 4'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn4, api.env.realm)],
+                    managedby_host=[fqdn4, fqdn3],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % fqdn3,
+            command=('host_del', [fqdn3], {}),
+            expected=dict(
+                value=fqdn3,
+                summary=u'Deleted host "%s"' % fqdn3,
+                result=dict(failed=u''),
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r to verify that %r is gone from managedBy' % (fqdn4, fqdn3),
+            command=('host_show', [fqdn4], {}),
+            expected=dict(
+                value=fqdn4,
+                summary=None,
+                result=dict(
+                    dn=dn4,
+                    fqdn=[fqdn4],
+                    description=[u'Test host 4'],
+                    l=[u'Undisclosed location 4'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn4, api.env.realm)],
+                    has_keytab=False,
+                    has_password=False,
+                    managedby_host=[fqdn4],
+                ),
+            ),
+        ),
+
     ]
 
 class test_host_false_pwd_change(XMLRPC_test):

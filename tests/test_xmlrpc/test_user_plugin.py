@@ -64,7 +64,7 @@ def not_upg_check(response):
 class test_user(Declarative):
 
     cleanup_commands = [
-        ('user_del', [user1, user2, renameduser1, admin2], {}),
+        ('user_del', [user1, user2, renameduser1, admin2], {'continue': True}),
         ('group_del', [group1], {}),
     ]
 
@@ -1365,6 +1365,136 @@ class test_user(Declarative):
                     has_password=False,
                     dn=get_user_dn(user2),
                 ),
+            ),
+        ),
+
+        dict(
+            desc='Set %r as manager of %r' % (user1, user2),
+            command=(
+                'user_mod', [user2], dict(manager=user1)
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser2'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    memberof_group=[group1],
+                    mail=[u'%s@%s' % (user2, api.env.domain)],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                    manager=[user1],
+                ),
+                summary=u'Modified user "%s"' % user2,
+                value=user2,
+            ),
+        ),
+
+        dict(
+            desc='Rename "%s"' % user1,
+            command=('user_mod', [user1], dict(rename=renameduser1)),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[renameduser1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    memberof_group=[group1],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+                summary=u'Modified user "%s"' % user1,
+                value=user1,
+            ),
+        ),
+
+        dict(
+            desc='Retrieve %r and check that manager is renamed' % user2,
+            command=(
+                'user_show', [user2], {'all': True}
+            ),
+            expected=dict(
+                result=dict(
+                    gecos=[u'Test User2'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser2'],
+                    krbprincipalname=[u'tuser2@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user_base,
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[u'1000'],
+                    displayname=[u'Test User2'],
+                    cn=[u'Test User2'],
+                    mail=[u'%s@%s' % (user2, api.env.domain)],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    memberof_group=[group1],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                    dn=get_user_dn(user2),
+                    manager=[renameduser1],
+                ),
+                value=user2,
+                summary=None,
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % renameduser1,
+            command=('user_del', [renameduser1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % renameduser1,
+                value=renameduser1,
+            ),
+        ),
+
+        dict(
+            desc='Retrieve %r and check that manager is gone' % user2,
+            command=(
+                'user_show', [user2], {'all': True}
+            ),
+            expected=dict(
+                result=dict(
+                    gecos=[u'Test User2'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser2'],
+                    krbprincipalname=[u'tuser2@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user_base,
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[u'1000'],
+                    displayname=[u'Test User2'],
+                    cn=[u'Test User2'],
+                    mail=[u'%s@%s' % (user2, api.env.domain)],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    memberof_group=[group1],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                    dn=get_user_dn(user2),
+                ),
+                value=user2,
+                summary=None,
             ),
         ),
 
