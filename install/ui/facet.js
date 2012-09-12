@@ -1323,12 +1323,12 @@ IPA.action = function(spec) {
 
             if (that.confirm_dialog) {
 
-                var dialog = IPA.build(that.confirm_dialog);
-                dialog.message = that.get_confirm_message(facet);
-                dialog.on_ok = function () {
+                that.dialog = IPA.build(that.confirm_dialog);
+                that.update_confirm_dialog(facet);
+                that.dialog.on_ok = function () {
                     that.execute_action(facet, on_success, on_error);
                 };
-                dialog.open();
+                that.dialog.open();
             } else {
                 var msg = that.get_confirm_message(facet);
                 confirmed = IPA.confirm(msg);
@@ -1338,6 +1338,10 @@ IPA.action = function(spec) {
         }
 
         that.execute_action(facet, on_success, on_error);
+    };
+
+    that.update_confirm_dialog = function(facet) {
+        that.dialog.message = that.get_confirm_message(facet);
     };
 
     that.get_confirm_message = function(facet) {

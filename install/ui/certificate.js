@@ -208,34 +208,14 @@ IPA.cert.download_dialog = function(spec) {
 IPA.cert.revoke_dialog = function(spec) {
 
     spec = spec || {};
+    spec.width = spec.width || 500;
+    spec.ok_label = spec.ok_label || IPA.messages.buttons.revoke;
 
-    var that = IPA.dialog(spec);
+    var that = IPA.confirm_dialog(spec);
 
-    that.width = spec.width || 500;
-    that.height = spec.height || 300;
-
-    that.revoke = spec.revoke;
-
-    that.create_button({
-        name: 'revoke',
-        label: IPA.messages.buttons.revoke,
-        click: function() {
-            var values = {};
-            values.reason = that.select.val();
-            if (that.revoke) {
-                that.revoke(values);
-            }
-            that.close();
-        }
-    });
-
-    that.create_button({
-        name: 'cancel',
-        label: IPA.messages.buttons.cancel,
-        click: function() {
-            that.close();
-        }
-    });
+    that.get_reason = function() {
+        return that.select.val();
+    };
 
     that.create = function() {
 
@@ -265,44 +245,6 @@ IPA.cert.revoke_dialog = function(spec) {
                 'html': IPA.messages.objects.cert[reason]
             }).appendTo(that.select);
         }
-    };
-
-    return that;
-};
-
-IPA.cert.restore_dialog = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.dialog(spec);
-
-    that.width = spec.width || 400;
-    that.height = spec.height || 200;
-
-    that.restore = spec.restore;
-
-    that.create_button({
-        name: 'restore',
-        label: IPA.messages.buttons.restore,
-        click: function() {
-            if (that.restore) {
-                that.restore();
-            }
-            that.close();
-        }
-    });
-
-    that.create_button({
-        name: 'cancel',
-        label: IPA.messages.buttons.cancel,
-        click: function() {
-            that.close();
-        }
-    });
-
-    that.create = function() {
-        that.container.append(
-            IPA.messages.objects.cert.restore_confirmation);
     };
 
     return that;
@@ -716,15 +658,16 @@ IPA.cert.revoke_action = function(spec) {
     spec.enable_cond = spec.enable_cond || ['has_certificate'];
     spec.disable_cond = spec.disable_cond || ['certificate_revoked'];
     spec.hide_cond = spec.hide_cond || ['selfsign'];
+    spec.confirm_dialog = spec.confirm_dialog || IPA.cert.revoke_dialog;
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
 
     var that = IPA.action(spec);
     that.entity_label = spec.entity_label;
-    that.request_message = spec.request_message;
+    that.confirm_msg = spec.request_message;
 
-    that.execute_action = function(facet) {
+    that.update_confirm_dialog = function(facet) {
 
         var certificate = facet.certificate;
-        if (!certificate) facet.refresh();
 
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
@@ -733,27 +676,26 @@ IPA.cert.revoke_action = function(spec) {
         title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', entity_name);
 
-        var dialog = IPA.cert.revoke_dialog({
-            title: title,
-            message: that.request_message,
-            revoke: function(values) {
+        that.dialog.title = title;
+        that.dialog.message = that.get_confirm_message(facet);
+    };
 
-                IPA.command({
-                    entity: 'cert',
-                    method: 'revoke',
-                    args: [certificate.serial_number],
-                    options: {
-                        'revocation_reason': values.reason
-                    },
-                    on_success: function(data, text_status, xhr) {
-                        facet.refresh();
-                        IPA.notify_success(IPA.messages.objects.cert.revoked);
-                    }
-                }).execute();
+    that.execute_action = function(facet) {
+
+        var certificate = facet.certificate;
+
+        IPA.command({
+            entity: 'cert',
+            method: 'revoke',
+            args: [certificate.serial_number],
+            options: {
+                'revocation_reason': that.dialog.get_reason()
+            },
+            on_success: function(data, text_status, xhr) {
+                facet.refresh();
+                IPA.notify_success(IPA.messages.objects.cert.revoked);
             }
-        });
-
-        dialog.open();
+        }).execute();
     };
 
     return that;
@@ -766,15 +708,19 @@ IPA.cert.restore_action = function(spec) {
     spec.label = spec.label || IPA.messages.buttons.restore;
     spec.enable_cond = spec.enable_cond || ['has_certificate', 'certificate_hold'];
     spec.hide_cond = spec.hide_cond || ['selfsign'];
+    spec.confirm_msg = spec.confirm_msg || IPA.messages.objects.cert.restore_confirmation;
+    spec.confirm_dialog = spec.confirm_dialog || {
+        factory: IPA.confirm_dialog,
+        ok_label: IPA.messages.buttons.restore
+    };
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
 
     var that = IPA.action(spec);
     that.entity_label = spec.entity_label;
-    that.request_message = spec.request_message;
 
-    that.execute_action = function(facet) {
+    that.update_confirm_dialog = function(facet) {
 
         var certificate = facet.certificate;
-        if (!certificate) facet.refresh();
 
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
@@ -783,24 +729,23 @@ IPA.cert.restore_action = function(spec) {
         title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', entity_name);
 
-        var dialog = IPA.cert.restore_dialog({
-            title: title,
-            message: that.request_message,
-            restore: function() {
+        that.dialog.title = title;
+        that.dialog.message = that.get_confirm_message(facet);
+    };
 
-                IPA.command({
-                    entity: 'cert',
-                    method: 'remove_hold',
-                    args: [certificate.serial_number],
-                    on_success: function(data, text_status, xhr) {
-                        facet.refresh();
-                        IPA.notify_success(IPA.messages.objects.cert.restored);
-                    }
-                }).execute();
+    that.execute_action = function(facet) {
+
+        var certificate = facet.certificate;
+
+        IPA.command({
+            entity: 'cert',
+            method: 'remove_hold',
+            args: [certificate.serial_number],
+            on_success: function(data, text_status, xhr) {
+                facet.refresh();
+                IPA.notify_success(IPA.messages.objects.cert.restored);
             }
-        });
-
-        dialog.open();
+        }).execute();
     };
 
     return that;
