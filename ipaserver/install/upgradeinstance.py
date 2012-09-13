@@ -59,19 +59,24 @@ class IPAUpgrade(service.Service):
         self.modified = False
         self.badsyntax = False
         self.upgradefailed = False
+        self.serverid = serverid
 
-    def start(self, instance_name="", capture_output=True, wait=True):
+    def __start_nowait(self):
         # Don't wait here because we've turned off port 389. The connection
         # we make will wait for the socket.
-        super(IPAUpgrade, self).start(instance_name, capture_output, wait=False)
+        super(IPAUpgrade, self).start(wait=False)
+
+    def __stop_instance(self):
+        """Stop only the main DS instance"""
+        super(IPAUpgrade, self).stop(self.serverid)
 
     def create_instance(self):
-        self.step("stopping directory server", self.stop)
+        self.step("stopping directory server", self.__stop_instance)
         self.step("saving configuration", self.__save_config)
         self.step("disabling listeners", self.__disable_listeners)
-        self.step("starting directory server", self.start)
+        self.step("starting directory server", self.__start_nowait)
         self.step("upgrading server", self.__upgrade)
-        self.step("stopping directory server", self.stop)
+        self.step("stopping directory server", self.__stop_instance)
         self.step("restoring configuration", self.__restore_config)
         self.step("starting directory server", self.start)
 
