@@ -636,26 +636,15 @@ IPA.message_dialog = function(spec) {
 
     spec.name = spec.name || 'message_dialog';
 
-    var that = IPA.dialog(spec);
-    that.message = spec.message || '';
-    that.on_ok = spec.on_ok;
+    var that = IPA.confirm_dialog(spec);
 
-    that.create = function() {
-        $('<p/>', {
-            'text': that.message
-        }).appendTo(that.container);
+    that.open = function(container) {
+
+        that.confirm_dialog_open(container);
+        that.confirmed = true; // there are no options to confirm
     };
 
-    that.create_button({
-        name: 'ok',
-        label: IPA.messages.buttons.ok,
-        click: function() {
-            that.close();
-            if (that.on_ok) {
-                that.on_ok();
-            }
-        }
-    });
+    that.buttons.remove('cancel');
 
     that.message_dialog_create = that.create;
 
@@ -665,15 +654,23 @@ IPA.message_dialog = function(spec) {
 IPA.confirm_dialog = function(spec) {
 
     spec = spec || {};
-    spec.message = spec.message || IPA.messages.actions.confirm;
+    spec.name = spec.name || 'confirm_dialog';
     spec.title = spec.title || IPA.messages.dialogs.confirmation;
 
-    var that = IPA.message_dialog(spec);
+    var that = IPA.dialog(spec);
+    that.message = spec.message || '';
+    that.on_ok = spec.on_ok;
     that.on_cancel = spec.on_cancel;
     that.ok_label = spec.ok_label || IPA.messages.buttons.ok;
     that.cancel_label = spec.cancel_label || IPA.messages.buttons.cancel;
     that.confirmed = false;
     that.confirm_on_enter = spec.confirm_on_enter !== undefined ? spec.confirm_on_enter : true;
+
+    that.create = function() {
+        $('<p/>', {
+            'text': that.message
+        }).appendTo(that.container);
+    };
 
     that.close = function() {
 
@@ -708,8 +705,6 @@ IPA.confirm_dialog = function(spec) {
     };
 
     that.create_buttons = function() {
-
-        that.buttons.empty();
 
         that.create_button({
             name: 'ok',

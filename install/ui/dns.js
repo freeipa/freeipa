@@ -1258,7 +1258,7 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
     spec = spec || {};
     spec.title = spec.title || IPA.messages.dialogs.redirection;
 
-    var that = IPA.dialog(spec);
+    var that = IPA.message_dialog(spec);
 
     that.create = function() {
         $('<p/>', {
@@ -1269,14 +1269,10 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
         }).appendTo(that.container);
     };
 
-    that.create_button({
-        name: 'ok',
-        label: IPA.messages.buttons.ok,
-        click: function() {
-            that.close();
-            IPA.nav.show_page('dnszone','default');
-        }
-    });
+    that.on_ok = function() {
+        IPA.nav.show_page('dnszone','default');
+    };
+
     return that;
 };
 
