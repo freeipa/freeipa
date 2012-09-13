@@ -35,7 +35,7 @@ import os, string, struct, copy
 import uuid
 from samba import param
 from samba import credentials
-from samba.dcerpc import security, lsa, drsblobs, nbt
+from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon
 from samba.ndr import ndr_pack
 from samba import net
 import samba
@@ -217,6 +217,7 @@ class TrustDomainInstance(object):
         if self._pipe is None:
             raise errors.RemoteRetrieveError(
                 reason=_('Cannot establish LSA connection to %(host)s. Is CIFS server running?') % dict(host=remote_host))
+        self.binding = binding
 
     def __gen_lsa_bindings(self, remote_host):
         """
@@ -251,6 +252,7 @@ class TrustDomainInstance(object):
         self.info['dns_domain'] = unicode(result.dns_domain)
         self.info['dns_forest'] = unicode(result.forest)
         self.info['guid'] = unicode(result.domain_uuid)
+        self.info['dc'] = unicode(result.pdc_dns_name)
 
         # Netlogon response doesn't contain SID of the domain.
         # We need to do rootDSE search with LDAP_SERVER_EXTENDED_DN_OID control to reveal the SID
@@ -291,6 +293,7 @@ class TrustDomainInstance(object):
         self.info['dns_forest'] = unicode(result.dns_forest.string)
         self.info['guid'] = unicode(result.domain_guid)
         self.info['sid'] = unicode(result.sid)
+        self.info['dc'] = remote_host
 
     def generate_auth(self, trustdom_secret):
         def arcfour_encrypt(key, data):
@@ -374,6 +377,27 @@ class TrustDomainInstance(object):
         except RuntimeError, (num, message):
             raise assess_dcerpc_exception(num=num, message=message)
 
+    def verify_trust(self, another_domain):
+        def retrieve_netlogon_info_2(domain, function_code, data):
+            try:
+                netr_pipe = netlogon.netlogon(domain.binding, domain.parm, domain.creds)
+                result = netr_pipe.netr_LogonControl2Ex(logon_server=None,
+                                           function_code=function_code,
+                                           level=2,
+                                           data=data
+                                           )
+                return result
+            except RuntimeError, (num, message):
+                raise assess_dcerpc_exception(num=num, message=message)
+
+        result = retrieve_netlogon_info_2(self,
+                                          netlogon.NETLOGON_CONTROL_TC_VERIFY,
+                                          another_domain.info['dns_domain'])
+        if (unicode(result.trusted_dc_name)[2:] == another_domain.info['dc'] and
+            result.tc_connection_status == (0, 'WERR_OK')):
+            return True
+        return False
+
 class TrustDomainJoins(object):
     def __init__(self, api):
         self.api = api
@@ -447,7 +471,8 @@ class TrustDomainJoins(object):
             trustdom_pass = samba.generate_random_password(128, 128)
             self.remote_domain.establish_trust(self.local_domain, trustdom_pass)
             self.local_domain.establish_trust(self.remote_domain, trustdom_pass)
-            return dict(local=self.local_domain, remote=self.remote_domain)
+            result = self.remote_domain.verify_trust(self.local_domain)
+            return dict(local=self.local_domain, remote=self.remote_domain, verified=result)
         return None
 
     def join_ad_ipa_half(self, realm, realm_server, trustdom_passwd):
@@ -456,4 +481,4 @@ class TrustDomainJoins(object):
 
         self.__populate_remote_domain(realm, realm_server, realm_passwd=None)
         self.local_domain.establish_trust(self.remote_domain, trustdom_passwd)
-        return dict(local=self.local_domain, remote=self.remote_domain)
+        return dict(local=self.local_domain, remote=self.remote_domain, verified=False)

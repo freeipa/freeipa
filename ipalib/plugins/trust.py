@@ -60,8 +60,8 @@ _trust_type_dict = {1 : _('Non-Active Directory domain'),
 _trust_direction_dict = {1 : _('Trusting forest'),
                          2 : _('Trusted forest'),
                          3 : _('Two-way trust')}
-_trust_status = {1 : _('Established and verified'),
-                 2 : _('Waiting for confirmation by remote side')}
+_trust_status_dict = {True : _('Established and verified'),
+                 False : _('Waiting for confirmation by remote side')}
 _trust_type_dict_unknown = _('Unknown')
 
 def trust_type_string(level):
@@ -84,7 +84,7 @@ def trust_direction_string(level):
     return unicode(string)
 
 def trust_status_string(level):
-    string = _trust_direction_dict.get(int(level), _trust_type_dict_unknown)
+    string = _trust_status_dict.get(level, _trust_type_dict_unknown)
     return unicode(string)
 
 class trust(LDAPObject):
@@ -190,6 +190,8 @@ class trust_add(LDAPCreate):
         result['result'] = trusts[0][1]
         result['result']['trusttype'] = [trust_type_string(result['result']['ipanttrusttype'][0])]
         result['result']['trustdirection'] = [trust_direction_string(result['result']['ipanttrustdirection'][0])]
+        result['result']['truststatus'] = [trust_status_string(result['verified'])]
+        del result['verified']
 
         return result
 
@@ -272,14 +274,14 @@ class trust_add(LDAPCreate):
             if result is None:
                 raise errors.ValidationError(name=_('AD Trust setup'), error=_('Unable to verify write permissions to the AD'))
 
-            return dict(result=dict(), value=trustinstance.remote_domain.info['dns_domain'])
+            return dict(value=trustinstance.remote_domain.info['dns_domain'], verified=result['verified'])
 
         # 2. We don't have access to the remote domain and trustdom password
         # is provided. Do the work on our side and inform what to do on remote
         # side.
         if 'trust_secret' in options:
             result = trustinstance.join_ad_ipa_half(keys[-1], realm_server, options['trust_secret'])
-            return dict(result=dict(), value=trustinstance.remote_domain.info['dns_domain'])
+            return dict(value=trustinstance.remote_domain.info['dns_domain'], verified=result['verified'])
         raise errors.ValidationError(name=_('AD Trust setup'), error=_('Not enough arguments specified to perform trust setup'))
 
 class trust_del(LDAPDelete):
