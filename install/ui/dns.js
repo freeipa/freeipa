@@ -1816,13 +1816,11 @@ IPA.dns.record_type_table_widget = function(spec) {
                 that.idnsname[0],
                 function(data) {
                     that.reload_facet(data);
-                    dialog.close();
                     that.notify_facet_update();
                     that.facet.nofify_update_success();
                 },
                 function() {
                     that.refresh_facet();
-                    dialog.close();
                 }
             );
         };

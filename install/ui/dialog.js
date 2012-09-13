@@ -569,13 +569,17 @@ IPA.adder_dialog = function(spec) {
 IPA.deleter_dialog =  function (spec) {
 
     spec = spec || {};
+
+    spec.title = spec.title || IPA.messages.buttons.remove;
     spec.name = spec.name || 'deleter_dialog';
+    spec.message = spec.message || IPA.messages.search.delete_confirm;
+    spec.ok_label = spec.ok_label || IPA.messages.buttons.remove;
 
-    var that = IPA.dialog(spec);
-
-    that.title = spec.title || IPA.messages.buttons.remove;
-
+    var that = IPA.confirm_dialog(spec);
     that.values = spec.values || [];
+    that.on_ok = spec.on_ok || function() {
+        that.execute();
+    };
 
     that.add_value = function(value) {
         that.values.push(value);
@@ -588,7 +592,7 @@ IPA.deleter_dialog =  function (spec) {
     that.create = function() {
 
         $('<p/>', {
-            'text': IPA.messages.search.delete_confirm
+            'text': that.message
         }).appendTo(that.container);
 
         var div = $('<div/>', {
@@ -619,30 +623,6 @@ IPA.deleter_dialog =  function (spec) {
                 'text': value
             }).appendTo(ul);
         }
-    };
-
-    that.open = function(container) {
-
-        that.create_button({
-            name: 'remove',
-            label: IPA.messages.buttons.remove,
-            click: function() {
-                that.execute();
-            }
-        });
-
-        that.create_button({
-            name: 'cancel',
-            label: IPA.messages.buttons.cancel,
-            click: function() {
-                that.close();
-            }
-        });
-
-        that.dialog_open(container);
-    };
-
-    that.execute = function() {
     };
 
     that.deleter_dialog_create = that.create;

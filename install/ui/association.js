@@ -632,12 +632,10 @@ IPA.association_table_widget = function (spec) {
                 selected_values,
                 function() {
                     that.refresh();
-                    dialog.close();
                     IPA.notify_success(IPA.messages.association.removed);
                 },
                 function() {
                     that.refresh();
-                    dialog.close();
                 }
             );
         };
@@ -1051,12 +1049,10 @@ IPA.association_facet = function (spec, no_init) {
                 method: that.remove_method,
                 on_success: function() {
                     that.refresh();
-                    dialog.close();
                     IPA.notify_success(IPA.messages.association.removed);
                 },
                 on_error: function() {
                     that.refresh();
-                    dialog.close();
                 }
             });
 
@@ -1311,12 +1307,10 @@ IPA.attribute_facet = function(spec, no_init) {
                 function(data) {
                     that.load(data);
                     that.show_content();
-                    dialog.close();
                     IPA.notify_success(IPA.messages.association.removed);
                 },
                 function() {
                     that.refresh();
-                    dialog.close();
                 }
             );
         };

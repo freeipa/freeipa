@@ -1903,12 +1903,10 @@ IPA.attribute_table_widget = function(spec) {
                 function(data, text_status, xhr) {
                     var handler = that.on_remove || that.on_command_success;
                     handler.call(this, data, text_status, xhr);
-                    dialog.close();
                 },
                 function(xhr, text_status, error_thrown) {
                     var handler = that.on_remove_error || that.on_command_error;
                     handler.call(this, xhr, text_status, error_thrown);
-                    dialog.close();
                 }
             );
             command.execute();

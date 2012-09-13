@@ -311,13 +311,11 @@ IPA.search_deleter_dialog = function(spec) {
         batch.on_success = function(data, text_status, xhr) {
             that.facet.refresh();
             that.facet.on_update.notify([],that.facet);
-            that.close();
             IPA.notify_success(IPA.messages.search.deleted);
         };
 
         batch.on_error = function() {
             that.facet.refresh();
-            that.close();
         };
 
         batch.execute();
