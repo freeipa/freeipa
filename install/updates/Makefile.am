@@ -11,6 +11,7 @@ app_DATA =				\
 	10-sudo.update			\
 	10-ssh.update			\
 	10-bind-schema.update		\
+	10-uniqueness.update		\
 	19-managed-entries.update	\
 	20-aci.update			\
 	20-dna.update			\
