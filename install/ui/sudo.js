@@ -881,12 +881,10 @@ IPA.sudo.options_section = function(spec) {
                         that.reload();
                     }
 
-                    dialog.close();
                     IPA.notify_success(IPA.messages.objects.sudorule.option_removed);
                 },
                 on_error: function(data) {
                     that.reload();
-                    dialog.close();
                 }
             });
 
