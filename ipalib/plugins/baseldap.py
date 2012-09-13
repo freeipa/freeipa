@@ -882,7 +882,17 @@ last, after all sets and adds."""),
             entry_attrs[attr] = val
 
         for attr in direct_add:
-            entry_attrs.setdefault(attr, []).extend(adddict[attr])
+            try:
+                val = entry_attrs[attr]
+            except KeyError:
+                val = []
+            else:
+                if not isinstance(val, (list, tuple)):
+                    val = [val]
+                elif isinstance(val, tuple):
+                    val = list(val)
+            val.extend(adddict[attr])
+            entry_attrs[attr] = val
 
         for attr in direct_del:
             for delval in deldict[attr]:

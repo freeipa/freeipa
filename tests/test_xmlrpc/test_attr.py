@@ -37,6 +37,16 @@ class test_attr(Declarative):
     tests = [
 
         dict(
+            desc='Try to add user %r with single-value attribute set via '
+                 'option and --addattr' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                    addattr=u'sn=User2')
+            ),
+            expected=errors.OnlyOneValueAllowed(attr='sn'),
+        ),
+
+        dict(
             desc='Create %r' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
