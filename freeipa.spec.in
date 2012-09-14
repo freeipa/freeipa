@@ -31,7 +31,7 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 %if 0%{?fedora} >= 16
 BuildRequires:  systemd-units
 %endif
-BuildRequires:  samba4-devel >= 4.0.0-134
+BuildRequires:  samba4-devel >= 4.0.0-139
 BuildRequires:  samba4-python
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
@@ -752,6 +752,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Fri Sep 14 2012 Sumit Bose <sbose@redhat.com> - 2.99.0-44
+- Updated samba4-devel dependency due to API change
+
 * Mon Aug 20 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-43
 - Set min for 389-ds-base to 1.2.11.9-1 on F17+ to pull in warning about
   low nsslapd-cachememsize.
