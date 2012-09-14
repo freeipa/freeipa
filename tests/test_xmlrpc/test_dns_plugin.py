@@ -590,6 +590,16 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Try to modify nonexistent record in zone %r' % dnszone1,
+            command=('dnsrecord_mod',
+                [dnszone1, u'ghostname'],
+                {'aaaarecord': u'f001:baad::1'}),
+            expected=errors.NotFound(
+                reason=u'ghostname: DNS resource record not found'),
+        ),
+
+
+        dict(
             desc='Modify AAAA record in %r in zone %r' % (dnsres1, dnszone1),
             command=('dnsrecord_mod', [dnszone1, dnsres1], {'aaaarecord': u'ff02::1'}),
             expected={
