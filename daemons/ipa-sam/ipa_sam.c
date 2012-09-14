@@ -476,7 +476,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 				    ldap_state->ipasam_privates->base_dn,
 				    LDAP_SCOPE_SUBTREE, filter, ldap_attrs, 0,
 				    &msg);
-		talloc_autofree_ldapmsg(mem_ctx, msg);
+		smbldap_talloc_autofree_ldapmsg(mem_ctx, msg);
 	}
 
 	if (rc != LDAP_SUCCESS)
@@ -546,7 +546,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 				    ldap_state->ipasam_privates->base_dn,
 				    LDAP_SCOPE_SUBTREE, filter, ldap_attrs, 0,
 				    &msg);
-		talloc_autofree_ldapmsg(mem_ctx, msg);
+		smbldap_talloc_autofree_ldapmsg(mem_ctx, msg);
 	}
 
 	if (rc != LDAP_SUCCESS)
@@ -665,7 +665,7 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 	if (rc != LDAP_SUCCESS) {
 		goto done;
 	}
-	talloc_autofree_ldapmsg(mem_ctx, result);
+	smbldap_talloc_autofree_ldapmsg(mem_ctx, result);
 
 	if (ldap_count_entries(priv2ld(priv), result) != 1) {
 		DEBUG(10, ("Got %d entries, expected one\n",
@@ -755,7 +755,7 @@ static bool ldapsam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 	if (rc != LDAP_SUCCESS) {
 		goto done;
 	}
-	talloc_autofree_ldapmsg(tmp_ctx, result);
+	smbldap_talloc_autofree_ldapmsg(tmp_ctx, result);
 
 	if (ldap_count_entries(priv2ld(priv), result) != 1) {
 		DEBUG(3, ("ERROR: Got %d entries for uid %u, expected one\n",
@@ -822,7 +822,7 @@ static bool ldapsam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 	if (rc != LDAP_SUCCESS) {
 		goto done;
 	}
-	talloc_autofree_ldapmsg(tmp_ctx, result);
+	smbldap_talloc_autofree_ldapmsg(tmp_ctx, result);
 
 	if (ldap_count_entries(priv2ld(priv), result) != 1) {
 		DEBUG(3, ("ERROR: Got %d entries for gid %u, expected one\n",
@@ -1482,7 +1482,7 @@ static bool search_krb_princ(struct ldapsam_privates *ldap_state,
 			    LDAP_SCOPE_SUBTREE, filter, NULL, 0, &result);
 
 	if (result != NULL) {
-		talloc_autofree_ldapmsg(mem_ctx, result);
+		smbldap_talloc_autofree_ldapmsg(mem_ctx, result);
 	}
 
 	if (rc == LDAP_NO_SUCH_OBJECT) {
@@ -1782,7 +1782,7 @@ static bool get_trusted_domain_int(struct ldapsam_privates *ldap_state,
 			    LDAP_SCOPE_SUBTREE, filter, NULL, 0, &result);
 
 	if (result != NULL) {
-		talloc_autofree_ldapmsg(mem_ctx, result);
+		smbldap_talloc_autofree_ldapmsg(mem_ctx, result);
 	}
 
 	if (rc == LDAP_NO_SUCH_OBJECT) {
@@ -2275,7 +2275,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 				      &td->trust_forest_trust_info);
 	}
 
-	talloc_autofree_ldapmod(tmp_ctx, mods);
+	smbldap_talloc_autofree_ldapmod(tmp_ctx, mods);
 
 	trusted_dn = trusted_domain_dn(tmp_ctx, ldap_state, domain);
 	if (trusted_dn == NULL) {
@@ -2405,7 +2405,7 @@ static NTSTATUS ipasam_enum_trusted_domains(struct pdb_methods *methods,
 	TALLOC_FREE(filter);
 
 	if (result != NULL) {
-		talloc_autofree_ldapmsg(mem_ctx, result);
+		smbldap_talloc_autofree_ldapmsg(mem_ctx, result);
 	}
 
 	if (rc == LDAP_NO_SUCH_OBJECT) {
@@ -2668,7 +2668,7 @@ static bool ipasam_nthash_regen(struct ldapsam_privates *ldap_state,
 	int ret;
 
 	smbldap_set_mod(&mods, LDAP_MOD_ADD, LDAP_ATTRIBUTE_NTHASH, "MagicRegen");
-	talloc_autofree_ldapmod(mem_ctx, mods);
+	smbldap_talloc_autofree_ldapmod(mem_ctx, mods);
 
 	ret = smbldap_modify(ldap_state->smbldap_state, entry_dn, mods);
 	if (ret != LDAP_SUCCESS) {
