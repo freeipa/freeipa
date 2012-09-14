@@ -72,6 +72,8 @@ def parse_options():
                       help="provide additional information")
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
                       help="ignore some types of errors")
+    parser.add_option("-c", "--cleanup", dest="cleanup", action="store_true", default=False,
+                      help="DANGER: clean up references to a ghost master")
     parser.add_option("--binddn", dest="binddn", default=None, type="dn",
                       help="Bind DN to use with remote server")
     parser.add_option("--bindpw", dest="bindpw", default=None,
@@ -463,9 +465,53 @@ def list_clean_ruv(realm, host, dirman_passwd, verbose):
                 print str(dn)
                 print entry.getValue('nstasklog')
 
+def check_last_link(delrepl, realm, dirman_passwd, force):
+    """
+    We don't want to orphan a server when deleting another one. If you have
+    a topology that looks like this:
+
+             A     B
+             |     |
+             |     |
+             |     |
+             C---- D
+
+    If we try to delete host D it will orphan host B.
+
+    What we need to do is if the master being deleted has only a single
+    agreement, connect to that master and make sure it has agreements with
+    more than just this master.
+
+    @delrepl: a ReplicationManager object of the master being deleted
+
+    returns: hostname of orphaned server or None
+    """
+    replica_names = delrepl.find_ipa_replication_agreements()
+
+    orphaned = []
+    # Connect to each remote server and see what agreements it has
+    for replica in replica_names:
+        try:
+            repl = replication.ReplicationManager(realm, replica, dirman_passwd)
+        except ldap.SERVER_DOWN, e:
+            print "Unable to validate that '%s' will not be orphaned." % replica
+
+            if not force and not ipautil.user_input("Continue to delete?", False):
+                sys.exit("Aborted")
+            continue
+        names = repl.find_ipa_replication_agreements()
+        if len(names) == 1 and names[0] == delrepl.hostname:
+            orphaned.append(replica)
+
+    if len(orphaned):
+        return ', '.join(orphaned)
+    else:
+        return None
+
 def del_master(realm, hostname, options):
 
     force_del = False
+    delrepl = None
 
     # 1. Connect to the local server
     try:
@@ -478,7 +524,21 @@ def del_master(realm, hostname, options):
     # 2. Ensure we have an agreement with the master
     agreement = thisrepl.get_replication_agreement(hostname)
     if agreement is None:
-        sys.exit("'%s' has no replication agreement for '%s'" % (options.host, hostname))
+        if options.cleanup:
+            """
+            We have no agreement with the current master, so this is a
+            candidate for cleanup. This is VERY dangerous to do because it
+            removes that master from the list of masters. If the master
+            were to try to come back online it wouldn't work at all.
+            """
+            print "Cleaning a master is irreversible."
+            print "This should not normally be require, so use cautiously."
+            if not ipautil.user_input("Continue to clean master?", False):
+                sys.exit("Cleanup aborted")
+            thisrepl.replica_cleanup(hostname, realm, force=True)
+            sys.exit(0)
+        else:
+            sys.exit("'%s' has no replication agreement for '%s'" % (options.host, hostname))
 
     # 3. If an IPA agreement connect to the master to be removed.
     repltype = thisrepl.get_agreement_type(hostname)
@@ -515,6 +575,29 @@ def del_master(realm, hostname, options):
         print "and re-install."
         if not ipautil.user_input("Continue to delete?", False):
             sys.exit("Deletion aborted")
+
+    # Check for orphans if the remote server is up.
+    if delrepl and not winsync:
+        masters_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
+        try:
+            masters = delrepl.conn.getList(masters_dn, ldap.SCOPE_ONELEVEL)
+        except Exception, e:
+            masters = []
+            print "Failed to read masters data from '%s': %s" % (delrepl.hostname, convert_error(e))
+            print "Skipping calculation to determine if one or more masters would be orphaned."
+            if not options.force:
+                sys.exit(1)
+
+        # This only applies if we have more than 2 IPA servers, otherwise
+        # there is no chance of an orphan.
+        if len(masters) > 2:
+            orphaned_server = check_last_link(delrepl, realm, options.dirman_passwd, options.force)
+            if orphaned_server is not None:
+                print "Deleting this server will orphan '%s'. " % orphaned_server
+                print "You will need to reconfigure your replication topology to delete this server."
+                sys.exit(1)
+    else:
+        print "Skipping calculation to determine if one or more masters would be orphaned."
 
     # Save the RID value before we start deleting
     if repltype == replication.IPA_REPLICA:

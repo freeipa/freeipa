@@ -65,6 +65,14 @@ Each IPA master server has a unique replication ID. This ID is used by 389\-ds\-
 When a master is removed, all other masters need to remove its replication ID from the list of masters. Normally this occurs automatically when a master is deleted with ipa\-replica\-manage. If one or more masters was down or unreachable when ipa\-replica\-manage was executed then this replica ID may still exist. The clean\-ruv command may be used to clean up an unused replication ID.
 .TP
 \fBNOTE\fR: clean\-ruv is \fBVERY DANGEROUS\fR. Execution against the wrong replication ID can result in inconsistent data on that master. The master should be re\-initialized from another if this happens.
+.TP
+The replication topology is examined when a master is deleted and will attempt to prevent a master from being orphaned. For example, if your topology is A <\-> B <\-> C and you attempt to delete master B it will fail because that would leave masters and A and C orphaned.
+.TP
+The list of masters is stored in cn=masters,cn=ipa,cn=etc,dc=example,dc=com. This should be cleaned up automatically when a master is deleted. If it occurs that you have deleted the master and all the agreements but these entries still exist then you will not be able to re\-install IPA on it, the installation will fail with:
+.TP
+An IPA master host cannot be deleted or disabled using standard commands (host\-del, for example).
+.TP
+An orphaned master may be cleaned up using the del directive with the \-\-cleanup option. This will remove the entries from cn=masters,cn=ipa,cn=etc that otherwise prevent host\-del from working, its dna profile, s4u2proxy configuration, service principals and remove it from the default DUA profile defaultServerList.
 .SH "OPTIONS"
 .TP
 \fB\-H\fR \fIHOST\fR, \fB\-\-host\fR=\fIHOST\fR
@@ -80,6 +88,9 @@ Provide additional information
 .TP
 \fB\-f\fR, \fB\-\-force\fR
 Ignore some types of errors, don't prompt when deleting a master
+.TP
+\fB\-c\fR, \fB\-\-cleanup\fR
+When deleting a master with the --force flag, remove leftover references to an already deleted master.
 .TP
 \fB\-\-binddn\fR=\fIADMIN_DN\fR
 Bind DN to use with remote server (default is cn=Directory Manager) \- Be careful to quote this value on the command line
@@ -135,6 +146,9 @@ List the replication IDs in use:
  # ipa\-replica\-manage list\-ruv
  srv1.example.com:389: 7
  srv2.example.com:389: 4
+.TP
+Remove references to an orphaned and deleted master:
+ # ipa\-replica\-manage del \-\-force \-\-cleanup master.example.com
 .SH "WINSYNC"
 Creating a Windows AD Synchronization agreement is similar to creating an IPA replication agreement, there are just a couple of extra steps.
 
