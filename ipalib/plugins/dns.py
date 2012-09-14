@@ -2455,8 +2455,7 @@ class dnsrecord_mod(LDAPUpdate):
             (dn_, old_entry) = ldap.get_entry(dn, _record_attributes,
                                               normalize=self.obj.normalize_dn)
         except errors.NotFound:
-            if updated_attrs:
-                self.obj.handle_not_found(*keys)
+            self.obj.handle_not_found(*keys)
 
         if updated_attrs:
             for attr in updated_attrs:
