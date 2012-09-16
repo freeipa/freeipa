@@ -877,7 +877,7 @@ class LogManager(object):
           The regular expression comparision is performed with the
           re.search() function which means the match can be located
           anywhere in the name string (as opposed to the start of
-          the the string). Do not forget to escape regular
+          the string). Do not forget to escape regular
           expression metacharacters when appropriate. For example
           dot ('.') is used to seperate loggers in a logging
           hierarchy path (e.g. a.b.c)

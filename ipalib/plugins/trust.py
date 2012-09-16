@@ -138,7 +138,7 @@ class trust_add(LDAPCreate):
         ),
         Password('realm_passwd?',
             cli_name='password',
-            label=_("Active directory domain adminstrator's password"),
+            label=_("Active directory domain administrator's password"),
             confirm=False,
         ),
         Str('realm_server?',
@@ -299,7 +299,7 @@ class trust_mod(LDAPUpdate):
     __doc__ = _("""
     Modify a trust (for future use).
 
-    Currently only the default option to modify the LDAP attributes are
+    Currently only the default option to modify the LDAP attributes is
     available. More specific options will be added in coming releases.
     """)
 

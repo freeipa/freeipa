@@ -47,7 +47,7 @@ example above).
 \fBWARNING:\fR retrieving the keytab resets the secret for the Kerberos principal.
 This renders all other keytabs for that principal invalid.
 
-This is used during IPA client enrollement to retrieve a host service principal and store it in /etc/krb5.keytab. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR and \fB\-w|\-\-bindpw\fR options are used for this authentication.
+This is used during IPA client enrollment to retrieve a host service principal and store it in /etc/krb5.keytab. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR and \fB\-w|\-\-bindpw\fR options are used for this authentication.
 .SH "OPTIONS"
 .TP
 \fB\-s ipaserver\fR

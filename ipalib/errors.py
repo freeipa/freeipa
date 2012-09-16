@@ -446,7 +446,7 @@ class XMLRPCMarshallError(PublicError):
 
 class RefererError(PublicError):
     """
-    **911** Raised when the the request does not contain an HTTP referer
+    **911** Raised when the request does not contain an HTTP referer
 
     For example:
 

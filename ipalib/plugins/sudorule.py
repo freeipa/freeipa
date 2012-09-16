@@ -32,9 +32,9 @@ commands as root or another user while providing an audit trail of the
 commands and their arguments.
 
 FreeIPA provides a means to configure the various aspects of Sudo:
-   Users: The user(s)/group(s) allowed to envoke Sudo.
+   Users: The user(s)/group(s) allowed to invoke Sudo.
    Hosts: The host(s)/hostgroup(s) which the user is allowed to to invoke Sudo.
-   Allow Command: The specific command(s) permited to be run via Sudo.
+   Allow Command: The specific command(s) permitted to be run via Sudo.
    Deny Command: The specific command(s) prohibited to be run via Sudo.
    RunAsUser: The user(s) or group(s) of users whose rights Sudo will be invoked with.
    RunAsGroup: The group(s) whose gid rights Sudo will be invoked with.

@@ -313,7 +313,7 @@ class test_attr(Declarative):
 
 
         dict(
-            desc='Set and delete the a phone number for %r' % user1,
+            desc='Set and delete a phone number for %r' % user1,
             command=(
                 'user_mod', [user1], dict(setattr=(u'telephoneNumber=301-555-1212',
                                                    u'telephoneNumber=202-888-9833'),
