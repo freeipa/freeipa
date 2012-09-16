@@ -16780,9 +16780,9 @@
                     },
                     {
                         "class": "Password",
-                        "doc": "Active directory domain adminstrator's password",
+                        "doc": "Active directory domain administrator's password",
                         "flags": [],
-                        "label": "Active directory domain adminstrator's password",
+                        "label": "Active directory domain administrator's password",
                         "name": "realm_passwd",
                         "noextrawhitespace": true,
                         "type": "unicode"

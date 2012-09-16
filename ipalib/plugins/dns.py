@@ -63,7 +63,7 @@ value can be used, they just should not be combined in one add operation. When
 modifying an existing entry, new RR specific options can be used to change
 one part of a DNS record, where the standard option for raw value is used
 to specify the modified value. The following example demonstrates
-a modification of MX record preference form 0 to 1 in a record without
+a modification of MX record preference from 0 to 1 in a record without
 modifying the exchanger:
 ipa dnsrecord-mod --mx-rec="0 mx.example.com." --mx-preference=1
 
@@ -120,7 +120,7 @@ EXAMPLES:
    ipa dnsrecord-add example.com @ --loc-rec="49 11 42.4 N 16 36 29.6 E 227.64m"
 
  Add new A record for www.example.com. Create a reverse record in appropriate
- reverse zone as well. In this case a PTR record "2" pointing to www.example.com.
+ reverse zone as well. In this case a PTR record "2" pointing to www.example.com
  will be created in zone 15.142.80.in-addr.arpa.
    ipa dnsrecord-add example.com www --a-rec=80.142.15.2 --a-create-reverse
 
@@ -182,7 +182,7 @@ EXAMPLES:
  Show records for resource www in zone example.com
    ipa dnsrecord-show example.com www
 
- Forward all request for a zone external.com to another nameserver using
+ Forward all requests for the zone external.com to another nameserver using
  a "first" policy (it will send the queries to the selected forwarder and if
  not answered it will use global resolvers):
    ipa dnszone-add external.com

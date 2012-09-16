@@ -29,7 +29,7 @@ __doc__ = _("""
 Auto Membership Rule.
 
 Bring clarity to the membership of hosts and users by configuring inclusive
-or exclusive regex paterns, you can automatically assign a new entries into
+or exclusive regex patterns, you can automatically assign a new entries into
 a group or hostgroup based upon attribute information.
 
 A rule is directly associated with a group by name, so you cannot create

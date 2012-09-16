@@ -104,7 +104,7 @@ and the base-id has to be added to get the Posix ID.
 Typically the creation of ID ranges happens behind the scenes and this CLI
 must not be used at all. The ID range for the local domain will be created
 during installation or upgrade from an older version. The ID range for a
-trusted domain will be create together with the trust by 'ipa trust-add ...'.
+trusted domain will be created together with the trust by 'ipa trust-add ...'.
 The use cases for this CLI are
 
 USE CASES:
@@ -119,7 +119,7 @@ USE CASES:
 
     If the ID range of the local domain is exhausted, i.e. no new IDs can be
     assigned to Posix users or groups by the DNA plugin, a new range has to be
-    created to allow new users an groups to be added. (Currently there is no
+    created to allow new users and groups to be added. (Currently there is no
     connection between this range CLI and the DNA plugin, but a future version
     might be able to modify the configuration of the DNS plugin as well)
 
@@ -261,7 +261,7 @@ class idrange_add(LDAPCreate):
     Additionally
 
         --rid-base
-        --econdary-rid-base
+        --secondary-rid-base
 
     may be given for a new ID range for the local domain while
 

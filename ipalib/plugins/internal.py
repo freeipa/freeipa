@@ -245,7 +245,7 @@ class i18n_messages(Command):
             "refresh": _("Refresh the page."),
             "reload": _("Reload the browser."),
             "main_page": _("Return to the main page and retry the operation"),
-            "title": _("An error has occured (${error})"),
+            "title": _("An error has occurred (${error})"),
         },
         "errors": {
             "error": _("Error"),

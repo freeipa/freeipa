@@ -56,7 +56,7 @@ about this topic please see: ipa help passwd
 
 Account lockout on password failure happens per IPA master. The user-status
 command can be used to identify which master the user is locked out on.
-It is on that master the the administrator must unlock the user.
+It is on that master the administrator must unlock the user.
 
 EXAMPLES:
 

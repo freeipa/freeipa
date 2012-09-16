@@ -230,7 +230,7 @@ Proposed Solution
 
 Our interface to the web server is via WSGI which invokes a callback
 per request passing us an environmental context for the request. For
-this discussion we'll name the the WSGI callback "application()", a
+this discussion we'll name the WSGI callback "application()", a
 conventional name in WSGI parlance.
 
 Shared session data will be handled by memcached. We will create one
@@ -304,7 +304,7 @@ in the future. Session data may not be available because:
 Cookie manipulation is done via the standard Python Cookie module.
 
 Session cookies will be set to only persist as long as the browser has
-the session open. They will be tagged so the the browser only returns
+the session open. They will be tagged so the browser only returns
 the session ID on SSL secured HTTP requests. They will not be visible
 to Javascript in the browser.
 

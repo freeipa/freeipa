@@ -110,7 +110,7 @@
                         "refresh": "Refresh the page.",
                         "reload": "Reload the browser.",
                         "main_page": "Return to the main page and retry the operation",
-                        "title": "An error has occured (${error})"
+                        "title": "An error has occurred (${error})"
                     },
                     "errors": {
                         "error": "Error",

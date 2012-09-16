@@ -110,7 +110,7 @@ test("Testing successful IPA.command().", function() {
 
     var xhr = {};
     var text_status = null;
-    var error_thrown = {name:'ERROR', message:'An error has occured'};
+    var error_thrown = {name:'ERROR', message:'An error has occurred'};
 
     var ajax_counter = 0;
 
@@ -186,7 +186,7 @@ test("Testing unsuccessful IPA.command().", function() {
 
     var xhr = {};
     var text_status = null;
-    var error_thrown = {name:'ERROR', message:'An error has occured'};
+    var error_thrown = {name:'ERROR', message:'An error has occurred'};
 
     var ajax_counter = 0;
 
