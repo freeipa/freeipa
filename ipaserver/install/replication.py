@@ -1103,3 +1103,71 @@ class ReplicationManager(object):
 
         if err:
             raise err   #pylint: disable=E0702
+
+    def set_readonly(self, readonly, critical=False):
+        """
+        Set the database readonly status.
+
+        @readonly: boolean for read-only status
+        @critical: boolean to raise an exception on failure, default False.
+        """
+        dn = DN(('cn', 'userRoot'), ('cn', 'ldbm database'),
+                ('cn', 'plugins'), ('cn', 'config'))
+
+        mod = [(ldap.MOD_REPLACE, 'nsslapd-readonly', 'on' if readonly else 'off')]
+        try:
+            self.conn.modify_s(dn, mod)
+        except ldap.INSUFFICIENT_ACCESS, e:
+            # We can't modify the read-only status on the remote server.
+            # This usually isn't a show-stopper.
+            if critical:
+                raise e
+            root_logger.debug("No permission to modify replica read-only status, continuing anyway")
+
+    def cleanallruv(self, replicaId):
+        """
+        Create a CLEANALLRUV task and monitor it until it has
+        completed.
+        """
+        root_logger.debug("Creating CLEANALLRUV task for replica id %d" % replicaId)
+
+        dn = DN(('cn', 'clean %d' % replicaId), ('cn', 'cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
+        e = ipaldap.Entry(dn)
+        e.setValues('objectclass', ['top', 'extensibleObject'])
+        e.setValue('replica-base-dn', api.env.basedn)
+        e.setValue('replica-id', replicaId)
+        e.setValue('cn', 'clean %d' % replicaId)
+        try:
+            self.conn.addEntry(e)
+        except errors.DuplicateEntry:
+            print "CLEANALLRUV task for replica id %d already exists." % replicaId
+        else:
+            print "Background task created to clean replication data. This may take a while."
+
+        print "This may be safely interrupted with Ctrl+C"
+
+        self.conn.checkTask(dn, dowait=True)
+
+    def abortcleanallruv(self, replicaId):
+        """
+        Create a task to abort a CLEANALLRUV operation.
+        """
+        root_logger.debug("Creating task to abort a CLEANALLRUV operation for replica id %d" % replicaId)
+
+        dn = DN(('cn', 'abort %d' % replicaId), ('cn', 'abort cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
+        e = ipaldap.Entry(dn)
+        e.setValues('objectclass', ['top', 'extensibleObject'])
+        e.setValue('replica-base-dn', api.env.basedn)
+        e.setValue('replica-id', replicaId)
+        e.setValue('cn', 'abort %d' % replicaId)
+        try:
+            self.conn.addEntry(e)
+        except errors.DuplicateEntry:
+            print "An abort CLEANALLRUV task for replica id %d already exists." % replicaId
+        else:
+            print "Background task created. This may take a while."
+
+        print "This may be safely interrupted with Ctrl+C"
+
+        self.conn.checkTask(dn, dowait=True)
+
