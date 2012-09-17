@@ -42,11 +42,29 @@ Manages the replication agreements of an IPA server.
 \fBforce\-sync\fR
 \- Immediately flush any data to be replicated from a server specified with the \-\-from option
 .TP
+\fBlist\-ruv\fR
+\- List the replication IDs on this server.
+.TP
+\fBclean\-ruv\fR [REPLICATION_ID]
+\- Run the CLEANALLRUV task to remove a replication ID.
+.TP
+\fBabort\-clean\-ruv\fR [REPLICATION_ID]
+\- Abort a running CLEANALLRUV task.
+.TP
+\fBlist\-clean\-ruv\fR
+\- List all running CLEANALLRUV and abort CLEANALLRUV tasks.
+.TP
 The connect and disconnect options are used to manage the replication topology. When a replica is created it is only connected with the master that created it. The connect option may be used to connect it to other existing replicas.
 .TP
 The disconnect option cannot be used to remove the last link of a replica. To remove a replica from the topology use the del option.
 .TP
 If a replica is deleted and then re\-added within a short time\-frame then the 389\-ds instance on the master that created it should be restarted before re\-installing the replica. The master will have the old service principals cached which will cause replication to fail.
+.TP
+Each IPA master server has a unique replication ID. This ID is used by 389\-ds\-base when storing information about replication status. The output consists of the masters and their respective replication ID. See \fBclean\-ruv\fR
+.TP
+When a master is removed, all other masters need to remove its replication ID from the list of masters. Normally this occurs automatically when a master is deleted with ipa\-replica\-manage. If one or more masters was down or unreachable when ipa\-replica\-manage was executed then this replica ID may still exist. The clean\-ruv command may be used to clean up an unused replication ID.
+.TP
+\fBNOTE\fR: clean\-ruv is \fBVERY DANGEROUS\fR. Execution against the wrong replication ID can result in inconsistent data on that master. The master should be re\-initialized from another if this happens.
 .SH "OPTIONS"
 .TP
 \fB\-H\fR \fIHOST\fR, \fB\-\-host\fR=\fIHOST\fR
@@ -112,6 +130,11 @@ Completely remove a replica:
  # ipa\-replica\-manage del srv4.example.com
 .TP
 Using connect/disconnect you can manage the replication topology.
+.TP
+List the replication IDs in use:
+ # ipa\-replica\-manage list\-ruv
+ srv1.example.com:389: 7
+ srv2.example.com:389: 4
 .SH "WINSYNC"
 Creating a Windows AD Synchronization agreement is similar to creating an IPA replication agreement, there are just a couple of extra steps.
 

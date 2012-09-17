@@ -1,0 +1,4 @@
+# Let a delegated user put the database into read-only mode when deleting
+# an agreement.
+dn: cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+add:aci: '(targetattr=nsslapd-readonly)(version 3.0; acl "Allow marking the database readonly"; allow (write) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)'
