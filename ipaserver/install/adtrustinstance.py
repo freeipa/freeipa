@@ -155,25 +155,25 @@ class ADTRUSTInstance(service.Service):
             dom_entry = self.admin_conn.getEntry(self.smb_dom_dn, \
                                                  ldap.SCOPE_BASE)
         except errors.NotFound:
-            print "Samba domain object not found"
+            self.print_msg("Samba domain object not found")
             return
 
         dom_sid = dom_entry.getValue(self.ATTR_SID)
         if not dom_sid:
-            print "Samba domain object does not have a SID"
+            self.print_msg("Samba domain object does not have a SID")
             return
 
         try:
             admin_entry = self.admin_conn.getEntry(admin_dn, ldap.SCOPE_BASE)
         except:
-            print "IPA admin object not found"
+            self.print_msg("IPA admin object not found")
             return
 
         try:
             admin_group_entry = self.admin_conn.getEntry(admin_group_dn, \
                                                          ldap.SCOPE_BASE)
         except:
-            print "IPA admin group object not found"
+            self.print_msg("IPA admin group object not found")
             return
 
         if admin_entry.getValue(self.ATTR_SID):
@@ -283,13 +283,13 @@ class ADTRUSTInstance(service.Service):
 
             if res[0].getValue('ipaBaseRID') or \
                res[0].getValue('ipaSecondaryBaseRID'):
-                print "RID bases already set, nothing to do"
+                self.print_msg("RID bases already set, nothing to do")
                 return
 
             size = res[0].getValue('ipaIDRangeSize')
             if abs(self.rid_base - self.secondary_rid_base) > size:
-                print "Primary and secondary RID base are too close. " \
-                      "They have to differ at least by %d." % size
+                self.print_msg("Primary and secondary RID base are too close. " \
+                      "They have to differ at least by %d." % size)
                 raise RuntimeError("RID bases too close.\n")
 
             try:
@@ -299,7 +299,7 @@ class ADTRUSTInstance(service.Service):
                                          (ldap.MOD_ADD, "ipaSecondaryBaseRID", \
                                                  str(self.secondary_rid_base))])
             except:
-                print "Failed to add RID bases to the local range object"
+                self.print_msg("Failed to add RID bases to the local range object")
 
         except errors.NotFound as e:
             root_logger.critical("ID range of the local domain not found, " \
@@ -326,8 +326,8 @@ class ADTRUSTInstance(service.Service):
                 try:
                     name = new_dn[1].attr
                 except Exception, e:
-                    print 'Cannot extract RDN attribute value from "%s": %s' % \
-                          (new_dn, e)
+                    self.print_msg('Cannot extract RDN attribute value from "%s": %s' % \
+                          (new_dn, e))
                     return
                 entry.setValues("cn", name)
                 self.admin_conn.addEntry(entry)
@@ -444,12 +444,12 @@ class ADTRUSTInstance(service.Service):
                           "as it is not defined in IPA" % zone
 
         if err_msg:
-            print err_msg
-            print "Add the following service records to your DNS server " \
-                  "for DNS zone %s: " % zone
+            self.print_msg(err_msg)
+            self.print_msg("Add the following service records to your DNS " \
+                           "server for DNS zone %s: " % zone)
             for (srv, rdata) in ipa_srv_rec:
                 for suff in win_srv_suffix:
-                    print " - %s%s"  % (srv, suff)
+                    self.print_msg(" - %s%s"  % (srv, suff))
             return
 
         for (srv, rdata) in ipa_srv_rec:
