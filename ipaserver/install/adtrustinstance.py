@@ -22,6 +22,7 @@ import errno
 import ldap
 import tempfile
 import uuid
+import krbV
 from ipaserver import ipaldap
 from ipaserver.install import installutils
 from ipaserver.install import service
@@ -96,9 +97,11 @@ class ADTRUSTInstance(service.Service):
     ATTR_SID = "ipaNTSecurityIdentifier"
     ATTR_FLAT_NAME = "ipaNTFlatName"
     ATTR_GUID = "ipaNTDomainGUID"
+    ATTR_FALLBACK_GROUP = "ipaNTFallbackPrimaryGroup"
     OBJC_USER = "ipaNTUserAttrs"
     OBJC_GROUP = "ipaNTGroupAttrs"
     OBJC_DOMAIN = "ipaNTDomainAttrs"
+    FALLBACK_GROUP_NAME = u'Default_SMB_Group'
 
     def __init__(self, fstore=None):
         self.fqdn = None
@@ -134,6 +137,16 @@ class ADTRUSTInstance(service.Service):
         return "S-1-5-21-%d-%d-%d" % (sub_ids[0], sub_ids[1], sub_ids[2])
 
     def __add_admin_sids(self):
+        """
+        The IPA admin and the IPA admins group with get the well knows SIDs
+        used by AD for the administrator and the administrator group.
+
+        By default new users belong only to a user private group (UPG) and no
+        other Posix group since ipausers is not a Posix group anymore. To be
+        able to add a RID to the primary RID attribute in a PAC a fallback
+        group is added.
+        """
+
         admin_dn = DN(('uid', 'admin'), api.env.container_user,
                       self.suffix)
         admin_group_dn = DN(('cn', 'admins'), api.env.container_group,
@@ -163,24 +176,94 @@ class ADTRUSTInstance(service.Service):
             print "IPA admin group object not found"
             return
 
-        if admin_entry.getValue(self.ATTR_SID) or \
-           admin_group_entry.getValue(self.ATTR_SID):
-            print "Admin SID already set, nothing to do"
+        if admin_entry.getValue(self.ATTR_SID):
+            self.print_msg("Admin SID already set, nothing to do")
+        else:
+            try:
+                self.admin_conn.modify_s(admin_dn, \
+                            [(ldap.MOD_ADD, "objectclass", self.OBJC_USER), \
+                             (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-500")])
+            except:
+                self.print_msg("Failed to modify IPA admin object")
+
+        if admin_group_entry.getValue(self.ATTR_SID):
+            self.print_msg("Admin group SID already set, nothing to do")
+        else:
+            try:
+                self.admin_conn.modify_s(admin_group_dn, \
+                            [(ldap.MOD_ADD, "objectclass", self.OBJC_GROUP), \
+                             (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-512")])
+            except:
+                self.print_msg("Failed to modify IPA admin group object")
+
+
+    def __add_fallback_group(self):
+        """
+        By default new users belong only to a user private group (UPG) and no
+        other Posix group since ipausers is not a Posix group anymore. To be
+        able to add a RID to the primary RID attribute in a PAC a fallback
+        group is added.
+
+        Since this method must be run after a restart of the directory server
+        to enable the sidgen plugin we have to reconnect to the directory
+        server.
+        """
+
+        self.ldap_connect()
+        try:
+            ctx = krbV.default_context()
+            ccache = ctx.default_ccache()
+        except krbV.Krb5Error, e:
+            self.print_msg("Must have Kerberos credentials to setup " \
+                           "AD trusts on server")
             return
 
         try:
-            self.admin_conn.modify_s(admin_dn, \
-                        [(ldap.MOD_ADD, "objectclass", self.OBJC_USER), \
-                         (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-500")])
-        except:
-            print "Failed to modify IPA admin object"
+            api.Backend.ldap2.disconnect()
+            api.Backend.ldap2.connect(ccache.name)
+        except errors.ACIError, e:
+            self.print_msg("Outdated Kerberos credentials. " \
+                           "Use kdestroy and kinit to update your ticket")
+            return
+        except errors.DatabaseError, e:
+            self.print_msg("Cannot connect to the LDAP database. " \
+                           "Please check if IPA is running")
+            return
 
         try:
-            self.admin_conn.modify_s(admin_group_dn, \
-                        [(ldap.MOD_ADD, "objectclass", self.OBJC_GROUP), \
-                         (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-512")])
+            dom_entry = self.admin_conn.getEntry(self.smb_dom_dn, \
+                                                 ldap.SCOPE_BASE)
+        except errors.NotFound:
+            self.print_msg("Samba domain object not found")
+            return
+
+        if dom_entry.getValue(self.ATTR_FALLBACK_GROUP):
+            self.print_msg("Fallback group already set, nothing to do")
+            return
+
+        fb_group_dn = DN(('cn', self.FALLBACK_GROUP_NAME),
+                         api.env.container_group, self.suffix)
+        try:
+            self.admin_conn.getEntry(fb_group_dn, ldap.SCOPE_BASE)
+        except errors.NotFound:
+            try:
+                fallback = api.Command['group_add'](self.FALLBACK_GROUP_NAME,
+                                           description= u'Fallback group for ' \
+                                                         'primary group RID, ' \
+                                                         'do not add user to ' \
+                                                         'this group',
+                                           nonposix=False)
+                fb_group_dn = fallback['result']['dn']
+            except Exception, e:
+                self.print_msg("Failed to add fallback group.")
+                raise e
+
+        try:
+            mod = [(ldap.MOD_ADD, self.ATTR_FALLBACK_GROUP,
+                    fallback['result']['dn'])]
+            self.admin_conn.modify_s(self.smb_dom_dn, mod)
         except:
-            print "Failed to modify IPA admin group object"
+            self.print_msg("Failed to add fallback group to domain object")
 
     def __add_rid_bases(self):
         """
@@ -612,6 +695,7 @@ class ADTRUSTInstance(service.Service):
                       self.__add_dns_service_records)
         self.step("restarting Directory Server to take MS PAC and LDAP plugins changes into account", \
                   self.__restart_dirsrv)
+        self.step("adding fallback group", self.__add_fallback_group)
         self.step("setting SELinux booleans", \
                   self.__configure_selinux_for_smbd)
         self.step("starting CIFS services", self.__start)
