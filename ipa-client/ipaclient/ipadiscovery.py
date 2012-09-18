@@ -249,7 +249,7 @@ class IPADiscovery(object):
 
         if not ldapaccess and self.basedn is None:
             # Generate suffix from realm
-            self.basedn = realm_to_suffix(self.realm)
+            self.basedn = str(realm_to_suffix(self.realm))
             self.basedn_source = 'Generated from Kerberos realm'
             root_logger.debug("Generated basedn from realm: %s" % self.basedn)
 
