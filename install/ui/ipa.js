@@ -2040,7 +2040,7 @@ IPA.confirm = function(msg) {
     return window.confirm(msg);
 };
 
-IPA.notify_success = function(message) {
+IPA.notify_success = function(message, timeout) {
 
     if (!message) return; // don't show undefined, null and such
 
@@ -2069,7 +2069,7 @@ IPA.notify_success = function(message) {
 
     IPA.notify_success.timeout = window.setTimeout(function() {
         notification_area.fadeOut(IPA.config.message_fadeout_time);
-    }, IPA.config.message_timeout);
+    }, timeout || IPA.config.message_timeout);
 };
 
 IPA.config = {
