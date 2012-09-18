@@ -52,7 +52,7 @@ IPA.entity_adder_dialog = function(spec) {
                         var facet = IPA.current_entity.get_facet();
                         facet.refresh();
                         that.close();
-                        IPA.notify_success(that.get_success_message());
+                        that.notify_success(data);
                     },
                     that.on_error);
             }
@@ -66,7 +66,7 @@ IPA.entity_adder_dialog = function(spec) {
                 that.add(
                     function(data, text_status, xhr) {
                         that.added.notify();
-                        that.show_message(that.get_success_message());
+                        that.show_message(that.get_success_message(data));
                         var facet = IPA.current_entity.get_facet();
                         facet.refresh();
                         that.reset();
@@ -86,7 +86,7 @@ IPA.entity_adder_dialog = function(spec) {
                         that.close();
                         var result = data.result.result;
                         that.show_edit_page(that.entity, result);
-                        IPA.notify_success(that.get_success_message());
+                        that.notify_success(data);
                     },
                     that.on_error);
             }
@@ -102,9 +102,13 @@ IPA.entity_adder_dialog = function(spec) {
         });
     };
 
-    that.get_success_message = function() {
+    that.get_success_message = function(data) {
         var message = IPA.messages.dialogs.add_confirmation;
         return  message.replace('${entity}', that.subject);
+    };
+
+    that.notify_success = function(data) {
+        IPA.notify_success(that.get_success_message(data));
     };
 
     function show_edit_page(entity,result) {
@@ -183,6 +187,7 @@ IPA.entity_adder_dialog = function(spec) {
     // methods that should be invoked by subclasses
     that.entity_adder_dialog_create = that.create;
     that.entity_adder_dialog_create_add_command = that.create_add_command;
+    that.entity_adder_dialog_get_success_message = that.get_success_message;
 
     init();
 

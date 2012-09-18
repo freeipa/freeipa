@@ -71,6 +71,7 @@ IPA.trust.entity = function(spec) {
             ]
         }).
         adder_dialog({
+            factory: IPA.trust.adder_dialog,
             fields: [
                 {
                     name: 'cn',
@@ -157,6 +158,23 @@ IPA.trust.entity = function(spec) {
                 })
             ]
         });
+    };
+
+    return that;
+};
+
+IPA.trust.adder_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.entity_adder_dialog(spec);
+
+    that.get_success_message = function(data) {
+        return that.entity_adder_dialog_get_success_message(data) + '. ' + data.result.result.truststatus[0];
+    };
+
+    that.notify_success = function(data) {
+        IPA.notify_success(that.get_success_message(data), 5000);
     };
 
     return that;
