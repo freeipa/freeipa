@@ -26,6 +26,12 @@ from ipapython import ipautil
 from ipalib import util
 from ipapython.dn import DN
 
+if api.env.in_server and api.env.context in ['lite', 'server']:
+    try:
+        import ipaserver.dcerpc
+        _dcerpc_bindings_installed = True
+    except ImportError:
+        _dcerpc_bindings_installed = False
 
 __doc__ = _("""
 ID ranges
@@ -249,6 +255,18 @@ class idrange(LDAPObject):
                     error=_('range modification leaving objects with ID out '
                             'of the defined range is not allowed'))
 
+    def validate_trusted_domain_sid(self, sid):
+        if not _dcerpc_bindings_installed:
+            raise errors.NotFound(reason=_('Cannot perform SID validation without Samba 4 support installed. '
+                         'Make sure you have installed server-trust-ad sub-package of IPA on the server'))
+        domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+        if not domain_validator.is_configured():
+            raise errors.NotFound(reason=_('Cross-realm trusts are not configured. '
+                          'Make sure you have run ipa-adtrust-install on the IPA server first'))
+        if not domain_validator.is_trusted_sid_valid(sid):
+            raise errors.ValidationError(name='domain SID',
+                  error=_('SID is not recognized as a valid SID for a trusted domain'))
+
 class idrange_add(LDAPCreate):
     __doc__ = _("""
     Add new ID range.
@@ -278,19 +296,22 @@ class idrange_add(LDAPCreate):
 
         if 'ipanttrusteddomainsid' in options:
             if 'ipasecondarybaserid' in options:
-                raise errors.ValidationError(name=_('ID Range setup'),
+                raise errors.ValidationError(name='ID Range setup',
                     error=_('Options dom_sid and secondary_rid_base cannot ' \
                             'be used together'))
 
             if 'ipabaserid' not in options:
-                raise errors.ValidationError(name=_('ID Range setup'),
+                raise errors.ValidationError(name='ID Range setup',
                     error=_('Options dom_sid and rid_base must ' \
                             'be used together'))
 
+            # Validate SID as the one of trusted domains
+            self.obj.validate_trusted_domain_sid(options['ipanttrusteddomainsid'])
+            # Finally, add trusted AD domain range object class
             entry_attrs['objectclass'].append('ipatrustedaddomainrange')
         else:
             if (('ipasecondarybaserid' in options) != ('ipabaserid' in options)):
-                raise errors.ValidationError(name=_('ID Range setup'),
+                raise errors.ValidationError(name='ID Range setup',
                     error=_('Options secondary_rid_base and rid_base must ' \
                             'be used together'))
 
@@ -365,6 +386,10 @@ class idrange_mod(LDAPUpdate):
             (old_dn, old_attrs) = ldap.get_entry(dn, ['ipabaseid', 'ipaidrangesize'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
+        if 'ipanttrusteddomainsid' in options:
+            # Validate SID as the one of trusted domains
+            self.obj.validate_trusted_domain_sid(options['ipanttrusteddomainsid'])
 
         old_base_id = int(old_attrs.get('ipabaseid', [0])[0])
         old_range_size = int(old_attrs.get('ipaidrangesize', [0])[0])
