@@ -60,8 +60,8 @@ EXAMPLE: Add a new ID range for a trusted domain
 Since there might be more than one trusted domain the domain SID must be given
 while creating the ID range.
 
-  ipa range-add --base-id=1200000 --range-size=200000 --rid-base=0 \\
-                --dom-sid=S-1-5-21-123-456-789 trusted_dom_range
+  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=0 \\
+                  --dom-sid=S-1-5-21-123-456-789 trusted_dom_range
 
 This ID range is then used by the IPA server and the SSSD IPA provider to
 assign Posix UIDs to users from the trusted domain.
@@ -81,8 +81,8 @@ To create an ID range for the local domain it is not necessary to specify a
 domain SID. But since it is possible that a user and a group can have the same
 value as Posix ID a second RID interval is needed to handle conflicts.
 
-  ipa range-add --base-id=1200000 --range-size=200000 --rid-base=1000 \\
-                --secondary-rid-base=1000000 local_range
+  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=1000 \\
+                  --secondary-rid-base=1000000 local_range
 
 The data from the ID ranges of the local domain are used by the IPA server
 internally to assign SIDs to IPA users and groups. The SID will then be stored
