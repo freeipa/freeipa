@@ -34,11 +34,67 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc #pylint: disable=F0401
         _bindings_installed = True
-    except Exception, e:
+    except ImportError:
         _bindings_installed = False
 
 __doc__ = _("""
-Manage trust relationship between realms
+Cross-realm trusts
+
+Manage trust relationship between IPA and Active Directory domains.
+
+In order to allow users from a remote domain to access resources in IPA
+domain, trust relationship needs to be established. Currently IPA supports
+only trusts between IPA and Active Directory domains under control of Windows
+Server 2008 or later, with functional level 2008 or later.
+
+Please note that DNS on both IPA and Active Directory domain sides should be
+configured properly to discover each other. Trust relationship relies on
+ability to discover special resources in the other domain via DNS records.
+
+Examples:
+
+1. Establish cross-realm trust with Active Directory using AD administrator
+   credentials:
+
+   ipa trust-add --type=ad <ad.domain> --admin <AD domain administrator> --password
+
+2. List all existing trust relationships:
+
+   ipa trust-find
+
+3. Show details of the specific trust relationship:
+
+   ipa trust-show <ad.domain>
+
+4. Delete existing trust relationship:
+
+   ipa trust-del <ad.domain>
+
+Once trust relationship is established, remote users will need to be mapped
+to local POSIX groups in order to actually use IPA resources. The mapping should
+be done via use of external membership of non-POSIX group and then this group
+should be included into one of local POSIX groups.
+
+Example:
+
+1. Make note of the trusted domain security identifier
+
+   domainsid = `ipa trust-show <ad.domain> | grep Identifier | cut -d: -f2`
+
+2. Create group for the trusted domain admins' mapping and their local POSIX group:
+
+   ipa group-add --desc='<ad.domain> admins external map' ad_admins_external --external
+   ipa group-add --desc='<ad.domain> admins' ad_admins
+
+3. Add security identifier of Domain Admins of the <ad.domain> to the ad_admins_external
+   group (security identifier of <ad.domain SID>-513 is Domain Admins group):
+
+   ipa group-add-member ad_admins_external --external ${domainsid}-513
+
+4. Allow members of ad_admins_external group to be associated with ad_admins POSIX group:
+
+   ipa group-add-member ad_admins --groups ad_admins_external
+
 """)
 
 trust_output_params = (
