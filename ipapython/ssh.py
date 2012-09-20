@@ -196,4 +196,4 @@ class SSHPublicKey(object):
         else:
             return
         fp = sha1(self._key).hexdigest().upper()
-        return '%d 1 %s' % (keytype, fp)
+        return u'%d 1 %s' % (keytype, fp)
