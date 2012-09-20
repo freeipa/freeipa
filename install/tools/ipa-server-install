@@ -482,9 +482,11 @@ def uninstall():
         print "ipa-client-install returned: " + str(e)
 
     ntpinstance.NTPInstance(fstore).uninstall()
-    cads_instance = cainstance.CADSInstance(dogtag_constants=dogtag_constants)
-    if cads_instance.is_configured():
-        cads_instance.uninstall()
+    if not dogtag.install_constants.SHARED_DB:
+        cads_instance = cainstance.CADSInstance(
+            dogtag_constants=dogtag_constants)
+        if cads_instance.is_configured():
+            cads_instance.uninstall()
     ca_instance = cainstance.CAInstance(
         api.env.realm, certs.NSS_DIR, dogtag_constants=dogtag_constants)
     if ca_instance.is_configured():
@@ -626,11 +628,11 @@ def main():
         return uninstall()
 
     if options.external_ca:
-        if cainstance.CADSInstance().is_configured():
+        if cainstance.is_step_one_done():
             print "CA is already installed.\nRun the installer with --external_cert_file and --external_ca_file."
             sys.exit(1)
     elif options.external_cert_file:
-        if not cainstance.CADSInstance().is_configured():
+        if not cainstance.is_step_one_done():
             # This can happen if someone passes external_ca_file without
             # already having done the first stage of the CA install.
             print "CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca."
@@ -913,6 +915,30 @@ def main():
         if not ntp.is_configured():
             ntp.create_instance()
 
+    # Create a directory server instance
+    ds = dsinstance.DsInstance(fstore=fstore)
+
+    if options.dirsrv_pin:
+        [pw_fd, pw_name] = tempfile.mkstemp()
+        os.write(pw_fd, options.dirsrv_pin)
+        os.close(pw_fd)
+
+    if options.dirsrv_pkcs12:
+        pkcs12_info = (options.dirsrv_pkcs12, pw_name)
+        try:
+            ds.create_instance(realm_name, host_name, domain_name,
+                               dm_password, pkcs12_info,
+                               subject_base=options.subject,
+                               hbac_allow=not options.hbac_allow)
+        finally:
+            os.remove(pw_name)
+    else:
+        ds.create_instance(realm_name, host_name, domain_name,
+                           dm_password, self_signed_ca=options.selfsign,
+                           idstart=options.idstart, idmax=options.idmax,
+                           subject_base=options.subject,
+                           hbac_allow=not options.hbac_allow)
+
     if options.selfsign:
         ca = certs.CertDB(realm_name, host_name=host_name,
                           subject_base=options.subject)
@@ -933,9 +959,13 @@ def main():
         else:
             external = 0
 
-        cs = cainstance.CADSInstance(host_name, realm_name, domain_name, dm_password)
-        if not cs.is_configured():
-            cs.create_instance(realm_name, host_name, domain_name, dm_password, subject_base=options.subject)
+        if not dogtag.install_constants.SHARED_DB:
+            cs = cainstance.CADSInstance(
+                host_name, realm_name, domain_name, dm_password)
+            if not cs.is_configured():
+                cs.create_instance(realm_name, host_name, domain_name,
+                    dm_password, subject_base=options.subject)
+
         ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
             dogtag_constants=dogtag.install_constants)
         if external == 0:
@@ -966,42 +996,25 @@ def main():
     # Now put the CA cert where other instances exepct it
     ca.publish_ca_cert("/etc/ipa/ca.crt")
 
-    # Create a directory server instance
-    ds = dsinstance.DsInstance(fstore=fstore)
-
-    if options.dirsrv_pin:
-        [pw_fd, pw_name] = tempfile.mkstemp()
-        os.write(pw_fd, options.dirsrv_pin)
-        os.close(pw_fd)
-
-    if options.dirsrv_pkcs12:
-        pkcs12_info = (options.dirsrv_pkcs12, pw_name)
-        try:
-            ds.create_instance(realm_name, host_name, domain_name,
-                               dm_password, pkcs12_info,
-                               subject_base=options.subject,
-                               hbac_allow=not options.hbac_allow)
-        finally:
-            os.remove(pw_name)
-    else:
-        ds.create_instance(realm_name, host_name, domain_name,
-                           dm_password, self_signed_ca=options.selfsign,
-                           idstart=options.idstart, idmax=options.idmax,
-                           subject_base=options.subject,
-                           hbac_allow=not options.hbac_allow)
+    # we now need to enable ssl on the ds
+    ds.enable_ssl()
+    ds.restart()
 
     # We need to ldap_enable the CA now that DS is up and running
     if not options.selfsign:
         ca.ldap_enable('CA', host_name, dm_password,
                        ipautil.realm_to_suffix(realm_name))
-
-        # Turn on SSL in the dogtag LDAP instance. This will get restarted
-        # later, we don't need SSL now.
-        cs.create_certdb()
-        cs.enable_ssl()
-        # Add the IPA service for storing the PKI-IPA server certificate.
-        cs.add_simple_service(cs.principal)
-        cs.add_cert_to_service()
+        if not dogtag.install_constants.SHARED_DB:
+            # Turn on SSL in the dogtag LDAP instance. This will get restarted
+            # later, we don't need SSL now.
+            cs.create_certdb()
+            cs.enable_ssl()
+            # Add the IPA service for storing the PKI-IPA server certificate.
+            cs.add_simple_service(cs.principal)
+            cs.add_cert_to_service()
+        else:
+            ca.enable_client_auth_to_db()
+            ca.restart()
 
     # Create a kerberos instance
     if options.pkinit_pin:

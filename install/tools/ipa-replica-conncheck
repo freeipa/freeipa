@@ -21,6 +21,7 @@
 from ipapython.config import IPAOptionParser
 from ipapython import version
 from ipapython import ipautil
+from ipapython import dogtag
 from ipapython.ipautil import CalledProcessError
 from ipaserver.install import installutils
 import ipaclient.ipachangeconf
@@ -59,9 +60,6 @@ BASE_PORTS = [
                 CheckedPort(443, SOCK_STREAM, "HTTP Server: Secure port"),
              ]
 
-CA_PORTS  = [
-                CheckedPort(7389, SOCK_STREAM, "PKI-CA: Directory Service port"),
-            ]
 
 def print_info(msg):
     if not QUIET:
@@ -97,7 +95,8 @@ def parse_options():
     common_group.add_option("-c", "--check-ca", dest="check_ca",
                       action="store_true",
                       default=False,
-                      help="Check also ports for Certificate Authority")
+                      help="Check also ports for Certificate Authority "
+                        "(for servers installed before IPA 3.1)")
 
     common_group.add_option("", "--hostname", dest="hostname",
                       help="The hostname of this server (FQDN). "
@@ -281,7 +280,10 @@ def main():
 
     required_ports = BASE_PORTS
     if options.check_ca:
-        required_ports.extend(CA_PORTS)
+        # Check old Dogtag CA replication port
+        # New installs with unified databases use main DS port (checked above)
+        required_ports.append(CheckedPort(dogtag.Dogtag9Constants.DS_PORT,
+            SOCK_STREAM, "PKI-CA: Directory Service port"))
 
     if options.replica:
         print_info("Check connection from master to remote replica '%s':" % options.replica)
@@ -314,6 +316,8 @@ def main():
             responder = PortResponder(port.port, port.port_type)
             responder.start()
             RESPONDERS.append(responder)
+
+        remote_check_opts = ['--replica %s' % options.hostname]
 
         if options.auto_master_check:
             (krb_fd, krb_name) = tempfile.mkstemp()
@@ -355,10 +359,6 @@ def main():
             if returncode != 0:
                 raise RuntimeError("Could not get ticket for master server: %s" % stderr)
 
-            remote_check_opts = ['--replica %s' % options.hostname]
-            if options.check_ca:
-                remote_check_opts.append('--check-ca')
-
             print_info("Execute check on remote master")
 
             stderr = ''
@@ -380,9 +380,6 @@ def main():
             print_info("")
             print_info("Please run the following command on remote master:")
 
-            remote_check_opts = ['--replica %s' % options.hostname]
-            if options.check_ca:
-                remote_check_opts.append('--check-ca')
             print_info("/usr/sbin/ipa-replica-conncheck " + " ".join(remote_check_opts))
             time.sleep(3600)
             print_info("Connection check timeout: terminating listening program")

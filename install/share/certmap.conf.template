@@ -71,12 +71,15 @@
 #	attr names    - a comma separated list of attributes to form the filter
 #
 
-certmap default		default
+certmap default         default
 #default:DNComps
-#default:FilterComps	e, uid
-#default:verifycert	on
-#default:CmapLdapAttr	certSubjectDN
-#default:library	<path_to_shared_lib_or_dll>
-#default:InitFn		<Init function's name>
-default:DNComps		
-default:FilterComps	uid
+#default:FilterComps    e, uid
+#default:verifycert     on
+#default:CmapLdapAttr   certSubjectDN
+#default:library        <path_to_shared_lib_or_dll>
+#default:InitFn         <Init function's name>
+default:DNComps
+default:FilterComps     uid
+certmap ipaca           CN=Certificate Authority,O=domain_name
+ipaca:CmapLdapAttr      seeAlso
+ipaca:verifycert        on

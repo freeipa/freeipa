@@ -209,8 +209,8 @@ def save_config(dir, realm_name, host_name,
     config.set("realm", "destination_host", dest_host)
     config.set("realm", "subject_base", str(subject_base))
     config.set("realm", "version", str(version.NUM_VERSION))
-    fd = open(dir + "/realm_info", "w")
-    config.write(fd)
+    with open(dir + "/realm_info", "w") as fd:
+        config.write(fd)
 
 def remove_file(fname, ignore_errors=True):
     try:
@@ -371,6 +371,10 @@ def main():
         except errors.CertificateOperationError, e:
             print "%s" % e
             sys.exit(1)
+        print "Saving dogtag Directory Server port"
+        port_fname = dir + "/dogtag_directory_port.txt"
+        with open(port_fname, "w") as fd:
+            fd.write("%s\n" % str(dogtag.configured_constants().DS_PORT))
 
     if options.http_pin:
         passwd = options.http_pin

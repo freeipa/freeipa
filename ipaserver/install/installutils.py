@@ -38,7 +38,7 @@ from dns import resolver, rdatatype
 from dns.exception import DNSException
 import ldap
 
-from ipapython import ipautil, sysrestore, admintool
+from ipapython import ipautil, sysrestore, admintool, dogtag
 from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import *
 from ipalib.util import validate_hostname
@@ -48,8 +48,11 @@ from ipapython.dn import DN
 
 # Used to determine install status
 IPA_MODULES = [
-    'httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pki-tomcatd', 'pkids', 'install',
+    'httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pki-tomcatd', 'install',
     'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
+if not dogtag.install_constants.SHARED_DB:
+    IPA_MODULES.append('pkids')
+
 
 class BadHostError(Exception):
     pass

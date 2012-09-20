@@ -31,6 +31,7 @@ import tempfile
 from ipapython import ipautil
 from ipapython import sysrestore
 from ipapython import services as ipaservices
+from ipapython import dogtag
 
 import service
 import installutils
@@ -166,6 +167,8 @@ class DsInstance(service.Service):
             ldapi=False,
             autobind=service.DISABLED
             )
+        self.nickname = 'Server-Cert'
+        self.dm_password = dm_password
         self.realm_name = realm_name
         self.sub_dict = None
         self.domain = domain_name
@@ -192,7 +195,7 @@ class DsInstance(service.Service):
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
-    def __common_setup(self):
+    def __common_setup(self, enable_ssl=False):
 
         self.step("creating directory server user", self.__create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
@@ -209,7 +212,8 @@ class DsInstance(service.Service):
         self.step("configuring lockout plugin", self.__config_lockout_module)
         self.step("creating indices", self.__create_indices)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
-        self.step("configuring ssl for ds instance", self.__enable_ssl)
+        if not dogtag.install_constants.SHARED_DB or enable_ssl:
+            self.step("configuring ssl for ds instance", self.enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("configure autobind for root", self.__root_autobind)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
@@ -284,7 +288,7 @@ class DsInstance(service.Service):
         self.idmax = 1100
 
         self.__setup_sub_dict()
-        self.__common_setup()
+        self.__common_setup(True)
 
         self.step("setting up initial replication", self.__setup_replica)
         self.step("adding replication acis", self.__add_replication_acis)
@@ -525,7 +529,7 @@ class DsInstance(service.Service):
     def generate_random(self):
         return ipautil.ipa_generate_password()
 
-    def __enable_ssl(self):
+    def enable_ssl(self):
         dirname = config_dirname(self.serverid)
         dsdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
         if self.pkcs12_info:
@@ -601,6 +605,8 @@ class DsInstance(service.Service):
     def __certmap_conf(self):
         shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",
                         config_dirname(self.serverid) + "certmap.conf")
+        installutils.update_file(config_dirname(self.serverid) + "certmap.conf",
+                                 'domain_name', self.realm_name)
 
     def __enable_ldapi(self):
         self._ldap_mod("ldapi.ldif", self.sub_dict)

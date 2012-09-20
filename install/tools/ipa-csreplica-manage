@@ -34,7 +34,7 @@ from ipalib import api, errors, util
 from ipapython.dn import DN
 
 CACERT = "/etc/ipa/ca.crt"
-PORT = 7389
+PORT = dogtag.install_constants.DS_PORT
 
 # dict of command name and tuples of min/max num of args needed
 commands = {

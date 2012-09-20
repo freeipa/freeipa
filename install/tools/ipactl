@@ -29,6 +29,7 @@ try:
     from ipalib import api, errors
     from ipapython import sysrestore
     from ipapython import config
+    from ipapython import dogtag
     from ipapython.dn import DN
     import ldap
     import ldap.sasl
@@ -64,7 +65,10 @@ def is_dirsrv_debugging_enabled():
     """
     debugging = False
     serverid = realm_to_serverid(api.env.realm)
-    for dse in ['/etc/dirsrv/slapd-PKI-IPA/', config_dirname(serverid)]:
+    dselist = [config_dirname(serverid)]
+    if not dogtag.install_constants.SHARED_DB:
+        dselist.append('/etc/dirsrv/slapd-PKI-IPA/')
+    for dse in dselist:
         try:
             fd = open(dse + 'dse.ldif', 'r')
         except IOError:

@@ -27,7 +27,7 @@ from ipaserver import ipaldap
 from ipapython import services as ipaservices
 from ldap import modlist
 from ipalib import api, util, errors
-from ipapython import ipautil
+from ipapython import ipautil, dogtag
 from ipapython.dn import DN
 
 CACERT = "/etc/ipa/ca.crt"
@@ -59,7 +59,7 @@ STRIP_ATTRS = ('modifiersName',
 
 
 def replica_conn_check(master_host, host_name, realm, check_ca,
-                       admin_password=None):
+                       dogtag_master_ds_port, admin_password=None):
     """
     Check the ports used by the replica both locally and remotely to be sure
     that replication will work.
@@ -77,10 +77,10 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
         args.extend(["--password", admin_password])
         nolog=(admin_password,)
 
-    if check_ca:
+    if check_ca and dogtag_master_ds_port == dogtag.Dogtag9Constants.DS_PORT:
         args.append('--check-ca')
-    (stdin, stderr, returncode) = ipautil.run(args,raiseonerr=False,capture_output=False,
-                                              nolog=nolog)
+    (stdin, stderr, returncode) = ipautil.run(
+        args, raiseonerr=False, capture_output=False, nolog=nolog)
 
     if returncode != 0:
         sys.exit("Connection check failed!" +
@@ -958,10 +958,12 @@ class ReplicationManager(object):
 
         newschedule = '2358-2359 0'
 
-        filter = '(&(nsDS5ReplicaHost=%s)' \
-                   '(|(objectclass=nsDSWindowsReplicationAgreement)' \
-                     '(objectclass=nsds5ReplicationAgreement)))' % hostname
-        entries = conn.getList(DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
+        filter = ('(&(nsDS5ReplicaHost=%s)'
+                   '(&(!(nsDS5ReplicaRoot=o=ipaca))'
+                    '(|(objectclass=nsDSWindowsReplicationAgreement)'
+                     '(objectclass=nsds5ReplicationAgreement))))' % hostname)
+        entries = conn.getList(
+            DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
         if len(entries) == 0:
             root_logger.error("Unable to find replication agreement for %s" %
                           (hostname))

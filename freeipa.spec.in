@@ -114,17 +114,8 @@ Requires(post): systemd-units
 Requires: selinux-policy >= 3.10.0-110
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.44
-%if 0%{?fedora} >= 18
 Requires: pki-ca >= 10.0.0-0.52.b3
 Requires: dogtag-pki-server-theme
-%else
-Requires: pki-ca >= 9.0.18
-Requires: pki-silent >= 9.0.18
-Requires: pki-setup  >= 9.0.18
-Requires: dogtag-pki-common-theme
-Requires: dogtag-pki-ca-theme
-Requires: tomcat6 >= 6.0.32-17
-%endif
 %if 0%{?rhel}
 Requires: subscription-manager
 %endif

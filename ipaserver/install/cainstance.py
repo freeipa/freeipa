@@ -60,10 +60,10 @@ from ipalib import util
 from ipapython.ipa_log_manager import *
 
 HTTPD_CONFD = "/etc/httpd/conf.d/"
-DEFAULT_DSPORT=7389
+DEFAULT_DSPORT = dogtag.install_constants.DS_PORT
 
 PKI_USER = "pkiuser"
-PKI_DS_USER = "pkisrv"
+PKI_DS_USER = dogtag.install_constants.DS_USER
 
 
 # We need to reset the template because the CA uses the regular boot
@@ -231,6 +231,17 @@ def get_crl_files(path=None):
             yield os.path.join(path, f)
         elif f.endswith(".der"):
             yield os.path.join(path, f)
+
+
+def is_step_one_done():
+    '''Read CS.cfg and determine if step one of an external CA install is done
+    '''
+    test = installutils.get_directive(
+        dogtag.install_constants.CS_CFG_PATH, 'preop.ca.type', '=')
+    if test == "otherca":
+        return True
+    return False
+
 
 class CADSInstance(service.Service):
     def __init__(self, host_name=None, realm_name=None, domain_name=None, dm_password=None, dogtag_constants=None):
@@ -518,6 +529,7 @@ class CAInstance(service.Service):
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
+                           master_replication_port=None,
                            subject_base=None):
         """Create a CA instance.
 
@@ -538,6 +550,7 @@ class CAInstance(service.Service):
         if self.pkcs12_info is not None:
             self.clone = True
         self.master_host = master_host
+        self.master_replication_port = master_replication_port
         if subject_base is None:
             self.subject_base = DN(('O', self.realm))
         else:
@@ -656,7 +669,11 @@ class CAInstance(service.Service):
                 "pki_security_domain_user": "admin",
                 "pki_security_domain_password": self.admin_password,
                 "pki_clone_replication_security": "TLS",
-                "pki_clone_uri": \
+                "pki_clone_replication_master_port":
+                    str(self.master_replication_port),
+                "pki_clone_replication_clone_port":
+                    dogtag.install_constants.DS_PORT,
+                "pki_clone_uri":
                     "https://%s" % ipautil.format_netloc(self.master_host, 443)
             }
             replacevars.update(clone_vars)
@@ -839,6 +856,8 @@ class CAInstance(service.Service):
                 args.append("admin")
                 args.append("-sd_admin_password")
                 args.append(self.admin_password)
+                args.append("-clone_master_port")
+                args.append(str(self.master_replication_port))
                 args.append("-clone_start_tls")
                 args.append("true")
                 args.append("-clone_uri")
@@ -1275,6 +1294,43 @@ class CAInstance(service.Service):
                 'OU=pki-ipa, O=IPA', str(self.subject_base)):
             print "Updating subject_base in CA template failed"
 
+    def enable_client_auth_to_db(self):
+        """
+        Enable client auth connection to the internal db.
+        """
+        caconfig = dogtag.install_constants.CS_CFG_PATH
+
+        # Enable file publishing, disable LDAP
+        installutils.set_directive(caconfig,
+            'authz.instance.DirAclAuthz.ldap.ldapauth.authtype',
+            'SslClientAuth', quotes=False, separator='=')
+        installutils.set_directive(caconfig,
+            'authz.instance.DirAclAuthz.ldap.ldapauth.bindDN',
+            'uid=pkidbuser,ou=people,o=ipa-ca', quotes=False, separator='=')
+        installutils.set_directive(caconfig,
+            'authz.instance.DirAclAuthz.ldap.ldapauth.clientCertNickname',
+            'subsystemCert cert-pki-ca', quotes=False, separator='=')
+        installutils.set_directive(caconfig,
+            'authz.instance.DirAclAuthz.ldap.ldapconn.port',
+            str(dogtag.install_constants.DS_SECURE_PORT),
+            quotes=False, separator='=')
+        installutils.set_directive(caconfig,
+            'authz.instance.DirAclAuthz.ldap.ldapconn.secureConn',
+            'true', quotes=False, separator='=')
+
+        installutils.set_directive(caconfig, 'internaldb.ldapauth.authtype',
+            'SslClientAuth', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'internaldb.ldapauth.bindDN',
+            'uid=pkidbuser,ou=people,o=ipa-ca', quotes=False, separator='=')
+        installutils.set_directive(caconfig,
+            'internaldb.ldapauth.clientCertNickname',
+            'subsystemCert cert-pki-ca', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'internaldb.ldapconn.port',
+            str(dogtag.install_constants.DS_SECURE_PORT),
+            quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'internaldb.ldapconn.secureConn',
+            'true', quotes=False, separator='=')
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring CA")
@@ -1501,7 +1557,7 @@ class CAInstance(service.Service):
 
         return master == 'New'
 
-def install_replica_ca(config, postinstall=False):
+def install_replica_ca(config, master_ds_port, postinstall=False):
     """
     Install a CA on a replica.
 
@@ -1539,13 +1595,18 @@ def install_replica_ca(config, postinstall=False):
     if ipautil.file_exists(config.dir + "/dogtagcert.p12"):
         pkcs12_info = (config.dir + "/dogtagcert.p12",
                        config.dir + "/dirsrv_pin.txt")
-    cs = CADSInstance(dogtag_constants=dogtag.install_constants)
-    cs.create_instance(config.realm_name, config.host_name,
-                       config.domain_name, config.dirman_password,
-                       pkcs12_info)
-    cs.load_pkcs12()
-    cs.enable_ssl()
-    cs.restart_instance()
+
+    if not dogtag.install_constants.SHARED_DB:
+        cs = CADSInstance(dogtag_constants=dogtag.install_constants)
+        cs.create_instance(config.realm_name, config.host_name,
+                           config.domain_name, config.dirman_password,
+                           pkcs12_info)
+        cs.load_pkcs12()
+        cs.enable_ssl()
+        cs.restart_instance()
+    else:
+        cs = None
+
     ca = CAInstance(config.realm_name, certs.NSS_DIR,
             dogtag_constants=dogtag.install_constants)
     if postinstall:
@@ -1555,6 +1616,7 @@ def install_replica_ca(config, postinstall=False):
     ca.configure_instance(config.host_name, config.dirman_password,
                           config.dirman_password, pkcs12_info=(cafile,),
                           master_host=config.master_host_name,
+                          master_replication_port=master_ds_port,
                           subject_base=config.subject_base)
 
     if postinstall:
@@ -1573,8 +1635,14 @@ def install_replica_ca(config, postinstall=False):
 
     service.print_msg("Restarting the directory and certificate servers")
     ca.stop(dogtag.install_constants.PKI_INSTANCE_NAME)
-    ipaservices.knownservices.dirsrv.stop("PKI-IPA")
-    ipaservices.knownservices.dirsrv.start("PKI-IPA")
+
+    if not dogtag.install_constants.SHARED_DB:
+        ds_name = dogtag.install_constants.DS_NAME
+        ipaservices.knownservices.dirsrv.stop(ds_name)
+        ipaservices.knownservices.dirsrv.start(ds_name)
+    else:
+        ipaservices.knownservices.dirsrv.restart()
+
     ca.start(dogtag.install_constants.PKI_INSTANCE_NAME)
 
     return (ca, cs)
@@ -1592,7 +1660,7 @@ def update_cert_config(nickname, cert):
                   'ocspSigningCert cert-pki-ca': 'ca.ocsp_signing.cert',
                   'caSigningCert cert-pki-ca': 'ca.signing.cert',
                   'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
-                  'Server-Cert cert-pki-ca': 'ca.sslserver.cert' }
+                  'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
 
     installutils.set_directive(dogtag.configured_constants().CS_CFG_PATH,
                                 directives[nickname],
@@ -1601,7 +1669,12 @@ def update_cert_config(nickname, cert):
 
 if __name__ == "__main__":
     standard_logging_setup("install.log")
-    cs = CADSInstance()
-    cs.create_instance("EXAMPLE.COM", "catest.example.com", "example.com", "password")
+    if not dogtag.install_constants.SHARED_DB:
+        cs = CADSInstance()
+        cs.create_instance(
+            "EXAMPLE.COM", "catest.example.com", "example.com", "password")
+    else:
+        ds = dsinstance.DsInstance()
+
     ca = CAInstance("EXAMPLE.COM", "/etc/httpd/alias")
     ca.configure_instance("catest.example.com", "password", "password")

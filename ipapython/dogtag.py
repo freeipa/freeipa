@@ -47,6 +47,8 @@ class Dogtag10Constants(object):
     AGENT_SECURE_PORT = 8443
     EE_SECURE_PORT = 8443
     AJP_PORT = 8009
+    DS_PORT = 389
+    DS_SECURE_PORT = 636
 
     SPAWN_BINARY = '/usr/sbin/pkispawn'
     DESTROY_BINARY = '/usr/sbin/pkidestroy'
@@ -64,6 +66,10 @@ class Dogtag10Constants(object):
 
     IPA_SERVICE_PROFILE = '%s/caIPAserviceCert.cfg' % SERVICE_PROFILE_DIR
     SIGN_PROFILE = '%s/caJarSigningCert.cfg' % SERVICE_PROFILE_DIR
+    SHARED_DB = True
+    DS_USER = "dirsrv"
+    DS_NAME = "dirsrv"
+
 
 class Dogtag9Constants(object):
     DOGTAG_VERSION = 9
@@ -71,6 +77,8 @@ class Dogtag9Constants(object):
     AGENT_SECURE_PORT = 9443
     EE_SECURE_PORT = 9444
     AJP_PORT = 9447
+    DS_PORT = 7389
+    DS_SECURE_PORT = 7636
 
     SPAWN_BINARY = '/bin/pkicreate'
     DESTROY_BINARY = '/bin/pkisilent'
@@ -92,7 +100,9 @@ class Dogtag9Constants(object):
 
     IPA_SERVICE_PROFILE = '%s/caIPAserviceCert.cfg' % SERVICE_PROFILE_DIR
     SIGN_PROFILE = '%s/caJarSigningCert.cfg' % SERVICE_PROFILE_DIR
-
+    SHARED_DB = False
+    DS_USER = "pkisrv"
+    DS_NAME = "PKI-IPA"
 
 if os.path.exists('/usr/sbin/pkispawn'):
     install_constants = Dogtag10Constants

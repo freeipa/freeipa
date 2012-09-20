@@ -142,17 +142,32 @@ def main():
     config.dir = dir
     config.setup_ca = True
 
+    portfile = config.dir + "/dogtag_directory_port.txt"
+    if not ipautil.file_exists(portfile):
+        dogtag_master_ds_port = str(dogtag.Dogtag9Constants.DS_PORT)
+    else:
+        with open(portfile) as fd:
+            dogtag_master_ds_port = fd.read()
+
     if not options.skip_conncheck:
-        replica_conn_check(config.master_host_name, config.host_name, config.realm_name, True, options.admin_password)
+        replica_conn_check(
+            config.master_host_name, config.host_name, config.realm_name, True,
+            dogtag_master_ds_port, options.admin_password)
 
     # Configure the CA if necessary
-    (CA, cs) = cainstance.install_replica_ca(config, postinstall=True)
+    (CA, cs) = cainstance.install_replica_ca(
+        config, dogtag_master_ds_port, postinstall=True)
 
     # We need to ldap_enable the CA now that DS is up and running
     CA.ldap_enable('CA', config.host_name, config.dirman_password,
                    ipautil.realm_to_suffix(config.realm_name))
-    cs.add_simple_service('dogtagldap/%s@%s' % (config.host_name, config.realm_name))
-    cs.add_cert_to_service()
+    if not dogtag.install_constants.SHARED_DB:
+        cs.add_simple_service('dogtagldap/%s@%s' %
+            (config.host_name, config.realm_name))
+        cs.add_cert_to_service()
+    else:
+        CA.enable_client_auth_to_db()
+        CA.restart()
 
     # We need to restart apache as we drop a new config file in there
     ipaservices.knownservices.httpd.restart(capture_output=True)
