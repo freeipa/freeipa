@@ -26,7 +26,7 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc
         _dcerpc_bindings_installed = True
-    except Exception, e:
+    except ImportError:
         _dcerpc_bindings_installed = False
 
 __doc__ = _("""
@@ -328,14 +328,13 @@ class group_add_member(LDAPAddMember):
         result = (completed, dn)
         if 'ipaexternalmember' in options:
             if not _dcerpc_bindings_installed:
-                raise errors.NotFound(name=_('AD Trust'),
-                      reason=_('''Cannot perform external member validation without Samba 4 support installed.
-                                  Make sure you have installed server-trust-ad sub-package of IPA on the server'''))
+                raise errors.NotFound(reason=_('Cannot perform external member validation without '
+                                      'Samba 4 support installed. Make sure you have installed '
+                                      'server-trust-ad sub-package of IPA on the server'))
             domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
             if not domain_validator.is_configured():
-                raise errors.NotFound(name=_('AD Trust setup'),
-                      reason=_('''Cannot perform join operation without own domain configured.
-                                  Make sure you have run ipa-adtrust-install on the IPA server first'''))
+                raise errors.NotFound(reason=_('Cannot perform join operation without own domain configured. '
+                                      'Make sure you have run ipa-adtrust-install on the IPA server first'))
             sids = []
             failed_sids = []
             for sid in options['ipaexternalmember']:
