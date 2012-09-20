@@ -76,6 +76,35 @@ EXAMPLES:
 
  Display information about a named group.
    ipa group-show localadmins
+
+External group membership is designed to allow users from trusted domains
+to be mapped to local POSIX groups in order to actually use IPA resources.
+External members should be added to groups that specifically created as
+external and non-POSIX. Such group later should be included into one of POSIX
+groups.
+
+An external group member is currently a Security Identifier as defined by
+the trusted domain.
+
+Example:
+
+1. Make note of the trusted domain security identifier
+
+   domainsid = `ipa trust-show <ad.domain> | grep Identifier | cut -d: -f2`
+
+2. Create group for the trusted domain admins' mapping and their local POSIX group:
+
+   ipa group-add --desc='<ad.domain> admins external map' ad_admins_external --external
+   ipa group-add --desc='<ad.domain> admins' ad_admins
+
+3. Add security identifier of Domain Admins of the <ad.domain> to the ad_admins_external
+   group (security identifier of <ad.domain SID>-513 is Domain Admins group):
+
+   ipa group-add-member ad_admins_external --external ${domainsid}-513
+
+4. Allow members of ad_admins_external group to be associated with ad_admins POSIX group:
+
+   ipa group-add-member ad_admins --groups ad_admins_external
 """)
 
 protected_group_name = u'admins'
