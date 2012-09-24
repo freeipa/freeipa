@@ -121,6 +121,8 @@ bool secrets_store(const char *key, const void *data, size_t size); /* available
 #define LDAP_ATTRIBUTE_LOGON_SCRIPT "ipaNTLogonScript"
 #define LDAP_ATTRIBUTE_PROFILE_PATH "ipaNTProfilePath"
 #define LDAP_ATTRIBUTE_NTHASH "ipaNTHash"
+#define LDAP_ATTRIBUTE_UIDNUMBER "uidnumber"
+#define LDAP_ATTRIBUTE_GIDNUMBER "gidnumber"
 
 #define LDAP_OBJ_KRB_PRINCIPAL "krbPrincipal"
 #define LDAP_OBJ_KRB_PRINCIPAL_AUX "krbPrincipalAux"
@@ -155,7 +157,7 @@ struct ipasam_privates {
 	char *base_dn;
 	char *trust_dn;
 	char *flat_name;
-	char *fallback_primary_group;
+	struct dom_sid fallback_primary_group;
 	char *server_princ;
 	char *client_princ;
 	struct sss_idmap_ctx *idmap_ctx;
@@ -2677,6 +2679,141 @@ static bool ipasam_nthash_regen(struct ldapsam_privates *ldap_state,
 	return (ret == LDAP_SUCCESS);
 }
 
+static int ipasam_get_sid_by_gid(struct ldapsam_privates *ldap_state,
+				 uint32_t gid,
+				 struct dom_sid *_sid)
+{
+	int ret;
+	char *filter;
+	TALLOC_CTX *tmp_ctx;
+	LDAPMessage *entry = NULL;
+	LDAPMessage *result = NULL;
+	char *sid_str = NULL;
+	struct dom_sid *sid = NULL;
+	int count;
+	enum idmap_error_code err;
+
+	tmp_ctx = talloc_new("ipasam_get_sid_by_gid");
+	if (tmp_ctx == NULL) {
+		return ENOMEM;
+	}
+
+	filter = talloc_asprintf(tmp_ctx, "(&(%s=%s)(%s=%lu))",
+					  LDAP_ATTRIBUTE_OBJECTCLASS,
+					  LDAP_OBJ_POSIXGROUP,
+					  LDAP_ATTRIBUTE_GIDNUMBER,
+					  (unsigned long) gid);
+	if (filter == NULL) {
+		ret = ENOMEM;
+		goto done;
+	}
+
+	ret = smbldap_search(ldap_state->smbldap_state,
+			     ldap_state->ipasam_privates->base_dn,
+			     LDAP_SCOPE_SUBTREE,filter, NULL, 0,
+			     &result);
+	if (ret != LDAP_SUCCESS) {
+		ret = ENOENT;
+		goto done;
+	}
+
+	count = ldap_count_entries(ldap_state->smbldap_state->ldap_struct,
+				   result);
+	if (count != 1) {
+		ret = ENOENT;
+		goto done;
+	}
+
+	entry = ldap_first_entry(ldap_state->smbldap_state->ldap_struct, result);
+	if (entry == NULL) {
+		ret = ENOENT;
+		goto done;
+	}
+
+	sid_str = get_single_attribute(tmp_ctx,
+				       ldap_state->smbldap_state->ldap_struct,
+				       entry, LDAP_ATTRIBUTE_SID);
+	if (sid_str == NULL) {
+		ret = ENOENT;
+		goto done;
+	}
+
+	err = sss_idmap_sid_to_smb_sid(ldap_state->ipasam_privates->idmap_ctx,
+				       sid_str, &sid);
+	if (err != IDMAP_SUCCESS) {
+		ret = EFAULT;
+		goto done;
+	}
+	sid_copy(_sid, sid);
+
+	ret = 0;
+
+done:
+	talloc_free(sid);
+	ldap_msgfree(result);
+	talloc_free(tmp_ctx);
+
+	return ret;
+}
+
+static int ipasam_get_primary_group_sid(TALLOC_CTX *mem_ctx,
+					struct ldapsam_privates *ldap_state,
+					LDAPMessage *entry,
+					struct dom_sid **_group_sid)
+{
+	int ret;
+	uint32_t uid;
+	uint32_t gid;
+	struct dom_sid *group_sid;
+
+	TALLOC_CTX *tmp_ctx = talloc_init("ipasam_get_primary_group_sid");
+	if (tmp_ctx == NULL) {
+		return ENOMEM;
+	}
+
+	if (!get_uint32_t_from_ldap_msg(ldap_state, entry,
+					LDAP_ATTRIBUTE_UIDNUMBER, &uid)) {
+		ret = ENOENT;
+		DEBUG(1, ("No uidnumber attribute found for this user!\n"));
+		goto done;
+	}
+
+	if (!get_uint32_t_from_ldap_msg(ldap_state, entry,
+					LDAP_ATTRIBUTE_GIDNUMBER, &gid)) {
+		ret = ENOENT;
+		DEBUG(1, ("No gidnumber attribute found for this user!\n"));
+		goto done;
+	}
+
+	group_sid = talloc(tmp_ctx, struct dom_sid);
+	if (group_sid == NULL) {
+		ret = ENOMEM;
+		goto done;
+	}
+
+	if (uid == gid) { /* User private group, use default fallback group */
+		sid_copy(group_sid,
+			 &ldap_state->ipasam_privates->fallback_primary_group);
+		ret = 0;
+		goto done;
+	} else {
+		ret = ipasam_get_sid_by_gid(ldap_state, gid, group_sid);
+		if (ret != 0) {
+			goto done;
+		}
+	}
+
+        ret = 0;
+done:
+	if (ret == 0) {
+		*_group_sid = talloc_steal(mem_ctx, group_sid);
+	}
+
+	talloc_free(tmp_ctx);
+
+	return ret;
+}
+
 static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 				struct samu * sampass,
 				LDAPMessage * entry)
@@ -2692,7 +2829,9 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 	char *temp = NULL;
 	bool ret = false;
 	bool retval = false;
+	int status;
 	DATA_BLOB nthash;
+	struct dom_sid *group_sid;
 
 	TALLOC_CTX *tmp_ctx = talloc_init("init_sam_from_ldap");
 	if (!tmp_ctx) {
@@ -2738,6 +2877,12 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 			entry, LDAP_ATTRIBUTE_SECURITY_IDENTIFIER,
 			tmp_ctx)) != NULL) {
 		pdb_set_user_sid_from_string(sampass, temp, PDB_SET);
+
+		status = ipasam_get_primary_group_sid(tmp_ctx, ldap_state,
+						      entry, &group_sid);
+		if (status != 0) {
+			goto fn_exit;
+		}
 	} else {
 		goto fn_exit;
 	}
@@ -2872,6 +3017,7 @@ done:
 	talloc_free(tmp_ctx);
 	return status;
 }
+
 static NTSTATUS ldapsam_getsampwnam(struct pdb_methods *methods,
 				    struct samu *user,
 				    const char *sname)
@@ -3103,6 +3249,70 @@ static void ipasam_free_private_data(void **vp)
 	*ldap_state = NULL;
 
 	/* No need to free any further, as it is talloc()ed */
+}
+
+static struct dom_sid *get_fallback_group_sid(TALLOC_CTX *mem_ctx,
+					      struct smbldap_state *ldap_state,
+					      struct sss_idmap_ctx *idmap_ctx,
+					      LDAPMessage *dom_entry)
+{
+	char *dn;
+	char *sid;
+	int ret;
+	const char *filter = "objectClass=*";
+	const char *attr_list[] = {
+					LDAP_ATTRIBUTE_SID,
+					NULL};
+	LDAPMessage *result;
+	LDAPMessage *entry;
+	enum idmap_error_code err;
+	struct dom_sid *fallback_group_sid;
+
+	dn = get_single_attribute(mem_ctx, ldap_state->ldap_struct,
+				  dom_entry,
+				  LDAP_ATTRIBUTE_FALLBACK_PRIMARY_GROUP);
+	if (dn == NULL) {
+		DEBUG(0, ("Missing mandatory attribute %s.\n",
+			  LDAP_ATTRIBUTE_FALLBACK_PRIMARY_GROUP));
+		return NULL;
+	}
+
+	ret = smbldap_search(ldap_state, dn, LDAP_SCOPE_BASE, filter, attr_list,
+			     0, &result);
+	talloc_free(dn);
+	if (ret != LDAP_SUCCESS) {
+		DEBUG(2,("Failed to read faillback group [%s].", dn));
+		return NULL;
+	}
+
+	entry = ldap_first_entry(ldap_state->ldap_struct, result);
+	if (entry == NULL) {
+		DEBUG(0, ("Could not get fallback group entry\n"));
+		ldap_msgfree(result);
+		return NULL;
+	}
+
+	sid = get_single_attribute(mem_ctx, ldap_state->ldap_struct,
+				  entry, LDAP_ATTRIBUTE_SID);
+	if (sid == NULL) {
+		DEBUG(0, ("Missing mandatory attribute %s.\n",
+			  LDAP_ATTRIBUTE_SID));
+		ldap_msgfree(result);
+		return NULL;
+	}
+
+	err = sss_idmap_sid_to_smb_sid(idmap_ctx, sid, &fallback_group_sid);
+	if (err != IDMAP_SUCCESS) {
+		DEBUG(1, ("SID [%s] could not be converted\n", sid));
+		ldap_msgfree(result);
+		talloc_free(sid);
+		return NULL;
+	}
+
+	ldap_msgfree(result);
+	talloc_free(sid);
+
+	return fallback_group_sid;
 }
 
 static NTSTATUS ipasam_search_domain_info(struct smbldap_state *ldap_state,
@@ -3686,6 +3896,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	char *dn = NULL;
 	char *domain_sid_string = NULL;
 	struct dom_sid *ldap_domain_sid = NULL;
+	struct dom_sid *fallback_group_sid = NULL;
 
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
@@ -3815,12 +4026,6 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		return NT_STATUS_INVALID_PARAMETER;
 	}
 
-	domain_sid_string = get_single_attribute(
-				ldap_state,
-				ldap_state->smbldap_state->ldap_struct,
-				entry,
-				LDAP_ATTRIBUTE_SID);
-
 	err = sss_idmap_init(idmap_talloc, ldap_state->ipasam_privates,
 			     idmap_talloc_free,
 			     &ldap_state->ipasam_privates->idmap_ctx);
@@ -3828,6 +4033,24 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	    DEBUG(1, ("Failed to setup idmap context.\n"));
 	    return NT_STATUS_UNSUCCESSFUL;
 	}
+
+	fallback_group_sid = get_fallback_group_sid(ldap_state,
+					ldap_state->smbldap_state,
+					ldap_state->ipasam_privates->idmap_ctx,
+					result);
+	if (fallback_group_sid == NULL) {
+		DEBUG(0, ("Cannot find SID of fallback group.\n"));
+		return NT_STATUS_INVALID_PARAMETER;
+	}
+	sid_copy(&ldap_state->ipasam_privates->fallback_primary_group,
+		 fallback_group_sid);
+	talloc_free(fallback_group_sid);
+
+	domain_sid_string = get_single_attribute(
+				ldap_state,
+				ldap_state->smbldap_state->ldap_struct,
+				entry,
+				LDAP_ATTRIBUTE_SID);
 
 	if (domain_sid_string) {
 		err = sss_idmap_sid_to_smb_sid(ldap_state->ipasam_privates->idmap_ctx,
