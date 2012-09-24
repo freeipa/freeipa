@@ -433,7 +433,7 @@ def main():
         except errors.NotFound:
             sys.exit("Automount location '%s' does not exist" % options.location)
         except errors.PublicError, e:
-            sys.exit("Cannot connect to the server due to generic error: %s", str(e))
+            sys.exit("Cannot connect to the server due to generic error: %s" % str(e))
     finally:
         os.remove(ccache_name)
 
