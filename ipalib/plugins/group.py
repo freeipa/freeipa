@@ -162,6 +162,13 @@ class group(LDAPObject):
 
 api.register(group)
 
+ipaexternalmember_param = Str('ipaexternalmember*',
+            cli_name='external',
+            label=_('External member'),
+            doc=_('comma-separated SIDs of members of a trusted domain'),
+            csv=True,
+            flags=['no_create', 'no_update', 'no_search'],
+        )
 
 class group_add(LDAPCreate):
     __doc__ = _('Create a new group.')
@@ -335,22 +342,14 @@ api.register(group_find)
 
 class group_show(LDAPRetrieve):
     __doc__ = _('Display information about a named group.')
-
+    has_output_params = LDAPRetrieve.has_output_params + (ipaexternalmember_param,)
 api.register(group_show)
 
 
 class group_add_member(LDAPAddMember):
     __doc__ = _('Add members to a group.')
 
-    takes_options = (
-        Str('ipaexternalmember*',
-            cli_name='external',
-            label=_('External member'),
-            doc=_('comma-separated SIDs of members of a trusted domain'),
-            csv=True,
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-    )
+    takes_options = (ipaexternalmember_param,)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -390,15 +389,7 @@ api.register(group_add_member)
 class group_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a group.')
 
-    takes_options = (
-        Str('ipaexternalmember*',
-            cli_name='external',
-            label=_('External member'),
-            doc=_('comma-separated SIDs of members of a trusted domain'),
-            csv=True,
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-    )
+    takes_options = (ipaexternalmember_param,)
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
