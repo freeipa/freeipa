@@ -1424,7 +1424,13 @@ class LDAPDelete(LDAPMultiQuery):
                 except errors.NotFound:
                     self.obj.handle_not_found(*nkeys)
 
-            delete_subtree(dn)
+            try:
+                self._exc_wrapper(nkeys, options, ldap.delete_entry)(dn, normalize=self.obj.normalize_dn)
+            except errors.NotFound:
+                self.obj.handle_not_found(*nkeys)
+            except errors.NotAllowedOnNonLeaf:
+                # this entry is not a leaf entry, delete all child nodes
+                delete_subtree(dn)
 
             for callback in self.get_callbacks('post'):
                 result = callback(self, ldap, dn, *nkeys, **options)
