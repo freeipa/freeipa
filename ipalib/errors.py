@@ -1501,6 +1501,22 @@ class BadSearchFilter(ExecutionError):
     format = _('Bad search filter %(info)s')
 
 
+class NotAllowedOnNonLeaf(ExecutionError):
+    """
+    **4210** Raised when operation is not allowed on a non-leaf entry
+
+    For example:
+
+    >>> raise NotAllowedOnNonLeaf()
+    Traceback (most recent call last):
+      ...
+    NotAllowedOnNonLeaf: Not allowed on non-leaf entry
+    """
+
+    errno = 4210
+    format = _('Not allowed on non-leaf entry')
+
+
 class CertificateError(ExecutionError):
     """
     **4300** Base class for Certificate execution errors (*4300 - 4399*).

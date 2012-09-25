@@ -719,6 +719,8 @@ class ldap2(CrudBackend):
             raise errors.NotAllowedOnRDN(attr=info)
         except _ldap.FILTER_ERROR:
             raise errors.BadSearchFilter(info=info)
+        except _ldap.NOT_ALLOWED_ON_NONLEAF:
+            raise errors.NotAllowedOnNonLeaf()
         except _ldap.SUCCESS:
             pass
         except _ldap.LDAPError, e:
