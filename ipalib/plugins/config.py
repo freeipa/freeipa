@@ -21,6 +21,7 @@
 from ipalib import api
 from ipalib import Bool, Int, Str, IA5Str, StrEnum, DNParam
 from ipalib.plugins.baseldap import *
+from ipalib.plugins.selinuxusermap import validate_selinuxuser
 from ipalib import _
 from ipalib.errors import ValidationError
 
@@ -258,30 +259,44 @@ class config_mod(LDAPUpdate):
                                 error=_('%(obj)s default attribute %(attr)s would not be allowed!') \
                                 % dict(obj=obj, attr=obj_attr))
 
-        # Combine the current entry and options into a single object to
-        # evaluate. This covers changes via setattr and options.
-        # Note: this is not done in a validator because we may be changing
-        #       the default user and map list at the same time and we don't
-        #       have both values in a validator.
-        validate = dict(options)
-        validate.update(entry_attrs)
-        if ('ipaselinuxusermapdefault' in validate or
-          'ipaselinuxusermaporder' in validate):
+        if ('ipaselinuxusermapdefault' in entry_attrs or
+          'ipaselinuxusermaporder' in entry_attrs):
             config = None
             failedattr = 'ipaselinuxusermaporder'
-            if 'ipaselinuxusermapdefault' in validate:
-                defaultuser = validate['ipaselinuxusermapdefault']
+
+            if 'ipaselinuxusermapdefault' in entry_attrs:
+                defaultuser = entry_attrs['ipaselinuxusermapdefault']
                 failedattr = 'ipaselinuxusermapdefault'
+
+                # validate the new default user first
+                if defaultuser is not None:
+                    error_message = validate_selinuxuser(_, defaultuser)
+
+                    if error_message:
+                        raise errors.ValidationError(name='ipaselinuxusermapdefault',
+                                error=error_message)
+
             else:
                 config = ldap.get_ipa_config()[1]
-                if 'ipaselinuxusermapdefault' in config:
-                    defaultuser = config['ipaselinuxusermapdefault'][0]
-                else:
-                    defaultuser = None
+                defaultuser = config.get('ipaselinuxusermapdefault', [None])[0]
 
-            if 'ipaselinuxusermaporder' in validate:
-                order = validate['ipaselinuxusermaporder']
+            if 'ipaselinuxusermaporder' in entry_attrs:
+                order = entry_attrs['ipaselinuxusermaporder']
                 userlist = order.split('$')
+
+                # validate the new user order first
+                for user in userlist:
+                    if not user:
+                        raise errors.ValidationError(name='ipaselinuxusermaporder',
+                                error=_('A list of SELinux users delimited by $ expected'))
+
+                    error_message = validate_selinuxuser(_, user)
+                    if error_message:
+                        error_message = _("SELinux user '%(user)s' is not "
+                                "valid: %(error)s") % dict(user=user,
+                                                          error=error_message)
+                        raise errors.ValidationError(name='ipaselinuxusermaporder',
+                                error=error_message)
             else:
                 if not config:
                     config = ldap.get_ipa_config()[1]
