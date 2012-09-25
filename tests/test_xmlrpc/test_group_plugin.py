@@ -870,6 +870,42 @@ class test_group(Declarative):
                 key='admins', reason='privileged group'),
         ),
 
+
+        dict(
+            desc='Try to rename the admins group',
+            command=('group_mod', [u'admins'], dict(rename=u'loosers')),
+            expected=errors.ProtectedEntryError(label=u'group',
+                key='admins', reason='Cannot be renamed'),
+        ),
+
+        dict(
+            desc='Try to modify the admins group to support external membership',
+            command=('group_mod', [u'admins'], dict(external=True)),
+            expected=errors.ProtectedEntryError(label=u'group',
+                key='admins', reason='Cannot support external non-IPA members'),
+        ),
+
+        dict(
+            desc='Try to delete the trust admins group',
+            command=('group_del', [u'trust admins'], {}),
+            expected=errors.ProtectedEntryError(label=u'group',
+                key='trust admins', reason='privileged group'),
+        ),
+
+        dict(
+            desc='Try to rename the trust admins group',
+            command=('group_mod', [u'trust admins'], dict(rename=u'loosers')),
+            expected=errors.ProtectedEntryError(label=u'group',
+                key='trust admins', reason='Cannot be renamed'),
+        ),
+
+        dict(
+            desc='Try to modify the trust admins group to support external membership',
+            command=('group_mod', [u'trust admins'], dict(external=True)),
+            expected=errors.ProtectedEntryError(label=u'group',
+                key='trust admins', reason='Cannot support external non-IPA members'),
+        ),
+
         dict(
             desc='Delete %r' % user1,
             command=('user_del', [user1], {}),
