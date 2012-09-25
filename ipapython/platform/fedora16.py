@@ -17,9 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ipapython import ipautil
-from ipapython.platform import base, redhat, systemd
 import os
+import time
+
+from ipapython import ipautil, dogtag
+from ipapython.platform import base, redhat, systemd
+from ipapython.ipa_log_manager import root_logger
+from ipalib import api
 
 # All what we allow exporting directly from this module
 # Everything else is made available through these symbols when they are
@@ -128,6 +132,47 @@ class Fedora16SSHService(Fedora16Service):
     def get_config_dir(self, instance_name=""):
         return '/etc/ssh'
 
+
+class Fedora16CAService(Fedora16Service):
+    def __wait_until_running(self):
+        # We must not wait for the httpd proxy if httpd is not set up yet.
+        # Unfortunately, knownservices.httpd.is_installed() can return
+        # false positives, so check for existence of our configuration file.
+        # TODO: Use a cleaner solution
+        if not os.path.exists('/etc/httpd/conf.d/ipa.conf'):
+            root_logger.debug(
+                'The httpd proxy is not installed, skipping wait for CA')
+            return
+        if dogtag.install_constants.DOGTAG_VERSION < 10:
+            # The server status information isn't available on DT 9
+            root_logger.debug('Using Dogtag 9, skipping wait for CA')
+            return
+        root_logger.debug('Waiting until the CA is running')
+        timeout = api.env.startup_timeout
+        op_timeout = time.time() + timeout
+        while time.time() < op_timeout:
+            status = dogtag.ca_status()
+            root_logger.debug('The CA status is: %s' % status)
+            if status == 'running':
+                break
+            root_logger.debug('Waiting for CA to start...')
+            time.sleep(1)
+        else:
+            raise RuntimeError('CA did not start in %ss' % timeout)
+
+    def start(self, instance_name="", capture_output=True, wait=True):
+        super(Fedora16CAService, self).start(
+            instance_name, capture_output=capture_output, wait=wait)
+        if wait:
+            self.__wait_until_running()
+
+    def restart(self, instance_name="", capture_output=True, wait=True):
+        super(Fedora16CAService, self).restart(
+            instance_name, capture_output=capture_output, wait=wait)
+        if wait:
+            self.__wait_until_running()
+
+
 # Redirect directory server service through special sub-class due to its
 # special handling of instances
 def f16_service(name):
@@ -137,6 +182,8 @@ def f16_service(name):
         return Fedora16IPAService(name)
     if name == 'sshd':
         return Fedora16SSHService(name)
+    if name in ('pki-cad', 'pki_cad', 'pki-tomcatd', 'pki_tomcatd'):
+        return Fedora16CAService(name)
     return Fedora16Service(name)
 
 class Fedora16Services(base.KnownServices):

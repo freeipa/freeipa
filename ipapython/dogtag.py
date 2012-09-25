@@ -130,6 +130,15 @@ def configured_constants(api=None):
         return Dogtag9Constants
 
 
+def error_from_xml(doc, message_template):
+    try:
+        item_node = doc.getElementsByTagName("Error")
+        reason = item_node[0].childNodes[0].data
+        return errors.RemoteRetrieveError(reason=reason)
+    except Exception, e:
+        return errors.RemoteRetrieveError(reason=message_template % e)
+
+
 def get_ca_certchain(ca_host=None):
     """
     Retrieve the CA Certificate chain from the configured Dogtag server.
@@ -151,13 +160,8 @@ def get_ca_certchain(ca_host=None):
                 item_node = doc.getElementsByTagName("ChainBase64")
                 chain = item_node[0].childNodes[0].data
             except IndexError:
-                try:
-                    item_node = doc.getElementsByTagName("Error")
-                    reason = item_node[0].childNodes[0].data
-                    raise errors.RemoteRetrieveError(reason=reason)
-                except Exception, e:
-                    raise errors.RemoteRetrieveError(
-                        reason=_("Retrieving CA cert chain failed: %s") % e)
+                raise error_from_xml(
+                    doc, _("Retrieving CA cert chain failed: %s"))
         finally:
             if doc:
                 doc.unlink()
@@ -167,32 +171,107 @@ def get_ca_certchain(ca_host=None):
 
     return chain
 
+
+def ca_status(ca_host=None):
+    """Return the status of the CA, and the httpd proxy in front of it
+
+    The returned status can be:
+    - running
+    - starting
+    - Service Temporarily Unavailable
+    """
+    if ca_host is None:
+        ca_host = api.env.ca_host
+    # Use port 443 to test the proxy as well
+    status, reason, headers, body = unauthenticated_https_request(
+        ca_host, 443, '/ca/admin/ca/getStatus')
+    if status == 503:
+        # Service temporarily unavailable
+        return reason
+    elif status != 200:
+        raise errors.RemoteRetrieveError(
+            reason=_("Retrieving CA status failed: %s") % reason)
+    doc = xml.dom.minidom.parseString(body)
+    try:
+        item_node = doc.getElementsByTagName("XMLResponse")[0]
+        item_node = item_node.getElementsByTagName("Status")[0]
+        return item_node.childNodes[0].data
+    except IndexError:
+        raise error_from_xml(doc, _("Retrieving CA status failed: %s"))
+
+
 def https_request(host, port, url, secdir, password, nickname, **kw):
     """
-    :param url: The URL to post to.
+    :param url: The path (not complete URL!) to post to.
     :param kw:  Keyword arguments to encode into POST body.
     :return:   (http_status, http_reason_phrase, http_headers, http_body)
                as (integer, unicode, dict, str)
 
     Perform a client authenticated HTTPS request
     """
-    if isinstance(host, unicode):
-        host = host.encode('utf-8')
-    uri = 'https://%s%s' % (ipautil.format_netloc(host, port), url)
-    post = urlencode(kw)
-    root_logger.debug('https_request %r', uri)
-    root_logger.debug('https_request post %r', post)
-    request_headers = {"Content-type": "application/x-www-form-urlencoded",
-                       "Accept": "text/plain"}
-    try:
+
+    def connection_factory(host, port):
         conn = nsslib.NSSConnection(host, port, dbdir=secdir)
         conn.set_debuglevel(0)
         conn.connect()
-        conn.sock.set_client_auth_data_callback(nsslib.client_auth_data_callback,
-                                                nickname,
-                                                password, nss.get_default_certdb())
-        conn.request("POST", url, post, request_headers)
+        conn.sock.set_client_auth_data_callback(
+            nsslib.client_auth_data_callback,
+            nickname, password, nss.get_default_certdb())
+        return conn
 
+    body = urlencode(kw)
+    return _httplib_request(
+            'https', host, port, url, connection_factory, body)
+
+
+def http_request(host, port, url, **kw):
+    """
+    :param url: The path (not complete URL!) to post to.
+    :param kw: Keyword arguments to encode into POST body.
+    :return:   (http_status, http_reason_phrase, http_headers, http_body)
+                as (integer, unicode, dict, str)
+
+    Perform an HTTP request.
+    """
+    body = urlencode(kw)
+    return _httplib_request(
+        'http', host, port, url, httplib.HTTPConnection, body)
+
+
+def unauthenticated_https_request(host, port, url, **kw):
+    """
+    :param url: The path (not complete URL!) to post to.
+    :param kw: Keyword arguments to encode into POST body.
+    :return:   (http_status, http_reason_phrase, http_headers, http_body)
+                as (integer, unicode, dict, str)
+
+    Perform an unauthenticated HTTPS request.
+    """
+    body = urlencode(kw)
+    return _httplib_request(
+        'https', host, port, url, httplib.HTTPSConnection, body)
+
+
+def _httplib_request(
+        protocol, host, port, path, connection_factory, request_body):
+    """
+    :param request_body: Request body
+    :param connection_factory: Connection class to use. Will be called
+        with the host and port arguments.
+
+    Perform a HTTP(s) request.
+    """
+    if isinstance(host, unicode):
+        host = host.encode('utf-8')
+    uri = '%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
+    root_logger.info('request %r', uri)
+    root_logger.debug('request body %r', request_body)
+    try:
+        conn = connection_factory(host, port)
+        conn.request('POST', uri,
+            body=request_body,
+            headers={'Content-type': 'application/x-www-form-urlencoded'},
+        )
         res = conn.getresponse()
 
         http_status = res.status
@@ -203,42 +282,9 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
     except Exception, e:
         raise NetworkError(uri=uri, error=str(e))
 
+    root_logger.debug('request status %d',        http_status)
+    root_logger.debug('request reason_phrase %r', http_reason_phrase)
+    root_logger.debug('request headers %s',       http_headers)
+    root_logger.debug('request body %r',          http_body)
+
     return http_status, http_reason_phrase, http_headers, http_body
-
-def http_request(host, port, url, **kw):
-        """
-        :param url: The URL to post to.
-        :param kw: Keyword arguments to encode into POST body.
-        :return:   (http_status, http_reason_phrase, http_headers, http_body)
-                   as (integer, unicode, dict, str)
-
-        Perform an HTTP request.
-        """
-        if isinstance(host, unicode):
-            host = host.encode('utf-8')
-        uri = 'http://%s%s' % (ipautil.format_netloc(host, port), url)
-        post = urlencode(kw)
-        root_logger.info('request %r', uri)
-        root_logger.debug('request post %r', post)
-        conn = httplib.HTTPConnection(host, port)
-        try:
-            conn.request('POST', url,
-                body=post,
-                headers={'Content-type': 'application/x-www-form-urlencoded'},
-            )
-            res = conn.getresponse()
-
-            http_status = res.status
-            http_reason_phrase = unicode(res.reason, 'utf-8')
-            http_headers = res.msg.dict
-            http_body = res.read()
-            conn.close()
-        except NSPRError, e:
-            raise NetworkError(uri=uri, error=str(e))
-
-        root_logger.debug('request status %d',        http_status)
-        root_logger.debug('request reason_phrase %r', http_reason_phrase)
-        root_logger.debug('request headers %s',       http_headers)
-        root_logger.debug('request body %r',          http_body)
-
-        return http_status, http_reason_phrase, http_headers, http_body
