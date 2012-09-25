@@ -124,7 +124,8 @@ class DomainValidator(object):
             (entries, truncated) = self.ldap.find_entries(filter=filter, base_dn=cn_trust,
                                                           attrs_list=[self.ATTR_TRUSTED_SID, 'dn'])
 
-            return entries
+            result = map (lambda entry: security.dom_sid(entry[1][self.ATTR_TRUSTED_SID][0]), entries)
+            return result
         except errors.NotFound, e:
             return []
 
@@ -136,17 +137,7 @@ class DomainValidator(object):
         # Parse sid string to see if it is really in a SID format
         try:
             test_sid = security.dom_sid(sid)
-        except TypeError:
-            return False
-        (dom, sid_rid) = test_sid.split()
-        sid_dom = str(dom)
-        # Now we have domain prefix of the sid as sid_dom string and can
-        # analyze it against known prefixes
-        if sid_dom.find(security.SID_NT_AUTHORITY) != 0:
-            # Ignore any potential SIDs that are not S-1-5-*
-            return False
-        if sid_dom.find(self.sid) == 0:
-            # A SID from our own domain cannot be treated as trusted domain's SID
+        except TypeError, e:
             return False
         # At this point we have SID_NT_AUTHORITY family SID and really need to
         # check it against prefixes of domain SIDs we trust to
@@ -158,8 +149,11 @@ class DomainValidator(object):
             return False
         # We have non-zero list of trusted domains and have to go through them
         # one by one and check their sids as prefixes
-        for (dn, domaininfo) in self._domains:
-            if sid_dom.find(domaininfo[self.ATTR_TRUSTED_SID][0]) == 0:
+        test_sid_subauths = test_sid.sub_auths
+        for domsid in self._domains:
+            sub_auths = domsid.sub_auths
+            num_auths = min(test_sid.num_auths, domsid.num_auths)
+            if test_sid_subauths[:num_auths] == sub_auths[:num_auths]:
                 return True
         return False
 
@@ -393,8 +387,10 @@ class TrustDomainInstance(object):
         result = retrieve_netlogon_info_2(self,
                                           netlogon.NETLOGON_CONTROL_TC_VERIFY,
                                           another_domain.info['dns_domain'])
-        if (unicode(result.trusted_dc_name)[2:] == another_domain.info['dc'] and
-            result.tc_connection_status == (0, 'WERR_OK')):
+        if (result and (result.flags and netlogon.NETLOGON_VERIFY_STATUS_RETURNED)):
+            # netr_LogonControl2Ex() returns non-None result only if overall call
+            # result was WERR_OK which means verification was correct.
+            # We only check that it was indeed status for verification process
             return True
         return False
 
