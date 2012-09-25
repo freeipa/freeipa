@@ -107,7 +107,7 @@ Example:
    ipa group-add-member ad_admins --groups ad_admins_external
 """)
 
-protected_group_name = u'admins'
+PROTECTED_GROUPS = (u'admins', u'trust admins')
 
 class group(LDAPObject):
     """
@@ -222,7 +222,7 @@ class group_del(LDAPDelete):
         group_attrs = self.obj.methods.show(
             self.obj.get_primary_key_from_dn(dn), all=True
         )['result']
-        if keys[0] == protected_group_name:
+        if keys[0] in PROTECTED_GROUPS:
             raise errors.ProtectedEntryError(label=_(u'group'), key=keys[0],
                 reason=_(u'privileged group'))
         if 'mepmanagedby' in group_attrs:
@@ -260,6 +260,14 @@ class group_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
+
+        is_protected_group = keys[-1] in PROTECTED_GROUPS
+
+        if 'rename' in options:
+            if is_protected_group:
+                raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
+                    reason=u'Cannot be renamed')
+
         if ('posix' in options and options['posix']) or 'gidnumber' in options:
             (dn, old_entry_attrs) = ldap.get_entry(dn, ['objectclass'])
             if 'ipaexternalgroup' in old_entry_attrs['objectclass']:
@@ -272,7 +280,11 @@ class group_mod(LDAPUpdate):
                 entry_attrs['objectclass'] = old_entry_attrs['objectclass']
                 if not 'gidnumber' in options:
                     entry_attrs['gidnumber'] = 999
+
         if options['external']:
+            if is_protected_group:
+                raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
+                    reason=u'Cannot support external non-IPA members')
             (dn, old_entry_attrs) = ldap.get_entry(dn, ['objectclass'])
             if 'posixgroup' in old_entry_attrs['objectclass']:
                 raise errors.PosixGroupViolation()
@@ -281,6 +293,7 @@ class group_mod(LDAPUpdate):
             else:
                 old_entry_attrs['objectclass'].append('ipaexternalgroup')
                 entry_attrs['objectclass'] = old_entry_attrs['objectclass']
+
         # Can't check for this in a validator because we lack context
         if 'gidnumber' in options and options['gidnumber'] is None:
             raise errors.RequirementError(name='gid')
@@ -393,7 +406,8 @@ class group_remove_member(LDAPRemoveMember):
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
-        if keys[0] == protected_group_name:
+        if keys[0] in PROTECTED_GROUPS:
+            protected_group_name = keys[0]
             result = api.Command.group_show(protected_group_name)
             users_left = set(result['result'].get('member_user', []))
             users_deleted = set(options['user'])

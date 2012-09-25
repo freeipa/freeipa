@@ -1659,18 +1659,18 @@ class LastMemberError(ExecutionError):
 
 class ProtectedEntryError(ExecutionError):
     """
-    **4309** Raised when an entry being deleted is protected
+    **4309** Raised when an entry being deleted or modified in a forbidden way is protected
 
     For example:
     >>> raise ProtectedEntryError(label=u'group', key=u'admins', reason=_(u'privileged group'))
     Traceback (most recent call last):
       ...
-    ProtectedEntryError: group admins cannot be deleted: privileged group
+    ProtectedEntryError: group admins cannot be deleted/modified: privileged group
 
     """
 
     errno = 4309
-    format = _('%(label)s %(key)s cannot be deleted: %(reason)s')
+    format = _('%(label)s %(key)s cannot be deleted/modified: %(reason)s')
 
 
 ##############################################################################
