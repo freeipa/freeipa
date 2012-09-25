@@ -116,3 +116,17 @@ default:ObjectClass: nsIndex
 default:nsSystemIndex: false
 default:nsIndexType: eq
 default:nsIndexType: pres
+
+dn: cn=automountkey,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: automountkey
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
+
+dn: cn=ipakrbprincipalalias,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: ipakrbprincipalalias
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
