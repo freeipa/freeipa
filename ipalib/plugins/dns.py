@@ -34,7 +34,7 @@ from ipalib import _, ngettext
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         validate_hostname, validate_dns_label, validate_domain_name,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
-        get_reverse_zone_default)
+        get_reverse_zone_default, zone_is_reverse, REVERSE_DNS_ZONES)
 from ipapython.ipautil import valid_ip, CheckedIPAddress, is_host_resolvable
 
 __doc__ = _("""
@@ -1499,19 +1499,6 @@ _dns_record_options = tuple(__dns_record_options_iter())
 _dns_supported_record_types = tuple(record.rrtype for record in _dns_records \
                                     if record.supported)
 
-# dictionary of valid reverse zone -> number of address components
-_valid_reverse_zones = {
-    '.in-addr.arpa.' : 4,
-    '.ip6.arpa.' : 32,
-}
-
-def zone_is_reverse(zone_name):
-    for rev_zone_name in _valid_reverse_zones.keys():
-        if zone_name.endswith(rev_zone_name):
-            return True
-
-    return False
-
 def check_ns_rec_resolvable(zone, name):
     if not name.endswith('.'):
         # this is a DNS name relative to the zone
@@ -1842,7 +1829,7 @@ class dnszone_find(LDAPSearch):
         assert isinstance(base_dn, DN)
         if options.get('forward_only', False):
             search_kw = {}
-            search_kw['idnsname'] = _valid_reverse_zones.keys()
+            search_kw['idnsname'] = REVERSE_DNS_ZONES.keys()
             rev_zone_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_NONE, exact=False,
                     trailing_wildcard=False)
             filter = ldap.combine_filters((rev_zone_filter, filter), rules=ldap.MATCH_ALL)
@@ -2027,14 +2014,14 @@ class dnsrecord(LDAPObject):
         else:
             addr = keys[-1]
         zone_len = 0
-        for valid_zone in _valid_reverse_zones:
-            if zone.find(valid_zone) != -1:
+        for valid_zone in REVERSE_DNS_ZONES:
+            if zone.endswith(valid_zone):
                 zone = zone.replace(valid_zone,'')
                 zone_name = valid_zone
-                zone_len = _valid_reverse_zones[valid_zone]
+                zone_len = REVERSE_DNS_ZONES[valid_zone]
 
         if not zone_len:
-            allowed_zones = ', '.join(_valid_reverse_zones)
+            allowed_zones = ', '.join(REVERSE_DNS_ZONES)
             raise errors.ValidationError(name='ptrrecord',
                     error=unicode(_('Reverse zone for PTR record should be a sub-zone of one the following fully qualified domains: %s') % allowed_zones))
 

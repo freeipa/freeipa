@@ -28,7 +28,7 @@ import krbV
 
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
-from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_fwd_rr, add_ptr_rr, dns_container_exists
+from ipaserver.install.bindinstance import add_zone, add_fwd_rr, add_ptr_rr, dns_container_exists
 from ipaserver.install.replication import enable_replication_version_checking
 from ipaserver.install.installutils import resolve_host, BadHostError, HostLookupError
 from ipaserver.plugins.ldap2 import ldap2
@@ -466,7 +466,7 @@ def main():
 
         if reverse_zone is not None:
             print "Using reverse zone %s" % reverse_zone
-            add_reverse_zone(reverse_zone)
+            add_zone(reverse_zone)
             add_ptr_rr(reverse_zone, ip_address, replica_fqdn)
 
 try:

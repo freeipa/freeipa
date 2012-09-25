@@ -34,7 +34,7 @@ from ipapython import ipautil
 from ipalib.parameters import IA5Str
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
-        normalize_zone, get_reverse_zone_default)
+        normalize_zone, get_reverse_zone_default, zone_is_reverse)
 from ipapython.ipa_log_manager import *
 from ipalib.text import _
 
@@ -252,8 +252,15 @@ def read_reverse_zone(default, ip_address):
 
 def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_address=None,
        update_policy=None):
+    if zone_is_reverse(name):
+        # always normalize reverse zones
+        name = normalize_zone(name)
+
     if update_policy is None:
-        update_policy = get_dns_forward_zone_update_policy(api.env.realm)
+        if zone_is_reverse(name):
+            update_policy = get_dns_reverse_zone_update_policy(api.env.realm, name)
+        else:
+            update_policy = get_dns_forward_zone_update_policy(api.env.realm)
 
     if zonemgr is None:
         zonemgr = 'hostmaster.%s' % name
@@ -276,13 +283,14 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
     else:
         ns_main = ns_hostname
         ns_replicas = []
+    ns_main = normalize_zone(ns_main)
 
     if ns_ip_address is not None:
         ns_ip_address = unicode(ns_ip_address)
 
     try:
         api.Command.dnszone_add(unicode(name),
-                                idnssoamname=unicode(ns_main+'.'),
+                                idnssoamname=unicode(ns_main),
                                 idnssoarname=unicode(zonemgr),
                                 ip_address=ns_ip_address,
                                 idnsallowdynupdate=True,
@@ -295,51 +303,6 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
     nameservers = ns_replicas + [ns_main]
     for hostname in nameservers:
         add_ns_rr(name, hostname, dns_backup=None, force=True)
-
-
-def add_reverse_zone(zone, ns_hostname=None, ns_ip_address=None,
-        ns_replicas=[], update_policy=None, dns_backup=None):
-    zone = normalize_zone(zone)
-    if update_policy is None:
-        update_policy = get_dns_reverse_zone_update_policy(api.env.realm, zone)
-
-    if ns_hostname is None:
-        # automatically retrieve list of DNS masters
-        dns_masters = api.Object.dnsrecord.get_dns_masters()
-        if not dns_masters:
-            raise installutils.ScriptError(
-                "No IPA server with DNS support found!")
-        ns_main = dns_masters.pop(0)
-        ns_replicas = dns_masters
-        addresses = resolve_host(ns_main)
-
-        if len(addresses) > 0:
-            # use the first address
-            ns_ip_address = addresses[0]
-        else:
-            ns_ip_address = None
-    else:
-        ns_main = ns_hostname
-        ns_replicas = []
-
-    if ns_ip_address is not None:
-        ns_ip_address = unicode(ns_ip_address)
-
-    try:
-        api.Command.dnszone_add(unicode(zone),
-                                idnssoamname=unicode(ns_main+'.'),
-                                idnsallowdynupdate=True,
-                                ip_address=ns_ip_address,
-                                idnsupdatepolicy=unicode(update_policy),
-                                idnsallowquery=u'any',
-                                idnsallowtransfer=u'none',)
-    except (errors.DuplicateEntry, errors.EmptyModlist):
-        pass
-
-    nameservers = ns_replicas + [ns_main]
-    for hostname in nameservers:
-        add_ns_rr(zone, hostname, dns_backup=None, force=True)
-
 
 def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
     addkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
@@ -639,7 +602,7 @@ class BindInstance(service.Service):
             add_ptr_rr(self.reverse_zone, self.ip_address, self.fqdn)
 
     def __setup_reverse_zone(self):
-        add_reverse_zone(self.reverse_zone, ns_hostname=api.env.host,
+        add_zone(self.reverse_zone, self.zonemgr, ns_hostname=api.env.host,
                 ns_ip_address=self.ip_address, dns_backup=self.dns_backup)
 
     def __setup_principal(self):
