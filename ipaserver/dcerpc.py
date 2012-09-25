@@ -40,8 +40,12 @@ from samba.ndr import ndr_pack
 from samba import net
 import samba
 import random
-import ldap as _ldap
 from Crypto.Cipher import ARC4
+try:
+    from ldap.controls import RequestControl as LDAPControl #pylint: disable=F0401
+except ImportError:
+    from ldap.controls import LDAPControl as LDAPControl    #pylint: disable=F0401
+import ldap as _ldap
 
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls
@@ -81,13 +85,17 @@ def assess_dcerpc_exception(num=None,message=None):
                   message "%(message)s" (both may be "None")''') % dict(num=num, message=message)
     return errors.RemoteRetrieveError(reason=reason)
 
-class ExtendedDNControl(_ldap.controls.RequestControl):
+class ExtendedDNControl(LDAPControl):
+    # This class attempts to implement LDAP control that would work
+    # with both python-ldap 2.4.x and 2.3.x, thus there is mix of properties
+    # from both worlds and encodeControlValue has default parameter
     def __init__(self):
+        self.controlValue = 1
         self.controlType = "1.2.840.113556.1.4.529"
         self.criticality = False
         self.integerValue = 1
 
-    def encodeControlValue(self):
+    def encodeControlValue(self, value=None):
         return '0\x03\x02\x01\x01'
 
 class DomainValidator(object):
