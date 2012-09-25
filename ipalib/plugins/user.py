@@ -538,7 +538,15 @@ class user_add(LDAPCreate):
         # add the user we just created into the default primary group
         def_primary_group = config.get('ipadefaultprimarygroup')
         group_dn = self.api.Object['group'].get_dn(def_primary_group)
-        ldap.add_entry_to_group(dn, group_dn)
+
+        # if the user is already a member of default primary group,
+        # do not raise error
+        # this can happen if automember rule or default group is set
+        try:
+            ldap.add_entry_to_group(dn, group_dn)
+        except errors.AlreadyGroupMember:
+            pass
+
         if self.api.env.wait_for_attr:
             newentry = wait_for_value(ldap, dn, 'memberOf', def_primary_group)
             entry_from_entry(entry_attrs, newentry)
