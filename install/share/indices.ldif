@@ -192,3 +192,19 @@ ObjectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
 nsIndexType: pres
+
+dn: cn=automountkey,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: automountkey
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+
+dn: cn=ipakrbprincipalalias,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipakrbprincipalalias
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
