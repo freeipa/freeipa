@@ -66,6 +66,7 @@ class test_user(Declarative):
     cleanup_commands = [
         ('user_del', [user1, user2, renameduser1, admin2], {'continue': True}),
         ('group_del', [group1], {}),
+        ('automember_default_group_remove', [], {'type': u'group'}),
     ]
 
     tests = [
@@ -1682,4 +1683,68 @@ class test_user(Declarative):
                 container=admins_group),
         ),
 
+        dict(
+            desc='Set default automember group for groups as ipausers',
+            command=(
+                'automember_default_group_set', [], dict(
+                    type=u'group',
+                    automemberdefaultgroup=u'ipausers'
+                    )
+            ),
+            expected=dict(
+                result=dict(
+                    cn=[u'Group'],
+                    automemberdefaultgroup=[DN(('cn', 'ipausers'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn)],
+                ),
+                value=u'group',
+                summary=u'Set default (fallback) group for automember "group"',
+            ),
+        ),
+
+        dict(
+            desc='Delete "%s"' % user2,
+            command=('user_del', [user2], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % user2,
+                value=user2,
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % user2,
+            command=(
+                'user_add', [user2], dict(givenname=u'Test', sn=u'User2')
+            ),
+            expected=dict(
+                value=user2,
+                summary=u'Added user "tuser2"',
+                result=dict(
+                    gecos=[u'Test User2'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser2'],
+                    krbprincipalname=[u'tuser2@' + api.env.realm],
+                    has_keytab=False,
+                    has_password=False,
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'%s@%s' % (user2, api.env.domain)],
+                    displayname=[u'Test User2'],
+                    cn=[u'Test User2'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=[DN(('cn', 'global_policy'), ('cn', api.env.realm), ('cn', 'kerberos'),
+                                        api.env.basedn)],
+                    mepmanagedentry=[DN(('cn', user2), ('cn', 'groups'), ('cn', 'accounts'),
+                                        api.env.basedn)],
+                    memberof_group=[u'ipausers'],
+                    dn=DN(('uid', 'tuser2'), ('cn', 'users'), ('cn', 'accounts'),
+                          api.env.basedn),
+                ),
+            ),
+        ),
     ]
