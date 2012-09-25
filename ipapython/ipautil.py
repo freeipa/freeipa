@@ -292,30 +292,35 @@ def run(args, stdin=None, raiseonerr=True,
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
 
+    arg_string = nolog_replace(' '.join(args), nolog)
+    root_logger.debug('Starting external process')
+    root_logger.debug('args=%s' % arg_string)
+
     try:
         p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
                              close_fds=True, env=env, cwd=cwd)
         stdout,stderr = p.communicate(stdin)
         stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
     except KeyboardInterrupt:
+        root_logger.debug('Process interrupted')
         p.wait()
         raise
+    except:
+        root_logger.debug('Process execution failed')
+        raise
+
+    root_logger.debug('Process finished, return code=%s', p.returncode)
 
     # The command and its output may include passwords that we don't want
     # to log. Replace those.
-    args = ' '.join(args)
     if capture_output:
         stdout = nolog_replace(stdout, nolog)
         stderr = nolog_replace(stderr, nolog)
-    args = nolog_replace(args, nolog)
-
-    root_logger.debug('args=%s' % args)
-    if capture_output:
         root_logger.debug('stdout=%s' % stdout)
         root_logger.debug('stderr=%s' % stderr)
 
     if p.returncode != 0 and raiseonerr:
-        raise CalledProcessError(p.returncode, args)
+        raise CalledProcessError(p.returncode, arg_string)
 
     return (stdout, stderr, p.returncode)
 
