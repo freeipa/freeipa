@@ -464,13 +464,13 @@ def uninstall(options, env):
     if nscd.is_installed():
         try:
             nscd.restart()
-        except:
+        except Exception:
             root_logger.warning(
                 "Failed to restart the %s daemon", nscd.service_name)
 
         try:
             nscd.enable()
-        except:
+        except Exception:
             root_logger.warning(
                 "Failed to configure automatic startup of the %s daemon",
                 nscd.service_name)
@@ -483,13 +483,13 @@ def uninstall(options, env):
     if nslcd.is_installed():
         try:
             nslcd.stop()
-        except:
+        except Exception:
             root_logger.warning(
                 "Failed to stop the %s daemon", nslcd.service_name)
 
         try:
             nslcd.disable()
-        except:
+        except Exception:
             root_logger.warning(
                 "Failed to disable automatic startup of the %s daemon",
                 nslcd.service_name)
@@ -513,7 +513,7 @@ def uninstall(options, env):
             restored |= fstore.restore_file("/etc/sysconfig/ntpd")
             if ntp_step_tickers:
                restored |= fstore.restore_file("/etc/ntp/step-tickers")
-        except:
+        except Exception:
             pass
 
         if not ntp_enabled:
@@ -556,7 +556,7 @@ def uninstall(options, env):
     # Remove the IPA configuration file
     try:
         os.remove("/etc/ipa/default.conf")
-    except:
+    except Exception:
         pass
 
     root_logger.info("Client uninstall complete.")
@@ -836,7 +836,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
         subject = DN(('CN', hostname), subject_base)
         try:
             run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname, "-N", str(subject), "-K", principal])
-        except:
+        except Exception:
             root_logger.error(
                 "%s request for host certificate failed", cmonger.service_name)
 
@@ -1130,7 +1130,7 @@ def do_nsupdate(update_txt):
 
     try:
         os.remove(UPDATE_FILE)
-    except:
+    except Exception:
         pass
 
     return result
@@ -1490,7 +1490,7 @@ def install(options, env, fstore, statestore):
         # Remove anything already there so that wget doesn't use its
         # too-clever renaming feature
         os.remove("/etc/ipa/ca.crt")
-    except:
+    except Exception:
         pass
 
     try:
@@ -1729,7 +1729,7 @@ def install(options, env, fstore, statestore):
 
     try:
         os.remove(CCACHE_FILE)
-    except:
+    except Exception:
         pass
 
     #Name Server Caching Daemon. Disable for SSSD, use otherwise (if installed)
@@ -1742,7 +1742,7 @@ def install(options, env, fstore, statestore):
             else:
                 nscd_service_action = 'restart'
                 nscd.restart()
-        except:
+        except Exception:
             root_logger.warning("Failed to %s the %s daemon",
                 nscd_service_action, nscd.service_name)
             if not options.sssd:
@@ -1754,7 +1754,7 @@ def install(options, env, fstore, statestore):
                 nscd.disable()
             else:
                 nscd.enable()
-        except:
+        except Exception:
             if not options.sssd:
                 root_logger.warning(
                     "Failed to configure automatic startup of the %s daemon",
@@ -1923,5 +1923,5 @@ except RuntimeError, e:
 finally:
     try:
         os.remove(CCACHE_FILE)
-    except:
+    except Exception:
         pass
