@@ -41,6 +41,7 @@ from ipapython import certmonger
 from ipalib import pkcs10, x509
 from ipapython.dn import DN
 import subprocess
+import traceback
 
 from nss.error import NSPRError
 import nss.nss as nss
@@ -395,6 +396,7 @@ class CADSInstance(service.Service):
                 sys.exit(1)
         except Exception:
             # TODO: roll back here?
+            root_logger.debug(traceback.format_exc())
             root_logger.critical("Failed to restart the directory server. See the installation log for details.")
 
     def uninstall(self):
@@ -867,6 +869,7 @@ class CAInstance(service.Service):
             self.restart(self.dogtag_constants.PKI_INSTANCE_NAME)
         except Exception:
             # TODO: roll back here?
+            root_logger.debug(traceback.format_exc())
             root_logger.critical("Failed to restart the certificate server. See the installation log for details.")
 
     def __disable_nonce(self):
@@ -1550,6 +1553,11 @@ def install_replica_ca(config, postinstall=False):
                           config.dirman_password, pkcs12_info=(cafile,),
                           master_host=config.master_host_name,
                           subject_base=config.subject_base)
+
+    if postinstall:
+        # Restart httpd since we changed its config
+        ipaservices.knownservices.httpd.restart()
+
 
     # The dogtag DS instance needs to be restarted after installation.
     # The procedure for this is: stop dogtag, stop DS, start DS, start
