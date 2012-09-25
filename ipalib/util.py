@@ -494,6 +494,19 @@ def get_dns_reverse_zone_update_policy(realm, reverse_zone, rrtypes=('PTR',)):
 
     return policy
 
+# dictionary of valid reverse zone -> number of address components
+REVERSE_DNS_ZONES = {
+    '.in-addr.arpa.' : 4,
+    '.ip6.arpa.' : 32,
+}
+
+def zone_is_reverse(zone_name):
+    zone_name = normalize_zone(zone_name)
+    if any(zone_name.endswith(name) for name in REVERSE_DNS_ZONES):
+        return True
+
+    return False
+
 def get_reverse_zone_default(ip_address):
     ip = netaddr.IPAddress(ip_address)
     items = ip.reverse_dns.split('.')
