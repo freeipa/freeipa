@@ -34,10 +34,10 @@ wellknownports = {
     'dirsrv@PKI-IPA.service': [7389],
     'PKI-IPA': [7389],
     'dirsrv': [389], # this is only used if the incoming instance name is blank
-    'pki-cad': [9180],
-    'pki-tomcatd@pki-tomcat.service': [8080],
-    'pki-tomcat': [8080],
-    'pki-tomcatd': [8080], # used if the incoming instance name is blank
+    'pki-cad': [9180, 9443, 9444],
+    'pki-tomcatd@pki-tomcat.service': [8080, 8443],
+    'pki-tomcat': [8080, 8443],
+    'pki-tomcatd': [8080, 8443],  # used if the incoming instance name is blank
 }
 
 class AuthConfig(object):
