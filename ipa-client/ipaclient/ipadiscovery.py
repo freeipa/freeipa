@@ -290,6 +290,7 @@ class IPADiscovery(object):
             run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "-T", "15", "-t", "2",
                  "http://%s/ipa/config/ca.crt" % format_netloc(thost)])
         except CalledProcessError, e:
+            root_logger.error('Retrieving CA from %s failed', thost)
             root_logger.debug('Retrieving CA from %s failed: %s', thost, str(e))
             return [NOT_IPA_SERVER]
 
