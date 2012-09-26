@@ -375,9 +375,18 @@ class TrustDomainInstance(object):
         except RuntimeError, e:
             pass
         try:
-            self._pipe.CreateTrustedDomainEx2(self._policy_handle, info, self.auth_info, security.SEC_STD_DELETE)
+            trustdom_handle = self._pipe.CreateTrustedDomainEx2(self._policy_handle, info, self.auth_info, security.SEC_STD_DELETE)
         except RuntimeError, (num, message):
             raise assess_dcerpc_exception(num=num, message=message)
+
+        try:
+            infoclass = lsa.TrustDomainInfoSupportedEncTypes()
+            infoclass.enc_types = security.KERB_ENCTYPE_RC4_HMAC_MD5
+            infoclass.enc_types |= security.KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96
+            infoclass.enc_types |= security.KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96
+            self._pipe.SetInformationTrustedDomain(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_SUPPORTED_ENCRYPTION_TYPES, infoclass)
+        except RuntimeError, e:
+            pass
 
     def verify_trust(self, another_domain):
         def retrieve_netlogon_info_2(domain, function_code, data):
