@@ -326,7 +326,9 @@ def add_ptr_rr(zone, ip_address, fqdn, dns_backup=None):
     add_rr(zone, name, "PTR", fqdn+".", dns_backup)
 
 def add_ns_rr(zone, hostname, dns_backup=None, force=True):
-    add_rr(zone, "@", "NS", hostname+'.', dns_backup=dns_backup,
+    if not hostname.endswith('.'):
+        hostname += '.'
+    add_rr(zone, "@", "NS", hostname, dns_backup=dns_backup,
             force=force)
 
 def del_rr(zone, name, type, rdata):
