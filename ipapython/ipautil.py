@@ -831,7 +831,7 @@ def get_ipa_basedn(conn):
                 % (info, IPA_BASEDN_INFO))
             continue
         root_logger.debug("Naming context '%s' is a valid IPA context" % context)
-        return context
+        return DN(context)
 
     return None
 
