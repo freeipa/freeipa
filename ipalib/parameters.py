@@ -1595,12 +1595,17 @@ class Enum(Param):
                     TYPE_ERROR % (n, self.type, v, type(v))
                 )
 
+        if len(self.values) < 1:
+            raise ValueError(
+                '%s: list of values must not be empty' % self.nice)
+
     def _rule_values(self, _, value, **kw):
         if value not in self.values:
-            return _('must be one of %(values)r') % dict(
-                values=self.values,
-            )
-
+            if len(self.values) == 1:
+                return _("must be '%(value)s'") % dict(value=self.values[0])
+            else:
+                values = u', '.join("'%s'" % value for value in self.values)
+                return _('must be one of %(values)s') % dict(values=values)
 
 class BytesEnum(Enum):
     """
@@ -1622,7 +1627,7 @@ class StrEnum(Enum):
     >>> enum.validate(u'Four', 'cli')
     Traceback (most recent call last):
       ...
-    ValidationError: invalid 'my_enum': must be one of (u'One', u'Two', u'Three')
+    ValidationError: invalid 'my_enum': must be one of 'One', 'Two', 'Three'
     """
 
     type = unicode

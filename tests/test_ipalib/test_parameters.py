@@ -1140,6 +1140,12 @@ class test_StrEnum(ClassChecker):
             "StrEnum('my_enum') values[1]", unicode, 'naughty', str
         )
 
+        # Test that ValueError is raised when list of values is empty
+        badvalues = tuple()
+        e = raises(ValueError, self.cls, 'empty_enum', values=badvalues)
+        assert_equal(str(e), "StrEnum('empty_enum'): list of values must not "
+                "be empty")
+
     def test_rules_values(self):
         """
         Test the `ipalib.parameters.StrEnum._rule_values` method.
@@ -1147,7 +1153,7 @@ class test_StrEnum(ClassChecker):
         values = (u'Hello', u'naughty', u'nurse!')
         o = self.cls('my_enum', values=values)
         rule = o._rule_values
-        translation = u'values=%(values)s'
+        translation = u"values='Hello', 'naughty', 'nurse!'"
         dummy = dummy_ugettext(translation)
 
         # Test with passing values:
@@ -1161,7 +1167,22 @@ class test_StrEnum(ClassChecker):
                 rule(dummy, val),
                 translation % dict(values=values),
             )
-            assert_equal(dummy.message, 'must be one of %(values)r')
+            assert_equal(dummy.message, "must be one of %(values)s")
+            dummy.reset()
+
+        # test a special case when we have just one allowed value
+        values = (u'Hello', )
+        o = self.cls('my_enum', values=values)
+        rule = o._rule_values
+        translation = u"value='Hello'"
+        dummy = dummy_ugettext(translation)
+
+        for val in (u'Howdy', u'quiet', u'library!'):
+            assert_equal(
+                rule(dummy, val),
+                translation % dict(values=values),
+            )
+            assert_equal(dummy.message, "must be '%(value)s'")
             dummy.reset()
 
 
