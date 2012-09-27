@@ -266,6 +266,9 @@ def validate_hostname(hostname, check_fqdn=True, allow_underscore=False):
     if hostname.endswith('.'):
         hostname = hostname[:-1]
 
+    if '..' in hostname:
+        raise ValueError(_('hostname contains empty label (consecutive dots)'))
+
     if '.' not in hostname:
         if check_fqdn:
             raise ValueError(_('not fully qualified'))
