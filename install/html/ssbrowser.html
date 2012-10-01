@@ -4,10 +4,22 @@
 <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
 
-    <script type="text/javascript" src="../ui/jquery.js"></script>
     <link rel="stylesheet" type="text/css" href="../ui/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="../ui/ipa.css" />
     <link rel="stylesheet" type="text/css" href="ipa_error.css" />
+
+    <script type="text/javascript" src="../ui/jquery.js"></script>
+    <script type="text/javascript" src="krb.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var domain = '.' + (IPA_DOMAIN || 'example.com');
+            $('.example-domain').text(domain);
+
+            if ($.browser.mozilla) {
+                $("#configurefirefox").show();
+            }
+        });
+    </script>
 </head>
 
 <body class="info-page">
@@ -50,13 +62,19 @@
             <ul><li> 1. In the address bar of Firefox, type <tt>about:config</tt> to display the list of current configuration options.</li>
                 <li> 2. In the Filter field, type <tt>negotiate</tt> to restrict the list of options. </li>
                 <li> 3. Double-click the <tt>network.negotiate-auth.trusted-uris</tt> entry to display the Enter string value dialog box. </li>
-                <li> 4. Enter the name of the domain against which you want to authenticate, for example, <tt>.example.com.</tt> </li>
-                <li> 5. Repeat the above procedure for the <tt>network.negotiate-auth.delegation-uris</tt> entry, using the same domain. </li>
+                <li> 4. Enter the name of the domain against which you want to authenticate, for example, <tt class="example-domain">.example.com.</tt> </li>
                 <br>
                 <li><strong> You are all set. </strong></li>
             </ul>
 
-
+            <h3><a name="oldfirefox"></a> Automatic Configuration of older versions</h3>
+            <p>You can configure older versions of Firefox (up to version 14) using signed code. Use <a href="browserconfig.html">Firefox configuration page</a> for newer versions.</p>
+            <ul>
+                <li>1. Import <a href="ca.crt">CA certificate</a>. Make sure you checked all three checkboxes.</li>
+                <li>2. Click on "Configure Browser" button below.</li>
+                <li id="configurefirefox" style="display:none"><object data="jar:/ipa/errors/configure.jar!/preferences.html"
+                type="text/html" class="browser-config"></object></li>
+            </ul>
         </div>
 
    </div>

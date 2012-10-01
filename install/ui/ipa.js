@@ -1346,8 +1346,10 @@ IPA.unauthorized_dialog = function(spec) {
                     "Your kerberos ticket is no longer valid. "+
                     "Please run kinit and then click 'Retry'. "+
                     "If this is your first time running the IPA Web UI "+
-                    "<a href='/ipa/config/unauthorized.html'>"+
+                    "<a href='http://${host}/ipa/config/unauthorized.html'>"+
                     "follow these directions</a> to configure your browser.");
+
+    that.message = that.message.replace('${host}', window.location.hostname);
 
     that.form_auth_failed = "<p><strong>Please re-enter your username or password</strong></p>" +
                 "<p>The password or username you entered is incorrect. " +

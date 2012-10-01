@@ -144,7 +144,7 @@ class i18n_messages(Command):
     messages = {
         "ajax": {
             "401": {
-                "message": _("Your Kerberos ticket is no longer valid. Please run kinit and then click 'Retry'. If this is your first time running the IPA Web UI <a href='/ipa/config/unauthorized.html'>follow these directions</a> to configure your browser."),
+                "message": _("Your Kerberos ticket is no longer valid. Please run kinit and then click 'Retry'. If this is your first time running the IPA Web UI <a href='http://${host}/ipa/config/unauthorized.html'>follow these directions</a> to configure your browser."),
                 "title": _("Kerberos ticket no longer valid."),
             },
         },
