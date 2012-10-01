@@ -8,6 +8,7 @@ app_PYTHON = 			\
 	rename_managed.py	\
 	dns.py			\
 	updateclient.py		\
+	update_services.py	\
 	$(NULL)
 
 EXTRA_DIST =			\
