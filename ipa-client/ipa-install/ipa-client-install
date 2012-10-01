@@ -42,6 +42,8 @@ try:
     from ipalib import api, errors
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
+    from ipapython import kernel_keyring
+    from ipalib.rpc import COOKIE_NAME
     import SSSDConfig
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup
@@ -1666,13 +1668,14 @@ def install(options, env, fstore, statestore):
         root_logger.info("Failed to add CA to the default NSS database.")
         return CLIENT_INSTALL_ERROR
 
+    host_principal = 'host/%s@%s' % (hostname, cli_realm)
     if options.on_master:
         # If on master assume kerberos is already configured properly.
         # Get the host TGT.
         os.environ['KRB5CCNAME'] = CCACHE_FILE
         try:
             run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab',
-                    'host/%s@%s' % (hostname, cli_realm)])
+                    host_principal])
         except CalledProcessError, e:
             root_logger.error("Failed to obtain host TGT.")
             return CLIENT_INSTALL_ERROR
@@ -1692,6 +1695,12 @@ def install(options, env, fstore, statestore):
 
         root_logger.info(
             "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
+
+    # Clear out any current session keyring information
+    try:
+        kernel_keyring.del_key(COOKIE_NAME % host_principal)
+    except ValueError:
+        pass
 
     # Now, let's try to connect to the server's XML-RPC interface
     try:
