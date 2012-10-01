@@ -31,8 +31,14 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 %if 0%{?fedora} >= 16
 BuildRequires:  systemd-units
 %endif
+%if 0%{?fedora} >= 18
+BuildRequires:  samba-devel >= 4.0.0-150
+BuildRequires:  samba-python
+BuildRequires:  libwbclient-devel
+%else
 BuildRequires:  samba4-devel >= 4.0.0-139
 BuildRequires:  samba4-python
+%endif
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
 %endif
@@ -214,10 +220,16 @@ Summary: Virtual package to install packages required for Active Directory trust
 Group: System Environment/Base
 Requires: %{name}-server = %version-%release
 Requires: python-crypto
+%if 0%{?fedora} >= 18
+Requires: samba-python
+Requires: samba
+Requires: samba-winbind
+%else
 Requires: samba4-python
 Requires: samba4
-Requires: libsss_idmap
 Requires: samba4-winbind
+%endif
+Requires: libsss_idmap
 
 %description server-trust-ad
 Cross-realm trusts with Active Directory in IPA require working Samba 4 installation.
@@ -748,6 +760,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Mon Oct  1 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-47
+- Require samba packages instead of samba4 packages obsoleted in Fedora 18 and later
+- Add libwbclient-devel BuildRequires to pick up libwbclient.h on Fedora 18 and later
+
 * Tue Sep 18 2012 Petr Viktorin <pviktori@redhat.com> - 2.99.0-46
 - Set certmonger minimum version to 0.60 for Dogtag 10 support.
 
