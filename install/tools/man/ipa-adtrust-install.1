@@ -25,6 +25,14 @@ ipa\-adtrust\-install [\fIOPTION\fR]...
 Adds all necessary objects and configuration to allow an IPA server to create a
 trust to an Active Directory domain. This requires that the IPA server is
 already installed and configured.
+
+ipa\-adtrust\-install can be run multiple times to reinstall deleted objects or
+broken configuration files. E.g. a fresh samba configuration (smb.conf file and
+registry based configuration can be created. Other items like e.g. the
+configuration of the local range cannot be changed by running
+ipa\-adtrust\-install a second time because with changes here other objects
+might be affected as well.
+
 .SH "OPTIONS"
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
