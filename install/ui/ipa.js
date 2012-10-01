@@ -1670,8 +1670,10 @@ IPA.unauthorized_dialog = function(spec) {
     that.krb_auth_msg = spec.krb_auth_msg || IPA.get_message('login.krb_auth_msg',
                     " To login with Kerberos, please make sure you" +
                     " have valid tickets (obtainable via kinit) and " +
-                    "<a href='/ipa/config/unauthorized.html'>configured</a>" +
+                    "<a href='http://${host}/ipa/config/unauthorized.html'>configured</a>" +
                     " the browser correctly, then click Login. ");
+
+    that.krb_auth_msg = that.krb_auth_msg.replace('${host}', window.location.hostname);
 
     that.form_auth_failed = "<p><strong>Please re-enter your username or password</strong></p>" +
                 "<p>The password or username you entered is incorrect. " +

@@ -4,19 +4,15 @@
     <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
 
-    <script type="text/javascript" src="../ui/jquery.js"></script>
     <link rel="stylesheet" type="text/css" href="../ui/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="../ui/ipa.css" />
     <link rel="stylesheet" type="text/css" href="ipa_error.css" />
 
-    <script type="text/javascript">
-        $(document).ready(function() {
-            if (navigator.userAgent.indexOf("Firefox") != -1 ||
-                navigator.userAgent.indexOf("SeaMonkey") != -1) {
-                $('.textblockkrb').css('display', 'block');
-            }
-        });
-    </script>
+    <script type="text/javascript" src="../ui/jquery.js"></script>
+    <script type="text/javascript" src="../ui/jquery-ui.js"></script>
+    <script type="text/javascript" src="krb.js"></script>
+    <script type="text/javascript" src="ffconfig.js"></script>
+    <script type="text/javascript"  src="ffconfig_page.js"></script>
 </head>
 
 <body class="info-page">
@@ -27,11 +23,71 @@
             <img src="../ui/images/ipa-logo.png" /><img src="../ui/images/ipa-banner.png" />
         </div>
 
-        <div class="textblockkrb" style="display: none;">
-        <h1>Configure Browser</h1>
-        <p> Click the below button to configure your browser </p>
-        <object data="jar:/ipa/errors/configure.jar!/preferences.html"
-                type="text/html" class="browser-config"></object>
+        <div class="textblockkrb browser-config">
+            <h1>Firefox configuration</h1>
+
+            <div id="wrongbrowser" style="display:none">
+                <h2>Wrong Browser!</h2>
+                <p>
+                    <a href="ssbrowser.html" id="notfirefox-link">Proceed to configuration for other browsers</a>
+                </p>
+                <p>
+                    You are not using Firefox. Please use configuration page for other browsers.
+                </p>
+            </div>
+
+            <div id="step1">
+                <h2>Step 1</h2>
+                <p>
+                    <a href="ca.crt" id="ca-link">Import Certificate Authority certificate</a>
+                </p>
+                <p>
+                    Make sure you select <b>all three</b> checkboxes.
+                </p>
+            </div>
+
+            <div id="step2a" style="display:none">
+                <h2>Step 2a</h2>
+                <p>
+                    <a href="ssbrowser.html#oldfirefox" id="oldfirefox-link">Proceed to configuration page for older versions of Firefox</a>
+                </p>
+                <!--<p id="older-compatible">
+                    Your version of Firefox can be configured by an older method. You don't have to use the Kerberos Configuration extension.
+                </p>-->
+                <p id="older-required">
+                    Your version of Firefox is not compatible with configuration method on this page. Please use configuration page for older versions of Firefox.
+                <p>
+            </div>
+
+            <div id="step2">
+                <h2>Step 2</h2>
+                <div id="ext-installed">
+                    <p>
+                        <a href="kerberosauth.xpi" id="reinstall-link">Re-install extension</a>
+                    </p>
+                    <p>
+                        Extension installed. You can proceed to Step 3.
+                    </p>
+                </div>
+                <div id="ext-missing">
+                    <p><a href="kerberosauth.xpi" id="install-link">Install Kerberos Configuration Firefox extension</a></p>
+                    <p>Kerberos Configuration extension is required for Step 3</p>
+                </div>
+            </div>
+
+            <div id="step3">
+                <h2>Step 3</h2>
+                <p><a href="#configure-browser" id="configure-link">Configure browser</a></p>
+                <p id="config-success" style="display:none">Browser successfully configured</p>
+                <p id="config-aborted" style="display:none">Configuration aborted</p>
+                <p id="config-noext" style="display:none">Configuration was not successful, extension isn't installed or is disabled. Please proceed to step 2.</p>
+                <p id="config-error" style="display:none">Configuration was not successful, unknown error uccured.</p>
+            </div>
+
+            <div id="step4">
+                <h2>Step 4</h2>
+                <p><a href="../ui/index.html" id="return-link">Return to Web UI</a></p>
+            </div>
        </div>
 
     </div>

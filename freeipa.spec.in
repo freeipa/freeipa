@@ -398,6 +398,10 @@ mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
 mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysrestore
 mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysupgrade
 mkdir %{buildroot}%{_usr}/share/ipa/html/
+ln -s ../../../..%{_sysconfdir}/ipa/html/ffconfig.js \
+    %{buildroot}%{_usr}/share/ipa/html/ffconfig.js
+ln -s ../../../..%{_sysconfdir}/ipa/html/ffconfig_page.js \
+    %{buildroot}%{_usr}/share/ipa/html/ffconfig_page.js
 ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
     %{buildroot}%{_usr}/share/ipa/html/ssbrowser.html
 ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
@@ -625,6 +629,8 @@ fi
 %dir %{_usr}/share/ipa/ffextension/locale/en-US
 %{_usr}/share/ipa/ffextension/locale/en-US/kerberosauth.properties
 %dir %{_usr}/share/ipa/html
+%{_usr}/share/ipa/html/ffconfig.js
+%{_usr}/share/ipa/html/ffconfig_page.js
 %{_usr}/share/ipa/html/ssbrowser.html
 %{_usr}/share/ipa/html/browserconfig.html
 %{_usr}/share/ipa/html/unauthorized.html
@@ -653,6 +659,8 @@ fi
 %{_usr}/share/ipa/ui/images/*.gif
 %dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
+%config(noreplace) %{_sysconfdir}/ipa/html/ffconfig.js
+%config(noreplace) %{_sysconfdir}/ipa/html/ffconfig_page.js
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
 %config(noreplace) %{_sysconfdir}/ipa/html/ipa_error.css
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
