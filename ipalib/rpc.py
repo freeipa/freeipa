@@ -546,8 +546,23 @@ class xmlclient(Connectible):
                     # This shouldn't happen if we have a session but
                     # it isn't fatal.
                     pass
+
+                # Create a new serverproxy with the non-session URI. If there
+                # is an existing connection we need to save the NSS dbdir so
+                # we can skip an unnecessary NSS_Initialize() and avoid
+                # NSS_Shutdown issues.
                 serverproxy = self.create_connection(os.environ.get('KRB5CCNAME'), self.env.verbose, self.env.fallback, self.env.delegate)
+
+                dbdir = None
+                current_conn = getattr(context, self.id, None)
+                if current_conn is not None:
+                    dbdir = getattr(current_conn.conn._ServerProxy__transport, 'dbdir', None)
+                    if dbdir is not None:
+                        self.debug('Using dbdir %s' % dbdir)
                 setattr(context, self.id, Connection(serverproxy, self.disconnect))
+                if dbdir is not None:
+                    current_conn = getattr(context, self.id, None)
+                    current_conn.conn._ServerProxy__transport.dbdir = dbdir
                 return self.forward(name, *args, **kw)
             raise NetworkError(uri=server, error=e.errmsg)
         except socket.error, e:
