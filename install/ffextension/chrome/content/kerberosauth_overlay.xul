@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<overlay id="kerberosauthOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <script type="application/x-javascript">
+        Components.utils['import']("resource://kerberosauth/kerberosauth.js");
+        window.addEventListener('kerberos-auth-config', kerberosauth_listener(window), false, true);
+    </script>
+</overlay>
