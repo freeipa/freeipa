@@ -4,6 +4,7 @@
 *   Adam Young <ayoung@redhat.com>
 *   Endi Sukma Dewata <edewata@redhat.com>
 *   Kyle Baker <kybaker@redhat.com>
+*   Petr Vobornik <pvoborni@redhat.com>
 *
 * Copyright (C) 2010 Red Hat
 */
@@ -846,7 +847,6 @@ ul#viewtype li a {
 h1 {
     font-family: "Overpass Bold","Liberation Sans", Arial, sans-serif;
     font-size: 1.5em;
-    font-weight: normal;
     color: #555555;
     text-transform: uppercase;
     text-shadow: 1px 1px 0 #FFFFFF;
@@ -856,7 +856,6 @@ h1 {
 h2 {
     font-family: "Overpass Bold","Liberation Sans", Arial, sans-serif;
     font-size: 1.5em;
-    font-weight: normal;
     color: #333333;
     text-transform: uppercase;
     margin-left: 1em;
@@ -1351,9 +1350,23 @@ body.info-page  {
     background: url(images/static-background.png) repeat-x scroll left top #EDEDED;
 }
 
+.info-page p {
+    margin: 0.5em 0em 1em 0em;
+}
+
+.info-page h1, .info-page h2, .info-page h3 {
+    font-family: "Overpass", "Liberation Sans", Arial, sans-serif;
+    margin-left: 0px;
+    font-weight: normal;
+    color: #555555;
+}
+
 .info-page h1 {
-    color: #333333;
-    margin-bottom: 1.5em;
+    font-size: 2em;
+}
+
+.info-page h2 {
+    margin-top: 2em;
 }
 
 .info-page .container_1 {
@@ -1396,6 +1409,22 @@ body.info-page  {
 
 .dialog-section .section-cell-label .required-indicator {
     margin-right: 0px;
+}
+
+/* Browser config page */
+
+
+.info-page .browser-config h1,
+.info-page .browser-config h2,
+.info-page .browser-config h3,
+.info-page .browser-config.textblockkrb {
+    text-align: center;
+}
+
+.browser-config h2 {
+    margin-left: 0em;
+    margin-top: 2em;
+
 }
 
 /* ---- HBAC Test ---- */

@@ -9,16 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../ui/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="../ui/ipa.css" />
     <link rel="stylesheet" type="text/css" href="ipa_error.css" />
-
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $("#import-cert-auth-link").click(function() {
-                $("#first-time").css("display", "none");
-                $("#next-link").css("display", "block");
-                return true;
-            });
-        });
-    </script>
 </head>
 
 <body class="info-page">
@@ -32,24 +22,19 @@
         <div class="textblockkrb">
             <h1>Unable to verify your Kerberos credentials</h1>
             <p>
-                Please make sure that you have valid Kerberos tickets (obtainable via <b>kinit</b>),
+                Please make sure that you have valid Kerberos tickets (obtainable via <strong>kinit</strong>),
                 and that you have configured your browser correctly.
             </p>
 
+            <h2> Browser configuration</h2>
+
             <div id="first-time">
-                <b>If this is your first time:</b>
-                <ul>
-                    <li><a id="import-cert-auth-link" href="/ipa/errors/ca.crt">Click here to
-                        Import the IPA Certificate Authority.</a></li>
-                    <li>Make sure you select <b>all three</b> checkboxes.</li>
-                    <li>Click the <b>OK</b> Button.</li>
-                </ul>
+                <p>
+                    If this is your first time, please <strong>configure your browser</strong>.
+                    Use <a href="browserconfig.html">Firefox configuration page</a> for Firefox
+                    or <a href="ssbrowser.html">manual configuration page</a> for other browsers.
+                </p>
             </div>
-
-            <div id="next-link" style="display: none;">
-                <p><a href="browserconfig.html">Click here to continue.</a></p>
-            </div>
-
         </div>
 
     </div>
