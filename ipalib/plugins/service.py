@@ -221,8 +221,9 @@ class service(LDAPObject):
     object_name_plural = _('services')
     object_class = [
         'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux', 'ipaobject',
-        'ipaservice', 'pkiuser', 'ipakrbprincipal'
+        'ipaservice', 'pkiuser'
     ]
+    possible_objectclasses = ['ipakrbprincipal']
     search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
     default_attributes = ['krbprincipalname', 'usercertificate', 'managedby',
         'ipakrbauthzdata',]
@@ -326,6 +327,10 @@ class service_add(LDAPCreate):
         # as krbPrincipalName/krbCanonicalName are case-sensitive in Kerberos
         # schema
         entry_attrs['ipakrbprincipalalias'] = keys[-1]
+
+        # Objectclass ipakrbprincipal providing ipakrbprincipalalias is not in
+        # in a list of default objectclasses, add it manually
+        entry_attrs['objectclass'].append('ipakrbprincipal')
 
         return dn
 
