@@ -1,0 +1,4 @@
+content    kerberosauth     chrome/content/
+resource   kerberosauth     chrome/content/
+overlay chrome://browser/content/browser.xul    resource://kerberosauth/kerberosauth_overlay.xul
+locale     kerberosauth    en-US   locale/en-US/
