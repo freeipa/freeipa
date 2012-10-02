@@ -110,6 +110,7 @@ class ADTRUSTInstance(service.Service):
         self.domain_name = None
         self.netbios_name = None
         self.no_msdcs = None
+        self.add_sids = None
         self.smbd_user = None
         self.suffix = DN()
         self.ldapi_socket = None
@@ -360,6 +361,16 @@ class ADTRUSTInstance(service.Service):
         try:
             self._ldap_mod("ipa-sidgen-conf.ldif", self.sub_dict)
             self._ldap_mod("ipa-sidgen-task-conf.ldif", self.sub_dict)
+        except Exception:
+            pass
+
+    def __add_sids(self):
+        """
+        Add SIDs for existing users and groups
+        """
+
+        try:
+            self._ldap_mod("ipa-sidgen-task-run.ldif", self.sub_dict)
         except:
             pass
 
@@ -602,7 +613,8 @@ class ADTRUSTInstance(service.Service):
                              FQDN = self.fqdn)
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, netbios_name,
-              rid_base, secondary_rid_base, no_msdcs=False, smbd_user="samba"):
+              rid_base, secondary_rid_base, no_msdcs=False, add_sids=False,
+              smbd_user="samba"):
         self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm = realm_name
@@ -611,6 +623,7 @@ class ADTRUSTInstance(service.Service):
         self.rid_base = rid_base
         self.secondary_rid_base = secondary_rid_base
         self.no_msdcs = no_msdcs
+        self.add_sids = add_sids
         self.smbd_user = smbd_user
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
@@ -699,6 +712,10 @@ class ADTRUSTInstance(service.Service):
         self.step("setting SELinux booleans", \
                   self.__configure_selinux_for_smbd)
         self.step("starting CIFS services", self.__start)
+
+        if self.add_sids:
+            self.step("adding SIDs to existing users and groups",
+                      self.__add_sids)
 
         self.start_creation("Configuring CIFS:")
 

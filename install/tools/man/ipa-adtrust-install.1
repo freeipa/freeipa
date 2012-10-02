@@ -71,6 +71,16 @@ are needed for the IPA domain which should point to all IPA servers:
 .IP
 \(bu _kerberos._udp.Default-First-Site-Name._sites.dc._msdcs
 .TP
+\fB\-\-add\-sids\fR
+Add SIDs to existing users and groups as a final step of the
+ipa\-adtrust\-install run. If there a many existing users and groups and a
+couple of replicas in the environment this operation might lead to a high
+replication traffic and a performance degradation of all IPA servers in the
+environment. To avoid this the SID generation can be run after
+ipa\-adtrust\-install is run and scheduled independently. To start this task
+you have to load an edited version of ipa-sidgen-task-run.ldif with the
+ldapmodify command info the directory server.
+.TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input
 .TP

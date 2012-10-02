@@ -49,6 +49,7 @@ appdir = $(IPA_DATA_DIR)
 app_DATA =				\
 	ipa-sidgen-conf.ldif		\
 	ipa-sidgen-task-conf.ldif	\
+	ipa-sidgen-task-run.ldif	\
 	$(NULL)
 
 EXTRA_DIST =			\
