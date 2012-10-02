@@ -60,8 +60,11 @@ EXAMPLES:
    ipa service-add HTTP/web.example.com
 
  Allow a host to manage an IPA service certificate:
-  ipa service-add-host --hosts=web.example.com HTTP/web.example.com
-  ipa role-add-member --hosts=web.example.com certadmin
+   ipa service-add-host --hosts=web.example.com HTTP/web.example.com
+   ipa role-add-member --hosts=web.example.com certadmin
+
+ Override a default list of supported PAC types for the service:
+   ipa service-mod HTTP/web.example.com --pac-type=MS-PAC
 
  Delete an IPA service:
    ipa service-del HTTP/web.example.com
@@ -253,11 +256,27 @@ class service(LDAPObject):
         StrEnum('ipakrbauthzdata*',
             cli_name='pac_type',
             label=_('PAC type'),
-            doc=_('Types of PAC this service supports'),
-            values=(u'MS-PAC', u'PAD'),
+            doc=_("Override default list of supported PAC types."
+                  " Use 'NONE' to disable PAC support for this service"),
+            values=(u'MS-PAC', u'PAD', u'NONE'),
             csv=True,
         ),
     )
+
+    def validate_ipakrbauthzdata(self, entry):
+        new_value = entry.get('ipakrbauthzdata', [])
+
+        if not new_value:
+            return
+
+        if not isinstance(new_value, (list, tuple)):
+            new_value = set([new_value])
+        else:
+            new_value = set(new_value)
+
+        if u'NONE' in new_value and len(new_value) > 1:
+            raise errors.ValidationError(name='ipakrbauthzdata',
+                error=_('NONE value cannot be combined with other PAC types'))
 
 api.register(service)
 
@@ -287,6 +306,8 @@ class service_add(LDAPCreate):
                 reason=_("The host '%s' does not exist to add a service to.") %
                     hostname)
 
+        self.obj.validate_ipakrbauthzdata(entry_attrs)
+
         cert = options.get('usercertificate')
         if cert:
             dercert = x509.normalize_certificate(cert)
@@ -300,11 +321,6 @@ class service_add(LDAPCreate):
              util.validate_host_dns(self.log, hostname)
         if not 'managedby' in entry_attrs:
             entry_attrs['managedby'] = hostresult['dn']
-        if 'ipakrbauthzdata' not in entry_attrs:
-            config = ldap.get_ipa_config()[1]
-            default_pac_type = config.get('ipakrbauthzdata', [])
-            if default_pac_type:
-                entry_attrs['ipakrbauthzdata'] = default_pac_type
 
         # Enforce ipaKrbPrincipalAlias to aid case-insensitive searches
         # as krbPrincipalName/krbCanonicalName are case-sensitive in Kerberos
@@ -372,6 +388,9 @@ class service_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
+
+        self.obj.validate_ipakrbauthzdata(entry_attrs)
+
         if 'usercertificate' in options:
             (service, hostname, realm) = split_principal(keys[-1])
             cert = options.get('usercertificate')

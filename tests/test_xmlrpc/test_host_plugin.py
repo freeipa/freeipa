@@ -654,7 +654,6 @@ class test_host(Declarative):
                     krbprincipalname=[service1],
                     objectclass=objectclasses.service,
                     managedby_host=[fqdn1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     ipauniqueid=[fuzzy_uuid],
                 ),
             ),
