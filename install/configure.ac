@@ -71,6 +71,11 @@ AC_SUBST(IPA_SYSCONF_DIR)
 AC_CONFIG_FILES([
     Makefile
     conf/Makefile
+    ffextension/Makefile
+    ffextension/chrome/Makefile
+    ffextension/chrome/content/Makefile
+    ffextension/locale/Makefile
+    ffextension/locale/en-US/Makefile
     html/Makefile
     migration/Makefile
     share/Makefile

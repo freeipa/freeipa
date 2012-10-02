@@ -545,6 +545,17 @@ fi
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template
+%dir %{_usr}/share/ipa/ffextension
+%{_usr}/share/ipa/ffextension/bootstrap.js
+%{_usr}/share/ipa/ffextension/install.rdf
+%{_usr}/share/ipa/ffextension/chrome.manifest
+%dir %{_usr}/share/ipa/ffextension/chrome
+%dir %{_usr}/share/ipa/ffextension/chrome/content
+%{_usr}/share/ipa/ffextension/chrome/content/kerberosauth.js
+%{_usr}/share/ipa/ffextension/chrome/content/kerberosauth_overlay.xul
+%dir %{_usr}/share/ipa/ffextension/locale
+%dir %{_usr}/share/ipa/ffextension/locale/en-US
+%{_usr}/share/ipa/ffextension/locale/en-US/kerberosauth.properties
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ssbrowser.html
 %{_usr}/share/ipa/html/browserconfig.html

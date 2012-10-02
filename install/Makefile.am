@@ -6,6 +6,7 @@ NULL =
 
 SUBDIRS =			\
         conf			\
+        ffextension		\
         html			\
         migration		\
         share			\
