@@ -170,13 +170,15 @@ static int ipa_extdom_init_ctx(Slapi_PBlock *pb, struct ipa_extdom_ctx **_ctx)
     slapi_pblock_get(pb, SLAPI_PLUGIN_CONFIG_ENTRY, &e);
     if (!e) {
         LOG_FATAL("Plugin configuration not found!\n");
-        return -1;
+        ret = -1;
+        goto done;
     }
 
     ctx->base_dn = slapi_entry_attr_get_charptr(e, "nsslapd-basedn");
     if (!ctx->base_dn) {
         LOG_FATAL("Base DN not found in plugin configuration not found!\n");
-        return -1;
+        ret = -1;
+        goto done;
     }
 
 

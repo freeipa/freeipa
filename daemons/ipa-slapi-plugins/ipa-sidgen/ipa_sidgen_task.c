@@ -71,7 +71,10 @@ static const char *fetch_attr(Slapi_Entry *e, const char *attrname,
 
     if (slapi_entry_attr_find(e, attrname, &attr) != 0)
         return default_val;
-    slapi_attr_first_value(attr, &val);
+
+    if (slapi_attr_first_value(attr, &val) == -1)
+        return default_val;
+
     return slapi_value_get_string(val);
 }
 

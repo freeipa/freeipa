@@ -90,7 +90,8 @@ static int slapi_entry_to_range_info(struct slapi_entry *entry,
 
     range->name = slapi_entry_attr_get_charptr(entry, IPA_CN);
     if (range->name == NULL) {
-        return EINVAL;
+        ret = EINVAL;
+        goto done;
     }
 
     ul_val = slapi_entry_attr_get_ulong(entry, IPA_BASE_ID);

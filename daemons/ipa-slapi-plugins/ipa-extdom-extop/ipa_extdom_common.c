@@ -137,10 +137,12 @@ int parse_request_data(struct berval *req_val, struct extdom_req **_req)
             break;
         default:
             ber_free(ber, 1);
+            free(req);
             return LDAP_PROTOCOL_ERROR;
     }
     ber_free(ber, 1);
     if (tag == LBER_ERROR) {
+        free(req);
         return LDAP_PROTOCOL_ERROR;
     }
 
@@ -284,11 +286,6 @@ static int get_domain_info(struct ipa_extdom_ctx *ctx, const char *domain_name,
     domain_info->flat_name = slapi_entry_attr_get_charptr(e[0],
                                                           "ipaNTFlatName");
 
-    /* TODO: read range from LDAP server */
-/*
-    range.min = 200000;
-    range.max = 400000;
-*/
     ret = set_domain_range(ctx, domain_info->sid, &range);
     if (ret != 0) {
         goto done;
@@ -313,6 +310,11 @@ done:
     slapi_free_search_results_internal(pb);
     slapi_pblock_destroy(pb);
     free(filter);
+
+    if (ret != 0) {
+        free_domain_info(domain_info);
+    }
+
     return ret;
 
 }
