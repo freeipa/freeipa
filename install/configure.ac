@@ -77,6 +77,11 @@ AC_CONFIG_FILES([
     Makefile
     certmonger/Makefile
     conf/Makefile
+    ffextension/Makefile
+    ffextension/chrome/Makefile
+    ffextension/chrome/content/Makefile
+    ffextension/locale/Makefile
+    ffextension/locale/en-US/Makefile
     html/Makefile
     migration/Makefile
     share/Makefile
