@@ -2738,7 +2738,7 @@ command: service_add
 args: 1,8,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, required=True)
 option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=False, required=False)
-option: StrEnum('ipakrbauthzdata', attribute=True, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD'))
+option: StrEnum('ipakrbauthzdata', attribute=True, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD', u'NONE'))
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('force', autofill=True, default=False)
@@ -2775,7 +2775,7 @@ command: service_find
 args: 1,10,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('krbprincipalname', attribute=True, autofill=False, cli_name='principal', multivalue=False, primary_key=True, query=True, required=False)
-option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, query=True, required=False, values=(u'MS-PAC', u'PAD'))
+option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, query=True, required=False, values=(u'MS-PAC', u'PAD', u'NONE'))
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2792,7 +2792,7 @@ command: service_mod
 args: 1,9,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, required=False)
-option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD'))
+option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD', u'NONE'))
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')

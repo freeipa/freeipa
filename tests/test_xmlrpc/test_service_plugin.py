@@ -181,7 +181,6 @@ class test_service(Declarative):
                     krbprincipalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -210,7 +209,6 @@ class test_service(Declarative):
                     dn=service1dn,
                     krbprincipalname=[service1],
                     has_keytab=False,
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -230,7 +228,6 @@ class test_service(Declarative):
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     has_keytab=False
                 ),
             ),
@@ -249,7 +246,6 @@ class test_service(Declarative):
                         dn=service1dn,
                         krbprincipalname=[service1],
                         managedby_host=[fqdn1],
-                        ipakrbauthzdata=[u'MS-PAC'],
                         has_keytab=False,
                     ),
                 ],
@@ -271,7 +267,6 @@ class test_service(Declarative):
                         ipakrbprincipalalias=[service1],
                         objectclass=objectclasses.service,
                         ipauniqueid=[fuzzy_uuid],
-                        ipakrbauthzdata=[u'MS-PAC'],
                         has_keytab=False,
                         managedby_host=[fqdn1],
                     ),
@@ -289,7 +284,6 @@ class test_service(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -305,7 +299,6 @@ class test_service(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -321,7 +314,6 @@ class test_service(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1, fqdn2],
                 ),
             ),
@@ -337,7 +329,6 @@ class test_service(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -353,7 +344,6 @@ class test_service(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1, fqdn3.lower()],
                 ),
             ),
@@ -369,7 +359,6 @@ class test_service(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -394,8 +383,43 @@ class test_service(Declarative):
                 result=dict(
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
-                    ipakrbauthzdata=[u'MS-PAC'],
                     managedby_host=[fqdn1],
+                    valid_not_before=fuzzy_date,
+                    valid_not_after=fuzzy_date,
+                    subject=DN(('CN',api.env.host),x509.subject_base()),
+                    serial_number=fuzzy_digits,
+                    serial_number_hex=fuzzy_hex,
+                    md5_fingerprint=fuzzy_hash,
+                    sha1_fingerprint=fuzzy_hash,
+                    issuer=fuzzy_issuer,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Try to update %r with invalid ipakrbauthz data '
+                 'combination' % service1,
+            command=('service_mod', [service1],
+                dict(ipakrbauthzdata=[u'MS-PAC', u'NONE'])),
+            expected=errors.ValidationError(name='ipakrbauthzdata',
+                error=u'NONE value cannot be combined with other PAC types')
+        ),
+
+
+        dict(
+            desc='Update %r with valid ipakrbauthz data '
+                 'combination' % service1,
+            command=('service_mod', [service1],
+                dict(ipakrbauthzdata=[u'MS-PAC'])),
+            expected=dict(
+                value=service1,
+                summary=u'Modified service "%s"' % service1,
+                result=dict(
+                    usercertificate=[base64.b64decode(servercert)],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                    ipakrbauthzdata=[u'MS-PAC'],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=DN(('CN',api.env.host),x509.subject_base()),
