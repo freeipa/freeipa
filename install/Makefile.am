@@ -7,6 +7,7 @@ NULL =
 SUBDIRS =			\
         certmonger		\
         conf			\
+        ffextension		\
         html			\
         migration		\
         share			\
