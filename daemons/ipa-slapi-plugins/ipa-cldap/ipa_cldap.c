@@ -124,13 +124,15 @@ static int ipa_cldap_init_service(Slapi_PBlock *pb,
     slapi_pblock_get(pb, SLAPI_PLUGIN_CONFIG_ENTRY, &e);
     if (!e) {
         LOG_FATAL("Plugin configuration not found!\n");
-        return -1;
+        ret = -1;
+        goto done;
     }
 
     ctx->base_dn = slapi_entry_attr_get_charptr(e, "nsslapd-basedn");
     if (!ctx->base_dn) {
         LOG_FATAL("Plugin configuration not found!\n");
-        return -1;
+        ret = -1;
+        goto done;
     }
 
     /* create a stop pipe so the main DS thread can interrupt the poll()

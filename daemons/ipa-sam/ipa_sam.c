@@ -1525,7 +1525,7 @@ static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
 	krb5_error_code krberr;
 	krb5_context krbctx;
 	krb5_principal service_princ;
-	struct keys_container keys;
+	struct keys_container keys = {0, NULL};
 	char *err_msg;
 	struct berval *reqdata = NULL;
 	struct berval *retdata = NULL;
