@@ -810,6 +810,19 @@ def is_host_resolvable(fqdn):
 
     return False
 
+def host_exists(host):
+    """
+    Resolve the host to see if it exists.
+
+    Returns True/False
+    """
+    try:
+        socket.getaddrinfo(host, 80)
+    except socket.gaierror:
+        return False
+    else:
+        return True
+
 def get_ipa_basedn(conn):
     """
     Get base DN of IPA suffix in given LDAP server.
