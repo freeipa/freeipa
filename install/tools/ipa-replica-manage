@@ -33,6 +33,7 @@ from ipalib import api, errors, util
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
+from ipaclient import ipadiscovery
 
 CACERT = "/etc/ipa/ca.crt"
 
@@ -136,6 +137,9 @@ def test_connection(realm, host):
 
 def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
+    for check_host in [host, replica]:
+        enforce_host_existence(check_host)
+
     is_replica = False
     winsync_peer = None
     peers = {}
@@ -221,6 +225,9 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     @dirman_passwd: the Directory Manager password
     @force: force deletion even if one server is down
     """
+
+    for check_host in [replica1, replica2]:
+        enforce_host_existence(check_host)
 
     repl2 = None
 
@@ -309,6 +316,9 @@ def get_ruv(realm, host, dirman_passwd):
     """
     Return the RUV entries as a list of tuples: (hostname, rid)
     """
+
+    enforce_host_existence(host)
+
     try:
         thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
     except Exception, e:
@@ -342,6 +352,9 @@ def list_ruv(realm, host, dirman_passwd, verbose):
     List the Replica Update Vectors on this host to get the available
     replica IDs.
     """
+
+    enforce_host_existence(host)
+
     servers = get_ruv(realm, host, dirman_passwd)
     for (netloc, rid) in servers:
         print "%s: %s" % (netloc, rid)
@@ -431,6 +444,9 @@ def list_clean_ruv(realm, host, dirman_passwd, verbose):
     """
     List all clean RUV tasks.
     """
+
+    enforce_host_existence(host)
+
     repl = replication.ReplicationManager(realm, host, dirman_passwd)
     dn = DN(('cn', 'cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
     try:
@@ -507,7 +523,16 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
     else:
         return None
 
+def enforce_host_existence(host, message=None):
+    if not ipautil.host_exists(host):
+        if message is None:
+            message = "Unknown host %s" % host
+
+        sys.exit(message)
+
 def del_master(realm, hostname, options):
+
+    enforce_host_existence(hostname)
 
     force_del = False
     delrepl = None
@@ -651,6 +676,9 @@ def del_master(realm, hostname, options):
 
 def add_link(realm, replica1, replica2, dirman_passwd, options):
 
+    for check_host in [replica1,replica2]:
+        enforce_host_existence(check_host)
+
     if options.winsync:
         if not options.binddn or not options.bindpw or not options.cacert or not options.passsync:
             root_logger.error("The arguments --binddn, --bindpw, --passsync and --cacert are required to create a winsync agreement")
@@ -715,11 +743,28 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
             repl2.conn.getEntry(master2_dn, ldap.SCOPE_BASE)
 
         except errors.NotFound:
-            sys.exit("You cannot connect to a previously deleted master")
+            standard_logging_setup(console_format='%(message)s')
+
+            ds = ipadiscovery.IPADiscovery()
+            ret = ds.search(server=replica2)
+
+            if ret == ipadiscovery.NOT_IPA_SERVER:
+                sys.exit("Connection unsuccessful: %s is not an IPA Server." %
+                    replica2)
+            elif ret == 0:  # success
+                sys.exit("Connection unsuccessful: %s is an IPA Server, "
+                    "but it might be unknown, foreign or previously deleted "
+                    "one." % replica2)
+            else:
+                sys.exit("Connection to %s unsuccessful." % replica2)
+
         repl1.setup_gssapi_replication(replica2, DN(('cn', 'Directory Manager')), dirman_passwd)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
 def re_initialize(realm, thishost, fromhost, dirman_passwd):
+
+    for check_host in [thishost, fromhost]:
+        enforce_host_existence(check_host)
 
     thisrepl = replication.ReplicationManager(realm, thishost, dirman_passwd)
     agreement = thisrepl.get_replication_agreement(fromhost)
@@ -746,6 +791,9 @@ def re_initialize(realm, thishost, fromhost, dirman_passwd):
         ds.init_memberof()
 
 def force_sync(realm, thishost, fromhost, dirman_passwd):
+
+    for check_host in [thishost, fromhost]:
+        enforce_host_existence(check_host)
 
     thisrepl = replication.ReplicationManager(realm, thishost, dirman_passwd)
     agreement = thisrepl.get_replication_agreement(fromhost)
