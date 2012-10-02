@@ -61,6 +61,9 @@ def parse_options():
     parser.add_option("-A", "--admin-name",
                       sensitive=True, dest="admin_name", default='admin',
                       help="admin user principal")
+    parser.add_option("--add-sids", dest="add_sids", action="store_true",
+                      default=False, help="Add SIDs for existing users and" \
+                                          "groups as the final step")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -250,7 +253,7 @@ def main():
     smb.autobind = service.ENABLED
     smb.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
               netbios_name, options.rid_base, options.secondary_rid_base,
-              options.no_msdcs)
+              options.no_msdcs, options.add_sids)
     smb.find_local_id_range()
     smb.create_instance()
 
