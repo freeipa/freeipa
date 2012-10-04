@@ -357,7 +357,9 @@ mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/ca.crt
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/configure.jar
+/bin/touch %{buildroot}%{_usr}/share/ipa/html/kerberosauth.xpi
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.con
+/bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.js
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb5.ini
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/preferences.html
@@ -596,7 +598,9 @@ fi
 %{_usr}/share/ipa/ipa-pki-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/configure.jar
+%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/kerberosauth.xpi
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.con
+%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.js
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb5.ini
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krbrealm.con
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/preferences.html

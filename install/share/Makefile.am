@@ -30,6 +30,7 @@ app_DATA =				\
 	krb5.conf.template		\
 	krb5.ini.template		\
 	krb.con.template		\
+	krb.js.template			\
 	krbrealm.con.template		\
 	preferences.html.template 	\
 	referint-conf.ldif		\
