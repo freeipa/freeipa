@@ -467,13 +467,18 @@ class ADTRUSTInstance(service.Service):
                           ".dc._msdcs")
 
         err_msg = None
-        ret = api.Command['dns_is_enabled']()
-        if not ret['result']:
-            err_msg = "DNS management was not enabled at install time."
+
+        if self.no_msdcs:
+            err_msg = '--no-msdcs was given, special DNS service records ' \
+                      'are not added to local DNS server'
         else:
-            if not dns_zone_exists(zone):
-                err_msg = "DNS zone %s cannot be managed " \
-                          "as it is not defined in IPA" % zone
+            ret = api.Command['dns_is_enabled']()
+            if not ret['result']:
+                err_msg = "DNS management was not enabled at install time."
+            else:
+                if not dns_zone_exists(zone):
+                    err_msg = "DNS zone %s cannot be managed " \
+                              "as it is not defined in IPA" % zone
 
         if err_msg:
             self.print_msg(err_msg)
@@ -724,9 +729,8 @@ class ADTRUSTInstance(service.Service):
         self.step("activating sidgen plugin and task", self.__add_sidgen_module)
         self.step("activating extdom plugin", self.__add_extdom_module)
         self.step("configuring smbd to start on boot", self.__enable)
-        if not self.no_msdcs:
-            self.step("adding special DNS service records", \
-                      self.__add_dns_service_records)
+        self.step("adding special DNS service records", \
+                  self.__add_dns_service_records)
         self.step("restarting Directory Server to take MS PAC and LDAP plugins changes into account", \
                   self.__restart_dirsrv)
         self.step("adding fallback group", self.__add_fallback_group)
