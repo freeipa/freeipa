@@ -265,11 +265,17 @@ class PublicError(StandardError):
                     )
                 self.format = format
             self.forwarded = False
-            self.msg = self.format % kw
+            def convert_keyword(value):
+                if isinstance(value, list):
+                    result=u'\n'.join(map(lambda line: unicode(line), value))
+                    return result
+                return value
+            kwargs = dict(map(lambda (k,v): (k, convert_keyword(v)), kw.items()))
+            self.msg = self.format % kwargs
             if isinstance(self.format, basestring):
-                self.strerror = ugettext(self.format) % kw
+                self.strerror = ugettext(self.format) % kwargs
             else:
-                self.strerror = self.format % kw
+                self.strerror = self.format % kwargs
         else:
             if isinstance(message, (Gettext, NGettext)):
                 message = unicode(message)
