@@ -93,6 +93,7 @@ bool secrets_store(const char *key, const void *data, size_t size); /* available
 #define LDAP_PAGE_SIZE 1024
 #define LDAP_OBJ_SAMBASAMACCOUNT "ipaNTUserAttrs"
 #define LDAP_OBJ_TRUSTED_DOMAIN "ipaNTTrustedDomain"
+#define LDAP_OBJ_ID_OBJECT "ipaIDobject"
 #define LDAP_ATTRIBUTE_TRUST_SID "ipaNTTrustedDomainSID"
 #define LDAP_ATTRIBUTE_SID "ipaNTSecurityIdentifier"
 #define LDAP_OBJ_GROUPMAP "ipaNTGroupAttrs"
@@ -2168,6 +2169,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	NTSTATUS status;
 	TALLOC_CTX *tmp_ctx;
 	char *trustpw;
+	char *sid;
 
 	DEBUG(10, ("ipasam_set_trusted_domain called for domain %s\n", domain));
 
@@ -2186,6 +2188,17 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	mods = NULL;
 	smbldap_make_mod(priv2ld(ldap_state), entry, &mods, "objectClass",
 			 LDAP_OBJ_TRUSTED_DOMAIN);
+	smbldap_make_mod(priv2ld(ldap_state), entry, &mods, "objectClass",
+			 LDAP_OBJ_ID_OBJECT);
+
+	if (entry != NULL) {
+		sid = get_single_attribute(tmp_ctx, priv2ld(ldap_state), entry,
+					   LDAP_ATTRIBUTE_SID);
+	}
+	if (entry == NULL || sid == NULL) {
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+				 LDAP_ATTRIBUTE_UIDNUMBER, IPA_MAGIC_ID_STR);
+	}
 
 	if (td->netbios_name != NULL) {
 		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
@@ -2509,10 +2522,11 @@ static uint32_t pdb_ipasam_capabilities(struct pdb_methods *methods)
 }
 
 static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
+			     LDAPMessage *entry,
 			     struct ldapsam_privates *ldap_state)
 {
 	NTSTATUS status;
-	struct dom_sid u_sid;
+	struct dom_sid *u_sid;
 	char *name;
 	char *trustpw = NULL;
 	char *trustpw_utf8 = NULL;
@@ -2522,6 +2536,8 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 	struct ntlm_keys ntlm_keys;
 	size_t converted_size;
 	bool res;
+	char *sid_str;
+	enum idmap_error_code err;
 
 	if (!pdb_set_acct_ctrl(user, ACB_DOMTRUST | ACB_TRUSTED_FOR_DELEGATION,
 			      PDB_SET)) {
@@ -2545,14 +2561,27 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 		return false;
 	}
 
-	/* FIXME: create a proper SID here */
-	if (!sid_compose(&u_sid, &ldap_state->domain_sid, 6789)) {
+	sid_str = get_single_attribute(user, priv2ld(ldap_state), entry,
+				       LDAP_ATTRIBUTE_SID);
+	if (sid_str == NULL) {
+		DEBUG(5, ("Missing SID for trusted domain object.\n"));
 		return false;
 	}
 
-	if (!pdb_set_user_sid(user, &u_sid, PDB_SET)) {
+	err = sss_idmap_sid_to_smb_sid(ldap_state->ipasam_privates->idmap_ctx,
+				       sid_str, &u_sid);
+	if (err != IDMAP_SUCCESS) {
+		DEBUG(10, ("Could not convert string %s to sid.\n", sid_str));
+		talloc_free(sid_str);
 		return false;
 	}
+	talloc_free(sid_str);
+
+	if (!pdb_set_user_sid(user, u_sid, PDB_SET)) {
+		talloc_free(u_sid);
+		return false;
+	}
+	talloc_free(u_sid);
 
 	status = get_trust_pwd(user, &td->trust_auth_incoming, &trustpw, NULL);
 	if (!NT_STATUS_IS_OK(status)) {
@@ -2982,6 +3011,7 @@ static NTSTATUS getsam_interdom_trust_account(struct pdb_methods *methods,
 	TALLOC_CTX *tmp_ctx;
 	struct pdb_trusted_domain *td;
 	NTSTATUS status;
+	LDAPMessage *entry = NULL;
 
 	/* The caller must check that (sname[lastidx] == '.') || (sname[lastidx] == '$'))
 	 * before calling this function.
@@ -2999,13 +3029,24 @@ static NTSTATUS getsam_interdom_trust_account(struct pdb_methods *methods,
 	}
 	dom_name[lastidx] = '\0';
 
-	status = ipasam_get_trusted_domain(methods, tmp_ctx, dom_name, &td);
-	if (!NT_STATUS_IS_OK(status)) {
-		DEBUG(5, ("ipasam_get_trusted_domain failed.\n"));
+	if (!get_trusted_domain_by_name_int(ldap_state, tmp_ctx, dom_name,
+					    &entry)) {
+		status = NT_STATUS_UNSUCCESSFUL;
+		goto done;
+	}
+	if (entry == NULL) {
+		DEBUG(5, ("getsam_interdom_trust_account: no such trusted " \
+                          "domain: %s\n", dom_name));
+		status = NT_STATUS_NO_SUCH_DOMAIN;
 		goto done;
 	}
 
-	if (!init_sam_from_td(user, td, ldap_state)) {
+	if (!fill_pdb_trusted_domain(tmp_ctx, ldap_state, entry, &td)) {
+		status = NT_STATUS_UNSUCCESSFUL;
+		goto done;
+	}
+
+	if (!init_sam_from_td(user, td, entry, ldap_state)) {
 		DEBUG(5, ("init_sam_from_td failed.\n"));
 		status = NT_STATUS_NO_SUCH_USER;
 		goto done;
