@@ -225,6 +225,8 @@ def copy_files(realm_name, dir):
     try:
         shutil.copy("/usr/share/ipa/html/ca.crt", dir + "/ca.crt")
         if ipautil.file_exists("/usr/share/ipa/html/preferences.html"):
+            shutil.copy("/usr/share/ipa/html/krb.js", dir + "/krb.js")
+            shutil.copy("/usr/share/ipa/html/kerberosauth.xpi", dir + "/kerberosauth.xpi")
             shutil.copy("/usr/share/ipa/html/preferences.html", dir + "/preferences.html")
             shutil.copy("/usr/share/ipa/html/configure.jar", dir + "/configure.jar")
         if ipautil.file_exists("/var/kerberos/krb5kdc/cacert.pem"):
