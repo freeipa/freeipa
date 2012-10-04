@@ -1419,6 +1419,25 @@ IPA.error_dialog = function(spec) {
         that.visible_buttons = spec.visible_buttons || ['retry', 'cancel'];
     };
 
+    that.beautify_message = function(container, message) {
+        var lines = message.split(/\n/g);
+        var line_span;
+        for(var i=0; i<lines.length; i++) {
+            // multi-lined text may contain TAB character as first char of the line
+            // to hint at marking the whole line differently
+            if (lines[i].charAt(0) == '\t') {
+                line_span = $('<p />', {
+                    'class': 'error-message-hinted',
+                    text: lines[i].substr(1)
+                }).appendTo(container);
+            } else {
+                line_span = $('<p />', {
+                    text: lines[i]
+                }).appendTo(container);
+            }
+        }
+    };
+
     that.create = function() {
         if (that.error_thrown.url) {
             $('<p/>', {
@@ -1426,9 +1445,9 @@ IPA.error_dialog = function(spec) {
             }).appendTo(that.container);
         }
 
-        $('<p/>', {
-            html: that.error_thrown.message
-        }).appendTo(that.container);
+        var error_message = $('<div />', {});
+        that.beautify_message(error_message, that.error_thrown.message);
+        error_message.appendTo(that.container);
 
         if(that.errors && that.errors.length > 0) {
             //render errors
@@ -1457,9 +1476,9 @@ IPA.error_dialog = function(spec) {
             for(var i=0; i < that.errors.length; i++) {
                 var error = that.errors[i];
                 if(error.message) {
-                    var error_div = $('<li />', {
-                        text: error.message
-                    }).appendTo(errors_container);
+                    var error_div = $('<li />', {});
+                    that.beautify_message(error_div, error.message);
+                    error_div.appendTo(errors_container);
                 }
             }
 
