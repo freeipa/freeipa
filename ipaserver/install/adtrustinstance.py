@@ -351,18 +351,37 @@ class ADTRUSTInstance(service.Service):
         conf_fd.write('config backend = registry\n')
         conf_fd.close()
 
-    def __add_cldap_module(self):
+    def __add_plugin_conf(self, name, plugin_cn, ldif_file):
+        """
+        Add directory server plugin configuration if it not already
+        exists.
+        """
         try:
-            self._ldap_mod("ipa-cldap-conf.ldif", self.sub_dict)
-        except:
-            pass
+            plugin_dn = DN(('cn', plugin_cn), ('cn', 'plugins'),
+                           ('cn', 'config'))
+            self.admin_conn.getEntry(plugin_dn, ldap.SCOPE_BASE)
+            self.print_msg('%s plugin already configured, nothing to do' % name)
+        except errors.NotFound:
+            try:
+                self._ldap_mod(ldif_file, self.sub_dict)
+            except Exception:
+                pass
+
+    def __add_cldap_module(self):
+        """
+        Add cldap directory server plugin configuration if it not already
+        exists.
+        """
+        self.__add_plugin_conf('CLDAP', 'ipa_cldap', 'ipa-cldap-conf.ldif')
 
     def __add_sidgen_module(self):
-        try:
-            self._ldap_mod("ipa-sidgen-conf.ldif", self.sub_dict)
-            self._ldap_mod("ipa-sidgen-task-conf.ldif", self.sub_dict)
-        except Exception:
-            pass
+        """
+        Add sidgen directory server plugin configuration and the related task
+        if they not already exist.
+        """
+        self.__add_plugin_conf('Sidgen', 'IPA SIDGEN', 'ipa-sidgen-conf.ldif')
+        self.__add_plugin_conf('Sidgen task', 'ipa-sidgen-task',
+                               'ipa-sidgen-task-conf.ldif')
 
     def __add_sids(self):
         """
@@ -375,10 +394,12 @@ class ADTRUSTInstance(service.Service):
             pass
 
     def __add_extdom_module(self):
-        try:
-            self._ldap_mod("ipa-extdom-extop-conf.ldif", self.sub_dict)
-        except:
-            pass
+        """
+        Add directory server configuration for the extdom extended operation
+        if it not already exists.
+        """
+        self.__add_plugin_conf('Extdom', 'ipa_extdom_extop',
+                               'ipa-extdom-extop-conf.ldif')
 
     def __write_smb_registry(self):
         template = os.path.join(ipautil.SHARE_DIR, "smb.conf.template")
