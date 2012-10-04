@@ -292,13 +292,20 @@ class HTTPInstance(service.Service):
         prefs_fd.close()
         os.chmod(target_fname, 0644)
 
+        target_fname = '/usr/share/ipa/html/krb.js'
+        prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "krb.js.template", self.sub_dict)
+        prefs_fd = open(target_fname, "w")
+        prefs_fd.write(prefs_txt)
+        prefs_fd.close()
+        os.chmod(target_fname, 0644)
+
         # The signing cert is generated in __setup_ssl
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
-
         pwdfile = open(db.passwd_fname)
         pwd = pwdfile.read()
         pwdfile.close()
 
+        # Setup configure.jar
         tmpdir = tempfile.mkdtemp(prefix = "tmp-")
         target_fname = '/usr/share/ipa/html/configure.jar'
         shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
@@ -306,6 +313,18 @@ class HTTPInstance(service.Service):
                          "-Z", target_fname,
                          "-e", ".html", "-p", pwd,
                          tmpdir])
+        shutil.rmtree(tmpdir)
+        os.chmod(target_fname, 0644)
+
+        # Setup extension
+        tmpdir = tempfile.mkdtemp(prefix = "tmp-")
+        extdir = tmpdir + "/ext"
+        target_fname = "/usr/share/ipa/html/kerberosauth.xpi"
+        shutil.copytree("/usr/share/ipa/ffextension", extdir)
+        db.run_signtool(["-k", "Signing-Cert",
+                            "-p", pwd,
+                            "-X", "-Z", target_fname,
+                            extdir])
         shutil.rmtree(tmpdir)
         os.chmod(target_fname, 0644)
 
