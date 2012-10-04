@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib.plugins.baseldap import *
+from ipalib.plugins.dns import dns_container_exists
 from ipalib import api, Str, StrEnum, Password, DefaultFrom, _, ngettext, Object
 from ipalib.parameters import Enum
 from ipalib import Command
@@ -325,10 +326,39 @@ class trust_add(LDAPCreate):
                 raise errors.ValidationError(name=_('AD Trust setup'), error=_('Realm administrator password should be specified'))
             realm_passwd = options['realm_passwd']
 
-            result = trustinstance.join_ad_full_credentials(keys[-1], realm_server, realm_admin, realm_passwd)
+            try:
+                result = trustinstance.join_ad_full_credentials(keys[-1], realm_server, realm_admin, realm_passwd)
+            except errors.NotFound, e:
+                error_message=[_("Unable to resolve domain controller for '%s' domain. ") % (keys[-1])]
+                if dns_container_exists(self.obj.backend):
+                    try:
+                        dns_zone = api.Command.dnszone_show(keys[-1])['result']
+                        if ('idnsforwardpolicy' in dns_zone) and dns_zone['idnsforwardpolicy'][0] == u'only':
+                            error_message.append(_("Forward policy is defined for it in IPA DNS, "
+                                                   "perhaps forwarder points to incorrect host?"))
+                    except (errors.NotFound, KeyError) as e:
+                        error_message.append(_("IPA manages DNS, please configure forwarder to "
+                                               "'%(domain)s' domain using following CLI command. "
+                                               "Make sure to replace DNS_SERVER and IP_ADDRESS by "
+                                               "actual values corresponding to the trusted domain's "
+                                               "DNS server:") % dict(domain=keys[-1]))
+                        # tab character at the beginning of a multiline error message will be replaced
+                        # in the web UI by a colorful hint. Does not affect CLI.
+                        error_message.append(_("\tipa dnszone-add %(domain)s --name-server=[DNS_SERVER] "
+                                               "--admin-email='hostmaster@%(domain)s' "
+                                               "--force --forwarder=[IP_ADDRESS] "
+                                               "--forward-policy=only") % dict(domain=keys[-1]))
+                        error_message.append(_("When using Web UI, please create DNS zone for domain '%(domain)s' "
+                                               "first and then set forwarder and forward policy.") % dict(domain=keys[-1]))
+                else:
+                    error_message.append(_("Since IPA does not manage DNS records, ensure DNS "
+                                           "is configured to resolve '%(domain)s' domain from "
+                                           "IPA hosts and back.") % dict(domain=keys[-1]))
+                raise errors.NotFound(reason=error_message)
 
             if result is None:
-                raise errors.ValidationError(name=_('AD Trust setup'), error=_('Unable to verify write permissions to the AD'))
+                raise errors.ValidationError(name=_('AD Trust setup'),
+                                             error=_('Unable to verify write permissions to the AD'))
 
             return dict(value=trustinstance.remote_domain.info['dns_domain'], verified=result['verified'])
 
@@ -338,7 +368,8 @@ class trust_add(LDAPCreate):
         if 'trust_secret' in options:
             result = trustinstance.join_ad_ipa_half(keys[-1], realm_server, options['trust_secret'])
             return dict(value=trustinstance.remote_domain.info['dns_domain'], verified=result['verified'])
-        raise errors.ValidationError(name=_('AD Trust setup'), error=_('Not enough arguments specified to perform trust setup'))
+        raise errors.ValidationError(name=_('AD Trust setup'),
+                                     error=_('Not enough arguments specified to perform trust setup'))
 
 class trust_del(LDAPDelete):
     __doc__ = _('Delete a trust.')
