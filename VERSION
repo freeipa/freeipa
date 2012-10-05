@@ -40,7 +40,7 @@ IPA_VERSION_PRE_RELEASE=
 # e.g. IPA_VERSION_RC_RELEASE=1                        #
 #  ->  "1.0.0rc1"                                      #
 ########################################################
-IPA_VERSION_RC_RELEASE=1
+IPA_VERSION_RC_RELEASE=2
 
 ########################################################
 # To mark GIT snapshots this should be set to 'yes'    #
