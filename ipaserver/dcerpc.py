@@ -365,7 +365,7 @@ class TrustDomainInstance(object):
         info.sid = security.dom_sid(another_domain.info['sid'])
         info.trust_direction = lsa.LSA_TRUST_DIRECTION_INBOUND | lsa.LSA_TRUST_DIRECTION_OUTBOUND
         info.trust_type = lsa.LSA_TRUST_TYPE_UPLEVEL
-        info.trust_attributes = lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE | lsa.LSA_TRUST_ATTRIBUTE_USES_RC4_ENCRYPTION
+        info.trust_attributes = lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
 
         try:
             dname = lsa.String()
