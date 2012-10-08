@@ -150,6 +150,7 @@ Requires(postun): python systemd-units
 Requires(preun):  python initscripts chkconfig
 Requires(postun): python initscripts chkconfig
 %endif
+Requires: zip
 
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
@@ -691,6 +692,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Oct 10 2012 Petr Viktorin <pviktori@redhat.com> - 2.2.0-22
+- Add zip dependency, needed for creating unsigned Firefox extensions
+
 * Tue Apr 10 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-21
 - Set min for selinux-policy to 3.10.0-110 on F-17 to pick up certmonger
   policy for restarting services.

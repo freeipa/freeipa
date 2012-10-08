@@ -211,8 +211,17 @@ def template_str(txt, vars):
     return val
 
 def template_file(infilename, vars):
-    txt = open(infilename).read()
-    return template_str(txt, vars)
+    """Read a file and perform template substitutions"""
+    with open(infilename) as f:
+        return template_str(f.read(), vars)
+
+
+def copy_template_file(infilename, outfilename, vars):
+    """Copy a file, performing template substitutions"""
+    txt = template_file(infilename, vars)
+    with open(outfilename, 'w') as file:
+        file.write(txt)
+
 
 def write_tmp_file(txt):
     fd = tempfile.NamedTemporaryFile()
@@ -225,7 +234,7 @@ def shell_quote(string):
     return "'" + string.replace("'", "'\\''") + "'"
 
 def run(args, stdin=None, raiseonerr=True,
-        nolog=(), env=None, capture_output=True):
+        nolog=(), env=None, capture_output=True, cwd=None):
     """
     Execute a command and return stdin, stdout and the process return code.
 
@@ -273,7 +282,7 @@ def run(args, stdin=None, raiseonerr=True,
 
     try:
         p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
-                             close_fds=True, env=env)
+                             close_fds=True, env=env, cwd=cwd)
         stdout,stderr = p.communicate(stdin)
         stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
     except KeyboardInterrupt:

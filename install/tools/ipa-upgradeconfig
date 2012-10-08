@@ -39,6 +39,7 @@ try:
     import os
     import shutil
     import fileinput
+    from ipalib import api
     import ipalib.errors
 except ImportError:
     print >> sys.stderr, """\
@@ -208,7 +209,7 @@ def update_dbmodules(realm, filename="/etc/krb5.conf"):
             newfile.append('#%s' % line)
             prefix = ''
             continue
-      
+
         newfile.append('%s%s' % (prefix, line))
 
     # Append updated dbmodules information
@@ -231,6 +232,14 @@ def cleanup_kdc(fstore):
         installutils.remove_file(filename)
         if fstore.has_file(filename):
             fstore.untrack_file(filename)
+
+def setup_firefox_extension(fstore):
+    """Set up the Firefox configuration extension, if it's not set up yet
+    """
+    http = httpinstance.HTTPInstance(fstore)
+    realm = api.env.realm
+    domain = api.env.domain
+    http.setup_firefox_extension(realm, domain)
 
 def upgrade_ipa_profile(realm):
     """
@@ -274,6 +283,9 @@ def main():
 
     # Ok, we are an IPA server, do the additional tests
 
+    api.bootstrap(context='restart')
+    api.finalize()
+
     check_certs()
 
     sub_dict = { "REALM" : krbctx.default_realm, "FQDN": fqdn }
@@ -304,6 +316,7 @@ def main():
 
     cleanup_kdc(fstore)
     upgrade_ipa_profile(krbctx.default_realm)
+    setup_firefox_extension(fstore)
 
 try:
     if __name__ == "__main__":

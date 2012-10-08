@@ -247,27 +247,18 @@ class HTTPInstance(service.Service):
 
     def __setup_autoconfig(self):
         target_fname = '/usr/share/ipa/html/preferences.html'
-        prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
-        prefs_fd = open(target_fname, "w")
-        prefs_fd.write(prefs_txt)
-        prefs_fd.close()
-        os.chmod(target_fname, 0644)
-
-        target_fname = '/usr/share/ipa/html/krb.js'
-        prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "krb.js.template", self.sub_dict)
-        prefs_fd = open(target_fname, "w")
-        prefs_fd.write(prefs_txt)
-        prefs_fd.close()
+        ipautil.copy_template_file(
+            ipautil.SHARE_DIR + "preferences.html.template",
+            target_fname, self.sub_dict)
         os.chmod(target_fname, 0644)
 
         # The signing cert is generated in __setup_ssl
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
-        pwdfile = open(db.passwd_fname)
-        pwd = pwdfile.read()
-        pwdfile.close()
+        with open(db.passwd_fname) as pwdfile:
+            pwd = pwdfile.read()
 
         # Setup configure.jar
-        tmpdir = tempfile.mkdtemp(prefix = "tmp-")
+        tmpdir = tempfile.mkdtemp(prefix="tmp-")
         target_fname = '/usr/share/ipa/html/configure.jar'
         shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
         db.run_signtool(["-k", "Signing-Cert",
@@ -277,15 +268,47 @@ class HTTPInstance(service.Service):
         shutil.rmtree(tmpdir)
         os.chmod(target_fname, 0644)
 
+        self.setup_firefox_extension(self.realm, self.domain, force=True)
+
+    def setup_firefox_extension(self, realm, domain, force=False):
+        """Set up the signed browser configuration extension
+
+        If the extension is already set up, skip the installation unless
+        ``force`` is true.
+        """
+
+        target_fname = '/usr/share/ipa/html/krb.js'
+        if os.path.exists(target_fname) and not force:
+            root_logger.info(
+                '%s exists, skipping install of Firefox extension',
+                    target_fname)
+            return
+
+        sub_dict = dict(REALM=realm, DOMAIN=domain)
+        db = certs.CertDB(realm)
+        with open(db.passwd_fname) as pwdfile:
+            pwd = pwdfile.read()
+
+        ipautil.copy_template_file(ipautil.SHARE_DIR + "krb.js.template",
+            target_fname, sub_dict)
+        os.chmod(target_fname, 0644)
+
         # Setup extension
-        tmpdir = tempfile.mkdtemp(prefix = "tmp-")
+        tmpdir = tempfile.mkdtemp(prefix="tmp-")
         extdir = tmpdir + "/ext"
         target_fname = "/usr/share/ipa/html/kerberosauth.xpi"
         shutil.copytree("/usr/share/ipa/ffextension", extdir)
-        db.run_signtool(["-k", "Signing-Cert",
-                            "-p", pwd,
-                            "-X", "-Z", target_fname,
-                            extdir])
+        if db.has_nickname('Signing-Cert'):
+            db.run_signtool(["-k", "Signing-Cert",
+                                "-p", pwd,
+                                "-X", "-Z", target_fname,
+                                extdir])
+        else:
+            root_logger.warning('Object-signing certificate was not found. '
+                'Creating unsigned Firefox configuration extension.')
+            filenames = os.listdir(extdir)
+            ipautil.run(['/usr/bin/zip', '-r', target_fname] + filenames,
+                cwd=extdir)
         shutil.rmtree(tmpdir)
         os.chmod(target_fname, 0644)
 
