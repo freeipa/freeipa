@@ -16,6 +16,7 @@ app_DATA =				\
 	caJarSigningCert.cfg.template	\
 	default-aci.ldif		\
 	default-hbac.ldif		\
+	default-smb-group.ldif		\
 	delegation.ldif			\
 	replica-acis.ldif		\
 	ds-nfiles.ldif			\
