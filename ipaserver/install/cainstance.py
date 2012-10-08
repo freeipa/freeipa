@@ -48,7 +48,6 @@ import nss.nss as nss
 from ipapython import ipautil
 from ipapython import nsslib
 from ipapython import services as ipaservices
-from ipapython import dogtag
 
 from ipaserver import ipaldap
 from ipaserver.install import service
@@ -214,6 +213,23 @@ def get_outputList(data):
             value = None
 
     return outputdict
+
+def get_crl_files(path=None):
+    """
+    Traverse dogtag's CRL files in default CRL publish directory or in chosen
+    target directory.
+
+    @param path Custom target directory
+    """
+    if path is None:
+        path = dogtag.configured_constants().CRL_PUBLISH_PATH
+
+    files = os.listdir(path)
+    for f in files:
+        if f == "MasterCRL.bin":
+            yield os.path.join(path, f)
+        elif f.endswith(".der"):
+            yield os.path.join(path, f)
 
 class CADSInstance(service.Service):
     def __init__(self, host_name=None, realm_name=None, domain_name=None, dm_password=None, dogtag_constants=None):
@@ -1161,19 +1177,30 @@ class CAInstance(service.Service):
         installutils.set_directive(self.dogtag_constants.SIGN_PROFILE,
                 'auth.instance_id', 'raCertAuth', quotes=False, separator='=')
 
+    def prepare_crl_publish_dir(self):
+        """
+        Prepare target directory for CRL publishing
+
+        Returns a path to the CRL publishing directory
+        """
+        publishdir = self.dogtag_constants.CRL_PUBLISH_PATH
+        os.chmod(publishdir, 0775)
+        pent = pwd.getpwnam(PKI_USER)
+        os.chown(publishdir, 0, pent.pw_gid)
+
+        ipaservices.restore_context(publishdir)
+
+        return publishdir
+
     def __enable_crl_publish(self):
         """
         Enable file-based CRL publishing and disable LDAP publishing.
 
-        http://www.redhat.com/docs/manuals/cert-system/8.0/admin/html/Setting_up_Publishing.html
+        https://access.redhat.com/knowledge/docs/en-US/Red_Hat_Certificate_System/8.0/html/Admin_Guide/Setting_up_Publishing.html
         """
         caconfig = self.dogtag_constants.CS_CFG_PATH
 
-        publishdir = self.dogtag_constants.CRL_PUBLISH_PATH
-        os.mkdir(publishdir)
-        os.chmod(publishdir, 0755)
-        pent = pwd.getpwnam(PKI_USER)
-        os.chown(publishdir, pent.pw_uid, pent.pw_gid)
+        publishdir = self.prepare_crl_publish_dir()
 
         # Enable file publishing, disable LDAP
         installutils.set_directive(caconfig, 'ca.publish.enable', 'true', quotes=False, separator='=')
@@ -1211,8 +1238,6 @@ class CAInstance(service.Service):
             'https://%s/ipa/crl/MasterCRL.bin' % ipautil.format_netloc(self.fqdn),
             quotes=False, separator='=')
 
-        ipaservices.restore_context(publishdir)
-
     def __set_subject_in_config(self):
         # dogtag ships with an IPA-specific profile that forces a subject
         # format. We need to update that template with our base subject
@@ -1248,6 +1273,12 @@ class CAInstance(service.Service):
         user_exists = self.restore_state("user_exists")
 
         installutils.remove_file("/var/lib/certmonger/cas/ca_renewal")
+
+        # remove CRL files
+        root_logger.info("Remove old CRL files")
+        for f in get_crl_files():
+            root_logger.debug("Remove %s", f)
+            installutils.remove_file(f)
 
     def publish_ca_cert(self, location):
         args = ["-L", "-n", self.canickname, "-a"]
