@@ -173,6 +173,7 @@ Requires(postun): python initscripts chkconfig
 %endif
 Requires: python-dns
 Requires: keyutils
+Requires: zip
 
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
@@ -786,6 +787,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Oct 10 2012 Petr Viktorin <pviktori@redhat.com> - 2.99.0-49
+- Add zip dependency, needed for creating unsigned Firefox extensions
+
 * Mon Oct  8 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-48
 - Add directory /var/lib/ipa/pki-ca/publish for CRL published by pki-ca
 

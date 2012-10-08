@@ -283,6 +283,17 @@ def cleanup_kdc(fstore):
             fstore.untrack_file(filename)
             root_logger.debug('Uninstalling %s', filename)
 
+
+def setup_firefox_extension(fstore):
+    """Set up the Firefox configuration extension, if it's not set up yet
+    """
+    root_logger.info('[Setting up Firefox extension]')
+    http = httpinstance.HTTPInstance(fstore)
+    realm = api.env.realm
+    domain = api.env.domain
+    http.setup_firefox_extension(realm, domain)
+
+
 def upgrade_ipa_profile(ca):
     """
     Update the IPA Profile provided by dogtag
@@ -624,6 +635,7 @@ def main():
         pass
 
     cleanup_kdc(fstore)
+    setup_firefox_extension(fstore)
     changed_psearch = named_enable_psearch()
     changed_autoincrement = named_enable_serial_autoincrement()
     if changed_psearch or changed_autoincrement:
