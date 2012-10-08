@@ -207,8 +207,12 @@ def install_http(config, auto_redirect):
         try:
             shutil.copy(config.dir + "/preferences.html", "/usr/share/ipa/html/preferences.html")
             shutil.copy(config.dir + "/configure.jar", "/usr/share/ipa/html/configure.jar")
-            shutil.copy(config.dir + "/krb.js", "/usr/share/ipa/html/krb.js")
-            shutil.copy(config.dir + "/kerberosauth.xpi", "/usr/share/ipa/html/kerberosauth.xpi")
+            if ipautil.file_exists(config.dir + "/krb.js"):
+                shutil.copy(
+                    config.dir + "/krb.js", "/usr/share/ipa/html/krb.js")
+                shutil.copy(
+                    config.dir + "/kerberosauth.xpi",
+                    "/usr/share/ipa/html/kerberosauth.xpi")
         except Exception, e:
             print "error copying files: " + str(e)
             sys.exit(1)
