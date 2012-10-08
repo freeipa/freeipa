@@ -12,9 +12,3 @@ dn: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
 changetype: modify
 add: memberPrincipal
 memberPrincipal: ldap/$FQDN@$REALM
-
-dn: cn=ipa-cifs-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
-changetype: modify
-add: memberPrincipal
-memberPrincipal: cifs/$FQDN@$REALM
-

@@ -40,10 +40,6 @@ dn: cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX
 default: objectClass: GroupOfNames
 default: objectClass: top
 default: cn: adtrust agents
-default: member: krbprincipalname=cifs/$FQDN@$REALM,cn=services,cn=accounts,$SUFFIX
-
-dn: cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX
-add: member: krbprincipalname=cifs/$FQDN@$REALM,cn=services,cn=accounts,$SUFFIX
 
 dn: cn=trusts,$SUFFIX
 default: objectClass: top

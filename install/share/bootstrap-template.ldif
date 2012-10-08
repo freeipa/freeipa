@@ -195,7 +195,6 @@ changetype: add
 objectClass: groupOfPrincipals
 objectClass: top
 cn: ipa-cifs-delegation-targets
-memberPrincipal: cifs/$HOST@$REALM
 
 dn: uid=admin,cn=users,cn=accounts,$SUFFIX
 changetype: add

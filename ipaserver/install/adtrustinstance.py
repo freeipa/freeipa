@@ -52,6 +52,13 @@ change with the command:
 Try updating the policycoreutils and selinux-policy packages.
 """
 
+UPGRADE_ERROR = """
+Entry %(dn)s does not exist.
+This means upgrade from IPA 2.x to 3.x did not went well and required S4U2Proxy
+configuration was not set up properly. Please run ipa-ldap-updater manually
+and re-run ipa-adtrust-instal again afterwards.
+"""
+
 def check_inst():
     for smbfile in ['/usr/sbin/smbd', '/usr/bin/net', '/usr/bin/smbpasswd']:
         if not os.path.exists(smbfile):
@@ -382,6 +389,25 @@ class ADTRUSTInstance(service.Service):
         self.__add_plugin_conf('Extdom', 'ipa_extdom_extop',
                                'ipa-extdom-extop-conf.ldif')
 
+    def __add_s4u2proxy_target(self):
+        """
+        Add CIFS principal to S4U2Proxy target
+        """
+
+        targets_dn = DN(('cn', 'ipa-cifs-delegation-targets'), ('cn', 's4u2proxy'),
+                        ('cn', 'etc'), self.suffix)
+        try:
+            targets = self.admin_conn.getEntry(targets_dn, ldap.SCOPE_BASE)
+            current = ipaldap.Entry((targets_dn, targets.toDict()))
+            members = current.getValues('memberPrincipal') or []
+            if not(self.cifs_principal in members):
+                current.setValues("memberPrincipal", members + [self.cifs_principal])
+                self.admin_conn.updateEntry(targets_dn, targets.toDict(), current.toDict())
+            else:
+                self.print_msg('cifs principal already targeted, nothing to do.')
+        except errors.NotFound:
+            self.print_msg(UPGRADE_ERROR % dict(dn=targets_dn))
+
     def __write_smb_registry(self):
         template = os.path.join(ipautil.SHARE_DIR, "smb.conf.template")
         conf = ipautil.template_file(template, self.sub_dict)
@@ -402,12 +428,19 @@ class ADTRUSTInstance(service.Service):
             # Add the principal to the 'adtrust agents' group
             # as 389-ds only operates with GroupOfNames, we have to use
             # the principal's proper dn as defined in self.cifs_agent
-            entry = self.admin_conn.getEntry(self.smb_dn, ldap.SCOPE_BASE)
-            current = ipaldap.Entry(self.smb_dn, entry.toDict())
-            if not('member' in current):
-                current['member'] = []
-            entry.setValues("member", current['member'] + [self.cifs_agent])
-            self.admin_conn.updateEntry(self.smb_dn, current, entry)
+            try:
+                entry = self.admin_conn.getEntry(self.smb_dn, ldap.SCOPE_BASE)
+                current = ipaldap.Entry((self.smb_dn, entry.toDict()))
+                members = current.getValues('member') or []
+                if not(self.cifs_agent in members):
+                    current.setValues("member", members + [self.cifs_agent])
+                    self.admin_conn.updateEntry(self.smb_dn, entry.toDict(), current.toDict())
+            except errors.NotFound:
+                entry = ipaldap.Entry(self.smb_dn)
+                entry.setValues("objectclass", ["top", "GroupOfNames"])
+                entry.setValues("cn", self.smb_dn['cn'])
+                entry.setValues("member", [self.cifs_agent])
+                self.admin_conn.addEntry(entry)
         except Exception, e:
             # CIFS principal already exists, it is not the first time adtrustinstance is managed
             # That's fine, we we'll re-extract the key again.
@@ -703,6 +736,7 @@ class ADTRUSTInstance(service.Service):
         self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
         self.step("adding cifs Kerberos principal", self.__setup_principal)
+        self.step("adding cifs principal to S4U2Proxy targets", self.__add_s4u2proxy_target)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
         self.step("adding RID bases", self.__add_rid_bases)
         self.step("updating Kerberos config", self.__update_krb5_conf)
