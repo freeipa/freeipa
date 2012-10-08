@@ -397,6 +397,7 @@ rm %{buildroot}/%{_libdir}/samba/pdb/ipasam.la
 mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
 mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysrestore
 mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysupgrade
+mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/pki-ca/publish
 mkdir %{buildroot}%{_usr}/share/ipa/html/
 ln -s ../../../..%{_sysconfdir}/ipa/html/ffconfig.js \
     %{buildroot}%{_usr}/share/ipa/html/ffconfig.js
@@ -694,6 +695,8 @@ fi
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
+%attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
+%attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca/publish
 %dir %{_localstatedir}/cache/ipa
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 %attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
@@ -783,6 +786,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Mon Oct  8 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-48
+- Add directory /var/lib/ipa/pki-ca/publish for CRL published by pki-ca
+
 * Mon Oct  1 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-47
 - Require samba packages instead of samba4 packages obsoleted in Fedora 18 and later
 - Add libwbclient-devel BuildRequires to pick up libwbclient.h on Fedora 18 and later

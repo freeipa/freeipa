@@ -25,7 +25,7 @@ Upgrade configuration files to a newer template.
 
 import sys
 try:
-    from ipapython import ipautil, sysrestore, version
+    from ipapython import ipautil, sysrestore, version, services
     from ipapython.config import IPAOptionParser
     from ipapython.ipa_log_manager import *
     from ipapython import certmonger
@@ -44,6 +44,7 @@ try:
     import re
     import os
     import shutil
+    import pwd
     import fileinput
     from ipalib import api
     import ipalib.errors
@@ -281,12 +282,11 @@ def cleanup_kdc(fstore):
             fstore.untrack_file(filename)
             root_logger.debug('Uninstalling %s', filename)
 
-def upgrade_ipa_profile(realm):
+def upgrade_ipa_profile(ca):
     """
     Update the IPA Profile provided by dogtag
     """
     root_logger.info('[Verifying that CA service certificate profile is updated]')
-    ca = cainstance.CAInstance(realm, certs.NSS_DIR)
     if ca.is_configured():
         if ca.enable_subject_key_identifier():
             root_logger.debug('Subject Key Identifier updated, restarting CA')
@@ -433,22 +433,23 @@ def named_enable_serial_autoincrement():
 
     return changed
 
-def enable_certificate_renewal(realm):
+def enable_certificate_renewal(ca):
     """
     If the CA subsystem certificates are not being tracked for renewal then
     tell certmonger to start tracking them.
+
+    Returns True when CA needs to be restarted
     """
-    ca = cainstance.CAInstance(realm, certs.NSS_DIR)
     if not ca.is_configured():
         root_logger.debug('dogtag not configured')
-        return
+        return False
 
     # Using the nickname find the certmonger request_id
     criteria = (('cert_storage_location', '/etc/httpd/alias', certmonger.NPATH),('cert_nickname', 'ipaCert', None))
     request_id = certmonger.get_request_id(criteria)
     if request_id is not None:
         root_logger.debug('Certificate renewal already configured')
-        return
+        return False
 
     if not sysupgrade.get_upgrade_state('dogtag', 'renewal_configured'):
         if ca.is_master():
@@ -459,8 +460,81 @@ def enable_certificate_renewal(realm):
             ca.configure_agent_renewal()
         ca.track_servercert()
         sysupgrade.set_upgrade_state('dogtag', 'renewal_configured', True)
-        ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
         root_logger.debug('CA subsystem certificate renewal enabled')
+        return True
+
+    return False
+
+def copy_crl_file(old_path, new_path=None):
+    """
+    Copy CRL to new location, update permissions and SELinux context
+    """
+    if new_path is None:
+        filename = os.path.basename(old_path)
+        new_path = os.path.join(dogtag.configured_constants().CRL_PUBLISH_PATH,
+                                filename)
+    root_logger.debug('copy_crl_file: %s -> %s', old_path, new_path)
+
+    if os.path.islink(old_path):
+        # update symlink to the most most recent CRL file
+        filename = os.path.basename(os.readlink(old_path))
+        realpath = os.path.join(dogtag.configured_constants().CRL_PUBLISH_PATH,
+                                filename)
+        root_logger.debug('copy_crl_file: Create symlink %s -> %s',
+            new_path, realpath)
+        os.symlink(realpath, new_path)
+    else:
+        shutil.copy2(old_path, new_path)
+    pent = pwd.getpwnam(cainstance.PKI_USER)
+    os.chown(new_path, pent.pw_uid, pent.pw_gid)
+
+    services.restore_context(new_path)
+
+def migrate_crl_publish_dir(ca):
+    """
+    Move CRL publish dir from /var/lib/pki-ca/publish to IPA controlled tree:
+    /var/lib/ipa/pki-ca/publish
+    """
+    root_logger.info('[Migrate CRL publish directory]')
+    if sysupgrade.get_upgrade_state('dogtag', 'moved_crl_publish_dir'):
+        root_logger.info('CRL tree already moved')
+        return False
+
+    caconfig = dogtag.configured_constants()
+
+    old_publish_dir = installutils.get_directive(caconfig.CS_CFG_PATH,
+        'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
+        separator='=')
+
+    if old_publish_dir == caconfig.CRL_PUBLISH_PATH:
+        # publish dir is already updated
+        root_logger.info('Publish directory already set to new location')
+        sysupgrade.set_upgrade_state('dogtag', 'moved_crl_publish_dir', True)
+        return False
+
+    # Prepare target publish dir (permissions, SELinux context)
+    publishdir = ca.prepare_crl_publish_dir()
+
+    # Copy all CRLs to new directory
+    root_logger.info('Copy all CRLs to new publish directory')
+    try:
+        crl_files = cainstance.get_crl_files(old_publish_dir)
+    except OSError, e:
+        root_logger.error('Cannot move CRL files to new directory: %s', e)
+    else:
+        for f in crl_files:
+            try:
+                copy_crl_file(f)
+            except Exception, e:
+                root_logger.error('Cannot move CRL file to new directory: %s', e)
+
+    installutils.set_directive(caconfig.CS_CFG_PATH,
+        'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
+        publishdir, quotes=False, separator='=')
+    sysupgrade.set_upgrade_state('dogtag', 'moved_crl_publish_dir', True)
+    root_logger.info('CRL publish directory has been migrated, '
+                     'request pki-ca restart')
+    return True
 
 def main():
     """
@@ -505,6 +579,11 @@ def main():
         DOGTAG_PORT=configured_constants.AJP_PORT,
     )
 
+
+    # migrate CRL publish dir before the location in ipa.conf is updated
+    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    ca_restart = migrate_crl_publish_dir(ca)
+
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
@@ -530,14 +609,18 @@ def main():
         pass
 
     cleanup_kdc(fstore)
-    upgrade_ipa_profile(api.env.realm)
+    upgrade_ipa_profile(ca)
     changed_psearch = named_enable_psearch()
     changed_autoincrement = named_enable_serial_autoincrement()
     if changed_psearch or changed_autoincrement:
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
         bindinstance.BindInstance(fstore).restart()
-    enable_certificate_renewal(api.env.realm)
+    ca_restart = ca_restart or enable_certificate_renewal(ca)
+
+    if ca_restart:
+        root_logger.info('pki-ca configuration changed, restart pki-ca')
+        ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
 
 if __name__ == '__main__':
     installutils.run_script(main, operation_name='ipa-upgradeconfig')

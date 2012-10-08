@@ -1,2 +1,1 @@
-/var/lib/pki-ca/publish(/.*)?	 gen_context(system_u:object_r:cert_t,s0)
-/var/lib/pki/pki-tomcat/ca/publish(/.*)?	gen_context(system_u:object_r:cert_t,s0)
+/var/lib/ipa/pki-ca/publish(/.*)?	 gen_context(system_u:object_r:cert_t,s0)

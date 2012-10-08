@@ -54,7 +54,7 @@ class Dogtag10Constants(object):
     SERVER_ROOT = '/var/lib/pki'
     PKI_INSTANCE_NAME = 'pki-tomcat'
     PKI_ROOT = '%s/%s' % (SERVER_ROOT, PKI_INSTANCE_NAME)
-    CRL_PUBLISH_PATH = '%s/ca/publish' % PKI_ROOT
+    CRL_PUBLISH_PATH = '%s/ipa/pki-ca/publish' % SERVER_ROOT
     CS_CFG_PATH = '%s/conf/ca/CS.cfg' % PKI_ROOT
     PASSWORD_CONF_PATH = '%s/conf/password.conf' % PKI_ROOT
     SERVICE_PROFILE_DIR = '%s/ca/profiles/ca' % PKI_ROOT
@@ -78,7 +78,7 @@ class Dogtag9Constants(object):
     SERVER_ROOT = '/var/lib'
     PKI_INSTANCE_NAME = 'pki-ca'
     PKI_ROOT = '%s/%s' % (SERVER_ROOT, PKI_INSTANCE_NAME)
-    CRL_PUBLISH_PATH = '%s/publish' % PKI_ROOT
+    CRL_PUBLISH_PATH = '%s/ipa/pki-ca/publish' % SERVER_ROOT
     CS_CFG_PATH = '%s/conf/CS.cfg' % PKI_ROOT
     PASSWORD_CONF_PATH = '%s/conf/password.conf' % PKI_ROOT
     SERVICE_PROFILE_DIR = '%s/profiles/ca' % PKI_ROOT
