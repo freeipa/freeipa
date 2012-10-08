@@ -22,7 +22,6 @@ import errno
 import ldap
 import tempfile
 import uuid
-import krbV
 from ipaserver import ipaldap
 from ipaserver.install import installutils
 from ipaserver.install import service
@@ -101,7 +100,7 @@ class ADTRUSTInstance(service.Service):
     OBJC_USER = "ipaNTUserAttrs"
     OBJC_GROUP = "ipaNTGroupAttrs"
     OBJC_DOMAIN = "ipaNTDomainAttrs"
-    FALLBACK_GROUP_NAME = u'Default_SMB_Group'
+    FALLBACK_GROUP_NAME = u'Default SMB Group'
 
     def __init__(self, fstore=None):
         self.fqdn = None
@@ -211,25 +210,6 @@ class ADTRUSTInstance(service.Service):
         """
 
         self.ldap_connect()
-        try:
-            ctx = krbV.default_context()
-            ccache = ctx.default_ccache()
-        except krbV.Krb5Error, e:
-            self.print_msg("Must have Kerberos credentials to setup " \
-                           "AD trusts on server")
-            return
-
-        try:
-            api.Backend.ldap2.disconnect()
-            api.Backend.ldap2.connect(ccache.name)
-        except errors.ACIError, e:
-            self.print_msg("Outdated Kerberos credentials. " \
-                           "Use kdestroy and kinit to update your ticket")
-            return
-        except errors.DatabaseError, e:
-            self.print_msg("Cannot connect to the LDAP database. " \
-                           "Please check if IPA is running")
-            return
 
         try:
             dom_entry = self.admin_conn.getEntry(self.smb_dom_dn, \
@@ -248,20 +228,21 @@ class ADTRUSTInstance(service.Service):
             self.admin_conn.getEntry(fb_group_dn, ldap.SCOPE_BASE)
         except errors.NotFound:
             try:
-                fallback = api.Command['group_add'](self.FALLBACK_GROUP_NAME,
-                                           description= u'Fallback group for ' \
-                                                         'primary group RID, ' \
-                                                         'do not add user to ' \
-                                                         'this group',
-                                           nonposix=False)
-                fb_group_dn = fallback['result']['dn']
+                self._ldap_mod('default-smb-group.ldif', self.sub_dict)
             except Exception, e:
                 self.print_msg("Failed to add fallback group.")
                 raise e
 
+        # _ldap_mod does not return useful error codes, so we must check again
+        # if the fallback group was created properly.
         try:
-            mod = [(ldap.MOD_ADD, self.ATTR_FALLBACK_GROUP,
-                    fallback['result']['dn'])]
+            self.admin_conn.getEntry(fb_group_dn, ldap.SCOPE_BASE)
+        except errors.NotFound:
+                self.print_msg("Failed to add fallback group.")
+                return
+
+        try:
+            mod = [(ldap.MOD_ADD, self.ATTR_FALLBACK_GROUP, fb_group_dn)]
             self.admin_conn.modify_s(self.smb_dom_dn, mod)
         except:
             self.print_msg("Failed to add fallback group to domain object")
