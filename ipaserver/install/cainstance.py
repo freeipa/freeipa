@@ -562,6 +562,7 @@ class CAInstance(service.Service):
             self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("set certificate subject base", self.__set_subject_in_config)
             self.step("enabling Subject Key Identifier", self.enable_subject_key_identifier)
+            self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
             self.step("configuring certificate server to start on boot", self.__enable)
             if not self.clone:
                 self.step("restarting certificate server", self.__restart_instance)
@@ -1418,6 +1419,38 @@ class CAInstance(service.Service):
             return True
 
         # No update was done
+        return False
+
+    def set_audit_renewal(self):
+        """
+        The default renewal time for the audit signing certificate is
+        six months rather than two years. Fix it. This is BZ 843979.
+        """
+        # Check the default validity period of the audit signing cert
+        # and set it to 2 years if it is 6 months.
+        range = installutils.get_directive(
+            '%s/caSignedLogCert.cfg' % self.dogtag_constants.SERVICE_PROFILE_DIR,
+            'policyset.caLogSigningSet.2.default.params.range',
+            separator='='
+        )
+        root_logger.debug('caSignedLogCert.cfg profile validity range is %s' % range)
+        if range == "180":
+            installutils.set_directive(
+                '%s/caSignedLogCert.cfg' % self.dogtag_constants.SERVICE_PROFILE_DIR,
+                'policyset.caLogSigningSet.2.default.params.range',
+                '720',
+                quotes=False,
+                separator='='
+            )
+            installutils.set_directive(
+                '%s/caSignedLogCert.cfg' % self.dogtag_constants.SERVICE_PROFILE_DIR,
+                'policyset.caLogSigningSet.2.constraint.params.range',
+                '720',
+                quotes=False,
+                separator='='
+            )
+            root_logger.debug('updated caSignedLogCert.cfg profile validity range to 720')
+            return True
         return False
 
     def is_master(self):
