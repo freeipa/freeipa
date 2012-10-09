@@ -304,14 +304,6 @@ def upgrade_ipa_profile(ca):
 
     return False
 
-def upgrade_httpd_selinux(fstore):
-    """
-    Update SElinux configuration for httpd instance in the same way as the
-    new server installation does.
-    """
-    root_logger.info('[Verifying the Apache SELinux configuration]')
-    http = httpinstance.HTTPInstance(fstore)
-    http.configure_selinux_for_httpd()
 
 def named_enable_psearch():
     """
