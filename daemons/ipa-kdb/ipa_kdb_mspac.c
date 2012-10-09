@@ -40,6 +40,7 @@ struct ipadb_mspac {
 
     int num_trusts;
     struct ipadb_adtrusts *trusts;
+    time_t last_update;
 };
 
 
@@ -1006,6 +1007,31 @@ static struct ipadb_adtrusts *get_domain_from_realm(krb5_context context,
     return NULL;
 }
 
+static struct ipadb_adtrusts *get_domain_from_realm_update(krb5_context context,
+                                                           krb5_data realm)
+{
+    struct ipadb_context *ipactx;
+    struct ipadb_adtrusts *domain;
+    krb5_error_code kerr;
+
+    domain = get_domain_from_realm(context, realm);
+    if (domain == NULL) {
+        ipactx = ipadb_get_context(context);
+        if (!ipactx) {
+            return NULL;
+        }
+
+        kerr = ipadb_reinit_mspac(ipactx);
+        if (kerr != 0) {
+            return NULL;
+        }
+
+        domain = get_domain_from_realm(context, realm);
+    }
+
+    return domain;
+}
+
 static krb5_error_code filter_logon_info(krb5_context context,
                                          TALLOC_CTX *memctx,
                                          krb5_data realm,
@@ -1020,7 +1046,7 @@ static krb5_error_code filter_logon_info(krb5_context context,
     struct ipadb_adtrusts *domain;
     char *domsid;
 
-    domain = get_domain_from_realm(context, realm);
+    domain = get_domain_from_realm_update(context, realm);
     if (!domain) {
         return EINVAL;
     }
@@ -1550,6 +1576,16 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     struct dom_sid gsid;
     char *resstr;
     int ret;
+    time_t now;
+
+    /* Do not update the mspac struct more than once a minute. This would
+     * avoid heavy load on the directory server if there are lots of requests
+     * from domains which we do not trust. */
+    now = time(NULL);
+    if (ipactx->mspac != NULL && now > ipactx->mspac->last_update &&
+        (now - ipactx->mspac->last_update) < 60) {
+        return 0;
+    }
 
     /* clean up in case we had old values around */
     ipadb_mspac_struct_free(&ipactx->mspac);
@@ -1559,6 +1595,8 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
         kerr = ENOMEM;
         goto done;
     }
+
+    ipactx->mspac->last_update = now;
 
     kerr = ipadb_simple_search(ipactx, ipactx->base, LDAP_SCOPE_SUBTREE,
                                "(objectclass=ipaNTDomainAttrs)", dom_attrs,
