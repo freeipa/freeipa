@@ -238,8 +238,8 @@ class ADTRUSTInstance(service.Service):
         try:
             self.admin_conn.getEntry(fb_group_dn, ldap.SCOPE_BASE)
         except errors.NotFound:
-                self.print_msg("Failed to add fallback group.")
-                return
+            self.print_msg("Failed to add fallback group.")
+            return
 
         try:
             mod = [(ldap.MOD_ADD, self.ATTR_FALLBACK_GROUP, fb_group_dn)]
