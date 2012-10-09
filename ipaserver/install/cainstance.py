@@ -1239,6 +1239,19 @@ class CAInstance(service.Service):
             'https://%s/ipa/crl/MasterCRL.bin' % ipautil.format_netloc(self.fqdn),
             quotes=False, separator='=')
 
+        # If we are the initial master then we are the CRL generator, otherwise
+        # we point to that master for CRLs.
+        if not self.clone:
+            # These next two are defaults, but I want to be explicit that the
+            # initial master is the CRL generator.
+            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLCache', 'true', quotes=False, separator='=')
+            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLUpdates', 'true', quotes=False, separator='=')
+            installutils.set_directive(caconfig, 'ca.listenToCloneModifications', 'true', quotes=False, separator='=')
+        else:
+            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLCache', 'false', quotes=False, separator='=')
+            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLUpdates', 'false', quotes=False, separator='=')
+            installutils.set_directive(caconfig, 'ca.listenToCloneModifications', 'false', quotes=False, separator='=')
+
     def __set_subject_in_config(self):
         # dogtag ships with an IPA-specific profile that forces a subject
         # format. We need to update that template with our base subject
@@ -1291,7 +1304,11 @@ class CAInstance(service.Service):
 
     def __http_proxy(self):
         template_filename = ipautil.SHARE_DIR + "ipa-pki-proxy.conf"
-        sub_dict = dict(DOGTAG_PORT=self.dogtag_constants.AJP_PORT)
+        sub_dict = dict(
+            DOGTAG_PORT=self.dogtag_constants.AJP_PORT,
+            CLONE='' if self.clone else '#',
+            FQDN=self.fqdn,
+        )
         template = ipautil.template_file(template_filename, sub_dict)
         with open(HTTPD_CONFD + "ipa-pki-proxy.conf", "w") as fd:
             fd.write(template)

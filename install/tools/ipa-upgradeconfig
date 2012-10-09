@@ -603,12 +603,19 @@ def main():
         AUTOREDIR='' if auto_redirect else '#',
         CRL_PUBLISH_PATH=configured_constants.CRL_PUBLISH_PATH,
         DOGTAG_PORT=configured_constants.AJP_PORT,
+        CLONE='#'
     )
 
+    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
 
     # migrate CRL publish dir before the location in ipa.conf is updated
-    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
     ca_restart = migrate_crl_publish_dir(ca)
+
+    if ca.is_configured():
+        crl = installutils.get_directive(configured_constants.CS_CFG_PATH,
+                                         'ca.crl.MasterCRL.enableCRLUpdates',
+                                         '=')
+        sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
