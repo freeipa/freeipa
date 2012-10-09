@@ -211,14 +211,15 @@ def upgrade_pki(fstore):
 
     This requires enabling SSL renegotiation.
     """
+    configured_constants = dogtag.configured_constants()
     root_logger.info('[Verifying that CA proxy configuration is correct]')
-    if not os.path.exists('/etc/pki-ca/CS.cfg'):
+    if not os.path.exists(configured_constants.CS_CFG_PATH):
         root_logger.debug('No CA detected in /etc/pki-ca')
         return
 
     http = httpinstance.HTTPInstance(fstore)
     http.enable_mod_nss_renegotiate()
-    if not installutils.get_directive('/etc/pki-ca/CS.cfg',
+    if not installutils.get_directive(configured_constants.CS_CFG_PATH,
                                       'proxy.securePort', '=') and \
             os.path.exists('/usr/bin/pki-setup-proxy'):
         ipautil.run(['/usr/bin/pki-setup-proxy', '-pki_instance_root=/var/lib'
@@ -285,16 +286,23 @@ def cleanup_kdc(fstore):
 def upgrade_ipa_profile(ca):
     """
     Update the IPA Profile provided by dogtag
+
+    Returns True if restart is needed, False otherwise.
     """
     root_logger.info('[Verifying that CA service certificate profile is updated]')
     if ca.is_configured():
-        if ca.enable_subject_key_identifier():
-            root_logger.debug('Subject Key Identifier updated, restarting CA')
-            ca.restart()
+        ski = ca.enable_subject_key_identifier()
+        if ski:
+            root_logger.debug('Subject Key Identifier updated.')
         else:
             root_logger.debug('Subject Key Identifier already set.')
+        audit = ca.set_audit_renewal()
+        if audit or ski:
+            return True
     else:
         root_logger.debug('CA is not configured')
+
+    return False
 
 def upgrade_httpd_selinux(fstore):
     """
@@ -609,14 +617,13 @@ def main():
         pass
 
     cleanup_kdc(fstore)
-    upgrade_ipa_profile(ca)
     changed_psearch = named_enable_psearch()
     changed_autoincrement = named_enable_serial_autoincrement()
     if changed_psearch or changed_autoincrement:
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
         bindinstance.BindInstance(fstore).restart()
-    ca_restart = ca_restart or enable_certificate_renewal(ca)
+    ca_restart = ca_restart or enable_certificate_renewal(ca) or upgrade_ipa_profile(ca)
 
     if ca_restart:
         root_logger.info('pki-ca configuration changed, restart pki-ca')
