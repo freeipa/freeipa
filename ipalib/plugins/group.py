@@ -107,7 +107,7 @@ Example:
    ipa group-add-member ad_admins --groups ad_admins_external
 """)
 
-PROTECTED_GROUPS = (u'admins', u'trust admins', u'default_smb_group')
+PROTECTED_GROUPS = (u'admins', u'trust admins', u'default smb group')
 
 class group(LDAPObject):
     """
