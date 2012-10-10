@@ -231,6 +231,13 @@ Requires: samba4
 Requires: samba4-winbind
 %endif
 Requires: libsss_idmap
+# We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
+# on the installes where server-trust-ad subpackage is installed because
+# IPA AD trusts cannot be used at the same time with the locator plugin
+# since Winbindd will be configured in a different mode
+Requires(post): %{_sbindir}/update-alternatives
+Requires(postun): %{_sbindir}/update-alternatives
+Requires(preun): %{_sbindir}/update-alternatives
 
 %description server-trust-ad
 Cross-realm trusts with Active Directory in IPA require working Samba 4 installation.
@@ -439,6 +446,9 @@ install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_sysconfdir}/tmpfil
 mkdir -p %{buildroot}%{_localstatedir}/run/
 install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa_memcached/
 
+mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
+touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
+
 %if 0%{?fedora} >= 16
 # Default to systemd initscripts for F16 and above
 mkdir -p %{buildroot}%{_unitdir}
@@ -568,6 +578,22 @@ if [ $? == 0  -a "${SELINUXTYPE}" == targeted -a -f ${FILE_CONTEXT}.%{name} ]; t
        fixfiles -C ${FILE_CONTEXT}.%{name} restore
        rm -f ${FILE_CONTEXT}.%name
 fi
+fi
+
+%postun server-trust-ad
+if [ "$1" -ge "1" ]; then
+	if [ "`readlink %{_sysconfdir}/alternatives/winbind_krb5_locator.so`" == "/dev/null" ]; then
+		%{_sbindir}/alternatives --set winbind_krb5_locator.so /dev/null
+	fi
+fi
+
+%post server-trust-ad
+%{_sbindir}/update-alternatives --install %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so \
+				winbind_krb5_locator.so /dev/null 90
+
+%preun server-trust-ad
+if [ $1 -eq 0 ]; then
+	%{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
 fi
 %endif
 
@@ -734,6 +760,7 @@ fi
 %{_mandir}/man1/ipa-adtrust-install.1.gz
 %{python_sitelib}/ipaserver/dcerpc*
 %{python_sitelib}/ipaserver/install/adtrustinstance*
+%ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 %endif
 
 %files client
@@ -787,6 +814,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Oct 10 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-50
+- Make sure server-trust-ad subpackage alternates winbind_krb5_locator.so
+  plugin to /dev/null since they cannot be used when trusts are configured
+
 * Wed Oct 10 2012 Petr Viktorin <pviktori@redhat.com> - 2.99.0-49
 - Add zip dependency, needed for creating unsigned Firefox extensions
 
