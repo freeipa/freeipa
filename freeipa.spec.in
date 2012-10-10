@@ -111,6 +111,7 @@ Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
 Requires: krb5-server >= 1.10
+Requires: krb5-server < 1.11
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
