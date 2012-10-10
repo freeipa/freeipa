@@ -88,9 +88,9 @@ Example:
    ipa group-add --desc='<ad.domain> admins' ad_admins
 
 3. Add security identifier of Domain Admins of the <ad.domain> to the ad_admins_external
-   group (security identifier of <ad.domain SID>-513 is Domain Admins group):
+   group (security identifier of <ad.domain SID>-512 is Domain Admins group):
 
-   ipa group-add-member ad_admins_external --external ${domainsid}-513
+   ipa group-add-member ad_admins_external --external ${domainsid}-512
 
 4. Allow members of ad_admins_external group to be associated with ad_admins POSIX group:
 
