@@ -178,7 +178,19 @@ def make_trust_dn(env, trust_type, dn):
     return dn
 
 class trust_add(LDAPCreate):
-    __doc__ = _('Add new trust to use')
+    __doc__ = _('''
+Add new trust to use.
+
+This command establishes trust relationship to another domain
+which becomes 'trusted'. As result, users of the trusted domain
+may access resources of this domain.
+
+Only trusts to Active Directory domains are supported right now.
+
+The command can be safely run multiple times against the same domain,
+this will cause change to trust relationship credentials on both
+sides.
+    ''')
 
     takes_options = LDAPCreate.takes_options + (
         StrEnum('trust_type',
@@ -308,6 +320,11 @@ class trust_add(LDAPCreate):
                   reason=_('''Cannot perform join operation without own domain configured.
                               Make sure you have run ipa-adtrust-install on the IPA server first'''))
 
+        try:
+            existing_trust = api.Command['trust_show'](keys[-1])
+            summary = _('Re-established trust to domain "%(value)s"')
+        except errors.NotFound:
+            summary = self.msg_summary
         # 1. Full access to the remote domain. Use admin credentials and
         # generate random trustdom password to do work on both sides
         if 'realm_admin' in options:
@@ -360,14 +377,19 @@ class trust_add(LDAPCreate):
                 raise errors.ValidationError(name=_('AD Trust setup'),
                                              error=_('Unable to verify write permissions to the AD'))
 
-            return dict(value=trustinstance.remote_domain.info['dns_domain'], verified=result['verified'])
+            ret = dict(value=trustinstance.remote_domain.info['dns_domain'], verified=result['verified'])
+            ret['summary'] = summary % ret
+            return ret
+
 
         # 2. We don't have access to the remote domain and trustdom password
         # is provided. Do the work on our side and inform what to do on remote
         # side.
         if 'trust_secret' in options:
             result = trustinstance.join_ad_ipa_half(keys[-1], realm_server, options['trust_secret'])
-            return dict(value=trustinstance.remote_domain.info['dns_domain'], verified=result['verified'])
+            ret = dict(value=trustinstance.remote_domain.info['dns_domain'], verified=result['verified'])
+            ret['summary'] = summary % ret
+            return ret
         raise errors.ValidationError(name=_('AD Trust setup'),
                                      error=_('Not enough arguments specified to perform trust setup'))
 
