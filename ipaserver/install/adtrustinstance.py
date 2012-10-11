@@ -132,7 +132,7 @@ class ADTRUSTInstance(service.Service):
         self.rid_base = None
         self.secondary_rid_base = None
 
-        service.Service.__init__(self, "smb", dm_password=None, ldapi=True)
+        service.Service.__init__(self, "smb", service_desc="CIFS", dm_password=None, ldapi=True)
 
         if fstore:
             self.fstore = fstore
@@ -757,7 +757,7 @@ class ADTRUSTInstance(service.Service):
             self.step("adding SIDs to existing users and groups",
                       self.__add_sids)
 
-        self.start_creation("Configuring CIFS:")
+        self.start_creation(show_service_name=False)
 
     def uninstall(self):
         if self.is_configured():

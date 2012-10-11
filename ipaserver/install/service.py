@@ -62,8 +62,9 @@ def print_msg(message, output_fd=sys.stdout):
 
 
 class Service(object):
-    def __init__(self, service_name, sstore=None, dm_password=None, ldapi=True, autobind=AUTO):
+    def __init__(self, service_name, service_desc=None, sstore=None, dm_password=None, ldapi=True, autobind=AUTO):
         self.service_name = service_name
+        self.service_desc = service_desc
         self.service = ipaservices.service(service_name)
         self.steps = []
         self.output_fd = sys.stdout
@@ -296,7 +297,43 @@ class Service(object):
     def step(self, message, method):
         self.steps.append((message, method))
 
-    def start_creation(self, message, runtime=-1):
+    def start_creation(self, start_message=None, end_message=None,
+        show_service_name=True, runtime=-1):
+        """
+        Starts creation of the service.
+
+        Use start_message and end_message for explicit messages
+        at the beggining / end of the process. Otherwise they are generated
+        using the service description (or service name, if the description has
+        not been provided).
+
+        Use show_service_name to include service name in generated descriptions.
+        """
+
+        if start_message is None:
+            # no other info than mandatory service_name provided, use that
+            if self.service_desc is None:
+                start_message = "Configuring %s" % self.service_name
+
+            # description should be more accurate than service name
+            else:
+                start_message = "Configuring %s" % self.service_desc
+                if show_service_name:
+                    start_message = "%s (%s)" % (start_message, self.service_name)
+
+        if end_message is None:
+            if self.service_desc is None:
+                if show_service_name:
+                    end_message = "Done configuring %s." % self.service_name
+                else:
+                    end_message = "Done."
+            else:
+                if show_service_name:
+                    end_message = "Done configuring %s (%s)." % (
+                        self.service_desc, self.service_name)
+                else:
+                    end_message = "Done configuring %s." % self.service_desc
+
         if runtime > 0:
             plural=''
             est = time.localtime(runtime)
@@ -304,15 +341,15 @@ class Service(object):
                 if est.tm_min > 1:
                     plural = 's'
                 if est.tm_sec > 0:
-                    self.print_msg('%s: Estimated time %d minute%s %d seconds' % (message, est.tm_min, plural, est.tm_sec))
+                    self.print_msg('%s: Estimated time %d minute%s %d seconds' % (start_message, est.tm_min, plural, est.tm_sec))
                 else:
-                    self.print_msg('%s: Estimated time %d minute%s' % (message, est.tm_min, plural))
+                    self.print_msg('%s: Estimated time %d minute%s' % (start_message, est.tm_min, plural))
             else:
                 if est.tm_sec > 1:
                     plural = 's'
-                self.print_msg('%s: Estimated time %d second%s' % (message, est.tm_sec, plural))
+                self.print_msg('%s: Estimated time %d second%s' % (start_message, est.tm_sec, plural))
         else:
-            self.print_msg(message)
+            self.print_msg(start_message)
 
         step = 0
         for (message, method) in self.steps:
@@ -324,7 +361,7 @@ class Service(object):
             root_logger.debug("  duration: %d seconds" % d.seconds)
             step += 1
 
-        self.print_msg("done configuring %s." % self.service_name)
+        self.print_msg(end_message)
 
         self.steps = []
 

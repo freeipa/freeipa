@@ -233,7 +233,12 @@ def get_crl_files(path=None):
 
 class CADSInstance(service.Service):
     def __init__(self, host_name=None, realm_name=None, domain_name=None, dm_password=None, dogtag_constants=None):
-        service.Service.__init__(self, "pkids", dm_password=dm_password, ldapi=False, autobind=service.DISABLED)
+        service.Service.__init__(self, "pkids",
+            service_desc="directory server for the CA",
+            dm_password=dm_password,
+            ldapi=False,
+            autobind=service.DISABLED)
+
         self.serverid = "PKI-IPA"
         self.realm_name = realm_name
         self.sub_dict = None
@@ -277,7 +282,7 @@ class CADSInstance(service.Service):
         self.step("creating directory server instance", self.__create_instance)
         self.step("restarting directory server", self.restart_instance)
 
-        self.start_creation("Configuring directory server for the CA", 30)
+        self.start_creation(runtime=30)
 
     def __setup_sub_dict(self):
         server_root = dsinstance.find_server_root()
@@ -459,8 +464,12 @@ class CAInstance(service.Service):
     def __init__(self, realm, ra_db, dogtag_constants=None):
         if dogtag_constants is None:
             dogtag_constants = dogtag.configured_constants()
+
         service.Service.__init__(self,
-                '%sd' % dogtag_constants.PKI_INSTANCE_NAME)
+                '%sd' % dogtag_constants.PKI_INSTANCE_NAME,
+                service_desc="certificate server"
+                )
+
         self.dogtag_constants = dogtag_constants
         self.realm = realm
         self.dm_password = None
@@ -468,6 +477,7 @@ class CAInstance(service.Service):
         self.fqdn = None
         self.pkcs12_info = None
         self.clone = False
+
         # for external CAs
         self.external = 0
         self.csr_file = None
@@ -576,7 +586,7 @@ class CAInstance(service.Service):
             self.step("configure Server-Cert certificate renewal", self.track_servercert)
             self.step("Configure HTTP to proxy connections", self.__http_proxy)
 
-        self.start_creation("Configuring certificate server", 210)
+        self.start_creation(runtime=210)
 
     def __spawn_instance(self):
         """

@@ -409,7 +409,12 @@ class DnsBackup(object):
 
 class BindInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None):
-        service.Service.__init__(self, "named", dm_password=dm_password, ldapi=False, autobind=service.DISABLED)
+        service.Service.__init__(self, "named",
+            service_desc="DNS",
+            dm_password=dm_password,
+            ldapi=False,
+            autobind=service.DISABLED
+            )
         self.dns_backup = DnsBackup(self)
         self.named_user = None
         self.domain = None
@@ -505,7 +510,7 @@ class BindInstance(service.Service):
         self.step("configuring named to start on boot", self.__enable)
 
         self.step("changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
-        self.start_creation("Configuring named:")
+        self.start_creation()
 
     def __start(self):
         try:
