@@ -7,6 +7,7 @@ app_DATA =				\
 	10-RFC2307bis.update		\
 	10-RFC4876.update		\
 	10-config.update		\
+	10-disable-betxn.update		\
 	10-selinuxusermap.update	\
 	10-sudo.update			\
 	10-ssh.update			\
