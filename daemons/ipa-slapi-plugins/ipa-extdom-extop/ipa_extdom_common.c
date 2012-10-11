@@ -329,20 +329,46 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
     char *name;
     enum wbcSidType name_type;
     struct domain_info *domain_info = NULL;
+    uint32_t id;
+    enum idmap_error_code err;
+    char *sid_str;
 
     ret = get_domain_info(ctx, req->data.name.domain_name, &domain_info);
     if (ret != 0) {
         return LDAP_OPERATIONS_ERROR;
     }
+    if (req->input_type == INP_POSIX_UID || req->input_type == INP_POSIX_GID) {
+        if (req->input_type == INP_POSIX_UID) {
+            id = req->data.posix_uid.uid;
+        } else {
+            id = req->data.posix_gid.gid;
+        }
+
+        err = sss_idmap_unix_to_sid(domain_info->idmap_ctx, id, &sid_str);
+        if (err != IDMAP_SUCCESS) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        werr = wbcStringToSid(sid_str, &sid);
+        free(sid_str);
+        if (!WBC_ERROR_IS_OK(werr)) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+    } else if (req->input_type == INP_SID) {
+        werr = wbcStringToSid(req->data.sid, &sid);
+        if (!WBC_ERROR_IS_OK(werr)) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+    }
 
     switch (req->input_type) {
+        case INP_POSIX_UID:
+        case INP_POSIX_GID:
         case INP_SID:
-            werr = wbcStringToSid(req->data.sid, &sid);
-            if (!WBC_ERROR_IS_OK(werr)) {
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
-
             werr = wbcLookupSid(&sid, &domain_name, &name, &name_type);
             if (!WBC_ERROR_IS_OK(werr)) {
                 ret = LDAP_OPERATIONS_ERROR;
