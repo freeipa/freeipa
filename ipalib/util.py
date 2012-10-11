@@ -296,7 +296,7 @@ def validate_sshpubkey_no_options(ugettext, value):
 
 def convert_sshpubkey_post(ldap, dn, entry_attrs):
     if 'ipasshpubkey' in entry_attrs:
-        pubkeys = entry_attrs.pop('ipasshpubkey')
+        pubkeys = entry_attrs['ipasshpubkey']
     else:
         old_entry_attrs = ldap.get_entry(dn, ['ipasshpubkey'])
         pubkeys = old_entry_attrs[1].get('ipasshpubkey')
@@ -320,8 +320,8 @@ def convert_sshpubkey_post(ldap, dn, entry_attrs):
         newpubkeys.append(pubkey.openssh())
         fingerprints.append(fp)
 
-    if newpubkeys:
-        entry_attrs['ipasshpubkey'] = newpubkeys
+    if 'ipasshpubkey' in entry_attrs:
+        entry_attrs['ipasshpubkey'] = newpubkeys or None
     if fingerprints:
         entry_attrs['sshpubkeyfp'] = fingerprints
 
