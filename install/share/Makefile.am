@@ -18,6 +18,7 @@ app_DATA =				\
 	default-hbac.ldif		\
 	default-smb-group.ldif		\
 	delegation.ldif			\
+	disable-betxn.ldif		\
 	replica-acis.ldif		\
 	ds-nfiles.ldif			\
 	dns.ldif			\

@@ -1,0 +1,37 @@
+# Disable transactions in 389-ds-base
+
+dn: cn=7-bit check,cn=plugins,cn=config
+only: nsslapd-pluginType: preoperation
+
+dn: cn=attribute uniqueness,cn=plugins,cn=config
+only: nsslapd-pluginType: preoperation
+
+dn: cn=Auto Membership Plugin,cn=plugins,cn=config
+only: nsslapd-pluginType: preoperation
+
+dn: cn=Linked Attributes,cn=plugins,cn=config
+only: nsslapd-pluginType: preoperation
+
+dn: cn=Managed Entries,cn=plugins,cn=config
+only: nsslapd-pluginType: preoperation
+
+dn: cn=MemberOf Plugin,cn=plugins,cn=config
+only: nsslapd-pluginType: postoperation
+
+dn: cn=Multimaster Replication Plugin,cn=plugins,cn=config
+only: nsslapd-pluginbetxn: off
+
+dn: cn=PAM Pass Through Auth,cn=plugins,cn=config
+only: nsslapd-pluginType: preoperation
+
+dn: cn=referential integrity postoperation,cn=plugins,cn=config
+only: nsslapd-pluginType: postoperation
+
+dn: cn=Roles Plugin,cn=plugins,cn=config
+only: nsslapd-pluginbetxn: off
+
+dn: cn=State Change Plugin,cn=plugins,cn=config
+only: nsslapd-pluginType: postoperation
+
+dn: cn=USN,cn=plugins,cn=config
+only: nsslapd-pluginbetxn: off
