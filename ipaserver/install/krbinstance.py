@@ -77,7 +77,7 @@ class KpasswdInstance(service.SimpleServiceInstance):
 
 class KrbInstance(service.Service):
     def __init__(self, fstore=None):
-        service.Service.__init__(self, "krb5kdc")
+        service.Service.__init__(self, "krb5kdc", service_desc="Kerberos KDC")
         self.fqdn = None
         self.realm = None
         self.domain = None
@@ -180,7 +180,7 @@ class KrbInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation("Configuring Kerberos KDC", 30)
+        self.start_creation(runtime=30)
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix, realm=self.realm)
@@ -209,7 +209,7 @@ class KrbInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation("Configuring Kerberos KDC", 30)
+        self.start_creation(runtime=30)
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)

@@ -80,7 +80,8 @@ class IPAUpgrade(service.Service):
         self.step("restoring configuration", self.__restore_config)
         self.step("starting directory server", self.start)
 
-        self.start_creation("Upgrading IPA:")
+        self.start_creation(start_message="Upgrading IPA:",
+                            show_service_name=False)
 
     def __save_config(self):
         shutil.copy2(self.filename, self.savefilename)

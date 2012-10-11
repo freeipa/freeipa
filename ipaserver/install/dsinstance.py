@@ -160,7 +160,12 @@ info: IPA V2.0
 
 class DsInstance(service.Service):
     def __init__(self, realm_name=None, domain_name=None, dm_password=None, fstore=None):
-        service.Service.__init__(self, "dirsrv", dm_password=dm_password, ldapi=False, autobind=service.DISABLED)
+        service.Service.__init__(self, "dirsrv",
+            service_desc="directory server",
+            dm_password=dm_password,
+            ldapi=False,
+            autobind=service.DISABLED
+            )
         self.realm_name = realm_name
         self.sub_dict = None
         self.domain = domain_name
@@ -256,7 +261,7 @@ class DsInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation("Configuring directory server", 60)
+        self.start_creation(runtime=60)
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
                        domain_name, dm_password, pkcs12_info=None):
@@ -290,7 +295,7 @@ class DsInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation("Configuring directory server", 60)
+        self.start_creation(runtime=60)
 
 
     def __setup_replica(self):

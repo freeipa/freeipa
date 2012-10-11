@@ -52,7 +52,7 @@ class WebGuiInstance(service.SimpleServiceInstance):
 
 class HTTPInstance(service.Service):
     def __init__(self, fstore = None):
-        service.Service.__init__(self, "httpd")
+        service.Service.__init__(self, "httpd", service_desc="the web interface")
         if fstore:
             self.fstore = fstore
         else:
@@ -99,7 +99,7 @@ class HTTPInstance(service.Service):
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
 
-        self.start_creation("Configuring the web interface", 60)
+        self.start_creation(runtime=60)
 
     def __start(self):
         self.backup_state("running", self.is_running())

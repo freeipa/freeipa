@@ -26,7 +26,7 @@ from ipapython.ipa_log_manager import *
 
 class NTPInstance(service.Service):
     def __init__(self, fstore=None):
-        service.Service.__init__(self, "ntpd")
+        service.Service.__init__(self, "ntpd", service_desc="NTP daemon")
 
         if fstore:
             self.fstore = fstore
@@ -155,7 +155,7 @@ class NTPInstance(service.Service):
         self.step("configuring ntpd to start on boot", self.__enable)
         self.step("starting ntpd", self.__start)
 
-        self.start_creation("Configuring ntpd")
+        self.start_creation()
 
     def uninstall(self):
         if self.is_configured():

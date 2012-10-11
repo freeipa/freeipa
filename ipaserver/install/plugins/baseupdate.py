@@ -45,7 +45,8 @@ class DSRestart(service.Service):
     def create_instance(self):
         self.step("stopping directory server", self.stop)
         self.step("starting directory server", self.start)
-        self.start_creation("Restarting Directory server to apply updates")
+        self.start_creation(start_message="Restarting Directory server "
+                            "to apply updates", show_service_name=False)
 
 class update(Object):
     """
