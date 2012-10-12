@@ -265,17 +265,20 @@ class PublicError(StandardError):
                     )
                 self.format = format
             self.forwarded = False
-            def convert_keyword(value):
-                if isinstance(value, list):
-                    result=u'\n'.join(map(lambda line: unicode(line), value))
-                    return result
-                return value
-            kwargs = dict(map(lambda (k,v): (k, convert_keyword(v)), kw.items()))
-            self.msg = self.format % kwargs
+            self.msg = self.format % kw
             if isinstance(self.format, basestring):
-                self.strerror = ugettext(self.format) % kwargs
+                self.strerror = ugettext(self.format) % kw
             else:
-                self.strerror = self.format % kwargs
+                self.strerror = self.format % kw
+            if 'instructions' in kw:
+                def convert_instructions(value):
+                    if isinstance(value, list):
+                        result=u'\n'.join(map(lambda line: unicode(line), value))
+                        return result
+                    return value
+                instructions = u'\n'.join((unicode(_('Additional instructions:')),
+                                          convert_instructions(kw['instructions'])))
+                self.strerror = u'\n'.join((self.strerror, instructions))
         else:
             if isinstance(message, (Gettext, NGettext)):
                 message = unicode(message)

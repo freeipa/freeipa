@@ -318,6 +318,23 @@ class test_PublicError(PublicExceptionTester):
         assert inst.text is kw['text']
         assert inst.number is kw['number']
 
+        # Test with instructions:
+        # first build up "instructions", then get error and search for
+        # lines of instructions appended to the end of the strerror
+        # despite the parameter 'instructions' not existing in the format
+        instructions = u"The quick brown fox jumps over the lazy dog".split()
+        # this expression checks if each word of instructions
+        # exists in a string as a separate line, with right order
+        regexp = re.compile('(?ims).*' +
+                            ''.join(map(lambda x: '(%s).*' % (x),
+                                        instructions)) +
+                            '$')
+        inst = subclass(instructions=instructions, **kw)
+        assert inst.format is subclass.format
+        assert_equal(inst.instructions, instructions)
+        inst_match = regexp.match(inst.strerror).groups()
+        assert_equal(list(inst_match),list(instructions))
+
 
 def test_public_errors():
     """
