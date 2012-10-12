@@ -329,32 +329,33 @@ class trust_add(LDAPCreate):
             try:
                 result = trustinstance.join_ad_full_credentials(keys[-1], realm_server, realm_admin, realm_passwd)
             except errors.NotFound, e:
-                error_message=[_("Unable to resolve domain controller for '%s' domain. ") % (keys[-1])]
+                error_message=_("Unable to resolve domain controller for '%s' domain. ") % (keys[-1])
+                instructions=[]
                 if dns_container_exists(self.obj.backend):
                     try:
                         dns_zone = api.Command.dnszone_show(keys[-1])['result']
                         if ('idnsforwardpolicy' in dns_zone) and dns_zone['idnsforwardpolicy'][0] == u'only':
-                            error_message.append(_("Forward policy is defined for it in IPA DNS, "
+                            instructions.append(_("Forward policy is defined for it in IPA DNS, "
                                                    "perhaps forwarder points to incorrect host?"))
                     except (errors.NotFound, KeyError) as e:
-                        error_message.append(_("IPA manages DNS, please configure forwarder to "
+                        instructions.append(_("IPA manages DNS, please configure forwarder to "
                                                "'%(domain)s' domain using following CLI command. "
                                                "Make sure to replace DNS_SERVER and IP_ADDRESS by "
                                                "actual values corresponding to the trusted domain's "
                                                "DNS server:") % dict(domain=keys[-1]))
                         # tab character at the beginning of a multiline error message will be replaced
                         # in the web UI by a colorful hint. Does not affect CLI.
-                        error_message.append(_("\tipa dnszone-add %(domain)s --name-server=[DNS_SERVER] "
+                        instructions.append(_("\tipa dnszone-add %(domain)s --name-server=[DNS_SERVER] "
                                                "--admin-email='hostmaster@%(domain)s' "
                                                "--force --forwarder=[IP_ADDRESS] "
                                                "--forward-policy=only") % dict(domain=keys[-1]))
-                        error_message.append(_("When using Web UI, please create DNS zone for domain '%(domain)s' "
+                        instructions.append(_("When using Web UI, please create DNS zone for domain '%(domain)s' "
                                                "first and then set forwarder and forward policy.") % dict(domain=keys[-1]))
                 else:
-                    error_message.append(_("Since IPA does not manage DNS records, ensure DNS "
+                    instructions.append(_("Since IPA does not manage DNS records, ensure DNS "
                                            "is configured to resolve '%(domain)s' domain from "
                                            "IPA hosts and back.") % dict(domain=keys[-1]))
-                raise errors.NotFound(reason=error_message)
+                raise errors.NotFound(reason=error_message, instructions=instructions)
 
             if result is None:
                 raise errors.ValidationError(name=_('AD Trust setup'),
