@@ -12,16 +12,16 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2012-07-25 11:37-0400\n"
-"PO-Revision-Date: 2012-07-01 13:04+0000\n"
-"Last-Translator: Azamat Hackimov <azamat.hackimov@gmail.com>\n"
+"POT-Creation-Date: 2012-10-12 04:08-0400\n"
+"PO-Revision-Date: 2012-09-14 10:30+0000\n"
+"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Russian <trans-ru@lists.fedoraproject.org>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -296,10 +296,6 @@ msgstr "может быть не длиннее %(maxlength)d символов"
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr "должно быть точно %(length)d символов длинной"
-
-#, python-format
-msgid "must be one of %(values)r"
-msgstr "должно являться одним из %(values)r"
 
 msgid "A list of ACI values"
 msgstr "Список значений ACI"
@@ -972,9 +968,6 @@ msgstr "Пользователь"
 msgid "SSH public keys"
 msgstr "Открытые ключи SSH"
 
-msgid "Base-64 encoded SSH public key:"
-msgstr "Открытый ключ SSH, закодированный в Base64"
-
 msgid "Audit"
 msgstr "Аудит"
 
@@ -1246,17 +1239,5 @@ msgstr "basedn"
 msgid "kvno %d\n"
 msgstr "kvno %d\n"
 
-#~ msgid "domain name may only include letters, numbers, and -"
-#~ msgstr "имя домена может содержать только буквы, цифры и -"
-
-#~ msgid "krb5_parse_name %d: %s\n"
-#~ msgstr "krb5_parse_name %d: %s\n"
-
-#~ msgid "krb5_kt_get_entry %d: %s\n"
-#~ msgstr "krb5_kt_get_entry %d: %s\n"
-
-#~ msgid "krb5_kt_remove_entry %d: %s\n"
-#~ msgstr "krb5_kt_remove_entry %d: %s\n"
-
-#~ msgid "krb5_kt_close %d: %s\n"
-#~ msgstr "krb5_kt_close %d: %s\n"
+#~ msgid "must be one of %(values)r"
+#~ msgstr "должно являться одним из %(values)r"

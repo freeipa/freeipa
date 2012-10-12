@@ -10,17 +10,16 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2012-07-25 11:37-0400\n"
-"PO-Revision-Date: 2012-02-21 22:20+0000\n"
-"Last-Translator: jdennis <jdennis@redhat.com>\n"
-"Language-Team: Polish (http://www.transifex.com/projects/p/fedora/language/"
-"pl/)\n"
+"POT-Creation-Date: 2012-10-12 04:08-0400\n"
+"PO-Revision-Date: 2012-09-14 10:30+0000\n"
+"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2)\n"
+"|| n%100>=20) ? 1 : 2);\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -277,10 +276,6 @@ msgstr "może wynosić co najwyżej %(maxlength)d znaków"
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr "musi wynosić dokładnie %(length)d znaków"
-
-#, python-format
-msgid "must be one of %(values)r"
-msgstr "musi być jednym z %(values)r"
 
 msgid "A list of ACI values"
 msgstr "Lista wartości ACI"
@@ -1620,53 +1615,5 @@ msgstr "Utworzenie losowego klucza nie powiodło się.\n"
 msgid "Failed to create key!\n"
 msgstr "Utworzenie klucza nie powiodło się.\n"
 
-#~ msgid "Fully-qualified hostname required"
-#~ msgstr "Wymagana jest w pełni kwalifikowana nazwa komputera"
-
-#~ msgid "RDN of container for users in DS"
-#~ msgstr "RDN kontenera dla użytkowników w DS"
-
-#~ msgid "RDN of container for groups in DS"
-#~ msgstr "RDN kontenera dla grup w DS"
-
-#~ msgid "Container for %(container)s not found"
-#~ msgstr "Nie odnaleziono kontenera dla %(container)s"
-
-#~ msgid "Warning unrecognized encryption type: [%s]\n"
-#~ msgstr "Ostrzeżenie o nierozpoznanym typie szyfrowania: [%s]\n"
-
-#~ msgid "Warning unrecognized salt type: [%s]\n"
-#~ msgstr "Ostrzeżenie o nierozpoznanym typie salt: [%s]\n"
-
-#~ msgid "Bad or unsupported salt type (%d)!\n"
-#~ msgstr "Błędny lub nieobsługiwany typ salt (%d).\n"
-
-#~ msgid "SASL Bind failed!\n"
-#~ msgstr "Dowiązanie SASL nie powiodło się.\n"
-
-#~ msgid "ber_scanf() failed, Invalid control ?!\n"
-#~ msgstr "ber_scanf() nie powiodło się, nieprawidłowa kontrola?\n"
-
-#~ msgid "access() on %s failed: errno = %d\n"
-#~ msgstr "access() w %s nie powiodło się: errno = %d\n"
-
-#~ msgid "Search for %s on rootdse failed with error %d"
-#~ msgstr "Wyszukiwanie %s w rootdse nie powiodło się z błędem %d"
-
-#~ msgid "Error parsing \"%s\": %s.\n"
-#~ msgstr "Błąd podczas przetwarzania \"%s\": %s.\n"
-
-#~ msgid "krb5_parse_name %d: %s\n"
-#~ msgstr "krb5_parse_name %d: %s\n"
-
-#~ msgid "krb5_kt_get_entry %d: %s\n"
-#~ msgstr "krb5_kt_get_entry %d: %s\n"
-
-#~ msgid "krb5_kt_remove_entry %d: %s\n"
-#~ msgstr "krb5_kt_remove_entry %d: %s\n"
-
-#~ msgid "krb5_unparse_name %d: %s\n"
-#~ msgstr "krb5_unparse_name %d: %s\n"
-
-#~ msgid "krb5_kt_close %d: %s\n"
-#~ msgstr "krb5_kt_close %d: %s\n"
+#~ msgid "must be one of %(values)r"
+#~ msgstr "musi być jednym z %(values)r"
