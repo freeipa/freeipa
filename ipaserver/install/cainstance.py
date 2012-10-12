@@ -640,7 +640,7 @@ class CAInstance(service.Service):
                 "pki_security_domain_hostname": self.master_host,
                 "pki_security_domain_https_port": "443",
                 "pki_security_domain_password": self.admin_password,
-                "pki_clone_replication_security": "SSL",
+                "pki_clone_replication_security": "TLS",
                 "pki_clone_uri": \
                     "https://%s" % ipautil.format_netloc(self.master_host, 443)
             }
