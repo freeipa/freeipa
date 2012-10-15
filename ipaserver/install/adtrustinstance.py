@@ -60,9 +60,9 @@ and re-run ipa-adtrust-instal again afterwards.
 """
 
 def check_inst():
-    for smbfile in ['/usr/sbin/smbd', '/usr/bin/net', '/usr/bin/smbpasswd']:
+    for smbfile in ['/usr/sbin/smbd', '/usr/bin/net']:
         if not os.path.exists(smbfile):
-            print "%s was not found on this system" % file
+            print "%s was not found on this system" % smbfile
             print "Please install the 'samba' packages and " \
                   "start the installation again"
             return False
