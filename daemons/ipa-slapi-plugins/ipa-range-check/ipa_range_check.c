@@ -49,6 +49,7 @@
 #define IPA_ID_RANGE_SIZE "ipaIDRangeSize"
 #define IPA_BASE_RID "ipaBaseRID"
 #define IPA_SECONDARY_BASE_RID "ipaSecondaryBaseRID"
+#define IPA_DOMAIN_ID "ipaNTTrustedDomainSID"
 #define RANGES_FILTER "objectclass=ipaIDRange"
 
 #define IPA_PLUGIN_NAME "ipa-range-check"
@@ -70,6 +71,7 @@ struct ipa_range_check_ctx {
 
 struct range_info {
     char *name;
+    char *domain_id;
     uint32_t base_id;
     uint32_t id_range_size;
     uint32_t base_rid;
@@ -93,6 +95,8 @@ static int slapi_entry_to_range_info(struct slapi_entry *entry,
         ret = EINVAL;
         goto done;
     }
+
+    range->domain_id = slapi_entry_attr_get_charptr(entry, IPA_DOMAIN_ID);
 
     ul_val = slapi_entry_attr_get_ulong(entry, IPA_BASE_ID);
     if (ul_val == 0 || ul_val >= UINT32_MAX) {
@@ -133,22 +137,80 @@ done:
     return ret;
 }
 
-#define IN_RANGE(x,base,size) ( (x) >= (base) && ((x) - (base)) < (size) )
-static bool ranges_overlap(struct range_info *r1, struct range_info *r2)
+#define IN_RANGE(x,base,size) ( (x) >= (base) && ((x) - (base) < (size)) )
+static bool intervals_overlap(uint32_t x, uint32_t base, uint32_t x_size, uint32_t base_size)
 {
-    if (r1->name != NULL && r2->name != NULL &&
-        strcasecmp(r1->name, r2->name) == 0) {
-        return false;
-    }
-
-    if (IN_RANGE(r1->base_id, r2->base_id, r2->id_range_size) ||
-        IN_RANGE((r1->base_id + r1->id_range_size - 1), r2->base_id, r2->id_range_size) ||
-        IN_RANGE(r2->base_id, r1->base_id, r1->id_range_size) ||
-        IN_RANGE((r2->base_id + r2->id_range_size - 1), r1->base_id, r1->id_range_size)) {
+    if (IN_RANGE(x, base, base_size) ||
+        IN_RANGE((x + x_size - 1), base, base_size) ||
+        IN_RANGE(base, x, x_size) ||
+        IN_RANGE((base + base_size - 1), x, x_size)) {
         return true;
     }
 
     return false;
+}
+
+/**
+ * returns 0 if there is no overlap
+ *
+ * connected ranges must not overlap:
+ * existing range:  base  rid  sec_rid
+ *                   |     |  \  / |
+ *                   |     |   \/  |
+ *                   |     |   /\  |
+ *                   |     |  /  \ |
+ * new range:       base  rid  sec_rid
+ **/
+static int ranges_overlap(struct range_info *r1, struct range_info *r2)
+{
+    if (r1->name != NULL && r2->name != NULL &&
+        strcasecmp(r1->name, r2->name) == 0) {
+        return 0;
+    }
+
+    /* check if base range overlaps with existing base range */
+    if (intervals_overlap(r1->base_id, r2->base_id,
+        r1->id_range_size, r2->id_range_size)){
+        return 1;
+    }
+
+    /* if both base_rid and secondary_base_rid = 0, the rid range is not set */
+    bool rid_ranges_set = (r1->base_rid != 0 || r1->secondary_base_rid != 0) &&
+                          (r2->base_rid != 0 || r2->secondary_base_rid != 0);
+
+    bool ranges_from_same_domain =
+         (r1->domain_id == NULL && r2->domain_id == NULL) ||
+         (r1->domain_id != NULL && r2->domain_id != NULL &&
+          strcasecmp(r1->domain_id, r2->domain_id) == 0);
+
+    /**
+     * in case rid range is not set or ranges belong to different domains
+     * we can skip rid range tests as they are irrelevant
+     */
+    if (rid_ranges_set && ranges_from_same_domain){
+
+        /* check if rid range overlaps with existing rid range */
+        if (intervals_overlap(r1->base_rid, r2->base_rid,
+            r1->id_range_size, r2->id_range_size))
+            return 2;
+
+        /* check if secondary rid range overlaps with existing secondary rid range */
+        if (intervals_overlap(r1->secondary_base_rid, r2->secondary_base_rid,
+            r1->id_range_size, r2->id_range_size))
+            return 3;
+
+        /* check if rid range overlaps with existing secondary rid range */
+        if (intervals_overlap(r1->base_rid, r2->secondary_base_rid,
+            r1->id_range_size, r2->id_range_size))
+            return 4;
+
+        /* check if secondary rid range overlaps with existing rid range */
+        if (intervals_overlap(r1->secondary_base_rid, r2->base_rid,
+            r1->id_range_size, r2->id_range_size))
+            return 5;
+    }
+
+    return 0;
 }
 
 static int ipa_range_check_start(Slapi_PBlock *pb)
@@ -177,7 +239,7 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
     int search_result;
     Slapi_Entry **search_entries = NULL;
     size_t c;
-    bool overlap = true;
+    int no_overlap = 0;
     const char *check_attr;
     char *errmsg = NULL;
 
@@ -316,13 +378,34 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
             goto done;
         }
 
-        overlap = ranges_overlap(old_range, new_range);
+        no_overlap = ranges_overlap(new_range, old_range);
         free(old_range);
         old_range = NULL;
-        if (overlap) {
-            LOG_FATAL("New range overlaps with existing one.\n");
+        if (no_overlap != 0) {
             ret = LDAP_CONSTRAINT_VIOLATION;
-            errmsg = "New range overlaps with existing one.";
+
+            switch (no_overlap){
+            case 1:
+                errmsg = "New base range overlaps with existing base range.";
+                break;
+            case 2:
+                errmsg = "New primary rid range overlaps with existing primary rid range.";
+                break;
+            case 3:
+                errmsg = "New secondary rid range overlaps with existing secondary rid range.";
+                break;
+            case 4:
+                errmsg = "New primary rid range overlaps with existing secondary rid range.";
+                break;
+            case 5:
+                errmsg = "New secondary rid range overlaps with existing primary rid range.";
+                break;
+            default:
+                errmsg = "New range overlaps with existing one.";
+                break;
+            }
+
+            LOG_FATAL("%s\n",errmsg);
             goto done;
         }
     }
