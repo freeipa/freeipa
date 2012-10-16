@@ -816,8 +816,8 @@ def main():
         if options.reverse_zone:
             reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
         elif not options.no_reverse:
-            reverse_zone = util.get_reverse_zone_default(ip)
             if not options.unattended and bindinstance.create_reverse():
+                reverse_zone = util.get_reverse_zone_default(ip)
                 reverse_zone = bindinstance.read_reverse_zone(reverse_zone, ip)
 
         if reverse_zone is not None:
@@ -839,7 +839,7 @@ def main():
         print "Forwarders:    %s" % ("No forwarders" if not dns_forwarders \
                 else ", ".join([str(ip) for ip in dns_forwarders]))
         print "Reverse zone:  %s" % ("No reverse zone" if options.no_reverse \
-                else reverse_zone)
+                or reverse_zone is None else reverse_zone)
         print
 
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
