@@ -71,20 +71,44 @@ Specifies the secure CA agent port. The default is 9443 for Dogtag 9, and 8443 f
 .B ca_ee_port <port>
 Specifies the secure CA end user port. The default is 9444 for Dogtag 9, and 8443 for Dogtag 10.
 .TP
-.B ca_port <port>
-Specifies the insecure CA end user port. The default is 9180 for Dogtag 9, and 8080 for Dogtag 10.
-.TP
 .B ca_host <hostname>
 Specifies the hostname of the dogtag CA server. The default is the hostname of the IPA server.
+.TP
+.B ca_port <port>
+Specifies the insecure CA end user port. The default is 9180 for Dogtag 9, and 8080 for Dogtag 10.
 .TP
 .B context <context>
 Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli and server. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.
 .TP
-.B verbose <boolean>
-When True provides more information. Specifically this sets the global log level to "info".
-.TP
 .B debug <boolean>
 When True provides detailed information. Specifically this set the global log level to "debug". Default is False.
+.TP
+.B dogtag_version <version>
+Stores the version of Dogtag. Value 9 is assumed if not specified otherwise.
+.TP
+.B domain <domain>
+The domain of the IPA server e.g. example.com.
+.TP
+.B enable_ra <boolean>
+Specifies whether the CA is acting as an RA agent, such as when dogtag is being used as the Certificate Authority. This setting only applies to the IPA server configuration.
+.TP
+.B fallback <boolean>
+Specifies whether an IPA client should attempt to fall back and try other services if the first connection fails.
+.TP
+.B host <hostname>
+Specifies the hostname of the IPA server. This value is used to construct URL values on the client and server.
+.TP
+.B in_server <boolean>
+Specifies whether requests should be forwarded to an IPA server or handled locally. This is used internally by IPA in a similar way as context. The same IPA framework is used by the ipa command\-line tool and the server. This setting tells the framework whether it should execute the command as if on the server or forward it via XML\-RPC to a remote server.
+.TP
+.B in_tree  <boolean>
+This is used in development and is generally a detected value. It means that the code is being executed within a source tree.
+.TP
+.B interactive <boolean>
+Specifies whether values should be prompted for or not. The default is True.
+.TP
+.B ldap_uri <URI>
+Specifies the URI of the IPA LDAP server to connect to. The URI scheme may be one of \fBldap\fR or \fBldapi\fR. The default is to use ldapi, e.g. ldapi://%2fvar%2frun%2fslapd\-EXAMPLE\-COM.socket
 .TP
 .B log_logger_XXX <comma separated list of regexps>
 loggers matching regexp will be assigned XXX level.
@@ -118,32 +142,8 @@ expression metacharacter (matches any character) therefore you
 will usually need to escape the dot in the logger names by
 preceeding it with a backslash.
 .TP
-.B domain <domain>
-The domain of the IPA server e.g. example.com.
-.TP
-.B enable_ra <boolean>
-Specifies whether the CA is acting as an RA agent, such as when dogtag is being used as the Certificate Authority. This setting only applies to the IPA server configuration.
-.TP
-.B fallback <boolean>
-Specifies whether an IPA client should attempt to fall back and try other services if the first connection fails.
-.TP
-.B host <hostname>
-Specifies the hostname of the IPA server. This value is used to construct URL values on the client and server.
-.TP
-.B in_server <boolean>
-Specifies whether requests should be forwarded to an IPA server or handled locally. This is used internally by IPA in a similar way as context. The same IPA framework is used by the ipa command\-line tool and the server. This setting tells the framework whether it should execute the command as if on the server or forward it via XML\-RPC to a remote server.
-.TP
-.B in_tree  <boolean>
-This is used in development and is generally a detected value. It means that the code is being executed within a source tree.
-.TP
-.B interactive <boolean>
-Specifies whether values should be prompted for or not. The default is True.
-.TP
-.B ldap_uri <URI>
-Specifies the URI of the IPA LDAP server to connect to. The URI scheme may be one of \fBldap\fR or \fBldapi\fR. The default is to use ldapi, e.g. ldapi://%2fvar%2frun%2fslapd\-EXAMPLE\-COM.socket
-.TP
 .B mode <mode>
-Specifies the mode the server is running in. The currently support values are \fBpr\fRoduction and \fBdevelopment\fR. When running in production mode some self\-tests are skipped to improve performance.
+Specifies the mode the server is running in. The currently support values are \fBproduction\fR and \fBdevelopment\fR. When running in production mode some self\-tests are skipped to improve performance.
 .TP
 .B mount_ipa <URI>
 Specifies the mount point that the development server will register. The default is /ipa/
@@ -157,20 +157,32 @@ Specifies the name of the CA back end to use. The current options are \fBselfsig
 .B realm <realm>
 Specifies the Kerberos realm.
 .TP
+.B session_auth_duration <time duration spec>
+Specifies the length of time authentication credentials cached in the session are valid. After the duration expires credentials will be automatically reacquired. Examples are "2 hours", "1h:30m", "10 minutes", "5min, 30sec".
+.TP
+.B session_duration_type <inactivity_timeout|from_start>
+Specifies how the expiration of a session is computed. With \fBinactivity_timeout\fR the expiration time is advanced by the value of session_auth_duration everytime the user accesses the service. With \fBfrom_start\fR the session expiration is the start of the user's session plus the value of session_auth_duration.
+.TP
+.B server <hostname>
+Specifies the IPA Server hostname. This option is deprecated.
+.TP
+.B startup_timeout <time in seconds>
+Controls the amount of time waited when starting a service. The default value is 120 seconds.
+.TP
 .B startup_traceback <boolean>
 If the IPA server fails to start and this value is True the server will attempt to generate a python traceback to make identifying the underlying problem easier.
 .TP
 .B validate_api <boolean>
 Used internally in the IPA source package to verify that the API has not changed. This is used to prevent regressions. If it is true then some errors are ignored so enough of the IPA framework can be loaded to verify all of the API, even if optional components are not installed. The default is False.
 .TP
+.B verbose <boolean>
+When True provides more information. Specifically this sets the global log level to "info".
+.TP
+.B wait_for_attr <boolean>
+Debug option. Waits for asynchronous execution of 389-ds postoperation plugins before returning data to the client, therefore data added by postoperation plugins is included in the result. Increases execution time.
+.TP
 .B xmlrpc_uri <URI>
 Specifies the URI of the XML\-RPC server for a client. This is used by IPA and some external tools as well, such as ipa\-getcert. e.g. https://ipa.example.com/ipa/xml
-.TP
-.B session_auth_duration <time duration spec>
-Specifies the length of time authentication credentials cached in the session are valid. After the duration expires credentials will be automatically reacquired. Examples are "2 hours", "1h:30m", "10 minutes", "5min, 30sec".
-.TP
-.B session_duration_type <inactivity_timeout|from_start>
-Specifies how the expiration of a session is computed. With \fBinactivity_timeout\fR the expiration time is advanced by the value of session_auth_duration everytime the user accesses the service. With \fBfrom_start\fR the session expiration is the start of the user's session plus the value of session_auth_duration.
 .TP
 The following define the containers for the IPA server. Containers define where in the DIT that objects can be found. The full location is the value of container + basedn.
   container_accounts: cn=accounts
