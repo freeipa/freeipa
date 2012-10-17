@@ -134,7 +134,7 @@
                     "login": {
                         "form_auth": "To login with username and password, enter them in the fields below then click Login.",
                         "header": "Logged In As",
-                        "krb_auth_msg": "To login with Kerberos, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host]/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login.",
+                        "krb_auth_msg": "To login with Kerberos, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login.",
                         "login": "Login",
                         "logout": "Logout",
                         "logout_error": "Logout error",
