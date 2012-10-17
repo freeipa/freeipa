@@ -269,7 +269,7 @@ class i18n_messages(Command):
         "login": {
             "form_auth": _("To login with username and password, enter them in the fields below then click Login."),
             "header": _("Logged In As"),
-            "krb_auth_msg": _("To login with Kerberos, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host]/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login."),
+            "krb_auth_msg": _("To login with Kerberos, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login."),
             "login": _("Login"),
             "logout": _("Logout"),
             "logout_error": _("Logout error"),
