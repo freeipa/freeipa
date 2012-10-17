@@ -336,6 +336,7 @@ class cert_request(VirtualCommand):
         subjectaltname = pkcs10.get_subjectaltname(request)
         if subjectaltname is not None:
             for name in subjectaltname:
+                name = unicode(name)
                 try:
                     hostentry = api.Command['host_show'](name, all=True, raw=True)['result']
                     hostdn = hostentry['dn']
