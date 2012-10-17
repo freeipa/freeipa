@@ -61,6 +61,9 @@ def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
+    parser.add_option("-q", "--quiet", dest="quiet",
+                      action="store_true",
+                      default=False, help="Output only errors")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -577,9 +580,15 @@ def main():
 
     safe_options, options = parse_options()
 
-    standard_logging_setup('/var/log/ipaupgrade.log', verbose=True,
-        debug=options.debug, console_format='%(message)s',
-        filemode='a')
+    verbose = not options.quiet
+    if options.debug:
+        console_format = '%(levelname)s: %(message)s'
+    else:
+        console_format = '%(message)s'
+
+    standard_logging_setup('/var/log/ipaupgrade.log', debug=options.debug,
+        verbose=verbose, console_format=console_format, filemode='a')
+    root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
 
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 

@@ -493,7 +493,7 @@ if [ $1 = 1 ]; then
 fi
 %endif
 if [ $1 -gt 1 ] ; then
-    /usr/sbin/ipa-upgradeconfig >/dev/null 2>&1 || :
+    /usr/sbin/ipa-upgradeconfig --quiet >/dev/null || :
 fi
 
 %posttrans server
@@ -815,6 +815,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Oct 17 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-51
+- Print ipa-upgradeconfig errors during RPM update
+
 * Wed Oct 10 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-50
 - Make sure server-trust-ad subpackage alternates winbind_krb5_locator.so
   plugin to /dev/null since they cannot be used when trusts are configured

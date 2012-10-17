@@ -30,8 +30,12 @@ It also will convert a CA configured to be accessible via ports 9443, 9444, 9445
 
 This is not intended to be run by an end\-user. It is executed when the IPA rpms are upgraded. This must be run as the root user.
 .SH "OPTIONS"
+.TP
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors
 .SH "EXIT STATUS"
 0 if the update was successful or there was nothing to do
 
