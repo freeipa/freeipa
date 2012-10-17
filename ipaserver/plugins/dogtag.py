@@ -1233,6 +1233,27 @@ class ra(rabase.rabase):
             self.password = ''
         super(ra, self).__init__()
 
+    def raise_certificate_operation_error(self, func_name, err_msg=None, detail=None):
+        """
+        :param func_name: function name where error occurred
+
+        :param err_msg:   diagnostic error message, if not supplied it will be
+                          'Unable to communicate with CMS'
+        :param detail:    extra information that will be appended to err_msg
+                          inside a parenthesis
+
+        Raise a CertificateOperationError and log the error message.
+        """
+
+        if err_msg is None:
+            err_msg = _('Unable to communicate with CMS')
+
+        if detail is not None:
+            err_msg = u'%s (%s)' % (err_msg, detail)
+
+        self.error('%s.%s(): %s', self.fullname, func_name, err_msg)
+        raise CertificateOperationError(error=err_msg)
+
     def _host_has_service(self, host, service='CA'):
         """
         :param host: A host which might be a master for a service.
@@ -1376,14 +1397,15 @@ class ra(rabase.rabase):
 
         # Parse and handle errors
         if (http_status != 200):
-            raise CertificateOperationError(error=_('Unable to communicate with CMS (%s)') % \
-                      http_reason_phrase)
+            self.raise_certificate_operation_error('check_request_status',
+                                                   detail=http_reason_phrase)
 
         parse_result = self.get_parse_result_xml(http_body, parse_check_request_result_xml)
         request_status = parse_result['request_status']
         if request_status != CMS_STATUS_SUCCESS:
-            raise CertificateOperationError(error='%s (%s)' % \
-                      (cms_request_status_to_string(request_status), parse_result.get('error_string')))
+            self.raise_certificate_operation_error('check_request_status',
+                                                   cms_request_status_to_string(request_status),
+                                                   parse_result.get('error_string'))
 
         # Return command result
         cmd_result = {}
@@ -1461,14 +1483,15 @@ class ra(rabase.rabase):
 
         # Parse and handle errors
         if (http_status != 200):
-            raise CertificateOperationError(error=_('Unable to communicate with CMS (%s)') % \
-                      http_reason_phrase)
+            self.raise_certificate_operation_error('get_certificate',
+                                                   detail=http_reason_phrase)
 
         parse_result = self.get_parse_result_xml(http_body, parse_display_cert_xml)
         request_status = parse_result['request_status']
         if request_status != CMS_STATUS_SUCCESS:
-            raise CertificateOperationError(error='%s (%s)' % \
-                      (cms_request_status_to_string(request_status), parse_result.get('error_string')))
+            self.raise_certificate_operation_error('get_certificate',
+                                                   cms_request_status_to_string(request_status),
+                                                   parse_result.get('error_string'))
 
         # Return command result
         cmd_result = {}
@@ -1527,15 +1550,17 @@ class ra(rabase.rabase):
                          xml='true')
         # Parse and handle errors
         if (http_status != 200):
-            raise CertificateOperationError(error=_('Unable to communicate with CMS (%s)') % \
-                      http_reason_phrase)
+            self.raise_certificate_operation_error('request_certificate',
+                                                   detail=http_reason_phrase)
 
         parse_result = self.get_parse_result_xml(http_body, parse_profile_submit_result_xml)
         # Note different status return, it's not request_status, it's error_code
         error_code = parse_result['error_code']
         if error_code != CMS_SUCCESS:
-            raise CertificateOperationError(error='%s (%s)' % \
-                      (cms_error_code_to_string(error_code), parse_result.get('error_string')))
+            self.raise_certificate_operation_error('request_certificate',
+                                                   cms_error_code_to_string(error_code),
+                                                   parse_result.get('error_string'))
+
 
         # Return command result
         cmd_result = {}
@@ -1606,14 +1631,15 @@ class ra(rabase.rabase):
 
         # Parse and handle errors
         if (http_status != 200):
-            raise CertificateOperationError(error=_('Unable to communicate with CMS (%s)') % \
-                      http_reason_phrase)
+            self.raise_certificate_operation_error('revoke_certificate',
+                                                   detail=http_reason_phrase)
 
         parse_result = self.get_parse_result_xml(http_body, parse_revoke_cert_xml)
         request_status = parse_result['request_status']
         if request_status != CMS_STATUS_SUCCESS:
-            raise CertificateOperationError(error='%s (%s)' % \
-                      (cms_request_status_to_string(request_status), parse_result.get('error_string')))
+            self.raise_certificate_operation_error('revoke_certificate',
+                                                   cms_request_status_to_string(request_status),
+                                                   parse_result.get('error_string'))
 
         # Return command result
         cmd_result = {}
@@ -1665,14 +1691,16 @@ class ra(rabase.rabase):
 
         # Parse and handle errors
         if (http_status != 200):
-            raise CertificateOperationError(error=_('Unable to communicate with CMS (%s)') % \
-                      http_reason_phrase)
+            self.raise_certificate_operation_error('take_certificate_off_hold',
+                                                   detail=http_reason_phrase)
+
 
         parse_result = self.get_parse_result_xml(http_body, parse_unrevoke_cert_xml)
         request_status = parse_result['request_status']
         if request_status != CMS_STATUS_SUCCESS:
-            raise CertificateOperationError(error='%s (%s)' % \
-                      (cms_request_status_to_string(request_status), parse_result.get('error_string')))
+            self.raise_certificate_operation_error('take_certificate_off_hold',
+                                                   cms_request_status_to_string(request_status),
+                                                   parse_result.get('error_string'))
 
         # Return command result
         cmd_result = {}
