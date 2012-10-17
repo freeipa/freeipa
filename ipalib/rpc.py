@@ -257,16 +257,24 @@ class SSLTransport(LanguageAwareTransport):
         # If we an existing connection exists using the same NSS database
         # there is no need to re-initialize. Pass thsi into the NSS
         # connection creator.
+        if sys.version_info >= (2, 7):
+            if self._connection and host == self._connection[0]:
+                return self._connection[1]
+
         dbdir = '/etc/pki/nssdb'
         no_init = self.__nss_initialized(dbdir)
-        (major, minor, micro, releaselevel, serial) = sys.version_info
-        if major == 2 and minor < 7:
+        if sys.version_info < (2, 7):
             conn = NSSHTTPS(host, 443, dbdir=dbdir, no_init=no_init)
         else:
             conn = NSSConnection(host, 443, dbdir=dbdir, no_init=no_init)
         self.dbdir=dbdir
+
         conn.connect()
-        return conn
+        if sys.version_info < (2, 7):
+            return conn
+        else:
+            self._connection = host, conn
+            return self._connection[1]
 
 
 class KerbTransport(SSLTransport):
@@ -331,6 +339,12 @@ class KerbTransport(SSLTransport):
 
         return (host, extra_headers, x509)
 
+    def single_request(self, host, handler, request_body, verbose=0):
+        try:
+            return SSLTransport.single_request(self, host, handler, request_body, verbose)
+        finally:
+            self.close()
+
     def parse_response(self, response):
         session_cookie = response.getheader('Set-Cookie')
         if session_cookie:
@@ -371,7 +385,8 @@ class xmlclient(Connectible):
         """
         if not hasattr(self.conn, '_ServerProxy__transport'):
             return None
-        if type(self.conn._ServerProxy__transport) in (KerbTransport, DelegatedKerbTransport):
+        if (isinstance(self.conn._ServerProxy__transport, KerbTransport) or
+            isinstance(self.conn._ServerProxy__transport, DelegatedKerbTransport)):
             scheme = "https"
         else:
             scheme = "http"
@@ -493,7 +508,11 @@ class xmlclient(Connectible):
         return serverproxy
 
     def destroy_connection(self):
-        pass
+        if sys.version_info >= (2, 7):
+            conn = getattr(context, self.id, None)
+            if conn is not None:
+                conn = conn.conn._ServerProxy__transport
+                conn.close()
 
     def forward(self, name, *args, **kw):
         """

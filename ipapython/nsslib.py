@@ -238,6 +238,12 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
     def connect(self):
         self.connect_socket(self.host, self.port)
 
+    def close(self):
+        """Close the connection to the HTTP server."""
+        if self.sock:
+            self.sock.close()   # close it manually... there may be other refs
+            self.sock = None
+
     def endheaders(self, message=None):
         """
         Explicitly close the connection if an error is returned after the
