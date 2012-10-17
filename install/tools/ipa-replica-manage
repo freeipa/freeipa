@@ -129,6 +129,10 @@ def test_connection(realm, host):
         return True
     except ldap.LOCAL_ERROR:
         return False
+    except errors.NotFound:
+        # We do a search in cn=config. NotFound in this case means no
+        # permission
+        return False
 
 def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
@@ -267,11 +271,6 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             repl2.delete_agreement(replica1)
             repl2.delete_referral(replica1)
             repl2.set_readonly(readonly=False)
-        except ldap.LDAPError, e:
-            desc = e.args[0]['desc'].strip()
-            info = e.args[0].get('info', '').strip()
-            print "Unable to remove agreement on %s: %s: %s" % (replica2, desc, info)
-            failed = True
         except Exception, e:
             print "Unable to remove agreement on %s: %s" % (replica2, convert_error(e))
             failed = True
@@ -547,11 +546,12 @@ def del_master(realm, hostname, options):
         try:
             delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
         except Exception, e:
+            print "Connection to '%s' failed: %s" % (hostname, convert_error(e))
             if not options.force:
-                print "Unable to delete replica %s: %s" % (hostname, convert_error(e))
+                print "Unable to delete replica '%s'" % hostname
                 sys.exit(1)
             else:
-                print "Unable to connect to replica %s, forcing removal" % hostname
+                print "Forcing removal of %s" % hostname
                 force_del = True
 
         if force_del:
@@ -560,6 +560,12 @@ def del_master(realm, hostname, options):
             replica_names = []
             for entry in entries:
                 replica_names.append(entry.getValue('cn'))
+            # The host we're removing gets included in this list, remove it.
+            # Otherwise we try to delete an agreement from the host to itself.
+            try:
+                replica_names.remove(hostname)
+            except ValueError:
+                pass
         else:
             # Get list of agreements.
             replica_names = delrepl.find_ipa_replication_agreements()
@@ -611,7 +617,7 @@ def del_master(realm, hostname, options):
             if not del_link(realm, r, hostname, options.dirman_passwd, force=True):
                 print "Unable to remove replication agreement for %s from %s." % (hostname, r)
         except Exception, e:
-            print "There were issues removing a connection: %s" % convert_error(e)
+            print "There were issues removing a connection for %s from %s: %s" % (hostname, r, convert_error(e))
 
     # 5. Clean RUV for the deleted master
     if repltype == replication.IPA_REPLICA:
