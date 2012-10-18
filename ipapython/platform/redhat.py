@@ -25,9 +25,11 @@ import stat
 import sys
 import socket
 import stat
+import time
 
 from ipapython import ipautil
 from ipapython.platform import base
+from ipapython.ipa_log_manager import root_logger
 from ipalib import api
 
 # All what we allow exporting directly from this module
@@ -115,6 +117,19 @@ class RedHatSSHService(RedHatService):
     def get_config_dir(self, instance_name=""):
         return '/etc/ssh'
 
+class RedHatHTTPDService(RedHatService):
+    def restart(self, instance_name="", capture_output=True, wait=True):
+        try:
+            super(RedHatHTTPDService, self).restart(instance_name, capture_output, wait)
+        except ipautil.CalledProcessError:
+            # http may have issues with binding to ports, try to fallback
+            # https://bugzilla.redhat.com/show_bug.cgi?id=845405
+            root_logger.debug("%s restart failed, try to stop&start again", self.service_name)
+            time.sleep(5)
+            self.stop(instance_name, capture_output)
+            time.sleep(5)
+            self.start(instance_name, capture_output, wait)
+
 class RedHatAuthConfig(base.AuthConfig):
     """
     AuthConfig class implements system-independent interface to configure
@@ -145,6 +160,8 @@ class RedHatAuthConfig(base.AuthConfig):
 def redhat_service(name):
     if name == 'sshd':
         return RedHatSSHService(name)
+    elif name == 'httpd':
+        return RedHatHTTPDService(name)
     return RedHatService(name)
 
 class RedHatServices(base.KnownServices):
