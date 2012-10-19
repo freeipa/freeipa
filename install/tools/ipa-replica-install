@@ -313,12 +313,23 @@ def check_bind():
         sys.exit(1)
 
 
-def check_dns_resolution(host_name, dns_server):
-    """Check forward and reverse resolution of host_name using dns_server
+def check_dns_resolution(host_name, dns_servers):
+    """Check forward and reverse resolution of host_name using dns_servers
     """
     # Point the resolver at specified DNS server
-    server_ips = list(
-            a[4][0] for a in socket.getaddrinfo(dns_server, None))
+    server_ips = []
+    for dns_server in dns_servers:
+        try:
+            server_ips = list(
+                a[4][0] for a in socket.getaddrinfo(dns_server, None))
+        except socket.error:
+            pass
+        else:
+            break
+    if not server_ips:
+        root_logger.error(
+            'Could not resolve any DNS server hostname: %s', dns_servers)
+        return False
     resolver = dns.resolver.Resolver()
     resolver.nameservers = server_ips
 
@@ -547,15 +558,18 @@ def main():
                 config.master_host_name, config.dirman_password):
             dns_masters = api.Object['dnsrecord'].get_dns_masters()
         if dns_masters:
-            master = config.master_host_name
             if not options.no_host_dns:
-                resolution_ok = (
-                    check_dns_resolution(master, master) and
-                    check_dns_resolution(config.host_name, master))
+                master = config.master_host_name
                 root_logger.debug('Check forward/reverse DNS resolution')
+                resolution_ok = (
+                    check_dns_resolution(master, dns_masters) and
+                    check_dns_resolution(config.host_name, dns_masters))
                 if not resolution_ok and not options.unattended:
                     if not ipautil.user_input("Continue?", False):
                         sys.exit(0)
+        else:
+            root_logger.debug('No IPA DNS servers, '
+                'skipping forward/reverse resolution check')
 
         # Check that we don't already have a replication agreement
         try:
