@@ -91,11 +91,13 @@ class SystemdService(base.PlatformService):
 
     def stop(self, instance_name="", capture_output=True):
         ipautil.run(["/bin/systemctl", "stop", self.service_instance(instance_name)], capture_output=capture_output)
+        super(SystemdService, self).stop(instance_name)
 
     def start(self, instance_name="", capture_output=True, wait=True):
         ipautil.run(["/bin/systemctl", "start", self.service_instance(instance_name)], capture_output=capture_output)
         if wait and self.is_running(instance_name):
             self.__wait_for_open_ports(self.service_instance(instance_name))
+        super(SystemdService, self).start(instance_name)
 
     def restart(self, instance_name="", capture_output=True, wait=True):
         # Restart command is broken before systemd-36-3.fc16
