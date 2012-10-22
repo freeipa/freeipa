@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib.plugable import MagicDict
+import json
+import os
 
 # Canonical names of services as IPA wants to see them. As we need to have
 # *some* naming, set them as in Red Hat distributions. Actual implementation
@@ -39,6 +41,8 @@ wellknownports = {
     'pki-tomcat': [8080, 8443],
     'pki-tomcatd': [8080, 8443],  # used if the incoming instance name is blank
 }
+
+SVC_LIST_FILE = "/var/run/ipa/services.list"
 
 class AuthConfig(object):
     """
@@ -133,9 +137,47 @@ class PlatformService(object):
         self.service_name = service_name
 
     def start(self, instance_name="", capture_output=True, wait=True):
+        """
+        When a service is started record the fact in a special file.
+        This allows ipactl stop to always stop all services that have
+        been started via ipa tools
+        """
+        svc_list = []
+        try:
+            f = open(SVC_LIST_FILE, 'r')
+            svc_list = json.load(f)
+        except Exception:
+            # not fatal, may be the first service
+            pass
+
+        if self.service_name not in svc_list:
+            svc_list.append(self.service_name)
+
+        f = open(SVC_LIST_FILE, 'w')
+        json.dump(svc_list, f)
+        f.flush()
+        f.close()
         return
 
     def stop(self, instance_name="", capture_output=True):
+        """
+        When a service is stopped remove it from the service list file.
+        """
+        svc_list = []
+        try:
+            f = open(SVC_LIST_FILE, 'r')
+            svc_list = json.load(f)
+        except Exception:
+            # not fatal, may be the first service
+            pass
+
+        while self.service_name in svc_list:
+            svc_list.remove(self.service_name)
+
+        f = open(SVC_LIST_FILE, 'w')
+        json.dump(svc_list, f)
+        f.flush()
+        f.close()
         return
 
     def restart(self, instance_name="", capture_output=True, wait=True):

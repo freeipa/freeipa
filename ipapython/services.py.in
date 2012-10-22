@@ -51,4 +51,8 @@ backup_and_replace_hostname = backup_and_replace_hostname_default
 def check_selinux_status():
     return
 
+from ipapython.platform.base import SVC_LIST_FILE
+def get_svc_list_file():
+    return SVC_LIST_FILE
+
 from ipapython.platform.SUPPORTED_PLATFORM import *
