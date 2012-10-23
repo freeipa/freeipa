@@ -27,25 +27,26 @@ class SystemdService(base.PlatformService):
     SYSTEMD_LIB_PATH = "/lib/systemd/system/"
     SYSTEMD_SRV_TARGET = "%s.target.wants"
 
-    def __init__(self, service_name):
+    def __init__(self, service_name, systemd_name):
         super(SystemdService, self).__init__(service_name)
-        self.lib_path = os.path.join(self.SYSTEMD_LIB_PATH, self.service_name)
+        self.systemd_name = systemd_name
+        self.lib_path = os.path.join(self.SYSTEMD_LIB_PATH, self.systemd_name)
         self.lib_path_exists = None
 
     def service_instance(self, instance_name):
         if self.lib_path_exists is None:
             self.lib_path_exists = os.path.exists(self.lib_path)
 
-        elements = self.service_name.split("@")
+        elements = self.systemd_name.split("@")
 
         # Short-cut: if there is already exact service name, return it
         if self.lib_path_exists and len(instance_name) == 0:
             if len(elements) == 1:
                 # service name is like pki-tomcatd.target or krb5kdc.service
-                return self.service_name
+                return self.systemd_name
             if len(elements) > 1 and elements[1][0] != '.':
                 # Service name is like pki-tomcatd@pki-tomcat.service and that file exists
-                return self.service_name
+                return self.systemd_name
 
         if len(elements) > 1:
             # We have dynamic service
@@ -59,7 +60,7 @@ class SystemdService(base.PlatformService):
                 if os.path.exists(srv_lib):
                     return tgt_name
 
-        return self.service_name
+        return self.systemd_name
 
     def parse_variables(self, text, separator=None):
         """
@@ -82,7 +83,7 @@ class SystemdService(base.PlatformService):
         if instance_name in base.wellknownports:
             ports = base.wellknownports[instance_name]
         else:
-            elements = self.service_name.split("@")
+            elements = self.systemd_name.split("@")
             if elements[0] in base.wellknownports:
                 ports = base.wellknownports[elements[0]]
         if ports:
@@ -141,7 +142,7 @@ class SystemdService(base.PlatformService):
     def enable(self, instance_name=""):
         if self.lib_path_exists is None:
             self.lib_path_exists = os.path.exists(self.lib_path)
-        elements = self.service_name.split("@")
+        elements = self.systemd_name.split("@")
         l = len(elements)
 
         if self.lib_path_exists and (l > 1 and elements[1][0] != '.'):
@@ -183,7 +184,7 @@ class SystemdService(base.PlatformService):
             self.__enable(instance_name)
 
     def disable(self, instance_name=""):
-        elements = self.service_name.split("@")
+        elements = self.systemd_name.split("@")
         if instance_name != "" and len(elements) > 1:
             # Remove instance, we need to do following:
             #  Remove link from /etc/systemd/system/<service>.target.wants/<service>@<instance_name>.service
