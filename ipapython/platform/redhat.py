@@ -71,6 +71,7 @@ class RedHatService(base.PlatformService):
         ipautil.run(["/sbin/service", self.service_name, "start", instance_name], capture_output=capture_output)
         if wait and self.is_running(instance_name):
             self.__wait_for_open_ports(instance_name)
+        super(RedHatService, self).start(instance_name)
 
     def restart(self, instance_name="", capture_output=True, wait=True):
         ipautil.run(["/sbin/service", self.service_name, "restart", instance_name], capture_output=capture_output)
