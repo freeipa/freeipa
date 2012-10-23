@@ -114,6 +114,27 @@ def get_request_id(criteria):
 
     return reqid
 
+def get_requests_for_dir(dir):
+    """
+    Return a list containing the request ids for a given NSS database
+    directory.
+    """
+    reqid=[]
+    fileList=os.listdir(REQUEST_DIR)
+    for file in fileList:
+        rv = find_request_value(os.path.join(REQUEST_DIR, file),
+                                'cert_storage_location')
+        if rv is None:
+            continue
+        rv = os.path.abspath(rv).rstrip()
+        if rv != dir:
+            continue
+        id = find_request_value(os.path.join(REQUEST_DIR, file), 'id')
+        if id is not None:
+            reqid.append(id.rstrip())
+
+    return reqid
+
 def add_request_value(request_id, directive, value):
     """
     Add a new directive to a certmonger request file.
@@ -393,6 +414,21 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, command):
 
     (stdout, stderr, returncode) = ipautil.run(args, nolog=[pin])
 
+def check_state(dirs):
+    """
+    Given a set of directories and nicknames verify that we are no longer
+    tracking certificates.
+
+    dirs is a list of directories to test for. We will return a tuple
+    of nicknames for any tracked certificates found.
+
+    This can only check for NSS-based certificates.
+    """
+    reqids = []
+    for dir in dirs:
+        reqids.extend(get_requests_for_dir(dir))
+
+    return reqids
 
 if __name__ == '__main__':
     request_id = request_cert("/etc/httpd/alias", "Test", "cn=tiger.example.com,O=IPA", "HTTP/tiger.example.com@EXAMPLE.COM")

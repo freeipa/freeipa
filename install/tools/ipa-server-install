@@ -52,6 +52,7 @@ from ipaserver.install import sysupgrade
 
 from ipaserver.install import service, installutils
 from ipapython import version
+from ipapython import certmonger
 from ipaserver.install.installutils import *
 from ipaserver.plugins.ldap2 import ldap2
 
@@ -527,7 +528,14 @@ def uninstall():
             rv = 1
 
     if has_state:
-        root_logger.warning('Some installation state has not been restored.\nThis will cause re-installation to fail.\nIt should be safe to remove /var/lib/ipa/sysrestore.state but it may\nmean your system hasn\'t be restored to its pre-installation state.')
+        root_logger.error('Some installation state has not been restored.\nThis may cause re-installation to fail.\nIt should be safe to remove /var/lib/ipa/sysrestore.state but it may\nmean your system hasn\'t be restored to its pre-installation state.')
+
+    # Note that this name will be wrong after the first uninstall.
+    dirname = dsinstance.config_dirname(dsinstance.realm_to_serverid(api.env.realm))
+    dirs = [dirname, dogtag.configured_constants().ALIAS_DIR, certs.NSS_DIR]
+    ids = certmonger.check_state(dirs)
+    if ids:
+        root_logger.error('Some certificates may still be tracked by certmonger.\nThis will cause re-installation to fail.\nStart the certmonger service and list the certificates being tracked\n # getcert list\nThese may be untracked by executing\n # getcert stop-tracking -i <request_id>\nfor each id in: %s' % ', '.join(ids))
 
     return rv
 
