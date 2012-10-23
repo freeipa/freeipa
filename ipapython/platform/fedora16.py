@@ -71,16 +71,16 @@ system_units['pki_tomcatd'] = system_units['pki-tomcatd']
 
 class Fedora16Service(systemd.SystemdService):
     def __init__(self, service_name):
+        systemd_name = service_name
         if service_name in system_units:
-            service_name = system_units[service_name]
+            systemd_name = system_units[service_name]
         else:
             if len(service_name.split('.')) == 1:
                 # if service_name does not have a dot, it is not foo.service
                 # and not a foo.target. Thus, not correct service name for
                 # systemd, default to foo.service style then
-                service_name = "%s.service" % (service_name)
-        super(Fedora16Service, self).__init__(service_name)
-
+                systemd_name = "%s.service" % (service_name)
+        super(Fedora16Service, self).__init__(service_name, systemd_name)
 # Special handling of directory server service
 #
 # We need to explicitly enable instances to install proper symlinks as
@@ -108,8 +108,8 @@ class Fedora16DirectoryService(Fedora16Service):
 
     def restart(self, instance_name="", capture_output=True, wait=True):
         if len(instance_name) > 0:
-            elements = self.service_name.split("@")
-            srv_etc = os.path.join(self.SYSTEMD_ETC_PATH, self.service_name)
+            elements = self.systemd_name.split("@")
+            srv_etc = os.path.join(self.SYSTEMD_ETC_PATH, self.systemd_name)
             srv_tgt = os.path.join(self.SYSTEMD_ETC_PATH, self.SYSTEMD_SRV_TARGET % (elements[0]))
             srv_lnk = os.path.join(srv_tgt, self.service_instance(instance_name))
             if not os.path.exists(srv_etc):
