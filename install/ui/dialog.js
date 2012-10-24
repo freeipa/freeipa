@@ -22,6 +22,34 @@
 
 /* REQUIRES: widget.js, details.js */
 
+IPA.opened_dialogs = {
+
+    dialogs: [],
+
+    top_dialog: function() {
+        var top = null;
+        if (this.dialogs.length) top = this.dialogs[this.dialogs.length - 1];
+        return top;
+    },
+
+    focus_top: function() {
+        var top = this.top_dialog();
+        if (top) {
+            top.container.dialog('moveToTop'); //make sure the last dialog is top dialog
+            top.focus_first_element();
+        }
+    },
+
+    add_dialog: function(dialog) {
+        this.dialogs.push(dialog);
+    },
+
+    remove_dialog: function(dialog) {
+        var index = this.dialogs.indexOf(dialog);
+        if (index > -1) this.dialogs.splice(index, 1);
+    }
+};
+
 IPA.dialog_button = function(spec) {
 
     spec = spec || {};
@@ -180,6 +208,21 @@ IPA.dialog = function(spec) {
 
         that.set_buttons();
         that.register_listeners();
+        IPA.opened_dialogs.add_dialog(that);
+        that.focus_first_element();
+    };
+
+    that.focus_first_element = function() {
+        // set focus to the first tabbable element in the content area or the first button
+        // if there are no tabbable elements, set focus on the dialog itself
+
+        var element = that.container;
+        var ui_dialog = that.container.parent('.ui-dialog'); // jq dialog div
+
+        // code taken from jquery dialog source code
+        $(element.find(':tabbable').get().concat(
+            ui_dialog.find('.ui-dialog-buttonpane :tabbable').get().concat(
+                ui_dialog.get()))).eq(0).focus();
     };
 
     that.option = function(name, value) {
@@ -231,6 +274,8 @@ IPA.dialog = function(spec) {
         that.container.dialog('destroy');
         that.container.remove();
         that.remove_listeners();
+        IPA.opened_dialogs.remove_dialog(that);
+        IPA.opened_dialogs.focus_top();
     };
 
     that.reset = function() {
