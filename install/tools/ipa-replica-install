@@ -90,6 +90,8 @@ def parse_options():
     cert_group = OptionGroup(parser, "certificate system options")
     cert_group.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
+    cert_group.add_option("--skip-schema-check", dest="skip_schema_check", action="store_true",
+                      default=False, help="skip check for updated CA DS schema on the remote master")
     parser.add_option_group(cert_group)
 
     dns_group = OptionGroup(parser, "DNS options")
@@ -601,6 +603,11 @@ def main():
             conn.disconnect()
         if replman and replman.conn:
             replman.conn.unbind_s()
+
+    if options.skip_schema_check:
+        root_logger.info("Skipping CA DS schema check")
+    else:
+        cainstance.replica_ca_install_check(config, dogtag_master_ds_port)
 
     # Configure ntpd
     if options.conf_ntp:

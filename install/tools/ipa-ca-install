@@ -58,6 +58,8 @@ def parse_options():
                       help="Do not use DNS for hostname lookup during installation")
     parser.add_option("--skip-conncheck", dest="skip_conncheck", action="store_true",
                       default=False, help="skip connection check to remote master")
+    parser.add_option("--skip-schema-check", dest="skip_schema_check", action="store_true",
+                      default=False, help="skip check for updated CA DS schema on the remote master")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
 
@@ -153,6 +155,11 @@ def main():
         replica_conn_check(
             config.master_host_name, config.host_name, config.realm_name, True,
             dogtag_master_ds_port, options.admin_password)
+
+    if options.skip_schema_check:
+        root_logger.info("Skipping CA DS schema check")
+    else:
+        cainstance.replica_ca_install_check(config, dogtag_master_ds_port)
 
     # Configure the CA if necessary
     (CA, cs) = cainstance.install_replica_ca(

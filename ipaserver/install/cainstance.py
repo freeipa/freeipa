@@ -56,6 +56,7 @@ from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import certs
 from ipaserver.install.installutils import ReplicaConfig
+from ipaserver.plugins import ldap2
 from ipalib import util
 from ipapython.ipa_log_manager import *
 
@@ -673,6 +674,7 @@ class CAInstance(service.Service):
                     str(self.master_replication_port),
                 "pki_clone_replication_clone_port":
                     dogtag.install_constants.DS_PORT,
+                "pki_clone_replicate_schema": "False",
                 "pki_clone_uri":
                     "https://%s" % ipautil.format_netloc(self.master_host, 443)
             }
@@ -1556,6 +1558,59 @@ class CAInstance(service.Service):
             self.dogtag_constants.CS_CFG_PATH, 'subsystem.select', '=')
 
         return master == 'New'
+
+
+def replica_ca_install_check(config, master_ds_port):
+    if not config.setup_ca:
+        return
+
+    cafile = config.dir + "/cacert.p12"
+    if not ipautil.file_exists(cafile):
+        # self-signed replica
+        return
+
+    master_ds_port = int(master_ds_port)
+
+    # Exit if we have an old-style (Dogtag 9) CA already installed
+    ca = CAInstance(config.realm_name, certs.NSS_DIR,
+        dogtag_constants=dogtag.Dogtag9Constants)
+    if ca.is_installed():
+        root_logger.info('Dogtag 9 style CA instance found')
+        sys.exit("A CA is already configured on this system.")
+
+    if master_ds_port != dogtag.Dogtag9Constants.DS_PORT:
+        root_logger.debug(
+            'Installing CA Replica from master with a merged database')
+        return
+
+    # Check if the master has the necessary schema in its CA instance
+    ca_ldap_url = 'ldap://%s:%s' % (config.master_host_name, master_ds_port)
+    objectclass = 'ipaObject'
+    root_logger.debug('Checking if IPA schema is present in %s', ca_ldap_url)
+    try:
+        connection = ldap2.IPASimpleLDAPObject(ca_ldap_url)
+        connection.start_tls_s()
+        connection.simple_bind_s(DN(('cn', 'Directory Manager')),
+                                config.dirman_password)
+        rschema = connection.schema
+        result = rschema.get_obj(ldap.schema.models.ObjectClass, objectclass)
+    except Exception:
+        root_logger.critical(
+            'CA DS schema check failed. Make sure the PKI service on the '
+            'remote master is operational.')
+        raise
+    if result:
+        root_logger.debug('Check OK')
+    else:
+        root_logger.critical(
+            'The master CA directory server does not have necessary schema. '
+            'Please copy the following script to all CA masters and run it '
+            'on them: %s\n'
+            'If you are certain that this is a false positive, use '
+            '--skip-schema-check.',
+                os.path.join(ipautil.SHARE_DIR, 'copy-schema-to-ca.py'))
+        exit('IPA schema missing on master CA directory server')
+
 
 def install_replica_ca(config, master_ds_port, postinstall=False):
     """
