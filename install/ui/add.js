@@ -31,6 +31,8 @@ IPA.entity_adder_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
 
+    IPA.confirm_mixin().apply(that);
+
     that.method = spec.method || 'add';
     that.on_error = spec.on_error ;
     that.retry = typeof spec.retry !== 'undefined' ? spec.retry : true;
@@ -45,16 +47,7 @@ IPA.entity_adder_dialog = function(spec) {
             name: 'add',
             label: IPA.messages.buttons.add,
             click: function() {
-                that.hide_message();
-                that.add(
-                    function(data, text_status, xhr) {
-                        that.added.notify();
-                        var facet = IPA.current_entity.get_facet();
-                        facet.refresh();
-                        that.close();
-                        that.notify_success(data);
-                    },
-                    that.on_error);
+                that.on_add();
             }
         });
 
@@ -100,6 +93,24 @@ IPA.entity_adder_dialog = function(spec) {
                 that.close();
             }
         });
+    };
+
+    that.on_add = function() {
+
+        that.hide_message();
+        that.add(
+            function(data, text_status, xhr) {
+                that.added.notify();
+                var facet = IPA.current_entity.get_facet();
+                facet.refresh();
+                that.close();
+                that.notify_success(data);
+            },
+            that.on_error);
+    };
+
+    that.on_confirm = function() {
+        that.on_add();
     };
 
     that.get_success_message = function(data) {
