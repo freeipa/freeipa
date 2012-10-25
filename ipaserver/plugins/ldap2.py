@@ -535,12 +535,15 @@ class IPASimpleLDAPObject(object):
         newpw = self.encode(newpw)
         return self.conn.passwd_s(dn, oldpw, newpw, serverctrls, clientctrls)
 
-    def rename_s(self, dn, newrdn, newsuperior=None, delold=1, serverctrls=None, clientctrls=None):
+    def rename_s(self, dn, newrdn, newsuperior=None, delold=1):
+        # NOTICE: python-ldap of version 2.3.10 and lower does not support
+        # serverctrls and clientctrls for rename_s operation. Thus, these
+        # options are ommited from this command until really needed
         assert isinstance(dn, DN)
         dn = str(dn)
         assert isinstance(newrdn, (DN, RDN))
         newrdn = str(newrdn)
-        return self.conn.rename_s(dn, newrdn, newsuperior, delold, serverctrls, clientctrls)
+        return self.conn.rename_s(dn, newrdn, newsuperior, delold)
 
     def result(self, msgid=_ldap.RES_ANY, all=1, timeout=None):
         resp_type, resp_data = self.conn.result(msgid, all, timeout)
