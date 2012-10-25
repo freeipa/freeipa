@@ -1404,20 +1404,22 @@ IPA.dirty_dialog = function(spec) {
 
 IPA.error_dialog = function(spec) {
 
+    spec = spec || {};
+
+    spec.id = spec.id || 'error_dialog';
+    spec.title = spec.error_thrown.name;
+
     var that = IPA.dialog(spec);
 
-    var init = function() {
-        spec = spec || {};
+    IPA.confirm_mixin().apply(that);
 
-        that.id = spec.id || 'error_dialog';
-        that.xhr = spec.xhr || {};
-        that.text_status = spec.text_status || '';
-        that.error_thrown = spec.error_thrown || {};
-        that.command = spec.command;
-        that.title = spec.error_thrown.name;
-        that.errors = spec.errors;
-        that.visible_buttons = spec.visible_buttons || ['retry', 'cancel'];
-    };
+    that.xhr = spec.xhr || {};
+    that.text_status = spec.text_status || '';
+    that.error_thrown = spec.error_thrown || {};
+    that.command = spec.command;
+    that.errors = spec.errors;
+    that.visible_buttons = spec.visible_buttons || ['retry', 'cancel'];
+
 
     that.beautify_message = function(container, message) {
         var lines = message.split(/\n/g);
@@ -1552,7 +1554,11 @@ IPA.error_dialog = function(spec) {
         that.close();
     };
 
-    init();
+    that.on_confirm = function() {
+        if (that.visible_buttons.indexOf('retry') > -1) that.on_retry();
+        else that.on_ok();
+    };
+
     that.create_buttons();
 
     return that;
@@ -1710,9 +1716,7 @@ IPA.unauthorized_dialog = function(spec) {
     };
 
     that.session_expired_form = function() {
-        that.session_form = $('<div\>', {
-            keyup: that.on_login_keyup
-        }).appendTo(that.container);
+        that.session_form = $('<div\>').appendTo(that.container);
 
         that.login_error_box = $('<div/>', {
             'class': 'error-box',
@@ -1753,7 +1757,6 @@ IPA.unauthorized_dialog = function(spec) {
     that.create_reset_form = function() {
 
         that.reset_form = $('<div\>', {
-            keyup: that.on_reset_keyup,
             style: 'display:none'
         }).appendTo(that.container);
 
@@ -1851,6 +1854,7 @@ IPA.unauthorized_dialog = function(spec) {
 
     that.show_session_form = function() {
 
+        that.current_view = 'session';
         that.enable_fields(['username', 'password']);
         that.session_form.css('display', 'block');
         that.reset_form.css('display', 'none');
@@ -1860,6 +1864,7 @@ IPA.unauthorized_dialog = function(spec) {
 
     that.show_reset_form = function() {
 
+        that.current_view = 'reset';
         that.enable_fields(['new_password', 'verify_password']);
         that.session_form.css('display', 'none');
         that.reset_form.css('display', 'block');
@@ -1881,19 +1886,6 @@ IPA.unauthorized_dialog = function(spec) {
         if (message) {
             that.login_error_box.html(message);
             that.login_error_box.css('display', 'block');
-        }
-    };
-
-    that.on_login_keyup = function(event) {
-
-        if (that.switching) {
-            that.switching = false;
-            return;
-        }
-
-        if (event.keyCode === 13) { // enter
-            that.on_login();
-            event.preventDefault();
         }
     };
 
@@ -1946,22 +1938,6 @@ IPA.unauthorized_dialog = function(spec) {
         that.on_retry();
     };
 
-    that.on_reset_keyup = function(event) {
-
-        if (that.switching) {
-            that.switching = false;
-            return;
-        }
-
-        if (event.keyCode === 13) { // enter
-            that.on_reset();
-            event.preventDefault();
-        } else if (event.keyCode === 27) { // escape
-            that.on_cancel();
-            event.preventDefault();
-        }
-    };
-
     that.on_reset = function() {
         if (!that.validate()) return;
 
@@ -2010,6 +1986,30 @@ IPA.unauthorized_dialog = function(spec) {
 
         //re-login
         that.on_login();
+    };
+
+    //replaces confirm_mixin method
+    that.on_key_up = function(event) {
+
+        if (that.switching) {
+            that.switching = false;
+            return;
+        }
+
+        if (that.current_view === 'session') {
+            if (event.keyCode === $.ui.keyCode.ENTER && !this.test_ignore(event)) {
+                that.on_login();
+                event.preventDefault();
+            }
+        } else {
+            if (event.keyCode === $.ui.keyCode.ENTER && !this.test_ignore(event)) {
+                that.on_reset();
+                event.preventDefault();
+            } else if (event.keyCode === $.ui.ESCAPE) {
+                that.on_cancel();
+                event.preventDefault();
+            }
+        }
     };
 
     that.create_buttons();
