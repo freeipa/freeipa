@@ -154,6 +154,9 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     except Exception, e:
         sys.exit(e)
 
+    if 'autofs' not in sssdconfig.list_services():
+        sssdconfig.new_service('autofs')
+
     try:
         sssdconfig.activate_service('autofs')
     except SSSDConfig.NoServiceError:
