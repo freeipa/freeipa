@@ -106,7 +106,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires: %{name}-server-selinux = %{version}-%{release}
-Requires(pre): 389-ds-base >= 1.2.11.14-1
+Requires: 389-ds-base >= 1.2.11.14-1
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -175,6 +175,7 @@ Requires(postun): python initscripts chkconfig
 Requires: python-dns
 Requires: keyutils
 Requires: zip
+Requires: policycoreutils >= %{POLICYCOREUTILSVER}
 
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
@@ -815,6 +816,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Oct 24 2012 Martin Kosek <mkosek@redhat.com> - 3.0.0-1
+- Add strict Requires for 389-ds-base and policycoreutils to avoid user
+  removing them during package lifetime
+
 * Wed Oct 17 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-51
 - Print ipa-upgradeconfig errors during RPM update
 
