@@ -97,7 +97,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to update non-existent zone %r' % dnszone1,
-            command=('dnszone_mod', [dnszone1], {'idnssoamname': u'foobar'}),
+            command=('dnszone_mod', [dnszone1], {'idnssoaminimum': 3500}),
             expected=errors.NotFound(
                 reason=u'%s: DNS zone not found' % dnszone1),
         ),
@@ -283,12 +283,24 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Try to create reverse zone %r with NS record in it' % revdnszone1,
+            command=(
+                'dnszone_add', [revdnszone1], {
+                    'idnssoamname': u'ns',
+                    'idnssoarname': dnszone1_rname,
+                }
+            ),
+            expected=errors.ValidationError(name='name-server',
+                error=u"Nameserver for reverse zone cannot be a relative DNS name"),
+        ),
+
+
+        dict(
             desc='Create reverse zone %r' % revdnszone1,
             command=(
                 'dnszone_add', [revdnszone1], {
                     'idnssoamname': dnszone1_mname,
                     'idnssoarname': dnszone1_rname,
-                    'ip_address' : u'1.2.3.4',
                 }
             ),
             expected={
@@ -951,7 +963,6 @@ class test_dns(Declarative):
                     'name_from_ip': u'foo',
                     'idnssoamname': dnszone1_mname,
                     'idnssoarname': dnszone1_rname,
-                    'ip_address' : u'1.2.3.4',
                 }
             ),
             expected=errors.ValidationError(name='name_from_ip',
@@ -965,7 +976,6 @@ class test_dns(Declarative):
                     'name_from_ip': revdnszone1_ip,
                     'idnssoamname': dnszone1_mname,
                     'idnssoarname': dnszone1_rname,
-                    'ip_address' : u'1.2.3.4',
                 }
             ),
             expected={
@@ -1001,7 +1011,6 @@ class test_dns(Declarative):
                     'name_from_ip': revdnszone2_ip,
                     'idnssoamname': dnszone1_mname,
                     'idnssoarname': dnszone1_rname,
-                    'ip_address' : u'1.2.3.4',
                 }
             ),
             expected={
@@ -1300,6 +1309,106 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {'failed': u''},
+            },
+        ),
+
+
+        dict(
+            desc='Try to create zone %r nameserver not in it' % dnszone1,
+            command=(
+                'dnszone_add', [dnszone1], {
+                    'idnssoamname': u'not.in.this.zone.',
+                    'idnssoarname': dnszone1_rname,
+                    'ip_address' : u'1.2.3.4',
+                }
+            ),
+            expected=errors.ValidationError(name='ip_address',
+                error=u"Nameserver DNS record is created only for nameservers"
+                      u" in current zone"),
+        ),
+
+
+        dict(
+            desc='Create zone %r with relative nameserver' % dnszone1,
+            command=(
+                'dnszone_add', [dnszone1], {
+                    'idnssoamname': u'ns',
+                    'idnssoarname': dnszone1_rname,
+                    'ip_address' : u'1.2.3.4',
+                }
+            ),
+            expected={
+                'value': dnszone1,
+                'summary': None,
+                'result': {
+                    'dn': dnszone1_dn,
+                    'idnsname': [dnszone1],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [u'ns'],
+                    'nsrecord': [u'ns'],
+                    'idnssoarname': [dnszone1_rname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete zone %r' % dnszone1,
+            command=('dnszone_del', [dnszone1], {}),
+            expected={
+                'value': dnszone1,
+                'summary': None,
+                'result': {'failed': u''},
+            },
+        ),
+
+
+        dict(
+            desc='Create zone %r with nameserver in the zone itself' % dnszone1,
+            command=(
+                'dnszone_add', [dnszone1], {
+                    'idnssoamname': dnszone1 + u'.',
+                    'idnssoarname': dnszone1_rname,
+                    'ip_address' : u'1.2.3.4',
+                }
+            ),
+            expected={
+                'value': dnszone1,
+                'summary': None,
+                'result': {
+                    'dn': dnszone1_dn,
+                    'idnsname': [dnszone1],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [dnszone1 + u'.'],
+                    'nsrecord': [dnszone1 + u'.'],
+                    'idnssoarname': [dnszone1_rname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
             },
         ),
 

@@ -1097,7 +1097,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnszone_mod
-args: 1,24,3
+args: 1,25,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('name_from_ip', attribute=False, autofill=False, cli_name='name_from_ip', multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', multivalue=False, required=False)
@@ -1120,6 +1120,7 @@ option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
+option: Flag('force', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')

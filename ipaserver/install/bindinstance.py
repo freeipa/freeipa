@@ -251,7 +251,7 @@ def read_reverse_zone(default, ip_address):
     return normalize_zone(zone)
 
 def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_address=None,
-       update_policy=None):
+       update_policy=None, force=False):
     if zone_is_reverse(name):
         # always normalize reverse zones
         name = normalize_zone(name)
@@ -273,13 +273,6 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
                 "No IPA server with DNS support found!")
         ns_main = dns_masters.pop(0)
         ns_replicas = dns_masters
-        addresses = resolve_host(ns_main)
-
-        if len(addresses) > 0:
-            # use the first address
-            ns_ip_address = addresses[0]
-        else:
-            ns_ip_address = None
     else:
         ns_main = ns_hostname
         ns_replicas = []
@@ -296,12 +289,14 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
                                 idnsallowdynupdate=True,
                                 idnsupdatepolicy=unicode(update_policy),
                                 idnsallowquery=u'any',
-                                idnsallowtransfer=u'none',)
+                                idnsallowtransfer=u'none',
+                                force=force)
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
     nameservers = ns_replicas + [ns_main]
     for hostname in nameservers:
+        hostname = normalize_zone(hostname)
         add_ns_rr(name, hostname, dns_backup=None, force=True)
 
 def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
@@ -568,6 +563,8 @@ class BindInstance(service.Service):
         self._ldap_mod("dns.ldif", self.sub_dict)
 
     def __setup_zone(self):
+        nameserver_ip_address = self.ip_address
+        force = False
         if not self.host_in_default_domain():
             # add DNS domain for host first
             root_logger.debug("Host domain (%s) is different from DNS domain (%s)!" \
@@ -576,8 +573,14 @@ class BindInstance(service.Service):
 
             add_zone(self.host_domain, self.zonemgr, dns_backup=self.dns_backup,
                     ns_hostname=api.env.host, ns_ip_address=self.ip_address)
+            # Nameserver is in self.host_domain, no forward record added to self.domain
+            nameserver_ip_address = None
+            # Set force=True in case nameserver added in previous step
+            # is not resolvable yet
+            force = True
         add_zone(self.domain, self.zonemgr, dns_backup=self.dns_backup,
-                ns_hostname=api.env.host, ns_ip_address=self.ip_address)
+                ns_hostname=api.env.host, ns_ip_address=nameserver_ip_address,
+                force=force)
 
     def __add_self_ns(self):
         add_ns_rr(self.domain, api.env.host, self.dns_backup, force=True)
@@ -610,7 +613,7 @@ class BindInstance(service.Service):
 
     def __setup_reverse_zone(self):
         add_zone(self.reverse_zone, self.zonemgr, ns_hostname=api.env.host,
-                ns_ip_address=self.ip_address, dns_backup=self.dns_backup)
+                dns_backup=self.dns_backup)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm
