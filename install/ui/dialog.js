@@ -350,6 +350,8 @@ IPA.adder_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
 
+    IPA.confirm_mixin().apply(that);
+
     that.external = spec.external;
     that.width = spec.width || 600;
     that.height = spec.height || 360;
@@ -428,7 +430,13 @@ IPA.adder_dialog = function(spec) {
 
         $('<input/>', {
             type: 'text',
-            name: 'filter'
+            name: 'filter',
+            keyup: function(event) {
+                if (event.keyCode === $.ui.keyCode.ENTER) {
+                    that.search();
+                    return false;
+                }
+            }
         }).appendTo(top_panel);
 
         top_panel.append(' ');
@@ -604,6 +612,14 @@ IPA.adder_dialog = function(spec) {
     };
 
     that.execute = function() {
+    };
+
+    that.on_confirm = function() {
+
+        var add_button = that.get_button('add');
+        if (add_button.is_enabled()) {
+            that.execute();
+        }
     };
 
     init();
