@@ -179,6 +179,7 @@ IPA.dialog = function(spec) {
         });
 
         that.set_buttons();
+        that.register_listeners();
     };
 
     that.option = function(name, value) {
@@ -229,6 +230,7 @@ IPA.dialog = function(spec) {
     that.close = function() {
         that.container.dialog('destroy');
         that.container.remove();
+        that.remove_listeners();
     };
 
     that.reset = function() {
@@ -237,6 +239,9 @@ IPA.dialog = function(spec) {
             fields[i].reset();
         }
     };
+
+    that.register_listeners = function() {};
+    that.remove_listeners = function() {};
 
     that.create_builder = function() {
 
@@ -658,6 +663,8 @@ IPA.confirm_dialog = function(spec) {
     spec.title = spec.title || IPA.messages.dialogs.confirmation;
 
     var that = IPA.dialog(spec);
+    IPA.confirm_mixin().apply(that);
+
     that.message = spec.message || '';
     that.on_ok = spec.on_ok;
     that.on_cancel = spec.on_cancel;
@@ -675,7 +682,6 @@ IPA.confirm_dialog = function(spec) {
     that.close = function() {
 
         that.dialog_close();
-        $(document).unbind('keyup', that.on_key_up);
 
         if (that.confirmed) {
             if (that.on_ok) {
@@ -692,16 +698,11 @@ IPA.confirm_dialog = function(spec) {
 
         that.confirmed = false;
         that.dialog_open(container);
-        $(document).bind('keyup', that.on_key_up);
     };
 
-    that.on_key_up = function(event) {
-
-        if (event.keyCode === $.ui.keyCode.ENTER) {
-            event.preventDefault();
-            that.confirmed = true;
-            that.close();
-        }
+    that.on_confirm = function() {
+        that.confirmed = true;
+        that.close();
     };
 
     that.create_buttons = function() {
@@ -731,4 +732,57 @@ IPA.confirm_dialog = function(spec) {
     that.confirm_dialog_open = that.open;
 
     return that;
+};
+
+IPA.confirm_mixin = function() {
+
+    return {
+        mixin: {
+
+            ignore_enter_rules: {
+                src_elements: ['a', 'button'],
+                src_types: ['textarea', 'select-one']
+            },
+
+            test_ignore: function(event) {
+
+                var ir = this.ignore_enter_rules,
+                    t = event.target,
+
+                    ignore = ir.src_elements.indexOf(t.tagName.toLowerCase()) > -1 ||
+                             ir.src_types.indexOf(t.type) > -1;
+
+                return ignore;
+            },
+
+            register_listeners: function() {
+                var self = this;
+                this._on_key_up_listener = function(e) { self.on_key_up(e); };
+                var dialog_container = this.container.parent('.ui-dialog');
+                dialog_container.bind('keyup', this._on_key_up_listener);
+            },
+
+            remove_listeners: function() {
+                var dialog_container = this.container.parent('.ui-dialog');
+                dialog_container.unbind('keyup', this._on_key_up_listener);
+            },
+
+            on_key_up: function(event) {
+                if (event.keyCode === $.ui.keyCode.ENTER &&
+                        !this.test_ignore(event) &&
+                        !!this.on_confirm) {
+                    event.preventDefault();
+                    this.on_confirm();
+                } else if (event.keyCode === $.ui.keyCode.ESCAPE &&
+                        !!this.on_cancel) {
+                    event.preventDefault();
+                    this.on_cancel();
+                }
+            }
+        },
+
+        apply: function(obj) {
+            $.extend(obj, this.mixin);
+        }
+    };
 };
