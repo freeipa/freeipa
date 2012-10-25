@@ -510,8 +510,8 @@ IPA.same_password_validator = function(spec) {
     var that = IPA.validator(spec);
     that.other_field = spec.other_field;
 
-    that.message = spec.message || IPA.messages.password.password_must_match;
-
+    that.message = spec.message || IPA.get_message('password.password_must_match',
+                            "Passwords must match");
     that.validate = function(value, context) {
 
         var other_field = context.container.fields.get_field(that.other_field);

@@ -1672,7 +1672,10 @@ IPA.unauthorized_dialog = function(spec) {
                     name: 'verify_password',
                     type: 'password',
                     required: true,
-                    label: IPA.get_message('password.verify_password', "Verify Password")
+                    label: IPA.get_message('password.verify_password', "Verify Password"),
+                    validators: [IPA.same_password_validator({
+                        other_field: 'new_password'
+                    })]
                 }
             ]
         }
@@ -1946,23 +1949,11 @@ IPA.unauthorized_dialog = function(spec) {
         var new_password = that.new_password_widget.save();
         var verify_password = that.verify_password_widget.save();
 
-        if (new_password[0] !== verify_password[0]) {
-            var message = IPA.get_message('password.password_must_match',
-                            "Passwords must match");
-            that.reset_error_box.html(message);
-            that.reset_error_box.css('display', 'block');
-            return;
-        } else {
-            that.reset_error_box.css('display', 'none');
-        }
-
-        IPA.display_activity_icon();
+        that.reset_error_box.css('display', 'none');
 
         var result = IPA.reset_password(username[0],
                                         password[0],
                                         new_password[0]);
-
-        IPA.hide_activity_icon();
 
         if (result.status === 'ok') {
             that.on_reset_success();

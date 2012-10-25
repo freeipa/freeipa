@@ -780,18 +780,26 @@ IPA.host.set_otp_dialog = function(spec) {
                 {
                     name: 'password1',
                     label: IPA.messages.password.new_password,
-                    type: 'password'
+                    type: 'password',
+                    required: true
                 },
                 {
                     name: 'password2',
                     label: IPA.messages.password.verify_password,
-                    type: 'password'
+                    type: 'password',
+                    required: true,
+                    validators: [IPA.same_password_validator({
+                        other_field: 'password1'
+                    })]
                 }
             ]
         }
     ];
 
     var that = IPA.dialog(spec);
+
+    IPA.confirm_mixin().apply(that);
+
     that.facet = spec.facet;
 
     that.set_status = function(status) {
@@ -807,27 +815,23 @@ IPA.host.set_otp_dialog = function(spec) {
         }
     };
 
+    that.on_confirm = function() {
+
+        if (!that.validate()) return;
+
+        var new_password = that.fields.get_field('password1').save()[0];
+        that.set_otp(new_password);
+
+        that.close();
+    };
+
     that.create_buttons = function() {
 
         that.create_button({
             name: 'set_password',
             label: IPA.messages.objects.host.password_set_button,
             click: function() {
-
-                var record = {};
-                that.save(record);
-
-                var new_password = record.password1[0];
-                var repeat_password = record.password2[0];
-
-                if (new_password != repeat_password) {
-                    alert(IPA.messages.password.password_must_match);
-                    return;
-                }
-
-                that.set_otp(new_password);
-
-                that.close();
+                that.on_confirm();
             }
         });
 

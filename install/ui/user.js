@@ -494,12 +494,18 @@ IPA.user_password_dialog = function(spec) {
                     name: 'password2',
                     label: IPA.messages.password.verify_password,
                     type: 'password',
+                    validators: [IPA.same_password_validator({
+                        other_field: 'password1'
+                    })],
                     required: true
                 }
             ]
         });
 
     var that = IPA.dialog(spec);
+
+    IPA.confirm_mixin().apply(that);
+
     that.success_handler = spec.on_success;
     that.error_handler = spec.on_error;
     that.self_service = spec.self_service; //option to force self-service
@@ -524,9 +530,12 @@ IPA.user_password_dialog = function(spec) {
 
         var self_service = that.is_self_service();
         var section = that.widgets.get_widget('input');
+        var current_password_f = that.fields.get_field('current_password');
 
         that.dialog_open();
         section.set_row_visible('current_password', self_service);
+        current_password_f.set_required(self_service);
+        that.focus_first_element();
     };
 
     that.create_buttons = function() {
@@ -546,7 +555,13 @@ IPA.user_password_dialog = function(spec) {
         });
     };
 
+    that.on_confirm = function() {
+        that.on_reset_click();
+    };
+
     that.on_reset_click = function() {
+
+        if (!that.validate()) return;
 
         var pkey = that.get_pkey();
         var self_service = that.is_self_service();
@@ -554,28 +569,9 @@ IPA.user_password_dialog = function(spec) {
         var record = {};
         that.save(record);
 
-        var current_password;
-
-        if (self_service) {
-            current_password = record.current_password[0];
-            if (!current_password) {
-                alert(IPA.messages.password.current_password_required);
-                return;
-            }
-        }
-
+        var current_password = self_service ? record.current_password[0] : undefined;
         var new_password = record.password1[0];
         var repeat_password = record.password2[0];
-
-        if (IPA.is_empty(new_password)) {
-            alert(IPA.messages.password.new_password_required);
-            return;
-        }
-
-        if (new_password != repeat_password) {
-            alert(IPA.messages.password.password_must_match);
-            return;
-        }
 
         that.set_password(
             pkey,
