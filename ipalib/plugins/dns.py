@@ -31,7 +31,7 @@ from ipalib import Command
 from ipalib.parameters import Flag, Bool, Int, Decimal, Str, StrEnum, Any
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
-from ipalib.util import (validate_zonemgr, normalize_zonemgr,
+from ipalib.util import (validate_zonemgr, normalize_zonemgr, normalize_zone,
         validate_hostname, validate_dns_label, validate_domain_name,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
         get_reverse_zone_default, zone_is_reverse, REVERSE_DNS_ZONES)
@@ -72,8 +72,9 @@ ipa dnsrecord-mod --mx-rec="0 mx.example.com." --mx-preference=1
 EXAMPLES:
 
  Add new zone:
-   ipa dnszone-add example.com --name-server=nameserver.example.com \\
-                               --admin-email=admin@example.com
+   ipa dnszone-add example.com --name-server=ns \\
+                               --admin-email=admin@example.com \\
+                               --ip-address=10.0.0.1
 
  Add system permission that can be used for per-zone privilege delegation:
    ipa dnszone-add-permission example.com
@@ -90,7 +91,7 @@ EXAMPLES:
 
  Add new reverse zone specified by network IP address:
    ipa dnszone-add --name-from-ip=80.142.15.0/24 \\
-                   --name-server=nameserver.example.com
+                   --name-server=ns.example.com.
 
  Add second nameserver for example.com:
    ipa dnsrecord-add example.com @ --ns-rec=nameserver2.example.com
@@ -357,6 +358,8 @@ def _normalize_bind_aci(bind_acis):
     return acis
 
 def _bind_hostname_validator(ugettext, value):
+    if value == _dns_zone_record:
+        return
     try:
         # Allow domain name which is not fully qualified. These are supported
         # in bind and then translated as <non-fqdn-name>.<domain>.
@@ -1500,7 +1503,9 @@ _dns_supported_record_types = tuple(record.rrtype for record in _dns_records \
                                     if record.supported)
 
 def check_ns_rec_resolvable(zone, name):
-    if not name.endswith('.'):
+    if name == _dns_zone_record:
+        name = normalize_zone(zone)
+    elif not name.endswith('.'):
         # this is a DNS name relative to the zone
         zone = dns.name.from_text(zone)
         name = unicode(dns.name.from_text(name, origin=zone))
@@ -1567,6 +1572,7 @@ class dnszone(LDAPObject):
             cli_name='name_server',
             label=_('Authoritative nameserver'),
             doc=_('Authoritative nameserver domain name'),
+            normalizer=lambda value: value.lower(),
         ),
         Str('idnssoarname',
             _rname_validator,
@@ -1716,6 +1722,38 @@ class dnszone(LDAPObject):
     def permission_name(self, zone):
         return u"Manage DNS zone %s" % zone
 
+    def get_name_in_zone(self, zone, hostname):
+        """
+        Get name of a record that is to be added to a new zone. I.e. when
+        we want to add record "ipa.lab.example.com" in a zone "example.com",
+        this function should return "ipa.lab". Returns None when record cannot
+        be added to a zone
+        """
+        if hostname == _dns_zone_record:
+            # special case: @ --> zone name
+            return hostname
+
+        if hostname.endswith(u'.'):
+            hostname = hostname[:-1]
+        if zone.endswith(u'.'):
+            zone = zone[:-1]
+
+        hostname_parts = hostname.split(u'.')
+        zone_parts = zone.split(u'.')
+
+        dns_name = list(hostname_parts)
+        for host_part, zone_part in zip(reversed(hostname_parts),
+                                        reversed(zone_parts)):
+            if host_part != zone_part:
+                return None
+            dns_name.pop()
+
+        if not dns_name:
+            # hostname is directly in zone itself
+            return _dns_zone_record
+
+        return u'.'.join(dns_name)
+
 api.register(dnszone)
 
 
@@ -1726,10 +1764,10 @@ class dnszone_add(LDAPCreate):
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
              label=_('Force'),
-             doc=_('Force DNS zone creation even if nameserver not in DNS.'),
+             doc=_('Force DNS zone creation even if nameserver is not resolvable.'),
         ),
         Str('ip_address?', _validate_ipaddr,
-            doc=_('Add the nameserver to DNS with this IP address'),
+            doc=_('Add forward record for nameserver located in the created zone'),
         ),
     )
 
@@ -1746,13 +1784,32 @@ class dnszone_add(LDAPCreate):
         # NS record must contain domain name
         if valid_ip(nameserver):
             raise errors.ValidationError(name='name-server',
-                    error=unicode(_("Nameserver address is not a fully qualified domain name")))
+                    error=_("Nameserver address is not a domain name"))
 
-        if nameserver[-1] != '.':
-            nameserver += '.'
+        nameserver_ip_address = options.get('ip_address')
+        normalized_zone = normalize_zone(keys[-1])
 
-        if not 'ip_address' in options and not options['force']:
-            check_ns_rec_resolvable(keys[0], nameserver)
+        if nameserver.endswith('.'):
+            record_in_zone = self.obj.get_name_in_zone(keys[-1], nameserver)
+        else:
+            record_in_zone = nameserver
+
+        if zone_is_reverse(normalized_zone):
+            if not nameserver.endswith('.'):
+                raise errors.ValidationError(name='name-server',
+                        error=_("Nameserver for reverse zone cannot be "
+                                "a relative DNS name"))
+            elif nameserver_ip_address:
+                raise errors.ValidationError(name='ip_address',
+                        error=_("Nameserver DNS record is created for "
+                                "for forward zones only"))
+        elif nameserver_ip_address and nameserver.endswith('.') and not record_in_zone:
+            raise errors.ValidationError(name='ip_address',
+                    error=_("Nameserver DNS record is created only for "
+                            "nameservers in current zone"))
+
+        if not nameserver_ip_address and not options['force']:
+             check_ns_rec_resolvable(keys[0], nameserver)
 
         entry_attrs['nsrecord'] = nameserver
         entry_attrs['idnssoamname'] = nameserver
@@ -1760,12 +1817,16 @@ class dnszone_add(LDAPCreate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        if 'ip_address' in options:
-            nameserver = entry_attrs['idnssoamname'][0][:-1] # ends with a dot
-            nsparts = nameserver.split('.')
-            add_forward_record('.'.join(nsparts[1:]),
-                               nsparts[0],
-                               options['ip_address'])
+        nameserver_ip_address = options.get('ip_address')
+        if nameserver_ip_address:
+            nameserver = entry_attrs['idnssoamname'][0]
+            if nameserver.endswith('.'):
+                dns_record = self.obj.get_name_in_zone(keys[-1], nameserver)
+            else:
+                dns_record = nameserver
+            add_forward_record(keys[-1],
+                               dns_record,
+                               nameserver_ip_address)
 
         return dn
 
@@ -1789,7 +1850,21 @@ api.register(dnszone_del)
 class dnszone_mod(LDAPUpdate):
     __doc__ = _('Modify DNS zone (SOA record).')
 
+    takes_options = LDAPUpdate.takes_options + (
+        Flag('force',
+             label=_('Force'),
+             doc=_('Force nameserver change even if nameserver not in DNS'),
+        ),
+    )
+
     has_output_params = LDAPUpdate.has_output_params + dnszone_output_params
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list,  *keys, **options):
+        nameserver = entry_attrs.get('idnssoamname')
+        if nameserver and nameserver != _dns_zone_record and not options['force']:
+            check_ns_rec_resolvable(keys[0], nameserver)
+
+        return dn
 
 api.register(dnszone_mod)
 
