@@ -215,7 +215,7 @@ IPA.search_facet = function(spec, no_init) {
         var command = that.create_refresh_command();
 
         command.on_success = function(data, text_status, xhr) {
-            that.filter.focus();
+            if (!IPA.opened_dialogs.dialogs.length) that.filter.focus();
             that.load(data);
             that.show_content();
         };
