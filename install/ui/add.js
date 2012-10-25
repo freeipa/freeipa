@@ -63,6 +63,7 @@ IPA.entity_adder_dialog = function(spec) {
                         var facet = IPA.current_entity.get_facet();
                         facet.refresh();
                         that.reset();
+                        that.focus_first_element();
                     },
                     that.on_error);
             }
