@@ -30,6 +30,8 @@ from ipapython.dn import *
 testrange1 = u'testrange1'
 testrange1_base_id = 900000
 testrange1_size = 99999
+testrange1_base_rid = 10000
+testrange1_secondary_base_rid=200000
 
 testrange2 = u'testrange2'
 testrange2_base_id = 100
@@ -61,6 +63,11 @@ testrange6_size = 50
 testrange6_base_rid = 500
 testrange6_secondary_base_rid=1300
 
+testrange7 = u'testrange7'
+testrange7_base_id = 600
+testrange7_size = 50
+testrange7_base_rid = 600
+testrange7_secondary_base_rid=649
 
 user1=u'tuser1'
 user1_uid = 900000
@@ -69,7 +76,7 @@ group1_gid = 900100
 
 class test_range(Declarative):
     cleanup_commands = [
-        ('idrange_del', [testrange1,testrange2,testrange3,testrange4,testrange5,testrange6], {}),
+        ('idrange_del', [testrange1,testrange2,testrange3,testrange4,testrange5,testrange6,testrange7], {'continue': True}),
         ('user_del', [user1], {}),
         ('group_del', [group1], {}),
     ]
@@ -79,7 +86,7 @@ class test_range(Declarative):
             desc='Create ID range %r' % (testrange1),
             command=('idrange_add', [testrange1],
                       dict(ipabaseid=testrange1_base_id, ipaidrangesize=testrange1_size,
-                           ipabaserid=10000, ipasecondarybaserid=20000)),
+                           ipabaserid=testrange1_base_rid, ipasecondarybaserid=testrange1_secondary_base_rid)),
             expected=dict(
                 result=dict(
                     dn=DN(('cn',testrange1),('cn','ranges'),('cn','etc'),
@@ -87,8 +94,8 @@ class test_range(Declarative):
                     cn=[testrange1],
                     objectclass=[u'ipaIDrange', u'ipadomainidrange'],
                     ipabaseid=[unicode(testrange1_base_id)],
-                    ipabaserid=[u'10000'],
-                    ipasecondarybaserid=[u'20000'],
+                    ipabaserid=[unicode(testrange1_base_rid)],
+                    ipasecondarybaserid=[unicode(testrange1_secondary_base_rid)],
                     ipaidrangesize=[unicode(testrange1_size)],
                     iparangetype=[u'local domain range'],
                 ),
@@ -106,8 +113,8 @@ class test_range(Declarative):
                           api.env.basedn),
                     cn=[testrange1],
                     ipabaseid=[unicode(testrange1_base_id)],
-                    ipabaserid=[u'10000'],
-                    ipasecondarybaserid=[u'20000'],
+                    ipabaserid=[unicode(testrange1_base_rid)],
+                    ipasecondarybaserid=[unicode(testrange1_secondary_base_rid)],
                     ipaidrangesize=[unicode(testrange1_size)],
                     iparangetype=[u'local domain range'],
                 ),
@@ -210,8 +217,8 @@ class test_range(Declarative):
                 result=dict(
                     cn=[testrange1],
                     ipabaseid=[unicode(testrange1_base_id)],
-                    ipabaserid=[u'10000'],
-                    ipasecondarybaserid=[u'20000'],
+                    ipabaserid=[unicode(testrange1_base_rid)],
+                    ipasecondarybaserid=[unicode(testrange1_secondary_base_rid)],
                     ipaidrangesize=[u'90000'],
                     iparangetype=[u'local domain range'],
                 ),
@@ -287,6 +294,14 @@ class test_range(Declarative):
         ),
 
         dict(
+            desc='Try to modify ID range %r so that its rid ranges are overlapping themselves' % (testrange2),
+            command=('idrange_mod', [testrange2],
+                      dict(ipabaserid=(testrange2_base_rid*10))),
+            expected=errors.ValidationError(
+                name='ID Range setup', error='Primary RID range and secondary RID range cannot overlap'),
+        ),
+
+        dict(
             desc='Try to create ID range %r with overlapping rid range' % (testrange3),
             command=('idrange_add', [testrange3],
                       dict(ipabaseid=testrange3_base_id,
@@ -328,6 +343,17 @@ class test_range(Declarative):
                           ipasecondarybaserid=testrange6_secondary_base_rid)),
             expected=errors.DatabaseError(
                 desc='Constraint violation', info='New base range overlaps with existing base range.'),
+        ),
+
+        dict(
+            desc='Try to create ID range %r with rid ranges overlapping themselves' % (testrange7),
+            command=('idrange_add', [testrange7],
+                      dict(ipabaseid=testrange7_base_id,
+                          ipaidrangesize=testrange7_size,
+                          ipabaserid=testrange7_base_rid,
+                          ipasecondarybaserid=testrange7_secondary_base_rid)),
+            expected=errors.ValidationError(
+                name='ID Range setup', error='Primary RID range and secondary RID range cannot overlap'),
         ),
 
         dict(
