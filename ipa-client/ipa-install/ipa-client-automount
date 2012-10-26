@@ -304,7 +304,7 @@ def configure_nfs(fstore, statestore):
     Configure secure NFS
     """
     replacevars = {
-        'SECURE_NFS': 'YES',
+        'SECURE_NFS': 'yes',
     }
     ipautil.backup_config_and_replace_variables(fstore,
         NFS_CONF, replacevars=replacevars)
