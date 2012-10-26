@@ -277,6 +277,25 @@ class idrange(LDAPObject):
             raise errors.ValidationError(name='domain SID',
                   error=_('SID is not recognized as a valid SID for a trusted domain'))
 
+    # checks that primary and secondary rid ranges do not overlap
+    def are_rid_ranges_overlapping(self, rid_base, secondary_rid_base, size):
+
+        # if any of these is None, the check does not apply
+        if any(attr is None for attr in (rid_base, secondary_rid_base, size)):
+            return False
+
+        # sort the bases
+        if rid_base > secondary_rid_base:
+            rid_base, secondary_rid_base = secondary_rid_base, rid_base
+
+        # rid_base is now <= secondary_rid_base,
+        # so the following check is sufficient
+        if rid_base + size <= secondary_rid_base:
+            return False
+        else:
+            return True
+
+
 class idrange_add(LDAPCreate):
     __doc__ = _("""
     Add new ID range.
@@ -315,26 +334,38 @@ class idrange_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        if 'ipanttrusteddomainsid' in options:
-            if 'ipasecondarybaserid' in options:
+        is_set = lambda x: (x in entry_attrs) and (x is not None)
+
+        if is_set('ipanttrusteddomainsid'):
+            if is_set('ipasecondarybaserid'):
                 raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options dom_sid and secondary_rid_base cannot ' \
+                    error=_('Options dom_sid and secondary_rid_base cannot '
                             'be used together'))
 
-            if 'ipabaserid' not in options:
+            if not is_set('ipabaserid'):
                 raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options dom_sid and rid_base must ' \
+                    error=_('Options dom_sid and rid_base must '
                             'be used together'))
 
             # Validate SID as the one of trusted domains
             self.obj.validate_trusted_domain_sid(options['ipanttrusteddomainsid'])
             # Finally, add trusted AD domain range object class
             entry_attrs['objectclass'].append('ipatrustedaddomainrange')
+
         else:
-            if (('ipasecondarybaserid' in options) != ('ipabaserid' in options)):
+            if is_set('ipasecondarybaserid') != is_set('ipabaserid'):
                 raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options secondary_rid_base and rid_base must ' \
+                    error=_('Options secondary_rid_base and rid_base must '
                             'be used together'))
+
+            if is_set('ipabaserid') and is_set('ipasecondarybaserid'):
+                if self.obj.are_rid_ranges_overlapping(
+                    entry_attrs['ipabaserid'],
+                    entry_attrs['ipasecondarybaserid'],
+                    entry_attrs['ipaidrangesize']):
+                       raise errors.ValidationError(name='ID Range setup',
+                           error=_("Primary RID range and secondary RID range"
+                               " cannot overlap"))
 
             entry_attrs['objectclass'].append('ipadomainidrange')
 
@@ -377,7 +408,7 @@ class idrange_find(LDAPSearch):
         return (filters, base_dn, ldap.SCOPE_ONELEVEL)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        for dn,entry in entries:
+        for dn, entry in entries:
             self.obj.handle_iparangetype(entry, options)
         return truncated
 
@@ -403,14 +434,42 @@ class idrange_mod(LDAPUpdate):
         assert isinstance(dn, DN)
         attrs_list.append('objectclass')
 
+        is_set = lambda x: (x in entry_attrs) and (x is not None)
+
         try:
-            (old_dn, old_attrs) = ldap.get_entry(dn, ['ipabaseid', 'ipaidrangesize'])
+            (old_dn, old_attrs) = ldap.get_entry(dn,
+                                                ['ipabaseid',
+                                                'ipaidrangesize',
+                                                'ipabaserid',
+                                                'ipasecondarybaserid'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        if 'ipanttrusteddomainsid' in options:
+        if is_set('ipanttrusteddomainsid'):
             # Validate SID as the one of trusted domains
             self.obj.validate_trusted_domain_sid(options['ipanttrusteddomainsid'])
+
+        # ensure that primary and secondary rid ranges do not overlap
+        if all((base in entry_attrs) or (base in old_attrs)
+                for base in ('ipabaserid', 'ipasecondarybaserid')):
+
+            # make sure we are working with updated attributes
+            rid_range_attributes = ('ipabaserid', 'ipasecondarybaserid', 'ipaidrangesize')
+            updated_values = dict()
+
+            for attr in rid_range_attributes:
+                if is_set(attr):
+                    updated_values[attr] = entry_attrs[attr]
+                else:
+                    updated_values[attr] = int(old_attrs[attr][0])
+
+            if self.obj.are_rid_ranges_overlapping(
+                updated_values['ipabaserid'],
+                updated_values['ipasecondarybaserid'],
+                updated_values['ipaidrangesize']):
+                    raise errors.ValidationError(name='ID Range setup',
+                            error=_("Primary RID range and secondary RID range"
+                                 " cannot overlap"))
 
         old_base_id = int(old_attrs.get('ipabaseid', [0])[0])
         old_range_size = int(old_attrs.get('ipaidrangesize', [0])[0])
