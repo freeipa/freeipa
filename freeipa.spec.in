@@ -238,6 +238,7 @@ Requires: libsss_idmap
 # IPA AD trusts cannot be used at the same time with the locator plugin
 # since Winbindd will be configured in a different mode
 Requires(post): %{_sbindir}/update-alternatives
+Requires(post): python
 Requires(postun): %{_sbindir}/update-alternatives
 Requires(preun): %{_sbindir}/update-alternatives
 
@@ -592,6 +593,16 @@ fi
 %post server-trust-ad
 %{_sbindir}/update-alternatives --install %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so \
 				winbind_krb5_locator.so /dev/null 90
+python -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+if [  $? -eq 0 ]; then
+%if 0%{?fedora} >= 16
+# Use systemd scheme
+    /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
+%else
+# Use SystemV scheme only before F16
+    /sbin/service httpd condrestart >/dev/null 2>&1 || :
+%endif
+fi
 
 %preun server-trust-ad
 if [ $1 -eq 0 ]; then
@@ -816,6 +827,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Fri Oct 26 2012 Sumit Bose <sbose@redhat.com> - 3.0.99-2
+- Restart httpd in post install of server-trust-ad
+
 * Wed Oct 24 2012 Martin Kosek <mkosek@redhat.com> - 3.0.99-1
 - Add strict Requires for 389-ds-base and policycoreutils to avoid user
   removing them during package lifetime
