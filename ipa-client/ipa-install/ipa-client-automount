@@ -154,14 +154,19 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     except Exception, e:
         sys.exit(e)
 
-    if 'autofs' not in sssdconfig.list_services():
-        sssdconfig.new_service('autofs')
-
     try:
-        sssdconfig.activate_service('autofs')
-    except SSSDConfig.NoServiceError:
-        print "Unable to activate the autofs service in SSSD config."
-        root_logger.debug("Unable to activate the autofs service in SSSD config.")
+        sssdconfig.new_service('autofs')
+    except SSSDConfig.ServiceAlreadyExists:
+        pass
+    except SSSDConfig.ServiceNotRecognizedError:
+        root_logger.error("Unable to activate the Autofs service in SSSD config.")
+        root_logger.info(
+            "Please make sure you have SSSD built with autofs support installed.")
+        root_logger.info(
+            "Configure autofs support manually in /etc/sssd/sssd.conf.")
+        sys.exit("Cannot create the autofs service in sssd.conf")
+
+    sssdconfig.activate_service('autofs')
 
     domain = None
     for name in domains:
