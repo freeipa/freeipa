@@ -1341,6 +1341,22 @@ class ldap2(CrudBackend):
                 v = set(filter(lambda value: value is not None, v))
                 old_v = set(entry_attrs_old.get(k.lower(), []))
 
+                # FIXME: Convert all values to either unicode, DN or str
+                # before detecting value changes (see IPASimpleLDAPObject for
+                # supported types).
+                # This conversion will set a common ground for the comparison.
+                #
+                # This fix can be removed when ticket 2265 is fixed and our
+                # encoded entry_attrs' types will match get_entry result
+                try:
+                    v = set(unicode_from_utf8(self.conn.encode(value))
+                        if not isinstance(value, (DN, str, unicode))
+                        else value for value in v)
+                except Exception, e:
+                    # Rather let the value slip in modlist than let ldap2 crash
+                    self.error("Cannot convert attribute '%s' for modlist "
+                               "for modlist comparison: %s", k, e)
+
                 adds = list(v.difference(old_v))
                 rems = list(old_v.difference(v))
 
