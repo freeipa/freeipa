@@ -86,7 +86,7 @@ def parse_options():
     parser.add_option("--win-subtree", dest="win_subtree", default=None,
                       help="DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix)")
     parser.add_option("--passsync", dest="passsync", default=None,
-                      help="Password for the Windows PassSync user")
+                      help="Password for the IPA system user used by the Windows PassSync plugin to synchronize passwords")
     parser.add_option("--from", dest="fromhost", help="Host to get data from")
 
     options, args = parser.parse_args()
