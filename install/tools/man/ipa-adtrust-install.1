@@ -42,7 +42,11 @@ Enable debug logging when more verbose output is needed
 The IP address of the IPA server. If not provided then this is determined based on the hostname of the server.
 .TP
 \fB\-\-netbios\-name\fR=\fINETBIOS_NAME\fR
-The NetBIOS name for the IPA domain. If not provided then this is determined based on the leading component of the DNS domain name.
+The NetBIOS name for the IPA domain. If not provided then this is determined
+based on the leading component of the DNS domain name. Running
+ipa\-adtrust\-install for a second time with a different NetBIOS name will
+change the name. Please note that changing the NetBIOS name might break
+existing trust relationships to other domains.
 .TP
 \fB\-\-no\-msdcs\fR
 Do not create DNS service records for Windows in managed DNS server. Since those

@@ -115,6 +115,7 @@ class ADTRUSTInstance(service.Service):
         self.realm = None
         self.domain_name = None
         self.netbios_name = None
+        self.reset_netbios_name = None
         self.no_msdcs = None
         self.add_sids = None
         self.smbd_user = None
@@ -295,11 +296,27 @@ class ADTRUSTInstance(service.Service):
                                  "define it and run again.")
             raise e
 
+    def __reset_netbios_name(self):
+        """
+        Set the NetBIOS domain name to a new value.
+        """
+        self.print_msg("Reset NetBIOS domain name")
+
+        try:
+            self.admin_conn.modify_s(self.smb_dom_dn,
+                                     [(ldap.MOD_REPLACE, self.ATTR_FLAT_NAME,
+                                       self.netbios_name)])
+        except ldap.LDAPError:
+            self.print_msg("Failed to reset the NetBIOS domain name")
+
     def __create_samba_domain_object(self):
 
         try:
             self.admin_conn.getEntry(self.smb_dom_dn, ldap.SCOPE_BASE)
-            root_logger.info("Samba domain object already exists")
+            if self.reset_netbios_name:
+                self.__reset_netbios_name()
+            else :
+                self.print_msg("Samba domain object already exists")
             return
         except errors.NotFound:
             pass
@@ -653,13 +670,14 @@ class ADTRUSTInstance(service.Service):
                              FQDN = self.fqdn)
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, netbios_name,
-              rid_base, secondary_rid_base, no_msdcs=False, add_sids=False,
-              smbd_user="samba"):
+              reset_netbios_name, rid_base, secondary_rid_base,
+              no_msdcs=False, add_sids=False, smbd_user="samba"):
         self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm = realm_name
         self.domain_name = domain_name
         self.netbios_name = netbios_name
+        self.reset_netbios_name = reset_netbios_name
         self.rid_base = rid_base
         self.secondary_rid_base = secondary_rid_base
         self.no_msdcs = no_msdcs

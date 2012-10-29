@@ -71,7 +71,7 @@ def parse_options():
     return safe_options, options
 
 def netbios_name_error(name):
-    print "Illegal NetBIOS name [%s].\n" % name
+    print "\nIllegal NetBIOS name [%s].\n" % name
     print "Up to 15 characters and only uppercase ASCII letter and digits are allowed."
 
 def read_netbios_name(netbios_default):
@@ -100,6 +100,90 @@ def read_admin_password(admin_name):
     print ""
     admin_password = read_password(admin_name, confirm=False, validate=None)
     return admin_password
+
+def set_and_check_netbios_name(netbios_name, unattended):
+    """
+    Depending if trust in already configured or not a given NetBIOS domain
+    name must be handled differently.
+
+    If trust is not configured the given NetBIOS is used or the NetBIOS is
+    generated if none was given on the command line.
+
+    If trust is  already configured the given NetBIOS name is used to reset
+    the stored NetBIOS name it it differs from the current one.
+    """
+
+    flat_name_attr = 'ipantflatname'
+    cur_netbios_name = None
+    gen_netbios_name = None
+    reset_netbios_name = False
+    dom_dn = None
+
+    try:
+        (dom_dn, entry) = api.Backend.ldap2.get_entry(DN(('cn', api.env.domain),
+                                    api.env.container_cifsdomains,
+                                    ipautil.realm_to_suffix(api.env.realm)),
+                                    [flat_name_attr])
+    except errors.NotFound:
+        # trust not configured
+        pass
+    else:
+        cur_netbios_name = entry.get(flat_name_attr)[0]
+
+    if cur_netbios_name and not netbios_name:
+        # keep the current NetBIOS name
+        netbios_name = cur_netbios_name
+        reset_netbios_name = False
+    elif cur_netbios_name and cur_netbios_name != netbios_name:
+        # change the NetBIOS name
+        print "Current NetBIOS domain name is %s, new name is %s.\n" % \
+              (cur_netbios_name, netbios_name)
+        print "Please note that changing the NetBIOS name might " \
+              "break existing trust relationships."
+        if unattended:
+            reset_netbios_name = True
+            print "NetBIOS domain name will be changed to %s.\n" % \
+                  netbios_name
+        else:
+            print "Say 'yes' if the NetBIOS shall be changed and " \
+                  "'no' if the old one shall be kept."
+            reset_netbios_name = ipautil.user_input(
+                            'Do you want to reset the NetBIOS domain name?',
+                            default = False, allow_empty = False)
+        if not reset_netbios_name:
+            netbios_name = cur_netbios_name
+    elif cur_netbios_name and cur_netbios_name == netbios_name:
+        # keep the current NetBIOS name
+        reset_netbios_name = False
+    elif not cur_netbios_name:
+        if not netbios_name:
+            gen_netbios_name = adtrustinstance.make_netbios_name(api.env.domain)
+
+        if dom_dn:
+            # Fix existing trust configuration
+            print "Trust is configured but no NetBIOS domain name found, " \
+                  "setting it now."
+            reset_netbios_name = True
+        else:
+            # initial trust configuration
+            reset_netbios_name = False
+    else:
+        # all possible cases should be covered above
+        raise Exception('Unexpected state while checking NetBIOS domain name')
+
+    if not adtrustinstance.check_netbios_name(netbios_name):
+        if unattended:
+            netbios_name_error(netbios_name)
+            sys.exit("Aborting installation.")
+        else:
+            if netbios_name:
+                netbios_name_error(netbios_name)
+                netbios_name = None
+
+    if not unattended and not netbios_name:
+        netbios_name = read_netbios_name(gen_netbios_name)
+
+    return (netbios_name, reset_netbios_name)
 
 def ensure_admin_kinit(admin_name, admin_password):
     try:
@@ -197,22 +281,6 @@ def main():
         print "Please wait until the prompt is returned."
         print ""
 
-    netbios_name = options.netbios_name
-    if not netbios_name:
-        netbios_name = adtrustinstance.make_netbios_name(api.env.domain)
-
-    if not adtrustinstance.check_netbios_name(netbios_name):
-        if options.unattended:
-            netbios_name_error(netbios_name)
-            sys.exit("Aborting installation.")
-        else:
-            netbios_name = None
-            if options.netbios_name:
-                netbios_name_error(options.netbios_name)
-
-    if not options.unattended and ( not netbios_name or not options.netbios_name):
-        netbios_name = read_netbios_name(netbios_name)
-
     admin_password = options.admin_password
     if not (options.unattended or admin_password):
         admin_password = read_admin_password(options.admin_name)
@@ -248,11 +316,16 @@ def main():
     except Exception, e:
         sys.exit("Unrecognized error during check of admin rights: %s" % (str(e)))
 
+    (netbios_name, reset_netbios_name) = \
+                                set_and_check_netbios_name(options.netbios_name,
+                                options.unattended)
+
     smb = adtrustinstance.ADTRUSTInstance(fstore)
     smb.realm = api.env.realm
     smb.autobind = service.ENABLED
     smb.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
-              netbios_name, options.rid_base, options.secondary_rid_base,
+              netbios_name, reset_netbios_name,
+              options.rid_base, options.secondary_rid_base,
               options.no_msdcs, options.add_sids)
     smb.find_local_id_range()
     smb.create_instance()
