@@ -28,7 +28,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: aci_find
 args: 1,16,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('aciname', attribute=False, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('permission', attribute=False, autofill=False, cli_name='permission', multivalue=False, query=True, required=False)
 option: Str('group', attribute=False, autofill=False, cli_name='group', multivalue=False, query=True, required=False)
@@ -570,7 +570,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: delegation_find
 args: 1,9,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('aciname', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('permissions', attribute=True, autofill=False, cli_name='permissions', csv=True, multivalue=True, query=True, required=False)
 option: Str('attrs', attribute=True, autofill=False, cli_name='attrs', csv=True, multivalue=True, query=True, required=False)
@@ -2574,7 +2574,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: selfservice_find
 args: 1,7,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('aciname', attribute=True, autofill=False, cli_name='name', multivalue=False, pattern='^[-_ a-zA-Z0-9]+$', primary_key=True, query=True, required=False)
 option: Str('permissions', attribute=True, autofill=False, cli_name='permissions', csv=True, multivalue=True, query=True, required=False)
 option: Str('attrs', attribute=True, autofill=False, cli_name='attrs', csv=True, multivalue=True, query=True, required=False)

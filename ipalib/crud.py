@@ -230,7 +230,7 @@ class Search(Method):
     has_output = output.standard_list_of_entries
 
     def get_args(self):
-        yield parameters.Str('criteria?')
+        yield parameters.Str('criteria?', noextrawhitespace=False)
 
     def get_options(self):
         if self.extra_options_first:
