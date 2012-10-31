@@ -1091,7 +1091,8 @@ class CAInstance(service.Service):
 
     def __get_ca_chain(self):
         try:
-            return dogtag.get_ca_certchain(ca_host=self.fqdn)
+            return dogtag.get_ca_certchain(ca_host=self.fqdn,
+                dogtag_constants=self.dogtag_constants)
         except Exception, e:
             raise RuntimeError("Unable to retrieve CA chain: %s" % str(e))
 
@@ -1387,11 +1388,16 @@ class CAInstance(service.Service):
         with open(HTTPD_CONFD + "ipa-pki-proxy.conf", "w") as fd:
             fd.write(template)
 
-    def track_servercert(self):
+    def __get_ca_pin(self):
         try:
-            pin = certmonger.get_pin('internal')
+            return certmonger.get_pin('internal',
+                dogtag_constants=self.dogtag_constants)
         except IOError, e:
-            raise RuntimeError('Unable to determine PIN for CA instance: %s' % str(e))
+            raise RuntimeError(
+                'Unable to determine PIN for CA instance: %s' % str(e))
+
+    def track_servercert(self):
+        pin = self.__get_ca_pin()
         certmonger.dogtag_start_tracking(
             'dogtag-ipa-renew-agent', 'Server-Cert cert-pki-ca', pin, None,
             self.dogtag_constants.ALIAS_DIR,
@@ -1403,10 +1409,7 @@ class CAInstance(service.Service):
         ipaservices.knownservices.messagebus.start()
         cmonger.start()
 
-        try:
-            pin = certmonger.get_pin('internal')
-        except IOError, e:
-            raise RuntimeError('Unable to determine PIN for CA instance: %s' % str(e))
+        pin = self.__get_ca_pin()
 
         # Server-Cert cert-pki-ca is renewed per-server
         for nickname in ['auditSigningCert cert-pki-ca',
@@ -1449,10 +1452,7 @@ class CAInstance(service.Service):
         certificate is available. If it is then it gets installed.
         """
 
-        try:
-            pin = certmonger.get_pin('internal')
-        except IOError, e:
-            raise RuntimeError('Unable to determine PIN for CA instance: %s' % str(e))
+        pin = self.__get_ca_pin()
 
         # Server-Cert cert-pki-ca is renewed per-server
         for nickname in ['auditSigningCert cert-pki-ca',

@@ -353,13 +353,15 @@ def remove_principal_from_cas():
         fp.close()
 
 # Routines specific to renewing dogtag CA certificates
-def get_pin(token):
+def get_pin(token, dogtag_constants=None):
     """
     Dogtag stores its NSS pin in a file formatted as token:PIN.
 
     The caller is expected to handle any exceptions raised.
     """
-    with open(dogtag.configured_constants().PASSWORD_CONF_PATH, 'r') as f:
+    if dogtag_constants is None:
+        dogtag_constants = dogtag.configured_constants()
+    with open(dogtag_constants.PASSWORD_CONF_PATH, 'r') as f:
         for line in f:
             (tok, pin) = line.split('=', 1)
             if token == tok:
