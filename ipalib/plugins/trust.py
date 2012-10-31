@@ -78,24 +78,23 @@ should be included into one of local POSIX groups.
 
 Example:
 
-1. Make note of the trusted domain security identifier
-
-   domainsid = `ipa trust-show <ad.domain> | grep Identifier | cut -d: -f2`
-
-2. Create group for the trusted domain admins' mapping and their local POSIX group:
+1. Create group for the trusted domain admins' mapping and their local POSIX group:
 
    ipa group-add --desc='<ad.domain> admins external map' ad_admins_external --external
    ipa group-add --desc='<ad.domain> admins' ad_admins
 
-3. Add security identifier of Domain Admins of the <ad.domain> to the ad_admins_external
-   group (security identifier of <ad.domain SID>-512 is Domain Admins group):
+2. Add security identifier of Domain Admins of the <ad.domain> to the ad_admins_external
+   group:
 
-   ipa group-add-member ad_admins_external --external ${domainsid}-512
+   ipa group-add-member ad_admins_external --external 'AD\\Domain Admins'
 
-4. Allow members of ad_admins_external group to be associated with ad_admins POSIX group:
+3. Allow members of ad_admins_external group to be associated with ad_admins POSIX group:
 
    ipa group-add-member ad_admins --groups ad_admins_external
 
+4. List members of external members of ad_admins_external group to see their SIDs:
+
+   ipa group-show ad_admins_external
 """)
 
 trust_output_params = (

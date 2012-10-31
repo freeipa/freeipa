@@ -29,6 +29,7 @@ from ipalib import Command
 from ipalib import errors
 from ipapython import ipautil
 from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 from ipaserver.install import installutils
 
 import os, string, struct, copy
@@ -46,6 +47,10 @@ try:
 except ImportError:
     from ldap.controls import LDAPControl as LDAPControl    #pylint: disable=F0401
 import ldap as _ldap
+from ipaserver.ipaldap import IPAdmin
+from ipalib.session import krbccache_dir, krbccache_prefix
+from dns import resolver, rdatatype
+from dns.exception import DNSException
 
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls
@@ -102,6 +107,8 @@ class DomainValidator(object):
     ATTR_FLATNAME = 'ipantflatname'
     ATTR_SID = 'ipantsecurityidentifier'
     ATTR_TRUSTED_SID = 'ipanttrusteddomainsid'
+    ATTR_TRUST_PARTNER = 'ipanttrustpartner'
+    ATTR_TRUST_AUTHOUT = 'ipanttrustauthoutgoing'
 
     def __init__(self, api):
         self.api = api
@@ -111,6 +118,9 @@ class DomainValidator(object):
         self.dn = None
         self.sid = None
         self._domains = None
+        self._info = dict()
+        self._creds = None
+        self._parm = None
 
     def is_configured(self):
         cn_trust_local = DN(('cn', self.api.env.domain), self.api.env.container_cifsdomains, self.api.env.basedn)
@@ -125,14 +135,22 @@ class DomainValidator(object):
         return True
 
     def get_trusted_domains(self):
+        """Returns dict of trusted domain tuples (flatname, sid, trust_auth_outgoing), keyed by domain name"""
         cn_trust = DN(('cn', 'ad'), self.api.env.container_trusts, self.api.env.basedn)
         try:
             search_kw = {'objectClass': 'ipaNTTrustedDomain'}
             filter = self.ldap.make_filter(search_kw, rules=self.ldap.MATCH_ALL)
             (entries, truncated) = self.ldap.find_entries(filter=filter, base_dn=cn_trust,
-                                                          attrs_list=[self.ATTR_TRUSTED_SID, 'dn'])
+                                                          attrs_list=[self.ATTR_TRUSTED_SID,
+                                                                      self.ATTR_FLATNAME,
+                                                                      self.ATTR_TRUST_PARTNER,
+                                                                      self.ATTR_TRUST_AUTHOUT])
 
-            result = map (lambda entry: security.dom_sid(entry[1][self.ATTR_TRUSTED_SID][0]), entries)
+            result = dict()
+            for entry in entries:
+                result[entry[1][self.ATTR_TRUST_PARTNER][0]] = (entry[1][self.ATTR_FLATNAME][0].lower(),
+                                                                security.dom_sid(entry[1][self.ATTR_TRUSTED_SID][0]),
+                                                                entry[1][self.ATTR_TRUST_AUTHOUT][0])
             return result
         except errors.NotFound, e:
             return []
@@ -158,12 +176,221 @@ class DomainValidator(object):
         # We have non-zero list of trusted domains and have to go through them
         # one by one and check their sids as prefixes
         test_sid_subauths = test_sid.sub_auths
-        for domsid in self._domains:
+        for domain in self._domains:
+            domsid = self._domains[domain][1]
             sub_auths = domsid.sub_auths
             num_auths = min(test_sid.num_auths, domsid.num_auths)
             if test_sid_subauths[:num_auths] == sub_auths[:num_auths]:
                 return True
         return False
+
+    def normalize_name(self, name):
+        result = dict()
+        components = name.split('@')
+        if len(components) == 2:
+            result['domain'] = unicode(components[1]).lower()
+            result['name'] = unicode(components[0]).lower()
+        else:
+            components = name.split('\\')
+            if len(components) == 2:
+                result['flatname'] = unicode(components[0]).lower()
+                result['name'] = unicode(components[1]).lower()
+            else:
+                result['name'] = unicode(name).lower()
+        return result
+
+    def get_sid_trusted_domain_object(self, object_name):
+        """Returns SID for the trusted domain object (user or group only)"""
+        if not self.domain:
+            # our domain is not configured or self.is_configured() never run
+            return None
+        if not self._domains:
+            self._domains = self.get_trusted_domains()
+        if len(self._domains) == 0:
+            # Our domain is configured but no trusted domains are configured
+            return None
+        components = self.normalize_name(object_name)
+        if not ('domain' in components or 'flatname' in components):
+            # No domain or realm specified, ambiguous search
+            return False
+
+        entry = None
+        if 'domain' in components and components['domain'] in self._domains:
+            # Now we have a name to check against our list of trusted domains
+            entry = self.resolve_against_gc(components['domain'], components['name'])
+        elif 'flatname' in components:
+            # Flatname was specified, traverse through the list of trusted
+            # domains first to find the proper one
+            for domain in self._domains:
+                if self._domains[domain][0] == components['flatname']:
+                    entry = self.resolve_against_gc(domain, components['name'])
+                    if entry:
+                        break
+        if entry:
+            try:
+                test_sid = security.dom_sid(entry)
+                return unicode(test_sid)
+            except TypeError, e:
+                return False
+        return False
+
+    def __sid_to_str(self, sid):
+        """
+        Converts binary SID to string representation
+        Returns unicode string
+        """
+        sid_rev_num = ord(sid[0])
+        number_sub_id = ord(sid[1])
+        ia = struct.unpack('!Q','\x00\x00'+sid[2:8])[0]
+        subs = [
+            struct.unpack('<I',sid[8+4*i:12+4*i])[0]
+            for i in range(number_sub_id)
+        ]
+        return u'S-%d-%d-%s' % ( sid_rev_num, ia, '-'.join([str(s) for s in subs]),)
+
+    def __extract_trusted_auth(self, info):
+        """
+        Returns in clear trusted domain account credentials
+        """
+        clear = None
+        auth = drsblobs.trustAuthInOutBlob()
+        auth.__ndr_unpack__(info['auth'])
+        auth_array = auth.current.array[0]
+        if auth_array.AuthType == lsa.TRUST_AUTH_TYPE_CLEAR:
+            clear = ''.join(map(chr, auth_array.AuthInfo.password)).decode('utf-16-le')
+        return clear
+
+    def __kinit_as_trusted_account(self, info, password):
+        """
+        Initializes ccache with trusted domain account credentials.
+
+        Applies session code defaults for ccache directory and naming prefix.
+        Session code uses krbccache_prefix+<pid>, we use
+        krbccache_prefix+<TD>+<domain netbios name> so there is no clash
+
+        Returns tuple (ccache name, principal) where (None, None) signifes an error
+        on ccache initialization
+        """
+        ccache_name = os.path.join(krbccache_dir, "%sTD%s" % (krbccache_prefix, info['name'][0]))
+        principal = '%s$@%s' % (self.flatname, info['dns_domain'].upper())
+        (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kinit', principal],
+                                                   env={'KRB5CCNAME':ccache_name},
+                                                   stdin=password, raiseonerr=False)
+        if returncode == 0:
+            return (ccache_name, principal)
+        else:
+            return (None, None)
+
+    def resolve_against_gc(self, domain, name):
+        """
+        Resolves `name' against trusted domain `domain' using Global Catalog
+        Returns SID of the `name' or None
+        """
+        entry = None
+        sid = None
+        info = self.__retrieve_trusted_domain_gc_list(domain)
+        if not info:
+            return None
+        for (host, port) in info['gc']:
+            entry = self.__resolve_against_gc(info, host, port, name)
+            if entry:
+                break
+
+        if entry:
+            l = len(entry)
+            if l > 2:
+                # Treat non-unique entries as invalid
+                return None
+            sid = self.__sid_to_str(entry[0][1]['objectSid'][0])
+        return sid
+
+    def __resolve_against_gc(self, info, host, port, name):
+        """
+        Actual resolution against LDAP server, using SASL GSSAPI authentication
+        Returns LDAP result or None
+        """
+        conn = IPAdmin(host=host, port=port)
+        auth = self.__extract_trusted_auth(info)
+        if auth:
+            (ccache_name, principal) = self.__kinit_as_trusted_account(info, auth)
+            if ccache_name:
+                cb_info = dict()
+                # pass empty dict, SASL GSSAPI is able to get all from the ccache
+                sasl_auth = _ldap.sasl.sasl(cb_info,'GSSAPI')
+                old_ccache = os.environ.get('KRB5CCNAME')
+                os.environ["KRB5CCNAME"] = ccache_name
+                # OPT_X_SASL_NOCANON is used to avoid hard requirement for PTR
+                # records pointing back to the same host name
+                conn.set_option(_ldap.OPT_X_SASL_NOCANON, _ldap.OPT_ON)
+                conn.sasl_interactive_bind_s(None, sasl_auth)
+                base = DN(*map(lambda p: ('dc', p), info['dns_domain'].split('.')))
+                # We don't use conn.getEntry() because it will attempt to fetch schema from GC and that will fail
+                filterstr = conn.encode('(&(sAMAccountName=%(name)s)(|(objectClass=user)(objectClass=group)))' % dict(name=name))
+                attrlist = conn.encode(['sAMAccountName', 'sAMAccountType', 'objectSid', 'groupType', 'description'])
+                entry = conn.conn.search_s(str(base), _ldap.SCOPE_SUBTREE, filterstr, attrlist, 0)
+                os.environ["KRB5CCNAME"] = old_ccache
+                return entry
+
+    def __retrieve_trusted_domain_gc_list(self, domain):
+        """
+        Retrieves domain information and preferred GC list
+        Returns dictionary with following keys
+             name       -- NetBIOS name of the trusted domain
+             dns_domain -- DNS name of the trusted domain
+             auth       -- encrypted credentials for trusted domain account
+             gc         -- array of tuples (server, port) for Global Catalog
+        """
+        if domain in self._info:
+            return self._info[domain]
+
+        if not self._creds:
+            self._parm = param.LoadParm()
+            self._parm.load(os.path.join(ipautil.SHARE_DIR,"smb.conf.empty"))
+            self._parm.set('netbios name', self.flatname)
+            self._creds = credentials.Credentials()
+            self._creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+            self._creds.guess(self._parm)
+            self._creds.set_workstation(self.flatname)
+
+        netrc = net.Net(creds=self._creds, lp=self._parm)
+        finddc_error = None
+        result = None
+        try:
+            result = netrc.finddc(domain=domain, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_GC | nbt.NBT_SERVER_CLOSEST)
+        except RuntimeError, e:
+            finddc_error = e
+
+        info = dict()
+        info['auth'] = self._domains[domain][2]
+        servers = []
+        if result:
+            info['name'] = unicode(result.domain_name)
+            info['dns_domain'] = unicode(result.dns_domain)
+            servers = [(unicode(result.pdc_dns_name), 3268)]
+        else:
+            info['name'] = self._domains[domain]
+            info['dns_domain'] = domain
+            # Retrieve GC servers list
+            gc_name = '_gc._tcp.%s.' % info['dns_domain']
+
+            try:
+                answers = resolver.query(gc_name, rdatatype.SRV)
+            except DNSException, e:
+                answers = []
+
+            for answer in answers:
+                server = str(answer.target).rstrip(".")
+                servers.append((server, answer.port))
+
+        info['gc'] = servers
+
+        # Both methods should not fail at the same time
+        if finddc_error and len(info['gc']) == 0:
+            raise assess_dcerpc_exception(message=str(finddc_error))
+
+        self._info[domain] = info
+        return info
+
 
 class TrustDomainInstance(object):
 
