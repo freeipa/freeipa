@@ -83,28 +83,30 @@ External members should be added to groups that specifically created as
 external and non-POSIX. Such group later should be included into one of POSIX
 groups.
 
-An external group member is currently a Security Identifier as defined by
-the trusted domain.
+An external group member is currently a Security Identifier (SID) as defined by
+the trusted domain. When adding external group members, it is possible to
+specify them in either SID, or DOM\\name, or name@domain format. IPA will attempt
+to resolve passed name to SID with the use of Global Catalog of the trusted domain.
 
 Example:
 
-1. Make note of the trusted domain security identifier
-
-   domainsid = `ipa trust-show <ad.domain> | grep Identifier | cut -d: -f2`
-
-2. Create group for the trusted domain admins' mapping and their local POSIX group:
+1. Create group for the trusted domain admins' mapping and their local POSIX group:
 
    ipa group-add --desc='<ad.domain> admins external map' ad_admins_external --external
    ipa group-add --desc='<ad.domain> admins' ad_admins
 
-3. Add security identifier of Domain Admins of the <ad.domain> to the ad_admins_external
-   group (security identifier of <ad.domain SID>-513 is Domain Admins group):
+2. Add security identifier of Domain Admins of the <ad.domain> to the ad_admins_external
+   group:
 
-   ipa group-add-member ad_admins_external --external ${domainsid}-513
+   ipa group-add-member ad_admins_external --external 'AD\\Domain Admins'
 
-4. Allow members of ad_admins_external group to be associated with ad_admins POSIX group:
+3. Allow members of ad_admins_external group to be associated with ad_admins POSIX group:
 
    ipa group-add-member ad_admins --groups ad_admins_external
+
+4. List members of external members of ad_admins_external group to see their SIDs:
+
+   ipa group-show ad_admins_external
 """)
 
 PROTECTED_GROUPS = (u'admins', u'trust admins', u'default smb group')
@@ -165,7 +167,7 @@ api.register(group)
 ipaexternalmember_param = Str('ipaexternalmember*',
             cli_name='external',
             label=_('External member'),
-            doc=_('comma-separated SIDs of members of a trusted domain'),
+            doc=_('comma-separated list of members of a trusted domain in DOM\\name or name@domain form'),
             csv=True,
             flags=['no_create', 'no_update', 'no_search'],
         )
@@ -382,7 +384,11 @@ class group_add_member(LDAPAddMember):
                 if domain_validator.is_trusted_sid_valid(sid):
                     sids.append(sid)
                 else:
-                    failed_sids.append((sid, 'Not a trusted domain SID'))
+                    actual_sid = domain_validator.get_sid_trusted_domain_object(sid)
+                    if isinstance(actual_sid, unicode):
+                        sids.append(actual_sid)
+                    else:
+                        failed_sids.append((sid, 'Not a trusted domain SID'))
             if len(sids) == 0:
                 raise errors.ValidationError(name=_('external member'),
                                              error=_('values are not recognized as valid SIDs from trusted domain'))
