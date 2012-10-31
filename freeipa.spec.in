@@ -448,6 +448,7 @@ install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_sysconfdir}/tmpfil
 
 mkdir -p %{buildroot}%{_localstatedir}/run/
 install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa_memcached/
+install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa/
 
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
@@ -635,6 +636,7 @@ fi
 %{_sysconfdir}/cron.d/ipa-compliance
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
+%dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
 %if 0%{?fedora} >= 15
 %config %{_sysconfdir}/tmpfiles.d/ipa.conf
 %endif
