@@ -63,7 +63,7 @@ BuildRequires:  pylint
 BuildRequires:  python-polib
 BuildRequires:  libipa_hbac-python
 BuildRequires:  python-memcached
-BuildRequires:  sssd >= 1.8.0
+BuildRequires:  sssd >= 1.9.2
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-dns
