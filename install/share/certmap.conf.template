@@ -1,4 +1,8 @@
+# VERSION 1 - DO NOT REMOVE THIS LINE
 #
+# This file is managed by IPA and will be overwritten on upgrades.
+
+
 # BEGIN COPYRIGHT BLOCK
 # This Program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -80,6 +84,6 @@ certmap default         default
 #default:InitFn         <Init function's name>
 default:DNComps
 default:FilterComps     uid
-certmap ipaca           CN=Certificate Authority,O=domain_name
+certmap ipaca           CN=Certificate Authority,O=$REALM
 ipaca:CmapLdapAttr      seeAlso
 ipaca:verifycert        on

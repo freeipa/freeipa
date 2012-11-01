@@ -153,7 +153,11 @@ def find_autoredirect(fqdn):
     return True
 
 def find_version(filename):
-    """Find the version of a configuration file"""
+    """Find the version of a configuration file
+
+    If no VERSION entry exists in the file, returns 0.
+    If the file does not exist, returns -1.
+    """
     if os.path.exists(filename):
         pattern = "^[\s#]*VERSION\s+([0-9]+)\s+.*"
         p = re.compile(pattern)
@@ -184,6 +188,12 @@ def upgrade(sub_dict, filename, template, add=False):
 
     if new < 0:
         root_logger.error("%s not found." % template)
+
+    if old == 0:
+        # The original file does not have a VERSION entry. This means it's now
+        # managed by IPA, but previously was not.
+        root_logger.warning("%s is now managed by IPA. It will be "
+            "overwritten. A backup of the original will be made.", filename)
 
     if old < new or (add and old == 0):
         backup_file(filename, new)
@@ -626,9 +636,14 @@ def main():
                                          '=')
         sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
+    certmap_dir = dsinstance.config_dirname(
+        dsinstance.realm_to_serverid(api.env.realm))
+
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
+    upgrade(sub_dict, os.path.join(certmap_dir, "certmap.conf"),
+        os.path.join(ipautil.SHARE_DIR, "certmap.conf.template"))
     upgrade_pki(ca, fstore)
     update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()

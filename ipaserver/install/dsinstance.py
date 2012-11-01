@@ -606,7 +606,7 @@ class DsInstance(service.Service):
         shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",
                         config_dirname(self.serverid) + "certmap.conf")
         installutils.update_file(config_dirname(self.serverid) + "certmap.conf",
-                                 'domain_name', self.realm_name)
+                                 '$REALM', self.realm_name)
 
     def __enable_ldapi(self):
         self._ldap_mod("ldapi.ldif", self.sub_dict)
