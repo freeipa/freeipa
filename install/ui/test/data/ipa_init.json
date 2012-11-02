@@ -222,6 +222,7 @@
                         "delegation": {},
                         "dnsconfig": {
                             "forward_first": "Forward first",
+                            "forward_none": "Forwarding disabled",
                             "forward_only": "Forward only",
                             "options": "Options"
                         },

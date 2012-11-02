@@ -72,6 +72,10 @@ IPA.dns.config_entity = function(spec) {
                                 {
                                     value: 'only',
                                     label: IPA.messages.objects.dnsconfig.forward_only
+                                },
+                                {
+                                    value: 'none',
+                                    label: IPA.messages.objects.dnsconfig.forward_none
                                 }
                             ]
                         },
@@ -201,6 +205,10 @@ IPA.dns.zone_entity = function(spec) {
                             {
                                 value: 'only',
                                 label: IPA.messages.objects.dnsconfig.forward_only
+                            },
+                            {
+                                    value: 'none',
+                                    label: IPA.messages.objects.dnsconfig.forward_none
                             }
                         ]
                     },
