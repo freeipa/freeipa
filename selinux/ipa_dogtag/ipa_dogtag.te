@@ -1,11 +1,8 @@
-module ipa_dogtag 1.5;
+module ipa_dogtag 2.0;
 
 require {
-	type httpd_t;
 	type cert_t;
-	type pki_ca_t;
-	type pki_ca_var_lib_t;
-	type certmonger_t;
+	type pki_tomcat_t;
 	class dir write;
 	class dir add_name;
 	class dir remove_name;
@@ -23,23 +20,16 @@ require {
 }
 
 # Let dogtag write to cert_t directories
-allow pki_ca_t cert_t:dir write;
-allow pki_ca_t cert_t:dir add_name;
-allow pki_ca_t cert_t:dir remove_name;
+allow pki_tomcat_t cert_t:dir write;
+allow pki_tomcat_t cert_t:dir add_name;
+allow pki_tomcat_t cert_t:dir remove_name;
 
 # Let dogtag write cert_t files
-allow pki_ca_t cert_t:file create;
-allow pki_ca_t cert_t:file write;
-allow pki_ca_t cert_t:file rename;
+allow pki_tomcat_t cert_t:file create;
+allow pki_tomcat_t cert_t:file write;
+allow pki_tomcat_t cert_t:file rename;
 
 # Let dogtag manage cert_t symbolic links
-allow pki_ca_t cert_t:lnk_file create;
-allow pki_ca_t cert_t:lnk_file rename;
-allow pki_ca_t cert_t:lnk_file unlink;
-
-# Let apache read the CRLs
-allow httpd_t pki_ca_var_lib_t:dir { search getattr };
-
-# Let certmonger manage the dogtag certificate database for renewals
-allow certmonger_t pki_ca_var_lib_t:dir { search getattr} ;
-allow certmonger_t pki_ca_var_lib_t:file { read write getattr open };
+allow pki_tomcat_t cert_t:lnk_file create;
+allow pki_tomcat_t cert_t:lnk_file rename;
+allow pki_tomcat_t cert_t:lnk_file unlink;
