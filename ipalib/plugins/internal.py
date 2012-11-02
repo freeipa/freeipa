@@ -359,6 +359,7 @@ class i18n_messages(Command):
             },
             "dnsconfig": {
                 "forward_first": _("Forward first"),
+                "forward_none": _("Forwarding disabled"),
                 "forward_only": _("Forward only"),
                 "options": _("Options"),
             },
