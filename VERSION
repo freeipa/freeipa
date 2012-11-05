@@ -3,7 +3,7 @@
 #                                                      #
 # freeIPA versions are as follows                      #
 # 1.0.x                New production series           #
-# 1.0.x{pre,rc}y       Preview/Testing & RC            #
+# 1.0.x{pre,beta,rc}y  Preview/Testing, Beta & RC      #
 # 1.0.0GITabcdefg      Build from GIT                  #
 #                                                      #
 ########################################################
@@ -31,6 +31,16 @@ IPA_VERSION_RELEASE=0
 #  ->  "1.0.0pre1"                                     #
 ########################################################
 IPA_VERSION_PRE_RELEASE=
+
+########################################################
+# For 'beta' releases the version will be              #
+#                                                      #
+# <MAJOR>.<MINOR>.<RELEASE>beta<BETA_RELEASE>          #
+#                                                      #
+# e.g. IPA_VERSION_BETA_RELEASE=1                      #
+#  ->  "1.0.0beta1"                                    #
+########################################################
+IPA_VERSION_BETA_RELEASE=
 
 ########################################################
 # For 'rc' releases the version will be                #
