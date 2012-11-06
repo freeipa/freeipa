@@ -34,6 +34,8 @@ from os import path
 import subprocess
 import optparse
 import errors
+import textwrap
+
 from config import Env
 import util
 import text
@@ -519,8 +521,23 @@ class API(DictProxy):
         Add global options to an optparse.OptionParser instance.
         """
         if parser is None:
-            parser = optparse.OptionParser()
+            parser = optparse.OptionParser(
+                add_help_option=False,
+                formatter=IPAHelpFormatter(),
+                usage='%prog [global-options] COMMAND [command-options]',
+                description='Manage an IPA domain',
+                epilog='\n'.join([
+                    'See "ipa help topics" for available help topics.',
+                    'See "ipa help <TOPIC>" for more information on a '
+                        'specific topic.',
+                    'See "ipa help commands" for the full list of commands.',
+                    'See "ipa help <COMMAND>" for more information on a '
+                        'specific command.',
+                ]))
             parser.disable_interspersed_args()
+            parser.add_option("-h", "--help", action="help",
+                help='Show this help message and exit')
+
         parser.add_option('-e', dest='env', metavar='KEY=VAL', action='append',
             help='Set environment variable KEY to VAL',
         )
@@ -548,12 +565,6 @@ class API(DictProxy):
                 dest='fallback',
                 help='Only use the server configured in /etc/ipa/default.conf'
             )
-        topics = optparse.OptionGroup(parser, "Available help topics",
-                    "ipa help topics")
-        cmds = optparse.OptionGroup(parser, "Available commands",
-                    "ipa help commands")
-        parser.add_option_group(topics)
-        parser.add_option_group(cmds)
 
         return parser
 
@@ -730,3 +741,15 @@ class API(DictProxy):
         object.__setattr__(self, 'plugins',
             tuple(PluginInfo(p) for p in plugins.itervalues())
         )
+
+
+class IPAHelpFormatter(optparse.IndentedHelpFormatter):
+    def format_epilog(self, text):
+        text_width = self.width - self.current_indent
+        indent = " " * self.current_indent
+        lines = text.splitlines()
+        result = '\n'.join(
+            textwrap.fill(line, text_width, initial_indent=indent,
+                subsequent_indent=indent)
+            for line in lines)
+        return '\n%s\n' % result
