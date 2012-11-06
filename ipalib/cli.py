@@ -50,7 +50,7 @@ from errors import (PublicError, CommandError, HelpError, InternalError,
         NoSuchNamespaceError, ValidationError, NotFound, NotConfiguredError,
         PromptFailed, ConversionError)
 from constants import CLI_TAB
-from parameters import Password, Bytes, File, Str, StrEnum
+from parameters import Password, Bytes, File, Str, StrEnum, Any
 from text import _
 from ipapython.version import API_VERSION
 
@@ -665,6 +665,9 @@ class help(frontend.Local):
     """
 
     takes_args = (Str('command?'),)
+    takes_options = (
+        Any('outfile?', flags=['no_option']),
+    )
 
     has_output = tuple()
 
@@ -749,56 +752,68 @@ class help(frontend.Local):
 
         super(help, self)._on_finalize()
 
-    def run(self, key):
+    def run(self, key, outfile=None):
+        if outfile is None:
+            outfile = sys.stdout
+        writer = self._writer(outfile)
         name = from_cli(key)
         mod_name = '%s.%s' % (self._PLUGIN_BASE_MODULE, name)
-        if key is None or name == "topics":
-            self.print_topics()
+        if key is None:
+            make_ipa_parser().print_help(outfile)
+            return
+        if name == "topics":
+            self.print_topics(outfile)
             return
         if name in self._topics:
-            self.print_commands(name)
+            self.print_commands(name, outfile)
         elif name in self.Command:
             cmd = self.Command[name]
             if cmd.NO_CLI:
                 raise HelpError(topic=name)
-            print unicode(_('Purpose: %s')) % unicode(_(cmd.doc)).strip()
+            writer(_('Purpose: %s') % unicode(_(cmd.doc)).strip())
             self.Backend.cli.build_parser(cmd).print_help()
         elif mod_name in sys.modules:
-            self.print_commands(name)
+            self.print_commands(name, outfile)
         elif name == "commands":
             mcl = max(len(s) for s in (self.Command))
             for cname in self.Command:
                 cmd = self.Command[cname]
                 if cmd.NO_CLI:
                     continue
-                print '%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.summary)
+                writer('%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.summary))
         else:
             raise HelpError(topic=name)
 
-    def print_topics(self):
+    def _writer(self, outfile):
+        def writer(string=''):
+            print >> outfile, unicode(string)
+        return writer
+
+    def print_topics(self, outfile):
+        writer = self._writer(outfile)
         topics = sorted(self._topics.keys())
 
-        print unicode(_('Usage: ipa [global-options] COMMAND ...'))
-        print ''
-        print unicode(_('Built-in commands:'))
+        writer(_('Usage: ipa [global-options] COMMAND [command-options]...'))
+        writer()
+        writer(_('Built-in commands:'))
         for c in self._builtins:
-            print unicode(_('Help subtopics:'))
-            print '  %s  %s' % (to_cli(c.name).ljust(self._mtl), c.summary)
-        print ''
-        print unicode(_('Help topics:'))
+            writer('  %s  %s' % (to_cli(c.name).ljust(self._mtl), c.summary))
+        writer()
+        writer(_('Help topics:'))
         for t in topics:
             topic = self._topics[t]
-            print '  %s  %s' % (to_cli(t).ljust(self._mtl), topic[0])
-        print ''
-        print unicode(_('Try `ipa --help` for a list of global options.'))
+            writer('  %s  %s' % (to_cli(t).ljust(self._mtl), topic[0]))
+        writer()
+        writer(_('Try `ipa --help` for a list of global options.'))
 
-    def print_commands(self, topic):
+    def print_commands(self, topic, outfile):
+        writer = self._writer(outfile)
         if topic in self._topics and type(self._topics[topic][2]) is dict:
             # we want to display topic which has subtopics
             for subtopic in self._topics[topic][2]:
                 doc = self._topics[topic][2][subtopic][0]
                 mcl = self._topics[topic][1]
-                print '  %s  %s' % (to_cli(subtopic).ljust(mcl), doc)
+                writer('  %s  %s' % (to_cli(subtopic).ljust(mcl), doc))
         else:
             # we want to display subtopic or a topic which has no subtopics
             if topic in self._topics:
@@ -821,13 +836,14 @@ class help(frontend.Local):
             if topic not in self.Command and len(commands) == 0:
                 raise HelpError(topic=topic)
 
-            print doc
+            writer(doc)
             if commands:
-                print ''
-                print unicode(_('Topic commands:'))
+                writer()
+                writer(_('Topic commands:'))
                 for c in commands:
-                    print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
-            print "\n"
+                    writer(
+                        '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary))
+            writer()
 
 class show_mappings(frontend.Command):
     """
@@ -1013,14 +1029,14 @@ class cli(backend.Executioner):
         On incorrect invocation, prints out a help message and returns None
         """
         if len(argv) == 0:
+            print >>sys.stderr, 'Error: Command not specified'
             self.Command.help()
-            return
+            exit(2)
         (key, argv) = (argv[0], argv[1:])
         name = from_cli(key)
         if name not in self.Command and len(argv) == 0:
             try:
-                self.Command.help(unicode(key))
-                return
+                self.Command.help(unicode(key), outfile=sys.stderr)
             except HelpError:
                 pass
         if name not in self.Command or self.Command[name].NO_CLI:
@@ -1120,7 +1136,7 @@ class cli(backend.Executioner):
 
         for arg in cmd.args():
             name = self.__get_arg_name(arg, format_name=False)
-            if name is None:
+            if 'no_option' in arg.flags or name is None:
                 continue
             doc = unicode(arg.doc)
             parser.add_argument(name, doc)
