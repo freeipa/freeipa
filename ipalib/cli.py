@@ -770,7 +770,6 @@ class help(frontend.Local):
             cmd = self.Command[name]
             if cmd.NO_CLI:
                 raise HelpError(topic=name)
-            writer(_('Purpose: %s') % unicode(_(cmd.doc)).strip())
             self.Backend.cli.build_parser(cmd).print_help(outfile)
         elif mod_name in sys.modules:
             self.print_commands(name, outfile)
@@ -1085,7 +1084,8 @@ class cli(backend.Executioner):
 
     def build_parser(self, cmd):
         parser = CLIOptionParser(
-            usage=' '.join(self.usage_iter(cmd))
+            usage=' '.join(self.usage_iter(cmd)),
+            description=cmd.summary,
         )
         option_groups = {}
         for option in cmd.options():
