@@ -593,6 +593,7 @@ class API(DictProxy):
         if context is not None:
             overrides['context'] = context
         self.bootstrap(**overrides)
+        object.__setattr__(self, 'parser', parser)
         return (options, args)
 
     def load_plugins(self):

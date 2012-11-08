@@ -759,7 +759,7 @@ class help(frontend.Local):
         name = from_cli(key)
         mod_name = '%s.%s' % (self._PLUGIN_BASE_MODULE, name)
         if key is None:
-            make_ipa_parser().print_help(outfile)
+            self.api.parser.print_help(outfile)
             return
         if name == "topics":
             self.print_topics(outfile)
@@ -771,7 +771,7 @@ class help(frontend.Local):
             if cmd.NO_CLI:
                 raise HelpError(topic=name)
             writer(_('Purpose: %s') % unicode(_(cmd.doc)).strip())
-            self.Backend.cli.build_parser(cmd).print_help()
+            self.Backend.cli.build_parser(cmd).print_help(outfile)
         elif mod_name in sys.modules:
             self.print_commands(name, outfile)
         elif name == "commands":
@@ -794,10 +794,6 @@ class help(frontend.Local):
         topics = sorted(self._topics.keys())
 
         writer(_('Usage: ipa [global-options] COMMAND [command-options]...'))
-        writer()
-        writer(_('Built-in commands:'))
-        for c in self._builtins:
-            writer('  %s  %s' % (to_cli(c.name).ljust(self._mtl), c.summary))
         writer()
         writer(_('Help topics:'))
         for t in topics:
@@ -1029,8 +1025,9 @@ class cli(backend.Executioner):
         On incorrect invocation, prints out a help message and returns None
         """
         if len(argv) == 0:
+            self.Command.help(outfile=sys.stderr)
+            print >>sys.stderr
             print >>sys.stderr, 'Error: Command not specified'
-            self.Command.help()
             exit(2)
         (key, argv) = (argv[0], argv[1:])
         name = from_cli(key)
