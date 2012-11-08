@@ -1051,10 +1051,10 @@ class cli(backend.Executioner):
         if cmd is None:
             return
         name = cmd.name
+        kw = self.argv_to_keyword_arguments(cmd, argv[1:])
         if not isinstance(cmd, frontend.Local):
             self.create_context()
         try:
-            kw = self.argv_to_keyword_arguments(cmd, argv[1:])
             result = self.execute(name, **kw)
             if callable(cmd.output_for_cli):
                 for param in cmd.params():
