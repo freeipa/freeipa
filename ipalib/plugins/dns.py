@@ -267,7 +267,7 @@ def _create_zone_serial():
 
 def _reverse_zone_name(netstr):
     try:
-        netaddr.IPAddress(netstr)
+        netaddr.IPAddress(str(netstr))
     except (netaddr.AddrFormatError, ValueError):
         pass
     else:
@@ -285,7 +285,7 @@ def _reverse_zone_name(netstr):
 
 def _validate_ipaddr(ugettext, ipaddr, ip_version=None):
     try:
-        ip = netaddr.IPAddress(ipaddr, flags=netaddr.INET_PTON)
+        ip = netaddr.IPAddress(str(ipaddr), flags=netaddr.INET_PTON)
 
         if ip_version is not None:
             if ip.version != ip_version:
@@ -454,7 +454,7 @@ def add_forward_record(zone, name, str_address):
         pass # the entry already exists and matches
 
 def get_reverse_zone(ipaddr, prefixlen=None):
-    ip = netaddr.IPAddress(ipaddr)
+    ip = netaddr.IPAddress(str(ipaddr))
     revdns = unicode(ip.reverse_dns)
 
     if prefixlen is None:

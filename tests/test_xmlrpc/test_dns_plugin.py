@@ -1095,7 +1095,7 @@ class test_dns(Declarative):
             desc='Try to add invalid allow-query to zone %r' % dnszone1,
             command=('dnszone_mod', [dnszone1], {'idnsallowquery': u'foo'}),
             expected=errors.ValidationError(name='allow_query',
-                error=u"failed to detect a valid IP address from u'foo'"),
+                error=u"failed to detect a valid IP address from 'foo'"),
         ),
 
         dict(
@@ -1128,7 +1128,7 @@ class test_dns(Declarative):
             desc='Try to add invalid allow-transfer to zone %r' % dnszone1,
             command=('dnszone_mod', [dnszone1], {'idnsallowtransfer': u'10.'}),
             expected=errors.ValidationError(name='allow_transfer',
-                error=u"failed to detect a valid IP address from u'10.'"),
+                error=u"failed to detect a valid IP address from '10.'"),
         ),
 
         dict(

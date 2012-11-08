@@ -469,11 +469,11 @@ class test_Param(ClassChecker):
         assert str(e) == 'value: empty tuple must be converted to None'
 
         # Test with wrong (scalar) type:
-        e = raises(ValidationError, o.validate, (None, None, 42, None), 'cli')
-        assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', NoneType, 42, int))
+        e = raises(TypeError, o.validate, (None, None, 42, None), 'cli')
+        assert str(e) == TYPE_ERROR % ('my_param', NoneType, 42, int)
         o = self.cls('my_param')
-        e = raises(ValidationError, o.validate, 'Hello', 'cli')
-        assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', NoneType, 'Hello', str))
+        e = raises(TypeError, o.validate, 'Hello', 'cli')
+        assert str(e) == TYPE_ERROR % ('my_param', NoneType, 'Hello', str)
 
         class Example(self.cls):
             type = int
@@ -535,10 +535,10 @@ class test_Param(ClassChecker):
         o = MyParam('my_param', okay)
 
         # Test that TypeError is appropriately raised:
-        e = raises(ValidationError, o._validate_scalar, 0)
-        assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', bool, 0, int))
-        e = raises(ValidationError, o._validate_scalar, 'Hi', index=4)
-        assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', bool, 'Hi', str))
+        e = raises(TypeError, o._validate_scalar, 0)
+        assert str(e) == TYPE_ERROR % ('my_param', bool, 0, int)
+        e = raises(TypeError, o._validate_scalar, 'Hi', index=4)
+        assert str(e) == TYPE_ERROR % ('my_param', bool, 'Hi', str)
         e = raises(TypeError, o._validate_scalar, True, index=3.0)
         assert str(e) == TYPE_ERROR % ('index', int, 3.0, float)
 
@@ -1574,4 +1574,4 @@ class test_IA5Str(ClassChecker):
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
             assert e.index is None
-            assert_equal(e.error, "The character \''\\xc3'\' is not allowed.")
+            assert_equal(e.error, "The character '\\xc3' is not allowed.")

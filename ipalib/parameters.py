@@ -879,10 +879,8 @@ class Param(ReadOnly):
 
     def _validate_scalar(self, value, index=None):
         if type(value) is not self.type:
-            raise ValidationError(name=self.name,
-                error='need a %r; got %r (a %r)' % (
-                    self.type, value, type(value)
-                )
+            raise TypeError(
+                TYPE_ERROR % (self.name, self.type, value, type(value))
             )
         if index is not None and type(index) is not int:
             raise TypeError(
@@ -1167,11 +1165,9 @@ class Int(Number):
         the exception that it allows both int and long types. The
         min/max rules handle size enforcement.
         """
-        if type(value)  not in (int, long):
-            raise ValidationError(name=self.name,
-                error='need a %r; got %r (a %r)' % (
-                    self.type, value, type(value)
-                )
+        if type(value) not in (int, long):
+            raise TypeError(
+                TYPE_ERROR % (self.name, self.type, value, type(value))
             )
         if index is not None and type(index) is not int:
             raise TypeError(
@@ -1553,7 +1549,7 @@ class IA5Str(Str):
                 if ord(value[i]) > 127:
                     raise ConversionError(name=self.get_param_name(),
                         index=index,
-                        error=_('The character \'%(char)r\' is not allowed.') %
+                        error=_('The character %(char)r is not allowed.') %
                             dict(char=value[i],)
                     )
         return super(IA5Str, self)._convert_scalar(value, index)

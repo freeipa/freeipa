@@ -166,7 +166,7 @@ class PluginSubclassError(PrivateError):
 
     """
 
-    format  = '%(plugin)r not subclass of any base in %(bases)r'
+    format = '%(plugin)r not subclass of any base in %(bases)r'
 
 
 class PluginDuplicateError(PrivateError):
@@ -311,7 +311,7 @@ class VersionError(PublicError):
     """
 
     errno = 901
-    format = _('%(cver)s client incompatible with %(sver)s server at %(server)r')
+    format = _("%(cver)s client incompatible with %(sver)s server at '%(server)s'")
 
 
 class UnknownError(PublicError):
@@ -367,7 +367,7 @@ class ServerInternalError(PublicError):
     """
 
     errno = 904
-    format = _('an internal error has occurred on server at %(server)r')
+    format = _("an internal error has occurred on server at '%(server)s'")
 
 
 class CommandError(PublicError):
@@ -383,7 +383,7 @@ class CommandError(PublicError):
     """
 
     errno = 905
-    format = _('unknown command %(name)r')
+    format = _("unknown command '%(name)s'")
 
 
 class ServerCommandError(PublicError):
@@ -400,7 +400,7 @@ class ServerCommandError(PublicError):
     """
 
     errno = 906
-    format = _('error on server %(server)r: %(error)s')
+    format = _("error on server '%(server)s': %(error)s")
 
 
 class NetworkError(PublicError):
@@ -416,7 +416,7 @@ class NetworkError(PublicError):
     """
 
     errno = 907
-    format = _('cannot connect to %(uri)r: %(error)s')
+    format = _("cannot connect to '%(uri)s': %(error)s")
 
 
 class ServerNetworkError(PublicError):
@@ -425,7 +425,7 @@ class ServerNetworkError(PublicError):
     """
 
     errno = 908
-    format = _('error on server %(server)r: %(error)s')
+    format = _("error on server '%(server)s': %(error)s")
 
 
 class JSONError(PublicError):
@@ -526,7 +526,7 @@ class ServiceError(KerberosError):
     """
 
     errno = 1102
-    format = _('Service %(service)r not found in Kerberos database')
+    format = _("Service '%(service)s' not found in Kerberos database")
 
 
 class NoCCacheError(KerberosError):
@@ -688,7 +688,7 @@ class ZeroArgumentError(InvocationError):
     """
 
     errno = 3003
-    format = _('command %(name)r takes no arguments')
+    format = _("command '%(name)s' takes no arguments")
 
 
 class MaxArgumentError(InvocationError):
@@ -708,8 +708,8 @@ class MaxArgumentError(InvocationError):
     def __init__(self, message=None, **kw):
         if message is None:
             format = ungettext(
-                'command %(name)r takes at most %(count)d argument',
-                'command %(name)r takes at most %(count)d arguments',
+                "command '%(name)s' takes at most %(count)d argument",
+                "command '%(name)s' takes at most %(count)d arguments",
                 kw['count']
             )
         else:
@@ -738,7 +738,7 @@ class OverlapError(InvocationError):
     """
 
     errno = 3006
-    format = _('overlapping arguments and options: %(names)r')
+    format = _("overlapping arguments and options: %(names)s")
 
 
 class RequirementError(InvocationError):
@@ -754,7 +754,7 @@ class RequirementError(InvocationError):
     """
 
     errno = 3007
-    format = _('%(name)r is required')
+    format = _("'%(name)s' is required")
 
 
 class ConversionError(InvocationError):
@@ -770,7 +770,7 @@ class ConversionError(InvocationError):
     """
 
     errno = 3008
-    format = _('invalid %(name)r: %(error)s')
+    format = _("invalid '%(name)s': %(error)s")
 
 
 class ValidationError(InvocationError):
@@ -786,7 +786,7 @@ class ValidationError(InvocationError):
     """
 
     errno = 3009
-    format = _('invalid %(name)r: %(error)s')
+    format = _("invalid '%(name)s': %(error)s")
 
 
 class NoSuchNamespaceError(InvocationError):
@@ -802,7 +802,7 @@ class NoSuchNamespaceError(InvocationError):
     """
 
     errno = 3010
-    format = _('api has no such namespace: %(name)r')
+    format = _("api has no such namespace: '%(name)s'")
 
 
 class PasswordMismatch(InvocationError):
@@ -978,7 +978,7 @@ class MalformedUserPrincipal(ExecutionError):
     """
 
     errno = 4008
-    format = _('Principal is not of the form user@REALM: %(principal)r')
+    format = _("Principal is not of the form user@REALM: '%(principal)s'")
 
 class AlreadyActive(ExecutionError):
     """
@@ -1357,7 +1357,7 @@ class HelpError(BuiltinError):
     """
 
     errno = 4101
-    format = _('no command nor help topic %(topic)r')
+    format = _("no command nor help topic '%(topic)s'")
 
 
 class LDAPError(ExecutionError):

@@ -526,7 +526,7 @@ def zone_is_reverse(zone_name):
     return False
 
 def get_reverse_zone_default(ip_address):
-    ip = netaddr.IPAddress(ip_address)
+    ip = netaddr.IPAddress(str(ip_address))
     items = ip.reverse_dns.split('.')
 
     if ip.version == 4:

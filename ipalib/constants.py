@@ -39,7 +39,7 @@ NULLS = (None, '', u'', tuple(), [])
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
 
 # Format for ValueError raised when name does not match above regex:
-NAME_ERROR = 'name must match %r; got %r'
+NAME_ERROR = "name must match '%s'; got '%s'"
 
 # Standard format for TypeError message:
 TYPE_ERROR = '%s: need a %r; got %r (a %r)'

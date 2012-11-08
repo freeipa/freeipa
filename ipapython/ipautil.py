@@ -103,7 +103,7 @@ class CheckedIPAddress(netaddr.IPAddress):
         else:
             try:
                 try:
-                    addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
+                    addr = netaddr.IPAddress(str(addr), flags=self.netaddr_ip_flags)
                 except netaddr.AddrFormatError:
                     # netaddr.IPAddress doesn't handle zone indices in textual
                     # IPv6 addresses. Try removing zone index and parse the
@@ -113,11 +113,11 @@ class CheckedIPAddress(netaddr.IPAddress):
                     addr, sep, foo = addr.partition('%')
                     if sep != '%':
                         raise
-                    addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
+                    addr = netaddr.IPAddress(str(addr), flags=self.netaddr_ip_flags)
                     if addr.version != 6:
                         raise
             except ValueError:
-                net = netaddr.IPNetwork(addr, flags=self.netaddr_ip_flags)
+                net = netaddr.IPNetwork(str(addr), flags=self.netaddr_ip_flags)
                 if not parse_netmask:
                     raise ValueError("netmask and prefix length not allowed here")
                 addr = net.ip
