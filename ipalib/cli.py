@@ -664,7 +664,10 @@ class help(frontend.Local):
     Display help for a command or topic.
     """
 
-    takes_args = (Str('command?'),)
+    takes_args = (
+        Str('command?', cli_name='topic', label=_('Topic or Command'),
+            doc=_('The topic or command name.')),
+    )
     takes_options = (
         Any('outfile?', flags=['no_option']),
     )
