@@ -531,7 +531,7 @@ class API(DictProxy):
                     'See "ipa help <TOPIC>" for more information on a '
                         'specific topic.',
                     'See "ipa help commands" for the full list of commands.',
-                    'See "ipa help <COMMAND>" for more information on a '
+                    'See "ipa <COMMAND> --help" for more information on a '
                         'specific command.',
                 ]))
             parser.disable_interspersed_args()
