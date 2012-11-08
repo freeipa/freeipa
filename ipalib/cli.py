@@ -791,16 +791,9 @@ class help(frontend.Local):
 
     def print_topics(self, outfile):
         writer = self._writer(outfile)
-        topics = sorted(self._topics.keys())
 
-        writer(_('Usage: ipa [global-options] COMMAND [command-options]...'))
-        writer()
-        writer(_('Help topics:'))
-        for t in topics:
-            topic = self._topics[t]
-            writer('  %s  %s' % (to_cli(t).ljust(self._mtl), topic[0]))
-        writer()
-        writer(_('Try `ipa --help` for a list of global options.'))
+        for t, topic in sorted(self._topics.items()):
+            writer('%s  %s' % (to_cli(t).ljust(self._mtl), topic[0]))
 
     def print_commands(self, topic, outfile):
         writer = self._writer(outfile)
