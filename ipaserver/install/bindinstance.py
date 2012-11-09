@@ -564,7 +564,6 @@ class BindInstance(service.Service):
 
     def __setup_zone(self):
         nameserver_ip_address = self.ip_address
-        force = False
         if not self.host_in_default_domain():
             # add DNS domain for host first
             root_logger.debug("Host domain (%s) is different from DNS domain (%s)!" \
@@ -572,15 +571,13 @@ class BindInstance(service.Service):
             root_logger.debug("Add DNS zone for host first.")
 
             add_zone(self.host_domain, self.zonemgr, dns_backup=self.dns_backup,
-                    ns_hostname=api.env.host, ns_ip_address=self.ip_address)
+                    ns_hostname=api.env.host, ns_ip_address=self.ip_address, force=True)
             # Nameserver is in self.host_domain, no forward record added to self.domain
             nameserver_ip_address = None
-            # Set force=True in case nameserver added in previous step
-            # is not resolvable yet
-            force = True
+        # Always use force=True as named is not set up yet
         add_zone(self.domain, self.zonemgr, dns_backup=self.dns_backup,
                 ns_hostname=api.env.host, ns_ip_address=nameserver_ip_address,
-                force=force)
+                force=True)
 
     def __add_self_ns(self):
         add_ns_rr(self.domain, api.env.host, self.dns_backup, force=True)
@@ -612,8 +609,9 @@ class BindInstance(service.Service):
             add_ptr_rr(self.reverse_zone, self.ip_address, self.fqdn)
 
     def __setup_reverse_zone(self):
+        # Always use force=True as named is not set up yet
         add_zone(self.reverse_zone, self.zonemgr, ns_hostname=api.env.host,
-                dns_backup=self.dns_backup)
+                dns_backup=self.dns_backup, force=True)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm
