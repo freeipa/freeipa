@@ -184,6 +184,16 @@ EXAMPLES:
  Show records for resource www in zone example.com
    ipa dnsrecord-show example.com www
 
+ Delegate zone sub.example to another nameserver:
+   ipa dnsrecord-add example.com ns.sub --a-rec=10.0.100.5
+   ipa dnsrecord-add example.com sub --ns-rec=ns.sub.example.com.
+
+ If global forwarder is configured, all requests to sub.example.com will be
+ routed through the global forwarder. To change the behavior for example.com
+ zone only and forward the request directly to ns.sub.example.com., global
+ forwarding may be disabled per-zone:
+   ipa dnszone-mod example.com --forward-policy=none
+
  Forward all requests for the zone external.com to another nameserver using
  a "first" policy (it will send the queries to the selected forwarder and if
  not answered it will use global resolvers):
@@ -1691,7 +1701,10 @@ class dnszone(LDAPObject):
         StrEnum('idnsforwardpolicy?',
             cli_name='forward_policy',
             label=_('Forward policy'),
-            values=(u'only', u'first',),
+            doc=_('Per-zone conditional forwarding policy. Set to "none" to '
+                  'disable forwarding to global forwarder for this zone. In '
+                  'that case, conditional zone forwarders are disregarded.'),
+            values=(u'only', u'first', u'none'),
         ),
         Bool('idnsallowsyncptr?',
             cli_name='allow_sync_ptr',
@@ -2923,7 +2936,9 @@ class dnsconfig(LDAPObject):
         StrEnum('idnsforwardpolicy?',
             cli_name='forward_policy',
             label=_('Forward policy'),
-            values=(u'only', u'first',),
+            doc=_('Global forwarding policy. Set to "none" to disable '
+                  'any configured global forwarders.'),
+            values=(u'only', u'first', u'none'),
         ),
         Bool('idnsallowsyncptr?',
             cli_name='allow_sync_ptr',
