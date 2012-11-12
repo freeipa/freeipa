@@ -437,25 +437,33 @@ class CADSInstance(service.Service):
         # At one time we removed this user on uninstall. That can potentially
         # orphan files, or worse, if another useradd runs in the intermim,
         # cause files to have a new owner.
-        cmonger = ipaservices.knownservices.certmonger
-        ipaservices.knownservices.messagebus.start()
-        cmonger.start()
 
-        for nickname in ['Server-Cert cert-pki-ca',
-                         'auditSigningCert cert-pki-ca',
-                         'ocspSigningCert cert-pki-ca',
-                         'subsystemCert cert-pki-ca']:
-            try:
-                certmonger.stop_tracking(
-                    self.dogtag_constants.ALIAS_DIR, nickname=nickname)
-            except (ipautil.CalledProcessError, RuntimeError), e:
-                root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
 
+def stop_tracking_certificates(dogtag_constants):
+    """Stop tracking our certificates. Called on uninstall.
+    """
+    cmonger = ipaservices.knownservices.certmonger
+    ipaservices.knownservices.messagebus.start()
+    cmonger.start()
+
+    for nickname in ['Server-Cert cert-pki-ca',
+                        'auditSigningCert cert-pki-ca',
+                        'ocspSigningCert cert-pki-ca',
+                        'subsystemCert cert-pki-ca']:
         try:
-            certmonger.stop_tracking('/etc/httpd/alias', nickname='ipaCert')
+            certmonger.stop_tracking(
+                dogtag_constants.ALIAS_DIR, nickname=nickname)
         except (ipautil.CalledProcessError, RuntimeError), e:
-            root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
-        cmonger.stop()
+            root_logger.error(
+                "certmonger failed to stop tracking certificate: %s" % str(e))
+
+    try:
+        certmonger.stop_tracking('/etc/httpd/alias', nickname='ipaCert')
+    except (ipautil.CalledProcessError, RuntimeError), e:
+        root_logger.error(
+            "certmonger failed to stop tracking certificate: %s" % str(e))
+    cmonger.stop()
+
 
 class CAInstance(service.Service):
     """

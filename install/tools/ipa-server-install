@@ -482,11 +482,12 @@ def uninstall():
         print "ipa-client-install returned: " + str(e)
 
     ntpinstance.NTPInstance(fstore).uninstall()
-    if not dogtag.install_constants.SHARED_DB:
+    if not dogtag_constants.SHARED_DB:
         cads_instance = cainstance.CADSInstance(
             dogtag_constants=dogtag_constants)
         if cads_instance.is_configured():
             cads_instance.uninstall()
+    cainstance.stop_tracking_certificates(dogtag_constants)
     ca_instance = cainstance.CAInstance(
         api.env.realm, certs.NSS_DIR, dogtag_constants=dogtag_constants)
     if ca_instance.is_configured():
@@ -534,7 +535,7 @@ def uninstall():
 
     # Note that this name will be wrong after the first uninstall.
     dirname = dsinstance.config_dirname(dsinstance.realm_to_serverid(api.env.realm))
-    dirs = [dirname, dogtag.configured_constants().ALIAS_DIR, certs.NSS_DIR]
+    dirs = [dirname, dogtag_constants.ALIAS_DIR, certs.NSS_DIR]
     ids = certmonger.check_state(dirs)
     if ids:
         root_logger.error('Some certificates may still be tracked by certmonger.\nThis will cause re-installation to fail.\nStart the certmonger service and list the certificates being tracked\n # getcert list\nThese may be untracked by executing\n # getcert stop-tracking -i <request_id>\nfor each id in: %s' % ', '.join(ids))
