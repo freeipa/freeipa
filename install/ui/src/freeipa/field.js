@@ -1,4 +1,3 @@
-/*jsl:import ipa.js */
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *    Adam Young <ayoung@redhat.com>
@@ -22,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, widget.js */
+define(['./ipa', './jquery'], function(IPA, $) {
 
 IPA.field = function(spec) {
     spec = spec || {};
@@ -949,3 +948,6 @@ IPA.field_factories['sshkeys'] = IPA.sshkeys_field;
 IPA.field_factories['textarea'] = IPA.field;
 IPA.field_factories['text'] = IPA.field;
 IPA.field_factories['value_map'] = IPA.field;
+
+return {};
+});

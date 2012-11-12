@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
@@ -23,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js */
+define(['./ipa', './jquery', './facet'], function(IPA, $) {
 
 IPA.search_facet = function(spec, no_init) {
 
@@ -489,3 +487,6 @@ IPA.batch_enable_action = function(spec) {
 
     return IPA.batch_items_action(spec);
 };
+
+return {};
+});

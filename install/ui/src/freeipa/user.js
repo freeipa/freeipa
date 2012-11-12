@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
@@ -23,7 +21,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
+define(['./ipa', './jquery', './details', './search', './association',
+       './entity', './certificate'], function(IPA, $) {
 
 IPA.user = {};
 
@@ -661,3 +660,6 @@ IPA.user.reset_password_acl_evaluator = function(spec) {
 };
 
 IPA.register('user', IPA.user.entity);
+
+return {};
+});

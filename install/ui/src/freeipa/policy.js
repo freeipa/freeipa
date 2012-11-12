@@ -1,6 +1,3 @@
-/*jsl:import ipa.js */
-/*jsl:import search.js */
-
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
  *
@@ -21,7 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
+define(['./ipa', './jquery', './details', './search', './association',
+       './entity'], function(IPA, $) {
 
 IPA.pwpolicy = {};
 
@@ -120,3 +118,6 @@ IPA.krbtpolicy.entity = function(spec) {
 
 IPA.register('pwpolicy', IPA.pwpolicy.entity);
 IPA.register('krbtpolicy', IPA.krbtpolicy.entity);
+
+return {};
+});

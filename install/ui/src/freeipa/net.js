@@ -18,6 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+define(['./ipa', './jquery'], function(IPA, $) {
+
 var NET = {};
 
 NET.ip_address = function(spec) {
@@ -392,3 +394,6 @@ NET.ip_address = function(spec) {
 
     return that;
 };
+
+return NET;
+});

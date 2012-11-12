@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -20,7 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js,hbac.js */
+define(['./ipa', './jquery', './details', './search', './association',
+       './entity', './hbac'], function(IPA, $) {
 
 IPA.hbac.test_entity = function(spec) {
 
@@ -840,3 +839,6 @@ IPA.hbac.validation_dialog = function(spec)  {
 };
 
 IPA.register('hbactest', IPA.hbac.test_entity);
+
+return {};
+});

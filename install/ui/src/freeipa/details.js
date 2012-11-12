@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
@@ -25,7 +23,7 @@
 
 /* IPA Object Details - populating definiton lists from entry data */
 
-/* REQUIRES: ipa.js */
+define(['./ipa', './jquery', './facet', './add'], function(IPA, $) {
 
 IPA.expanded_icon = 'expanded-icon';
 IPA.collapsed_icon = 'collapsed-icon';
@@ -1237,3 +1235,6 @@ IPA.disabled_summary_cond = function() {
         state: ['disabled']
     };
 };
+
+return {};
+});

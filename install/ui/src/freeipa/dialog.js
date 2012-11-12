@@ -20,7 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: widget.js, details.js */
+define(['./ipa', './jquery', './field', './widget'], function(IPA, $) {
 
 IPA.opened_dialogs = {
 
@@ -847,3 +847,6 @@ IPA.confirm_mixin = function() {
         }
     };
 };
+
+return {};
+});

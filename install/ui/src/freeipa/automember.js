@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Petr Vobornik <pvoborni@redhat.com>
  *
@@ -20,7 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
+define(['./ipa', './jquery',  './details', './search', './association',
+       './entity'], function(IPA, $) {
 
 IPA.automember = {};
 
@@ -677,3 +676,6 @@ IPA.automember.default_group_widget = function(spec) {
 
 
 IPA.register('automember', IPA.automember.entity);
+
+return {};
+});

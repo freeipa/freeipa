@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
  *    Endi S. Dewata <edewata@redhat.com>
@@ -21,7 +19,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
+define(['./ipa', './jquery', './details', './search', './association',
+       './entity'], function(IPA, $) {
 
 IPA.aci = {};
 
@@ -895,3 +894,6 @@ IPA.register('privilege', IPA.aci.privilege_entity);
 IPA.register('role', IPA.aci.role_entity);
 IPA.register('selfservice', IPA.aci.selfservice_entity);
 IPA.register('delegation', IPA.aci.delegation_entity);
+
+return IPA.aci;
+});

@@ -21,6 +21,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+define(['./ipa', './jquery'], function(IPA, $) {
+
 IPA.navigation = function(spec) {
 
     spec = spec || {};
@@ -453,3 +455,6 @@ IPA.navigation = function(spec) {
 
     return that;
 };
+
+return {};
+});

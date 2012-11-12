@@ -21,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js */
+define(['./ipa', './jquery'], function(IPA, $) {
 
 IPA.checkbox_column_width = 22;
 IPA.required_indicator = '*';
@@ -3557,3 +3557,6 @@ IPA.widget_factories['sshkeys'] = IPA.sshkeys_widget;
 IPA.widget_factories['textarea'] = IPA.textarea_widget;
 IPA.widget_factories['text'] = IPA.text_widget;
 IPA.widget_factories['value_map'] = IPA.value_map_widget;
+
+return {};
+});
