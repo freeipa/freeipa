@@ -55,6 +55,7 @@ app_DATA =				\
 	automember.ldif			\
 	replica-automember.ldif		\
 	replica-s4u2proxy.ldif		\
+	upload-cacert.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

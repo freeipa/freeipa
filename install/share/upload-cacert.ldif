@@ -1,0 +1,7 @@
+# add CA certificate to LDAP server
+dn: cn=CAcert,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: pkiCA
+cn: CAcert
+cACertificate;binary:: $CADERCERT

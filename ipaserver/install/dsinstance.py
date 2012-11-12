@@ -43,6 +43,7 @@ from ipaserver.install import httpinstance
 from ipaserver.install import replication
 from ipalib import util, errors
 from ipaserver.plugins.ldap2 import ldap2
+import base64
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -242,6 +243,8 @@ class DsInstance(service.Service):
         self.step("creating default Auto Member layout", self.__add_automember_config)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
+
+        self.step("Upload CA cert to the directory", self.__upload_ca_cert)
 
         self.__common_post_setup()
 
@@ -561,6 +564,19 @@ class DsInstance(service.Service):
 
         # check for open secure port 636 from now on
         self.open_ports.append(636)
+
+    def __upload_ca_cert(self):
+        """
+        Upload the CA certificate in DER form in the LDAP directory.
+        """
+
+        dirname = config_dirname(self.serverid)
+        certdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
+
+        dercert = certdb.get_cert_from_db(certdb.cacert_name, pem=False)
+        self.sub_dict['CADERCERT'] = base64.b64encode(dercert)
+
+        self._ldap_mod('upload-cacert.ldif', self.sub_dict)
 
     def __add_default_layout(self):
         self._ldap_mod("bootstrap-template.ldif", self.sub_dict)
