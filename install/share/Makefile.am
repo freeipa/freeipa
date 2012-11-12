@@ -60,7 +60,8 @@ app_DATA =				\
 	automember.ldif			\
 	replica-automember.ldif		\
 	replica-s4u2proxy.ldif		\
-	copy-schema-to-ca.py				\
+	copy-schema-to-ca.py		\
+	upload-cacert.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\
