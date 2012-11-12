@@ -22,9 +22,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-/* REQUIRES: jquery.ordered-map.js */
-/*global $:true, location:true */
+define(['./jquery', './json2'], function($, JSON) {
 
 var IPA = function() {
 
@@ -2119,3 +2117,6 @@ IPA.config = {
     message_fadeout_time: 800, // [ms]
     message_fadein_time: 400 // [ms]
 };
+
+return IPA;
+});

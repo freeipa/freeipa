@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Endi Sukma Dewata <edewata@redhat.com>
@@ -23,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js */
+define(['./ipa', './jquery', './dialog', './field', './widget'], function(IPA, $) {
 
 IPA.facet = function(spec, no_init) {
 
@@ -2042,3 +2040,6 @@ IPA.action_list_widget = function(spec) {
 
     return that;
 };
+
+return {};
+});

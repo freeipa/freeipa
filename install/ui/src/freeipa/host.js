@@ -1,6 +1,3 @@
-/*jsl:import ipa.js */
-/*jsl:import certificate.js */
-
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Endi S. Dewata <edewata@redhat.com>
@@ -22,7 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
+define(['./ipa', './jquery', './details', './search', './association',
+       './entity', './certificate'], function(IPA, $) {
 
 IPA.host = {};
 
@@ -945,3 +943,6 @@ IPA.host.certificate_policy = function(spec) {
 };
 
 IPA.register('host', IPA.host.entity);
+
+return {};
+});

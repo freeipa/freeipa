@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -20,7 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
+define(['./ipa', './jquery', './details', './search', './association',
+       './entity'], function(IPA, $) {
 
 IPA.rule_details_widget = function(spec) {
 
@@ -252,3 +251,6 @@ IPA.rule_association_adder_dialog = function(spec) {
 
     return that;
 };
+
+return {};
+});

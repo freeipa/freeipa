@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Endi S. Dewata <edewata@redhat.com>
  *
@@ -20,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
-
+define(['./ipa', './jquery', './details', './search', './add',
+       './facet', './entity', './field', './widget'], function(IPA, $) {
 
 IPA.entitle = {};
 
@@ -743,3 +741,6 @@ IPA.entitle.download_widget = function(spec) {
 };
 
 IPA.register('entitle', IPA.entitle.entity);
+
+return {};
+});

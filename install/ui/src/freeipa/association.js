@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
  *    Petr Vobornik <pvoborni@redhat.com>
@@ -21,9 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* REQUIRES: ipa.js */
 /* CURRENTLY ALSO REQUIRES search.js, because it reuses it's code to create
  * the AssociationList elements; IT NEEDS IT'S OWN CODE! */
+
+define(['./ipa', './jquery', './search', './dialog'], function(IPA, $) {
 
 IPA.associator = function (spec) {
 
@@ -1387,3 +1386,6 @@ IPA.attr_read_only_evaluator = function(spec) {
 
     return that;
 };
+
+return {};
+});

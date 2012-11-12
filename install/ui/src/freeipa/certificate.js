@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *    Petr Vobornik <pvoborni@redhat.com>
@@ -20,6 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+define(['./ipa', './jquery', './dialog'], function(IPA, $) {
 
 IPA.cert = {};
 
@@ -922,3 +922,6 @@ IPA.cert.status_field = function(spec) {
 
 IPA.widget_factories['certificate_status'] = IPA.cert.status_widget;
 IPA.field_factories['certificate_status'] = IPA.cert.status_field;
+
+return {};
+});

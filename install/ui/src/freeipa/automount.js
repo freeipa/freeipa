@@ -1,6 +1,3 @@
-/*jsl:import ipa.js */
-/*jsl:import search.js */
-
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
  *
@@ -21,7 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
+define(['./ipa', './jquery', './details', './search', './association',
+       './entity'], function(IPA, $) {
 
 IPA.automount = {};
 
@@ -352,3 +350,6 @@ IPA.automount.key_search_facet = function(spec) {
 IPA.register('automountlocation', IPA.automount.location_entity);
 IPA.register('automountmap', IPA.automount.map_entity);
 IPA.register('automountkey', IPA.automount.key_entity);
+
+return {};
+});

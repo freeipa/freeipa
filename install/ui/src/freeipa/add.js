@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Endi Sukma Dewata <edewata@redhat.com>
@@ -21,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* REQUIRES: ipa.js */
+define(['./ipa', './jquery', './field', './widget', './dialog'], function(IPA, $) {
 
 IPA.entity_adder_dialog = function(spec) {
 
@@ -205,3 +203,6 @@ IPA.entity_adder_dialog = function(spec) {
 
     return that;
 };
+
+return IPA.entity_adder_dialog;
+});

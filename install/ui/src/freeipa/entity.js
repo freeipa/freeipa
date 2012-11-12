@@ -1,7 +1,3 @@
-/*jsl:import ipa.js */
-/*jsl:import facet.js */
-/*jsl:import navigation.js */
-
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Endi Sukma Dewata <edewata@redhat.com>
@@ -25,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, facet.js, details.js, search.js, add.js */
+define(['./ipa', './jquery', './facet'], function(IPA, $) {
 
 IPA.entity = function(spec) {
 
@@ -729,3 +725,6 @@ IPA.details_facet_update_policy = function(spec) {
 
     return IPA.facet_update_policy(spec);
 };
+
+return {};
+});

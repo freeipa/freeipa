@@ -1,5 +1,3 @@
-/*jsl:import ipa.js */
-
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -20,7 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
+define(['./ipa', './jquery', './details', './search', './association',
+       './entity'], function(IPA, $) {
 
 IPA.sudo = {
     //priority of commands in details facet
@@ -928,3 +927,6 @@ IPA.sudo.options_section = function(spec) {
 IPA.register('sudorule', IPA.sudo.rule_entity);
 IPA.register('sudocmd', IPA.sudo.command_entity);
 IPA.register('sudocmdgroup', IPA.sudo.command_group_entity);
+
+return {};
+});

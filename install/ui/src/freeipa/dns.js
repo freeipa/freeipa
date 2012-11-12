@@ -1,7 +1,3 @@
-/*jsl:import ipa.js */
-/*jsl:import search.js */
-/*jsl:import net.js */
-
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
  *    Petr Vobornik <pvoborni@redhat.com>
@@ -23,8 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js,
- *           net.js, widget.js */
+
+define(['./ipa', './jquery', './net', './details', './search', './association',
+       './entity'], function(IPA, $, NET) {
 
 IPA.dns = {
     zone_permission_name: 'Manage DNS zone ${dnszone}'
@@ -2550,3 +2547,6 @@ IPA.network_validator = function(spec) {
 IPA.register('dnsconfig', IPA.dns.config_entity);
 IPA.register('dnszone', IPA.dns.zone_entity);
 IPA.register('dnsrecord', IPA.dns.record_entity);
+
+return {};
+});
