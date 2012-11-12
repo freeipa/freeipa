@@ -612,6 +612,8 @@ class CAInstance(service.Service):
             "pki_client_database_purge": "False",
             "pki_client_pkcs12_password": self.admin_password,
             "pki_security_domain_name": self.domain_name,
+            "pki_admin_name":  "admin",
+            "pki_admin_uid":  "admin",
             "pki_admin_email":  "root@localhost",
             "pki_admin_password": self.admin_password,
             "pki_admin_nickname": "ipa-ca-agent",
@@ -651,6 +653,7 @@ class CAInstance(service.Service):
                 "pki_clone_pkcs12_path": "/tmp/ca.p12",
                 "pki_security_domain_hostname": self.master_host,
                 "pki_security_domain_https_port": "443",
+                "pki_security_domain_user": "admin",
                 "pki_security_domain_password": self.admin_password,
                 "pki_clone_replication_security": "TLS",
                 "pki_clone_uri": \
