@@ -4,12 +4,15 @@
 
 
 var profile = (function(){
+
+    var js_files = /\.js$/;
+
     return {
         resourceTags: {
 
             // all JavaScript files are AMD modules
             amd: function(filename, mid) {
-                return /\.js$/.test(filename);
+                return js_files.test(filename);
             }
         }
     };

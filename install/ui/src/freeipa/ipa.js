@@ -1,4 +1,3 @@
-/*jsl:import jquery.ordered-map.js */
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
