@@ -678,13 +678,16 @@ class LDAPUpdate:
                 root_logger.error("Update failed: %s", e)
                 updated = False
 
-            if ("cn=index" in entry.dn and
-                "cn=userRoot" in entry.dn):
-                taskid = self.create_index_task(entry.cn)
-                self.monitor_index_task(taskid)
-
             if updated:
                 self.modified = True
+
+        # Always run the index task for both new and updated indexes
+        # See https://fedorahosted.org/freeipa/ticket/3253 for related issue
+        if entry.dn.endswith('cn=index,cn=userRoot,cn=ldbm database,'
+                             'cn=plugins,cn=config'):
+            taskid = self.create_index_task(entry.cn)
+            self.monitor_index_task(taskid)
+
         return
 
     def __delete_record(self, updates):
