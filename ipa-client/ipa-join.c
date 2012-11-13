@@ -166,8 +166,8 @@ callRPC(char * user_agent,
     memset(curlXportParmsP, 0, sizeof(*curlXportParmsP));
 
     /* Have curl do SSL certificate validation */
-    curlXportParmsP->no_ssl_verifypeer = 1;
-    curlXportParmsP->no_ssl_verifyhost = 1;
+    curlXportParmsP->no_ssl_verifypeer = 0;
+    curlXportParmsP->no_ssl_verifyhost = 0;
     curlXportParmsP->cainfo = "/etc/ipa/ca.crt";
     curlXportParmsP->user_agent = user_agent;
     /* Enable GSSAPI credentials delegation */
