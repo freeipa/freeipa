@@ -399,8 +399,8 @@ IPA.login_password = function(username, password) {
 
             //change result from invalid only if we have a header which we
             //understand
-            if (reason === 'password-expired') {
-                result = 'expired';
+            if (reason === 'password-expired' || reason === 'denied') {
+                result = reason;
             }
         }
 
@@ -1701,6 +1701,8 @@ IPA.unauthorized_dialog = function(spec) {
 
     that.password_expired = "Your password has expired. Please enter a new password.";
 
+    that.denied = "Sorry you are not allowed to access this service.";
+
     that.create = function() {
 
         that.session_expired_form();
@@ -1816,6 +1818,16 @@ IPA.unauthorized_dialog = function(spec) {
     that.open = function() {
         that.dialog_open();
         that.show_session_form();
+        that.check_error_reason();
+    };
+
+    that.check_error_reason = function() {
+        if (this.xhr) {
+            var reason = this.xhr.getResponseHeader("X-IPA-Rejection-Reason");
+            if (reason) {
+                that.show_login_error_message(reason);
+            }
+        }
     };
 
     that.on_username_change = function() {
@@ -1856,6 +1868,20 @@ IPA.unauthorized_dialog = function(spec) {
         var username = that.username_widget.save();
         that.username_r_widget.update(username);
         that.new_password_widget.focus_input();
+    };
+
+    that.show_login_error_message = function(reason) {
+        var errors = {
+            'invalid': that.form_auth_failed,
+            'denied': that.denied
+        };
+
+        var message = errors[reason];
+
+        if (message) {
+            that.login_error_box.html(message);
+            that.login_error_box.css('display', 'block');
+        }
     };
 
     that.on_login_keyup = function(event) {
@@ -1903,12 +1929,11 @@ IPA.unauthorized_dialog = function(spec) {
 
         if (result === 'success') {
             that.on_login_success();
-        } else if (result === 'expired') {
+        } else if (result === 'password-expired') {
             that.reset_error_box.css('display', 'none');
             that.show_reset_form();
         } else {
-            that.login_error_box.html(that.form_auth_failed);
-            that.login_error_box.css('display', 'block');
+            that.show_login_error_message(result);
         }
     };
 

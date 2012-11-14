@@ -35,8 +35,8 @@ LP.login = function(username, password) {
 
             //change result from invalid only if we have a header which we
             //understand
-            if (reason === 'password-expired') {
-                result = 'expired';
+            if (reason === 'password-expired' || reason === 'denied') {
+                result = reason;
             }
         }
     }
@@ -70,12 +70,14 @@ LP.on_submit = function() {
 
     var result = LP.login(username, password);
 
+    $('.error-box').hide();
+
     if (result === 'invalid') {
-        $('#expired').css('display', 'none');
-        $('#invalid').css('display', 'block');
-    } else if (result === 'expired') {
-        $('#invalid').css('display', 'none');
-        $('#expired').css('display', 'block');
+        $('#invalid').show();
+    } else if (result === 'password-expired') {
+        $('#expired').show();
+    } else if(result === 'denied') {
+        $('#denied').show();
     } else {
         window.location = '/ipa/ui';
     }
