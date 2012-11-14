@@ -678,9 +678,9 @@ static char *gen_sid_string(TALLOC_CTX *memctx, struct dom_sid *dom_sid,
     return str;
 }
 
-static int get_group_sids(TALLOC_CTX *memctx,
-                          struct PAC_LOGON_INFO_CTR *logon_info,
-                          char ***_group_sids)
+static int get_user_and_group_sids(TALLOC_CTX *memctx,
+                                   struct PAC_LOGON_INFO_CTR *logon_info,
+                                   char ***_group_sids)
 {
     int ret;
     size_t c;
@@ -696,7 +696,7 @@ static int get_group_sids(TALLOC_CTX *memctx,
     }
 
     group_sids = talloc_array(memctx, char *,
-                                     2 +
+                                     3 +
                                      logon_info->info->info3.base.groups.count +
                                      logon_info->info->info3.sidcount);
     if (group_sids == NULL) {
@@ -704,6 +704,15 @@ static int get_group_sids(TALLOC_CTX *memctx,
         ret = ENOMEM;
         goto done;
     }
+
+    group_sids[p] = gen_sid_string(memctx, domain_sid,
+                                  logon_info->info->info3.base.rid);
+    if (group_sids[p] == NULL) {
+        krb5_klog_syslog(LOG_ERR, "gen_sid_string failed");
+        ret = EINVAL;
+        goto done;
+    }
+    p++;
 
     group_sids[p] = gen_sid_string(memctx, domain_sid,
                                   logon_info->info->info3.base.primary_gid);
@@ -949,7 +958,7 @@ static krb5_error_code add_local_groups(krb5_context context,
     size_t ipa_group_sids_count = 0;
     struct dom_sid *ipa_group_sids = NULL;
 
-    ret = get_group_sids(memctx, info, &group_sids);
+    ret = get_user_and_group_sids(memctx, info, &group_sids);
     if (ret != 0) {
         return KRB5_KDB_INTERNAL_ERROR;
     }
