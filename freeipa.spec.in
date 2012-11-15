@@ -3,12 +3,7 @@
 
 %global httpd_conf /etc/httpd/conf.d
 %global plugin_dir %{_libdir}/dirsrv/plugins
-%if ! (0%{?fedora} > 12 || 0%{?rhel} > 5)
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from
-distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from
-distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%endif
+
 %global POLICYCOREUTILSVER 1.33.12-1
 %global gettext_domain ipa
 
@@ -28,9 +23,7 @@ BuildRequires: 389-ds-base-devel >= 1.2.11.14
 BuildRequires:  svrcore-devel
 BuildRequires:  /usr/share/selinux/devel/Makefile
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
-%if 0%{?fedora} >= 16
 BuildRequires:  systemd-units
-%endif
 %if 0%{?fedora} >= 18
 BuildRequires:  samba-devel >= 4.0.0-150
 BuildRequires:  samba-python
@@ -41,7 +34,7 @@ BuildRequires:  samba4-python
 %endif
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
-%endif
+%endif  # ! %{ONLY_CLIENT}
 BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
@@ -49,18 +42,8 @@ BuildRequires:  openldap-devel
 BuildRequires:  krb5-devel >= 1.10
 BuildRequires:  krb5-workstation
 BuildRequires:  libuuid-devel
-%if 0%{?fedora} >= 16
 BuildRequires:  libcurl-devel >= 7.21.7-2
 BuildRequires:  xmlrpc-c-devel >= 1.27.4
-%else
-%if 0%{?fedora} == 15
-BuildRequires:  libcurl-devel >= 7.21.3-9
-BuildRequires:  xmlrpc-c-devel >= 1.25.4
-%else
-BuildRequires:  libcurl-devel
-BuildRequires:  xmlrpc-c-devel
-%endif
-%endif
 BuildRequires:  popt-devel
 BuildRequires:  autoconf
 BuildRequires:  automake
@@ -72,11 +55,7 @@ BuildRequires:  python-ldap
 BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
 BuildRequires:  python-nss
-%if 0%{?fedora} >= 15
-BuildRequires:  python-netaddr >= 0.7.5-3
-%else
 BuildRequires:  python-netaddr
-%endif
 BuildRequires:  python-kerberos
 BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
@@ -89,7 +68,7 @@ BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-dns
 BuildRequires:  python-crypto
-BuildRequires:  check >= 0.9.5
+BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
 
 %description
@@ -122,60 +101,40 @@ Requires: mod_auth_kerb >= 5.4-16
 %else
 Requires: mod_auth_kerb >= 5.4-8
 %endif
-Requires: mod_nss >= 1.0.8-10
+Requires: mod_nss
 Requires: python-ldap
 Requires: python-krbV
 Requires: acl
-Requires: python-pyasn1 >= 0.0.9a
+Requires: python-pyasn1
 Requires: memcached
 Requires: python-memcached
-%if 0%{?fedora} >= 16
 Requires: systemd-units >= 36-3
 Requires(pre): systemd-units
 Requires(post): systemd-units
-%endif
-%if 0%{?fedora} >= 17
 Requires: selinux-policy >= 3.10.0-110
-%else
-%if 0%{?fedora} == 16
-Requires: selinux-policy >= 3.10.0-78
-%else
-%if 0%{?fedora} == 15
-Requires: selinux-policy >= 3.9.16-18
-%else
-Requires: selinux-policy >= 3.9.7-27
-%endif
-%endif
-%endif
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.40
+%if 0%{?fedora} >= 18
+Requires: pki-ca >= 10.0.0-0.52.b3
+Requires: dogtag-pki-server-theme
+%else
 Requires: pki-ca >= 9.0.18
 Requires: pki-silent >= 9.0.18
 Requires: pki-setup  >= 9.0.18
 Requires: dogtag-pki-common-theme
 Requires: dogtag-pki-ca-theme
-%if 0%{?fedora} >= 18
-Requires: tomcat6 >= 6.0.35-4
-%else
-%if 0%{?fedora} >= 16
-# Only tomcat6 greater than this version provides proper systemd support
 Requires: tomcat6 >= 6.0.32-17
-%endif
 %endif
 %if 0%{?rhel}
 Requires: subscription-manager
 %endif
-%if 0%{?fedora} >= 16
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
-%else
-Requires(preun):  python initscripts chkconfig
-Requires(postun): python initscripts chkconfig
-%endif
 Requires: python-dns
 Requires: keyutils
 Requires: zip
 Requires: policycoreutils >= %{POLICYCOREUTILSVER}
+Requires: tar
 
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
@@ -246,7 +205,7 @@ Requires(preun): %{_sbindir}/update-alternatives
 Cross-realm trusts with Active Directory in IPA require working Samba 4 installation.
 This package is provided for convenience to install all required dependencies at once.
 
-%endif
+%endif # ! %{ONLY_CLIENT}
 
 
 %package client
@@ -260,18 +219,8 @@ Requires: krb5-workstation
 Requires: authconfig
 Requires: pam_krb5
 Requires: wget
-%if 0%{?fedora} >= 16
-Requires:  libcurl >= 7.21.7-2
-Requires:  xmlrpc-c >= 1.27.4
-%else
-%if 0%{?fedora} == 15
-Requires:  libcurl >= 7.21.3-9
-Requires:  xmlrpc-c >= 1.25.4
-%else
-Requires:  libcurl
-Requires:  xmlrpc-c
-%endif
-%endif
+Requires: libcurl >= 7.21.7-2
+Requires: xmlrpc-c >= 1.27.4
 Requires: sssd >= 1.8.0
 Requires: certmonger >= 0.60
 Requires: nss-tools
@@ -311,24 +260,18 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). This package provides command-line tools for
 IPA administrators.
-%endif
+%endif  # ! %{ONLY_CLIENT}
 
 %package python
 Summary: Python libraries used by IPA
 Group: System Environment/Libraries
-%if 0%{?fedora} >= 12 || 0%{?rhel} >= 6
-Requires: python-kerberos >= 1.1-3
-%endif
+Requires: python-kerberos
 Requires: gnupg
 Requires: iproute
 Requires: pyOpenSSL
-Requires: python-nss >= 0.11
+Requires: python-nss
 Requires: python-lxml
-%if 0%{?fedora} >= 15
-Requires: python-netaddr >= 0.7.5-3
-%else
 Requires: python-netaddr
-%endif
 Requires: libipa_hbac-python
 
 Obsoletes: ipa-python >= 1.0
@@ -346,17 +289,16 @@ package.
 %build
 export CFLAGS="$CFLAGS %{optflags}"
 export CPPFLAGS="$CPPFLAGS %{optflags}"
-%if 0%{?fedora} >= 16
+# use fedora16 platform which introduced systemd support
 export SUPPORTED_PLATFORM=fedora16
 # Force re-generate of platform support
 rm -f ipapython/services.py
-%endif
 make version-update
 cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %if ! %{ONLY_CLIENT}
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir} --with-openldap; cd ..
 cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
-%endif
+%endif  # ! %{ONLY_CLIENT}
 
 %if ! %{ONLY_CLIENT}
 make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} all
@@ -365,15 +307,13 @@ cd selinux
 make all
 %else
 make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
-%endif
+%endif  # ! %{ONLY_CLIENT}
 
 %install
 rm -rf %{buildroot}
-%if 0%{?fedora} >= 16
 export SUPPORTED_PLATFORM=fedora16
 # Force re-generate of platform support
 rm -f ipapython/services.py
-%endif
 %if ! %{ONLY_CLIENT}
 make install DESTDIR=%{buildroot}
 cd selinux
@@ -381,7 +321,7 @@ make install DESTDIR=%{buildroot}
 cd ..
 %else
 make client-install DESTDIR=%{buildroot}
-%endif
+%endif  # ! %{ONLY_CLIENT}
 %find_lang %{gettext_domain}
 
 
@@ -441,10 +381,10 @@ mkdir -p %{buildroot}%{_initrddir}
 mkdir %{buildroot}%{_sysconfdir}/sysconfig/
 install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_memcached
 
-%if 0%{?fedora} >= 15
+# NOTE: systemd specific section
 mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d/
 install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_sysconfdir}/tmpfiles.d/ipa.conf
-%endif
+# END
 
 mkdir -p %{buildroot}%{_localstatedir}/run/
 install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa_memcached/
@@ -453,16 +393,12 @@ install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa/
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 
-%if 0%{?fedora} >= 16
-# Default to systemd initscripts for F16 and above
+# NOTE: systemd specific section
 mkdir -p %{buildroot}%{_unitdir}
 install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
 install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
-%else
-install -m755 init/SystemV/ipa.init %{buildroot}%{_initrddir}/ipa
-install -m755 init/SystemV/ipa_memcached.init %{buildroot}%{_initrddir}/ipa_memcached
-%endif
-%endif
+# END
+%endif  # ! %{ONLY_CLIENT}
 
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
@@ -479,22 +415,16 @@ install -pm 644 ipa-compliance.cron %{buildroot}%{_sysconfdir}/cron.d/ipa-compli
 	grep -v dcerpc | grep -v adtrustinstance | \
 	sed -e 's,\.py.*$,.*,g' | sort -u | \
 	sed -e 's,\./,%%{python_sitelib}/ipaserver/,g' ) >server-python.list
-%endif
+%endif  # ! %{ONLY_CLIENT}
 
 %clean
 rm -rf %{buildroot}
 
 %if ! %{ONLY_CLIENT}
 %post server
-%if 0%{?fedora} >= 16
-# Use systemd scheme
+# NOTE: systemd specific section
     /bin/systemctl --system daemon-reload 2>&1 || :
-%else
-# Use SystemV scheme only before F16
-if [ $1 = 1 ]; then
-    /sbin/chkconfig --add ipa
-fi
-%endif
+# END
 if [ $1 -gt 1 ] ; then
     /usr/sbin/ipa-upgradeconfig --quiet >/dev/null || :
 fi
@@ -506,40 +436,27 @@ fi
 
 %preun server
 if [ $1 = 0 ]; then
-%if 0%{?fedora} >= 16
-# Use systemd scheme
+# NOTE: systemd specific section
     /bin/systemctl --quiet stop ipa.service || :
     /bin/systemctl --quiet disable ipa.service || :
-%else
-# Use SystemV scheme only before F16
-    /sbin/chkconfig --del ipa
-    /sbin/service ipa stop >/dev/null 2>&1 || :
-%endif
+# END
 fi
 
 %postun server
 if [ "$1" -ge "1" ]; then
-%if 0%{?fedora} >= 16
-# Use systemd scheme
+# NOTE: systemd specific section
     /bin/systemctl --quiet is-active ipa.service >/dev/null && \
     /bin/systemctl try-restart ipa.service >/dev/null 2>&1 || :
-%else
-# Use SystemV scheme only before F16
-    /sbin/service ipa condrestart >/dev/null 2>&1 || :
-%endif
+# END
 fi
 
 %pre server
 # Stop ipa_kpasswd if it exists before upgrading so we don't have a
 # zombie process when we're done.
 if [ -e /usr/sbin/ipa_kpasswd ]; then
-%if 0%{?fedora} >= 16
-# Use systemd scheme
+# NOTE: systemd specific section
     /bin/systemctl stop ipa_kpasswd.service >/dev/null 2>&1 || :
-%else
-# Use SystemV scheme only before F16
-    /sbin/service ipa_kpasswd stop >/dev/null 2>&1 || :
-%endif
+# END
 fi
 
 %pre server-selinux
@@ -596,20 +513,16 @@ fi
 				winbind_krb5_locator.so /dev/null 90
 python -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 if [  $? -eq 0 ]; then
-%if 0%{?fedora} >= 16
-# Use systemd scheme
+# NOTE: systemd specific section
     /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
-%else
-# Use SystemV scheme only before F16
-    /sbin/service httpd condrestart >/dev/null 2>&1 || :
-%endif
+# END
 fi
 
 %preun server-trust-ad
 if [ $1 -eq 0 ]; then
 	%{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
 fi
-%endif
+%endif  # ! %{ONLY_CLIENT}
 
 
 %if ! %{ONLY_CLIENT}
@@ -637,18 +550,11 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
-%if 0%{?fedora} >= 15
+# NOTE: systemd specific section
 %config %{_sysconfdir}/tmpfiles.d/ipa.conf
-%endif
-%if 0%{?fedora} >= 16
-# Use systemd scheme
 %attr(644,root,root) %{_unitdir}/ipa.service
 %attr(644,root,root) %{_unitdir}/ipa_memcached.service
-%else
-# Use SystemV scheme only before F16
-%attr(755,root,root) %{_initrddir}/ipa
-%attr(755,root,root) %{_initrddir}/ipa_memcached
-%endif
+# END
 %dir %{python_sitelib}/ipaserver
 %dir %{python_sitelib}/ipaserver/install
 %dir %{python_sitelib}/ipaserver/install/plugins
@@ -776,7 +682,7 @@ fi
 %{python_sitelib}/ipaserver/dcerpc*
 %{python_sitelib}/ipaserver/install/adtrustinstance*
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
-%endif
+%endif  # ! %{ONLY_CLIENT}
 
 %files client
 %defattr(-,root,root,-)
@@ -808,7 +714,7 @@ fi
 %{_bindir}/ipa
 %config %{_sysconfdir}/bash_completion.d
 %{_mandir}/man1/ipa.1.gz
-%endif
+%endif  # ! %{ONLY_CLIENT}
 
 %files python -f %{gettext_domain}.lang
 %defattr(-,root,root,-)
@@ -820,15 +726,21 @@ fi
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
 %{python_sitearch}/default_encoding_utf8.so
-%if 0%{?fedora} >= 12 || 0%{?rhel} >= 6
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
 %{python_sitearch}/python_default_encoding-*.egg-info
-%endif
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Nov 14 2012 Martin Kosek <mkosek@redhat.com> - 3.0.0-4
+- Remove compatibility definitions for unsupported Fedora versions (Fedora 16 and lower)
+  - Do not require specific package version when the package was available in Fedora 17
+  - Remove old SysV initscript compatibility code - we run on systemd now
+- Add Requires for the new Dogtag 10 and dogtag-pki-server-theme
+- Remove Requires on tomcat6 for Fedora 18 and later, Dogtag 10 pulls tomcat7 itself
+- Add Requires for tar (used by ipa-replica-prepare)
+
 * Fri Nov 09 2012 Martin Kosek <mkosek@redhat.com> - 3.0.0-3
 - Set min for bind-dyndb-ldap to 2.3-2 to pick up disabling global
   forwarder per-zone
