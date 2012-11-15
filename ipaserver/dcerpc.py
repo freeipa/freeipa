@@ -31,6 +31,7 @@ from ipapython import ipautil
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipaserver.install import installutils
+from ipalib.util import normalize_name
 
 import os, string, struct, copy
 import uuid
@@ -184,21 +185,6 @@ class DomainValidator(object):
                 return True
         return False
 
-    def normalize_name(self, name):
-        result = dict()
-        components = name.split('@')
-        if len(components) == 2:
-            result['domain'] = unicode(components[1]).lower()
-            result['name'] = unicode(components[0]).lower()
-        else:
-            components = name.split('\\')
-            if len(components) == 2:
-                result['flatname'] = unicode(components[0]).lower()
-                result['name'] = unicode(components[1]).lower()
-            else:
-                result['name'] = unicode(name).lower()
-        return result
-
     def get_sid_trusted_domain_object(self, object_name):
         """Returns SID for the trusted domain object (user or group only)"""
         if not self.domain:
@@ -209,7 +195,8 @@ class DomainValidator(object):
         if len(self._domains) == 0:
             # Our domain is configured but no trusted domains are configured
             return None
-        components = self.normalize_name(object_name)
+
+        components = normalize_name(object_name)
         if not ('domain' in components or 'flatname' in components):
             # No domain or realm specified, ambiguous search
             return False
