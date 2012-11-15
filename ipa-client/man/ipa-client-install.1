@@ -88,6 +88,14 @@ Print debugging information to stdout
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
 Unattended installation. The user will not be prompted.
+.TP
+\fB\-\-ca-cert-file\fR=\fICA_FILE\fR
+Do not attempt to acquire the IPA CA certificate via automated means,
+instead use the CA certificate found locally in in \fICA_FILE\fR.  The
+\fICA_FILE\fR must be an absolute path to a PEM formatted certificate
+file. The CA certificate found in \fICA_FILE\fR is considered
+authoritative and will be installed without checking to see if it's
+valid for the IPA domain.
 
 .SS "SSSD OPTIONS"
 .TP

@@ -1574,6 +1574,22 @@ class DependentEntry(ExecutionError):
     errno = 4307
     format = _('%(key)s cannot be deleted because %(label)s %(dependent)s requires it')
 
+class CertificateInvalidError(CertificateError):
+    """
+    **4310** Raised when a certificate is not valid
+
+    For example:
+
+    >>> raise CertificateInvalidError(name=_(u'CA'))
+    Traceback (most recent call last):
+      ...
+    CertificateInvalidError: CA certificate is not valid
+
+    """
+
+    errno = 4310
+    format = _('%(name)s certificate is not valid')
+
 
 ##############################################################################
 # 5000 - 5999: Generic errors

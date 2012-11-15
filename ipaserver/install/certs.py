@@ -227,7 +227,10 @@ class CertDB(object):
             self.subject_base = "O=IPA"
         self.subject_format = "CN=%%s,%s" % self.subject_base
 
-        self.cacert_name = get_ca_nickname(self.realm)
+        if self.self_signed_ca:
+            self.cacert_name = get_ca_nickname(self.realm, 'CN=%s Certificate Authority')
+        else:
+            self.cacert_name = get_ca_nickname(self.realm)
         self.valid_months = "120"
         self.keysize = "1024"
 

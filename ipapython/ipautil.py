@@ -1455,3 +1455,39 @@ def make_sshfp(key):
     else:
         return
     return '%d 1 %s' % (algo, fp)
+
+def convert_ldap_error(exc):
+    """
+    Make LDAP exceptions prettier.
+
+    Some LDAP exceptions have a dict with descriptive information, if
+    this exception has a dict extract useful information from it and
+    format it into something usable and return that. If the LDAP
+    exception does not have an information dict then return the name
+    of the LDAP exception.
+
+    If the exception is not an LDAP exception then convert the
+    exception to a string and return that instead.
+    """
+    if isinstance(exc, ldap.LDAPError):
+        name = exc.__class__.__name__
+
+        if len(exc.args):
+            d = exc.args[0]
+            if isinstance(d, dict):
+                desc = d.get('desc', '').strip()
+                info = d.get('info', '').strip()
+                if desc and info:
+                    return '%s %s' % (desc, info)
+                elif desc:
+                    return desc
+                elif info:
+                    return info
+                else:
+                    return name
+            else:
+                return name
+        else:
+            return name
+    else:
+        return str(exc)

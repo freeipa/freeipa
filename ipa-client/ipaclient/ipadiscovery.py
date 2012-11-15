@@ -27,12 +27,14 @@ from ldap import LDAPError
 from ipapython.ipautil import run, CalledProcessError, valid_ip, get_ipa_basedn, \
                               realm_to_suffix, format_netloc, parse_items
 
+CACERT = '/etc/ipa/ca.crt'
 
 NOT_FQDN = -1
 NO_LDAP_SERVER = -2
 REALM_NOT_FOUND = -3
 NOT_IPA_SERVER = -4
 NO_ACCESS_TO_LDAP = -5
+NO_TLS_LDAP = -6
 BAD_HOST_CONFIG = -10
 UNKNOWN_ERROR = -15
 
@@ -105,7 +107,7 @@ class IPADiscovery:
                 domain = domain[p+1:]
         return (None, None)
 
-    def search(self, domain = "", server = "", hostname=None):
+    def search(self, domain = "", server = "", hostname=None, ca_cert_path=None):
         qname = ""
         results = []
         result = []
@@ -177,14 +179,14 @@ class IPADiscovery:
         ldapaccess = True
         for server in servers:
             # check ldap now
-            ldapret = self.ipacheckldap(server, self.realm)
+            ldapret = self.ipacheckldap(server, self.realm, ca_cert_path=ca_cert_path)
 
             if ldapret[0] == 0:
                 self.server = ldapret[1]
                 self.realm = ldapret[2]
                 break
 
-            if ldapret[0] == NO_ACCESS_TO_LDAP:
+            if ldapret[0] == NO_ACCESS_TO_LDAP or ldapret[0] == NO_TLS_LDAP:
                 ldapaccess = False
 
         # If one of LDAP servers checked rejects access (may be anonymous
@@ -205,12 +207,10 @@ class IPADiscovery:
 
         return ldapret[0]
 
-    def ipacheckldap(self, thost, trealm):
+    def ipacheckldap(self, thost, trealm, ca_cert_path=None):
         """
         Given a host and kerberos realm verify that it is an IPA LDAP
-        server hosting the realm. The connection is an SSL connection
-        so the remote IPA CA cert must be available at
-        http://HOST/ipa/config/ca.crt
+        server hosting the realm.
 
         Returns a list [errno, host, realm] or an empty list on error.
         Errno is an error number:
@@ -228,29 +228,16 @@ class IPADiscovery:
 
         i = 0
 
-        # Get the CA certificate
-        try:
-            # Create TempDir
-            temp_ca_dir = tempfile.mkdtemp()
-        except OSError, e:
-            raise RuntimeError("Creating temporary directory failed: %s" % str(e))
-
-        try:
-            run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "-T", "15", "-t", "2",
-                 "http://%s/ipa/config/ca.crt" % format_netloc(thost)])
-        except CalledProcessError, e:
-            root_logger.debug('Retrieving CA from %s failed.\n%s' % (thost, str(e)))
-            return [NOT_IPA_SERVER]
-
         #now verify the server is really an IPA server
         try:
             root_logger.debug("Init ldap with: ldap://"+format_netloc(thost, 389))
             lh = ldap.initialize("ldap://"+format_netloc(thost, 389))
-            ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
-            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, "%s/ca.crt" % temp_ca_dir)
+            if ca_cert_path:
+                ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
+                ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, ca_cert_path)
+                lh.set_option(ldap.OPT_X_TLS_DEMAND, True)
+                lh.start_tls_s()
             lh.set_option(ldap.OPT_PROTOCOL_VERSION, 3)
-            lh.set_option(ldap.OPT_X_TLS_DEMAND, True)
-            lh.start_tls_s()
             lh.simple_bind_s("","")
 
             # get IPA base DN
@@ -301,13 +288,15 @@ class IPADiscovery:
                 root_logger.debug("LDAP Error: Anonymous acces not allowed")
                 return [NO_ACCESS_TO_LDAP]
 
+            # We should only get UNWILLING_TO_PERFORM if the remote LDAP server
+            # has minssf > 0 and we have attempted a non-TLS connection.
+            if ca_cert_path is None and isinstance(err, ldap.UNWILLING_TO_PERFORM):
+                root_logger.debug("LDAP server returned UNWILLING_TO_PERFORM. This likely means that minssf is enabled")
+                return [NO_TLS_LDAP]
+
             root_logger.error("LDAP Error: %s: %s" %
                (err.args[0]['desc'], err.args[0].get('info', '')))
             return [UNKNOWN_ERROR]
-
-        finally:
-            os.remove("%s/ca.crt" % temp_ca_dir)
-            os.rmdir(temp_ca_dir)
 
 
     def ipadnssearchldap(self, tdomain):

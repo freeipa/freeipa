@@ -25,14 +25,18 @@ try:
     import os
     import time
     import socket
+    import ldap
+    import ldap.sasl
+    import urlparse
     from ipapython.ipa_log_manager import *
     import tempfile
     import getpass
     from base64 import b64decode
     from ipaclient import ipadiscovery
+    from ipaclient.ipadiscovery import CACERT
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
-    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists, realm_to_suffix
+    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists, realm_to_suffix, convert_ldap_error
     import ipapython.services as ipaservices
     from ipapython import ipautil
     from ipapython import dnsclient
@@ -41,9 +45,10 @@ try:
     from ipapython import certmonger
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
+    from ipalib import x509
     import SSSDConfig
     from ConfigParser import RawConfigParser
-    from optparse import SUPPRESS_HELP, OptionGroup
+    from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -53,6 +58,7 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
+SUCCESS = 0
 CLIENT_INSTALL_ERROR = 1
 CLIENT_NOT_CONFIGURED = 2
 CLIENT_ALREADY_CONFIGURED = 3
@@ -61,6 +67,21 @@ CLIENT_UNINSTALL_ERROR = 4 # error after restoring files/state
 client_nss_nickname_format = 'IPA Machine Certificate - %s'
 
 def parse_options():
+    def validate_ca_cert_file_option(option, opt, value, parser):
+        if not os.path.exists(value):
+            raise OptionValueError("%s option '%s' does not exist" % (opt, value))
+        if not os.path.isfile(value):
+            raise OptionValueError("%s option '%s' is not a file" % (opt, value))
+        if not os.path.isabs(value):
+            raise OptionValueError("%s option '%s' is not an absolute file path" % (opt, value))
+
+        try:
+            cert = x509.load_certificate_from_file(value)
+        except Exception, e:
+            raise OptionValueError("%s option '%s' is not a valid certificate file" % (opt, value))
+
+        parser.values.ca_cert_file = value
+
     parser = IPAOptionParser(version=version.VERSION)
 
     basic_group = OptionGroup(parser, "basic options")
@@ -99,6 +120,9 @@ def parse_options():
     basic_group.add_option("-U", "--unattended", dest="unattended",
                       action="store_true",
                       help="unattended (un)installation never prompts the user")
+    basic_group.add_option("--ca-cert-file", dest="ca_cert_file",
+                           type="string", action="callback", callback=validate_ca_cert_file_option,
+                           help="load the CA certificate from this file")
     # --on-master is used in ipa-server-install and ipa-replica-install
     # only, it isn't meant to be used on clients.
     basic_group.add_option("--on-master", dest="on_master", action="store_true",
@@ -154,6 +178,35 @@ def nickname_exists(nickname):
             return True
         else:
             return False
+
+def cert_summary(msg, cert, indent='    '):
+    if msg:
+        s = '%s\n' % msg
+    else:
+        s = ''
+    s += '%sSubject:     %s\n' % (indent, cert.subject)
+    s += '%sIssuer:      %s\n' % (indent, cert.issuer)
+    s += '%sValid From:  %s\n' % (indent, cert.valid_not_before_str)
+    s += '%sValid Until: %s\n' % (indent, cert.valid_not_after_str)
+
+    return s
+
+def get_cert_path(cert_path):
+    """
+    If a CA certificate is passed in on the command line, use that.
+
+    Else if a CA file exists in CACERT then use that.
+
+    Otherwise return None.
+    """
+    if cert_path is not None:
+        return cert_path
+
+    if os.path.exists(CACERT):
+        return CACERT
+
+    return None
+
 
 # Checks whether nss_ldap or nss-pam-ldapd is installed. If anyone of mandatory files was found returns True and list of all files found.
 def nssldap_exists():
@@ -617,7 +670,7 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, c
                  {'name':'default_domain', 'type':'option', 'value':cli_domain}]
     else:
         kropts = []
-    kropts.append({'name':'pkinit_anchors', 'type':'option', 'value':'FILE:/etc/ipa/ca.crt'})
+    kropts.append({'name':'pkinit_anchors', 'type':'option', 'value':'FILE:%s' % CACERT})
     ropts = [{'name':cli_realm, 'type':'subsection', 'value':kropts}]
 
     opts.append({'name':'realms', 'type':'section', 'value':ropts})
@@ -779,7 +832,7 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
     # Note that SSSD will force StartTLS because the channel is later used for
     # authentication as well if password migration is enabled. Thus set the option
     # unconditionally.
-    domain.set_option('ldap_tls_cacert', '/etc/ipa/ca.crt')
+    domain.set_option('ldap_tls_cacert', CACERT)
 
     if options.dns_updates:
         domain.set_option('ipa_dyndns_update', True)
@@ -1077,6 +1130,309 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
         if not do_nsupdate(update_txt):
             print "Warning: Could not update DNS SSHFP records."
 
+def get_ca_cert_from_file(url):
+    '''
+    Get the CA cert from a user supplied file and write it into the
+    CACERT file.
+
+    Raises errors.NoCertificateError if unable to read cert.
+    Raises errors.FileError if unable to write cert.
+    '''
+
+    # pylint: disable=E1101
+    try:
+        parsed = urlparse.urlparse(url, 'file')
+    except Exception, e:
+        raise errors.FileError("unable to parse file url '%s'" % (url))
+
+    if parsed.scheme != 'file':
+        raise errors.FileError("url is not a file scheme '%s'" % (url))
+
+    filename = parsed.path
+
+    if not os.path.exists(filename):
+        raise errors.FileError("file '%s' does not exist" % (filename))
+
+    if not os.path.isfile(filename):
+        raise errors.FileError("file '%s' is not a file" % (filename))
+
+    root_logger.debug("trying to retrieve CA cert from file %s", filename)
+    try:
+        cert = x509.load_certificate_from_file(filename)
+    except Exception, e:
+        raise errors.NoCertificateError(entry=filename)
+
+    try:
+        x509.write_certificate(cert.der_data, CACERT)
+    except Exception, e:
+        raise errors.FileError(reason =
+            u"cannot write certificate file '%s': %s" % (CACERT, e))
+
+def get_ca_cert_from_http(url, ca_file, warn=True):
+    '''
+    Use HTTP to retrieve the CA cert and write it into the CACERT file.
+    This is insecure and should be avoided.
+
+    Raises errors.NoCertificateError if unable to retrieve and write cert.
+    '''
+
+    if warn:
+        root_logger.warning("Downloading the CA certificate via HTTP, " +
+                            "this is INSECURE")
+
+    root_logger.debug("trying to retrieve CA cert via HTTP from %s", url)
+    try:
+
+        run(["/usr/bin/wget", "-O", ca_file, url])
+    except CalledProcessError, e:
+        raise errors.NoCertificateError(entry=url)
+
+def get_ca_cert_from_ldap(url, basedn, ca_file):
+    '''
+    Retrieve th CA cert from the LDAP server by binding to the
+    server with GSSAPI using the current Kerberos credentials.
+    Write the retrieved cert into the CACERT file.
+
+    Raises errors.NoCertificateError if cert is not found.
+    Raises errors.NetworkError if LDAP connection can't be established.
+    Raises errors.LDAPError for any other generic LDAP error.
+    Raises errors.OnlyOneValueAllowed if more than one cert is found.
+    Raises errors.FileError if unable to write cert.
+    '''
+
+    ca_cert_attr = 'cAcertificate;binary'
+    dn = 'CN=CAcert, CN=ipa, CN=etc, %s' % basedn
+
+    SASL_GSSAPI = ldap.sasl.sasl({},'GSSAPI')
+
+    root_logger.debug("trying to retrieve CA cert via LDAP from %s", url)
+
+    conn = ldap.initialize(url)
+    conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
+    try:
+        conn.sasl_interactive_bind_s('', SASL_GSSAPI)
+        result = conn.search_st(str(dn), ldap.SCOPE_BASE, 'objectclass=pkiCA',
+                                [ca_cert_attr], timeout=10)
+    except ldap.NO_SUCH_OBJECT, e:
+        root_logger.debug("get_ca_cert_from_ldap() error: %s",
+                          convert_ldap_error(e))
+        raise errors.NoCertificateError(entry=url)
+
+    except ldap.SERVER_DOWN, e:
+        root_logger.debug("get_ca_cert_from_ldap() error: %s",
+                          convert_ldap_error(e))
+        raise errors.NetworkError(uri=url, error=str(e))
+    except Exception, e:
+        root_logger.debug("get_ca_cert_from_ldap() error: %s",
+                          convert_ldap_error(e))
+        raise errors.LDAPError(str(e))
+
+    if len(result) != 1:
+        raise errors.OnlyOneValueAllowed(attr=ca_cert_attr)
+
+    attrs = result[0][1]
+    try:
+        der_cert = attrs[ca_cert_attr][0]
+    except KeyError:
+        raise errors.NoCertificateError(entry=ca_cert_attr)
+
+    try:
+        x509.write_certificate(der_cert, ca_file)
+    except Exception, e:
+        raise errors.FileError(reason =
+            u"cannot write certificate file '%s': %s" % (ca_file, e))
+
+def validate_new_ca_cert(existing_ca_cert, ca_file, ask, override=False):
+
+    try:
+        new_ca_cert = x509.load_certificate_from_file(ca_file)
+    except Exception, e:
+        raise errors.FileError(
+            "Unable to read new ca cert '%s': %s" % (ca_file, e))
+
+    if existing_ca_cert is None:
+        root_logger.info(
+            cert_summary("Successfully retrieved CA cert", new_ca_cert))
+        return
+
+    if existing_ca_cert.der_data != new_ca_cert.der_data:
+        root_logger.warning(
+            "The CA cert available from the IPA server does not match the\n"
+            "local certificate available at %s" % CACERT)
+        root_logger.warning(
+            cert_summary("Existing CA cert:", existing_ca_cert))
+        root_logger.warning(
+            cert_summary("Retrieved CA cert:", new_ca_cert))
+        if override:
+            root_logger.warning("Overriding existing CA cert\n")
+        elif not ask or not user_input(
+                "Do you want to replace the local certificate with the CA\n"
+                "certificate retrieved from the IPA server?", True):
+            raise errors.CertificateInvalidError(name='Retrieved CA')
+    else:
+        root_logger.debug(
+                "Existing CA cert and Retrieved CA cert are identical")
+        os.remove(ca_file)
+
+
+def get_ca_cert(fstore, options, server, basedn):
+    '''
+    Examine the different options and determine a method for obtaining
+    the CA cert.
+
+    If successful the CA cert will have been written into CACERT.
+
+    Raises errors.NoCertificateError if not successful.
+
+    The logic for determining how to load the CA cert is as follow:
+
+    In the OTP case (not -p and -w):
+
+    1. load from user supplied cert file
+    2. else load from HTTP
+
+    In the 'user_auth' case ((-p and -w) or interactive):
+
+    1. load from user supplied cert file
+    2. load from LDAP using SASL/GSS/Krb5 auth
+       (provides mutual authentication, integrity and security)
+    3. if LDAP failed and interactive ask for permission to
+       use insecure HTTP (default: No)
+
+    In the unattended case:
+
+    1. load from user supplied cert file
+    2. load from HTTP if --force specified else fail
+
+    In all cases if HTTP is used emit warning message
+    '''
+
+    ca_file = CACERT + ".new"
+
+    def ldap_url():
+        return urlparse.urlunparse(('ldap', ipautil.format_netloc(server),
+                                   '', '', '', ''))
+
+    def file_url():
+        return urlparse.urlunparse(('file', '', options.ca_cert_file,
+                                   '', '', ''))
+
+    def http_url():
+        return urlparse.urlunparse(('http', ipautil.format_netloc(server),
+                                   '/ipa/config/ca.crt', '', '', ''))
+
+
+    interactive = not options.unattended
+    otp_auth = options.principal is None and options.password is not None
+    existing_ca_cert = None
+
+    if options.ca_cert_file:
+        url = file_url()
+        try:
+            get_ca_cert_from_file(url)
+        except Exception, e:
+            root_logger.debug(e)
+            raise errors.NoCertificateError(entry=url)
+        root_logger.debug("CA cert provided by user, use it!")
+    else:
+        if os.path.exists(CACERT):
+            if os.path.isfile(CACERT):
+                try:
+                    existing_ca_cert = x509.load_certificate_from_file(CACERT)
+                except Exception, e:
+                    raise errors.FileError(reason=u"Unable to load existing" +
+                                           " CA cert '%s': %s" % (CACERT, e))
+            else:
+                raise errors.FileError(reason=u"Existing ca cert '%s' is " +
+                                       "not a plain file" % (CACERT))
+
+        if otp_auth:
+            if existing_ca_cert:
+                root_logger.info("OTP case, CA cert preexisted, use it")
+            else:
+                url = http_url()
+                override = not interactive
+                if interactive and not user_input(
+                    "Do you want download the CA cert from " + url + " ?\n"
+                    "(this is INSECURE)", False):
+                    raise errors.NoCertificateError(message=u"HTTP certificate"
+                            " download declined by user")
+                try:
+                    get_ca_cert_from_http(url, ca_file, override)
+                except Exception, e:
+                    root_logger.debug(e)
+                    raise errors.NoCertificateError(entry=url)
+
+                try:
+                    validate_new_ca_cert(existing_ca_cert, ca_file,
+                                         False, override)
+                except Exception, e:
+                    os.unlink(ca_file)
+                    raise
+        else:
+            # Auth with user credentials
+            url = ldap_url()
+            try:
+                get_ca_cert_from_ldap(url, basedn, ca_file)
+                try:
+                    validate_new_ca_cert(existing_ca_cert,
+                                         ca_file, interactive)
+                except Exception, e:
+                    os.unlink(ca_file)
+                    raise
+            except errors.NoCertificateError, e:
+                root_logger.debug(str(e))
+                url = http_url()
+                if existing_ca_cert:
+                    root_logger.warning(
+                        "Unable to download CA cert from LDAP\n"
+                        "but found preexisting cert, using it.\n")
+                elif interactive and not user_input(
+                    "Unable to download CA cert from LDAP.\n"
+                    "Do you want to download the CA cert from " + url + "?\n"
+                    "(this is INSECURE)", False):
+                    raise errors.NoCertificateError(message=u"HTTP "
+                                "certificate download declined by user")
+                elif not interactive and not options.force:
+                    root_logger.error(
+                        "In unattended mode without a One Time Password "
+                        "(OTP) or without --ca-cert-file\nYou must specify"
+                        " --force to retrieve the CA cert using HTTP")
+                    raise errors.NoCertificateError(message=u"HTTP "
+                                "certificate download requires --force")
+                else:
+                    try:
+                        get_ca_cert_from_http(url, ca_file)
+                    except Exception, e:
+                        root_logger.debug(e)
+                        raise errors.NoCertificateError(entry=url)
+                    try:
+                        validate_new_ca_cert(existing_ca_cert,
+                                             ca_file, interactive)
+                    except Exception, e:
+                        os.unlink(ca_file)
+                        raise
+            except Exception, e:
+                root_logger.debug(str(e))
+                raise errors.NoCertificateError(entry=url)
+
+
+        # We should have a cert now, move it to the canonical place
+        if os.path.exists(ca_file):
+            os.rename(ca_file, CACERT)
+        elif existing_ca_cert is None:
+            raise errors.InternalError(u"expected CA cert file '%s' to "
+                                       u"exist, but it's absent" % (ca_file))
+
+
+    # Make sure the file permissions are correct
+    try:
+        os.chmod(CACERT, 0644)
+    except Exception, e:
+        raise errors.FileError(reason=u"Unable set permissions on ca "
+                               u"cert '%s': %s" % (CACERT, e))
+
+
 def install(options, env, fstore, statestore):
     dnsok = False
 
@@ -1111,7 +1467,7 @@ def install(options, env, fstore, statestore):
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
 
-    ret = ds.search(domain=options.domain, server=options.server, hostname=hostname)
+    ret = ds.search(domain=options.domain, server=options.server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
 
     if ret == ipadiscovery.BAD_HOST_CONFIG:
         print >>sys.stderr, "Can't get the fully qualified name of this host"
@@ -1132,7 +1488,7 @@ def install(options, env, fstore, statestore):
             print "DNS discovery failed to determine your DNS domain"
             cli_domain = user_input("Provide the domain name of your IPA server (ex: example.com)", allow_empty = False)
             root_logger.debug("will use domain: %s\n", cli_domain)
-        ret = ds.search(domain=cli_domain, server=options.server, hostname=hostname)
+        ret = ds.search(domain=cli_domain, server=options.server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
 
     if not cli_domain:
         if ds.getDomainName():
@@ -1153,7 +1509,7 @@ def install(options, env, fstore, statestore):
             print "DNS discovery failed to find the IPA Server"
             cli_server = user_input("Provide your IPA server name (ex: ipa.example.com)", allow_empty = False)
             root_logger.debug("will use server: %s\n", cli_server)
-        ret = ds.search(domain=cli_domain, server=cli_server, hostname=hostname)
+        ret = ds.search(domain=cli_domain, server=cli_server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
     else:
         dnsok = True
     if not cli_server:
@@ -1169,6 +1525,11 @@ def install(options, env, fstore, statestore):
         print "Warning: Anonymous access to the LDAP server is disabled."
         print "Proceeding without strict verification."
         print "Note: This is not an error if anonymous access has been explicitly restricted."
+        ret = 0
+
+    if ret == ipadiscovery.NO_TLS_LDAP:
+        print "Warning: The LDAP server requires TLS is but we do not have the CA."
+        print "Proceeding without strict verification."
         ret = 0
 
     if ret != 0:
@@ -1225,20 +1586,6 @@ def install(options, env, fstore, statestore):
         if options.principal is None and options.password is None and options.prompt_password is False:
             options.principal = user_input("User authorized to enroll computers", allow_empty=False)
             root_logger.debug("will use principal: %s\n", options.principal)
-
-    # Get the CA certificate
-    try:
-        # Remove anything already there so that wget doesn't use its
-        # too-clever renaming feature
-        os.remove("/etc/ipa/ca.crt")
-    except:
-        pass
-
-    try:
-        run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % ipautil.format_netloc(cli_server)])
-    except CalledProcessError, e:
-        print 'Retrieving CA from %s failed.\n%s' % (cli_server, str(e))
-        return CLIENT_INSTALL_ERROR
 
     if not options.on_master:
         nolog = tuple()
@@ -1320,6 +1667,15 @@ def install(options, env, fstore, statestore):
                 join_args.append(password)
                 nolog = (password,)
 
+            # Get the CA certificate
+            try:
+                os.environ['KRB5_CONFIG'] = env['KRB5_CONFIG']
+                get_ca_cert(fstore, options, cli_server, cli_basedn)
+                del os.environ['KRB5_CONFIG']
+            except Exception, e:
+                root_logger.error("Cannot obtain CA certificate\n%s", e)
+                return CLIENT_INSTALL_ERROR
+
             # Now join the domain
             (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env, nolog=nolog)
 
@@ -1363,7 +1719,7 @@ def install(options, env, fstore, statestore):
 
     # Add the CA to the default NSS database and trust it
     try:
-        run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
+        run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", CACERT])
     except CalledProcessError, e:
         print >>sys.stderr, "Failed to add CA to the default NSS database."
         return CLIENT_INSTALL_ERROR
