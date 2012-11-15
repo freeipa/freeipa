@@ -111,3 +111,11 @@ class rabase(Backend):
         """
         raise errors.NotImplementedError(name='%s.take_certificate_off_hold' % self.name)
 
+
+    def find(self, options):
+        """
+        Search for certificates
+
+        :param options: dictionary of search options
+        """
+        raise errors.NotImplementedError(name='%s.find' % self.name)

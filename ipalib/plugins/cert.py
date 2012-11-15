@@ -24,18 +24,20 @@ if api.env.enable_ra is not True:
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='env.enable_ra is not True')
 import os
+import time
 from ipalib import Command, Str, Int, Bytes, Flag, File
 from ipalib import errors
 from ipalib import pkcs10
 from ipalib import x509
 from ipalib import util
+from ipalib import ngettext
 from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
 import base64
 import traceback
 from ipalib.text import _
 from ipalib.request import context
-from ipalib.output import Output
+from ipalib import output
 from ipalib.plugins.service import validate_principal
 import nss.nss as nss
 from nss.error import NSPRError
@@ -60,6 +62,18 @@ In order to request a certificate:
 * The host must exist
 * The service must exist (or you use the --add option to automatically add it)
 
+SEARCHING:
+
+Certificates may be searched on by certificate subject, serial number,
+revocation reason, validity dates and the issued date.
+
+When searching on dates the _from date does a >= search and the _to date
+does a <= search. When combined these are done as an AND.
+
+Dates are treated as GMT to match the dates in the certificates.
+
+The date format is YYYY-mm-dd.
+
 EXAMPLES:
 
  Request a new certificate and add the principal:
@@ -76,6 +90,15 @@ EXAMPLES:
 
  Check the status of a signing request:
    ipa cert-status 10
+
+ Search for certificates by hostname:
+   ipa cert-find --subject=ipaserver.example.com
+
+ Search for revoked certificates by reason:
+   ipa cert-find --revocation-reason=5
+
+ Search for certificates based on issuance date
+   ipa cert-find --issuedon-from=2013-02-01 --issuedon-to=2013-02-07
 
 IPA currently immediately issues (or declines) all certificate requests so
 the status of a request is not normally useful. This is for future use
@@ -99,6 +122,17 @@ Note that reason code 7 is not used.  See RFC 5280 for more details:
 http://www.ietf.org/rfc/rfc5280.txt
 
 """)
+
+def validate_pkidate(ugettext, value):
+    """
+    A date in the format of %Y-%m-%d
+    """
+    try:
+        ts = time.strptime(value, '%Y-%m-%d')
+    except ValueError, e:
+        return str(e)
+
+    return None
 
 def get_csr_hostname(csr):
     """
@@ -262,7 +296,7 @@ class cert_request(VirtualCommand):
     )
 
     has_output = (
-        Output('result',
+        output.Output('result',
             type=dict,
             doc=_('Dictionary mapping variable name to value'),
         ),
@@ -593,3 +627,102 @@ class cert_remove_hold(VirtualCommand):
         )
 
 api.register(cert_remove_hold)
+
+
+class cert_find(Command):
+    __doc__ = _('Search for existing certificates.')
+
+    takes_options = (
+        Str('subject?',
+            label=_('Subject'),
+            doc=_('Subject'),
+            autofill=False,
+        ),
+        Int('revocation_reason?',
+            label=_('Reason'),
+            doc=_('Reason for revoking the certificate (0-10)'),
+            minvalue=0,
+            maxvalue=10,
+            autofill=False,
+        ),
+        Int('min_serial_number?',
+            doc=_("minimum serial number"),
+            autofill=False,
+            minvalue=0,
+        ),
+        Int('max_serial_number?',
+            doc=_("maximum serial number"),
+            autofill=False,
+            maxvalue=2147483647,
+        ),
+        Flag('exactly?',
+            doc=_('match the common name exactly'),
+            autofill=False,
+        ),
+        Str('validnotafter_from?', validate_pkidate,
+            doc=_('Valid not after from this date (YYYY-mm-dd)'),
+            autofill=False,
+        ),
+        Str('validnotafter_to?', validate_pkidate,
+            doc=_('Valid not after to this date (YYYY-mm-dd)'),
+            autofill=False,
+        ),
+        Str('validnotbefore_from?', validate_pkidate,
+            doc=_('Valid not before from this date (YYYY-mm-dd)'),
+            autofill=False,
+        ),
+        Str('validnotbefore_to?', validate_pkidate,
+            doc=_('Valid not before to this date (YYYY-mm-dd)'),
+            autofill=False,
+        ),
+        Str('issuedon_from?', validate_pkidate,
+            doc=_('Issued on from this date (YYYY-mm-dd)'),
+            autofill=False,
+        ),
+        Str('issuedon_to?', validate_pkidate,
+            doc=_('Issued on to this date (YYYY-mm-dd)'),
+            autofill=False,
+        ),
+        Str('revokedon_from?', validate_pkidate,
+            doc=_('Revoked on from this date (YYYY-mm-dd)'),
+            autofill=False,
+        ),
+        Str('revokedon_to?', validate_pkidate,
+            doc=_('Revoked on to this date (YYYY-mm-dd)'),
+            autofill=False,
+        ),
+        Int('sizelimit?',
+            label=_('Size Limit'),
+            doc=_('Maximum number of certs returned'),
+            flags=['no_display'],
+            minvalue=0,
+            default=100,
+        ),
+    )
+
+    has_output = output.standard_list_of_entries
+    has_output_params = (
+        Str('serial_number_hex',
+            label=_('Serial number (hex)'),
+        ),
+        Str('serial_number',
+            label=_('Serial number'),
+        ),
+        Str('status',
+            label=_('Status'),
+        ),
+    )
+
+    msg_summary = ngettext(
+        '%(count)d certificate matched', '%(count)d certificates matched', 0
+    )
+
+    def execute(self, **options):
+        ret = dict(
+            result=self.Backend.ra.find(options)
+        )
+        ret['count'] = len(ret['result'])
+        ret['truncated'] = False
+        return ret
+
+api.register(cert_find)
