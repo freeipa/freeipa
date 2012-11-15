@@ -1009,13 +1009,6 @@ def main():
 
 
     if setup_ca:
-        if not dogtag.install_constants.SHARED_DB:
-            cs = cainstance.CADSInstance(
-                host_name, realm_name, domain_name, dm_password)
-            if not cs.is_configured():
-                cs.create_instance(realm_name, host_name, domain_name,
-                    dm_password, subject_base=options.subject)
-
         ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
             dogtag_constants=dogtag.install_constants)
         if external == 0:
@@ -1055,17 +1048,8 @@ def main():
         # We need to ldap_enable the CA now that DS is up and running
         ca.ldap_enable('CA', host_name, dm_password,
                        ipautil.realm_to_suffix(realm_name))
-        if not dogtag.install_constants.SHARED_DB:
-            # Turn on SSL in the dogtag LDAP instance. This will get restarted
-            # later, we don't need SSL now.
-            cs.create_certdb()
-            cs.enable_ssl()
-            # Add the IPA service for storing the PKI-IPA server certificate.
-            cs.add_simple_service(cs.principal)
-            cs.add_cert_to_service()
-        else:
-            ca.enable_client_auth_to_db()
-            ca.restart()
+        ca.enable_client_auth_to_db()
+        ca.restart()
 
         # Upload the CA cert to the directory
         ds.upload_ca_cert()

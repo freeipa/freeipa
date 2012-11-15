@@ -128,10 +128,6 @@ class Fedora16CAService(Fedora16Service):
             root_logger.debug(
                 'The httpd proxy is not installed, skipping wait for CA')
             return
-        if dogtag.install_constants.DOGTAG_VERSION < 10:
-            # The server status information isn't available on DT 9
-            root_logger.debug('Using Dogtag 9, skipping wait for CA')
-            return
         root_logger.debug('Waiting until the CA is running')
         timeout = api.env.startup_timeout
         op_timeout = time.time() + timeout

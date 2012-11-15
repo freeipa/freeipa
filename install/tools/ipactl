@@ -45,16 +45,14 @@ def check_IPA_configuration():
 
 def is_dirsrv_debugging_enabled():
     """
-    Check the IPA and PKI-CA 389-ds instances to see if debugging is
-    enabled. If so we suppress that in our output.
+    Check the 389-ds instance to see if debugging is enabled.
+    If so we suppress that in our output.
 
     returns True or False
     """
     debugging = False
     serverid = realm_to_serverid(api.env.realm)
     dselist = [config_dirname(serverid)]
-    if not dogtag.install_constants.SHARED_DB:
-        dselist.append('/etc/dirsrv/slapd-PKI-IPA/')
     for dse in dselist:
         try:
             fd = open(dse + 'dse.ldif', 'r')

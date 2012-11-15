@@ -178,19 +178,15 @@ def main():
         cainstance.replica_ca_install_check(config, dogtag_master_ds_port)
 
     # Configure the CA if necessary
-    (CA, cs) = cainstance.install_replica_ca(
+    CA = cainstance.install_replica_ca(
         config, dogtag_master_ds_port, postinstall=True)
 
     # We need to ldap_enable the CA now that DS is up and running
     CA.ldap_enable('CA', config.host_name, config.dirman_password,
                    ipautil.realm_to_suffix(config.realm_name))
-    if not dogtag.install_constants.SHARED_DB:
-        cs.add_simple_service('dogtagldap/%s@%s' %
-            (config.host_name, config.realm_name))
-        cs.add_cert_to_service()
-    else:
-        CA.enable_client_auth_to_db()
-        CA.restart()
+
+    CA.enable_client_auth_to_db()
+    CA.restart()
 
     # Install CA DNS records
     install_dns_records(config, options)

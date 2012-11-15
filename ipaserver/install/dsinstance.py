@@ -209,7 +209,7 @@ class DsInstance(service.Service):
         self.step("configuring lockout plugin", self.__config_lockout_module)
         self.step("creating indices", self.__create_indices)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
-        if not dogtag.install_constants.SHARED_DB or enable_ssl:
+        if enable_ssl:
             self.step("configuring ssl for ds instance", self.enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("configure autobind for root", self.__root_autobind)

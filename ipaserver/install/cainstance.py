@@ -247,6 +247,11 @@ def is_step_one_done():
 
 
 class CADSInstance(service.Service):
+    """Certificate Authority DS instance
+
+    The CA DS was used with Dogtag 9. Only upgraded installations still use it.
+    Thus this class only does uninstallation.
+    """
     def __init__(self, host_name=None, realm_name=None, domain_name=None, dm_password=None, dogtag_constants=None):
         service.Service.__init__(self, "pkids",
             service_desc="directory server for the CA",
@@ -265,153 +270,6 @@ class CADSInstance(service.Service):
         self.master_host = None
         self.nickname = 'Server-Cert'
         self.subject_base = None
-        if host_name and realm_name:
-            self.principal = "dogtagldap/%s@%s" % (self.fqdn, self.realm_name)
-        if realm_name:
-            self.suffix = ipautil.realm_to_suffix(self.realm_name)
-            self.__setup_sub_dict()
-        else:
-            self.suffix = DN()
-
-        if dogtag_constants is None:
-            dogtag_constants = dogtag.configured_constants()
-        self.dogtag_constants = dogtag_constants
-
-    subject_base = ipautil.dn_attribute_property('_subject_base')
-
-    def create_instance(self, realm_name, host_name, domain_name,
-                        dm_password, pkcs12_info=None, ds_port=DEFAULT_DSPORT,
-                        subject_base=None):
-        self.ds_port = ds_port
-        self.realm_name = realm_name.upper()
-        self.suffix = ipautil.realm_to_suffix(self.realm_name)
-        self.fqdn = host_name
-        self.dm_password = dm_password
-        self.domain = domain_name
-        self.pkcs12_info = pkcs12_info
-        self.subject_base = subject_base
-        self.principal = "dogtagldap/%s@%s" % (self.fqdn, self.realm_name)
-        self.__setup_sub_dict()
-
-        self.step("creating directory server user", self.__create_ds_user)
-        self.step("creating directory server instance", self.__create_instance)
-        self.step("restarting directory server", self.restart_instance)
-
-        self.start_creation(runtime=30)
-
-    def __setup_sub_dict(self):
-        server_root = dsinstance.find_server_root()
-        self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
-                             PASSWORD=self.dm_password, SUFFIX=self.suffix,
-                             REALM=self.realm_name, USER=PKI_DS_USER,
-                             SERVER_ROOT=server_root, DOMAIN=self.domain,
-                             TIME=int(time.time()), DSPORT=self.ds_port,
-                             GROUP=dsinstance.DS_GROUP)
-
-    def __create_ds_user(self):
-        try:
-            pwd.getpwnam(PKI_DS_USER)
-            root_logger.debug("ds user %s exists" % PKI_DS_USER)
-        except KeyError:
-            root_logger.debug("adding ds user %s" % PKI_DS_USER)
-            args = ["/usr/sbin/useradd", "-g", dsinstance.DS_GROUP,
-                                         "-c", "PKI DS System User",
-                                         "-d", "/var/lib/dirsrv",
-                                         "-s", "/sbin/nologin",
-                                         "-M", "-r", PKI_DS_USER]
-            try:
-                ipautil.run(args)
-                root_logger.debug("done adding user")
-            except ipautil.CalledProcessError, e:
-                root_logger.critical("failed to add user %s" % e)
-
-    def __create_instance(self):
-        self.backup_state("serverid", self.serverid)
-
-        inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
-        root_logger.debug("writing inf template")
-        inf_fd = ipautil.write_tmp_file(inf_txt)
-        inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
-        root_logger.debug(inf_txt)
-        if ipautil.file_exists("/usr/sbin/setup-ds.pl"):
-            args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
-            root_logger.debug("calling setup-ds.pl")
-        else:
-            args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
-            root_logger.debug("calling ds_newinst.pl")
-        try:
-            ipautil.run(args)
-            root_logger.debug("completed creating ds instance")
-        except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to create ds instance %s" % e)
-        inf_fd.close()
-
-    def load_pkcs12(self):
-        dirname = dsinstance.config_dirname(self.serverid)
-        dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
-        if self.pkcs12_info:
-            dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
-            server_certs = dsdb.find_server_certs()
-            if len(server_certs) == 0:
-                raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
-
-            # We only handle one server cert
-            self.nickname = server_certs[0][0]
-            self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
-            dsdb.track_server_cert(self.nickname, self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid)
-
-    def create_certdb(self):
-        """
-        Create the dogtag 389-ds instance NSS certificate database. This needs
-        to be done after dogtag is installed and configured.
-        """
-        dirname = dsinstance.config_dirname(self.serverid)
-        dsdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
-        cadb = certs.CertDB(self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
-        cadb.export_ca_cert('ipaCert', False)
-        dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-        self.dercert = dsdb.create_server_cert("Server-Cert", self.fqdn, cadb)
-        dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid)
-        dsdb.create_pin_file()
-
-    def enable_ssl(self):
-        conn = ipaldap.IPAdmin(self.fqdn, port=DEFAULT_DSPORT)
-        conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
-
-        mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
-               (ldap.MOD_REPLACE, "nsSSL3Ciphers",
-                "-rsa_null_md5,+rsa_rc4_128_md5,+rsa_rc4_40_md5,+rsa_rc2_40_md5,\
-+rsa_des_sha,+rsa_fips_des_sha,+rsa_3des_sha,+rsa_fips_3des_sha,+fortezza,\
-+fortezza_rc4_128_sha,+fortezza_null,+tls_rsa_export1024_with_rc4_56_sha,\
-+tls_rsa_export1024_with_des_cbc_sha")]
-        conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
-
-        mod = [(ldap.MOD_ADD, "nsslapd-security", "on"),
-               (ldap.MOD_ADD, "nsslapd-secureport", str(DEFAULT_DSPORT+1))]
-        conn.modify_s(DN(('cn', 'config')), mod)
-
-        entry = conn.make_entry(
-            DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')),
-            objectclass=["top", "nsEncryptionModule"],
-            cn=["RSA"],
-            nsSSLPersonalitySSL=[self.nickname],
-            nsSSLToken=["internal (software)"],
-            nsSSLActivation=["on"],
-        )
-        conn.add_entry(entry)
-
-        conn.unbind()
-
-    def restart_instance(self):
-        try:
-            ipaservices.knownservices.dirsrv.restart(self.serverid)
-            if not dsinstance.is_ds_running(self.serverid):
-                root_logger.critical("Failed to restart the directory server. See the installation log for details.")
-                sys.exit(1)
-        except Exception:
-            # TODO: roll back here?
-            root_logger.debug(traceback.format_exc())
-            root_logger.critical("Failed to restart the directory server. See the installation log for details.")
 
     def uninstall(self):
         if self.is_configured():
@@ -1757,7 +1615,7 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
 
     if not ipautil.file_exists(cafile):
         # Replica of old "self-signed" master - skip installing CA
-        return (None, None)
+        return None
 
     if not config.setup_ca:
         # We aren't configuring the CA in this step but we still need
@@ -1766,7 +1624,7 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
             dogtag_constants=dogtag.install_constants)
         ca.dm_password = config.dirman_password
         ca.subject_base = config.subject_base
-        return (ca, None)
+        return ca
 
     ca = CAInstance(config.realm_name, certs.NSS_DIR,
         dogtag_constants=dogtag.install_constants)
@@ -1779,17 +1637,6 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
     if ipautil.file_exists(config.dir + "/dogtagcert.p12"):
         pkcs12_info = (config.dir + "/dogtagcert.p12",
                        config.dir + "/dirsrv_pin.txt")
-
-    if not dogtag.install_constants.SHARED_DB:
-        cs = CADSInstance(dogtag_constants=dogtag.install_constants)
-        cs.create_instance(config.realm_name, config.host_name,
-                           config.domain_name, config.dirman_password,
-                           pkcs12_info)
-        cs.load_pkcs12()
-        cs.enable_ssl()
-        cs.restart_instance()
-    else:
-        cs = None
 
     ca = CAInstance(config.realm_name, certs.NSS_DIR,
             dogtag_constants=dogtag.install_constants)
@@ -1821,16 +1668,11 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
     service.print_msg("Restarting the directory and certificate servers")
     ca.stop(dogtag.install_constants.PKI_INSTANCE_NAME)
 
-    if not dogtag.install_constants.SHARED_DB:
-        ds_name = dogtag.install_constants.DS_NAME
-        ipaservices.knownservices.dirsrv.stop(ds_name)
-        ipaservices.knownservices.dirsrv.start(ds_name)
-    else:
-        ipaservices.knownservices.dirsrv.restart()
+    ipaservices.knownservices.dirsrv.restart()
 
     ca.start(dogtag.install_constants.PKI_INSTANCE_NAME)
 
-    return (ca, cs)
+    return ca
 
 def update_cert_config(nickname, cert):
     """
@@ -1914,12 +1756,7 @@ def update_people_entry(uid, dercert):
 
 if __name__ == "__main__":
     standard_logging_setup("install.log")
-    if not dogtag.install_constants.SHARED_DB:
-        cs = CADSInstance()
-        cs.create_instance(
-            "EXAMPLE.COM", "catest.example.com", "example.com", "password")
-    else:
-        ds = dsinstance.DsInstance()
+    ds = dsinstance.DsInstance()
 
     ca = CAInstance("EXAMPLE.COM", "/etc/httpd/alias")
     ca.configure_instance("catest.example.com", "example.com", "password", "password")

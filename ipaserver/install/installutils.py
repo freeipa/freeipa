@@ -46,8 +46,6 @@ from ipaserver.install import certs
 IPA_MODULES = [
     'httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pki-tomcatd', 'install',
     'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
-if not dogtag.install_constants.SHARED_DB:
-    IPA_MODULES.append('pkids')
 
 
 class BadHostError(Exception):
