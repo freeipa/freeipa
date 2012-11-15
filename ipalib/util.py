@@ -105,6 +105,21 @@ def validate_host_dns(log, fqdn):
         )
         raise errors.DNSNotARecordError()
 
+def normalize_name(name):
+    result = dict()
+    components = name.split('@')
+    if len(components) == 2:
+        result['domain'] = unicode(components[1]).lower()
+        result['name'] = unicode(components[0]).lower()
+    else:
+        components = name.split('\\')
+        if len(components) == 2:
+            result['flatname'] = unicode(components[0]).lower()
+            result['name'] = unicode(components[1]).lower()
+        else:
+            result['name'] = unicode(name).lower()
+    return result
+
 def isvalid_base64(data):
     """
     Validate the incoming data as valid base64 data or not.

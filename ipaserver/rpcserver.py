@@ -40,7 +40,7 @@ from ipalib.backend import Executioner
 from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError, ExecutionError
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
-from ipalib.util import parse_time_duration
+from ipalib.util import parse_time_duration, normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython.compat import json
@@ -809,7 +809,11 @@ class jsonserver_session(jsonserver, KerberosSession):
         # Store the session data in the per-thread context
         setattr(context, 'session_data', session_data)
 
-        self.create_context(ccache=ipa_ccache_name)
+        # This may fail if a ticket from wrong realm was handled via browser
+        try:
+            self.create_context(ccache=ipa_ccache_name)
+        except ACIError, e:
+            return self.unauthorized(environ, start_response, str(e), 'denied')
 
         try:
             response = super(jsonserver_session, self).__call__(environ, start_response)
@@ -926,6 +930,35 @@ class login_password(Backend, KerberosSession, HTTP_Status):
                 return self.bad_request(environ, start_response, "more than one user parameter")
         else:
             return self.bad_request(environ, start_response, "no user specified")
+
+        # allows login in the form user@SERVER_REALM or user@server_realm
+        # FIXME: uppercasing may be removed when better handling of UPN
+        #        is introduced
+
+        parts = normalize_name(user)
+
+        if "domain" in parts:
+            # username is of the form user@SERVER_REALM or user@server_realm
+
+            # check whether the realm is server's realm
+            # Users from other realms are not supported
+            # (they do not have necessary LDAP entry, LDAP connect will fail)
+
+            if parts["domain"].upper()==self.api.env.realm:
+                user=parts["name"]
+            else:
+                return self.unauthorized(environ, start_response, '', 'denied')
+
+        elif "flatname" in parts:
+            # username is of the form NetBIOS\user
+            return self.unauthorized(environ, start_response, '', 'denied')
+
+        else:
+            # username is of the form user or of some wild form, e.g.
+            # user@REALM1@REALM2 or NetBIOS1\NetBIOS2\user (see normalize_name)
+
+            # wild form username will fail at kinit, so nothing needs to be done
+            pass
 
         password = query_dict.get('password', None)
         if password is not None:

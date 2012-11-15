@@ -727,6 +727,8 @@ class ldap2(CrudBackend):
         except _ldap.SERVER_DOWN:
             raise NetworkError(uri=self.ldap_uri,
                                error=u'LDAP Server Down')
+        except _ldap.LOCAL_ERROR:
+            raise errors.ACIError(info=info)
         except _ldap.SUCCESS:
             pass
         except _ldap.LDAPError, e:
