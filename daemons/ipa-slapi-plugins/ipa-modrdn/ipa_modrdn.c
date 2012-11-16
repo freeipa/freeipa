@@ -201,6 +201,12 @@ ipamodrdn_init(Slapi_PBlock *pb)
 {
     int status = EOK;
     char *plugin_identity = NULL;
+    Slapi_Entry *plugin_entry = NULL;
+    char *plugin_type = NULL;
+    int delfn = SLAPI_PLUGIN_POST_DELETE_FN;
+    int mdnfn = SLAPI_PLUGIN_POST_MODRDN_FN;
+    int modfn = SLAPI_PLUGIN_POST_MODIFY_FN;
+    int addfn = SLAPI_PLUGIN_POST_ADD_FN;
 
     LOG_TRACE("--in-->\n");
 
@@ -213,6 +219,18 @@ ipamodrdn_init(Slapi_PBlock *pb)
     PR_ASSERT(plugin_identity);
     setPluginID(plugin_identity);
 
+    if ((slapi_pblock_get(pb, SLAPI_PLUGIN_CONFIG_ENTRY, &plugin_entry) == 0) &&
+        plugin_entry &&
+        (plugin_type = slapi_entry_attr_get_charptr(plugin_entry, "nsslapd-plugintype")) &&
+        plugin_type && strstr(plugin_type, "betxn"))
+    {
+        addfn = SLAPI_PLUGIN_BE_TXN_POST_ADD_FN;
+        mdnfn = SLAPI_PLUGIN_BE_TXN_POST_MODRDN_FN;
+        delfn = SLAPI_PLUGIN_BE_TXN_POST_DELETE_FN;
+        modfn = SLAPI_PLUGIN_BE_TXN_POST_MODIFY_FN;
+    }
+    slapi_ch_free_string(&plugin_type);
+
     if (slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION,
                          SLAPI_PLUGIN_VERSION_01) != 0 ||
         slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION,
@@ -221,13 +239,13 @@ ipamodrdn_init(Slapi_PBlock *pb)
                          (void *) ipamodrdn_start) != 0 ||
         slapi_pblock_set(pb, SLAPI_PLUGIN_CLOSE_FN,
                          (void *) ipamodrdn_close) != 0 ||
-        slapi_pblock_set(pb, SLAPI_PLUGIN_POST_ADD_FN,
+        slapi_pblock_set(pb, addfn,
                          (void *) ipamodrdn_config_check_post_op) != 0 ||
-        slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODRDN_FN,
+        slapi_pblock_set(pb, mdnfn,
                          (void *) ipamodrdn_post_op) != 0 ||
-        slapi_pblock_set(pb, SLAPI_PLUGIN_POST_DELETE_FN,
+        slapi_pblock_set(pb, delfn,
                          (void *) ipamodrdn_config_check_post_op) != 0 ||
-        slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN,
+        slapi_pblock_set(pb, modfn,
                          (void *) ipamodrdn_config_check_post_op) != 0) {
         LOG_FATAL("failed to register plugin\n");
         status = EFAIL;

@@ -14,6 +14,7 @@ default:nsslapd-plugintype: object
 default:nsslapd-pluginenabled: on
 default:nsslapd-pluginid: schema-compat-plugin
 default:nsslapd-pluginversion: 0.8
+default:nsslapd-pluginbetxn: on
 default:nsslapd-pluginvendor: redhat.com
 default:nsslapd-plugindescription: Schema Compatibility Plugin
 

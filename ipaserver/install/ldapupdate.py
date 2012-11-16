@@ -59,7 +59,7 @@ class BadSyntax(installutils.ScriptError):
         return repr(self.value)
 
 class LDAPUpdate:
-    action_keywords = ["default", "add", "remove", "only", "deleteentry", "replace", "addifnew", "addifexist"]
+    action_keywords = ["default", "add", "remove", "only", "onlyifexist", "deleteentry", "replace", "addifnew", "addifexist"]
 
     def __init__(self, dm_password, sub_dict={}, live_run=True,
                  online=True, ldapi=False, plugins=False):
@@ -623,6 +623,18 @@ class LDAPUpdate:
                         only[attr] = True
                     entry.setValues(attr, entry_values)
                     self.debug('only: updated value %s', entry_values)
+                elif action == 'onlyifexist':
+                    self.debug("onlyifexist: '%s' to %s, current value %s", update_value, attr, entry_values)
+                    # Only set the attribute if the entry exist's. We
+                    # determine this based on whether it has an objectclass
+                    if entry.getValues('objectclass'):
+                        if only.get(attr):
+                            entry_values.append(update_value)
+                        else:
+                            entry_values = [update_value]
+                            only[attr] = True
+                        self.debug('onlyifexist: set %s to %s', attr, entry_values)
+                        entry.setValues(attr, entry_values)
                 elif action == 'deleteentry':
                     # skip this update type, it occurs in  __delete_entries()
                     return None

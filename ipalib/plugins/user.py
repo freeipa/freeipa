@@ -547,9 +547,6 @@ class user_add(LDAPCreate):
         except errors.AlreadyGroupMember:
             pass
 
-        if self.api.env.wait_for_attr:
-            newentry = wait_for_value(ldap, dn, 'memberOf', def_primary_group)
-            entry_from_entry(entry_attrs, newentry)
         self.obj._convert_manager(entry_attrs, **options)
         # delete description attribute NO_UPG_MAGIC if present
         if options.get('noprivate', False):
@@ -563,10 +560,11 @@ class user_add(LDAPCreate):
                     self.api.Command['user_mod'](keys[-1], **kw)
                 except (errors.EmptyModlist, errors.NotFound):
                     pass
-        else:
-            if self.api.env.wait_for_attr:
-                newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
-                entry_from_entry(entry_attrs, newentry)
+
+        # Fetch the entry again to update memberof, mep data, etc updated
+        # at the end of the transaction.
+        (newdn, newentry) = ldap.get_entry(dn, ['*'])
+        entry_attrs.update(newentry)
 
         if options.get('random', False):
             try:

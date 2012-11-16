@@ -202,7 +202,6 @@ class DsInstance(service.Service):
         self.step("configuring replication version plugin", self.__config_version_module)
         self.step("enabling IPA enrollment plugin", self.__add_enrollment_module)
         self.step("enabling ldapi", self.__enable_ldapi)
-        self.step("disabling betxn plugins", self.__disable_betxn)
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("configuring uuid plugin", self.__config_uuid_module)
         self.step("configuring modrdn plugin", self.__config_modrdn_module)
@@ -475,9 +474,6 @@ class DsInstance(service.Service):
 
     def __add_referint_module(self):
         self._ldap_mod("referint-conf.ldif")
-
-    def __disable_betxn(self):
-        self._ldap_mod("disable-betxn.ldif", self.sub_dict)
 
     def __set_unique_attrs(self):
         self._ldap_mod("unique-attributes.ldif", self.sub_dict)

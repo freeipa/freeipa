@@ -152,4 +152,6 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 int ipapwd_ext_init(void);
 int ipapwd_pre_init(Slapi_PBlock *pb);
 int ipapwd_post_init(Slapi_PBlock *pb);
+int ipapwd_pre_init_betxn(Slapi_PBlock *pb);
+int ipapwd_post_init_betxn(Slapi_PBlock *pb);
 

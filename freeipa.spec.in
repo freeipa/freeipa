@@ -113,7 +113,7 @@ Requires(pre): systemd-units
 Requires(post): systemd-units
 Requires: selinux-policy >= 3.10.0-110
 Requires(post): selinux-policy-base
-Requires: slapi-nis >= 0.40
+Requires: slapi-nis >= 0.44
 %if 0%{?fedora} >= 18
 Requires: pki-ca >= 10.0.0-0.52.b3
 Requires: dogtag-pki-server-theme
@@ -733,6 +733,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Fri Nov 16 2012 Rob Crittenden <rcritten@redhat.com> - 3.0.99-5
+- Bump minimum version of slapi-nis to 0.44
+
 * Wed Nov 14 2012 Martin Kosek <mkosek@redhat.com> - 3.0.99-4
 - Remove compatibility definitions for unsupported Fedora versions (Fedora 16 and lower)
   - Do not require specific package version when the package was available in Fedora 17

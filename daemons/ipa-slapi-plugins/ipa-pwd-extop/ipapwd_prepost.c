@@ -1307,6 +1307,19 @@ int ipapwd_pre_init(Slapi_PBlock *pb)
     return ret;
 }
 
+int ipapwd_pre_init_betxn(Slapi_PBlock *pb)
+{
+    int ret;
+
+    ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_BIND_FN, (void *)ipapwd_pre_bind);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_TXN_PRE_ADD_FN, (void *)ipapwd_pre_add);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_TXN_PRE_MODIFY_FN, (void *)ipapwd_pre_mod);
+
+    return ret;
+}
+
 /* Init post ops */
 int ipapwd_post_init(Slapi_PBlock *pb)
 {
@@ -1320,3 +1333,14 @@ int ipapwd_post_init(Slapi_PBlock *pb)
     return ret;
 }
 
+int ipapwd_post_init_betxn(Slapi_PBlock *pb)
+{
+    int ret;
+
+    ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_TXN_POST_ADD_FN, (void *)ipapwd_post_op);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_TXN_POST_MODIFY_FN, (void *)ipapwd_post_op);
+
+    return ret;
+}

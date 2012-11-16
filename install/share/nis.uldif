@@ -6,6 +6,7 @@ default:cn: NIS Server
 default:nsslapd-pluginpath: /usr/lib$LIBARCH/dirsrv/plugins/nisserver-plugin.so
 default:nsslapd-plugininitfunc: nis_plugin_init
 default:nsslapd-plugintype: object
+default:nsslapd-pluginbetxn: on
 default:nsslapd-pluginenabled: on
 default:nsslapd-pluginid: nis-server
 default:nsslapd-pluginversion: 0.10

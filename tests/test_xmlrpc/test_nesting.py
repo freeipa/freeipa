@@ -750,6 +750,7 @@ class test_nesting(Declarative):
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
                     'member_hostgroup': [hostgroup2],
+                    'memberindirect_host': [fqdn1],
                 },
             ),
         ),

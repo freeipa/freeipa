@@ -738,7 +738,6 @@
                     "startup_traceback": false,
                     "validate_api": false,
                     "verbose": 0,
-                    "wait_for_attr": false,
                     "webui_assets_dir": null,
                     "webui_prod": true,
                     "xmlrpc_uri": "https://dev.example.com/ipa/xml"

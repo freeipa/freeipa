@@ -1270,6 +1270,15 @@ static char *ipapwd_name_list[] = {
 int ipapwd_init( Slapi_PBlock *pb )
 {
     int ret;
+    Slapi_Entry *plugin_entry = NULL;
+    int is_betxn = 0;
+
+    /* get args */
+    if ((slapi_pblock_get(pb, SLAPI_PLUGIN_CONFIG_ENTRY, &plugin_entry) == 0) &&
+        plugin_entry) {
+            is_betxn = slapi_entry_attr_get_bool(plugin_entry,
+                                                 "nsslapd-pluginbetxn");
+    }
 
     /* Get the arguments appended to the plugin extendedop directive. The first argument
      * (after the standard arguments for the directive) should contain the OID of the
@@ -1300,6 +1309,18 @@ int ipapwd_init( Slapi_PBlock *pb )
         LOG("Failed to set plug-in version, function, and OID.\n" );
         return -1;
     }
+
+    if (is_betxn) {
+        slapi_register_plugin("betxnpreoperation", 1,
+                              "ipapwd_pre_init_betxn", ipapwd_pre_init_betxn,
+                              "IPA pwd pre ops betxn", NULL,
+                              ipapwd_plugin_id);
+
+        slapi_register_plugin("betxnpostoperation", 1,
+                              "ipapwd_post_init_betxn", ipapwd_post_init_betxn,
+                              "IPA pwd post ops betxn", NULL,
+                              ipapwd_plugin_id);
+    } 
 
     slapi_register_plugin("preoperation", 1,
                           "ipapwd_pre_init", ipapwd_pre_init,

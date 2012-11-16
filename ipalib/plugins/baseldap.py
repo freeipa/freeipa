@@ -231,50 +231,6 @@ def entry_from_entry(entry, newentry):
     for e in newentry:
         entry[e] = newentry[e]
 
-def wait_for_memberof(keys, entry_start, completed, show_command, adding=True):
-    """
-    When adding or removing reverse members we are faking an update to
-    object A by updating the member attribute in object B. The memberof
-    plugin makes this work by adding or removing the memberof attribute
-    to/from object A, it just takes a little bit of time.
-
-    This will loop for 6+ seconds, retrieving object A so we can see
-    if all the memberof attributes have been updated.
-    """
-    if completed == 0:
-        # nothing to do
-        return api.Command[show_command](keys[-1])['result']
-
-    if 'memberof' in entry_start:
-        starting_memberof = len(entry_start['memberof'])
-    else:
-        starting_memberof = 0
-
-    # Loop a few times to give the memberof plugin a chance to add the
-    # entries. Don't sleep for more than 6 seconds.
-    memberof = 0
-    x = 0
-    while x < 20:
-        # sleep first because the first search, even on a quiet system,
-        # almost always fails to have memberof set.
-        time.sleep(.3)
-        x = x + 1
-
-        # FIXME: put a try/except around here? I think it is probably better
-        # to just let the exception filter up to the caller.
-        entry_attrs = api.Command[show_command](keys[-1])['result']
-        if 'memberof' in entry_attrs:
-            memberof = len(entry_attrs['memberof'])
-
-        if adding:
-            if starting_memberof + completed >= memberof:
-                break
-        else:
-            if starting_memberof + completed <= memberof:
-                break
-
-    return entry_attrs
-
 def wait_for_value(ldap, dn, attr, value):
     """
     389-ds postoperation plugins are executed after the data has been
@@ -2029,11 +1985,9 @@ class LDAPAddReverseMember(LDAPModReverseMember):
             except errors.PublicError, e:
                 failed['member'][self.reverse_attr].append((attr, unicode(msg)))
 
-        # Wait for the memberof plugin to update the entry
-        try:
-            entry_attrs = wait_for_memberof(keys, entry_start, completed, self.show_command, adding=True)
-        except Exception, e:
-            raise errors.ReverseMemberError(verb=_('added'), exc=str(e))
+        # Update the member data.
+        (dn, entry_attrs) = ldap.get_entry(dn, ['*'])
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
         for callback in self.get_callbacks('post'):
             (completed, dn) = callback(
@@ -2131,11 +2085,9 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
             except errors.PublicError, e:
                 failed['member'][self.reverse_attr].append((attr, unicode(msg)))
 
-        # Wait for the memberof plugin to update the entry
-        try:
-            entry_attrs = wait_for_memberof(keys, entry_start, completed, self.show_command, adding=False)
-        except Exception, e:
-            raise errors.ReverseMemberError(verb=_('removed'), exc=str(e))
+        # Update the member data.
+        (dn, entry_attrs) = ldap.get_entry(dn, ['*'])
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
         for callback in self.get_callbacks('post'):
             (completed, dn) = callback(

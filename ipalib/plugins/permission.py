@@ -115,6 +115,7 @@ class permission(LDAPObject):
     ]
     attribute_members = {
         'member': ['privilege'],
+        'memberindirect': ['role'],
     }
     rdn_is_primary_key = True
 

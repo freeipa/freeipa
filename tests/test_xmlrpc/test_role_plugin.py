@@ -196,6 +196,7 @@ class test_role(Declarative):
                     'cn': [role1],
                     'description': [u'role desc 1'],
                     'memberof_privilege': [privilege1],
+                    'objectclass': objectclasses.role,
                 }
             ),
         ),
@@ -217,6 +218,7 @@ class test_role(Declarative):
                     'cn': [role1],
                     'description': [u'role desc 1'],
                     'memberof_privilege': [privilege1],
+                    'objectclass': objectclasses.role,
                 }
             ),
         ),
@@ -238,6 +240,7 @@ class test_role(Declarative):
                     'cn': [role1],
                     'description': [u'role desc 1'],
                     'memberof_privilege': [privilege1],
+                    'objectclass': objectclasses.role,
                 }
             ),
         ),
@@ -518,6 +521,7 @@ class test_role(Declarative):
                     'dn': role1_dn,
                     'cn': [role1],
                     'description': [u'New desc 1'],
+                    'objectclass': objectclasses.role,
                 }
             ),
         ),
@@ -539,6 +543,7 @@ class test_role(Declarative):
                     'dn': role1_dn,
                     'cn': [role1],
                     'description': [u'New desc 1'],
+                    'objectclass': objectclasses.role,
                 }
             ),
         ),

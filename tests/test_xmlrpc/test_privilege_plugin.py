@@ -142,6 +142,7 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1],
+                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
@@ -240,6 +241,7 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1, permission2],
+                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
@@ -262,6 +264,7 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1, permission2],
+                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
@@ -320,6 +323,7 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': [u'New desc 1'],
                     'memberof_permission': [permission2],
+                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
@@ -342,6 +346,7 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': [u'New desc 1'],
                     'memberof_permission': [permission2],
+                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
@@ -364,6 +369,7 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': [u'New desc 1'],
                     'memberof_permission': [permission2],
+                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
@@ -386,6 +392,7 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': [u'New desc 1'],
                     'memberof_permission': [permission2],
+                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),

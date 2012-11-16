@@ -7,6 +7,7 @@ cn: ipa_pwd_extop
 nsslapd-pluginpath: libipa_pwd_extop
 nsslapd-plugininitfunc: ipapwd_init
 nsslapd-plugintype: extendedop
+nsslapd-pluginbetxn: on
 nsslapd-pluginenabled: on
 nsslapd-pluginid: ipa_pwd_extop
 nsslapd-pluginversion: 1.0
