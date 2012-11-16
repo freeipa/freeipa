@@ -376,7 +376,7 @@ def re_initialize(realm, options):
 
     thishost = installutils.get_fqdn()
 
-    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
+    filter = repl.get_agreement_filter(host=thishost)
     entry = repl.conn.search_s(DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
         root_logger.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
