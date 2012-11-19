@@ -965,8 +965,8 @@ def main():
         ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
             dogtag_constants=dogtag.install_constants)
         if external == 0:
-            ca.configure_instance(host_name, dm_password, dm_password,
-                                  subject_base=options.subject)
+            ca.configure_instance(host_name, domain_name, dm_password,
+                                  dm_password, subject_base=options.subject)
         elif external == 1:
             # stage 1 of external CA installation
             options.realm_name = realm_name
@@ -979,12 +979,13 @@ def main():
             options.forwarders = dns_forwarders
             options.reverse_zone = reverse_zone
             write_cache(vars(options))
-            ca.configure_instance(host_name, dm_password, dm_password,
-                                  csr_file="/root/ipa.csr",
+            ca.configure_instance(host_name, domain_name, dm_password,
+                                  dm_password, csr_file="/root/ipa.csr",
                                   subject_base=options.subject)
         else:
             # stage 2 of external CA installation
-            ca.configure_instance(host_name, dm_password, dm_password,
+            ca.configure_instance(host_name, domain_name, dm_password,
+                                  dm_password,
                                   cert_file=options.external_cert_file,
                                   cert_chain_file=options.external_ca_file,
                                   subject_base=options.subject)
@@ -1079,7 +1080,8 @@ def main():
                options.conf_ntp, reverse_zone, zonemgr=options.zonemgr,
                zone_refresh=options.zone_refresh,
                persistent_search=options.persistent_search,
-               serial_autoincrement=options.serial_autoincrement)
+               serial_autoincrement=options.serial_autoincrement,
+               ca_configured=not options.selfsign)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)
 

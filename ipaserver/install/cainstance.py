@@ -66,6 +66,9 @@ DEFAULT_DSPORT = dogtag.install_constants.DS_PORT
 PKI_USER = "pkiuser"
 PKI_DS_USER = dogtag.install_constants.DS_USER
 
+# When IPA is installed with DNS support, this CNAME should hold all IPA
+# replicas with CA configured
+IPA_CA_CNAME = "ipa-ca"
 
 # We need to reset the template because the CA uses the regular boot
 # information
@@ -497,6 +500,7 @@ class CAInstance(service.Service):
         self.dm_password = None
         self.admin_password = None
         self.fqdn = None
+        self.domain = None
         self.pkcs12_info = None
         self.clone = False
 
@@ -516,7 +520,7 @@ class CAInstance(service.Service):
         self.ra_agent_db = ra_db
         self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
         self.ds_port = DEFAULT_DSPORT
-        self.domain_name = "IPA"
+        self.security_domain_name = "IPA"
         self.server_root = dogtag_constants.SERVER_ROOT
         self.ra_cert = None
         self.requestId = None
@@ -534,7 +538,7 @@ class CAInstance(service.Service):
         return os.path.exists(os.path.join(
             self.server_root, self.dogtag_constants.PKI_INSTANCE_NAME))
 
-    def configure_instance(self, host_name, dm_password,
+    def configure_instance(self, host_name, domain, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
@@ -552,6 +556,7 @@ class CAInstance(service.Service):
            csr_file. For step 2 set cert_file and cert_chain_file.
         """
         self.fqdn = host_name
+        self.domain = domain
         self.dm_password = dm_password
         self.admin_password = admin_password
         self.ds_port = ds_port
@@ -596,6 +601,7 @@ class CAInstance(service.Service):
             self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("set certificate subject base", self.__set_subject_in_config)
             self.step("enabling Subject Key Identifier", self.enable_subject_key_identifier)
+            self.step("enabling CRL and OCSP extensions for certificates", self.__set_crl_ocsp_extensions)
             self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
             self.step("configuring certificate server to start on boot", self.__enable)
             if not self.clone:
@@ -633,7 +639,7 @@ class CAInstance(service.Service):
             "pki_client_database_password": self.admin_password,
             "pki_client_database_purge": "False",
             "pki_client_pkcs12_password": self.admin_password,
-            "pki_security_domain_name": self.domain_name,
+            "pki_security_domain_name": self.security_domain_name,
             "pki_admin_name":  "admin",
             "pki_admin_uid":  "admin",
             "pki_admin_email":  "root@localhost",
@@ -800,7 +806,7 @@ class CAInstance(service.Service):
                     "-client_certdb_dir", self.ca_agent_db,
                     "-client_certdb_pwd", self.admin_password,
                     "-preop_pin" , preop_pin,
-                    "-domain_name", self.domain_name,
+                    "-domain_name", self.security_domain_name,
                     "-admin_user", "admin",
                     "-admin_email",  "root@localhost",
                     "-admin_password", self.admin_password,
@@ -1239,6 +1245,124 @@ class CAInstance(service.Service):
 
         return publishdir
 
+    def __set_crl_ocsp_extensions(self):
+        self.set_crl_ocsp_extensions(self.domain, self.fqdn)
+
+    def set_crl_ocsp_extensions(self, domain, fqdn):
+        """
+        Configure CRL and OCSP extensions in default IPA certificate profile
+        if not done already.
+        """
+        changed = False
+
+        # OCSP extension
+        ocsp_location_0 = installutils.get_directive(
+            self.dogtag_constants.IPA_SERVICE_PROFILE,
+            'policyset.serverCertSet.5.default.params.authInfoAccessADLocation_0',
+            separator='=')
+
+        if not ocsp_location_0:
+            # Set the first OCSP URI
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.5.default.params.authInfoAccessADLocation_0',
+                'https://%s.%s/ca/ocsp' % (IPA_CA_CNAME, ipautil.format_netloc(domain)),
+                quotes=False, separator='=')
+            changed = True
+
+        ocsp_profile_count = installutils.get_directive(
+            self.dogtag_constants.IPA_SERVICE_PROFILE,
+            'policyset.serverCertSet.5.default.params.authInfoAccessNumADs',
+            separator='=')
+
+        if ocsp_profile_count == '1':
+            # add the second OCSP URI
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.5.default.params.authInfoAccessADEnable_1',
+                'true', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.5.default.params.authInfoAccessADLocationType_1',
+                'URIName', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.5.default.params.authInfoAccessADLocation_1',
+                'http://%s/ca/ocsp' % ipautil.format_netloc(fqdn),
+                quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.5.default.params.authInfoAccessADMethod_1',
+                '1.3.6.1.5.5.7.48.1', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.5.default.params.authInfoAccessNumADs',
+                '2', quotes=False, separator='=')
+            changed = True
+
+
+        # CRL extension
+        crl_issuer_0 = installutils.get_directive(
+            self.dogtag_constants.IPA_SERVICE_PROFILE,
+            'policyset.serverCertSet.9.default.params.crlDistPointsIssuerName_0',
+            separator='=')
+
+        if not crl_issuer_0:
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsIssuerName_0',
+                'CN=Certificate Authority,o=ipaca', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsIssuerType_0',
+                'DirectoryName', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0',
+                'https://%s.%s/ipa/crl/MasterCRL.bin'% (IPA_CA_CNAME, ipautil.format_netloc(domain)),
+                quotes=False, separator='=')
+            changed = True
+
+        crl_profile_count = installutils.get_directive(
+            self.dogtag_constants.IPA_SERVICE_PROFILE,
+            'policyset.serverCertSet.9.default.params.crlDistPointsNum',
+            separator='=')
+
+        if crl_profile_count == '1':
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsEnable_1',
+                'true', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsIssuerName_1',
+                'CN=Certificate Authority,o=ipaca', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsIssuerType_1',
+                'DirectoryName', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsPointName_1',
+                'https://%s/ipa/crl/MasterCRL.bin' % ipautil.format_netloc(fqdn),
+                quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsPointType_1',
+                'URIName', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsReasons_1',
+                '', quotes=False, separator='=')
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.9.default.params.crlDistPointsNum',
+                '2', quotes=False, separator='=')
+            changed = True
+
+        # CRL extension is not enabled by default
+        setlist = installutils.get_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+            'policyset.serverCertSet.list', separator='=')
+        new_set_list = None
+
+        if setlist == '1,2,3,4,5,6,7,8':
+            new_set_list = '1,2,3,4,5,6,7,8,9'
+        elif setlist == '1,2,3,4,5,6,7,8,10':
+            new_set_list = '1,2,3,4,5,6,7,8,9,10'
+
+        if new_set_list:
+            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.list',
+                new_set_list, quotes=False, separator='=')
+            changed = True
+
+        return changed
+
+
     def __enable_crl_publish(self):
         """
         Enable file-based CRL publishing and disable LDAP publishing.
@@ -1278,12 +1402,6 @@ class CAInstance(service.Service):
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapCrlRule.enable', 'false', quotes=False, separator='=')
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapUserCertRule.enable', 'false', quotes=False, separator='=')
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
-
-        # Fix the CRL URI in the profile
-        installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0',
-            'https://%s/ipa/crl/MasterCRL.bin' % ipautil.format_netloc(self.fqdn),
-            quotes=False, separator='=')
 
         # If we are the initial master then we are the CRL generator, otherwise
         # we point to that master for CRLs.
@@ -1484,11 +1602,12 @@ class CAInstance(service.Service):
 
         # this is the default setting from pki-ca/pki-tomcat. Don't touch it
         # if a user has manually modified it.
-        if setlist == '1,2,3,4,5,6,7,8':
+        if setlist == '1,2,3,4,5,6,7,8' or setlist == '1,2,3,4,5,6,7,8,9':
+            setlist = setlist + ',10'
             installutils.set_directive(
                 self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.list',
-                '1,2,3,4,5,6,7,8,10',
+                setlist,
                 quotes=False, separator='=')
             installutils.set_directive(
                 self.dogtag_constants.IPA_SERVICE_PROFILE,
@@ -1676,8 +1795,9 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
         # If installing this afterward the Apache NSS database already
         # exists, don't remove it.
         ca.create_ra_agent_db = False
-    ca.configure_instance(config.host_name, config.dirman_password,
-                          config.dirman_password, pkcs12_info=(cafile,),
+    ca.configure_instance(config.host_name, config.domain_name,
+                          config.dirman_password, config.dirman_password,
+                          pkcs12_info=(cafile,),
                           master_host=config.master_host_name,
                           master_replication_port=master_ds_port,
                           subject_base=config.subject_base)
@@ -1740,4 +1860,4 @@ if __name__ == "__main__":
         ds = dsinstance.DsInstance()
 
     ca = CAInstance("EXAMPLE.COM", "/etc/httpd/alias")
-    ca.configure_instance("catest.example.com", "password", "password")
+    ca.configure_instance("catest.example.com", "example.com", "password", "password")

@@ -247,7 +247,8 @@ def install_bind(config, options):
         print "Using reverse zone %s" % reverse_zone
 
     bind.setup(config.host_name, config.ip_address, config.realm_name,
-               config.domain_name, forwarders, options.conf_ntp, reverse_zone)
+               config.domain_name, forwarders, options.conf_ntp, reverse_zone,
+               ca_configured=options.setup_ca)
     bind.create_instance()
 
     print ""
@@ -296,7 +297,8 @@ def install_dns_records(config, options):
 
         bind.add_master_dns_records(config.host_name, config.ip_address,
                                     config.realm_name, config.domain_name,
-                                    reverse_zone, options.conf_ntp)
+                                    reverse_zone, options.conf_ntp,
+                                    options.setup_ca)
 
 def check_dirsrv():
     (ds_unsecure, ds_secure) = dsinstance.check_ports()

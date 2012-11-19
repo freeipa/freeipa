@@ -28,6 +28,7 @@ import ldap
 import service
 from ipaserver import ipaldap
 from ipaserver.install.dsinstance import realm_to_serverid
+from ipaserver.install.cainstance import IPA_CA_CNAME
 from ipaserver.install.installutils import resolve_host
 from ipapython import sysrestore
 from ipapython import ipautil
@@ -330,7 +331,7 @@ def del_rr(zone, name, type, rdata):
     delkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
     try:
         api.Command.dnsrecord_del(unicode(zone), unicode(name), **delkw)
-    except (errors.NotFound, errors.EmptyModlist):
+    except (errors.NotFound, errors.AttrValueNotFound, errors.EmptyModlist):
         pass
 
 def get_rr(zone, name, type):
@@ -430,7 +431,8 @@ class BindInstance(service.Service):
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp,
               reverse_zone, named_user="named", zonemgr=None,
-              zone_refresh=0, persistent_search=True, serial_autoincrement=True):
+              zone_refresh=0, persistent_search=True, serial_autoincrement=True,
+              ca_configured=None):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -444,6 +446,7 @@ class BindInstance(service.Service):
         self.zone_refresh = zone_refresh
         self.persistent_search = persistent_search
         self.serial_autoincrement = serial_autoincrement
+        self.ca_configured = ca_configured
 
         if not zonemgr:
             self.zonemgr = 'hostmaster.%s' % self.domain
@@ -497,6 +500,7 @@ class BindInstance(service.Service):
         if self.reverse_zone is not None:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
         self.step("setting up our own record", self.__add_self)
+        self.step("setting up CA CNAME record", self.__add_ipa_ca_cname)
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
@@ -556,6 +560,7 @@ class BindInstance(service.Service):
                              OPTIONAL_NTP=optional_ntp,
                              ZONEMGR=self.zonemgr,
                              ZONE_REFRESH=self.zone_refresh,
+                             IPA_CA_CNAME=IPA_CA_CNAME,
                              PERSISTENT_SEARCH=boolean_var['persistent_search'],
                              SERIAL_AUTOINCREMENT=boolean_var['serial_autoincrement'],)
 
@@ -581,6 +586,28 @@ class BindInstance(service.Service):
 
     def __add_self_ns(self):
         add_ns_rr(self.domain, api.env.host, self.dns_backup, force=True)
+
+    def __add_ipa_ca_cname(self):
+        if self.ca_configured is False:
+            root_logger.debug("CA is not configured, skip this step")
+            return
+        elif self.ca_configured is None:
+            # we do not know if CA is configured for this host and we can
+            # add the CA CNAME record. So we need to find out
+            root_logger.debug("Check if CA is enabled for this host")
+            base_dn = DN(('cn', api.env.host), ('cn', 'masters'), ('cn', 'ipa'),
+                         ('cn', 'etc'), api.env.basedn)
+            ldap_filter = '(&(objectClass=ipaConfigObject)(cn=CA))'
+            try:
+                api.Backend.ldap2.find_entries(filter=ldap_filter, base_dn=base_dn)
+            except ipalib.errors.NotFound:
+                # CA is not configured
+                root_logger.debug("CA is not configured")
+                return
+            else:
+                root_logger.debug("CA is configured for this host, continue")
+
+        add_rr(self.domain, IPA_CA_CNAME, "CNAME", self.host_in_rr)
 
     def __add_self(self):
         zone = self.domain
@@ -681,7 +708,7 @@ class BindInstance(service.Service):
         resolv_fd.close()
 
     def add_master_dns_records(self, fqdn, ip_address, realm_name, domain_name,
-                               reverse_zone, ntp=False):
+                               reverse_zone, ntp=False, ca_configured=None):
         self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm = realm_name
@@ -690,23 +717,36 @@ class BindInstance(service.Service):
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ntp = ntp
         self.reverse_zone = reverse_zone
+        self.ca_configured = ca_configured
 
         self.__add_self()
+        self.__add_ipa_ca_cname()
+
+    def add_ipa_ca_cname(self, fqdn, domain_name, ca_configured=True):
+        self.host = fqdn.split(".")[0]
+        self.fqdn = fqdn
+        self.domain = domain_name
+        self.ca_configured = ca_configured
+        self.__add_ipa_ca_cname()
 
     def remove_master_dns_records(self, fqdn, realm_name, domain_name):
         host = fqdn.split(".")[0]
+        self.host = host
+        self.fqdn = fqdn
+        self.domain = domain_name
         suffix = ipautil.realm_to_suffix(realm_name)
 
         zone = domain_name
         resource_records = (
-            ("_ldap._tcp", "SRV", "0 100 389 %s" % host),
-            ("_kerberos._tcp", "SRV", "0 100 88 %s" % host),
-            ("_kerberos._udp", "SRV", "0 100 88 %s" % host),
-            ("_kerberos-master._tcp", "SRV", "0 100 88 %s" % host),
-            ("_kerberos-master._udp", "SRV", "0 100 88 %s" % host),
-            ("_kpasswd._tcp", "SRV", "0 100 464 %s" % host),
-            ("_kpasswd._udp", "SRV", "0 100 464 %s" % host),
-            ("_ntp._udp", "SRV", "0 100 123 %s" % host),
+            ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host_in_rr),
+            ("_kerberos._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
+            ("_kerberos._udp", "SRV", "0 100 88 %s" % self.host_in_rr),
+            ("_kerberos-master._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
+            ("_kerberos-master._udp", "SRV", "0 100 88 %s" % self.host_in_rr),
+            ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host_in_rr),
+            ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host_in_rr),
+            ("_ntp._udp", "SRV", "0 100 123 %s" % self.host_in_rr),
+            (IPA_CA_CNAME, "CNAME", self.host_in_rr),
             ("@", "NS", fqdn+"."),
         )
 

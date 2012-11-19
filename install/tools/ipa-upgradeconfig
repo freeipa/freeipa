@@ -30,6 +30,7 @@ try:
     from ipapython.ipa_log_manager import *
     from ipapython import certmonger
     from ipapython import dogtag
+    from ipapython.dn import DN
     from ipaserver.install import installutils
     from ipaserver.install import dsinstance
     from ipaserver.install import httpinstance
@@ -47,6 +48,7 @@ try:
     import pwd
     import fileinput
     from ipalib import api
+    import ipalib.util
     import ipalib.errors
 except ImportError:
     print >> sys.stderr, """\
@@ -307,7 +309,7 @@ def setup_firefox_extension(fstore):
     http.setup_firefox_extension(realm, domain)
 
 
-def upgrade_ipa_profile(ca):
+def upgrade_ipa_profile(ca, domain, fqdn):
     """
     Update the IPA Profile provided by dogtag
 
@@ -321,7 +323,8 @@ def upgrade_ipa_profile(ca):
         else:
             root_logger.debug('Subject Key Identifier already set.')
         audit = ca.set_audit_renewal()
-        if audit or ski:
+        uri = ca.set_crl_ocsp_extensions(domain, fqdn)
+        if audit or ski or uri:
             return True
     else:
         root_logger.info('CA is not configured')
@@ -575,6 +578,32 @@ def migrate_crl_publish_dir(ca):
                      'request pki-ca restart')
     return True
 
+def add_server_cname_records():
+    root_logger.info('[Add missing server CNAME records]')
+
+    if not sysupgrade.get_upgrade_state('dns', 'ipa_ca_cname'):
+        try:
+            api.Backend.ldap2.connect(autobind=True)
+        except ipalib.errors.PublicError, e:
+            root_logger.error("Cannot connect to LDAP to add DNS records: %s", e)
+        else:
+            ret = api.Command['dns_is_enabled']()
+            if not ret['result']:
+                root_logger.info('DNS is not configured')
+                sysupgrade.set_upgrade_state('dns', 'ipa_ca_cname', True)
+                return
+
+            bind = bindinstance.BindInstance()
+            # DNS is enabled, so let bindinstance find out if CA is enabled
+            # and let it add the CNAME in that case
+            bind.add_ipa_ca_cname(api.env.host, api.env.domain, ca_configured=None)
+            sysupgrade.set_upgrade_state('dns', 'ipa_ca_cname', True)
+        finally:
+            if api.Backend.ldap2.isconnected():
+                 api.Backend.ldap2.disconnect()
+    else:
+        root_logger.info('IPA CA CNAME already processed')
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -602,7 +631,7 @@ def main():
 
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    api.bootstrap(context='restart')
+    api.bootstrap(context='restart', in_server=True)
     api.finalize()
 
     fqdn = find_hostname()
@@ -667,13 +696,14 @@ def main():
 
     cleanup_kdc(fstore)
     setup_firefox_extension(fstore)
+    add_server_cname_records()
     changed_psearch = named_enable_psearch()
     changed_autoincrement = named_enable_serial_autoincrement()
     if changed_psearch or changed_autoincrement:
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
         bindinstance.BindInstance(fstore).restart()
-    ca_restart = ca_restart or enable_certificate_renewal(ca) or upgrade_ipa_profile(ca)
+    ca_restart = ca_restart or enable_certificate_renewal(ca) or upgrade_ipa_profile(ca, api.env.domain, fqdn)
 
     if ca_restart:
         root_logger.info('pki-ca configuration changed, restart pki-ca')

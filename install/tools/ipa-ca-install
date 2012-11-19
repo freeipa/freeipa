@@ -31,17 +31,17 @@ from ipaserver.install import certs
 from ipaserver.install.installutils import HostnameLocalhost
 from ipaserver.install.installutils import ReplicaConfig, expand_replica_info, read_replica_info
 from ipaserver.install.installutils import get_host_name, BadHostError
-from ipaserver.install import dsinstance, cainstance
+from ipaserver.install import dsinstance, cainstance, bindinstance
 from ipaserver.install.replication import replica_conn_check
 from ipapython import version
 from ipalib import api, util
+from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
 from ipapython import dogtag
 from ipapython.ipa_log_manager import *
 
 log_file_name = "/var/log/ipareplica-ca-install.log"
-CACERT = "/etc/ipa/ca.crt"
 REPLICA_INFO_TOP_DIR = None
 
 def parse_options():
@@ -73,6 +73,22 @@ def parse_options():
 
 def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
+
+def install_dns_records(config, options):
+
+    if not bindinstance.dns_container_exists(config.master_host_name,
+                                             ipautil.realm_to_suffix(config.realm_name),
+                                             dm_password=config.dirman_password):
+        return
+
+    bind = bindinstance.BindInstance(dm_password=config.dirman_password)
+    try:
+        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
+                                  bind_pw=config.dirman_password)
+        bind.add_ipa_ca_cname(config.host_name, config.domain_name)
+    finally:
+        if api.Backend.ldap2.isconnected():
+             api.Backend.ldap2.disconnect()
 
 def main():
     safe_options, options, filename = parse_options()
@@ -175,6 +191,9 @@ def main():
     else:
         CA.enable_client_auth_to_db()
         CA.restart()
+
+    # Install CA DNS records
+    install_dns_records(config, options)
 
     # We need to restart apache as we drop a new config file in there
     ipaservices.knownservices.httpd.restart(capture_output=True)
