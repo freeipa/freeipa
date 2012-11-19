@@ -637,6 +637,24 @@ static bool is_cross_realm_krbtgt(krb5_const_principal princ)
     return true;
 }
 
+static bool is_service_of_type(krb5_const_principal princ, const char *type)
+{
+    size_t len;
+
+    if (princ->length < 2) {
+        return false;
+    }
+
+    len = strlen(type);
+
+    if ((princ->data[0].length == len) ||
+        (strncasecmp(princ->data[0].data, type, len) == 0)) {
+        return true;
+    }
+
+    return false;
+}
+
 static char *gen_sid_string(TALLOC_CTX *memctx, struct dom_sid *dom_sid,
                             uint32_t rid)
 {
@@ -1362,6 +1380,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     krb5_error_code kerr;
     krb5_pac pac = NULL;
     krb5_data pac_data;
+    bool is_nfs = false;
 
     /* When using s4u2proxy client_princ actually refers to the proxied user
      * while client->princ to the proxy service asking for the TGS on behalf
@@ -1372,9 +1391,24 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         ks_client_princ = client->princ;
     }
 
+    /* NFS Server on Linux is limited and will choke on big tickets.
+     * So avoid attachnig the PAC to nfs/ tickets for now.
+     * FIXME: remove this when we have interface to support disabling
+     * PACs on arbitrary services */
+    if (is_service_of_type(ks_client_princ, "nfs") ||
+        is_service_of_type(server->princ, "nfs")) {
+        is_nfs = true;
+    }
+
     is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
 
     if (is_as_req && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) {
+
+        if (is_nfs) {
+            *signed_auth_data = NULL;
+            kerr = 0;
+            goto done;
+        }
 
         kerr = ipadb_get_pac(context, client, &pac);
         if (kerr != 0 && kerr != ENOENT) {
@@ -1382,7 +1416,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         }
     }
 
-    if (!is_as_req) {
+    if (!is_as_req & !is_nfs) {
         /* find the existing PAC, if present */
         kerr = krb5_find_authdata(context, tgt_auth_data, NULL,
                                   KRB5_AUTHDATA_WIN2K_PAC, &pac_auth_data);
