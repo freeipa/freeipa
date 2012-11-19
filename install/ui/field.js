@@ -190,7 +190,17 @@ IPA.field = function(spec) {
 
         if (record.attributelevelrights) {
             var rights = record.attributelevelrights[that.param];
-            if (!rights || rights.indexOf('w') < 0) {
+            var oc_rights= record.attributelevelrights['objectclass'];
+            var write_oc = oc_rights && oc_rights.indexOf('w') > -1;
+
+            // Some objects in LDAP may not have set proper object class and
+            // therefore server doesn't send proper attribute rights. Flag
+            // 'w_if_no_aci' should be used when we want to ensure that UI
+            // shows edit interface in such cases. Usable only when user can
+            // modify object classes.
+            // For all others, lack of rights means no write.
+            if ((!rights && !(that.flags.indexOf('w_if_no_aci') > -1 && write_oc)) ||
+                 (rights && rights.indexOf('w') < 0)) {
                 that.writable = false;
             }
         }
@@ -644,7 +654,10 @@ IPA.sshkeys_field = function(spec) {
 
     var that = IPA.multivalued_field(spec);
 
-    that.sshfp_attr = 'sshpubkeyfp' || spec.sshfp_attr;
+    // Fixes upgrade issue. When attr rights are missing due to lack of object class.
+    that.flags = spec.flags || ['w_if_no_aci'];
+
+    that.sshfp_attr = spec.sshfp_attr || 'sshpubkeyfp';
 
     that.load = function(record) {
 

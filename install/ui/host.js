@@ -71,7 +71,8 @@ IPA.host.entity = function(spec) {
                         },
                         {
                             type: 'multivalued',
-                            name: 'macaddress'
+                            name: 'macaddress',
+                            flags: ['w_if_no_aci']
                         }
                     ]
                 },
