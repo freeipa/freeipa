@@ -153,7 +153,7 @@ IPA.group.entity = function(spec) {
                     name: 'type',
                     label: IPA.messages.objects.group.type,
                     flags: ['no_command'],
-                    default_value: 'normal',
+                    default_value: 'posix',
                     options: [
                         {
                             value: 'normal',
