@@ -128,8 +128,8 @@ class ReplicationManager(object):
             # If we are passed a password we'll use it as the DM password
             # otherwise we'll do a GSSAPI bind.
             if starttls:
-                self.conn = ipaldap.IPAdmin(hostname, port=port)
-                ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, CACERT)
+                self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT,
+                                            protocol='ldap')
                 self.conn.start_tls_s()
             else:
                 self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT)
@@ -815,17 +815,16 @@ class ReplicationManager(object):
         self.setup_changelog(conn)
 
     def setup_replication(self, r_hostname, r_port=389, r_sslport=636,
-                          r_binddn=None, r_bindpw=None, starttls=False,
-                          is_cs_replica=False):
+                          r_binddn=None, r_bindpw=None,
+                          is_cs_replica=False, local_port=None):
         assert isinstance(r_binddn, DN)
+        if local_port is None:
+            local_port = r_port
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        if starttls:
-            r_conn = ipaldap.IPAdmin(r_hostname, port=r_port)
-            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, CACERT)
-            r_conn.start_tls_s()
-        else:
-            r_conn = ipaldap.IPAdmin(r_hostname, port=r_sslport, cacert=CACERT)
+        r_conn = ipaldap.IPAdmin(r_hostname, port=r_port, cacert=CACERT,
+                                 protocol='ldap')
+        r_conn.start_tls_s()
 
         if r_bindpw:
             r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
@@ -843,7 +842,7 @@ class ReplicationManager(object):
                                      self.repl_man_dn, self.repl_man_passwd)
 
         if is_cs_replica:
-            self.setup_agreement(r_conn, self.conn.host, port=r_port,
+            self.setup_agreement(r_conn, self.conn.host, port=local_port,
                                  repl_man_dn=self.repl_man_dn,
                                  repl_man_passwd=self.repl_man_passwd,
                                  master=False)
@@ -852,7 +851,7 @@ class ReplicationManager(object):
                                  repl_man_passwd=self.repl_man_passwd,
                                  master=True)
         else:
-            self.setup_agreement(r_conn, self.conn.host, port=r_port,
+            self.setup_agreement(r_conn, self.conn.host, port=local_port,
                                  repl_man_dn=self.repl_man_dn,
                                  repl_man_passwd=self.repl_man_passwd)
             self.setup_agreement(self.conn, r_hostname, port=r_port,
@@ -1207,4 +1206,3 @@ class ReplicationManager(object):
         print "This may be safely interrupted with Ctrl+C"
 
         self.conn.checkTask(dn, dowait=True)
-

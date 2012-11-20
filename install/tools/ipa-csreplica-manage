@@ -34,7 +34,6 @@ from ipalib import api, errors, util
 from ipapython.dn import DN
 
 CACERT = "/etc/ipa/ca.crt"
-PORT = dogtag.install_constants.DS_PORT
 
 # dict of command name and tuples of min/max num of args needed
 commands = {
@@ -60,10 +59,48 @@ def convert_error(exc):
     else:
         return str(exc)
 
-class CSReplicationManager(replication.ReplicationManager):
 
-    def __init__(self, realm, hostname, dirman_passwd, port=PORT, starttls=True):
-        super(CSReplicationManager, self).__init__(realm, hostname, dirman_passwd, port, starttls)
+def get_cs_replication_manager(realm, host, dirman_passwd):
+    """Get a CSReplicationManager for a remote host
+
+    Detects if the host has a merged database, connects to appropriate port.
+    """
+
+    # Try merged database port first. If it has the ipaca tree, return
+    # corresponding replication manager
+    # If we can't connect to it at all, we're not dealing with an IPA master
+    # anyway; let the exception propagate up
+    # Fall back to the old PKI-only DS port. Check that it has the ipaca tree
+    # (IPA with merged DB theoretically leaves port 7389 free for anyone).
+    # If it doesn't, raise exception.
+    ports = [
+        dogtag.Dogtag10Constants.DS_PORT,
+        dogtag.Dogtag9Constants.DS_PORT,
+    ]
+    for port in ports:
+        root_logger.debug('Looking for PKI DS on %s:%s' % (host, port))
+        replication_manager = CSReplicationManager(
+            realm, host, dirman_passwd, port)
+        if replication_manager.has_ipaca():
+            root_logger.debug('PKI DS found on %s:%s' % (host, port))
+            return replication_manager
+        else:
+            root_logger.debug('PKI tree not found on %s:%s' % (host, port))
+    sys.exit('Cannot reach PKI DS at %s on ports %s' % (host, ports))
+
+
+class CSReplicationManager(replication.ReplicationManager):
+    """ReplicationManager specific to CA agreements
+
+    Note that in most cases we don't know if we're connecting to an old-style
+    separate PKI DS, or to a host with a merged DB.
+    Use the get_cs_replication_manager function to determine this and return
+    an appropriate CSReplicationManager.
+    """
+
+    def __init__(self, realm, hostname, dirman_passwd, port):
+        super(CSReplicationManager, self).__init__(
+            realm, hostname, dirman_passwd, port, starttls=True)
         self.suffix = DN(('o', 'ipaca'))
         self.hostnames = [] # set before calling or agreement_dn() will fail
 
@@ -106,16 +143,25 @@ class CSReplicationManager(replication.ReplicationManager):
 
         raise errors.NotFound(reason='No agreement found for %s' % hostname)
 
-    def delete_referral(self, hostname):
+    def delete_referral(self, hostname, port):
         dn = DN(('cn', self.suffix), ('cn', 'mapping tree'), ('cn', 'config'))
-        # TODO: should we detect proto/port somehow ?
+        # TODO: should we detect proto somehow ?
         mod = [(ldap.MOD_DELETE, 'nsslapd-referral',
-                'ldap://%s/%s' % (ipautil.format_netloc(hostname, PORT), self.suffix))]
+                'ldap://%s/%s' % (ipautil.format_netloc(hostname, port), self.suffix))]
 
         try:
             self.conn.modify_s(dn, mod)
         except Exception, e:
             root_logger.debug("Failed to remove referral value: %s" % convert_error(e))
+
+    def has_ipaca(self):
+        try:
+            entry = self.conn.getEntry(self.suffix, ldap.SCOPE_BASE)
+        except errors.NotFound:
+            return False
+        else:
+            return True
+
 
 def parse_options():
     from optparse import OptionParser
@@ -185,7 +231,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
             print '%s: %s' % (k, p[0])
         return
 
-    repl = CSReplicationManager(realm, replica, dirman_passwd, PORT, True)
+    repl = get_cs_replication_manager(realm, replica, dirman_passwd)
     entries = repl.find_replication_agreements()
 
     for entry in entries:
@@ -202,7 +248,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     repl2 = None
 
     try:
-        repl1 = CSReplicationManager(realm, replica1, dirman_passwd, PORT, True)
+        repl1 = get_cs_replication_manager(realm, replica1, dirman_passwd)
 
         repl1.hostnames = [replica1, replica2]
 
@@ -221,12 +267,13 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         repl1.hostnames = [replica1, replica2]
 
     except ldap.SERVER_DOWN, e:
-        sys.exit("Unable to connect to %s: %s" % (ipautil.format_netloc(replica1, PORT), convert_error(e)))
+        sys.exit("Unable to connect to %s: %s" % (replica1, convert_error(e)))
     except Exception, e:
         sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
 
     try:
-        repl2 = CSReplicationManager(realm, replica2, dirman_passwd, PORT, True)
+        repl2 = get_cs_replication_manager(realm, replica2, dirman_passwd)
+
         repl2.hostnames = [replica1, replica2]
 
         repl_list = repl2.find_replication_agreements()
@@ -271,7 +318,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         failed = False
         try:
             repl2.delete_agreement(replica1, replica2_dn)
-            repl2.delete_referral(replica1)
+            repl2.delete_referral(replica1, repl1.port)
         except Exception, e:
             print "Unable to remove agreement on %s: %s" % (replica2, convert_error(e))
             failed = True
@@ -286,7 +333,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         print "Forcing removal on '%s'" % replica1
 
     repl1.delete_agreement(replica2, replica1_dn)
-    repl1.delete_referral(replica2)
+    repl1.delete_referral(replica2, repl2.port)
 
     print "Deleted replication agreement from '%s' to '%s'" % (replica1, replica2)
 
@@ -298,8 +345,8 @@ def del_master(realm, hostname, options):
 
     # 1. Connect to the local dogtag DS server
     try:
-        thisrepl = CSReplicationManager(realm, options.host,
-                                        options.dirman_passwd)
+        thisrepl = get_cs_replication_manager(realm, options.host,
+                                              options.dirman_passwd)
     except Exception, e:
         sys.exit("Failed to connect to server %s: %s" % (options.host, convert_error(e)))
 
@@ -309,7 +356,8 @@ def del_master(realm, hostname, options):
 
     # 3. Connect to the dogtag DS to be removed.
     try:
-        delrepl = CSReplicationManager(realm, hostname, options.dirman_passwd)
+        delrepl = get_cs_replication_manager(realm, hostname,
+                                             options.dirman_passwd)
     except Exception, e:
         if not options.force:
             print "Unable to delete replica %s: %s" % (hostname, convert_error(e))
@@ -333,6 +381,7 @@ def del_master(realm, hostname, options):
             sys.exit("There were issues removing a connection: %s" % convert_error(e))
 
 def add_link(realm, replica1, replica2, dirman_passwd, options):
+    repl2 = get_cs_replication_manager(realm, replica2, dirman_passwd)
     try:
         conn = ipaldap.IPAdmin(replica2, 636, cacert=CACERT)
         conn.do_simple_bind(bindpw=dirman_passwd)
@@ -349,7 +398,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         sys.exit("Failed to get data while trying to bind to '%s': %s" % (replica1, convert_error(e)))
 
     try:
-        repl1 = CSReplicationManager(realm, replica1, dirman_passwd, PORT, True)
+        repl1 = get_cs_replication_manager(realm, replica1, dirman_passwd)
         entries = repl1.find_replication_agreements()
         for e in entries:
             if e.getValue('nsDS5ReplicaHost') == replica2:
@@ -359,11 +408,13 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except ldap.NO_SUCH_OBJECT:
         sys.exit("Cannot find replica '%s'" % replica1)
     except ldap.SERVER_DOWN, e:
-        sys.exit("Unable to connect to %s %s" % (ipautil.format_netloc(replica1, PORT), convert_error(e)))
+        sys.exit("Unable to connect to %s: %s" % (replica1, convert_error(e)))
     except Exception, e:
         sys.exit("Failed to get data from '%s' while trying to get current agreements: %s" % (replica1, convert_error(e)))
 
-    repl1.setup_replication(replica2, PORT, 0, DN(('cn', 'Directory Manager')), dirman_passwd, True, True)
+    repl1.setup_replication(
+        replica2, repl2.port, 0, DN(('cn', 'Directory Manager')),
+        dirman_passwd, is_cs_replica=True, local_port=repl1.port)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
 def re_initialize(realm, options):
@@ -371,8 +422,8 @@ def re_initialize(realm, options):
     if not options.fromhost:
         sys.exit("re-initialize requires the option --from <host name>")
 
-    repl = CSReplicationManager(realm, options.fromhost, options.dirman_passwd,
-                                PORT, True)
+    repl = get_cs_replication_manager(realm, options.fromhost,
+                                      options.dirman_passwd)
 
     thishost = installutils.get_fqdn()
 
@@ -389,7 +440,7 @@ def re_initialize(realm, options):
 
 def force_sync(realm, thishost, fromhost, dirman_passwd):
 
-    repl = CSReplicationManager(realm, fromhost, dirman_passwd, PORT, True)
+    repl = get_cs_replication_manager(realm, fromhost, dirman_passwd)
     try:
         repl.force_sync(repl.conn, thishost)
     except Exception, e:
