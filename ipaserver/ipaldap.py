@@ -217,22 +217,37 @@ class Entry:
 class IPAdmin(IPAEntryLDAPObject):
 
     def __localinit(self):
-        """If a CA certificate is provided then it is assumed that we are
-           doing SSL client authentication with proxy auth.
+        if self.protocol == 'ldaps':
+            IPAEntryLDAPObject.__init__(self,'ldaps://%s' % format_netloc(self.host, self.port))
+        elif self.protocol == 'ldapi':
+            IPAEntryLDAPObject.__init__(self,'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % "-".join(self.realm.split(".")))
+        elif self.protocol == 'ldap':
+            IPAEntryLDAPObject.__init__(self,'ldap://%s' % format_netloc(self.host, self.port))
+        else:
+            raise ValueError('Protocol %r not supported' % self.protocol)
 
-           If a CA certificate is not present then it is assumed that we are
-           using a forwarded kerberos ticket for SASL auth. SASL provides
-           its own encryption.
+    def __guess_protocol(self):
+        """Return the protocol to use based on flags passed to the constructor
+
+        Only used when "protocol" is not specified explicitly.
+
+        If a CA certificate is provided then it is assumed that we are
+        doing SSL client authentication with proxy auth.
+
+        If a CA certificate is not present then it is assumed that we are
+        using a forwarded kerberos ticket for SASL auth. SASL provides
+        its own encryption.
         """
         if self.cacert is not None:
-            IPAEntryLDAPObject.__init__(self,'ldaps://%s' % format_netloc(self.host, self.port))
+            return 'ldaps'
+        elif self.ldapi:
+            return 'ldapi'
         else:
-            if self.ldapi:
-                IPAEntryLDAPObject.__init__(self,'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % "-".join(self.realm.split(".")))
-            else:
-                IPAEntryLDAPObject.__init__(self,'ldap://%s' % format_netloc(self.host, self.port))
+            return 'ldap'
 
-    def __init__(self,host='',port=389,cacert=None,bindcert=None,bindkey=None,proxydn=None,debug=None,ldapi=False,realm=None):
+    def __init__(self, host='', port=389, cacert=None, bindcert=None,
+                 bindkey=None, proxydn=None, debug=None, ldapi=False,
+                 realm=None, protocol=None):
         """We just set our instance variables and wrap the methods - the real
            work is done in __localinit. This is separated out this way so
            that we can call it from places other than instance creation
@@ -257,6 +272,7 @@ class IPAdmin(IPAEntryLDAPObject):
         self.ldapi = ldapi
         self.realm = realm
         self.suffixes = {}
+        self.protocol = protocol or self.__guess_protocol()
         self.__localinit()
 
     def __lateinit(self):
