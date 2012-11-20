@@ -3809,9 +3809,9 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 					   ldap_sasl_interact, &data);
 
 	/* By now we have 'ret' for LDAP result and 'rc' for Kerberos result
-	 * if ret is LDAP_INVALID_CREDENTIALS, LDAP server rejected our ccache. There may be several issues:
+	 * if LDAP_API_ERROR(ret) is true, LDAP server rejected our ccache. There may be several issues:
 	 *
-	 * 1. Credentials are invalid due to outdated ccache leftover from previous install
+	 * 1. Credentials are invalid due to outdated ccache leftover from previous install or ticket is from future
 	 *    Wipe out old ccache and start again
 	 *
 	 * 2. Key in the keytab is not enough to obtain ticket for cifs/FQDN@REALM service
@@ -3825,7 +3825,9 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 	 * a new ccache file by the above call of bind_callback_obtain_creds(). This is expected and correct behavior.
 	 *
 	 */
-	if ((ret == LDAP_INVALID_CREDENTIALS) && (rc == 0)) {
+
+	if (LDAP_API_ERROR(ret) &&
+	    ((rc == 0) || (rc == KRB5KRB_AP_ERR_TKT_NYV) || (rc == KRB5KRB_AP_ERR_TKT_EXPIRED))) {
 		bind_callback_cleanup_creds(&data);
 		rc = bind_callback_obtain_creds(&data);
 		if (rc) {
