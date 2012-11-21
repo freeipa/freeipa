@@ -41,7 +41,7 @@ from samba.ndr import ndr_pack
 from samba import net
 import samba
 import random
-from Crypto.Cipher import ARC4
+from M2Crypto import RC4
 try:
     from ldap.controls import RequestControl as LDAPControl #pylint: disable=F0401
 except ImportError:
@@ -526,8 +526,8 @@ class TrustDomainInstance(object):
 
     def generate_auth(self, trustdom_secret):
         def arcfour_encrypt(key, data):
-            c = ARC4.new(key)
-            return c.encrypt(data)
+            c = RC4.RC4(key)
+            return c.update(data)
         def string_to_array(what):
             blob = [0] * len(what)
 

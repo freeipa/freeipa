@@ -67,7 +67,7 @@ BuildRequires:  sssd >= 1.8.0
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-dns
-BuildRequires:  python-crypto
+BuildRequires:  m2crypto
 BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
 
@@ -181,7 +181,7 @@ daemons included in freeipa-server
 Summary: Virtual package to install packages required for Active Directory trusts
 Group: System Environment/Base
 Requires: %{name}-server = %version-%release
-Requires: python-crypto
+Requires: m2crypto
 %if 0%{?fedora} >= 18
 Requires: samba-python
 Requires: samba
@@ -733,6 +733,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Nov 21 2012 Alexander Bokovoy <abokovoy@redhat.com> - 3.0.99-6
+- Replace python-crypto by m2crypto dependency
+
 * Fri Nov 16 2012 Rob Crittenden <rcritten@redhat.com> - 3.0.99-5
 - Bump minimum version of slapi-nis to 0.44
 
