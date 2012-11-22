@@ -30,11 +30,15 @@ struct ipadb_adtrusts {
     char *domain_name;
     char *flat_name;
     char *domain_sid;
+    struct dom_sid domsid;
 };
 
 struct ipadb_mspac {
     char *flat_domain_name;
     char *flat_server_name;
+    struct dom_sid domsid;
+    struct dom_sid *well_known_sids;
+
     char *fallback_group;
     uint32_t fallback_rid;
 
@@ -83,6 +87,36 @@ static char *memberof_pac_attrs[] = {
     "ipaNTSecurityIdentifier",
     NULL
 };
+
+static char *mspac_well_known_sids[] = {
+    "S-1-0",
+    "S-1-1",
+    "S-1-2",
+    "S-1-3",
+    "S-1-5-1",
+    "S-1-5-2",
+    "S-1-5-3",
+    "S-1-5-4",
+    "S-1-5-5",
+    "S-1-5-6",
+    "S-1-5-7",
+    "S-1-5-8",
+    "S-1-5-9",
+    "S-1-5-10",
+    "S-1-5-11",
+    "S-1-5-12",
+    "S-1-5-13",
+    "S-1-5-14",
+    "S-1-5-15",
+    "S-1-5-16",
+    "S-1-5-17",
+    "S-1-5-18",
+    "S-1-5-19",
+    "S-1-5-20",
+};
+
+#define LEN_WELL_KNOWN_SIDS (sizeof(mspac_well_known_sids)/sizeof(char*))
+
 
 #define SID_ID_AUTHS 6
 #define SID_SUB_AUTHS 15
@@ -211,6 +245,104 @@ static struct dom_sid *dom_sid_dup(TALLOC_CTX *memctx,
     }
 
     return new_sid;
+}
+
+/* checks if sid1 is a domain of sid2 or compares them exactly if exact_check is true
+ * returns
+ *    true   -- if sid1 is a domain of sid2 (including full exact match)
+ *    false  -- otherwise
+ *
+ * dom_sid_check() is supposed to be used with sid1 representing domain SID
+ * and sid2 being either domain or resource SID in the domain
+ */
+static bool dom_sid_check(const struct dom_sid *sid1, const struct dom_sid *sid2, bool exact_check)
+{
+    int c, num;
+
+    if (sid1 == sid2) {
+        return true;
+    }
+
+    if (sid1 == NULL) {
+        return false;
+    }
+
+    if (sid2 == NULL) {
+        return false;
+    }
+
+    /* If SIDs have different revisions, they are different */
+    if (sid1->sid_rev_num != sid2->sid_rev_num)
+        return false;
+
+    /* When number of authorities is different, sids are different
+     * if we were asked to check prefix exactly */
+    num = sid2->num_auths - sid1->num_auths;
+    if (num != 0) {
+        if (exact_check) {
+            return false;
+        } else {
+            /* otherwise we are dealing with prefix check
+             * and sid2 should have RID compared to the sid1 */
+            if (num != 1) {
+                return false;
+            }
+        }
+    }
+
+    /* now either sid1->num_auths == sid2->num_auths or sid1 has no RID */
+
+    /* for same size authorities compare them backwards
+     * since RIDs are likely different */
+    for (c = sid1->num_auths; c >= 0; --c)
+        if (sid1->sub_auths[c] != sid2->sub_auths[c])
+            return false;
+
+    /* Finally, compare Identifier authorities */
+    for (c = 0; c < SID_ID_AUTHS; c++)
+        if (sid1->id_auth[c] != sid2->id_auth[c])
+            return false;
+
+    return true;
+}
+
+static bool dom_sid_is_prefix(const struct dom_sid *sid1, const struct dom_sid *sid2)
+{
+    int c;
+
+    if (sid1 == sid2) {
+        return true;
+    }
+
+    if (sid1 == NULL) {
+        return false;
+    }
+
+    if (sid2 == NULL) {
+        return false;
+    }
+
+    /* If SIDs have different revisions, they are different */
+    if (sid1->sid_rev_num != sid2->sid_rev_num)
+        return false;
+
+    if (sid1->num_auths > sid2->num_auths)
+        return false;
+
+    /* now sid1->num_auths <= sid2->num_auths */
+
+    /* compare up to sid1->num_auth authorities since RIDs are
+     * likely different and we are searching for the prefix */
+    for (c = 0; c < sid1->num_auths; c++)
+        if (sid1->sub_auths[c] != sid2->sub_auths[c])
+            return false;
+
+    /* Finally, compare Identifier authorities */
+    for (c = 0; c < SID_ID_AUTHS; c++)
+        if (sid1->id_auth[c] != sid2->id_auth[c])
+            return false;
+
+    return true;
 }
 
 static int sid_append_rid(struct dom_sid *sid, uint32_t rid)
@@ -1059,6 +1191,22 @@ static struct ipadb_adtrusts *get_domain_from_realm_update(krb5_context context,
     return domain;
 }
 
+static void filter_logon_info_log_message(struct dom_sid *sid)
+{
+    char *domstr = NULL;
+
+    domstr = dom_sid_string(NULL, sid);
+    if (domstr) {
+        krb5_klog_syslog(LOG_ERR, "PAC filtering issue: SID [%s] is not allowed "
+                                  "from a trusted source and will be excluded.", domstr);
+        talloc_free(domstr);
+    } else {
+        krb5_klog_syslog(LOG_ERR, "PAC filtering issue: SID is not allowed "
+                                  "from a trusted source and will be excluded."
+                                  "Unable to allocate memory to display SID.");
+    }
+}
+
 static krb5_error_code filter_logon_info(krb5_context context,
                                          TALLOC_CTX *memctx,
                                          krb5_data realm,
@@ -1070,8 +1218,11 @@ static krb5_error_code filter_logon_info(krb5_context context,
      * attempt at getting us to sign fake credentials with the help of a
      * compromised trusted realm */
 
+    struct ipadb_context *ipactx;
     struct ipadb_adtrusts *domain;
-    char *domsid;
+    int i, j, k, count;
+    bool result;
+    char *domstr = NULL;
 
     domain = get_domain_from_realm_update(context, realm);
     if (!domain) {
@@ -1089,27 +1240,61 @@ static krb5_error_code filter_logon_info(krb5_context context,
         return EINVAL;
     }
 
-    /* check sid */
-    domsid = dom_sid_string(NULL, info->info->info3.base.domain_sid);
-    if (!domsid) {
-        return EINVAL;
-    }
-
-    if (strcmp(domsid, domain->domain_sid) != 0) {
+    /* check exact sid */
+    result = dom_sid_check(&domain->domsid, info->info->info3.base.domain_sid, true);
+    if (!result) {
+        domstr = dom_sid_string(NULL, info->info->info3.base.domain_sid);
+        if (!domstr) {
+            return EINVAL;
+        }
         krb5_klog_syslog(LOG_ERR, "PAC Info mismatch: domain = %s, "
                                   "expected domain SID = %s, "
                                   "found domain SID = %s",
-                                  domain->domain_name, domain->domain_sid,
-                                  domsid);
-        talloc_free(domsid);
+                                  domain->domain_name, domain->domain_sid, domstr);
+        talloc_free(domstr);
         return EINVAL;
     }
-    talloc_free(domsid);
 
-    /* According to MS-KILE, info->info->info3.sids must be zero, so check
-     * that it is the case here */
+    /* According to MS-KILE 25.0, info->info->info3.sids may be non zero, so check
+     * should include different possibilities into account
+     * */
     if (info->info->info3.sidcount != 0) {
-        return EINVAL;
+        ipactx = ipadb_get_context(context);
+        if (!ipactx && !ipactx->mspac) {
+            return KRB5_KDB_DBNOTINITED;
+        }
+        count = info->info->info3.sidcount;
+        i = 0;
+        j = 0;
+        do {
+            /* Compare SID with our domain without taking RID into account */
+            result = dom_sid_check(&ipactx->mspac->domsid, info->info->info3.sids[i].sid, false);
+            if (result) {
+                filter_logon_info_log_message(info->info->info3.sids[i].sid);
+            } else {
+                for(k = 0; k < LEN_WELL_KNOWN_SIDS; k++) {
+                    result = dom_sid_is_prefix(&ipactx->mspac->well_known_sids[k], info->info->info3.sids[i].sid);
+                    if (result) {
+                        filter_logon_info_log_message(info->info->info3.sids[i].sid);
+                        break;
+                    }
+                }
+            }
+            if (result) {
+                j++;
+                memmove(info->info->info3.sids+i, info->info->info3.sids+i+1, count-i-1);
+            }
+            i++;
+        } while (i < count);
+
+        if (j != 0) {
+            info->info->info3.sids = talloc_realloc(memctx, info->info->info3.sids, struct netr_SidAttr, count-j);
+            info->info->info3.sidcount = count-j;
+            if (!info->info->info3.sids) {
+                info->info->info3.sidcount = 0;
+                return ENOMEM;
+            }
+        }
     }
 
     /* According to MS-KILE, ResourceGroups must be zero, so check
@@ -1531,7 +1716,31 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
         }
     }
 
+    if ((*mspac)->well_known_sids) {
+        free((*mspac)->well_known_sids);
+    }
+
     *mspac = NULL;
+}
+
+#define LEN_WELL_KNOWN_SIDS (sizeof(mspac_well_known_sids)/sizeof(char*))
+krb5_error_code ipadb_mspac_fill_well_known_sids(struct ipadb_mspac *mspac)
+{
+    int i;
+
+    mspac->well_known_sids = calloc(LEN_WELL_KNOWN_SIDS, sizeof(struct dom_sid));
+
+    if (mspac->well_known_sids == NULL) {
+        return ENOMEM;
+    }
+
+    for (i = 0; i < LEN_WELL_KNOWN_SIDS; i++) {
+         if (mspac_well_known_sids[i] != NULL) {
+             (void) string_to_sid(mspac_well_known_sids[i], &(mspac->well_known_sids[i]));
+         }
+    }
+
+    return 0;
 }
 
 krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
@@ -1595,6 +1804,12 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             ret = EINVAL;
             goto done;
         }
+
+        ret = string_to_sid(t[n].domain_sid, &t[n].domsid);
+        if (ret) {
+            ret = EINVAL;
+            goto done;
+        }
     }
 
     ret = 0;
@@ -1611,6 +1826,7 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
 {
     char *dom_attrs[] = { "ipaNTFlatName",
                           "ipaNTFallbackPrimaryGroup",
+                          "ipaNTSecurityIdentifier",
                           NULL };
     char *grp_attrs[] = { "ipaNTSecurityIdentifier", NULL };
     krb5_error_code kerr;
@@ -1663,6 +1879,22 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
         kerr = ret;
         goto done;
     }
+
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
+                                 "ipaNTSecurityIdentifier",
+                                 &resstr);
+    if (ret) {
+        kerr = ret;
+        goto done;
+    }
+
+    ret = string_to_sid(resstr, &ipactx->mspac->domsid);
+    if (ret) {
+        kerr = ret;
+        free(resstr);
+        goto done;
+    }
+    free(resstr);
 
     free(ipactx->mspac->flat_server_name);
     ipactx->mspac->flat_server_name = get_server_netbios_name();
@@ -1724,6 +1956,12 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     }
 
     kerr = ipadb_mspac_get_trusted_domains(ipactx);
+
+    if (kerr) {
+        goto done;
+    }
+
+    kerr = ipadb_mspac_fill_well_known_sids(ipactx->mspac);
 
 done:
     ldap_msgfree(result);
