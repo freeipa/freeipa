@@ -191,6 +191,32 @@ class ReplicationManager(object):
 
         return retval
 
+    def get_agreement_filter(self, agreement_types=None, host=None):
+        """
+        Get an LDAP replication agreement filter with a possibility to filter
+        the agreements by their type and a host
+        """
+        if agreement_types is None:
+            agreement_types = (IPA_REPLICA, WINSYNC)
+        elif not isinstance(agreement_types, (list, tuple)):
+            agreement_types = (agreement_types,)
+
+        agreement_types_filters = []
+        if IPA_REPLICA in agreement_types:
+            agreement_types_filters.append('(&(objectclass=nsds5ReplicationAgreement)(nsDS5ReplicaRoot=%s))'
+                % self.suffix)
+        if WINSYNC in agreement_types:
+            agreement_types_filters.append('(objectclass=nsDSWindowsReplicationAgreement)')
+        if len(agreement_types_filters) > 1:
+            agreement_filter = '(|%s)' % ''.join(agreement_types_filters)
+        else:
+            agreement_filter = ''.join(agreement_types_filters)
+
+        if host is not None:
+            agreement_filter = '(&%s(nsDS5ReplicaHost=%s))' % (agreement_filter, host)
+
+        return agreement_filter
+
     def find_replication_agreements(self):
         """
         The replication agreements are stored in
@@ -202,7 +228,7 @@ class ReplicationManager(object):
         response. For now just return "No entries" even if the user may
         not be allowed to see them.
         """
-        filt = "(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement))"
+        filt = self.get_agreement_filter()
         try:
             ents = self.conn.getList(DN(('cn', 'mapping tree'), ('cn', 'config')),
                                      ldap.SCOPE_SUBTREE, filt)
@@ -220,7 +246,7 @@ class ReplicationManager(object):
 
         res = []
 
-        filt = "(objectclass=nsds5ReplicationAgreement)"
+        filt = self.get_agreement_filter(IPA_REPLICA)
         try:
             ents = self.conn.getList(DN(('cn', 'mapping tree'), ('cn', 'config')),
                                      ldap.SCOPE_SUBTREE, filt)
@@ -242,7 +268,7 @@ class ReplicationManager(object):
         Returns None if not found.
         """
 
-        filt = "(&(|(objectclass=nsds5ReplicationAgreement)(objectclass=nsDSWindowsReplicationAgreement))(nsDS5ReplicaHost=%s))" % hostname
+        filt = self.get_agreement_filter(host=hostname)
         try:
             entries = self.conn.getList(DN(('cn', 'mapping tree'), ('cn', 'config')),
                                       ldap.SCOPE_SUBTREE, filt)
@@ -958,9 +984,7 @@ class ReplicationManager(object):
 
         newschedule = '2358-2359 0'
 
-        filter = '(&(nsDS5ReplicaHost=%s)' \
-                   '(|(objectclass=nsDSWindowsReplicationAgreement)' \
-                     '(objectclass=nsds5ReplicationAgreement)))' % hostname
+        filter = self.get_agreement_filter(host=hostname)
         entries = conn.getList(DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
         if len(entries) == 0:
             root_logger.error("Unable to find replication agreement for %s" %
