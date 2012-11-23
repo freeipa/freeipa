@@ -153,7 +153,7 @@ archive:
 
 local-archive:
 	-mkdir -p dist/$(TARBALL_PREFIX)
-	rsync -a --exclude=dist --exclude=.git --exclude=build --exclude=rpmbuild . dist/$(TARBALL_PREFIX)
+	rsync -a --exclude=dist --exclude=.git --exclude=/build --exclude=rpmbuild . dist/$(TARBALL_PREFIX)
 
 archive-cleanup:
 	rm -fr dist/freeipa
