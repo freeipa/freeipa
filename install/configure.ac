@@ -87,7 +87,12 @@ AC_CONFIG_FILES([
     share/Makefile
     ui/Makefile
     ui/ext/Makefile
+    ui/src/Makefile
+    ui/src/libs/Makefile
     ui/images/Makefile
+    ui/build/Makefile
+    ui/build/dojo/Makefile
+    ui/build/freeipa/Makefile
     tools/Makefile
     tools/man/Makefile
     updates/Makefile
