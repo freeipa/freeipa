@@ -34,6 +34,11 @@ UglifyJS - licensed under BSD license
  * util/uglifyjs/uglify-js.js
  * utli/uglifyjs/lib/*
 
+Dojo, Dojo Builder - dual licensed under BSD license and AFL version 2.1
+ * full license text in util/build/LICENSE
+ * util/build/build.js
+ * util/build/_base/*.js
+
 Full license texts and copyright notices are listed below.
 
 = jQuery copyright notice with MIT license =
