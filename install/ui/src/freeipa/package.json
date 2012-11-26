@@ -1,0 +1,39 @@
+{
+    "name": "freeipa",
+    "description": "Web UI for FreeIPA, an integrated security information management solution.",
+    "version": "1.0",
+    "keywords": ["FreeIPA","Identity management", "Red Hat", "Web UI"],
+    "maintainers": [{
+        "name": "Petr Vobornik"
+    },{
+        "name": "Endi Sukma Dewata"
+    }],
+    "contributors": [{
+        "name": "Petr Vobornik"
+    },{
+        "name": "Endi Sukma Dewata"
+    },{
+        "name": "Adam Young"
+    },{
+        "name": "Pavel Zuna"
+    }],
+    "licenses": [{
+        "type": "GPLv3",
+        "url": "http://www.gnu.org/licenses/gpl-3.0.html"
+    },{
+        "type": "GPLv2",
+        "url": "http://www.gnu.org/licenses/gpl-2.0.html"
+    }],
+    "bugs": "https://fedorahosted.org/freeipa/",
+    "repositories": [{
+        "type": "git",
+        "url": "git://git.fedorahosted.org/git/freeipa.git ",
+        "path": "install/ui/js/freeipa"
+    }],
+    "dependencies": {
+        "dojo": "~1.8.1"
+    },
+    "main": "src",
+    "homepage": "http://freeipa.org/",
+    "dojoBuild": "freeipa.profile.js"
+}
