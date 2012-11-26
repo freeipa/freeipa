@@ -1,0 +1,12 @@
+build.js is builded dojo builder, with applied patches from 'patches' folder, by
+itself and compiled using uglify.js
+
+_base/configRhino.js is unmodifed file from dojo/dojo. Required for a build to work.
+
+= DOJO builder copyright notice =
+Copyright (c) 2004-2012, The Dojo Foundation All Rights Reserved.
+Available via Academic Free License >= 2.1 OR the modified BSD license.
+see: http://dojotoolkit.org/license for details
+
+= License =
+Full Dojo license is in LICENSE file.

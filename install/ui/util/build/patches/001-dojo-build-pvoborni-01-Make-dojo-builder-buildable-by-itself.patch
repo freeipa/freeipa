@@ -1,0 +1,169 @@
+From c0962cfb520d25c367689243b71e43af1dcc0601 Mon Sep 17 00:00:00 2001
+From: Petr Vobornik <pvoborni@redhat.com>
+Date: Thu, 8 Nov 2012 13:22:30 +0100
+Subject: [PATCH] Make dojo builder buildable by itself
+
+Dojo builder is now buildable by itself. It just needed a packackage information,
+profile and separating of internal definition of commanLineArgs module to separate
+file.
+
+It allows to use a builder as a single file in rhino with only one dependency
+(_base/configRhino) copied from dojo/dojo. We would need an additional patch to
+get rid of this dependency.
+---
+ build/argv.js            |  2 +-
+ build/build.profile.js   | 32 ++++++++++++++++++++++++++++++++
+ build/commandLineArgs.js |  7 +++++++
+ build/main.js            | 26 ++++++++++----------------
+ build/package.json       | 23 +++++++++++++++++++++++
+ 5 files changed, 73 insertions(+), 17 deletions(-)
+ create mode 100644 build/build.profile.js
+ create mode 100644 build/commandLineArgs.js
+ create mode 100644 build/package.json
+
+diff --git a/build/argv.js b/build/argv.js
+index 18bda74b0eb80e37d9c83cb23a10f29f8ffe91d9..997576687eb74cbb6a6a293b3a855a6d15142368 100644
+--- a/build/argv.js
++++ b/build/argv.js
+@@ -5,7 +5,7 @@ define([
+ 	"./fs",
+ 	"./fileUtils",
+ 	"./process",
+-	"commandLineArgs",
++	"./commandLineArgs",
+ 	"./stringify",
+ 	"./version",
+ 	"./messages",
+diff --git a/build/build.profile.js b/build/build.profile.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..507728c283c5703106fe029c0fd282cb864c994d
+--- /dev/null
++++ b/build/build.profile.js
+@@ -0,0 +1,32 @@
++//
++// Dojo builder profile file
++//
++
++
++var profile = (function(){
++
++    var examples = /^build\/examples\//;
++    var ignore = {
++        'build/transforms/dojoBoot':1,
++        'build/optimizeRunner':1
++    };
++
++    return {
++        resourceTags: {
++
++            // all JavaScript files are AMD modules
++            amd: function(filename, mid) {
++                var amd =  (!examples.test(mid) &&
++                        !(mid in ignore) &&
++                        /\.js$/.test(filename));
++                //if (amd)print("'"+mid+"',");
++                return amd;
++            },
++            miniExclude: function(filename, mid) {
++                return (examples.test(mid) ||
++                         !/\.js$/.test(filename) ||
++                        (mid in ignore));
++            }
++        }
++    };
++})();
+\ No newline at end of file
+diff --git a/build/commandLineArgs.js b/build/commandLineArgs.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..41df62e31a05ef2c00e1eb609c0fabe8641e2d03
+--- /dev/null
++++ b/build/commandLineArgs.js
+@@ -0,0 +1,7 @@
++
++define([], function(){
++
++    var args = [];
++
++    return args;
++});
+\ No newline at end of file
+diff --git a/build/main.js b/build/main.js
+index eeb329c91c0eb4df94178cdfc445e5235409401a..89ad7a9d639257ec99ca86be59abdb74d54939a3 100644
+--- a/build/main.js
++++ b/build/main.js
+@@ -33,16 +33,14 @@
+ // github: https://github.com/altoviso/bdBuild
+ // docs: http://bdframework.org/bdBuild/docs
+ 
+-define(["require", "dojo/has"], function(require, has){
++define(["require", "dojo/has", "./commandLineArgs"], function(require, has, commandLineArgs){
+ 
+ 	// host-dependent environment initialization
+ 	if(has("host-node")){
+-		define("commandLineArgs", function(){
+-			//arg[0] is node; argv[1] is dojo.js; therefore, start with argv[2]
+-			return process.argv.slice(2);
+-		});
++        //arg[0] is node; argv[1] is dojo.js; therefore, start with argv[2]
++        commandLineArgs.push(process.argv.slice(2));
+ 
+-		// helps during dev or heavily async node...
++		// helps during dev or heavily async node
+ 		var util = require.nodeRequire("util");
+ 		debug = function(it, depth, inspect){
+ 			util.debug(inspect ? util.inspect(it, false, depth) : it);
+@@ -50,16 +48,12 @@ define(["require", "dojo/has"], function(require, has){
+ 
+ 		has.add("is-windows", process.platform == "win32");
+ 	}else if(has("host-rhino")){
+-		define("commandLineArgs", [], function(){
+-			var result = [];
+-			require.rawConfig.commandLineArgs.forEach(function(item){
+-				var parts = item.split("=");
+-				if(parts[0]!="baseUrl"){
+-					result.push(item);
+-				}
+-			});
+-			return result;
+-		});
++        require.rawConfig.commandLineArgs.forEach(function(item){
++            var parts = item.split("=");
++            if(parts[0]!="baseUrl"){
++                commandLineArgs.push(item);
++            }
++        });
+ 		// TODO: make this real
+ 		has.add("is-windows", /indows/.test(environment["os.name"]));
+ 	}else{
+diff --git a/build/package.json b/build/package.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..568101cb1a182d3415c73d02e151359e1ce3e27d
+--- /dev/null
++++ b/build/package.json
+@@ -0,0 +1,23 @@
++{
++	"name": "build",
++	"version":"1.8.1",
++	"directories": {
++		"lib": "."
++	},
++	"main": "main",
++	"description": "Dojo build system.",
++	"licenses": [
++		 {
++				 "type": "AFLv2.1",
++				 "url": "http://trac.dojotoolkit.org/browser/dojo/trunk/LICENSE#L43"
++		 },
++		 {
++				 "type": "BSD",
++				 "url": "http://trac.dojotoolkit.org/browser/dojo/trunk/LICENSE#L13"
++		 }
++	],
++	"bugs": "http://bugs.dojotoolkit.org/",
++	"keywords": ["JavaScript", "Dojo", "Toolkit"],
++	"homepage": "http://dojotoolkit.org/",
++	"dojoBuild": "build.profile.js"
++}
+-- 
+1.7.11.7
+
