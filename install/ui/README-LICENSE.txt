@@ -38,6 +38,7 @@ Dojo, Dojo Builder - dual licensed under BSD license and AFL version 2.1
  * full license text in util/build/LICENSE
  * util/build/build.js
  * util/build/_base/*.js
+ * build/dojo/dojo.js
 
 Full license texts and copyright notices are listed below.
 
