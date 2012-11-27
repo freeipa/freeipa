@@ -279,6 +279,10 @@ class DomainValidator(object):
         if returncode == 0:
             return (ccache_name, principal)
         else:
+            if returncode == 1:
+                raise errors.ACIError(
+                   info=_("KDC for %(domain)s denied trust account for IPA domain with a message '%(message)s'") %
+                        dict(domain=info['dns_domain'],message=stderr.strip()))
             return (None, None)
 
     def resolve_against_gc(self, domain, name):
