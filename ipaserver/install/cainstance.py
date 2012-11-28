@@ -35,6 +35,7 @@ import urllib
 import xml.dom.minidom
 import stat
 import socket
+import ConfigParser
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
 from ipapython import certmonger
@@ -620,96 +621,99 @@ class CAInstance(service.Service):
 
     def __spawn_instance(self):
         """
-        Create and configure a new instance using pkispawn.
-        pkispawn requires a configuration file with the appropriate
-        values substituted in.
+        Create and configure a new CA instance using pkispawn.
+        pkispawn requires a configuration file with IPA-specific
+        parameters.
         """
 
-        # create a new config file for this installation
+        # Create an empty and secured file
         (cfg_fd, cfg_file) = tempfile.mkstemp()
         os.close(cfg_fd)
-        shutil.copy("/usr/share/pki/deployment/config/pkideployment.cfg",
-                    cfg_file)
         pent = pwd.getpwnam(PKI_USER)
-        os.chown(cfg_file, pent.pw_uid, pent.pw_gid )
-        replacevars = {
-            "pki_enable_proxy": "True",
-            "pki_restart_configured_instance": "False",
-            "pki_client_database_dir": self.ca_agent_db,
-            "pki_client_database_password": self.admin_password,
-            "pki_client_database_purge": "False",
-            "pki_client_pkcs12_password": self.admin_password,
-            "pki_security_domain_name": self.security_domain_name,
-            "pki_admin_name":  "admin",
-            "pki_admin_uid":  "admin",
-            "pki_admin_email":  "root@localhost",
-            "pki_admin_password": self.admin_password,
-            "pki_admin_nickname": "ipa-ca-agent",
-            "pki_admin_subject_dn": "CN=ipa-ca-agent,%s" % self.subject_base,
-            "pki_ds_ldap_port": str(self.ds_port),
-            "pki_ds_password": self.dm_password,
-            "pki_ds_base_dn": self.basedn,
-            "pki_ds_database": "ipaca",
-            "pki_backup_keys": "True",
-            "pki_backup_password": self.admin_password,
-            "pki_subsystem_subject_dn": \
-                "CN=CA Subsystem,%s" % self.subject_base,
-            "pki_ocsp_signing_subject_dn": \
-                "CN=OCSP Subsystem,%s" % self.subject_base,
-            "pki_ssl_server_subject_dn": \
-                "CN=%s,%s" % (self.fqdn, self.subject_base),
-            "pki_audit_signing_subject_dn": \
-                "CN=CA Audit,%s" % self.subject_base,
-            "pki_ca_signing_subject_dn": \
-                 "CN=Certificate Authority,%s" % self.subject_base,
-            "pki_subsystem_nickname": "subsystemCert cert-pki-ca",
-            "pki_ocsp_signing_nickname": "ocspSigningCert cert-pki-ca",
-            "pki_ssl_server_nickname": "Server-Cert cert-pki-ca",
-            "pki_audit_signing_nickname": "auditSigningCert cert-pki-ca",
-            "pki_ca_signing_nickname": "caSigningCert cert-pki-ca"
-        }
+        os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
+
+        # Create CA configuration
+        config = ConfigParser.ConfigParser()
+        config.optionxform = str
+        config.add_section("CA")
+
+        # Server
+        config.set("CA", "pki_security_domain_name", self.security_domain_name)
+        config.set("CA", "pki_enable_proxy", "True")
+        config.set("CA", "pki_restart_configured_instance", "False")
+        config.set("CA", "pki_backup_keys", "True")
+        config.set("CA", "pki_backup_password", self.admin_password)
+
+        # Client security database
+        config.set("CA", "pki_client_database_dir", self.ca_agent_db)
+        config.set("CA", "pki_client_database_password", self.admin_password)
+        config.set("CA", "pki_client_database_purge", "False")
+        config.set("CA", "pki_client_pkcs12_password", self.admin_password)
+
+        # Administrator
+        config.set("CA", "pki_admin_name", "admin")
+        config.set("CA", "pki_admin_uid", "admin")
+        config.set("CA", "pki_admin_email", "root@localhost")
+        config.set("CA", "pki_admin_password", self.admin_password)
+        config.set("CA", "pki_admin_nickname", "ipa-ca-agent")
+        config.set("CA", "pki_admin_subject_dn", "CN=ipa-ca-agent,%s" % self.subject_base)
+
+        # Directory server
+        config.set("CA", "pki_ds_ldap_port", str(self.ds_port))
+        config.set("CA", "pki_ds_password", self.dm_password)
+        config.set("CA", "pki_ds_base_dn", self.basedn)
+        config.set("CA", "pki_ds_database", "ipaca")
+
+        # Certificate subject DN's
+        config.set("CA", "pki_subsystem_subject_dn", "CN=CA Subsystem,%s" % self.subject_base)
+        config.set("CA", "pki_ocsp_signing_subject_dn", "CN=OCSP Subsystem,%s" % self.subject_base)
+        config.set("CA", "pki_ssl_server_subject_dn", "CN=%s,%s" % (self.fqdn, self.subject_base))
+        config.set("CA", "pki_audit_signing_subject_dn", "CN=CA Audit,%s" % self.subject_base)
+        config.set("CA", "pki_ca_signing_subject_dn", "CN=Certificate Authority,%s" % self.subject_base)
+
+        # Certificate nicknames
+        config.set("CA", "pki_subsystem_nickname", "subsystemCert cert-pki-ca")
+        config.set("CA", "pki_ocsp_signing_nickname", "ocspSigningCert cert-pki-ca")
+        config.set("CA", "pki_ssl_server_nickname", "Server-Cert cert-pki-ca")
+        config.set("CA", "pki_audit_signing_nickname", "auditSigningCert cert-pki-ca")
+        config.set("CA", "pki_ca_signing_nickname", "caSigningCert cert-pki-ca")
 
         if (self.clone):
             cafile = self.pkcs12_info[0]
             shutil.copy(cafile, "/tmp/ca.p12")
             pent = pwd.getpwnam(PKI_USER)
-            os.chown("/tmp/ca.p12", pent.pw_uid, pent.pw_gid )
+            os.chown("/tmp/ca.p12", pent.pw_uid, pent.pw_gid)
 
-            clone_vars = {
-                "pki_clone_pkcs12_password": self.dm_password,
-                "pki_clone": "True",
-                "pki_clone_pkcs12_path": "/tmp/ca.p12",
-                "pki_security_domain_hostname": self.master_host,
-                "pki_security_domain_https_port": "443",
-                "pki_security_domain_user": "admin",
-                "pki_security_domain_password": self.admin_password,
-                "pki_clone_replication_security": "TLS",
-                "pki_clone_replication_master_port":
-                    str(self.master_replication_port),
-                "pki_clone_replication_clone_port":
-                    dogtag.install_constants.DS_PORT,
-                "pki_clone_replicate_schema": "False",
-                "pki_clone_uri":
-                    "https://%s" % ipautil.format_netloc(self.master_host, 443)
-            }
-            replacevars.update(clone_vars)
+            # Security domain registration
+            config.set("CA", "pki_security_domain_hostname", self.master_host)
+            config.set("CA", "pki_security_domain_https_port", "443")
+            config.set("CA", "pki_security_domain_user", "admin")
+            config.set("CA", "pki_security_domain_password", self.admin_password)
 
+            # Clone
+            config.set("CA", "pki_clone", "True")
+            config.set("CA", "pki_clone_pkcs12_path", "/tmp/ca.p12")
+            config.set("CA", "pki_clone_pkcs12_password", self.dm_password)
+            config.set("CA", "pki_clone_replication_security", "TLS")
+            config.set("CA", "pki_clone_replication_master_port", str(self.master_replication_port))
+            config.set("CA", "pki_clone_replication_clone_port", dogtag.install_constants.DS_PORT)
+            config.set("CA", "pki_clone_replicate_schema", "False")
+            config.set("CA", "pki_clone_uri", "https://%s" % ipautil.format_netloc(self.master_host, 443))
+
+        # External CA
         if self.external == 1:
-            external_vars = {
-                "pki_external": "True",
-                "pki_external_csr_path": self.csr_file
-            }
-            replacevars.update(external_vars)
-        elif self.external == 2:
-            external_vars = {
-                "pki_external": "True",
-                "pki_external_ca_cert_path": self.cert_file,
-                "pki_external_ca_cert_chain_path": self.cert_chain_file,
-                "pki_external_step_two": "True"
-            }
-            replacevars.update(external_vars)
+            config.set("CA", "pki_external", "True")
+            config.set("CA", "pki_external_csr_path", self.csr_file)
 
-        ipautil.config_replace_variables(cfg_file, replacevars=replacevars)
+        elif self.external == 2:
+            config.set("CA", "pki_external", "True")
+            config.set("CA", "pki_external_ca_cert_path", self.cert_file)
+            config.set("CA", "pki_external_ca_cert_chain_path", self.cert_chain_file)
+            config.set("CA", "pki_external_step_two", "True")
+
+        # Generate configuration file
+        with open(cfg_file, "wb") as f:
+            config.write(f)
 
         # Define the things we don't want logged
         nolog = (self.admin_password, self.dm_password,)
@@ -730,7 +734,7 @@ class CAInstance(service.Service):
             os.remove(cfg_file)
 
         if not self.clone:
-            shutil.move("/var/lib/pki/pki-tomcat/alias/ca_admin_cert.p12", \
+            shutil.move("/root/.pki/pki-tomcat/ca_admin_cert.p12", \
                         "/root/ca-agent.p12")
         shutil.move("/var/lib/pki/pki-tomcat/alias/ca_backup_keys.p12", \
                     "/root/cacert.p12")
