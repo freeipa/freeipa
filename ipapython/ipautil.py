@@ -28,7 +28,7 @@ import string
 import tempfile
 import subprocess
 import random
-import os, sys, traceback, readline
+import os, sys, traceback
 import copy
 import stat
 import shutil
