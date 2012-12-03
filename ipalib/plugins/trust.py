@@ -354,19 +354,15 @@ sides.
                             instructions.append(_("Forward policy is defined for it in IPA DNS, "
                                                    "perhaps forwarder points to incorrect host?"))
                     except (errors.NotFound, KeyError) as e:
-                        instructions.append(_("IPA manages DNS, please configure forwarder to "
-                                               "'%(domain)s' domain using following CLI command. "
-                                               "Make sure to replace DNS_SERVER and IP_ADDRESS by "
-                                               "actual values corresponding to the trusted domain's "
-                                               "DNS server:") % dict(domain=keys[-1]))
-                        # tab character at the beginning of a multiline error message will be replaced
-                        # in the web UI by a colorful hint. Does not affect CLI.
-                        instructions.append(_("\tipa dnszone-add %(domain)s --name-server=[DNS_SERVER] "
-                                               "--admin-email='hostmaster@%(domain)s' "
-                                               "--force --forwarder=[IP_ADDRESS] "
-                                               "--forward-policy=only") % dict(domain=keys[-1]))
-                        instructions.append(_("When using Web UI, please create DNS zone for domain '%(domain)s' "
-                                               "first and then set forwarder and forward policy.") % dict(domain=keys[-1]))
+                        instructions.append(_("IPA manages DNS, please verify "
+                                              "your DNS configuration and "
+                                              "make sure that service records "
+                                              "of the '%(domain)s' domain can "
+                                              "be resolved. Examples how to "
+                                              "configure DNS with CLI commands "
+                                              "or the Web UI can be found in "
+                                              "the documentation. " ) %
+                                              dict(domain=keys[-1]))
                 else:
                     instructions.append(_("Since IPA does not manage DNS records, ensure DNS "
                                            "is configured to resolve '%(domain)s' domain from "
