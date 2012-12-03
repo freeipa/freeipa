@@ -1822,6 +1822,12 @@ def install(options, env, fstore, statestore):
         auth_config.add_option("update")
         auth_config.execute()
         root_logger.info("%s", message)
+        if options.sssd:
+            sssd = ipaservices.service('sssd')
+            try:
+                sssd.restart()
+            except CalledProcessError:
+                root_logger.warning("SSSD service restart was unsuccessful.")
 
         if not options.sssd:
             #Modify pam to add pam_krb5 only when sssd is not in use
