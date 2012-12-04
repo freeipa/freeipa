@@ -4,17 +4,16 @@
     <title>Certificate Test Suite</title>
     <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
     <script type="text/javascript" src="qunit.js"></script>
-    <script type="text/javascript" src="../jquery.js"></script>
-    <script type="text/javascript" src="../jquery.ba-bbq.js"></script>
-    <script type="text/javascript" src="../jquery-ui.js"></script>
-    <script type="text/javascript" src="../jquery.ordered-map.js"></script>
-    <script type="text/javascript" src="../ipa.js"></script>
-    <script type="text/javascript" src="../details.js"></script>
-    <script type="text/javascript" src="../search.js"></script>
-    <script type="text/javascript" src="../add.js"></script>
-    <script type="text/javascript" src="../navigation.js"></script>
-    <script type="text/javascript" src="../certificate.js"></script>
-    <script type="text/javascript" src="certificate_tests.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.ba-bbq.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery-ui.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.ordered-map.js"></script>
+    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript" src="../js/dojo/dojo.js"></script>
+
+    <script type="text/javascript">
+        require(['test/certificate_tests'], function(tests){ tests() });
+    </script>
 </head>
 <body>
     <h1 id="qunit-header">Certificate Test Suite</h1>

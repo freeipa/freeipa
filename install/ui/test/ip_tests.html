@@ -4,8 +4,14 @@
     <title>IP addresses test suite</title>
     <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
     <script type="text/javascript" src="qunit.js"></script>
-    <script type="text/javascript" src="../net.js"></script>
-    <script type="text/javascript" src="ip_tests.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.ordered-map.js"></script>
+    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript" src="../js/dojo/dojo.js"></script>
+
+    <script type="text/javascript">
+        require(['test/ip_tests'], function(tests){ tests() });
+    </script>
 </head>
 <body>
     <h1 id="qunit-header">IP addresses test suite</h1>

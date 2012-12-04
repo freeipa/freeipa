@@ -18,6 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/association', 'freeipa/entity'], function(IPA, $) {
+    return function() {
+
 module('association');
 
 
@@ -135,3 +139,5 @@ test("Testing bulk_associator().", function() {
 
     IPA.command = orig_ipa_command;
 });
+
+};});

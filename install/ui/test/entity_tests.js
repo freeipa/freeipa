@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/entity', 'freeipa/search',
+       'freeipa/details'], function(IPA, $) {
+    return function() {
 
 var entities_container;
 
@@ -100,3 +103,4 @@ test('Testing IPA.entity_set_search_definition().', function() {
 
 });
 
+};});

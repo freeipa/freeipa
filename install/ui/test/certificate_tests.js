@@ -18,6 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/certificate'], function(IPA, $) {
+    return function() {
+
 module('certificate');
 
 test("Testing certificate_parse_dn().", function() {
@@ -70,3 +73,5 @@ test("Testing certificate_parse_dn().", function() {
         },
         "Checking IPA.cert.parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com')");
 });
+
+};});

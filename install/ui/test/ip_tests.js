@@ -18,6 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+define(['freeipa/ipa', 'freeipa/net'], function(IPA, NET) {
+    return function() {
+
 module('ip-addresses',{
     setup: function() {
     },
@@ -301,3 +304,5 @@ test('Usage - set address.parts, no type', function() {
     ok(!address.valid, 'Still invalid');
     same(address.type, null, 'Checking type');
 });
+
+};});

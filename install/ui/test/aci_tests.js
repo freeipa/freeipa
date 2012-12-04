@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/aci'], function(IPA, $) {
+    return function() {
 
 var target_container;
 var target_widget;
@@ -286,5 +288,4 @@ test("Testing subtree target.", function() {
     same(get_visible_rows(target_widget), ['memberof', 'subtree', 'attrs_multi'], 'subtree row visible');
 });
 
-
-
+};});

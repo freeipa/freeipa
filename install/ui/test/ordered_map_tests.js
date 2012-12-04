@@ -18,6 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+define(['freeipa/jquery'], function($) {
+    return function() {
+
 module('ordered_map');
 
 test("Testing $.ordered_map constructor.", function() {
@@ -126,3 +129,5 @@ test("Testing $.ordered_map.empty().", function() {
     deepEqual(test.values, [], 'Checking values.');
     deepEqual(test.map, {}, 'Checking map.');
 });
+
+};});

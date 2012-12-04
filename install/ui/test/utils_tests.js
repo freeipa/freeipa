@@ -18,6 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/field', 'freeipa/widget'],
+       function(IPA, $) {  return function() {
+
 var old;
 
 module('utils',{
@@ -134,3 +137,5 @@ test('Testing IPA.defined', function() {
     same(IPA.defined(undefined), false, 'undefined');
     same(IPA.defined(null), false, 'null');
 });
+
+};});
