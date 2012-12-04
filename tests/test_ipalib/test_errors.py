@@ -23,6 +23,7 @@ Test the `ipalib.errors` module.
 
 import re
 import inspect
+
 from tests.util import assert_equal, raises
 from ipalib import errors, text
 from ipalib.constants import TYPE_ERROR
@@ -210,8 +211,8 @@ class PublicExceptionTester(object):
         for (key, value) in kw.iteritems():
             assert not hasattr(self.klass, key), key
         inst = self.klass(format=format, message=message, **kw)
-        assert isinstance(inst, StandardError)
-        assert isinstance(inst, errors.PublicError)
+        for required_class in self.required_classes:
+            assert isinstance(inst, required_class)
         assert isinstance(inst, self.klass)
         assert not isinstance(inst, errors.PrivateError)
         for (key, value) in kw.iteritems():
@@ -224,11 +225,9 @@ class test_PublicError(PublicExceptionTester):
     Test the `ipalib.errors.PublicError` exception.
     """
     _klass = errors.PublicError
+    required_classes = StandardError, errors.PublicError
 
     def test_init(self):
-        """
-        Test the `ipalib.errors.PublicError.__init__` method.
-        """
         message = u'The translated, interpolated message'
         format = 'key=%(key1)r and key2=%(key2)r'
         uformat = u'Translated key=%(key1)r and key2=%(key2)r'
@@ -259,8 +258,8 @@ class test_PublicError(PublicExceptionTester):
 
         # Test with format=None, message=None
         e = raises(ValueError, self.klass, **kw)
-        assert str(e) == \
-            'PublicError.format is None yet format=None, message=None'
+        assert (str(e) == '%s.format is None yet format=None, message=None' %
+            self.klass.__name__)
 
 
         ######################################
@@ -336,27 +335,40 @@ class test_PublicError(PublicExceptionTester):
         assert_equal(list(inst_match),list(instructions))
 
 
-def test_public_errors():
+class BaseMessagesTest(object):
+    """Generic test for all of a module's errors or messages
     """
-    Test the `ipalib.errors.public_errors` module variable.
-    """
-    i = 0
-    for klass in errors.public_errors:
-        assert issubclass(klass, StandardError)
-        assert issubclass(klass, errors.PublicError)
-        assert not issubclass(klass, errors.PrivateError)
-        assert type(klass.errno) is int
-        assert 900 <= klass.errno <= 5999
-        doc = inspect.getdoc(klass)
-        assert doc is not None, 'need class docstring for %s' % klass.__name__
-        m = re.match(r'^\*{2}(\d+)\*{2} ', doc)
-        assert m is not None, "need '**ERRNO**' in %s docstring" % klass.__name__
-        errno = int(m.group(1))
-        assert errno == klass.errno, (
-            'docstring=%r but errno=%r in %s' % (errno, klass.errno, klass.__name__)
-        )
+    def test_public_messages(self):
+        i = 0
+        for klass in self.message_list:
+            for required_class in self.required_classes:
+                assert issubclass(klass, required_class)
+            assert type(klass.errno) is int
+            assert klass.errno in self.errno_range
+            doc = inspect.getdoc(klass)
+            assert doc is not None, 'need class docstring for %s' % klass.__name__
+            m = re.match(r'^\*{2}(\d+)\*{2} ', doc)
+            assert m is not None, "need '**ERRNO**' in %s docstring" % klass.__name__
+            errno = int(m.group(1))
+            assert errno == klass.errno, (
+                'docstring=%r but errno=%r in %s' % (errno, klass.errno, klass.__name__)
+            )
+            self.extratest(klass)
 
-        # Test format
-        if klass.format is not None:
-            assert klass.format is errors.__messages[i]
-            i += 1
+            # Test format
+            if klass.format is not None:
+                assert klass.format is self.texts[i]
+                i += 1
+
+    def extratest(self, cls):
+        pass
+
+
+class test_PublicErrors(object):
+    message_list = errors.public_errors
+    errno_range = xrange(900, 5999)
+    required_classes = (StandardError, errors.PublicError)
+    texts = errors._texts
+
+    def extratest(self, cls):
+        assert not issubclass(cls, errors.PrivateError)
