@@ -420,7 +420,10 @@ def ipa_status(options):
     try:
         svc_list = get_config_from_file()
     except IpactlError, e:
-        raise e
+        if os.path.exists(ipaservices.get_svc_list_file()):
+            raise e
+        else:
+            svc_list = []
     except Exception, e:
         raise IpactlError("Failed to get list of services to probe status: " + str(e))
 
@@ -430,6 +433,9 @@ def ipa_status(options):
             print "Directory Service: RUNNING"
         else:
             print "Directory Service: STOPPED"
+            if len(svc_list) == 0:
+                print ("Directory Service must be running in order to " +
+                      "obtain status of other services")
     except:
         raise IpactlError("Failed to get Directory Service status")
 
@@ -473,7 +479,7 @@ def main():
         else:
             raise e
 
-    api.bootstrap(context='cli', debug=options.debug)
+    api.bootstrap(context='ipactl', debug=options.debug)
     api.finalize()
 
     if '.' not in api.env.host:

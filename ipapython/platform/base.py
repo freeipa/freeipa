@@ -136,12 +136,15 @@ class PlatformService(object):
     def __init__(self, service_name):
         self.service_name = service_name
 
-    def start(self, instance_name="", capture_output=True, wait=True):
+    def start(self, instance_name="", capture_output=True, wait=True,
+        update_service_list=True):
         """
         When a service is started record the fact in a special file.
         This allows ipactl stop to always stop all services that have
         been started via ipa tools
         """
+        if not update_service_list:
+            return
         svc_list = []
         try:
             f = open(SVC_LIST_FILE, 'r')
@@ -159,10 +162,12 @@ class PlatformService(object):
         f.close()
         return
 
-    def stop(self, instance_name="", capture_output=True):
+    def stop(self, instance_name="", capture_output=True, update_service_list=True):
         """
         When a service is stopped remove it from the service list file.
         """
+        if not update_service_list:
+            return
         svc_list = []
         try:
             f = open(SVC_LIST_FILE, 'r')
