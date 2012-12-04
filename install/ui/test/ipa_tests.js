@@ -18,6 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/dialog', 'freeipa/widget',
+        'freeipa/details'],  function(IPA, $) {
+    return function() {
+
 module('ipa');
 
 test("Testing ipa_init().", function() {
@@ -304,3 +308,5 @@ test("Testing observer.", function() {
     obj.event.detach(func);
     obj.event.notify([param1_value, param2_value], obj);
 });
+
+};});

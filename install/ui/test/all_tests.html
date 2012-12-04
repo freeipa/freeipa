@@ -4,35 +4,40 @@
     <title>Complete Test Suite</title>
     <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
     <script type="text/javascript" src="qunit.js"></script>
-    <script type="text/javascript" src="../jquery.js"></script>
-    <script type="text/javascript" src="../jquery.ba-bbq.js"></script>
-    <script type="text/javascript" src="../jquery-ui.js"></script>
-    <script type="text/javascript" src="../jquery.ordered-map.js"></script>
-    <script type="text/javascript" src="../net.js"></script>
-    <script type="text/javascript" src="../ipa.js"></script>
-    <script type="text/javascript" src="../widget.js"></script>
-    <script type="text/javascript" src="../field.js"></script>
-    <script type="text/javascript" src="../dialog.js"></script>
-    <script type="text/javascript" src="../details.js"></script>
-    <script type="text/javascript" src="../search.js"></script>
-    <script type="text/javascript" src="../add.js"></script>
-    <script type="text/javascript" src="../facet.js"></script>
-    <script type="text/javascript" src="../entity.js"></script>
-    <script type="text/javascript" src="../association.js"></script>
-    <script type="text/javascript" src="../navigation.js"></script>
-    <script type="text/javascript" src="../certificate.js"></script>
-    <script type="text/javascript" src="../aci.js"></script>
-    <script type="text/javascript" src="ordered_map_tests.js"></script>
-    <script type="text/javascript" src="ipa_tests.js"></script>
-    <script type="text/javascript" src="details_tests.js"></script>
-    <script type="text/javascript" src="entity_tests.js"></script>
-    <script type="text/javascript" src="association_tests.js"></script>
-    <script type="text/javascript" src="navigation_tests.js"></script>
-    <script type="text/javascript" src="certificate_tests.js"></script>
-    <script type="text/javascript" src="aci_tests.js"></script>
-    <script type="text/javascript" src="widget_tests.js"></script>
-    <script type="text/javascript" src="ip_tests.js"></script>
-    <script type="text/javascript" src="utils_tests.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.ba-bbq.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery-ui.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.ordered-map.js"></script>
+    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript" src="../js/dojo/dojo.js"></script>
+
+    <script type="text/javascript">
+        require([
+            'test/ordered_map_tests',
+            'test/ipa_tests',
+            'test/details_tests',
+            'test/entity_tests',
+            'test/association_tests',
+            'test/navigation_tests',
+            'test/certificate_tests',
+            'test/aci_tests',
+            'test/widget_tests',
+            'test/ip_tests',
+            'test/utils_tests'
+        ], function(om, ipa, details, entity, as, nav, cert, aci, wid, ip, ut){
+            om();
+            ipa();
+            details();
+            entity();
+            as();
+            nav();
+            cert();
+            aci();
+            wid();
+            ip();
+            ut();
+        });
+    </script>
 </head>
 <body>
     <h1 id="qunit-header">Complete Test Suite</h1>

@@ -18,6 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/details',
+       'freeipa/entity'], function(IPA, $) {
+    return function() {
+
 var details_container;
 
 
@@ -352,3 +356,5 @@ test("Testing IPA.details_section_create again()",function() {
             'Verifying field '+field.name+' was created');
     }
 });
+
+};});
