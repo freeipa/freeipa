@@ -17,17 +17,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import memcache
-import Cookie
 import random
 import errors
 import os
 import re
 import time
+from urllib2 import urlparse
 from text import _
 from ipapython.ipa_log_manager import *
 from ipalib import api, errors
 from ipalib import Command
 from ipalib.krb_utils import *
+from ipapython.cookie import Cookie
 
 __doc__ = '''
 Session Support for IPA
@@ -954,14 +955,24 @@ class MemcacheSessionManager(SessionManager):
         :returns:
           Session id as string or None if not found.
         '''
+
+        if cookie_header is None:
+            return None
+
         session_id = None
-        if cookie_header is not None:
-            cookie = Cookie.SimpleCookie()
-            cookie.load(cookie_header)
-            session_cookie = cookie.get(self.session_cookie_name)
-            if session_cookie is not None:
-                session_id = session_cookie.value
-                self.debug('found session cookie_id = %s', session_id)
+
+        try:
+            session_cookie = Cookie.get_named_cookie_from_string(cookie_header, self.session_cookie_name)
+        except Exception, e:
+            session_cookie = None
+        if session_cookie:
+            session_id = session_cookie.value
+
+        if session_id is None:
+            self.debug('no session cookie found')
+        else:
+            self.debug('found session cookie_id = %s', session_id)
+
         return session_id
 
 
@@ -1050,7 +1061,7 @@ class MemcacheSessionManager(SessionManager):
         self.mc.set(session_key, session_data, time=session_expiration_timestamp)
         return session_id
 
-    def generate_cookie(self, url_path, session_id, add_header=False):
+    def generate_cookie(self, url_path, session_id, expiration=None, add_header=False):
         '''
         Return a session cookie containing the session id. The cookie
         will be contrainted to the url path, defined for use
@@ -1068,15 +1079,18 @@ class MemcacheSessionManager(SessionManager):
         :returns:
           cookie string
         '''
-        cookie = Cookie.SimpleCookie()
-        cookie[self.session_cookie_name] = session_id
-        cookie[self.session_cookie_name]['path'] = url_path
-        cookie[self.session_cookie_name]['httponly'] = True
-        cookie[self.session_cookie_name]['secure'] = True
+
+        if not expiration:      # Catch zero unix timestamps
+            expiration = None;
+
+        cookie = Cookie(self.session_cookie_name, session_id,
+                        domain=urlparse.urlparse(api.env.xmlrpc_uri).netloc,
+                        path=url_path, httponly=True, secure=True,
+                        expires=expiration)
         if add_header:
-            result = cookie.output().strip()
+            result = 'Set-Cookie: %s' % cookie
         else:
-            result = cookie.output(header='').strip()
+            result = str(cookie)
 
         return result
 

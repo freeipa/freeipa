@@ -384,7 +384,8 @@ class WSGIExecutioner(Executioner):
         if session_data is not None:
             # Send session cookie back and store session data
             # FIXME: the URL path should be retreived from somewhere (but where?), not hardcoded
-            session_cookie = session_mgr.generate_cookie('/ipa', session_data['session_id'])
+            session_cookie = session_mgr.generate_cookie('/ipa', session_data['session_id'],
+                                                         session_data['session_expiration_timestamp'])
             headers.append(('Set-Cookie', session_cookie))
 
         start_response(status, headers)
@@ -666,7 +667,8 @@ class KerberosSession(object):
         release_ipa_ccache(ccache_name)
 
         # Return success and set session cookie
-        session_cookie = session_mgr.generate_cookie('/ipa', session_id)
+        session_cookie = session_mgr.generate_cookie('/ipa', session_id,
+                                                     session_data['session_expiration_timestamp'])
         headers.append(('Set-Cookie', session_cookie))
 
         start_response(HTTP_STATUS_SUCCESS, headers)
