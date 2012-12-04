@@ -37,6 +37,7 @@ import sys
 import os
 import errno
 import locale
+import datetime
 from xmlrpclib import (Binary, Fault, dumps, loads, ServerProxy, Transport,
         ProtocolError, MININT, MAXINT)
 import kerberos
@@ -48,8 +49,10 @@ from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError
 from ipalib import errors
 from ipalib.request import context, Connection
 from ipalib.util import get_current_principal
+from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipapython import kernel_keyring
+from ipapython.cookie import Cookie
 from ipalib.text import _
 
 import httplib
@@ -61,7 +64,65 @@ from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
 from ipapython.dn import DN
 
-COOKIE_NAME = 'ipa_session_cookie:%s'
+COOKIE_NAME = 'ipa_session'
+KEYRING_COOKIE_NAME = '%s_cookie:%%s' % COOKIE_NAME
+
+
+def client_session_keyring_keyname(principal):
+    '''
+    Return the key name used for storing the client session data for
+    the given principal.
+    '''
+
+    return KEYRING_COOKIE_NAME % principal
+
+def update_persistent_client_session_data(principal, data):
+    '''
+    Given a principal create or update the session data for that
+    principal in the persistent secure storage.
+
+    Raises ValueError if unable to perform the action for any reason.
+    '''
+
+    try:
+        keyname = client_session_keyring_keyname(principal)
+    except Exception, e:
+        raise ValueError(str(e))
+
+    # kernel_keyring only raises ValueError (why??)
+    kernel_keyring.update_key(keyname, data)
+
+def read_persistent_client_session_data(principal):
+    '''
+    Given a principal return the stored session data for that
+    principal from the persistent secure storage.
+
+    Raises ValueError if unable to perform the action for any reason.
+    '''
+
+    try:
+        keyname = client_session_keyring_keyname(principal)
+    except Exception, e:
+        raise ValueError(str(e))
+
+    # kernel_keyring only raises ValueError (why??)
+    return kernel_keyring.read_key(keyname)
+
+def delete_persistent_client_session_data(principal):
+    '''
+    Given a principal remove the session data for that
+    principal from the persistent secure storage.
+
+    Raises ValueError if unable to perform the action for any reason.
+    '''
+
+    try:
+        keyname = client_session_keyring_keyname(principal)
+    except Exception, e:
+        raise ValueError(str(e))
+
+    # kernel_keyring only raises ValueError (why??)
+    kernel_keyring.del_key(keyname)
 
 def xml_wrap(value):
     """
@@ -310,9 +371,9 @@ class KerbTransport(SSLTransport):
         if not isinstance(extra_headers, list):
             extra_headers = []
 
-        session_data = getattr(context, 'session_data', None)
-        if session_data:
-            extra_headers.append(('Cookie', session_data))
+        session_cookie = getattr(context, 'session_cookie', None)
+        if session_cookie:
+            extra_headers.append(('Cookie', session_cookie))
             return (host, extra_headers, x509)
 
         # Set the remote host principal
@@ -345,16 +406,55 @@ class KerbTransport(SSLTransport):
         finally:
             self.close()
 
+    def store_session_cookie(self, cookie_header):
+        '''
+        Given the contents of a Set-Cookie header scan the header and
+        extract each cookie contained within until the session cookie
+        is located. Examine the session cookie if the domain and path
+        are specified, if not update the cookie with those values from
+        the request URL. Then write the session cookie into the key
+        store for the principal. If the cookie header is None or the
+        session cookie is not present in the header no action is
+        taken.
+
+        Context Dependencies:
+
+        The per thread context is expected to contain:
+            principal
+                The current pricipal the HTTP request was issued for.
+            request_url
+                The URL of the HTTP request.
+
+        '''
+
+        if cookie_header is None:
+            return
+
+        principal = getattr(context, 'principal', None)
+        request_url = getattr(context, 'request_url', None)
+        root_logger.debug("received Set-Cookie '%s'", cookie_header)
+
+        # Search for the session cookie
+        try:
+            session_cookie = Cookie.get_named_cookie_from_string(cookie_header,
+                                                                 COOKIE_NAME, request_url)
+        except Exception, e:
+            root_logger.error("unable to parse cookie header '%s': %s", cookie_header, e)
+            return
+
+        if session_cookie is None:
+            return
+
+        cookie_string = str(session_cookie)
+        root_logger.debug("storing cookie '%s' for principal %s", cookie_string, principal)
+        try:
+            update_persistent_client_session_data(principal, cookie_string)
+        except Exception, e:
+            # Not fatal, we just can't use the session cookie we were sent.
+            pass
+
     def parse_response(self, response):
-        session_cookie = response.getheader('Set-Cookie')
-        if session_cookie:
-            principal = getattr(context, 'principal', None)
-            try:
-                kernel_keyring.update_key(COOKIE_NAME % principal, session_cookie)
-            except ValueError, e:
-                # Not fatal, we just can't use the session cookie we were
-                # sent.
-                pass
+        self.store_session_cookie(response.getheader('Set-Cookie'))
         return SSLTransport.parse_response(self, response)
 
 
@@ -376,22 +476,6 @@ class xmlclient(Connectible):
     def __init__(self):
         super(xmlclient, self).__init__()
         self.__errors = dict((e.errno, e) for e in public_errors)
-
-    def reconstruct_url(self):
-        """
-        The URL directly isn't stored in the ServerProxy. We can't store
-        it in the connection object itself but we can reconstruct it
-        from the ServerProxy.
-        """
-        if not hasattr(self.conn, '_ServerProxy__transport'):
-            return None
-        if (isinstance(self.conn._ServerProxy__transport, KerbTransport) or
-            isinstance(self.conn._ServerProxy__transport, DelegatedKerbTransport)):
-            scheme = "https"
-        else:
-            scheme = "http"
-        server = '%s://%s%s' % (scheme, ipautil.format_netloc(self.conn._ServerProxy__host), self.conn._ServerProxy__handler)
-        return server
 
     def get_url_list(self, xmlrpc_uri):
         """
@@ -425,40 +509,122 @@ class xmlclient(Connectible):
 
         return servers
 
+    def get_session_cookie_from_persistent_storage(self, principal):
+        '''
+        Retrieves the session cookie for the given principal from the
+        persistent secure storage. Returns None if not found or unable
+        to retrieve the session cookie for any reason, otherwise
+        returns a Cookie object containing the session cookie.
+        '''
+
+        # Get the session data, it should contain a cookie string
+        # (possibly with more than one cookie).
+        try:
+            cookie_string = read_persistent_client_session_data(principal)
+        except Exception, e:
+            return None
+
+        # Search for the session cookie within the cookie string
+        try:
+            session_cookie = Cookie.get_named_cookie_from_string(cookie_string, COOKIE_NAME)
+        except Exception, e:
+            return None
+
+        return session_cookie
+
+    def apply_session_cookie(self, url):
+        '''
+        Attempt to load a session cookie for the current principal
+        from the persistent secure storage. If the cookie is
+        successfully loaded adjust the input url's to point to the
+        session path and insert the session cookie into the per thread
+        context for later insertion into the HTTP request. If the
+        cookie is not successfully loaded then the original url is
+        returned and the per thread context is not modified.
+
+        Context Dependencies:
+
+        The per thread context is expected to contain:
+            principal
+                The current pricipal the HTTP request was issued for.
+
+        The per thread context will be updated with:
+            session_cookie
+                A cookie string to be inserted into the Cookie header
+                of the HTPP request.
+
+        '''
+
+        original_url = url
+        principal = getattr(context, 'principal', None)
+
+        session_cookie = self.get_session_cookie_from_persistent_storage(principal)
+        if session_cookie is None:
+            self.log.debug("failed to find session_cookie in persistent storage for principal '%s'",
+                           principal)
+            return original_url
+        else:
+            self.debug("found session_cookie in persistent storage for principal '%s', cookie: '%s'",
+                       principal, session_cookie)
+
+        # Decide if we should send the cookie to the server
+        try:
+            session_cookie.http_return_ok(original_url)
+        except Cookie.Expired, e:
+            self.debug("deleting session data for principal '%s': %s", principal, e)
+            try:
+                delete_persistent_client_session_data(principal)
+            except Exception, e:
+                pass
+            return original_url
+        except Cookie.URLMismatch, e:
+            self.debug("not sending session cookie, URL mismatch: %s", e)
+            return original_url
+        except Exception, e:
+            self.error("not sending session cookie, unknown error: %s", e)
+            return original_url
+
+        # O.K. session_cookie is valid to be returned, stash it away where it will will
+        # get included in a HTTP Cookie headed sent to the server.
+        self.log.debug("setting session_cookie into context '%s'", session_cookie.http_cookie())
+        setattr(context, 'session_cookie', session_cookie.http_cookie())
+
+        # Form the session URL by substituting the session path into the original URL
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(original_url)
+        path = '/ipa/session/xml'
+        session_url = urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
+
+        return session_url
+
     def create_connection(self, ccache=None, verbose=False, fallback=True,
                           delegate=False):
         try:
-            session = False
-            session_data = None
             xmlrpc_uri = self.env.xmlrpc_uri
             principal = get_current_principal()
             setattr(context, 'principal', principal)
             # We have a session cookie, try using the session URI to see if it
             # is still valid
             if not delegate:
-                session_data = kernel_keyring.read_key(COOKIE_NAME % principal)
-                setattr(context, 'session_data', session_data)
-                (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(self.env.xmlrpc_uri)
-                xmlrpc_uri = urlparse.urlunparse((scheme, netloc, '/ipa/session/xml', params, query, fragment))
-                session = True
+                xmlrpc_uri = self.apply_session_cookie(xmlrpc_uri)
         except ValueError:
             # No session key, do full Kerberos auth
             pass
-        servers = self.get_url_list(xmlrpc_uri)
+        urls = self.get_url_list(xmlrpc_uri)
         serverproxy = None
-        for server in servers:
+        for url in urls:
             kw = dict(allow_none=True, encoding='UTF-8')
             kw['verbose'] = verbose
-            if server.startswith('https://'):
+            if url.startswith('https://'):
                 if delegate:
                     kw['transport'] = DelegatedKerbTransport()
                 else:
                     kw['transport'] = KerbTransport()
             else:
                 kw['transport'] = LanguageAwareTransport()
-            self.log.info('trying %s' % server)
-            serverproxy = ServerProxy(server, **kw)
-            if len(servers) == 1:
+            self.log.info('trying %s' % url)
+            setattr(context, 'request_url', url)
+            serverproxy = ServerProxy(url, **kw)
+            if len(urls) == 1:
                 # if we have only 1 server and then let the
                 # main requester handle any errors. This also means it
                 # must handle a 401 but we save a ping.
@@ -476,7 +642,7 @@ class xmlclient(Connectible):
                         raise UnknownError(
                             code=e.faultCode,
                             error=e.faultString,
-                            server=server,
+                            server=url,
                         )
                 # We don't care about the response, just that we got one
                 break
@@ -484,14 +650,13 @@ class xmlclient(Connectible):
                 # kerberos error on one server is likely on all
                 raise errors.KerberosError(major=str(krberr), minor='')
             except ProtocolError, e:
-                if session_data and e.errcode == 401:
+                if hasattr(context, 'session_cookie') and e.errcode == 401:
                     # Unauthorized. Remove the session and try again.
-                    delattr(context, 'session_data')
+                    delattr(context, 'session_cookie')
                     try:
-                        kernel_keyring.del_key(COOKIE_NAME % principal)
-                    except ValueError:
-                        # This shouldn't happen if we have a session but
-                        # it isn't fatal.
+                        delete_persistent_client_session_data(principal)
+                    except Exception, e:
+                        # This shouldn't happen if we have a session but it isn't fatal.
                         pass
                     return self.create_connection(ccache, verbose, fallback, delegate)
                 if not fallback:
@@ -504,7 +669,7 @@ class xmlclient(Connectible):
 
         if serverproxy is None:
             raise NetworkError(uri=_('any of the configured servers'),
-                error=', '.join(servers))
+                error=', '.join(urls))
         return serverproxy
 
     def destroy_connection(self):
@@ -529,7 +694,7 @@ class xmlclient(Connectible):
             raise ValueError(
                 '%s.forward(): %r not in api.Command' % (self.name, name)
             )
-        server = self.reconstruct_url()
+        server = getattr(context, 'request_url', None)
         self.info('Forwarding %r to server %r', name, server)
         command = getattr(self.conn, name)
         params = [args, kw]
@@ -554,16 +719,15 @@ class xmlclient(Connectible):
             # By catching a 401 here we can detect the case where we have
             # a single IPA server and the session is invalid. Otherwise
             # we always have to do a ping().
-            session_data = getattr(context, 'session_data', None)
-            if session_data and e.errcode == 401:
+            session_cookie = getattr(context, 'session_cookie', None)
+            if session_cookie and e.errcode == 401:
                 # Unauthorized. Remove the session and try again.
-                delattr(context, 'session_data')
+                delattr(context, 'session_cookie')
                 try:
                     principal = getattr(context, 'principal', None)
-                    kernel_keyring.del_key(COOKIE_NAME % principal)
-                except ValueError:
-                    # This shouldn't happen if we have a session but
-                    # it isn't fatal.
+                    delete_persistent_client_session_data(principal)
+                except Exception, e:
+                    # This shouldn't happen if we have a session but it isn't fatal.
                     pass
 
                 # Create a new serverproxy with the non-session URI. If there

@@ -42,8 +42,7 @@ try:
     from ipalib import api, errors
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
-    from ipapython import kernel_keyring
-    from ipalib.rpc import COOKIE_NAME
+    from ipalib.rpc import delete_persistent_client_session_data
     import SSSDConfig
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup
@@ -1717,7 +1716,7 @@ def install(options, env, fstore, statestore):
 
     # Clear out any current session keyring information
     try:
-        kernel_keyring.del_key(COOKIE_NAME % host_principal)
+        delete_persistent_client_session_data(host_principal)
     except ValueError:
         pass
 

@@ -64,7 +64,8 @@ class IPATypeChecker(TypeChecker):
             'pattern', 'pattern_errmsg'],
         'ipalib.parameters.Enum': ['values'],
         'ipalib.parameters.File': ['stdin_if_missing'],
-        'urlparse.SplitResult': ['netloc'],
+        'urlparse.SplitResult': ['scheme', 'netloc', 'path', 'query', 'fragment', 'username', 'password', 'hostname', 'port'],
+        'urlparse.ParseResult': ['scheme', 'netloc', 'path', 'params', 'query', 'fragment', 'username', 'password', 'hostname', 'port'],
         'ipaserver.install.ldapupdate.LDAPUpdate' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipaserver.plugins.ldap2.SchemaCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipaserver.plugins.ldap2.IPASimpleLDAPObject' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
@@ -78,6 +79,7 @@ class IPATypeChecker(TypeChecker):
         'ipalib.session.SessionCCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipalib.session.MemcacheSessionManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
         'ipapython.admintool.AdminTool' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
+        'ipapython.cookie.Cookie' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
     }
 
     def _related_classes(self, klass):
