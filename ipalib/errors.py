@@ -102,10 +102,9 @@ current block assignments:
             - **5100 - 5999**  *Reserved for future use*
 """
 
-from inspect import isclass
-from text import _ as ugettext, ngettext as ungettext
-from text import Gettext, NGettext
-from constants import TYPE_ERROR
+from ipalib.text import ngettext as ungettext
+
+import messages
 
 
 class PrivateError(StandardError):
@@ -233,10 +232,10 @@ class PluginsPackageError(PrivateError):
 ##############################################################################
 # Public errors:
 
-__messages = []
+_texts = []
 
 def _(message):
-    __messages.append(message)
+    _texts.append(message)
     return message
 
 
@@ -244,57 +243,13 @@ class PublicError(StandardError):
     """
     **900** Base class for exceptions that can be forwarded in an RPC response.
     """
+    def __init__(self, format=None, message=None, **kw):
+        messages.process_message_arguments(self, format, message, **kw)
+        super(PublicError, self).__init__(self.msg)
 
     errno = 900
     rval = 1
     format = None
-
-    def __init__(self, format=None, message=None, **kw):
-        self.kw = kw
-        name = self.__class__.__name__
-        if self.format is not None and format is not None:
-            raise ValueError(
-                'non-generic %r needs format=None; got format=%r' % (
-                    name, format)
-            )
-        if message is None:
-            if self.format is None:
-                if format is None:
-                    raise ValueError(
-                        '%s.format is None yet format=None, message=None' % name
-                    )
-                self.format = format
-            self.forwarded = False
-            self.msg = self.format % kw
-            if isinstance(self.format, basestring):
-                self.strerror = ugettext(self.format) % kw
-            else:
-                self.strerror = self.format % kw
-            if 'instructions' in kw:
-                def convert_instructions(value):
-                    if isinstance(value, list):
-                        result=u'\n'.join(map(lambda line: unicode(line), value))
-                        return result
-                    return value
-                instructions = u'\n'.join((unicode(_('Additional instructions:')),
-                                          convert_instructions(kw['instructions'])))
-                self.strerror = u'\n'.join((self.strerror, instructions))
-        else:
-            if isinstance(message, (Gettext, NGettext)):
-                message = unicode(message)
-            elif type(message) is not unicode:
-                raise TypeError(
-                    TYPE_ERROR % ('message', unicode, message, type(message))
-                )
-            self.forwarded = True
-            self.msg = message
-            self.strerror = message
-        for (key, value) in kw.iteritems():
-            assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
-                name, key, value,
-            )
-            setattr(self, key, value)
-        StandardError.__init__(self, self.msg)
 
 
 class VersionError(PublicError):
@@ -1711,21 +1666,8 @@ class GenericError(PublicError):
 
 
 
-def __errors_iter():
-    """
-    Iterate through all the `PublicError` subclasses.
-    """
-    for (key, value) in globals().items():
-        if key.startswith('_') or not isclass(value):
-            continue
-        if issubclass(value, PublicError):
-            yield value
-
-public_errors = tuple(
-    sorted(__errors_iter(), key=lambda E: E.errno)
-)
+public_errors = tuple(sorted(
+    messages.iter_messages(globals(), PublicError), key=lambda E: E.errno))
 
 if __name__ == '__main__':
-    for klass in public_errors:
-        print '%d\t%s' % (klass.errno, klass.__name__)
-    print '(%d public errors)' % len(public_errors)
+    messages.print_report('public errors', public_errors)
