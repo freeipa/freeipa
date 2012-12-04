@@ -40,6 +40,10 @@
  * Update the Kerberos lockout variables on LDAP binds.
  *
  */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
@@ -65,10 +69,17 @@ static Slapi_PluginDesc pdesc = {
     IPALOCKOUT_PLUGIN_DESC
 };
 
+struct ipa_context {
+    bool disable_last_success;
+    bool disable_lockout;
+};
+
 static void *_PluginID = NULL;
 static char *_PluginDN = NULL;
 
 static int g_plugin_started = 0;
+
+static struct ipa_context *global_ipactx = NULL;
 
 #define GENERALIZED_TIME_LENGTH 15
 
@@ -122,6 +133,97 @@ void setPluginDN(char *pluginDN)
 char *getPluginDN(void)
 {
     return _PluginDN;
+}
+
+static int
+ipalockout_get_global_config(struct ipa_context *ipactx)
+{
+    Slapi_Value *value = NULL;
+    Slapi_Attr *attr = NULL;
+    char *dn = NULL;
+    char *basedn = NULL;
+    Slapi_DN *sdn;
+    Slapi_Entry *config_entry;
+    int ret;
+
+    /* Get cn=config so we can get the default naming context */
+    sdn = slapi_sdn_new_dn_byref("cn=config");
+
+    ret = slapi_search_internal_get_entry(sdn, NULL, &config_entry,
+              getPluginID());
+
+    slapi_sdn_free(&sdn);
+
+    if (ret) {
+        goto done;
+    }
+
+    basedn = slapi_entry_attr_get_charptr(config_entry,
+        "nsslapd-defaultnamingcontext");
+
+    slapi_entry_free(config_entry);
+
+    if (!basedn) {
+        goto done;
+    }
+
+    ret = asprintf(&dn, "cn=ipaConfig,cn=etc,%s", basedn);
+    if (ret == -1) {
+        LOG_OOM();
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    sdn = slapi_sdn_new_dn_byref(dn);
+
+    ret = slapi_search_internal_get_entry(sdn, NULL, &config_entry,
+              getPluginID());
+
+    slapi_sdn_free(&sdn);
+
+    if (ret) {
+        goto done;
+    }
+
+    ret = slapi_entry_attr_find(config_entry, "ipaConfigString", &attr);
+    if (ret == -1) {
+        /* no config, nothing to do */
+        ret = 0;
+        goto done;
+    }
+
+    ret = slapi_attr_first_value(attr, &value);
+    while (ret != -1) {
+        const struct berval *val;
+
+        val = slapi_value_get_berval(value);
+        if (!val) {
+            ret = LDAP_OPERATIONS_ERROR;
+            slapi_value_free(&value);
+            goto done;
+        }
+
+        if (strncasecmp("KDC:Disable Last Success",
+                        val->bv_val, val->bv_len) == 0) {
+            ipactx->disable_last_success = true;
+        }
+        else if (strncasecmp("KDC:Disable Lockout",
+                        val->bv_val, val->bv_len) == 0) {
+            ipactx->disable_lockout = true;
+        }
+
+        ret = slapi_attr_next_value(attr, ret, &value);
+    }
+    slapi_value_free(&value);
+
+    ret = 0;
+
+done:
+    if (config_entry)
+        slapi_entry_free(config_entry);
+    free(dn);
+    free(basedn);
+    return ret;
 }
 
 int
@@ -214,6 +316,12 @@ ipalockout_start(Slapi_PBlock * pb)
     }
 
     g_plugin_started = 1;
+
+    global_ipactx = (struct ipa_context *)malloc(sizeof(global_ipactx));
+    global_ipactx->disable_last_success = false;
+    global_ipactx->disable_lockout = false;
+    ipalockout_get_global_config(global_ipactx);
+
     LOG("ready for service\n");
     LOG_TRACE("<--out--\n");
 
@@ -264,6 +372,10 @@ static int ipalockout_postop(Slapi_PBlock *pb)
 
     /* Just bail if we aren't ready to service requests yet. */
     if (!g_plugin_started) {
+        goto done;
+    }
+
+    if (global_ipactx->disable_lockout) {
         goto done;
     }
 
@@ -401,7 +513,9 @@ static int ipalockout_postop(Slapi_PBlock *pb)
             strftime(timestr, GENERALIZED_TIME_LENGTH+1,
                  "%Y%m%d%H%M%SZ", &utctime);
             slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLoginFailedCount", failedcountstr);
-            slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLastSuccessfulAuth", timestr);
+            if (!global_ipactx->disable_last_success) {
+                slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLastSuccessfulAuth", timestr);
+            }
         }
 
         pbtm = slapi_pblock_new();
@@ -496,6 +610,10 @@ static int ipalockout_preop(Slapi_PBlock *pb)
 
     /* Just bail if we aren't ready to service requests yet. */
     if (!g_plugin_started) {
+        goto done;
+    }
+
+    if (global_ipactx->disable_lockout) {
         goto done;
     }
 
