@@ -78,6 +78,7 @@ Past and Occasional Contributors:
 	Jim Meyering
 	Martin Nagy
 	David O'Brien
+	Lubomir Rintel
 	Pete Rowley
 	Andreas Schneider
 	Jan Zeleny
