@@ -467,13 +467,26 @@ def main():
             if reverse_zone is None and not options.no_reverse:
                 reverse_zone = bindinstance.get_reverse_zone_default(ip)
 
-        add_zone(domain)
-        add_fwd_rr(domain, name, ip_address)
+        try:
+            add_zone(domain)
+        except errors.PublicError, e:
+            sys.exit("Could not create forward DNS zone for the replica: %s" % e)
+
+        try:
+            add_fwd_rr(domain, name, ip_address)
+        except errors.PublicError, e:
+            sys.exit("Could not add forward DNS record for the replica: %s" % e)
 
         if reverse_zone is not None:
             print "Using reverse zone %s" % reverse_zone
-            add_zone(reverse_zone)
-            add_ptr_rr(reverse_zone, ip_address, replica_fqdn)
+            try:
+                add_zone(reverse_zone)
+            except errors.PublicError, e:
+                sys.exit("Could not create reverse DNS zone for the replica: %s" % e)
+            try:
+                add_ptr_rr(reverse_zone, ip_address, replica_fqdn)
+            except errors.PublicError, e:
+                sys.exit("Could not add reverse DNS record for the replica: %s" % e)
 
 try:
     if not os.geteuid()==0:
