@@ -1162,3 +1162,15 @@ def dn_attribute_property(private_name):
         return value
 
     return property(getter, setter)
+
+def restore_hostname(statestore):
+    """
+    Restore hostname of a machine, if it was set before
+    """
+    old_hostname = statestore.restore_state('network','hostname')
+    system_hostname = socket.gethostname()
+    if old_hostname is not None and old_hostname != system_hostname:
+        try:
+            run(['/bin/hostname', old_hostname])
+        except CalledProcessError, e:
+            print >>sys.stderr, "Failed to set this machine hostname back to %s: %s" % (old_hostname, str(e))

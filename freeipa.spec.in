@@ -289,8 +289,13 @@ package.
 %build
 export CFLAGS="$CFLAGS %{optflags}"
 export CPPFLAGS="$CPPFLAGS %{optflags}"
-# use fedora16 platform which introduced systemd support
+%if 0%{?fedora} >= 18
+# use fedora18 platform which is based on fedora16 platform with systemd
+# support + fedora18 changes
+export SUPPORTED_PLATFORM=fedora18
+%else
 export SUPPORTED_PLATFORM=fedora16
+%endif
 # Force re-generate of platform support
 rm -f ipapython/services.py
 make version-update
@@ -311,7 +316,13 @@ make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
 
 %install
 rm -rf %{buildroot}
+%if 0%{?fedora} >= 18
+# use fedora18 platform which is based on fedora16 platform with systemd
+# support + fedora18 changes
+export SUPPORTED_PLATFORM=fedora18
+%else
 export SUPPORTED_PLATFORM=fedora16
+%endif
 # Force re-generate of platform support
 rm -f ipapython/services.py
 %if ! %{ONLY_CLIENT}
