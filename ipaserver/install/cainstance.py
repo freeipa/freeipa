@@ -656,7 +656,8 @@ class CAInstance(service.Service):
         config.set("CA", "pki_admin_email", "root@localhost")
         config.set("CA", "pki_admin_password", self.admin_password)
         config.set("CA", "pki_admin_nickname", "ipa-ca-agent")
-        config.set("CA", "pki_admin_subject_dn", "CN=ipa-ca-agent,%s" % self.subject_base)
+        config.set("CA", "pki_admin_subject_dn",
+            str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
 
         # Directory server
         config.set("CA", "pki_ds_ldap_port", str(self.ds_port))
@@ -665,11 +666,16 @@ class CAInstance(service.Service):
         config.set("CA", "pki_ds_database", "ipaca")
 
         # Certificate subject DN's
-        config.set("CA", "pki_subsystem_subject_dn", "CN=CA Subsystem,%s" % self.subject_base)
-        config.set("CA", "pki_ocsp_signing_subject_dn", "CN=OCSP Subsystem,%s" % self.subject_base)
-        config.set("CA", "pki_ssl_server_subject_dn", "CN=%s,%s" % (self.fqdn, self.subject_base))
-        config.set("CA", "pki_audit_signing_subject_dn", "CN=CA Audit,%s" % self.subject_base)
-        config.set("CA", "pki_ca_signing_subject_dn", "CN=Certificate Authority,%s" % self.subject_base)
+        config.set("CA", "pki_subsystem_subject_dn",
+            str(DN(('cn', 'CA Subsystem'), self.subject_base)))
+        config.set("CA", "pki_ocsp_signing_subject_dn",
+            str(DN(('cn', 'OCSP Subsystem'), self.subject_base)))
+        config.set("CA", "pki_ssl_server_subject_dn",
+            str(DN(('cn', self.fqdn), self.subject_base)))
+        config.set("CA", "pki_audit_signing_subject_dn",
+            str(DN(('cn', 'CA Audit'), self.subject_base)))
+        config.set("CA", "pki_ca_signing_subject_dn",
+            str(DN(('cn', 'Certificate Authority'), self.subject_base)))
 
         # Certificate nicknames
         config.set("CA", "pki_subsystem_nickname", "subsystemCert cert-pki-ca")
