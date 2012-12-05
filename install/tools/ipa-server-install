@@ -497,6 +497,7 @@ def uninstall():
     krbinstance.KrbInstance(fstore).uninstall()
     dsinstance.DsInstance(fstore=fstore).uninstall()
     memcacheinstance.MemcacheInstance().uninstall()
+    ipaservices.restore_network_configuration(fstore, sstore)
     fstore.restore_all_files()
     try:
         os.remove(ANSWER_CACHE)
@@ -510,13 +511,7 @@ def uninstall():
 
     ipaservices.knownservices.ipa.disable()
 
-    old_hostname = sstore.restore_state('network','hostname')
-    system_hostname = get_fqdn()
-    if old_hostname is not None and old_hostname != system_hostname:
-        try:
-            ipautil.run(['/bin/hostname', old_hostname])
-        except CalledProcessError, e:
-            print >>sys.stderr, "Failed to set this machine hostname back to %s (%s)." % (old_hostname, str(e))
+    ipautil.restore_hostname(sstore)
 
     # remove upgrade state file
     sysupgrade.remove_upgrade_file()

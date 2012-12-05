@@ -36,11 +36,15 @@ from ipalib import api
 #                  names are ipapython.services.wellknownservices
 # backup_and_replace_hostname -- platform-specific way to set hostname and
 #                                make it persistent over reboots
+# restore_network_configuration -- platform-specific way of restoring network
+#                                  configuration (e.g. static hostname)
 # restore_context -- platform-sepcific way to restore security context, if
 #                    applicable
 # check_selinux_status -- platform-specific way to see if SELinux is enabled
 #                         and restorecon is installed.
-__all__ = ['authconfig', 'service', 'knownservices', 'backup_and_replace_hostname', 'restore_context', 'check_selinux_status']
+__all__ = ['authconfig', 'service', 'knownservices',
+    'backup_and_replace_hostname', 'restore_context', 'check_selinux_status',
+    'restore_network_configuration']
 
 # For beginning just remap names to add .service
 # As more services will migrate to systemd, unit names will deviate and
@@ -204,3 +208,4 @@ authconfig = redhat.authconfig
 service = f16_service
 knownservices = Fedora16Services()
 backup_and_replace_hostname = redhat.backup_and_replace_hostname
+restore_network_configuration = redhat.restore_network_configuration

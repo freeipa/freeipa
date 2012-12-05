@@ -451,16 +451,10 @@ def uninstall(options, env):
 
     if fstore.has_files():
         root_logger.info("Restoring client configuration files")
+        ipaservices.restore_network_configuration(fstore, statestore)
         fstore.restore_all_files()
 
-    old_hostname = statestore.restore_state('network', 'hostname')
-    if old_hostname is not None and old_hostname != hostname:
-        try:
-            ipautil.run(['/bin/hostname', old_hostname])
-        except CalledProcessError, e:
-            root_logger.error(
-                "Failed to set this machine's hostname to %s (%s).",
-                old_hostname, str(e))
+    ipautil.restore_hostname(statestore)
 
     nscd = ipaservices.knownservices.nscd
     if nscd.is_installed():

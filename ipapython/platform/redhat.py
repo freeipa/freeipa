@@ -44,11 +44,15 @@ from ipalib import api
 #                  names are ipapython.services.wellknownservices
 # backup_and_replace_hostname -- platform-specific way to set hostname and
 #                                make it persistent over reboots
+# restore_network_configuration -- platform-specific way of restoring network
+#                                  configuration (e.g. static hostname)
 # restore_context -- platform-sepcific way to restore security context, if
 #                    applicable
 # check_selinux_status -- platform-specific way to see if SELinux is enabled
 #                         and restorecon is installed.
-__all__ = ['authconfig', 'service', 'knownservices', 'backup_and_replace_hostname', 'restore_context', 'check_selinux_status']
+__all__ = ['authconfig', 'service', 'knownservices',
+    'backup_and_replace_hostname', 'restore_context', 'check_selinux_status',
+    'restore_network_configuration']
 
 class RedHatService(base.PlatformService):
     def __wait_for_open_ports(self, instance_name=""):
@@ -224,6 +228,11 @@ def backup_and_replace_hostname(fstore, statestore, hostname):
         statestore.backup_state('network', 'hostname', old_values['HOSTNAME'])
     else:
         statestore.backup_state('network', 'hostname', old_hostname)
+
+def restore_network_configuration(fstore, statestore):
+    filepath = '/etc/sysconfig/network'
+    if fstore.has_file(filepath):
+        fstore.restore_file(filepath)
 
 def check_selinux_status(restorecon='/sbin/restorecon'):
     """
