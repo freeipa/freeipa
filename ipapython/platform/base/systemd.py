@@ -17,9 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
+import shutil
+import sys
+
 from ipapython import ipautil
 from ipapython.platform import base
-import sys, os, shutil
 from ipalib import api
 
 class SystemdService(base.PlatformService):

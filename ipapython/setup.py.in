@@ -65,7 +65,12 @@ def setup_package():
             classifiers=filter(None, CLASSIFIERS.split('\n')),
             platforms = ["Linux", "Solaris", "Unix"],
             package_dir = {'ipapython': ''},
-            packages = [ "ipapython", "ipapython.platform" ],
+            packages = [ "ipapython",
+                         "ipapython.platform",
+                         "ipapython.platform.base",
+                         "ipapython.platform.fedora16",
+                         "ipapython.platform.fedora18",
+                         "ipapython.platform.redhat" ],
         )
     finally:
         del sys.path[0]

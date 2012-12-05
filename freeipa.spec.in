@@ -740,8 +740,16 @@ fi
 %doc COPYING README Contributors.txt
 %dir %{python_sitelib}/ipapython
 %dir %{python_sitelib}/ipapython/platform
+%dir %{python_sitelib}/ipapython/platform/base
+%dir %{python_sitelib}/ipapython/platform/fedora16
+%dir %{python_sitelib}/ipapython/platform/fedora18
+%dir %{python_sitelib}/ipapython/platform/redhat
 %{python_sitelib}/ipapython/*.py*
 %{python_sitelib}/ipapython/platform/*.py*
+%{python_sitelib}/ipapython/platform/base/*.py*
+%{python_sitelib}/ipapython/platform/fedora16/*.py*
+%{python_sitelib}/ipapython/platform/fedora18/*.py*
+%{python_sitelib}/ipapython/platform/redhat/*.py*
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
 %{python_sitearch}/default_encoding_utf8.so

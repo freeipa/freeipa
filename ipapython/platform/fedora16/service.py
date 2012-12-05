@@ -21,33 +21,11 @@ import os
 import time
 
 from ipapython import ipautil, dogtag
-from ipapython.platform import base, redhat, systemd
+from ipapython.platform import base, redhat
+from ipapython.platform.base import systemd
+from ipapython.platform.fedora16 import selinux
 from ipapython.ipa_log_manager import root_logger
 from ipalib import api
-
-# All what we allow exporting directly from this module
-# Everything else is made available through these symbols when they are
-# directly imported into ipapython.services:
-# authconfig -- class reference for platform-specific implementation of
-#               authconfig(8)
-# service    -- class reference for platform-specific implementation of a
-#               PlatformService class
-# knownservices -- factory instance to access named services IPA cares about,
-#                  names are ipapython.services.wellknownservices
-# backup_and_replace_hostname -- platform-specific way to set hostname and
-#                                make it persistent over reboots
-# restore_network_configuration -- platform-specific way of restoring network
-#                                  configuration (e.g. static hostname)
-# restore_context -- platform-sepcific way to restore security context, if
-#                    applicable
-# check_selinux_status -- platform-specific way to see if SELinux is enabled
-#                         and restorecon is installed.
-__all__ = ['authconfig', 'service', 'knownservices',
-    'backup_and_replace_hostname', 'restore_context', 'check_selinux_status',
-    'restore_network_configuration', 'timedate_services']
-
-# Just copy a referential list of timedate services
-timedate_services = list(base.timedate_services)
 
 # For beginning just remap names to add .service
 # As more services will migrate to systemd, unit names will deviate and
@@ -88,6 +66,7 @@ class Fedora16Service(systemd.SystemdService):
                 # systemd, default to foo.service style then
                 systemd_name = "%s.service" % (service_name)
         super(Fedora16Service, self).__init__(service_name, systemd_name)
+
 # Special handling of directory server service
 #
 # We need to explicitly enable instances to install proper symlinks as
@@ -110,7 +89,7 @@ class Fedora16DirectoryService(Fedora16Service):
             # into dirsrv@.service unit
             replacevars = {'LimitNOFILE':'8192'}
             ipautil.inifile_replace_variables(dirsrv_systemd, 'service', replacevars=replacevars)
-            restore_context(dirsrv_systemd)
+            selinux.restore_context(dirsrv_systemd)
             ipautil.run(["/bin/systemctl", "--system", "daemon-reload"],raiseonerr=False)
 
     def restart(self, instance_name="", capture_output=True, wait=True):
@@ -138,7 +117,6 @@ class Fedora16IPAService(Fedora16Service):
 class Fedora16SSHService(Fedora16Service):
     def get_config_dir(self, instance_name=""):
         return '/etc/ssh'
-
 
 class Fedora16CAService(Fedora16Service):
     def __wait_until_running(self):
@@ -179,7 +157,6 @@ class Fedora16CAService(Fedora16Service):
         if wait:
             self.__wait_until_running()
 
-
 # Redirect directory server service through special sub-class due to its
 # special handling of instances
 def f16_service(name):
@@ -200,15 +177,3 @@ class Fedora16Services(base.KnownServices):
             services[s] = f16_service(s)
         # Call base class constructor. This will lock services to read-only
         super(Fedora16Services, self).__init__(services)
-
-def restore_context(filepath, restorecon='/usr/sbin/restorecon'):
-    return redhat.restore_context(filepath, restorecon)
-
-def check_selinux_status(restorecon='/usr/sbin/restorecon'):
-    return redhat.check_selinux_status(restorecon)
-
-authconfig = redhat.authconfig
-service = f16_service
-knownservices = Fedora16Services()
-backup_and_replace_hostname = redhat.backup_and_replace_hostname
-restore_network_configuration = redhat.restore_network_configuration
