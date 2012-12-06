@@ -85,6 +85,7 @@ Slapi_PluginDesc ipapwd_plugin_desc = {
 };
 
 void *ipapwd_plugin_id;
+static int usetxn = 0;
 
 static int filter_keys(struct ipapwd_krbcfg *krbcfg,
                        struct ipapwd_keyset *kset)
@@ -158,6 +159,7 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	struct ipapwd_data pwdata;
 	int is_krb, is_smb, is_ipant;
     char *principal = NULL;
+	Slapi_PBlock *chpwop_pb = NULL;
 
 	/* Get the ber value of the extended operation */
 	slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
@@ -238,6 +240,22 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	}
 
 parse_req_done:
+
+	if (usetxn) {
+                Slapi_DN *sdn = slapi_sdn_new_dn_byref(dn);
+                Slapi_Backend *be = slapi_be_select(sdn);
+                slapi_sdn_free(&sdn);
+                if (be) {
+			chpwop_pb = slapi_pblock_new();
+			slapi_pblock_set(chpwop_pb, SLAPI_BACKEND, be);
+			rc = slapi_back_transaction_begin(chpwop_pb);
+			if (rc) {
+				LOG_FATAL("failed to start transaction\n");
+			}
+		} else {
+			LOG_FATAL("failed to get be backend from %s\n", dn);
+		}
+	}
 	/* Uncomment for debugging, otherwise we don't want to leak the
 	 * password values into the log... */
 	/* LDAPDebug( LDAP_DEBUG_ARGS, "passwd: dn (%s), oldPasswd (%s),
@@ -499,6 +517,14 @@ parse_req_done:
 
 	/* Free anything that we allocated above */
 free_and_return:
+	if (usetxn && chpwop_pb) {
+		if (rc) { /* fails */
+			slapi_back_transaction_abort(chpwop_pb);
+		} else {
+			slapi_back_transaction_commit(chpwop_pb);
+		}
+		slapi_pblock_destroy(chpwop_pb);
+	}
 	slapi_ch_free_string(&oldPasswd);
 	slapi_ch_free_string(&newPasswd);
 	/* Either this is the same pointer that we allocated and set above,
@@ -1271,12 +1297,11 @@ int ipapwd_init( Slapi_PBlock *pb )
 {
     int ret;
     Slapi_Entry *plugin_entry = NULL;
-    int is_betxn = 0;
 
     /* get args */
     if ((slapi_pblock_get(pb, SLAPI_PLUGIN_CONFIG_ENTRY, &plugin_entry) == 0) &&
         plugin_entry) {
-            is_betxn = slapi_entry_attr_get_bool(plugin_entry,
+            usetxn = slapi_entry_attr_get_bool(plugin_entry,
                                                  "nsslapd-pluginbetxn");
     }
 
@@ -1310,7 +1335,7 @@ int ipapwd_init( Slapi_PBlock *pb )
         return -1;
     }
 
-    if (is_betxn) {
+    if (usetxn) {
         slapi_register_plugin("betxnpreoperation", 1,
                               "ipapwd_pre_init_betxn", ipapwd_pre_init_betxn,
                               "IPA pwd pre ops betxn", NULL,

@@ -640,6 +640,12 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
          * force a password change on the next login.
          * But not if Directory Manager */
         if (data->changetype == IPA_CHANGETYPE_ADMIN) {
+            /* The expiration date needs to be older than the current time
+             * otherwise the KDC may not immediately register the password
+             * as expired. The last password change needs to match the
+             * password expiration otherwise minlife issues will arise.
+             */
+            data->timeNow -= 1;
             data->expireTime = data->timeNow;
         }
 
