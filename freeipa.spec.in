@@ -111,7 +111,7 @@ Requires: python-memcached
 Requires: systemd-units >= 36-3
 Requires(pre): systemd-units
 Requires(post): systemd-units
-Requires: selinux-policy >= 3.10.0-110
+Requires: selinux-policy >= 3.11.1-60
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.44
 Requires: pki-ca >= 10.0.0-0.52.b3
@@ -752,6 +752,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Thu Dec  6 2012 Rob Crittenden <rcritten@redhat.com> - 3.0.99-7
+- Set min for selinux-policy to 3.11.1-60 to fix errors including sssd
+  domain mapping in krb5.conf (#873429)
+
 * Wed Nov 21 2012 Alexander Bokovoy <abokovoy@redhat.com> - 3.0.99-6
 - Replace python-crypto by m2crypto dependency
 
