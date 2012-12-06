@@ -735,6 +735,13 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     char * url = NULL;
     char * user_agent = NULL;
 
+    /* Start up our XML-RPC client library. */
+    xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, NAME, VERSION);
+
+    xmlrpc_env_init(&env);
+
+    xmlrpc_client_setup_global_const(&env);
+
     if (server) {
         ipaserver = strdup(server);
     } else {
@@ -753,6 +760,11 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
         host = strdup(uinfo.nodename);
     } else {
         host = strdup(hostname);
+    }
+
+    if (NULL == host) {
+        rval = 3;
+        goto cleanup;
     }
 
     if (NULL == strstr(host, ".")) {
@@ -845,13 +857,6 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     krb5_cc_close(krbctx, ccache);
     ccache = NULL;
     putenv("KRB5CCNAME=MEMORY:ipa-join");
-
-    /* Start up our XML-RPC client library. */
-    xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, NAME, VERSION);
-
-    xmlrpc_env_init(&env);
-
-    xmlrpc_client_setup_global_const(&env);
 
 #if 1
     ret = asprintf(&url, "https://%s:443/ipa/xml", ipaserver);
