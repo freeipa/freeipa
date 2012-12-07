@@ -89,6 +89,9 @@ def parse_options():
     basic_group.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
     basic_group.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
+    basic_group.add_option("", "--force-ntpd", dest="force_ntpd",
+                      action="store_true", default=False,
+                      help="Stop and disable any time&date synchronization services besides ntpd")
     basic_group.add_option("--ssh-trust-dns", dest="trust_sshfp", default=False, action="store_true",
                       help="configure OpenSSH client to trust DNS SSHFP records")
     basic_group.add_option("--no-ssh", dest="conf_ssh", default=True, action="store_false",
@@ -141,6 +144,9 @@ def parse_options():
 
     if (options.server and not options.domain):
         parser.error("--server cannot be used without providing --domain")
+
+    if options.force_ntpd and not options.conf_ntp:
+        parser.error("--force-ntpd cannot be used together with --no-ntp")
 
     return safe_opts, options
 
@@ -518,6 +524,8 @@ def uninstall(options, env):
         else:
            if restored:
                ipaservices.knownservices.ntpd.restart()
+
+    ipaclient.ntpconf.restore_forced_ntpd(statestore)
 
     if was_sshd_configured and ipaservices.knownservices.sshd.is_running():
         ipaservices.knownservices.sshd.restart()
@@ -1270,6 +1278,22 @@ def install(options, env, fstore, statestore):
     cli_domain_source = 'Unknown source'
     cli_server_source = 'Unknown source'
 
+    if options.conf_ntp and not options.on_master and not options.force_ntpd:
+        try:
+            ipaclient.ntpconf.check_timedate_services()
+        except ipaclient.ntpconf.NTPConflictingService, e:
+            print "WARNING: ntpd time&date synchronization service will not" \
+                  " be configured as"
+            print "conflicting service (%s) is enabled" % e.conflicting_service
+            print "Use --force-ntpd option to disable it and force configuration" \
+                  " of ntpd"
+            print ""
+
+            # configuration of ntpd is disabled in this case
+            options.conf_ntp = False
+        except ipaclient.ntpconf.NTPConfigurationError:
+            pass
+
     if options.unattended and (options.password is None and options.principal is None and options.prompt_password is False) and not options.on_master:
         root_logger.error("One of password and principal are required.")
         return CLIENT_INSTALL_ERROR
@@ -1884,6 +1908,9 @@ def install(options, env, fstore, statestore):
                         "/etc/ldap.conf failed: %s", str(e))
 
     if options.conf_ntp and not options.on_master:
+        # disable other time&date services first
+        if options.force_ntpd:
+            ipaclient.ntpconf.force_ntpd(statestore)
         if options.ntp_server:
             ntp_server = options.ntp_server
         else:

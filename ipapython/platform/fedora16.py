@@ -44,7 +44,10 @@ from ipalib import api
 #                         and restorecon is installed.
 __all__ = ['authconfig', 'service', 'knownservices',
     'backup_and_replace_hostname', 'restore_context', 'check_selinux_status',
-    'restore_network_configuration']
+    'restore_network_configuration', 'timedate_services']
+
+# Just copy a referential list of timedate services
+timedate_services = list(base.timedate_services)
 
 # For beginning just remap names to add .service
 # As more services will migrate to systemd, unit names will deviate and

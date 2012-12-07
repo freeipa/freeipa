@@ -49,6 +49,7 @@ from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 from ipapython import dogtag
 from ipapython.dn import DN
+import ipaclient.ntpconf
 
 log_file_name = "/var/log/ipareplica-install.log"
 CACERT = "/etc/ipa/ca.crt"
@@ -438,6 +439,17 @@ def main():
 
     check_dirsrv()
 
+    if options.conf_ntp:
+        try:
+            ipaclient.ntpconf.check_timedate_services()
+        except ipaclient.ntpconf.NTPConflictingService, e:
+            print "WARNING: conflicting time&date synchronization service '%s'" \
+                  " will" % e.conflicting_service
+            print "be disabled in favor of ntpd"
+            print ""
+        except ipaclient.ntpconf.NTPConfigurationError:
+            pass
+
     # get the directory manager password
     dirman_password = options.password
     if not dirman_password:
@@ -613,6 +625,7 @@ def main():
 
     # Configure ntpd
     if options.conf_ntp:
+        ipaclient.ntpconf.force_ntpd(sstore)
         ntp = ntpinstance.NTPInstance()
         ntp.create_instance()
 

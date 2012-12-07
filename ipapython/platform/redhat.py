@@ -52,7 +52,10 @@ from ipalib import api
 #                         and restorecon is installed.
 __all__ = ['authconfig', 'service', 'knownservices',
     'backup_and_replace_hostname', 'restore_context', 'check_selinux_status',
-    'restore_network_configuration']
+    'restore_network_configuration', 'timedate_services']
+
+# Just copy a referential list of timedate services
+timedate_services = list(base.timedate_services)
 
 class RedHatService(base.PlatformService):
     def __wait_for_open_ports(self, instance_name=""):

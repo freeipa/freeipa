@@ -68,6 +68,8 @@ from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 
+import ipaclient.ntpconf
+
 pw_name = None
 uninstalling = False
 installation_cleanup = True
@@ -507,6 +509,9 @@ def uninstall():
     # ipa-client-install removes /etc/ipa/default.conf
 
     sstore._load()
+
+    ipaclient.ntpconf.restore_forced_ntpd(sstore)
+
     group_exists = sstore.restore_state("install", "group_exists")
 
     ipaservices.knownservices.ipa.disable()
@@ -715,6 +720,17 @@ def main():
     # Make sure the 389-ds ports are available
     check_dirsrv(options.unattended)
 
+    if options.conf_ntp:
+        try:
+            ipaclient.ntpconf.check_timedate_services()
+        except ipaclient.ntpconf.NTPConflictingService, e:
+            print "WARNING: conflicting time&date synchronization service '%s'" \
+                  " will be disabled" % e.conflicting_service
+            print "in favor of ntpd"
+            print ""
+        except ipaclient.ntpconf.NTPConfigurationError:
+            pass
+
     realm_name = ""
     host_name = ""
     domain_name = ""
@@ -907,6 +923,7 @@ def main():
 
     # Configure ntpd
     if options.conf_ntp:
+        ipaclient.ntpconf.force_ntpd(sstore)
         ntp = ntpinstance.NTPInstance(fstore)
         if not ntp.is_configured():
             ntp.create_instance()

@@ -21,6 +21,7 @@ from ipapython import ipautil
 from ipapython import services as ipaservices
 import shutil
 import os
+import sys
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
 # permit the source to query or modify the service on this system.
@@ -154,3 +155,70 @@ def synconce_ntp(server_fqdn):
             except:
                 pass
     return False
+
+class NTPConfigurationError(Exception):
+    pass
+
+class NTPConflictingService(NTPConfigurationError):
+    def __init__(self, message='', conflicting_service=None):
+        super(NTPConflictingService, self).__init__(self, message)
+        self.conflicting_service = conflicting_service
+
+def check_timedate_services():
+    """
+    System may contain conflicting services used for time&date synchronization.
+    As IPA server/client supports only ntpd, make sure that other services are
+    not enabled to prevent conflicts. For example when both chronyd and ntpd
+    are enabled, systemd would always start only chronyd to manage system
+    time&date which would make IPA configuration of ntpd ineffective.
+
+    Reference links:
+      https://fedorahosted.org/freeipa/ticket/2974
+      http://fedoraproject.org/wiki/Features/ChronyDefaultNTP
+    """
+    for service in ipaservices.timedate_services:
+        if service == 'ntpd':
+            continue
+        # Make sure that the service is not enabled
+        service = ipaservices.service(service)
+        if service.is_enabled() or service.is_running():
+            raise NTPConflictingService(conflicting_service=service.service_name)
+
+def force_ntpd(statestore):
+    """
+    Force ntpd configuration and disable and stop any other conflicting
+    time&date service
+    """
+    for service in ipaservices.timedate_services:
+        if service == 'ntpd':
+            continue
+        service = ipaservices.service(service)
+        enabled = service.is_enabled()
+        running = service.is_running()
+
+        if enabled or running:
+            statestore.backup_state(service.service_name, 'enabled', enabled)
+            statestore.backup_state(service.service_name, 'running', running)
+
+            if running:
+                service.stop()
+
+            if enabled:
+                service.disable()
+
+def restore_forced_ntpd(statestore):
+    """
+    Restore from --force-ntpd installation and enable/start service that were
+    disabled/stopped during installation
+    """
+    for service in ipaservices.timedate_services:
+        if service == 'ntpd':
+            continue
+        if statestore.has_state(service):
+            service = ipaservices.service(service)
+            enabled = statestore.restore_state(service.service_name, 'enabled')
+            running = statestore.restore_state(service.service_name, 'running')
+            if enabled:
+                service.enable()
+            if running:
+                service.start()

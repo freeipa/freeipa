@@ -23,7 +23,7 @@ import socket
 import os
 
 from ipapython import ipautil
-from ipapython.platform import fedora16
+from ipapython.platform import fedora16, base
 
 # All what we allow exporting directly from this module
 # Everything else is made available through these symbols when they are
@@ -44,7 +44,10 @@ from ipapython.platform import fedora16
 #                         and restorecon is installed.
 __all__ = ['authconfig', 'service', 'knownservices',
     'backup_and_replace_hostname', 'restore_context', 'check_selinux_status',
-    'restore_network_configuration']
+    'restore_network_configuration', 'timedate_services']
+
+# Just copy a referential list of timedate services
+timedate_services = list(base.timedate_services)
 
 def backup_and_replace_hostname(fstore, statestore, hostname):
     old_hostname = socket.gethostname()
