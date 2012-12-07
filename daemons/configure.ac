@@ -264,7 +264,7 @@ fi
 AM_CONDITIONAL([HAVE_CHECK], [test x$have_check != x])
 
 dnl -- dirsrv is needed for the extdom unit tests --
-PKG_CHECK_MODULES([DIRSRV], [dirsrv])
+PKG_CHECK_MODULES([DIRSRV], [dirsrv  >= 1.3.0])
 dnl -- sss_idmap is needed by the extdom exop --
 PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
 
