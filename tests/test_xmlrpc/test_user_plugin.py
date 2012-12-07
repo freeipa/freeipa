@@ -23,11 +23,12 @@
 Test the `ipalib/plugins/user.py` module.
 """
 
-from ipalib import api, errors
+from ipalib import api, errors, messages
 from tests.test_xmlrpc import objectclasses
 from tests.util import assert_equal, assert_not_equal
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password, fuzzy_string, fuzzy_dergeneralizedtime
 from ipapython.dn import DN
+from ipapython.version import API_VERSION
 
 user1=u'tuser1'
 user2=u'tuser2'

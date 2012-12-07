@@ -27,7 +27,7 @@ from tests.util import assert_equal
 from ipalib.constants import TYPE_ERROR
 from ipalib.base import NameSpace
 from ipalib import frontend, backend, plugable, errors, parameters, config
-from ipalib import output
+from ipalib import output, messages
 from ipalib.parameters import Str
 from ipapython.version import API_VERSION
 
@@ -618,6 +618,47 @@ class test_Command(ClassChecker):
         o.set_api(api)
         assert o.run.im_func is self.cls.run.im_func
         assert ('forward', args, kw) == o.run(*args, **kw)
+
+    def test_messages(self):
+        """
+        Test correct handling of messages
+        """
+        class TestMessage(messages.PublicMessage):
+            type = 'info'
+            format = 'This is a message.'
+            errno = 1234
+
+        class my_cmd(self.cls):
+            def execute(self, *args, **kw):
+                result = {'name': 'execute'}
+                messages.add_message(kw['version'], result, TestMessage())
+                return result
+
+            def forward(self, *args, **kw):
+                result = {'name': 'forward'}
+                messages.add_message(kw['version'], result, TestMessage())
+                return result
+
+        args = ('Hello,', 'world,')
+        kw = dict(how_are='you', on_this='fine day?', version=API_VERSION)
+
+        expected = [TestMessage().to_dict()]
+
+        # Test in server context:
+        (api, home) = create_test_api(in_server=True)
+        api.finalize()
+        o = my_cmd()
+        o.set_api(api)
+        assert o.run.im_func is self.cls.run.im_func
+        assert {'name': 'execute', 'messages': expected} == o.run(*args, **kw)
+
+        # Test in non-server context
+        (api, home) = create_test_api(in_server=False)
+        api.finalize()
+        o = my_cmd()
+        o.set_api(api)
+        assert o.run.im_func is self.cls.run.im_func
+        assert {'name': 'forward', 'messages': expected} == o.run(*args, **kw)
 
     def test_validate_output_basic(self):
         """

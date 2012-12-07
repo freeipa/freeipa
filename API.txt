@@ -3587,3 +3587,4 @@ option: Str('version?', exclude='webui')
 output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
+capability: messages 2.52

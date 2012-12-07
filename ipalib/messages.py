@@ -35,6 +35,12 @@ from inspect import isclass
 from ipalib.constants import TYPE_ERROR
 from ipalib.text import _ as ugettext
 from ipalib.text import Gettext, NGettext
+from ipalib.capabilities import client_has_capability
+
+
+def add_message(version, result, message):
+    if client_has_capability(version, 'messages'):
+        result.setdefault('messages', []).append(message.to_dict())
 
 
 def process_message_arguments(obj, format=None, message=None, **kw):

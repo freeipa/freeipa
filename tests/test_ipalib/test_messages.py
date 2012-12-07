@@ -22,6 +22,7 @@ Test the `ipalib.messages` module.
 """
 
 from ipalib import messages
+from ipalib.capabilities import capabilities
 from tests.test_ipalib import test_errors
 
 
@@ -58,3 +59,31 @@ def test_to_dict():
     )
 
     assert HelloMessage(greeting='Hello', object='world').to_dict() == expected
+
+
+def test_add_message():
+    result = {}
+
+    assert capabilities['messages'] == u'2.52'
+
+    messages.add_message(u'2.52', result,
+                         HelloMessage(greeting='Hello', object='world'))
+    messages.add_message(u'2.1', result,
+                         HelloMessage(greeting="'Lo", object='version'))
+    messages.add_message(u'2.60', result,
+                         HelloMessage(greeting='Hi', object='version'))
+
+    assert result == {'messages': [
+        dict(
+            name='HelloMessage',
+            type='info',
+            message='Hello, world!',
+            code=1234,
+        ),
+        dict(
+            name='HelloMessage',
+            type='info',
+            message='Hi, version!',
+            code=1234,
+        )
+    ]}
