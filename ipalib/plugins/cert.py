@@ -296,6 +296,10 @@ class cert_request(VirtualCommand):
 
         # Ensure that the hostname in the CSR matches the principal
         subject_host = get_csr_hostname(csr)
+        if not subject_host:
+            raise errors.ValidationError(name='csr',
+                error=_("No hostname was found in subject of request."))
+
         (servicename, hostname, realm) = split_principal(principal)
         if subject_host.lower() != hostname.lower():
             raise errors.ACIError(
