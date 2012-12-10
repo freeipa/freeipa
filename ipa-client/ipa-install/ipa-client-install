@@ -1063,14 +1063,18 @@ def configure_sshd_config(fstore, options):
     }
 
     if options.sssd and file_exists('/usr/bin/sss_ssh_authorizedkeys'):
-        (stdout, stderr, retcode) = ipautil.run(['sshd', '-t', '-f', '/dev/null', '-o', 'AuthorizedKeysCommand='], raiseonerr=False)
+        authorized_keys_command = '/usr/bin/sss_ssh_authorizedkeys'
+        (stdout, stderr, retcode) = ipautil.run(['sshd', '-t', '-f', '/dev/null',
+            '-o', 'AuthorizedKeysCommand=%s' % authorized_keys_command], raiseonerr=False)
         if retcode == 0:
-            changes['AuthorizedKeysCommand'] = '/usr/bin/sss_ssh_authorizedkeys'
+            changes['AuthorizedKeysCommand'] = authorized_keys_command
             changes['AuthorizedKeysCommandRunAs'] = None
         else:
-            (stdout, stderr, retcode) = ipautil.run(['sshd', '-t', '-f', '/dev/null', '-o', 'PubKeyAgent='], raiseonerr=False)
+            authorized_keys_command = '/usr/bin/sss_ssh_authorizedkeys %u'
+            (stdout, stderr, retcode) = ipautil.run(['sshd', '-t', '-f', '/dev/null',
+                '-o', 'PubKeyAgent=%s' % authorized_keys_command], raiseonerr=False)
             if retcode == 0:
-                changes['PubKeyAgent'] = '/usr/bin/sss_ssh_authorizedkeys %u'
+                changes['PubKeyAgent'] = authorized_keys_command
                 changes['PubkeyAgentRunAs'] = None
             else:
                 root_logger.warning("Installed OpenSSH server does not " +
