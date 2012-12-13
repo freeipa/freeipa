@@ -456,7 +456,7 @@ class API(DictProxy):
     def isdone(self, name):
         return name in self.__done
 
-    def bootstrap(self, **overrides):
+    def bootstrap(self, parser=None, **overrides):
         """
         Initialize environment variables and logging.
         """
@@ -515,6 +515,10 @@ class API(DictProxy):
         except IOError, e:
             log.error('Cannot open log file %r: %s', self.env.log, e)
             return
+
+        if not parser:
+            parser = self.build_global_parser()
+        object.__setattr__(self, 'parser', parser)
 
     def build_global_parser(self, parser=None, context=None):
         """
@@ -592,8 +596,7 @@ class API(DictProxy):
             overrides['webui_prod'] = options.prod
         if context is not None:
             overrides['context'] = context
-        self.bootstrap(**overrides)
-        object.__setattr__(self, 'parser', parser)
+        self.bootstrap(parser, **overrides)
         return (options, args)
 
     def load_plugins(self):
