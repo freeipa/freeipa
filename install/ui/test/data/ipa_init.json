@@ -6,7 +6,7 @@
         "results": [
             {
                 "error": null,
-                "messages": {
+                "texts": {
                     "ajax": {
                         "401": {
                             "message": "Your session has expired. Please re-login."
