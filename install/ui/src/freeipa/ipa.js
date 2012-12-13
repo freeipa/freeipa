@@ -110,7 +110,7 @@ var IPA = function() {
         batch.add_command(IPA.command({
             method: 'i18n_messages',
             on_success: function(data, text_status, xhr) {
-                that.messages = data.messages;
+                that.messages = data.texts;
             }
         }));
 
