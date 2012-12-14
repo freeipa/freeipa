@@ -18,12 +18,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//
-// AMD Wrapper for json2 library
-//
-
+/**
+ * Application wrapper
+ */
 define([
     //core
+    'dojo/_base/lang',
+    'dojo/Deferred',
+    './phases',
+    './Application_controller',
+    'exports', // for circullar deps
     './ipa',
     './jquery',
     './navigation',
@@ -50,78 +54,55 @@ define([
     './trust',
     './user',
     'dojo/domReady!'
-],function(IPA, $) {
+],function(lang, Deferred, phases, Application_controller, exports) {
 
-    /* main loop (hashchange event handler) */
-    function window_hashchange(evt){
-        IPA.nav.update();
-    }
+    var app = {
 
-    function create_navigation() {
-        var whoami = IPA.whoami;
-        var factory;
+        /**
+         * Application instance
+         */
+        app: null,
 
+        /**
+         * Application class
+         */
+        App_class: Application_controller,
 
-        if (whoami.hasOwnProperty('memberof_group') &&
-            whoami.memberof_group.indexOf('admins') !== -1) {
-            factory = IPA.admin_navigation;
-        } else if (whoami.hasOwnProperty('memberofindirect_group')&&
-                   whoami.memberofindirect_group.indexOf('admins') !== -1) {
-            factory = IPA.admin_navigation;
-        } else if (whoami.hasOwnProperty('memberof_role') &&
-                   whoami.memberof_role.length > 0) {
-            factory = IPA.admin_navigation;
-        } else if (whoami.hasOwnProperty('memberofindirect_role') &&
-                   whoami.memberofindirect_role.length > 0) {
-            factory = IPA.admin_navigation;
-        } else {
-            factory = IPA.self_serv_navigation;
-        }
+        /**
+         * Phases registration
+         */
+        register_phases: function() {
 
-        return factory({
-            container: $('#navigation'),
-            content: $('#content')
-        });
-    }
+            phases.on('app-init', lang.hitch(this, function() {
+                var app = this.app = new this.App_class();
+                app.init();
+                return app;
+            }));
 
+            phases.on('metadata', lang.hitch(this, function() {
+                var deferred = new Deferred();
 
-    function init_on_success(data, text_status, xhr) {
-        $(window).bind('hashchange', window_hashchange);
+                this.app.get_configuration(function(success) {
+                    deferred.resolve(success);
+                }, function(error) {
+                    deferred.reject(error);
+                });
 
-        var whoami = IPA.whoami;
-        IPA.whoami_pkey = whoami.uid[0];
-        $('#loggedinas .login').text(whoami.cn[0]);
-        $('#loggedinas a').fragment(
-            {'user-facet': 'details', 'user-pkey': IPA.whoami_pkey}, 2);
+                return deferred.promise;
+            }));
 
-        $('#logout').click(function() {
-            IPA.logout();
-            return false;
-        }).text(IPA.messages.login.logout);
+            phases.on('profile', lang.hitch(this, function() {
+                this.app.choose_profile();
+            }));
+        },
 
-        $('.header-loggedinas').css('visibility','visible');
-        IPA.update_password_expiration();
-
-        IPA.nav = create_navigation();
-        IPA.nav.create();
-        IPA.nav.update();
-
-        $('#login_header').html(IPA.messages.login.header);
-    }
-
-
-    function init_on_error(xhr, text_status, error_thrown) {
-        var container = $('#content').empty();
-        container.append('<p>Error: '+error_thrown.name+'</p>');
-        container.append('<p>'+error_thrown.message+'</p>');
-    }
-
-    return {
-        run: function() {
-            IPA.init({
-                on_success: init_on_success,
-                on_error: init_on_error
-            });
-        }
+       run: function() {
+           this.register_phases();
+           phases.controller.run();
+       }
     };
+
+    lang.mixin(exports, app);
+
+    return exports;
 });
