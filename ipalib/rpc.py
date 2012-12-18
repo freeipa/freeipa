@@ -665,6 +665,8 @@ class xmlclient(Connectible):
             except Exception, e:
                 if not fallback:
                     raise
+                else:
+                    self.log.info('Connection to %s failed with %s', url, e)
                 serverproxy = None
 
         if serverproxy is None:
