@@ -77,12 +77,14 @@ class AdminTool(object):
     command_name - shown in logs
     log_file_name - if None, logging is to stderr only
     usage - text shown in help
+    description - text shown in help
 
     See the setup_logging method for more info on logging.
     """
     command_name = None
     log_file_name = None
     usage = None
+    description = None
 
     log = None
     _option_parsers = dict()
@@ -91,7 +93,8 @@ class AdminTool(object):
     def make_parser(cls):
         """Create an option parser shared across all instances of this class"""
         parser = config.IPAOptionParser(version=version.VERSION,
-            usage=cls.usage, formatter=config.IPAFormatter())
+            usage=cls.usage, formatter=config.IPAFormatter(),
+            description=cls.description)
         cls.option_parser = parser
         cls.add_options(parser)
 
