@@ -454,6 +454,18 @@ def uninstall(options, env):
         root_logger.info("Redundant SSSD configuration file " +
             "/etc/sssd/sssd.conf was moved to /etc/sssd/sssd.conf.deleted")
 
+        sssd = ipaservices.service('sssd')
+        try:
+            sssd.stop()
+        except CalledProcessError:
+            root_logger.warning("SSSD service could not be stopped")
+
+        try:
+            sssd.disable()
+        except CalledProcessError, e:
+            root_logger.warning(
+                "Failed to disable automatic startup of the SSSD daemon: %s", e)
+
     if fstore.has_files():
         root_logger.info("Restoring client configuration files")
         ipaservices.restore_network_configuration(fstore, statestore)
@@ -1854,6 +1866,12 @@ def install(options, env, fstore, statestore):
                 sssd.restart()
             except CalledProcessError:
                 root_logger.warning("SSSD service restart was unsuccessful.")
+
+            try:
+                sssd.enable()
+            except CalledProcessError, e:
+                root_logger.warning(
+                    "Failed to enable automatic startup of the SSSD daemon: %s", e)
 
         if not options.sssd:
             #Modify pam to add pam_krb5 only when sssd is not in use
