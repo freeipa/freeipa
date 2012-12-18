@@ -76,14 +76,15 @@ class AdminTool(object):
     Class attributes to define in subclasses:
     command_name - shown in logs
     log_file_name - if None, logging is to stderr only
-    needs_root - if true, non-root users can't run the tool
     usage - text shown in help
+
+    See the setup_logging method for more info on logging.
     """
     command_name = None
     log_file_name = None
-    needs_root = False
     usage = None
 
+    log = None
     _option_parsers = dict()
 
     @classmethod
@@ -95,10 +96,23 @@ class AdminTool(object):
         cls.add_options(parser)
 
     @classmethod
-    def add_options(cls, parser):
-        """Add command-specific options to the option parser"""
-        parser.add_option("-d", "--debug", dest="debug", default=False,
+    def add_options(cls, parser, debug_option=False):
+        """Add command-specific options to the option parser
+
+        :param parser: The parser to add options to
+        :param debug_option: Add a --debug option as an alias to --verbose
+        """
+        group = OptionGroup(parser, "Logging and output options")
+        group.add_option("-v", "--verbose", dest="verbose", default=False,
             action="store_true", help="print debugging information")
+        if debug_option:
+            group.add_option("-d", "--debug", dest="verbose", default=False,
+                action="store_true", help="alias for --verbose (deprecated)")
+        group.add_option("-q", "--quiet", dest="quiet", default=False,
+            action="store_true", help="output only errors")
+        group.add_option("--log-file", dest="log_file", default=None,
+            metavar="FILE", help="log to the given file")
+        parser.add_option_group(group)
 
     @classmethod
     def run_cli(cls):
@@ -145,6 +159,8 @@ class AdminTool(object):
         This includes validating options, setting up logging, doing the
         actual work, and handling the result.
         """
+        self._setup_logging(no_file=True)
+        return_value = 1
         try:
             self.validate_options()
             self.ask_for_options()
@@ -160,14 +176,17 @@ class AdminTool(object):
         self.log_success()
         return return_value
 
-    def validate_options(self):
+    def validate_options(self, needs_root=False):
         """Validate self.options
 
         It's also possible to compute and store information that will be
         useful later, but no changes to the system should be made here.
         """
-        if self.needs_root and os.getegid() != 0:
+        if needs_root and os.getegid() != 0:
             raise ScriptError('Must be root to run %s' % self.command_name, 1)
+        if self.options.verbose and self.options.quiet:
+            raise ScriptError(
+                'The --quiet and --verbose options are mutually exclusive')
 
     def ask_for_options(self):
         """Ask for missing options interactively
@@ -175,14 +194,67 @@ class AdminTool(object):
         Similar to validate_options. This is separate method because we want
         any validation errors to abort the script before bothering the user
         with prompts.
+
+        Any options that might be asked for should also be validated here.
         """
         pass
 
-    def setup_logging(self):
-        """Set up logging"""
+    def setup_logging(self, log_file_mode='w'):
+        """Set up logging
+
+        :param _to_file: Setting this to false will disable logging to file.
+            For internal use.
+
+        If the --log-file option was given or if a filename is in
+        self.log_file_name, the tool will log to that file. In this case,
+        all messages are logged.
+
+        What is logged to the console depends on command-line options:
+        the default is INFO; --quiet sets ERROR; --verbose sets DEBUG.
+
+        Rules of thumb for logging levels:
+        - CRITICAL for fatal errors
+        - ERROR for critical things that the admin must see, even with --quiet
+        - WARNING for things that need to stand out in the log
+        - INFO to display normal messages
+        - DEBUG to spam about everything the program does
+        - a plain print for things that should not be log (for example,
+            interactive prompting)
+
+        To log, use `self.log.info()`, `self.log.warning()`, etc.
+
+        Logging to file is only set up after option validation and prompting;
+        before that, all output will go to the console only.
+        """
+        self._setup_logging(log_file_mode=log_file_mode)
+
+    def _setup_logging(self, log_file_mode='w', no_file=False):
+        if no_file:
+            log_file_name = None
+        elif self.options.log_file:
+            log_file_name = self.options.log_file
+        else:
+            log_file_name = self.log_file_name
+        if self.options.verbose:
+            console_format = '%(name)s: %(levelname)s: %(message)s'
+            verbose = True
+            debug = True
+        else:
+            console_format = '%(message)s'
+            debug = False
+            if self.options.quiet:
+                verbose = False
+            else:
+                verbose = True
         ipa_log_manager.standard_logging_setup(
-            self.log_file_name, debug=self.options.debug)
-        ipa_log_manager.log_mgr.get_logger(self, True)
+            log_file_name, console_format=console_format,
+            filemode=log_file_mode, debug=debug, verbose=verbose)
+        self.log = ipa_log_manager.log_mgr.get_logger(self)
+        if log_file_name:
+            self.log.debug('Logging to %s' % log_file_name)
+        elif not no_file:
+            self.log.debug('Not logging to a file')
+
 
     def handle_error(self, exception):
         """Given an exception, return a message (or None) and process exit code
@@ -206,27 +278,15 @@ class AdminTool(object):
         assumed to have run successfully, and the return value is used as the
         SystemExit code.
         """
-        self.debug('%s was invoked with arguments %s and options: %s',
+        self.log.debug('%s was invoked with arguments %s and options: %s',
                 self.command_name, self.args, self.safe_options)
 
     def log_failure(self, error_message, return_value, exception, backtrace):
-        try:
-            self.log
-        except AttributeError:
-            # Logging was not set up yet
-            if error_message:
-                print >> sys.stderr, '\n', error_message
-        else:
-            self.info(''.join(traceback.format_tb(backtrace)))
-            self.info('The %s command failed, exception: %s: %s',
-                self.command_name, type(exception).__name__, exception)
-            if error_message:
-                self.error(error_message)
+        self.log.debug(''.join(traceback.format_tb(backtrace)))
+        self.log.debug('The %s command failed, exception: %s: %s',
+            self.command_name, type(exception).__name__, exception)
+        if error_message:
+            self.log.error(error_message)
 
     def log_success(self):
-        try:
-            self.log
-        except AttributeError:
-            pass
-        else:
-            self.info('The %s command was successful', self.command_name)
+        self.log.info('The %s command was successful', self.command_name)

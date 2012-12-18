@@ -438,7 +438,7 @@ fi
 %posttrans server
 # This must be run in posttrans so that updates from previous
 # execution that may no longer be shipped are not applied.
-/usr/sbin/ipa-ldap-updater --upgrade >/dev/null || :
+/usr/sbin/ipa-ldap-updater --upgrade --quiet || :
 
 %preun server
 if [ $1 = 0 ]; then
@@ -769,6 +769,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue Jan 29 2013 Petr Viktorin <pviktori@redhat.com> - 3.0.99-14
+- Use ipa-ldap-updater --quiet instead of redirecting to /dev/null
+
 * Tue Jan 29 2013 Rob Crittenden <rcritten@redhat.com> - 3.0.99-13
 - Set certmonger minimum version to 0.65 for NSS locking during
   renewal

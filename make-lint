@@ -59,7 +59,6 @@ class IPATypeChecker(TypeChecker):
         'urlparse.ParseResult': ['params'],
 
         # IPA classes
-        'ipapython.admintool.AdminTool': LOGGING_ATTRS,
         'ipalib.base.NameSpace': ['add', 'mod', 'del', 'show', 'find'],
         'ipalib.cli.Collector': ['__options'],
         'ipalib.config.Env': ['*'],
