@@ -85,6 +85,7 @@ ServerIdentifier=   $SERVERID
 Suffix=   $SUFFIX
 RootDN=   cn=Directory Manager
 RootDNPwd= $PASSWORD
+ConfigFile = /usr/share/pki/ca/conf/database.ldif
 """
 
 def check_inst():
