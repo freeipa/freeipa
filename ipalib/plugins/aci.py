@@ -801,7 +801,7 @@ class aci_find(crud.Search):
                 groupdn = a.bindrule['expression']
                 groupdn = DN(groupdn.replace('ldap:///',''))
                 try:
-                    cn = groupdn[0]['cn'].value
+                    cn = groupdn[0]['cn']
                 except (IndexError, KeyError):
                     cn = None
                 if cn is None or cn != kw['group']:
