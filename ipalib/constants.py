@@ -111,10 +111,12 @@ DEFAULT_CONFIG = (
     ('container_otp', DN(('cn', 'otp'))),
 
     # Ports, hosts, and URIs:
-    # FIXME: let's renamed xmlrpc_uri to rpc_xml_uri
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
-    ('rpc_json_uri', 'http://localhost:8888/ipa/json'),
+    # jsonrpc_uri is set in Env._finalize_core()
     ('ldap_uri', 'ldap://localhost:389'),
+
+    ('rpc_protocol', 'jsonrpc'),
+
     # Time to wait for a service to start, in seconds
     ('startup_timeout', 120),
 
@@ -199,5 +201,6 @@ DEFAULT_CONFIG = (
     ('in_server', object),  # Whether or not running in-server (bool)
     ('logdir', object),  # Directory containing log files
     ('log', object),  # Path to context specific log file
+    ('jsonrpc_uri', object),  # derived from xmlrpc_uri in Env._finalize_core()
 
 )

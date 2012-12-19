@@ -86,8 +86,8 @@ def fuzzy_set_ci(s):
     return Fuzzy(test=lambda other: set(x.lower() for x in other) == set(y.lower() for y in s))
 
 try:
-    if not api.Backend.xmlclient.isconnected():
-        api.Backend.xmlclient.connect(fallback=False)
+    if not api.Backend.rpcclient.isconnected():
+        api.Backend.rpcclient.connect(fallback=False)
     res = api.Command['user_show'](u'notfound')
 except errors.NetworkError:
     server_available = False
@@ -163,8 +163,8 @@ class XMLRPC_test(object):
                                 (cls.__module__, api.env.xmlrpc_uri))
 
     def setUp(self):
-        if not api.Backend.xmlclient.isconnected():
-            api.Backend.xmlclient.connect(fallback=False)
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
 
     def tearDown(self):
         """

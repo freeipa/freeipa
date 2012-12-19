@@ -63,8 +63,8 @@ class test_dns(Declarative):
     def setUpClass(cls):
         super(test_dns, cls).setUpClass()
 
-        if not api.Backend.xmlclient.isconnected():
-            api.Backend.xmlclient.connect(fallback=False)
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
         try:
            api.Command['dnszone_add'](dnszone1,
                idnssoamname = dnszone1_mname,

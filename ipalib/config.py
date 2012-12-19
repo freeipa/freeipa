@@ -29,17 +29,17 @@ of the process.
 For the per-request thread-local information, see `ipalib.request`.
 """
 
+import urlparse
 from ConfigParser import RawConfigParser, ParsingError
 from types import NoneType
 import os
 from os import path
 import sys
-from socket import getfqdn
 from ipapython.dn import DN
 
 from base import check_name
 from constants import CONFIG_SECTION
-from constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
+from constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 
 
 class Env(object):
@@ -514,8 +514,8 @@ class Env(object):
                ``self.conf_default`` (if it exists) by calling
                `Env._merge_from_file()`.
 
-            4. Intelligently fill-in the *in_server* , *logdir*, and *log*
-               variables if they haven't already been set.
+            4. Intelligently fill-in the *in_server* , *logdir*, *log*, and
+               *jsonrpc_uri* variables if they haven't already been set.
 
             5. Merge-in the variables in ``defaults`` by calling `Env._merge()`.
                In normal circumstances ``defaults`` will simply be those
@@ -555,6 +555,19 @@ class Env(object):
         # Set log file:
         if 'log' not in self:
             self.log = self._join('logdir', '%s.log' % self.context)
+
+        # Derive jsonrpc_uri from xmlrpc_uri
+        if 'jsonrpc_uri' not in self:
+            if 'xmlrpc_uri' in self:
+                xmlrpc_uri = self.xmlrpc_uri
+            else:
+                xmlrpc_uri = defaults.get('xmlrpc_uri')
+            if xmlrpc_uri:
+                (scheme, netloc, uripath, params, query, fragment
+                        ) = urlparse.urlparse(xmlrpc_uri)
+                uripath = uripath.replace('/xml', '/json', 1)
+                self.jsonrpc_uri = urlparse.urlunparse((
+                        scheme, netloc, uripath, params, query, fragment))
 
         self._merge(**defaults)
 

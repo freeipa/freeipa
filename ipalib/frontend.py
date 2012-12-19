@@ -742,7 +742,7 @@ class Command(HasParam):
         actually work this command performs is executed locally.
 
         If running in a non-server context, `Command.forward` is called,
-        which forwards this call over XML-RPC to the exact same command
+        which forwards this call over RPC to the exact same command
         on the nearest IPA server and the actual work this command
         performs is executed remotely.
         """
@@ -777,9 +777,9 @@ class Command(HasParam):
 
     def forward(self, *args, **kw):
         """
-        Forward call over XML-RPC to this same command on server.
+        Forward call over RPC to this same command on server.
         """
-        return self.Backend.xmlclient.forward(self.name, *args, **kw)
+        return self.Backend.rpcclient.forward(self.name, *args, **kw)
 
     def _on_finalize(self):
         """

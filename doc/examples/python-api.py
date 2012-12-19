@@ -34,14 +34,14 @@ api.bootstrap_with_global_options(context='example')
 api.finalize()
 
 # You will need to create a connection.  If you're in_server, call
-# Backend.ldap.connect(), otherwise Backend.xmlclient.connect().
+# Backend.ldap.connect(), otherwise Backend.rpcclient.connect().
 
 if api.env.in_server:
     api.Backend.ldap2.connect(
         ccache=api.Backend.krb.default_ccname()
      )
 else:
-    api.Backend.xmlclient.connect()
+    api.Backend.rpcclient.connect()
 
 
 # Now that you're connected, you can make calls to api.Command.whatever():

@@ -25,27 +25,29 @@ Also see the `ipalib.rpc` module.
 
 from xml.sax.saxutils import escape
 from xmlrpclib import Fault
-from wsgiref.util import shift_path_info
-import base64
 import os
-import string
 import datetime
-from decimal import Decimal
 import urlparse
 import time
 import json
 
 from ipalib import plugable, capabilities
 from ipalib.backend import Executioner
-from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError, ExecutionError
-from ipalib.request import context, Connection, destroy_context
-from ipalib.rpc import xml_dumps, xml_loads
+from ipalib.errors import (PublicError, InternalError, CommandError, JSONError,
+    CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
+    ExecutionError)
+from ipalib.request import context, destroy_context
+from ipalib.rpc import (xml_dumps, xml_loads,
+    json_encode_binary, json_decode_binary)
 from ipalib.util import parse_time_duration, normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
-from ipalib.session import session_mgr, AuthManager, get_ipa_ccache_name, load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time, default_max_session_duration
+from ipalib.session import (session_mgr, AuthManager, get_ipa_ccache_name,
+    load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time,
+    default_max_session_duration)
 from ipalib.backend import Backend
-from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name
+from ipalib.krb_utils import (
+    KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name)
 from ipapython import ipautil
 from ipapython.version import VERSION
 from ipalib.text import _
@@ -396,99 +398,6 @@ class WSGIExecutioner(Executioner):
     def marshal(self, result, error, _id=None):
         raise NotImplementedError('%s.marshal()' % self.fullname)
 
-
-def json_encode_binary(val):
-    '''
-   JSON cannot encode binary values. We encode binary values in Python str
-   objects and text in Python unicode objects. In order to allow a binary
-   object to be passed through JSON we base64 encode it thus converting it to
-   text which JSON can transport. To assure we recognize the value is a base64
-   encoded representation of the original binary value and not confuse it with
-   other text we convert the binary value to a dict in this form:
-
-   {'__base64__' : base64_encoding_of_binary_value}
-
-   This modification of the original input value cannot be done "in place" as
-   one might first assume (e.g. replacing any binary items in a container
-   (e.g. list, tuple, dict) with the base64 dict because the container might be
-   an immutable object (i.e. a tuple). Therefore this function returns a copy
-   of any container objects it encounters with tuples replaced by lists. This
-   is O.K. because the JSON encoding will map both lists and tuples to JSON
-   arrays.
-   '''
-
-    if isinstance(val, dict):
-        new_dict = {}
-        for k,v in val.items():
-            new_dict[k] = json_encode_binary(v)
-        return new_dict
-    elif isinstance(val, (list, tuple)):
-        new_list = [json_encode_binary(v) for v in val]
-        return new_list
-    elif isinstance(val, str):
-        return {'__base64__' : base64.b64encode(val)}
-    elif isinstance(val, Decimal):
-        return {'__base64__' : base64.b64encode(str(val))}
-    elif isinstance(val, DN):
-        return str(val)
-    else:
-        return val
-
-def json_decode_binary(val):
-    '''
-    JSON cannot transport binary data. In order to transport binary data we
-    convert binary data to a form like this:
-
-   {'__base64__' : base64_encoding_of_binary_value}
-
-   see json_encode_binary()
-
-    After JSON had decoded the JSON stream back into a Python object we must
-    recursively scan the object looking for any dicts which might represent
-    binary values and replace the dict containing the base64 encoding of the
-    binary value with the decoded binary value. Unlike the encoding problem
-    where the input might consist of immutable object, all JSON decoded
-    container are mutable so the conversion could be done in place. However we
-    don't modify objects in place because of side effects which may be
-    dangerous. Thus we elect to spend a few more cycles and avoid the
-    possibility of unintended side effects in favor of robustness.
-    '''
-
-    if isinstance(val, dict):
-        if val.has_key('__base64__'):
-            return base64.b64decode(val['__base64__'])
-        else:
-            new_dict = {}
-            for k,v in val.items():
-                if isinstance(v, dict) and v.has_key('__base64__'):
-                        new_dict[k] = base64.b64decode(v['__base64__'])
-                else:
-                    new_dict[k] = json_decode_binary(v)
-            return new_dict
-    elif isinstance(val, list):
-        new_list = []
-        n = len(val)
-        i = 0
-        while i < n:
-            v = val[i]
-            if isinstance(v, dict) and v.has_key('__base64__'):
-                binary_val = base64.b64decode(v['__base64__'])
-                new_list.append(binary_val)
-            else:
-                new_list.append(json_decode_binary(v))
-            i += 1
-        return new_list
-    else:
-        if isinstance(val, basestring):
-            try:
-                return val.decode('utf-8')
-            except UnicodeDecodeError:
-                raise ConversionError(
-                    name=val,
-                    error='incorrect type'
-                )
-        else:
-            return val
 
 class jsonserver(WSGIExecutioner, HTTP_Status):
     """

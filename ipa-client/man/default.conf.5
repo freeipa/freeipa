@@ -179,7 +179,13 @@ Used internally in the IPA source package to verify that the API has not changed
 When True provides more information. Specifically this sets the global log level to "info".
 .TP
 .B xmlrpc_uri <URI>
-Specifies the URI of the XML\-RPC server for a client. This is used by IPA and some external tools as well, such as ipa\-getcert. e.g. https://ipa.example.com/ipa/xml
+Specifies the URI of the XML\-RPC server for a client. This may be used by IPA, and is used by some external tools, such as ipa\-getcert. Example: https://ipa.example.com/ipa/xml
+.TP
+.B jsonrpc_uri <URI>
+Specifies the URI of the JSON server for a client. This is used by IPA. If not given, it is derived from xmlrpc_uri. Example: https://ipa.example.com/ipa/json
+.TP
+.B rpc_protocol <URI>
+Specifies the type of RPC calls IPA makes: 'jsonrpc' or 'xmlrpc'. Defaults to 'jsonrpc'.
 .TP
 The following define the containers for the IPA server. Containers define where in the DIT that objects can be found. The full location is the value of container + basedn.
   container_accounts: cn=accounts

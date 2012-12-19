@@ -32,20 +32,25 @@ Also see the `ipaserver.rpcserver` module.
 
 from types import NoneType
 from decimal import Decimal
-import threading
 import sys
 import os
-import errno
 import locale
-import datetime
+import base64
+import urllib
+import json
+import socket
+from urllib2 import urlparse
+
 from xmlrpclib import (Binary, Fault, dumps, loads, ServerProxy, Transport,
         ProtocolError, MININT, MAXINT)
 import kerberos
 from dns import resolver, rdatatype
 from dns.exception import DNSException
+from nss.error import NSPRError
 
 from ipalib.backend import Connectible
-from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError, KerberosError, XMLRPCMarshallError
+from ipalib.errors import (public_errors, UnknownError, NetworkError,
+    KerberosError, XMLRPCMarshallError, JSONError, ConversionError)
 from ipalib import errors
 from ipalib.request import context, Connection
 from ipalib.util import get_current_principal
@@ -54,18 +59,15 @@ from ipapython import ipautil
 from ipapython import kernel_keyring
 from ipapython.cookie import Cookie
 from ipalib.text import _
-
-import httplib
-import socket
 from ipapython.nsslib import NSSHTTPS, NSSConnection
-from nss.error import NSPRError
-from urllib2 import urlparse
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
 from ipapython.dn import DN
 
 COOKIE_NAME = 'ipa_session'
 KEYRING_COOKIE_NAME = '%s_cookie:%%s' % COOKIE_NAME
+
+errors_by_code = dict((e.errno, e) for e in public_errors)
 
 
 def client_session_keyring_keyname(principal):
@@ -228,6 +230,84 @@ def xml_dumps(params, methodname=None, methodresponse=False, encoding='UTF-8'):
     )
 
 
+def json_encode_binary(val):
+    '''
+   JSON cannot encode binary values. We encode binary values in Python str
+   objects and text in Python unicode objects. In order to allow a binary
+   object to be passed through JSON we base64 encode it thus converting it to
+   text which JSON can transport. To assure we recognize the value is a base64
+   encoded representation of the original binary value and not confuse it with
+   other text we convert the binary value to a dict in this form:
+
+   {'__base64__' : base64_encoding_of_binary_value}
+
+   This modification of the original input value cannot be done "in place" as
+   one might first assume (e.g. replacing any binary items in a container
+   (e.g. list, tuple, dict) with the base64 dict because the container might be
+   an immutable object (i.e. a tuple). Therefore this function returns a copy
+   of any container objects it encounters with tuples replaced by lists. This
+   is O.K. because the JSON encoding will map both lists and tuples to JSON
+   arrays.
+   '''
+
+    if isinstance(val, dict):
+        new_dict = {}
+        for k, v in val.items():
+            new_dict[k] = json_encode_binary(v)
+        return new_dict
+    elif isinstance(val, (list, tuple)):
+        new_list = [json_encode_binary(v) for v in val]
+        return new_list
+    elif isinstance(val, str):
+        return {'__base64__': base64.b64encode(val)}
+    elif isinstance(val, Decimal):
+        return {'__base64__': base64.b64encode(str(val))}
+    elif isinstance(val, DN):
+        return str(val)
+    else:
+        return val
+
+
+def json_decode_binary(val):
+    '''
+    JSON cannot transport binary data. In order to transport binary data we
+    convert binary data to a form like this:
+
+   {'__base64__' : base64_encoding_of_binary_value}
+
+   see json_encode_binary()
+
+    After JSON had decoded the JSON stream back into a Python object we must
+    recursively scan the object looking for any dicts which might represent
+    binary values and replace the dict containing the base64 encoding of the
+    binary value with the decoded binary value. Unlike the encoding problem
+    where the input might consist of immutable object, all JSON decoded
+    container are mutable so the conversion could be done in place. However we
+    don't modify objects in place because of side effects which may be
+    dangerous. Thus we elect to spend a few more cycles and avoid the
+    possibility of unintended side effects in favor of robustness.
+    '''
+
+    if isinstance(val, dict):
+        if '__base64__' in val:
+            return base64.b64decode(val['__base64__'])
+        else:
+            return dict((k, json_decode_binary(v)) for k, v in val.items())
+    elif isinstance(val, list):
+        return tuple(json_decode_binary(v) for v in val)
+    else:
+        if isinstance(val, basestring):
+            try:
+                return val.decode('utf-8')
+            except UnicodeDecodeError:
+                raise ConversionError(
+                    name=val,
+                    error='incorrect type'
+                )
+        else:
+            return val
+
+
 def decode_fault(e, encoding='UTF-8'):
     assert isinstance(e, Fault)
     if type(e.faultString) is str:
@@ -265,10 +345,48 @@ def xml_loads(data, encoding='UTF-8'):
         raise decode_fault(e)
 
 
-class LanguageAwareTransport(Transport):
+class DummyParser(object):
+    def __init__(self):
+        self.data = ''
+
+    def feed(self, data):
+        self.data += data
+
+    def close(self):
+        return self.data
+
+
+class MultiProtocolTransport(Transport):
+    """Transport that handles both XML-RPC and JSON"""
+    def __init__(self, protocol):
+        Transport.__init__(self)
+        self.protocol = protocol
+
+    def getparser(self):
+        if self.protocol == 'json':
+            parser = DummyParser()
+            return parser, parser
+        else:
+            return Transport.getparser(self)
+
+    def send_content(self, connection, request_body):
+        if self.protocol == 'json':
+            connection.putheader("Content-Type", "application/json")
+        else:
+            connection.putheader("Content-Type", "text/xml")
+
+        # gzip compression would be set up here, but we have it turned off
+        # (encode_threshold is None)
+
+        connection.putheader("Content-Length", str(len(request_body)))
+        connection.endheaders(request_body)
+
+
+class LanguageAwareTransport(MultiProtocolTransport):
     """Transport sending Accept-Language header"""
     def get_host_info(self, host):
-        (host, extra_headers, x509) = Transport.get_host_info(self, host)
+        host, extra_headers, x509 = MultiProtocolTransport.get_host_info(
+            self, host)
 
         try:
             lang = locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
@@ -468,23 +586,27 @@ class DelegatedKerbTransport(KerbTransport):
     flags = kerberos.GSS_C_DELEG_FLAG |  kerberos.GSS_C_MUTUAL_FLAG | \
             kerberos.GSS_C_SEQUENCE_FLAG
 
-class xmlclient(Connectible):
+
+class RPCClient(Connectible):
     """
     Forwarding backend plugin for XML-RPC client.
 
     Also see the `ipaserver.rpcserver.xmlserver` plugin.
     """
 
-    def __init__(self):
-        super(xmlclient, self).__init__()
-        self.__errors = dict((e.errno, e) for e in public_errors)
+    # Values to set on subclasses:
+    session_path = None
+    server_proxy_class = ServerProxy
+    protocol = None
+    env_rpc_uri_key = None
 
-    def get_url_list(self, xmlrpc_uri):
+    def get_url_list(self, rpc_uri):
         """
         Create a list of urls consisting of the available IPA servers.
         """
         # the configured URL defines what we use for the discovered servers
-        (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(xmlrpc_uri)
+        (scheme, netloc, path, params, query, fragment
+            ) = urlparse.urlparse(rpc_uri)
         servers = []
         name = '_ldap._tcp.%s.' % self.env.domain
 
@@ -500,7 +622,7 @@ class xmlclient(Connectible):
         servers = list(set(servers))
         # the list/set conversion won't preserve order so stick in the
         # local config file version here.
-        cfg_server = xmlrpc_uri
+        cfg_server = rpc_uri
         if cfg_server in servers:
             # make sure the configured master server is there just once and
             # it is the first one
@@ -593,7 +715,7 @@ class xmlclient(Connectible):
 
         # Form the session URL by substituting the session path into the original URL
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(original_url)
-        path = '/ipa/session/xml'
+        path = self.session_path
         session_url = urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
 
         return session_url
@@ -601,31 +723,32 @@ class xmlclient(Connectible):
     def create_connection(self, ccache=None, verbose=False, fallback=True,
                           delegate=False):
         try:
-            xmlrpc_uri = self.env.xmlrpc_uri
+            rpc_uri = self.env[self.env_rpc_uri_key]
             principal = get_current_principal()
             setattr(context, 'principal', principal)
             # We have a session cookie, try using the session URI to see if it
             # is still valid
             if not delegate:
-                xmlrpc_uri = self.apply_session_cookie(xmlrpc_uri)
+                rpc_uri = self.apply_session_cookie(rpc_uri)
         except ValueError:
             # No session key, do full Kerberos auth
             pass
-        urls = self.get_url_list(xmlrpc_uri)
+        urls = self.get_url_list(rpc_uri)
         serverproxy = None
         for url in urls:
             kw = dict(allow_none=True, encoding='UTF-8')
             kw['verbose'] = verbose
             if url.startswith('https://'):
                 if delegate:
-                    kw['transport'] = DelegatedKerbTransport()
+                    transport_class = DelegatedKerbTransport
                 else:
-                    kw['transport'] = KerbTransport()
+                    transport_class = KerbTransport
             else:
-                kw['transport'] = LanguageAwareTransport()
+                transport_class = LanguageAwareTransport
+            kw['transport'] = transport_class(protocol=self.protocol)
             self.log.debug('trying %s' % url)
             setattr(context, 'request_url', url)
-            serverproxy = ServerProxy(url, **kw)
+            serverproxy = self.server_proxy_class(url, **kw)
             if len(urls) == 1:
                 # if we have only 1 server and then let the
                 # main requester handle any errors. This also means it
@@ -634,11 +757,11 @@ class xmlclient(Connectible):
             try:
                 command = getattr(serverproxy, 'ping')
                 try:
-                    response = command()
+                    response = command([], {})
                 except Fault, e:
                     e = decode_fault(e)
-                    if e.faultCode in self.__errors:
-                        error = self.__errors[e.faultCode]
+                    if e.faultCode in errors_by_code:
+                        error = errors_by_code[e.faultCode]
                         raise error(message=e.faultString)
                     else:
                         raise UnknownError(
@@ -683,6 +806,12 @@ class xmlclient(Connectible):
                 conn = conn.conn._ServerProxy__transport
                 conn.close()
 
+    def _call_command(self, command, params):
+        """Call the command with given params"""
+        # For XML, this method will wrap/unwrap binary values
+        # For JSON we do that in the proxy
+        return command(*params)
+
     def forward(self, name, *args, **kw):
         """
         Forward call to command named ``name`` over XML-RPC.
@@ -699,18 +828,18 @@ class xmlclient(Connectible):
                 '%s.forward(): %r not in api.Command' % (self.name, name)
             )
         server = getattr(context, 'request_url', None)
-        self.debug("Forwarding '%s' to server '%s'", name, server)
+        self.debug("Forwarding '%s' to %s server '%s'",
+                   name, self.protocol, server)
         command = getattr(self.conn, name)
         params = [args, kw]
         try:
-            response = command(*xml_wrap(params))
-            return xml_unwrap(response)
+            return self._call_command(command, params)
         except Fault, e:
             e = decode_fault(e)
             self.debug('Caught fault %d from server %s: %s', e.faultCode,
                 server, e.faultString)
-            if e.faultCode in self.__errors:
-                error = self.__errors[e.faultCode]
+            if e.faultCode in errors_by_code:
+                error = errors_by_code[e.faultCode]
                 raise error(message=e.faultString)
             raise UnknownError(
                 code=e.faultCode,
@@ -756,3 +885,75 @@ class xmlclient(Connectible):
             raise NetworkError(uri=server, error=str(e))
         except (OverflowError, TypeError), e:
             raise XMLRPCMarshallError(error=str(e))
+
+
+class xmlclient(RPCClient):
+    session_path = '/ipa/session/xml'
+    server_proxy_class = ServerProxy
+    protocol = 'xml'
+    env_rpc_uri_key = 'xmlrpc_uri'
+
+    def _call_command(self, command, params):
+        params = xml_wrap(params)
+        result = command(*params)
+        return xml_unwrap(result)
+
+
+class JSONServerProxy(object):
+    def __init__(self, uri, transport, encoding, verbose, allow_none):
+        type, uri = urllib.splittype(uri)
+        if type not in ("http", "https"):
+            raise IOError("unsupported XML-RPC protocol")
+        self.__host, self.__handler = urllib.splithost(uri)
+        self.__transport = transport
+
+        assert encoding == 'UTF-8'
+        assert allow_none
+        self.__verbose = verbose
+
+        # FIXME: Some of our code requires ServerProxy internals.
+        # But, xmlrpclib.ServerProxy's _ServerProxy__transport can be accessed
+        # by calling serverproxy('transport')
+        self._ServerProxy__transport = transport
+
+    def __request(self, name, args):
+        payload = {'method': unicode(name), 'params': args, 'id': 0}
+
+        response = self.__transport.request(
+            self.__host,
+            self.__handler,
+            json.dumps(json_encode_binary(payload)),
+            verbose=self.__verbose,
+        )
+
+        try:
+            response = json_decode_binary(json.loads(response))
+        except ValueError, e:
+            raise JSONError(str(e))
+
+        error = response.get('error')
+        if error:
+            try:
+                error_class = errors_by_code[error['code']]
+            except KeyError:
+                raise UnknownError(
+                    code=error.get('code'),
+                    error=error.get('message'),
+                    server=self.__host,
+                )
+            else:
+                raise error_class(message=error['message'])
+
+        return response['result']
+
+    def __getattr__(self, name):
+        def _call(*args):
+            return self.__request(name, args)
+        return _call
+
+
+class jsonclient(RPCClient):
+    session_path = '/ipa/session/json'
+    server_proxy_class = JSONServerProxy
+    protocol = 'json'
+    env_rpc_uri_key = 'jsonrpc_uri'

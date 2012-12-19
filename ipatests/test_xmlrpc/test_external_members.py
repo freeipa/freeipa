@@ -45,8 +45,8 @@ class test_external_members(Declarative):
     @classmethod
     def setUpClass(cls):
         super(test_external_members, cls).setUpClass()
-        if not api.Backend.xmlclient.isconnected():
-            api.Backend.xmlclient.connect(fallback=False)
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
 
         trusts = api.Command['trust_find']()
         if trusts['count'] == 0:
