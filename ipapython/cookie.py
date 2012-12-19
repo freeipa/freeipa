@@ -20,6 +20,7 @@
 import re
 import time
 import datetime
+import email.utils
 from urllib2 import urlparse
 from calendar import timegm
 from ipapython.ipa_log_manager import log_mgr
@@ -172,47 +173,26 @@ class Cookie(object):
         if utcoffset is not None and utcoffset.total_seconds() != 0.0:
             raise ValueError("timezone is not UTC")
 
-        # At this point we've validated as much as possible the
-        # timezone is UTC or GMT but we can't use the %Z timezone
-        # format specifier because the timezone in the string must be
-        # 'GMT', not something equivalent to GMT, so hardcode the GMT
-        # timezone string into the format.
+        # Do not use strftime because it respects the locale, instead
+        # use the RFC 1123 formatting function which uses only English
 
-        return datetime.datetime.strftime(dt, '%a, %d %b %Y %H:%M:%S GMT')
+        return email.utils.formatdate(cls.datetime_to_time(dt), usegmt=True)
 
     @classmethod
     def parse_datetime(cls, s):
         '''
-        Parse a RFC 822, RFC 1123 date string, return a datetime aware object in UTC.
-        Accommodates some non-standard formats found in the wild.
+        Parse a RFC 822, RFC 1123 date string, return a datetime naive object in UTC.
         '''
 
-        formats = ['%a, %d %b %Y %H:%M:%S',
-                   '%a, %d-%b-%Y %H:%M:%S',
-                   '%a, %d-%b-%y %H:%M:%S',
-                   '%a, %d %b %y %H:%M:%S',
-                   ]
         s = s.strip()
 
-        # strptime does not read the time zone and generate a tzinfo
-        # object to insert in the datetime object so there is little point
-        # in specifying a %Z format, instead verify GMT is specified and
-        # generate the datetime object as if it were UTC.
+        # Do not use strptime because it respects the locale, instead
+        # use the RFC 1123 parsing function which uses only English
 
-        if not s.endswith(' GMT'):
-            raise ValueError("http date string '%s' does not end with GMT time zone" % s)
-        s = s[:-4]
-
-        dt = None
-        for format in formats:
-            try:
-                dt = datetime.datetime(*(time.strptime(s, format)[0:6]))
-                break
-            except Exception:
-                continue
-
-        if dt is None:
-            raise ValueError("unable to parse expires datetime '%s'" % s)
+        try:
+            dt = datetime.datetime(*email.utils.parsedate(s)[0:6])
+        except Exception, e:
+            raise ValueError("unable to parse expires datetime '%s': %s" % (s, e))
 
         return dt
 

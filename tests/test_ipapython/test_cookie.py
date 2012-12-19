@@ -20,6 +20,7 @@
 import unittest
 import time
 import datetime
+import email.utils
 import calendar
 from ipapython.cookie import Cookie
 
@@ -129,15 +130,16 @@ class TestExpires(unittest.TestCase):
         # Force microseconds to zero because cookie timestamps only have second resolution
         self.now = datetime.datetime.utcnow().replace(microsecond=0)
         self.now_timestamp = calendar.timegm(self.now.utctimetuple())
-        self.now_string = datetime.datetime.strftime(self.now, '%a, %d %b %Y %H:%M:%S GMT')
+        self.now_string = email.utils.formatdate(self.now_timestamp, usegmt=True)
 
         self.max_age = 3600     # 1 hour
         self.age_expiration = self.now + datetime.timedelta(seconds=self.max_age)
-        self.age_string = datetime.datetime.strftime(self.age_expiration, '%a, %d %b %Y %H:%M:%S GMT')
+        self.age_timestamp = calendar.timegm(self.age_expiration.utctimetuple())
+        self.age_string = email.utils.formatdate(self.age_timestamp, usegmt=True)
 
         self.expires = self.now + datetime.timedelta(days=1) # 1 day
         self.expires_timestamp = calendar.timegm(self.expires.utctimetuple())
-        self.expires_string = datetime.datetime.strftime(self.expires, '%a, %d %b %Y %H:%M:%S GMT')
+        self.expires_string = email.utils.formatdate(self.expires_timestamp, usegmt=True)
 
     def test_expires(self):
         # 1 cookie with name/value and no Max-Age and no Expires
@@ -407,15 +409,16 @@ class TestNormalization(unittest.TestCase):
         # Force microseconds to zero because cookie timestamps only have second resolution
         self.now = datetime.datetime.utcnow().replace(microsecond=0)
         self.now_timestamp = calendar.timegm(self.now.utctimetuple())
-        self.now_string = datetime.datetime.strftime(self.now, '%a, %d %b %Y %H:%M:%S GMT')
+        self.now_string = email.utils.formatdate(self.now_timestamp, usegmt=True)
 
         self.max_age = 3600     # 1 hour
         self.age_expiration = self.now + datetime.timedelta(seconds=self.max_age)
-        self.age_string = datetime.datetime.strftime(self.age_expiration, '%a, %d %b %Y %H:%M:%S GMT')
+        self.age_timestamp = calendar.timegm(self.age_expiration.utctimetuple())
+        self.age_string = email.utils.formatdate(self.age_timestamp, usegmt=True)
 
         self.expires = self.now + datetime.timedelta(days=1) # 1 day
         self.expires_timestamp = calendar.timegm(self.expires.utctimetuple())
-        self.expires_string = datetime.datetime.strftime(self.expires, '%a, %d %b %Y %H:%M:%S GMT')
+        self.expires_string = email.utils.formatdate(self.expires_timestamp, usegmt=True)
 
     def test_path_normalization(self):
         self.assertEqual(Cookie.normalize_url_path(''),          '/')
