@@ -178,6 +178,46 @@ class test_delegation(Declarative):
 
 
         dict(
+            desc='Search for %r using --group filter' % delegation1,
+            command=('delegation_find', [delegation1], {'group': u'editors'}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 delegation matched',
+                result=[
+                    {
+                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
+                    'permissions': [u'write'],
+                    'aciname': delegation1,
+                    'group': u'editors',
+                    'memberof': member1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r using --membergroup filter' % delegation1,
+            command=('delegation_find', [delegation1], {'memberof': member1}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 delegation matched',
+                result=[
+                    {
+                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
+                    'permissions': [u'write'],
+                    'aciname': delegation1,
+                    'group': u'editors',
+                    'memberof': member1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r with --pkey-only' % delegation1,
             command=('delegation_find', [delegation1], {'pkey_only' : True}),
             expected=dict(
