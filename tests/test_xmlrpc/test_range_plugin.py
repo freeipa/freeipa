@@ -69,6 +69,11 @@ testrange7_size = 50
 testrange7_base_rid = 600
 testrange7_secondary_base_rid=649
 
+testrange8 = u'testrange8'
+testrange8_base_id = 700
+testrange8_size = 50
+testrange8_base_rid = 700
+
 user1=u'tuser1'
 user1_uid = 900000
 group1=u'group1'
@@ -76,7 +81,7 @@ group1_gid = 900100
 
 class test_range(Declarative):
     cleanup_commands = [
-        ('idrange_del', [testrange1,testrange2,testrange3,testrange4,testrange5,testrange6,testrange7], {'continue': True}),
+        ('idrange_del', [testrange1,testrange2,testrange3,testrange4,testrange5,testrange6,testrange7, testrange8], {'continue': True}),
         ('user_del', [user1], {}),
         ('group_del', [group1], {}),
     ]
@@ -365,4 +370,43 @@ class test_range(Declarative):
                 summary=u'Deleted ID range "%s"' % testrange2,
             ),
         ),
+
+        dict(
+            desc='Create ID range %r' % (testrange8),
+            command=('idrange_add', [testrange8],
+                      dict(ipabaseid=testrange8_base_id,
+                          ipaidrangesize=testrange8_size)),
+            expected=dict(
+                result=dict(
+                    dn=DN(('cn',testrange8),('cn','ranges'),('cn','etc'),
+                          api.env.basedn),
+                    cn=[testrange8],
+                    objectclass=[u'ipaIDrange', u'ipadomainidrange'],
+                    ipabaseid=[unicode(testrange8_base_id)],
+                    ipaidrangesize=[unicode(testrange8_size)],
+                    iparangetype=[u'local domain range'],
+                ),
+                value=testrange8,
+                summary=u'Added ID range "%s"' % (testrange8),
+            ),
+        ),
+
+        dict(
+            desc='Try to modify ID range %r so it has only primary rid range set' % (testrange8),
+            command=('idrange_mod', [testrange8],
+                      dict(ipabaserid=testrange8_base_rid)),
+            expected=errors.ValidationError(
+                name='ID Range setup', error='Options secondary-rid-base and rid-base must be used together'),
+        ),
+
+        dict(
+            desc='Delete ID range %r' % testrange8,
+            command=('idrange_del', [testrange8], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=testrange8,
+                summary=u'Deleted ID range "%s"' % testrange8,
+            ),
+        ),
+
     ]

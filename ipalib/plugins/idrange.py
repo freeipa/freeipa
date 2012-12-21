@@ -364,7 +364,7 @@ class idrange_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        is_set = lambda x: (x in entry_attrs) and (x is not None)
+        is_set = lambda x: (x in entry_attrs) and (entry_attrs[x] is not None)
 
         # This needs to stay in options since there is no
         # ipanttrusteddomainname attribute in LDAP
@@ -402,11 +402,13 @@ class idrange_add(LDAPCreate):
             entry_attrs['objectclass'].append('ipatrustedaddomainrange')
 
         else:
+             # secondary base rid must be set if and only if base rid is set
             if is_set('ipasecondarybaserid') != is_set('ipabaserid'):
                 raise errors.ValidationError(name='ID Range setup',
                     error=_('Options secondary-rid-base and rid-base must '
                             'be used together'))
 
+            # and they must not overlap
             if is_set('ipabaserid') and is_set('ipasecondarybaserid'):
                 if self.obj.are_rid_ranges_overlapping(
                     entry_attrs['ipabaserid'],
@@ -483,7 +485,16 @@ class idrange_mod(LDAPUpdate):
         assert isinstance(dn, DN)
         attrs_list.append('objectclass')
 
-        is_set = lambda x: (x in entry_attrs) and (x is not None)
+        try:
+            (old_dn, old_attrs) = ldap.get_entry(dn, ['*'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        is_set = lambda x: (x in entry_attrs) and (entry_attrs[x] is not None)
+        in_updated_attrs = lambda x:\
+            (x in entry_attrs and entry_attrs[x] is not None) or\
+            (x not in entry_attrs and x in old_attrs
+                and old_attrs[x] is not None)
 
         # This needs to stay in options since there is no
         # ipanttrusteddomainname attribute in LDAP
@@ -496,6 +507,8 @@ class idrange_mod(LDAPUpdate):
             sid = self.obj.get_trusted_domain_sid_from_name(
                 options['ipanttrusteddomainname'])
 
+            # we translate the name into sid so further validation can rely
+            # on ipanttrusteddomainsid attribute only
             if sid is not None:
                 entry_attrs['ipanttrusteddomainsid'] = sid
             else:
@@ -504,25 +517,37 @@ class idrange_mod(LDAPUpdate):
                             'not be found. Please specify the SID directly '
                             'using dom-sid option.'))
 
-        try:
-            (old_dn, old_attrs) = ldap.get_entry(dn,
-                                                ['ipabaseid',
-                                                'ipaidrangesize',
-                                                'ipabaserid',
-                                                'ipasecondarybaserid'])
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+        if in_updated_attrs('ipanttrusteddomainsid'):
+            if in_updated_attrs('ipasecondarybaserid'):
+                raise errors.ValidationError(name='ID Range setup',
+                    error=_('Options dom-sid and secondary-rid-base cannot '
+                            'be used together'))
 
-        if is_set('ipanttrusteddomainsid'):
-            # Validate SID as the one of trusted domains
-            self.obj.validate_trusted_domain_sid(entry_attrs['ipanttrusteddomainsid'])
+            if not in_updated_attrs('ipabaserid'):
+                raise errors.ValidationError(name='ID Range setup',
+                    error=_('Options dom-sid and rid-base must '
+                            'be used together'))
+
+            if is_set('ipanttrusteddomainsid'):
+                # Validate SID as the one of trusted domains
+                # perform this check only if the attribute was changed
+                self.obj.validate_trusted_domain_sid(
+                    entry_attrs['ipanttrusteddomainsid'])
+        else:
+            # secondary base rid must be set if and only if base rid is set
+            if in_updated_attrs('ipasecondarybaserid') !=\
+                in_updated_attrs('ipabaserid'):
+                raise errors.ValidationError(name='ID Range setup',
+                    error=_('Options secondary-rid-base and rid-base must '
+                            'be used together'))
 
         # ensure that primary and secondary rid ranges do not overlap
-        if all((base in entry_attrs) or (base in old_attrs)
-                for base in ('ipabaserid', 'ipasecondarybaserid')):
+        if all(in_updated_attrs(base)
+               for base in ('ipabaserid', 'ipasecondarybaserid')):
 
             # make sure we are working with updated attributes
-            rid_range_attributes = ('ipabaserid', 'ipasecondarybaserid', 'ipaidrangesize')
+            rid_range_attributes = ('ipabaserid', 'ipasecondarybaserid',
+                                    'ipaidrangesize')
             updated_values = dict()
 
             for attr in rid_range_attributes:
@@ -539,14 +564,19 @@ class idrange_mod(LDAPUpdate):
                             error=_("Primary RID range and secondary RID range"
                                  " cannot overlap"))
 
+        # check whether ids are in modified range
         old_base_id = int(old_attrs.get('ipabaseid', [0])[0])
         old_range_size = int(old_attrs.get('ipaidrangesize', [0])[0])
         new_base_id = entry_attrs.get('ipabaseid')
+
         if new_base_id is not None:
             new_base_id = int(new_base_id)
+
         new_range_size = entry_attrs.get('ipaidrangesize')
+
         if new_range_size is not None:
             new_range_size = int(new_range_size)
+
         self.obj.check_ids_in_modified_range(old_base_id, old_range_size,
                                              new_base_id, new_range_size)
 
