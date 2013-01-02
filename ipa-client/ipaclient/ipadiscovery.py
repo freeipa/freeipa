@@ -436,9 +436,10 @@ class IPADiscovery(object):
             kdc = self.ipadns_search_srv(domain, '_kerberos._udp', 88,
                     break_on_first=False)
 
-            if not kdc:
+            if kdc:
+                kdc = ','.join(kdc)
+            else:
                 root_logger.debug("SRV record for KDC not found! Realm: %s, SRV record: %s" % (realm, qname))
                 kdc = None
-            kdc = ','.join(kdc)
 
         return realm, kdc
