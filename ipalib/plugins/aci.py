@@ -341,7 +341,10 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
             else:
                 # See if the target is a group. If so we set the
                 # targetgroup attr, otherwise we consider it a subtree
-                targetdn = DN(target.replace('ldap:///',''))
+                try:
+                    targetdn = DN(target.replace('ldap:///',''))
+                except ValueError as e:
+                    raise errors.ValidationError(name='subtree', error=_("invalid DN (%s)") % e.message)
                 if targetdn.endswith(DN(api.env.container_group, api.env.basedn)):
                     kw['targetgroup'] = targetdn[0]['cn']
                 else:
