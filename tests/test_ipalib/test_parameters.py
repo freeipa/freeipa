@@ -631,6 +631,10 @@ class test_Param(ClassChecker):
         assert type(n) is tuple
         assert len(n) is 3
 
+        e = raises(ValidationError, o.split_csv, '"a')
+        assert e.name == 'my_list'
+        assert e.error == u'Improperly formatted CSV value (newline inside string)'
+
     def test_split_csv_separator(self):
         """
         Test the `ipalib.parameters.Param.split_csv` method with csv and a separator.

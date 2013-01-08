@@ -694,9 +694,16 @@ class Param(ReadOnly):
                                 delimiter=self.csv_separator, quotechar='"',
                                 skipinitialspace=self.csv_skipspace,
                                 **kwargs)
-        for row in csv_reader:
-            # decode UTF-8 back to Unicode, cell by cell:
-            yield [unicode(cell, 'utf-8') for cell in row]
+        try:
+            for row in csv_reader:
+                # decode UTF-8 back to Unicode, cell by cell:
+                yield [unicode(cell, 'utf-8') for cell in row]
+        except csv.Error, e:
+            raise ValidationError(
+                name=self.get_param_name(),
+                value=unicode_csv_data,
+                error=_("Improperly formatted CSV value (%s)" % e)
+            )
 
     def split_csv(self, value):
         """Split CSV strings into individual values.
