@@ -139,6 +139,12 @@ def update_sshfp_record(zone, record, entry_attrs):
             continue
         if sshfp is not None:
             sshfps.append(sshfp)
+        try:
+            sshfp = SSHPublicKey(pubkey).fingerprint_dns_sha256()
+        except ValueError, UnicodeDecodeError:
+            continue
+        if sshfp is not None:
+            sshfps.append(sshfp)
 
     try:
         api.Command['dnsrecord_mod'](zone, record, sshfprecord=sshfps)

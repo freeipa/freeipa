@@ -26,6 +26,7 @@ import base64
 import re
 import struct
 from hashlib import md5, sha1
+from hashlib import sha256  #pylint: disable=E0611
 
 __all__ = ['SSHPublicKey']
 
@@ -187,12 +188,20 @@ class SSHPublicKey(object):
         fp = u':'.join([fp[j:j+2] for j in range(0, len(fp), 2)])
         return fp
 
-    def fingerprint_dns_sha1(self):
+    def _fingerprint_dns(self, fpfunc, fptype):
         if self._keytype == 'ssh-rsa':
             keytype = 1
         elif self._keytype == 'ssh-dss':
             keytype = 2
+        elif self._keytype.startswith('ecdsa-sha2-') and '@' not in self._keytype:
+            keytype = 3
         else:
             return
-        fp = sha1(self._key).hexdigest().upper()
-        return u'%d 1 %s' % (keytype, fp)
+        fp = fpfunc(self._key).hexdigest().upper()
+        return u'%d %d %s' % (keytype, fptype, fp)
+
+    def fingerprint_dns_sha1(self):
+        return self._fingerprint_dns(sha1, 1)
+
+    def fingerprint_dns_sha256(self):
+        return self._fingerprint_dns(sha256, 2)

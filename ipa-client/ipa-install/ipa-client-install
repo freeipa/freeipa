@@ -1325,6 +1325,9 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
             sshfp = pubkey.fingerprint_dns_sha1()
             if sshfp is not None:
                 update_txt += 'update add %s. %s IN SSHFP %s\n' % (hostname, ttl, sshfp)
+            sshfp = pubkey.fingerprint_dns_sha256()
+            if sshfp is not None:
+                update_txt += 'update add %s. %s IN SSHFP %s\n' % (hostname, ttl, sshfp)
         update_txt += 'send\n'
 
         if not do_nsupdate(update_txt):
