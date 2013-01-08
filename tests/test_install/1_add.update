@@ -16,7 +16,7 @@ add:homedirectory: /home/tuser
 add:loginshell: /bin/bash
 add:sn: User
 add:uid: tuser
-add:uidnumber: 999
-add:gidnumber: 999
+add:uidnumber: -1
+add:gidnumber: -1
 add:cn: Test User
 

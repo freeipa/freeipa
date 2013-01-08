@@ -35,6 +35,12 @@ capabilities = dict(
     # http://freeipa.org/page/V3/Messages
     messages=u'2.52',
 
+    # optional_uid_params: Before this version, UID & GID parameter defaults
+    # were 999, which meant "assign dynamically", so was not possible to get
+    # a user with UID=999. With the capability, these parameters are optional
+    # and 999 really means 999.
+    # https://fedorahosted.org/freeipa/ticket/2886
+    optional_uid_params=u'2.54'
 )
 
 

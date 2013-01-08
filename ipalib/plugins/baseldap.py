@@ -34,6 +34,8 @@ from ipalib.text import _
 from ipalib.util import json_serialize, validate_hostname
 from ipapython.dn import DN, RDN
 
+DNA_MAGIC = -1
+
 global_output_params = (
     Flag('has_password',
         label=_('Password'),

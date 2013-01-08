@@ -24,5 +24,5 @@ ipaWinSyncDefaultGroupAttr: ipaDefaultPrimaryGroup
 ipaWinSyncDefaultGroupFilter: (gidNumber=*)(objectclass=posixGroup)(objectclass=groupOfNames)
 ipaWinSyncAcctDisable: both
 ipaWinSyncForceSync: true
-ipaWinSyncUserAttr: uidNumber 999
-ipaWinSyncUserAttr: gidNumber 999
+ipaWinSyncUserAttr: uidNumber -1
+ipaWinSyncUserAttr: gidNumber -1

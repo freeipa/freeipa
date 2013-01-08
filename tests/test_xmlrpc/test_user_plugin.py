@@ -1748,4 +1748,90 @@ class test_user(Declarative):
                 ),
             ),
         ),
+
+        dict(
+            desc='Create "%s" with UID 999' % user1,
+            command=(
+                'user_add', [user1], dict(
+                    givenname=u'Test', sn=u'User1', uidnumber=999)
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "%s"' % user1,
+                result=dict(
+                    gecos=[u'Test User1'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[u'999'],
+                    gidnumber=[u'999'],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=get_user_dn(user1),
+                ),
+            ),
+            extra_check = upg_check,
+        ),
+
+        dict(
+            desc='Delete "%s"' % user1,
+            command=('user_del', [user1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "%s"' % user1,
+                value=user1,
+            ),
+        ),
+
+        dict(
+            desc='Create "%s" with old DNA_MAGIC uid 999' % user1,
+            command=(
+                'user_add', [user1], dict(
+                    givenname=u'Test', sn=u'User1', uidnumber=999,
+                    version=u'2.49')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "%s"' % user1,
+                result=dict(
+                    gecos=[u'Test User1'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[lambda v: int(v) != 999],
+                    gidnumber=[lambda v: int(v) != 999],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
+                                              ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=[get_group_dn(user1)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=get_user_dn(user1),
+                ),
+            ),
+            extra_check = upg_check,
+        ),
+
     ]

@@ -9,7 +9,7 @@ dnaType: uidNumber
 dnaType: gidNumber
 dnaNextValue: eval($IDSTART)
 dnaMaxValue: eval($IDMAX)
-dnaMagicRegen: 999
+dnaMagicRegen: -1
 dnaFilter: (|(objectClass=posixAccount)(objectClass=posixGroup)(objectClass=ipaIDobject))
 dnaScope: $SUFFIX
 dnaThreshold: 500

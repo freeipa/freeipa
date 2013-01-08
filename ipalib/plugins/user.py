@@ -18,23 +18,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from time import gmtime, strftime, strptime
+from time import gmtime, strftime
 import string
+import posixpath
+import os
 
 from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str, Bool, Bytes
+from ipalib import Flag, Int, Password, Str, Bool
 from ipalib.plugins.baseldap import *
+from ipalib.plugins import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
 from ipapython.ipautil import ipa_generate_password
 from ipapython.ipavalidate import Email
-import posixpath
+from ipalib.capabilities import client_has_capability
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
     convert_sshpubkey_post)
 if api.env.in_server and api.env.context in ['lite', 'server']:
     from ipaserver.plugins.ldap2 import ldap2
-    import os
 
 __doc__ = _("""
 Users
@@ -81,7 +83,6 @@ EXAMPLES:
 
 
 NO_UPG_MAGIC = '__no_upg__'
-DNA_MAGIC = 999
 
 user_output_params = (
     Flag('has_keytab',
@@ -300,20 +301,16 @@ class user(LDAPObject):
             label=_('Random password'),
             flags=('no_create', 'no_update', 'no_search', 'virtual_attribute'),
         ),
-        Int('uidnumber',
+        Int('uidnumber?',
             cli_name='uid',
             label=_('UID'),
             doc=_('User ID Number (system will assign one if not provided)'),
-            autofill=True,
-            default=DNA_MAGIC,
             minvalue=1,
         ),
-        Int('gidnumber',
+        Int('gidnumber?',
             label=_('GID'),
             doc=_('Group ID Number'),
             minvalue=1,
-            default=DNA_MAGIC,
-            autofill=True,
         ),
         Str('street?',
             cli_name='street',
@@ -468,6 +465,19 @@ class user_add(LDAPCreate):
             entry_attrs.setdefault('description', [])
             entry_attrs['description'].append(NO_UPG_MAGIC)
 
+        entry_attrs.setdefault('uidnumber', baseldap.DNA_MAGIC)
+
+        if not client_has_capability(
+                options['version'], 'optional_uid_params'):
+            # https://fedorahosted.org/freeipa/ticket/2886
+            # Old clients say 999 (OLD_DNA_MAGIC) when they really mean
+            # "assign a value dynamically".
+            OLD_DNA_MAGIC = 999
+            if entry_attrs.get('uidnumber') == OLD_DNA_MAGIC:
+                entry_attrs['uidnumber'] = baseldap.DNA_MAGIC
+            if entry_attrs.get('gidnumber') == OLD_DNA_MAGIC:
+                entry_attrs['gidnumber'] = baseldap.DNA_MAGIC
+
         validate_nsaccountlock(entry_attrs)
         config = ldap.get_ipa_config()[1]
         if 'ipamaxusernamelength' in config:
@@ -493,7 +503,7 @@ class user_add(LDAPCreate):
                                   api.env.basedn))
         entry_attrs.setdefault('krbprincipalname', '%s@%s' % (entry_attrs['uid'], api.env.realm))
 
-        if entry_attrs.get('gidnumber', DNA_MAGIC) == DNA_MAGIC:
+        if entry_attrs.get('gidnumber') is None:
             # gidNumber wasn't specified explicity, find out what it should be
             if not options.get('noprivate', False) and ldap.has_upg():
                 # User Private Groups - uidNumber == gidNumber

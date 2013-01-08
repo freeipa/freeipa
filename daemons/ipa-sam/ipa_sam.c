@@ -101,7 +101,7 @@ bool secrets_store(const char *key, const void *data, size_t size); /* available
 
 #define IPA_KEYTAB_SET_OID "2.16.840.1.113730.3.8.10.1"
 #define IPA_KEYTAB_SET_OID_OLD "2.16.840.1.113730.3.8.3.1"
-#define IPA_MAGIC_ID_STR "999"
+#define IPA_MAGIC_ID_STR "-1"
 
 #define LDAP_ATTRIBUTE_CN "cn"
 #define LDAP_ATTRIBUTE_UID "uid"

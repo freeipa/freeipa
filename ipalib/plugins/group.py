@@ -21,6 +21,7 @@
 from ipalib import api
 from ipalib import Int, Str
 from ipalib.plugins.baseldap import *
+from ipalib.plugins import baseldap
 from ipalib import _, ngettext
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
@@ -202,7 +203,7 @@ class group_add(LDAPCreate):
         elif not options['nonposix']:
             entry_attrs['objectclass'].append('posixgroup')
             if not 'gidnumber' in options:
-                entry_attrs['gidnumber'] = 999
+                entry_attrs['gidnumber'] = baseldap.DNA_MAGIC
         return dn
 
 
@@ -281,7 +282,7 @@ class group_mod(LDAPUpdate):
                 old_entry_attrs['objectclass'].append('posixgroup')
                 entry_attrs['objectclass'] = old_entry_attrs['objectclass']
                 if not 'gidnumber' in options:
-                    entry_attrs['gidnumber'] = 999
+                    entry_attrs['gidnumber'] = baseldap.DNA_MAGIC
 
         if options['external']:
             if is_protected_group:
