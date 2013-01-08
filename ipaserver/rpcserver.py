@@ -23,7 +23,6 @@ RPC server.
 Also see the `ipalib.rpc` module.
 """
 
-from cgi import parse_qs
 from xml.sax.saxutils import escape
 from xmlrpclib import Fault
 from wsgiref.util import shift_path_info
@@ -34,6 +33,7 @@ import datetime
 from decimal import Decimal
 import urlparse
 import time
+import json
 
 from ipalib import plugable
 from ipalib.backend import Executioner
@@ -43,7 +43,6 @@ from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import parse_time_duration, normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
-from ipapython.compat import json
 from ipalib.session import session_mgr, AuthManager, get_ipa_ccache_name, load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time, default_max_session_duration
 from ipalib.backend import Backend
 from ipalib.krb_utils import krb5_parse_ccache, KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name
@@ -211,7 +210,7 @@ def extract_query(environ):
         qstr = environ['QUERY_STRING']
     if qstr:
         query = dict(nicify_query(
-            parse_qs(qstr)#, keep_blank_values=True)
+            urlparse.parse_qs(qstr)#, keep_blank_values=True)
         ))
     else:
         query = {}

@@ -28,6 +28,7 @@ import xml.dom.minidom
 import pwd
 import fcntl
 import base64
+from hashlib import sha1
 
 from ipapython import nsslib
 from ipapython import dogtag
@@ -47,8 +48,6 @@ from nss.error import NSPRError
 import nss.nss as nss
 
 from ipalib import api
-
-from ipapython.compat import sha1
 
 # Apache needs access to this database so we need to create it
 # where apache can reach

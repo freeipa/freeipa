@@ -25,8 +25,7 @@ SSH utilities.
 import base64
 import re
 import struct
-
-from ipapython.compat import md5, sha1
+from hashlib import md5, sha1
 
 __all__ = ['SSHPublicKey']
 

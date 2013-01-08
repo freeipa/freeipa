@@ -21,11 +21,12 @@
 Test the `ipaserver.rpc` module.
 """
 
+import json
+
 from tests.util import create_test_api, assert_equal, raises, PluginTester
 from tests.data import unicode_str
 from ipalib import errors, Command
 from ipaserver import rpcserver
-from ipapython.compat import json
 
 
 class StartResponse(object):

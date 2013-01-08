@@ -21,7 +21,7 @@ from ipapython import ipautil
 from ipapython import nsslib
 from ipalib import pkcs10
 import tempfile
-from ipapython.compat import sha1
+from hashlib import sha1
 import shutil
 import os
 
