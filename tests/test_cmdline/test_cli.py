@@ -237,3 +237,31 @@ class TestCLIParsing(object):
                 all=False,
                 force=False,
                 version=API_VERSION)
+
+    def test_dnsrecord_del_comma(self):
+        try:
+            self.run_command(
+                'dnszone_add', idnsname=u'test-example.com',
+                idnssoamname=u'ns.test-example.com', force=True)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        try:
+            self.run_command(
+                'dnsrecord_add',
+                dnszoneidnsname=u'test-example.com',
+                idnsname=u'test',
+                txtrecord=u'"A pretty little problem," said Holmes.')
+            with self.fake_stdin('no\nyes\n'):
+                self.check_command(
+                    'dnsrecord_del test-example.com test',
+                    'dnsrecord_del',
+                    dnszoneidnsname=u'test-example.com',
+                    idnsname=u'test',
+                    del_all=False,
+                    txtrecord=[u'"A pretty little problem," said Holmes.'],
+                    structured=False,
+                    raw=False,
+                    all=False,
+                    version=API_VERSION)
+        finally:
+            self.run_command('dnszone_del', idnsname=u'test-example.com')
