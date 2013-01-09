@@ -1045,6 +1045,14 @@ class cli(backend.Executioner):
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
         kw = cmd.split_csv(**kw)
+        if self.env.interactive:
+            try:
+                callbacks = cmd.get_callbacks('interactive_prompt')
+            except AttributeError:
+                pass
+            else:
+                for callback in callbacks:
+                    callback(cmd, kw)
         kw['version'] = API_VERSION
         self.load_files(cmd, kw)
         return kw
@@ -1206,14 +1214,6 @@ class cli(backend.Executioner):
                 kw[param.name] = self.Backend.textui.prompt_password(
                     param.label, param.confirm
                 )
-
-        try:
-            callbacks = cmd.get_callbacks('interactive_prompt')
-        except AttributeError:
-            pass
-        else:
-            for callback in callbacks:
-                callback(cmd, kw)
 
     def load_files(self, cmd, kw):
         """
