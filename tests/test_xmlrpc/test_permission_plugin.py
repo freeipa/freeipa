@@ -698,6 +698,29 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Search using --targetgroup',
+            command=('permission_find', [], {'targetgroup': u'ipausers'}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': DN(('cn','Add user to default group'),
+                                 api.env.container_permission, api.env.basedn),
+                        'cn': [u'Add user to default group'],
+                        'member_privilege': [u'User Administrators'],
+                        'attrs': [u'member'],
+                        'targetgroup': u'ipausers',
+                        'memberindirect_role': [u'User Administrator'],
+                        'permissions': [u'write']
+                    }
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Delete %r' % permission1_renamed_ucase,
             command=('permission_del', [permission1_renamed_ucase], {}),
             expected=dict(
