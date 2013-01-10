@@ -815,8 +815,9 @@ class aci_find(crud.Search):
                 found = False
                 if 'target' in a.target:
                     target = a.target['target']['expression']
-                    if api.env.container_group in target:
-                        targetdn = DN(target.replace('ldap:///',''))
+                    targetdn = DN(target.replace('ldap:///',''))
+                    group_container_dn = DN(api.env.container_group, api.env.basedn)
+                    if targetdn.endswith(group_container_dn):
                         try:
                             cn = targetdn[0]['cn']
                         except (IndexError, KeyError):
