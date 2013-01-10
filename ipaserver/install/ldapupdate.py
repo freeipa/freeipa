@@ -33,6 +33,7 @@ import pwd
 import fnmatch
 import csv
 import inspect
+import copy
 
 import krbV
 import ldap
@@ -40,12 +41,36 @@ from ldap.schema.models import ObjectClass, AttributeType
 
 from ipaserver.install import installutils
 from ipaserver import ipaldap
-from ipapython import entity, ipautil
+from ipapython import ipautil
 from ipalib import errors
 from ipalib import api
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
+
+
+class Entity(ipaldap.Entry):
+    # TODO: Use ldap2 instead
+    def __init__(self, entrydata=None):
+        ipaldap.Entry.__init__(self, entrydata)
+        y = {}
+        for key, value in self.data.iteritems():
+            y[copy.deepcopy(key)] = copy.deepcopy(value)
+        self.orig_data = ipautil.CIDict(y)
+
+    def attrList(self):
+        """Return a list of all attributes in the entry"""
+        return self.data.keys()
+
+    def origDataDict(self):
+        """Returns a dict of the original values of the user.
+
+        Used for updates.
+        """
+        result = ipautil.CIDict(self.orig_data)
+        result['dn'] = self.dn
+        return result
+
 
 class BadSyntax(installutils.ScriptError):
     def __init__(self, value):
@@ -255,7 +280,7 @@ class LDAPUpdate:
                     entry[key] = ''
                 elif len(value) == 1:
                     entry[key] = value[0]
-        return entity.Entity(entry)
+        return Entity(entry)
 
     def _combine_updates(self, all_updates, update):
         'Combine a new update with the list of total updates'
@@ -483,7 +508,7 @@ class LDAPUpdate:
     def _create_default_entry(self, dn, default):
         """Create the default entry from the values provided.
 
-           The return type is entity.Entity
+           The return type is Entity
         """
         assert isinstance(dn, DN)
         entry = ipaldap.Entry(dn)

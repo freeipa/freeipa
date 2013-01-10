@@ -38,7 +38,6 @@ from ipapython import ipautil
 from ipalib import errors
 from ipapython.ipautil import format_netloc, wait_for_open_socket, wait_for_open_ports
 from ipapython.dn import DN
-from ipapython.entity import Entity
 from ipaserver.plugins.ldap2 import IPASimpleLDAPObject, LDAPEntry
 
 # Global variable to define SASL auth
@@ -113,6 +112,12 @@ class Entry:
             elif isinstance(entrydata, basestring):
                 self.dn = DN(entrydata)
                 self.data = ipautil.CIDict()
+            elif isinstance(entrydata, dict):
+                if hasattr(entrydata, 'dn'):
+                    entrydata['dn'] = entrydata.dn
+                self.dn = entrydata['dn']
+                del entrydata['dn']
+                self.data = ipautil.CIDict(entrydata)
             else:
                 raise TypeError("entrydata must be 2-tuple, DN, or basestring, got %s" % type(entrydata))
         else:
@@ -204,6 +209,7 @@ class Entry:
         newdata.update(self.data)
         ldif.LDIFWriter(sio,Entry.base64_attrs,1000).unparse(str(self.dn),newdata)
         return sio.getvalue()
+
 
 class IPAdmin(IPAEntryLDAPObject):
 
@@ -437,8 +443,8 @@ class IPAdmin(IPAEntryLDAPObject):
         """This wraps the add function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
 
-        if not isinstance(entry, (Entry, Entity)):
-            raise TypeError('addEntry expected an Entry or Entity object, got %s instead' % entry.__class__)
+        if not isinstance(entry, Entry):
+            raise TypeError('addEntry expected an Entry object, got %s instead' % entry.__class__)
 
         sctrl = self.__get_server_controls()
 
