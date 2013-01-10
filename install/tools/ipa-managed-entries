@@ -26,7 +26,6 @@ try:
     from ipapython import ipautil, config
     from ipaserver.install import installutils
     from ipaserver import ipaldap
-    from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors
     from ipapython.ipa_log_manager import *
     from ipapython.dn import DN

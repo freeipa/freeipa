@@ -33,7 +33,6 @@ import struct
 import ldap.sasl
 import ldapurl
 from ldap.controls import LDAPControl
-from ldap.ldapobject import SimpleLDAPObject
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil
 from ipalib import errors

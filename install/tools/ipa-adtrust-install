@@ -21,7 +21,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import adtrustinstance
 from ipaserver.install.installutils import *
 from ipaserver.install import service
@@ -30,7 +29,6 @@ from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 import krbV
-import ldap
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 

@@ -22,9 +22,9 @@ Base class for all cmdline tests
 """
 
 import nose
-import ldap
 import krbV
-from ipalib import api, request
+
+from ipalib import api
 from ipalib import errors
 from tests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipaserver.plugins.ldap2 import ldap2

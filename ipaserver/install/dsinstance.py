@@ -21,7 +21,6 @@
 import shutil
 from ipapython.ipa_log_manager import *
 import pwd
-import glob
 import sys
 import os
 import re
@@ -39,11 +38,9 @@ import certs
 import ldap
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
-from ipaserver.install import httpinstance
 from ipaserver.install import replication
-from ipalib import util, errors
+from ipalib import errors
 from ipapython.dn import DN
-from ipaserver.plugins.ldap2 import ldap2
 import base64
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"

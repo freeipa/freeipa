@@ -32,7 +32,6 @@ from ipalib import api
 from ipapython.dn import DN
 from ipalib import errors
 from ipaserver.plugins.ldap2 import ldap2
-import ldap as _ldap
 
 api.bootstrap(context='restart')
 api.finalize()

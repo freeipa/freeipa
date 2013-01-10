@@ -17,16 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
-from ipaserver.install.plugins import FIRST, MIDDLE, LAST
-from ipaserver.install.plugins import POST_UPDATE
 from ipaserver.install.plugins.baseupdate import DSRestart
 from ipaserver.install.ldapupdate import LDAPUpdate
 from ipapython.ipautil import wait_for_open_socket
 from ipalib import api
 from ipalib import backend
 from ipapython.dn import DN
-import ldap as _ldap
 
 class updateclient(backend.Executioner):
     """

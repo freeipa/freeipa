@@ -21,7 +21,6 @@ Base classes for LDAP plugins.
 """
 
 import re
-import json
 import time
 from copy import deepcopy
 import base64
@@ -29,8 +28,7 @@ import base64
 from ipalib import api, crud, errors
 from ipalib import Method, Object, Command
 from ipalib import Flag, Int, Str
-from ipalib.base import NameSpace
-from ipalib.cli import to_cli, from_cli
+from ipalib.cli import to_cli
 from ipalib import output
 from ipalib.text import _
 from ipalib.util import json_serialize, validate_hostname

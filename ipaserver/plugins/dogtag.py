@@ -1207,9 +1207,9 @@ from ipalib import api, SkipPluginModule
 if api.env.ra_plugin != 'dogtag':
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='dogtag not selected as RA plugin')
-import os, random, ldap
+import os, random
 from ipaserver.plugins import rabase
-from ipalib.errors import NetworkError, CertificateOperationError
+from ipalib.errors import CertificateOperationError
 from ipalib.constants import TYPE_ERROR
 from ipalib.util import cachedproperty
 from ipapython import dogtag

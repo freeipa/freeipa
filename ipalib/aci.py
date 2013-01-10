@@ -19,7 +19,6 @@
 
 import shlex
 import re
-import ldap
 
 # The Python re module doesn't do nested parenthesis
 

@@ -30,7 +30,6 @@ import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import services as ipaservices
-from ipalib import util
 from ipalib import errors
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
@@ -41,10 +40,7 @@ from ipaserver.install import dsinstance
 
 import ldap
 from ldap import LDAPError
-from ldap import ldapobject
 
-from pyasn1.type import univ, namedtype
-import pyasn1.codec.ber.encoder
 import pyasn1.codec.ber.decoder
 import struct
 

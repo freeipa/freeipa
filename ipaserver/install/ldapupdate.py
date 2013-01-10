@@ -25,29 +25,27 @@
 UPDATES_DIR="/usr/share/ipa/updates/"
 
 import sys
-from ipaserver.install import installutils
-from ipaserver.install import service
-from ipaserver import ipaldap
-from ipapython import entity, ipautil
 import uuid
-from ipalib import util
-from ipalib import errors
-from ipalib import api
-from ipapython.dn import DN
-import ldap
-from ldap.schema.models import ObjectClass, AttributeType
-from ipapython.ipa_log_manager import *
-import krbV
 import platform
 import time
-import random
 import os
 import pwd
 import fnmatch
 import csv
 import inspect
+
+import krbV
+import ldap
+from ldap.schema.models import ObjectClass, AttributeType
+
+from ipaserver.install import installutils
+from ipaserver import ipaldap
+from ipapython import entity, ipautil
+from ipalib import errors
+from ipalib import api
+from ipapython.dn import DN
+from ipapython.ipa_log_manager import *
 from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
-from ipaserver.install.plugins import FIRST, MIDDLE, LAST
 
 class BadSyntax(installutils.ScriptError):
     def __init__(self, value):

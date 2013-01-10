@@ -29,14 +29,11 @@ Backend plugin for LDAP.
 
 import copy
 import os
-import socket
-import string
 import shutil
 import tempfile
 import time
 import re
 import pwd
-import sys
 from decimal import Decimal
 
 import krbV

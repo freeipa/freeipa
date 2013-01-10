@@ -18,15 +18,14 @@
 #
 
 import time
-from ipapython.ipa_log_manager import *
-
-import os
 import sys
+
 import ldap
+
 from ipaserver import ipaldap
+from ipalib import api, errors
 from ipapython import services as ipaservices
-from ldap import modlist
-from ipalib import api, util, errors
+from ipapython.ipa_log_manager import *
 from ipapython import ipautil, dogtag
 from ipapython.dn import DN
 
