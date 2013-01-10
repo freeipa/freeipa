@@ -513,8 +513,8 @@ def copy_crl_file(old_path, new_path=None):
         os.symlink(realpath, new_path)
     else:
         shutil.copy2(old_path, new_path)
-    pent = pwd.getpwnam(cainstance.PKI_USER)
-    os.chown(new_path, pent.pw_uid, pent.pw_gid)
+        pent = pwd.getpwnam(cainstance.PKI_USER)
+        os.chown(new_path, pent.pw_uid, pent.pw_gid)
 
     services.restore_context(new_path)
 
@@ -555,10 +555,14 @@ def migrate_crl_publish_dir(ca):
     # Copy all CRLs to new directory
     root_logger.info('Copy all CRLs to new publish directory')
     try:
-        crl_files = cainstance.get_crl_files(old_publish_dir)
+        crl_files_unsorted = cainstance.get_crl_files(old_publish_dir)
     except OSError, e:
         root_logger.error('Cannot move CRL files to new directory: %s', e)
     else:
+        # Move CRL files at the end of the list to make sure that the actual
+        # CRL files are copied first
+        crl_files = sorted(crl_files_unsorted,
+                           key=lambda f: os.path.islink(f))
         for f in crl_files:
             try:
                 copy_crl_file(f)
