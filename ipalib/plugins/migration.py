@@ -244,7 +244,13 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
         new_members = []
         entry_attrs.setdefault(member_attr, [])
         for m in entry_attrs[member_attr]:
-            assert isinstance(m, DN)
+            try:
+                m = DN(m)
+            except ValueError, e:
+                # This should be impossible unless the remote server
+                # doesn't enforce syntax checking.
+                api.log.error('Malformed DN %s: %s'  % (m, e))
+                continue
             try:
                 rdnval = m[0].value
             except IndexError:
@@ -252,10 +258,10 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
                 continue
 
             if m.endswith(search_bases['user']):
-                api.log.info('migrating user %s' % m)
+                api.log.info('migrating %s user %s' % (member_attr, m))
                 m = DN((api.Object.user.primary_key.name, rdnval), api.env.container_user)
             elif m.endswith(search_bases['group']):
-                api.log.info('migrating group %s' % m)
+                api.log.info('migrating %s group %s' % (member_attr, m))
                 m = DN((api.Object.group.primary_key.name, rdnval), api.env.container_group)
             else:
                 api.log.error('entry %s does not belong into any known container' % m)
