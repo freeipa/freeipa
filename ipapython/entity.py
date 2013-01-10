@@ -72,10 +72,6 @@ class Entity:
         true otherwise"""
         return self.data != None and len(self.data) > 0
 
-    def hasAttr(self,name):
-        """Return True if this entry has an attribute named name, False otherwise"""
-        return self.data and self.data.has_key(name)
-
     def __str__(self):
         return "dn: %s data: %s" % (self.dn, self.data)
 
@@ -109,32 +105,6 @@ class Entity:
 
     setValues = setValue
 
-    def setValueNotEmpty(self,name,*value):
-        """Similar to setValue() but will not set an empty field. This
-           is an attempt to avoid adding empty attributes."""
-        if (len(value) >= 1) and value[0] and len(value[0]) > 0:
-            if isinstance(value[0], list):
-                if len(value[0][0]) > 0:
-                    self.setValue(name, *value)
-                    return
-            else:
-                self.setValue(name, *value)
-                return
-
-        # At this point we have an empty incoming value. See if they are
-        # trying to erase the current value. If so we'll delete it so
-        # it gets marked as removed in the modlist.
-        v = self.getValues(name)
-        if v:
-            self.delValue(name)
-
-        return
-
-    def delValue(self,name):
-        """Remove the attribute named name."""
-        if self.data.get(name,None):
-            del self.data[name]
-
     def toTupleList(self):
         """Convert the attrs and values to a list of 2-tuples.  The first element
         of the tuple is the attribute name.  The second element is either a
@@ -159,25 +129,3 @@ class Entity:
         result = ipautil.CIDict(self.orig_data)
         result['dn'] = self.dn
         return result
-
-#    def __str__(self):
-#        """Convert the Entry to its LDIF representation"""
-#        return self.__repr__()
-#
-#    # the ldif class base64 encodes some attrs which I would rather see in raw form - to
-#    # encode specific attrs as base64, add them to the list below
-#    ldif.safe_string_re = re.compile('^$')
-#    base64_attrs = ['nsstate', 'krbprincipalkey', 'krbExtraData']
-#
-#    def __repr__(self):
-#        """Convert the Entry to its LDIF representation"""
-#        sio = cStringIO.StringIO()
-#        # what's all this then?  the unparse method will currently only accept
-#        # a list or a dict, not a class derived from them.  self.data is a
-#        # cidict, so unparse barfs on it.  I've filed a bug against python-ldap,
-#        # but in the meantime, we have to convert to a plain old dict for printing
-#        # I also don't want to see wrapping, so set the line width really high (1000)
-#        newdata = {}
-#        newdata.update(self.data)
-#        ldif.LDIFWriter(sio,User.base64_attrs,1000).unparse(self.dn,newdata)
-#        return sio.getvalue()

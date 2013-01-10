@@ -128,10 +128,6 @@ class Entry:
         true otherwise"""
         return self.data != None and len(self.data) > 0
 
-    def hasAttr(self,name):
-        """Return True if this entry has an attribute named name, False otherwise"""
-        return self.data and self.data.has_key(name)
-
     def getValues(self,name):
         """Get the list (array) of values for the attribute named name"""
         return self.data.get(name)
@@ -164,13 +160,6 @@ class Entry:
             self.data[name] = value
 
     setValues = setValue
-
-    def delAttr(self, name):
-        """
-        Entirely remove an attribute of this entry.
-        """
-        if self.hasAttr(name):
-            del self.data[name]
 
     def toTupleList(self):
         """Convert the attrs and values to a list of 2-tuples.  The first element
@@ -381,22 +370,6 @@ class IPAdmin(IPAEntryLDAPObject):
                 raise e
             bind_func(*args, **kwargs)
 
-    def toLDAPURL(self):
-        return "ldap://%s/" % format_netloc(self.host, self.port)
-
-    def set_proxydn(self, proxydn):
-        self.proxydn = proxydn
-
-    def set_krbccache(self, krbccache, principal):
-        try:
-            if krbccache is not None:
-                os.environ["KRB5CCNAME"] = krbccache
-                self.sasl_interactive_bind_s(None, SASL_AUTH)
-                self.principal = principal
-            self.proxydn = None
-        except ldap.LDAPError, e:
-            self.__handle_errors(e)
-
     def do_simple_bind(self, binddn=DN(('cn', 'directory manager')), bindpw="", timeout=DEFAULT_TIMEOUT):
         self.binddn = binddn    # FIXME, self.binddn & self.bindpwd never referenced.
         self.bindpwd = bindpw
@@ -460,49 +433,6 @@ class IPAdmin(IPAEntryLDAPObject):
 
         return entries
 
-    def getListAsync(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0,
-                     serverctrls=None, clientctrls=None, timeout=-1, sizelimit=0):
-        """This version performs an asynchronous search, to allow
-           results even if we hit a limit.
-
-           It returns a list: counter followed by the results.
-           If the results are truncated, counter will be set to -1.
-           """
-
-        sctrl = self.__get_server_controls()
-        if sctrl is not None:
-            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
-
-        entries = []
-        partial = 0
-
-        try:
-            msgid = self.search_ext(base, scope, filterstr, attrlist, attrsonly,
-                                    serverctrls, clientctrls, timeout, sizelimit)
-            objtype, result_list = self.result(msgid, 0)
-            while result_list:
-                for result in result_list:
-                    entries.append(result)
-                objtype, result_list = self.result(msgid, 0)
-        except (ldap.ADMINLIMIT_EXCEEDED, ldap.SIZELIMIT_EXCEEDED,
-                ldap.TIMELIMIT_EXCEEDED), e:
-            partial = 1
-        except ldap.LDAPError, e:
-            arg_desc = 'base="%s", scope=%s, filterstr="%s", timeout=%s, sizelimit=%s' % \
-                       (base, scope, filterstr, timeout, sizelimit)
-            self.__handle_errors(e, arg_desc=arg_desc)
-
-        if not entries:
-            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
-            raise errors.NotFound(reason=arg_desc)
-
-        if partial == 1:
-            counter = -1
-        else:
-            counter = len(entries)
-
-        return [counter] + entries
-
     def addEntry(self, entry):
         """This wraps the add function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
@@ -519,25 +449,6 @@ class IPAdmin(IPAEntryLDAPObject):
         except ldap.LDAPError, e:
             arg_desc = 'entry=%s: %s' % (entry.dn, entry.toTupleList())
             self.__handle_errors(e, arg_desc=arg_desc)
-        return True
-
-    def updateRDN(self, dn, newrdn):
-        """Wrap the modrdn function."""
-
-        assert isinstance(dn, DN)
-        assert isinstance(newrdn, DN)
-        sctrl = self.__get_server_controls()
-
-        if dn == newrdn:
-            # no need to report an error
-            return True
-
-        try:
-            if sctrl is not None:
-                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
-            self.modrdn_s(dn, newrdn, delold=1)
-        except ldap.LDAPError, e:
-            self.__handle_errors(e)
         return True
 
     def updateEntry(self,dn,oldentry,newentry):
@@ -656,25 +567,6 @@ class IPAdmin(IPAEntryLDAPObject):
         except ldap.LDAPError, e:
             arg_desc = 'dn=%s' % (dn)
             self.__handle_errors(e, arg_desc=arg_desc)
-        return True
-
-    def modifyPassword(self, dn, oldpass, newpass):
-        """Set the user password using RFC 3062, LDAP Password Modify Extended
-           Operation. This ends up calling the IPA password slapi plugin
-           handler so the Kerberos password gets set properly.
-
-           oldpass is not mandatory
-        """
-
-        assert isinstance(dn, DN)
-        sctrl = self.__get_server_controls()
-
-        try:
-            if sctrl is not None:
-                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
-            self.passwd_s(dn, oldpass, newpass)
-        except ldap.LDAPError, e:
-            self.__handle_errors(e)
         return True
 
     def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
