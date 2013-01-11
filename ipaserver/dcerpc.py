@@ -593,6 +593,12 @@ class TrustDomainInstance(object):
         info.trust_type = lsa.LSA_TRUST_TYPE_UPLEVEL
         info.trust_attributes = lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
 
+        if self.info['name'] == info.netbios_name.string:
+            # Check that NetBIOS names do not clash
+            raise errors.ValidationError(name=u'AD Trust Setup',
+                    error=_('the IPA server and the remote domain cannot share the same '
+                            'NetBIOS name: %s') % self.info['name'])
+
         try:
             dname = lsa.String()
             dname.string = another_domain.info['dns_domain']
