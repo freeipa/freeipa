@@ -237,7 +237,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     krb5_kvno mkvno = 0;
     char **restrlist;
     char *restring;
-    time_t restime;
+    krb5_timestamp restime;
     bool resbool;
     int result;
     int ret;
@@ -286,8 +286,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         *polmask |= MAXRENEWABLEAGE_BIT;
     }
 
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
-                                    "krbPrincipalexpiration", &restime);
+    ret = ipadb_ldap_attr_to_krb5_timestamp(lcontext, lentry,
+                                           "krbPrincipalexpiration", &restime);
     switch (ret) {
     case 0:
         entry->expiration = restime;
@@ -298,8 +298,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         goto done;
     }
 
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
-                                    "krbPasswordExpiration", &restime);
+    ret = ipadb_ldap_attr_to_krb5_timestamp(lcontext, lentry,
+                                           "krbPasswordExpiration", &restime);
     switch (ret) {
     case 0:
         entry->pw_expiration = restime;
@@ -310,8 +310,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         goto done;
     }
 
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
-                                    "krbLastSuccessfulAuth", &restime);
+    ret = ipadb_ldap_attr_to_krb5_timestamp(lcontext, lentry,
+                                           "krbLastSuccessfulAuth", &restime);
     switch (ret) {
     case 0:
         entry->last_success = restime;
@@ -322,8 +322,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         goto done;
     }
 
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
-                                    "krbLastFailedAuth", &restime);
+    ret = ipadb_ldap_attr_to_krb5_timestamp(lcontext, lentry,
+                                           "krbLastFailedAuth", &restime);
     switch (ret) {
     case 0:
         entry->last_failed = restime;
@@ -471,8 +471,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         ied->pw_history = restrlist;
     }
 
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
-                                    "krbLastPwdChange", &restime);
+    ret = ipadb_ldap_attr_to_krb5_timestamp(lcontext, lentry,
+                                            "krbLastPwdChange", &restime);
     if (ret == 0) {
         krb5_int32 time32le = htole32((krb5_int32)restime);
 
@@ -487,8 +487,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         ied->last_pwd_change = restime;
     }
 
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
-                                    "krbLastAdminUnlock", &restime);
+    ret = ipadb_ldap_attr_to_krb5_timestamp(lcontext, lentry,
+                                            "krbLastAdminUnlock", &restime);
     if (ret == 0) {
         krb5_int32 time32le = htole32((krb5_int32)restime);
 
