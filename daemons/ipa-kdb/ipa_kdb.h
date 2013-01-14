@@ -140,6 +140,8 @@ int ipadb_ldap_attr_to_bool(LDAP *lcontext, LDAPMessage *le,
                             char *attrname, bool *result);
 int ipadb_ldap_attr_to_time_t(LDAP *lcontext, LDAPMessage *le,
                               char *attrname, time_t *result);
+int ipadb_ldap_attr_to_krb5_timestamp(LDAP *lcontext, LDAPMessage *le,
+                                      char *attrname, krb5_timestamp *result);
 
 int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
                               char *attrname, char *value);

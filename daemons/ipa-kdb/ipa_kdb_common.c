@@ -480,6 +480,33 @@ int ipadb_ldap_attr_to_time_t(LDAP *lcontext, LDAPMessage *le,
     return ret;
 }
 
+int ipadb_ldap_attr_to_krb5_timestamp(LDAP *lcontext, LDAPMessage *le,
+                                      char *attrname, krb5_timestamp *result)
+{
+    time_t res_time;
+    long long res_long;
+
+    int ret = ipadb_ldap_attr_to_time_t(lcontext, le,
+                                        attrname, &res_time);
+    if (ret) return ret;
+
+    /* this will cast correctly maintaing sign to a 64bit variable */
+    res_long = res_time;
+
+    /* For dates beyond IPAPWD_END_OF_TIME, rest_time might oveflow
+     * on 32-bit platforms. This does not apply for 64-bit platforms.
+     * However, since krb5 uses 32-bit time representation, we need
+     * to limit the result.*/
+
+    if (res_long < 0 || res_long > IPAPWD_END_OF_TIME)  {
+        *result = IPAPWD_END_OF_TIME; // 1 Jan 2038, 00:00 GMT
+    } else {
+        *result = (krb5_timestamp)res_long;
+    }
+
+    return 0;
+}
+
 int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
                               char *attrname, char *value)
 {
