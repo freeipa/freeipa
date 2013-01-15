@@ -661,12 +661,19 @@ def main():
     if changed_psearch or changed_autoincrement:
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
-        bindinstance.BindInstance(fstore).restart()
+        bind = bindinstance.BindInstance(fstore)
+        try:
+            bind.restart()
+        except ipautil.CalledProcessError, e:
+            root_logger.error("Failed to restart %s: %s", bind.service_name, e)
     ca_restart = ca_restart or enable_certificate_renewal(ca) or upgrade_ipa_profile(ca)
 
     if ca_restart:
         root_logger.info('pki-ca configuration changed, restart pki-ca')
-        ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+        try:
+            ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+        except ipautil.CalledProcessError, e:
+            root_logger.error("Failed to restart %s: %s", ca.service_name, e)
 
 if __name__ == '__main__':
     installutils.run_script(main, operation_name='ipa-upgradeconfig')
