@@ -53,6 +53,8 @@ class Entity:
                 self.dn = DN(entrydata)
                 self.data = ipautil.CIDict()
             elif isinstance(entrydata,dict):
+                if hasattr(entrydata, 'dn'):
+                    entrydata['dn'] = entrydata.dn
                 self.dn = entrydata['dn']
                 del entrydata['dn']
                 self.data = ipautil.CIDict(entrydata)

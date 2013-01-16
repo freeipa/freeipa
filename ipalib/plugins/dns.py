@@ -2124,7 +2124,7 @@ class dnsrecord(LDAPObject):
         assert isinstance(dn, DN)
         ldap = self.api.Backend.ldap2
 
-        for rtype in entry_attrs:
+        for rtype in entry_attrs.keys():
             rtype_cb = getattr(self, '_%s_pre_callback' % rtype, None)
             if rtype_cb:
                 rtype_cb(ldap, dn, entry_attrs, *keys, **options)
@@ -2267,9 +2267,9 @@ class dnsrecord(LDAPObject):
 
     def check_record_type_collisions(self, old_entry, entry_attrs):
         # Test that only allowed combination of record types was created
-        attrs = set(attr for attr in entry_attrs if attr in _record_attributes
+        attrs = set(attr for attr in entry_attrs.keys() if attr in _record_attributes
                         and entry_attrs[attr])
-        attrs.update(attr for attr in old_entry if attr not in entry_attrs)
+        attrs.update(attr for attr in old_entry.keys() if attr not in entry_attrs)
         try:
             attrs.remove('cnamerecord')
         except KeyError:
@@ -2404,7 +2404,7 @@ class dnsrecord_add(LDAPCreate):
         self.obj.run_precallback_validators(dn, entry_attrs, *keys, **options)
 
         # run precallback also for all new RR type attributes in entry_attrs
-        for attr in entry_attrs:
+        for attr in entry_attrs.keys():
             try:
                 param = self.params[attr]
             except KeyError:
@@ -2437,7 +2437,7 @@ class dnsrecord_add(LDAPCreate):
         except errors.NotFound:
             pass
         else:
-            for attr in entry_attrs:
+            for attr in entry_attrs.keys():
                 if attr not in _record_attributes:
                     continue
                 if entry_attrs[attr] is None:
@@ -2568,7 +2568,7 @@ class dnsrecord_mod(LDAPUpdate):
                     normalize=self.obj.normalize_dn)
 
             del_all = True
-            for attr in old_entry:
+            for attr in old_entry.keys():
                 if old_entry[attr]:
                     del_all = False
                     break
@@ -2709,7 +2709,7 @@ class dnsrecord_del(LDAPUpdate):
         del_all = False
         if not self.obj.is_pkey_zone_record(*keys):
             record_found = False
-            for attr in old_entry:
+            for attr in old_entry.keys():
                 if old_entry[attr]:
                     record_found = True
                     break

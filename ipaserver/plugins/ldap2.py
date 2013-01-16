@@ -47,7 +47,6 @@ import ldap.filter as _ldap_filter
 import ldap.sasl as _ldap_sasl
 from ipapython.dn import DN, RDN
 from ipapython.ipautil import CIDict
-from collections import namedtuple
 from ipalib.errors import NetworkError, DatabaseError
 
 
@@ -80,7 +79,94 @@ _debug_log_ldap = False
 # r = result[0]
 # r[0] == r.dn
 # r[1] == r.data
-LDAPEntry = namedtuple('LDAPEntry', ['dn', 'data'])
+class LDAPEntry(dict):
+    __slots__ = ('_dn',)
+
+    def __init__(self, _dn=None, _obj=None, **kwargs):
+        if isinstance(_dn, LDAPEntry):
+            assert _obj is None
+            _obj = _dn
+            self._dn = DN(_obj._dn)    #pylint: disable=E1103
+        else:
+            assert isinstance(_dn, DN)
+            if _obj is None:
+                _obj = {}
+            self._dn = _dn
+
+        super(LDAPEntry, self).__init__(self._init_iter(_obj, **kwargs))
+
+    # properties for Entry and Entity compatibility
+    @property
+    def dn(self):
+        return self._dn
+
+    @dn.setter
+    def dn(self, value):
+        assert isinstance(value, DN)
+        self._dn = value
+
+    @property
+    def data(self):
+        return self
+
+    def _attr_name(self, name):
+        if not isinstance(name, basestring):
+            raise TypeError(
+                "attribute name must be unicode or str, got %s object %r" % (
+                    name.__class__.__name__, name))
+        if isinstance(name, str):
+            name = name.decode('ascii')
+        return name.lower()
+
+    def _init_iter(self, _obj, **kwargs):
+        _obj = dict(_obj, **kwargs)
+        for (k, v) in _obj.iteritems():
+            yield (self._attr_name(k), v)
+
+    def __repr__(self):
+        dict_repr = super(LDAPEntry, self).__repr__()
+        return '%s(%s, %s)' % (type(self).__name__, repr(self._dn), dict_repr)
+
+    def copy(self):
+        return LDAPEntry(self)
+
+    def __setitem__(self, name, value):
+        super(LDAPEntry, self).__setitem__(self._attr_name(name), value)
+
+    def setdefault(self, name, default):
+        return super(LDAPEntry, self).setdefault(self._attr_name(name), default)
+
+    def update(self, _obj={}, **kwargs):
+        super(LDAPEntry, self).update(self._init_iter(_obj, **kwargs))
+
+    def __getitem__(self, name):
+        # for python-ldap tuple compatibility
+        if name == 0:
+            return self._dn
+        elif name == 1:
+            return self
+
+        return super(LDAPEntry, self).__getitem__(self._attr_name(name))
+
+    def get(self, name, default=None):
+        return super(LDAPEntry, self).get(self._attr_name(name), default)
+
+    def __delitem__(self, name):
+        super(LDAPEntry, self).__delitem__(self._attr_name(name))
+
+    def pop(self, name, *default):
+        return super(LDAPEntry, self).pop(self._attr_name(name), *default)
+
+    def __contains__(self, name):
+        return super(LDAPEntry, self).__contains__(self._attr_name(name))
+
+    def has_key(self, name):
+        return super(LDAPEntry, self).has_key(self._attr_name(name))
+
+    # for python-ldap tuple compatibility
+    def __iter__(self):
+        yield self._dn
+        yield self
 
 
 # Group Member types
@@ -459,14 +545,13 @@ class IPASimpleLDAPObject(object):
             original_dn = dn_tuple[0]
             original_attrs = dn_tuple[1]
 
-            ipa_dn = DN(original_dn)
-            ipa_attrs = dict()
+            ipa_entry = LDAPEntry(DN(original_dn))
 
             for attr, original_values in original_attrs.items():
                 target_type = self._SYNTAX_MAPPING.get(self.get_syntax(attr), unicode_from_utf8)
-                ipa_attrs[attr.lower()] = self.convert_value_list(attr, target_type, original_values)
+                ipa_entry[attr] = self.convert_value_list(attr, target_type, original_values)
 
-            ipa_result.append(LDAPEntry(ipa_dn, ipa_attrs))
+            ipa_result.append(ipa_entry)
 
         if _debug_log_ldap:
             self.debug('ldap.result: %s', ipa_result)

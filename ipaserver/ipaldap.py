@@ -40,7 +40,7 @@ from ipalib import errors
 from ipapython.ipautil import format_netloc, wait_for_open_socket, wait_for_open_ports
 from ipapython.dn import DN
 from ipapython.entity import Entity
-from ipaserver.plugins.ldap2 import IPASimpleLDAPObject
+from ipaserver.plugins.ldap2 import IPASimpleLDAPObject, LDAPEntry
 
 # Global variable to define SASL auth
 SASL_AUTH = ldap.sasl.sasl({},'GSSAPI')
@@ -54,7 +54,7 @@ class IPAEntryLDAPObject(IPASimpleLDAPObject):
         objtype, data = IPASimpleLDAPObject.result(self, msgid, all, timeout)
         # data is either a 2-tuple or a list of 2-tuples
         if data:
-            if isinstance(data, tuple):
+            if isinstance(data, (LDAPEntry, tuple)):
                 return objtype, Entry(data)
             elif isinstance(data, list):
                 return objtype, [Entry(x) for x in data]
@@ -102,7 +102,10 @@ class Entry:
         a search result entry or a reference or None.
         If creating a new empty entry, data is the string DN."""
         if entrydata:
-            if isinstance(entrydata,tuple):
+            if isinstance(entrydata,LDAPEntry):
+                self.dn = entrydata.dn
+                self.data = entrydata
+            elif isinstance(entrydata,tuple):
                 self.dn = entrydata[0]
                 self.data = ipautil.CIDict(entrydata[1])
             elif isinstance(entrydata,DN):

@@ -27,7 +27,7 @@
 
 import nose
 import os
-from ipaserver.plugins.ldap2 import ldap2
+from ipaserver.plugins.ldap2 import ldap2, LDAPEntry
 from ipalib.plugins.service import service, service_show
 from ipalib.plugins.host import host
 import nss.nss as nss
@@ -145,3 +145,30 @@ class test_ldap(object):
         cert = cert[0]
         serial = unicode(x509.get_serial_number(cert, x509.DER))
         assert serial is not None
+
+    def test_entry(self):
+        """
+        Test the LDAPEntry class
+        """
+        cn1 = [u'test1']
+        cn2 = [u'test2']
+        dn1 = DN(('cn', cn1[0]))
+        dn2 = DN(('cn', cn2[0]))
+
+        e = LDAPEntry(dn1, cn=cn1)
+        assert e.dn is dn1
+        assert 'CN' in e
+        assert e['CN'] is cn1
+        assert e['CN'] is e[u'cn']
+
+        e.dn = dn2
+        assert e.dn is dn2
+
+        e['cn'] = cn2
+        assert 'CN' in e
+        assert e['CN'] is cn2
+        assert e['CN'] is e[u'cn']
+
+        del e['CN']
+        assert 'CN' not in e
+        assert u'cn' not in e

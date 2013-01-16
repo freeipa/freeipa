@@ -228,7 +228,7 @@ def entry_from_entry(entry, newentry):
         del entry[e]
 
     # Re-populate it with new wentry
-    for e in newentry:
+    for e in newentry.keys():
         entry[e] = newentry[e]
 
 def wait_for_value(ldap, dn, attr, value):
@@ -868,7 +868,7 @@ last, after all sets and adds."""),
             # Provide a nice error message when user tries to delete an
             # attribute that does not exist on the entry (and user is not
             # adding it)
-            names = set(n.lower() for n in old_entry)
+            names = set(n.lower() for n in old_entry.keys())
             del_nonexisting = delattrs - (names | setattrs | addattrs)
             if del_nonexisting:
                 raise errors.ValidationError(name=del_nonexisting.pop(),
@@ -1070,8 +1070,8 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=entry_attrs, value=keys[-1])
-        return dict(result=entry_attrs, value=u'')
+            return dict(result=dict(entry_attrs), value=keys[-1])
+        return dict(result=dict(entry_attrs), value=u'')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1195,8 +1195,8 @@ class LDAPRetrieve(LDAPQuery):
         assert isinstance(dn, DN)
         entry_attrs['dn'] = dn
         if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=entry_attrs, value=keys[-1])
-        return dict(result=entry_attrs, value=u'')
+            return dict(result=dict(entry_attrs), value=keys[-1])
+        return dict(result=dict(entry_attrs), value=u'')
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1324,8 +1324,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=entry_attrs, value=keys[-1])
-        return dict(result=entry_attrs, value=u'')
+            return dict(result=dict(entry_attrs), value=keys[-1])
+        return dict(result=dict(entry_attrs), value=u'')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1552,7 +1552,7 @@ class LDAPAddMember(LDAPModMember):
         return dict(
             completed=completed,
             failed=failed,
-            result=entry_attrs,
+            result=dict(entry_attrs),
         )
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
@@ -1651,7 +1651,7 @@ class LDAPRemoveMember(LDAPModMember):
         return dict(
             completed=completed,
             failed=failed,
-            result=entry_attrs,
+            result=dict(entry_attrs),
         )
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
@@ -1861,7 +1861,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         for e in entries:
             assert isinstance(e[0], DN)
             e[1]['dn'] = e[0]
-        entries = [e for (dn, e) in entries]
+        entries = [dict(e) for (dn, e) in entries]
 
         return dict(
             result=entries,
@@ -2000,7 +2000,7 @@ class LDAPAddReverseMember(LDAPModReverseMember):
         return dict(
             completed=completed,
             failed=failed,
-            result=entry_attrs,
+            result=dict(entry_attrs),
         )
 
     def pre_callback(self, ldap, dn, *keys, **options):
@@ -2100,7 +2100,7 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
         return dict(
             completed=completed,
             failed=failed,
-            result=entry_attrs,
+            result=dict(entry_attrs),
         )
 
     def pre_callback(self, ldap, dn, *keys, **options):

@@ -305,7 +305,7 @@ class automember_add_condition(LDAPUpdate):
                 try:
                     (dn, old_entry) = ldap.get_entry(
                         dn, [attr], normalize=self.obj.normalize_dn)
-                    for regex in old_entry:
+                    for regex in old_entry.keys():
                         if not isinstance(entry_attrs[regex], (list, tuple)):
                             entry_attrs[regex] = [entry_attrs[regex]]
                         duplicate = set(old_entry[regex]) & set(entry_attrs[regex])
@@ -319,7 +319,7 @@ class automember_add_condition(LDAPUpdate):
         # Set failed and completed to they can be harvested in the execute super
         setattr(context, 'failed', failed)
         setattr(context, 'completed', completed)
-        setattr(context, 'entry_attrs', entry_attrs)
+        setattr(context, 'entry_attrs', dict(entry_attrs))
 
         # Make sure to returned the failed results if there is nothing to remove
         if completed == 0:
@@ -409,7 +409,7 @@ class automember_remove_condition(LDAPUpdate):
         # Set failed and completed to they can be harvested in the execute super
         setattr(context, 'failed', failed)
         setattr(context, 'completed', completed)
-        setattr(context, 'entry_attrs', entry_attrs)
+        setattr(context, 'entry_attrs', dict(entry_attrs))
 
         # Make sure to returned the failed results if there is nothing to remove
         if completed == 0:
