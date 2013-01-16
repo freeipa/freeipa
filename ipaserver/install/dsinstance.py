@@ -460,7 +460,7 @@ class DsInstance(service.Service):
         dn = DN(('cn', 'IPA install %s' % self.sub_dict["TIME"]), ('cn', 'memberof task'),
                 ('cn', 'tasks'), ('cn', 'config'))
         root_logger.debug("Waiting for memberof task to complete.")
-        conn = ipaldap.IPAdmin("127.0.0.1")
+        conn = ipaldap.IPAdmin(self.fqdn)
         if self.dm_password:
             conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
         else:
@@ -558,7 +558,7 @@ class DsInstance(service.Service):
                 dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid)
                 dsdb.create_pin_file()
 
-        conn = ipaldap.IPAdmin("127.0.0.1")
+        conn = ipaldap.IPAdmin(self.fqdn)
         conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
