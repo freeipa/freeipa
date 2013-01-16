@@ -91,18 +91,18 @@ def load_certificate(data, datatype=PEM, dbdir=None):
         data = strip_header(data)
         data = base64.b64decode(data)
 
-    if dbdir is None:
-        if 'in_tree' in api.env:
-            if api.env.in_tree:
-                dbdir = api.env.dot_ipa + os.sep + 'alias'
+    if not nss.nss_is_initialized():
+        if dbdir is None:
+            if 'in_tree' in api.env:
+                if api.env.in_tree:
+                    dbdir = api.env.dot_ipa + os.sep + 'alias'
+                else:
+                    dbdir = "/etc/httpd/alias"
+                nss.nss_init(dbdir)
             else:
-                dbdir = "/etc/httpd/alias"
-            nss.nss_init(dbdir)
+                nss.nss_init_nodb()
         else:
-            nss.nss_init_nodb()
-    else:
-        nss.nss_init(dbdir)
-
+            nss.nss_init(dbdir)
 
     return nss.Certificate(buffer(data))
 
@@ -139,7 +139,9 @@ def get_subject(certificate, datatype=PEM, dbdir=None):
     """
 
     nsscert = load_certificate(certificate, datatype, dbdir)
-    return nsscert.subject
+    subject = nsscert.subject
+    del(nsscert)
+    return subject
 
 def get_issuer(certificate, datatype=PEM, dbdir=None):
     """
@@ -147,14 +149,18 @@ def get_issuer(certificate, datatype=PEM, dbdir=None):
     """
 
     nsscert = load_certificate(certificate, datatype, dbdir)
-    return nsscert.issuer
+    issuer = nsscert.issuer
+    del(nsscert)
+    return issuer
 
 def get_serial_number(certificate, datatype=PEM, dbdir=None):
     """
     Return the decimal value of the serial number.
     """
     nsscert = load_certificate(certificate, datatype, dbdir)
-    return nsscert.serial_number
+    serial_number = nsscert.serial_number
+    del(nsscert)
+    return serial_number
 
 def make_pem(data):
     """
@@ -230,6 +236,7 @@ def verify_cert_subject(ldap, hostname, dercert):
     nsscert = load_certificate(dercert, datatype=DER)
     subject = str(nsscert.subject)
     issuer = str(nsscert.issuer)
+    del(nsscert)
 
     # Handle both supported forms of issuer, from selfsign and dogtag.
     if (not valid_issuer(issuer)):

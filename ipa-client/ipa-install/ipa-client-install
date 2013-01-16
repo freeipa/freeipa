@@ -48,6 +48,7 @@ try:
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
     from ipalib.rpc import delete_persistent_client_session_data
+    import nss.nss as nss
     import SSSDConfig
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
@@ -77,10 +78,15 @@ def parse_options():
         if not os.path.isabs(value):
             raise OptionValueError("%s option '%s' is not an absolute file path" % (opt, value))
 
+        initialized = nss.nss_is_initialized()
         try:
             cert = x509.load_certificate_from_file(value)
         except Exception, e:
             raise OptionValueError("%s option '%s' is not a valid certificate file" % (opt, value))
+        else:
+            del(cert)
+            if not initialized:
+                nss.nss_shutdown()
 
         parser.values.ca_cert_file = value
 
@@ -1372,6 +1378,8 @@ def get_ca_cert_from_file(url):
     except Exception, e:
         raise errors.FileError(reason =
             u"cannot write certificate file '%s': %s" % (CACERT, e))
+    else:
+        del(cert)
 
 def get_ca_cert_from_http(url, ca_file, warn=True):
     '''
@@ -1478,6 +1486,8 @@ def validate_new_ca_cert(existing_ca_cert, ca_file, ask, override=False):
         root_logger.debug(
                 "Existing CA cert and Retrieved CA cert are identical")
         os.remove(ca_file)
+        del(existing_ca_cert)
+        del(new_ca_cert)
 
 
 def get_ca_cert(fstore, options, server, basedn):
