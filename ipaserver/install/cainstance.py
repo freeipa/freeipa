@@ -378,7 +378,7 @@ class CADSInstance(service.Service):
         dsdb.create_pin_file()
 
     def enable_ssl(self):
-        conn = ipaldap.IPAdmin("127.0.0.1", port=DEFAULT_DSPORT)
+        conn = ipaldap.IPAdmin(self.fqdn, port=DEFAULT_DSPORT)
         conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
