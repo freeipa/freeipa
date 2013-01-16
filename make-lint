@@ -49,8 +49,8 @@ IGNORE_PATHS = ('build', 'rpmbuild', 'dist', 'install/po/test_i18n.py',
     'lite-server.py', 'make-lint', 'make-test', 'ipatests')
 
 class IPATypeChecker(TypeChecker):
-    NAMESPACE_ATTRS = ['Command', 'Object', 'Method', 'Property', 'Backend',
-        'Updater', 'Advice']
+    NAMESPACE_ATTRS = ['Command', 'Object', 'Method', 'Backend', 'Updater',
+        'Advice']
     LOGGING_ATTRS = ['log', 'debug', 'info', 'warning', 'error', 'exception',
         'critical']
 

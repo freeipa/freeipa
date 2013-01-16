@@ -1126,7 +1126,6 @@ class Object(HasParam):
     # Create stubs for attributes that are set in _on_finalize()
     backend = Plugin.finalize_attr('backend')
     methods = Plugin.finalize_attr('methods')
-    properties = Plugin.finalize_attr('properties')
     params = Plugin.finalize_attr('params')
     primary_key = Plugin.finalize_attr('primary_key')
     params_minus_pk = Plugin.finalize_attr('params_minus_pk')
@@ -1138,9 +1137,6 @@ class Object(HasParam):
     def _on_finalize(self):
         self.methods = NameSpace(
             self.__get_attrs('Method'), sort=False, name_attr='attr_name'
-        )
-        self.properties = NameSpace(
-            self.__get_attrs('Property'), sort=False, name_attr='attr_name'
         )
         self._create_param_namespace('params')
         pkeys = filter(lambda p: p.primary_key, self.params())
@@ -1196,25 +1192,19 @@ class Object(HasParam):
         """
         This method gets called by `HasParam._create_param_namespace()`.
         """
-        props = self.properties.__todict__()
         for spec in self._get_param_iterable('params'):
             if type(spec) is str:
                 key = spec.rstrip('?*+')
             else:
                 assert isinstance(spec, Param)
                 key = spec.name
-            if key in props:
-                yield props.pop(key).param
-            else:
-                yield create_param(spec)
+            yield create_param(spec)
         def get_key(p):
             if p.param.required:
                 if p.param.default_from is None:
                     return 0
                 return 1
             return 2
-        for prop in sorted(props.itervalues(), key=get_key):
-            yield prop.param
 
 
 class Attribute(Plugin):
@@ -1249,8 +1239,7 @@ class Attribute(Plugin):
     'add'
 
     In practice the `Attribute` class is not used directly, but rather is
-    only the base class for the `Method` and `Property` classes.  Also see
-    the `Object` class.
+    only the base class for the `Method` class.  Also see the `Object` class.
     """
     finalize_early = False
 
@@ -1350,8 +1339,7 @@ class Method(Attribute, Command):
     {'result': 'Added the user!'}
 
     The `Attribute` base class implements the naming convention for the
-    attribute-to-object association.  Also see the `Object` and the
-    `Property` classes.
+    attribute-to-object association.  Also see the `Object` class.
     """
     extra_options_first = False
     extra_args_first = False
@@ -1372,45 +1360,6 @@ class Method(Attribute, Command):
         for param in self._get_param_iterable('output_params', verb='has'):
             yield param
 
-
-class Property(Attribute):
-    klass = Str
-    default = None
-    default_from = None
-    normalizer = None
-
-    def __init__(self):
-        super(Property, self).__init__()
-        # FIXME: This is a hack till Param.label is updated to require a
-        # LazyText instance:
-        self.label = None
-        self.rules = tuple(
-            sorted(self.__rules_iter(), key=lambda f: getattr(f, '__name__'))
-        )
-        self.kwargs = tuple(
-            sorted(self.__kw_iter(), key=lambda keyvalue: keyvalue[0])
-        )
-        kw = dict(self.kwargs)
-        self.param = self.klass(self.attr_name, *self.rules, **kw)
-
-    def __kw_iter(self):
-        for (key, kind, default) in self.klass.kwargs:
-            if getattr(self, key, None) is not None:
-                yield (key, getattr(self, key))
-
-    def __rules_iter(self):
-        """
-        Iterates through the attributes in this instance to retrieve the
-        methods implementing validation rules.
-        """
-        for name in dir(self.__class__):
-            if name.startswith('_'):
-                continue
-            base_attr = getattr(self.__class__, name)
-            if is_rule(base_attr):
-                attr = getattr(self, name)
-                if is_rule(attr):
-                    yield attr
 
 class Updater(Method):
     """

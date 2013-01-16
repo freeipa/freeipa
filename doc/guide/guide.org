@@ -91,7 +91,7 @@ directly associated objects and may perform actions over few of those. Objects a
 using data store represented by a back end, and one of most useful back ends is LDAP store
 back end.
 
-Altogether, set of =Object=, =Property=, =Method=, =Command=, and =Backend= instances
+Altogether, set of =Object=, =Method=, =Command=, and =Backend= instances
 represent application programming interface, API, of FreeIPA core framework.
 
 In Python programming language object oriented support is implemented using a fairly

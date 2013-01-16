@@ -883,7 +883,7 @@ import os
 import plugable
 from backend import Backend
 from frontend import Command, LocalOrRemote, Updater, Advice
-from frontend import Object, Method, Property
+from frontend import Object, Method
 from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Decimal, Bytes, Str, IA5Str, Password, DNParam, DeprecatedParam
 from parameters import BytesEnum, StrEnum, IntEnum, AccessTime, File
@@ -910,14 +910,11 @@ def create_api(mode='dummy'):
 
         - `frontend.Method`
 
-        - `frontend.Property`
-
         - `frontend.Advice`
 
         - `backend.Backend`
     """
-    api = plugable.API(Command, Object, Method, Property, Backend, Updater,
-                       Advice)
+    api = plugable.API(Command, Object, Method, Backend, Updater, Advice)
     if mode is not None:
         api.env.mode = mode
     assert mode != 'production'

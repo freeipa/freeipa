@@ -861,7 +861,6 @@ class test_Object(ClassChecker):
         """
         assert self.cls.backend is None
         assert self.cls.methods is None
-        assert self.cls.properties is None
         assert self.cls.params is None
         assert self.cls.params_minus_pk is None
         assert self.cls.takes_params == tuple()
@@ -873,10 +872,8 @@ class test_Object(ClassChecker):
         o = self.cls()
         assert o.backend is None
         assert o.methods is None
-        assert o.properties is None
         assert o.params is None
         assert o.params_minus_pk is None
-        assert o.properties is None
 
     def test_set_api(self):
         """
@@ -906,23 +903,15 @@ class test_Object(ClassChecker):
                     yield DummyAttribute(name, format % i)
 
         cnt = 10
-        formats = dict(
-            methods='method_%d',
-            properties='property_%d',
-        )
-
+        methods_format = 'method_%d'
 
         _d = dict(
             Method=plugable.NameSpace(
-                get_attributes(cnt, formats['methods'])
-            ),
-            Property=plugable.NameSpace(
-                get_attributes(cnt, formats['properties'])
+                get_attributes(cnt, methods_format)
             ),
         )
         api = plugable.MagicDict(_d)
         assert len(api.Method) == cnt * 3
-        assert len(api.Property) == cnt * 3
 
         class user(self.cls):
             pass
@@ -931,19 +920,19 @@ class test_Object(ClassChecker):
         o = user()
         o.set_api(api)
         assert read_only(o, 'api') is api
-        for name in ['methods', 'properties']:
-            namespace = getattr(o, name)
-            assert isinstance(namespace, plugable.NameSpace)
-            assert len(namespace) == cnt
-            f = formats[name]
-            for i in xrange(cnt):
-                attr_name = f % i
-                attr = namespace[attr_name]
-                assert isinstance(attr, DummyAttribute)
-                assert attr is getattr(namespace, attr_name)
-                assert attr.obj_name == 'user'
-                assert attr.attr_name == attr_name
-                assert attr.name == '%s_%s' % ('user', attr_name)
+
+        namespace = o.methods
+        assert isinstance(namespace, plugable.NameSpace)
+        assert len(namespace) == cnt
+        f = methods_format
+        for i in xrange(cnt):
+            attr_name = f % i
+            attr = namespace[attr_name]
+            assert isinstance(attr, DummyAttribute)
+            assert attr is getattr(namespace, attr_name)
+            assert attr.obj_name == 'user'
+            assert attr.attr_name == attr_name
+            assert attr.name == '%s_%s' % ('user', attr_name)
 
         # Test params instance attribute
         o = self.cls()
@@ -1147,42 +1136,3 @@ class test_Method(ClassChecker):
         assert o.name == 'user_add'
         assert o.obj_name == 'user'
         assert o.attr_name == 'add'
-
-
-class test_Property(ClassChecker):
-    """
-    Test the `ipalib.frontend.Property` class.
-    """
-    _cls = frontend.Property
-
-    def get_subcls(self):
-        """
-        Return a standard subclass of `ipalib.frontend.Property`.
-        """
-        class user_givenname(self.cls):
-            'User first name'
-
-            @frontend.rule
-            def rule0_lowercase(self, value):
-                if not value.islower():
-                    return 'Must be lowercase'
-        return user_givenname
-
-    def test_class(self):
-        """
-        Test the `ipalib.frontend.Property` class.
-        """
-        assert self.cls.__bases__ == (frontend.Attribute,)
-        assert self.cls.klass is parameters.Str
-
-    def test_init(self):
-        """
-        Test the `ipalib.frontend.Property.__init__` method.
-        """
-        o = self.subcls()
-        assert len(o.rules) == 1
-        assert o.rules[0].__name__ == 'rule0_lowercase'
-        param = o.param
-        assert isinstance(param, parameters.Str)
-        assert param.name == 'givenname'
-        assert unicode(param.doc) == u'User first name'
