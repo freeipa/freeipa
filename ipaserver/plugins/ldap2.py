@@ -127,7 +127,7 @@ class SchemaCache(object):
         self.log = log_mgr.get_logger(self)
         self.servers = {}
 
-    def get_schema(self, url, conn=None, force_update=False):
+    def get_schema(self, url, conn, force_update=False):
         '''
         Return schema belonging to a specific LDAP server.
 
@@ -154,7 +154,7 @@ class SchemaCache(object):
         except KeyError:
             pass
 
-    def _retrieve_schema_from_server(self, url, conn=None):
+    def _retrieve_schema_from_server(self, url, conn):
         """
         Retrieve the LDAP schema from the provided url and determine if
         User-Private Groups (upg) are configured.
@@ -168,41 +168,12 @@ class SchemaCache(object):
         used. The connection is not closed when the request is done.
         """
         tmpdir = None
-        has_conn = conn is not None
+        assert conn is not None
 
         self.log.debug(
             'retrieving schema for SchemaCache url=%s conn=%s', url, conn)
 
         try:
-            if api.env.context == 'server' and conn is None:
-                # FIXME: is this really what we want to do?
-                # This seems like this logic is in the wrong place and may conflict with other state.
-                try:
-                    # Create a new credentials cache for this Apache process
-                    tmpdir = tempfile.mkdtemp(prefix = "tmp-")
-                    ccache_file = 'FILE:%s/ccache' % tmpdir
-                    krbcontext = krbV.default_context()
-                    principal = str('HTTP/%s@%s' % (api.env.host, api.env.realm))
-                    keytab = krbV.Keytab(name='/etc/httpd/conf/ipa.keytab', context=krbcontext)
-                    principal = krbV.Principal(name=principal, context=krbcontext)
-                    prev_ccache = os.environ.get('KRB5CCNAME')
-                    os.environ['KRB5CCNAME'] = ccache_file
-                    ccache = krbV.CCache(name=ccache_file, context=krbcontext, primary_principal=principal)
-                    ccache.init(principal)
-                    ccache.init_creds_keytab(keytab=keytab, principal=principal)
-                except krbV.Krb5Error, e:
-                    raise StandardError('Unable to retrieve LDAP schema. Error initializing principal %s in %s: %s' % (principal.name, '/etc/httpd/conf/ipa.keytab', str(e)))
-                finally:
-                    if prev_ccache is not None:
-                        os.environ['KRB5CCNAME'] = prev_ccache
-
-
-            if conn is None:
-                conn = IPASimpleLDAPObject(url)
-                if url.startswith('ldapi://'):
-                    conn.set_option(_ldap.OPT_HOST_NAME, api.env.host)
-                conn.sasl_interactive_bind_s(None, SASL_AUTH)
-
             try:
                 schema_entry = conn.search_s('cn=schema', _ldap.SCOPE_BASE,
                     attrlist=['attributetypes', 'objectclasses'])[0]
@@ -212,8 +183,6 @@ class SchemaCache(object):
                 self.log.debug('cn=schema not found, fallback to cn=subschema')
                 schema_entry = conn.search_s('cn=subschema', _ldap.SCOPE_BASE,
                     attrlist=['attributetypes', 'objectclasses'])[0]
-            if not has_conn:
-                conn.unbind_s()
         except _ldap.SERVER_DOWN:
             raise NetworkError(uri=url,
                                error=u'LDAP Server Down, unable to retrieve LDAP schema')
