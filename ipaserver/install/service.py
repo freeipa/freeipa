@@ -153,7 +153,7 @@ class Service(object):
         # use URI of admin connection
         if not self.admin_conn:
             self.ldap_connect()
-        args += ["-H", self.admin_conn.uri]
+        args += ["-H", self.admin_conn.ldap_uri]
 
         auth_parms = []
         if self.dm_password:

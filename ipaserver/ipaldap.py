@@ -574,50 +574,6 @@ class IPASimpleLDAPObject(object):
         return self.conn.unbind_s()
 
 
-class IPAEntryLDAPObject(IPASimpleLDAPObject):
-    # FIXME: class for backwards compatibility only
-    def __init__(self, *args, **kwds):
-        kwds.setdefault('force_schema_updates', True)
-        IPASimpleLDAPObject.__init__(self, *args, **kwds)
-
-    def result(self, msgid=ldap.RES_ANY, all=1, timeout=None):
-        objtype, data = IPASimpleLDAPObject.result(self, msgid, all, timeout)
-        # data is either a 2-tuple or a list of 2-tuples
-        if data:
-            if isinstance(data, (LDAPEntry, tuple)):
-                return objtype, Entry(data)
-            elif isinstance(data, list):
-                return objtype, [Entry(x) for x in data]
-            else:
-                raise TypeError, "unknown data type %s returned by result" % type(data)
-        else:
-            return objtype, data
-
-    def add(self, dn, modlist):
-        if isinstance(dn, Entry):
-            return IPASimpleLDAPObject.add(self, dn.dn, dn.toTupleList())
-        else:
-            return IPASimpleLDAPObject.add(self, dn, modlist)
-
-    def add_s(self, dn, modlist):
-        if isinstance(dn, Entry):
-            return IPASimpleLDAPObject.add_s(self, dn.dn, dn.toTupleList())
-        else:
-            return IPASimpleLDAPObject.add_s(self, dn, modlist)
-
-    def add_ext(self, dn, modlist, serverctrls=None, clientctrls=None):
-        if isinstance(dn, Entry):
-            return IPASimpleLDAPObject.add_ext(self, dn.dn, dn.toTupleList(), serverctrls, clientctrls)
-        else:
-            return IPASimpleLDAPObject.add_ext(self, dn, modlist, serverctrls, clientctrls)
-
-    def add_ext_s(self, dn, modlist, serverctrls=None, clientctrls=None):
-        if isinstance(dn, Entry):
-            return IPASimpleLDAPObject.add_ext_s(self, dn.dn, dn.toTupleList(), serverctrls, clientctrls)
-        else:
-            return IPASimpleLDAPObject.add_ext_s(self, dn, modlist, serverctrls, clientctrls)
-
-
 # Make python-ldap tuple style result compatible with Entry and Entity
 # objects by allowing access to the dn (tuple index 0) via the 'dn'
 # attribute name and the attr dict (tuple index 1) via the 'data'
@@ -898,21 +854,19 @@ class LDAPConnection(object):
             raise errors.DatabaseError(desc=desc, info=info)
 
 
-class IPAdmin(LDAPConnection, IPAEntryLDAPObject):
+class IPAdmin(LDAPConnection):
 
-    def __localinit(self):
-        if self.protocol == 'ldaps':
-            ldap_uri = 'ldaps://%s' % format_netloc(self.host, self.port)
-        elif self.protocol == 'ldapi':
-            ldap_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % (
+    def __get_ldap_uri(self, protocol):
+        if protocol == 'ldaps':
+            return 'ldaps://%s' % format_netloc(self.host, self.port)
+        elif protocol == 'ldapi':
+            return 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % (
                 "-".join(self.realm.split(".")))
-        elif self.protocol == 'ldap':
-            ldap_uri = 'ldap://%s' % format_netloc(self.host, self.port)
+        elif protocol == 'ldap':
+            return 'ldap://%s' % format_netloc(self.host, self.port)
         else:
-            raise ValueError('Protocol %r not supported' % self.protocol)
+            raise ValueError('Protocol %r not supported' % protocol)
 
-        LDAPConnection.__init__(self, ldap_uri)
-        IPAEntryLDAPObject.__init__(self, ldap_uri)
 
     def __guess_protocol(self):
         """Return the protocol to use based on flags passed to the constructor
@@ -935,12 +889,8 @@ class IPAdmin(LDAPConnection, IPAEntryLDAPObject):
 
     def __init__(self, host='', port=389, cacert=None, bindcert=None,
                  bindkey=None, proxydn=None, debug=None, ldapi=False,
-                 realm=None, protocol=None):
-        """We just set our instance variables and wrap the methods - the real
-           work is done in __localinit. This is separated out this way so
-           that we can call it from places other than instance creation
-           e.g. when we just need to reconnect
-           """
+                 realm=None, protocol=None, force_schema_updates=True):
+        self.conn = None
         log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
             ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
@@ -960,8 +910,12 @@ class IPAdmin(LDAPConnection, IPAEntryLDAPObject):
         self.ldapi = ldapi
         self.realm = realm
         self.suffixes = {}
-        self.protocol = protocol or self.__guess_protocol()
-        self.__localinit()
+
+        ldap_uri = self.__get_ldap_uri(protocol or self.__guess_protocol())
+
+        LDAPConnection.__init__(self, ldap_uri)
+
+        self.conn = IPASimpleLDAPObject(ldap_uri, force_schema_updates=True)
 
     def __lateinit(self):
         """
@@ -1002,7 +956,7 @@ class IPAdmin(LDAPConnection, IPAEntryLDAPObject):
         return self.handle_errors(e, **kw)
 
     def __wait_for_connection(self, timeout):
-        lurl = ldapurl.LDAPUrl(self.uri)
+        lurl = ldapurl.LDAPUrl(self.ldap_uri)
         if lurl.urlscheme == 'ldapi':
             wait_for_open_socket(lurl.hostport, timeout)
         else:
@@ -1334,6 +1288,11 @@ class IPAdmin(LDAPConnection, IPAEntryLDAPObject):
         keys.sort(reverse=reverse)
 
         return map(res.get, keys)
+
+    def __getattr__(self, attrname):
+        # This makes IPAdmin classes look like IPASimpleLDAPObjects
+        # FIXME: for backwards compatibility only
+        return getattr(self.conn, attrname)
 
 
 # FIXME: Some installer tools depend on ipaldap importing plugins.ldap2.
