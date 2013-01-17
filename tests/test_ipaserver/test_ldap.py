@@ -27,7 +27,8 @@
 
 import nose
 import os
-from ipaserver.plugins.ldap2 import ldap2, LDAPEntry
+from ipaserver.plugins.ldap2 import ldap2
+from ipaserver.ipaldap import LDAPEntry
 from ipalib.plugins.service import service, service_show
 from ipalib.plugins.host import host
 import nss.nss as nss

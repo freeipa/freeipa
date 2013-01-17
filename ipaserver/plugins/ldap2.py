@@ -69,103 +69,6 @@ from ipalib.request import context
 
 _debug_log_ldap = False
 
-# Make python-ldap tuple style result compatible with Entry and Entity
-# objects by allowing access to the dn (tuple index 0) via the 'dn'
-# attribute name and the attr dict (tuple index 1) via the 'data'
-# attribute name. Thus:
-# r = result[0]
-# r[0] == r.dn
-# r[1] == r.data
-class LDAPEntry(dict):
-    __slots__ = ('_dn',)
-
-    def __init__(self, _dn=None, _obj=None, **kwargs):
-        if isinstance(_dn, LDAPEntry):
-            assert _obj is None
-            _obj = _dn
-            self._dn = DN(_obj._dn)    #pylint: disable=E1103
-        else:
-            assert isinstance(_dn, DN)
-            if _obj is None:
-                _obj = {}
-            self._dn = _dn
-
-        super(LDAPEntry, self).__init__(self._init_iter(_obj, **kwargs))
-
-    # properties for Entry and Entity compatibility
-    @property
-    def dn(self):
-        return self._dn
-
-    @dn.setter
-    def dn(self, value):
-        assert isinstance(value, DN)
-        self._dn = value
-
-    @property
-    def data(self):
-        return self
-
-    def _attr_name(self, name):
-        if not isinstance(name, basestring):
-            raise TypeError(
-                "attribute name must be unicode or str, got %s object %r" % (
-                    name.__class__.__name__, name))
-        if isinstance(name, str):
-            name = name.decode('ascii')
-        return name.lower()
-
-    def _init_iter(self, _obj, **kwargs):
-        _obj = dict(_obj, **kwargs)
-        for (k, v) in _obj.iteritems():
-            yield (self._attr_name(k), v)
-
-    def __repr__(self):
-        dict_repr = super(LDAPEntry, self).__repr__()
-        return '%s(%s, %s)' % (type(self).__name__, repr(self._dn), dict_repr)
-
-    def copy(self):
-        return LDAPEntry(self)
-
-    def __setitem__(self, name, value):
-        super(LDAPEntry, self).__setitem__(self._attr_name(name), value)
-
-    def setdefault(self, name, default):
-        return super(LDAPEntry, self).setdefault(self._attr_name(name), default)
-
-    def update(self, _obj={}, **kwargs):
-        super(LDAPEntry, self).update(self._init_iter(_obj, **kwargs))
-
-    def __getitem__(self, name):
-        # for python-ldap tuple compatibility
-        if name == 0:
-            return self._dn
-        elif name == 1:
-            return self
-
-        return super(LDAPEntry, self).__getitem__(self._attr_name(name))
-
-    def get(self, name, default=None):
-        return super(LDAPEntry, self).get(self._attr_name(name), default)
-
-    def __delitem__(self, name):
-        super(LDAPEntry, self).__delitem__(self._attr_name(name))
-
-    def pop(self, name, *default):
-        return super(LDAPEntry, self).pop(self._attr_name(name), *default)
-
-    def __contains__(self, name):
-        return super(LDAPEntry, self).__contains__(self._attr_name(name))
-
-    def has_key(self, name):
-        return super(LDAPEntry, self).has_key(self._attr_name(name))
-
-    # for python-ldap tuple compatibility
-    def __iter__(self):
-        yield self._dn
-        yield self
-
-
 # Group Member types
 MEMBERS_ALL = 0
 MEMBERS_DIRECT = 1
@@ -331,6 +234,7 @@ class SchemaCache(object):
         return _ldap.schema.SubSchema(schema_entry[1])
 
 schema_cache = SchemaCache()
+
 
 class IPASimpleLDAPObject(object):
     '''
@@ -537,6 +441,10 @@ class IPASimpleLDAPObject(object):
         result tuple except everything inside of the result tuple has
         been converted to it's preferred IPA python type.
         '''
+
+        # FIXME: Temporarily import here to prevent import loops
+        # Once ipaldap does not depend on ldap2, move the import to the top
+        from ipaserver.ipaldap import LDAPEntry
 
         ipa_result = []
         for dn_tuple in result:

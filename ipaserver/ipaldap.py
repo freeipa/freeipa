@@ -23,11 +23,8 @@ import sys
 import os
 import os.path
 import socket
-import ldif
-import re
 import string
 import ldap
-import cStringIO
 import time
 import struct
 import ldap.sasl
@@ -38,10 +35,10 @@ from ipapython import ipautil
 from ipalib import errors
 from ipapython.ipautil import format_netloc, wait_for_open_socket, wait_for_open_ports
 from ipapython.dn import DN
-from ipaserver.plugins.ldap2 import IPASimpleLDAPObject, LDAPEntry
+from ipaserver.plugins.ldap2 import IPASimpleLDAPObject
 
 # Global variable to define SASL auth
-SASL_AUTH = ldap.sasl.sasl({},'GSSAPI')
+SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
 DEFAULT_TIMEOUT = 10
 
 class IPAEntryLDAPObject(IPASimpleLDAPObject):
@@ -85,59 +82,111 @@ class IPAEntryLDAPObject(IPASimpleLDAPObject):
         else:
             return IPASimpleLDAPObject.add_ext_s(self, dn, modlist, serverctrls, clientctrls)
 
-class Entry:
-    """
-    This class represents an LDAP Entry object.  An LDAP entry consists of
-    a DN and a list of attributes.  Each attribute consists of a name and
-    a list of values.  In python-ldap, entries are returned as a list of
-    2-tuples.  Instance variables:
 
-        * dn - DN object - the DN of the entry
-        * data - CIDict - case insensitive dict of the attributes and values
-    """
-    def __init__(self,entrydata):
-        """data is the raw data returned from the python-ldap result method, which is
-        a search result entry or a reference or None.
-        If creating a new empty entry, data is the string DN."""
-        if entrydata:
-            if isinstance(entrydata,LDAPEntry):
-                self.dn = entrydata.dn
-                self.data = entrydata
-            elif isinstance(entrydata,tuple):
-                self.dn = entrydata[0]
-                self.data = ipautil.CIDict(entrydata[1])
-            elif isinstance(entrydata,DN):
-                self.dn = entrydata
-                self.data = ipautil.CIDict()
-            elif isinstance(entrydata, basestring):
-                self.dn = DN(entrydata)
-                self.data = ipautil.CIDict()
-            elif isinstance(entrydata, dict):
-                if hasattr(entrydata, 'dn'):
-                    entrydata['dn'] = entrydata.dn
-                self.dn = entrydata['dn']
-                del entrydata['dn']
-                self.data = ipautil.CIDict(entrydata)
-            else:
-                raise TypeError("entrydata must be 2-tuple, DN, or basestring, got %s" % type(entrydata))
+# Make python-ldap tuple style result compatible with Entry and Entity
+# objects by allowing access to the dn (tuple index 0) via the 'dn'
+# attribute name and the attr dict (tuple index 1) via the 'data'
+# attribute name. Thus:
+# r = result[0]
+# r[0] == r.dn
+# r[1] == r.data
+class LDAPEntry(dict):
+    __slots__ = ('_dn',)
+
+    def __init__(self, _dn=None, _obj=None, **kwargs):
+        if isinstance(_dn, LDAPEntry):
+            assert _obj is None
+            _obj = _dn
+            self._dn = DN(_obj._dn)    #pylint: disable=E1103
         else:
-            self.dn = DN()
-            self.data = ipautil.CIDict()
+            assert isinstance(_dn, DN)
+            if _obj is None:
+                _obj = {}
+            self._dn = _dn
 
-        assert isinstance(self.dn, DN)
+        super(LDAPEntry, self).__init__(self._init_iter(_obj, **kwargs))
 
-    dn = ipautil.dn_attribute_property('_dn')
+    # properties for Entry and Entity compatibility
+    @property
+    def dn(self):
+        return self._dn
 
-    def __nonzero__(self):
-        """This allows us to do tests like if entry: returns false if there is no data,
-        true otherwise"""
-        return self.data != None and len(self.data) > 0
+    @dn.setter
+    def dn(self, value):
+        assert isinstance(value, DN)
+        self._dn = value
 
-    def getValues(self,name):
+    @property
+    def data(self):
+        # FIXME: for backwards compatibility only
+        return self
+
+    def _attr_name(self, name):
+        if not isinstance(name, basestring):
+            raise TypeError(
+                "attribute name must be unicode or str, got %s object %r" % (
+                    name.__class__.__name__, name))
+        if isinstance(name, str):
+            name = name.decode('ascii')
+        return name.lower()
+
+    def _init_iter(self, _obj, **kwargs):
+        _obj = dict(_obj, **kwargs)
+        for (k, v) in _obj.iteritems():
+            yield (self._attr_name(k), v)
+
+    def __repr__(self):
+        dict_repr = super(LDAPEntry, self).__repr__()
+        return '%s(%s, %s)' % (type(self).__name__, repr(self._dn), dict_repr)
+
+    def copy(self):
+        return LDAPEntry(self)
+
+    def __setitem__(self, name, value):
+        super(LDAPEntry, self).__setitem__(self._attr_name(name), value)
+
+    def setdefault(self, name, default):
+        return super(LDAPEntry, self).setdefault(self._attr_name(name), default)
+
+    def update(self, _obj={}, **kwargs):
+        super(LDAPEntry, self).update(self._init_iter(_obj, **kwargs))
+
+    def __getitem__(self, name):
+        # for python-ldap tuple compatibility
+        if name == 0:
+            return self._dn
+        elif name == 1:
+            return self
+
+        return super(LDAPEntry, self).__getitem__(self._attr_name(name))
+
+    def get(self, name, default=None):
+        return super(LDAPEntry, self).get(self._attr_name(name), default)
+
+    def __delitem__(self, name):
+        super(LDAPEntry, self).__delitem__(self._attr_name(name))
+
+    def pop(self, name, *default):
+        return super(LDAPEntry, self).pop(self._attr_name(name), *default)
+
+    def __contains__(self, name):
+        return super(LDAPEntry, self).__contains__(self._attr_name(name))
+
+    def has_key(self, name):
+        return super(LDAPEntry, self).has_key(self._attr_name(name))
+
+    # for python-ldap tuple compatibility
+    def __iter__(self):
+        yield self._dn
+        yield self
+
+    def getValues(self, name):
+        # FIXME: for backwards compatibility only
         """Get the list (array) of values for the attribute named name"""
         return self.data.get(name)
 
-    def getValue(self,name, default=None):
+    def getValue(self, name, default=None):
+        # FIXME: for backwards compatibility only
         """Get the first value for the attribute named name"""
         value = self.data.get(name, default)
         if isinstance(value, (list, tuple)):
@@ -145,6 +194,7 @@ class Entry:
         return value
 
     def setValue(self, name, *value):
+        # FIXME: for backwards compatibility only
         """
         Set a value on this entry.
 
@@ -167,6 +217,7 @@ class Entry:
     setValues = setValue
 
     def toTupleList(self):
+        # FIXME: for backwards compatibility only
         """Convert the attrs and values to a list of 2-tuples.  The first element
         of the tuple is the attribute name.  The second element is either a
         single value or a list of values."""
@@ -177,6 +228,7 @@ class Entry:
         return r
 
     def toDict(self):
+        # FIXME: for backwards compatibility only
         """Convert the attrs and values to a dict. The dict is keyed on the
         attribute name.  The value is either single value or a list of values."""
         assert isinstance(self.dn, DN)
@@ -186,29 +238,47 @@ class Entry:
         result['dn'] = self.dn
         return result
 
-    def __str__(self):
-        """Convert the Entry to its LDIF representation"""
-        return self.__repr__()
 
-    # the ldif class base64 encodes some attrs which I would rather see in
-    # raw form - to encode specific attrs as base64, add them to the list below
-    ldif.safe_string_re = re.compile('^$')
-    base64_attrs = ['nsstate', 'krbprincipalkey', 'krbExtraData']
+class Entry(LDAPEntry):
+    """For compatibility with old code only
 
-    def __repr__(self):
-        """Convert the Entry to its LDIF representation"""
-        sio = cStringIO.StringIO()
-        # what's all this then?  the unparse method will currently only accept
-        # a list or a dict, not a class derived from them.  self.data is a
-        # cidict, so unparse barfs on it.  I've filed a bug against python-ldap,
-        # but in the meantime, we have to convert to a plain old dict for
-        # printing
-        # I also don't want to see wrapping, so set the line width really high
-        # (1000)
-        newdata = {}
-        newdata.update(self.data)
-        ldif.LDIFWriter(sio,Entry.base64_attrs,1000).unparse(str(self.dn),newdata)
-        return sio.getvalue()
+    This class represents an LDAP Entry object.  An LDAP entry consists of
+    a DN and a list of attributes.  Each attribute consists of a name and
+    a list of values.  In python-ldap, entries are returned as a list of
+    2-tuples.  Instance variables:
+
+        * dn - DN object - the DN of the entry
+        * data - CIDict - case insensitive dict of the attributes and values
+    """
+    def __init__(self, entrydata):
+        """data is the raw data returned from the python-ldap result method, which is
+        a search result entry or a reference or None.
+        If creating a new empty entry, data is the string DN."""
+        if entrydata:
+            if isinstance(entrydata, (tuple, LDAPEntry)):
+                dn = entrydata[0]
+                data = ipautil.CIDict(entrydata[1])
+            elif isinstance(entrydata, DN):
+                dn = entrydata
+                data = ipautil.CIDict()
+            elif isinstance(entrydata, basestring):
+                dn = DN(entrydata)
+                data = ipautil.CIDict()
+            elif isinstance(entrydata, dict):
+                if hasattr(entrydata, 'dn'):
+                    entrydata['dn'] = entrydata.dn
+                dn = entrydata['dn']
+                del entrydata['dn']
+                data = ipautil.CIDict(entrydata)
+            else:
+                raise TypeError(
+                    "entrydata must be 2-tuple, DN, or basestring, got %s" %
+                    type(entrydata))
+        else:
+            dn = DN()
+            data = ipautil.CIDict()
+
+        super(Entry, self).__init__(dn, data)
 
 
 class IPAdmin(IPAEntryLDAPObject):
