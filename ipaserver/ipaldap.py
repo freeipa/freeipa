@@ -33,7 +33,7 @@ import struct
 import ldap.sasl
 import ldapurl
 from ldap.controls import LDAPControl
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import log_mgr
 from ipapython import ipautil
 from ipalib import errors
 from ipapython.ipautil import format_netloc, wait_for_open_socket, wait_for_open_ports

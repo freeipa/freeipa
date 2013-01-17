@@ -86,8 +86,6 @@ class IPATypeChecker(TypeChecker):
         'ipalib.session.SessionAuthManager': LOGGING_ATTRS,
         'ipalib.session.SessionManager': LOGGING_ATTRS,
         'ipaserver.install.ldapupdate.LDAPUpdate': LOGGING_ATTRS,
-        'ipaserver.plugins.ldap2.IPASimpleLDAPObject': LOGGING_ATTRS,
-        'ipaserver.plugins.ldap2.SchemaCache': LOGGING_ATTRS,
         'ipaserver.rpcserver.KerberosSession': ['api'] + LOGGING_ATTRS,
     }
 

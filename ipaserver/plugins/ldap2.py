@@ -37,7 +37,7 @@ import pwd
 from decimal import Decimal
 
 import krbV
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import log_mgr
 import ldap as _ldap
 from ldap.ldapobject import SimpleLDAPObject
 import ldap.filter as _ldap_filter
@@ -221,7 +221,7 @@ class SchemaCache(object):
     '''
 
     def __init__(self):
-        log_mgr.get_logger(self, True)
+        self.log = log_mgr.get_logger(self)
         self.servers = {}
 
     def get_schema(self, url, conn=None, force_update=False):
@@ -245,7 +245,7 @@ class SchemaCache(object):
         return server_schema.schema
 
     def flush(self, url):
-        self.debug('flushing %s from SchemaCache', url)
+        self.log.debug('flushing %s from SchemaCache', url)
         try:
             del self.servers[url]
         except KeyError:
@@ -267,7 +267,8 @@ class SchemaCache(object):
         tmpdir = None
         has_conn = conn is not None
 
-        self.debug('retrieving schema for SchemaCache url=%s conn=%s', url, conn)
+        self.log.debug(
+            'retrieving schema for SchemaCache url=%s conn=%s', url, conn)
 
         try:
             if api.env.context == 'server' and conn is None:
@@ -305,7 +306,7 @@ class SchemaCache(object):
             except _ldap.NO_SUCH_OBJECT:
                 # try different location for schema
                 # openldap has schema located in cn=subschema
-                self.debug('cn=schema not found, fallback to cn=subschema')
+                self.log.debug('cn=schema not found, fallback to cn=subschema')
                 schema_entry = conn.search_s('cn=subschema', _ldap.SCOPE_BASE,
                     attrlist=['attributetypes', 'objectclasses'])[0]
             if not has_conn:
@@ -404,7 +405,7 @@ class IPASimpleLDAPObject(object):
     })
 
     def __init__(self, uri):
-        log_mgr.get_logger(self, True)
+        self.log = log_mgr.get_logger(self)
         self.uri = uri
         self.conn = SimpleLDAPObject(uri)
         self._schema = None
@@ -512,7 +513,7 @@ class IPASimpleLDAPObject(object):
                     ipa_value = target_type(original_value)
                 except Exception, e:
                     msg = 'unable to convert the attribute "%s" value "%s" to type %s' % (attr, original_value, target_type)
-                    self.error(msg)
+                    self.log.error(msg)
                     raise ValueError(msg)
 
             ipa_values.append(ipa_value)
@@ -551,7 +552,7 @@ class IPASimpleLDAPObject(object):
             ipa_result.append(ipa_entry)
 
         if _debug_log_ldap:
-            self.debug('ldap.result: %s', ipa_result)
+            self.log.debug('ldap.result: %s', ipa_result)
         return ipa_result
 
     #---------- python-ldap emulations ----------
@@ -659,7 +660,9 @@ class IPASimpleLDAPObject(object):
         attrlist = self.encode(attrlist)
 
         if _debug_log_ldap:
-            self.debug("ldap.search_ext: dn: %s\nfilter: %s\nattrs_list: %s", base, filterstr, attrlist)
+            self.log.debug(
+                "ldap.search_ext: dn: %s\nfilter: %s\nattrs_list: %s",
+                base, filterstr, attrlist)
 
 
         return self.conn.search_ext(base, scope, filterstr, attrlist, attrsonly, serverctrls, clientctrls, timeout, sizelimit)
@@ -734,8 +737,8 @@ class ldap2(CrudBackend):
 
     def __init__(self, shared_instance=True, ldap_uri=None, base_dn=None,
                  schema=None):
-        log_mgr.get_logger(self, True)
         CrudBackend.__init__(self, shared_instance=shared_instance)
+        self.log = log_mgr.get_logger(self)
         try:
             self.ldap_uri = ldap_uri or api.env.ldap_uri
         except AttributeError:
@@ -1455,8 +1458,9 @@ class ldap2(CrudBackend):
                         else value for value in v)
                 except Exception, e:
                     # Rather let the value slip in modlist than let ldap2 crash
-                    self.error("Cannot convert attribute '%s' for modlist "
-                               "for modlist comparison: %s", k, e)
+                    self.log.error(
+                        "Cannot convert attribute '%s' for modlist "
+                        "for modlist comparison: %s", k, e)
 
                 adds = list(v.difference(old_v))
                 rems = list(old_v.difference(v))
@@ -1551,14 +1555,17 @@ class ldap2(CrudBackend):
         assert isinstance(dn, DN)
         assert isinstance(group_dn, DN)
 
-        self.debug("add_entry_to_group: dn=%s group_dn=%s member_attr=%s", dn, group_dn, member_attr)
+        self.log.debug(
+            "add_entry_to_group: dn=%s group_dn=%s member_attr=%s",
+            dn, group_dn, member_attr)
         # check if the entry exists
         (dn, entry_attrs) = self.get_entry(dn, ['objectclass'])
 
         # get group entry
         (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
 
-        self.debug("add_entry_to_group: group_entry_attrs=%s", group_entry_attrs)
+        self.log.debug(
+            "add_entry_to_group: group_entry_attrs=%s", group_entry_attrs)
         # check if we're not trying to add group into itself
         if dn == group_dn and not allow_same:
             raise errors.SameGroupError()
@@ -1580,11 +1587,14 @@ class ldap2(CrudBackend):
         assert isinstance(dn, DN)
         assert isinstance(group_dn, DN)
 
-        self.debug("remove_entry_from_group: dn=%s group_dn=%s member_attr=%s", dn, group_dn, member_attr)
+        self.log.debug(
+            "remove_entry_from_group: dn=%s group_dn=%s member_attr=%s",
+            dn, group_dn, member_attr)
         # get group entry
         (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
 
-        self.debug("remove_entry_from_group: group_entry_attrs=%s", group_entry_attrs)
+        self.log.debug(
+            "remove_entry_from_group: group_entry_attrs=%s", group_entry_attrs)
         # remove dn from group entry's `member_attr` attribute
         members = group_entry_attrs.get(member_attr, [])
         assert all([isinstance(x, DN) for x in members])
@@ -1616,7 +1626,9 @@ class ldap2(CrudBackend):
         if membertype not in [MEMBERS_ALL, MEMBERS_DIRECT, MEMBERS_INDIRECT]:
             return None
 
-        self.debug("get_members: group_dn=%s members=%s membertype=%s", group_dn, members, membertype)
+        self.log.debug(
+            "get_members: group_dn=%s members=%s membertype=%s",
+            group_dn, members, membertype)
         search_group_dn = _ldap_filter.escape_filter_chars(str(group_dn))
         searchfilter = "(memberof=%s)" % search_group_dn
 
@@ -1676,7 +1688,7 @@ class ldap2(CrudBackend):
                 if membertype == MEMBERS_DIRECT:
                     entries.append(e[0])
 
-        self.debug("get_members: result=%s", entries)
+        self.log.debug("get_members: result=%s", entries)
         return entries
 
     def get_memberof(self, entry_dn, memberof, time_limit=None, size_limit=None, normalize=True):
@@ -1692,7 +1704,8 @@ class ldap2(CrudBackend):
 
         assert isinstance(entry_dn, DN)
 
-        self.debug("get_memberof: entry_dn=%s memberof=%s", entry_dn, memberof)
+        self.log.debug(
+            "get_memberof: entry_dn=%s memberof=%s", entry_dn, memberof)
         if not type(memberof) in (list, tuple):
             return ([], [])
         if len(memberof) == 0:
@@ -1727,10 +1740,13 @@ class ldap2(CrudBackend):
             try:
                 indirect.remove(r[0])
             except ValueError, e:
-                self.info('Failed to remove indirect entry %s from %s' % r[0], entry_dn)
+                self.log.info(
+                    'Failed to remove indirect entry %s from %s',
+                    r[0], entry_dn)
                 raise e
 
-        self.debug("get_memberof: result direct=%s indirect=%s", direct, indirect)
+        self.log.debug(
+            "get_memberof: result direct=%s indirect=%s", direct, indirect)
         return (direct, indirect)
 
     def set_entry_active(self, dn, active):
