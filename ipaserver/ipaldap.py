@@ -24,22 +24,554 @@ import os
 import os.path
 import socket
 import string
-import ldap
 import time
 import struct
+import shutil
+from decimal import Decimal
+
+import ldap
+import ldap as _ldap
 import ldap.sasl
-import ldapurl
 from ldap.controls import LDAPControl
-from ipapython.ipa_log_manager import log_mgr
-from ipapython import ipautil
+from ldap.ldapobject import SimpleLDAPObject
+import ldapurl
+
 from ipalib import errors
-from ipapython.ipautil import format_netloc, wait_for_open_socket, wait_for_open_ports
-from ipapython.dn import DN
-from ipaserver.plugins.ldap2 import IPASimpleLDAPObject
+from ipapython import ipautil
+from ipapython.ipautil import (
+    format_netloc, wait_for_open_socket, wait_for_open_ports, CIDict)
+from ipapython.ipa_log_manager import log_mgr
+from ipapython.dn import DN, RDN
 
 # Global variable to define SASL auth
 SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
+
 DEFAULT_TIMEOUT = 10
+DN_SYNTAX_OID = '1.3.6.1.4.1.1466.115.121.1.12'
+_debug_log_ldap = False
+
+def unicode_from_utf8(val):
+    '''
+    val is a UTF-8 encoded string, return a unicode object.
+    '''
+    return val.decode('utf-8')
+
+
+def value_to_utf8(val):
+    '''
+    Coerce the val parameter to a UTF-8 encoded string representation
+    of the val.
+    '''
+
+    # If val is not a string we need to convert it to a string
+    # (specifically a unicode string). Naively we might think we need to
+    # call str(val) to convert to a string. This is incorrect because if
+    # val is already a unicode object then str() will call
+    # encode(default_encoding) returning a str object encoded with
+    # default_encoding. But we don't want to apply the default_encoding!
+    # Rather we want to guarantee the val object has been converted to a
+    # unicode string because from a unicode string we want to explicitly
+    # encode to a str using our desired encoding (utf-8 in this case).
+    #
+    # Note: calling unicode on a unicode object simply returns the exact
+    # same object (with it's ref count incremented). This means calling
+    # unicode on a unicode object is effectively a no-op, thus it's not
+    # inefficient.
+
+    return unicode(val).encode('utf-8')
+
+
+class _ServerSchema(object):
+    '''
+    Properties of a schema retrieved from an LDAP server.
+    '''
+
+    def __init__(self, server, schema):
+        self.server = server
+        self.schema = schema
+        self.retrieve_timestamp = time.time()
+
+
+class SchemaCache(object):
+    '''
+    Cache the schema's from individual LDAP servers.
+    '''
+
+    def __init__(self):
+        self.log = log_mgr.get_logger(self)
+        self.servers = {}
+
+    def get_schema(self, url, conn, force_update=False):
+        '''
+        Return schema belonging to a specific LDAP server.
+
+        For performance reasons the schema is retrieved once and
+        cached unless force_update is True. force_update flushes the
+        existing schema for the server from the cache and reacquires
+        it.
+        '''
+
+        if force_update:
+            self.flush(url)
+
+        server_schema = self.servers.get(url)
+        if server_schema is None:
+            schema = self._retrieve_schema_from_server(url, conn)
+            server_schema = _ServerSchema(url, schema)
+            self.servers[url] = server_schema
+        return server_schema.schema
+
+    def flush(self, url):
+        self.log.debug('flushing %s from SchemaCache', url)
+        try:
+            del self.servers[url]
+        except KeyError:
+            pass
+
+    def _retrieve_schema_from_server(self, url, conn):
+        """
+        Retrieve the LDAP schema from the provided url and determine if
+        User-Private Groups (upg) are configured.
+
+        Bind using kerberos credentials. If in the context of the
+        in-tree "lite" server then use the current ccache. If in the context of
+        Apache then create a new ccache and bind using the Apache HTTP service
+        principal.
+
+        If a connection is provided then it the credentials bound to it are
+        used. The connection is not closed when the request is done.
+        """
+        tmpdir = None
+        assert conn is not None
+
+        self.log.debug(
+            'retrieving schema for SchemaCache url=%s conn=%s', url, conn)
+
+        try:
+            try:
+                schema_entry = conn.search_s('cn=schema', _ldap.SCOPE_BASE,
+                    attrlist=['attributetypes', 'objectclasses'])[0]
+            except _ldap.NO_SUCH_OBJECT:
+                # try different location for schema
+                # openldap has schema located in cn=subschema
+                self.log.debug('cn=schema not found, fallback to cn=subschema')
+                schema_entry = conn.search_s('cn=subschema', _ldap.SCOPE_BASE,
+                    attrlist=['attributetypes', 'objectclasses'])[0]
+        except _ldap.SERVER_DOWN:
+            raise errors.NetworkError(uri=url,
+                               error=u'LDAP Server Down, unable to retrieve LDAP schema')
+        except _ldap.LDAPError, e:
+            desc = e.args[0]['desc'].strip()
+            info = e.args[0].get('info', '').strip()
+            raise errors.DatabaseError(desc = u'uri=%s' % url,
+                                info = u'Unable to retrieve LDAP schema: %s: %s' % (desc, info))
+        except IndexError:
+            # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
+            # TODO: DS uses 'cn=schema', support for other server?
+            #       raise a more appropriate exception
+            raise
+        finally:
+            if tmpdir:
+                shutil.rmtree(tmpdir)
+
+        return _ldap.schema.SubSchema(schema_entry[1])
+
+schema_cache = SchemaCache()
+
+
+class IPASimpleLDAPObject(object):
+    '''
+    The purpose of this class is to provide a boundary between IPA and
+    python-ldap. In IPA we use IPA defined types because they are
+    richer and are designed to meet our needs. We also require that we
+    consistently use those types without exception. On the other hand
+    python-ldap uses different types. The goal is to be able to have
+    IPA code call python-ldap methods using the types native to
+    IPA. This class accomplishes that goal by exposing python-ldap
+    methods which take IPA types, convert them to python-ldap types,
+    call python-ldap, and then convert the results returned by
+    python-ldap into IPA types.
+
+    IPA code should never call python-ldap directly, it should only
+    call python-ldap methods in this class.
+    '''
+
+    # Note: the oid for dn syntax is: 1.3.6.1.4.1.1466.115.121.1.12
+
+    _SYNTAX_MAPPING = {
+        '1.3.6.1.4.1.1466.115.121.1.1'   : str, # ACI item
+        '1.3.6.1.4.1.1466.115.121.1.4'   : str, # Audio
+        '1.3.6.1.4.1.1466.115.121.1.5'   : str, # Binary
+        '1.3.6.1.4.1.1466.115.121.1.8'   : str, # Certificate
+        '1.3.6.1.4.1.1466.115.121.1.9'   : str, # Certificate List
+        '1.3.6.1.4.1.1466.115.121.1.10'  : str, # Certificate Pair
+        '1.3.6.1.4.1.1466.115.121.1.23'  : str, # Fax
+        '1.3.6.1.4.1.1466.115.121.1.28'  : str, # JPEG
+        '1.3.6.1.4.1.1466.115.121.1.40'  : str, # OctetString (same as Binary)
+        '1.3.6.1.4.1.1466.115.121.1.49'  : str, # Supported Algorithm
+        '1.3.6.1.4.1.1466.115.121.1.51'  : str, # Teletext Terminal Identifier
+
+        DN_SYNTAX_OID                    : DN,  # DN, member, memberof
+        '2.16.840.1.113730.3.8.3.3'      : DN,  # enrolledBy
+        '2.16.840.1.113730.3.8.3.18'     : DN,  # managedBy
+        '2.16.840.1.113730.3.8.3.5'      : DN,  # memberUser
+        '2.16.840.1.113730.3.8.3.7'      : DN,  # memberHost
+        '2.16.840.1.113730.3.8.3.20'     : DN,  # memberService
+        '2.16.840.1.113730.3.8.11.4'     : DN,  # ipaNTFallbackPrimaryGroup
+        '2.16.840.1.113730.3.8.11.21'    : DN,  # ipaAllowToImpersonate
+        '2.16.840.1.113730.3.8.11.22'    : DN,  # ipaAllowedTarget
+        '2.16.840.1.113730.3.8.7.1'      : DN,  # memberAllowCmd
+        '2.16.840.1.113730.3.8.7.2'      : DN,  # memberDenyCmd
+
+        '2.16.840.1.113719.1.301.4.14.1' : DN,  # krbRealmReferences
+        '2.16.840.1.113719.1.301.4.17.1' : DN,  # krbKdcServers
+        '2.16.840.1.113719.1.301.4.18.1' : DN,  # krbPwdServers
+        '2.16.840.1.113719.1.301.4.26.1' : DN,  # krbPrincipalReferences
+        '2.16.840.1.113719.1.301.4.29.1' : DN,  # krbAdmServers
+        '2.16.840.1.113719.1.301.4.36.1' : DN,  # krbPwdPolicyReference
+        '2.16.840.1.113719.1.301.4.40.1' : DN,  # krbTicketPolicyReference
+        '2.16.840.1.113719.1.301.4.41.1' : DN,  # krbSubTrees
+        '2.16.840.1.113719.1.301.4.52.1' : DN,  # krbObjectReferences
+        '2.16.840.1.113719.1.301.4.53.1' : DN,  # krbPrincContainerRef
+    }
+
+    # In most cases we lookup the syntax from the schema returned by
+    # the server. However, sometimes attributes may not be defined in
+    # the schema (e.g. extensibleObject which permits undefined
+    # attributes), or the schema was incorrectly defined (i.e. giving
+    # an attribute the syntax DirectoryString when in fact it's really
+    # a DN). This (hopefully sparse) table allows us to trap these
+    # anomalies and force them to be the syntax we know to be in use.
+    #
+    # FWIW, many entries under cn=config are undefined :-(
+
+    _SCHEMA_OVERRIDE = CIDict({
+        'managedtemplate': DN_SYNTAX_OID, # DN
+        'managedbase':     DN_SYNTAX_OID, # DN
+        'originscope':     DN_SYNTAX_OID, # DN
+    })
+
+    def __init__(self, uri, force_schema_updates):
+        """An internal LDAP connection object
+
+        :param uri: The LDAP URI to connect to
+        :param force_schema_updates:
+            If true, this object will always request a new schema from the
+            server. If false, a cached schema will be reused if it exists.
+
+            Generally, it should be true if the API context is 'installer' or
+            'updates', but it must be given explicitly since the API object
+            is not always available
+        """
+        self.log = log_mgr.get_logger(self)
+        self.uri = uri
+        self.conn = SimpleLDAPObject(uri)
+        self._schema = None
+        self._force_schema_updates = force_schema_updates
+
+    def _get_schema(self):
+        if self._schema is None:
+            self._schema = schema_cache.get_schema(
+                self.uri, self.conn, force_update=self._force_schema_updates)
+        return self._schema
+
+    schema = property(_get_schema, None, None, 'schema associated with this LDAP server')
+
+
+    def flush_cached_schema(self):
+        '''
+        Force this instance to forget it's cached schema and reacquire
+        it from the schema cache.
+        '''
+
+        # Currently this is called during bind operations to assure
+        # we're working with valid schema for a specific
+        # connection. This causes self._get_schema() to query the
+        # schema cache for the server's schema passing along a flag
+        # indicating if we're in a context that requires freshly
+        # loading the schema vs. returning the last cached version of
+        # the schema. If we're in a mode that permits use of
+        # previously cached schema the flush and reacquire is a very
+        # low cost operation.
+        #
+        # The schema is reacquired whenever this object is
+        # instantiated or when binding occurs. The schema is not
+        # reacquired for operations during a bound connection, it is
+        # presumed schema cannot change during this interval. This
+        # provides for maximum efficiency in contexts which do need
+        # schema refreshing by only peforming the refresh inbetween
+        # logical operations that have the potential to cause a schema
+        # change.
+
+        self._schema = None
+
+    def get_syntax(self, attr):
+        # Is this a special case attribute?
+        syntax = self._SCHEMA_OVERRIDE.get(attr)
+        if syntax is not None:
+            return syntax
+
+        # Try to lookup the syntax in the schema returned by the server
+        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+        if obj is not None:
+            return obj.syntax
+        else:
+            return None
+
+    def has_dn_syntax(self, attr):
+        """
+        Check the schema to see if the attribute uses DN syntax.
+
+        Returns True/False
+        """
+        syntax = self.get_syntax(attr)
+        return syntax == DN_SYNTAX_OID
+
+
+    def encode(self, val):
+        '''
+        '''
+        # Booleans are both an instance of bool and int, therefore
+        # test for bool before int otherwise the int clause will be
+        # entered for a boolean value instead of the boolean clause.
+        if isinstance(val, bool):
+            if val:
+                return 'TRUE'
+            else:
+                return 'FALSE'
+        elif isinstance(val, (unicode, float, int, long, Decimal, DN)):
+            return value_to_utf8(val)
+        elif isinstance(val, str):
+            return val
+        elif isinstance(val, list):
+            return [self.encode(m) for m in val]
+        elif isinstance(val, tuple):
+            return tuple(self.encode(m) for m in val)
+        elif isinstance(val, dict):
+            dct = dict((self.encode(k), self.encode(v)) for k, v in val.iteritems())
+            return dct
+        elif val is None:
+            return None
+        else:
+            raise TypeError("attempt to pass unsupported type to ldap, value=%s type=%s" %(val, type(val)))
+
+    def convert_value_list(self, attr, target_type, values):
+        '''
+        '''
+
+        ipa_values = []
+
+        for original_value in values:
+            if isinstance(target_type, type) and isinstance(original_value, target_type):
+                ipa_value = original_value
+            else:
+                try:
+                    ipa_value = target_type(original_value)
+                except Exception, e:
+                    msg = 'unable to convert the attribute "%s" value "%s" to type %s' % (attr, original_value, target_type)
+                    self.log.error(msg)
+                    raise ValueError(msg)
+
+            ipa_values.append(ipa_value)
+
+        return ipa_values
+
+    def convert_result(self, result):
+        '''
+        result is a python-ldap result tuple of the form (dn, attrs),
+        where dn is a string containing the dn (distinguished name) of
+        the entry, and attrs is a dictionary containing the attributes
+        associated with the entry. The keys of attrs are strings, and
+        the associated values are lists of strings.
+
+        We convert the dn to a DN object.
+
+        We convert every value associated with an attribute according
+        to it's syntax into the desired Python type.
+
+        returns a IPA result tuple of the same form as a python-ldap
+        result tuple except everything inside of the result tuple has
+        been converted to it's preferred IPA python type.
+        '''
+
+        ipa_result = []
+        for dn_tuple in result:
+            original_dn = dn_tuple[0]
+            original_attrs = dn_tuple[1]
+
+            ipa_entry = LDAPEntry(DN(original_dn))
+
+            for attr, original_values in original_attrs.items():
+                target_type = self._SYNTAX_MAPPING.get(self.get_syntax(attr), unicode_from_utf8)
+                ipa_entry[attr] = self.convert_value_list(attr, target_type, original_values)
+
+            ipa_result.append(ipa_entry)
+
+        if _debug_log_ldap:
+            self.log.debug('ldap.result: %s', ipa_result)
+        return ipa_result
+
+    #---------- python-ldap emulations ----------
+
+    def add(self, dn, modlist):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        modlist = self.encode(modlist)
+        return self.conn.add(dn, modlist)
+
+    def add_ext(self, dn, modlist, serverctrls=None, clientctrls=None):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        modlist = self.encode(modlist)
+        return self.conn.add_ext(dn, modlist, serverctrls, clientctrls)
+
+    def add_ext_s(self, dn, modlist, serverctrls=None, clientctrls=None):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        modlist = self.encode(modlist)
+        return self.conn.add_ext_s(dn, modlist, serverctrls, clientctrls)
+
+    def add_s(self, dn, modlist):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        modlist = self.encode(modlist)
+        return self.conn.add_s(dn, modlist)
+
+    def bind(self, who, cred, method=_ldap.AUTH_SIMPLE):
+        self.flush_cached_schema()
+        if who is None:
+            who = DN()
+        assert isinstance(who, DN)
+        who = str(who)
+        cred = self.encode(cred)
+        return self.conn.bind(who, cred, method)
+
+    def delete(self, dn):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        return self.conn.delete(dn)
+
+    def delete_s(self, dn):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        return self.conn.delete_s(dn)
+
+    def get_option(self, option):
+        return self.conn.get_option(option)
+
+    def modify_s(self, dn, modlist):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        modlist = [(x[0], self.encode(x[1]), self.encode(x[2])) for x in modlist]
+        return self.conn.modify_s(dn, modlist)
+
+    def modrdn_s(self, dn, newrdn, delold=1):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        assert isinstance(newrdn, (DN, RDN))
+        newrdn = str(newrdn)
+        return self.conn.modrdn_s(dn, newrdn, delold)
+
+    def passwd_s(self, dn, oldpw, newpw, serverctrls=None, clientctrls=None):
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        oldpw = self.encode(oldpw)
+        newpw = self.encode(newpw)
+        return self.conn.passwd_s(dn, oldpw, newpw, serverctrls, clientctrls)
+
+    def rename_s(self, dn, newrdn, newsuperior=None, delold=1):
+        # NOTICE: python-ldap of version 2.3.10 and lower does not support
+        # serverctrls and clientctrls for rename_s operation. Thus, these
+        # options are ommited from this command until really needed
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        assert isinstance(newrdn, (DN, RDN))
+        newrdn = str(newrdn)
+        return self.conn.rename_s(dn, newrdn, newsuperior, delold)
+
+    def result(self, msgid=_ldap.RES_ANY, all=1, timeout=None):
+        resp_type, resp_data = self.conn.result(msgid, all, timeout)
+        resp_data = self.convert_result(resp_data)
+        return resp_type, resp_data
+
+    def sasl_interactive_bind_s(self, who, auth, serverctrls=None, clientctrls=None, sasl_flags=_ldap.SASL_QUIET):
+        self.flush_cached_schema()
+        if who is None:
+            who = DN()
+        assert isinstance(who, DN)
+        who = str(who)
+        return self.conn.sasl_interactive_bind_s(who, auth, serverctrls, clientctrls, sasl_flags)
+
+    def search(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
+        assert isinstance(base, DN)
+        base = str(base)
+        filterstr = self.encode(filterstr)
+        attrlist = self.encode(attrlist)
+        return self.conn.search(base, scope, filterstr, attrlist, attrsonly)
+
+    def search_ext(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0, serverctrls=None, clientctrls=None, timeout=-1, sizelimit=0):
+        assert isinstance(base, DN)
+        base = str(base)
+        filterstr = self.encode(filterstr)
+        attrlist = self.encode(attrlist)
+
+        if _debug_log_ldap:
+            self.log.debug(
+                "ldap.search_ext: dn: %s\nfilter: %s\nattrs_list: %s",
+                base, filterstr, attrlist)
+
+
+        return self.conn.search_ext(base, scope, filterstr, attrlist, attrsonly, serverctrls, clientctrls, timeout, sizelimit)
+
+    def search_ext_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0, serverctrls=None, clientctrls=None, timeout=-1, sizelimit=0):
+        assert isinstance(base, DN)
+        base = str(base)
+        filterstr = self.encode(filterstr)
+        attrlist = self.encode(attrlist)
+        ldap_result = self.conn.search_ext_s(base, scope, filterstr, attrlist, attrsonly, serverctrls, clientctrls, timeout, sizelimit)
+        ipa_result = self.convert_result(ldap_result)
+        return ipa_result
+
+    def search_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
+        assert isinstance(base, DN)
+        base = str(base)
+        filterstr = self.encode(filterstr)
+        attrlist = self.encode(attrlist)
+        ldap_result = self.conn.search_s(base, scope, filterstr, attrlist, attrsonly)
+        ipa_result = self.convert_result(ldap_result)
+        return ipa_result
+
+    def search_st(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0, timeout=-1):
+        assert isinstance(base, DN)
+        base = str(base)
+        filterstr = self.encode(filterstr)
+        attrlist = self.encode(attrlist)
+        ldap_result = self.conn.search_st(base, scope, filterstr, attrlist, attrsonly, timeout)
+        ipa_result = self.convert_result(ldap_result)
+        return ipa_result
+
+    def set_option(self, option, invalue):
+        return self.conn.set_option(option, invalue)
+
+    def simple_bind_s(self, who=None, cred='', serverctrls=None, clientctrls=None):
+        self.flush_cached_schema()
+        if who is None:
+            who = DN()
+        assert isinstance(who, DN)
+        who = str(who)
+        cred = self.encode(cred)
+        return self.conn.simple_bind_s(who, cred, serverctrls, clientctrls)
+
+    def start_tls_s(self):
+        return self.conn.start_tls_s()
+
+    def unbind(self):
+        self.flush_cached_schema()
+        return self.conn.unbind()
+
+    def unbind_s(self):
+        self.flush_cached_schema()
+        return self.conn.unbind_s()
 
 
 class IPAEntryLDAPObject(IPASimpleLDAPObject):
@@ -760,3 +1292,8 @@ class IPAdmin(IPAEntryLDAPObject):
         keys.sort(reverse=reverse)
 
         return map(res.get, keys)
+
+
+# FIXME: Some installer tools depend on ipaldap importing plugins.ldap2.
+# The proper plugins should rather be imported explicitly.
+import ipaserver.plugins.ldap2
