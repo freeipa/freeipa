@@ -37,11 +37,10 @@ import krbV
 import ldap as _ldap
 import ldap.filter as _ldap_filter
 
-from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN, RDN
-from ipalib.errors import NetworkError
 from ipaserver.ipaldap import (
-    SASL_AUTH, unicode_from_utf8, value_to_utf8, IPASimpleLDAPObject)
+    SASL_AUTH, unicode_from_utf8, value_to_utf8, IPASimpleLDAPObject,
+    LDAPConnection)
 
 
 try:
@@ -70,7 +69,7 @@ MEMBERS_DIRECT = 1
 MEMBERS_INDIRECT = 2
 
 
-class ldap2(CrudBackend):
+class ldap2(LDAPConnection, CrudBackend):
     """
     LDAP Backend Take 2.
     """
@@ -90,12 +89,14 @@ class ldap2(CrudBackend):
 
     def __init__(self, shared_instance=True, ldap_uri=None, base_dn=None,
                  schema=None):
-        CrudBackend.__init__(self, shared_instance=shared_instance)
-        self.log = log_mgr.get_logger(self)
         try:
-            self.ldap_uri = ldap_uri or api.env.ldap_uri
+            ldap_uri = ldap_uri or api.env.ldap_uri
         except AttributeError:
-            self.ldap_uri = 'ldap://example.com'
+            ldap_uri = 'ldap://example.com'
+
+        CrudBackend.__init__(self, shared_instance=shared_instance)
+        LDAPConnection.__init__(self, ldap_uri)
+
         try:
             if base_dn is not None:
                 self.base_dn = DN(base_dn)
@@ -114,71 +115,6 @@ class ldap2(CrudBackend):
     def _get_schema(self):
         return self.conn.schema
     schema = property(_get_schema, None, None, 'schema associated with this LDAP server')
-
-    # universal LDAPError handler
-    def handle_errors(self, e):
-        """
-        Centralize error handling in one place.
-
-        e is the error to be raised
-        """
-        if not isinstance(e, _ldap.TIMEOUT):
-            desc = e.args[0]['desc'].strip()
-            info = e.args[0].get('info', '').strip()
-        else:
-            desc = ''
-            info = ''
-
-        try:
-            # re-raise the error so we can handle it
-            raise e
-        except _ldap.NO_SUCH_OBJECT:
-            raise errors.NotFound(reason='no such entry')
-        except _ldap.ALREADY_EXISTS:
-            raise errors.DuplicateEntry()
-        except _ldap.CONSTRAINT_VIOLATION:
-            # This error gets thrown by the uniqueness plugin
-            if info.startswith('Another entry with the same attribute value already exists'):
-                raise errors.DuplicateEntry()
-            else:
-                raise errors.DatabaseError(desc=desc, info=info)
-        except _ldap.INSUFFICIENT_ACCESS:
-            raise errors.ACIError(info=info)
-        except _ldap.INVALID_CREDENTIALS:
-            raise errors.ACIError(info="%s %s" % (info, desc))
-        except _ldap.NO_SUCH_ATTRIBUTE:
-            # this is raised when a 'delete' attribute isn't found.
-            # it indicates the previous attribute was removed by another
-            # update, making the oldentry stale.
-            raise errors.MidairCollision()
-        except _ldap.INVALID_SYNTAX:
-            raise errors.InvalidSyntax(attr=info)
-        except _ldap.OBJECT_CLASS_VIOLATION:
-            raise errors.ObjectclassViolation(info=info)
-        except _ldap.ADMINLIMIT_EXCEEDED:
-            raise errors.LimitsExceeded()
-        except _ldap.SIZELIMIT_EXCEEDED:
-            raise errors.LimitsExceeded()
-        except _ldap.TIMELIMIT_EXCEEDED:
-            raise errors.LimitsExceeded()
-        except _ldap.NOT_ALLOWED_ON_RDN:
-            raise errors.NotAllowedOnRDN(attr=info)
-        except _ldap.FILTER_ERROR:
-            raise errors.BadSearchFilter(info=info)
-        except _ldap.NOT_ALLOWED_ON_NONLEAF:
-            raise errors.NotAllowedOnNonLeaf()
-        except _ldap.SERVER_DOWN:
-            raise NetworkError(uri=self.ldap_uri,
-                               error=u'LDAP Server Down')
-        except _ldap.LOCAL_ERROR:
-            raise errors.ACIError(info=info)
-        except _ldap.SUCCESS:
-            pass
-        except _ldap.LDAPError, e:
-            if 'NOT_ALLOWED_TO_DELEGATE' in info:
-                raise errors.ACIError(info="KDC returned NOT_ALLOWED_TO_DELEGATE")
-            self.info('Unhandled LDAPError: %s' % str(e))
-            raise errors.DatabaseError(desc=desc, info=info)
 
     def get_syntax(self, attr, value):
         if self.schema is None:

@@ -816,17 +816,103 @@ class Entry(LDAPEntry):
         super(Entry, self).__init__(dn, data)
 
 
-class IPAdmin(IPAEntryLDAPObject):
+class LDAPConnection(object):
+    """LDAP backend class
+
+    This class abstracts a LDAP connection, providing methods that work with
+    LADPEntries.
+
+    This class is not intended to be used directly; instead, use one of its
+    subclasses, IPAdmin or the ldap2 plugin.
+    """
+    def __init__(self, ldap_uri):
+        self.ldap_uri = ldap_uri
+        self.log = log_mgr.get_logger(self)
+
+    def handle_errors(self, e, arg_desc=None):
+        """Universal LDAPError handler
+
+        :param e: The error to be raised
+        :param url: The URL of the server
+        """
+        if not isinstance(e, _ldap.TIMEOUT):
+            desc = e.args[0]['desc'].strip()
+            info = e.args[0].get('info', '').strip()
+            if arg_desc is not None:
+                info = "%s arguments: %s" % (info, arg_desc)
+        else:
+            desc = ''
+            info = ''
+
+        try:
+            # re-raise the error so we can handle it
+            raise e
+        except _ldap.NO_SUCH_OBJECT:
+            raise errors.NotFound(reason=arg_desc or 'no such entry')
+        except _ldap.ALREADY_EXISTS:
+            raise errors.DuplicateEntry()
+        except _ldap.CONSTRAINT_VIOLATION:
+            # This error gets thrown by the uniqueness plugin
+            _msg = 'Another entry with the same attribute value already exists'
+            if info.startswith(_msg):
+                raise errors.DuplicateEntry()
+            else:
+                raise errors.DatabaseError(desc=desc, info=info)
+        except _ldap.INSUFFICIENT_ACCESS:
+            raise errors.ACIError(info=info)
+        except _ldap.INVALID_CREDENTIALS:
+            raise errors.ACIError(info="%s %s" % (info, desc))
+        except _ldap.NO_SUCH_ATTRIBUTE:
+            # this is raised when a 'delete' attribute isn't found.
+            # it indicates the previous attribute was removed by another
+            # update, making the oldentry stale.
+            raise errors.MidairCollision()
+        except _ldap.INVALID_SYNTAX:
+            raise errors.InvalidSyntax(attr=info)
+        except _ldap.OBJECT_CLASS_VIOLATION:
+            raise errors.ObjectclassViolation(info=info)
+        except _ldap.ADMINLIMIT_EXCEEDED:
+            raise errors.LimitsExceeded()
+        except _ldap.SIZELIMIT_EXCEEDED:
+            raise errors.LimitsExceeded()
+        except _ldap.TIMELIMIT_EXCEEDED:
+            raise errors.LimitsExceeded()
+        except _ldap.NOT_ALLOWED_ON_RDN:
+            raise errors.NotAllowedOnRDN(attr=info)
+        except _ldap.FILTER_ERROR:
+            raise errors.BadSearchFilter(info=info)
+        except _ldap.NOT_ALLOWED_ON_NONLEAF:
+            raise errors.NotAllowedOnNonLeaf()
+        except _ldap.SERVER_DOWN:
+            raise errors.NetworkError(uri=self.ldap_uri,
+                                      error=u'LDAP Server Down')
+        except _ldap.LOCAL_ERROR:
+            raise errors.ACIError(info=info)
+        except _ldap.SUCCESS:
+            pass
+        except _ldap.LDAPError, e:
+            if 'NOT_ALLOWED_TO_DELEGATE' in info:
+                raise errors.ACIError(
+                    info="KDC returned NOT_ALLOWED_TO_DELEGATE")
+            self.log.info('Unhandled LDAPError: %s' % str(e))
+            raise errors.DatabaseError(desc=desc, info=info)
+
+
+class IPAdmin(LDAPConnection, IPAEntryLDAPObject):
 
     def __localinit(self):
         if self.protocol == 'ldaps':
-            IPAEntryLDAPObject.__init__(self,'ldaps://%s' % format_netloc(self.host, self.port))
+            ldap_uri = 'ldaps://%s' % format_netloc(self.host, self.port)
         elif self.protocol == 'ldapi':
-            IPAEntryLDAPObject.__init__(self,'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % "-".join(self.realm.split(".")))
+            ldap_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % (
+                "-".join(self.realm.split(".")))
         elif self.protocol == 'ldap':
-            IPAEntryLDAPObject.__init__(self,'ldap://%s' % format_netloc(self.host, self.port))
+            ldap_uri = 'ldap://%s' % format_netloc(self.host, self.port)
         else:
             raise ValueError('Protocol %r not supported' % self.protocol)
+
+        LDAPConnection.__init__(self, ldap_uri)
+        IPAEntryLDAPObject.__init__(self, ldap_uri)
 
     def __guess_protocol(self):
         """Return the protocol to use based on flags passed to the constructor
@@ -913,51 +999,7 @@ class IPAdmin(IPAEntryLDAPObject):
         return sctrl
 
     def __handle_errors(self, e, **kw):
-        """
-        Centralize error handling in one place.
-
-        e is the error to be raised
-        **kw is an exception-specific list of options
-        """
-        if not isinstance(e,ldap.TIMEOUT):
-            desc = e.args[0]['desc'].strip()
-            info = e.args[0].get('info','').strip()
-            arg_desc = kw.get('arg_desc')
-            if arg_desc is not None:
-                info += " arguments: %s" % arg_desc
-        else:
-            desc = ''
-            info = ''
-
-        try:
-            # re-raise the error so we can handle it
-            raise e
-        except ldap.NO_SUCH_OBJECT, e:
-            arg_desc = kw.get('arg_desc', "entry not found")
-            raise errors.NotFound(reason=arg_desc)
-        except ldap.ALREADY_EXISTS, e:
-            raise errors.DuplicateEntry()
-        except ldap.CONSTRAINT_VIOLATION, e:
-            # This error gets thrown by the uniqueness plugin
-            if info.startswith('Another entry with the same attribute value already exists'):
-                raise errors.DuplicateEntry()
-            else:
-                raise errors.DatabaseError(desc=desc,info=info)
-        except ldap.INSUFFICIENT_ACCESS, e:
-            raise errors.ACIError(info=info)
-        except ldap.NO_SUCH_ATTRIBUTE:
-            # this is raised when a 'delete' attribute isn't found.
-            # it indicates the previous attribute was removed by another
-            # update, making the oldentry stale.
-            raise errors.MidairCollision()
-        except ldap.ADMINLIMIT_EXCEEDED, e:
-            raise errors.LimitsExceeded()
-        except ldap.SIZELIMIT_EXCEEDED, e:
-            raise errors.LimitsExceeded()
-        except ldap.TIMELIMIT_EXCEEDED, e:
-            raise errors.LimitsExceeded()
-        except ldap.LDAPError, e:
-            raise errors.DatabaseError(desc=desc,info=info)
+        return self.handle_errors(e, **kw)
 
     def __wait_for_connection(self, timeout):
         lurl = ldapurl.LDAPUrl(self.uri)
@@ -1189,7 +1231,7 @@ class IPAdmin(IPAEntryLDAPObject):
             attrlist.append(attr)
         timeout += int(time.time())
 
-        if isinstance(dn,Entry):
+        if isinstance(dn, LDAPEntry):
             dn = dn.dn
         assert isinstance(dn, DN)
 
