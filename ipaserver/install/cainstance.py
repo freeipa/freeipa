@@ -1752,7 +1752,8 @@ def replica_ca_install_check(config, master_ds_port):
     objectclass = 'ipaObject'
     root_logger.debug('Checking if IPA schema is present in %s', ca_ldap_url)
     try:
-        connection = ldap2.IPASimpleLDAPObject(ca_ldap_url)
+        connection = ldap2.IPASimpleLDAPObject(
+            ca_ldap_url, force_schema_updates=False)
         connection.start_tls_s()
         connection.simple_bind_s(DN(('cn', 'Directory Manager')),
                                 config.dirman_password)

@@ -277,19 +277,28 @@ class IPASimpleLDAPObject(object):
         'originscope':     DN_SYNTAX_OID, # DN
     })
 
-    def __init__(self, uri):
+    def __init__(self, uri, force_schema_updates):
+        """An internal LDAP connection object
+
+        :param uri: The LDAP URI to connect to
+        :param force_schema_updates:
+            If true, this object will always request a new schema from the
+            server. If false, a cached schema will be reused if it exists.
+
+            Generally, it should be true if the API context is 'installer' or
+            'updates', but it must be given explicitly since the API object
+            is not always available
+        """
         self.log = log_mgr.get_logger(self)
         self.uri = uri
         self.conn = SimpleLDAPObject(uri)
         self._schema = None
+        self._force_schema_updates = force_schema_updates
 
     def _get_schema(self):
         if self._schema is None:
-            # The schema may be updated during install or during
-            # updates, make sure we have a current version of the
-            # schema, not an out of date cached version.
-            force_update = api.env.context in ('installer', 'updates')
-            self._schema = schema_cache.get_schema(self.uri, self.conn, force_update=force_update)
+            self._schema = schema_cache.get_schema(
+                self.uri, self.conn, force_update=self._force_schema_updates)
         return self._schema
 
     schema = property(_get_schema, None, None, 'schema associated with this LDAP server')
@@ -775,7 +784,9 @@ class ldap2(CrudBackend):
             _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
 
         try:
-            conn = IPASimpleLDAPObject(self.ldap_uri)
+            force_updates = api.env.context in ('installer', 'updates')
+            conn = IPASimpleLDAPObject(
+                self.ldap_uri, force_schema_updates=force_updates)
             if self.ldap_uri.startswith('ldapi://') and ccache:
                 conn.set_option(_ldap.OPT_HOST_NAME, api.env.host)
             minssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MIN)
@@ -1409,7 +1420,8 @@ class ldap2(CrudBackend):
         # so we'll do a simple bind to validate it.
         if old_pass != '':
             try:
-                conn = IPASimpleLDAPObject(self.ldap_uri)
+                conn = IPASimpleLDAPObject(
+                    self.ldap_uri, force_schema_updates=False)
                 conn.simple_bind_s(dn, old_pass)
                 conn.unbind()
             except _ldap.LDAPError, e:

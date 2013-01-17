@@ -41,8 +41,11 @@ from ipaserver.plugins.ldap2 import IPASimpleLDAPObject
 SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
 DEFAULT_TIMEOUT = 10
 
+
 class IPAEntryLDAPObject(IPASimpleLDAPObject):
+    # FIXME: class for backwards compatibility only
     def __init__(self, *args, **kwds):
+        kwds.setdefault('force_schema_updates', True)
         IPASimpleLDAPObject.__init__(self, *args, **kwds)
 
     def result(self, msgid=ldap.RES_ANY, all=1, timeout=None):
