@@ -32,6 +32,7 @@ from decimal import Decimal
 import ldap
 import ldap as _ldap
 import ldap.sasl
+import ldap.filter
 from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
 import ldapurl
@@ -782,6 +783,16 @@ class LDAPConnection(object):
     subclasses, IPAdmin or the ldap2 plugin.
     """
 
+    # rules for generating filters from entries
+    MATCH_ANY = '|'   # (|(filter1)(filter2))
+    MATCH_ALL = '&'   # (&(filter1)(filter2))
+    MATCH_NONE = '!'  # (!(filter1)(filter2))
+
+    # search scope for find_entries()
+    SCOPE_BASE = _ldap.SCOPE_BASE
+    SCOPE_ONELEVEL = _ldap.SCOPE_ONELEVEL
+    SCOPE_SUBTREE = _ldap.SCOPE_SUBTREE
+
     def __init__(self, ldap_uri):
         self.ldap_uri = ldap_uri
         self.log = log_mgr.get_logger(self)
@@ -939,6 +950,133 @@ class LDAPConnection(object):
 
         parent_dn = self.normalize_dn(parent_dn)
         return DN((primary_key, entry_attrs[primary_key]), parent_dn)
+
+    # generating filters for find_entry
+    # some examples:
+    # f1 = ldap2.make_filter_from_attr(u'firstName', u'Pavel')
+    # f2 = ldap2.make_filter_from_attr(u'lastName', u'Zuna')
+    # f = ldap2.combine_filters([f1, f2], ldap2.MATCH_ALL)
+    # # f should be (&(firstName=Pavel)(lastName=Zuna))
+    # # it should be equivalent to:
+    # entry_attrs = {u'firstName': u'Pavel', u'lastName': u'Zuna'}
+    # f = ldap2.make_filter(entry_attrs, rules=ldap2.MATCH_ALL)
+
+    def combine_filters(self, filters, rules='|'):
+        """
+        Combine filters into one for ldap2.find_entries.
+
+        Keyword arguments:
+        rules -- see ldap2.make_filter
+        """
+
+        assert isinstance(filters, (list, tuple))
+
+        filters = [f for f in filters if f]
+        if filters and rules == self.MATCH_NONE:  # unary operator
+            return '(%s%s)' % (self.MATCH_NONE,
+                               self.combine_filters(filters, self.MATCH_ANY))
+
+        if len(filters) > 1:
+            flt = '(%s' % rules
+        else:
+            flt = ''
+        for f in filters:
+            if not f.startswith('('):
+                f = '(%s)' % f
+            flt = '%s%s' % (flt, f)
+        if len(filters) > 1:
+            flt = '%s)' % flt
+        return flt
+
+    def make_filter_from_attr(
+            self, attr, value, rules='|', exact=True,
+            leading_wildcard=True, trailing_wildcard=True):
+        """
+        Make filter for ldap2.find_entries from attribute.
+
+        Keyword arguments:
+        rules -- see ldap2.make_filter
+        exact -- boolean, True - make filter as (attr=value)
+                          False - make filter as (attr=*value*)
+        leading_wildcard -- boolean:
+            True - allow heading filter wildcard when exact=False
+            False - forbid heading filter wildcard when exact=False
+        trailing_wildcard -- boolean:
+            True - allow trailing filter wildcard when exact=False
+            False - forbid trailing filter wildcard when exact=False
+        """
+        if isinstance(value, (list, tuple)):
+            if rules == self.MATCH_NONE:
+                make_filter_rules = self.MATCH_ANY
+            else:
+                make_filter_rules = rules
+            flts = [
+                self.make_filter_from_attr(
+                    attr, v, exact=exact,
+                    leading_wildcard=leading_wildcard,
+                    trailing_wildcard=trailing_wildcard)
+                for v in value
+            ]
+            return self.combine_filters(flts, rules)
+        elif value is not None:
+            value = ldap.filter.escape_filter_chars(value_to_utf8(value))
+            if not exact:
+                template = '%s'
+                if leading_wildcard:
+                    template = '*' + template
+                if trailing_wildcard:
+                    template = template + '*'
+                value = template % value
+            if rules == self.MATCH_NONE:
+                return '(!(%s=%s))' % (attr, value)
+            return '(%s=%s)' % (attr, value)
+        return ''
+
+    def make_filter(
+            self, entry_attrs, attrs_list=None, rules='|', exact=True,
+            leading_wildcard=True, trailing_wildcard=True):
+        """
+        Make filter for ldap2.find_entries from entry attributes.
+
+        Keyword arguments:
+        attrs_list -- list of attributes to use, all if None (default None)
+        rules -- specifies how to determine a match (default ldap2.MATCH_ANY)
+        exact -- boolean, True - make filter as (attr=value)
+                          False - make filter as (attr=*value*)
+        leading_wildcard -- boolean:
+            True - allow heading filter wildcard when exact=False
+            False - forbid heading filter wildcard when exact=False
+        trailing_wildcard -- boolean:
+            True - allow trailing filter wildcard when exact=False
+            False - forbid trailing filter wildcard when exact=False
+
+        rules can be one of the following:
+        ldap2.MATCH_NONE - match entries that do not match any attribute
+        ldap2.MATCH_ALL - match entries that match all attributes
+        ldap2.MATCH_ANY - match entries that match any of attribute
+        """
+        if rules == self.MATCH_NONE:
+            make_filter_rules = self.MATCH_ANY
+        else:
+            make_filter_rules = rules
+        flts = []
+        if attrs_list is None:
+            for (k, v) in entry_attrs.iteritems():
+                flts.append(
+                    self.make_filter_from_attr(
+                        k, v, make_filter_rules, exact,
+                        leading_wildcard, trailing_wildcard)
+                )
+        else:
+            for a in attrs_list:
+                value = entry_attrs.get(a, None)
+                if value is not None:
+                    flts.append(
+                        self.make_filter_from_attr(
+                            a, value, make_filter_rules, exact,
+                            leading_wildcard, trailing_wildcard)
+                    )
+        return self.combine_filters(flts, rules)
 
 
 class IPAdmin(LDAPConnection):
