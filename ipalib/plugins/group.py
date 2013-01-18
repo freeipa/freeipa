@@ -384,11 +384,12 @@ class group_add_member(LDAPAddMember):
                 if domain_validator.is_trusted_sid_valid(sid):
                     sids.append(sid)
                 else:
-                    actual_sid = domain_validator.get_sid_trusted_domain_object(sid)
-                    if isinstance(actual_sid, unicode):
-                        sids.append(actual_sid)
+                    try:
+                        actual_sid = domain_validator.get_trusted_domain_object_sid(sid)
+                    except errors.PublicError, e:
+                        failed_sids.append((sid, unicode(e)))
                     else:
-                        failed_sids.append((sid, 'Not a trusted domain SID'))
+                        sids.append(actual_sid)
             if len(sids) == 0:
                 raise errors.ValidationError(name=_('external member'),
                                              error=_('values are not recognized as valid SIDs from trusted domain'))
