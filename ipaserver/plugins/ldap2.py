@@ -56,8 +56,6 @@ except ImportError:
     class GetEffectiveRightsControl(LDAPControl):
         def __init__(self, criticality, authzId=None):
             LDAPControl.__init__(self, '1.3.6.1.4.1.42.2.27.9.5.2', criticality, authzId)
-# for backward compatibility
-from ipalib import _
 
 from ipalib import api, errors
 from ipalib.crud import CrudBackend
@@ -105,54 +103,17 @@ class ldap2(LDAPConnection, CrudBackend):
         except AttributeError:
             self.base_dn = DN()
 
+    def _init_connection(self):
+        # Connectible.conn is a proxy to thread-local storage;
+        # do not set it
+        pass
+
     def __del__(self):
         if self.isconnected():
             self.disconnect()
 
     def __str__(self):
         return self.ldap_uri
-
-    def _get_schema(self):
-        return self.conn.schema
-    schema = property(_get_schema, None, None, 'schema associated with this LDAP server')
-
-    def get_syntax(self, attr, value):
-        if self.schema is None:
-            return None
-        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
-        if obj is not None:
-            return obj.syntax
-        else:
-            return None
-
-    def has_dn_syntax(self, attr):
-        return self.conn.has_dn_syntax(attr)
-
-    def get_allowed_attributes(self, objectclasses, raise_on_unknown=False):
-        if self.schema is None:
-            return None
-        allowed_attributes = []
-        for oc in objectclasses:
-            obj = self.schema.get_obj(_ldap.schema.ObjectClass, oc)
-            if obj is not None:
-                allowed_attributes += obj.must + obj.may
-            elif raise_on_unknown:
-                raise errors.NotFound(reason=_('objectclass %s not found') % oc)
-        return [unicode(a).lower() for a in list(set(allowed_attributes))]
-
-    def get_single_value(self, attr):
-        """
-        Check the schema to see if the attribute is single-valued.
-
-        If the attribute is in the schema then returns True/False
-
-        If there is a problem loading the schema or the attribute is
-        not in the schema return None
-        """
-        if self.schema is None:
-            return None
-        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
-        return obj and obj.single_value
 
     def create_connection(self, ccache=None, bind_dn=None, bind_pw='',
             tls_cacertfile=None, tls_certfile=None, tls_keyfile=None,

@@ -36,7 +36,7 @@ from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
 import ldapurl
 
-from ipalib import errors
+from ipalib import errors, _
 from ipapython import ipautil
 from ipapython.ipautil import (
     format_netloc, wait_for_open_socket, wait_for_open_ports, CIDict)
@@ -781,9 +781,14 @@ class LDAPConnection(object):
     This class is not intended to be used directly; instead, use one of its
     subclasses, IPAdmin or the ldap2 plugin.
     """
+
     def __init__(self, ldap_uri):
         self.ldap_uri = ldap_uri
         self.log = log_mgr.get_logger(self)
+        self._init_connection()
+
+    def _init_connection(self):
+        self.conn = None
 
     def handle_errors(self, e, arg_desc=None):
         """Universal LDAPError handler
@@ -852,6 +857,50 @@ class LDAPConnection(object):
                     info="KDC returned NOT_ALLOWED_TO_DELEGATE")
             self.log.info('Unhandled LDAPError: %s' % str(e))
             raise errors.DatabaseError(desc=desc, info=info)
+
+    @property
+    def schema(self):
+        """schema associated with this LDAP server"""
+        return self.conn.schema
+
+    def get_syntax(self, attr, value):
+        if self.schema is None:
+            return None
+        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+        if obj is not None:
+            return obj.syntax
+        else:
+            return None
+
+    def has_dn_syntax(self, attr):
+        return self.conn.has_dn_syntax(attr)
+
+    def get_allowed_attributes(self, objectclasses, raise_on_unknown=False):
+        if self.schema is None:
+            return None
+        allowed_attributes = []
+        for oc in objectclasses:
+            obj = self.schema.get_obj(_ldap.schema.ObjectClass, oc)
+            if obj is not None:
+                allowed_attributes += obj.must + obj.may
+            elif raise_on_unknown:
+                raise errors.NotFound(
+                    reason=_('objectclass %s not found') % oc)
+        return [unicode(a).lower() for a in list(set(allowed_attributes))]
+
+    def get_single_value(self, attr):
+        """
+        Check the schema to see if the attribute is single-valued.
+
+        If the attribute is in the schema then returns True/False
+
+        If there is a problem loading the schema or the attribute is
+        not in the schema return None
+        """
+        if self.schema is None:
+            return None
+        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+        return obj and obj.single_value
 
 
 class IPAdmin(LDAPConnection):
@@ -1240,18 +1289,6 @@ class IPAdmin(LDAPConnection):
             if dowait: time.sleep(1)
             else: break
         return (done, exitCode)
-
-    def get_single_value(self, attr):
-        """
-        Check the schema to see if the attribute is single-valued.
-
-        If the attribute is in the schema then returns True/False
-
-        If there is a problem loading the schema or the attribute is
-        not in the schema return None
-        """
-        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
-        return obj and obj.single_value
 
     def get_dns_sorted_by_length(self, entries, reverse=False):
         """
