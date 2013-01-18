@@ -1651,60 +1651,34 @@ class IPAdmin(LDAPConnection):
         self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, None, auth_tokens)
         self.__lateinit()
 
-    def getEntry(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
-        """This wraps the search function.  It is common to just get one entry"""
+    def getEntry(self, base, scope, filterstr='(objectClass=*)',
+                 attrlist=None):
+        # FIXME: for backwards compatibility only
+        result, truncated = self.find_entries(
+            filter=filterstr,
+            attrs_list=attrlist,
+            base_dn=base,
+            scope=scope,
+        )
+        return result[0]
 
-        try:
-            res = self.search(base, scope, filterstr, attrlist, attrsonly)
-            objtype, obj = self.result(res)
-        except ldap.LDAPError, e:
-            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
-            self.__handle_errors(e, arg_desc=arg_desc)
-
-        if not obj:
-            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
-            raise errors.NotFound(reason=arg_desc)
-
-        elif isinstance(obj,Entry):
-            return obj
-        else: # assume list/tuple
-            return obj[0]
-
-    def getList(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
-        """This wraps the search function to find multiple entries."""
-
-        try:
-            res = self.search(base, scope, filterstr, attrlist, attrsonly)
-            objtype, obj = self.result(res)
-        except ldap.LDAPError, e:
-            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
-            self.__handle_errors(e, arg_desc=arg_desc)
-
-        if not obj:
-            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
-            raise errors.NotFound(reason=arg_desc)
-
-        entries = []
-        for s in obj:
-            entries.append(s)
-
-        return entries
+    def getList(self, base, scope, filterstr='(objectClass=*)', attrlist=None):
+        # FIXME: for backwards compatibility only
+        result, truncated = self.find_entries(
+            filter=filterstr,
+            attrs_list=attrlist,
+            base_dn=base,
+            scope=scope,
+        )
+        return result
 
     def addEntry(self, entry):
-        """This wraps the add function. It assumes that the entry is already
-           populated with all of the desired objectclasses and attributes"""
-
-        if not isinstance(entry, Entry):
-            raise TypeError('addEntry expected an Entry object, got %s instead' % entry.__class__)
-
-        try:
-            self.add_s(entry.dn, entry.toTupleList())
-        except ldap.LDAPError, e:
-            arg_desc = 'entry=%s: %s' % (entry.dn, entry.toTupleList())
-            self.__handle_errors(e, arg_desc=arg_desc)
+        # FIXME: for backwards compatibility only
+        self.add_entry(entry.dn, entry)
         return True
 
     def updateEntry(self,dn,oldentry,newentry):
+        # FIXME: for backwards compatibility only
         """This wraps the mod function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
 
@@ -1722,6 +1696,7 @@ class IPAdmin(LDAPConnection):
         return True
 
     def generateModList(self, old_entry, new_entry):
+        # FIXME: for backwards compatibility only
         """A mod list generator that computes more precise modification lists
            than the python-ldap version.  For single-value attributes always
            use a REPLACE operation, otherwise use ADD/DEL.
@@ -1802,15 +1777,8 @@ class IPAdmin(LDAPConnection):
         return True
 
     def deleteEntry(self, dn):
-        """This wraps the delete function. Use with caution."""
-
-        assert isinstance(dn, DN)
-
-        try:
-            self.delete_s(dn)
-        except ldap.LDAPError, e:
-            arg_desc = 'dn=%s' % (dn)
-            self.__handle_errors(e, arg_desc=arg_desc)
+        # FIXME: for backwards compatibility only
+        self.delete_entry(dn)
         return True
 
     def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
