@@ -390,9 +390,6 @@ class group_add_member(LDAPAddMember):
                         failed_sids.append((sid, unicode(e)))
                     else:
                         sids.append(actual_sid)
-            if len(sids) == 0:
-                raise errors.ValidationError(name=_('external member'),
-                                             error=_('values are not recognized as valid SIDs from trusted domain'))
             restore = []
             if 'member' in failed and 'group' in failed['member']:
                 restore = failed['member']['group']
