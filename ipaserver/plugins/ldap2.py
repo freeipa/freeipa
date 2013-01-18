@@ -204,8 +204,8 @@ class ldap2(LDAPConnection, CrudBackend):
         Normalize distinguished name by assuring it ends with
         the base_dn.
 
-        Note: You don't have to normalize DN's before passing them to
-              ldap2 methods. It's done internally for you.
+        Note: ldap2 methods normalize DNs internally, but relying on this is
+            not recommended.
         """
 
         assert isinstance(dn, DN)
@@ -217,40 +217,6 @@ class ldap2(LDAPConnection, CrudBackend):
             dn = dn + self.base_dn
 
         return dn
-
-    def make_dn_from_attr(self, attr, value, parent_dn=None):
-        """
-        Make distinguished name from attribute.
-
-        Keyword arguments:
-        parent_dn -- DN of the parent entry (default '')
-        """
-        if parent_dn is None:
-            parent_dn = DN()
-        assert isinstance(parent_dn, DN)
-        parent_dn = self.normalize_dn(parent_dn)
-
-        if isinstance(value, (list, tuple)):
-            value = value[0]
-
-        return DN((attr, value), parent_dn)
-
-    def make_dn(self, entry_attrs, primary_key='cn', parent_dn=None):
-        """
-        Make distinguished name from entry attributes.
-
-        Keyword arguments:
-        primary_key -- attribute from which to make RDN (default 'cn')
-        parent_dn -- DN of the parent entry (default '')
-        """
-
-        assert primary_key in entry_attrs
-
-        if parent_dn is None:
-            parent_dn = DN()
-
-        parent_dn = self.normalize_dn(parent_dn)
-        return DN((primary_key, entry_attrs[primary_key]), parent_dn)
 
     def add_entry(self, dn, entry_attrs, normalize=True):
         """Create a new entry."""

@@ -902,6 +902,44 @@ class LDAPConnection(object):
         obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
         return obj and obj.single_value
 
+    def normalize_dn(self, dn):
+        """Override to normalize all DNs passed to LDAPConnection methods"""
+        assert isinstance(dn, DN)
+        return dn
+
+    def make_dn_from_attr(self, attr, value, parent_dn=None):
+        """
+        Make distinguished name from attribute.
+
+        Keyword arguments:
+        parent_dn -- DN of the parent entry (default '')
+        """
+        if parent_dn is None:
+            parent_dn = DN()
+        parent_dn = self.normalize_dn(parent_dn)
+
+        if isinstance(value, (list, tuple)):
+            value = value[0]
+
+        return DN((attr, value), parent_dn)
+
+    def make_dn(self, entry_attrs, primary_key='cn', parent_dn=None):
+        """
+        Make distinguished name from entry attributes.
+
+        Keyword arguments:
+        primary_key -- attribute from which to make RDN (default 'cn')
+        parent_dn -- DN of the parent entry (default '')
+        """
+
+        assert primary_key in entry_attrs
+
+        if parent_dn is None:
+            parent_dn = DN()
+
+        parent_dn = self.normalize_dn(parent_dn)
+        return DN((primary_key, entry_attrs[primary_key]), parent_dn)
+
 
 class IPAdmin(LDAPConnection):
 
