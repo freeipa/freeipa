@@ -17,11 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, errors, output
+from ipalib import api, errors, output, util
 from ipalib import Command, Str, Flag, Int
 from types import NoneType
 from ipalib.cli import to_cli
 from ipalib import _, ngettext
+from ipapython.dn import DN
+if api.env.in_server and api.env.context in ['lite', 'server']:
+    try:
+        import ipaserver.dcerpc
+        _dcerpc_bindings_installed = True
+    except ImportError:
+        _dcerpc_bindings_installed = False
+
 import pyhbac
 
 __doc__ = _("""
@@ -129,6 +137,74 @@ EXAMPLES:
       notmatched: new-rule
       matched: allow_all
 
+
+HBACTEST AND TRUSTED DOMAINS
+
+When an external trusted domain is configured in IPA, HBAC rules are also applied
+on users accessing IPA resources from the trusted domain. Trusted domain users and
+groups (and their SIDs) can be then assigned to external groups which can be
+members of POSIX groups in IPA which can be used in HBAC rules and thus allowing
+access to resources protected by the HBAC system.
+
+hbactest plugin is capable of testing access for both local IPA users and users
+from the trusted domains, either by a fully qualified user name or by user SID.
+Such user names need to have a trusted domain specified as a short name
+(DOMAIN\Administrator) or with a user principal name (UPN), Administrator@ad.test.
+
+Please note that hbactest executed with a trusted domain user as --user parameter
+can be only run by members of "trust admins" group.
+
+EXAMPLES:
+
+    1. Test if a user from a trusted domain specified by its shortname matches any
+       rule:
+
+    $ ipa hbactest --user 'DOMAIN\Administrator' --host `hostname` --service sshd
+    --------------------
+    Access granted: True
+    --------------------
+      Matched rules: allow_all
+      Matched rules: can_login
+
+    2. Test if a user from a trusted domain specified by its domain name matches
+       any rule:
+
+    $ ipa hbactest --user 'Administrator@domain.com' --host `hostname` --service sshd
+    --------------------
+    Access granted: True
+    --------------------
+      Matched rules: allow_all
+      Matched rules: can_login
+
+    3. Test if a user from a trusted domain specified by its SID matches any rule:
+
+    $ ipa hbactest --user S-1-5-21-3035198329-144811719-1378114514-500 \\
+            --host `hostname` --service sshd
+    --------------------
+    Access granted: True
+    --------------------
+      Matched rules: allow_all
+      Matched rules: can_login
+
+    4. Test if other user from a trusted domain specified by its SID matches any rule:
+
+    $ ipa hbactest --user S-1-5-21-3035198329-144811719-1378114514-500 \\
+            --host `hostname` --service sshd
+    --------------------
+    Access granted: True
+    --------------------
+      Matched rules: allow_all
+      Matched rules: can_login
+
+   5. Test if other user from a trusted domain specified by its shortname matches
+       any rule:
+
+    $ ipa hbactest --user 'DOMAIN\Otheruser' --host `hostname` --service sshd
+    --------------------
+    Access granted: True
+    --------------------
+      Matched rules: allow_all
+      Not matched rules: can_login
 """)
 
 def convert_to_ipa_rule(rule):
@@ -298,15 +374,60 @@ class hbactest(Command):
         request = pyhbac.HbacRequest()
 
         if options['user'] != u'all':
-            try:
-                request.user.name = options['user']
-                search_result = self.api.Command.user_show(request.user.name)['result']
-                groups = search_result['memberof_group']
-                if 'memberofindirect_group' in search_result:
-                    groups += search_result['memberofindirect_group']
-                request.user.groups = sorted(set(groups))
-            except:
-                pass
+            # check first if this is not a trusted domain user
+            if _dcerpc_bindings_installed:
+                is_valid_sid = ipaserver.dcerpc.is_sid_valid(options['user'])
+            else:
+                is_valid_sid = False
+            components = util.normalize_name(options['user'])
+            if is_valid_sid or 'domain' in components or 'flatname' in components:
+                # this is a trusted domain user
+                if not _dcerpc_bindings_installed:
+                    raise errors.NotFound(reason=_(
+                        'Cannot perform external member validation without '
+                        'Samba 4 support installed. Make sure you have installed '
+                        'server-trust-ad sub-package of IPA on the server'))
+                domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+                if not domain_validator.is_configured():
+                    raise errors.NotFound(reason=_(
+                        'Cannot search in trusted domains without own domain configured. '
+                        'Make sure you have run ipa-adtrust-install on the IPA server first'))
+                user_sid, group_sids = domain_validator.get_trusted_domain_user_and_groups(options['user'])
+                request.user.name = user_sid
+
+                # Now search for all external groups that have this user or
+                # any of its groups in its external members. Found entires
+                # memberOf links will be then used to gather all groups where
+                # this group is assigned, including the nested ones
+                filter_sids = "(&(objectclass=ipaexternalgroup)(|(ipaExternalMember=%s)))" \
+                        % ")(ipaExternalMember=".join(group_sids + [user_sid])
+
+                ldap = self.api.Backend.ldap2
+                group_container = DN(api.env.container_group, api.env.basedn)
+                try:
+                    entries, truncated = ldap.find_entries(filter_sids, ['cn', 'memberOf'], group_container)
+                except errors.NotFound:
+                    request.user.groups = []
+                else:
+                    groups = []
+                    for dn, entry in entries:
+                        memberof_dns = entry.get('memberof', [])
+                        for memberof_dn in memberof_dns:
+                            if memberof_dn.endswith(group_container):
+                                # this is a group object
+                                groups.append(memberof_dn[0][0].value)
+                    request.user.groups = sorted(set(groups))
+            else:
+                # try searching for a local user
+                try:
+                    request.user.name = options['user']
+                    search_result = self.api.Command.user_show(request.user.name)['result']
+                    groups = search_result['memberof_group']
+                    if 'memberofindirect_group' in search_result:
+                        groups += search_result['memberofindirect_group']
+                    request.user.groups = sorted(set(groups))
+                except:
+                    pass
 
         if options['service'] != u'all':
             try:
