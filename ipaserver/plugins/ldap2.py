@@ -29,16 +29,14 @@ Backend plugin for LDAP.
 
 import copy
 import os
-import time
 import re
 import pwd
 
 import krbV
 import ldap as _ldap
 
-from ipapython.dn import DN, RDN
-from ipaserver.ipaldap import (
-    SASL_AUTH, unicode_from_utf8, IPASimpleLDAPObject, LDAPConnection)
+from ipapython.dn import DN
+from ipaserver.ipaldap import SASL_AUTH, IPASimpleLDAPObject, LDAPConnection
 
 
 try:
@@ -64,9 +62,6 @@ class ldap2(LDAPConnection, CrudBackend):
     """
     LDAP Backend Take 2.
     """
-    # attributes in this list cannot be deleted by update_entry
-    # only MOD_REPLACE operations are generated for them
-    _FORCE_REPLACE_ON_UPDATE_ATTRS = []
 
     def __init__(self, shared_instance=True, ldap_uri=None, base_dn=None,
                  schema=None):
@@ -203,24 +198,6 @@ class ldap2(LDAPConnection, CrudBackend):
             dn = dn + self.base_dn
 
         return dn
-
-    def add_entry(self, dn, entry_attrs, normalize=True):
-        """Create a new entry."""
-
-        assert isinstance(dn, DN)
-
-        if normalize:
-            dn = self.normalize_dn(dn)
-        # remove all None or [] values, python-ldap hates'em
-        entry_attrs = dict(
-            # FIXME, shouldn't these values be an error?
-            (k, v) for (k, v) in entry_attrs.iteritems()
-            if v is not None and v != []
-        )
-        try:
-            self.conn.add_s(dn, list(entry_attrs.iteritems()))
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
 
     config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
     def get_ipa_config(self, attrs_list=None):
@@ -359,123 +336,6 @@ class ldap2(LDAPConnection, CrudBackend):
                 return True
 
         return False
-
-    def update_entry_rdn(self, dn, new_rdn, del_old=True):
-        """
-        Update entry's relative distinguished name.
-
-        Keyword arguments:
-        del_old -- delete old RDN value (default True)
-        """
-
-        assert isinstance(dn, DN)
-        assert isinstance(new_rdn, RDN)
-
-        dn = self.normalize_dn(dn)
-        if dn[0] == new_rdn:
-            raise errors.EmptyModlist()
-        try:
-            self.conn.rename_s(dn, new_rdn, delold=int(del_old))
-            time.sleep(.3) # Give memberOf plugin a chance to work
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
-
-    def _generate_modlist(self, dn, entry_attrs, normalize):
-        assert isinstance(dn, DN)
-
-        # get original entry
-        (dn, entry_attrs_old) = self.get_entry(dn, entry_attrs.keys(), normalize=normalize)
-
-        # generate modlist
-        # for multi value attributes: no MOD_REPLACE to handle simultaneous
-        # updates better
-        # for single value attribute: always MOD_REPLACE
-        modlist = []
-        for (k, v) in entry_attrs.iteritems():
-            if v is None and k in entry_attrs_old:
-                modlist.append((_ldap.MOD_DELETE, k, None))
-            else:
-                if not isinstance(v, (list, tuple)):
-                    v = [v]
-                v = set(filter(lambda value: value is not None, v))
-                old_v = set(entry_attrs_old.get(k.lower(), []))
-
-                # FIXME: Convert all values to either unicode, DN or str
-                # before detecting value changes (see IPASimpleLDAPObject for
-                # supported types).
-                # This conversion will set a common ground for the comparison.
-                #
-                # This fix can be removed when ticket 2265 is fixed and our
-                # encoded entry_attrs' types will match get_entry result
-                try:
-                    v = set(unicode_from_utf8(self.conn.encode(value))
-                        if not isinstance(value, (DN, str, unicode))
-                        else value for value in v)
-                except Exception, e:
-                    # Rather let the value slip in modlist than let ldap2 crash
-                    self.log.error(
-                        "Cannot convert attribute '%s' for modlist "
-                        "for modlist comparison: %s", k, e)
-
-                adds = list(v.difference(old_v))
-                rems = list(old_v.difference(v))
-
-                is_single_value = self.get_single_value(k)
-
-                value_count = len(old_v) + len(adds) - len(rems)
-                if is_single_value and value_count > 1:
-                    raise errors.OnlyOneValueAllowed(attr=k)
-
-                force_replace = False
-                if k in self._FORCE_REPLACE_ON_UPDATE_ATTRS or is_single_value:
-                    force_replace = True
-                elif len(v) > 0 and len(v.intersection(old_v)) == 0:
-                    force_replace = True
-
-                if adds:
-                    if force_replace:
-                        modlist.append((_ldap.MOD_REPLACE, k, adds))
-                    else:
-                        modlist.append((_ldap.MOD_ADD, k, adds))
-                if rems:
-                    if not force_replace:
-                        modlist.append((_ldap.MOD_DELETE, k, rems))
-
-        return modlist
-
-    def update_entry(self, dn, entry_attrs, normalize=True):
-        """
-        Update entry's attributes.
-
-        An attribute value set to None deletes all current values.
-        """
-
-        assert isinstance(dn, DN)
-        if normalize:
-            dn = self.normalize_dn(dn)
-
-        # generate modlist
-        modlist = self._generate_modlist(dn, entry_attrs, normalize)
-        if not modlist:
-            raise errors.EmptyModlist()
-
-        # pass arguments to python-ldap
-        try:
-            self.conn.modify_s(dn, modlist)
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
-
-    def delete_entry(self, dn, normalize=True):
-        """Delete entry."""
-
-        assert isinstance(dn, DN)
-        if normalize:
-            dn = self.normalize_dn(dn)
-
-        try:
-            self.conn.delete_s(dn)
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
 
     def modify_password(self, dn, new_pass, old_pass=''):
         """Set user password."""
