@@ -416,12 +416,11 @@ class ADTRUSTInstance(service.Service):
         targets_dn = DN(('cn', 'ipa-cifs-delegation-targets'), ('cn', 's4u2proxy'),
                         ('cn', 'etc'), self.suffix)
         try:
-            targets = self.admin_conn.getEntry(targets_dn, ldap.SCOPE_BASE)
-            current = self.admin_conn.make_entry(targets_dn, targets.toDict())
-            members = current.getValues('memberPrincipal') or []
+            current = self.admin_conn.get_entry(targets_dn)
+            members = current.get('memberPrincipal', [])
             if not(self.cifs_principal in members):
-                current.setValues("memberPrincipal", members + [self.cifs_principal])
-                self.admin_conn.updateEntry(targets_dn, targets.toDict(), current.toDict())
+                current["memberPrincipal"] = members + [self.cifs_principal]
+                self.admin_conn.update_entry(targets_dn, current)
             else:
                 self.print_msg('cifs principal already targeted, nothing to do.')
         except errors.NotFound:
@@ -448,12 +447,11 @@ class ADTRUSTInstance(service.Service):
             # as 389-ds only operates with GroupOfNames, we have to use
             # the principal's proper dn as defined in self.cifs_agent
             try:
-                entry = self.admin_conn.getEntry(self.smb_dn, ldap.SCOPE_BASE)
-                current = self.admin_conn.make_entry(self.smb_dn, entry.toDict())
-                members = current.getValues('member') or []
+                current = self.admin_conn.get_entry(self.smb_dn)
+                members = current.get('member', [])
                 if not(self.cifs_agent in members):
-                    current.setValues("member", members + [self.cifs_agent])
-                    self.admin_conn.updateEntry(self.smb_dn, entry.toDict(), current.toDict())
+                    current["member"] = members + [self.cifs_agent]
+                    self.admin_conn.update_entry(self.smb_dn, current)
             except errors.NotFound:
                 entry = self.admin_conn.make_entry(
                     self.smb_dn,
