@@ -108,22 +108,31 @@ class KrbInstance(service.Service):
         self.admin_conn.deleteEntry(service_dn)
 
         # Create a host entry for this master
-        host_dn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
-        host_entry = self.admin_conn.make_entry(host_dn)
-        host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux', 'ipasshhost'])
-        host_entry.setValues('krbextradata', service_entry.getValues('krbextradata'))
-        host_entry.setValue('krblastpwdchange', service_entry.getValue('krblastpwdchange'))
+        host_dn = DN(
+            ('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'),
+            self.suffix)
+        host_entry = self.admin_conn.make_entry(
+            host_dn,
+            objectclass=[
+               'top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice',
+               'pkiuser', 'krbprincipalaux', 'krbprincipal',
+               'krbticketpolicyaux', 'ipasshhost'],
+            krbextradata=service_entry['krbextradata'],
+            krblastpwdchange=service_entry['krblastpwdchange'],
+            krbprincipalname=service_entry['krbprincipalname'],
+            krbprincipalkey=service_entry['krbprincipalkey'],
+            serverhostname=[self.fqdn.split('.',1)[0]],
+            cn=[self.fqdn],
+            fqdn=[self.fqdn],
+            ipauniqueid=['autogenerate'],
+            managedby=[host_dn],
+        )
         if 'krbpasswordexpiration' in service_entry.toDict():
-            host_entry.setValue('krbpasswordexpiration', service_entry.getValue('krbpasswordexpiration'))
-        host_entry.setValue('krbprincipalname', service_entry.getValue('krbprincipalname'))
+            host_entry['krbpasswordexpiration'] = [
+                service_entry.getValue('krbpasswordexpiration')]
         if 'krbticketflags' in service_entry.toDict():
-            host_entry.setValue('krbticketflags', service_entry.getValue('krbticketflags'))
-        host_entry.setValue('krbprincipalkey', service_entry.getValue('krbprincipalkey'))
-        host_entry.setValue('serverhostname', self.fqdn.split('.',1)[0])
-        host_entry.setValue('cn', self.fqdn)
-        host_entry.setValue('fqdn', self.fqdn)
-        host_entry.setValue('ipauniqueid', 'autogenerate')
-        host_entry.setValue('managedby', host_dn)
+            host_entry['krbticketflags'] = [
+                service_entry.getValue('krbticketflags')]
         self.admin_conn.addEntry(host_entry)
 
     def __common_setup(self, realm_name, host_name, domain_name, admin_password):
@@ -264,31 +273,30 @@ class KrbInstance(service.Service):
             root_logger.critical("Error while enumerating SASL mappings %s" % str(e))
             raise e
 
-        entry = self.admin_conn.make_entry(DN(('cn', 'Full Principal'), ('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')))
-        entry.setValues("objectclass", "top", "nsSaslMapping")
-        entry.setValues("cn", "Full Principal")
-        entry.setValues("nsSaslMapRegexString", '\(.*\)@\(.*\)')
-        entry.setValues("nsSaslMapBaseDNTemplate", self.suffix)
-        entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=\\1@\\2)')
+        entry = self.admin_conn.make_entry(
+            DN(
+                ('cn', 'Full Principal'), ('cn', 'mapping'), ('cn', 'sasl'),
+                ('cn', 'config')),
+            objectclass=["top", "nsSaslMapping"],
+            cn=["Full Principal"],
+            nsSaslMapRegexString=['\(.*\)@\(.*\)'],
+            nsSaslMapBaseDNTemplate=[self.suffix],
+            nsSaslMapFilterTemplate=['(krbPrincipalName=\\1@\\2)'],
+        )
+        self.admin_conn.addEntry(entry)
 
-        try:
-            self.admin_conn.addEntry(entry)
-        except ldap.ALREADY_EXISTS:
-            root_logger.critical("failed to add Full Principal Sasl mapping")
-            raise e
-
-        entry = self.admin_conn.make_entry(DN(('cn', 'Name Only'), ('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')))
-        entry.setValues("objectclass", "top", "nsSaslMapping")
-        entry.setValues("cn", "Name Only")
-        entry.setValues("nsSaslMapRegexString", '^[^:@]+$')
-        entry.setValues("nsSaslMapBaseDNTemplate", self.suffix)
-        entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=&@%s)' % self.realm)
-
-        try:
-            self.admin_conn.addEntry(entry)
-        except ldap.ALREADY_EXISTS:
-            root_logger.critical("failed to add Name Only Sasl mapping")
-            raise e
+        entry = self.admin_conn.make_entry(
+            DN(
+                ('cn', 'Name Only'), ('cn', 'mapping'), ('cn', 'sasl'),
+                ('cn', 'config')),
+            objectclass=["top", "nsSaslMapping"],
+            cn=["Name Only"],
+            nsSaslMapRegexString=['^[^:@]+$'],
+            nsSaslMapBaseDNTemplate=[self.suffix],
+            nsSaslMapFilterTemplate=[
+                '(krbPrincipalName=&@%s)' % self.realm],
+        )
+        self.admin_conn.addEntry(entry)
 
     def __add_krb_container(self):
         self._ldap_mod("kerberos.ldif", self.sub_dict)

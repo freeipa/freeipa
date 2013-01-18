@@ -120,7 +120,7 @@ class Service(object):
                 conn.do_sasl_gssapi_bind()
         except Exception, e:
             root_logger.debug("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
-            raise e
+            raise
 
         self.admin_conn = conn
 
@@ -216,11 +216,15 @@ class Service(object):
 
         dn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
-        entry = self.admin_conn.make_entry(dn)
-        entry.setValues("objectclass", ["krbprincipal", "krbprincipalaux", "krbticketpolicyaux", "ipaobject", "ipaservice", "pkiuser"])
-        entry.setValue("krbprincipalname", principal)
-        entry.setValue("ipauniqueid", 'autogenerate')
-        entry.setValue("managedby", hostdn)
+        entry = self.admin_conn.make_entry(
+            dn,
+            objectclass=[
+                "krbprincipal", "krbprincipalaux", "krbticketpolicyaux",
+                "ipaobject", "ipaservice", "pkiuser"],
+            krbprincipalname=[principal],
+            ipauniqueid=['autogenerate'],
+            managedby=[hostdn],
+        )
         self.admin_conn.addEntry(entry)
         return dn
 
@@ -373,12 +377,13 @@ class Service(object):
 
         entry_name = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
         order = SERVICE_LIST[name][1]
-        entry = self.admin_conn.make_entry(entry_name)
-        entry.setValues("objectclass",
-                        "nsContainer", "ipaConfigObject")
-        entry.setValues("cn", name)
-        entry.setValues("ipaconfigstring",
-                        "enabledService", "startOrder " + str(order))
+        entry = self.admin_conn.make_entry(
+            entry_name,
+            objectclass=["nsContainer", "ipaConfigObject"],
+            cn=[name],
+            ipaconfigstring=[
+                "enabledService", "startOrder " + str(order)],
+        )
 
         try:
             self.admin_conn.addEntry(entry)

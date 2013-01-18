@@ -570,14 +570,14 @@ class DsInstance(service.Service):
         mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
         conn.modify_s(DN(('cn', 'config')), mod)
 
-        entry = conn.make_entry(DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')))
-
-        entry.setValues("objectclass", "top", "nsEncryptionModule")
-        entry.setValues("cn", "RSA")
-        entry.setValues("nsSSLPersonalitySSL", nickname)
-        entry.setValues("nsSSLToken", "internal (software)")
-        entry.setValues("nsSSLActivation", "on")
-
+        entry = conn.make_entry(
+            DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')),
+            objectclass=["top", "nsEncryptionModule"],
+            cn=["RSA"],
+            nsSSLPersonalitySSL=[nickname],
+            nsSSLToken=["internal (software)"],
+            nsSSLActivation=["on"],
+        )
         conn.addEntry(entry)
 
         conn.unbind()

@@ -287,11 +287,15 @@ class ReplicationManager(object):
         rdn_attr = dn[0].attr
         rdn_val = dn[0].value
 
-        ent = conn.make_entry(dn)
-        ent.setValues("objectclass", "top", "person")
-        ent.setValues(rdn_attr, rdn_val)
-        ent.setValues("userpassword", pw)
-        ent.setValues("sn", "replication manager pseudo user")
+        ent = conn.make_entry(
+            dn,
+            {
+                'objectclass': ["top", "person"],
+                rdn_attr: [rdn_val],
+                'userpassword': [pw],
+                'sn': ["replication manager pseudo user"],
+            }
+        )
 
         try:
             conn.addEntry(ent)
@@ -337,25 +341,28 @@ class ReplicationManager(object):
 
         replica_type = self.get_replica_type()
 
-        entry = conn.make_entry(dn)
-        entry.setValues('objectclass', "top", "nsds5replica", "extensibleobject")
-        entry.setValues('cn', "replica")
-        entry.setValues('nsds5replicaroot', str(self.suffix))
-        entry.setValues('nsds5replicaid', str(replica_id))
-        entry.setValues('nsds5replicatype', replica_type)
-        entry.setValues('nsds5flags', "1")
-        entry.setValues('nsds5replicabinddn', [replica_binddn])
-        entry.setValues('nsds5replicalegacyconsumer', "off")
-
+        entry = conn.make_entry(
+            dn,
+            objectclass=["top", "nsds5replica", "extensibleobject"],
+            cn=["replica"],
+            nsds5replicaroot=[str(self.suffix)],
+            nsds5replicaid=[str(replica_id)],
+            nsds5replicatype=[replica_type],
+            nsds5flags=["1"],
+            nsds5replicabinddn=[replica_binddn],
+            nsds5replicalegacyconsumer=["off"],
+        )
         conn.addEntry(entry)
 
     def setup_changelog(self, conn):
-        dn = DN(('cn', 'changelog5'), ('cn', 'config'))
-        dirpath = conn.dbdir + "/cldb"
-        entry = conn.make_entry(dn)
-        entry.setValues('objectclass', "top", "extensibleobject")
-        entry.setValues('cn', "changelog5")
-        entry.setValues('nsslapd-changelogdir', dirpath)
+        entry = conn.make_entry(
+            DN(('cn', 'changelog5'), ('cn', 'config')),
+            {
+                'objectclass': ["top", "extensibleobject"],
+                'cn': ["changelog5"],
+                'nsslapd-changelogdir': [conn.dbdir + "/cldb"],
+            }
+        )
         try:
             conn.addEntry(entry)
         except errors.DuplicateEntry:
@@ -372,14 +379,18 @@ class ReplicationManager(object):
             try:
                 cn = benamebase + str(benum) # e.g. localdb1
                 dn = DN(('cn', cn), chaindn)
-                entry = self.conn.make_entry(dn)
-                entry.setValues('objectclass', 'top', 'extensibleObject', 'nsBackendInstance')
-                entry.setValues('cn', cn)
-                entry.setValues('nsslapd-suffix', str(self.suffix))
-                entry.setValues('nsfarmserverurl', urls)
-                entry.setValues('nsmultiplexorbinddn', self.repl_man_dn)
-                entry.setValues('nsmultiplexorcredentials', self.repl_man_passwd)
-
+                entry = conn.make_entry(
+                    dn,
+                    {
+                        'objectclass': [
+                            'top', 'extensibleObject', 'nsBackendInstance'],
+                        'cn': [cn],
+                        'nsslapd-suffix': [str(self.suffix)],
+                        'nsfarmserverurl': urls,
+                        'nsmultiplexorbinddn': [self.repl_man_dn],
+                        'nsmultiplexorcredentials': [self.repl_man_passwd],
+                    }
+                )
                 self.conn.addEntry(entry)
                 done = True
             except errors.DuplicateEntry:
@@ -444,10 +455,12 @@ class ReplicationManager(object):
             pass
 
         # The user doesn't exist, add it
-        entry = conn.make_entry(pass_dn)
-        entry.setValues("objectclass", ["account", "simplesecurityobject"])
-        entry.setValues("uid", "passsync")
-        entry.setValues("userPassword", password)
+        entry = conn.make_entry(
+            pass_dn,
+            objectclass=["account", "simplesecurityobject"],
+            uid=["passsync"],
+            userPassword=[password],
+        )
         conn.addEntry(entry)
 
         # Add it to the list of users allowed to bypass password policy
@@ -516,25 +529,27 @@ class ReplicationManager(object):
         except errors.NotFound:
             pass
 
-        entry = a_conn.make_entry(dn)
-        entry.setValues('objectclass', "nsds5replicationagreement")
-        entry.setValues('cn', cn)
-        entry.setValues('nsds5replicahost', b_hostname)
-        entry.setValues('nsds5replicaport', str(port))
-        entry.setValues('nsds5replicatimeout', str(TIMEOUT))
-        entry.setValues('nsds5replicaroot', str(self.suffix))
+        entry = a_conn.make_entry(
+            dn,
+            objectclass=["nsds5replicationagreement"],
+            cn=[cn],
+            nsds5replicahost=[b_hostname],
+            nsds5replicaport=[str(port)],
+            nsds5replicatimeout=[str(TIMEOUT)],
+            nsds5replicaroot=[str(self.suffix)],
+            description=["me to %s" % b_hostname],
+        )
         if master is None:
-            entry.setValues('nsDS5ReplicatedAttributeList',
-                            '(objectclass=*) $ EXCLUDE %s' % " ".join(EXCLUDES))
-        entry.setValues('description', "me to %s" % b_hostname)
+            entry['nsDS5ReplicatedAttributeList'] = [
+                '(objectclass=*) $ EXCLUDE %s' % " ".join(EXCLUDES)]
         if isgssapi:
-            entry.setValues('nsds5replicatransportinfo', 'LDAP')
-            entry.setValues('nsds5replicabindmethod', 'SASL/GSSAPI')
+            entry['nsds5replicatransportinfo'] = ['LDAP']
+            entry['nsds5replicabindmethod'] = ['SASL/GSSAPI']
         else:
-            entry.setValues('nsds5replicabinddn', repl_man_dn)
-            entry.setValues('nsds5replicacredentials', repl_man_passwd)
-            entry.setValues('nsds5replicatransportinfo', 'TLS')
-            entry.setValues('nsds5replicabindmethod', 'simple')
+            entry['nsds5replicabinddn'] = [repl_man_dn]
+            entry['nsds5replicacredentials'] = [repl_man_passwd]
+            entry['nsds5replicatransportinfo'] = ['TLS']
+            entry['nsds5replicabindmethod'] = ['simple']
 
         if iswinsync:
             self.setup_winsync_agmt(entry, win_subtree)
@@ -551,7 +566,7 @@ class ReplicationManager(object):
             # that we will have to set the memberof fixup task
             self.need_memberof_fixup = True
 
-        entry.setValues('nsds5ReplicaStripAttrs', " ".join(STRIP_ATTRS))
+        entry['nsds5ReplicaStripAttrs'] = [" ".join(STRIP_ATTRS)]
 
         entry = a_conn.waitForEntry(entry)
 
@@ -912,10 +927,12 @@ class ReplicationManager(object):
 
         # Add winsync replica to the public DIT
         dn = DN(('cn',ad_dc_name),('cn','replicas'),('cn','ipa'),('cn','etc'), self.suffix)
-        entry = self.conn.make_entry(dn)
-        entry.setValues("objectclass", ["nsContainer", "ipaConfigObject"])
-        entry.setValues("cn", ad_dc_name)
-        entry.setValues("ipaConfigString", "winsync:%s" % self.hostname)
+        entry = self.conn.make_entry(
+            dn,
+            objectclass=["nsContainer", "ipaConfigObject"],
+            cn=[ad_dc_name],
+            ipaConfigString=["winsync:%s" % self.hostname],
+        )
 
         try:
             self.conn.addEntry(entry)
@@ -1167,11 +1184,15 @@ class ReplicationManager(object):
         root_logger.debug("Creating CLEANALLRUV task for replica id %d" % replicaId)
 
         dn = DN(('cn', 'clean %d' % replicaId), ('cn', 'cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
-        e = self.conn.make_entry(dn)
-        e.setValues('objectclass', ['top', 'extensibleObject'])
-        e.setValue('replica-base-dn', api.env.basedn)
-        e.setValue('replica-id', replicaId)
-        e.setValue('cn', 'clean %d' % replicaId)
+        e = self.conn.make_entry(
+            dn,
+            {
+                'objectclass': ['top', 'extensibleObject'],
+                'cn': ['clean %d' % replicaId],
+                'replica-base-dn': [api.env.basedn],
+                'replica-id': [replicaId],
+            }
+        )
         try:
             self.conn.addEntry(e)
         except errors.DuplicateEntry:
@@ -1190,11 +1211,15 @@ class ReplicationManager(object):
         root_logger.debug("Creating task to abort a CLEANALLRUV operation for replica id %d" % replicaId)
 
         dn = DN(('cn', 'abort %d' % replicaId), ('cn', 'abort cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
-        e = self.conn.make_entry(dn)
-        e.setValues('objectclass', ['top', 'extensibleObject'])
-        e.setValue('replica-base-dn', api.env.basedn)
-        e.setValue('replica-id', replicaId)
-        e.setValue('cn', 'abort %d' % replicaId)
+        e = self.conn.make_entry(
+            dn,
+            {
+                'replica-base-dn': [api.env.basedn],
+                'replica-id': [replicaId],
+                'objectclass': ['top', 'extensibleObject'],
+                'cn': ['abort %d' % replicaId],
+            }
+        )
         try:
             self.conn.addEntry(e)
         except errors.DuplicateEntry:

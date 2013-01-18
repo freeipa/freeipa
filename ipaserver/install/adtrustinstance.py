@@ -326,23 +326,26 @@ class ADTRUSTInstance(service.Service):
             try:
                 self.admin_conn.getEntry(new_dn, ldap.SCOPE_BASE)
             except errors.NotFound:
-                entry = self.admin_conn.make_entry(new_dn)
-                entry.setValues("objectclass", ["nsContainer"])
                 try:
                     name = new_dn[1].attr
                 except Exception, e:
                     self.print_msg('Cannot extract RDN attribute value from "%s": %s' % \
                           (new_dn, e))
                     return
-                entry.setValues("cn", name)
+                entry = self.admin_conn.make_entry(
+                    new_dn, objectclass=['nsContainer'], cn=[name])
                 self.admin_conn.addEntry(entry)
 
-        entry = self.admin_conn.make_entry(self.smb_dom_dn)
-        entry.setValues("objectclass", [self.OBJC_DOMAIN, "nsContainer"])
-        entry.setValues("cn", self.domain_name)
-        entry.setValues(self.ATTR_FLAT_NAME, self.netbios_name)
-        entry.setValues(self.ATTR_SID, self.__gen_sid_string())
-        entry.setValues(self.ATTR_GUID, str(uuid.uuid4()))
+        entry = self.admin_conn.make_entry(
+            self.smb_dom_dn,
+            {
+                'objectclass': [self.OBJC_DOMAIN, "nsContainer"],
+                'cn': [self.domain_name],
+                self.ATTR_FLAT_NAME: [self.netbios_name],
+                self.ATTR_SID: [self.__gen_sid_string()],
+                self.ATTR_GUID: [str(uuid.uuid4())],
+            }
+        )
         #TODO: which MAY attributes do we want to set ?
         self.admin_conn.addEntry(entry)
 
@@ -452,10 +455,12 @@ class ADTRUSTInstance(service.Service):
                     current.setValues("member", members + [self.cifs_agent])
                     self.admin_conn.updateEntry(self.smb_dn, entry.toDict(), current.toDict())
             except errors.NotFound:
-                entry = self.admin_conn.make_entry(self.smb_dn)
-                entry.setValues("objectclass", ["top", "GroupOfNames"])
-                entry.setValues("cn", self.smb_dn['cn'])
-                entry.setValues("member", [self.cifs_agent])
+                entry = self.admin_conn.make_entry(
+                    self.smb_dn,
+                    objectclass=["top", "GroupOfNames"],
+                    cn=[self.smb_dn['cn']],
+                    member=[self.cifs_agent],
+                )
                 self.admin_conn.addEntry(entry)
         except Exception, e:
             # CIFS principal already exists, it is not the first time adtrustinstance is managed
@@ -734,13 +739,15 @@ class ADTRUSTInstance(service.Service):
                              "range.\nAdd local ID range manually and try " \
                              "again!")
 
-        entry = self.admin_conn.make_entry(DN(('cn', ('%s_id_range' % self.realm)),
-                                              api.env.container_ranges,
-                                              self.suffix))
-        entry.setValue('objectclass', 'ipaDomainIDRange')
-        entry.setValue('cn', ('%s_id_range' % self.realm))
-        entry.setValue('ipaBaseID', str(base_id))
-        entry.setValue('ipaIDRangeSize', str(id_range_size))
+        entry = self.admin_conn.make_entry(
+            DN(
+                ('cn', ('%s_id_range' % self.realm)),
+                api.env.container_ranges, self.suffix),
+            objectclass=['ipaDomainIDRange'],
+            cn=['%s_id_range' % self.realm],
+            ipaBaseID=[str(base_id)],
+            ipaIDRangeSize=[str(id_range_size)],
+        )
         self.admin_conn.addEntry(entry)
 
     def create_instance(self):

@@ -422,12 +422,13 @@ class LDAPUpdate:
         cn = "indextask_%s_%s_%s" % (attribute, cn_uuid.time, cn_uuid.clock_seq)
         dn = DN(('cn', cn), ('cn', 'index'), ('cn', 'tasks'), ('cn', 'config'))
 
-        e = self.conn.make_entry(dn)
-
-        e.setValues('objectClass', ['top', 'extensibleObject'])
-        e.setValue('cn', cn)
-        e.setValue('nsInstance', 'userRoot')
-        e.setValues('nsIndexAttribute', attribute)
+        e = self.conn.make_entry(
+            dn,
+            objectClass=['top', 'extensibleObject'],
+            cn=[cn],
+            nsInstance=['userRoot'],
+            nsIndexAttribute=[attribute],
+        )
 
         self.info("Creating task to index attribute: %s", attribute)
         self.debug("Task id: %s", dn)
