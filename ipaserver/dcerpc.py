@@ -275,6 +275,62 @@ class DomainValidator(object):
             raise errors.ValidationError(name=_('trusted domain object'),
                error= _('Trusted domain did not return a valid SID for the object'))
 
+    def get_trusted_domain_user_and_groups(self, object_name):
+        """
+        Returns a tuple with user SID and a list of SIDs of all groups he is
+        a member of.
+
+        LIMITATIONS:
+            - only Trusted Admins group members can use this function as it
+              uses secret for IPA-Trusted domain link
+            - List of group SIDs does not contain group memberships outside
+              of the trusted domain
+        """
+        components = normalize_name(object_name)
+        domain = components.get('domain')
+        flatname = components.get('flatname')
+        name = components.get('name')
+
+        is_valid_sid = is_sid_valid(object_name)
+        if is_valid_sid:
+            # Find a trusted domain for the SID
+            domain = self.get_domain_by_sid(object_name)
+            # Now search a trusted domain for a user with this SID
+            attrs = ['cn']
+            filter = '(&(objectClass=user)(objectSid=%(sid)s))' \
+                    % dict(sid=object_name)
+            try:
+                entries = self.get_trusted_domain_objects(domain=domain, filter=filter,
+                        attrs=attrs, scope=_ldap.SCOPE_SUBTREE)
+            except errors.NotFound:
+                raise errors.NotFound(reason=_('trusted domain user not found'))
+            user_dn = entries[0][0]
+        elif domain or flatname:
+            attrs = ['cn']
+            filter = '(&(sAMAccountName=%(name)s)(objectClass=user))' \
+                    % dict(name=name)
+            try:
+                entries = self.get_trusted_domain_objects(domain,
+                        flatname, filter, attrs, _ldap.SCOPE_SUBTREE)
+            except errors.NotFound:
+                raise errors.NotFound(reason=_('trusted domain user not found'))
+            user_dn = entries[0][0]
+        else:
+            # No domain or realm specified, ambiguous search
+            raise errors.ValidationError(name=_('trusted domain object'),
+                   error= _('Ambiguous search, user domain was not specified'))
+
+        # Get SIDs of user object and it's groups
+        # tokenGroups attribute must be read with a scope BASE for a known user
+        # distinguished name to avoid search error
+        attrs = ['objectSID', 'tokenGroups']
+        filter = "(objectClass=user)"
+        entries = self.get_trusted_domain_objects(domain,
+            flatname, filter, attrs, _ldap.SCOPE_BASE, user_dn)
+        object_sid = self.__sid_to_str(entries[0][1]['objectSid'][0])
+        group_sids = [self.__sid_to_str(sid) for sid in entries[0][1]['tokenGroups']]
+        return (object_sid, group_sids)
+
     def __sid_to_str(self, sid):
         """
         Converts binary SID to string representation
