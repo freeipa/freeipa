@@ -22,10 +22,8 @@
 import sys
 import os
 import os.path
-import socket
 import string
 import time
-import struct
 import shutil
 from decimal import Decimal
 
@@ -33,7 +31,6 @@ import ldap
 import ldap as _ldap
 import ldap.sasl
 import ldap.filter
-from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
 import ldapurl
 
@@ -1434,7 +1431,7 @@ class IPAdmin(LDAPConnection):
             return 'ldap'
 
     def __init__(self, host='', port=389, cacert=None, bindcert=None,
-                 bindkey=None, proxydn=None, debug=None, ldapi=False,
+                 bindkey=None, debug=None, ldapi=False,
                  realm=None, protocol=None, force_schema_updates=True):
         self.conn = None
         log_mgr.get_logger(self, True)
@@ -1452,7 +1449,6 @@ class IPAdmin(LDAPConnection):
         self.cacert = cacert
         self.bindcert = bindcert
         self.bindkey = bindkey
-        self.proxydn = proxydn
         self.ldapi = ldapi
         self.realm = realm
         self.suffixes = {}
@@ -1479,24 +1475,6 @@ class IPAdmin(LDAPConnection):
 
     def __str__(self):
         return self.host + ":" + str(self.port)
-
-    def __get_server_controls(self):
-        """Create the proxy user server control. The control has the form
-        0x04 = Octet String
-        4|0x80 sets the length of the string length field at 4 bytes
-        the struct() gets us the length in bytes of string self.proxydn
-        self.proxydn is the proxy dn to send"""
-
-        if self.proxydn is not None:
-            proxydn = chr(0x04) + chr(4|0x80) + struct.pack('l', socket.htonl(len(self.proxydn))) + self.proxydn;
-
-            # Create the proxy control
-            sctrl=[]
-            sctrl.append(LDAPControl('2.16.840.1.113730.3.4.18',True,proxydn))
-        else:
-            sctrl=None
-
-        return sctrl
 
     def __handle_errors(self, e, **kw):
         return self.handle_errors(e, **kw)
@@ -1541,11 +1519,6 @@ class IPAdmin(LDAPConnection):
     def getEntry(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
         """This wraps the search function.  It is common to just get one entry"""
 
-        sctrl = self.__get_server_controls()
-
-        if sctrl is not None:
-            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
-
         try:
             res = self.search(base, scope, filterstr, attrlist, attrsonly)
             objtype, obj = self.result(res)
@@ -1564,10 +1537,6 @@ class IPAdmin(LDAPConnection):
 
     def getList(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
         """This wraps the search function to find multiple entries."""
-
-        sctrl = self.__get_server_controls()
-        if sctrl is not None:
-            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
         try:
             res = self.search(base, scope, filterstr, attrlist, attrsonly)
@@ -1593,11 +1562,7 @@ class IPAdmin(LDAPConnection):
         if not isinstance(entry, Entry):
             raise TypeError('addEntry expected an Entry object, got %s instead' % entry.__class__)
 
-        sctrl = self.__get_server_controls()
-
         try:
-            if sctrl is not None:
-                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(entry.dn, entry.toTupleList())
         except ldap.LDAPError, e:
             arg_desc = 'entry=%s: %s' % (entry.dn, entry.toTupleList())
@@ -1609,7 +1574,6 @@ class IPAdmin(LDAPConnection):
            populated with all of the desired objectclasses and attributes"""
 
         assert isinstance(dn, DN)
-        sctrl = self.__get_server_controls()
 
         modlist = self.generateModList(oldentry, newentry)
 
@@ -1617,8 +1581,6 @@ class IPAdmin(LDAPConnection):
             raise errors.EmptyModlist
 
         try:
-            if sctrl is not None:
-                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
             self.__handle_errors(e)
@@ -1689,8 +1651,7 @@ class IPAdmin(LDAPConnection):
            set so we can determine which type of mod operation to run."""
 
         assert isinstance(dn, DN)
-        sctrl = self.__get_server_controls()
-        modlist=[]
+        modlist = []
 
         if has_key:
             operation = ldap.MOD_REPLACE
@@ -1700,8 +1661,6 @@ class IPAdmin(LDAPConnection):
         modlist.append((operation, "nsAccountlock", "TRUE"))
 
         try:
-            if sctrl is not None:
-                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
             self.__handle_errors(e)
@@ -1711,11 +1670,8 @@ class IPAdmin(LDAPConnection):
         """This wraps the delete function. Use with caution."""
 
         assert isinstance(dn, DN)
-        sctrl = self.__get_server_controls()
 
         try:
-            if sctrl is not None:
-                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.delete_s(dn)
         except ldap.LDAPError, e:
             arg_desc = 'dn=%s' % (dn)
