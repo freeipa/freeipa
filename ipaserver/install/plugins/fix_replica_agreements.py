@@ -19,7 +19,7 @@
 
 import os
 import pwd
-from ipaserver.install.plugins import PRE_UPDATE, MIDDLE
+from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PreUpdate
 from ipaserver import ipaldap
 from ipaserver.install import replication

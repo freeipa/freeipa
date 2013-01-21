@@ -21,19 +21,19 @@ import sys
 import os, socket
 import tempfile
 import pwd
+import time
+import datetime
+
+import ldap
+
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import dogtag
 from ipapython import services as ipaservices
-from ipalib import errors
 from ipapython.dn import DN
-import ldap
-from ipaserver import ipaldap
-import base64
-import time
-import datetime
-from ipaserver.install import installutils
 from ipapython.ipa_log_manager import *
+from ipalib import errors
+from ipaserver import ipaldap
 
 CACERT = "/etc/ipa/ca.crt"
 

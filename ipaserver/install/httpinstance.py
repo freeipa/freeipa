@@ -20,19 +20,18 @@
 import os
 import os.path
 import tempfile
-from ipapython.ipa_log_manager import *
 import pwd
 import shutil
 
 import service
 import certs
-import dsinstance
 import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import services as ipaservices
 from ipapython import dogtag
-from ipalib import util, api
+from ipapython.ipa_log_manager import *
+from ipalib import api
 
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"

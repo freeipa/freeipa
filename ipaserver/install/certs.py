@@ -19,35 +19,26 @@
 
 import os, stat, subprocess, re
 import sys
-import errno
 import tempfile
 import shutil
 from ipapython.ipa_log_manager import *
-import urllib
 import xml.dom.minidom
 import pwd
 import fcntl
 import base64
 from hashlib import sha1
+from ConfigParser import RawConfigParser, MissingSectionHeaderError
 
-from ipapython import nsslib
 from ipapython import dogtag
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import certmonger
 from ipapython.certdb import get_ca_nickname
-from ipalib import pkcs10
-from ConfigParser import RawConfigParser, MissingSectionHeaderError
 from ipapython import services as ipaservices
-from ipalib import x509
 from ipapython.dn import DN
+from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
-
-from nss.error import NSPRError
-import nss.nss as nss
-
-from ipalib import api
 
 # Apache needs access to this database so we need to create it
 # where apache can reach

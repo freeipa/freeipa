@@ -23,25 +23,22 @@ import pwd
 import netaddr
 import re
 
-import installutils
 import ldap
+
+import installutils
 import service
 from ipaserver import ipaldap
 from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.cainstance import IPA_CA_CNAME
-from ipaserver.install.installutils import resolve_host
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipalib.parameters import IA5Str
+from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
+import ipalib
+from ipalib import api, errors
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
         normalize_zone, get_reverse_zone_default, zone_is_reverse)
-from ipapython.ipa_log_manager import *
-from ipalib.text import _
-
-import ipalib
-from ipalib import api, util, errors
-from ipapython.dn import DN
 
 NAMED_CONF = '/etc/named.conf'
 RESOLV_CONF = '/etc/resolv.conf'

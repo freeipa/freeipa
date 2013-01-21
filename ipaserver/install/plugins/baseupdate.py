@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api
-from ipalib import errors
 from ipalib import Updater, Object
 from ipaserver.install import service
 from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE, MIDDLE

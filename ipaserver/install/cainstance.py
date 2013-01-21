@@ -34,9 +34,9 @@ import httplib
 import urllib
 import xml.dom.minidom
 import stat
-import socket
 import syslog
 import ConfigParser
+
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
 from ipapython import certmonger
@@ -46,11 +46,7 @@ from ipapython.dn import DN
 import subprocess
 import traceback
 
-from nss.error import NSPRError
-import nss.nss as nss
-
 from ipapython import ipautil
-from ipapython import nsslib
 from ipapython import services as ipaservices
 
 from ipaserver import ipaldap
@@ -58,9 +54,7 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import certs
-from ipaserver.install.installutils import ReplicaConfig
 from ipaserver.plugins import ldap2
-from ipalib import util
 from ipapython.ipa_log_manager import *
 
 HTTPD_CONFD = "/etc/httpd/conf.d/"

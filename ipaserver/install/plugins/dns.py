@@ -19,7 +19,6 @@
 
 from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PostUpdate
-from ipaserver.install.plugins import baseupdate
 from ipalib import api, errors, util
 from ipapython.dn import DN
 from ipalib.plugins.dns import dns_container_exists

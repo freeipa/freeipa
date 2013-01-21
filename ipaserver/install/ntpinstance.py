@@ -21,7 +21,6 @@
 import service
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 
 class NTPInstance(service.Service):

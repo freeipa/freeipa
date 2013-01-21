@@ -18,16 +18,11 @@
 #
 
 import socket
-import errno
 import getpass
 import os
 import re
 import fileinput
 import sys
-import struct
-import fcntl
-import netaddr
-import time
 import tempfile
 import shutil
 from ConfigParser import SafeConfigParser, NoOptionError

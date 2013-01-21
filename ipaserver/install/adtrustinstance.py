@@ -22,7 +22,10 @@ import errno
 import ldap
 import tempfile
 import uuid
-from ipaserver.install import installutils
+import string
+import struct
+import re
+
 from ipaserver.install import service
 from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
@@ -33,13 +36,9 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import *
 from ipapython import services as ipaservices
-from ipapython.dn import DN
 
 import ipaclient.ipachangeconf
 
-import string
-import struct
-import re
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
 

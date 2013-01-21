@@ -17,11 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE, FIRST, LAST
-from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE, FIRST, LAST
+from ipaserver.install.plugins import FIRST, LAST
 from ipaserver.install.plugins.baseupdate import PreUpdate, PostUpdate
-from ipalib.frontend import Updater
-from ipaserver.install.plugins import baseupdate
 from ipalib import api, errors
 from ipapython import ipautil
 from ipapython.dn import DN, EditableDN
