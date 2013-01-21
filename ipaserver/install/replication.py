@@ -306,8 +306,8 @@ class ReplicationManager(object):
     def delete_replication_manager(self, conn, dn=REPL_MAN_DN):
         assert isinstance(dn, DN)
         try:
-            conn.delete_s(dn)
-        except ldap.NO_SUCH_OBJECT:
+            conn.delete_entry(dn)
+        except errors.NotFound:
             pass
 
     def get_replica_type(self, master=True):
@@ -680,12 +680,12 @@ class ReplicationManager(object):
 
         # Finally remove the temporary replication manager user
         try:
-            a.delete_s(self.repl_man_dn)
-        except ldap.NO_SUCH_OBJECT:
+            a.delete_entry(self.repl_man_dn)
+        except errors.NotFound:
             pass
         try:
-            b.delete_s(self.repl_man_dn)
-        except ldap.NO_SUCH_OBJECT:
+            b.delete_entry(self.repl_man_dn)
+        except errors.NotFound:
             pass
 
     def delete_agreement(self, hostname, dn=None):

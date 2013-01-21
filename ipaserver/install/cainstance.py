@@ -1080,7 +1080,7 @@ class CAInstance(service.Service):
               DN(('CN', 'IPA RA'), self.subject_base))),
         ]
 
-        conn.add_s(entry_dn, entry)
+        conn.add_entry(entry_dn, entry)
 
         dn = DN(('cn', 'Certificate Manager Agents'), ('ou', 'groups'), self.basedn)
         modlist = [(0, 'uniqueMember', '%s' % entry_dn)]

@@ -38,7 +38,6 @@ from ipaserver.install import replication
 from ipaserver.install import dsinstance
 
 import ldap
-from ldap import LDAPError
 
 import pyasn1.codec.ber.decoder
 import struct
@@ -265,13 +264,14 @@ class KrbInstance(service.Service):
                                      "(objectclass=nsSaslMapping)")
             for r in res:
                 try:
-                    self.admin_conn.delete_s(r.dn)
-                except LDAPError, e:
-                    root_logger.critical("Error during SASL mapping removal: %s" % str(e))
-                    raise e
-        except LDAPError, e:
-            root_logger.critical("Error while enumerating SASL mappings %s" % str(e))
-            raise e
+                    self.admin_conn.delete_entry(r.dn)
+                except Exception, e:
+                    root_logger.critical(
+                        "Error during SASL mapping removal: %s", e)
+                    raise
+        except Exception, e:
+            root_logger.critical("Error while enumerating SASL mappings %s", e)
+            raise
 
         entry = self.admin_conn.make_entry(
             DN(
