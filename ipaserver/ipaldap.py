@@ -20,8 +20,6 @@
 #
 
 import sys
-import os
-import os.path
 import string
 import time
 import shutil
@@ -1567,18 +1565,6 @@ class IPAdmin(LDAPConnection):
 
         self.conn = IPASimpleLDAPObject(ldap_uri, force_schema_updates=True)
 
-    def __lateinit(self):
-        """
-        This is executed after the connection is bound to fill in some useful
-        values.
-        """
-        with self.error_handler():
-            ent = self.getEntry(DN(('cn', 'config'), ('cn', 'ldbm database'), ('cn', 'plugins'), ('cn', 'config')),
-                                ldap.SCOPE_BASE, '(objectclass=*)',
-                                [ 'nsslapd-directory' ])
-
-            self.dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
-
     def __str__(self):
         return self.host + ":" + str(self.port)
 
@@ -1604,20 +1590,18 @@ class IPAdmin(LDAPConnection):
                 raise e
             bind_func(*args, **kwargs)
 
-    def do_simple_bind(self, binddn=DN(('cn', 'directory manager')), bindpw="", timeout=DEFAULT_TIMEOUT):
-        self.binddn = binddn    # FIXME, self.binddn & self.bindpwd never referenced.
-        self.bindpwd = bindpw
+    def do_simple_bind(self, binddn=DN(('cn', 'directory manager')), bindpw="",
+                       timeout=DEFAULT_TIMEOUT):
         self.__bind_with_wait(self.simple_bind_s, timeout, binddn, bindpw)
-        self.__lateinit()
 
     def do_sasl_gssapi_bind(self, timeout=DEFAULT_TIMEOUT):
-        self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, None, SASL_AUTH)
-        self.__lateinit()
+        self.__bind_with_wait(
+            self.sasl_interactive_bind_s, timeout, None, SASL_AUTH)
 
     def do_external_bind(self, user_name=None, timeout=DEFAULT_TIMEOUT):
         auth_tokens = ldap.sasl.external(user_name)
-        self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, None, auth_tokens)
-        self.__lateinit()
+        self.__bind_with_wait(
+            self.sasl_interactive_bind_s, timeout, None, auth_tokens)
 
     def getEntry(self, base, scope, filterstr='(objectClass=*)',
                  attrlist=None):

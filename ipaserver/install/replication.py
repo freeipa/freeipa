@@ -19,6 +19,7 @@
 
 import time
 import sys
+import os
 
 import ldap
 
@@ -355,12 +356,19 @@ class ReplicationManager(object):
         conn.addEntry(entry)
 
     def setup_changelog(self, conn):
+        ent = conn.get_entry(
+            DN(
+                ('cn', 'config'), ('cn', 'ldbm database'),
+                ('cn', 'plugins'), ('cn', 'config')),
+            ['nsslapd-directory'])
+        dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
+
         entry = conn.make_entry(
             DN(('cn', 'changelog5'), ('cn', 'config')),
             {
                 'objectclass': ["top", "extensibleobject"],
                 'cn': ["changelog5"],
-                'nsslapd-changelogdir': [conn.dbdir + "/cldb"],
+                'nsslapd-changelogdir': [os.path.join(dbdir, "cldb")],
             }
         )
         try:
