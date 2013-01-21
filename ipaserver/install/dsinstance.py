@@ -466,7 +466,7 @@ class DsInstance(service.Service):
             conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
         else:
             conn.do_sasl_gssapi_bind()
-        conn.checkTask(dn, dowait=True)
+        replication.wait_for_task(conn, dn)
         conn.unbind()
 
     def apply_updates(self):

@@ -110,6 +110,27 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
     else:
         conn.unbind()
 
+
+def wait_for_task(conn, dn):
+    """Check task status
+
+    Task is complete when the nsTaskExitCode attr is set.
+
+    :return: the task's return code
+    """
+    assert isinstance(dn, DN)
+    attrlist = [
+        'nsTaskLog', 'nsTaskStatus', 'nsTaskExitCode', 'nsTaskCurrentItem',
+        'nsTaskTotalItems']
+    while True:
+        entry = conn.get_entry(dn, attrlist)
+        if entry.getValue('nsTaskExitCode'):
+            exit_code = int(entry.getValue('nsTaskExitCode'))
+            break
+        time.sleep(1)
+    return exit_code
+
+
 class ReplicationManager(object):
     """Manage replication agreements between DS servers, and sync
     agreements with Windows servers"""
@@ -1206,7 +1227,7 @@ class ReplicationManager(object):
 
         print "This may be safely interrupted with Ctrl+C"
 
-        self.conn.checkTask(dn, dowait=True)
+        wait_for_task(self.conn, dn)
 
     def abortcleanallruv(self, replicaId):
         """
@@ -1233,4 +1254,4 @@ class ReplicationManager(object):
 
         print "This may be safely interrupted with Ctrl+C"
 
-        self.conn.checkTask(dn, dowait=True)
+        wait_for_task(self.conn, dn)
