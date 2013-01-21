@@ -102,7 +102,7 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
         conn.do_sasl_gssapi_bind()
     entry = conn.getEntry(DN(('cn', 'IPA Version Replication'), ('cn', 'plugins'), ('cn', 'config')),
                           ldap.SCOPE_BASE, 'objectclass=*')
-    if entry.getValue('nsslapd-pluginenabled') == 'off':
+    if entry.single_value('nsslapd-pluginenabled', None) == 'off':
         conn.modify_s(entry.dn, [(ldap.MOD_REPLACE, 'nsslapd-pluginenabled', 'on')])
         conn.unbind()
         serverid = "-".join(realm.split("."))
@@ -124,8 +124,8 @@ def wait_for_task(conn, dn):
         'nsTaskTotalItems']
     while True:
         entry = conn.get_entry(dn, attrlist)
-        if entry.getValue('nsTaskExitCode'):
-            exit_code = int(entry.getValue('nsTaskExitCode'))
+        if entry.single_value('nsTaskExitCode', None):
+            exit_code = int(entry.single_value('nsTaskExitCode'))
             break
         time.sleep(1)
     return exit_code
@@ -183,8 +183,8 @@ class ReplicationManager(object):
         except errors.NotFound:
             pass
         else:
-            if replica.getValue('nsDS5ReplicaId'):
-                return int(replica.getValue('nsDS5ReplicaId'))
+            if replica.single_value('nsDS5ReplicaId', None):
+                return int(replica.single_value('nsDS5ReplicaId'))
 
         # Ok, either the entry doesn't exist or the attribute isn't set
         # so get it from the other master
@@ -196,12 +196,12 @@ class ReplicationManager(object):
             root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
             raise
         else:
-            if replica.getValue('nsDS5ReplicaId') is None:
+            if replica.single_value('nsDS5ReplicaId', None) is None:
                 root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
                 raise RuntimeError("Unable to retrieve nsDS5ReplicaId from remote server")
 
         # Now update the value on the master
-        retval = int(replica.getValue('nsDS5ReplicaId'))
+        retval = int(replica.single_value('nsDS5ReplicaId'))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaId', str(retval + 1))]
 
         try:
@@ -275,7 +275,7 @@ class ReplicationManager(object):
             return res
 
         for ent in ents:
-            res.append(ent.getValue('nsds5replicahost'))
+            res.append(ent.single_value('nsds5replicahost', None))
 
         return res
 
@@ -382,7 +382,7 @@ class ReplicationManager(object):
                 ('cn', 'config'), ('cn', 'ldbm database'),
                 ('cn', 'plugins'), ('cn', 'config')),
             ['nsslapd-directory'])
-        dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
+        dbdir = os.path.dirname(ent.single_value('nsslapd-directory', None))
 
         entry = conn.make_entry(
             DN(('cn', 'changelog5'), ('cn', 'config')),
@@ -457,7 +457,7 @@ class ReplicationManager(object):
 
         plgent = self.conn.getEntry(DN(('cn', 'Multimaster Replication Plugin'), ('cn', 'plugins'), ('cn', 'config')),
                                     ldap.SCOPE_BASE, "(objectclass=*)", ['nsslapd-pluginPath'])
-        path = plgent.getValue('nsslapd-pluginPath')
+        path = plgent.single_value('nsslapd-pluginPath', None)
 
         mod = [(ldap.MOD_REPLACE, 'nsslapd-state', 'backend'),
                (ldap.MOD_ADD, 'nsslapd-backend', bename),
@@ -757,9 +757,10 @@ class ReplicationManager(object):
             print "Error reading status from agreement", agmtdn
             hasError = 1
         else:
-            refresh = entry.getValue('nsds5BeginReplicaRefresh')
-            inprogress = entry.getValue('nsds5replicaUpdateInProgress')
-            status = entry.getValue('nsds5ReplicaLastInitStatus')
+            refresh = entry.single_value('nsds5BeginReplicaRefresh', None)
+            inprogress = entry.single_value('nsds5replicaUpdateInProgress',
+                                            None)
+            status = entry.single_value('nsds5ReplicaLastInitStatus', None)
             if not refresh: # done - check status
                 if not status:
                     print "No status yet"
@@ -793,15 +794,16 @@ class ReplicationManager(object):
             print "Error reading status from agreement", agmtdn
             hasError = 1
         else:
-            inprogress = entry.getValue('nsds5replicaUpdateInProgress')
-            status = entry.getValue('nsds5ReplicaLastUpdateStatus')
+            inprogress = entry.single_value('nsds5replicaUpdateInProgress',
+                                            None)
+            status = entry.single_value('nsds5ReplicaLastUpdateStatus', None)
             try:
-                start = int(entry.getValue('nsds5ReplicaLastUpdateStart'))
-            except (ValueError, TypeError):
+                start = int(entry.single_value('nsds5ReplicaLastUpdateStart'))
+            except (ValueError, TypeError, KeyError):
                 start = 0
             try:
-                end = int(entry.getValue('nsds5ReplicaLastUpdateEnd'))
-            except (ValueError, TypeError):
+                end = int(entry.single_value('nsds5ReplicaLastUpdateEnd'))
+            except (ValueError, TypeError, KeyError):
                 end = 0
             # incremental update is done if inprogress is false and end >= start
             done = inprogress and inprogress.lower() == 'false' and start <= end
@@ -1040,7 +1042,7 @@ class ReplicationManager(object):
             root_logger.error("Using the first one only (%s)" % entries[0].dn)
 
         dn = entries[0].dn
-        schedule = entries[0].getValue('nsds5replicaupdateschedule')
+        schedule = entries[0].single_value('nsds5replicaupdateschedule', None)
 
         # On the remote chance of a match. We force a synch to happen right
         # now by setting the schedule to something and quickly removing it.
@@ -1159,7 +1161,7 @@ class ReplicationManager(object):
         try:
             dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
             ret = self.conn.getEntry(dn, ldap.SCOPE_BASE, '(objectclass=*)')
-            srvlist = ret.getValue('defaultServerList', '')
+            srvlist = ret.single_value('defaultServerList', '')
             srvlist = srvlist[0].split()
             if replica in srvlist:
                 srvlist.remove(replica)

@@ -47,7 +47,7 @@ class update_replica_attribute_lists(PreUpdate):
         entries = repl.find_replication_agreements()
         self.log.debug("Found %d agreement(s)", len(entries))
         for replica in entries:
-            self.log.debug(replica.getValue('description'))
+            self.log.debug(replica.single_value('description', None))
 
             self._update_attr(repl, replica,
                 'nsDS5ReplicatedAttributeList',
@@ -76,7 +76,7 @@ class update_replica_attribute_lists(PreUpdate):
         :param values: List of values the attribute should hold
         :param template: Template to use when adding attribute
         """
-        attrlist = replica.getValue(attribute)
+        attrlist = replica.single_value(attribute, None)
         if attrlist is None:
             self.log.debug("Adding %s", attribute)
 

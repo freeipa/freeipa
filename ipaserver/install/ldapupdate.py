@@ -458,7 +458,7 @@ class LDAPUpdate:
                 self.error("Task lookup failure %s", e)
                 return
 
-            status = entry.getValue('nstaskstatus')
+            status = entry.single_value('nstaskstatus', None)
             if status is None:
                 # task doesn't have a status yet
                 time.sleep(1)
@@ -816,7 +816,7 @@ class LDAPUpdate:
         if entry.dn.endswith(DN(('cn', 'index'), ('cn', 'userRoot'),
                                 ('cn', 'ldbm database'), ('cn', 'plugins'),
                                 ('cn', 'config'))) and (added or updated):
-            taskid = self.create_index_task(entry.getValue('cn'))
+            taskid = self.create_index_task(entry.single_value('cn'))
             self.monitor_index_task(taskid)
         return
 

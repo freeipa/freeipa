@@ -719,14 +719,6 @@ class LDAPEntry(dict):
         yield self._dn
         yield self
 
-    def getValue(self, name, default=None):
-        # FIXME: for backwards compatibility only
-        """Get the first value for the attribute named name"""
-        value = self.data.get(name, default)
-        if isinstance(value, (list, tuple)):
-            return value[0]
-        return value
-
     def toTupleList(self):
         # FIXME: for backwards compatibility only
         """Convert the attrs and values to a list of 2-tuples.  The first element

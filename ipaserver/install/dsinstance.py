@@ -833,7 +833,7 @@ class DsInstance(service.Service):
         dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
         try:
             entry = self.admin_conn.getEntry(dn, ldap.SCOPE_BASE, '(objectclass=*)')
-            srvlist = entry.getValue('defaultServerList', '')
+            srvlist = entry.single_value('defaultServerList', '')
             srvlist = srvlist.split()
             if not self.fqdn in srvlist:
                 srvlist.append(self.fqdn)

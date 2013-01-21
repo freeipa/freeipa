@@ -127,11 +127,10 @@ class KrbInstance(service.Service):
             managedby=[host_dn],
         )
         if 'krbpasswordexpiration' in service_entry.toDict():
-            host_entry['krbpasswordexpiration'] = [
-                service_entry.getValue('krbpasswordexpiration')]
+            host_entry['krbpasswordexpiration'] = service_entry[
+                'krbpasswordexpiration']
         if 'krbticketflags' in service_entry.toDict():
-            host_entry['krbticketflags'] = [
-                service_entry.getValue('krbticketflags')]
+            host_entry['krbticketflags'] = service_entry['krbticketflags']
         self.admin_conn.addEntry(host_entry)
 
     def __common_setup(self, realm_name, host_name, domain_name, admin_password):
@@ -366,7 +365,8 @@ class KrbInstance(service.Service):
             root_logger.critical("Could not find master key in DS")
             raise e
 
-        krbMKey = pyasn1.codec.ber.decoder.decode(entry.getValue('krbmkey'))
+        krbMKey = pyasn1.codec.ber.decoder.decode(
+            entry.single_value('krbmkey', None))
         keytype = int(krbMKey[0][1][0])
         keydata = str(krbMKey[0][1][1])
 

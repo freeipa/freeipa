@@ -164,7 +164,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Samba domain object not found")
             return
 
-        dom_sid = dom_entry.getValue(self.ATTR_SID)
+        dom_sid = dom_entry.single_value(self.ATTR_SID, None)
         if not dom_sid:
             self.print_msg("Samba domain object does not have a SID")
             return
@@ -182,7 +182,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("IPA admin group object not found")
             return
 
-        if admin_entry.getValue(self.ATTR_SID):
+        if admin_entry.single_value(self.ATTR_SID, None):
             self.print_msg("Admin SID already set, nothing to do")
         else:
             try:
@@ -192,7 +192,7 @@ class ADTRUSTInstance(service.Service):
             except:
                 self.print_msg("Failed to modify IPA admin object")
 
-        if admin_group_entry.getValue(self.ATTR_SID):
+        if admin_group_entry.single_value(self.ATTR_SID, None):
             self.print_msg("Admin group SID already set, nothing to do")
         else:
             try:
@@ -224,7 +224,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Samba domain object not found")
             return
 
-        if dom_entry.getValue(self.ATTR_FALLBACK_GROUP):
+        if dom_entry.single_value(self.ATTR_FALLBACK_GROUP, None):
             self.print_msg("Fallback group already set, nothing to do")
             return
 
@@ -269,12 +269,12 @@ class ADTRUSTInstance(service.Service):
                                      "local domain.")
                 raise RuntimeError("Too many ID ranges\n")
 
-            if res[0].getValue('ipaBaseRID') or \
-               res[0].getValue('ipaSecondaryBaseRID'):
+            if res[0].single_value('ipaBaseRID', None) or \
+               res[0].single_value('ipaSecondaryBaseRID', None):
                 self.print_msg("RID bases already set, nothing to do")
                 return
 
-            size = res[0].getValue('ipaIDRangeSize')
+            size = res[0].single_value('ipaIDRangeSize', None)
             if abs(self.rid_base - self.secondary_rid_base) > size:
                 self.print_msg("Primary and secondary RID base are too close. " \
                       "They have to differ at least by %d." % size)
@@ -719,7 +719,7 @@ class ADTRUSTInstance(service.Service):
             raise ValueError("No local ID range and no admins group found.\n" \
                              "Add local ID range manually and try again!")
 
-        base_id = int(entry.getValue('gidNumber'))
+        base_id = int(entry.single_value('gidNumber'))
         id_range_size = 200000
 
         id_filter = "(&" \

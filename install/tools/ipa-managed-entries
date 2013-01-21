@@ -129,7 +129,7 @@ def main():
         except Exception, e:
             root_logger.debug("Search for managed entries failed: %s" % str(e))
             sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
-        managed_entries = [entry.getValue('cn') for entry in entries]
+        managed_entries = [entry.single_value('cn') for entry in entries]
         if managed_entries:
             print "Available Managed Entry Definitions:"
             for managed_entry in managed_entries:
@@ -151,7 +151,7 @@ def main():
             )
             disable_attr = '(objectclass=disable)'
             try:
-                org_filter = entry.getValue('originfilter')
+                org_filter = entry.single_value('originfilter', None)
                 disabled = re.search(r'%s' % disable_attr, org_filter)
             except KeyError:
                 sys.exit("%s is not a valid Managed Entry" % def_dn)
