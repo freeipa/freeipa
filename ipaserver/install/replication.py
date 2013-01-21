@@ -251,8 +251,9 @@ class ReplicationManager(object):
         """
         filt = self.get_agreement_filter()
         try:
-            ents = self.conn.getList(DN(('cn', 'mapping tree'), ('cn', 'config')),
-                                     ldap.SCOPE_SUBTREE, filt)
+            ents = self.conn.get_entries(
+                DN(('cn', 'mapping tree'), ('cn', 'config')),
+                ldap.SCOPE_SUBTREE, filt)
         except errors.NotFound:
             ents = []
         return ents
@@ -269,8 +270,9 @@ class ReplicationManager(object):
 
         filt = self.get_agreement_filter(IPA_REPLICA)
         try:
-            ents = self.conn.getList(DN(('cn', 'mapping tree'), ('cn', 'config')),
-                                     ldap.SCOPE_SUBTREE, filt)
+            ents = self.conn.get_entries(
+                DN(('cn', 'mapping tree'), ('cn', 'config')),
+                ldap.SCOPE_SUBTREE, filt)
         except errors.NotFound:
             return res
 
@@ -291,8 +293,9 @@ class ReplicationManager(object):
 
         filt = self.get_agreement_filter(host=hostname)
         try:
-            entries = self.conn.getList(DN(('cn', 'mapping tree'), ('cn', 'config')),
-                                      ldap.SCOPE_SUBTREE, filt)
+            entries = self.conn.get_entries(
+                DN(('cn', 'mapping tree'), ('cn', 'config')),
+                ldap.SCOPE_SUBTREE, filt)
         except errors.NotFound:
             return None
 
@@ -1031,7 +1034,7 @@ class ReplicationManager(object):
         newschedule = '2358-2359 0'
 
         filter = self.get_agreement_filter(host=hostname)
-        entries = conn.getList(
+        entries = conn.get_entries(
             DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
         if len(entries) == 0:
             root_logger.error("Unable to find replication agreement for %s" %
@@ -1086,9 +1089,9 @@ class ReplicationManager(object):
 
         # delete master kerberos key and all its svc principals
         try:
-            filter='(krbprincipalname=*/%s@%s)' % (replica, realm)
-            entries = self.conn.getList(self.suffix, ldap.SCOPE_SUBTREE,
-                                        filterstr=filter)
+            entries = self.conn.get_entries(
+                self.suffix, ldap.SCOPE_SUBTREE,
+                filter='(krbprincipalname=*/%s@%s)' % (replica, realm))
             if entries:
                 entries.sort(key=len, reverse=True)
                 for dn in entries:
@@ -1128,8 +1131,9 @@ class ReplicationManager(object):
 
         # delete master entry with all active services
         try:
-            dn = DN(('cn', replica), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), self.suffix)
-            entries = self.conn.getList(dn, ldap.SCOPE_SUBTREE)
+            dn = DN(('cn', replica), ('cn', 'masters'), ('cn', 'ipa'),
+                    ('cn', 'etc'), self.suffix)
+            entries = self.conn.get_entries(dn, ldap.SCOPE_SUBTREE)
             if entries:
                 entries.sort(key=len, reverse=True)
                 for dn in entries:
@@ -1145,8 +1149,8 @@ class ReplicationManager(object):
         try:
             basedn = DN(('cn', 'etc'), self.suffix)
             filter = '(dnaHostname=%s)' % replica
-            entries = self.conn.getList(basedn, ldap.SCOPE_SUBTREE,
-                                        filterstr=filter)
+            entries = self.conn.get_entries(
+                basedn, ldap.SCOPE_SUBTREE, filter=filter)
             if len(entries) != 0:
                 for e in entries:
                     self.conn.deleteEntry(e.dn)

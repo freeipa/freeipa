@@ -509,7 +509,7 @@ class LDAPUpdate:
         sattrs = ["*", "aci", "attributeTypes", "objectClasses"]
         scope = ldap.SCOPE_BASE
 
-        return self.conn.getList(dn, scope, searchfilter, sattrs)
+        return self.conn.get_entries(dn, scope, searchfilter, sattrs)
 
     def _apply_update_disposition(self, updates, entry):
         """

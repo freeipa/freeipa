@@ -89,10 +89,12 @@ class test_update(unittest.TestCase):
         self.assertTrue(modified)
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+            entries = self.ld.get_entries(
+                self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+            entries = self.ld.get_entries(
+                self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
 
     def test_1_add(self):
         """
@@ -102,7 +104,8 @@ class test_update(unittest.TestCase):
 
         self.assertTrue(modified)
 
-        entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
 
@@ -112,7 +115,8 @@ class test_update(unittest.TestCase):
 
         self.assertEqual(entry.single_value('cn'), 'test')
 
-        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
 
@@ -133,7 +137,8 @@ class test_update(unittest.TestCase):
         modified = self.updater.update([self.testdir + "2_update.update"])
         self.assertTrue(modified)
 
-        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
         self.assertEqual(entry.single_value('gecos'), 'Test User')
@@ -145,7 +150,8 @@ class test_update(unittest.TestCase):
         modified = self.updater.update([self.testdir + "3_update.update"])
         self.assertTrue(modified)
 
-        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
         self.assertEqual(entry.single_value('gecos'), 'Test User New')
@@ -157,7 +163,8 @@ class test_update(unittest.TestCase):
         modified = self.updater.update([self.testdir + "4_update.update"])
         self.assertTrue(modified)
 
-        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
         self.assertEqual(entry.single_value('gecos'), 'Test User New2')
@@ -169,7 +176,8 @@ class test_update(unittest.TestCase):
         modified = self.updater.update([self.testdir + "5_update.update"])
         self.assertTrue(modified)
 
-        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
         self.assertEqual(sorted(entry.get('cn')), sorted(['Test User', 'Test User New']))
@@ -181,7 +189,8 @@ class test_update(unittest.TestCase):
         modified = self.updater.update([self.testdir + "6_update.update"])
         self.assertTrue(modified)
 
-        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
         self.assertEqual(sorted(entry.get('cn')), sorted(['Test User']))
@@ -193,7 +202,8 @@ class test_update(unittest.TestCase):
         modified = self.updater.update([self.testdir + "6_update.update"])
         self.assertFalse(modified)
 
-        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
         self.assertEqual(sorted(entry.get('cn')), sorted(['Test User']))
@@ -211,10 +221,12 @@ class test_update(unittest.TestCase):
         self.assertTrue(modified)
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+            entries = self.ld.get_entries(
+                self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+            entries = self.ld.get_entries(
+                self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
 
     def test_8_badsyntax(self):
         """
@@ -239,10 +251,12 @@ class test_update(unittest.TestCase):
 
         # First make sure we're clean
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+            entries = self.ld.get_entries(
+                self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+            entries = self.ld.get_entries(
+                self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
 
 
         update = {
@@ -274,7 +288,8 @@ class test_update(unittest.TestCase):
         modified = self.updater.update_from_dict(update)
         self.assertTrue(modified)
 
-        entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
 
@@ -284,7 +299,8 @@ class test_update(unittest.TestCase):
 
         self.assertEqual(entry.single_value('cn'), 'test')
 
-        entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+        entries = self.ld.get_entries(
+            self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
 
@@ -314,7 +330,9 @@ class test_update(unittest.TestCase):
         self.assertTrue(modified)
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.getList(self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+            entries = self.ld.get_entries(
+                self.container_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
+            entries = self.ld.get_entries(
+                self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])

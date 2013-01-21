@@ -1069,6 +1069,24 @@ class LDAPConnection(object):
                     )
         return self.combine_filters(flts, rules)
 
+    def get_entries(self, base_dn, scope=None, filter=None, attrs_list=None):
+        """Return a list of matching entries.
+
+        Raises an error if the list is truncated by the server
+
+        :param base_dn: dn of the entry at which to start the search
+        :param scope: search scope, see LDAP docs (default ldap2.SCOPE_SUBTREE)
+        :param filter: LDAP filter to apply
+        :param attrs_list: ist of attributes to return, all if None (default)
+
+        Use the find_entries method for more options.
+        """
+        entries, truncated = self.find_entries(
+            base_dn=base_dn, scope=scope, filter=filter, attrs_list=attrs_list)
+        if truncated:
+            raise errors.LimitsExceeded()
+        return entries
+
     def find_entries(self, filter=None, attrs_list=None, base_dn=None,
                      scope=_ldap.SCOPE_SUBTREE, time_limit=None,
                      size_limit=None, normalize=True, search_refs=False):
@@ -1628,16 +1646,6 @@ class IPAdmin(LDAPConnection):
             scope=scope,
         )
         return result[0]
-
-    def getList(self, base, scope, filterstr='(objectClass=*)', attrlist=None):
-        # FIXME: for backwards compatibility only
-        result, truncated = self.find_entries(
-            filter=filterstr,
-            attrs_list=attrlist,
-            base_dn=base,
-            scope=scope,
-        )
-        return result
 
     def addEntry(self, entry):
         # FIXME: for backwards compatibility only

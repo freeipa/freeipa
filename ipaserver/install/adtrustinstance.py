@@ -261,9 +261,9 @@ class ADTRUSTInstance(service.Service):
         """
 
         try:
-            res = self.admin_conn.getList(DN(api.env.container_ranges, self.suffix),
-                                          ldap.SCOPE_ONELEVEL,
-                                          "(objectclass=ipaDomainIDRange)")
+            res = self.admin_conn.get_entries(
+                DN(api.env.container_ranges, self.suffix),
+                ldap.SCOPE_ONELEVEL, "(objectclass=ipaDomainIDRange)")
             if len(res) != 1:
                 root_logger.critical("Found more than one ID range for the " \
                                      "local domain.")

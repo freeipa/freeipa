@@ -123,9 +123,8 @@ def main():
         # List available Managed Entry Plugins
         managed_entries = None
         try:
-            entries = conn.getList(
-                managed_entry_definitions_dn, ldap.SCOPE_SUBTREE, filter
-                )
+            entries = conn.get_entries(
+                managed_entry_definitions_dn, ldap.SCOPE_SUBTREE, filter)
         except Exception, e:
             root_logger.debug("Search for managed entries failed: %s" % str(e))
             sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
