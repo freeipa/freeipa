@@ -299,12 +299,10 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             dn = DN(('cn', replica2), ('cn', 'replicas'), ('cn', 'ipa'), ('cn', 'etc'),
                     ipautil.realm_to_suffix(realm))
             entries = repl1.conn.getList(dn, ldap.SCOPE_SUBTREE)
-            if len(entries) != 0:
-                dnset = repl1.conn.get_dns_sorted_by_length(entries,
-                                                            reverse=True)
-                for dns in dnset:
-                    for dn in dns:
-                        repl1.conn.deleteEntry(dn)
+            if entries:
+                entries.sort(key=len, reverse=True)
+                for dn in entries:
+                    repl1.conn.deleteEntry(dn)
         except Exception, e:
             print "Error deleting winsync replica shared info: %s" % convert_error(e)
 

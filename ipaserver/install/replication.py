@@ -1066,12 +1066,10 @@ class ReplicationManager(object):
             filter='(krbprincipalname=*/%s@%s)' % (replica, realm)
             entries = self.conn.getList(self.suffix, ldap.SCOPE_SUBTREE,
                                         filterstr=filter)
-            if len(entries) != 0:
-                dnset = self.conn.get_dns_sorted_by_length(entries,
-                                                           reverse=True)
-                for dns in dnset:
-                    for dn in dns:
-                        self.conn.deleteEntry(dn)
+            if entries:
+                entries.sort(key=len, reverse=True)
+                for dn in entries:
+                    self.conn.deleteEntry(dn)
         except errors.NotFound:
             pass
         except Exception, e:
@@ -1109,12 +1107,10 @@ class ReplicationManager(object):
         try:
             dn = DN(('cn', replica), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), self.suffix)
             entries = self.conn.getList(dn, ldap.SCOPE_SUBTREE)
-            if len(entries) != 0:
-                dnset = self.conn.get_dns_sorted_by_length(entries,
-                                                           reverse=True)
-                for dns in dnset:
-                    for dn in dns:
-                        self.conn.deleteEntry(dn)
+            if entries:
+                entries.sort(key=len, reverse=True)
+                for dn in entries:
+                    self.conn.deleteEntry(dn)
         except errors.NotFound:
             pass
         except Exception, e:

@@ -1794,42 +1794,6 @@ class IPAdmin(LDAPConnection):
             else: break
         return (done, exitCode)
 
-    def get_dns_sorted_by_length(self, entries, reverse=False):
-        """
-        Sorts a list of entries [(dn, entry_attrs)] based on their DN.
-        Entries within the same node are not sorted in any meaningful way.
-        If Reverse is set to True, leaf entries are returned first. This is
-        useful to perform recursive deletes where you need to delete entries
-        starting from the leafs and go up to delete nodes only when all its
-        leafs are removed.
-
-        Returns a list of list of dn's. Every dn in the dn list has
-        the same number of RDN's. The outer list is sorted according
-        to the number of RDN's in each inner list.
-
-        Example:
-
-        [['cn=bob', cn=tom], ['cn=bob,ou=people', cn=tom,ou=people]]
-
-        dn's in list[0] have 1 RDN
-        dn's in list[1] have 2 RDN's
-        """
-
-        res = dict()
-
-        for e in entries:
-            dn = e.dn
-            assert isinstance(dn, DN)
-            rdn_count = len(dn)
-            rdn_count_list = res.setdefault(rdn_count, [])
-            if dn not in rdn_count_list:
-                rdn_count_list.append(dn)
-
-        keys = res.keys()
-        keys.sort(reverse=reverse)
-
-        return map(res.get, keys)
-
     def __getattr__(self, attrname):
         # This makes IPAdmin classes look like IPASimpleLDAPObjects
         # FIXME: for backwards compatibility only
