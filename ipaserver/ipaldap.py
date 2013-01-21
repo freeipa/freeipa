@@ -53,6 +53,8 @@ MEMBERS_ALL = 0
 MEMBERS_DIRECT = 1
 MEMBERS_INDIRECT = 2
 
+_missing = object()
+
 
 def unicode_from_utf8(val):
     '''
@@ -678,6 +680,27 @@ class LDAPEntry(dict):
 
     def get(self, name, default=None):
         return super(LDAPEntry, self).get(self._attr_name(name), default)
+
+    def single_value(self, name, default=_missing):
+        """Return a single attribute value
+
+        Checks that the attribute really has one and only one value
+
+        If the entry is missing and default is given, return the default.
+        If the entry is missing and default is not given, raise KeyError.
+        """
+        try:
+            values = super(LDAPEntry, self).__getitem__(self._attr_name(name))
+        except KeyError:
+            if default is _missing:
+                raise
+            return default
+        if not isinstance(values, list):  # TODO: remove when we enforce lists
+            return values
+        if len(values) != 1:
+            raise ValueError(
+                '%s has %s values, one expected' % (name, len(values)))
+        return values[0]
 
     def __delitem__(self, name):
         super(LDAPEntry, self).__delitem__(self._attr_name(name))
