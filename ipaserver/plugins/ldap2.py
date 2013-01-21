@@ -128,7 +128,7 @@ class ldap2(LDAPConnection, CrudBackend):
         if debug_level:
             _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
 
-        try:
+        with self.error_handler():
             force_updates = api.env.context in ('installer', 'updates')
             conn = IPASimpleLDAPObject(
                 self.ldap_uri, force_schema_updates=force_updates)
@@ -166,9 +166,6 @@ class ldap2(LDAPConnection, CrudBackend):
                     conn.sasl_interactive_bind_s(None, auth_tokens)
                 else:
                     conn.simple_bind_s(bind_dn, bind_pw)
-
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
 
         return conn
 
@@ -346,18 +343,14 @@ class ldap2(LDAPConnection, CrudBackend):
         # The python-ldap passwd command doesn't verify the old password
         # so we'll do a simple bind to validate it.
         if old_pass != '':
-            try:
+            with self.error_handler():
                 conn = IPASimpleLDAPObject(
                     self.ldap_uri, force_schema_updates=False)
                 conn.simple_bind_s(dn, old_pass)
                 conn.unbind()
-            except _ldap.LDAPError, e:
-                self.handle_errors(e)
 
-        try:
+        with self.error_handler():
             self.conn.passwd_s(dn, old_pass, new_pass)
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
 
     def add_entry_to_group(self, dn, group_dn, member_attr='member', allow_same=False):
         """
@@ -473,10 +466,8 @@ class ldap2(LDAPConnection, CrudBackend):
         mod = [(_ldap.MOD_REPLACE, 'krbprincipalkey', None),
                (_ldap.MOD_REPLACE, 'krblastpwdchange', None)]
 
-        try:
+        with self.error_handler():
             self.conn.modify_s(dn, mod)
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
 
     # CrudBackend methods
 

@@ -27,6 +27,7 @@ import time
 import shutil
 from decimal import Decimal
 from copy import deepcopy
+import contextlib
 
 import ldap
 import ldap as _ldap
@@ -776,24 +777,23 @@ class LDAPConnection(object):
         """
         return None
 
-    def handle_errors(self, e, arg_desc=None):
-        """Universal LDAPError handler
-
-        :param e: The error to be raised
-        :param url: The URL of the server
+    @contextlib.contextmanager
+    def error_handler(self, arg_desc=None):
+        """Context manager that handles LDAPErrors
         """
-        if not isinstance(e, _ldap.TIMEOUT):
-            desc = e.args[0]['desc'].strip()
-            info = e.args[0].get('info', '').strip()
-            if arg_desc is not None:
-                info = "%s arguments: %s" % (info, arg_desc)
-        else:
-            desc = ''
-            info = ''
-
         try:
-            # re-raise the error so we can handle it
-            raise e
+            try:
+                yield
+            except _ldap.TIMEOUT:
+                desc = ''
+                info = ''
+                raise
+            except ldap.LDAPError, e:
+                desc = e.args[0]['desc'].strip()
+                info = e.args[0].get('info', '').strip()
+                if arg_desc is not None:
+                    info = "%s arguments: %s" % (info, arg_desc)
+                raise
         except _ldap.NO_SUCH_OBJECT:
             raise errors.NotFound(reason=arg_desc or 'no such entry')
         except _ldap.ALREADY_EXISTS:
@@ -1103,24 +1103,23 @@ class LDAPConnection(object):
             attrs_list = list(set(attrs_list))
 
         # pass arguments to python-ldap
-        try:
-            id = self.conn.search_ext(
-                base_dn, scope, filter, attrs_list, timeout=time_limit,
-                sizelimit=size_limit
-            )
-            while True:
-                (objtype, res_list) = self.conn.result(id, 0)
-                if not res_list:
-                    break
-                if (objtype == _ldap.RES_SEARCH_ENTRY or
-                        (search_refs and
-                            objtype == _ldap.RES_SEARCH_REFERENCE)):
-                    res.append(res_list[0])
-        except (_ldap.ADMINLIMIT_EXCEEDED, _ldap.TIMELIMIT_EXCEEDED,
-                _ldap.SIZELIMIT_EXCEEDED), e:
-            truncated = True
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
+        with self.error_handler():
+            try:
+                id = self.conn.search_ext(
+                    base_dn, scope, filter, attrs_list, timeout=time_limit,
+                    sizelimit=size_limit
+                )
+                while True:
+                    (objtype, res_list) = self.conn.result(id, 0)
+                    if not res_list:
+                        break
+                    if (objtype == _ldap.RES_SEARCH_ENTRY or
+                            (search_refs and
+                                objtype == _ldap.RES_SEARCH_REFERENCE)):
+                        res.append(res_list[0])
+            except (_ldap.ADMINLIMIT_EXCEEDED, _ldap.TIMELIMIT_EXCEEDED,
+                    _ldap.SIZELIMIT_EXCEEDED), e:
+                truncated = True
 
         if not res and not truncated:
             raise errors.NotFound(reason='no such entry')
@@ -1396,10 +1395,8 @@ class LDAPConnection(object):
             # be just "if v":
             if v is not None and v != [])
 
-        try:
-            self.conn.add_s(dn, list(attrs.iteritems()))
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
+        with self.error_handler():
+            self.conn.add_s(dn, attrs.items())
 
     def update_entry_rdn(self, dn, new_rdn, del_old=True):
         """
@@ -1415,11 +1412,9 @@ class LDAPConnection(object):
         dn = self.normalize_dn(dn)
         if dn[0] == new_rdn:
             raise errors.EmptyModlist()
-        try:
+        with self.error_handler():
             self.conn.rename_s(dn, new_rdn, delold=int(del_old))
             time.sleep(.3)  # Give memberOf plugin a chance to work
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
 
     def _generate_modlist(self, dn, entry_attrs, normalize):
         assert isinstance(dn, DN)
@@ -1500,10 +1495,8 @@ class LDAPConnection(object):
             raise errors.EmptyModlist()
 
         # pass arguments to python-ldap
-        try:
+        with self.error_handler():
             self.conn.modify_s(dn, modlist)
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
 
     def delete_entry(self, entry_or_dn, normalize=None):
         """Delete an entry given either the DN or the entry itself"""
@@ -1515,10 +1508,8 @@ class LDAPConnection(object):
             assert normalize is None
             dn = entry_or_dn.dn
 
-        try:
+        with self.error_handler():
             self.conn.delete_s(dn)
-        except _ldap.LDAPError, e:
-            self.handle_errors(e)
 
 
 class IPAdmin(LDAPConnection):
@@ -1581,20 +1572,15 @@ class IPAdmin(LDAPConnection):
         This is executed after the connection is bound to fill in some useful
         values.
         """
-        try:
+        with self.error_handler():
             ent = self.getEntry(DN(('cn', 'config'), ('cn', 'ldbm database'), ('cn', 'plugins'), ('cn', 'config')),
                                 ldap.SCOPE_BASE, '(objectclass=*)',
                                 [ 'nsslapd-directory' ])
 
             self.dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
-        except ldap.LDAPError, e:
-            self.__handle_errors(e)
 
     def __str__(self):
         return self.host + ":" + str(self.port)
-
-    def __handle_errors(self, e, **kw):
-        return self.handle_errors(e, **kw)
 
     def __wait_for_connection(self, timeout):
         lurl = ldapurl.LDAPUrl(self.ldap_uri)
@@ -1671,10 +1657,8 @@ class IPAdmin(LDAPConnection):
         if len(modlist) == 0:
             raise errors.EmptyModlist
 
-        try:
+        with self.error_handler():
             self.modify_s(dn, modlist)
-        except ldap.LDAPError, e:
-            self.__handle_errors(e)
         return True
 
     def generateModList(self, old_entry, new_entry):
@@ -1752,10 +1736,8 @@ class IPAdmin(LDAPConnection):
 
         modlist.append((operation, "nsAccountlock", "TRUE"))
 
-        try:
+        with self.error_handler():
             self.modify_s(dn, modlist)
-        except ldap.LDAPError, e:
-            self.__handle_errors(e)
         return True
 
     def deleteEntry(self, dn):
