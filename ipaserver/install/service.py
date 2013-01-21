@@ -197,7 +197,7 @@ class Service(object):
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
         self.admin_conn.deleteEntry(dn)
         entry.dn = newdn
-        classes = entry.getValues("objectclass")
+        classes = entry.get("objectclass")
         classes = classes + ["ipaobject", "ipaservice", "pkiuser"]
         entry.setValues("objectclass", list(set(classes)))
         entry.setValue("ipauniqueid", 'autogenerate')

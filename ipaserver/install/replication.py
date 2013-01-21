@@ -326,7 +326,7 @@ class ReplicationManager(object):
 
         try:
             entry = conn.getEntry(dn, ldap.SCOPE_BASE)
-            managers = entry.getValues('nsDS5ReplicaBindDN')
+            managers = entry.get('nsDS5ReplicaBindDN')
             for m in managers:
                 if replica_binddn == DN(m):
                     return
@@ -466,7 +466,7 @@ class ReplicationManager(object):
         # Add it to the list of users allowed to bypass password policy
         extop_dn = DN(('cn', 'ipa_pwd_extop'), ('cn', 'plugins'), ('cn', 'config'))
         entry = conn.getEntry(extop_dn, ldap.SCOPE_BASE)
-        pass_mgrs = entry.getValues('passSyncManagersDNs')
+        pass_mgrs = entry.get('passSyncManagersDNs')
         if not pass_mgrs:
             pass_mgrs = []
         if not isinstance(pass_mgrs, list):
@@ -1033,7 +1033,7 @@ class ReplicationManager(object):
 
         entry = self.conn.getEntry(dn, ldap.SCOPE_BASE)
 
-        objectclass = entry.getValues("objectclass")
+        objectclass = entry.get("objectclass")
 
         for o in objectclass:
             if o.lower() == "nsdswindowsreplicationagreement":

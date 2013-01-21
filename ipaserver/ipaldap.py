@@ -697,11 +697,6 @@ class LDAPEntry(dict):
         yield self._dn
         yield self
 
-    def getValues(self, name):
-        # FIXME: for backwards compatibility only
-        """Get the list (array) of values for the attribute named name"""
-        return self.data.get(name)
-
     def getValue(self, name, default=None):
         # FIXME: for backwards compatibility only
         """Get the first value for the attribute named name"""

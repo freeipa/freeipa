@@ -106,7 +106,7 @@ class test_update(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         entry = entries[0]
 
-        objectclasses = entry.getValues('objectclass')
+        objectclasses = entry.get('objectclass')
         for item in ('top', 'nsContainer'):
             self.assertTrue(item in objectclasses)
 
@@ -116,7 +116,7 @@ class test_update(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         entry = entries[0]
 
-        objectclasses = entry.getValues('objectclass')
+        objectclasses = entry.get('objectclass')
         for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
             self.assertTrue(item in objectclasses)
 
@@ -172,7 +172,7 @@ class test_update(unittest.TestCase):
         entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
-        self.assertEqual(sorted(entry.getValues('cn')), sorted(['Test User', 'Test User New']))
+        self.assertEqual(sorted(entry.get('cn')), sorted(['Test User', 'Test User New']))
 
     def test_6_update(self):
         """
@@ -184,7 +184,7 @@ class test_update(unittest.TestCase):
         entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
-        self.assertEqual(sorted(entry.getValues('cn')), sorted(['Test User']))
+        self.assertEqual(sorted(entry.get('cn')), sorted(['Test User']))
 
     def test_6_update_1(self):
         """
@@ -196,7 +196,7 @@ class test_update(unittest.TestCase):
         entries = self.ld.getList(self.user_dn, ldap.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
-        self.assertEqual(sorted(entry.getValues('cn')), sorted(['Test User']))
+        self.assertEqual(sorted(entry.get('cn')), sorted(['Test User']))
 
     def test_7_cleanup(self):
         """
@@ -278,7 +278,7 @@ class test_update(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         entry = entries[0]
 
-        objectclasses = entry.getValues('objectclass')
+        objectclasses = entry.get('objectclass')
         for item in ('top', 'nsContainer'):
             self.assertTrue(item in objectclasses)
 
@@ -288,7 +288,7 @@ class test_update(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         entry = entries[0]
 
-        objectclasses = entry.getValues('objectclass')
+        objectclasses = entry.get('objectclass')
         for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
             self.assertTrue(item in objectclasses)
 

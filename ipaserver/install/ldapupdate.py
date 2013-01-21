@@ -494,7 +494,7 @@ class LDAPUpdate:
         for item in default:
             # We already do syntax-parsing so this is safe
             (attr, value) = item.split(':',1)
-            e = entry.getValues(attr)
+            e = entry.get(attr)
             if e:
                 # multi-valued attribute
                 e = list(e)
@@ -538,7 +538,7 @@ class LDAPUpdate:
             if self.conn.has_dn_syntax(attr):
                 update_values = [DN(x) for x in update_values]
 
-            entry_values = entry.getValues(attr)
+            entry_values = entry.get(attr)
             if not isinstance(entry_values, list):
                 if entry_values is None:
                     entry_values = []
@@ -607,7 +607,7 @@ class LDAPUpdate:
                     self.debug("addifexist: '%s' to %s, current value %s", update_value, attr, entry_values)
                     # Only add the attribute if the entry doesn't exist. We
                     # determine this based on whether it has an objectclass
-                    if entry.getValues('objectclass'):
+                    if entry.get('objectclass'):
                         entry_values.append(update_value)
                         self.debug('addifexist: set %s to %s', attr, entry_values)
                         entry.setValues(attr, entry_values)
@@ -624,7 +624,7 @@ class LDAPUpdate:
                     self.debug("onlyifexist: '%s' to %s, current value %s", update_value, attr, entry_values)
                     # Only set the attribute if the entry exist's. We
                     # determine this based on whether it has an objectclass
-                    if entry.getValues('objectclass'):
+                    if entry.get('objectclass'):
                         if only.get(attr):
                             entry_values.append(update_value)
                         else:
@@ -681,7 +681,7 @@ class LDAPUpdate:
         self.debug("dn: %s", e.dn)
         attr = e.attrList()
         for a in attr:
-            value = e.getValues(a)
+            value = e.get(a)
             if isinstance(value, (list, tuple)):
                 self.debug('%s:', a)
                 for l in value:
