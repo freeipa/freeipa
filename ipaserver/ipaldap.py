@@ -1554,25 +1554,18 @@ class IPAdmin(LDAPConnection):
         else:
             return 'ldap'
 
-    def __init__(self, host='', port=389, cacert=None, bindcert=None,
-                 bindkey=None, debug=None, ldapi=False,
+    def __init__(self, host='', port=389, cacert=None, debug=None, ldapi=False,
                  realm=None, protocol=None, force_schema_updates=True):
         self.conn = None
         log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
             ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
         if cacert is not None:
-            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE,cacert)
-        if bindcert is not None:
-            ldap.set_option(ldap.OPT_X_TLS_CERTFILE,bindcert)
-        if bindkey is not None:
-            ldap.set_option(ldap.OPT_X_TLS_KEYFILE,bindkey)
+            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, cacert)
 
         self.port = port
         self.host = host
         self.cacert = cacert
-        self.bindcert = bindcert
-        self.bindkey = bindkey
         self.ldapi = ldapi
         self.realm = realm
         self.suffixes = {}
