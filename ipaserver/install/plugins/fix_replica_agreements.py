@@ -80,12 +80,11 @@ class update_replica_attribute_lists(PreUpdate):
         if attrlist is None:
             self.log.debug("Adding %s", attribute)
 
-            current = replica.toDict()
             # Need to add it altogether
             replica[attribute] = [template % " ".join(values)]
 
             try:
-                repl.conn.updateEntry(replica.dn, current, replica.toDict())
+                repl.conn.update_entry(replica.dn, replica)
                 self.log.debug("Updated")
             except Exception, e:
                 self.log.error("Error caught updating replica: %s", str(e))
@@ -98,13 +97,12 @@ class update_replica_attribute_lists(PreUpdate):
             if missing:
                 self.log.debug("%s needs updating (missing: %s)", attribute,
                     ', '.join(missing))
-                current = replica.toDict()
 
                 replica[attribute] = [
                     '%s %s' % (attrlist, ' '.join(missing))]
 
                 try:
-                    repl.conn.updateEntry(replica.dn, current, replica.toDict())
+                    repl.conn.update_entry(replica.dn, replica)
                     self.log.debug("Updated %s", attribute)
                 except Exception, e:
                     self.log.error("Error caught updating %s: %s",
