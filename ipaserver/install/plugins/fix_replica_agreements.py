@@ -82,7 +82,7 @@ class update_replica_attribute_lists(PreUpdate):
 
             current = replica.toDict()
             # Need to add it altogether
-            replica.setValues(attribute, template % " ".join(values))
+            replica[attribute] = [template % " ".join(values)]
 
             try:
                 repl.conn.updateEntry(replica.dn, current, replica.toDict())
@@ -100,8 +100,8 @@ class update_replica_attribute_lists(PreUpdate):
                     ', '.join(missing))
                 current = replica.toDict()
 
-                replica.setValue(attribute,
-                    '%s %s' % (attrlist, ' '.join(missing)))
+                replica[attribute] = [
+                    '%s %s' % (attrlist, ' '.join(missing))]
 
                 try:
                     repl.conn.updateEntry(replica.dn, current, replica.toDict())

@@ -489,13 +489,13 @@ class ReplicationManager(object):
         ds_subtree = DN(IPA_USER_CONTAINER, self.suffix)
         windomain = ipautil.suffix_to_realm(self.suffix)
 
-        entry.setValues("objectclass", "nsDSWindowsReplicationAgreement")
-        entry.setValues("nsds7WindowsReplicaSubtree", win_subtree)
-        entry.setValues("nsds7DirectoryReplicaSubtree", ds_subtree)
+        entry["objectclass"] = ["nsDSWindowsReplicationAgreement"]
+        entry["nsds7WindowsReplicaSubtree"] = [win_subtree]
+        entry["nsds7DirectoryReplicaSubtree"] = [ds_subtree]
         # for now, just sync users and ignore groups
-        entry.setValues("nsds7NewWinUserSyncEnabled", 'true')
-        entry.setValues("nsds7NewWinGroupSyncEnabled", 'false')
-        entry.setValues("nsds7WindowsDomain", windomain)
+        entry["nsds7NewWinUserSyncEnabled"] = ['true']
+        entry["nsds7NewWinGroupSyncEnabled"] = ['false']
+        entry["nsds7WindowsDomain"] = [windomain]
 
     def agreement_dn(self, hostname, master=None):
         """

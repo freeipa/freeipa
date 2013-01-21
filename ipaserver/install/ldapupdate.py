@@ -500,8 +500,8 @@ class LDAPUpdate:
                 e = list(e)
                 e.append(value)
             else:
-                e = value
-            entry.setValues(attr, e)
+                e = [value]
+            entry[attr] = e
 
         return self._entry_to_entity(entry)
 
@@ -583,7 +583,7 @@ class LDAPUpdate:
                     except ValueError:
                         self.warning("remove: '%s' not in %s", update_value, attr)
                         pass
-                    entry.setValues(attr, entry_values)
+                    entry[attr] = entry_values
                     self.debug('remove: updated value %s', entry_values)
                 elif action == 'add':
                     self.debug("add: '%s' to %s, current value %s", update_value, attr, entry_values)
@@ -594,7 +594,7 @@ class LDAPUpdate:
                         pass
                     entry_values.append(update_value)
                     self.debug('add: updated value %s', entry_values)
-                    entry.setValues(attr, entry_values)
+                    entry[attr] = entry_values
                 elif action == 'addifnew':
                     self.debug("addifnew: '%s' to %s, current value %s", update_value, attr, entry_values)
                     # Only add the attribute if it doesn't exist. Only works
@@ -602,7 +602,7 @@ class LDAPUpdate:
                     if len(entry_values) == 0:
                         entry_values.append(update_value)
                         self.debug('addifnew: set %s to %s', attr, entry_values)
-                        entry.setValues(attr, entry_values)
+                        entry[attr] = entry_values
                 elif action == 'addifexist':
                     self.debug("addifexist: '%s' to %s, current value %s", update_value, attr, entry_values)
                     # Only add the attribute if the entry doesn't exist. We
@@ -610,7 +610,7 @@ class LDAPUpdate:
                     if entry.get('objectclass'):
                         entry_values.append(update_value)
                         self.debug('addifexist: set %s to %s', attr, entry_values)
-                        entry.setValues(attr, entry_values)
+                        entry[attr] = entry_values
                 elif action == 'only':
                     self.debug("only: set %s to '%s', current value %s", attr, update_value, entry_values)
                     if only.get(attr):
@@ -618,7 +618,7 @@ class LDAPUpdate:
                     else:
                         entry_values = [update_value]
                         only[attr] = True
-                    entry.setValues(attr, entry_values)
+                    entry[attr] = entry_values
                     self.debug('only: updated value %s', entry_values)
                 elif action == 'onlyifexist':
                     self.debug("onlyifexist: '%s' to %s, current value %s", update_value, attr, entry_values)
@@ -631,7 +631,7 @@ class LDAPUpdate:
                             entry_values = [update_value]
                             only[attr] = True
                         self.debug('onlyifexist: set %s to %s', attr, entry_values)
-                        entry.setValues(attr, entry_values)
+                        entry[attr] = entry_values
                 elif action == 'deleteentry':
                     # skip this update type, it occurs in  __delete_entries()
                     return None
@@ -667,7 +667,7 @@ class LDAPUpdate:
                             entry_values.remove(old)
                         entry_values.append(new)
                         self.debug('replace: updated value %s', entry_values)
-                        entry.setValues(attr, entry_values)
+                        entry[attr] = entry_values
                     except ValueError:
                         self.debug('replace: %s not found, skipping', old)
 

@@ -705,29 +705,6 @@ class LDAPEntry(dict):
             return value[0]
         return value
 
-    def setValue(self, name, *value):
-        # FIXME: for backwards compatibility only
-        """
-        Set a value on this entry.
-
-        The value passed in may be a single value, several values, or a
-        single sequence.  For example:
-
-           * ent.setValue('name', 'value')
-           * ent.setValue('name', 'value1', 'value2', ..., 'valueN')
-           * ent.setValue('name', ['value1', 'value2', ..., 'valueN'])
-           * ent.setValue('name', ('value1', 'value2', ..., 'valueN'))
-
-        Since value is a tuple, we may have to extract a list or tuple from
-        that tuple as in the last two examples above.
-        """
-        if isinstance(value[0],list) or isinstance(value[0],tuple):
-            self.data[name] = value[0]
-        else:
-            self.data[name] = value
-
-    setValues = setValue
-
     def toTupleList(self):
         # FIXME: for backwards compatibility only
         """Convert the attrs and values to a list of 2-tuples.  The first element

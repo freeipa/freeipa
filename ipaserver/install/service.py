@@ -199,9 +199,9 @@ class Service(object):
         entry.dn = newdn
         classes = entry.get("objectclass")
         classes = classes + ["ipaobject", "ipaservice", "pkiuser"]
-        entry.setValues("objectclass", list(set(classes)))
-        entry.setValue("ipauniqueid", 'autogenerate')
-        entry.setValue("managedby", hostdn)
+        entry["objectclass"] = list(set(classes))
+        entry["ipauniqueid"] = ['autogenerate']
+        entry["managedby"] = [hostdn]
         self.admin_conn.addEntry(entry)
         return newdn
 
