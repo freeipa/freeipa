@@ -961,6 +961,9 @@ class LDAPConnection(object):
         parent_dn = self.normalize_dn(parent_dn)
         return DN((primary_key, entry_attrs[primary_key]), parent_dn)
 
+    def make_entry(self, _dn=None, _obj=None, **kwargs):
+        return LDAPEntry(_dn, _obj, **kwargs)
+
     # generating filters for find_entry
     # some examples:
     # f1 = ldap2.make_filter_from_attr(u'firstName', u'Pavel')
@@ -1650,6 +1653,10 @@ class IPAdmin(LDAPConnection):
         auth_tokens = ldap.sasl.external(user_name)
         self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, None, auth_tokens)
         self.__lateinit()
+
+    def make_entry(self, _dn=None, _obj=None, **kwargs):
+        entry = super(IPAdmin, self).make_entry(_dn, _obj, **kwargs)
+        return Entry((entry.dn, entry))
 
     def getEntry(self, base, scope, filterstr='(objectClass=*)',
                  attrlist=None):

@@ -449,7 +449,7 @@ class LDAPUpdate:
         cn = "indextask_%s_%s_%s" % (attribute, cn_uuid.time, cn_uuid.clock_seq)
         dn = DN(('cn', cn), ('cn', 'index'), ('cn', 'tasks'), ('cn', 'config'))
 
-        e = ipaldap.Entry(dn)
+        e = self.conn.make_entry(dn)
 
         e.setValues('objectClass', ['top', 'extensibleObject'])
         e.setValue('cn', cn)
@@ -511,7 +511,7 @@ class LDAPUpdate:
            The return type is Entity
         """
         assert isinstance(dn, DN)
-        entry = ipaldap.Entry(dn)
+        entry = self.conn.make_entry(dn)
 
         if not default:
             # This means that the entire entry needs to be created with add

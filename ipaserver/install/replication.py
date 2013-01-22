@@ -287,7 +287,7 @@ class ReplicationManager(object):
         rdn_attr = dn[0].attr
         rdn_val = dn[0].value
 
-        ent = ipaldap.Entry(dn)
+        ent = conn.make_entry(dn)
         ent.setValues("objectclass", "top", "person")
         ent.setValues(rdn_attr, rdn_val)
         ent.setValues("userpassword", pw)
@@ -337,7 +337,7 @@ class ReplicationManager(object):
 
         replica_type = self.get_replica_type()
 
-        entry = ipaldap.Entry(dn)
+        entry = conn.make_entry(dn)
         entry.setValues('objectclass', "top", "nsds5replica", "extensibleobject")
         entry.setValues('cn', "replica")
         entry.setValues('nsds5replicaroot', str(self.suffix))
@@ -352,7 +352,7 @@ class ReplicationManager(object):
     def setup_changelog(self, conn):
         dn = DN(('cn', 'changelog5'), ('cn', 'config'))
         dirpath = conn.dbdir + "/cldb"
-        entry = ipaldap.Entry(dn)
+        entry = conn.make_entry(dn)
         entry.setValues('objectclass', "top", "extensibleobject")
         entry.setValues('cn', "changelog5")
         entry.setValues('nsslapd-changelogdir', dirpath)
@@ -372,7 +372,7 @@ class ReplicationManager(object):
             try:
                 cn = benamebase + str(benum) # e.g. localdb1
                 dn = DN(('cn', cn), chaindn)
-                entry = ipaldap.Entry(dn)
+                entry = self.conn.make_entry(dn)
                 entry.setValues('objectclass', 'top', 'extensibleObject', 'nsBackendInstance')
                 entry.setValues('cn', cn)
                 entry.setValues('nsslapd-suffix', str(self.suffix))
@@ -444,7 +444,7 @@ class ReplicationManager(object):
             pass
 
         # The user doesn't exist, add it
-        entry = ipaldap.Entry(pass_dn)
+        entry = conn.make_entry(pass_dn)
         entry.setValues("objectclass", ["account", "simplesecurityobject"])
         entry.setValues("uid", "passsync")
         entry.setValues("userPassword", password)
@@ -516,7 +516,7 @@ class ReplicationManager(object):
         except errors.NotFound:
             pass
 
-        entry = ipaldap.Entry(dn)
+        entry = a_conn.make_entry(dn)
         entry.setValues('objectclass', "nsds5replicationagreement")
         entry.setValues('cn', cn)
         entry.setValues('nsds5replicahost', b_hostname)
@@ -912,7 +912,7 @@ class ReplicationManager(object):
 
         # Add winsync replica to the public DIT
         dn = DN(('cn',ad_dc_name),('cn','replicas'),('cn','ipa'),('cn','etc'), self.suffix)
-        entry = ipaldap.Entry(dn)
+        entry = self.conn.make_entry(dn)
         entry.setValues("objectclass", ["nsContainer", "ipaConfigObject"])
         entry.setValues("cn", ad_dc_name)
         entry.setValues("ipaConfigString", "winsync:%s" % self.hostname)
@@ -1167,7 +1167,7 @@ class ReplicationManager(object):
         root_logger.debug("Creating CLEANALLRUV task for replica id %d" % replicaId)
 
         dn = DN(('cn', 'clean %d' % replicaId), ('cn', 'cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
-        e = ipaldap.Entry(dn)
+        e = self.conn.make_entry(dn)
         e.setValues('objectclass', ['top', 'extensibleObject'])
         e.setValue('replica-base-dn', api.env.basedn)
         e.setValue('replica-id', replicaId)
@@ -1190,7 +1190,7 @@ class ReplicationManager(object):
         root_logger.debug("Creating task to abort a CLEANALLRUV operation for replica id %d" % replicaId)
 
         dn = DN(('cn', 'abort %d' % replicaId), ('cn', 'abort cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
-        e = ipaldap.Entry(dn)
+        e = self.conn.make_entry(dn)
         e.setValues('objectclass', ['top', 'extensibleObject'])
         e.setValue('replica-base-dn', api.env.basedn)
         e.setValue('replica-id', replicaId)

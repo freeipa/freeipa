@@ -22,7 +22,6 @@ import errno
 import ldap
 import tempfile
 import uuid
-from ipaserver import ipaldap
 from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install.dsinstance import realm_to_serverid
@@ -327,7 +326,7 @@ class ADTRUSTInstance(service.Service):
             try:
                 self.admin_conn.getEntry(new_dn, ldap.SCOPE_BASE)
             except errors.NotFound:
-                entry = ipaldap.Entry(new_dn)
+                entry = self.admin_conn.make_entry(new_dn)
                 entry.setValues("objectclass", ["nsContainer"])
                 try:
                     name = new_dn[1].attr
@@ -338,7 +337,7 @@ class ADTRUSTInstance(service.Service):
                 entry.setValues("cn", name)
                 self.admin_conn.addEntry(entry)
 
-        entry = ipaldap.Entry(self.smb_dom_dn)
+        entry = self.admin_conn.make_entry(self.smb_dom_dn)
         entry.setValues("objectclass", [self.OBJC_DOMAIN, "nsContainer"])
         entry.setValues("cn", self.domain_name)
         entry.setValues(self.ATTR_FLAT_NAME, self.netbios_name)
@@ -415,7 +414,7 @@ class ADTRUSTInstance(service.Service):
                         ('cn', 'etc'), self.suffix)
         try:
             targets = self.admin_conn.getEntry(targets_dn, ldap.SCOPE_BASE)
-            current = ipaldap.Entry((targets_dn, targets.toDict()))
+            current = self.admin_conn.make_entry(targets_dn, targets.toDict())
             members = current.getValues('memberPrincipal') or []
             if not(self.cifs_principal in members):
                 current.setValues("memberPrincipal", members + [self.cifs_principal])
@@ -447,13 +446,13 @@ class ADTRUSTInstance(service.Service):
             # the principal's proper dn as defined in self.cifs_agent
             try:
                 entry = self.admin_conn.getEntry(self.smb_dn, ldap.SCOPE_BASE)
-                current = ipaldap.Entry((self.smb_dn, entry.toDict()))
+                current = self.admin_conn.make_entry(self.smb_dn, entry.toDict())
                 members = current.getValues('member') or []
                 if not(self.cifs_agent in members):
                     current.setValues("member", members + [self.cifs_agent])
                     self.admin_conn.updateEntry(self.smb_dn, entry.toDict(), current.toDict())
             except errors.NotFound:
-                entry = ipaldap.Entry(self.smb_dn)
+                entry = self.admin_conn.make_entry(self.smb_dn)
                 entry.setValues("objectclass", ["top", "GroupOfNames"])
                 entry.setValues("cn", self.smb_dn['cn'])
                 entry.setValues("member", [self.cifs_agent])
@@ -735,9 +734,9 @@ class ADTRUSTInstance(service.Service):
                              "range.\nAdd local ID range manually and try " \
                              "again!")
 
-        entry = ipaldap.Entry(DN(('cn', ('%s_id_range' % self.realm)),
-                                 api.env.container_ranges,
-                                 self.suffix))
+        entry = self.admin_conn.make_entry(DN(('cn', ('%s_id_range' % self.realm)),
+                                              api.env.container_ranges,
+                                              self.suffix))
         entry.setValue('objectclass', 'ipaDomainIDRange')
         entry.setValue('cn', ('%s_id_range' % self.realm))
         entry.setValue('ipaBaseID', str(base_id))

@@ -395,7 +395,7 @@ class CADSInstance(service.Service):
                (ldap.MOD_ADD, "nsslapd-secureport", str(DEFAULT_DSPORT+1))]
         conn.modify_s(DN(('cn', 'config')), mod)
 
-        entry = ipaldap.Entry(DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')))
+        entry = conn.make_entry(DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')))
 
         entry.setValues("objectclass", "top", "nsEncryptionModule")
         entry.setValues("cn", "RSA")

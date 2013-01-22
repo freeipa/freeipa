@@ -216,7 +216,7 @@ class Service(object):
 
         dn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
-        entry = ipaldap.Entry(dn)
+        entry = self.admin_conn.make_entry(dn)
         entry.setValues("objectclass", ["krbprincipal", "krbprincipalaux", "krbticketpolicyaux", "ipaobject", "ipaservice", "pkiuser"])
         entry.setValue("krbprincipalname", principal)
         entry.setValue("ipauniqueid", 'autogenerate')
@@ -373,7 +373,7 @@ class Service(object):
 
         entry_name = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
         order = SERVICE_LIST[name][1]
-        entry = ipaldap.Entry(entry_name)
+        entry = self.admin_conn.make_entry(entry_name)
         entry.setValues("objectclass",
                         "nsContainer", "ipaConfigObject")
         entry.setValues("cn", name)

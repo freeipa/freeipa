@@ -34,7 +34,6 @@ from ipalib import errors
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 
-from ipaserver import ipaldap
 from ipaserver.install import replication
 from ipaserver.install import dsinstance
 
@@ -110,7 +109,7 @@ class KrbInstance(service.Service):
 
         # Create a host entry for this master
         host_dn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
-        host_entry = ipaldap.Entry(host_dn)
+        host_entry = self.admin_conn.make_entry(host_dn)
         host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux', 'ipasshhost'])
         host_entry.setValues('krbextradata', service_entry.getValues('krbextradata'))
         host_entry.setValue('krblastpwdchange', service_entry.getValue('krblastpwdchange'))
@@ -265,7 +264,7 @@ class KrbInstance(service.Service):
             root_logger.critical("Error while enumerating SASL mappings %s" % str(e))
             raise e
 
-        entry = ipaldap.Entry(DN(('cn', 'Full Principal'), ('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')))
+        entry = self.admin_conn.make_entry(DN(('cn', 'Full Principal'), ('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')))
         entry.setValues("objectclass", "top", "nsSaslMapping")
         entry.setValues("cn", "Full Principal")
         entry.setValues("nsSaslMapRegexString", '\(.*\)@\(.*\)')
@@ -278,7 +277,7 @@ class KrbInstance(service.Service):
             root_logger.critical("failed to add Full Principal Sasl mapping")
             raise e
 
-        entry = ipaldap.Entry(DN(('cn', 'Name Only'), ('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')))
+        entry = self.admin_conn.make_entry(DN(('cn', 'Name Only'), ('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')))
         entry.setValues("objectclass", "top", "nsSaslMapping")
         entry.setValues("cn", "Name Only")
         entry.setValues("nsSaslMapRegexString", '^[^:@]+$')
