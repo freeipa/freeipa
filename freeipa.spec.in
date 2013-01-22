@@ -70,7 +70,7 @@ BuildRequires:  python-dns
 BuildRequires:  m2crypto
 BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
-BuildRequires:  rhino >= 1.7R3
+BuildRequires:  java-1.7.0-openjdk
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -761,6 +761,11 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Thu Feb 21 2013 Petr Vobornik <pvoborni@redhat.com> - 3.0.99-13
+- dependency fix
+- Add BuildRequires: java-1.7.0-openjdk.
+- Add Web UI layer JS files in ui/js/{dojo,freeipa,libs} directories
+
 * Tue Jan 29 2013 Petr Viktorin <pviktori@redhat.com> - 3.0.99-12
 - Use ipa-ldap-updater --quiet instead of redirecting to /dev/null
 
