@@ -54,14 +54,59 @@ var profile = (function(){
             async: 1
         },
 
-        // Dojo package and layer is not included to not pollute release dir.
-        // It will raise some dependency errors. #TODO:update builder to be
-        // able to specify dependencies to ignore
-
         packages:[
             {
                 name: "freeipa",
-                location: "freeipa"
+                location: "freeipa",
+                providedMids: [
+                    // all modules in our dojo build
+                    // basically sorted layer content obtained from build report
+                    'dojo/_base/array',
+                    'dojo/_base/config',
+                    'dojo/_base/connect',
+                    'dojo/_base/declare',
+                    'dojo/_base/Deferred',
+                    'dojo/_base/event',
+                    'dojo/_base/kernel',
+                    'dojo/_base/lang',
+                    'dojo/_base/sniff',
+                    'dojo/_base/window',
+                    'dojo/aspect',
+                    'dojo/Deferred',
+                    'dojo/dojo',
+                    'dojo/dom',
+                    'dojo/dom-attr',
+                    'dojo/dom-class',
+                    'dojo/dom-construct',
+                    'dojo/dom-geometry',
+                    'dojo/dom-prop',
+                    'dojo/dom-style',
+                    'dojo/domReady',
+                    'dojo/errors/CancelError',
+                    'dojo/errors/create',
+                    'dojo/Evented',
+                    'dojo/has',
+                    'dojo/hash',
+                    'dojo/io-query',
+                    'dojo/keys',
+                    'dojo/mouse',
+                    'dojo/on',
+                    'dojo/promise/instrumentation',
+                    'dojo/promise/Promise',
+                    'dojo/promise/tracer',
+                    'dojo/ready',
+                    'dojo/router',
+                    'dojo/router/RouterBase',
+                    'dojo/sniff',
+                    'dojo/Stateful',
+                    'dojo/store/Memory',
+                    'dojo/store/Observable',
+                    'dojo/store/util/QueryResults',
+                    'dojo/store/util/SimpleQueryEngine',
+                    'dojo/topic',
+                    'dojo/when',
+                    'dojo/domReady!' //added with '!' as a loader plugin
+                ]
             }
         ],
 
