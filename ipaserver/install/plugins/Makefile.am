@@ -9,6 +9,7 @@ app_PYTHON = 			\
 	dns.py			\
 	updateclient.py		\
 	update_services.py	\
+	update_anonymous_aci.py	\
 	$(NULL)
 
 EXTRA_DIST =			\
