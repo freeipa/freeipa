@@ -1,0 +1,98 @@
+From 711bfa2bda294cbaf36df28391c8e25361a82d63 Mon Sep 17 00:00:00 2001
+From: Petr Vobornik <pvoborni@redhat.com>
+Date: Tue, 22 Jan 2013 15:25:00 +0100
+Subject: [PATCH] Allow to specify modules for which builder doesn't raise
+ dependency error
+
+One can specify module ids provided by other means (already built layer file) to build profile file in package section providedMids array. Builder than ignores dependency errors for specified modules. This allows to build layers without source codes of their dependencies, with no expected errors raised.
+
+Example:
+
+packages:[
+    {
+        name: "packageName",
+        location: "packageName",
+        providedMids: [
+            'dojo/_base/declare',
+            'dojo/_base/lang',
+            'dojo/_base/array',
+            'dojo/Stateful'
+            //etc
+        ]
+    }
+],
+---
+ build/buildControl.js        | 10 +++++++++-
+ build/transforms/depsScan.js | 13 +++++++++++--
+ 2 files changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/build/buildControl.js b/build/buildControl.js
+index 08fa793a8e21068b9847ab82a45e442e00759323..1198b59e4f754f87409912dfe409cc4205f9b4e5 100644
+--- a/build/buildControl.js
++++ b/build/buildControl.js
+@@ -1,5 +1,6 @@
+ define([
+ 	"require",
++	"dojo/_base/array",
+ 	"dojo/_base/lang",
+ 	"./argv",
+ 	"./fs",
+@@ -10,7 +11,7 @@ define([
+ 	"./process",
+ 	"./messages",
+ 	"dojo/text!./help.txt"
+-], function(require, lang, argv, fs, fileUtils, bc, v1xProfiles, stringify, process, messages, helpText){
++], function(require, array, lang, argv, fs, fileUtils, bc, v1xProfiles, stringify, process, messages, helpText){
+ 	//
+ 	// Process the arguments given on the command line to build up a profile object that is used to instruct and control
+ 	// the build process.
+@@ -291,6 +292,13 @@ define([
+ 				main:pack.destMain || pack.main,
+ 				location:computePath(pack.destLocation || ("./" + (pack.destName || packName)), bc.destBasePath)
+ 			};
++
++			var providedMids = pack.providedMids || [];
++			pack.providedMids = [];
++			array.forEach(providedMids, function(mid) {
++				pack.providedMids[mid] = true;
++			});
++
+ 			delete pack.destName;
+ 			delete pack.destMain;
+ 			delete pack.destLocation;
+diff --git a/build/transforms/depsScan.js b/build/transforms/depsScan.js
+index cd9c098ea5da30a148a82b2ff6cc1eaa593871d2..75186abc3fdce4135c426a6c64863fcd40a6342a 100644
+--- a/build/transforms/depsScan.js
++++ b/build/transforms/depsScan.js
+@@ -604,6 +604,11 @@ define([
+ 				aggregateDeps = names.concat(aggregateDeps);
+ 				// need to use extractResult[0] since it may delete the dojo.loadInit applications
+ 				resource.getText = function(){ return "// wrapped by build app" + newline + "define(" + json.stringify(aggregateDeps) + ", function(" + names.join(",") + "){" + newline + extractResult[0] + newline + "});" + newline; };
++			},
++
++			isProvidedDependency = function(mid, dep) {
++				var packName = mid.split('/')[0];
++				return bc.packages[packName].providedMids[dep] === true;
+ 			};
+ 
+ 		// scan the resource for dependencies
+@@ -627,10 +632,14 @@ define([
+ 					}else if(module){
+ 						deps.push(module);
+ 					}else{
+-						bc.log("amdMissingDependency", ["module", resource.mid, "dependency", dep]);
++						if (!isProvidedDependency(resource.mid, dep)) {
++							bc.log("amdMissingDependency", ["module", resource.mid, "dependency", dep]);
++						}
+ 					}
+ 				}catch(e){
+-					bc.log("amdMissingDependency", ["module", resource.mid, "dependency", dep, "error", e]);
++					if (!isProvidedDependency(resource.mid, dep)) {
++						bc.log("amdMissingDependency", ["module", resource.mid, "dependency", dep, "error", e]);
++					}
+ 				}
+ 			}
+ 		});
+-- 
+1.7.11.7
+
