@@ -26,6 +26,7 @@ import string
 import time
 import shutil
 from decimal import Decimal
+from copy import deepcopy
 
 import ldap
 import ldap as _ldap
@@ -586,20 +587,32 @@ class IPASimpleLDAPObject(object):
 # r[0] == r.dn
 # r[1] == r.data
 class LDAPEntry(dict):
-    __slots__ = ('_dn',)
+    __slots__ = ('_dn', '_orig')
 
     def __init__(self, _dn=None, _obj=None, **kwargs):
+        super(LDAPEntry, self).__init__()
+
         if isinstance(_dn, LDAPEntry):
             assert _obj is None
             _obj = _dn
-            self._dn = DN(_obj._dn)    #pylint: disable=E1103
+            _dn = DN(_dn._dn)
+
+        if isinstance(_obj, LDAPEntry):
+            orig = _obj._orig
         else:
-            assert isinstance(_dn, DN)
             if _obj is None:
                 _obj = {}
-            self._dn = _dn
+            orig = None
 
-        super(LDAPEntry, self).__init__(self._init_iter(_obj, **kwargs))
+        assert isinstance(_dn, DN)
+
+        self._dn = _dn
+        self._orig = orig
+
+        if orig is None:
+            self.commit()
+
+        self.update(_obj, **kwargs)
 
     # properties for Entry and Entity compatibility
     @property
@@ -615,6 +628,11 @@ class LDAPEntry(dict):
     def data(self):
         # FIXME: for backwards compatibility only
         return self
+
+    @property
+    def orig_data(self):
+        # FIXME: for backwards compatibility only
+        return self._orig
 
     def _attr_name(self, name):
         if not isinstance(name, basestring):
@@ -636,6 +654,10 @@ class LDAPEntry(dict):
 
     def copy(self):
         return LDAPEntry(self)
+
+    def commit(self):
+        self._orig = self
+        self._orig = deepcopy(self)
 
     def __setitem__(self, name, value):
         super(LDAPEntry, self).__setitem__(self._attr_name(name), value)
@@ -733,6 +755,19 @@ class LDAPEntry(dict):
         result['dn'] = self.dn
         return result
 
+    def attrList(self):
+        """Return a list of all attributes in the entry"""
+        return self.data.keys()
+
+    def origDataDict(self):
+        """Returns a dict of the original values of the user.
+
+        Used for updates.
+        """
+        result = ipautil.CIDict(self.orig_data)
+        result['dn'] = self.dn
+        return result
+
 
 class Entry(LDAPEntry):
     """For compatibility with old code only
@@ -750,7 +785,7 @@ class Entry(LDAPEntry):
         a search result entry or a reference or None.
         If creating a new empty entry, data is the string DN."""
         if entrydata:
-            if isinstance(entrydata, (tuple, LDAPEntry)):
+            if isinstance(entrydata, tuple):
                 dn = entrydata[0]
                 data = ipautil.CIDict(entrydata[1])
             elif isinstance(entrydata, DN):
@@ -759,9 +794,10 @@ class Entry(LDAPEntry):
             elif isinstance(entrydata, basestring):
                 dn = DN(entrydata)
                 data = ipautil.CIDict()
+            elif isinstance(entrydata, LDAPEntry):
+                dn = entrydata.dn
+                data = entrydata
             elif isinstance(entrydata, dict):
-                if hasattr(entrydata, 'dn'):
-                    entrydata['dn'] = entrydata.dn
                 dn = entrydata['dn']
                 del entrydata['dn']
                 data = ipautil.CIDict(entrydata)

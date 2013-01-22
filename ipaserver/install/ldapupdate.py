@@ -33,7 +33,6 @@ import pwd
 import fnmatch
 import csv
 import inspect
-import copy
 
 import krbV
 import ldap
@@ -47,29 +46,6 @@ from ipalib import api
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
-
-
-class Entity(ipaldap.Entry):
-    # TODO: Use ldap2 instead
-    def __init__(self, entrydata=None):
-        ipaldap.Entry.__init__(self, entrydata)
-        y = {}
-        for key, value in self.data.iteritems():
-            y[copy.deepcopy(key)] = copy.deepcopy(value)
-        self.orig_data = ipautil.CIDict(y)
-
-    def attrList(self):
-        """Return a list of all attributes in the entry"""
-        return self.data.keys()
-
-    def origDataDict(self):
-        """Returns a dict of the original values of the user.
-
-        Used for updates.
-        """
-        result = ipautil.CIDict(self.orig_data)
-        result['dn'] = self.dn
-        return result
 
 
 class BadSyntax(installutils.ScriptError):
@@ -269,18 +245,15 @@ class LDAPUpdate:
         return text
 
     def _entry_to_entity(self, ent):
-        """Tne Entry class is a bare LDAP entry. The Entity class has a lot more
-           helper functions that we need, so convert to dict and then to Entity.
-        """
-        entry = dict(ent.data)
-        entry['dn'] = ent.dn
+        entry = ent.copy()
         for key,value in entry.iteritems():
             if isinstance(value,list) or isinstance(value,tuple):
                 if len(value) == 0:
                     entry[key] = ''
                 elif len(value) == 1:
                     entry[key] = value[0]
-        return Entity(entry)
+        entry.commit()
+        return entry
 
     def _combine_updates(self, all_updates, update):
         'Combine a new update with the list of total updates'
@@ -508,7 +481,7 @@ class LDAPUpdate:
     def _create_default_entry(self, dn, default):
         """Create the default entry from the values provided.
 
-           The return type is Entity
+           The return type is ipaldap.Entry
         """
         assert isinstance(dn, DN)
         entry = self.conn.make_entry(dn)
