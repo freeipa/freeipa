@@ -70,7 +70,7 @@ BuildRequires:  python-dns
 BuildRequires:  m2crypto
 BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
-BuildRequires:  rhino >= 1.7R3
+BuildRequires:  java-1.7.0-openjdk
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -767,6 +767,15 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Fri Jan 22 2013 Petr Vobornik <pvoborni@redhat.com> - 3.0.99-11
+- dependency fix
+- Add BuildRequires: java-1.7.0-openjdk.
+- Removed BuildRequires: rhino
+
+* Fri Jan 18 2013 Petr Vobornik <pvoborni@redhat.com> - 3.0.99-10
+- Add Web UI layer JS files in ui/js/{dojo,freeipa,libs} directories
+- Add BuildRequires: rhino
+
 * Fri Dec 7 2012 Endi S. Dewata <edewata@redhat.com> - 3.0.99-9
 - Bump minimum version of pki-ca to 10.0.0-0.54.b3
 
