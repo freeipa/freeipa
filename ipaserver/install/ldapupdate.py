@@ -481,7 +481,7 @@ class LDAPUpdate:
     def _create_default_entry(self, dn, default):
         """Create the default entry from the values provided.
 
-           The return type is ipaldap.Entry
+           The return type is ipaldap.LDAPEntry
         """
         assert isinstance(dn, DN)
         entry = self.conn.make_entry(dn)
@@ -507,7 +507,7 @@ class LDAPUpdate:
     def _get_entry(self, dn):
         """Retrieve an object from LDAP.
 
-           The return type is ipaldap.Entry
+           The return type is ipaldap.LDAPEntry
         """
         assert isinstance(dn, DN)
         searchfilter="objectclass=*"

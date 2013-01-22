@@ -769,49 +769,6 @@ class LDAPEntry(dict):
         return result
 
 
-class Entry(LDAPEntry):
-    """For compatibility with old code only
-
-    This class represents an LDAP Entry object.  An LDAP entry consists of
-    a DN and a list of attributes.  Each attribute consists of a name and
-    a list of values.  In python-ldap, entries are returned as a list of
-    2-tuples.  Instance variables:
-
-        * dn - DN object - the DN of the entry
-        * data - CIDict - case insensitive dict of the attributes and values
-    """
-    def __init__(self, entrydata):
-        """data is the raw data returned from the python-ldap result method, which is
-        a search result entry or a reference or None.
-        If creating a new empty entry, data is the string DN."""
-        if entrydata:
-            if isinstance(entrydata, tuple):
-                dn = entrydata[0]
-                data = ipautil.CIDict(entrydata[1])
-            elif isinstance(entrydata, DN):
-                dn = entrydata
-                data = ipautil.CIDict()
-            elif isinstance(entrydata, basestring):
-                dn = DN(entrydata)
-                data = ipautil.CIDict()
-            elif isinstance(entrydata, LDAPEntry):
-                dn = entrydata.dn
-                data = entrydata
-            elif isinstance(entrydata, dict):
-                dn = entrydata['dn']
-                del entrydata['dn']
-                data = ipautil.CIDict(entrydata)
-            else:
-                raise TypeError(
-                    "entrydata must be 2-tuple, DN, or basestring, got %s" %
-                    type(entrydata))
-        else:
-            dn = DN()
-            data = ipautil.CIDict()
-
-        super(Entry, self).__init__(dn, data)
-
-
 class LDAPConnection(object):
     """LDAP backend class
 
@@ -1689,10 +1646,6 @@ class IPAdmin(LDAPConnection):
         auth_tokens = ldap.sasl.external(user_name)
         self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, None, auth_tokens)
         self.__lateinit()
-
-    def make_entry(self, _dn=None, _obj=None, **kwargs):
-        entry = super(IPAdmin, self).make_entry(_dn, _obj, **kwargs)
-        return Entry((entry.dn, entry))
 
     def getEntry(self, base, scope, filterstr='(objectClass=*)',
                  attrlist=None):
