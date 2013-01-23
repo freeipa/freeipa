@@ -1112,18 +1112,6 @@ def backup_config_and_replace_variables(
     return old_values
 
 
-def utf8_encode_value(value):
-    if isinstance(value, unicode):
-        return value.encode('utf-8')
-    return value
-
-
-def utf8_encode_values(values):
-    if isinstance(values, list) or isinstance(values, tuple):
-        return map(utf8_encode_value, values)
-    else:
-        return utf8_encode_value(values)
-
 def wait_for_open_ports(host, ports, timeout=0):
     """
     Wait until the specified port(s) on the remote host are open. Timeout
