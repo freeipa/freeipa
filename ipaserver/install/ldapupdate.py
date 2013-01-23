@@ -428,7 +428,7 @@ class LDAPUpdate:
         self.debug("Task id: %s", dn)
 
         if self.live_run:
-            self.conn.addEntry(e)
+            self.conn.add_entry(e)
 
         return dn
 
@@ -769,7 +769,7 @@ class LDAPUpdate:
                         # dn defined. In that case there is nothing to do.
                         # It means the entry doesn't exist, so skip it.
                         try:
-                            self.conn.addEntry(entry)
+                            self.conn.add_entry(entry)
                         except errors.NotFound:
                             # parent entry of the added entry does not exist
                             # this may not be an error (e.g. entries in NIS container)

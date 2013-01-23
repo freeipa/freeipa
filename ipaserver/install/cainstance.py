@@ -397,7 +397,7 @@ class CADSInstance(service.Service):
             nsSSLToken=["internal (software)"],
             nsSSLActivation=["on"],
         )
-        conn.addEntry(entry)
+        conn.add_entry(entry)
 
         conn.unbind()
 

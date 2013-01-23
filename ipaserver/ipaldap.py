@@ -1632,11 +1632,6 @@ class IPAdmin(LDAPClient):
         )
         return result[0]
 
-    def addEntry(self, entry):
-        # FIXME: for backwards compatibility only
-        self.add_entry(entry.dn, entry)
-        return True
-
     def updateEntry(self,dn,oldentry,newentry):
         # FIXME: for backwards compatibility only
         """This wraps the mod function. It assumes that the entry is already

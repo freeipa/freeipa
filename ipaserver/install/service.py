@@ -202,7 +202,7 @@ class Service(object):
         entry["objectclass"] = list(set(classes))
         entry["ipauniqueid"] = ['autogenerate']
         entry["managedby"] = [hostdn]
-        self.admin_conn.addEntry(entry)
+        self.admin_conn.add_entry(entry)
         return newdn
 
     def add_simple_service(self, principal):
@@ -225,7 +225,7 @@ class Service(object):
             ipauniqueid=['autogenerate'],
             managedby=[hostdn],
         )
-        self.admin_conn.addEntry(entry)
+        self.admin_conn.add_entry(entry)
         return dn
 
     def add_cert_to_service(self):
@@ -386,7 +386,7 @@ class Service(object):
         )
 
         try:
-            self.admin_conn.addEntry(entry)
+            self.admin_conn.add_entry(entry)
         except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
             root_logger.debug("failed to add %s Service startup entry" % name)
             raise e

@@ -323,7 +323,7 @@ class ReplicationManager(object):
         )
 
         try:
-            conn.addEntry(ent)
+            conn.add_entry(ent)
         except errors.DuplicateEntry:
             conn.modify_s(dn, [(ldap.MOD_REPLACE, "userpassword", pw)])
             pass
@@ -377,7 +377,7 @@ class ReplicationManager(object):
             nsds5replicabinddn=[replica_binddn],
             nsds5replicalegacyconsumer=["off"],
         )
-        conn.addEntry(entry)
+        conn.add_entry(entry)
 
     def setup_changelog(self, conn):
         ent = conn.get_entry(
@@ -396,7 +396,7 @@ class ReplicationManager(object):
             }
         )
         try:
-            conn.addEntry(entry)
+            conn.add_entry(entry)
         except errors.DuplicateEntry:
             return
 
@@ -423,7 +423,7 @@ class ReplicationManager(object):
                         'nsmultiplexorcredentials': [self.repl_man_passwd],
                     }
                 )
-                self.conn.addEntry(entry)
+                self.conn.add_entry(entry)
                 done = True
             except errors.DuplicateEntry:
                 benum += 1
@@ -493,7 +493,7 @@ class ReplicationManager(object):
             uid=["passsync"],
             userPassword=[password],
         )
-        conn.addEntry(entry)
+        conn.add_entry(entry)
 
         # Add it to the list of users allowed to bypass password policy
         extop_dn = DN(('cn', 'ipa_pwd_extop'), ('cn', 'plugins'), ('cn', 'config'))
@@ -586,7 +586,7 @@ class ReplicationManager(object):
         if iswinsync:
             self.setup_winsync_agmt(entry, win_subtree)
 
-        a_conn.addEntry(entry)
+        a_conn.add_entry(entry)
 
         try:
             mod = [(ldap.MOD_ADD, 'nsDS5ReplicatedAttributeListTotal',
@@ -969,7 +969,7 @@ class ReplicationManager(object):
         )
 
         try:
-            self.conn.addEntry(entry)
+            self.conn.add_entry(entry)
         except Exception, e:
             root_logger.info("Failed to create public entry for winsync replica")
 
@@ -1225,7 +1225,7 @@ class ReplicationManager(object):
             }
         )
         try:
-            self.conn.addEntry(e)
+            self.conn.add_entry(e)
         except errors.DuplicateEntry:
             print "CLEANALLRUV task for replica id %d already exists." % replicaId
         else:
@@ -1252,7 +1252,7 @@ class ReplicationManager(object):
             }
         )
         try:
-            self.conn.addEntry(e)
+            self.conn.add_entry(e)
         except errors.DuplicateEntry:
             print "An abort CLEANALLRUV task for replica id %d already exists." % replicaId
         else:

@@ -333,7 +333,7 @@ class ADTRUSTInstance(service.Service):
                     return
                 entry = self.admin_conn.make_entry(
                     new_dn, objectclass=['nsContainer'], cn=[name])
-                self.admin_conn.addEntry(entry)
+                self.admin_conn.add_entry(entry)
 
         entry = self.admin_conn.make_entry(
             self.smb_dom_dn,
@@ -346,7 +346,7 @@ class ADTRUSTInstance(service.Service):
             }
         )
         #TODO: which MAY attributes do we want to set ?
-        self.admin_conn.addEntry(entry)
+        self.admin_conn.add_entry(entry)
 
     def __write_smb_conf(self):
         self.fstore.backup_file(self.smb_conf)
@@ -458,7 +458,7 @@ class ADTRUSTInstance(service.Service):
                     cn=[self.smb_dn['cn']],
                     member=[self.cifs_agent],
                 )
-                self.admin_conn.addEntry(entry)
+                self.admin_conn.add_entry(entry)
         except Exception, e:
             # CIFS principal already exists, it is not the first time adtrustinstance is managed
             # That's fine, we we'll re-extract the key again.
@@ -745,7 +745,7 @@ class ADTRUSTInstance(service.Service):
             ipaBaseID=[str(base_id)],
             ipaIDRangeSize=[str(id_range_size)],
         )
-        self.admin_conn.addEntry(entry)
+        self.admin_conn.add_entry(entry)
 
     def create_instance(self):
 

@@ -131,7 +131,7 @@ class KrbInstance(service.Service):
                 'krbpasswordexpiration']
         if 'krbticketflags' in service_entry.toDict():
             host_entry['krbticketflags'] = service_entry['krbticketflags']
-        self.admin_conn.addEntry(host_entry)
+        self.admin_conn.add_entry(host_entry)
 
     def __common_setup(self, realm_name, host_name, domain_name, admin_password):
         self.fqdn = host_name
@@ -282,7 +282,7 @@ class KrbInstance(service.Service):
             nsSaslMapBaseDNTemplate=[self.suffix],
             nsSaslMapFilterTemplate=['(krbPrincipalName=\\1@\\2)'],
         )
-        self.admin_conn.addEntry(entry)
+        self.admin_conn.add_entry(entry)
 
         entry = self.admin_conn.make_entry(
             DN(
@@ -295,7 +295,7 @@ class KrbInstance(service.Service):
             nsSaslMapFilterTemplate=[
                 '(krbPrincipalName=&@%s)' % self.realm],
         )
-        self.admin_conn.addEntry(entry)
+        self.admin_conn.add_entry(entry)
 
     def __add_krb_container(self):
         self._ldap_mod("kerberos.ldif", self.sub_dict)
