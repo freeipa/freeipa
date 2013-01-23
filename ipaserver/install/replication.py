@@ -734,7 +734,7 @@ class ReplicationManager(object):
         """
         if dn is None:
             cn, dn = self.agreement_dn(hostname)
-        return self.conn.deleteEntry(dn)
+        return self.conn.delete_entry(dn)
 
     def delete_referral(self, hostname):
         dn = DN(('cn', self.suffix), ('cn', 'mapping tree'), ('cn', 'config'))
@@ -1094,8 +1094,8 @@ class ReplicationManager(object):
                 filter='(krbprincipalname=*/%s@%s)' % (replica, realm))
             if entries:
                 entries.sort(key=len, reverse=True)
-                for dn in entries:
-                    self.conn.deleteEntry(dn)
+                for entry in entries:
+                    self.conn.delete_entry(entry)
         except errors.NotFound:
             pass
         except Exception, e:
@@ -1136,8 +1136,8 @@ class ReplicationManager(object):
             entries = self.conn.get_entries(dn, ldap.SCOPE_SUBTREE)
             if entries:
                 entries.sort(key=len, reverse=True)
-                for dn in entries:
-                    self.conn.deleteEntry(dn)
+                for entry in entries:
+                    self.conn.delete_entry(entry)
         except errors.NotFound:
             pass
         except Exception, e:
@@ -1152,8 +1152,8 @@ class ReplicationManager(object):
             entries = self.conn.get_entries(
                 basedn, ldap.SCOPE_SUBTREE, filter=filter)
             if len(entries) != 0:
-                for e in entries:
-                    self.conn.deleteEntry(e.dn)
+                for entry in entries:
+                    self.conn.delete_entry(entry)
         except errors.NotFound:
             pass
         except Exception, e:

@@ -104,7 +104,7 @@ class KrbInstance(service.Service):
 
         service_dn = DN(('krbprincipalname', principal), self.get_realm_suffix())
         service_entry = self.admin_conn.getEntry(service_dn, ldap.SCOPE_BASE)
-        self.admin_conn.deleteEntry(service_dn)
+        self.admin_conn.delete_entry(service_entry)
 
         # Create a host entry for this master
         host_dn = DN(
@@ -263,7 +263,7 @@ class KrbInstance(service.Service):
                                      "(objectclass=nsSaslMapping)")
             for r in res:
                 try:
-                    self.admin_conn.delete_entry(r.dn)
+                    self.admin_conn.delete_entry(r)
                 except Exception, e:
                     root_logger.critical(
                         "Error during SASL mapping removal: %s", e)

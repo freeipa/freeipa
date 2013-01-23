@@ -1727,11 +1727,6 @@ class IPAdmin(LDAPClient):
             self.modify_s(dn, modlist)
         return True
 
-    def deleteEntry(self, dn):
-        # FIXME: for backwards compatibility only
-        self.delete_entry(dn)
-        return True
-
     def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
         scope = ldap.SCOPE_BASE
         filter = "(objectclass=*)"

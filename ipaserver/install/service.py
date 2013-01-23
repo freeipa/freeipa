@@ -195,7 +195,7 @@ class Service(object):
             return None
         newdn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
-        self.admin_conn.deleteEntry(dn)
+        self.admin_conn.delete_entry(entry)
         entry.dn = newdn
         classes = entry.get("objectclass")
         classes = classes + ["ipaobject", "ipaservice", "pkiuser"]

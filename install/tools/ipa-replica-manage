@@ -308,8 +308,8 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             entries = repl1.conn.get_entries(dn, ldap.SCOPE_SUBTREE)
             if entries:
                 entries.sort(key=len, reverse=True)
-                for dn in entries:
-                    repl1.conn.deleteEntry(dn)
+                for entry in entries:
+                    repl1.conn.delete_entry(entry)
         except Exception, e:
             print "Error deleting winsync replica shared info: %s" % convert_error(e)
 

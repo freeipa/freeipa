@@ -835,7 +835,7 @@ class LDAPUpdate:
         try:
             self.info("Deleting entry %s", dn)
             if self.live_run:
-                self.conn.deleteEntry(dn)
+                self.conn.delete_entry(dn)
             self.modified = True
         except errors.NotFound, e:
             self.info("%s did not exist:%s", dn, e)
