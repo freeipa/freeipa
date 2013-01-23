@@ -36,7 +36,7 @@ import krbV
 import ldap as _ldap
 
 from ipapython.dn import DN
-from ipaserver.ipaldap import SASL_AUTH, IPASimpleLDAPObject, LDAPConnection
+from ipaserver.ipaldap import SASL_AUTH, IPASimpleLDAPObject, LDAPClient
 
 
 try:
@@ -58,7 +58,7 @@ from ipalib.crud import CrudBackend
 from ipalib.request import context
 
 
-class ldap2(LDAPConnection, CrudBackend):
+class ldap2(LDAPClient, CrudBackend):
     """
     LDAP Backend Take 2.
     """
@@ -71,7 +71,7 @@ class ldap2(LDAPConnection, CrudBackend):
             ldap_uri = 'ldap://example.com'
 
         CrudBackend.__init__(self, shared_instance=shared_instance)
-        LDAPConnection.__init__(self, ldap_uri)
+        LDAPClient.__init__(self, ldap_uri)
 
         try:
             if base_dn is not None:

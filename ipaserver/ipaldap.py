@@ -740,7 +740,7 @@ class LDAPEntry(dict):
         return result
 
 
-class LDAPConnection(object):
+class LDAPClient(object):
     """LDAP backend class
 
     This class abstracts a LDAP connection, providing methods that work with
@@ -887,7 +887,7 @@ class LDAPConnection(object):
         return obj and obj.single_value
 
     def normalize_dn(self, dn):
-        """Override to normalize all DNs passed to LDAPConnection methods"""
+        """Override to normalize all DNs passed to LDAPClient methods"""
         assert isinstance(dn, DN)
         return dn
 
@@ -1528,7 +1528,7 @@ class LDAPConnection(object):
             self.conn.delete_s(dn)
 
 
-class IPAdmin(LDAPConnection):
+class IPAdmin(LDAPClient):
 
     def __get_ldap_uri(self, protocol):
         if protocol == 'ldaps':
@@ -1579,7 +1579,7 @@ class IPAdmin(LDAPConnection):
 
         ldap_uri = self.__get_ldap_uri(protocol or self.__guess_protocol())
 
-        LDAPConnection.__init__(self, ldap_uri)
+        LDAPClient.__init__(self, ldap_uri)
 
         self.conn = IPASimpleLDAPObject(ldap_uri, force_schema_updates=True)
 
