@@ -188,7 +188,7 @@ class Service(object):
 
         dn = DN(('krbprincipalname', principal), ('cn', self.realm), ('cn', 'kerberos'), self.suffix)
         try:
-            entry = self.admin_conn.getEntry(dn, ldap.SCOPE_BASE)
+            entry = self.admin_conn.get_entry(dn)
         except errors.NotFound:
             # There is no service in the wrong location, nothing to do.
             # This can happen when installing a replica

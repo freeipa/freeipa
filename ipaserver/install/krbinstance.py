@@ -103,7 +103,7 @@ class KrbInstance(service.Service):
         """
 
         service_dn = DN(('krbprincipalname', principal), self.get_realm_suffix())
-        service_entry = self.admin_conn.getEntry(service_dn, ldap.SCOPE_BASE)
+        service_entry = self.admin_conn.get_entry(service_dn)
         self.admin_conn.delete_entry(service_entry)
 
         # Create a host entry for this master
@@ -359,8 +359,10 @@ class KrbInstance(service.Service):
 
     def __write_stash_from_ds(self):
         try:
-            entry = self.admin_conn.getEntry(self.get_realm_suffix(),
-                                             ldap.SCOPE_SUBTREE)
+            entries = self.admin_conn.get_entries(self.get_realm_suffix(),
+                                                  ldap.SCOPE_SUBTREE)
+            # TODO: Ensure we got only one entry
+            entry = entries[0]
         except errors.NotFound, e:
             root_logger.critical("Could not find master key in DS")
             raise e

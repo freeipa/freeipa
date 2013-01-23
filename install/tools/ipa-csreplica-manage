@@ -135,7 +135,7 @@ class CSReplicationManager(replication.ReplicationManager):
                 try:
                     cn="%sAgreement1-%s-%s" % (master, host, instance_name)
                     dn = DN(('cn', cn), self.replica_dn())
-                    self.conn.getEntry(dn, ldap.SCOPE_BASE)
+                    self.conn.get_entry(dn)
                     return (cn, dn)
                 except errors.NotFound:
                     dn = None
@@ -156,7 +156,7 @@ class CSReplicationManager(replication.ReplicationManager):
 
     def has_ipaca(self):
         try:
-            entry = self.conn.getEntry(self.suffix, ldap.SCOPE_BASE)
+            entry = self.conn.get_entry(self.suffix)
         except errors.NotFound:
             return False
         else:
@@ -216,7 +216,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
         for ent in entries:
             try:
                 cadn = DN(('cn', 'CA'), DN(ent.dn))
-                entry = conn.getEntry(cadn, ldap.SCOPE_BASE)
+                entry = conn.get_entry(cadn)
                 peers[ent.single_value('cn')] = ['master', '']
             except errors.NotFound:
                 peers[ent.single_value('cn')] = ['CA not configured', '']

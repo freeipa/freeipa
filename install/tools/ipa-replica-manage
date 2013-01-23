@@ -765,12 +765,12 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
             master1_dn = DN(('cn', replica1), masters_dn)
             master2_dn = DN(('cn', replica2), masters_dn)
 
-            repl1.conn.getEntry(master1_dn, ldap.SCOPE_BASE)
-            repl1.conn.getEntry(master2_dn, ldap.SCOPE_BASE)
+            repl1.conn.get_entry(master1_dn)
+            repl1.conn.get_entry(master2_dn)
 
             repl2 = replication.ReplicationManager(realm, replica2, dirman_passwd)
-            repl2.conn.getEntry(master1_dn, ldap.SCOPE_BASE)
-            repl2.conn.getEntry(master2_dn, ldap.SCOPE_BASE)
+            repl2.conn.get_entry(master1_dn)
+            repl2.conn.get_entry(master2_dn)
 
         except errors.NotFound:
             standard_logging_setup(console_format='%(message)s')

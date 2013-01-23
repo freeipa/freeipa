@@ -450,7 +450,7 @@ class LDAPUpdate:
 
         while True:
             try:
-                entry = self.conn.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
+                entry = self.conn.get_entry(dn, attrlist)
             except errors.NotFound, e:
                 self.error("Task not found: %s", dn)
                 return

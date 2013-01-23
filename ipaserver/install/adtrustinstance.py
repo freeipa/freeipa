@@ -158,8 +158,7 @@ class ADTRUSTInstance(service.Service):
         admin_group_dn = DN(('cn', 'admins'), api.env.container_group,
                             self.suffix)
         try:
-            dom_entry = self.admin_conn.getEntry(self.smb_dom_dn, \
-                                                 ldap.SCOPE_BASE)
+            dom_entry = self.admin_conn.get_entry(self.smb_dom_dn)
         except errors.NotFound:
             self.print_msg("Samba domain object not found")
             return
@@ -170,14 +169,13 @@ class ADTRUSTInstance(service.Service):
             return
 
         try:
-            admin_entry = self.admin_conn.getEntry(admin_dn, ldap.SCOPE_BASE)
+            admin_entry = self.admin_conn.get_entry(admin_dn)
         except:
             self.print_msg("IPA admin object not found")
             return
 
         try:
-            admin_group_entry = self.admin_conn.getEntry(admin_group_dn, \
-                                                         ldap.SCOPE_BASE)
+            admin_group_entry = self.admin_conn.get_entry(admin_group_dn)
         except:
             self.print_msg("IPA admin group object not found")
             return
@@ -218,8 +216,7 @@ class ADTRUSTInstance(service.Service):
         self.ldap_connect()
 
         try:
-            dom_entry = self.admin_conn.getEntry(self.smb_dom_dn, \
-                                                 ldap.SCOPE_BASE)
+            dom_entry = self.admin_conn.get_entry(self.smb_dom_dn)
         except errors.NotFound:
             self.print_msg("Samba domain object not found")
             return
@@ -231,7 +228,7 @@ class ADTRUSTInstance(service.Service):
         fb_group_dn = DN(('cn', self.FALLBACK_GROUP_NAME),
                          api.env.container_group, self.suffix)
         try:
-            self.admin_conn.getEntry(fb_group_dn, ldap.SCOPE_BASE)
+            self.admin_conn.get_entry(fb_group_dn)
         except errors.NotFound:
             try:
                 self._ldap_mod('default-smb-group.ldif', self.sub_dict)
@@ -242,7 +239,7 @@ class ADTRUSTInstance(service.Service):
         # _ldap_mod does not return useful error codes, so we must check again
         # if the fallback group was created properly.
         try:
-            self.admin_conn.getEntry(fb_group_dn, ldap.SCOPE_BASE)
+            self.admin_conn.get_entry(fb_group_dn)
         except errors.NotFound:
             self.print_msg("Failed to add fallback group.")
             return
@@ -310,7 +307,7 @@ class ADTRUSTInstance(service.Service):
     def __create_samba_domain_object(self):
 
         try:
-            self.admin_conn.getEntry(self.smb_dom_dn, ldap.SCOPE_BASE)
+            self.admin_conn.get_entry(self.smb_dom_dn)
             if self.reset_netbios_name:
                 self.__reset_netbios_name()
             else :
@@ -323,7 +320,7 @@ class ADTRUSTInstance(service.Service):
                        DN(('cn', 'ad'), self.trust_dn), \
                        DN(api.env.container_cifsdomains, self.suffix)):
             try:
-                self.admin_conn.getEntry(new_dn, ldap.SCOPE_BASE)
+                self.admin_conn.get_entry(new_dn)
             except errors.NotFound:
                 try:
                     name = new_dn[1].attr
@@ -365,7 +362,7 @@ class ADTRUSTInstance(service.Service):
         try:
             plugin_dn = DN(('cn', plugin_cn), ('cn', 'plugins'),
                            ('cn', 'config'))
-            self.admin_conn.getEntry(plugin_dn, ldap.SCOPE_BASE)
+            self.admin_conn.get_entry(plugin_dn)
             self.print_msg('%s plugin already configured, nothing to do' % name)
         except errors.NotFound:
             try:
@@ -713,8 +710,8 @@ class ADTRUSTInstance(service.Service):
             return
 
         try:
-            entry = self.admin_conn.getEntry(DN(('cn', 'admins'), api.env.container_group, self.suffix),
-                                             ldap.SCOPE_BASE)
+            entry = self.admin_conn.get_entry(
+                DN(('cn', 'admins'), api.env.container_group, self.suffix))
         except errors.NotFound:
             raise ValueError("No local ID range and no admins group found.\n" \
                              "Add local ID range manually and try again!")

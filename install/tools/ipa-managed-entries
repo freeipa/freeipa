@@ -143,11 +143,8 @@ def main():
 
         disabled = True
         try:
-            entry = conn.getEntry(def_dn,
-                ldap.SCOPE_BASE,
-                filter,
-                ['originfilter'],
-            )
+            [entry] = conn.get_entries(def_dn, ldap.SCOPE_BASE,
+                                       filter, ['originfilter'])
             disable_attr = '(objectclass=disable)'
             try:
                 org_filter = entry.single_value('originfilter', None)

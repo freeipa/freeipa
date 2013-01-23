@@ -1621,17 +1621,6 @@ class IPAdmin(LDAPClient):
         self.__bind_with_wait(
             self.sasl_interactive_bind_s, timeout, None, auth_tokens)
 
-    def getEntry(self, base, scope, filterstr='(objectClass=*)',
-                 attrlist=None):
-        # FIXME: for backwards compatibility only
-        result, truncated = self.find_entries(
-            filter=filterstr,
-            attrs_list=attrlist,
-            base_dn=base,
-            scope=scope,
-        )
-        return result[0]
-
     def updateEntry(self,dn,oldentry,newentry):
         # FIXME: for backwards compatibility only
         """This wraps the mod function. It assumes that the entry is already
@@ -1728,7 +1717,6 @@ class IPAdmin(LDAPClient):
         return True
 
     def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
-        scope = ldap.SCOPE_BASE
         filter = "(objectclass=*)"
         attrlist = []
         if attr:
@@ -1747,10 +1735,11 @@ class IPAdmin(LDAPClient):
         entry = None
         while not entry and int(time.time()) < timeout:
             try:
-                entry = self.getEntry(dn, scope, filter, attrlist)
-            except ldap.NO_SUCH_OBJECT:
-                pass # no entry yet
-            except ldap.LDAPError, e: # badness
+                [entry] = self.get_entries(
+                    dn, ldap.SCOPE_BASE, filter, attrlist)
+            except errors.NotFound:
+                pass  # no entry yet
+            except Exception, e:  # badness
                 print "\nError reading entry", dn, e
                 break
             if not entry:

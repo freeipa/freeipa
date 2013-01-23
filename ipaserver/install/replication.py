@@ -100,8 +100,9 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
         conn.do_simple_bind(bindpw=dirman_passwd)
     else:
         conn.do_sasl_gssapi_bind()
-    entry = conn.getEntry(DN(('cn', 'IPA Version Replication'), ('cn', 'plugins'), ('cn', 'config')),
-                          ldap.SCOPE_BASE, 'objectclass=*')
+    entry = conn.get_entry(DN(('cn', 'IPA Version Replication'),
+                              ('cn', 'plugins'),
+                              ('cn', 'config')))
     if entry.single_value('nsslapd-pluginenabled', None) == 'off':
         conn.modify_s(entry.dn, [(ldap.MOD_REPLACE, 'nsslapd-pluginenabled', 'on')])
         conn.unbind()
@@ -179,7 +180,7 @@ class ReplicationManager(object):
         dn = self.replica_dn()
         assert isinstance(dn, DN)
         try:
-            replica = conn.getEntry(dn, ldap.SCOPE_BASE, "objectclass=*")
+            replica = conn.get_entry(dn)
         except errors.NotFound:
             pass
         else:
@@ -191,7 +192,7 @@ class ReplicationManager(object):
         retval = -1
         dn = DN(('cn','replication'),('cn','etc'), self.suffix)
         try:
-            replica = master_conn.getEntry(dn, ldap.SCOPE_BASE, "objectclass=*")
+            replica = master_conn.get_entry(dn)
         except errors.NotFound:
             root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
             raise
@@ -350,7 +351,7 @@ class ReplicationManager(object):
         assert isinstance(dn, DN)
 
         try:
-            entry = conn.getEntry(dn, ldap.SCOPE_BASE)
+            entry = conn.get_entry(dn)
             managers = entry.get('nsDS5ReplicaBindDN')
             for m in managers:
                 if replica_binddn == DN(m):
@@ -445,22 +446,26 @@ class ReplicationManager(object):
 
     def get_mapping_tree_entry(self):
         try:
-            entry = self.conn.getEntry(DN(('cn', 'mapping tree'), ('cn', 'config')), ldap.SCOPE_ONELEVEL,
-                                       "(cn=\"%s\")" % (self.suffix))
+            entries = self.conn.get_entries(
+                DN(('cn', 'mapping tree'), ('cn', 'config')),
+                ldap.SCOPE_ONELEVEL,
+                "(cn=\"%s\")" % (self.suffix))
+            # TODO: Check we got only one entry
+            return entries[0]
         except errors.NotFound:
             root_logger.debug(
                 "failed to find mapping tree entry for %s", self.suffix)
             raise
-
-        return entry
 
 
     def enable_chain_on_update(self, bename):
         mtent = self.get_mapping_tree_entry()
         dn = mtent.dn
 
-        plgent = self.conn.getEntry(DN(('cn', 'Multimaster Replication Plugin'), ('cn', 'plugins'), ('cn', 'config')),
-                                    ldap.SCOPE_BASE, "(objectclass=*)", ['nsslapd-pluginPath'])
+        plgent = self.conn.get_entry(
+            DN(('cn', 'Multimaster Replication Plugin'), ('cn', 'plugins'),
+               ('cn', 'config')),
+            ['nsslapd-pluginPath'])
         path = plgent.single_value('nsslapd-pluginPath', None)
 
         mod = [(ldap.MOD_REPLACE, 'nsslapd-state', 'backend'),
@@ -481,7 +486,7 @@ class ReplicationManager(object):
         pass_dn = DN(('uid', 'passsync'), ('cn', 'sysaccounts'), ('cn', 'etc'), self.suffix)
         print "The user for the Windows PassSync service is %s" % pass_dn
         try:
-            conn.getEntry(pass_dn, ldap.SCOPE_BASE)
+            conn.get_entry(pass_dn)
             print "Windows PassSync entry exists, not resetting password"
             return
         except errors.NotFound:
@@ -498,7 +503,7 @@ class ReplicationManager(object):
 
         # Add it to the list of users allowed to bypass password policy
         extop_dn = DN(('cn', 'ipa_pwd_extop'), ('cn', 'plugins'), ('cn', 'config'))
-        entry = conn.getEntry(extop_dn, ldap.SCOPE_BASE)
+        entry = conn.get_entry(extop_dn)
         pass_mgrs = entry.get('passSyncManagersDNs')
         if not pass_mgrs:
             pass_mgrs = []
@@ -557,7 +562,7 @@ class ReplicationManager(object):
 
         cn, dn = self.agreement_dn(b_hostname, master=master)
         try:
-            a_conn.getEntry(dn, ldap.SCOPE_BASE)
+            a_conn.get_entry(dn)
             return
         except errors.NotFound:
             pass
@@ -756,7 +761,7 @@ class ReplicationManager(object):
                     'nsds5ReplicaLastInitStatus',
                     'nsds5ReplicaLastInitStart',
                     'nsds5ReplicaLastInitEnd']
-        entry = conn.getEntry(agmtdn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
+        entry = conn.get_entry(agmtdn, attrlist)
         if not entry:
             print "Error reading status from agreement", agmtdn
             hasError = 1
@@ -793,7 +798,7 @@ class ReplicationManager(object):
         attrlist = ['cn', 'nsds5replicaUpdateInProgress',
                     'nsds5ReplicaLastUpdateStatus', 'nsds5ReplicaLastUpdateStart',
                     'nsds5ReplicaLastUpdateEnd']
-        entry = conn.getEntry(agmtdn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
+        entry = conn.get_entry(agmtdn, attrlist)
         if not entry:
             print "Error reading status from agreement", agmtdn
             hasError = 1
@@ -1066,7 +1071,7 @@ class ReplicationManager(object):
     def get_agreement_type(self, hostname):
         cn, dn = self.agreement_dn(hostname)
 
-        entry = self.conn.getEntry(dn, ldap.SCOPE_BASE)
+        entry = self.conn.get_entry(dn)
 
         objectclass = entry.get("objectclass")
 
@@ -1165,7 +1170,7 @@ class ReplicationManager(object):
 
         try:
             dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
-            ret = self.conn.getEntry(dn, ldap.SCOPE_BASE, '(objectclass=*)')
+            ret = self.conn.get_entry(dn)
             srvlist = ret.single_value('defaultServerList', '')
             srvlist = srvlist[0].split()
             if replica in srvlist:
