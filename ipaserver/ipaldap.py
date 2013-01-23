@@ -1697,25 +1697,6 @@ class IPAdmin(LDAPClient):
 
         return modlist
 
-    def inactivateEntry(self,dn, has_key):
-        """Rather than deleting entries we mark them as inactive.
-           has_key defines whether the entry already has nsAccountlock
-           set so we can determine which type of mod operation to run."""
-
-        assert isinstance(dn, DN)
-        modlist = []
-
-        if has_key:
-            operation = ldap.MOD_REPLACE
-        else:
-            operation = ldap.MOD_ADD
-
-        modlist.append((operation, "nsAccountlock", "TRUE"))
-
-        with self.error_handler():
-            self.modify_s(dn, modlist)
-        return True
-
     def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
         filter = "(objectclass=*)"
         attrlist = []

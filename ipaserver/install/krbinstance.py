@@ -442,7 +442,9 @@ class KrbInstance(service.Service):
         # Create the special anonymous principal
         installutils.kadmin_addprinc(princ_realm)
         dn = DN(('krbprincipalname', princ_realm), self.get_realm_suffix())
-        self.admin_conn.inactivateEntry(dn, False)
+        entry = self.admin_conn.get_entry(dn)
+        entry['nsAccountlock'] = ['TRUE']
+        self.admin_conn.update_entry(entry)
 
     def __convert_to_gssapi_replication(self):
         repl = replication.ReplicationManager(self.realm,
