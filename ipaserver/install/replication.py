@@ -447,9 +447,10 @@ class ReplicationManager(object):
         try:
             entry = self.conn.getEntry(DN(('cn', 'mapping tree'), ('cn', 'config')), ldap.SCOPE_ONELEVEL,
                                        "(cn=\"%s\")" % (self.suffix))
-        except errors.NotFound, e:
-            root_logger.debug("failed to find mappting tree entry for %s" % self.suffix)
-            raise e
+        except errors.NotFound:
+            root_logger.debug(
+                "failed to find mapping tree entry for %s", self.suffix)
+            raise
 
         return entry
 
