@@ -1364,21 +1364,40 @@ class LDAPConnection(object):
         self.log.debug("get_members: result=%s", entries)
         return entries
 
-    def add_entry(self, dn, entry_attrs, normalize=True):
-        """Create a new entry."""
+    def _get_dn_and_attrs(self, entry_or_dn, entry_attrs, normalize):
+        """Helper for legacy calling style for {add,update}_entry
+        """
+        if entry_attrs is None:
+            assert normalize is None
+            return entry_or_dn.dn, entry_or_dn
+        else:
+            assert isinstance(entry_or_dn, DN)
+            if normalize is None or normalize:
+                entry_or_dn = self.normalize_dn(entry_or_dn)
+            entry_attrs = self.make_entry(entry_or_dn, entry_attrs)
+            for key, value in entry_attrs.items():
+                if value is None:
+                    entry_attrs[key] = []
+            return entry_or_dn, entry_attrs
 
-        assert isinstance(dn, DN)
+    def add_entry(self, entry, entry_attrs=None, normalize=None):
+        """Create a new entry.
 
-        if normalize:
-            dn = self.normalize_dn(dn)
-        # remove all None or [] values, python-ldap hates'em
-        entry_attrs = dict(
-            # FIXME, shouldn't these values be an error?
-            (k, v) for (k, v) in entry_attrs.iteritems()
-            if v is not None and v != []
-        )
+        This should be called as add_entry(entry).
+
+        The legacy two/three-argument variant is:
+            add_entry(dn, entry_attrs, normalize=True)
+        """
+        dn, attrs = self._get_dn_and_attrs(entry, entry_attrs, normalize)
+
+        # remove all [] values (python-ldap hates 'em)
+        attrs = dict((k, v) for k, v in attrs.iteritems()
+            # FIXME: Once entry values are always lists, this condition can
+            # be just "if v":
+            if v is not None and v != [])
+
         try:
-            self.conn.add_s(dn, list(entry_attrs.iteritems()))
+            self.conn.add_s(dn, list(attrs.iteritems()))
         except _ldap.LDAPError, e:
             self.handle_errors(e)
 
@@ -1465,19 +1484,18 @@ class LDAPConnection(object):
 
         return modlist
 
-    def update_entry(self, dn, entry_attrs, normalize=True):
-        """
-        Update entry's attributes.
+    def update_entry(self, entry, entry_attrs=None, normalize=None):
+        """Update entry's attributes.
 
-        An attribute value set to None deletes all current values.
-        """
+        This should be called as update_entry(entry).
 
-        assert isinstance(dn, DN)
-        if normalize:
-            dn = self.normalize_dn(dn)
+        The legacy two/three-argument variant is:
+            update_entry(dn, entry_attrs, normalize=True)
+        """
+        dn, attrs = self._get_dn_and_attrs(entry, entry_attrs, normalize)
 
         # generate modlist
-        modlist = self._generate_modlist(dn, entry_attrs, normalize)
+        modlist = self._generate_modlist(dn, attrs, normalize)
         if not modlist:
             raise errors.EmptyModlist()
 
@@ -1487,12 +1505,15 @@ class LDAPConnection(object):
         except _ldap.LDAPError, e:
             self.handle_errors(e)
 
-    def delete_entry(self, dn, normalize=True):
-        """Delete entry."""
-
-        assert isinstance(dn, DN)
-        if normalize:
-            dn = self.normalize_dn(dn)
+    def delete_entry(self, entry_or_dn, normalize=None):
+        """Delete an entry given either the DN or the entry itself"""
+        if isinstance(entry_or_dn, DN):
+            dn = entry_or_dn
+            if normalize is None or normalize:
+                dn = self.normalize_dn(dn)
+        else:
+            assert normalize is None
+            dn = entry_or_dn.dn
 
         try:
             self.conn.delete_s(dn)
