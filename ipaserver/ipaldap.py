@@ -19,7 +19,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import sys
 import string
 import time
 import shutil
@@ -1696,47 +1695,6 @@ class IPAdmin(LDAPClient):
                         modlist.append((ldap.MOD_DELETE, key, removes))
 
         return modlist
-
-    def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
-        filter = "(objectclass=*)"
-        attrlist = []
-        if attr:
-            filter = "(%s=*)" % attr
-            attrlist.append(attr)
-        timeout += int(time.time())
-
-        if isinstance(dn, LDAPEntry):
-            dn = dn.dn
-        assert isinstance(dn, DN)
-
-        # wait for entry and/or attr to show up
-        if not quiet:
-            sys.stdout.write("Waiting for %s %s:%s " % (self,dn,attr))
-            sys.stdout.flush()
-        entry = None
-        while not entry and int(time.time()) < timeout:
-            try:
-                [entry] = self.get_entries(
-                    dn, ldap.SCOPE_BASE, filter, attrlist)
-            except errors.NotFound:
-                pass  # no entry yet
-            except Exception, e:  # badness
-                print "\nError reading entry", dn, e
-                break
-            if not entry:
-                if not quiet:
-                    sys.stdout.write(".")
-                    sys.stdout.flush()
-                time.sleep(1)
-
-        if not entry and int(time.time()) > timeout:
-            print "\nwaitForEntry timeout for %s for %s" % (self,dn)
-        elif entry and not quiet:
-            print "\nThe waited for entry is:", entry
-        elif not entry:
-            print "\nError: could not read entry %s from %s" % (dn,self)
-
-        return entry
 
     def __getattr__(self, attrname):
         # This makes IPAdmin classes look like IPASimpleLDAPObjects

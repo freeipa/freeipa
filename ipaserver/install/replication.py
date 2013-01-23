@@ -132,6 +132,45 @@ def wait_for_task(conn, dn):
     return exit_code
 
 
+def wait_for_entry(connection, entry, timeout=7200, attr='', quiet=True):
+    """Wait for entry and/or attr to show up"""
+
+    filter = "(objectclass=*)"
+    attrlist = []
+    if attr:
+        filter = "(%s=*)" % attr
+        attrlist.append(attr)
+    timeout += int(time.time())
+
+    dn = entry.dn
+
+    if not quiet:
+        sys.stdout.write("Waiting for %s %s:%s " % (connection, dn, attr))
+        sys.stdout.flush()
+    entry = None
+    while not entry and int(time.time()) < timeout:
+        try:
+            [entry] = connection.get_entries(
+                dn, ldap.SCOPE_BASE, filter, attrlist)
+        except errors.NotFound:
+            pass  # no entry yet
+        except Exception, e:  # badness
+            print "\nError reading entry", dn, e
+            break
+        if not entry:
+            if not quiet:
+                sys.stdout.write(".")
+                sys.stdout.flush()
+            time.sleep(1)
+
+    if not entry and int(time.time()) > timeout:
+        print "\nwait_for_entry timeout for %s for %s" % (connection, dn)
+    elif entry and not quiet:
+        print "\nThe waited for entry is:", entry
+    elif not entry:
+        print "\nError: could not read entry %s from %s" % (dn, connection)
+
+
 class ReplicationManager(object):
     """Manage replication agreements between DS servers, and sync
     agreements with Windows servers"""
@@ -606,7 +645,7 @@ class ReplicationManager(object):
 
         entry['nsds5ReplicaStripAttrs'] = [" ".join(STRIP_ATTRS)]
 
-        entry = a_conn.waitForEntry(entry)
+        wait_for_entry(a_conn, entry)
 
     def needs_memberof_fixup(self):
         return self.need_memberof_fixup
