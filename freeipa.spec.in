@@ -126,6 +126,7 @@ Requires: keyutils
 Requires: zip
 Requires: policycoreutils >= %{POLICYCOREUTILSVER}
 Requires: tar
+Requires(pre): certmonger >= 0.65
 
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
@@ -213,7 +214,7 @@ Requires: wget
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
 Requires: sssd >= 1.8.0
-Requires: certmonger >= 0.60
+Requires: certmonger >= 0.65
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
@@ -429,6 +430,7 @@ rm -rf %{buildroot}
     /bin/systemctl --system daemon-reload 2>&1 || :
 # END
 if [ $1 -gt 1 ] ; then
+    /bin/systemctl condrestart certmonger.service 2>&1 || :
     /usr/sbin/ipa-upgradeconfig --quiet >/dev/null || :
 fi
 
@@ -752,6 +754,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Thu Jan 24 2013 Rob Crittenden <rcritten@redhat.com> - 3.0.99-10
+- Add certmonger condrestart to server post scriptlet
+- Make certmonger a (pre) Requires on the server subpackage
+
 * Fri Dec 7 2012 Endi S. Dewata <edewata@redhat.com> - 3.0.99-9
 - Bump minimum version of pki-ca to 10.0.0-0.54.b3
 
