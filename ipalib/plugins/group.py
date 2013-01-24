@@ -387,7 +387,7 @@ class group_add_member(LDAPAddMember):
                     try:
                         actual_sid = domain_validator.get_trusted_domain_object_sid(sid)
                     except errors.PublicError, e:
-                        failed_sids.append((sid, unicode(e)))
+                        failed_sids.append((sid, e.strerror))
                     else:
                         sids.append(actual_sid)
             restore = []

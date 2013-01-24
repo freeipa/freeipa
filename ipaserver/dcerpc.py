@@ -156,10 +156,29 @@ class DomainValidator(object):
                                                                       self.ATTR_TRUST_AUTHOUT])
 
             result = dict()
-            for entry in entries:
-                result[entry[1][self.ATTR_TRUST_PARTNER][0]] = (entry[1][self.ATTR_FLATNAME][0].lower(),
-                                                                security.dom_sid(entry[1][self.ATTR_TRUSTED_SID][0]),
-                                                                entry[1][self.ATTR_TRUST_AUTHOUT][0])
+            for dn, entry in entries:
+                try:
+                    trust_partner = entry[self.ATTR_TRUST_PARTNER][0]
+                    flatname_normalized = entry[self.ATTR_FLATNAME][0].lower()
+                    trusted_sid = entry[self.ATTR_TRUSTED_SID][0]
+                except KeyError, e:
+                    # Some piece of trusted domain info in LDAP is missing
+                    # Skip the domain, but leave log entry for investigation
+                    api.log.warn("Trusted domain '%s' entry misses an attribute: %s",
+                            dn, e)
+                    continue
+                trust_authout = entry.get(self.ATTR_TRUST_AUTHOUT, [None])[0]
+
+                # We were able to read all Trusted domain attributes but the secret
+                # User is not member of trust admins group
+                if trust_authout is None:
+                    raise errors.ACIError(
+                        info=_('communication with trusted domains is allowed '
+                               'for Trusts administrator group members only'))
+
+                result[trust_partner] = (flatname_normalized,
+                                         security.dom_sid(trusted_sid),
+                                         trust_authout)
             return result
         except errors.NotFound, e:
             return []
