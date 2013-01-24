@@ -262,7 +262,6 @@ class DsInstance(service.Service):
         self.step("adding range check plugin", self.__add_range_check_plugin)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
-        self.step("Upload CA cert to the directory", self.__upload_ca_cert)
 
         self.__common_post_setup()
 
@@ -589,7 +588,7 @@ class DsInstance(service.Service):
         # check for open secure port 636 from now on
         self.open_ports.append(636)
 
-    def __upload_ca_cert(self):
+    def upload_ca_cert(self):
         """
         Upload the CA certificate in DER form in the LDAP directory.
         """

@@ -1030,6 +1030,9 @@ def main():
             ca.enable_client_auth_to_db()
             ca.restart()
 
+    # Upload the CA cert to the directory
+    ds.upload_ca_cert()
+
     # Create a kerberos instance
     if options.pkinit_pin:
         [pw_fd, pw_name] = tempfile.mkstemp()
