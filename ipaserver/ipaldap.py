@@ -1696,10 +1696,45 @@ class IPAdmin(LDAPClient):
 
         return modlist
 
-    def __getattr__(self, attrname):
-        # This makes IPAdmin classes look like IPASimpleLDAPObjects
+    def modify_s(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
-        return getattr(self.conn, attrname)
+        return self.conn.modify_s(*args, **kwargs)
+
+    def unbind_s(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.unbind_s(*args, **kwargs)
+
+    def search_s(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.search_s(*args, **kwargs)
+
+    def set_option(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.set_option(*args, **kwargs)
+
+    def sasl_interactive_bind_s(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.sasl_interactive_bind_s(*args, **kwargs)
+
+    def encode(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.encode(*args, **kwargs)
+
+    def simple_bind_s(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.simple_bind_s(*args, **kwargs)
+
+    def unbind(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.unbind(*args, **kwargs)
+
+    def start_tls_s(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.start_tls_s(*args, **kwargs)
+
+    def search_ext_s(self, *args, **kwargs):
+        # FIXME: for backwards compatibility only
+        return self.conn.search_ext_s(*args, **kwargs)
 
 
 # FIXME: Some installer tools depend on ipaldap importing plugins.ldap2.
