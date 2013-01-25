@@ -40,6 +40,16 @@ fuzzy_uuid = Fuzzy(
     '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 )
 
+# Matches trusted domain GUID, like u'463bf2be-3456-4a57-979e-120304f2a0eb'
+fuzzy_guid = fuzzy_uuid
+
+# Matches SID of a trusted domain
+# SID syntax: http://msdn.microsoft.com/en-us/library/ff632068.aspx
+_sid_identifier_authority = '(0x[0-9a-f]{1,12}|[0-9]{1,10})'
+fuzzy_domain_sid = Fuzzy(
+    '^S-1-5-21-%(idauth)s-%(idauth)s-%(idauth)s$' % dict(idauth=_sid_identifier_authority)
+)
+
 # Matches netgroup dn. Note (?i) at the beginning of the regexp is the ingnore case flag
 fuzzy_netgroupdn = Fuzzy(
     '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},cn=ng,cn=alt,%s' % api.env.basedn
