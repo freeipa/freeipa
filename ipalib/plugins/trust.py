@@ -1,5 +1,6 @@
 # Authors:
 #     Alexander Bokovoy <abokovoy@redhat.com>
+#     Martin Kosek <mkosek@redhat.com>
 #
 # Copyright (C) 2011  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -95,6 +96,30 @@ Example:
 4. List members of external members of ad_admins_external group to see their SIDs:
 
    ipa group-show ad_admins_external
+
+
+GLOBAL TRUST CONFIGURATION
+
+When IPA AD trust subpackage is installed and ipa-adtrust-install is run,
+a local domain configuration (SID, GUID, NetBIOS name) is generated. These
+identifiers are then used when communicating with a trusted domain of the
+particular type.
+
+1. Show global trust configuration for Active Directory type of trusts:
+
+   ipa trustconfig-show --type ad
+
+2. Modify global configuration for all trusts of Active Directory type and set
+   a different fallback primary group (fallback primary group GID is used as
+   a primary user GID if user authenticating to IPA domain does not have any other
+   primary GID already set):
+
+   ipa trustconfig-mod --type ad --fallback-primary-group "alternative AD group"
+
+3. Change primary fallback group back to default hidden group (any group with
+   posixGroup object class is allowed):
+
+   ipa trustconfig-mod --type ad --fallback-primary-group "Default SMB Group"
 """)
 
 trust_output_params = (
@@ -119,6 +144,14 @@ _trust_direction_dict = {1 : _('Trusting forest'),
 _trust_status_dict = {True : _('Established and verified'),
                  False : _('Waiting for confirmation by remote side')}
 _trust_type_dict_unknown = _('Unknown')
+
+_trust_type_option = StrEnum('trust_type',
+                        cli_name='type',
+                        label=_('Trust type (ad for Active Directory, default)'),
+                        values=(u'ad',),
+                        default=u'ad',
+                        autofill=True,
+                    )
 
 def trust_type_string(level):
     """
@@ -193,13 +226,7 @@ sides.
     ''')
 
     takes_options = LDAPCreate.takes_options + (
-        StrEnum('trust_type',
-            cli_name='type',
-            label=_('Trust type (ad for Active Directory, default)'),
-            values=(u'ad',),
-            default=u'ad',
-            autofill=True,
-        ),
+        _trust_type_option,
         Str('realm_admin?',
             cli_name='admin',
             label=_("Active Directory domain administrator"),
@@ -482,3 +509,152 @@ api.register(trust_mod)
 api.register(trust_del)
 api.register(trust_find)
 api.register(trust_show)
+
+_trustconfig_dn = {
+    u'ad': DN(('cn', api.env.domain), api.env.container_cifsdomains, api.env.basedn),
+}
+
+
+class trustconfig(LDAPObject):
+    """
+    Trusts global configuration object
+    """
+    object_name = _('trust configuration')
+    default_attributes = [
+        'cn', 'ipantsecurityidentifier', 'ipantflatname', 'ipantdomainguid',
+        'ipantfallbackprimarygroup',
+    ]
+
+    label = _('Global Trust Configuration')
+    label_singular = _('Global Trust Configuration')
+
+    takes_params = (
+        Str('cn',
+            label=_('Domain'),
+            flags=['no_update'],
+        ),
+        Str('ipantsecurityidentifier',
+            label=_('Security Identifier'),
+            flags=['no_update'],
+        ),
+        Str('ipantflatname',
+            label=_('NetBIOS name'),
+            flags=['no_update'],
+        ),
+        Str('ipantdomainguid',
+            label=_('Domain GUID'),
+            flags=['no_update'],
+        ),
+        Str('ipantfallbackprimarygroup',
+            cli_name='fallback_primary_group',
+            label=_('Fallback primary group'),
+        ),
+    )
+
+    def get_dn(self, *keys, **kwargs):
+        trust_type = kwargs.get('trust_type')
+        if trust_type is None:
+            raise errors.RequirementError(name='trust_type')
+        try:
+            return _trustconfig_dn[kwargs['trust_type']]
+        except KeyError:
+            raise errors.ValidationError(name='trust_type',
+                error=_("unsupported trust type"))
+
+    def _normalize_groupdn(self, entry_attrs):
+        """
+        Checks that group with given name/DN exists and updates the entry_attrs
+        """
+        if 'ipantfallbackprimarygroup' not in entry_attrs:
+            return
+
+        group = entry_attrs['ipantfallbackprimarygroup']
+        if isinstance(group, (list, tuple)):
+            group = group[0]
+
+        if group is None:
+            return
+
+        try:
+            dn = DN(group)
+            # group is in a form of a DN
+            try:
+                self.backend.get_entry(dn)
+            except errors.NotFound:
+                self.api.Object['group'].handle_not_found(group)
+            # DN is valid, we can just return
+            return
+        except ValueError:
+            # The search is performed for groups with "posixgroup" objectclass
+            # and not "ipausergroup" so that it can also match groups like
+            # "Default SMB Group" which does not have this objectclass.
+            try:
+                (dn, group_entry) = self.backend.find_entry_by_attr(
+                    self.api.Object['group'].primary_key.name,
+                    group,
+                    ['posixgroup'],
+                    [''],
+                    self.api.Object['group'].container_dn)
+            except errors.NotFound:
+                self.api.Object['group'].handle_not_found(group)
+            else:
+                entry_attrs['ipantfallbackprimarygroup'] = [dn]
+
+    def _convert_groupdn(self, entry_attrs, options):
+        """
+        Convert an group dn into a name. As we use CN as user RDN, its value
+        can be extracted from the DN without further LDAP queries.
+        """
+        if options.get('raw', False):
+            return
+
+        try:
+            groupdn = entry_attrs['ipantfallbackprimarygroup'][0]
+        except (IndexError, KeyError):
+            groupdn = None
+
+        if groupdn is None:
+            return
+        assert isinstance(groupdn, DN)
+
+        entry_attrs['ipantfallbackprimarygroup'] = [groupdn[0][0].value]
+
+api.register(trustconfig)
+
+class trustconfig_mod(LDAPUpdate):
+    __doc__ = _('Modify global trust configuration.')
+
+    takes_options = LDAPUpdate.takes_options + (_trust_type_option,)
+    msg_summary = _('Modified "%(value)s" trust configuration')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        self.obj._normalize_groupdn(entry_attrs)
+        return dn
+
+    def execute(self, *keys, **options):
+        result = super(trustconfig_mod, self).execute(*keys, **options)
+        result['value'] = options['trust_type']
+        return result
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj._convert_groupdn(entry_attrs, options)
+        return dn
+
+api.register(trustconfig_mod)
+
+
+class trustconfig_show(LDAPRetrieve):
+    __doc__ = _('Show global trust configuration.')
+
+    takes_options = LDAPRetrieve.takes_options + (_trust_type_option,)
+
+    def execute(self, *keys, **options):
+        result = super(trustconfig_show, self).execute(*keys, **options)
+        result['value'] = options['trust_type']
+        return result
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj._convert_groupdn(entry_attrs, options)
+        return dn
+
+api.register(trustconfig_show)

@@ -3262,6 +3262,30 @@ option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
+command: trustconfig_mod
+args: 0,9,3
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Str('ipantfallbackprimarygroup', attribute=True, autofill=False, cli_name='fallback_primary_group', multivalue=False, required=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', values=(u'ad',))
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('value', <type 'unicode'>, None)
+command: trustconfig_show
+args: 0,5,3
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', values=(u'ad',))
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('value', <type 'unicode'>, None)
 command: user_add
 args: 1,34,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, required=True)
