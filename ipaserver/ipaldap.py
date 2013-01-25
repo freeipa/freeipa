@@ -719,17 +719,6 @@ class LDAPEntry(dict):
         yield self._dn
         yield self
 
-    def toTupleList(self):
-        # FIXME: for backwards compatibility only
-        """Convert the attrs and values to a list of 2-tuples.  The first element
-        of the tuple is the attribute name.  The second element is either a
-        single value or a list of values."""
-        r = []
-        for i in self.data.iteritems():
-            n = ipautil.utf8_encode_values(i[1])
-            r.append((i[0], n))
-        return r
-
     def toDict(self):
         # FIXME: for backwards compatibility only
         """Convert the attrs and values to a dict. The dict is keyed on the
@@ -740,10 +729,6 @@ class LDAPEntry(dict):
             result[i] = ipautil.utf8_encode_values(result[i])
         result['dn'] = self.dn
         return result
-
-    def attrList(self):
-        """Return a list of all attributes in the entry"""
-        return self.data.keys()
 
     def origDataDict(self):
         """Returns a dict of the original values of the user.

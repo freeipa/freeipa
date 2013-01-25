@@ -673,9 +673,7 @@ class LDAPUpdate:
         if message:
             self.debug("%s", message)
         self.debug("dn: %s", e.dn)
-        attr = e.attrList()
-        for a in attr:
-            value = e.get(a)
+        for a, value in e.items():
             if isinstance(value, (list, tuple)):
                 self.debug('%s:', a)
                 for l in value:
@@ -766,7 +764,7 @@ class LDAPUpdate:
             # entry.orig_data = {}
             try:
                 if self.live_run:
-                    if len(entry.toTupleList()) > 0:
+                    if len(entry):
                         # addifexist may result in an entry with only a
                         # dn defined. In that case there is nothing to do.
                         # It means the entry doesn't exist, so skip it.
