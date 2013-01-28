@@ -1561,7 +1561,8 @@ class IPAdmin(LDAPClient):
             return 'ldap'
 
     def __init__(self, host='', port=389, cacert=None, debug=None, ldapi=False,
-                 realm=None, protocol=None, force_schema_updates=True):
+                 realm=None, protocol=None, force_schema_updates=True,
+                 start_tls=False):
         self.conn = None
         log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
@@ -1581,6 +1582,9 @@ class IPAdmin(LDAPClient):
         LDAPClient.__init__(self, ldap_uri)
 
         self.conn = IPASimpleLDAPObject(ldap_uri, force_schema_updates=True)
+
+        if start_tls:
+            self.conn.start_tls_s()
 
     def __str__(self):
         return self.host + ":" + str(self.port)
@@ -1723,10 +1727,6 @@ class IPAdmin(LDAPClient):
     def unbind(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
         return self.conn.unbind(*args, **kwargs)
-
-    def start_tls_s(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.start_tls_s(*args, **kwargs)
 
 
 # FIXME: Some installer tools depend on ipaldap importing plugins.ldap2.

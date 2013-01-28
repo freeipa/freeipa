@@ -189,9 +189,9 @@ class ReplicationManager(object):
             # If we are passed a password we'll use it as the DM password
             # otherwise we'll do a GSSAPI bind.
             if starttls:
-                self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT,
-                                            protocol='ldap')
-                self.conn.start_tls_s()
+                self.conn = ipaldap.IPAdmin(
+                    hostname, port=port, cacert=CACERT, protocol='ldap',
+                    start_tls=True)
             else:
                 self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT)
             if dirman_passwd:
@@ -917,9 +917,9 @@ class ReplicationManager(object):
             local_port = r_port
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        r_conn = ipaldap.IPAdmin(r_hostname, port=r_port, cacert=CACERT,
-                                 protocol='ldap')
-        r_conn.start_tls_s()
+        r_conn = ipaldap.IPAdmin(
+            r_hostname, port=r_port, cacert=CACERT, protocol='ldap',
+            start_tls=True)
 
         if r_bindpw:
             r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
