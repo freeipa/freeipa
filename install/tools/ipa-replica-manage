@@ -332,15 +332,15 @@ def get_ruv(realm, host, dirman_passwd):
 
     search_filter = '(&(nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff)(objectclass=nstombstone))'
     try:
-        entries = thisrepl.conn.search_s(api.env.basedn, ldap.SCOPE_ONELEVEL,
-            search_filter, ['nsds50ruv'])
-    except ldap.NO_SUCH_OBJECT:
+        entries = thisrepl.conn.get_entries(
+            api.env.basedn, ldap.SCOPE_ONELEVEL, search_filter, ['nsds50ruv'])
+    except errors.NotFound:
         print "No RUV records found."
         sys.exit(0)
 
     servers = []
     for e in entries:
-        for ruv in e[1]['nsds50ruv']:
+        for ruv in e['nsds50ruv']:
             if ruv.startswith('{replicageneration'):
                 continue
             data = re.match('\{replica (\d+) (ldap://.*:\d+)\}(\s+\w+\s+\w*){0,1}', ruv)

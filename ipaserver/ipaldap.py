@@ -1704,10 +1704,6 @@ class IPAdmin(LDAPClient):
         # FIXME: for backwards compatibility only
         return self.conn.unbind_s(*args, **kwargs)
 
-    def search_s(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.search_s(*args, **kwargs)
-
     def set_option(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
         return self.conn.set_option(*args, **kwargs)
@@ -1731,10 +1727,6 @@ class IPAdmin(LDAPClient):
     def start_tls_s(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
         return self.conn.start_tls_s(*args, **kwargs)
-
-    def search_ext_s(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.search_ext_s(*args, **kwargs)
 
 
 # FIXME: Some installer tools depend on ipaldap importing plugins.ldap2.

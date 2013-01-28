@@ -258,9 +258,10 @@ class KrbInstance(service.Service):
         # they may conflict.
 
         try:
-            res = self.admin_conn.search_s(DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),
-                                     ldap.SCOPE_ONELEVEL,
-                                     "(objectclass=nsSaslMapping)")
+            res = self.admin_conn.get_entries(
+                DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),
+                ldap.SCOPE_ONELEVEL,
+                "(objectclass=nsSaslMapping)")
             for r in res:
                 try:
                     self.admin_conn.delete_entry(r)

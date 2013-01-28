@@ -167,8 +167,8 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
         """
         assert isinstance(dn, DN)
         try:
-            conn.search_ext_s(dn, ldap.SCOPE_BASE)
-        except ldap.NO_SUCH_OBJECT:
+            conn.get_entry(dn)
+        except errors.NotFound:
             return False
         else:
             return True

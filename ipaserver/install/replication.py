@@ -674,12 +674,14 @@ class ReplicationManager(object):
         while (retries > 0 ):
             root_logger.info('Getting ldap service principals for conversion: %s and %s' % (filter_a, filter_b))
             try:
-                a_entry = b.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_a)
+                a_entry = b.get_entries(self.suffix, ldap.SCOPE_SUBTREE,
+                                        filter=filter_a)
             except errors.NotFound:
                 pass
 
             try:
-                b_entry = a.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_b)
+                b_entry = a.get_entries(self.suffix, ldap.SCOPE_SUBTREE,
+                                        filter=filter_b)
             except errors.NotFound:
                 pass
 

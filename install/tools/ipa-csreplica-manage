@@ -394,14 +394,14 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
 
         dn = DN(('cn', 'CA'), ('cn', replica2), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                 ipautil.realm_to_suffix(realm))
-        conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+        conn.get_entries(dn, ldap.SCOPE_ONELEVEL)
         conn.unbind_s()
-    except ldap.NO_SUCH_OBJECT:
+    except errors.NotFound:
         sys.exit('%s does not have a CA configured.' % replica2)
-    except ldap.SERVER_DOWN, e:
-        sys.exit("Unable to connect to %s: %s" % (ipautil.format_netloc(replica2, 636), convert_error(e)))
+    except errors.NetworkError, e:
+        sys.exit("Unable to connect to %s: %s" % (ipautil.format_netloc(replica2, 636), str(e)))
     except Exception, e:
-        sys.exit("Failed to get data while trying to bind to '%s': %s" % (replica1, convert_error(e)))
+        sys.exit("Failed to get data while trying to bind to '%s': %s" % (replica1, str(e)))
 
     try:
         repl1 = get_cs_replication_manager(realm, replica1, dirman_passwd)
@@ -434,8 +434,10 @@ def re_initialize(realm, options):
     thishost = installutils.get_fqdn()
 
     filter = repl.get_agreement_filter(host=thishost)
-    entry = repl.conn.search_s(DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
-    if len(entry) == 0:
+    try:
+        entry = repl.conn.get_entries(
+            DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
+    except errors.NotFound:
         root_logger.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
         sys.exit(1)
     if len(entry) > 1:

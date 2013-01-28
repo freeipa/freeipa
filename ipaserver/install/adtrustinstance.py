@@ -704,9 +704,10 @@ class ADTRUSTInstance(service.Service):
     def find_local_id_range(self):
         self.ldap_connect()
 
-        if self.admin_conn.search_s(DN(api.env.container_ranges, self.suffix),
-                                    ldap.SCOPE_ONELEVEL,
-                                    "objectclass=ipaDomainIDRange"):
+        if self.admin_conn.get_entries(
+                DN(api.env.container_ranges, self.suffix),
+                ldap.SCOPE_ONELEVEL,
+                "(objectclass=ipaDomainIDRange)"):
             return
 
         try:
@@ -727,8 +728,8 @@ class ADTRUSTInstance(service.Service):
                         "(gidNumber<=%d)(gidNumner>=%d)))" % \
                      ((base_id - 1), (base_id + id_range_size),
                       (base_id - 1), (base_id + id_range_size))
-        if self.admin_conn.search_s("cn=accounts," + self.suffix,
-                                   ldap.SCOPE_SUBTREE, id_filter):
+        if self.admin_conn.get_entries(DN(('cn', 'accounts'), self.suffix),
+                                       ldap.SCOPE_SUBTREE, id_filter):
             raise ValueError("There are objects with IDs out of the expected" \
                              "range.\nAdd local ID range manually and try " \
                              "again!")
