@@ -246,12 +246,6 @@ class LDAPUpdate:
 
     def _entry_to_entity(self, ent):
         entry = ent.copy()
-        for key,value in entry.iteritems():
-            if isinstance(value,list) or isinstance(value,tuple):
-                if len(value) == 0:
-                    entry[key] = ''
-                elif len(value) == 1:
-                    entry[key] = value[0]
         entry.commit()
         return entry
 
