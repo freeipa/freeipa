@@ -1350,7 +1350,6 @@ def get_ca_cert_from_file(url):
     Raises errors.FileError if unable to write cert.
     '''
 
-    # pylint: disable=E1101
     try:
         parsed = urlparse.urlparse(url, 'file')
     except Exception, e:

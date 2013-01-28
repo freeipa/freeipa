@@ -109,7 +109,7 @@ class updateclient(backend.Executioner):
     def order(self, updatetype):
         """Return plugins of the given updatetype in sorted order.
         """
-        ordered = [plugin for plugin in api.Updater()  # pylint: disable=E1101
+        ordered = [plugin for plugin in api.Updater()
                    if plugin.updatetype == updatetype]
         ordered.sort(key=lambda p: p.order)
         return ordered
@@ -143,7 +143,7 @@ class updateclient(backend.Executioner):
         """
         Execute the update plugin.
         """
-        return self.Updater[method](**kw) #pylint: disable=E1101
+        return self.Updater[method](**kw)
 
     def restart(self, dm_password, live_run):
         dsrestart = DSRestart()
