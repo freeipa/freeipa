@@ -64,12 +64,6 @@ escaping and unescapin.
 
 #-------------------------------------------------------------------------------
 
-# FIXME: The use of properties for the attributes timestamp, expires
-# and max_age produce a pylint error which is a false positive, this
-# is a known bug in pylint (http://www.logilab.org/ticket/89092,
-# http://www.logilab.org/ticket/89786) after the pylint bug is fixed
-# the disables for E0202 should be removed.
-
 class Cookie(object):
     '''
     A Cookie object has the following attributes:
@@ -366,7 +360,7 @@ class Cookie(object):
         self.timestamp = timestamp
 
     @property
-    def timestamp(self):        #pylint: disable=E0202
+    def timestamp(self):
         '''
         The UTC moment at which cookie was received for purposes of
         computing the expiration given a Max-Age offset. The
@@ -389,7 +383,7 @@ class Cookie(object):
         return self._timestamp
 
     @timestamp.setter
-    def timestamp(self, value): #pylint: disable=E0202
+    def timestamp(self, value):
         if value is None:
             self._timestamp = None
         elif isinstance(value, datetime.datetime):
@@ -403,7 +397,7 @@ class Cookie(object):
                             value.__class__.__name__)
 
     @property
-    def expires(self):          #pylint: disable=E0202
+    def expires(self):
         '''
         The expiration timestamp (in UTC) as a datetime object for the
         cookie, or None if not set.
@@ -415,7 +409,7 @@ class Cookie(object):
         return self._expires
 
     @expires.setter
-    def expires(self, value):   #pylint: disable=E0202
+    def expires(self, value):
         if value is None:
             self._expires = None
         elif isinstance(value, datetime.datetime):
@@ -429,7 +423,7 @@ class Cookie(object):
                             value.__class__.__name__)
 
     @property
-    def max_age(self):          #pylint: disable=E0202
+    def max_age(self):
         '''
         The lifetime duration of the cookie. Computed as an offset
         from the cookie's timestamp.
@@ -437,7 +431,7 @@ class Cookie(object):
         return self._max_age
 
     @max_age.setter
-    def max_age(self, value):   #pylint: disable=E0202
+    def max_age(self, value):
         if value is None:
             self._max_age = None
         else:

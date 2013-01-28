@@ -1101,8 +1101,7 @@ class Int(Number):
     )
 
     def __init__(self, name, *rules, **kw):
-        #pylint: disable=E1003
-        super(Number, self).__init__(name, *rules, **kw)
+        super(Int, self).__init__(name, *rules, **kw)
 
         if (self.minvalue > self.maxvalue) and (self.minvalue is not None and self.maxvalue is not None):
             raise ValueError(
@@ -1257,7 +1256,6 @@ class Decimal(Number):
             )
 
     def _enforce_numberclass(self, value):
-        #pylint: disable=E1101
         numberclass = value.number_class()
         if numberclass not in self.numberclass:
             raise ValidationError(name=self.get_param_name(),
@@ -1281,7 +1279,7 @@ class Decimal(Number):
     def _remove_exponent(self, value):
         assert type(value) is decimal.Decimal
 
-        if not self.exponential: #pylint: disable=E1101
+        if not self.exponential:
             try:
                 # adopted from http://docs.python.org/library/decimal.html
                 value = value.quantize(decimal.Decimal(1)) \
@@ -1499,7 +1497,7 @@ class Str(Data):
         Do not allow leading/trailing spaces.
         """
         assert type(value) is unicode
-        if self.noextrawhitespace is False: #pylint: disable=E1101
+        if self.noextrawhitespace is False:
             return
         if len(value) != len(value.strip()):
             return _('Leading and trailing spaces are not allowed')

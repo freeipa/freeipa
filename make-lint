@@ -37,49 +37,59 @@ except ImportError:
 
 # File names to ignore when searching for python source files
 IGNORE_FILES = ('.*', '*~', '*.in', '*.pyc', '*.pyo')
-IGNORE_PATHS = ('build', 'rpmbuild', 'dist', 'install/po/test_i18n.py', 'lite-server.py',
-    'make-lint', 'make-test', 'tests')
+IGNORE_PATHS = ('build', 'rpmbuild', 'dist', 'install/po/test_i18n.py',
+    'lite-server.py', 'make-lint', 'make-test', 'tests')
 
 class IPATypeChecker(TypeChecker):
-    # 'class': ('generated', 'properties',)
+    NAMESPACE_ATTRS = ['Command', 'Object', 'Method', 'Property', 'Backend',
+        'Updater']
+    LOGGING_ATTRS = ['log', 'debug', 'info', 'warning', 'error', 'exception',
+        'critical']
+
+    # 'class': ['generated', 'properties']
     ignore = {
-        'ipalib.base.NameSpace': ['find'],
+        # Python standard library & 3rd party classes
+        'krbV.Principal': ['name'],
+        'socket._socketobject': ['sendall'],
+        # should be 'subprocess.Popen'
+        '.Popen': ['stdin', 'stdout', 'stderr', 'pid', 'returncode', 'poll',
+            'wait', 'communicate'],
+        'urlparse.ResultMixin': ['scheme', 'netloc', 'path', 'query',
+            'fragment', 'username', 'password', 'hostname', 'port'],
+        'urlparse.ParseResult': ['params'],
+
+        # IPA classes
+        'ipapython.admintool.AdminTool': LOGGING_ATTRS,
+        'ipalib.base.NameSpace': ['add', 'mod', 'del', 'show', 'find'],
         'ipalib.cli.Collector': ['__options'],
         'ipalib.config.Env': ['*'],
-        'ipalib.plugable.API': ['Command', 'Object', 'Method', 'Property',
-            'Backend', 'log', 'plugins'],
-        'ipalib.plugable.Plugin': ['Command', 'Object', 'Method', 'Property',
-            'Backend', 'env', 'debug', 'info', 'warning', 'error', 'critical',
-            'exception', 'context', 'log'],
-        'ipalib.plugins.misc.env': ['env'],
+        'ipalib.krb_utils.KRB5_CCache': LOGGING_ATTRS,
         'ipalib.parameters.Param': ['cli_name', 'cli_short_name', 'label',
-            'doc', 'required', 'multivalue', 'primary_key', 'normalizer',
-            'default', 'default_from', 'autofill', 'query', 'attribute',
+            'default', 'doc', 'required', 'multivalue', 'primary_key',
+            'normalizer', 'default_from', 'autofill', 'query', 'attribute',
             'include', 'exclude', 'flags', 'hint', 'alwaysask', 'sortorder',
-            'csv', 'csv_separator', 'csv_skipspace'],
+            'csv', 'csv_separator', 'csv_skipspace', 'option_group'],
         'ipalib.parameters.Bool': ['truths', 'falsehoods'],
-        'ipalib.parameters.Int': ['minvalue', 'maxvalue'],
-        'ipalib.parameters.Decimal': ['minvalue', 'maxvalue', 'precision'],
         'ipalib.parameters.Data': ['minlength', 'maxlength', 'length',
             'pattern', 'pattern_errmsg'],
-        'ipalib.parameters.Enum': ['values'],
+        'ipalib.parameters.Str': ['noextrawhitespace'],
+        'ipalib.parameters.Password': ['confirm'],
         'ipalib.parameters.File': ['stdin_if_missing'],
-        'urlparse.SplitResult': ['scheme', 'netloc', 'path', 'query', 'fragment', 'username', 'password', 'hostname', 'port'],
-        'urlparse.ParseResult': ['scheme', 'netloc', 'path', 'params', 'query', 'fragment', 'username', 'password', 'hostname', 'port'],
-        'ipaserver.install.ldapupdate.LDAPUpdate' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipaserver.plugins.ldap2.SchemaCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipaserver.plugins.ldap2.IPASimpleLDAPObject' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipaserver.plugins.ldap2.ldap2' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipaserver.rpcserver.KerberosSession' : ['api', 'log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipaserver.rpcserver.HTTP_Status' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipalib.krb_utils.KRB5_CCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipalib.session.AuthManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipalib.session.SessionAuthManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipalib.session.SessionManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipalib.session.SessionCCache' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipalib.session.MemcacheSessionManager' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipapython.admintool.AdminTool' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
-        'ipapython.cookie.Cookie' : ['log', 'debug', 'info', 'warning', 'error', 'critical', 'exception'],
+        'ipalib.plugins.dns.DNSRecord': ['validatedns', 'normalizedns'],
+        'ipalib.parameters.Enum': ['values'],
+        'ipalib.parameters.Number': ['minvalue', 'maxvalue'],
+        'ipalib.parameters.Decimal': ['precision', 'exponential',
+            'numberclass'],
+        'ipalib.plugable.API': NAMESPACE_ATTRS + LOGGING_ATTRS,
+        'ipalib.plugable.Plugin': ['api', 'env'] + NAMESPACE_ATTRS +
+            LOGGING_ATTRS,
+        'ipalib.session.AuthManager': LOGGING_ATTRS,
+        'ipalib.session.SessionAuthManager': LOGGING_ATTRS,
+        'ipalib.session.SessionManager': LOGGING_ATTRS,
+        'ipaserver.install.ldapupdate.LDAPUpdate': LOGGING_ATTRS,
+        'ipaserver.plugins.ldap2.IPASimpleLDAPObject': LOGGING_ATTRS,
+        'ipaserver.plugins.ldap2.SchemaCache': LOGGING_ATTRS,
+        'ipaserver.rpcserver.KerberosSession': ['api'] + LOGGING_ATTRS,
     }
 
     def _related_classes(self, klass):

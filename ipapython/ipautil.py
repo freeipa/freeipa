@@ -775,7 +775,7 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
                         connection, client_address = s.accept()
                         try:
                             if responder_data:
-                                connection.sendall(responder_data) #pylint: disable=E1101
+                                connection.sendall(responder_data)
                         finally:
                             connection.close()
                     elif socket_type == socket.SOCK_DGRAM:

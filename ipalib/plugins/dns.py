@@ -630,7 +630,7 @@ class DNSRecord(Str):
         return super(DNSRecord, self)._convert_scalar(value, index)
 
     def normalize(self, value):
-        if self.normalizedns: #pylint: disable=E1101
+        if self.normalizedns:
             if isinstance(value, (tuple, list)):
                 value = tuple(
                             self._normalize_parts(v) for v in value \
@@ -667,7 +667,7 @@ class DNSRecord(Str):
         return value
 
     def _rule_validatedns(self, _, value):
-        if not self.validatedns: #pylint: disable=E1101
+        if not self.validatedns:
             return
 
         if value is None:
