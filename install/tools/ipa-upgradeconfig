@@ -493,6 +493,53 @@ def enable_certificate_renewal(ca):
 
     return False
 
+def certificate_renewal_stop_ca(ca):
+    """
+    Validate the certmonger configuration on certificates that already
+    have renewal configured.
+
+    As of certmonger 0.65 it now does locking from the point where it
+    generates the CSR to the end of the post-command. This is to ensure
+    that only one certmonger renewal, and hopefully, one process at a
+    time holds the NSS database open in read/write.
+    """
+    root_logger.info('[Certificate renewal should stop the CA]')
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    nss_dir = dogtag.configured_constants().ALIAS_DIR
+    # Using the nickname find the certmonger request_id
+    criteria = (('cert_storage_location', nss_dir, certmonger.NPATH),('cert_nickname', 'auditSigningCert cert-pki-ca', None))
+    id = certmonger.get_request_id(criteria)
+    if id is None:
+        root_logger.error('Unable to find certmonger request ID for auditSigning Cert')
+        return False
+
+    if sysupgrade.get_upgrade_state('dogtag', 'stop_ca_during_renewal'):
+        return False
+
+    # State not set, lets see if we are already configured
+    pre_command = certmonger.get_request_value(id, 'pre_certsave_command')
+    if pre_command is not None:
+        if pre_command.strip().endswith('stop_pkicad'):
+            root_logger.info('Already configured to stop CA')
+            return False
+
+    # Ok, now we need to stop tracking, then we can start tracking them
+    # again with new configuration:
+    cainstance.stop_tracking_certificates(dogtag.configured_constants())
+    if ca.is_master():
+        ca.configure_renewal()
+    else:
+        ca.configure_certmonger_renewal()
+        ca.configure_clone_renewal()
+        ca.configure_agent_renewal()
+    ca.track_servercert()
+    sysupgrade.set_upgrade_state('dogtag', 'stop_ca_during_renewal', True)
+    root_logger.debug('CA subsystem certificate renewal configured to stop the CA')
+    return True
+
 def copy_crl_file(old_path, new_path=None):
     """
     Copy CRL to new location, update permissions and SELinux context
@@ -711,7 +758,12 @@ def main():
             bind.restart()
         except ipautil.CalledProcessError, e:
             root_logger.error("Failed to restart %s: %s", bind.service_name, e)
-    ca_restart = ca_restart or enable_certificate_renewal(ca) or upgrade_ipa_profile(ca, api.env.domain, fqdn)
+    ca_restart = any([
+        ca_restart,
+        enable_certificate_renewal(ca),
+        upgrade_ipa_profile(ca, api.env.domain, fqdn),
+        certificate_renewal_stop_ca(ca),
+    ])
 
     if ca_restart:
         root_logger.info('pki-ca configuration changed, restart pki-ca')

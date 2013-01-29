@@ -25,13 +25,11 @@ import tempfile
 import syslog
 import time
 from ipapython import services as ipaservices
-from ipapython.certmonger import get_pin
 from ipapython import ipautil
 from ipaserver.install import certs
-from ipaserver.install.cainstance import DEFAULT_DSPORT
+from ipaserver.install.cainstance import update_people_entry
 from ipalib import api
 from ipapython.dn import DN
-from ipalib import x509
 from ipalib import errors
 from ipaserver.plugins.ldap2 import ldap2
 import ldap as _ldap
@@ -41,52 +39,10 @@ api.finalize()
 
 # Fetch the new certificate
 db = certs.CertDB(api.env.realm)
-cert = db.get_cert_from_db('ipaCert', pem=False)
-serial_number = x509.get_serial_number(cert, datatype=x509.DER)
-subject = x509.get_subject(cert, datatype=x509.DER)
-issuer = x509.get_issuer(cert, datatype=x509.DER)
+dercert = db.get_cert_from_db('ipaCert', pem=False)
 
 # Load it into dogtag
-dn = DN(('uid','ipara'),('ou','People'),('o','ipaca'))
-
-try:
-    dm_password = get_pin('internaldb')
-except IOError, e:
-    syslog.syslog(syslog.LOG_ERR, 'Unable to determine PIN for CA instance: %s' % e)
-    sys.exit(1)
-
-attempts = 0
-dogtag_uri='ldap://localhost:%d' % DEFAULT_DSPORT
-updated = False
-
-while attempts < 10:
-    conn = None
-    try:
-        conn = ldap2(shared_instance=False, ldap_uri=dogtag_uri)
-        conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
-        (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'], normalize=False)
-        entry_attrs['usercertificate'].append(cert)
-        entry_attrs['description'] = '2;%d;%s;%s' % (serial_number, issuer, subject)
-        conn.update_entry(dn, entry_attrs, normalize=False)
-        updated = True
-        break
-    except errors.NetworkError:
-        syslog.syslog(syslog.LOG_ERR, 'Connection to %s failed, sleeping 30s' % dogtag_uri)
-        time.sleep(30)
-        attempts += 1
-    except errors.EmptyModlist:
-        updated = True
-        break
-    except Exception, e:
-        syslog.syslog(syslog.LOG_ERR, 'Updating agent entry failed: %s' % e)
-        break
-    finally:
-        if conn.isconnected():
-            conn.disconnect()
-
-if not updated:
-    syslog.syslog(syslog.LOG_ERR, '%s: Giving up. This script may be safely re-executed.' % sys.argv[0])
-    sys.exit(1)
+update_people_entry('ipara', dercert)
 
 attempts = 0
 updated = False
@@ -104,11 +60,11 @@ while attempts < 10:
         conn.connect(ccache=ccache)
         try:
             (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'])
-            entry_attrs['usercertificate'] = cert
+            entry_attrs['usercertificate'] = dercert
             conn.update_entry(dn, entry_attrs, normalize=False)
         except errors.NotFound:
             entry_attrs = dict(objectclass=['top', 'pkiuser', 'nscontainer'],
-                                            usercertificate=cert)
+                                            usercertificate=dercert)
             conn.add_entry(dn, entry_attrs, normalize=False)
         except errors.EmptyModlist:
             pass
