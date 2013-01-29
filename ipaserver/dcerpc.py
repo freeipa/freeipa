@@ -441,15 +441,12 @@ class DomainValidator(object):
         if auth:
             (ccache_name, principal) = self.__kinit_as_trusted_account(info, auth)
             if ccache_name:
-                cb_info = dict()
-                # pass empty dict, SASL GSSAPI is able to get all from the ccache
-                sasl_auth = _ldap.sasl.sasl(cb_info,'GSSAPI')
                 old_ccache = os.environ.get('KRB5CCNAME')
                 os.environ["KRB5CCNAME"] = ccache_name
                 # OPT_X_SASL_NOCANON is used to avoid hard requirement for PTR
                 # records pointing back to the same host name
                 conn.set_option(_ldap.OPT_X_SASL_NOCANON, _ldap.OPT_ON)
-                conn.sasl_interactive_bind_s(None, sasl_auth)
+                conn.do_sasl_gssapi_bind()
                 if basedn is None:
                     # Use domain root base DN
                     basedn = DN(*map(lambda p: ('dc', p), info['dns_domain'].split('.')))

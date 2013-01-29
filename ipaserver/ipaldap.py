@@ -41,7 +41,7 @@ from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN, RDN
 
 # Global variable to define SASL auth
-SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
+SASL_GSSAPI = ldap.sasl.sasl({}, 'GSSAPI')
 
 DEFAULT_TIMEOUT = 10
 DN_SYNTAX_OID = '1.3.6.1.4.1.1466.115.121.1.12'
@@ -1617,12 +1617,12 @@ class IPAdmin(LDAPClient):
 
     def do_sasl_gssapi_bind(self, timeout=DEFAULT_TIMEOUT):
         self.__bind_with_wait(
-            self.sasl_interactive_bind_s, timeout, None, SASL_AUTH)
+            self.conn.sasl_interactive_bind_s, timeout, None, SASL_GSSAPI)
 
     def do_external_bind(self, user_name=None, timeout=DEFAULT_TIMEOUT):
         auth_tokens = ldap.sasl.external(user_name)
         self.__bind_with_wait(
-            self.sasl_interactive_bind_s, timeout, None, auth_tokens)
+            self.conn.sasl_interactive_bind_s, timeout, None, auth_tokens)
 
     def updateEntry(self,dn,oldentry,newentry):
         # FIXME: for backwards compatibility only
@@ -1711,10 +1711,6 @@ class IPAdmin(LDAPClient):
     def set_option(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
         return self.conn.set_option(*args, **kwargs)
-
-    def sasl_interactive_bind_s(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.sasl_interactive_bind_s(*args, **kwargs)
 
     def encode(self, *args, **kwargs):
         # FIXME: for backwards compatibility only

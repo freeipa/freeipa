@@ -36,7 +36,7 @@ import krbV
 import ldap as _ldap
 
 from ipapython.dn import DN
-from ipaserver.ipaldap import SASL_AUTH, IPASimpleLDAPObject, LDAPClient
+from ipaserver.ipaldap import SASL_GSSAPI, IPASimpleLDAPObject, LDAPClient
 
 
 try:
@@ -156,7 +156,7 @@ class ldap2(LDAPClient, CrudBackend):
                         context=krbV.default_context()).principal().name
 
                 os.environ['KRB5CCNAME'] = ccache
-                conn.sasl_interactive_bind_s(None, SASL_AUTH)
+                conn.sasl_interactive_bind_s(None, SASL_GSSAPI)
                 setattr(context, 'principal', principal)
             else:
                 # no kerberos ccache, use simple bind or external sasl
