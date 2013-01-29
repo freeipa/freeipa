@@ -31,6 +31,7 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
         raise e
 from ipalib import _
 from ipapython.dn import DN
+import datetime
 
 __doc__ = _("""
 Migration to IPA
@@ -72,6 +73,12 @@ If a base DN is not provided with --basedn then IPA will use either
 the value of defaultNamingContext if it is set or the first value
 in namingContexts set in the root of the remote LDAP server.
 
+Users are added as members to the default user group. This can be a
+time-intensive task so during migration this is done in a batch
+mode for every 100 users. As a result there will be a window in which
+users will be added to IPA but will not be members of the default
+user group.
+
 EXAMPLES:
 
  The simplest migration, accepting all defaults:
@@ -102,11 +109,27 @@ EXAMPLES:
        --user-ignore-objectclass=radiusprofile \\
        --user-ignore-attribute=radiusgroupname \\
        ldap://ds.example.com:389
+
+LOGGING
+
+Migration will log warnings and errors to the Apache error log. This
+file should be evaluated post-migration to correct or investigate any
+issues that were discovered.
+
+For every 100 users migrated an info-level message will be displayed to
+give the current progress and duration to make it possible to track
+the progress of migration.
+
+If the log level is debug, either by setting debug = True in
+/etc/ipa/default.conf or /etc/ipa/server.conf, then an entry will be printed
+for each user added plus a summary when the default user group is
+updated.
 """)
 
 # USER MIGRATION CALLBACKS AND VARS
 
 _krb_err_msg = _('Kerberos principal %s already exists. Use \'ipa user-mod\' to set it manually.')
+_krb_failed_msg = _('Unable to determine if Kerberos principal %s already exists. Use \'ipa user-mod\' to set it manually.')
 _grp_err_msg = _('Failed to add user to the default group. Use \'ipa group-add-member\' to add manually.')
 _ref_err_msg = _('Migration of LDAP search reference is not supported.')
 _dn_err_msg = _('Malformed DN')
@@ -123,13 +146,17 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
     has_upg = ctx['has_upg']
     search_bases = kwargs.get('search_bases', None)
     valid_gids = kwargs['valid_gids']
+    invalid_gids = kwargs['invalid_gids']
 
     if 'gidnumber' not in entry_attrs:
         raise errors.NotFound(reason=_('%(user)s is not a POSIX user') % dict(user=pkey))
     else:
         # See if the gidNumber at least points to a valid group on the remote
         # server.
-        if entry_attrs['gidnumber'][0] not in valid_gids:
+        if entry_attrs['gidnumber'][0] in invalid_gids:
+            api.log.warn('GID number %s of migrated user %s does not point to a known group.' \
+                         % (entry_attrs['gidnumber'][0], pkey))
+        elif entry_attrs['gidnumber'][0] not in valid_gids:
             try:
                 (remote_dn, remote_entry) = ds_ldap.find_entry_by_attr(
                     'gidnumber', entry_attrs['gidnumber'][0], 'posixgroup',
@@ -139,10 +166,13 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
             except errors.NotFound:
                 api.log.warn('GID number %s of migrated user %s does not point to a known group.' \
                              % (entry_attrs['gidnumber'][0], pkey))
+                invalid_gids.append(entry_attrs['gidnumber'][0])
             except errors.SingleMatchExpected, e:
                 # GID number matched more groups, this should not happen
                 api.log.warn('GID number %s of migrated user %s should match 1 group, but it matched %d groups' \
                              % (entry_attrs['gidnumber'][0], pkey, e.found))
+            except errors.LimitsExceeded, e:
+                api.log.warn('Search limit exceeded searching for GID %s' % entry_attrs['gidnumber'][0])
 
     # We don't want to create a UPG so set the magic value in description
     # to let the DS plugin know.
@@ -182,6 +212,8 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         )
     except errors.NotFound:
         entry_attrs['krbprincipalname'] = principal
+    except errors.LimitsExceeded:
+        failed[pkey] = unicode(_krb_failed_msg % principal)
     else:
         failed[pkey] = unicode(_krb_err_msg % principal)
 
@@ -232,18 +264,51 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
 
 def _post_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
     assert isinstance(dn, DN)
-    # add user to the default group
-    try:
-        ldap.add_entry_to_group(dn, ctx['def_group_dn'])
-    except errors.ExecutionError, e:
-        failed[pkey] = unicode(_grp_err_msg)
+
+    _update_default_group(ldap, pkey, config, ctx, False)
+
     if 'description' in entry_attrs and NO_UPG_MAGIC in entry_attrs['description']:
         entry_attrs['description'].remove(NO_UPG_MAGIC)
-        kw = {'setattr': unicode('description=%s' % ','.join(entry_attrs['description']))}
+        update_attrs = dict(description = entry_attrs['description'])
         try:
-            api.Command['user_mod'](pkey, **kw)
+            ldap.update_entry(dn, update_attrs)
         except (errors.EmptyModlist, errors.NotFound):
             pass
+
+def _update_default_group(ldap, pkey, config, ctx, force):
+    migrate_cnt = ctx['migrate_cnt']
+    group_dn = ctx['def_group_dn']
+
+    # Purposely let this fire when migrate_cnt == 0 so on re-running migration
+    # it can catch any users migrated but not added to the default group.
+    if force or migrate_cnt % 100 == 0:
+        s = datetime.datetime.now()
+        searchfilter = "(&(objectclass=posixAccount)(!(memberof=%s)))" % group_dn
+        try:
+            (result, truncated) = ldap.find_entries(searchfilter,
+                [''], api.env.container_user, scope=_ldap.SCOPE_SUBTREE,
+                time_limit = -1)
+        except errors.NotFound:
+            return
+        new_members = []
+        (group_dn, group_entry_attrs) = ldap.get_entry(group_dn, ['member'])
+        for m in result:
+            if m[0] not in group_entry_attrs.get('member', []):
+                new_members.append(m[0])
+        if len(new_members) > 0:
+            members = group_entry_attrs.get('member', [])
+            members.extend(new_members)
+            group_entry_attrs['member'] = members
+
+            try:
+                ldap.update_entry(group_dn, group_entry_attrs)
+            except errors.EmptyModlist:
+                pass
+
+        e = datetime.datetime.now()
+        d = e - s
+        mode = " (forced)" if force else ""
+        api.log.debug('Adding %d users to group%s duration %s' % (len(new_members), mode, d))
 
 # GROUP MIGRATION CALLBACKS AND VARS
 
@@ -619,6 +684,7 @@ can use their Kerberos accounts.''')
         migrated = {} # {'OBJ': ['PKEY1', 'PKEY2', ...], ...}
         failed = {} # {'OBJ': {'PKEY1': 'Failed 'cos blabla', ...}, ...}
         search_bases = self._get_search_bases(options, ds_base_dn, self.migrate_order)
+        migration_start = datetime.datetime.now()
         for ldap_obj_name in self.migrate_order:
             ldap_obj = self.api.Object[ldap_obj_name]
 
@@ -682,7 +748,11 @@ can use their Kerberos accounts.''')
             context['has_upg'] = ldap.has_upg()
 
             valid_gids = []
+            invalid_gids = []
+            migrate_cnt = 0
             for (dn, entry_attrs) in entries:
+                context['migrate_cnt'] = migrate_cnt
+                s = datetime.datetime.now()
                 if dn is None:  # LDAP search reference
                     failed[ldap_obj_name][entry_attrs[0]] = unicode(_ref_err_msg)
                     continue
@@ -724,6 +794,7 @@ can use their Kerberos accounts.''')
                             config, context, schema = options['schema'],
                             search_bases = search_bases,
                             valid_gids = valid_gids,
+                            invalid_gids = invalid_gids,
                             **blacklists
                         )
                         assert isinstance(dn, DN)
@@ -755,6 +826,15 @@ can use their Kerberos accounts.''')
                         ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
                         config, context,
                     )
+                e = datetime.datetime.now()
+                d = e - s
+                total_dur = e - migration_start
+                migrate_cnt += 1
+                if migrate_cnt > 0 and migrate_cnt % 100 == 0:
+                    api.log.info("%d %ss migrated. %s elapsed." % (migrate_cnt, ldap_obj_name, total_dur))
+                api.log.debug("%d %ss migrated, duration: %s (total %s)" % (migrate_cnt, ldap_obj_name, d, total_dur))
+
+        _update_default_group(ldap, pkey, config, context, True)
 
         return (migrated, failed)
 
