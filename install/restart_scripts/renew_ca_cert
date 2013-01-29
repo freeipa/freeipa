@@ -34,8 +34,10 @@ from ipapython import services as ipaservices
 from ipapython import ipautil
 from ipapython import dogtag
 from ipaserver.install import certs
+from ipaserver.install.cainstance import update_people_entry
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install.cainstance import update_cert_config
+from ipapython import certmonger
 
 # This script a post-cert-install command for certmonger. When certmonger
 # has renewed a CA subsystem certificate a copy is put into the replicated
@@ -82,8 +84,13 @@ except Exception, e:
 finally:
     shutil.rmtree(tmpdir)
 
-# Fix permissions on the audit cert if we're updating it
+update_cert_config(nickname, cert)
+
+if nickname == 'subsystemCert cert-pki-ca':
+    update_people_entry('pkidbuser', cert)
+
 if nickname == 'auditSigningCert cert-pki-ca':
+    # Fix trust on the audit cert
     db = certs.CertDB(api.env.realm, nssdir=alias_dir)
     args = ['-M',
             '-n', nickname,
@@ -91,25 +98,20 @@ if nickname == 'auditSigningCert cert-pki-ca':
            ]
     try:
         db.run_certutil(args)
+        syslog.syslog(syslog.LOG_NOTICE, 'Updated trust on certificate %s in %s' % (nickname, db.secdir))
     except ipautil.CalledProcessError:
-        syslog.syslog(syslog.LOG_ERR, 'Updating trust on certificate %s failed in %s' % (nickname, db.secdir))
+         syslog.syslog(syslog.LOG_ERR, 'Updating trust on certificate %s failed in %s' % (nickname, db.secdir))
 
-update_cert_config(nickname, cert)
-
-syslog.syslog(
-    syslog.LOG_NOTICE, 'certmonger restarted %sd instance %s to renew %s' %
-        (dogtag_instance, dogtag_instance, nickname))
-
-# We monitor 3 certs that are all likely to be renewed by certmonger more or
-# less at the same time. Each cert renewal is going to need to restart
-# the CA. Add a bit of randomness in this so not all three try to start it
-# at the same time. A restart is needed for each because there is no guarantee
-# that they will all be renewed at the same time.
-pause = random.randint(10,360)
-syslog.syslog(syslog.LOG_NOTICE, 'Pausing %d seconds to restart pki-ca' % pause)
-time.sleep(pause)
+# Now we can start the CA. Using the ipaservices start should fire
+# off the servlet to verify that the CA is actually up and responding so
+# when this returns it should be good-to-go. The CA was stopped in the
+# pre-save state.
+syslog.syslog(syslog.LOG_NOTICE, 'Starting %sd' % dogtag_instance)
 try:
-    ipaservices.knownservices.pki_cad.restart(dogtag_instance)
+    if configured_constants.DOGTAG_VERSION == 9:
+        ipaservices.knownservices.pki_cad.start(dogtag_instance)
+    else:
+        ipaservices.knownservices.pki_tomcatd.start(dogtag_instance)
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot restart %sd: %s" %
+    syslog.syslog(syslog.LOG_ERR, "Cannot start %sd: %s" %
                   (dogtag_instance, str(e)))

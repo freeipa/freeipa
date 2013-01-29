@@ -7,6 +7,7 @@ app_DATA =                              \
 	restart_pkicad			\
 	renew_ca_cert			\
 	renew_ra_cert			\
+	stop_pkicad			\
 	$(NULL)
 
 EXTRA_DIST =                            \

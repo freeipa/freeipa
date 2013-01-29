@@ -111,7 +111,7 @@ Requires: python-memcached
 Requires: systemd-units >= 36-3
 Requires(pre): systemd-units
 Requires(post): systemd-units
-Requires: selinux-policy >= 3.11.1-60
+Requires: selinux-policy >= 3.11.1-71
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.40
 %if 0%{?fedora} >= 18
@@ -762,6 +762,12 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue Jan 29 2013 Rob Crittenden <rcritten@redhat.com> - 3.0.99-8
+- Set certmonger minimum version to 0.65 for NSS locking during
+  renewal
+- Set selinux-policy to 3.11.1-73 so certmonger can run in post
+  scriptlet
+
 * Thu Jan 24 2013 Rob Crittenden <rcritten@redhat.com> - 3.0.0-7
 - Add certmonger condrestart to server post scriptlet
 - Make certmonger a (pre) Requires on the server subpackage

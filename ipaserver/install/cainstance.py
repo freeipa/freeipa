@@ -35,10 +35,12 @@ import urllib
 import xml.dom.minidom
 import stat
 import socket
+import syslog
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
 from ipapython import certmonger
 from ipalib import pkcs10, x509
+from ipalib import errors
 from ipapython.dn import DN
 import subprocess
 import traceback
@@ -1003,7 +1005,11 @@ class CAInstance(service.Service):
 
         On upgrades this needs to be called from ipa-upgradeconfig.
         """
-        certmonger.dogtag_start_tracking('dogtag-ipa-retrieve-agent-submit', 'ipaCert', None, '/etc/httpd/alias/pwdfile.txt', '/etc/httpd/alias', 'restart_httpd')
+        try:
+            certmonger.dogtag_start_tracking('dogtag-ipa-retrieve-agent-submit', 'ipaCert', None, '/etc/httpd/alias/pwdfile.txt', '/etc/httpd/alias', None, 'restart_httpd')
+        except (ipautil.CalledProcessError, RuntimeError), e:
+            root_logger.error(
+                "certmonger failed to start tracking certificate: %s" % str(e))
 
     def __configure_ra(self):
         # Create an RA user in the CA LDAP server and add that user to
@@ -1334,11 +1340,27 @@ class CAInstance(service.Service):
         try:
             pin = certmonger.get_pin('internal')
         except IOError, e:
-            raise RuntimeError('Unable to determine PIN for CA instance: %s' % str(e))
+            raise RuntimeError(
+                'Unable to determine PIN for CA instance: %s' % str(e))
         certmonger.dogtag_start_tracking(
             'dogtag-ipa-renew-agent', 'Server-Cert cert-pki-ca', pin, None,
             self.dogtag_constants.ALIAS_DIR,
             'restart_pkicad "Server-Cert cert-pki-ca"')
+
+    def track_servercert(self):
+        """
+        Specifically do not tell certmonger to restart the CA. This will be
+        done by the renewal script, renew_ca_cert once all the subsystem
+        certificates are renewed.
+        """
+        pin = self.__get_ca_pin()
+        try:
+            certmonger.dogtag_start_tracking(
+                'dogtag-ipa-renew-agent', 'Server-Cert cert-pki-ca', pin, None,
+                self.dogtag_constants.ALIAS_DIR, None, None)
+        except (ipautil.CalledProcessError, RuntimeError), e:
+            root_logger.error(
+                "certmonger failed to start tracking certificate: %s" % str(e))
 
     def configure_renewal(self):
         cmonger = ipaservices.knownservices.certmonger
@@ -1355,12 +1377,20 @@ class CAInstance(service.Service):
         for nickname in ['auditSigningCert cert-pki-ca',
                          'ocspSigningCert cert-pki-ca',
                          'subsystemCert cert-pki-ca']:
-            certmonger.dogtag_start_tracking(
-                'dogtag-ipa-renew-agent', nickname, pin, None,
-                self.dogtag_constants.ALIAS_DIR, 'renew_ca_cert "%s"' % nickname)
+            try:
+                certmonger.dogtag_start_tracking(
+                    'dogtag-ipa-renew-agent', nickname, pin, None,
+                    self.dogtag_constants.ALIAS_DIR, 'stop_pkicad', 'renew_ca_cert "%s"' % nickname)
+            except (ipautil.CalledProcessError, RuntimeError), e:
+                root_logger.error(
+                    "certmonger failed to start tracking certificate: %s" % str(e))
 
         # Set up the agent cert for renewal
-        certmonger.dogtag_start_tracking('dogtag-ipa-renew-agent', 'ipaCert', None, '/etc/httpd/alias/pwdfile.txt', '/etc/httpd/alias', 'renew_ra_cert')
+        try:
+            certmonger.dogtag_start_tracking('dogtag-ipa-renew-agent', 'ipaCert', None, '/etc/httpd/alias/pwdfile.txt', '/etc/httpd/alias', None, 'renew_ra_cert')
+        except (ipautil.CalledProcessError, RuntimeError), e:
+                root_logger.error(
+                    "certmonger failed to start tracking certificate: %s" % str(e))
 
     def configure_certmonger_renewal(self):
         """
@@ -1401,10 +1431,14 @@ class CAInstance(service.Service):
         for nickname in ['auditSigningCert cert-pki-ca',
                          'ocspSigningCert cert-pki-ca',
                          'subsystemCert cert-pki-ca']:
-            certmonger.dogtag_start_tracking(
-                'dogtag-ipa-retrieve-agent-submit', nickname, pin, None,
-                self.dogtag_constants.ALIAS_DIR,
-                'restart_pkicad "%s"' % nickname)
+            try:
+                certmonger.dogtag_start_tracking(
+                    'dogtag-ipa-retrieve-agent-submit', nickname, pin, None,
+                    self.dogtag_constants.ALIAS_DIR, 'stop_pkicad',
+                    'restart_pkicad "%s"' % nickname)
+            except (ipautil.CalledProcessError, RuntimeError), e:
+                    root_logger.error(
+                        "certmonger failed to start tracking certificate: %s" % str(e))
 
         # The agent renewal is configured in import_ra_cert which is called
         # after the HTTP instance is created.
@@ -1599,6 +1633,67 @@ def update_cert_config(nickname, cert):
                                 directives[nickname],
                                 base64.b64encode(cert),
                                 quotes=False, separator='=')
+
+def update_people_entry(uid, dercert):
+    """
+    Update the userCerticate for an entry in the dogtag ou=People. This
+    is needed when a certificate is renewed.
+
+    uid: uid of user to update
+    dercert: An X509.3 certificate in DER format
+
+    Logging is done via syslog
+
+    Returns True or False
+    """
+    dn = DN(('uid',uid),('ou','People'),('o','ipaca'))
+    serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
+    subject = x509.get_subject(dercert, datatype=x509.DER)
+    issuer = x509.get_issuer(dercert, datatype=x509.DER)
+
+    attempts = 0
+    dogtag_uri='ldap://localhost:%d' % DEFAULT_DSPORT
+    updated = False
+
+    try:
+        dm_password = certmonger.get_pin('internaldb')
+    except IOError, e:
+        syslog.syslog(syslog.LOG_ERR, 'Unable to determine PIN for CA instance: %s' % e)
+        return False
+
+    while attempts < 10:
+        conn = None
+        try:
+            conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
+            conn.connect(bind_dn=DN(('cn', 'directory manager')),
+                bind_pw=dm_password)
+            (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'],
+                normalize=False)
+            entry_attrs['usercertificate'].append(dercert)
+            entry_attrs['description'] = '2;%d;%s;%s' % (serial_number, issuer,
+                subject)
+            conn.update_entry(dn, entry_attrs, normalize=False)
+            updated = True
+            break
+        except errors.NetworkError:
+            syslog.syslog(syslog.LOG_ERR, 'Connection to %s failed, sleeping 30s' % dogtag_uri)
+            time.sleep(30)
+            attempts += 1
+        except errors.EmptyModlist:
+            updated = True
+            break
+        except Exception, e:
+            syslog.syslog(syslog.LOG_ERR, 'Updating %s entry failed: %s' % (str(dn), e))
+            break
+        finally:
+            if conn.isconnected():
+                conn.disconnect()
+
+    if not updated:
+        syslog.syslog(syslog.LOG_ERR, 'Update failed.')
+        return False
+
+    return True
 
 if __name__ == "__main__":
     standard_logging_setup("install.log")
