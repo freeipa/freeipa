@@ -1613,7 +1613,7 @@ class IPAdmin(LDAPClient):
 
     def do_simple_bind(self, binddn=DN(('cn', 'directory manager')), bindpw="",
                        timeout=DEFAULT_TIMEOUT):
-        self.__bind_with_wait(self.simple_bind_s, timeout, binddn, bindpw)
+        self.__bind_with_wait(self.conn.simple_bind_s, timeout, binddn, bindpw)
 
     def do_sasl_gssapi_bind(self, timeout=DEFAULT_TIMEOUT):
         self.__bind_with_wait(
@@ -1715,10 +1715,6 @@ class IPAdmin(LDAPClient):
     def encode(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
         return self.conn.encode(*args, **kwargs)
-
-    def simple_bind_s(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.simple_bind_s(*args, **kwargs)
 
     def unbind(self, *args, **kwargs):
         # FIXME: for backwards compatibility only

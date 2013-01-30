@@ -375,7 +375,7 @@ class CADSInstance(service.Service):
 
     def enable_ssl(self):
         conn = ipaldap.IPAdmin(self.fqdn, port=DEFAULT_DSPORT)
-        conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
+        conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
                (ldap.MOD_REPLACE, "nsSSL3Ciphers",
@@ -1055,7 +1055,7 @@ class CAInstance(service.Service):
         # the appropriate groups so it can issue certificates without
         # manual intervention.
         conn = ipaldap.IPAdmin(self.fqdn, self.ds_port)
-        conn.simple_bind_s(DN(('cn', 'Directory Manager')), self.dm_password)
+        conn.do_simple_bind(DN(('cn', 'Directory Manager')), self.dm_password)
 
         decoded = base64.b64decode(self.ra_cert)
 

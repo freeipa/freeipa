@@ -463,7 +463,8 @@ class DsInstance(service.Service):
         root_logger.debug("Waiting for memberof task to complete.")
         conn = ipaldap.IPAdmin(self.fqdn)
         if self.dm_password:
-            conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
+            conn.do_simple_bind(
+                DN(('cn', 'directory manager')), self.dm_password)
         else:
             conn.do_sasl_gssapi_bind()
         replication.wait_for_task(conn, dn)
@@ -557,7 +558,7 @@ class DsInstance(service.Service):
                 dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin(self.fqdn)
-        conn.simple_bind_s(DN(('cn', 'directory manager')), self.dm_password)
+        conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
                (ldap.MOD_REPLACE, "nsSSL3Ciphers",
