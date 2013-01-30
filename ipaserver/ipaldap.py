@@ -27,7 +27,6 @@ from copy import deepcopy
 import contextlib
 
 import ldap
-import ldap as _ldap
 import ldap.sasl
 import ldap.filter
 from ldap.ldapobject import SimpleLDAPObject
@@ -154,18 +153,18 @@ class SchemaCache(object):
 
         try:
             try:
-                schema_entry = conn.search_s('cn=schema', _ldap.SCOPE_BASE,
+                schema_entry = conn.search_s('cn=schema', ldap.SCOPE_BASE,
                     attrlist=['attributetypes', 'objectclasses'])[0]
-            except _ldap.NO_SUCH_OBJECT:
+            except ldap.NO_SUCH_OBJECT:
                 # try different location for schema
                 # openldap has schema located in cn=subschema
                 self.log.debug('cn=schema not found, fallback to cn=subschema')
-                schema_entry = conn.search_s('cn=subschema', _ldap.SCOPE_BASE,
+                schema_entry = conn.search_s('cn=subschema', ldap.SCOPE_BASE,
                     attrlist=['attributetypes', 'objectclasses'])[0]
-        except _ldap.SERVER_DOWN:
+        except ldap.SERVER_DOWN:
             raise errors.NetworkError(uri=url,
                                error=u'LDAP Server Down, unable to retrieve LDAP schema')
-        except _ldap.LDAPError, e:
+        except ldap.LDAPError, e:
             desc = e.args[0]['desc'].strip()
             info = e.args[0].get('info', '').strip()
             raise errors.DatabaseError(desc = u'uri=%s' % url,
@@ -179,7 +178,7 @@ class SchemaCache(object):
             if tmpdir:
                 shutil.rmtree(tmpdir)
 
-        return _ldap.schema.SubSchema(schema_entry[1])
+        return ldap.schema.SubSchema(schema_entry[1])
 
 schema_cache = SchemaCache()
 
@@ -317,7 +316,7 @@ class IPASimpleLDAPObject(object):
             return syntax
 
         # Try to lookup the syntax in the schema returned by the server
-        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
         if obj is not None:
             return obj.syntax
         else:
@@ -442,7 +441,7 @@ class IPASimpleLDAPObject(object):
         modlist = self.encode(modlist)
         return self.conn.add_s(dn, modlist)
 
-    def bind(self, who, cred, method=_ldap.AUTH_SIMPLE):
+    def bind(self, who, cred, method=ldap.AUTH_SIMPLE):
         self.flush_cached_schema()
         if who is None:
             who = DN()
@@ -494,12 +493,13 @@ class IPASimpleLDAPObject(object):
         newrdn = str(newrdn)
         return self.conn.rename_s(dn, newrdn, newsuperior, delold)
 
-    def result(self, msgid=_ldap.RES_ANY, all=1, timeout=None):
+    def result(self, msgid=ldap.RES_ANY, all=1, timeout=None):
         resp_type, resp_data = self.conn.result(msgid, all, timeout)
         resp_data = self.convert_result(resp_data)
         return resp_type, resp_data
 
-    def sasl_interactive_bind_s(self, who, auth, serverctrls=None, clientctrls=None, sasl_flags=_ldap.SASL_QUIET):
+    def sasl_interactive_bind_s(self, who, auth, serverctrls=None,
+                                clientctrls=None, sasl_flags=ldap.SASL_QUIET):
         self.flush_cached_schema()
         if who is None:
             who = DN()
@@ -751,9 +751,9 @@ class LDAPClient(object):
     MATCH_NONE = '!'  # (!(filter1)(filter2))
 
     # search scope for find_entries()
-    SCOPE_BASE = _ldap.SCOPE_BASE
-    SCOPE_ONELEVEL = _ldap.SCOPE_ONELEVEL
-    SCOPE_SUBTREE = _ldap.SCOPE_SUBTREE
+    SCOPE_BASE = ldap.SCOPE_BASE
+    SCOPE_ONELEVEL = ldap.SCOPE_ONELEVEL
+    SCOPE_SUBTREE = ldap.SCOPE_SUBTREE
 
     def __init__(self, ldap_uri):
         self.ldap_uri = ldap_uri
@@ -777,7 +777,7 @@ class LDAPClient(object):
         try:
             try:
                 yield
-            except _ldap.TIMEOUT:
+            except ldap.TIMEOUT:
                 desc = ''
                 info = ''
                 raise
@@ -787,50 +787,50 @@ class LDAPClient(object):
                 if arg_desc is not None:
                     info = "%s arguments: %s" % (info, arg_desc)
                 raise
-        except _ldap.NO_SUCH_OBJECT:
+        except ldap.NO_SUCH_OBJECT:
             raise errors.NotFound(reason=arg_desc or 'no such entry')
-        except _ldap.ALREADY_EXISTS:
+        except ldap.ALREADY_EXISTS:
             raise errors.DuplicateEntry()
-        except _ldap.CONSTRAINT_VIOLATION:
+        except ldap.CONSTRAINT_VIOLATION:
             # This error gets thrown by the uniqueness plugin
             _msg = 'Another entry with the same attribute value already exists'
             if info.startswith(_msg):
                 raise errors.DuplicateEntry()
             else:
                 raise errors.DatabaseError(desc=desc, info=info)
-        except _ldap.INSUFFICIENT_ACCESS:
+        except ldap.INSUFFICIENT_ACCESS:
             raise errors.ACIError(info=info)
-        except _ldap.INVALID_CREDENTIALS:
+        except ldap.INVALID_CREDENTIALS:
             raise errors.ACIError(info="%s %s" % (info, desc))
-        except _ldap.NO_SUCH_ATTRIBUTE:
+        except ldap.NO_SUCH_ATTRIBUTE:
             # this is raised when a 'delete' attribute isn't found.
             # it indicates the previous attribute was removed by another
             # update, making the oldentry stale.
             raise errors.MidairCollision()
-        except _ldap.INVALID_SYNTAX:
+        except ldap.INVALID_SYNTAX:
             raise errors.InvalidSyntax(attr=info)
-        except _ldap.OBJECT_CLASS_VIOLATION:
+        except ldap.OBJECT_CLASS_VIOLATION:
             raise errors.ObjectclassViolation(info=info)
-        except _ldap.ADMINLIMIT_EXCEEDED:
+        except ldap.ADMINLIMIT_EXCEEDED:
             raise errors.LimitsExceeded()
-        except _ldap.SIZELIMIT_EXCEEDED:
+        except ldap.SIZELIMIT_EXCEEDED:
             raise errors.LimitsExceeded()
-        except _ldap.TIMELIMIT_EXCEEDED:
+        except ldap.TIMELIMIT_EXCEEDED:
             raise errors.LimitsExceeded()
-        except _ldap.NOT_ALLOWED_ON_RDN:
+        except ldap.NOT_ALLOWED_ON_RDN:
             raise errors.NotAllowedOnRDN(attr=info)
-        except _ldap.FILTER_ERROR:
+        except ldap.FILTER_ERROR:
             raise errors.BadSearchFilter(info=info)
-        except _ldap.NOT_ALLOWED_ON_NONLEAF:
+        except ldap.NOT_ALLOWED_ON_NONLEAF:
             raise errors.NotAllowedOnNonLeaf()
-        except _ldap.SERVER_DOWN:
+        except ldap.SERVER_DOWN:
             raise errors.NetworkError(uri=self.ldap_uri,
                                       error=u'LDAP Server Down')
-        except _ldap.LOCAL_ERROR:
+        except ldap.LOCAL_ERROR:
             raise errors.ACIError(info=info)
-        except _ldap.SUCCESS:
+        except ldap.SUCCESS:
             pass
-        except _ldap.LDAPError, e:
+        except ldap.LDAPError, e:
             if 'NOT_ALLOWED_TO_DELEGATE' in info:
                 raise errors.ACIError(
                     info="KDC returned NOT_ALLOWED_TO_DELEGATE")
@@ -845,7 +845,7 @@ class LDAPClient(object):
     def get_syntax(self, attr, value):
         if self.schema is None:
             return None
-        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
         if obj is not None:
             return obj.syntax
         else:
@@ -859,7 +859,7 @@ class LDAPClient(object):
             return None
         allowed_attributes = []
         for oc in objectclasses:
-            obj = self.schema.get_obj(_ldap.schema.ObjectClass, oc)
+            obj = self.schema.get_obj(ldap.schema.ObjectClass, oc)
             if obj is not None:
                 allowed_attributes += obj.must + obj.may
             elif raise_on_unknown:
@@ -878,7 +878,7 @@ class LDAPClient(object):
         """
         if self.schema is None:
             return None
-        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
         return obj and obj.single_value
 
     def normalize_dn(self, dn):
@@ -1068,7 +1068,7 @@ class LDAPClient(object):
         return entries
 
     def find_entries(self, filter=None, attrs_list=None, base_dn=None,
-                     scope=_ldap.SCOPE_SUBTREE, time_limit=None,
+                     scope=ldap.SCOPE_SUBTREE, time_limit=None,
                      size_limit=None, normalize=True, search_refs=False):
         """
         Return a list of entries and indication of whether the results were
@@ -1124,12 +1124,12 @@ class LDAPClient(object):
                     (objtype, res_list) = self.conn.result(id, 0)
                     if not res_list:
                         break
-                    if (objtype == _ldap.RES_SEARCH_ENTRY or
+                    if (objtype == ldap.RES_SEARCH_ENTRY or
                             (search_refs and
-                                objtype == _ldap.RES_SEARCH_REFERENCE)):
+                                objtype == ldap.RES_SEARCH_REFERENCE)):
                         res.append(res_list[0])
-            except (_ldap.ADMINLIMIT_EXCEEDED, _ldap.TIMELIMIT_EXCEEDED,
-                    _ldap.SIZELIMIT_EXCEEDED), e:
+            except (ldap.ADMINLIMIT_EXCEEDED, ldap.TIMELIMIT_EXCEEDED,
+                    ldap.SIZELIMIT_EXCEEDED), e:
                 truncated = True
 
         if not res and not truncated:
@@ -1258,7 +1258,7 @@ class LDAPClient(object):
                 result, truncated = self.find_entries(
                     searchfilter, attr_list,
                     group, time_limit=time_limit, size_limit=size_limit,
-                    scope=_ldap.SCOPE_BASE, normalize=normalize)
+                    scope=ldap.SCOPE_BASE, normalize=normalize)
                 results.extend(list(result))
             except errors.NotFound:
                 pass
@@ -1338,7 +1338,7 @@ class LDAPClient(object):
                     result, truncated = self.find_entries(
                         searchfilter, attr_list, member_dn,
                         time_limit=time_limit, size_limit=size_limit,
-                        scope=_ldap.SCOPE_BASE, normalize=normalize)
+                        scope=ldap.SCOPE_BASE, normalize=normalize)
                     if truncated:
                         raise errors.LimitsExceeded()
                     results.append(list(result[0]))
@@ -1441,7 +1441,7 @@ class LDAPClient(object):
         modlist = []
         for (k, v) in entry_attrs.iteritems():
             if v is None and k in entry_attrs_old:
-                modlist.append((_ldap.MOD_DELETE, k, None))
+                modlist.append((ldap.MOD_DELETE, k, None))
             else:
                 if not isinstance(v, (list, tuple)):
                     v = [v]
@@ -1481,12 +1481,12 @@ class LDAPClient(object):
 
                 if adds:
                     if force_replace:
-                        modlist.append((_ldap.MOD_REPLACE, k, adds))
+                        modlist.append((ldap.MOD_REPLACE, k, adds))
                     else:
-                        modlist.append((_ldap.MOD_ADD, k, adds))
+                        modlist.append((ldap.MOD_ADD, k, adds))
                 if rems:
                     if not force_replace:
-                        modlist.append((_ldap.MOD_DELETE, k, rems))
+                        modlist.append((ldap.MOD_DELETE, k, rems))
 
         return modlist
 
