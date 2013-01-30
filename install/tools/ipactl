@@ -19,33 +19,20 @@
 #
 
 import sys
-try:
-    import os
-    from ipaserver.install import service, installutils
-    from ipapython import services as ipaservices
-    from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
-    from ipaserver.install.installutils import is_ipa_configured, ScriptError
-    from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
-    from ipalib import api, errors
-    from ipapython import sysrestore
-    from ipapython import config
-    from ipapython import dogtag
-    from ipapython.dn import DN
-    import ldap
-    import ldap.sasl
-    import ldapurl
-    import socket
-    import json
-except ImportError:
-    print >> sys.stderr, """\
-There was a problem importing one of the required Python modules. The
-error was:
+import os
+import json
 
-    %s
-""" % sys.exc_value
-    sys.exit(1)
+import ldapurl
 
-SASL_EXTERNAL = ldap.sasl.sasl({}, 'EXTERNAL')
+from ipaserver.install import service, installutils
+from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
+from ipaserver.install.installutils import is_ipa_configured, ScriptError
+from ipaserver.ipaldap import IPAdmin
+from ipalib import api, errors
+from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
+from ipapython import services as ipaservices
+from ipapython import config, dogtag
+from ipapython.dn import DN
 
 class IpactlError(ScriptError):
     pass
@@ -127,30 +114,33 @@ def get_config(dirsrv):
         if lurl.urlscheme == 'ldapi':
             wait_for_open_socket(lurl.hostport, timeout=api.env.startup_timeout)
         else:
-            (host,port) = lurl.hostport.split(':')
+            (host, port) = lurl.hostport.split(':')
             wait_for_open_ports(host, [int(port)], timeout=api.env.startup_timeout)
-        con = ldap.initialize(api.env.ldap_uri)
-        con.sasl_interactive_bind_s('', SASL_EXTERNAL)
-        res = con.search_st(str(base),
-                            ldap.SCOPE_SUBTREE,
-                            filterstr=srcfilter,
-                            attrlist=attrs,
-                            timeout=10)
-    except ldap.SERVER_DOWN, e:
+        con = IPAdmin(ldap_uri=api.env.ldap_uri)
+        con.do_external_bind()
+        res, truncated = con.find_entries(
+            filter=srcfilter,
+            attrs_list=attrs,
+            base_dn=base,
+            scope=con.SCOPE_SUBTREE,
+            time_limit=10)
+        if truncated:
+            raise errors.LimitsExceeded()
+    except errors.NetworkError:
         # LSB status code 3: program is not running
         raise IpactlError("Failed to get list of services to probe status:\n" +
                           "Directory Server is stopped", 3)
-    except ldap.NO_SUCH_OBJECT:
+    except errors.NotFound:
         masters_list = []
         dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
         attrs = ['cn']
         try:
-            entries = con.search_s(str(dn), ldap.SCOPE_ONELEVEL, attrlist=attrs)
+            entries = con.get_entries(dn, con.SCOPE_ONELEVEL, attrs_list=attrs)
         except Exception, e:
             masters_list.append("No master found because of error: %s" % str(e))
         else:
-            for dn,master_entry in entries:
-                masters_list.append(master_entry.get('cn', [None])[0])
+            for dn, master_entry in entries:
+                masters_list.append(master_entry.single_value('cn'))
 
         masters = "\n".join(masters_list)
 
@@ -163,8 +153,8 @@ def get_config(dirsrv):
     svc_list = []
 
     for entry in res:
-        name = entry[1]['cn'][0]
-        for p in entry[1]['ipaConfigString']:
+        name = entry.single_value('cn')
+        for p in entry['ipaConfigString']:
             if p.startswith('startOrder '):
                 order = p.split()[1]
         svc_list.append([order, name])

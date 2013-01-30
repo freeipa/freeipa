@@ -1558,7 +1558,7 @@ class IPAdmin(LDAPClient):
 
     def __init__(self, host='', port=389, cacert=None, debug=None, ldapi=False,
                  realm=None, protocol=None, force_schema_updates=True,
-                 start_tls=False):
+                 start_tls=False, ldap_uri=None):
         self.conn = None
         log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
@@ -1573,7 +1573,8 @@ class IPAdmin(LDAPClient):
         self.realm = realm
         self.suffixes = {}
 
-        ldap_uri = self.__get_ldap_uri(protocol or self.__guess_protocol())
+        if not ldap_uri:
+            ldap_uri = self.__get_ldap_uri(protocol or self.__guess_protocol())
 
         LDAPClient.__init__(self, ldap_uri)
 
