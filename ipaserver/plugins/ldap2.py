@@ -218,8 +218,15 @@ class SchemaCache(object):
                     conn.set_option(_ldap.OPT_HOST_NAME, api.env.host)
                 conn.sasl_interactive_bind_s(None, SASL_AUTH)
 
-            schema_entry = conn.search_s('cn=schema', _ldap.SCOPE_BASE,
-                                         attrlist=['attributetypes', 'objectclasses'])[0]
+            try:
+                schema_entry = conn.search_s('cn=schema', _ldap.SCOPE_BASE,
+                    attrlist=['attributetypes', 'objectclasses'])[0]
+            except _ldap.NO_SUCH_OBJECT:
+                # try different location for schema
+                # openldap has schema located in cn=subschema
+                self.debug('cn=schema not found, fallback to cn=subschema')
+                schema_entry = conn.search_s('cn=subschema', _ldap.SCOPE_BASE,
+                    attrlist=['attributetypes', 'objectclasses'])[0]
             if not has_conn:
                 conn.unbind_s()
         except _ldap.SERVER_DOWN:

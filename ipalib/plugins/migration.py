@@ -191,7 +191,19 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
     for attr in entry_attrs.keys():
         if ldap.has_dn_syntax(attr):
             for ind, value in enumerate(entry_attrs[attr]):
-                assert isinstance(value, DN)
+                if not isinstance(value, DN):
+                    # value is not DN instance, the automatic encoding may have
+                    # failed due to missing schema or the remote attribute type OID was
+                    # not detected as DN type. Try to work this around
+                    api.log.debug('%s: value %s of type %s in attribute %s is not a DN'
+                        ', convert it', pkey, value, type(value), attr)
+                    try:
+                        value = DN(value)
+                    except ValueError, e:
+                        api.log.warn('%s: skipping normalization of value %s of type %s '
+                            'in attribute %s which could not be converted to DN: %s',
+                                pkey, value, type(value), attr, e)
+                        continue
                 try:
                     (remote_dn, remote_entry) = ds_ldap.get_entry(value, [api.Object.user.primary_key.name, api.Object.group.primary_key.name])
                 except errors.NotFound:
