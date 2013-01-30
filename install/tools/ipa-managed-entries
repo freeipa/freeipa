@@ -18,26 +18,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import ldap
 import re
 import sys
-try:
-    from optparse import OptionParser
-    from ipapython import ipautil, config
-    from ipaserver.install import installutils
-    from ipaserver import ipaldap
-    from ipalib import api, errors
-    from ipapython.ipa_log_manager import *
-    from ipapython.dn import DN
+from optparse import OptionParser
 
-except ImportError:
-    print >> sys.stderr, """\
-There was a problem importing one of the required Python modules. The
-error was:
-
-    %s
-""" % sys.exc_value
-    sys.exit(1)
+from ipapython import ipautil, config
+from ipaserver.install import installutils
+from ipaserver import ipaldap
+from ipalib import api, errors
+from ipapython.ipa_log_manager import *
+from ipapython.dn import DN
 
 CACERT = "/etc/ipa/ca.crt"
 
@@ -103,28 +93,24 @@ def main():
             conn.do_simple_bind(bindpw=options.dirman_password)
         else:
             conn.do_sasl_gssapi_bind()
-    except ldap.LOCAL_ERROR:
+    except errors.ACIError:
         dirman_password = get_dirman_password()
         if dirman_password is None:
             sys.exit("\nDirectory Manager password required")
         try:
             conn.do_simple_bind(bindpw=dirman_password)
-        except ldap.INVALID_CREDENTIALS:
+        except errors.ACIError:
             sys.exit("Invalid credentials")
-    except ldap.INVALID_CREDENTIALS:
-        sys.exit("Invalid credentials")
     except errors.ExecutionError, lde:
         sys.exit("An error occurred while connecting to the server.\n%s\n" %
             str(lde))
-    except errors.ACIError, e:
-        sys.exit("Authentication failed: %s" % e.info)
 
     if options.list_managed_entries:
         # List available Managed Entry Plugins
         managed_entries = None
         try:
             entries = conn.get_entries(
-                managed_entry_definitions_dn, ldap.SCOPE_SUBTREE, filter)
+                managed_entry_definitions_dn, conn.SCOPE_SUBTREE, filter)
         except Exception, e:
             root_logger.debug("Search for managed entries failed: %s" % str(e))
             sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
@@ -143,7 +129,7 @@ def main():
 
         disabled = True
         try:
-            [entry] = conn.get_entries(def_dn, ldap.SCOPE_BASE,
+            [entry] = conn.get_entries(def_dn, conn.SCOPE_BASE,
                                        filter, ['originfilter'])
             disable_attr = '(objectclass=disable)'
             try:
@@ -151,8 +137,6 @@ def main():
                 disabled = re.search(r'%s' % disable_attr, org_filter)
             except KeyError:
                 sys.exit("%s is not a valid Managed Entry" % def_dn)
-        except ldap.NO_SUCH_OBJECT:
-            sys.exit("%s is not a valid Managed Entry" % def_dn)
         except errors.NotFound:
             sys.exit("%s is not a valid Managed Entry" % def_dn)
         except errors.ExecutionError, lde:
@@ -175,12 +159,8 @@ def main():
                     # Remove disable_attr from filter
                     enable_attr = org_filter.replace(disable_attr, '')
                     #enable_attr = {'originfilter': enable_attr}
-                    conn.modify_s(
-                        def_dn,
-                        [(ldap.MOD_REPLACE,
-                        'originfilter',
-                        enable_attr)]
-                    )
+                    entry['originfilter'] = [enable_attr]
+                    conn.update_entry(entry)
                     print "Enabling Plugin"
                     retval = 0
             except errors.NotFound:
@@ -203,12 +183,8 @@ def main():
                         disable_attr = org_filter[:2] + disable_attr + org_filter[2:]
                     else:
                         disable_attr = '(&%s(%s))' % (disable_attr, org_filter)
-                    conn.modify_s(
-                        def_dn,
-                        [(ldap.MOD_REPLACE,
-                        'originfilter',
-                        disable_attr)]
-                    )
+                    entry['originfilter'] = [disable_attr]
+                    conn.update_entry(entry)
                     print "Disabling Plugin"
             except errors.NotFound:
                 print "Plugin is already disabled"

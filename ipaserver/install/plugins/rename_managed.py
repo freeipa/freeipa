@@ -22,7 +22,6 @@ from ipaserver.install.plugins.baseupdate import PreUpdate, PostUpdate
 from ipalib import api, errors
 from ipapython import ipautil
 from ipapython.dn import DN, EditableDN
-import ldap as _ldap
 
 def entry_to_update(entry):
     """
@@ -66,9 +65,9 @@ class GenerateUpdateMixin(object):
 
         # If the old entries don't exist the server has already been updated.
         try:
-            (definitions_managed_entries, truncated) = ldap.find_entries(
-                searchfilter, ['*'], old_definition_container, _ldap.SCOPE_ONELEVEL, normalize=False
-            )
+            definitions_managed_entries, truncated = ldap.find_entries(
+                searchfilter, ['*'], old_definition_container,
+                ldap.SCOPE_ONELEVEL, normalize=False)
         except errors.NotFound, e:
             return (False, update_list)
 

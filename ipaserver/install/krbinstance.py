@@ -37,8 +37,6 @@ from ipapython.dn import DN
 from ipaserver.install import replication
 from ipaserver.install import dsinstance
 
-import ldap
-
 import pyasn1.codec.ber.decoder
 import struct
 
@@ -260,7 +258,7 @@ class KrbInstance(service.Service):
         try:
             res = self.admin_conn.get_entries(
                 DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),
-                ldap.SCOPE_ONELEVEL,
+                self.admin_conn.SCOPE_ONELEVEL,
                 "(objectclass=nsSaslMapping)")
             for r in res:
                 try:
@@ -360,8 +358,8 @@ class KrbInstance(service.Service):
 
     def __write_stash_from_ds(self):
         try:
-            entries = self.admin_conn.get_entries(self.get_realm_suffix(),
-                                                  ldap.SCOPE_SUBTREE)
+            entries = self.admin_conn.get_entries(
+                self.get_realm_suffix(), self.admin_conn.SCOPE_SUBTREE)
             # TODO: Ensure we got only one entry
             entry = entries[0]
         except errors.NotFound, e:

@@ -237,12 +237,10 @@ digits and nothing else follows.
 '''
 
 from lxml import etree
-import urllib
 import urllib2
 import datetime
 import time
 from ipapython.dn import DN
-from ldap.filter import escape_filter_chars
 import ipapython.dogtag
 from ipapython import ipautil
 
@@ -1267,11 +1265,17 @@ class ra(rabase.rabase):
 
         Check if a specified host is a master for a specified service.
         """
-        base_dn = DN(('cn', host), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-        filter = '(&(objectClass=ipaConfigObject)(cn=%s)(ipaConfigString=enabledService))' % escape_filter_chars(service)
+        ldap2 = self.api.Backend.ldap2
+        base_dn = DN(('cn', host), ('cn', 'masters'), ('cn', 'ipa'),
+                     ('cn', 'etc'), api.env.basedn)
+        filter_attrs = {
+            'objectClass': 'ipaConfigObject',
+            'cn': service,
+            'ipaConfigString': 'enabledService',
+        }
+        filter = ldap2.make_filter(filter_attrs, rules='&')
         try:
-            ldap2 = self.api.Backend.ldap2
-            ent,trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
+            ent, trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
             if len(ent):
                 return True
         except Exception, e:
@@ -1286,11 +1290,17 @@ class ra(rabase.rabase):
 
         Select any host which is a master for a specified service.
         """
-        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-        filter = '(&(objectClass=ipaConfigObject)(cn=%s)(ipaConfigString=enabledService))' % escape_filter_chars(service)
+        ldap2 = self.api.Backend.ldap2
+        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                     api.env.basedn)
+        filter_attrs = {
+            'objectClass': 'ipaConfigObject',
+            'cn': service,
+            'ipaConfigString': 'enabledService',
+        }
+        filter = ldap2.make_filter(filter_attrs, rules='&')
         try:
-            ldap2 = self.api.Backend.ldap2
-            ent,trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
+            ent, trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
             if len(ent):
                 entry = random.choice(ent)
                 dn = entry[0]

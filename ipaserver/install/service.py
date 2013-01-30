@@ -24,8 +24,6 @@ import pwd
 import time
 import datetime
 
-import ldap
-
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import dogtag
@@ -249,10 +247,12 @@ class Service(object):
             self.ldap_disconnect()
         self.ldap_connect()
 
-        dn = DN(('krbprincipalname', self.principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
-        mod = [(ldap.MOD_ADD, 'userCertificate', self.dercert)]
+        dn = DN(('krbprincipalname', self.principal), ('cn', 'services'),
+                ('cn', 'accounts'), self.suffix)
+        entry = self.admin_conn.get_entry(dn)
+        entry.setdefault('userCertificate', []).append(self.dercert)
         try:
-            self.admin_conn.modify_s(dn, mod)
+            self.admin_conn.update_entry(entry)
         except Exception, e:
             root_logger.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
 
@@ -387,7 +387,7 @@ class Service(object):
 
         try:
             self.admin_conn.add_entry(entry)
-        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
+        except (errors.DuplicateEntry), e:
             root_logger.debug("failed to add %s Service startup entry" % name)
             raise e
 

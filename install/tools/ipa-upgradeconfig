@@ -24,39 +24,31 @@ Upgrade configuration files to a newer template.
 """
 
 import sys
-try:
-    from ipapython import ipautil, sysrestore, version, services
-    from ipapython.config import IPAOptionParser
-    from ipapython.ipa_log_manager import *
-    from ipapython import certmonger
-    from ipapython import dogtag
-    from ipapython.dn import DN
-    from ipaserver.install import installutils
-    from ipaserver.install import dsinstance
-    from ipaserver.install import httpinstance
-    from ipaserver.install import memcacheinstance
-    from ipaserver.install import bindinstance
-    from ipaserver.install import service
-    from ipaserver.install import cainstance
-    from ipaserver.install import certs
-    from ipaserver.install import sysupgrade
-    import ldap
-    import re
-    import os
-    import shutil
-    import pwd
-    import fileinput
-    from ipalib import api
-    import ipalib.util
-    import ipalib.errors
-except ImportError:
-    print >> sys.stderr, """\
-There was a problem importing one of the required Python modules. The
-error was:
+import re
+import os
+import shutil
+import pwd
+import fileinput
 
-    %s
-""" % sys.exc_value
-    sys.exit(1)
+from ipalib import api
+import ipalib.util
+import ipalib.errors
+from ipapython import ipautil, sysrestore, version, services
+from ipapython.config import IPAOptionParser
+from ipapython.ipa_log_manager import *
+from ipapython import certmonger
+from ipapython import dogtag
+from ipapython.dn import DN
+from ipaserver.install import installutils
+from ipaserver.install import dsinstance
+from ipaserver.install import httpinstance
+from ipaserver.install import memcacheinstance
+from ipaserver.install import bindinstance
+from ipaserver.install import service
+from ipaserver.install import cainstance
+from ipaserver.install import certs
+from ipaserver.install import sysupgrade
+
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -741,7 +733,7 @@ def main():
             ds = dsinstance.DsInstance()
             ds.start()
             memcache.create_instance('MEMCACHE', fqdn, None, ipautil.realm_to_suffix(api.env.realm))
-    except (ldap.ALREADY_EXISTS, ipalib.errors.DuplicateEntry):
+    except ipalib.errors.DuplicateEntry:
         pass
 
     cleanup_kdc(fstore)

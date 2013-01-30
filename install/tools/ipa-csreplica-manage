@@ -22,7 +22,7 @@
 import sys
 import os
 
-import ldap, krbV
+import krbV
 from ipapython.ipa_log_manager import *
 
 from ipapython import ipautil
@@ -47,17 +47,6 @@ commands = {
     "re-initialize":(0, 0, "", ""),
     "force-sync":(0, 0, "", "")
 }
-
-def convert_error(exc):
-    """
-    LDAP exceptions are a dictionary, make them prettier.
-    """
-    if isinstance(exc, ldap.LDAPError):
-        desc = exc.args[0]['desc'].strip()
-        info = exc.args[0].get('info', '').strip()
-        return '%s %s' % (desc, info)
-    else:
-        return str(exc)
 
 
 def get_cs_replication_manager(realm, host, dirman_passwd):
@@ -145,14 +134,14 @@ class CSReplicationManager(replication.ReplicationManager):
 
     def delete_referral(self, hostname, port):
         dn = DN(('cn', self.suffix), ('cn', 'mapping tree'), ('cn', 'config'))
-        # TODO: should we detect proto somehow ?
-        mod = [(ldap.MOD_DELETE, 'nsslapd-referral',
-                'ldap://%s/%s' % (ipautil.format_netloc(hostname, port), self.suffix))]
-
+        entry = self.conn.get_entry(dn)
         try:
-            self.conn.modify_s(dn, mod)
+            # TODO: should we detect proto somehow ?
+            entry['nsslapd-referral'].remove('ldap://%s/%s' %
+                (ipautil.format_netloc(hostname, port), self.suffix))
+            self.conn.update_entry(entry)
         except Exception, e:
-            root_logger.debug("Failed to remove referral value: %s" % convert_error(e))
+            root_logger.debug("Failed to remove referral value: %s" % e)
 
     def has_ipaca(self):
         try:
@@ -211,7 +200,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
         conn.do_simple_bind(bindpw=dirman_passwd)
 
         dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
-        entries = conn.get_entries(dn, ldap.SCOPE_ONELEVEL)
+        entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
 
         for ent in entries:
             try:
@@ -222,7 +211,9 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
                 peers[ent.single_value('cn')] = ['CA not configured', '']
 
     except Exception, e:
-        sys.exit("Failed to get data from '%s' while trying to list replicas: %s" % (host, convert_error(e)))
+        sys.exit(
+            "Failed to get data from '%s' while trying to list replicas: %s" %
+            (host, e))
     finally:
         conn.unbind()
 
@@ -272,10 +263,10 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
         repl1.hostnames = [replica1, replica2]
 
-    except ldap.SERVER_DOWN, e:
-        sys.exit("Unable to connect to %s: %s" % (replica1, convert_error(e)))
+    except errors.NetworkError, e:
+        sys.exit("Unable to connect to %s: %s" % (replica1, e))
     except Exception, e:
-        sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
+        sys.exit("Failed to get data from '%s': %s" % (replica1, e))
 
     try:
         repl2 = get_cs_replication_manager(realm, replica2, dirman_passwd)
@@ -307,16 +298,12 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         if replica2_dn is None:
             sys.exit("'%s' has no replication agreement for '%s'" % (replica1, replica2))
 
-    except ldap.NO_SUCH_OBJECT:
-        print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
-        if not force:
-            sys.exit(1)
     except errors.NotFound:
         print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
         if not force:
             return
     except Exception, e:
-        print "Failed to get data from '%s': %s" % (replica2, convert_error(e))
+        print "Failed to get data from '%s': %s" % (replica2, e)
         if not force:
             sys.exit(1)
 
@@ -326,7 +313,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             repl2.delete_agreement(replica1, replica2_dn)
             repl2.delete_referral(replica1, repl1.port)
         except Exception, e:
-            print "Unable to remove agreement on %s: %s" % (replica2, convert_error(e))
+            print "Unable to remove agreement on %s: %s" % (replica2, e)
             failed = True
 
         if failed:
@@ -354,7 +341,7 @@ def del_master(realm, hostname, options):
         thisrepl = get_cs_replication_manager(realm, options.host,
                                               options.dirman_passwd)
     except Exception, e:
-        sys.exit("Failed to connect to server %s: %s" % (options.host, convert_error(e)))
+        sys.exit("Failed to connect to server %s: %s" % (options.host, e))
 
     # 2. Ensure we have an agreement with the master
     if thisrepl.get_replication_agreement(hostname) is None:
@@ -366,7 +353,7 @@ def del_master(realm, hostname, options):
                                              options.dirman_passwd)
     except Exception, e:
         if not options.force:
-            print "Unable to delete replica %s: %s" % (hostname, convert_error(e))
+            print "Unable to delete replica %s: %s" % (hostname, e)
             sys.exit(1)
         else:
             print "Unable to connect to replica %s, forcing removal" % hostname
@@ -384,7 +371,7 @@ def del_master(realm, hostname, options):
         try:
             del_link(realm, r, hostname, options.dirman_passwd, force=True)
         except Exception, e:
-            sys.exit("There were issues removing a connection: %s" % convert_error(e))
+            sys.exit("There were issues removing a connection: %s" % e)
 
 def add_link(realm, replica1, replica2, dirman_passwd, options):
     repl2 = get_cs_replication_manager(realm, replica2, dirman_passwd)
@@ -394,7 +381,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
 
         dn = DN(('cn', 'CA'), ('cn', replica2), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                 ipautil.realm_to_suffix(realm))
-        conn.get_entries(dn, ldap.SCOPE_ONELEVEL)
+        conn.get_entries(dn, conn.SCOPE_ONELEVEL)
         conn.unbind()
     except errors.NotFound:
         sys.exit('%s does not have a CA configured.' % replica2)
@@ -411,12 +398,14 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
                 sys.exit('This replication agreement already exists.')
         repl1.hostnames = [replica1, replica2]
 
-    except ldap.NO_SUCH_OBJECT:
+    except errors.NotFound:
         sys.exit("Cannot find replica '%s'" % replica1)
-    except ldap.SERVER_DOWN, e:
-        sys.exit("Unable to connect to %s: %s" % (replica1, convert_error(e)))
+    except errors.NetworkError, e:
+        sys.exit("Unable to connect to %s: %s" % (replica1, e))
     except Exception, e:
-        sys.exit("Failed to get data from '%s' while trying to get current agreements: %s" % (replica1, convert_error(e)))
+        sys.exit(
+            "Failed to get data from '%s' while trying to get current "
+            "agreements: %s" % (replica1, e))
 
     repl1.setup_replication(
         replica2, repl2.port, 0, DN(('cn', 'Directory Manager')),
@@ -436,7 +425,7 @@ def re_initialize(realm, options):
     filter = repl.get_agreement_filter(host=thishost)
     try:
         entry = repl.conn.get_entries(
-            DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
+            DN(('cn', 'config')), repl.conn.SCOPE_SUBTREE, filter)
     except errors.NotFound:
         root_logger.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
         sys.exit(1)
@@ -452,7 +441,7 @@ def force_sync(realm, thishost, fromhost, dirman_passwd):
     try:
         repl.force_sync(repl.conn, thishost)
     except Exception, e:
-        sys.exit(convert_error(e))
+        sys.exit(e)
 
 def main():
     options, args = parse_options()
@@ -525,13 +514,5 @@ except KeyboardInterrupt:
     sys.exit(1)
 except SystemExit, e:
     sys.exit(e)
-except ldap.INVALID_CREDENTIALS:
-    sys.exit("Invalid password")
-except ldap.INSUFFICIENT_ACCESS:
-    sys.exit("Insufficient access")
-except ldap.LOCAL_ERROR, e:
-    sys.exit(convert_error(e))
-except ldap.SERVER_DOWN, e:
-    sys.exit("%s" % convert_error(e))
 except Exception, e:
-    sys.exit("unexpected error: %s" % convert_error(e))
+    sys.exit("unexpected error: %s" % e)

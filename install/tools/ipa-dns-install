@@ -19,6 +19,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from optparse import OptionGroup, SUPPRESS_HELP
+
+import krbV
+
 from ipaserver.install import service, bindinstance, ntpinstance, httpinstance
 from ipaserver.install.installutils import *
 from ipaserver.install import installutils
@@ -26,10 +30,7 @@ from ipapython import version
 from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
-from optparse import OptionGroup, SUPPRESS_HELP
-import krbV
-import ldap
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import standard_logging_setup, root_logger
 
 log_file_name = "/var/log/ipaserver-install.log"
 
@@ -148,7 +149,7 @@ def main():
     try:
         bind.ldap_connect()
         bind.ldap_disconnect()
-    except ldap.INVALID_CREDENTIALS, e:
+    except errors.ACIError:
         sys.exit("Password is not valid!")
 
     # Check we have a public IP that is associated with the hostname

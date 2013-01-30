@@ -20,7 +20,7 @@
 import sys
 import os
 
-import ldap, re, krbV
+import re, krbV
 import traceback
 from urllib2 import urlparse
 
@@ -54,16 +54,6 @@ commands = {
     "list-clean-ruv":(0, 0, "", ""),
 }
 
-def convert_error(exc):
-    """
-    LDAP exceptions are a dictionary, make them prettier.
-    """
-    if isinstance(exc, ldap.LDAPError):
-        desc = exc.args[0]['desc'].strip()
-        info = exc.args[0].get('info', '').strip()
-        return '%s %s' % (desc, info)
-    else:
-        return str(exc)
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -128,7 +118,7 @@ def test_connection(realm, host):
         ents = replman.find_replication_agreements()
         del replman
         return True
-    except ldap.LOCAL_ERROR:
+    except errors.ACIError:
         return False
     except errors.NotFound:
         # We do a search in cn=config. NotFound in this case means no
@@ -156,7 +146,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
     dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
     try:
-        entries = conn.get_entries(dn, ldap.SCOPE_ONELEVEL)
+        entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
     except:
         print "Failed to read master data from '%s': %s" % (host, str(e))
         return
@@ -166,7 +156,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
     dn = DN(('cn', 'replicas'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
     try:
-        entries = conn.get_entries(dn, ldap.SCOPE_ONELEVEL)
+        entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
     except:
         pass
     else:
@@ -196,7 +186,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
                                                   dirman_passwd)
             cn, dn = repl.agreement_dn(replica)
             entries = repl.conn.get_entries(
-                dn, ldap.SCOPE_BASE,
+                dn, conn.SCOPE_BASE,
                 "(objectclass=nsDSWindowsReplicationAgreement)")
             ent_type = 'winsync'
         else:
@@ -205,7 +195,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
             entries = repl.find_replication_agreements()
             ent_type = 'replica'
     except Exception, e:
-        print "Failed to get data from '%s': %s" % (replica, convert_error(e))
+        print "Failed to get data from '%s': %s" % (replica, e)
         return
 
     for entry in entries:
@@ -249,11 +239,11 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             print "Please use the 'del' command to remove it from the domain"
             return False
 
-    except (ldap.NO_SUCH_OBJECT, errors.NotFound):
+    except errors.NotFound:
         print "'%s' has no replication agreement for '%s'" % (replica1, replica2)
         return False
     except Exception, e:
-        print "Failed to determine agreement type for '%s': %s" % (replica1, convert_error(e))
+        print "Failed to determine agreement type for '%s': %s" % (replica1, e)
         return False
 
     if type1 == replication.IPA_REPLICA:
@@ -266,12 +256,12 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
                 print "Please use the 'del' command to remove it from the domain"
                 return False
 
-        except (ldap.NO_SUCH_OBJECT, errors.NotFound):
+        except errors.NotFound:
             print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
             if not force:
                 return False
         except Exception, e:
-            print "Failed to get list of agreements from '%s': %s" % (replica2, convert_error(e))
+            print "Failed to get list of agreements from '%s': %s" % (replica2, e)
             if not force:
                 return False
 
@@ -286,7 +276,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             repl2.delete_referral(replica1)
             repl2.set_readonly(readonly=False)
         except Exception, e:
-            print "Unable to remove agreement on %s: %s" % (replica2, convert_error(e))
+            print "Unable to remove agreement on %s: %s" % (replica2, e)
             failed = True
 
         if failed:
@@ -305,13 +295,13 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         try:
             dn = DN(('cn', replica2), ('cn', 'replicas'), ('cn', 'ipa'), ('cn', 'etc'),
                     ipautil.realm_to_suffix(realm))
-            entries = repl1.conn.get_entries(dn, ldap.SCOPE_SUBTREE)
+            entries = repl1.conn.get_entries(dn, repl1.conn.SCOPE_SUBTREE)
             if entries:
                 entries.sort(key=len, reverse=True)
                 for entry in entries:
                     repl1.conn.delete_entry(entry)
         except Exception, e:
-            print "Error deleting winsync replica shared info: %s" % convert_error(e)
+            print "Error deleting winsync replica shared info: %s" % e
 
     print "Deleted replication agreement from '%s' to '%s'" % (replica1, replica2)
 
@@ -327,13 +317,14 @@ def get_ruv(realm, host, dirman_passwd):
     try:
         thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
     except Exception, e:
-        print "Failed to connect to server %s: %s" % (host, convert_error(e))
+        print "Failed to connect to server %s: %s" % (host, e)
         sys.exit(1)
 
     search_filter = '(&(nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff)(objectclass=nstombstone))'
     try:
         entries = thisrepl.conn.get_entries(
-            api.env.basedn, ldap.SCOPE_ONELEVEL, search_filter, ['nsds50ruv'])
+            api.env.basedn, thisrepl.conn.SCOPE_ONELEVEL, search_filter,
+            ['nsds50ruv'])
     except errors.NotFound:
         print "No RUV records found."
         sys.exit(0)
@@ -456,7 +447,7 @@ def list_clean_ruv(realm, host, dirman_passwd, verbose):
     repl = replication.ReplicationManager(realm, host, dirman_passwd)
     dn = DN(('cn', 'cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
     try:
-        entries = repl.conn.get_entries(dn, ldap.SCOPE_ONELEVEL)
+        entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL)
     except errors.NotFound:
         print "No CLEANALLRUV tasks running"
     else:
@@ -473,7 +464,7 @@ def list_clean_ruv(realm, host, dirman_passwd, verbose):
 
     dn = DN(('cn', 'abort cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
     try:
-        entries = repl.conn.get_entries(dn, ldap.SCOPE_ONELEVEL)
+        entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL)
     except errors.NotFound:
         print "No abort CLEANALLRUV tasks running"
     else:
@@ -514,7 +505,7 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
     for replica in replica_names:
         try:
             repl = replication.ReplicationManager(realm, replica, dirman_passwd)
-        except ldap.SERVER_DOWN, e:
+        except errors.NetworkError:
             print "Unable to validate that '%s' will not be orphaned." % replica
 
             if not force and not ipautil.user_input("Continue to delete?", False):
@@ -548,7 +539,7 @@ def del_master(realm, hostname, options):
         thisrepl = replication.ReplicationManager(realm, options.host,
                                                   options.dirman_passwd)
     except Exception, e:
-        print "Failed to connect to server %s: %s" % (options.host, convert_error(e))
+        print "Failed to connect to server %s: %s" % (options.host, e)
         sys.exit(1)
 
     # 2. Ensure we have an agreement with the master
@@ -577,7 +568,7 @@ def del_master(realm, hostname, options):
         try:
             delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
         except Exception, e:
-            print "Connection to '%s' failed: %s" % (hostname, convert_error(e))
+            print "Connection to '%s' failed: %s" % (hostname, e)
             if not options.force:
                 print "Unable to delete replica '%s'" % hostname
                 sys.exit(1)
@@ -587,7 +578,8 @@ def del_master(realm, hostname, options):
 
         if force_del:
             dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), thisrepl.suffix)
-            entries = thisrepl.conn.get_entries(dn, ldap.SCOPE_ONELEVEL)
+            entries = thisrepl.conn.get_entries(
+                dn, thisrepl.conn.SCOPE_ONELEVEL)
             replica_names = []
             for entry in entries:
                 replica_names.append(entry.single_value('cn'))
@@ -617,10 +609,12 @@ def del_master(realm, hostname, options):
     if delrepl and not winsync:
         masters_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
         try:
-            masters = delrepl.conn.get_entries(masters_dn, ldap.SCOPE_ONELEVEL)
+            masters = delrepl.conn.get_entries(
+                masters_dn, delrepl.conn.SCOPE_ONELEVEL)
         except Exception, e:
             masters = []
-            print "Failed to read masters data from '%s': %s" % (delrepl.hostname, convert_error(e))
+            print "Failed to read masters data from '%s': %s" % (
+                delrepl.hostname, e)
             print "Skipping calculation to determine if one or more masters would be orphaned."
             if not options.force:
                 sys.exit(1)
@@ -672,7 +666,8 @@ def del_master(realm, hostname, options):
             if not del_link(realm, r, hostname, options.dirman_passwd, force=True):
                 print "Unable to remove replication agreement for %s from %s." % (hostname, r)
         except Exception, e:
-            print "There were issues removing a connection for %s from %s: %s" % (hostname, r, convert_error(e))
+            print ("There were issues removing a connection for %s "
+                "from %s: %s" % (hostname, r, e))
 
     # 5. Clean RUV for the deleted master
     if repltype == replication.IPA_REPLICA:
@@ -685,7 +680,7 @@ def del_master(realm, hostname, options):
     try:
         thisrepl.replica_cleanup(hostname, realm, force=True)
     except Exception, e:
-        print "Failed to cleanup %s entries: %s" % (hostname, convert_error(e))
+        print "Failed to cleanup %s entries: %s" % (hostname, e)
         print "You may need to manually remove them from the tree"
 
     # 7. And clean up the removed replica DNS entries if any.
@@ -701,7 +696,7 @@ def del_master(realm, hostname, options):
             bind = bindinstance.BindInstance()
             bind.remove_master_dns_records(hostname, realm, realm.lower())
     except Exception, e:
-        print "Failed to cleanup %s DNS entries: %s" % (hostname, convert_error(e))
+        print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
         print "You may need to manually remove them from the tree"
 
 def add_link(realm, replica1, replica2, dirman_passwd, options):
@@ -743,11 +738,11 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     # the directory server and kill the connection
     try:
         repl1 = replication.ReplicationManager(realm, replica1, dirman_passwd)
-    except (ldap.NO_SUCH_OBJECT, errors.NotFound):
+    except errors.NotFound:
         print "Cannot find replica '%s'" % replica1
         return
     except Exception, e:
-        print "Failed to connect to '%s': %s" % (replica1, convert_error(e))
+        print "Failed to connect to '%s': %s" % (replica1, e)
         return
 
     if options.winsync:
@@ -929,17 +924,6 @@ except SystemExit, e:
     sys.exit(e)
 except RuntimeError, e:
     sys.exit(e)
-except ldap.INVALID_CREDENTIALS:
-    print "Invalid password"
-    sys.exit(1)
-except ldap.INSUFFICIENT_ACCESS:
-    print "Insufficient access"
-    sys.exit(1)
-except ldap.LOCAL_ERROR, e:
-    print e.args[0]['info']
-    sys.exit(1)
-except ldap.SERVER_DOWN, e:
-    print e.args[0]['desc']
 except Exception, e:
     print "unexpected error: %s" % str(e)
     sys.exit(1)
