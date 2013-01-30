@@ -616,7 +616,7 @@ def main():
         if conn and conn.isconnected():
             conn.disconnect()
         if replman and replman.conn:
-            replman.conn.unbind_s()
+            replman.conn.unbind()
 
     if options.skip_schema_check:
         root_logger.info("Skipping CA DS schema check")

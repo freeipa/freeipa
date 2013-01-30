@@ -1084,7 +1084,7 @@ class CAInstance(service.Service):
         modlist = [(0, 'uniqueMember', '%s' % entry_dn)]
         conn.modify_s(dn, modlist)
 
-        conn.unbind_s()
+        conn.unbind()
 
     def __run_certutil(self, args, database=None, pwd_file=None,stdin=None):
         if not database:

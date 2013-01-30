@@ -570,10 +570,6 @@ class IPASimpleLDAPObject(object):
     def start_tls_s(self):
         return self.conn.start_tls_s()
 
-    def unbind(self):
-        self.flush_cached_schema()
-        return self.conn.unbind()
-
     def unbind_s(self):
         self.flush_cached_schema()
         return self.conn.unbind_s()
@@ -1704,10 +1700,6 @@ class IPAdmin(LDAPClient):
         # FIXME: for backwards compatibility only
         return self.conn.modify_s(*args, **kwargs)
 
-    def unbind_s(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.unbind_s(*args, **kwargs)
-
     def set_option(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
         return self.conn.set_option(*args, **kwargs)
@@ -1717,8 +1709,7 @@ class IPAdmin(LDAPClient):
         return self.conn.encode(*args, **kwargs)
 
     def unbind(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.unbind(*args, **kwargs)
+        return self.conn.unbind_s(*args, **kwargs)
 
 
 # FIXME: Some installer tools depend on ipaldap importing plugins.ldap2.

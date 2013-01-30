@@ -347,7 +347,7 @@ class ldap2(LDAPClient, CrudBackend):
                 conn = IPASimpleLDAPObject(
                     self.ldap_uri, force_schema_updates=False)
                 conn.simple_bind_s(dn, old_pass)
-                conn.unbind()
+                conn.unbind_s()
 
         with self.error_handler():
             self.conn.passwd_s(dn, old_pass, new_pass)

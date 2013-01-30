@@ -190,7 +190,7 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 
     ret = object_exists(DN(('cn', 'dns'), suffix))
-    conn.unbind_s()
+    conn.unbind()
 
     return ret
 
