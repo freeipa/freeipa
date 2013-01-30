@@ -25,12 +25,11 @@ import errno
 import glob
 import ldap
 import wsgiref
-from ipapython.ipa_log_manager import *
+
+from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import get_ipa_basedn
 from ipapython.dn import DN
 
-BASE_DN = ''
-LDAP_URI = 'ldaps://localhost:636'
 
 def convert_exception(error):
     """
@@ -56,34 +55,31 @@ def get_ui_url(environ):
         raise ValueError('Cannot strip the script URL from full URL "%s"' % full_url)
     return full_url[:index] + "/ipa/ui"
 
-def get_base_dn():
+
+def get_base_dn(ldap_uri):
     """
     Retrieve LDAP server base DN.
     """
-    global BASE_DN
-
-    if BASE_DN:
-        return BASE_DN
     try:
-        conn = ldap.initialize(LDAP_URI)
+        conn = ldap.initialize(ldap_uri)
         conn.simple_bind_s('', '')
-        BASE_DN = get_ipa_basedn(conn)
+        base_dn = get_ipa_basedn(conn)
     except ldap.LDAPError, e:
         root_logger.error('migration context search failed: %s' % e)
         return ''
     finally:
         conn.unbind_s()
 
-    return BASE_DN
+    return base_dn
 
-def bind(username, password):
-    base_dn = get_base_dn()
+
+def bind(ldap_uri, base_dn, username, password):
     if not base_dn:
         root_logger.error('migration unable to get base dn')
         raise IOError(errno.EIO, 'Cannot get Base DN')
     bind_dn = DN(('uid', username), ('cn', 'users'), ('cn', 'accounts'), base_dn)
     try:
-        conn = ldap.initialize(LDAP_URI)
+        conn = ldap.initialize(ldap_uri)
         conn.simple_bind_s(str(bind_dn), password)
     except (ldap.INVALID_CREDENTIALS, ldap.UNWILLING_TO_PERFORM,
             ldap.NO_SUCH_OBJECT), e:
@@ -95,9 +91,8 @@ def bind(username, password):
     finally:
         conn.unbind_s()
 
-def application(environ, start_response):
-    global LDAP_URI
 
+def application(environ, start_response):
     if environ.get('REQUEST_METHOD', None) != 'POST':
         return wsgi_redirect(start_response, 'index.html')
 
@@ -107,10 +102,15 @@ def application(environ, start_response):
 
     slapd_sockets = glob.glob('/var/run/slapd-*.socket')
     if slapd_sockets:
-        LDAP_URI = 'ldapi://%s' % slapd_sockets[0].replace('/', '%2f')
+        ldap_uri = 'ldapi://%s' % slapd_sockets[0].replace('/', '%2f')
+    else:
+        ldap_uri = 'ldaps://localhost:636'
+
+    base_dn = get_base_dn(ldap_uri)
 
     try:
-        bind(form_data['username'].value, form_data['password'].value)
+        bind(ldap_uri, base_dn,
+             form_data['username'].value, form_data['password'].value)
     except IOError as err:
         if err.errno == errno.EPERM:
             return wsgi_redirect(start_response, 'invalid.html')
