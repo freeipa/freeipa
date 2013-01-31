@@ -20,8 +20,6 @@
 import socket
 import os
 import tempfile
-import ldap
-from ldap import LDAPError
 
 from ipapython.ipa_log_manager import root_logger
 from dns import resolver, rdatatype

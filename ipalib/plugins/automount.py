@@ -18,13 +18,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 from ipalib import api, errors
 from ipalib import Object, Command
 from ipalib import Flag, Str, IA5Str
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
-import ldap as _ldap
-import os
 
 __doc__ = _("""
 Automount
@@ -726,8 +726,8 @@ class automountkey(LDAPObject):
                         ('cn', parent_keys[0]), self.container_dn,
                         api.env.basedn)
             attrs_list = ['*']
-            (entries, truncated) = ldap.find_entries(sfilter, attrs_list,
-                basedn, _ldap.SCOPE_ONELEVEL)
+            entries, truncated = ldap.find_entries(
+                sfilter, attrs_list, basedn, ldap.SCOPE_ONELEVEL)
             if len(entries) > 1:
                 raise errors.NotFound(reason=_('More than one entry with key %(key)s found, use --info to select specific entry.') % dict(key=pkey))
             if truncated:

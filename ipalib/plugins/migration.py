@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import ldap as _ldap
 
 from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum, DNParam
@@ -286,7 +285,7 @@ def _update_default_group(ldap, pkey, config, ctx, force):
         searchfilter = "(&(objectclass=posixAccount)(!(memberof=%s)))" % group_dn
         try:
             (result, truncated) = ldap.find_entries(searchfilter,
-                [''], api.env.container_user, scope=_ldap.SCOPE_SUBTREE,
+                [''], api.env.container_user, scope=ldap.SCOPE_SUBTREE,
                 time_limit = -1)
         except errors.NotFound:
             return
@@ -701,9 +700,9 @@ can use their Kerberos accounts.''')
             failed[ldap_obj_name] = {}
 
             try:
-                (entries, truncated) = ds_ldap.find_entries(
+                entries, truncated = ds_ldap.find_entries(
                     search_filter, ['*'], search_bases[ldap_obj_name],
-                    _ldap.SCOPE_ONELEVEL,
+                    ds_ldap.SCOPE_ONELEVEL,
                     time_limit=0, size_limit=-1,
                     search_refs=True    # migrated DS may contain search references
                 )
@@ -872,9 +871,9 @@ can use their Kerberos accounts.''')
 
         if not ds_base_dn:
             # retrieve base DN from remote LDAP server
-            (entries, truncated) = ds_ldap.find_entries(
+            entries, truncated = ds_ldap.find_entries(
                 '', ['namingcontexts', 'defaultnamingcontext'], DN(''),
-                _ldap.SCOPE_BASE, size_limit=-1, time_limit=0,
+                ds_ldap.SCOPE_BASE, size_limit=-1, time_limit=0,
             )
             if 'defaultnamingcontext' in entries[0][1]:
                 ds_base_dn = DN(entries[0][1]['defaultnamingcontext'][0])
