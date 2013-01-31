@@ -474,10 +474,10 @@ class permission_find(LDAPSearch):
                     dn = permission['dn']
                     del permission['dn']
                     if pkey_only:
-                        new_entry = (dn, {self.obj.primary_key.name: \
-                                          permission[self.obj.primary_key.name]})
+                        pk = self.obj.primary_key.name
+                        new_entry = ldap.make_entry(dn, {pk: permission[pk]})
                     else:
-                        new_entry = (dn, permission)
+                        new_entry = ldap.make_entry(dn, permission)
 
                     if (dn, permission) not in entries:
                        if len(entries) < max_entries:

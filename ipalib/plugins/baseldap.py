@@ -229,6 +229,12 @@ def entry_from_entry(entry, newentry):
     for e in newentry.keys():
         entry[e] = newentry[e]
 
+def entry_to_dict(entry, **options):
+    result = dict(entry)
+    if options.get('all', False):
+        result['dn'] = entry.dn
+    return result
+
 def wait_for_value(ldap, dn, attr, value):
     """
     389-ds postoperation plugins are executed after the data has been
@@ -978,6 +984,7 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         ldap = self.obj.backend
 
         entry_attrs = self.args_options_2_entry(*keys, **options)
+        entry_attrs = ldap.make_entry(DN(), entry_attrs)
 
         self.process_attr_options(entry_attrs, None, keys, options)
 
@@ -1063,13 +1070,15 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         for callback in self.get_callbacks('post'):
             dn = callback(self, ldap, dn, entry_attrs, *keys, **options)
 
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
+
         assert isinstance(dn, DN)
+        entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
-        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=dict(entry_attrs), value=keys[-1])
-        return dict(result=dict(entry_attrs), value=u'')
+            return dict(result=entry_attrs, value=keys[-1])
+        return dict(result=entry_attrs, value=u'')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1190,11 +1199,14 @@ class LDAPRetrieve(LDAPQuery):
             assert isinstance(dn, DN)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
+
         assert isinstance(dn, DN)
+        entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
+
         if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=dict(entry_attrs), value=keys[-1])
-        return dict(result=dict(entry_attrs), value=u'')
+            return dict(result=entry_attrs, value=keys[-1])
+        return dict(result=entry_attrs, value=u'')
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1253,6 +1265,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         assert isinstance(dn, DN)
 
         entry_attrs = self.args_options_2_entry(**options)
+        entry_attrs = ldap.make_entry(dn, entry_attrs)
 
         self.process_attr_options(entry_attrs, dn, keys, options)
 
@@ -1321,9 +1334,12 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             assert isinstance(dn, DN)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
+
+        entry_attrs = entry_to_dict(entry_attrs, **options)
+
         if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=dict(entry_attrs), value=keys[-1])
-        return dict(result=dict(entry_attrs), value=u'')
+            return dict(result=entry_attrs, value=keys[-1])
+        return dict(result=entry_attrs, value=u'')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1544,13 +1560,16 @@ class LDAPAddMember(LDAPModMember):
                 **options)
             assert isinstance(dn, DN)
 
-        assert isinstance(dn, DN)
-        entry_attrs['dn'] = dn
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
+
+        assert isinstance(dn, DN)
+        entry_attrs = entry_to_dict(entry_attrs, **options)
+        entry_attrs['dn'] = dn
+
         return dict(
             completed=completed,
             failed=failed,
-            result=dict(entry_attrs),
+            result=entry_attrs,
         )
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
@@ -1642,14 +1661,16 @@ class LDAPRemoveMember(LDAPModMember):
                 **options)
             assert isinstance(dn, DN)
 
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
+
         assert isinstance(dn, DN)
+        entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
-        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return dict(
             completed=completed,
             failed=failed,
-            result=dict(entry_attrs),
+            result=entry_attrs,
         )
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
@@ -1856,10 +1877,9 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             for e in entries:
                 self.obj.convert_attribute_members(e[1], *args, **options)
 
-        for e in entries:
-            assert isinstance(e[0], DN)
-            e[1]['dn'] = e[0]
-        entries = [dict(e) for (dn, e) in entries]
+        for (i, e) in enumerate(entries):
+            entries[i] = entry_to_dict(e, **options)
+            entries[i]['dn'] = e.dn
 
         return dict(
             result=entries,
@@ -1994,11 +2014,13 @@ class LDAPAddReverseMember(LDAPModReverseMember):
             assert isinstance(dn, DN)
 
         assert isinstance(dn, DN)
+        entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
+
         return dict(
             completed=completed,
             failed=failed,
-            result=dict(entry_attrs),
+            result=entry_attrs,
         )
 
     def pre_callback(self, ldap, dn, *keys, **options):
@@ -2094,11 +2116,13 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
             assert isinstance(dn, DN)
 
         assert isinstance(dn, DN)
+        entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
+
         return dict(
             completed=completed,
             failed=failed,
-            result=dict(entry_attrs),
+            result=entry_attrs,
         )
 
     def pre_callback(self, ldap, dn, *keys, **options):

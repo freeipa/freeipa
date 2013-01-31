@@ -116,7 +116,7 @@ def check_compliance(tmpdir, debug=False):
     hostcount = 0
     # Get the hosts first
     try:
-        (entries, truncated) = conn.find_entries('(krblastpwdchange=*)', ['dn'],
+        (entries, truncated) = conn.find_entries('(krblastpwdchange=*)', [],
             DN(api.env.container_host, api.env.basedn),
             conn.SCOPE_ONELEVEL,
             size_limit = -1)
@@ -136,10 +136,10 @@ def check_compliance(tmpdir, debug=False):
     available = 0
     try:
         (entries, truncated) = conn.find_entries('(objectclass=ipaentitlement)',
-        ['dn', 'userCertificate'],
-        DN(api.env.container_entitlements, api.env.basedn),
-        conn.SCOPE_ONELEVEL,
-        size_limit = -1)
+            ['userCertificate'],
+            DN(api.env.container_entitlements, api.env.basedn),
+            conn.SCOPE_ONELEVEL,
+            size_limit = -1)
 
         for entry in entries:
             (dn, attrs) = entry

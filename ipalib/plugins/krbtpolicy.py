@@ -176,8 +176,10 @@ class krbtpolicy_reset(LDAPQuery):
             dn = self.obj.get_dn(None)
         (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
 
+        entry_attrs = entry_to_dict(entry_attrs, **options)
+
         if keys[-1] is not None:
-            return dict(result=dict(entry_attrs), value=keys[-1])
-        return dict(result=dict(entry_attrs), value=u'')
+            return dict(result=entry_attrs, value=keys[-1])
+        return dict(result=entry_attrs, value=u'')
 
 api.register(krbtpolicy_reset)

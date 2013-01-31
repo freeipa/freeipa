@@ -572,7 +572,7 @@ def main():
                                      config.dirman_password)
         found = False
         try:
-            entry = conn.find_entries(u'fqdn=%s' % host, ['dn', 'fqdn'], DN(api.env.container_host, api.env.basedn))
+            entry = conn.find_entries(u'fqdn=%s' % host, ['fqdn'], DN(api.env.container_host, api.env.basedn))
             print "The host %s already exists on the master server.\nYou should remove it before proceeding:" % host
             print "    %% ipa host-del %s" % host
             found = True

@@ -316,10 +316,12 @@ class automember_add_condition(LDAPUpdate):
                 except errors.NotFound:
                     failed['failed'][attr].append(regex)
 
+        entry_attrs = entry_to_dict(entry_attrs, **options)
+
         # Set failed and completed to they can be harvested in the execute super
         setattr(context, 'failed', failed)
         setattr(context, 'completed', completed)
-        setattr(context, 'entry_attrs', dict(entry_attrs))
+        setattr(context, 'entry_attrs', entry_attrs)
 
         # Make sure to returned the failed results if there is nothing to remove
         if completed == 0:
@@ -406,10 +408,13 @@ class automember_remove_condition(LDAPUpdate):
                     else:
                         failed['failed'][attr].append(regex)
                 entry_attrs[attr] = old_entry
+
+        entry_attrs = entry_to_dict(entry_attrs, **options)
+
         # Set failed and completed to they can be harvested in the execute super
         setattr(context, 'failed', failed)
         setattr(context, 'completed', completed)
-        setattr(context, 'entry_attrs', dict(entry_attrs))
+        setattr(context, 'entry_attrs', entry_attrs)
 
         # Make sure to returned the failed results if there is nothing to remove
         if completed == 0:

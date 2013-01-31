@@ -1244,7 +1244,7 @@ class LDAPClient(object):
             return ([], [])
 
         search_entry_dn = ldap.filter.escape_filter_chars(str(entry_dn))
-        attr_list = ["dn", "memberof"]
+        attr_list = ["memberof"]
         searchfilter = "(|(member=%s)(memberhost=%s)(memberuser=%s))" % (
             search_entry_dn, search_entry_dn, search_entry_dn)
 
@@ -1358,7 +1358,7 @@ class LDAPClient(object):
             return entries
 
         dn, group = self.get_entry(
-            group_dn, ['dn', 'member'],
+            group_dn, ['member'],
             size_limit=size_limit, time_limit=time_limit)
         real_members = group.get('member', [])
 

@@ -311,7 +311,7 @@ sides.
                          base_dn = DN(api.env.container_trusts, api.env.basedn),
                          filter = trust_filter)
 
-        result['result'] = dict(trusts[0][1])
+        result['result'] = entry_to_dict(trusts[0][1], **options)
         result['result']['trusttype'] = [trust_type_string(result['result']['ipanttrusttype'][0])]
         result['result']['trustdirection'] = [trust_direction_string(result['result']['ipanttrustdirection'][0])]
         result['result']['truststatus'] = [trust_status_string(result['verified'])]

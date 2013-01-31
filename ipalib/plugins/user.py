@@ -838,15 +838,14 @@ class user_status(LDAPQuery):
                     other_ldap.connect(ccache=os.environ['KRB5CCNAME'])
                 except Exception, e:
                     self.error("user_status: Connecting to %s failed with %s" % (host, str(e)))
-                    newresult = dict()
-                    newresult['dn'] = dn
+                    newresult = ldap.make_entry(dn)
                     newresult['server'] = _("%(host)s failed: %(error)s") % dict(host=host, error=str(e))
                     entries.append(newresult)
                     count += 1
                     continue
             try:
                 entry = other_ldap.get_entry(dn, attr_list)
-                newresult = dict()
+                newresult = ldap.make_entry(dn)
                 for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
                     newresult[attr] = entry[1].get(attr, [u'N/A'])
                 newresult['krbloginfailedcount'] = entry[1].get('krbloginfailedcount', u'0')
@@ -860,7 +859,6 @@ class user_status(LDAPQuery):
                         except Exception, e:
                             self.debug("time conversion failed with %s" % str(e))
                             pass
-                newresult['dn'] = dn
                 newresult['server'] = host
                 if options.get('raw', False):
                     time_format = '%Y%m%d%H%M%SZ'
@@ -876,8 +874,7 @@ class user_status(LDAPQuery):
                 self.obj.handle_not_found(*keys)
             except Exception, e:
                 self.error("user_status: Retrieving status for %s failed with %s" % (dn, str(e)))
-                newresult = dict()
-                newresult['dn'] = dn
+                newresult = ldap.make_entry(dn)
                 newresult['server'] = _("%(host)s failed") % dict(host=host)
                 entries.append(newresult)
                 count += 1

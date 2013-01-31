@@ -476,7 +476,6 @@ class ldap2(LDAPClient, CrudBackend):
         assert isinstance(dn, DN)
 
         (dn, entry_attrs) = self.get_entry(dn, attrs_list)
-        entry_attrs['dn'] = dn
         return entry_attrs
 
     def create(self, **kw):
@@ -552,7 +551,6 @@ class ldap2(LDAPClient, CrudBackend):
             filter, attrs_list, base_dn, scope
         )
         for (dn, entry_attrs) in entries:
-            entry_attrs['dn'] = [dn]
             output.append(entry_attrs)
 
         if truncated:
