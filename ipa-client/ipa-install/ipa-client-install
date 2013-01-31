@@ -25,35 +25,30 @@ try:
     import os
     import time
     import socket
-    import ldap
-    import ldap.sasl
     import urlparse
-
-    from ipapython.ipa_log_manager import *
     import tempfile
     import getpass
+    from ConfigParser import RawConfigParser
+    from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
+
+    import nss.nss as nss
+    import SSSDConfig
+
+    from ipapython.ipa_log_manager import standard_logging_setup, root_logger
     from ipaclient import ipadiscovery
     from ipaclient.ipadiscovery import CACERT
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
-    from ipapython.ipautil import run, user_input, CalledProcessError,\
-                                  file_exists, realm_to_suffix,\
-                                  convert_ldap_error
+    from ipapython.ipautil import (
+        run, user_input, CalledProcessError, file_exists, realm_to_suffix)
     import ipapython.services as ipaservices
-    from ipapython import ipautil
-    from ipapython import sysrestore
-    from ipapython import version
-    from ipapython import certmonger
+    from ipapython import ipautil, sysrestore, version, certmonger, ipaldap
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
     from ipalib import x509
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
     from ipalib.rpc import delete_persistent_client_session_data
-    import nss.nss as nss
-    import SSSDConfig
-    from ConfigParser import RawConfigParser
-    from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -1419,7 +1414,7 @@ def get_ca_cert_from_http(url, ca_file, warn=True):
     except CalledProcessError, e:
         raise errors.NoCertificateError(entry=url)
 
-def get_ca_cert_from_ldap(url, basedn, ca_file):
+def get_ca_cert_from_ldap(server, basedn, ca_file):
     '''
     Retrieve th CA cert from the LDAP server by binding to the
     server with GSSAPI using the current Kerberos credentials.
@@ -1435,34 +1430,33 @@ def get_ca_cert_from_ldap(url, basedn, ca_file):
     ca_cert_attr = 'cAcertificate;binary'
     dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), basedn)
 
-    SASL_GSSAPI = ldap.sasl.sasl({},'GSSAPI')
 
-    root_logger.debug("trying to retrieve CA cert via LDAP from %s", url)
+    root_logger.debug("trying to retrieve CA cert via LDAP from %s", server)
 
-    conn = ldap.initialize(url)
-    conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
+    conn = ipaldap.IPAdmin(server, sasl_nocanon=True)
     try:
-        conn.sasl_interactive_bind_s('', SASL_GSSAPI)
-        result = conn.search_st(str(dn), ldap.SCOPE_BASE, 'objectclass=pkiCA',
-                                [ca_cert_attr], timeout=10)
-    except ldap.NO_SUCH_OBJECT, e:
-        root_logger.debug("get_ca_cert_from_ldap() error: %s",
-                          convert_ldap_error(e))
-        raise errors.NoCertificateError(entry=url)
+        conn.do_sasl_gssapi_bind()
+        result, truncated = conn.find_entries(
+            base_dn=dn,
+            scope=conn.SCOPE_BASE,
+            filter='(objectclass=pkiCA)',
+            attrs_list=[ca_cert_attr],
+            time_limit=10)
+    except errors.NotFound, e:
+        root_logger.debug("get_ca_cert_from_ldap() error: %s", e)
+        raise errors.NoCertificateError(entry=server)
 
-    except ldap.SERVER_DOWN, e:
-        root_logger.debug("get_ca_cert_from_ldap() error: %s",
-                          convert_ldap_error(e))
-        raise errors.NetworkError(uri=url, error=str(e))
+    except errors.NetworkError, e:
+        root_logger.debug("get_ca_cert_from_ldap() error: %s", e)
+        raise errors.NetworkError(uri=conn.ldap_uri, error=str(e))
     except Exception, e:
-        root_logger.debug("get_ca_cert_from_ldap() error: %s",
-                          convert_ldap_error(e))
+        root_logger.debug("get_ca_cert_from_ldap() error: %s", e)
         raise errors.LDAPError(str(e))
 
     if len(result) != 1:
         raise errors.OnlyOneValueAllowed(attr=ca_cert_attr)
 
-    attrs = result[0][1]
+    attrs = result[0]
     try:
         der_cert = attrs[ca_cert_attr][0]
     except KeyError:
@@ -1605,9 +1599,9 @@ def get_ca_cert(fstore, options, server, basedn):
                     raise
         else:
             # Auth with user credentials
-            url = ldap_url()
             try:
-                get_ca_cert_from_ldap(url, basedn, ca_file)
+                url = ldap_url()
+                get_ca_cert_from_ldap(server, basedn, ca_file)
                 try:
                     validate_new_ca_cert(existing_ca_cert,
                                          ca_file, interactive)

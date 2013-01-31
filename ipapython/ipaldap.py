@@ -1658,7 +1658,7 @@ class IPAdmin(LDAPClient):
     def __init__(self, host='', port=389, cacert=None, debug=None, ldapi=False,
                  realm=None, protocol=None, force_schema_updates=True,
                  start_tls=False, ldap_uri=None, no_schema=False,
-                 decode_attrs=True):
+                 decode_attrs=True, sasl_nocanon=False):
         self.conn = None
         log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
@@ -1681,6 +1681,9 @@ class IPAdmin(LDAPClient):
         self.conn = IPASimpleLDAPObject(ldap_uri, force_schema_updates=True,
                                         no_schema=no_schema,
                                         decode_attrs=decode_attrs)
+
+        if sasl_nocanon:
+            self.conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
 
         if start_tls:
             self.conn.start_tls_s()
