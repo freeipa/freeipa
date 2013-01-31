@@ -23,7 +23,6 @@ import os
 import sys
 import shutil
 import tempfile
-import krbV
 import syslog
 import random
 import time

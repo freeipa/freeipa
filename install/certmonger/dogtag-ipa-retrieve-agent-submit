@@ -26,7 +26,6 @@ import os
 import sys
 import shutil
 import tempfile
-import krbV
 import syslog
 from ipalib import api
 from ipapython.dn import DN
