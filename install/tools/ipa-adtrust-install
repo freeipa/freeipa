@@ -275,12 +275,6 @@ def main():
     ip_address = str(ip)
     root_logger.debug("will use ip_address: %s\n", ip_address)
 
-    if not options.unattended:
-        print ""
-        print "The following operations may take some minutes to complete."
-        print "Please wait until the prompt is returned."
-        print ""
-
     admin_password = options.admin_password
     if not (options.unattended or admin_password):
         admin_password = read_admin_password(options.admin_name)
@@ -319,6 +313,48 @@ def main():
     (netbios_name, reset_netbios_name) = \
                                 set_and_check_netbios_name(options.netbios_name,
                                 options.unattended)
+
+    if not options.add_sids:
+        # The filter corresponds to ipa_sidgen_task.c LDAP search filter
+        filter = '(&(objectclass=ipaobject)(!(objectclass=mepmanagedentry))' \
+                 '(|(objectclass=posixaccount)(objectclass=posixgroup)' \
+                 '(objectclass=ipaidobject))(!(ipantsecurityidentifier=*)))'
+        base_dn = api.env.basedn
+        try:
+            root_logger.debug("Searching for objects with missing SID with "
+                "filter=%s, base_dn=%s", filter, base_dn)
+            (entries, truncated) = api.Backend.ldap2.find_entries(filter=filter,
+                base_dn=base_dn, attrs_list=[''])
+        except errors.NotFound:
+            # All objects have SIDs assigned
+            pass
+        except (errors.DatabaseError, errors.NetworkError), e:
+            print "Could not retrieve a list of objects that need a SID identifier assigned:"
+            print unicode(e)
+        else:
+            object_count = len(entries)
+            if object_count > 0:
+                print ""
+                print "WARNING: %d existing users or groups do not have a SID identifier assigned." \
+                    % len(entries)
+                print "Installer can run a task to have ipa-sidgen Directory Server plugin generate"
+                print "the SID identifier for all these users. Please note, the in case of a high"
+                print "number of users and groups, the operation might lead to high replication"
+                print "traffic and performance degradation. Refer to ipa-adtrust-install(1) man page"
+                print "for details."
+                print ""
+                if options.unattended:
+                    print "Unattended mode was selected, installer will NOT run ipa-sidgen task!"
+                else:
+                    if ipautil.user_input("Do you want to run the ipa-sidgen task?", default=False,
+                        allow_empty=False):
+                        options.add_sids = True
+
+    if not options.unattended:
+        print ""
+        print "The following operations may take some minutes to complete."
+        print "Please wait until the prompt is returned."
+        print ""
 
     smb = adtrustinstance.ADTRUSTInstance(fstore)
     smb.realm = api.env.realm
