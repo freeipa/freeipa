@@ -1481,6 +1481,22 @@ class NotAllowedOnNonLeaf(ExecutionError):
     format = _('Not allowed on non-leaf entry')
 
 
+class DatabaseTimeout(DatabaseError):
+    """
+    **4211** Raised when an LDAP call times out
+
+    For example:
+
+    >>> raise DatabaseTimeout()
+    Traceback (most recent call last):
+      ...
+    DatabaseTimeout: LDAP timeout
+    """
+
+    errno = 4211
+    format = _('LDAP timeout')
+
+
 class CertificateError(ExecutionError):
     """
     **4300** Base class for Certificate execution errors (*4300 - 4399*).

@@ -140,9 +140,8 @@ class test_ldap(object):
         self.conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
         try:
             self.conn.connect(autobind=True)
-        except errors.DatabaseError, e:
-            if e.desc == 'Inappropriate authentication':
-                raise nose.SkipTest("Only executed as root")
+        except errors.ACIError:
+            raise nose.SkipTest("Only executed as root")
         (dn, entry_attrs) = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]

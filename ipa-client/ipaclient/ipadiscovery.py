@@ -19,16 +19,16 @@
 
 import socket
 import os
-import copy
-from ipapython.ipa_log_manager import *
 import tempfile
 import ldap
 from ldap import LDAPError
+
+from ipapython.ipa_log_manager import root_logger
 from dns import resolver, rdatatype
 from dns.exception import DNSException
-
-from ipapython.ipautil import run, CalledProcessError, valid_ip, get_ipa_basedn, \
-                              realm_to_suffix, format_netloc
+from ipalib import errors
+from ipapython import ipaldap
+from ipapython.ipautil import valid_ip, get_ipa_basedn, realm_to_suffix
 from ipapython.dn import DN
 
 CACERT = '/etc/ipa/ca.crt'
@@ -328,16 +328,29 @@ class IPADiscovery(object):
 
         #now verify the server is really an IPA server
         try:
-            ldap_url = "ldap://" + format_netloc(thost, 389)
-            root_logger.debug("Init LDAP connection with: %s", ldap_url)
-            lh = ldap.initialize(ldap_url)
+            root_logger.debug("Init LDAP connection to: %s", thost)
             if ca_cert_path:
-                ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
-                ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, ca_cert_path)
-                lh.set_option(ldap.OPT_X_TLS_DEMAND, True)
-                lh.start_tls_s()
-            lh.set_option(ldap.OPT_PROTOCOL_VERSION, 3)
-            lh.simple_bind_s("","")
+                lh = ipaldap.IPAdmin(thost, protocol='ldap',
+                                     cacert=ca_cert_path, start_tls=True,
+                                     demand_cert=True)
+            else:
+                lh = ipaldap.IPAdmin(thost, protocol='ldap')
+            try:
+                lh.do_simple_bind(DN(), '')
+            except errors.ACIError:
+                root_logger.debug("LDAP Error: Anonymous access not allowed")
+                return [NO_ACCESS_TO_LDAP]
+            except errors.DatabaseError, err:
+                root_logger.error("Error checking LDAP: %s" % err.strerror)
+                # We should only get UNWILLING_TO_PERFORM if the remote LDAP
+                # server has minssf > 0 and we have attempted a non-TLS conn.
+                if ca_cert_path is None:
+                    root_logger.debug(
+                        "Cannot connect to LDAP server. Check that minssf is "
+                        "not enabled")
+                    return [NO_TLS_LDAP]
+                else:
+                    return [UNKNOWN_ERROR]
 
             # get IPA base DN
             root_logger.debug("Search LDAP server for IPA base DN")
@@ -348,23 +361,23 @@ class IPADiscovery(object):
                 return [NOT_IPA_SERVER]
 
             self.basedn = basedn
-            self.basedn_source = 'From IPA server %s' % ldap_url
+            self.basedn_source = 'From IPA server %s' % lh.ldap_uri
 
             #search and return known realms
             root_logger.debug(
                 "Search for (objectClass=krbRealmContainer) in %s (sub)",
                 self.basedn)
-            lret = lh.search_s(str(DN(('cn', 'kerberos'), self.basedn)), ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
-            if not lret:
+            try:
+                lret = lh.get_entries(
+                    DN(('cn', 'kerberos'), self.basedn),
+                    lh.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
+            except errors.NotFound:
                 #something very wrong
                 return [REALM_NOT_FOUND]
 
             for lres in lret:
-                root_logger.debug("Found: %s", lres[0])
-                for lattr in lres[1]:
-                    if lattr.lower() == "cn":
-                        lrealms.append(lres[1][lattr][0])
-
+                root_logger.debug("Found: %s", lres.dn)
+                lrealms.append(lres.single_value('cn'))
 
             if trealm:
                 for r in lrealms:
@@ -382,27 +395,21 @@ class IPADiscovery(object):
             #we shouldn't get here
             return [UNKNOWN_ERROR]
 
-        except LDAPError, err:
-            if isinstance(err, ldap.TIMEOUT):
-                root_logger.debug("LDAP Error: timeout")
-                return [NO_LDAP_SERVER]
+        except errors.DatabaseTimeout:
+            root_logger.error("LDAP Error: timeout")
+            return [NO_LDAP_SERVER]
+        except errors.NetworkError, err:
+            root_logger.debug("LDAP Error: %s" % err.strerror)
+            return [NO_LDAP_SERVER]
+        except errors.ACIError:
+            root_logger.debug("LDAP Error: Anonymous access not allowed")
+            return [NO_ACCESS_TO_LDAP]
+        except errors.DatabaseError, err:
+            root_logger.error("Error checking LDAP: %s" % err.strerror)
+            return [UNKNOWN_ERROR]
+        except Exception, err:
+            root_logger.error("Error checking LDAP: %s" % err)
 
-            if isinstance(err, ldap.SERVER_DOWN):
-                root_logger.debug("LDAP Error: server down")
-                return [NO_LDAP_SERVER]
-
-            if isinstance(err, ldap.INAPPROPRIATE_AUTH):
-                root_logger.debug("LDAP Error: Anonymous access not allowed")
-                return [NO_ACCESS_TO_LDAP]
-
-            # We should only get UNWILLING_TO_PERFORM if the remote LDAP server
-            # has minssf > 0 and we have attempted a non-TLS connection.
-            if ca_cert_path is None and isinstance(err, ldap.UNWILLING_TO_PERFORM):
-                root_logger.debug("LDAP server returned UNWILLING_TO_PERFORM. This likely means that minssf is enabled")
-                return [NO_TLS_LDAP]
-
-            root_logger.error("LDAP Error: %s: %s" %
-               (err.args[0]['desc'], err.args[0].get('info', '')))
             return [UNKNOWN_ERROR]
 
 

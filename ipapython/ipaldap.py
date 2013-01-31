@@ -899,9 +899,7 @@ class LDAPClient(object):
             try:
                 yield
             except ldap.TIMEOUT:
-                desc = ''
-                info = ''
-                raise
+                raise errors.DatabaseTimeout()
             except ldap.LDAPError, e:
                 desc = e.args[0]['desc'].strip()
                 info = e.args[0].get('info', '').strip()
@@ -923,6 +921,8 @@ class LDAPClient(object):
             raise errors.ACIError(info=info)
         except ldap.INVALID_CREDENTIALS:
             raise errors.ACIError(info="%s %s" % (info, desc))
+        except ldap.INAPPROPRIATE_AUTH:
+            raise errors.ACIError(info="%s: %s" % (desc, info))
         except ldap.NO_SUCH_ATTRIBUTE:
             # this is raised when a 'delete' attribute isn't found.
             # it indicates the previous attribute was removed by another
@@ -946,16 +946,19 @@ class LDAPClient(object):
             raise errors.NotAllowedOnNonLeaf()
         except ldap.SERVER_DOWN:
             raise errors.NetworkError(uri=self.ldap_uri,
-                                      error=u'LDAP Server Down')
+                                      error=info)
         except ldap.LOCAL_ERROR:
             raise errors.ACIError(info=info)
         except ldap.SUCCESS:
             pass
+        except ldap.CONNECT_ERROR:
+            raise errors.DatabaseError(desc=desc, info=info)
         except ldap.LDAPError, e:
             if 'NOT_ALLOWED_TO_DELEGATE' in info:
                 raise errors.ACIError(
                     info="KDC returned NOT_ALLOWED_TO_DELEGATE")
-            self.log.info('Unhandled LDAPError: %s' % str(e))
+            self.log.debug(
+                'Unhandled LDAPError: %s: %s' % (type(e).__name__, str(e)))
             raise errors.DatabaseError(desc=desc, info=info)
 
     @property
@@ -1658,7 +1661,7 @@ class IPAdmin(LDAPClient):
     def __init__(self, host='', port=389, cacert=None, debug=None, ldapi=False,
                  realm=None, protocol=None, force_schema_updates=True,
                  start_tls=False, ldap_uri=None, no_schema=False,
-                 decode_attrs=True, sasl_nocanon=False):
+                 decode_attrs=True, sasl_nocanon=False, demand_cert=False):
         self.conn = None
         log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
@@ -1678,15 +1681,21 @@ class IPAdmin(LDAPClient):
 
         LDAPClient.__init__(self, ldap_uri)
 
-        self.conn = IPASimpleLDAPObject(ldap_uri, force_schema_updates=True,
-                                        no_schema=no_schema,
-                                        decode_attrs=decode_attrs)
+        with self.error_handler():
+            self.conn = IPASimpleLDAPObject(ldap_uri,
+                                            force_schema_updates=True,
+                                            no_schema=no_schema,
+                                            decode_attrs=decode_attrs)
 
-        if sasl_nocanon:
-            self.conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
+            if demand_cert:
+                ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
+                self.conn.set_option(ldap.OPT_X_TLS_DEMAND, True)
 
-        if start_tls:
-            self.conn.start_tls_s()
+            if sasl_nocanon:
+                self.conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
+
+            if start_tls:
+                self.conn.start_tls_s()
 
     def __str__(self):
         return self.host + ":" + str(self.port)
@@ -1700,18 +1709,16 @@ class IPAdmin(LDAPClient):
             wait_for_open_ports(host, int(port), timeout)
 
     def __bind_with_wait(self, bind_func, timeout, *args, **kwargs):
-        try:
-            bind_func(*args, **kwargs)
-        except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
-            if not timeout or 'TLS' in e.args[0].get('info', ''):
-                # No connection to continue on if we have a TLS failure
-                # https://bugzilla.redhat.com/show_bug.cgi?id=784989
-                raise e
+        with self.error_handler():
             try:
+                bind_func(*args, **kwargs)
+            except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
+                if not timeout or 'TLS' in e.args[0].get('info', ''):
+                    # No connection to continue on if we have a TLS failure
+                    # https://bugzilla.redhat.com/show_bug.cgi?id=784989
+                    raise
                 self.__wait_for_connection(timeout)
-            except:
-                raise e
-            bind_func(*args, **kwargs)
+                bind_func(*args, **kwargs)
 
     def do_simple_bind(self, binddn=DN(('cn', 'directory manager')), bindpw="",
                        timeout=DEFAULT_TIMEOUT):

@@ -34,7 +34,6 @@ import stat
 import shutil
 import urllib2
 import socket
-import ldap
 import struct
 from types import *
 import re
@@ -829,30 +828,31 @@ def get_ipa_basedn(conn):
 
     None is returned if the suffix is not found
 
-    :param conn: Bound LDAP connection that will be used for searching
+    :param conn: Bound LDAPClient that will be used for searching
     """
-    entries = conn.search_ext_s(
-        '', scope=ldap.SCOPE_BASE, attrlist=['defaultnamingcontext', 'namingcontexts']
-    )
+    entry = conn.get_entry(
+        DN(), attrs_list=['defaultnamingcontext', 'namingcontexts'])
 
-    contexts = entries[0][1]['namingcontexts']
-    if entries[0][1].get('defaultnamingcontext'):
+    # FIXME: import ipalib here to prevent import loops
+    from ipalib import errors
+
+    contexts = entry['namingcontexts']
+    if 'defaultnamingcontext' in entry:
         # If there is a defaultNamingContext examine that one first
-        default = entries[0][1]['defaultnamingcontext'][0]
+        default = entry.single_value('defaultnamingcontext')
         if default in contexts:
             contexts.remove(default)
-        contexts.insert(0, entries[0][1]['defaultnamingcontext'][0])
+        contexts.insert(0, default)
     for context in contexts:
         root_logger.debug("Check if naming context '%s' is for IPA" % context)
         try:
-            entry = conn.search_s(context, ldap.SCOPE_BASE, "(info=IPA*)")
-        except ldap.NO_SUCH_OBJECT:
-            root_logger.debug("LDAP server did not return info attribute to check for IPA version")
+            [entry] = conn.get_entries(
+                DN(context), conn.SCOPE_BASE, "(info=IPA*)")
+        except errors.NotFound:
+            root_logger.debug("LDAP server did not return info attribute to "
+                              "check for IPA version")
             continue
-        if len(entry) == 0:
-            root_logger.debug("Info attribute with IPA server version not found")
-            continue
-        info = entry[0][1]['info'][0].lower()
+        info = entry.single_value('info').lower()
         if info != IPA_BASEDN_INFO:
             root_logger.debug("Detected IPA server version (%s) did not match the client (%s)" \
                 % (info, IPA_BASEDN_INFO))
@@ -1174,39 +1174,3 @@ def restore_hostname(statestore):
             run(['/bin/hostname', old_hostname])
         except CalledProcessError, e:
             print >>sys.stderr, "Failed to set this machine hostname back to %s: %s" % (old_hostname, str(e))
-
-def convert_ldap_error(exc):
-    """
-    Make LDAP exceptions prettier.
-
-    Some LDAP exceptions have a dict with descriptive information, if
-    this exception has a dict extract useful information from it and
-    format it into something usable and return that. If the LDAP
-    exception does not have an information dict then return the name
-    of the LDAP exception.
-
-    If the exception is not an LDAP exception then convert the
-    exception to a string and return that instead.
-    """
-    if isinstance(exc, ldap.LDAPError):
-        name = exc.__class__.__name__
-
-        if len(exc.args):
-            d = exc.args[0]
-            if isinstance(d, dict):
-                desc = d.get('desc', '').strip()
-                info = d.get('info', '').strip()
-                if desc and info:
-                    return '%s %s' % (desc, info)
-                elif desc:
-                    return desc
-                elif info:
-                    return info
-                else:
-                    return name
-            else:
-                return name
-        else:
-            return name
-    else:
-        return str(exc)
