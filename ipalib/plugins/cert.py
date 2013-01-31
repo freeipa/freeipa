@@ -346,11 +346,11 @@ class cert_request(VirtualCommand):
         # going to add it
         try:
             if not principal.startswith('host/'):
-                service = api.Command['service_show'](principal, all=True, raw=True)['result']
+                service = api.Command['service_show'](principal, all=True)['result']
                 dn = service['dn']
             else:
                 hostname = get_host_from_principal(principal)
-                service = api.Command['host_show'](hostname, all=True, raw=True)['result']
+                service = api.Command['host_show'](hostname, all=True)['result']
                 dn = service['dn']
         except errors.NotFound, e:
             if not add:
@@ -375,7 +375,7 @@ class cert_request(VirtualCommand):
             for name in subjectaltname:
                 name = unicode(name)
                 try:
-                    hostentry = api.Command['host_show'](name, all=True, raw=True)['result']
+                    hostentry = api.Command['host_show'](name, all=True)['result']
                     hostdn = hostentry['dn']
                 except errors.NotFound:
                     # We don't want to issue any certificates referencing
@@ -385,7 +385,7 @@ class cert_request(VirtualCommand):
                         'subject alt name %s in certificate request') % name)
                 authprincipal = getattr(context, 'principal')
                 if authprincipal.startswith("host/"):
-                    if not hostdn in service.get('managedby', []):
+                    if not hostdn in service.get('managedby_host', []):
                         raise errors.ACIError(info=_(
                             "Insufficient privilege to create a certificate "
                             "with subject alt name '%s'.") % name)

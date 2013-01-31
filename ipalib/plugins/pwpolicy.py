@@ -305,12 +305,12 @@ class pwpolicy(LDAPObject):
         existing_entry = {}
         if not add: # then read existing entry
             existing_entry = self.api.Command.pwpolicy_show(keys[-1],
-                all=True, raw=True,
+                all=True,
             )['result']
             if minlife is None and 'krbminpwdlife' in existing_entry:
-                minlife = int(existing_entry['krbminpwdlife'][0])
+                minlife = int(existing_entry['krbminpwdlife'][0]) * 3600
             if maxlife is None and 'krbmaxpwdlife' in existing_entry:
-                maxlife = int(existing_entry['krbmaxpwdlife'][0])
+                maxlife = int(existing_entry['krbmaxpwdlife'][0]) * 86400
 
         if maxlife is not None and minlife is not None:
             if minlife > maxlife:

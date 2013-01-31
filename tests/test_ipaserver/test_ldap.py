@@ -158,18 +158,26 @@ class test_ldap(object):
 
         e = LDAPEntry(dn1, cn=cn1)
         assert e.dn is dn1
+        assert u'cn' in e
+        assert u'cn' in e.keys()
         assert 'CN' in e
+        assert 'CN' not in e.keys()
         assert e['CN'] is cn1
         assert e['CN'] is e[u'cn']
 
         e.dn = dn2
         assert e.dn is dn2
 
-        e['cn'] = cn2
+        e['CN'] = cn2
+        assert u'cn' in e
+        assert u'cn' not in e.keys()
         assert 'CN' in e
+        assert 'CN' in e.keys()
         assert e['CN'] is cn2
         assert e['CN'] is e[u'cn']
 
         del e['CN']
         assert 'CN' not in e
+        assert 'CN' not in e.keys()
         assert u'cn' not in e
+        assert u'cn' not in e.keys()

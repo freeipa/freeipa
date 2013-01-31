@@ -230,7 +230,10 @@ def entry_from_entry(entry, newentry):
         entry[e] = newentry[e]
 
 def entry_to_dict(entry, **options):
-    result = dict(entry)
+    if options.get('raw', False):
+        result = dict(entry)
+    else:
+        result = dict((k.lower(), v) for (k, v) in entry.iteritems())
     if options.get('all', False):
         result['dn'] = entry.dn
     return result
