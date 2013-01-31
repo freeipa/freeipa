@@ -41,7 +41,6 @@ try:
     from ipaserver.install import certs
     from ipaserver.install import sysupgrade
     import ldap
-    import krbV
     import re
     import os
     import shutil

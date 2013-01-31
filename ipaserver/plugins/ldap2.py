@@ -67,8 +67,6 @@ except ImportError:
 # for backward compatibility
 from ipalib import _
 
-import krbV
-
 from ipalib import api, errors
 from ipalib.crud import CrudBackend
 from ipalib.request import context
