@@ -63,7 +63,7 @@ def parse_options():
                       help="admin user principal")
     parser.add_option("--add-sids", dest="add_sids", action="store_true",
                       default=False, help="Add SIDs for existing users and" \
-                                          "groups as the final step")
+                                          " groups as the final step")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
