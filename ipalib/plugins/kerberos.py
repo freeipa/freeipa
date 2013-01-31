@@ -66,14 +66,17 @@ class krb(Backend):
 
     def default_ccname(self):
         """
-        Return the default ccache file name.
+        Return the default ccache file name (schema+name).
 
-        This will return something like '/tmp/krb5cc_500'.
+        This will return something like 'FILE:/tmp/krb5cc_500'.
 
         This cannot return anything meaningful if used in the server as a
         request is processed.
         """
-        return self.__default_ccache().name
+        default_ccache = self.__default_ccache()
+        ccname = "%(type)s:%(name)s" % dict(type=default_ccache.type,
+                                            name=default_ccache.name)
+        return ccname
 
     def default_principal(self):
         """

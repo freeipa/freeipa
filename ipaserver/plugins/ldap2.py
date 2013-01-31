@@ -788,7 +788,7 @@ class ldap2(CrudBackend):
 
         Keyword arguments:
         ldapuri -- the LDAP server to connect to
-        ccache -- Kerberos V5 ccache name
+        ccache -- Kerberos V5 ccache object or name
         bind_dn -- dn used to bind to the server
         bind_pw -- password used to bind to the server
         debug_level -- LDAP debug level option
@@ -826,10 +826,19 @@ class ldap2(CrudBackend):
                 if maxssf < minssf:
                     conn.set_option(_ldap.OPT_X_SASL_SSF_MAX, minssf)
             if ccache is not None:
+                if isinstance(ccache, krbV.CCache):
+                    principal = ccache.principal().name
+                    # Get a fully qualified CCACHE name (schema+name)
+                    # As we do not use the krbV.CCache object later,
+                    # we can safely overwrite it
+                    ccache = "%(type)s:%(name)s" % dict(type=ccache.type,
+                                                        name=ccache.name)
+                else:
+                    principal = krbV.CCache(name=ccache,
+                        context=krbV.default_context()).principal().name
+
                 os.environ['KRB5CCNAME'] = ccache
                 conn.sasl_interactive_bind_s(None, SASL_AUTH)
-                principal = krbV.CCache(name=ccache,
-                            context=krbV.default_context()).principal().name
                 setattr(context, 'principal', principal)
             else:
                 # no kerberos ccache, use simple bind or external sasl

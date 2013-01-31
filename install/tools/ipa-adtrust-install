@@ -299,7 +299,7 @@ def main():
         sys.exit("Must have Kerberos credentials to setup AD trusts on server")
 
     try:
-        api.Backend.ldap2.connect(ccache.name)
+        api.Backend.ldap2.connect(ccache)
     except errors.ACIError, e:
         sys.exit("Outdated Kerberos credentials. Use kdestroy and kinit to update your ticket")
     except errors.DatabaseError, e:
