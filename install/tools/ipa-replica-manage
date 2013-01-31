@@ -667,7 +667,7 @@ def del_master(realm, hostname, options):
                 api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
                                           bind_pw=options.dirman_passwd)
             else:
-                ccache = krbV.default_context().default_ccache().name
+                ccache = krbV.default_context().default_ccache()
                 api.Backend.ldap2.connect(ccache=ccache)
             bind = bindinstance.BindInstance()
             bind.remove_master_dns_records(hostname, realm, realm.lower())

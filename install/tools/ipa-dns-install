@@ -205,7 +205,7 @@ def main():
         api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=bind.dm_password)
     else:
         # See if our LDAP server is up and we can talk to it over GSSAPI
-        ccache = krbV.default_context().default_ccache().name
+        ccache = krbV.default_context().default_ccache()
         api.Backend.ldap2.connect(ccache)
 
     if options.reverse_zone:
