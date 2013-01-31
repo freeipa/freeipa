@@ -156,7 +156,10 @@ class test_ldap(object):
         dn1 = DN(('cn', cn1[0]))
         dn2 = DN(('cn', cn2[0]))
 
-        e = LDAPEntry(dn1, cn=cn1)
+        self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
+        self.conn.connect()
+
+        e = LDAPEntry(self.conn.conn, dn1, cn=cn1)
         assert e.dn is dn1
         assert u'cn' in e
         assert u'cn' in e.keys()

@@ -27,7 +27,6 @@ Backend plugin for LDAP.
 # binding encodes them into the appropriate representation. This applies to
 # everything except the CrudBackend methods, where dn is part of the entry dict.
 
-import copy
 import os
 import re
 import pwd
@@ -207,7 +206,8 @@ class ldap2(LDAPClient, CrudBackend):
 
         try:
             config_entry = getattr(context, 'config_entry')
-            return copy.deepcopy(config_entry)
+            if config_entry.conn is self.conn:
+                return config_entry.clone()
         except AttributeError:
             # Not in our context yet
             pass
@@ -220,11 +220,11 @@ class ldap2(LDAPClient, CrudBackend):
                 raise errors.LimitsExceeded()
             config_entry = entry[0]
         except errors.NotFound:
-            config_entry = {}
+            config_entry = self.make_entry(cdn)
         for a in self.config_defaults:
             if a not in config_entry:
                 config_entry[a] = self.config_defaults[a]
-        context.config_entry = copy.deepcopy(config_entry)
+        context.config_entry = config_entry.clone()
         return config_entry
 
     def has_upg(self):

@@ -403,7 +403,7 @@ class IPASimpleLDAPObject(object):
             original_dn = dn_tuple[0]
             original_attrs = dn_tuple[1]
 
-            ipa_entry = LDAPEntry(DN(original_dn))
+            ipa_entry = LDAPEntry(self, DN(original_dn))
 
             for attr, original_values in original_attrs.items():
                 target_type = self._SYNTAX_MAPPING.get(self.get_syntax(attr), unicode_from_utf8)
@@ -583,10 +583,30 @@ class IPASimpleLDAPObject(object):
 # r[0] == r.dn
 # r[1] == r.data
 class LDAPEntry(dict):
-    __slots__ = ('_dn', '_names', '_orig')
+    __slots__ = ('_conn', '_dn', '_names', '_orig')
 
-    def __init__(self, _dn=None, _obj=None, **kwargs):
+    def __init__(self, _conn, _dn=None, _obj=None, **kwargs):
+        """
+        LDAPEntry constructor.
+
+        Takes 1 to 3 positional arguments and an arbitrary number of keyword
+        arguments. The 3 forms of positional arguments are:
+
+          * LDAPEntry(entry) - create a shallow copy of an existing LDAPEntry.
+          * LDAPEntry(dn, entry) - create a shallow copy of an existing
+            LDAPEntry with a different DN.
+          * LDAPEntry(conn, dn, mapping) - create a new LDAPEntry using the
+            specified IPASimpleLDAPObject and DN and optionally initialize
+            attributes from the specified mapping object.
+
+        Keyword arguments can be used to override values of specific attributes.
+        """
         super(LDAPEntry, self).__init__()
+
+        if isinstance(_conn, LDAPEntry):
+            assert _dn is None
+            _dn = _conn
+            _conn = _conn._conn
 
         if isinstance(_dn, LDAPEntry):
             assert _obj is None
@@ -598,18 +618,21 @@ class LDAPEntry(dict):
         else:
             if _obj is None:
                 _obj = {}
-            orig = None
+            orig = self
 
+        assert isinstance(_conn, IPASimpleLDAPObject)
         assert isinstance(_dn, DN)
 
+        self._conn = _conn
         self._dn = _dn
         self._orig = orig
         self._names = CIDict()
 
-        if orig is None:
-            self.commit()
-
         self.update(_obj, **kwargs)
+
+    @property
+    def conn(self):
+        return self._conn
 
     # properties for Entry and Entity compatibility
     @property
@@ -638,9 +661,26 @@ class LDAPEntry(dict):
     def copy(self):
         return LDAPEntry(self)
 
+    def clone(self):
+        result = LDAPEntry(self._conn, self._dn)
+
+        for name in self.iterkeys():
+            super(LDAPEntry, result).__setitem__(
+                name, deepcopy(super(LDAPEntry, self).__getitem__(name)))
+
+        result._names = deepcopy(self._names)
+        if self._orig is not self:
+            result._orig = self._orig.clone()
+
+        return result
+
     def commit(self):
+        """
+        Make the current state of the entry a new reference point for change
+        tracking.
+        """
         self._orig = self
-        self._orig = deepcopy(self)
+        self._orig = self.clone()
 
     def _attr_name(self, name):
         if not isinstance(name, basestring):
@@ -971,7 +1011,7 @@ class LDAPClient(object):
         return DN((primary_key, entry_attrs[primary_key]), parent_dn)
 
     def make_entry(self, _dn=None, _obj=None, **kwargs):
-        return LDAPEntry(_dn, _obj, **kwargs)
+        return LDAPEntry(self.conn, _dn, _obj, **kwargs)
 
     # generating filters for find_entry
     # some examples:
