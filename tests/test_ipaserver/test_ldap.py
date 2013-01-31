@@ -165,17 +165,21 @@ class test_ldap(object):
         assert u'cn' in e.keys()
         assert 'CN' in e
         assert 'CN' not in e.keys()
+        assert 'commonName' in e
+        assert 'commonName' not in e.keys()
         assert e['CN'] is cn1
         assert e['CN'] is e[u'cn']
 
         e.dn = dn2
         assert e.dn is dn2
 
-        e['CN'] = cn2
+        e['commonName'] = cn2
         assert u'cn' in e
         assert u'cn' not in e.keys()
         assert 'CN' in e
-        assert 'CN' in e.keys()
+        assert 'CN' not in e.keys()
+        assert 'commonName' in e
+        assert 'commonName' in e.keys()
         assert e['CN'] is cn2
         assert e['CN'] is e[u'cn']
 
@@ -184,3 +188,5 @@ class test_ldap(object):
         assert 'CN' not in e.keys()
         assert u'cn' not in e
         assert u'cn' not in e.keys()
+        assert 'commonName' not in e
+        assert 'commonName' not in e.keys()

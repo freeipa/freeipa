@@ -412,7 +412,6 @@ class host_add(LDAPCreate):
             util.validate_host_dns(self.log, keys[-1])
         if 'locality' in entry_attrs:
             entry_attrs['l'] = entry_attrs['locality']
-            del entry_attrs['locality']
         entry_attrs['cn'] = keys[-1]
         entry_attrs['serverhostname'] = keys[-1].split('.', 1)[0]
         if 'userpassword' not in entry_attrs and not options.get('random', False):
@@ -635,7 +634,6 @@ class host_mod(LDAPUpdate):
             raise errors.ACIError(info=_('cn is immutable'))
         if 'locality' in entry_attrs:
             entry_attrs['l'] = entry_attrs['locality']
-            del entry_attrs['locality']
         if 'krbprincipalname' in entry_attrs:
             (dn, entry_attrs_old) = ldap.get_entry(
                 dn, ['objectclass', 'krbprincipalname']

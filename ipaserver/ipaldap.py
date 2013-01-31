@@ -708,6 +708,18 @@ class LDAPEntry(dict):
         else:
             self._names[name] = name
 
+            try:
+                schema = self._conn.schema
+            except:
+                pass
+            else:
+                attrtype = schema.get_obj(ldap.schema.AttributeType,
+                    name.encode('utf-8'))
+                if attrtype is not None:
+                    for altname in attrtype.names:
+                        altname = altname.decode('utf-8')
+                        self._names[altname] = name
+
         super(LDAPEntry, self).__setitem__(name, value)
 
     def setdefault(self, name, default):
