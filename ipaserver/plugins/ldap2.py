@@ -35,7 +35,7 @@ import krbV
 import ldap as _ldap
 
 from ipapython.dn import DN
-from ipaserver.ipaldap import SASL_GSSAPI, IPASimpleLDAPObject, LDAPClient
+from ipapython.ipaldap import SASL_GSSAPI, IPASimpleLDAPObject, LDAPClient
 
 
 try:
