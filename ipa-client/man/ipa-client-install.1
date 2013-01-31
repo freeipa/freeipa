@@ -16,7 +16,7 @@
 .\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
 .\"
-.TH "ipa-client-install" "1" "Sep 5 2011" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-client-install" "1" "Jan 31 2013" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-client\-install \- Configure an IPA client
 .SH "SYNOPSIS"
@@ -30,25 +30,42 @@ An authorized user is required to join a client machine to IPA. This can take th
 
 This same tool is used to unconfigure IPA and attempts to return the machine to its previous state. Part of this process is to unenroll the host from the IPA server. Unenrollment consists of disabling the prinicipal key on the IPA server so that it may be re\-enrolled. The machine principal in /etc/krb5.keytab (host/<fqdn>@REALM) is used to authenticate to the IPA server to unenroll itself. If this principal does not exist then unenrollment will fail and an administrator will need to disable the host principal (ipa host\-disable <fqdn>).
 
-.SS "HOSTNAME REQUIREMENTS"
+.SS "Hostname Requirements"
 Client must use a \fBstatic hostname\fR. If the machine hostname changes for example due to a dynamic hostname assignment by a DHCP server, client enrollment to IPA server breaks and user then would not be able to perform Kerberos authentication.
 
 \-\-hostname option may be used to specify a static hostname that persists over reboot.
+
+.SS "DNS Autodiscovery"
+Client installer by default tries to search for _ldap._tcp.DOMAIN DNS SRV records for all domains that are parent to its hostname. For example, if a client machine has a hostname 'client1.lab.example.com', the installer will try to retrieve an IPA server hostname from _ldap._tcp.lab.example.com, _ldap._tcp.example.com and _ldap._tcp.com DNS SRV records, respectively. The discovered domain is then used to configure client components (e.g. SSSD and Kerberos 5 configuration) on the machine.
+
+When the client machine hostname is not in a subdomain of an IPA server, its domain can be passed with \-\-domain option. In that case, both SSSD and Kerberos components have the domain set in the configuration files and will use it to autodiscover IPA servers.
+
+Client machine can also be configured without a DNS autodiscovery at all. When both \-\-server and \-\-domain options are used, client installer will use the specified server and domain directly. \-\-server option accepts multiple server hostnames which can be used for failover mechanism. Without DNS autodiscovery, Kerberos is configured with a fixed list of KDC and  Admin servers. SSSD is still configured to either try to read domain's SRV records or the specified fixed list of servers. When \-\-fixed\-primary option is specified, SSSD will not try to read DNS SRV record at all (see sssd\-ipa(5) for details).
+
+.SS "The Failover Mechanism"
+When some of the IPA servers is not available, client components are able to fallback to other IPA replica and thus preserving a continued service. When client machine is configured to use DNS SRV record autodiscovery (no fixed server was passed to the installer), client components do the fallback automatically, based on the IPA server hostnames and priorities discovered from the DNS SRV records.
+
+If DNS autodiscovery is not available, clients should be configured at least with a fixed list of IPA servers that can be used in case of a failure. When only one IPA server is configured, IPA client services will not be available in case of a failure of the IPA server. Please note, that in case of a fixed list of IPA servers, the fixed server lists in client components need to be updated when a new IPA server is enrolled or a current IPA server is decommissioned.
+
+.SS "Coexistence With Other Directory Servers"
+Other directory servers deployed in the network (e.g. Microsoft Active Directory) may use the same DNS SRV records to denote hosts with a directory service (_ldap._tcp.DOMAIN). Such DNS SRV records may break the installation if the installer discovers these DNS records before it finds DNS SRV records pointing to IPA servers. The installer would then fail to discover the IPA server and exit with error.
+
+In order to avoid the aforementioned DNS autodiscovery issues, the client machine hostname should be in a domain with properly defined DNS SRV records pointing to IPA servers, either manually with a custom DNS server or with IPA DNS integrated solution. A second approach would be to avoid autodiscovery and configure the installer to use a fixed list of IPA server hostnames using the \-\-server option and with a \-\-fixed\-primary option disabling DNS SRV record autodiscovery in SSSD.
 
 .SH "OPTIONS"
 .SS "BASIC OPTIONS"
 .TP
 \fB\-\-domain\fR=\fIDOMAIN\fR
-Set the domain name to DOMAIN
+Set the domain name to DOMAIN. When no \-\-server option is specified, the installer will try to discover all available servers via DNS SRV record autodiscovery (see DNS Autodiscovery section for details).
 .TP
 \fB\-\-server\fR=\fISERVER\fR
-Set the IPA server to connect to. May be specified multiple times to add multiple servers to ipa_server value in sssd.conf. Only the first value is considered when used with \-\-no\-sssd.
+Set the IPA server to connect to. May be specified multiple times to add multiple servers to ipa_server value in sssd.conf or krb5.conf. Only the first value is considered when used with \-\-no\-sssd. When this option is used, DNS autodiscovery for Kerberos is disabled and a fixed list of KDC and Admin servers is configured.
 .TP
 \fB\-\-realm\fR=\fIREALM_NAME\fR
-Set the IPA realm name to REALM_NAME
+Set the IPA realm name to REALM_NAME. Under normal circumstances, this option is not needed as the realm name is retrieved from the IPA server.
 .TP
 \fB\-\-fixed\-primary\fR
-Configure sssd to use a fixed server as the primary IPA server. The default is to use DNS SRV records to determine the primary server to use and fall back to the server the client is enrolled with. When used in conjunction with \-\-server then no _srv_ value is set in the ipa_server option in sssd.conf.
+Configure SSSD to use a fixed server as the primary IPA server. The default is to use DNS SRV records to determine the primary server to use and fall back to the server the client is enrolled with. When used in conjunction with \-\-server then no _srv_ value is set in the ipa_server option in sssd.conf.
 .TP
 \fB\-p\fR, \fB\-\-principal\fR
 Authorized kerberos principal to use to join the IPA realm.
@@ -179,3 +196,8 @@ Files updated, existing content is maintained:
 3 if installing and the client is already configured
 
 4 if an uninstall error occurred
+
+.SH "SEE ALSO"
+.BR ipa\-client\-automount(1),
+.BR krb5.conf(5),
+.BR sssd.conf(5)
