@@ -27,8 +27,8 @@ import ldapurl
 from ipaserver.install import service, installutils
 from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
 from ipaserver.install.installutils import is_ipa_configured, ScriptError
-from ipaserver.ipaldap import IPAdmin
 from ipalib import api, errors
+from ipapython.ipaldap import IPAdmin
 from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
 from ipapython import services as ipaservices
 from ipapython import config, dogtag

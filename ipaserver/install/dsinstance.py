@@ -19,29 +19,25 @@
 #
 
 import shutil
-from ipapython.ipa_log_manager import *
 import pwd
 import sys
 import os
 import re
 import time
 import tempfile
+import base64
 
-from ipapython import ipautil
-from ipapython import sysrestore
+from ipapython.ipa_log_manager import *
+from ipapython import ipautil, sysrestore, dogtag, ipaldap
 from ipapython import services as ipaservices
-from ipapython import dogtag
-
 import service
 import installutils
 import certs
 import ldap
-from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipalib import errors
 from ipapython.dn import DN
-import base64
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"

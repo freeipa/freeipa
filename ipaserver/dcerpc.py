@@ -31,6 +31,7 @@ from ipapython import ipautil
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipaserver.install import installutils
+from ipaserver.plugins import ldap2
 from ipalib.util import normalize_name
 
 import os, string, struct, copy
@@ -48,7 +49,7 @@ try:
 except ImportError:
     from ldap.controls import LDAPControl as LDAPControl    #pylint: disable=F0401
 import ldap as _ldap
-from ipaserver.ipaldap import IPAdmin
+from ipapython.ipaldap import IPAdmin
 from ipalib.session import krbccache_dir, krbccache_prefix
 from dns import resolver, rdatatype
 from dns.exception import DNSException

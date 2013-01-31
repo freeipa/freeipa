@@ -23,11 +23,10 @@ import os
 
 import ldap
 
-from ipaserver import ipaldap
 from ipalib import api, errors
 from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
-from ipapython import ipautil, dogtag
+from ipapython import ipautil, dogtag, ipaldap
 from ipapython.dn import DN
 
 CACERT = "/etc/ipa/ca.crt"

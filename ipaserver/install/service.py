@@ -24,14 +24,11 @@ import pwd
 import time
 import datetime
 
-from ipapython import sysrestore
-from ipapython import ipautil
-from ipapython import dogtag
+from ipapython import sysrestore, ipautil, dogtag, ipaldap
 from ipapython import services as ipaservices
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipalib import errors
-from ipaserver import ipaldap
 
 CACERT = "/etc/ipa/ca.crt"
 

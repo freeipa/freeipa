@@ -22,15 +22,14 @@ Test the `ipaserver/install/ldapupdate.py` module.
 
 import unittest
 import os
-import sys
 import ldap
+
 import nose
 from ipalib import api
 from ipalib import errors
-from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
 from ipaserver.install import installutils
-from ipaserver import ipaldap
-from ipapython import ipautil
+from ipapython import ipautil, ipaldap
 from ipapython.dn import DN
 
 """

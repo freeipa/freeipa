@@ -29,8 +29,8 @@ import wsgiref
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import get_ipa_basedn
 from ipapython.dn import DN
+from ipapython.ipaldap import IPAdmin
 from ipalib import errors
-from ipaserver.ipaldap import IPAdmin
 
 
 def convert_exception(error):

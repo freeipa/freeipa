@@ -27,8 +27,8 @@ from urllib2 import urlparse
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
 from ipaserver.install import bindinstance
-from ipaserver import ipaldap
-from ipapython import version
+from ipaserver.plugins import ldap2
+from ipapython import version, ipaldap
 from ipalib import api, errors, util
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN

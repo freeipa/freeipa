@@ -48,8 +48,7 @@ import traceback
 
 from ipapython import ipautil
 from ipapython import services as ipaservices
-
-from ipaserver import ipaldap
+from ipapython import ipaldap
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance

@@ -27,11 +27,10 @@ import ldap
 
 import installutils
 import service
-from ipaserver import ipaldap
+from ipaserver.plugins import ldap2
 from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.cainstance import IPA_CA_CNAME
-from ipapython import sysrestore
-from ipapython import ipautil
+from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 import ipalib

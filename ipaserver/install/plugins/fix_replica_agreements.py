@@ -19,9 +19,9 @@
 
 import os
 import pwd
+from ipapython import ipaldap
 from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PreUpdate
-from ipaserver import ipaldap
 from ipaserver.install import replication
 from ipalib import api
 

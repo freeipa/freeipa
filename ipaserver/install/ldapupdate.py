@@ -39,13 +39,13 @@ import ldap
 from ldap.schema.models import ObjectClass, AttributeType
 
 from ipaserver.install import installutils
-from ipaserver import ipaldap
-from ipapython import ipautil
+from ipapython import ipautil, ipaldap
 from ipalib import errors
 from ipalib import api
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
+from ipaserver.plugins import ldap2
 
 
 class BadSyntax(installutils.ScriptError):

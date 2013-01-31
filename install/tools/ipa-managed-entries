@@ -22,9 +22,8 @@ import re
 import sys
 from optparse import OptionParser
 
-from ipapython import ipautil, config
+from ipapython import ipautil, config, ipaldap
 from ipaserver.install import installutils
-from ipaserver import ipaldap
 from ipalib import api, errors
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
