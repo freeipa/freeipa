@@ -248,7 +248,7 @@ IPA.host.details_facet = function(spec, no_init) {
     that.certificate_updated = IPA.observer();
 
     that.get_refresh_command_name = function() {
-        return that.entity.name+'_show_'+that.pkey;
+        return that.entity.name+'_show_'+that.get_pkey();
     };
 
     if (!no_init) that.init_details_facet();

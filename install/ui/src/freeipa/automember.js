@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery',  './details', './search', './association',
-       './entity'], function(IPA, $) {
+define(['./ipa', './jquery', './navigation', './details', './search', './association',
+       './entity'], function(IPA, $, navigation) {
 
 IPA.automember = {};
 
@@ -82,7 +82,7 @@ IPA.automember.entity = function(spec) {
             label: IPA.messages.objects.automember.usergrouprule,
             disable_facet_tabs: true,
             check_rights: false,
-            redirect_info: { tab: 'amgroup' }
+            redirect_info: { facet: 'searchgroup' }
         }).
         details_facet({
             factory: IPA.automember.rule_details_facet,
@@ -91,7 +91,7 @@ IPA.automember.entity = function(spec) {
             label: IPA.messages.objects.automember.hostgrouprule,
             disable_facet_tabs: true,
             check_rights: false,
-            redirect_info: { tab: 'amhostgroup' }
+            redirect_info: { facet: 'searchhostgroup' }
         }).
         adder_dialog({
             factory: IPA.automember.rule_adder_dialog,
@@ -335,7 +335,7 @@ IPA.automember.rule_adder_dialog = function(spec) {
         var facetname = facet.group_type === 'group' ? 'usergrouprule' :
                             'hostgrouprule';
 
-        IPA.nav.show_entity_page(that.entity, facetname, pkey);
+        navigation.show_entity(that.entity.name, facetname, [pkey]);
     };
 
     that.reset = function() {

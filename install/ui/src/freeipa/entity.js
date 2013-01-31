@@ -163,151 +163,23 @@ IPA.entity = function(spec) {
         return that;
     };
 
-    that.create = function(container) {
-        that.container = container;
+    that.get_primary_key_prefix = function(facet) {
+        window.console.log('Obsolete function usage: entity.get_primary_key_prefix');
+        var prefix = that.get_primary_key(facet);
+        prefix.pop();
+        return prefix;
     };
 
-    that.display = function(container) {
-
-        var prev_entity = IPA.current_entity;
-        var prev_facet = prev_entity ? prev_entity.facet : null;
-
-        IPA.current_entity = that;
-
-        var facet_name = IPA.nav.get_state(that.name+'-facet');
-        that.facet = that.get_facet(facet_name);
-
-        var needs_update = that.facet.needs_update();
-
-        // same entity, same facet, and doesn't need updating => return
-        if (that == prev_entity && that.facet == prev_facet && !needs_update) {
-            return;
-        }
-
-        if (prev_facet) {
-            prev_facet.hide();
-        }
-
-        var facet_container = $('.facet[name="'+that.facet.name+'"]', that.container);
-        if (!facet_container.length) {
-            facet_container = $('<div/>', {
-                name: that.facet.name,
-                'class': 'facet'
-            }).appendTo(that.container);
-
-            that.facet.create(facet_container);
-        }
-
-        if (needs_update) {
-            that.facet.clear();
-            that.facet.show();
-            that.facet.header.select_tab();
-            that.facet.refresh();
-        } else {
-            that.facet.show();
-            that.facet.header.select_tab();
-        }
-    };
-
-    that.get_primary_key_prefix = function() {
-        var pkey = [];
-        var current_entity = that;
-        current_entity = current_entity.get_containing_entity();
-        while(current_entity !== null){
-
-            var key = IPA.nav.get_state(current_entity.name+'-pkey');
-            if (key){
-                pkey.unshift(key);
-            }
-            current_entity = current_entity.get_containing_entity();
-        }
-        return pkey;
-    };
-
-    /*gets the primary key for the current entity out of the URL parameters */
-    that.get_primary_key = function() {
-        var pkey = that.get_primary_key_prefix();
-        var current_entity = that;
-        pkey.unshift(IPA.nav.get_state(current_entity.name+'-pkey'));
-        return pkey;
-    };
-
-    /* most entites only require -pkey for their primary keys, but some
-       are more specific.  This call allows those entites a place
-       to override the other parameters. */
-    that.get_key_names = function() {
-        return [that.name + '-pkey'];
+    that.get_primary_key = function(facet) {
+        window.console.log('Obsolete function usage: entity.get_primary_key');
+        facet = facet || that.facet;
+        var pkeys = facet.get_pkeys();
+        return pkeys;
     };
 
     that.entity_init = that.init;
 
     return that;
-};
-
-IPA.nested_tab_labels = {};
-
-IPA.get_nested_tab_label = function(entity_name){
-
-    if (!IPA.nested_tab_labels[entity_name]){
-        IPA.nested_tab_labels[entity_name] = "LABEL";
-
-    }
-    return IPA.nested_tab_labels[entity_name];
-
-};
-
-/*Returns the entity requested, as well as:
-  any nested tabs underneath it or
-  its parent tab and the others nested at the same level*/
-
-IPA.nested_tabs = function(entity_name) {
-
-    var siblings = [];
-    var i;
-    var i2;
-    var nested_entities;
-    var sub_i;
-    var sub_tab;
-
-    var key = entity_name;
-    function push_sibling(sibling){
-        siblings.push (sibling);
-        IPA.nested_tab_labels[key] = sub_tab;
-    }
-
-
-    if (!IPA.nav.tabs) {
-        siblings.push(entity_name);
-        return siblings;
-    }
-
-    for (var top_i = 0; top_i < IPA.nav.tabs.length; top_i++) {
-        var top_tab = IPA.nav.tabs[top_i];
-        for (sub_i = 0; sub_i < top_tab.children.length; sub_i++) {
-            sub_tab = top_tab.children[sub_i];
-            nested_entities = sub_tab.children;
-            if (sub_tab.name === entity_name){
-                push_sibling(entity_name);
-            }
-            if (sub_tab.children){
-                for (i = 0; i < nested_entities.length; i += 1){
-                    if (sub_tab.name === entity_name){
-                        push_sibling(nested_entities[i].name);
-                    }else{
-                        if (nested_entities[i].name === entity_name){
-                            push_sibling(sub_tab.name);
-                            for (i2 = 0; i2 < nested_entities.length; i2 += 1){
-                                key = nested_entities[i].name;
-                                push_sibling(nested_entities[i2].name);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return siblings;
 };
 
 IPA.entity_builder = function() {

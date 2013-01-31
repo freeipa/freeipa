@@ -21,7 +21,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['dojo/_base/array', './ipa', './jquery'], function(array, IPA, $) {
+
+define(['dojo/_base/array', './ipa', './jquery', './navigation'],
+       function(array, IPA, $, navigation) {
 
 IPA.field = function(spec) {
     spec = spec || {};
@@ -735,8 +737,8 @@ IPA.link_field = function(spec) {
 
     that.on_link_clicked = function() {
 
-        IPA.nav.show_entity_page(
-            that.other_entity,
+        navigation.show_entity(
+            that.other_entity.name,
             'default',
             that.other_pkeys());
     };

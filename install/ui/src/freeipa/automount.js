@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define(['./ipa', './jquery', './navigation', './details', './search', './association',
+       './entity'], function(IPA, $, navigation) {
 
 IPA.automount = {};
 
@@ -191,11 +191,15 @@ IPA.automount.key_entity = function(spec) {
             show_edit_page : function(entity, result){
                 var key = result.automountkey[0];
                 var info = result.automountinformation[0];
-                var state = IPA.nav.get_path_state(entity.name);
-                state[entity.name + '-facet'] = 'default';
-                state[entity.name + '-info'] = info;
-                state[entity.name + '-pkey'] = key;
-                IPA.nav.push_state(state);
+                var pkeys = that.facet.get_pkeys();
+                pkeys.push(key);
+
+                var args = {
+                    info: info,
+                    key: key
+                };
+
+                navigation.show_entity(entity.name, 'details', pkeys, args);
                 return false;
             },
             fields:['automountkey','automountinformation']
@@ -215,8 +219,8 @@ IPA.automount.key_details_facet = function(spec) {
 
         command.args.pop();
 
-        var key = IPA.nav.get_state(that.entity.name + '-pkey');
-        var info = IPA.nav.get_state(that.entity.name + '-info');
+        var key = that.state.key;
+        var info = that.state.info;
 
         command.options.newautomountinformation = command.options.automountinformation;
         command.options.automountkey = key;
@@ -231,8 +235,8 @@ IPA.automount.key_details_facet = function(spec) {
 
         command.args.pop();
 
-        var key = IPA.nav.get_state(that.entity.name + '-pkey');
-        var info = IPA.nav.get_state(that.entity.name + '-info');
+        var key = that.state.key;
+        var info = that.state.info;
 
         command.options.automountkey = key;
         command.options.automountinformation = info;
@@ -260,11 +264,16 @@ IPA.automount_key_column = function(spec) {
             href: '#'+key,
             text: key,
             click: function() {
-                var state = IPA.nav.get_path_state(that.entity.name);
-                state[that.entity.name + '-facet'] = 'default';
-                state[that.entity.name + '-info'] = info;
-                state[that.entity.name + '-pkey'] = key;
-                IPA.nav.push_state(state);
+
+                var pkeys = that.facet.get_pkeys();
+                pkeys.push(key);
+
+                var args = {
+                    info: info,
+                    key: key
+                };
+
+                navigation.show_entity(that.entity.name, 'details', pkeys, args);
                 return false;
             }
         }).appendTo(container);

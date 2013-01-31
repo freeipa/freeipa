@@ -2058,9 +2058,16 @@ IPA.is_empty = function(value) {
     if (value instanceof Array) {
         empty = empty || value.length === 0 ||
                 (value.length === 1) && (value[0] === '');
-    }
-
-    if (value === '') empty = true;
+    } else if (typeof value === 'object') {
+        var has_p = false;
+        for (var p in value) {
+            if (value.hasOwnProperty(p)) {
+                has_p = true;
+                break;
+            }
+        }
+        empty = !has_p;
+    } else  if (value === '') empty = true;
 
     return empty;
 };

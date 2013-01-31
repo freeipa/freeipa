@@ -33,7 +33,7 @@ IPA.user.entity = function(spec) {
     that.init = function() {
         that.entity_init();
 
-        var self_service = IPA.nav.name === 'self-service';
+        var self_service = IPA.is_selfservice;
         var link = self_service ? false : undefined;
 
         that.builder.search_facet({
@@ -330,7 +330,7 @@ IPA.user.details_facet = function(spec) {
 
     that.create_refresh_command = function() {
 
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        var pkey = that.get_pkey();
 
         var batch = IPA.batch_command({
             name: 'user_details_refresh'
@@ -509,20 +509,10 @@ IPA.user_password_dialog = function(spec) {
     that.success_handler = spec.on_success;
     that.error_handler = spec.on_error;
     that.self_service = spec.self_service; //option to force self-service
-
-    that.get_pkey = function() {
-        var pkey;
-        if (that.self_service) {
-            pkey = IPA.whoami.uid[0];
-        } else {
-            pkey = IPA.nav.get_state('user-pkey');
-        }
-        return pkey;
-    };
+    that.pkey = spec.pkey;
 
     that.is_self_service = function() {
-        var pkey = that.get_pkey();
-        var self_service = pkey === IPA.whoami.uid[0];
+        var self_service = that.pkey === IPA.whoami.uid[0];
         return self_service;
     };
 
@@ -563,7 +553,6 @@ IPA.user_password_dialog = function(spec) {
 
         if (!that.validate()) return;
 
-        var pkey = that.get_pkey();
         var self_service = that.is_self_service();
 
         var record = {};
@@ -574,7 +563,7 @@ IPA.user_password_dialog = function(spec) {
         var repeat_password = record.password2[0];
 
         that.set_password(
-            pkey,
+            that.pkey,
             current_password,
             new_password,
             that.on_reset_success,
@@ -642,7 +631,8 @@ IPA.user.reset_password_action = function(spec) {
     that.execute_action = function(facet) {
 
         var dialog = IPA.user_password_dialog({
-            entity: facet.entity
+            entity: facet.entity,
+            pkey: facet.get_pkey()
         });
 
         dialog.open();

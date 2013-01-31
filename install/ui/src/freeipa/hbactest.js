@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity', './hbac'], function(IPA, $) {
+define(['./ipa', './jquery', './navigation', './details', './search',
+       './association', './entity', './hbac'], function(IPA, $, navigation) {
 
 IPA.hbac.test_entity = function(spec) {
 
@@ -198,9 +198,7 @@ IPA.hbac.test_facet = function(spec) {
 
         var facet = facet_group.get_facet_by_index(index - 1);
 
-        var state = {};
-        state[that.entity.name+'-facet'] = facet.name;
-        IPA.nav.push_state(state);
+        navigation.show(facet);
     };
 
     that.next = function() {
@@ -210,9 +208,7 @@ IPA.hbac.test_facet = function(spec) {
 
         var facet = facet_group.get_facet_by_index(index + 1);
 
-        var state = {};
-        state[that.entity.name+'-facet'] = facet.name;
-        IPA.nav.push_state(state);
+        navigation.show(facet);
     };
 
     that.get_search_command_name = function() {
@@ -221,7 +217,7 @@ IPA.hbac.test_facet = function(spec) {
 
     that.refresh = function() {
 
-        var filter = IPA.nav.get_state(that.entity.name+'-'+that.name+'-filter');
+        var filter = that.state.filter;
 
         var command = IPA.command({
             name: that.get_search_command_name(),
@@ -357,7 +353,7 @@ IPA.hbac.test_select_facet = function(spec) {
 
     that.find = function() {
 
-        var old_filter = IPA.nav.get_state(that.entity.name+'-'+that.name+'-filter');
+        var old_filter = that.state.filter;
         var filter = that.filter.val();
 
         that.set_expired_flag();
@@ -365,9 +361,7 @@ IPA.hbac.test_select_facet = function(spec) {
         if (old_filter === filter) {
             that.refresh();
         } else {
-            var state = {};
-            state[that.entity.name+'-'+that.name+'-filter'] = filter;
-            IPA.nav.push_state(state);
+            that.state.set({filter: filter});
         }
     };
 
@@ -621,6 +615,7 @@ IPA.hbac.test_run_facet = function(spec) {
     that.new_test = function() {
         var facet = that.entity.get_facet('user');
         facet.reset();
+        var entry_point = facet;
 
         facet = that.entity.get_facet('targethost');
         facet.reset();
@@ -634,9 +629,7 @@ IPA.hbac.test_run_facet = function(spec) {
         facet = that.entity.get_facet('run_test');
         facet.reset();
 
-        var state = {};
-        state[that.entity.name+'-facet'] = 'user';
-        IPA.nav.push_state(state);
+        navigation.show(entry_point);
     };
 
     that.reset = function() {
@@ -806,9 +799,7 @@ IPA.hbac.validation_dialog = function(spec)  {
 
     that.redirect_to_facet = function(facet) {
         that.close();
-        var state = {};
-        state[facet.entity.name+'-facet'] = facet.name;
-        IPA.nav.push_state(state);
+        navigation.show(facet);
     };
 
     return that;

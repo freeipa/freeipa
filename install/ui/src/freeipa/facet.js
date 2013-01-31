@@ -21,8 +21,80 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './dialog', './field', './widget'], function(IPA, $) {
+define([
+        'dojo/_base/declare',
+        'dojo/_base/lang',
+        'dojo/topic',
+        'dojo/dom-construct',
+        'dojo/on',
+        'dojo/Stateful',
+        'dojo/Evented',
+        './ipa',
+        './jquery',
+        './navigation',
+        './dialog',
+        './field',
+        './widget'
+       ], function(declare, lang, topic, construct, on, Stateful, Evented,
+                   IPA, $, navigation) {
 
+/**
+ * Facet represents the content of currently displayed page.
+ *
+ * = Show, Clear, Refresh mechanism =
+ *
+ * Use cases:
+ *   a) Display facet with defined arguments.
+ *   b) Switch to facet
+ *   c) Update facet state
+ *
+ * == Display facet by route ==
+ * 1) somebody sets route
+ * 2) Route is evaluated, arguments extracted.
+ * 3) Facet state is updated `update_state(args, pkeys)`.(saves previous state)
+ * 4) Facet show() is called
+ *
+ * == Display facet with defined arguments ==
+ * 1) Somebody calls navigation.show(xxx);
+ * 2) Facet state is updated `update_state(args, pkeys)`.(saves previous state)
+ * 3) Route is updated, but the hash change is ignored
+ * 4) Facet show() is called.
+ *      5.1) First time show
+ *          a) creates DOM
+ *          b) display DOM
+ *          c) refresh();
+ *      5.2) Next time
+ *          a) display DOM
+ *          b) needs_update()? (compares previous state with current)
+ *               true:
+ *                  1) clear() - each facet can override to supress clear or
+ *                               control the behaviour
+ *                  2) refresh()
+ *
+ * == Swith to facet ==
+ * Same as display facet but only without arguments. Arguments are extracted at
+ * step 2.
+ *
+ * ==  Update facet state ==
+ * 1) update_state(args, pkeys?)
+ * 2) needs_update()?
+ *      true:
+ *        a) clear()
+ *        b) refresh()
+ * 2) Update route, ignore hash change event
+ *
+ * == Updating hash ==
+ * Hash updates are responsibility of navigation component and application
+ * controller. Application controller should listen to facet's `state_change`
+ * event. And call something like navigation.update_hash(facet).
+ *
+ * navigation.update_hash should find all the necessary state properties (args,
+ * pkeys).
+ *
+ * == needs_update method ==
+ *
+ *
+ */
 IPA.facet = function(spec, no_init) {
 
     spec = spec || {};
@@ -58,12 +130,190 @@ IPA.facet = function(spec, no_init) {
 
     that.dialogs = $.ordered_map();
 
+    /**
+     * domNode of container
+     * Suppose to contain domNode of this and other facets.
+     */
+    that.container_node = spec.container_node;
+
+    /**
+     * FIXME: that.container should be eliminated
+     * now it's the same as domNode
+     */
+    //that.container
+
+    /**
+     * domNode which contains all content of a facet.
+     * Should contain error content and content. When error is moved to
+     * standalone facet it will replace functionality of content.
+     */
+    that.domNode = null;
+
     // facet group name
     that.facet_group = spec.facet_group;
 
     that.redirect_info = spec.redirect_info;
 
-    that.state = {};
+    /**
+     * Public state
+     *
+     */
+    that.state = new FacetState();
+
+    that.set_pkeys = function(pkeys) {
+
+        pkeys = that.get_pkeys(pkeys);
+        that.state.set('pkeys', pkeys);
+    };
+
+    /**
+     * Return THE pkey of this facet. Basically the last one of pkeys list.
+     *
+     * @type String
+     */
+    that.get_pkey = function() {
+        var pkeys = that.state.get('pkeys');
+        if (pkeys.length) {
+            return pkeys[pkeys.length-1];
+        }
+        return '';
+    };
+
+    /**
+     * Gets copy of pkeys list.
+     * It automatically adds empty pkeys ('') for each containing entity if not
+     * specified.
+     *
+     * One can get merge current pkeys with supplied if `pkeys` param is
+     * specified.
+     *
+     * @param String[] new pkeys to merge
+     */
+    that.get_pkeys = function(pkeys) {
+        var new_keys = [];
+        var cur_keys = that.state.get('pkeys') || [];
+        var current_entity = that.entity;
+        pkeys = pkeys || [];
+        var arg_l = pkeys.length;
+        var cur_l = cur_keys.length;
+        var tot_c = 0;
+        while (current_entity) {
+            current_entity = current_entity.get_containing_entity();
+            tot_c++;
+        }
+
+        if (tot_c < arg_l || tot_c < cur_l) throw {
+            error: 'Invalid pkeys count. Supplied more than expected.'
+        };
+
+        var arg_off = tot_c - arg_l;
+        var cur_off = cur_l - tot_c;
+
+        for (var i=0; i<tot_c; i++) {
+            // first try to use supplied
+            if (tot_c - arg_l - i <= 0) new_keys[i] = pkeys[i-arg_off];
+            // then current
+            else if (tot_c - cur_l - i <= 0) new_keys[i] = cur_keys[i-cur_off];
+            // then empty
+            else new_keys[i] = '';
+        }
+
+        return new_keys;
+    };
+
+    that.state_diff = function(a, b) {
+        var diff = false;
+        var checked = {};
+
+        var check_diff = function(a, b, skip) {
+
+            var same = true;
+            skip = skip || {};
+
+            for (var key in a) {
+                if (a.hasOwnProperty(key) && !(key in skip)) {
+                    var va = a[key];
+                    var vb = b[key];
+                    if ((lang.isArray(va) && !IPA.array_diff(va,vb)) ||
+                        (a[key] !== b[key])) {
+                        same = false;
+                        skip[a] = true;
+                        break;
+                    }
+                }
+            }
+            return !same;
+        };
+
+        diff = check_diff(a,b, checked);
+        diff = diff || check_diff(b,a, checked);
+        return diff;
+    };
+
+    that.set_state = function(state) {
+
+        if (state.pkeys) {
+            state.pkeys = that.get_pkeys(state.pkeys);
+        }
+        that.state.reset(state);
+    };
+
+    that.get_state = function() {
+        return that.state.clone();
+    };
+
+    /**
+     * Merges state into current and notifies it.
+     */
+    that.update_state = function(state) {
+
+        if (state.pkeys) {
+            state.pkeys = that.get_pkeys(state.pkeys);
+        }
+        that.state.set(state);
+    };
+
+    that.on_state_reset = function(old_state, state) {
+        that._on_state_change(state);
+    };
+
+    that.on_state_change = function(name, old_value, value) {
+        var new_state = that.state.clone();
+        that._on_state_change(new_state);
+    };
+
+    that._on_state_change = function(state) {
+
+        // basically a show method without displaying the facet
+        // TODO: change to something fine grained
+
+        // we don't have to reflect any changes if facet dom is not yet built
+
+        that._notify_state_change(state);
+
+        if (!that.domNode) return;
+
+        var needs_update = that.needs_update();
+        that.old_state = state;
+
+        if (needs_update) {
+            that.clear();
+        }
+
+        that.show_content();
+        that.header.select_tab();
+
+        if (needs_update) {
+            that.refresh();
+        }
+    };
+
+    that._notify_state_change =  function(state) {
+        topic.publish('facet-state-change', {
+            facet: that,
+            state:state
+        });
+    };
 
     that.get_dialog = function(name) {
         return that.dialogs.get(name);
@@ -74,27 +324,47 @@ IPA.facet = function(spec, no_init) {
         return that;
     };
 
-    that.create = function(container) {
+    that.create = function() {
 
-        that.container = container;
+        if (that.domNode) {
+            that.domNode.empty();
+            that.domNode.detach();
+        } else {
+            that.domNode = $('<div/>', {
+                'class': 'facet',
+                name: that.name
+            });
+        }
 
-        if (that.disable_facet_tabs) that.container.addClass('no-facet-tabs');
-        that.container.addClass(that.display_class);
+        var domNode = that.domNode;
+        that.container = domNode;
+
+        if (!that.container_node) throw {
+            error: 'Can\'t create facet. No container node defined.'
+        };
+        var node = domNode[0];
+        construct.place(node,that.container_node);
+
+
+        if (that.disable_facet_tabs) domNode.addClass('no-facet-tabs');
+        domNode.addClass(that.display_class);
 
         that.header_container = $('<div/>', {
             'class': 'facet-header'
-        }).appendTo(container);
+        }).appendTo(domNode);
         that.create_header(that.header_container);
 
         that.content = $('<div/>', {
             'class': 'facet-content'
-        }).appendTo(container);
+        }).appendTo(domNode);
 
         that.error_container = $('<div/>', {
             'class': 'facet-content facet-error'
-        }).appendTo(container);
+        }).appendTo(domNode);
 
         that.create_content(that.content);
+
+
     };
 
     that.create_header = function(container) {
@@ -122,8 +392,30 @@ IPA.facet = function(spec, no_init) {
     };
 
     that.show = function() {
-        that.container.css('display', 'block');
-        that.show_content();
+
+        that.entity.facet = that; // FIXME: remove
+
+        if (!that.domNode) {
+            that.create();
+
+            var needs_update = that.needs_update();
+
+            if (needs_update) {
+                that.clear();
+            }
+
+            that.domNode.css('display', 'block');
+            that.show_content();
+            that.header.select_tab();
+
+            if (needs_update) {
+                that.refresh();
+            }
+        } else {
+            that.domNode.css('display', 'block');
+            that.show_content();
+            that.header.select_tab();
+        }
     };
 
     that.show_content = function() {
@@ -142,7 +434,7 @@ IPA.facet = function(spec, no_init) {
     };
 
     that.hide = function() {
-        that.container.css('display', 'none');
+        that.domNode.css('display', 'none');
     };
 
     that.load = function(data) {
@@ -175,6 +467,8 @@ IPA.facet = function(spec, no_init) {
         needs_update = needs_update || that.expired_flag;
         needs_update = needs_update || that.error_displayed();
 
+        needs_update = needs_update || that.state_diff(that.old_state || {}, that.state);
+
         return needs_update;
     };
 
@@ -189,6 +483,29 @@ IPA.facet = function(spec, no_init) {
 
     that.is_dirty = function() {
         return false;
+    };
+
+    /**
+     * Wheater we can switch to different facet.
+     * @returns Boolean
+     */
+    that.can_leave = function() {
+        return !that.is_dirty();
+    };
+
+    /**
+     * Show dialog displaying a message explaining why we can't switch facet.
+     * User can supply callback which is called when a leave is permitted.
+     *
+     * Listeneres should set 'callback' property to listen state evaluation.
+     */
+    that.show_leave_dialog = function(permit_callback) {
+
+        var dialog = IPA.dirty_dialog({
+            facet: that
+        });
+
+        return dialog;
     };
 
     that.report_error = function(error_thrown) {
@@ -235,7 +552,7 @@ IPA.facet = function(spec, no_init) {
             options_list,
             IPA.messages.error_report.main_page,
             function() {
-                IPA.nav.show_top_level_page();
+                navigation.show_default();
             }
         );
 
@@ -260,16 +577,11 @@ IPA.facet = function(spec, no_init) {
         }
         var facet_name = that.entity.redirect_facet;
         var entity_name = entity.name;
-        var tab_name, facet;
+        var facet;
 
         if (that.redirect_info) {
             entity_name = that.redirect_info.entity || entity_name;
             facet_name = that.redirect_info.facet || facet_name;
-            tab_name = that.redirect_info.tab;
-        }
-
-        if (tab_name) {
-            facet = IPA.nav.get_tab_facet(tab_name);
         }
 
         if (!facet) {
@@ -284,7 +596,7 @@ IPA.facet = function(spec, no_init) {
 
         var facet = that.get_redirect_facet();
         if (!facet) return;
-        IPA.nav.show_page(facet.entity.name, facet.name);
+        navigation.show(facet);
     };
 
     var redirect_error_codes = [4001];
@@ -306,6 +618,8 @@ IPA.facet = function(spec, no_init) {
         that.action_state.init(that);
         that.actions.init(that);
         that.header.init();
+        on(that.state, 'reset', that.on_state_reset);
+        that.state.watch(that.on_state_change);
 
         var buttons_spec = {
             factory: IPA.control_buttons_widget,
@@ -369,7 +683,7 @@ IPA.facet_header = function(spec) {
         if (that.facet.disable_facet_tabs) return;
 
         $(that.facet_tabs).find('a').removeClass('selected');
-        var facet_name = IPA.nav.get_state(that.facet.entity.name+'-facet');
+        var facet_name = that.facet.name;
 
         if (!facet_name || facet_name === 'default') {
             that.facet_tabs.find('a:first').addClass('selected');
@@ -388,26 +702,29 @@ IPA.facet_header = function(spec) {
 
         if (!that.facet.disable_breadcrumb) {
             var breadcrumb = [];
-            var keys = [];
+
+            // all pkeys should be available in facet
+            var keys = that.facet.get_pkeys();
 
             var entity = that.facet.entity.get_containing_entity();
+            i = keys.length - 2; //set pointer to first containing entity
 
             while (entity) {
-                key = IPA.nav.get_state(entity.name+'-pkey');
+                key = keys[i];
                 breadcrumb.unshift($('<a/>', {
                     'class': 'breadcrumb-element',
                     text: key,
                     title: entity.metadata.label_singular,
                     click: function(entity) {
                         return function() {
-                            IPA.nav.show_page(entity.name, 'default');
+                            navigation.show_entity(entity.name, 'default');
                             return false;
                         };
                     }(entity)
                 }));
 
                 entity = entity.get_containing_entity();
-                keys.unshift(key);
+                i--;
             }
 
             //calculation of breadcrumb keys length
@@ -471,8 +788,8 @@ IPA.facet_header = function(spec) {
                     return false;
                 }
 
-                var pkey = IPA.nav.get_state(that.facet.entity.name+'-pkey');
-                IPA.nav.show_page(that.facet.entity.name, other_facet.name, pkey);
+                var pkeys = that.facet.get_pkeys();
+                navigation.show(other_facet, [pkeys]);
 
                 return false;
             }
@@ -762,6 +1079,7 @@ IPA.table_facet = function(spec, no_init) {
 
     that.add_column = function(column) {
         column.entity = that.managed_entity;
+        column.facet = that;
         that.columns.put(column.name, column);
     };
 
@@ -865,15 +1183,12 @@ IPA.table_facet = function(spec, no_init) {
 
         delete that.table.current_page;
 
-        var state = {};
-        var page = parseInt(IPA.nav.get_state(that.entity.name+'-page'), 10) || 1;
+        var page = parseInt(that.state.page, 10) || 1;
         if (page < 1) {
-            state[that.entity.name+'-page'] = 1;
-            IPA.nav.push_state(state);
+            that.state.set({page: 1});
             return;
         } else if (page > that.table.total_pages) {
-            state[that.entity.name+'-page'] = that.table.total_pages;
-            IPA.nav.push_state(state);
+            that.state.set({page: that.table.total_pages});
             return;
         }
         that.table.current_page = page;
@@ -1027,7 +1342,16 @@ IPA.table_facet = function(spec, no_init) {
 
             if (column.link && column.primary_key) {
                 column.link_handler = function(value) {
-                    IPA.nav.show_page(entity.name, that.details_facet_name, value);
+                    var pkeys = [value];
+
+                    // for nested entities
+                    var containing_entity = entity.get_containing_entity();
+                    if (containing_entity && that.entity.name === containing_entity.name) {
+                        pkeys = that.get_pkeys();
+                        pkeys.push(value);
+                    }
+
+                    navigation.show_entity(entity.name, that.details_facet_name, pkeys);
                     return false;
                 };
             }
@@ -1042,19 +1366,17 @@ IPA.table_facet = function(spec, no_init) {
 
         that.table.prev_page = function() {
             if (that.table.current_page > 1) {
-                var state = {};
-                state[that.entity.name+'-page'] = that.table.current_page - 1;
+                var page = that.table.current_page - 1;
                 that.set_expired_flag();
-                IPA.nav.push_state(state);
+                that.state.set({page: page});
             }
         };
 
         that.table.next_page = function() {
             if (that.table.current_page < that.table.total_pages) {
-                var state = {};
-                state[that.entity.name+'-page'] = that.table.current_page + 1;
+                var page = that.table.current_page + 1;
                 that.set_expired_flag();
-                IPA.nav.push_state(state);
+                that.state.set({page: page});
             }
         };
 
@@ -1064,10 +1386,8 @@ IPA.table_facet = function(spec, no_init) {
             } else if (page > that.total_pages) {
                 page = that.total_pages;
             }
-            var state = {};
-            state[that.entity.name+'-page'] = page;
             that.set_expired_flag();
-            IPA.nav.push_state(state);
+            that.state.set({page: page});
         };
     };
 
@@ -1657,9 +1977,7 @@ IPA.self_service_state_evaluator = function(spec) {
         var old_state = that.state;
         that.state = [];
 
-        var self_service = IPA.nav.name === 'self-service';
-
-        if (self_service) {
+        if (IPA.is_selfservice) {
             that.state.push('self-service');
         }
 
@@ -2042,5 +2360,55 @@ IPA.action_list_widget = function(spec) {
     return that;
 };
 
-return {};
+var FacetState = declare([Stateful, Evented], {
+
+    /**
+     * Properties to ignore in clear and clone operation
+     */
+    _ignore_properties: {_watchCallbacks:1, onreset:1},
+
+    /**
+     * Gets object containing shallow copy of state's properties.
+     */
+    clone: function() {
+        var clone = {};
+        for(var x in this){
+            if (this.hasOwnProperty(x) && !(x in this._ignore_properties)) {
+                clone[x] = lang.clone(this[x]);
+            }
+        }
+        return clone;
+    },
+
+    /**
+     * Unset all properties.
+     */
+    clear: function() {
+        var undefined;
+        for(var x in this){
+            if (this.hasOwnProperty(x) && !(x in this._ignore_properties)) {
+                this.set(x, undefined);
+            }
+        }
+    },
+
+    /**
+     * Set completly new state. Old state is cleared.
+     *
+     * Supresses all watch callbacks.
+     * Others can be notified by listening to 'reset' event.
+     */
+    reset: function(object) {
+        var _watchCallbacks = this._watchCallbacks;
+        delete this._watchCallbacks; //prevent watch callbacks
+        var old_state = this.clone();
+        this.clear();
+        this.set(object);
+        var new_state = this.clone();
+        this._watchCallbacks = _watchCallbacks;
+        this.emit('reset', new_state, old_state);
+    }
+});
+
+return { FacetState: FacetState};
 });

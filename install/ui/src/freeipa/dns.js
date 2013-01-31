@@ -20,8 +20,8 @@
  */
 
 
-define(['./ipa', './jquery', './net', './details', './search', './association',
-       './entity'], function(IPA, $, NET) {
+define(['./ipa', './jquery', './net', './navigation', './details', './search', './association',
+       './entity'], function(IPA, $, NET, navigation) {
 
 IPA.dns = {
     zone_permission_name: 'Manage DNS zone ${dnszone}'
@@ -332,7 +332,7 @@ IPA.dnszone_details_facet = function(spec, no_init) {
 
     that.create_refresh_command = function() {
 
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        var pkey = that.get_pkey();
 
         var batch = IPA.batch_command({
             name: 'dnszone_details_refresh'
@@ -597,7 +597,7 @@ IPA.dns.add_permission_action = function(spec) {
 
     that.execute_action = function(facet) {
 
-        var pkey = IPA.nav.get_state('dnszone-pkey');
+        var pkey = that.get_pkey();
 
          var command = IPA.command({
             entity: 'dnszone',
@@ -627,7 +627,7 @@ IPA.dns.remove_permission_action = function(spec) {
 
     that.execute_action = function(facet) {
 
-        var pkey = IPA.nav.get_state('dnszone-pkey');
+        var pkey = that.get_pkey();
 
          var command = IPA.command({
             entity: 'dnszone',
@@ -678,7 +678,7 @@ IPA.dns.record_search_facet = function(spec) {
             on_error: on_error
         });
 
-        var zone = IPA.nav.get_state('dnszone-pkey');
+        var zone = that.get_pkey();
 
         for (var i=0; i<pkeys.length; i++) {
             var pkey = pkeys[i];
@@ -1267,7 +1267,7 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
     };
 
     that.on_ok = function() {
-        IPA.nav.show_page('dnszone','default');
+        navigation.show_entity_page('dnszone','default');
     };
 
     return that;
@@ -1824,7 +1824,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
     that.remove = function(values, pkey, on_success, on_error) {
 
-        var dnszone = IPA.nav.get_state('dnszone-pkey');
+        var dnszone = that.facet.get_pkey();
 
         var command = IPA.command({
             entity: that.entity.name,
@@ -1921,7 +1921,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_add_command = function(record) {
 
-            var dnszone = IPA.nav.get_state('dnszone-pkey');
+            var dnszone = that.facet.get_pkey();
 
             var command = dialog.entity_adder_dialog_create_add_command(record);
             command.args = [dnszone, that.idnsname[0]];
@@ -2015,8 +2015,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_add_command = function(record) {
 
-            var dnszone = IPA.nav.get_state('dnszone-pkey');
-
+            var dnszone = that.facet.get_pkey();
             var command = dialog.entity_adder_dialog_create_add_command(record);
 
             command.method = 'mod';
@@ -2259,8 +2258,10 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
         } else {
             that.reverse_address = that.address.get_reverse().toLowerCase()+'.';
 
-            var record = IPA.nav.get_state('dnsrecord-pkey');
-            var zone = IPA.nav.get_state('dnszone-pkey');
+            var pkeys = that.facet.get_pkeys();
+
+            var record = pkeys[1];
+            var zone = pkeys[0];
 
             if (record && zone && record !== '' && zone !== '') {
                 that.dns_record = {
@@ -2355,10 +2356,8 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
     //4th-a step: actual redirect
     that.redirect = function() {
 
-        var entity = IPA.get_entity('dnsrecord');
-
-        IPA.nav.show_entity_page(
-            entity,
+        navigation.show_entity(
+            'dnsrecord',
             'default',
             that.record_keys);
 

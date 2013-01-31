@@ -807,7 +807,7 @@ IPA.sudo.options_section = function(spec) {
                 var ipasudoopt = dialog.fields.get_field('ipasudoopt');
                 var value = ipasudoopt.save()[0];
 
-                var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+                var pkey = that.facet.get_pkey();
 
                 var command = IPA.command({
                     entity: 'sudorule',
@@ -853,7 +853,7 @@ IPA.sudo.options_section = function(spec) {
             return;
         }
 
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        var pkey = that.facet.get_pkey();
 
         var title = IPA.messages.dialogs.remove_title;
         title = title.replace('${entity}', label);

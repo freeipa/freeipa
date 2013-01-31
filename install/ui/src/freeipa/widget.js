@@ -1468,6 +1468,10 @@ IPA.table_widget = function (spec) {
 
     that.add_column = function(column) {
         column.entity = that.entity;
+        // check for facet to avoid overriding with undefined, because of
+        // initialization bug - column may be already created by facet (and
+        // therefore facet set) but this table widget may not have facet set.
+        if (that.facet) column.facet = that.facet;
         that.columns.put(column.name, column);
     };
 
@@ -2158,7 +2162,7 @@ IPA.attribute_table_widget = function(spec) {
     };
 
     that.get_pkeys = function() {
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        var pkey = that.facet.get_pkey();
         return [pkey];
     };
 
@@ -2201,7 +2205,7 @@ IPA.attribute_table_widget = function(spec) {
         }
 
         var label = that.entity.metadata.label_singular;
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        var pkey = that.facet.get_pkey();
         dialog_spec.title = dialog_spec.title || IPA.messages.dialogs.add_title;
         dialog_spec.title = dialog_spec.title.replace('${entity}', label);
         dialog_spec.title = dialog_spec.title.replace('${pkey}', pkey);

@@ -19,7 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['./ipa', './jquery', './field', './widget', './dialog'], function(IPA, $) {
+define(['./ipa', './jquery', './navigation', './field', './widget', './dialog'],
+       function(IPA, $, navigation) {
 
 IPA.entity_adder_dialog = function(spec) {
 
@@ -127,7 +128,10 @@ IPA.entity_adder_dialog = function(spec) {
         if (pkey instanceof Array) {
             pkey = pkey[0];
         }
-        IPA.nav.show_entity_page(that.entity, 'default', pkey);
+
+        var pkeys = that.facet.get_pkeys();
+        pkeys.push(pkey);
+        navigation.show_entity(that.entity.name, 'default', [pkeys]);
     }
 
     that.create_add_command = function(record) {

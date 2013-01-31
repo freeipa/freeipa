@@ -221,7 +221,7 @@ IPA.aci.permission_details_facet = function(spec) {
     var that = IPA.details_facet(spec);
 
     that.get_refresh_command_name = function() {
-        return that.entity.name+'_show_'+that.pkey;
+        return that.entity.name+'_show_'+that.get_pkey();
     };
 
     return that;

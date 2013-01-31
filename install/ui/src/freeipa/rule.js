@@ -132,7 +132,7 @@ IPA.rule_association_table_widget = function(spec) {
     that.create_add_dialog = function() {
 
         var entity_label = that.entity.metadata.label_singular;
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        var pkey = that.facet.get_pkey();
         var other_entity_label = that.other_entity.metadata.label;
 
         var title = that.add_title;

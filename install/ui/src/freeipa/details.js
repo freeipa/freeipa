@@ -294,26 +294,11 @@ IPA.details_facet = function(spec, no_init) {
     /* the primary key used for show and update is built as an array.
        for most entities, this will be a single element long, but for some
        it requires the containing entities primary keys as well.*/
+    //FIXME: obsolete this stuff
     that.get_primary_key = function(from_url) {
 
-        var pkey = that.entity.get_primary_key_prefix();
-
-        if (from_url) {
-            pkey.push(that.pkey);
-        } else {
-            var pkey_name = that.entity.metadata.primary_key;
-            if (!pkey_name){
-                return pkey;
-            }
-            var pkey_val = that.data.result.result[pkey_name];
-            if (pkey_val instanceof Array) {
-                pkey.push(pkey_val[0]);
-            } else {
-                pkey.push(pkey_val);
-            }
-        }
-
-        return pkey;
+        var pkeys = that.get_pkeys();
+        return pkeys;
     };
 
     that.create = function(container) {
@@ -403,24 +388,8 @@ IPA.details_facet = function(spec, no_init) {
 
     that.show = function() {
         that.facet_show();
-
-        that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        that.old_key_prefix = that.entity.get_primary_key_prefix();
-        that.header.set_pkey(that.pkey);
-    };
-
-    that.needs_update = function() {
-        if (that._needs_update !== undefined) return that._needs_update;
-
-        var needs_update = that.facet_needs_update();
-
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        var key_prefix = that.entity.get_primary_key_prefix();
-
-        needs_update = needs_update || pkey !== that.pkey;
-        needs_update = needs_update || IPA.array_diff(key_prefix, that.old_key_prefix);
-
-        return needs_update;
+        var pkey = that.get_pkey();
+        that.header.set_pkey(pkey);
     };
 
     that.field_dirty_changed = function(dirty) {
@@ -649,7 +618,7 @@ IPA.details_facet = function(spec, no_init) {
             options: options
         });
 
-        if (that.pkey) {
+        if (that.get_pkey()) {
             command.args = that.get_primary_key(true);
         }
 
@@ -668,9 +637,7 @@ IPA.details_facet = function(spec, no_init) {
 
     that.refresh = function(on_success, on_error) {
 
-        that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-
-        if (!that.pkey && that.entity.redirect_facet) {
+        if (!that.get_pkey() && that.entity.redirect_facet) {
             that.redirect();
             return;
         }
@@ -1120,12 +1087,12 @@ IPA.object_action = function(spec) {
     that.execute_action = function(facet, on_success, on_error) {
 
         var entity_name = facet.entity.name;
-        var pkey = IPA.nav.get_state(entity_name+'-pkey');
+        var pkeys = facet.get_pkeys();
 
         IPA.command({
             entity: entity_name,
             method: that.method,
-            args: [pkey],
+            args: pkeys,
             options: that.options,
             on_success: that.get_on_success(facet, on_success),
             on_error: that.get_on_error(facet, on_error)
@@ -1156,7 +1123,7 @@ IPA.object_action = function(spec) {
     };
 
     that.get_confirm_message = function(facet) {
-        var pkey = IPA.nav.get_state(facet.entity.name+'-pkey');
+        var pkey = that.get_pkey();
         var msg = that.confirm_msg.replace('${object}', pkey);
         return msg;
     };
