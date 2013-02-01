@@ -276,7 +276,7 @@ def _httplib_request(
     if isinstance(host, unicode):
         host = host.encode('utf-8')
     uri = '%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
-    root_logger.info('request %r', uri)
+    root_logger.debug('request %r', uri)
     root_logger.debug('request body %r', request_body)
     try:
         conn = connection_factory(host, port)
