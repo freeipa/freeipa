@@ -19,6 +19,7 @@
 
 import socket
 import os
+import copy
 from ipapython.ipa_log_manager import *
 import tempfile
 import ldap
@@ -59,6 +60,7 @@ class IPADiscovery(object):
         self.realm = None
         self.domain = None
         self.server = None
+        self.servers = []
         self.basedn = None
 
         self.realm_source = None
@@ -114,24 +116,25 @@ class IPADiscovery(object):
         Given a domain search it for SRV records, breaking it down to search
         all subdomains too.
 
-        Returns a tuple (server, domain) or (None,None) if a SRV record
-        isn't found.
+        Returns a tuple (servers, domain) or (None,None) if a SRV record
+        isn't found. servers is a list of servers found. domain is a string.
 
         :param tried: A set of domains that were tried already
         :param reason: Reason this domain is searched (included in the log)
         """
-        server = None
+        servers = None
         root_logger.debug('Start searching for LDAP SRV record in "%s" (%s) ' +
                           'and its sub-domains', domain, reason)
-        while not server:
+        while not servers:
             if domain in tried:
                 root_logger.debug("Already searched %s; skipping", domain)
                 break
             tried.add(domain)
 
-            server = self.ipadns_search_srv(domain, '_ldap._tcp', 389)
-            if server:
-                return (server[0], domain)
+            servers = self.ipadns_search_srv(domain, '_ldap._tcp', 389,
+                break_on_first=False)
+            if servers:
+                return (servers, domain)
             else:
                 p = domain.find(".")
                 if p == -1: #no ldap server found and last component of the domain already tested
@@ -139,16 +142,24 @@ class IPADiscovery(object):
                 domain = domain[p+1:]
         return (None, None)
 
-    def search(self, domain = "", server = "", hostname=None, ca_cert_path=None):
+    def search(self, domain = "", servers = "", hostname=None, ca_cert_path=None):
+        """
+        Use DNS discovery to identify valid IPA servers.
+
+        servers may contain an optional list of servers which will be used
+        instead of discovering available LDAP SRV records.
+
+        Returns a constant representing the overall search result.
+        """
         root_logger.debug("[IPA Discovery]")
         root_logger.debug(
-            'Starting IPA discovery with domain=%s, server=%s, hostname=%s',
-            domain, server, hostname)
+            'Starting IPA discovery with domain=%s, servers=%s, hostname=%s',
+            domain, servers, hostname)
 
-        if type(server) in (list, tuple):
-            server = server[0]
+        self.server = None
+        autodiscovered = False
 
-        if not server:
+        if not servers:
 
             if not domain: #domain not provided do full DNS discovery
 
@@ -177,9 +188,9 @@ class IPADiscovery(object):
                 domains = [(domain, 'domain of the hostname')] + domains
                 tried = set()
                 for domain, reason in domains:
-                    server, domain = self.check_domain(domain, tried, reason)
-                    if server:
-                        self.server = server
+                    servers, domain = self.check_domain(domain, tried, reason)
+                    if servers:
+                        autodiscovered = True
                         self.domain = domain
                         self.server_source = self.domain_source = (
                             'Discovered LDAP SRV records from %s (%s)' %
@@ -190,9 +201,10 @@ class IPADiscovery(object):
                     return NO_LDAP_SERVER
             else:
                 root_logger.debug("Search for LDAP SRV record in %s", domain)
-                server = self.ipadns_search_srv(domain, '_ldap._tcp', 389)
-                if server:
-                    self.server = server[0]
+                servers = self.ipadns_search_srv(domain, '_ldap._tcp', 389,
+                                                 break_on_first=False)
+                if servers:
+                    autodiscovered = True
                     self.domain = domain
                     self.server_source = self.domain_source = (
                         'Discovered LDAP SRV records from %s' % domain)
@@ -205,13 +217,12 @@ class IPADiscovery(object):
 
             root_logger.debug("Server and domain forced")
             self.domain = domain
-            self.server = server
             self.domain_source = self.server_source = 'Forced'
 
         #search for kerberos
         root_logger.debug("[Kerberos realm search]")
         krb_realm, kdc = self.ipadnssearchkrb(self.domain)
-        if not server and not krb_realm:
+        if not servers and not krb_realm:
             return REALM_NOT_FOUND
 
         self.realm = krb_realm
@@ -219,24 +230,47 @@ class IPADiscovery(object):
         self.realm_source = self.kdc_source = (
             'Discovered Kerberos DNS records from %s' % self.domain)
 
-        root_logger.debug("[LDAP server check]")
-        root_logger.debug('Verifying that %s (realm %s) is an IPA server',
-            self.server, self.realm)
         # We may have received multiple servers corresponding to the domain
         # Iterate through all of those to check if it is IPA LDAP server
         ldapret = [NOT_IPA_SERVER]
         ldapaccess = True
-        if self.server:
+        root_logger.debug("[LDAP server check]")
+        valid_servers = []
+        verified_servers = False # is at least one server valid?
+        for server in servers:
+            root_logger.debug('Verifying that %s (realm %s) is an IPA server',
+                server, self.realm)
             # check ldap now
-            ldapret = self.ipacheckldap(self.server, self.realm, ca_cert_path=ca_cert_path)
+            ldapret = self.ipacheckldap(server, self.realm, ca_cert_path=ca_cert_path)
 
             if ldapret[0] == 0:
                 self.server = ldapret[1]
                 self.realm = ldapret[2]
                 self.server_source = self.realm_source = (
                     'Discovered from LDAP DNS records in %s' % self.server)
+                valid_servers.insert(0, server)
+                # verified, we actually talked to the remote server and it
+                # is definetely an IPA server
+                verified_servers = True
+                if autodiscovered:
+                    # No need to keep verifying servers if we discovered them
+                    # via DNS
+                    break
             elif ldapret[0] == NO_ACCESS_TO_LDAP or ldapret[0] == NO_TLS_LDAP:
                 ldapaccess = False
+                valid_servers.insert(0, server)
+                # we may set verified_servers below, we don't have it yet
+                if autodiscovered:
+                    # No need to keep verifying servers if we discovered them
+                    # via DNS
+                    break
+            elif ldapret[0] == NOT_IPA_SERVER:
+                root_logger.warn(
+                    '%s (realm %s) is not an IPA server', server, self.realm)
+            elif ldapret[0] == NO_LDAP_SERVER:
+                root_logger.debug(
+                    'Unable to verify that %s (realm %s) is an IPA server',
+                                    server, self.realm)
 
         # If one of LDAP servers checked rejects access (maybe anonymous
         # bind is disabled), assume realm and basedn generated off domain.
@@ -250,17 +284,28 @@ class IPADiscovery(object):
             self.realm_source = 'Assumed same as domain'
             root_logger.debug(
                 "Assuming realm is the same as domain: %s", self.realm)
+            verified_servers = True
 
         if not ldapaccess and self.basedn is None:
             # Generate suffix from realm
             self.basedn = realm_to_suffix(self.realm)
             self.basedn_source = 'Generated from Kerberos realm'
             root_logger.debug("Generated basedn from realm: %s" % self.basedn)
+            verified_servers = True
 
         root_logger.debug(
             "Discovery result: %s; server=%s, domain=%s, kdc=%s, basedn=%s",
             error_names.get(ldapret[0], ldapret[0]),
             self.server, self.domain, self.kdc, self.basedn)
+
+        root_logger.debug("Validated servers: %s" % ','.join(valid_servers))
+        self.servers = valid_servers
+
+        # If we have any servers left then override the last return value
+        # to indicate success.
+        if verified_servers:
+            self.server = servers[0]
+            ldapret[0] = 0
 
         return ldapret[0]
 
@@ -339,11 +384,15 @@ class IPADiscovery(object):
 
         except LDAPError, err:
             if isinstance(err, ldap.TIMEOUT):
-                root_logger.error("LDAP Error: timeout")
+                root_logger.debug("LDAP Error: timeout")
+                return [NO_LDAP_SERVER]
+
+            if isinstance(err, ldap.SERVER_DOWN):
+                root_logger.debug("LDAP Error: server down")
                 return [NO_LDAP_SERVER]
 
             if isinstance(err, ldap.INAPPROPRIATE_AUTH):
-                root_logger.debug("LDAP Error: Anonymous acces not allowed")
+                root_logger.debug("LDAP Error: Anonymous access not allowed")
                 return [NO_ACCESS_TO_LDAP]
 
             # We should only get UNWILLING_TO_PERFORM if the remote LDAP server

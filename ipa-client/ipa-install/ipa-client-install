@@ -1702,9 +1702,7 @@ def install(options, env, fstore, statestore):
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
 
-    # Do discovery on the first server passed in, we'll do sanity checking
-    # on any others
-    ret = ds.search(domain=options.domain, server=options.server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
+    ret = ds.search(domain=options.domain, servers=options.server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
 
     if ret == ipadiscovery.BAD_HOST_CONFIG:
         root_logger.error("Can't get the fully qualified name of this host")
@@ -1741,7 +1739,7 @@ def install(options, env, fstore, statestore):
             cli_domain_source = 'Provided interactively'
             root_logger.debug(
                 "will use interactively provided domain: %s", cli_domain)
-        ret = ds.search(domain=cli_domain, server=options.server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
+        ret = ds.search(domain=cli_domain, servers=options.server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
 
     if not cli_domain:
         if ds.domain:
@@ -1765,7 +1763,7 @@ def install(options, env, fstore, statestore):
             cli_server = [user_input("Provide your IPA server name (ex: ipa.example.com)", allow_empty = False)]
             cli_server_source = 'Provided interactively'
             root_logger.debug("will use interactively provided server: %s", cli_server[0])
-        ret = ds.search(domain=cli_domain, server=cli_server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
+        ret = ds.search(domain=cli_domain, servers=cli_server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
 
     else:
         # Only set dnsok to True if we were not passed in one or more servers
@@ -1782,11 +1780,11 @@ def install(options, env, fstore, statestore):
 
     if not cli_server:
         if options.server:
-            cli_server = options.server
+            cli_server = ds.servers
             cli_server_source = 'Provided as option'
             root_logger.debug("will use provided server: %s", ', '.join(options.server))
         elif ds.server:
-            cli_server = [ds.server]
+            cli_server = ds.servers
             cli_server_source = ds.server_source
             root_logger.debug("will use discovered server: %s", cli_server[0])
 
@@ -1856,16 +1854,6 @@ def install(options, env, fstore, statestore):
     cli_basedn_source = ds.basedn_source
     root_logger.debug("will use discovered basedn: %s", cli_basedn)
     subject_base = DN(('O', cli_realm))
-
-    # Now do a sanity check on the other servers
-    if options.server and len(options.server) > 1:
-        for server in options.server[1:]:
-            ret = ds.search(domain=cli_domain, server=server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
-            if ret == ipadiscovery.NOT_IPA_SERVER:
-                root_logger.error("%s is not an IPA v2 Server.", server)
-                print_port_conf_info()
-                root_logger.debug("(%s: %s)", server, cli_server_source)
-                return CLIENT_INSTALL_ERROR
 
     root_logger.info("Hostname: %s", hostname)
     root_logger.debug("Hostname source: %s", hostname_source)
