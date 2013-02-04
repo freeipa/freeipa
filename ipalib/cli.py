@@ -834,6 +834,9 @@ class help(frontend.Local):
                 for c in commands:
                     writer(
                         '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary))
+                writer()
+                writer(_('To get command help, use:'))
+                writer(_('  ipa <command> --help'))
             writer()
 
 class show_mappings(frontend.Command):
