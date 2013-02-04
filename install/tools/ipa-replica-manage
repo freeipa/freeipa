@@ -770,7 +770,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
             standard_logging_setup(console_format='%(message)s')
 
             ds = ipadiscovery.IPADiscovery()
-            ret = ds.search(server=replica2)
+            ret = ds.search(servers=[replica2])
 
             if ret == ipadiscovery.NOT_IPA_SERVER:
                 sys.exit("Connection unsuccessful: %s is not an IPA Server." %

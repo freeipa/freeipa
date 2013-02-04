@@ -384,30 +384,33 @@ def main():
         sys.exit('automount is already configured on this system.\n')
 
     autodiscover = False
-    server = options.server
+    servers = []
     ds = ipadiscovery.IPADiscovery()
-    if not server:
+    if not options.server:
         print "Searching for IPA server..."
         ret = ds.search()
         root_logger.debug('Executing DNS discovery')
         if ret == ipadiscovery.NO_LDAP_SERVER:
             root_logger.debug('Autodiscovery did not find LDAP server')
-            if not server:
-                s = urlparse.urlsplit(api.env.xmlrpc_uri)
-                server = s.netloc
-                root_logger.debug('Setting server to %s' % s.netloc)
+            s = urlparse.urlsplit(api.env.xmlrpc_uri)
+            server = [s.netloc]
+            root_logger.debug('Setting server to %s' % s.netloc)
         else:
             autodiscover = True
-            server = ds.getServerName()
-            if not server:
+            if not ds.servers:
                 sys.exit('Autodiscovery was successful but didn\'t return a server')
-            root_logger.debug('Autodiscovery success, setting server to %s' % server)
-
-    # Now confirm that our server is an IPA server
-    root_logger.debug("Verifying that %s is an IPA server" % server)
-    ldapret = ds.ipacheckldap(server, api.env.realm)
-    if ldapret[0] != 0:
-        sys.exit('Unable to confirm that %s is an IPA v2 server' % server)
+            root_logger.debug('Autodiscovery success, possible servers %s' % ','.join(ds.servers))
+            server = ds.servers[0]
+    else:
+        server = options.server
+        root_logger.debug("Verifying that %s is an IPA server" % server)
+        ldapret = ds.ipacheckldap(server, api.env.realm)
+        if ldapret[0] == ipadiscovery.NO_ACCESS_TO_LDAP:
+            print "Anonymous access to the LDAP server is disabled."
+            print "Proceeding without strict verification."
+            print "Note: This is not an error if anonymous access has been explicitly restricted."
+        elif ldapret[0] != 0:
+            sys.exit('Unable to confirm that %s is an IPA server' % server)
 
     if not autodiscover:
         print "IPA server: %s" % server
