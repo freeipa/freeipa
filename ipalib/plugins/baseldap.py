@@ -424,7 +424,6 @@ class LDAPObject(Object):
 
     parent_object = ''
     container_dn = ''
-    normalize_dn = True
     object_name = _('entry')
     object_name_plural = _('entries')
     object_class = []
@@ -868,7 +867,7 @@ last, after all sets and adds."""),
         if needldapattrs:
             try:
                 (dn, old_entry) = self._exc_wrapper(keys, options, ldap.get_entry)(
-                    dn, needldapattrs, normalize=self.obj.normalize_dn
+                    dn, needldapattrs
                 )
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
@@ -1034,7 +1033,7 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
 
         try:
-            self._exc_wrapper(keys, options, ldap.add_entry)(dn, entry_attrs, normalize=self.obj.normalize_dn)
+            self._exc_wrapper(keys, options, ldap.add_entry)(dn, entry_attrs)
         except errors.NotFound:
             parent = self.obj.parent_object
             if parent:
@@ -1066,7 +1065,7 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
                 assert isinstance(dn, DN)
             else:
                 (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
-                    dn, attrs_list, normalize=self.obj.normalize_dn
+                    dn, attrs_list
                 )
                 assert isinstance(dn, DN)
         except errors.NotFound:
@@ -1190,7 +1189,7 @@ class LDAPRetrieve(LDAPQuery):
 
         try:
             (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
-                dn, attrs_list, normalize=self.obj.normalize_dn
+                dn, attrs_list
             )
             assert isinstance(dn, DN)
         except errors.NotFound:
@@ -1315,7 +1314,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             # mean an error occurred, just that there were no other updates to
             # perform.
             assert isinstance(dn, DN)
-            self._exc_wrapper(keys, options, ldap.update_entry)(dn, entry_attrs, normalize=self.obj.normalize_dn)
+            self._exc_wrapper(keys, options, ldap.update_entry)(dn, entry_attrs)
         except errors.EmptyModlist, e:
             if not rdnupdate:
                 raise e
@@ -1324,7 +1323,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         try:
             (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
-                dn, attrs_list, normalize=self.obj.normalize_dn
+                dn, attrs_list
             )
         except errors.NotFound:
             raise errors.MidairCollision(
@@ -1395,12 +1394,12 @@ class LDAPDelete(LDAPMultiQuery):
                         for (dn_, entry_attrs) in subentries:
                             delete_subtree(dn_)
                 try:
-                    self._exc_wrapper(nkeys, options, ldap.delete_entry)(base_dn, normalize=self.obj.normalize_dn)
+                    self._exc_wrapper(nkeys, options, ldap.delete_entry)(base_dn)
                 except errors.NotFound:
                     self.obj.handle_not_found(*nkeys)
 
             try:
-                self._exc_wrapper(nkeys, options, ldap.delete_entry)(dn, normalize=self.obj.normalize_dn)
+                self._exc_wrapper(nkeys, options, ldap.delete_entry)(dn)
             except errors.NotFound:
                 self.obj.handle_not_found(*nkeys)
             except errors.NotAllowedOnNonLeaf:
@@ -1554,7 +1553,7 @@ class LDAPAddMember(LDAPModMember):
 
         try:
             (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
-                dn, attrs_list, normalize=self.obj.normalize_dn
+                dn, attrs_list
             )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
@@ -1655,7 +1654,7 @@ class LDAPRemoveMember(LDAPModMember):
 
         try:
             (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
-                dn, attrs_list, normalize=self.obj.normalize_dn
+                dn, attrs_list
             )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)

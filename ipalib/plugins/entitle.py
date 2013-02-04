@@ -633,9 +633,7 @@ class entitle_import(LDAPUpdate):
             except M2Crypto.X509.X509Error:
                 raise errors.CertificateFormatError(error=_('Not an entitlement certificate'))
             dn = DN(('ipaentitlementid', entry_attrs['ipaentitlementid']), dn)
-            (dn, current_attrs) = ldap.get_entry(
-                dn, ['*'], normalize=self.obj.normalize_dn
-            )
+            (dn, current_attrs) = ldap.get_entry(dn, ['*'])
             entry_attrs['usercertificate'] = current_attrs['usercertificate']
             entry_attrs['usercertificate'].append(newcert)
         except errors.NotFound:

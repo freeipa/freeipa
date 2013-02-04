@@ -715,9 +715,7 @@ class automountkey(LDAPObject):
         # First we look with the information given, then try to search for
         # the right entry.
         try:
-            (dn, entry_attrs) = ldap.get_entry(
-                dn, ['*'], normalize=self.normalize_dn
-            )
+            (dn, entry_attrs) = ldap.get_entry(dn, ['*'])
         except errors.NotFound:
             if kwargs.get('automountinformation', False):
                 sfilter = '(&(automountkey=%s)(automountinformation=%s))' % \

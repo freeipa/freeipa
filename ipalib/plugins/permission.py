@@ -330,9 +330,7 @@ class permission_mod(LDAPUpdate):
 
         # check if permission is in LDAP
         try:
-            (dn, attrs) = ldap.get_entry(
-                dn, attrs_list, normalize=self.obj.normalize_dn
-            )
+            (dn, attrs) = ldap.get_entry(dn, attrs_list)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -347,7 +345,7 @@ class permission_mod(LDAPUpdate):
                     except (IndexError, KeyError), e:
                         raise ValueError("expected dn starting with 'cn=' but got '%s'" % dn)
                     new_dn[0].value = options['rename']
-                    (new_dn, attrs) = ldap.get_entry(new_dn, attrs_list, normalize=self.obj.normalize_dn)
+                    (new_dn, attrs) = ldap.get_entry(new_dn, attrs_list)
                     raise errors.DuplicateEntry()
                 except errors.NotFound:
                     pass    # permission may be renamed, continue

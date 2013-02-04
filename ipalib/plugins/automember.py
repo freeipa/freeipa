@@ -303,8 +303,7 @@ class automember_add_condition(LDAPUpdate):
                 entry_attrs[attr] = [key + condition for condition in options[attr]]
                 completed += len(entry_attrs[attr])
                 try:
-                    (dn, old_entry) = ldap.get_entry(
-                        dn, [attr], normalize=self.obj.normalize_dn)
+                    (dn, old_entry) = ldap.get_entry(dn, [attr])
                     for regex in old_entry.keys():
                         if not isinstance(entry_attrs[regex], (list, tuple)):
                             entry_attrs[regex] = [entry_attrs[regex]]
@@ -325,9 +324,7 @@ class automember_add_condition(LDAPUpdate):
 
         # Make sure to returned the failed results if there is nothing to remove
         if completed == 0:
-            (dn, entry_attrs) = ldap.get_entry(
-                dn, attrs_list, normalize=self.obj.normalize_dn
-            )
+            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
             raise errors.EmptyModlist
         return dn
 
@@ -390,16 +387,13 @@ class automember_remove_condition(LDAPUpdate):
         failed = {'failed': {}}
 
         # Check to see if there are existing exclusive conditions present.
-        (dn, exclude_present) = ldap.get_entry(
-            dn, [EXCLUDE_RE], normalize=self.obj.normalize_dn)
+        (dn, exclude_present) = ldap.get_entry(dn, [EXCLUDE_RE])
 
         for attr in (INCLUDE_RE, EXCLUDE_RE):
             failed['failed'][attr] = []
             if attr in options and options[attr]:
                 entry_attrs[attr] = [key + condition for condition in options[attr]]
-                (dn, entry_attrs_) = ldap.get_entry(
-                    dn, [attr], normalize=self.obj.normalize_dn
-                )
+                (dn, entry_attrs_) = ldap.get_entry(dn, [attr])
                 old_entry = entry_attrs_.get(attr, [])
                 for regex in entry_attrs[attr]:
                     if regex in old_entry:
@@ -418,9 +412,7 @@ class automember_remove_condition(LDAPUpdate):
 
         # Make sure to returned the failed results if there is nothing to remove
         if completed == 0:
-            (dn, entry_attrs) = ldap.get_entry(
-                dn, attrs_list, normalize=self.obj.normalize_dn
-            )
+            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
             raise errors.EmptyModlist
         return dn
 
@@ -550,9 +542,7 @@ class automember_default_group_remove(LDAPUpdate):
                 api.env.basedn)
         attr = 'automemberdefaultgroup'
 
-        (dn, entry_attrs_) = ldap.get_entry(
-            dn, [attr], normalize=self.obj.normalize_dn
-        )
+        (dn, entry_attrs_) = ldap.get_entry(dn, [attr])
 
         if attr not in entry_attrs_:
             raise errors.NotFound(reason=_(u'No default (fallback) group set'))

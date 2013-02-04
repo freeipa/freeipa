@@ -2431,9 +2431,7 @@ class dnsrecord_add(LDAPCreate):
         # We always want to retrieve all DNS record attributes to test for
         # record type collisions (#2601)
         try:
-            (dn_, old_entry) = ldap.get_entry(
-                        dn, _record_attributes,
-                        normalize=self.obj.normalize_dn)
+            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
             pass
         else:
@@ -2527,8 +2525,7 @@ class dnsrecord_mod(LDAPUpdate):
         # current entry is needed in case of per-dns-record-part updates and
         # for record type collision check
         try:
-            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes,
-                                              normalize=self.obj.normalize_dn)
+            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -2563,9 +2560,7 @@ class dnsrecord_mod(LDAPUpdate):
                 keys = keys[:-1] + (rename,)
             dn = self.obj.get_dn(*keys, **options)
             ldap = self.obj.backend
-            (dn_, old_entry) = ldap.get_entry(
-                    dn, _record_attributes,
-                    normalize=self.obj.normalize_dn)
+            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
 
             del_all = True
             for attr in old_entry.keys():
@@ -2680,9 +2675,7 @@ class dnsrecord_del(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn_, old_entry) = ldap.get_entry(
-                    dn, _record_attributes,
-                    normalize=self.obj.normalize_dn)
+            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -2957,8 +2950,7 @@ class dnsconfig(LDAPObject):
         return DN(api.env.container_dns, api.env.basedn)
 
     def get_dnsconfig(self, ldap):
-        (dn, entry) = ldap.get_entry(self.get_dn(), None,
-                           normalize=self.normalize_dn)
+        (dn, entry) = ldap.get_entry(self.get_dn(), None)
 
         return entry
 
