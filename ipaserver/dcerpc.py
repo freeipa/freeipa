@@ -204,6 +204,16 @@ class DomainValidator(object):
         else:
             return True
 
+    def get_sid_from_domain_name(self, name):
+        """Returns binary representation of SID for the trusted domain name
+           or None if name is not in the list of trusted domains."""
+
+        domains = self.get_trusted_domains()
+        if name in domains:
+            return domains[name][1]
+        else:
+            return None
+
     def get_trusted_domain_objects(self, domain=None, flatname=None, filter="",
             attrs=None, scope=_ldap.SCOPE_SUBTREE, basedn=None):
         """

@@ -57,7 +57,7 @@ Additionally an ID range of the local domain may set
 
 and an ID range of a trusted domain must set
  - rid-base: the first RID of the corresponding RID range
- - dom_sid: domain SID of the trusted domain
+ - sid: domain SID of the trusted domain
 
 
 
@@ -197,6 +197,11 @@ class idrange(LDAPObject):
             cli_name='dom_sid',
             label=_('Domain SID of the trusted domain'),
         ),
+        Str('ipanttrusteddomainname?',
+            cli_name='dom_name',
+            flags=('no_search', 'virtual_attribute'),
+            label=_('Name of the trusted domain'),
+        ),
         Str('iparangetype?',
             label=_('Range type'),
             flags=['no_option'],
@@ -265,17 +270,42 @@ class idrange(LDAPObject):
                     error=_('range modification leaving objects with ID out '
                             'of the defined range is not allowed'))
 
-    def validate_trusted_domain_sid(self, sid):
+    def get_domain_validator(self):
         if not _dcerpc_bindings_installed:
-            raise errors.NotFound(reason=_('Cannot perform SID validation without Samba 4 support installed. '
-                         'Make sure you have installed server-trust-ad sub-package of IPA on the server'))
+            raise errors.NotFound(reason=_('Cannot perform SID validation '
+                'without Samba 4 support installed. Make sure you have '
+                'installed server-trust-ad sub-package of IPA on the server'))
+
         domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+
         if not domain_validator.is_configured():
-            raise errors.NotFound(reason=_('Cross-realm trusts are not configured. '
-                          'Make sure you have run ipa-adtrust-install on the IPA server first'))
+            raise errors.NotFound(reason=_('Cross-realm trusts are not '
+                'configured. Make sure you have run ipa-adtrust-install '
+                'on the IPA server first'))
+
+        return domain_validator
+
+    def validate_trusted_domain_sid(self, sid):
+
+        domain_validator = self.get_domain_validator()
+
         if not domain_validator.is_trusted_sid_valid(sid):
             raise errors.ValidationError(name='domain SID',
-                  error=_('SID is not recognized as a valid SID for a trusted domain'))
+                  error=_('SID is not recognized as a valid SID for a '
+                          'trusted domain'))
+
+    def get_trusted_domain_sid_from_name(self, name):
+        """ Returns unicode string representation for given trusted domain name
+        or None if SID forthe given trusted domain name could not be found."""
+
+        domain_validator = self.get_domain_validator()
+
+        sid = domain_validator.get_sid_from_domain_name(name)
+
+        if sid is not None:
+            sid = unicode(sid)
+
+        return sid
 
     # checks that primary and secondary rid ranges do not overlap
     def are_rid_ranges_overlapping(self, rid_base, secondary_rid_base, size):
@@ -336,26 +366,45 @@ class idrange_add(LDAPCreate):
 
         is_set = lambda x: (x in entry_attrs) and (x is not None)
 
+        # This needs to stay in options since there is no
+        # ipanttrusteddomainname attribute in LDAP
+        if 'ipanttrusteddomainname' in options:
+            if is_set('ipanttrusteddomainsid'):
+                raise errors.ValidationError(name='ID Range setup',
+                    error=_('Options dom-sid and dom-name '
+                            'cannot be used together'))
+
+            sid = self.obj.get_trusted_domain_sid_from_name(
+                options['ipanttrusteddomainname'])
+
+            if sid is not None:
+                entry_attrs['ipanttrusteddomainsid'] = sid
+            else:
+                raise errors.ValidationError(name='ID Range setup',
+                    error=_('SID for the specified trusted domain name could '
+                            'not be found. Please specify the SID directly '
+                            'using dom-sid option.'))
+
         if is_set('ipanttrusteddomainsid'):
             if is_set('ipasecondarybaserid'):
                 raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options dom_sid and secondary_rid_base cannot '
-                            'be used together'))
+                    error=_('Options dom-sid/dom-name and secondary-rid-base '
+                            'cannot be used together'))
 
             if not is_set('ipabaserid'):
                 raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options dom_sid and rid_base must '
+                    error=_('Options dom-sid/dom-name and rid-base must '
                             'be used together'))
 
             # Validate SID as the one of trusted domains
-            self.obj.validate_trusted_domain_sid(options['ipanttrusteddomainsid'])
+            self.obj.validate_trusted_domain_sid(entry_attrs['ipanttrusteddomainsid'])
             # Finally, add trusted AD domain range object class
             entry_attrs['objectclass'].append('ipatrustedaddomainrange')
 
         else:
             if is_set('ipasecondarybaserid') != is_set('ipabaserid'):
                 raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options secondary_rid_base and rid_base must '
+                    error=_('Options secondary-rid-base and rid-base must '
                             'be used together'))
 
             if is_set('ipabaserid') and is_set('ipasecondarybaserid'):
@@ -436,6 +485,25 @@ class idrange_mod(LDAPUpdate):
 
         is_set = lambda x: (x in entry_attrs) and (x is not None)
 
+        # This needs to stay in options since there is no
+        # ipanttrusteddomainname attribute in LDAP
+        if 'ipanttrusteddomainname' in options:
+            if is_set('ipanttrusteddomainsid'):
+                raise errors.ValidationError(name='ID Range setup',
+                    error=_('Options dom-sid and dom-name '
+                            'cannot be used together'))
+
+            sid = self.obj.get_trusted_domain_sid_from_name(
+                options['ipanttrusteddomainname'])
+
+            if sid is not None:
+                entry_attrs['ipanttrusteddomainsid'] = sid
+            else:
+                raise errors.ValidationError(name='ID Range setup',
+                    error=_('SID for the specified trusted domain name could '
+                            'not be found. Please specify the SID directly '
+                            'using dom-sid option.'))
+
         try:
             (old_dn, old_attrs) = ldap.get_entry(dn,
                                                 ['ipabaseid',
@@ -447,7 +515,7 @@ class idrange_mod(LDAPUpdate):
 
         if is_set('ipanttrusteddomainsid'):
             # Validate SID as the one of trusted domains
-            self.obj.validate_trusted_domain_sid(options['ipanttrusteddomainsid'])
+            self.obj.validate_trusted_domain_sid(entry_attrs['ipanttrusteddomainsid'])
 
         # ensure that primary and secondary rid ranges do not overlap
         if all((base in entry_attrs) or (base in old_attrs)
