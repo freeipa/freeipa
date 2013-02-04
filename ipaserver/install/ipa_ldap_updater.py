@@ -34,7 +34,6 @@ from ipapython import ipautil, admintool
 from ipaserver.install import installutils
 from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR
 from ipaserver.install.upgradeinstance import IPAUpgrade
-from ipapython import ipa_log_manager
 
 
 class LDAPUpdater(admintool.AdminTool):
@@ -45,26 +44,26 @@ class LDAPUpdater(admintool.AdminTool):
 
     @classmethod
     def add_options(cls, parser):
-        super(LDAPUpdater, cls).add_options(parser)
+        super(LDAPUpdater, cls).add_options(parser, debug_option=True)
 
         parser.add_option("-t", "--test", action="store_true", dest="test",
             default=False,
-            help="Run through the update without changing anything")
+            help="run through the update without changing anything")
         parser.add_option("-y", dest="password",
-            help="File containing the Directory Manager password")
+            help="file containing the Directory Manager password")
         parser.add_option("-l", '--ldapi', action="store_true", dest="ldapi",
             default=False,
-            help="Connect to the LDAP server using the ldapi socket")
+            help="connect to the LDAP server using the ldapi socket")
         parser.add_option("-u", '--upgrade', action="store_true",
             dest="upgrade", default=False,
-            help="Upgrade an installed server in offline mode")
+            help="upgrade an installed server in offline mode")
         parser.add_option("-p", '--plugins', action="store_true",
             dest="plugins", default=False,
-            help="Execute update plugins. " +
-                "Always true when applying all update files.")
+            help="execute update plugins " +
+                "(implied when no input files are given)")
         parser.add_option("-W", '--password', action="store_true",
             dest="ask_password",
-            help="Prompt for the Directory Manager password")
+            help="prompt for the Directory Manager password")
 
     @classmethod
     def get_command_class(cls, options, args):
@@ -73,9 +72,9 @@ class LDAPUpdater(admintool.AdminTool):
         else:
             return LDAPUpdater_NonUpgrade
 
-    def validate_options(self):
+    def validate_options(self, **kwargs):
         options = self.options
-        super(LDAPUpdater, self).validate_options()
+        super(LDAPUpdater, self).validate_options(**kwargs)
 
         self.files = self.args
 
@@ -100,19 +99,12 @@ class LDAPUpdater(admintool.AdminTool):
             self.dirman_password = None
 
     def setup_logging(self):
-        ipa_log_manager.standard_logging_setup(self.log_file_name,
-            console_format='%(levelname)s: %(message)s',
-            debug=self.options.debug, filemode='a')
-        ipa_log_manager.log_mgr.get_logger(self, True)
+        super(LDAPUpdater, self).setup_logging(log_file_mode='a')
 
     def run(self):
         super(LDAPUpdater, self).run()
 
-        api.bootstrap(
-                in_server=True,
-                context='updates',
-                debug=self.options.debug,
-            )
+        api.bootstrap(in_server=True, context='updates')
         api.finalize()
 
     def handle_error(self, exception):
@@ -120,14 +112,13 @@ class LDAPUpdater(admintool.AdminTool):
 
 
 class LDAPUpdater_Upgrade(LDAPUpdater):
-    needs_root = True
     log_file_name = '/var/log/ipaupgrade.log'
 
     def validate_options(self):
         if os.getegid() != 0:
             raise admintool.ScriptError('Must be root to do an upgrade.', 1)
 
-        super(LDAPUpdater_Upgrade, self).validate_options()
+        super(LDAPUpdater_Upgrade, self).validate_options(needs_root=True)
 
     def run(self):
         super(LDAPUpdater_Upgrade, self).run()
@@ -145,7 +136,7 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
         elif upgrade.upgradefailed:
             raise admintool.ScriptError('IPA upgrade failed.', 1)
         elif upgrade.modified and options.test:
-            self.info('Update complete, changes to be made, test mode')
+            self.log.info('Update complete, changes to be made, test mode')
             return 2
 
 
@@ -160,8 +151,13 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
         self.run_plugins = not self.files or options.plugins
 
         # Need root for running plugins
-        if self.run_plugins and os.getegid() != 0:
-            raise admintool.ScriptError('Plugins can only be run as root.', 1)
+        if os.getegid() != 0:
+            if self.run_plugins:
+                raise admintool.ScriptError(
+                    'Plugins can only be run as root.', 1)
+            else:
+                # Can't log to the default file as non-root
+                self.log_file_name = None
 
     def ask_for_options(self):
         super(LDAPUpdater_NonUpgrade, self).ask_for_options()
@@ -192,5 +188,5 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
         modified = ld.update(self.files)
 
         if modified and options.test:
-            self.info('Update complete, changes to be made, test mode')
+            self.log.info('Update complete, changes to be made, test mode')
             return 2
