@@ -346,7 +346,6 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
                 api.log.error('entry %s does not belong into any known container' % m)
                 continue
 
-            m = ldap.normalize_dn(m)
             new_members.append(m)
 
         del entry_attrs[member_attr]
@@ -363,7 +362,7 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
         for m in entry_attrs[member_attr]:
             memberdn = DN((api.Object.user.primary_key.name, m),
                           api.env.container_user, api.env.basedn)
-            new_members.append(ldap.normalize_dn(memberdn))
+            new_members.append(memberdn)
         entry_attrs['member'] = new_members
 
     assert isinstance(dn, DN)
@@ -863,7 +862,7 @@ can use their Kerberos accounts.''')
         #check whether the compat plugin is enabled
         if not options.get('compat'):
             try:
-                (dn,check_compat) = ldap.get_entry(_compat_dn, normalize=False)
+                (dn,check_compat) = ldap.get_entry(_compat_dn)
                 assert isinstance(dn, DN)
                 if check_compat is not None and \
                         check_compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':

@@ -1915,12 +1915,11 @@ def update_people_entry(uid, dercert):
             conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
             conn.connect(bind_dn=DN(('cn', 'directory manager')),
                 bind_pw=dm_password)
-            (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'],
-                normalize=False)
+            (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'])
             entry_attrs['usercertificate'].append(dercert)
             entry_attrs['description'] = '2;%d;%s;%s' % (serial_number, issuer,
                 subject)
-            conn.update_entry(dn, entry_attrs, normalize=False)
+            conn.update_entry(dn, entry_attrs)
             updated = True
             break
         except errors.NetworkError:

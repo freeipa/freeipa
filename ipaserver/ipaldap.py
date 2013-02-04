@@ -984,11 +984,6 @@ class LDAPClient(object):
         obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
         return obj and obj.single_value
 
-    def normalize_dn(self, dn):
-        """Override to normalize all DNs passed to LDAPClient methods"""
-        assert isinstance(dn, DN)
-        return dn
-
     def make_dn_from_attr(self, attr, value, parent_dn=None):
         """
         Make distinguished name from attribute.
@@ -998,7 +993,6 @@ class LDAPClient(object):
         """
         if parent_dn is None:
             parent_dn = DN()
-        parent_dn = self.normalize_dn(parent_dn)
 
         if isinstance(value, (list, tuple)):
             value = value[0]
@@ -1015,11 +1009,8 @@ class LDAPClient(object):
         """
 
         assert primary_key in entry_attrs
+        assert isinstance(parent_dn, DN)
 
-        if parent_dn is None:
-            parent_dn = DN()
-
-        parent_dn = self.normalize_dn(parent_dn)
         return DN((primary_key, entry_attrs[primary_key]), parent_dn)
 
     def make_entry(self, _dn=None, _obj=None, **kwargs):
@@ -1172,7 +1163,7 @@ class LDAPClient(object):
 
     def find_entries(self, filter=None, attrs_list=None, base_dn=None,
                      scope=ldap.SCOPE_SUBTREE, time_limit=None,
-                     size_limit=None, normalize=True, search_refs=False):
+                     size_limit=None, search_refs=False):
         """
         Return a list of entries and indication of whether the results were
         truncated ([(dn, entry_attrs)], truncated) matching specified search
@@ -1186,15 +1177,12 @@ class LDAPClient(object):
         time_limit -- time limit in seconds (default use IPA config values)
         size_limit -- size (number of entries returned) limit
             (default use IPA config values)
-        normalize -- normalize the DN (default True)
         search_refs -- allow search references to be returned
             (default skips these entries)
         """
         if base_dn is None:
             base_dn = DN()
         assert isinstance(base_dn, DN)
-        if normalize:
-            base_dn = self.normalize_dn(base_dn)
         if not filter:
             filter = '(objectClass=*)'
         res = []
@@ -1247,8 +1235,7 @@ class LDAPClient(object):
                     members = r[1]['member']
                     indirect = self.get_members(
                         r[0], members, membertype=MEMBERS_INDIRECT,
-                        time_limit=time_limit, size_limit=size_limit,
-                        normalize=normalize)
+                        time_limit=time_limit, size_limit=size_limit)
                     if len(indirect) > 0:
                         r[1]['memberindirect'] = indirect
         if attrs_list and (
@@ -1264,7 +1251,7 @@ class LDAPClient(object):
                     continue
                 direct, indirect = self.get_memberof(
                     r[0], memberof, time_limit=time_limit,
-                    size_limit=size_limit, normalize=normalize)
+                    size_limit=size_limit)
                 if len(direct) > 0:
                     r[1]['memberof'] = direct
                 if len(indirect) > 0:
@@ -1299,7 +1286,7 @@ class LDAPClient(object):
                 return entries[0]
 
     def get_entry(self, dn, attrs_list=None, time_limit=None,
-                  size_limit=None, normalize=True):
+                  size_limit=None):
         """
         Get entry (dn, entry_attrs) by dn.
 
@@ -1311,7 +1298,7 @@ class LDAPClient(object):
 
         (entry, truncated) = self.find_entries(
             None, attrs_list, dn, self.SCOPE_BASE, time_limit=time_limit,
-            size_limit=size_limit, normalize=normalize
+            size_limit=size_limit
         )
 
         if truncated:
@@ -1326,7 +1313,7 @@ class LDAPClient(object):
         return {}
 
     def get_memberof(self, entry_dn, memberof, time_limit=None,
-                     size_limit=None, normalize=True):
+                     size_limit=None):
         """
         Examine the objects that an entry is a member of and determine if they
         are a direct or indirect member of that group.
@@ -1361,7 +1348,7 @@ class LDAPClient(object):
                 result, truncated = self.find_entries(
                     searchfilter, attr_list,
                     group, time_limit=time_limit, size_limit=size_limit,
-                    scope=ldap.SCOPE_BASE, normalize=normalize)
+                    scope=ldap.SCOPE_BASE)
                 results.extend(list(result))
             except errors.NotFound:
                 pass
@@ -1386,8 +1373,7 @@ class LDAPClient(object):
         return (direct, indirect)
 
     def get_members(self, group_dn, members, attr_list=[],
-                    membertype=MEMBERS_ALL, time_limit=None, size_limit=None,
-                    normalize=True):
+                    membertype=MEMBERS_ALL, time_limit=None, size_limit=None):
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns all attributes).
 
@@ -1441,7 +1427,7 @@ class LDAPClient(object):
                     result, truncated = self.find_entries(
                         searchfilter, attr_list, member_dn,
                         time_limit=time_limit, size_limit=size_limit,
-                        scope=ldap.SCOPE_BASE, normalize=normalize)
+                        scope=ldap.SCOPE_BASE)
                     if truncated:
                         raise errors.LimitsExceeded()
                     results.append(list(result[0]))
@@ -1477,31 +1463,28 @@ class LDAPClient(object):
         self.log.debug("get_members: result=%s", entries)
         return entries
 
-    def _get_dn_and_attrs(self, entry_or_dn, entry_attrs, normalize):
+    def _get_dn_and_attrs(self, entry_or_dn, entry_attrs):
         """Helper for legacy calling style for {add,update}_entry
         """
         if entry_attrs is None:
-            assert normalize is None
             return entry_or_dn.dn, entry_or_dn
         else:
             assert isinstance(entry_or_dn, DN)
-            if normalize is None or normalize:
-                entry_or_dn = self.normalize_dn(entry_or_dn)
             entry_attrs = self.make_entry(entry_or_dn, entry_attrs)
             for key, value in entry_attrs.items():
                 if value is None:
                     entry_attrs[key] = []
             return entry_or_dn, entry_attrs
 
-    def add_entry(self, entry, entry_attrs=None, normalize=None):
+    def add_entry(self, entry, entry_attrs=None):
         """Create a new entry.
 
         This should be called as add_entry(entry).
 
-        The legacy two/three-argument variant is:
-            add_entry(dn, entry_attrs, normalize=True)
+        The legacy two-argument variant is:
+            add_entry(dn, entry_attrs)
         """
-        dn, attrs = self._get_dn_and_attrs(entry, entry_attrs, normalize)
+        dn, attrs = self._get_dn_and_attrs(entry, entry_attrs)
 
         # remove all [] values (python-ldap hates 'em)
         attrs = dict((k, v) for k, v in attrs.iteritems()
@@ -1523,19 +1506,17 @@ class LDAPClient(object):
         assert isinstance(dn, DN)
         assert isinstance(new_rdn, RDN)
 
-        dn = self.normalize_dn(dn)
         if dn[0] == new_rdn:
             raise errors.EmptyModlist()
         with self.error_handler():
             self.conn.rename_s(dn, new_rdn, delold=int(del_old))
             time.sleep(.3)  # Give memberOf plugin a chance to work
 
-    def _generate_modlist(self, dn, entry_attrs, normalize):
+    def _generate_modlist(self, dn, entry_attrs):
         assert isinstance(dn, DN)
 
         # get original entry
-        dn, entry_attrs_old = self.get_entry(
-            dn, entry_attrs.keys(), normalize=normalize)
+        dn, entry_attrs_old = self.get_entry(dn, entry_attrs.keys())
 
         # generate modlist
         # for multi value attributes: no MOD_REPLACE to handle simultaneous
@@ -1593,18 +1574,18 @@ class LDAPClient(object):
 
         return modlist
 
-    def update_entry(self, entry, entry_attrs=None, normalize=None):
+    def update_entry(self, entry, entry_attrs=None):
         """Update entry's attributes.
 
         This should be called as update_entry(entry).
 
-        The legacy two/three-argument variant is:
-            update_entry(dn, entry_attrs, normalize=True)
+        The legacy two-argument variant is:
+            update_entry(dn, entry_attrs)
         """
-        dn, attrs = self._get_dn_and_attrs(entry, entry_attrs, normalize)
+        dn, attrs = self._get_dn_and_attrs(entry, entry_attrs)
 
         # generate modlist
-        modlist = self._generate_modlist(dn, attrs, normalize)
+        modlist = self._generate_modlist(dn, attrs)
         if not modlist:
             raise errors.EmptyModlist()
 
@@ -1612,14 +1593,11 @@ class LDAPClient(object):
         with self.error_handler():
             self.conn.modify_s(dn, modlist)
 
-    def delete_entry(self, entry_or_dn, normalize=None):
+    def delete_entry(self, entry_or_dn):
         """Delete an entry given either the DN or the entry itself"""
         if isinstance(entry_or_dn, DN):
             dn = entry_or_dn
-            if normalize is None or normalize:
-                dn = self.normalize_dn(dn)
         else:
-            assert normalize is None
             dn = entry_or_dn.dn
 
         with self.error_handler():

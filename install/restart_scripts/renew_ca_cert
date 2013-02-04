@@ -70,11 +70,11 @@ try:
     try:
         (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'])
         entry_attrs['usercertificate'] = cert
-        conn.update_entry(dn, entry_attrs, normalize=False)
+        conn.update_entry(dn, entry_attrs)
     except errors.NotFound:
         entry_attrs = dict(objectclass=['top', 'pkiuser', 'nscontainer'],
                                         usercertificate=cert)
-        conn.add_entry(dn, entry_attrs, normalize=False)
+        conn.add_entry(dn, entry_attrs)
     except errors.EmptyModlist:
         pass
     conn.disconnect()

@@ -176,25 +176,6 @@ class ldap2(LDAPClient, CrudBackend):
             # ignore when trying to unbind multiple times
             pass
 
-    def normalize_dn(self, dn):
-        """
-        Normalize distinguished name by assuring it ends with
-        the base_dn.
-
-        Note: ldap2 methods normalize DNs internally, but relying on this is
-            not recommended.
-        """
-
-        assert isinstance(dn, DN)
-
-        if not dn.endswith(self.base_dn):
-            # DN's are mutable, don't use in-place addtion (+=) which would
-            # modify the dn passed in with unintended side-effects. Addition
-            # returns a new DN object which is the concatenation of the two.
-            dn = dn + self.base_dn
-
-        return dn
-
     config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
     def get_ipa_config(self, attrs_list=None):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
@@ -255,7 +236,8 @@ class ldap2(LDAPClient, CrudBackend):
         assert isinstance(dn, DN)
 
         principal = getattr(context, 'principal')
-        (binddn, attrs) = self.find_entry_by_attr("krbprincipalname", principal, "krbPrincipalAux")
+        (binddn, attrs) = self.find_entry_by_attr("krbprincipalname", principal,
+            "krbPrincipalAux", base_dn=api.env.basedn)
         assert isinstance(binddn, DN)
         sctrl = [GetEffectiveRightsControl(True, "dn: " + str(binddn))]
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
@@ -336,7 +318,6 @@ class ldap2(LDAPClient, CrudBackend):
         """Set user password."""
 
         assert isinstance(dn, DN)
-        dn = self.normalize_dn(dn)
 
         # The python-ldap passwd command doesn't verify the old password
         # so we'll do a simple bind to validate it.
@@ -456,7 +437,6 @@ class ldap2(LDAPClient, CrudBackend):
         """Remove a kerberos principal key."""
 
         assert isinstance(dn, DN)
-        dn = self.normalize_dn(dn)
 
         # We need to do this directly using the LDAP library because we
         # don't have read access to krbprincipalkey so we need to delete
