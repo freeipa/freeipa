@@ -197,7 +197,7 @@ class automember(LDAPObject):
         if self.parent_object:
             parent_dn = self.api.Object[self.parent_object].get_dn(*keys[:-1])
         else:
-            parent_dn = self.container_dn
+            parent_dn = DN(self.container_dn, api.env.basedn)
         grouptype = options['type']
         try:
             ndn = DN(('cn', keys[-1]), ('cn', grouptype), parent_dn)
@@ -221,7 +221,7 @@ api.register(automember)
 
 def automember_container_exists(ldap):
     try:
-        ldap.get_entry(api.env.container_automember, [])
+        ldap.get_entry(DN(api.env.container_automember, api.env.basedn), [])
     except errors.NotFound:
         return False
     return True
@@ -524,7 +524,8 @@ class automember_default_group_set(LDAPUpdate):
     msg_summary = _('Set default (fallback) group for automember "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        dn = DN(('cn', options['type']), api.env.container_automember)
+        dn = DN(('cn', options['type']), api.env.container_automember,
+                api.env.basedn)
         entry_attrs['automemberdefaultgroup'] = self.obj.dn_exists(options['type'], options['automemberdefaultgroup'])
         return dn
 
@@ -545,7 +546,8 @@ class automember_default_group_remove(LDAPUpdate):
     msg_summary = _('Removed default (fallback) group for automember "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        dn = DN(('cn', options['type']), api.env.container_automember)
+        dn = DN(('cn', options['type']), api.env.container_automember,
+                api.env.basedn)
         attr = 'automemberdefaultgroup'
 
         (dn, entry_attrs_) = ldap.get_entry(
@@ -579,7 +581,8 @@ class automember_default_group_show(LDAPRetrieve):
     takes_options = group_type
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
-        dn = DN(('cn', options['type']), api.env.container_automember)
+        dn = DN(('cn', options['type']), api.env.container_automember,
+                api.env.basedn)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

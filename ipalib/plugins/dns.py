@@ -1528,7 +1528,7 @@ def check_ns_rec_resolvable(zone, name):
 
 def dns_container_exists(ldap):
     try:
-        ldap.get_entry(api.env.container_dns, [])
+        ldap.get_entry(DN(api.env.container_dns, api.env.basedn), [])
     except errors.NotFound:
         return False
     return True
@@ -2954,7 +2954,7 @@ class dnsconfig(LDAPObject):
     )
 
     def get_dn(self, *keys, **kwargs):
-        return api.env.container_dns
+        return DN(api.env.container_dns, api.env.basedn)
 
     def get_dnsconfig(self, ldap):
         (dn, entry) = ldap.get_entry(self.get_dn(), None,

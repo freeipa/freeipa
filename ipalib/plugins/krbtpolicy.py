@@ -103,7 +103,7 @@ class krbtpolicy(LDAPObject):
     def get_dn(self, *keys, **kwargs):
         if keys[-1] is not None:
             return self.api.Object.user.get_dn(*keys, **kwargs)
-        return self.container_dn
+        return DN(self.container_dn, api.env.basedn)
 
 api.register(krbtpolicy)
 

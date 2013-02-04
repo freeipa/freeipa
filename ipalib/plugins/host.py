@@ -334,8 +334,7 @@ class host(LDAPObject):
             try:
                 (dn, entry_attrs) = self.backend.find_entry_by_attr(
                     'serverhostname', hostname, self.object_class, [''],
-                    self.container_dn
-                )
+                    DN(self.container_dn, api.env.basedn))
             except errors.NotFound:
                 pass
         return dn
@@ -347,8 +346,9 @@ class host(LDAPObject):
         managed_hosts = []
 
         try:
-            (hosts, truncated) = ldap.find_entries(base_dn=self.container_dn,
-                                    filter=host_filter, attrs_list=host_attrs)
+            (hosts, truncated) = ldap.find_entries(
+                base_dn=DN(self.container_dn, api.env.basedn),
+                filter=host_filter, attrs_list=host_attrs)
 
             for host in hosts:
                 managed_hosts.append(host[0])

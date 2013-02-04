@@ -89,7 +89,7 @@ class sudocmd(LDAPObject):
             try:
                 (dn, entry_attrs) = self.backend.find_entry_by_attr(
                     'sudocmd', keys[-1], self.object_class, [''],
-                    self.container_dn
+                    DN(self.container_dn, api.env.basedn)
                 )
             except errors.NotFound:
                 pass

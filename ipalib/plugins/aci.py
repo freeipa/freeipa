@@ -245,7 +245,10 @@ def _make_aci(ldap, current, aciname, kw):
             if 'test' in kw and not kw.get('test'):
                 raise e
             else:
-                entry_attrs = {'dn': DN(('cn', kw['permission']), api.env.container_permission)}
+                entry_attrs = {
+                    'dn': DN(('cn', kw['permission']),
+                             api.env.container_permission, api.env.basedn),
+                }
     elif group:
         # Not so friendly with groups. This will raise
         try:
@@ -366,7 +369,8 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
             except errors.NotFound, e:
                 # FIXME, use real name here
                 if test:
-                    dn = DN(('cn', 'test'), api.env.container_permission)
+                    dn = DN(('cn', 'test'), api.env.container_permission,
+                            api.env.basedn)
                     entry_attrs = {'cn': [u'test']}
             if api.env.container_permission in dn:
                 kw['permission'] = entry_attrs['cn'][0]

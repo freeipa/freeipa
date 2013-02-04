@@ -222,7 +222,7 @@ class selinuxusermap(LDAPObject):
                     seealso,
                     self.api.Object['hbacrule'].object_class,
                     [''],
-                    self.api.Object['hbacrule'].container_dn)
+                    DN(self.api.Object['hbacrule'].container_dn, api.env.basedn))
                 seealso = dn
             except errors.NotFound:
                 raise errors.NotFound(reason=_('HBAC rule %(rule)s not found') % dict(rule=seealso))

@@ -470,12 +470,12 @@ class LDAPObject(Object):
         if self.parent_object:
             parent_dn = self.api.Object[self.parent_object].get_dn(*keys[:-1])
         else:
-            parent_dn = self.container_dn
+            parent_dn = DN(self.container_dn, api.env.basedn)
         if self.rdn_attribute:
             try:
                 (dn, entry_attrs) = self.backend.find_entry_by_attr(
                     self.primary_key.name, keys[-1], self.object_class, [''],
-                    self.container_dn
+                    DN(self.container_dn, api.env.basedn)
                 )
             except errors.NotFound:
                 pass
@@ -534,7 +534,8 @@ class LDAPObject(Object):
             for member in entry_attrs.setdefault(attr, []):
                 for ldap_obj_name in self.attribute_members[attr]:
                     ldap_obj = self.api.Object[ldap_obj_name]
-                    if ldap_obj.container_dn in member:
+                    container_dn = DN(ldap_obj.container_dn, api.env.basedn)
+                    if member.endswith(container_dn):
                         new_attr = '%s_%s' % (attr, ldap_obj.name)
                         entry_attrs.setdefault(new_attr, []).append(
                             ldap_obj.get_primary_key_from_dn(member)
@@ -1012,7 +1013,8 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
             if dn_attr != self.obj.primary_key.name:
                 self.obj.handle_duplicate_entry(*keys)
             dn = ldap.make_dn(
-                entry_attrs, self.obj.rdn_attribute, self.obj.container_dn
+                entry_attrs, self.obj.rdn_attribute,
+                DN(self.obj.container_dn, api.env.basedn)
             )
 
         if options.get('all', False):
@@ -1059,7 +1061,7 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
                     object_class = None
                 (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.find_entry_by_attr)(
                     self.obj.primary_key.name, keys[-1], object_class, attrs_list,
-                    self.obj.container_dn
+                    DN(self.obj.container_dn, api.env.basedn)
                 )
                 assert isinstance(dn, DN)
             else:
@@ -1807,7 +1809,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         if self.obj.parent_object:
             base_dn = self.api.Object[self.obj.parent_object].get_dn(*args[:-1])
         else:
-            base_dn = self.obj.container_dn
+            base_dn = DN(self.obj.container_dn, api.env.basedn)
         assert isinstance(base_dn, DN)
 
         search_kw = self.args_options_2_entry(**options)

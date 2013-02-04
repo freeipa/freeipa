@@ -605,7 +605,7 @@ class automountmap_del(LDAPDelete):
         try:
             (dn_, entry_attrs) = ldap.find_entry_by_attr(
                 'automountinformation', keys[0], 'automount',
-                base_dn=self.obj.container_dn
+                base_dn=DN(self.obj.container_dn, api.env.basedn)
             )
             ldap.delete_entry(dn_)
         except errors.NotFound:
@@ -724,7 +724,9 @@ class automountkey(LDAPObject):
                     (kwargs['automountkey'], kwargs['automountinformation'])
             else:
                 sfilter = '(automountkey=%s)' % kwargs['automountkey']
-            basedn = DN(('automountmapname', parent_keys[1]), ('cn', parent_keys[0]), self.container_dn)
+            basedn = DN(('automountmapname', parent_keys[1]),
+                        ('cn', parent_keys[0]), self.container_dn,
+                        api.env.basedn)
             attrs_list = ['*']
             (entries, truncated) = ldap.find_entries(sfilter, attrs_list,
                 basedn, _ldap.SCOPE_ONELEVEL)

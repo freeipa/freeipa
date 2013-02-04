@@ -199,10 +199,8 @@ class ldap2(LDAPClient, CrudBackend):
     def get_ipa_config(self, attrs_list=None):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
 
-        odn = api.Object.config.get_dn()
-        assert isinstance(odn, DN)
-        assert isinstance(api.env.basedn, DN)
-        cdn = DN(odn, api.env.basedn)
+        dn = api.Object.config.get_dn()
+        assert isinstance(dn, DN)
 
         try:
             config_entry = getattr(context, 'config_entry')
@@ -213,14 +211,14 @@ class ldap2(LDAPClient, CrudBackend):
             pass
         try:
             (entry, truncated) = self.find_entries(
-                None, attrs_list, base_dn=cdn, scope=self.SCOPE_BASE,
+                None, attrs_list, base_dn=dn, scope=self.SCOPE_BASE,
                 time_limit=2, size_limit=10
             )
             if truncated:
                 raise errors.LimitsExceeded()
             config_entry = entry[0]
         except errors.NotFound:
-            config_entry = self.make_entry(cdn)
+            config_entry = self.make_entry(dn)
         for a in self.config_defaults:
             if a not in config_entry:
                 config_entry[a] = self.config_defaults[a]

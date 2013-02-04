@@ -93,7 +93,7 @@ class cosentry(LDAPObject):
     def get_dn(self, *keys, **options):
         group_dn = self.api.Object.group.get_dn(keys[-1])
         return self.backend.make_dn_from_attr(
-            'cn', group_dn, self.container_dn
+            'cn', group_dn, DN(self.container_dn, api.env.basedn)
         )
 
     def check_priority_uniqueness(self, *keys, **options):
@@ -272,7 +272,8 @@ class pwpolicy(LDAPObject):
     def get_dn(self, *keys, **options):
         if keys[-1] is not None:
             return self.backend.make_dn_from_attr(
-                self.primary_key.name, keys[-1], self.container_dn
+                self.primary_key.name, keys[-1],
+                DN(self.container_dn, api.env.basedn)
             )
         return global_policy_dn
 

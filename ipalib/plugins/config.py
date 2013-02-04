@@ -200,7 +200,7 @@ class config(LDAPObject):
     )
 
     def get_dn(self, *keys, **kwargs):
-        return DN(('cn', 'ipaconfig'), ('cn', 'etc'))
+        return DN(('cn', 'ipaconfig'), ('cn', 'etc'), api.env.basedn)
 
 api.register(config)
 

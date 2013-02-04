@@ -144,7 +144,8 @@ def get_uuid(ldap):
 
         entry_attrs = dict(ipaentitlementid=uuid)
         dn = ldap.make_dn(
-            entry_attrs, 'ipaentitlementid', api.env.container_entitlements,
+            entry_attrs, 'ipaentitlementid',
+            DN(api.env.container_entitlements, api.env.basedn)
         )
         if not ldap.can_read(dn, 'userpkcs12'):
             raise errors.ACIError(
@@ -196,7 +197,7 @@ class entitle(LDAPObject):
         try:
             (dn, entry_attrs) = self.backend.find_entry_by_attr(
                 self.primary_key.name, keys[-1], self.object_class, [''],
-                self.container_dn
+                DN(self.container_dn, api.env.basedn)
             )
         except errors.NotFound:
             dn = super(entitle, self).get_dn(*keys, **kwargs)
@@ -328,7 +329,8 @@ class entitle_consume(LDAPUpdate):
         (db, uuid, certfile, keyfile) = get_uuid(ldap)
         entry_attrs['ipaentitlementid'] = uuid
         dn = ldap.make_dn(
-            entry_attrs, self.obj.uuid_attribute, self.obj.container_dn
+            entry_attrs, self.obj.uuid_attribute,
+            DN(self.obj.container_dn, api.env.basedn)
         )
         if db is None:
             raise errors.NotRegisteredError()
@@ -562,7 +564,8 @@ class entitle_register(LDAPCreate):
             raise errors.ACIError(info=e.args[1])
 
         dn = ldap.make_dn(
-            entry_attrs, self.obj.uuid_attribute, self.obj.container_dn
+            entry_attrs, self.obj.uuid_attribute,
+            DN(self.obj.container_dn, api.env.basedn)
         )
         return dn
 
@@ -718,7 +721,8 @@ class entitle_sync(LDAPUpdate):
                 shutil.rmtree(db, ignore_errors=True)
 
         dn = ldap.make_dn(
-            entry_attrs, self.obj.uuid_attribute, self.obj.container_dn
+            entry_attrs, self.obj.uuid_attribute,
+            DN(self.obj.container_dn, api.env.basedn)
         )
         return dn
 

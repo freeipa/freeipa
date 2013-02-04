@@ -411,7 +411,7 @@ class user(LDAPObject):
                     continue
                 (dn, entry_attrs) = self.backend.find_entry_by_attr(
                         self.primary_key.name, manager[m], self.object_class, [''],
-                        self.container_dn
+                        container_dn
                     )
                 manager[m] = dn
         except errors.NotFound:

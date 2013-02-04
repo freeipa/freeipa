@@ -336,10 +336,12 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
 
             if m.endswith(search_bases['user']):
                 api.log.info('migrating %s user %s' % (member_attr, m))
-                m = DN((api.Object.user.primary_key.name, rdnval), api.env.container_user)
+                m = DN((api.Object.user.primary_key.name, rdnval),
+                       api.env.container_user, api.env.basedn)
             elif m.endswith(search_bases['group']):
                 api.log.info('migrating %s group %s' % (member_attr, m))
-                m = DN((api.Object.group.primary_key.name, rdnval), api.env.container_group)
+                m = DN((api.Object.group.primary_key.name, rdnval),
+                       api.env.container_group, api.env.basedn)
             else:
                 api.log.error('entry %s does not belong into any known container' % m)
                 continue
@@ -359,7 +361,8 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
         new_members = []
         entry_attrs.setdefault(member_attr, [])
         for m in entry_attrs[member_attr]:
-            memberdn = DN((api.Object.user.primary_key.name, m), api.env.container_user)
+            memberdn = DN((api.Object.user.primary_key.name, m),
+                          api.env.container_user, api.env.basedn)
             new_members.append(ldap.normalize_dn(memberdn))
         entry_attrs['member'] = new_members
 
