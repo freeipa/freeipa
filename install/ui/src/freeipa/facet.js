@@ -221,6 +221,13 @@ IPA.facet = function(spec, no_init) {
         return new_keys;
     };
 
+    that.get_pkey_prefix = function() {
+        var pkeys = that.get_pkeys();
+        if (pkeys.length > 0) pkeys.pop();
+
+        return pkeys;
+    };
+
     that.state_diff = function(a, b) {
         var diff = false;
         var checked = {};

@@ -175,15 +175,23 @@ IPA.search_facet = function(spec, no_init) {
         return name;
     };
 
+    that.get_refresh_command_args = function() {
+        var filter = that.state.filter || '';
+        // use only prefix, we are looking for records of current entity
+        var args = that.get_pkey_prefix();
+        args.push(filter);
+        return args;
+    };
+
     that.create_refresh_command = function() {
 
-        var filter = that.state.filter || '';
+        var args = that.get_refresh_command_args();
 
         var command = IPA.command({
             name: that.get_search_command_name(),
             entity: that.managed_entity.name,
             method: 'find',
-            args: filter,
+            args: args,
             options: {
                 all: that.search_all_attributes
             }
@@ -350,6 +358,14 @@ IPA.nested_search_facet = function(spec) {
         }
 
         that.search_facet_refresh();
+    };
+
+    that.get_refresh_command_args = function() {
+        var filter = that.state.filter || '';
+        // use full pkeys, we are looking for nested entity's records
+        var args = that.get_pkeys();
+        args.push(filter);
+        return args;
     };
 
     return that;
