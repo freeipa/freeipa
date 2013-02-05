@@ -444,10 +444,13 @@ class CIDict(dict):
     If you extend UserDict, isinstance(foo, dict) returns false.
     """
 
-    def __init__(self, default=None):
+    def __init__(self, default=None, **kwargs):
         super(CIDict, self).__init__()
-        self._keys = {}
-        self.update(default or {})
+        self._keys = {}  # mapping of lowercased keys to proper case
+        if default:
+            self.update(default)
+        if kwargs:
+            self.update(kwargs)
 
     def __getitem__(self, key):
         return super(CIDict, self).__getitem__(key.lower())
@@ -460,11 +463,22 @@ class CIDict(dict):
     def __delitem__(self, key):
         lower_key = key.lower()
         del self._keys[lower_key]
-        return super(CIDict, self).__delitem__(key.lower())
+        return super(CIDict, self).__delitem__(lower_key)
 
-    def update(self, dict):
-        for key in dict.keys():
-            self[key] = dict[key]
+    def update(self, new=None, **kwargs):
+        if new:
+            try:
+                keys = new.keys
+            except AttributeError:
+                self.update(dict(new))
+            else:
+                for key in keys():
+                    self[key] = new[key]
+        for key, value in kwargs.iteritems():
+            self[key] = value
+
+    def __contains__(self, key):
+        return super(CIDict, self).__contains__(key.lower())
 
     def has_key(self, key):
         return super(CIDict, self).has_key(key.lower())
@@ -475,26 +489,30 @@ class CIDict(dict):
         except KeyError:
             return failobj
 
+    def __iter__(self):
+        return self._keys.itervalues()
+
     def keys(self):
-        return self._keys.values()
+        return list(self.iterkeys())
 
     def items(self):
-        result = []
-        for k in self._keys.values():
-            result.append((k, self[k]))
-        return result
+        return list(self.iteritems())
+
+    def values(self):
+        return list(self.itervalues())
 
     def copy(self):
-        copy = {}
-        for k in self._keys.values():
-            copy[k] = self[k]
-        return copy
+        """Returns a shallow copy of this CIDict"""
+        return CIDict(self.items())
 
     def iteritems(self):
-        return self.copy().iteritems()
+        return ((k, self[k]) for k in self._keys.itervalues())
 
     def iterkeys(self):
-        return self.copy().iterkeys()
+        return self._keys.itervalues()
+
+    def itervalues(self):
+        return (v for k, v in self.iteritems())
 
     def setdefault(self, key, value=None):
         try:
@@ -519,6 +537,19 @@ class CIDict(dict):
         del self._keys[lower_key]
 
         return (key, value)
+
+    def clear(self):
+        self._keys.clear()
+        return super(CIDict, self).clear()
+
+    def viewitems(self):
+        raise NotImplementedError('CIDict.viewitems is not implemented')
+
+    def viewkeys(self):
+        raise NotImplementedError('CIDict.viewkeys is not implemented')
+
+    def viewvvalues(self):
+        raise NotImplementedError('CIDict.viewvvalues is not implemented')
 
 
 class GeneralizedTimeZone(datetime.tzinfo):

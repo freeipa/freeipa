@@ -76,6 +76,18 @@ class TestCIDict(object):
         self.cidict["key2"] = "val2"
         self.cidict["KEY3"] = "VAL3"
 
+    def test_init(self):
+        cidict = ipautil.CIDict()
+        assert dict(cidict.items()) == {}
+        cidict = ipautil.CIDict([('a', 2), ('b', 3), ('C', 4)])
+        assert dict(cidict.items()) == {'a': 2, 'b': 3, 'C': 4}
+        cidict = ipautil.CIDict([('a', 2), ('b', None)], b=3, C=4)
+        assert dict(cidict.items()) == {'a': 2, 'b': 3, 'C': 4}
+        cidict = ipautil.CIDict({'a': 2, 'b': None}, b=3, C=4)
+        assert dict(cidict.items()) == {'a': 2, 'b': 3, 'C': 4}
+        cidict = ipautil.CIDict(a=2, b=3, C=4)
+        assert dict(cidict.items()) == {'a': 2, 'b': 3, 'C': 4}
+
     def test_len(self):
         nose.tools.assert_equal(3, len(self.cidict))
 
@@ -117,18 +129,26 @@ class TestCIDict(object):
         nose.tools.assert_equal(0, len(self.cidict))
 
     def test_copy(self):
-        """A copy is no longer a CIDict, but should preserve the case of
-           the keys as they were inserted."""
         copy = self.cidict.copy()
+        assert copy == self.cidict
         nose.tools.assert_equal(3, len(copy))
         assert copy.has_key("Key1")
+        assert copy.has_key("key1")
         nose.tools.assert_equal("val1", copy["Key1"])
-        assert not copy.has_key("key1")
 
     def test_haskey(self):
         assert self.cidict.has_key("KEY1")
         assert self.cidict.has_key("key2")
         assert self.cidict.has_key("key3")
+
+        assert not self.cidict.has_key("Key4")
+
+    def test_contains(self):
+        assert "KEY1" in self.cidict
+        assert "key2" in self.cidict
+        assert "key3" in self.cidict
+
+        assert "Key4" not in self.cidict
 
     def test_items(self):
         items = self.cidict.items()
@@ -137,6 +157,14 @@ class TestCIDict(object):
         assert ("Key1", "val1") in items_set
         assert ("key2", "val2") in items_set
         assert ("KEY3", "VAL3") in items_set
+
+        assert self.cidict.items() == list(self.cidict.iteritems()) == zip(
+            self.cidict.iterkeys(), self.cidict.itervalues())
+
+    def test_iter(self):
+        items = []
+        assert list(self.cidict) == list(self.cidict.keys())
+        assert sorted(self.cidict) == sorted(['Key1', 'key2', 'KEY3'])
 
     def test_iteritems(self):
         items = []
@@ -176,6 +204,8 @@ class TestCIDict(object):
         assert "key2" in keys_set
         assert "KEY3" in keys_set
 
+        assert self.cidict.keys() == list(self.cidict.iterkeys())
+
     def test_values(self):
         values = self.cidict.values()
         nose.tools.assert_equal(3, len(values))
@@ -183,6 +213,8 @@ class TestCIDict(object):
         assert "val1" in values_set
         assert "val2" in values_set
         assert "VAL3" in values_set
+
+        assert self.cidict.values() == list(self.cidict.itervalues())
 
     def test_update(self):
         newdict = { "KEY2": "newval2",
@@ -198,6 +230,23 @@ class TestCIDict(object):
         assert ("KEY2", "newval2") in items_set
         assert ("KEY3", "VAL3") in items_set
         assert ("key4", "val4") in items_set
+
+    def test_update_dict_and_kwargs(self):
+        self.cidict.update({'a': 'va', 'b': None}, b='vb', key2='v2')
+        assert dict(self.cidict.items()) == {
+            'a': 'va', 'b': 'vb',
+            'Key1': 'val1', 'key2': 'v2', 'KEY3': 'VAL3'}
+
+    def test_update_list_and_kwargs(self):
+        self.cidict.update([('a', 'va'), ('b', None)], b='vb', key2='val2')
+        assert dict(self.cidict.items()) == {
+            'a': 'va', 'b': 'vb',
+            'Key1': 'val1', 'key2': 'val2', 'KEY3': 'VAL3'}
+
+    def test_update_kwargs(self):
+        self.cidict.update(b='vb', key2='val2')
+        assert dict(self.cidict.items()) == {
+            'b': 'vb', 'Key1': 'val1', 'key2': 'val2', 'KEY3': 'VAL3'}
 
     def test_setdefault(self):
         nose.tools.assert_equal("val1", self.cidict.setdefault("KEY1", "default"))
@@ -241,6 +290,20 @@ class TestCIDict(object):
         nose.tools.assert_equal(0, len(self.cidict))
         assert item in items
         items.discard(item)
+
+    def test_fromkeys(self):
+        dct = ipautil.CIDict.fromkeys(('A', 'b', 'C'))
+        assert sorted(dct.keys()) == sorted(['A', 'b', 'C'])
+        assert sorted(dct.values()) == [None] * 3
+
+    def test_clear(self):
+        self.cidict.clear()
+        assert self.cidict == {}
+        assert self.cidict.keys() == []
+        assert self.cidict.values() == []
+        assert self.cidict.items() == []
+        assert self.cidict._keys == {}
+
 
 class TestTimeParser(object):
     def test_simple(self):
