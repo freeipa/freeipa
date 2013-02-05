@@ -105,7 +105,10 @@ var profile = (function(){
                     'dojo/store/util/SimpleQueryEngine',
                     'dojo/topic',
                     'dojo/when',
-                    'dojo/domReady!' //added with '!' as a loader plugin
+                    'dojo/domReady!', //added with '!' as a loader plugin
+                    "dojo/query",
+                    "dojo/NodeList-dom",
+                    "dojo/promise/all"
                 ]
             }
         ],

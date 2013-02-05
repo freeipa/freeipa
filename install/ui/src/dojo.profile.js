@@ -86,9 +86,10 @@ var profile = (function(){
                     "dojo/topic", //used by router
                     // ^ adds 20 KB, most of it is dojo/dom*
                     "dojo/store/Observable",
-                    "dojo/store/Memory"
-                    //"dojo/_base/NodeList"
-
+                    "dojo/store/Memory",
+                    "dojo/query",
+                    "dojo/NodeList-dom",
+                    "dojo/promise/all"
                     // Total size: 75KB
                 ],
                 customBase: true,
