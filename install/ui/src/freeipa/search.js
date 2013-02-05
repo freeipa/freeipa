@@ -123,6 +123,7 @@ IPA.search_facet = function(spec, no_init) {
 
     that.show_add_dialog = function() {
         var dialog = that.managed_entity.get_dialog('add');
+        dialog.facet = that;
         dialog.open(that.container);
     };
 

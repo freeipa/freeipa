@@ -595,8 +595,7 @@ IPA.user_password_dialog = function(spec) {
             that.close();
 
             // refresh password expiration field
-            var facet = IPA.current_entity.get_facet();
-            facet.refresh();
+            that.facet.refresh();
 
             if (that.is_self_service()) {
                 var command = IPA.get_whoami_command();
@@ -632,6 +631,7 @@ IPA.user.reset_password_action = function(spec) {
 
         var dialog = IPA.user_password_dialog({
             entity: facet.entity,
+            facet: facet,
             pkey: facet.get_pkey()
         });
 

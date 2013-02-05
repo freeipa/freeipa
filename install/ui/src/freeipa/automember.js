@@ -331,8 +331,8 @@ IPA.automember.rule_adder_dialog = function(spec) {
         if (pkey instanceof Array) {
             pkey = pkey[0];
         }
-        var facet = IPA.current_entity.get_facet();
-        var facetname = facet.group_type === 'group' ? 'usergrouprule' :
+
+        var facetname = that.facet.group_type === 'group' ? 'usergrouprule' :
                             'hostgrouprule';
 
         navigation.show_entity(that.entity.name, facetname, [pkey]);
@@ -341,19 +341,17 @@ IPA.automember.rule_adder_dialog = function(spec) {
     that.reset = function() {
 
         var field = that.fields.get_field('cn');
-        var facet = IPA.current_entity.get_facet();
 
-        field.widget.other_entity = IPA.get_entity(facet.group_type);
+        field.widget.other_entity = IPA.get_entity(that.facet.group_type);
 
         that.dialog_reset();
     };
 
     that.create_add_command = function(record) {
 
-        var facet = IPA.current_entity.get_facet();
         var command = that.entity_adder_dialog_create_add_command(record);
-        command.name = that.entity.name+facet.group_type+'_show';
-        command.set_option('type', facet.group_type);
+        command.name = that.entity.name+that.facet.group_type+'_show';
+        command.set_option('type', that.facet.group_type);
 
         return command;
     };
@@ -370,13 +368,11 @@ IPA.automember.rule_deleter_dialog = function(spec) {
 
     that.create_command = function() {
 
-        var facet = IPA.current_entity.get_facet();
-
         var batch = that.search_deleter_dialog_create_command();
 
         for (var i=0; i<batch.commands.length; i++) {
             var command = batch.commands[i];
-            command.set_option('type', facet.group_type);
+            command.set_option('type', that.facet.group_type);
         }
 
         return batch;

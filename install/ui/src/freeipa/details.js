@@ -689,7 +689,8 @@ IPA.details_facet = function(spec, no_init) {
         });
         var field_builder = IPA.field_builder({
             field_options: {
-                entity: that.entity
+                entity: that.entity,
+                facet: that
             }
         });
         var section_builder = IPA.section_builder({

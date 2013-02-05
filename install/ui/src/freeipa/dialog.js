@@ -97,6 +97,11 @@ IPA.dialog = function(spec) {
     that.close_on_escape = spec.close_on_escape !== undefined ?
                             spec.close_on_escape : true;
 
+    // FIXME: remove facet reference
+    // Purpose of facet reference is to obtain pkeys or ability to reload
+    // facet. Such usage makes the code more spaghetti. It should be replaced.
+    that.facet = spec.facet;
+
     that.widgets = IPA.widget_container();
     that.fields = IPA.field_container({ container: that });
     that.buttons = $.ordered_map();

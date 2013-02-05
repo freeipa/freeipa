@@ -2032,22 +2032,15 @@ IPA.dns.record_type_table_widget = function(spec) {
     };
 
     that.reload_facet = function(data) {
-
-        //FIXME: seems as bad approach
-        var facet = IPA.current_entity.get_facet();
-        facet.load(data);
+        that.facet.load(data);
     };
 
     that.refresh_facet = function() {
-
-        //FIXME: seems as bad approach
-        var facet = IPA.current_entity.get_facet();
-        facet.refresh();
+        that.facet.refresh();
     };
 
     that.notify_facet_update = function() {
-        var facet = IPA.current_entity.get_facet();
-        facet.on_update.notify();
+        that.facet.on_update.notify();
     };
 
     that.update = function(values) {

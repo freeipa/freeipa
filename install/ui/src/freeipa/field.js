@@ -31,6 +31,7 @@ IPA.field = function(spec) {
     var that = {};
 
     that.entity = IPA.get_entity(spec.entity);
+    that.facet = spec.facet;
     that.container = null;
     that.name = spec.name;
     that.param = spec.param || spec.name;

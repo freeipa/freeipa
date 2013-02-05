@@ -2288,16 +2288,12 @@ IPA.attribute_table_widget = function(spec) {
 
     that.reload_facet = function(data) {
 
-        //FIXME: bad approach - widget is directly manipulating with facet
-        var facet = IPA.current_entity.get_facet();
-        facet.load(data);
+        that.facet.load(data);
     };
 
     that.refresh_facet = function() {
 
-        //FIXME: bad approach
-        var facet = IPA.current_entity.get_facet();
-        facet.refresh();
+        that.facet.refresh();
     };
 
     that.attribute_table_adder_dialog_create_command = that.adder_dialog_create_command;
