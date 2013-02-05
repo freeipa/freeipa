@@ -826,6 +826,8 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
         goto done;
     }
 
+    /* PAC_LOGON_NAME and PAC_TYPE_UPN_DNS_INFO are automatically added
+     * by krb5_pac_sign() later on */
 
     /* == Search PAC info == */
     kerr = ipadb_deref_search(ipactx, ied->entry_dn, LDAP_SCOPE_BASE,
@@ -1458,9 +1460,150 @@ done:
     return kerr;
 }
 
+static krb5_error_code get_delegation_info(krb5_context context,
+                                TALLOC_CTX *memctx, krb5_data *pac_blob,
+                                struct PAC_CONSTRAINED_DELEGATION_CTR *info)
+{
+    DATA_BLOB pac_data;
+    enum ndr_err_code ndr_err;
+
+    pac_data.length = pac_blob->length;
+    pac_data.data = (uint8_t *)pac_blob->data;
+
+    ndr_err = ndr_pull_union_blob(&pac_data, memctx, info,
+                                  PAC_TYPE_CONSTRAINED_DELEGATION,
+                                  (ndr_pull_flags_fn_t)ndr_pull_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+        return KRB5_KDB_INTERNAL_ERROR;
+    }
+
+    return 0;
+}
+
+static krb5_error_code save_delegation_info(krb5_context context,
+                                TALLOC_CTX *memctx,
+                                struct PAC_CONSTRAINED_DELEGATION_CTR *info,
+                                krb5_data *pac_blob)
+{
+    DATA_BLOB pac_data;
+    enum ndr_err_code ndr_err;
+
+    ndr_err = ndr_push_union_blob(&pac_data, memctx, info,
+                                  PAC_TYPE_CONSTRAINED_DELEGATION,
+                                  (ndr_push_flags_fn_t)ndr_push_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+        return KRB5_KDB_INTERNAL_ERROR;
+    }
+
+    free(pac_blob->data);
+    pac_blob->data = malloc(pac_data.length);
+    if (pac_blob->data == NULL) {
+        pac_blob->length = 0;
+        return ENOMEM;
+    }
+    memcpy(pac_blob->data, pac_data.data, pac_data.length);
+    pac_blob->length = pac_data.length;
+
+    return 0;
+}
+
+static krb5_error_code ipadb_add_transited_service(krb5_context context,
+                                                   krb5_db_entry *proxy,
+                                                   krb5_db_entry *server,
+                                                   krb5_pac old_pac,
+                                                   krb5_pac new_pac)
+{
+    struct PAC_CONSTRAINED_DELEGATION_CTR info;
+    krb5_data pac_blob = { 0 , 0, NULL };
+    krb5_error_code kerr;
+    TALLOC_CTX *tmpctx;
+    uint32_t i;
+    char *tmpstr;
+
+    tmpctx = talloc_new(NULL);
+    if (!tmpctx) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    kerr = krb5_pac_get_buffer(context, old_pac,
+                               KRB5_PAC_DELEGATION_INFO, &pac_blob);
+    if (kerr != 0 && kerr != ENOENT) {
+        goto done;
+    }
+
+    if (pac_blob.length != 0) {
+        kerr = get_delegation_info(context, tmpctx, &pac_blob, &info);
+        if (kerr != 0) {
+            goto done;
+        }
+    } else {
+        info.info = talloc_zero(tmpctx, struct PAC_CONSTRAINED_DELEGATION);
+        if (!info.info) {
+            kerr = ENOMEM;
+            goto done;
+        }
+    }
+
+    krb5_free_data_contents(context, &pac_blob);
+    memset(&pac_blob, 0, sizeof(krb5_data));
+
+    kerr = krb5_unparse_name(context, proxy->princ, &tmpstr);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    info.info->proxy_target.string = talloc_strdup(tmpctx, tmpstr);
+    krb5_free_unparsed_name(context, tmpstr);
+    if (!info.info->proxy_target.string) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    i = info.info->num_transited_services;
+
+    info.info->transited_services = talloc_realloc(tmpctx,
+                                                info.info->transited_services,
+                                                struct lsa_String, i + 1);
+    if (!info.info->transited_services) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    kerr = krb5_unparse_name(context, server->princ, &tmpstr);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    info.info->transited_services[i].string = talloc_strdup(tmpctx, tmpstr);
+    krb5_free_unparsed_name(context, tmpstr);
+    if (!info.info->transited_services[i].string) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    info.info->num_transited_services = i + 1;
+
+    kerr = save_delegation_info(context, tmpctx, &info, &pac_blob);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = krb5_pac_add_buffer(context, new_pac,
+                               KRB5_PAC_DELEGATION_INFO, &pac_blob);
+    if (kerr) {
+        goto done;
+    }
+
+done:
+    krb5_free_data_contents(context, &pac_blob);
+    talloc_free(tmpctx);
+    return kerr;
+}
+
 static krb5_error_code ipadb_verify_pac(krb5_context context,
                                         unsigned int flags,
                                         krb5_const_principal client_princ,
+                                        krb5_db_entry *proxy,
                                         krb5_db_entry *server,
                                         krb5_db_entry *krbtgt,
                                         krb5_keyblock *server_key,
@@ -1512,7 +1655,7 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         goto done;
     }
 
-    /* Now that the PAc is verified augment it with additional info if
+    /* Now that the PAC is verified augment it with additional info if
      * it is coming from a different realm */
     if (is_cross_realm) {
         kerr = krb5_pac_get_buffer(context, old_pac,
@@ -1556,11 +1699,26 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
             continue;
         }
 
+        if (types[i] == KRB5_PAC_DELEGATION_INFO &&
+            (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION)) {
+            /* skip it here, we will add it explicitly later */
+            continue;
+        }
+
         kerr = krb5_pac_get_buffer(context, old_pac, types[i], &data);
         if (kerr == 0) {
             kerr = krb5_pac_add_buffer(context, new_pac, types[i], &data);
             krb5_free_data_contents(context, &data);
         }
+        if (kerr) {
+            krb5_pac_free(context, new_pac);
+            goto done;
+        }
+    }
+
+    if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
+        kerr = ipadb_add_transited_service(context, proxy, server,
+                                           old_pac, new_pac);
         if (kerr) {
             krb5_pac_free(context, new_pac);
             goto done;
@@ -1880,7 +2038,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                 goto done;
             }
 
-            kerr = ipadb_verify_pac(context, flags, ks_client_princ,
+            kerr = ipadb_verify_pac(context, flags, ks_client_princ, client,
                                     server, krbtgt, server_key, krbtgt_key,
                                     authtime, pac_auth_data, &pac);
             if (kerr != 0) {
