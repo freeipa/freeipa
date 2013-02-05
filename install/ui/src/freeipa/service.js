@@ -72,7 +72,7 @@ IPA.service.entity = function(spec) {
                         {
                             name: 'ipakrbauthzdata',
                             type: 'checkboxes',
-                            options: IPA.create_options(['MS-PAC', 'PAD'])
+                            options: IPA.create_options(['MS-PAC', 'PAD', 'NONE'])
                         }
                     ]
                 },
