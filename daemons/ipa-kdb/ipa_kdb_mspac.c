@@ -1288,11 +1288,21 @@ static krb5_error_code filter_logon_info(krb5_context context,
         } while (i < count);
 
         if (j != 0) {
-            info->info->info3.sids = talloc_realloc(memctx, info->info->info3.sids, struct netr_SidAttr, count-j);
-            info->info->info3.sidcount = count-j;
-            if (!info->info->info3.sids) {
+            count = count-j;
+            if (count == 0) {
+                /* All SIDs were filtered out */
                 info->info->info3.sidcount = 0;
-                return ENOMEM;
+                talloc_free(info->info->info3.sids);
+                info->info->info3.sids = NULL;
+            } else {
+                info->info->info3.sids = talloc_realloc(memctx,
+                                                        info->info->info3.sids,
+                                                        struct netr_SidAttr, count);
+                if (!info->info->info3.sids) {
+                    info->info->info3.sidcount = 0;
+                    return ENOMEM;
+                }
+                info->info->info3.sidcount = count;
             }
         }
     }
