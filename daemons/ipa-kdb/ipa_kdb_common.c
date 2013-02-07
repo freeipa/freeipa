@@ -282,21 +282,22 @@ krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
     krb5_error_code kerr;
     int times;
     int ret;
-    int c;
+    int c, i;
 
     for (c = 0; deref_attr_names[c]; c++) {
         /* count */ ;
     }
 
-    ds = calloc(c, sizeof(LDAPDerefSpec));
+    ds = calloc(c+1, sizeof(LDAPDerefSpec));
     if (!ds) {
         return ENOMEM;
     }
 
-    for (c = 0; deref_attr_names[c]; c++) {
-        ds[c].derefAttr = deref_attr_names[c];
-        ds[c].attributes = deref_attrs;
+    for (i = 0; deref_attr_names[i]; i++) {
+        ds[i].derefAttr = deref_attr_names[i];
+        ds[i].attributes = deref_attrs;
     }
+    ds[c].derefAttr = NULL;
 
     ret = ldap_create_deref_control_value(ipactx->lcontext, ds, &derefval);
     if (ret != LDAP_SUCCESS) {
