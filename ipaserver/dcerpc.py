@@ -60,6 +60,14 @@ The code in this module relies heavily on samba4-python package
 and Samba4 python bindings.
 """)
 
+def is_sid_valid(sid):
+    try:
+        security.dom_sid(sid)
+    except TypeError:
+        return False
+    else:
+        return True
+
 access_denied_error =  errors.ACIError(info=_('CIFS server denied your credentials'))
 dcerpc_error_codes = {
     -1073741823:

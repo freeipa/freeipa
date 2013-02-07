@@ -123,10 +123,6 @@ particular type.
 """)
 
 trust_output_params = (
-    Str('ipantflatname',
-        label=_('Domain NetBIOS name')),
-    Str('ipanttrusteddomainsid',
-        label=_('Domain Security Identifier')),
     Str('trustdirection',
         label=_('Trust direction')),
     Str('trusttype',
@@ -201,7 +197,40 @@ class trust(LDAPObject):
             label=_('Realm name'),
             primary_key=True,
         ),
+        Str('ipantflatname',
+            cli_name='flat_name',
+            label=_('Domain NetBIOS name'),
+            flags=['no_create', 'no_update']),
+        Str('ipanttrusteddomainsid',
+            cli_name='sid',
+            label=_('Domain Security Identifier'),
+            flags=['no_create', 'no_update']),
+        Str('ipantsidblacklistincoming*',
+            csv=True,
+            cli_name='sid_blacklist_incoming',
+            label=_('SID blacklist incoming'),
+            flags=['no_create']),
+        Str('ipantsidblacklistoutgoing*',
+            csv=True,
+            cli_name='sid_blacklist_outgoing',
+            label=_('SID blacklist outgoing'),
+            flags=['no_create']),
     )
+
+    def validate_sid_blacklists(self, entry_attrs):
+        if not _bindings_installed:
+            # SID validator is not available, return
+            # Even if invalid SID gets in the trust entry, it won't crash
+            # the validation process as it is translated to SID S-0-0
+            return
+        for attr in ('ipantsidblacklistincoming', 'ipantsidblacklistoutgoing'):
+            values = entry_attrs.get(attr)
+            if not values:
+                continue
+            for value in values:
+                if not ipaserver.dcerpc.is_sid_valid(value):
+                    raise errors.ValidationError(name=attr,
+                            error=_("invalid SID: %(value)s") % dict(value=value))
 
 def make_trust_dn(env, trust_type, dn):
     assert isinstance(dn, DN)
@@ -437,15 +466,18 @@ class trust_mod(LDAPUpdate):
     available. More specific options will be added in coming releases.
     """)
 
-    msg_summary = _('Modified trust "%(value)s"')
+    msg_summary = _('Modified trust "%(value)s" '
+                    '(change will be effective in 60 seconds)')
 
-    def pre_callback(self, ldap, dn, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         result = None
         try:
             result = self.api.Command.trust_show(keys[-1])
         except errors.NotFound, e:
             self.obj.handle_not_found(*keys)
+
+        self.obj.validate_sid_blacklists(entry_attrs)
 
         # TODO: we found the trust object, now modify it
         return result['result']['dn']

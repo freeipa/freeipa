@@ -3226,10 +3226,14 @@ output: Output('result', <type 'dict'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
 command: trust_find
-args: 1,7,4
+args: 1,11,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('cn', attribute=True, autofill=False, cli_name='realm', multivalue=False, primary_key=True, query=True, required=False)
+option: Str('ipantflatname', attribute=True, autofill=False, cli_name='flat_name', multivalue=False, query=True, required=False)
+option: Str('ipantsidblacklistincoming', attribute=True, autofill=False, cli_name='sid_blacklist_incoming', csv=True, multivalue=True, query=True, required=False)
+option: Str('ipantsidblacklistoutgoing', attribute=True, autofill=False, cli_name='sid_blacklist_outgoing', csv=True, multivalue=True, query=True, required=False)
+option: Str('ipanttrusteddomainsid', attribute=True, autofill=False, cli_name='sid', multivalue=False, query=True, required=False)
 option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Int('sizelimit?', autofill=False, minvalue=0)
@@ -3240,11 +3244,13 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: trust_mod
-args: 1,7,3
+args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Str('ipantsidblacklistincoming', attribute=True, autofill=False, cli_name='sid_blacklist_incoming', csv=True, multivalue=True, required=False)
+option: Str('ipantsidblacklistoutgoing', attribute=True, autofill=False, cli_name='sid_blacklist_outgoing', csv=True, multivalue=True, required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
