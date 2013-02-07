@@ -1173,20 +1173,16 @@ static struct ipadb_adtrusts *get_domain_from_realm_update(krb5_context context,
     struct ipadb_adtrusts *domain;
     krb5_error_code kerr;
 
-    domain = get_domain_from_realm(context, realm);
-    if (domain == NULL) {
-        ipactx = ipadb_get_context(context);
-        if (!ipactx) {
-            return NULL;
-        }
-
-        kerr = ipadb_reinit_mspac(ipactx);
-        if (kerr != 0) {
-            return NULL;
-        }
-
-        domain = get_domain_from_realm(context, realm);
+    ipactx = ipadb_get_context(context);
+    if (!ipactx) {
+        return NULL;
     }
+
+    kerr = ipadb_reinit_mspac(ipactx);
+    if (kerr != 0) {
+        return NULL;
+    }
+    domain = get_domain_from_realm(context, realm);
 
     return domain;
 }
@@ -1753,6 +1749,30 @@ krb5_error_code ipadb_mspac_fill_well_known_sids(struct ipadb_mspac *mspac)
     return 0;
 }
 
+krb5_error_code ipadb_mspac_check_trusted_domains(struct ipadb_context *ipactx)
+{
+    char *attrs[] = { NULL };
+    char *filter = "(objectclass=ipaNTTrustedDomain)";
+    char *base = NULL;
+    LDAPMessage *result = NULL;
+    int ret;
+
+    ret = asprintf(&base, "cn=ad,cn=trusts,%s", ipactx->base);
+    if (ret == -1) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    /* Run a quick search if there is any trust defined */
+    ret = ipadb_simple_search(ipactx, base, LDAP_SCOPE_SUBTREE,
+                              filter, attrs, &result);
+
+done:
+    ldap_msgfree(result);
+    free(base);
+    return ret;
+}
+
 krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
 {
     struct ipadb_adtrusts *t;
@@ -1854,6 +1874,19 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     if (ipactx->mspac != NULL && now > ipactx->mspac->last_update &&
         (now - ipactx->mspac->last_update) < 60) {
         return 0;
+    }
+
+    if (ipactx->mspac && ipactx->mspac->num_trusts == 0) {
+        /* Check if there is any trust configured. If not, just return
+         * and do not re-initialize the MS-PAC structure. */
+        ret = ipadb_mspac_check_trusted_domains(ipactx);
+        if (ret == KRB5_KDB_NOENTRY) {
+            ret = 0;
+            goto done;
+        } else if (ret != 0) {
+            ret = EIO;
+            goto done;
+        }
     }
 
     /* clean up in case we had old values around */
