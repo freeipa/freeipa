@@ -3226,9 +3226,13 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: trust_find
-args: 1,7,4
+args: 1,11,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='realm', multivalue=False, primary_key=True, query=True, required=False)
+option: Str('ipantflatname', attribute=True, autofill=False, cli_name='flat_name', multivalue=False, query=True, required=False)
+option: Str('ipanttrusteddomainsid', attribute=True, autofill=False, cli_name='sid', multivalue=False, query=True, required=False)
+option: Str('ipantsidblacklistincoming', attribute=True, autofill=False, cli_name='sid_blacklist_incoming', csv=True, multivalue=True, query=True, required=False)
+option: Str('ipantsidblacklistoutgoing', attribute=True, autofill=False, cli_name='sid_blacklist_outgoing', csv=True, multivalue=True, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -3240,8 +3244,10 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: trust_mod
-args: 1,7,3
+args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('ipantsidblacklistincoming', attribute=True, autofill=False, cli_name='sid_blacklist_incoming', csv=True, multivalue=True, required=False)
+option: Str('ipantsidblacklistoutgoing', attribute=True, autofill=False, cli_name='sid_blacklist_outgoing', csv=True, multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
@@ -3264,27 +3270,27 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, None)
 command: trustconfig_mod
 args: 0,9,3
-option: Str('addattr*', cli_name='addattr', exclude='webui')
-option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
-option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Str('ipantfallbackprimarygroup', attribute=True, autofill=False, cli_name='fallback_primary_group', multivalue=False, required=False)
-option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
-option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Flag('rights', autofill=True, default=False)
 option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', values=(u'ad',))
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
-output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: trustconfig_show
 args: 0,5,3
-option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
-option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', values=(u'ad',))
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
-output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: user_add
 args: 1,34,3
