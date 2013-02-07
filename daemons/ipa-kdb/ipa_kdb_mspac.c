@@ -21,6 +21,7 @@
  */
 
 #include "ipa_kdb.h"
+#include "ipa_mspac.h"
 #include <talloc.h>
 #include <syslog.h>
 #include "util/time.h"
@@ -31,13 +32,16 @@ struct ipadb_adtrusts {
     char *flat_name;
     char *domain_sid;
     struct dom_sid domsid;
+    struct dom_sid *sid_blacklist_incoming;
+    int len_sid_blacklist_incoming;
+    struct dom_sid *sid_blacklist_outgoing;
+    int len_sid_blacklist_outgoing;
 };
 
 struct ipadb_mspac {
     char *flat_domain_name;
     char *flat_server_name;
     struct dom_sid domsid;
-    struct dom_sid *well_known_sids;
 
     char *fallback_group;
     uint32_t fallback_rid;
@@ -87,36 +91,6 @@ static char *memberof_pac_attrs[] = {
     "ipaNTSecurityIdentifier",
     NULL
 };
-
-static char *mspac_well_known_sids[] = {
-    "S-1-0",
-    "S-1-1",
-    "S-1-2",
-    "S-1-3",
-    "S-1-5-1",
-    "S-1-5-2",
-    "S-1-5-3",
-    "S-1-5-4",
-    "S-1-5-5",
-    "S-1-5-6",
-    "S-1-5-7",
-    "S-1-5-8",
-    "S-1-5-9",
-    "S-1-5-10",
-    "S-1-5-11",
-    "S-1-5-12",
-    "S-1-5-13",
-    "S-1-5-14",
-    "S-1-5-15",
-    "S-1-5-16",
-    "S-1-5-17",
-    "S-1-5-18",
-    "S-1-5-19",
-    "S-1-5-20",
-};
-
-#define LEN_WELL_KNOWN_SIDS (sizeof(mspac_well_known_sids)/sizeof(char*))
-
 
 #define SID_ID_AUTHS 6
 #define SID_SUB_AUTHS 15
@@ -1268,8 +1242,8 @@ static krb5_error_code filter_logon_info(krb5_context context,
             if (result) {
                 filter_logon_info_log_message(info->info->info3.sids[i].sid);
             } else {
-                for(k = 0; k < LEN_WELL_KNOWN_SIDS; k++) {
-                    result = dom_sid_is_prefix(&ipactx->mspac->well_known_sids[k], info->info->info3.sids[i].sid);
+                for(k = 0; k < domain->len_sid_blacklist_incoming; k++) {
+                    result = dom_sid_is_prefix(&domain->sid_blacklist_incoming[k], info->info->info3.sids[i].sid);
                     if (result) {
                         filter_logon_info_log_message(info->info->info3.sids[i].sid);
                         break;
@@ -1712,6 +1686,7 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
     if (!*mspac) return;
 
     free((*mspac)->flat_domain_name);
+    free((*mspac)->flat_server_name);
     free((*mspac)->fallback_group);
 
     if ((*mspac)->num_trusts) {
@@ -1719,31 +1694,65 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
             free((*mspac)->trusts[i].domain_name);
             free((*mspac)->trusts[i].flat_name);
             free((*mspac)->trusts[i].domain_sid);
+            free((*mspac)->trusts[i].sid_blacklist_incoming);
+            free((*mspac)->trusts[i].sid_blacklist_outgoing);
         }
-    }
-
-    if ((*mspac)->well_known_sids) {
-        free((*mspac)->well_known_sids);
     }
 
     *mspac = NULL;
 }
 
-#define LEN_WELL_KNOWN_SIDS (sizeof(mspac_well_known_sids)/sizeof(char*))
-krb5_error_code ipadb_mspac_fill_well_known_sids(struct ipadb_mspac *mspac)
+krb5_error_code ipadb_adtrusts_fill_sid_blacklist(char **source_sid_blacklist,
+                                                  struct dom_sid **result_sids,
+                                                  int *result_length)
 {
-    int i;
+    int len, i;
+    char **source;
+    struct dom_sid *sid_blacklist;
 
-    mspac->well_known_sids = calloc(LEN_WELL_KNOWN_SIDS, sizeof(struct dom_sid));
+    if (source_sid_blacklist) {
+        source = source_sid_blacklist;
+    } else {
+        /* Use default hardcoded list */
+        source = ipa_mspac_well_known_sids;
+    }
+    len = 0;
+    for (i = 0; source && source[i]; i++) {
+        len++;
+    }
 
-    if (mspac->well_known_sids == NULL) {
+    sid_blacklist = calloc(len, sizeof(struct dom_sid));
+    if (sid_blacklist == NULL) {
         return ENOMEM;
     }
 
-    for (i = 0; i < LEN_WELL_KNOWN_SIDS; i++) {
-         if (mspac_well_known_sids[i] != NULL) {
-             (void) string_to_sid(mspac_well_known_sids[i], &(mspac->well_known_sids[i]));
-         }
+    for (i = 0; i < len; i++) {
+         (void) string_to_sid(source[i], &sid_blacklist[i]);
+    }
+
+    *result_sids = sid_blacklist;
+    *result_length = len;
+    return 0;
+}
+
+krb5_error_code ipadb_adtrusts_fill_sid_blacklists(struct ipadb_adtrusts *adtrust,
+                                                   char **sid_blacklist_incoming,
+                                                   char **sid_blacklist_outgoing)
+{
+    krb5_error_code kerr;
+
+    kerr = ipadb_adtrusts_fill_sid_blacklist(sid_blacklist_incoming,
+                                             &adtrust->sid_blacklist_incoming,
+                                             &adtrust->len_sid_blacklist_incoming);
+    if (kerr) {
+        return kerr;
+    }
+
+    kerr = ipadb_adtrusts_fill_sid_blacklist(sid_blacklist_outgoing,
+                                             &adtrust->sid_blacklist_outgoing,
+                                             &adtrust->len_sid_blacklist_outgoing);
+    if (kerr) {
+        return kerr;
     }
 
     return 0;
@@ -1778,13 +1787,16 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
     struct ipadb_adtrusts *t;
     LDAP *lc = ipactx->lcontext;
     char *attrs[] = { "ipaNTTrustPartner", "ipaNTFlatName",
-                      "ipaNTTrustedDomainSID", NULL };
+                      "ipaNTTrustedDomainSID", "ipaNTSIDBlacklistIncoming",
+                      "ipaNTSIDBlacklistOutgoing", NULL };
     char *filter = "(objectclass=ipaNTTrustedDomain)";
     krb5_error_code kerr;
     LDAPMessage *res = NULL;
     LDAPMessage *le;
     char *base = NULL;
-    int ret, n;
+    char **sid_blacklist_incoming = NULL;
+    char **sid_blacklist_outgoing = NULL;
+    int ret, n, i;
 
     ret = asprintf(&base, "cn=ad,cn=trusts,%s", ipactx->base);
     if (ret == -1) {
@@ -1840,6 +1852,39 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             ret = EINVAL;
             goto done;
         }
+
+        ret = ipadb_ldap_attr_to_strlist(lc, le, "ipaNTSIDBlacklistIncoming",
+                                         &sid_blacklist_incoming);
+
+        if (ret) {
+            if (ret == ENOENT) {
+                /* This attribute is optional */
+                ret = 0;
+            } else {
+                ret = EINVAL;
+                goto done;
+            }
+        }
+
+        ret = ipadb_ldap_attr_to_strlist(lc, le, "ipaNTSIDBlacklistOutgoing",
+                                         &sid_blacklist_outgoing);
+
+        if (ret) {
+            if (ret == ENOENT) {
+                /* This attribute is optional */
+                ret = 0;
+            } else {
+                ret = EINVAL;
+                goto done;
+            }
+        }
+
+        ret = ipadb_adtrusts_fill_sid_blacklists(&t[n],
+                                                 sid_blacklist_incoming,
+                                                 sid_blacklist_outgoing);
+        if (ret) {
+            goto done;
+        }
     }
 
     ret = 0;
@@ -1849,6 +1894,15 @@ done:
         krb5_klog_syslog(LOG_ERR, "Failed to read list of trusted domains");
     }
     free(base);
+    for (i = 0; sid_blacklist_incoming && sid_blacklist_incoming[i]; i++) {
+        free(sid_blacklist_incoming[i]);
+    }
+    free(sid_blacklist_incoming);
+    for (i = 0; sid_blacklist_outgoing && sid_blacklist_outgoing[i]; i++) {
+        free(sid_blacklist_outgoing[i]);
+    }
+    free(sid_blacklist_outgoing);
+    ldap_msgfree(res);
     return ret;
 }
 
@@ -1999,12 +2053,6 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     }
 
     kerr = ipadb_mspac_get_trusted_domains(ipactx);
-
-    if (kerr) {
-        goto done;
-    }
-
-    kerr = ipadb_mspac_fill_well_known_sids(ipactx->mspac);
 
 done:
     ldap_msgfree(result);
