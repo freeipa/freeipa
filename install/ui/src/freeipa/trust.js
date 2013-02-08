@@ -60,6 +60,20 @@ IPA.trust.entity = function(spec) {
                             name: 'trusttype',
                             label: IPA.messages.objects.trust.trusttype
                         }
+                    ]
+                },
+                {
+                    name: 'blacklists',
+                    label: IPA.messages.objects.trust.blacklists,
+                    fields: [
+                        {
+                            type: 'multivalued',
+                            name: 'ipantsidblacklistincoming'
+                        },
+                        {
+                            type: 'multivalued',
+                            name: 'ipantsidblacklistoutgoing'
+                        }
 // trust status not supported by show command at the moment
 //                         {
 //                             name: 'truststatus',

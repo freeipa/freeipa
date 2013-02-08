@@ -586,6 +586,7 @@ class i18n_messages(Command):
             "trust": {
                 "account": _("Account"),
                 "admin_account": _("Administrative account"),
+                "blacklists": _("SID blacklists"),
                 "details": _("Trust Settings"),
                 "domain": _("Domain"),
                 "establish_using": _("Establish using"),
