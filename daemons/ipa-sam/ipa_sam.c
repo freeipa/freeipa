@@ -32,6 +32,7 @@
 #include <sss_idmap.h>
 #include "ipa_krb5.h"
 #include "ipa_pwd.h"
+#include "ipa_mspac.h"
 
 /* from drsblobs.h */
 struct AuthInfoNone {
@@ -121,6 +122,8 @@ bool secrets_store(const char *key, const void *data, size_t size); /* available
 #define LDAP_ATTRIBUTE_HOME_PATH "ipaNTHomeDirectory"
 #define LDAP_ATTRIBUTE_LOGON_SCRIPT "ipaNTLogonScript"
 #define LDAP_ATTRIBUTE_PROFILE_PATH "ipaNTProfilePath"
+#define LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING "ipaNTSIDBlacklistIncoming"
+#define LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING "ipaNTSIDBlacklistOutgoing"
 #define LDAP_ATTRIBUTE_NTHASH "ipaNTHash"
 #define LDAP_ATTRIBUTE_UIDNUMBER "uidnumber"
 #define LDAP_ATTRIBUTE_GIDNUMBER "gidnumber"
@@ -2165,7 +2168,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	LDAPMod **mods;
 	bool res;
 	char *trusted_dn = NULL;
-	int ret;
+	int ret, i;
 	NTSTATUS status;
 	TALLOC_CTX *tmp_ctx;
 	char *trustpw;
@@ -2288,6 +2291,15 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		smbldap_make_mod_blob(priv2ld(ldap_state), entry, &mods,
 				      LDAP_ATTRIBUTE_TRUST_FOREST_TRUST_INFO,
 				      &td->trust_forest_trust_info);
+	}
+
+	for (i = 0; ipa_mspac_well_known_sids && ipa_mspac_well_known_sids[i]; i++) {
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+				      LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING,
+				      ipa_mspac_well_known_sids[i]);
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+				      LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING,
+				      ipa_mspac_well_known_sids[i]);
 	}
 
 	smbldap_talloc_autofree_ldapmod(tmp_ctx, mods);
