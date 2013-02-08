@@ -750,6 +750,7 @@ can use their Kerberos accounts.''')
             valid_gids = []
             invalid_gids = []
             migrate_cnt = 0
+            context['migrate_cnt'] = 0
             for (dn, entry_attrs) in entries:
                 context['migrate_cnt'] = migrate_cnt
                 s = datetime.datetime.now()
