@@ -711,7 +711,6 @@ class test_permission(Declarative):
                         'member_privilege': [u'User Administrators'],
                         'attrs': [u'member'],
                         'targetgroup': u'ipausers',
-                        'memberindirect_role': [u'User Administrator'],
                         'permissions': [u'write']
                     }
                 ],
