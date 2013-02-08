@@ -191,7 +191,7 @@ IPA.automount.key_entity = function(spec) {
             show_edit_page : function(entity, result){
                 var key = result.automountkey[0];
                 var info = result.automountinformation[0];
-                var pkeys = that.facet.get_pkeys();
+                var pkeys = this.pkey_prefix.slice(0);
                 pkeys.push(key);
 
                 var args = {

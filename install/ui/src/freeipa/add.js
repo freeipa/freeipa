@@ -38,6 +38,7 @@ IPA.entity_adder_dialog = function(spec) {
     that.command = null;
     that.added = IPA.observer();
     that.subject = spec.subject || that.entity.metadata.label_singular;
+    that.pkey_prefix = spec.pkey_prefix || [];
 
     that.show_edit_page = spec.show_edit_page || show_edit_page;
 
@@ -127,9 +128,9 @@ IPA.entity_adder_dialog = function(spec) {
             pkey = pkey[0];
         }
 
-        var pkeys = that.facet.get_pkeys();
+        var pkeys = that.pkey_prefix.slice(0);
         pkeys.push(pkey);
-        navigation.show_entity(that.entity.name, 'default', [pkeys]);
+        navigation.show_entity(that.entity.name, 'default', pkeys);
     }
 
     that.create_add_command = function(record) {
@@ -142,7 +143,7 @@ IPA.entity_adder_dialog = function(spec) {
             retry: that.retry
         });
 
-        command.add_args(that.entity.get_primary_key_prefix());
+        command.add_args(that.pkey_prefix.slice(0));
 
         var fields = that.fields.get_fields();
         for (var j=0; j<fields.length; j++) {

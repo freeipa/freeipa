@@ -111,6 +111,14 @@ IPA.search_facet = function(spec, no_init) {
         that.create_control_buttons(that.controls);
     };
 
+    that.managed_entity_pkey_prefix = function() {
+
+        if (that.entity !== that.managed_entity) {
+            return that.get_pkeys();
+        }
+        return that.get_pkey_prefix();
+    };
+
     that.show = function() {
         that.facet_show();
 
@@ -124,6 +132,7 @@ IPA.search_facet = function(spec, no_init) {
     that.show_add_dialog = function() {
         var dialog = that.managed_entity.get_dialog('add');
         dialog.facet = that;
+        dialog.pkey_prefix = that.managed_entity_pkey_prefix();
         dialog.open(that.container);
     };
 
@@ -147,6 +156,7 @@ IPA.search_facet = function(spec, no_init) {
         dialog.entity_name = that.managed_entity.name;
         dialog.entity = that.managed_entity;
         dialog.facet = that;
+        dialog.pkey_prefix = that.managed_entity_pkey_prefix();
 
         title = IPA.messages.dialogs.remove_title;
         var label = that.managed_entity.metadata.label;
@@ -177,9 +187,9 @@ IPA.search_facet = function(spec, no_init) {
     };
 
     that.get_refresh_command_args = function() {
+
         var filter = that.state.filter || '';
-        // use only prefix, we are looking for records of current entity
-        var args = that.get_pkey_prefix();
+        var args = that.managed_entity_pkey_prefix();
         args.push(filter);
         return args;
     };
@@ -264,14 +274,12 @@ IPA.search_deleter_dialog = function(spec) {
     spec = spec || {};
 
     var that = IPA.deleter_dialog(spec);
+    that.pkey_prefix = spec.pkey_prefix || [];
 
     that.create_command = function() {
         var batch = IPA.batch_command({
             error_message: IPA.messages.search.partial_delete
         });
-
-        var pkeys = that.facet.get_pkeys();
-        pkeys.pop();
 
         for (var i=0; i<that.values.length; i++) {
             var command = IPA.command({
@@ -279,9 +287,7 @@ IPA.search_deleter_dialog = function(spec) {
                 method: 'del'
             });
 
-            for (var j=0; j<pkeys.length; j++) {
-                command.add_arg(pkeys[j]);
-            }
+            if (that.pkey_prefix.length) command.add_args(that.pkey_prefix);
 
             var value = that.values[i];
             if (value instanceof Object) {
@@ -359,14 +365,6 @@ IPA.nested_search_facet = function(spec) {
         }
 
         that.search_facet_refresh();
-    };
-
-    that.get_refresh_command_args = function() {
-        var filter = that.state.filter || '';
-        // use full pkeys, we are looking for nested entity's records
-        var args = that.get_pkeys();
-        args.push(filter);
-        return args;
     };
 
     return that;
