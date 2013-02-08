@@ -447,6 +447,7 @@
                         "trust": {
                             "account": "Account",
                             "admin_account": "Administrative account",
+                            "name": "SID blacklists",
                             "details": "Trust Settings",
                             "domain": "Domain",
                             "establish_using": "Establish using",
