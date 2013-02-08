@@ -574,7 +574,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Cannot modify /etc/krb5.conf")
 
         krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
-        krbconf.setOptionAssignment(" = ")
+        krbconf.setOptionAssignment((" = ", " "))
         krbconf.setSectionNameDelimiters(("[", "]"))
         krbconf.setSubSectionDelimiters(("{", "}"))
         krbconf.setIndent(("", "  ", "    "))
