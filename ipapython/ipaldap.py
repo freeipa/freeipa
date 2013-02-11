@@ -2009,7 +2009,10 @@ class IPAdmin(LDAPClient):
             # replace any existing schema.
             if old_entry.get('dn', DN()) == DN(('cn', 'schema')):
                 if len(adds) > 0:
-                    modlist.append((ldap.MOD_ADD, key, adds))
+                    if key == 'attributetypes':
+                        modlist.insert(0, (ldap.MOD_ADD, key, adds))
+                    else:
+                        modlist.append((ldap.MOD_ADD, key, adds))
             else:
                 if adds:
                     if force_replace:
