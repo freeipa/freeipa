@@ -265,7 +265,7 @@ class group_mod(LDAPUpdate):
 
         is_protected_group = keys[-1] in PROTECTED_GROUPS
 
-        if 'rename' in options:
+        if 'rename' in options or 'cn' in entry_attrs:
             if is_protected_group:
                 raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
                     reason=u'Cannot be renamed')
