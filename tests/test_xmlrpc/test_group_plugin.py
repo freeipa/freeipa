@@ -879,6 +879,13 @@ class test_group(Declarative):
         ),
 
         dict(
+            desc='Try to rename the admins group via setattr',
+            command=('group_mod', [u'admins'], {'setattr': u'cn=loosers'}),
+            expected=errors.ProtectedEntryError(label=u'group',
+                key='admins', reason='Cannot be renamed'),
+        ),
+
+        dict(
             desc='Try to modify the admins group to support external membership',
             command=('group_mod', [u'admins'], dict(external=True)),
             expected=errors.ProtectedEntryError(label=u'group',
@@ -898,6 +905,14 @@ class test_group(Declarative):
             expected=errors.ProtectedEntryError(label=u'group',
                 key='trust admins', reason='Cannot be renamed'),
         ),
+
+        dict(
+            desc='Try to rename the trust admins group via setattr',
+            command=('group_mod', [u'trust admins'], {'setattr': u'cn=loosers'}),
+            expected=errors.ProtectedEntryError(label=u'group',
+                key='trust admins', reason='Cannot be renamed'),
+        ),
+
 
         dict(
             desc='Try to modify the trust admins group to support external membership',
