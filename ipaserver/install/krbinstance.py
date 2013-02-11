@@ -123,10 +123,10 @@ class KrbInstance(service.Service):
             ipauniqueid=['autogenerate'],
             managedby=[host_dn],
         )
-        if 'krbpasswordexpiration' in service_entry.toDict():
+        if 'krbpasswordexpiration' in service_entry:
             host_entry['krbpasswordexpiration'] = service_entry[
                 'krbpasswordexpiration']
-        if 'krbticketflags' in service_entry.toDict():
+        if 'krbticketflags' in service_entry:
             host_entry['krbticketflags'] = service_entry['krbticketflags']
         self.admin_conn.add_entry(host_entry)
 

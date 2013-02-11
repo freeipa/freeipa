@@ -1015,26 +1015,6 @@ class LDAPEntry(collections.MutableMapping):
 
         return name, self.pop(name)
 
-    def toDict(self):
-        # FIXME: for backwards compatibility only
-        """Convert the attrs and values to a dict. The dict is keyed on the
-        attribute name.  The value is either single value or a list of values."""
-        assert isinstance(self.dn, DN)
-        result = ipautil.CIDict(self.data)
-        for i in result.keys():
-            result[i] = ipautil.utf8_encode_values(result[i])
-        result['dn'] = self.dn
-        return result
-
-    def origDataDict(self):
-        """Returns a dict of the original values of the user.
-
-        Used for updates.
-        """
-        result = ipautil.CIDict(self.orig_data)
-        result['dn'] = self.dn
-        return result
-
 class LDAPEntryView(collections.MutableMapping):
     __slots__ = ('_entry',)
 
@@ -1974,11 +1954,8 @@ class IPAdmin(LDAPClient):
         FORCE_REPLACE_ON_UPDATE_ATTRS = ('nsslapd-ssl-check-hostname', 'nsslapd-lookthroughlimit', 'nsslapd-idlistscanlimit', 'nsslapd-anonlimitsdn', 'nsslapd-minssf-exclude-rootdse')
         modlist = []
 
-        old_entry = ipautil.CIDict(old_entry)
-        new_entry = ipautil.CIDict(new_entry)
-
-        keys = set(map(string.lower, old_entry.keys()))
-        keys.update(map(string.lower, new_entry.keys()))
+        keys = set(old_entry.keys())
+        keys.update(new_entry.keys())
 
         for key in keys:
             new_values = new_entry.get(key, [])
@@ -2007,9 +1984,9 @@ class IPAdmin(LDAPClient):
 
             # You can't remove schema online. An add will automatically
             # replace any existing schema.
-            if old_entry.get('dn', DN()) == DN(('cn', 'schema')):
+            if old_entry.dn == DN(('cn', 'schema')):
                 if len(adds) > 0:
-                    if key == 'attributetypes':
+                    if key.lower() == 'attributetypes':
                         modlist.insert(0, (ldap.MOD_ADD, key, adds))
                     else:
                         modlist.append((ldap.MOD_ADD, key, adds))

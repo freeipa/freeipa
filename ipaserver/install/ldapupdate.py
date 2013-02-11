@@ -809,11 +809,10 @@ class LDAPUpdate:
         else:
             # Update LDAP
             try:
-                changes = self.conn.generateModList(entry.origDataDict(), entry.toDict())
+                changes = self.conn.generateModList(entry.orig_data, entry)
                 if (entry.dn == DN(('cn', 'schema'))):
                     d = dict()
-                    e = entry.toDict()
-                    for k,v in e.items():
+                    for k,v in entry.items():
                         d[k] = [str(x) for x in v]
                     updated = self.is_schema_updated(d)
                 else:
@@ -825,7 +824,7 @@ class LDAPUpdate:
                 self.debug("%s" % safe_changes)
                 self.debug("Live %d, updated %d" % (self.live_run, updated))
                 if self.live_run and updated:
-                    self.conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
+                    self.conn.updateEntry(entry.dn, entry.orig_data, entry)
                 self.info("Done")
             except errors.EmptyModlist:
                 self.info("Entry already up-to-date")
