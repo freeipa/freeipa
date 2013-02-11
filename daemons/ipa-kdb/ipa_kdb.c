@@ -20,6 +20,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <talloc.h>
+
 #include "ipa_kdb.h"
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext)
@@ -456,6 +458,7 @@ static krb5_error_code ipadb_fini_module(krb5_context kcontext)
 
     ipactx = ipadb_get_context(kcontext);
     ipadb_context_free(kcontext, &ipactx);
+    talloc_free(talloc_autofree_context());
 
     return 0;
 }
