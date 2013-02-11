@@ -627,6 +627,9 @@ class i18n_messages(Command):
                 "truststatus": _("Trust status"),
                 "trusttype": _("Trust type"),
             },
+            "trustconfig": {
+                "options": _("Options"),
+            },
             "user": {
                 "account": _("Account Settings"),
                 "account_status": _("Account Status"),
@@ -687,6 +690,7 @@ class i18n_messages(Command):
             "policy": _("Policy"),
             "role": _("Role Based Access Control"),
             "sudo": _("Sudo"),
+            "trust": _("Trusts"),
         },
         "true": _("True"),
         "widget": {

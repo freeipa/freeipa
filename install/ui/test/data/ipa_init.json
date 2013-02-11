@@ -488,6 +488,9 @@
                             "truststatus": "Trust status",
                             "trusttype": "Trust type"
                         },
+                        "trustconfig": {
+                            "options": "Options"
+                        },
                         "user": {
                             "account": "Account Settings",
                             "account_status": "Account Status",
@@ -547,7 +550,8 @@
                         "ipaserver": "IPA Server",
                         "policy": "Policy",
                         "role": "Role Based Access Control",
-                        "sudo": "Sudo"
+                        "sudo": "Sudo",
+                        "trust": "Trusts"
                     },
                     "true": "True",
                     "widget": {

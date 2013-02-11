@@ -84,7 +84,12 @@ IPA.admin_navigation = function(spec) {
             {entity: 'selfservice'},
             {entity: 'delegation'},
             {entity: 'idrange'},
-            {entity: 'trust'},
+            {
+                name: 'trusts', label: IPA.messages.tabs.trust, children:[
+                    {entity: 'trust'},
+                    {entity: 'trustconfig'}
+                ]
+            },
             {entity: 'config'}
         ]}];
 

@@ -7328,6 +7328,119 @@
                 ],
                 "uuid_attribute": ""
             },
+            "trustconfig": {
+                "aciattrs": [],
+                "attribute_members": {},
+                "bindable": false,
+                "container_dn": "",
+                "default_attributes": [
+                    "cn",
+                    "ipantsecurityidentifier",
+                    "ipantflatname",
+                    "ipantdomainguid",
+                    "ipantfallbackprimarygroup"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "Global Trust Configuration",
+                "label_singular": "Global Trust Configuration",
+                "methods": [
+                    "mod",
+                    "show"
+                ],
+                "name": "trustconfig",
+                "object_class": [],
+                "object_class_config": null,
+                "object_name": "trust configuration",
+                "object_name_plural": "entries",
+                "parent_object": "",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [
+                    {
+                        "class": "Str",
+                        "doc": "Domain",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Domain",
+                        "name": "cn",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Security Identifier",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Security Identifier",
+                        "name": "ipantsecurityidentifier",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "NetBIOS name",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "NetBIOS name",
+                        "name": "ipantflatname",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Domain GUID",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Domain GUID",
+                        "name": "ipantdomainguid",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Fallback primary group",
+                        "flags": [],
+                        "label": "Fallback primary group",
+                        "name": "ipantfallbackprimarygroup",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    }
+                ],
+                "uuid_attribute": ""
+            },
             "user": {
                 "aciattrs": [
                     "audio",

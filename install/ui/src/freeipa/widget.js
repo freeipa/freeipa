@@ -2734,12 +2734,14 @@ IPA.entity_select_widget = function(spec) {
     that.other_field = spec.other_field;
 
     that.options = spec.options || [];
+    that.filter_options = spec.filter_options || {};
 
     that.create_search_command = function(filter) {
         return IPA.command({
             entity: that.other_entity.name,
             method: 'find',
-            args: [filter]
+            args: [filter],
+            options: that.filter_options
         });
     };
 
@@ -2772,6 +2774,8 @@ IPA.entity_select_widget = function(spec) {
 
         if (that.on_search_success) that.on_search_success.call(this, data, text_status, xhr);
     };
+
+    that.entity_select_set_options = that.set_options;
 
     return that;
 };

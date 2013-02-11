@@ -193,7 +193,92 @@ IPA.trust.adder_dialog = function(spec) {
     return that;
 };
 
+IPA.trust.config_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function() {
+        that.entity_init();
+
+        that.builder.details_facet({
+            factory: IPA.trust.config_details_facet,
+            trust_type:  'ad',
+            sections: [
+                {
+                    name: 'details',
+                    label: IPA.messages.objects.trustconfig.options,
+                    fields: [
+                        'cn',
+                        'ipantsecurityidentifier',
+                        'ipantflatname',
+                        'ipantdomainguid',
+                        {
+                            type: 'trust_fallbackgroup_select',
+                            name: 'ipantfallbackprimarygroup',
+                            other_entity: 'group',
+                            other_field: 'cn',
+                            empty_option: false,
+                            filter_options: {
+                                posix: true
+                            }
+                        }
+                    ]
+                }
+            ]
+        });
+    };
+
+    return that;
+};
+
+IPA.trust.config_details_facet = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_facet(spec);
+
+    that.trust_type = spec.trust_type;
+
+    that.get_refresh_command_name = function() {
+        return that.entity.name+that.trust_type+'_show';
+    };
+
+    that.create_refresh_command = function() {
+
+        var command = that.details_facet_create_refresh_command();
+        command.set_option('trust_type', that.trust_type);
+
+        return command;
+    };
+
+    that.create_update_command = function() {
+
+        var command = that.details_facet_create_update_command();
+        command.set_option('trust_type', that.trust_type);
+
+        return command;
+    };
+
+    return that;
+};
+
+IPA.trust.fallbackgroup_select_widget = function(spec) {
+    var that = IPA.entity_select_widget(spec);
+
+    that.set_options = function(options) {
+        // always add 'Default SMB Group', it can't be obtained by group-find.
+        options.unshift('Default SMB Group');
+        that.entity_select_set_options(options);
+    };
+
+    return that;
+};
+
+IPA.widget_factories['trust_fallbackgroup_select'] = IPA.trust.fallbackgroup_select_widget;
+IPA.field_factories['trust_fallbackgroup_select'] = IPA.field_factories['entity_select'];
+
 IPA.register('trust', IPA.trust.entity);
+IPA.register('trustconfig', IPA.trust.config_entity);
 
 return {};
 });
