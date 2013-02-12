@@ -96,6 +96,10 @@ static char *memberof_pac_attrs[] = {
 #define SID_SUB_AUTHS 15
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+#define AUTHZ_DATA_TYPE_PAC "MS-PAC"
+#define AUTHZ_DATA_TYPE_PAD "PAD"
+#define AUTHZ_DATA_TYPE_NONE "NONE"
+
 static int string_to_sid(char *str, struct dom_sid *sid)
 {
     unsigned long val;
@@ -1515,6 +1519,127 @@ done:
     return kerr;
 }
 
+void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
+                          bool *_with_pac, bool *_with_pad)
+{
+    struct ipadb_e_data *ied = NULL;
+    struct ipadb_context *ipactx;
+    size_t c;
+    bool none_found = false;
+    bool srv_none_found = false;
+    char **authz_data_list;
+    bool with_pac = false;
+    bool srv_with_pac = false;
+    bool with_pad = false;
+    bool srv_with_pad = false;
+    char *sep;
+    krb5_data *service_type;
+    char *authz_data_type;
+    bool service_specific;
+
+    if (entry != NULL) {
+        ied = (struct ipadb_e_data *) entry->e_data;
+    }
+
+    if (ied == NULL || ied->authz_data == NULL) {
+        if (context == NULL) {
+            krb5_klog_syslog(LOG_ERR, "Missing Kerberos context, no " \
+                                      "authorization data will be added.");
+            goto done;
+        }
+
+        ipactx = ipadb_get_context(context);
+        if (ipactx == NULL || ipactx->authz_data == NULL) {
+            krb5_klog_syslog(LOG_ERR, "No default authorization data types " \
+                                      "available, no authorization data will " \
+                                      "be added.");
+            goto done;
+        }
+
+        authz_data_list = ipactx->authz_data;
+    } else {
+        authz_data_list = ied->authz_data;
+    }
+
+
+    for (c = 0; authz_data_list[c]; c++) {
+        service_specific = false;
+        authz_data_type = authz_data_list[c];
+        sep = strchr(authz_data_list[c], ':');
+        if (sep != NULL) {
+            if (entry->princ == NULL) {
+                krb5_klog_syslog(LOG_ERR, "Missing principal in database "
+                                          "entry, no authorization data will " \
+                                          "be added.");
+                goto done;
+            }
+
+            service_type = krb5_princ_component(context, entry->princ, 0);
+            if (service_type == NULL) {
+                krb5_klog_syslog(LOG_ERR, "Missing service type in database "
+                                          "entry, no authorization data will " \
+                                          "be added.");
+                goto done;
+            }
+
+            if (service_type->length == (sep - authz_data_list[c]) &&
+                strncmp(authz_data_list[c], service_type->data,
+                        service_type->length) == 0) {
+                service_specific = true;
+                authz_data_type = sep + 1;
+            } else {
+                /* Service specific default does not apply, skipping this
+                 * entry. */
+                continue;
+            }
+        }
+
+        if (strcmp(authz_data_type, AUTHZ_DATA_TYPE_PAC) == 0) {
+            if (service_specific) {
+                srv_with_pac = true;
+            } else {
+                with_pac = true;
+            }
+        } else if (strcmp(authz_data_type, AUTHZ_DATA_TYPE_PAD) == 0) {
+            if (service_specific) {
+                srv_with_pad = true;
+            } else {
+                with_pad = true;
+            }
+        } else if (strcmp(authz_data_type, AUTHZ_DATA_TYPE_NONE) == 0) {
+            if (service_specific) {
+                srv_none_found = true;
+            } else {
+                none_found = true;
+            }
+        } else {
+            krb5_klog_syslog(LOG_ERR, "Ignoring unsupported " \
+                                      "authorization data type [%s].",
+                                      authz_data_list[c]);
+        }
+    }
+
+done:
+    if (srv_none_found || srv_with_pac || srv_with_pad) {
+        none_found = srv_none_found;
+        with_pac = srv_with_pac;
+        with_pad = srv_with_pad;
+    }
+
+    if (none_found) {
+        with_pac = false;
+        with_pad = false;
+    }
+
+    if (_with_pac != NULL) {
+        *_with_pac = with_pac;
+    }
+    if (_with_pad != NULL) {
+        *_with_pad = with_pad;
+    }
+
+}
+
 krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     unsigned int flags,
                                     krb5_const_principal client_princ,
@@ -1537,6 +1662,8 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     krb5_error_code kerr;
     krb5_pac pac = NULL;
     krb5_data pac_data;
+    bool with_pac;
+    bool with_pad;
 
     /* When using s4u2proxy client_princ actually refers to the proxied user
      * while client->princ to the proxy service asking for the TGS on behalf
@@ -1547,9 +1674,20 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         ks_client_princ = client->princ;
     }
 
+    /* We only need to check the server entry here, because even if the client
+     * is a service with a valid authorization data it will result to NONE
+     * because ipadb_get_pac() can only generate a pac for 'real' IPA users.
+     * (I assume this will be the same for PAD.) */
+    get_authz_data_types(context, server, &with_pac, &with_pad);
+
+    if (with_pad) {
+        krb5_klog_syslog(LOG_ERR, "PAD authorization data is requested but " \
+                                  "currently not supported.");
+    }
+
     is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
 
-    if (is_as_req && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) {
+    if (is_as_req && with_pac && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) {
 
         kerr = ipadb_get_pac(context, client, &pac);
         if (kerr != 0 && kerr != ENOENT) {
@@ -1557,7 +1695,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         }
     }
 
-    if (!is_as_req) {
+    if (!is_as_req && with_pac) {
         /* find the existing PAC, if present */
         kerr = krb5_find_authdata(context, tgt_auth_data, NULL,
                                   KRB5_AUTHDATA_WIN2K_PAC, &pac_auth_data);
