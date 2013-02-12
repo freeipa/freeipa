@@ -2452,6 +2452,31 @@ option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
+command: realmdomains_mod
+args: 0,11,3
+option: Str('add_domain', attribute=True, autofill=False, cli_name='add_domain', multivalue=False, required=False)
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Str('associateddomain', attribute=True, autofill=False, cli_name='domain', multivalue=True, required=False)
+option: Str('del_domain', attribute=True, autofill=False, cli_name='del_domain', multivalue=False, required=False)
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Flag('force', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('value', <type 'unicode'>, None)
+command: realmdomains_show
+args: 0,4,3
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('value', <type 'unicode'>, None)
 command: role_add
 args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)

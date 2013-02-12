@@ -105,6 +105,27 @@ def validate_host_dns(log, fqdn):
         )
         raise errors.DNSNotARecordError()
 
+
+def has_soa_or_ns_record(domain):
+    """
+    Checks to see if given domain has SOA or NS record.
+    Returns True or False.
+    """
+    try:
+        resolver.query(domain, rdatatype.SOA)
+        soa_record_found = True
+    except DNSException:
+        soa_record_found = False
+
+    try:
+        resolver.query(domain, rdatatype.NS)
+        ns_record_found = True
+    except DNSException:
+        ns_record_found = False
+
+    return soa_record_found or ns_record_found
+
+
 def normalize_name(name):
     result = dict()
     components = name.split('@')
