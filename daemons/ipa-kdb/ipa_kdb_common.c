@@ -325,7 +325,7 @@ krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
                                 ctrl, NULL,
                                 &std_timeout, LDAP_NO_LIMIT,
                                 res);
-        retry = !ipadb_need_retry(ipactx, ret) && times > 0;
+        retry = ipadb_need_retry(ipactx, ret) && times > 0;
 
         if (retry) {
             /* Free result before next try */
