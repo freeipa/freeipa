@@ -105,6 +105,7 @@ struct ipadb_e_data {
     char **pw_history;
     struct ipapwd_policy *pol;
     time_t last_admin_unlock;
+    char **authz_data;
 };
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);
