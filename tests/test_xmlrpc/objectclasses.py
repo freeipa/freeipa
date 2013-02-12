@@ -154,3 +154,9 @@ dnsrecord = [
     u'top',
     u'idnsrecord',
 ]
+
+realmdomains = [
+    u'top',
+    u'nsContainer',
+    u'domainRelatedObject',
+]
