@@ -40,6 +40,8 @@ struct ipadb_context *ipadb_get_context(krb5_context kcontext)
 static void ipadb_context_free(krb5_context kcontext,
                                struct ipadb_context **ctx)
 {
+    size_t c;
+
     if (*ctx != NULL) {
         free((*ctx)->uri);
         free((*ctx)->base);
@@ -51,6 +53,12 @@ static void ipadb_context_free(krb5_context kcontext,
         free((*ctx)->supp_encs);
         ipadb_mspac_struct_free(&(*ctx)->mspac);
         krb5_free_default_realm(kcontext, (*ctx)->realm);
+
+        for (c = 0; (*ctx)->authz_data && (*ctx)->authz_data[c]; c++) {
+            free((*ctx)->authz_data[c]);
+        }
+        free((*ctx)->authz_data);
+
         free(*ctx);
         *ctx = NULL;
     }
@@ -167,13 +175,14 @@ done:
 
 int ipadb_get_global_configs(struct ipadb_context *ipactx)
 {
-    char *attrs[] = { "ipaConfigString", NULL };
+    char *attrs[] = { "ipaConfigString", IPA_KRB_AUTHZ_DATA_ATTR, NULL };
     struct berval **vals = NULL;
     LDAPMessage *res = NULL;
     LDAPMessage *first;
     char *base = NULL;
     int i;
     int ret;
+    char **authz_data_list;
 
     ret = asprintf(&base, "cn=ipaConfig,cn=etc,%s", ipactx->base);
     if (ret == -1) {
@@ -213,6 +222,22 @@ int ipadb_get_global_configs(struct ipadb_context *ipactx)
             ipactx->disable_lockout = true;
             continue;
         }
+    }
+
+    ret = ipadb_ldap_attr_to_strlist(ipactx->lcontext, first,
+                                     IPA_KRB_AUTHZ_DATA_ATTR, &authz_data_list);
+    if (ret != 0 && ret != ENOENT) {
+        goto done;
+    }
+    if (ret == 0) {
+        if (ipactx->authz_data != NULL) {
+            for (i = 0; ipactx->authz_data[i]; i++) {
+                free(ipactx->authz_data[i]);
+            }
+            free(ipactx->authz_data);
+        }
+
+        ipactx->authz_data = authz_data_list;
     }
 
     ret = 0;

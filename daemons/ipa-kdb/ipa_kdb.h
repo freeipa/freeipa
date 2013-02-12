@@ -74,6 +74,8 @@
 
 #define IPA_SETUP "ipa-setup-override-restrictions"
 
+#define IPA_KRB_AUTHZ_DATA_ATTR "ipaKrbAuthzData"
+
 struct ipadb_mspac;
 
 struct ipadb_context {
@@ -89,6 +91,7 @@ struct ipadb_context {
     struct ipadb_mspac *mspac;
     bool disable_last_success;
     bool disable_lockout;
+    char **authz_data;
 };
 
 #define IPA_E_DATA_MAGIC 0x0eda7a
