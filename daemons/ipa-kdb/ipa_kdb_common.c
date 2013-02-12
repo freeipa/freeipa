@@ -172,7 +172,7 @@ krb5_error_code ipadb_simple_search(struct ipadb_context *ipactx,
     /* first test if we need to retry to connect */
     if (ret != 0 &&
         ipadb_need_retry(ipactx, ret)) {
-
+        ldap_msgfree(*res);
         ret = ldap_search_ext_s(ipactx->lcontext, basedn, scope,
                                 filter, attrs, 0, NULL, NULL,
                                 &std_timeout, LDAP_NO_LIMIT,
@@ -283,6 +283,7 @@ krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
     int times;
     int ret;
     int c, i;
+    bool retry;
 
     for (c = 0; deref_attr_names[c]; c++) {
         /* count */ ;
@@ -315,7 +316,8 @@ krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
     /* retry once if connection errors (tot. max. 2 tries) */
     times = 2;
     ret = LDAP_SUCCESS;
-    while (!ipadb_need_retry(ipactx, ret) && times > 0) {
+    retry = true;
+    while (retry) {
         times--;
         ret = ldap_search_ext_s(ipactx->lcontext, base_dn,
                                 scope, filter,
@@ -323,11 +325,18 @@ krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
                                 ctrl, NULL,
                                 &std_timeout, LDAP_NO_LIMIT,
                                 res);
+        retry = !ipadb_need_retry(ipactx, ret) && times > 0;
+
+        if (retry) {
+            /* Free result before next try */
+            ldap_msgfree(*res);
+        }
     }
 
     kerr = ipadb_simple_ldap_to_kerr(ret);
 
 done:
+    ldap_control_free(ctrl[0]);
     ldap_memfree(derefval.bv_val);
     free(ds);
     return kerr;

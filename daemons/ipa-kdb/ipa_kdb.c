@@ -40,10 +40,14 @@ static void ipadb_context_free(krb5_context kcontext,
 {
     if (*ctx != NULL) {
         free((*ctx)->uri);
+        free((*ctx)->base);
+        free((*ctx)->realm_base);
         /* ldap free lcontext */
         if ((*ctx)->lcontext) {
             ldap_unbind_ext_s((*ctx)->lcontext, NULL, NULL);
         }
+        free((*ctx)->supp_encs);
+        ipadb_mspac_struct_free(&(*ctx)->mspac);
         krb5_free_default_realm(kcontext, (*ctx)->realm);
         free(*ctx);
         *ctx = NULL;
