@@ -237,6 +237,8 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
 
 krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx);
 
+void ipadb_mspac_struct_free(struct ipadb_mspac **mspac);
+
 /* DELEGATION CHECKS */
 
 krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,

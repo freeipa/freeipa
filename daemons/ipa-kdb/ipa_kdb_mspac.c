@@ -944,6 +944,7 @@ static int map_groups(TALLOC_CTX *memctx, krb5_context kcontext,
             goto done;
         }
 
+        ldap_msgfree(results);
         kerr = ipadb_deref_search(ipactx, basedn, LDAP_SCOPE_ONE, filter,
                                   entry_attrs, deref_search_attrs,
                                   memberof_pac_attrs, &results);
@@ -1638,12 +1639,14 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     ad.ad_type = KRB5_AUTHDATA_WIN2K_PAC;
     ad.contents = (krb5_octet *)pac_data.data;
     ad.length = pac_data.length;
+
     authdata[0] = &ad;
 
     kerr = krb5_encode_authdata_container(context,
                                           KRB5_AUTHDATA_IF_RELEVANT,
                                           authdata,
                                           signed_auth_data);
+    krb5_free_data_contents(context, &pac_data);
     if (kerr != 0) {
         goto done;
     }
@@ -1697,7 +1700,9 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
             free((*mspac)->trusts[i].sid_blacklist_incoming);
             free((*mspac)->trusts[i].sid_blacklist_outgoing);
         }
+        free((*mspac)->trusts);
     }
+    free(*mspac);
 
     *mspac = NULL;
 }
@@ -2040,14 +2045,17 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
             if (ret == 0) {
                 ret = string_to_sid(resstr, &gsid);
                 if (ret) {
+                    free(resstr);
                     kerr = ret;
                     goto done;
                 }
                 ret = sid_split_rid(&gsid, &ipactx->mspac->fallback_rid);
                 if (ret) {
+                    free(resstr);
                     kerr = ret;
                     goto done;
                 }
+                free(resstr);
             }
         }
     }
