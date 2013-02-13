@@ -162,7 +162,7 @@ class updateclient(backend.Executioner):
         """
         Execute the update plugin.
         """
-        return self.Updater[method](**kw) #pylint: disable=E1101
+        return self.Updater[method](**kw)
 
     def restart(self, dm_password, live_run):
         if os.getegid() != 0:

@@ -231,7 +231,7 @@ class KRB5_CCache(object):
             error_code = e.args[0]
             if error_code == KRB5_CC_NOTFOUND:
                 raise KeyError('"%s" credential not found in "%s" ccache' % \
-                               (krbV_principal.name, self.ccache_str())) #pylint: disable=E1103
+                               (krbV_principal.name, self.ccache_str()))
             raise e
         except Exception, e:
             raise e
@@ -282,7 +282,7 @@ class KRB5_CCache(object):
             authtime, starttime, endtime, renew_till = cred[3]
 
             self.debug('get_credential_times: principal=%s, authtime=%s, starttime=%s, endtime=%s, renew_till=%s',
-                       krbV_principal.name, #pylint: disable=E1103
+                       krbV_principal.name,
                        krb5_format_time(authtime), krb5_format_time(starttime),
                        krb5_format_time(endtime), krb5_format_time(renew_till))
 
@@ -291,7 +291,7 @@ class KRB5_CCache(object):
         except KeyError, e:
             raise e
         except Exception, e:
-            self.error('get_credential_times failed, principal="%s" error="%s"', krbV_principal.name, e) #pylint: disable=E1103
+            self.error('get_credential_times failed, principal="%s" error="%s"', krbV_principal.name, e)
             raise e
 
     def credential_is_valid(self, principal):

@@ -1122,8 +1122,7 @@ class Int(Number):
     )
 
     def __init__(self, name, *rules, **kw):
-        #pylint: disable=E1003
-        super(Number, self).__init__(name, *rules, **kw)
+        super(Int, self).__init__(name, *rules, **kw)
 
         if (self.minvalue > self.maxvalue) and (self.minvalue is not None and self.maxvalue is not None):
             raise ValueError(
@@ -1478,7 +1477,7 @@ class Str(Data):
         Do not allow leading/trailing spaces.
         """
         assert type(value) is unicode
-        if self.noextrawhitespace is False: #pylint: disable=E1101
+        if self.noextrawhitespace is False:
             return
         if len(value) != len(value.strip()):
             return _('Leading and trailing spaces are not allowed')
