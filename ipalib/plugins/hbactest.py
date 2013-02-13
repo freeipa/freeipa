@@ -77,10 +77,10 @@ EXAMPLES:
     --------------------
     Access granted: True
     --------------------
-      notmatched: my-second-rule
-      notmatched: my-third-rule
-      notmatched: myrule
-      matched: allow_all
+      Not matched rules: my-second-rule
+      Not matched rules: my-third-rule
+      Not matched rules: myrule
+      Matched rules: allow_all
 
     2. Disable detailed summary of how rules were applied:
     $ ipa hbactest --user=a1a --host=bar --service=sshd --nodetail
@@ -89,53 +89,53 @@ EXAMPLES:
     --------------------
 
     3. Test explicitly specified HBAC rules:
-    $ ipa hbactest --user=a1a --host=bar --service=sshd \
+    $ ipa hbactest --user=a1a --host=bar --service=sshd \\
           --rules=my-second-rule,myrule
     ---------------------
     Access granted: False
     ---------------------
-      notmatched: my-second-rule
-      notmatched: myrule
+      Not matched rules: my-second-rule
+      Not matched rules: myrule
 
     4. Use all enabled HBAC rules in IPA database + explicitly specified rules:
-    $ ipa hbactest --user=a1a --host=bar --service=sshd \
+    $ ipa hbactest --user=a1a --host=bar --service=sshd \\
           --rules=my-second-rule,myrule --enabled
     --------------------
     Access granted: True
     --------------------
-      notmatched: my-second-rule
-      notmatched: my-third-rule
-      notmatched: myrule
-      matched: allow_all
+      Not matched rules: my-second-rule
+      Not matched rules: my-third-rule
+      Not matched rules: myrule
+      Matched rules: allow_all
 
     5. Test all disabled HBAC rules in IPA database:
     $ ipa hbactest --user=a1a --host=bar --service=sshd --disabled
     ---------------------
     Access granted: False
     ---------------------
-      notmatched: new-rule
+      Not matched rules: new-rule
 
     6. Test all disabled HBAC rules in IPA database + explicitly specified rules:
-    $ ipa hbactest --user=a1a --host=bar --service=sshd \
+    $ ipa hbactest --user=a1a --host=bar --service=sshd \\
           --rules=my-second-rule,myrule --disabled
     ---------------------
     Access granted: False
     ---------------------
-      notmatched: my-second-rule
-      notmatched: my-third-rule
-      notmatched: myrule
+      Not matched rules: my-second-rule
+      Not matched rules: my-third-rule
+      Not matched rules: myrule
 
     7. Test all (enabled and disabled) HBAC rules in IPA database:
-    $ ipa hbactest --user=a1a --host=bar --service=sshd \
+    $ ipa hbactest --user=a1a --host=bar --service=sshd \\
           --enabled --disabled
     --------------------
     Access granted: True
     --------------------
-      notmatched: my-second-rule
-      notmatched: my-third-rule
-      notmatched: myrule
-      notmatched: new-rule
-      matched: allow_all
+      Not matched rules: my-second-rule
+      Not matched rules: my-third-rule
+      Not matched rules: myrule
+      Not matched rules: new-rule
+      Matched rules: allow_all
 
 
 HBACTEST AND TRUSTED DOMAINS
