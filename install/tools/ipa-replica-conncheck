@@ -359,16 +359,43 @@ def main():
             if returncode != 0:
                 raise RuntimeError("Could not get ticket for master server: %s" % stderr)
 
+            print_info("Check SSH connection to remote master")
+
+            remote_addr = "%s@%s" % (user, options.master)
+            temp_known_hosts = tempfile.NamedTemporaryFile()
+
+            def run_ssh(command, verbose=False):
+                """Run given command on remote master over SSH
+
+                Return stdout, stderr, returncode
+                """
+                ssh_command = ['ssh']
+                if verbose:
+                    ssh_command.append('-v')
+                ssh_command += [
+                    '-o StrictHostKeychecking=no',
+                    '-o UserKnownHostsFile=%s' % temp_known_hosts.name,
+                    remote_addr, command
+                ]
+                return ipautil.run(
+                    ssh_command,
+                    env={'KRB5_CONFIG': KRB5_CONFIG,
+                         'KRB5CCNAME' : CCACHE_FILE},
+                    raiseonerr=False)
+
+            stdout, stderr, returncode = run_ssh('echo OK', verbose=True)
+
+            if returncode != 0:
+                print 'Could not SSH into remote host. Error output:'
+                for line in stderr.splitlines():
+                    print '    %s' % line
+                raise RuntimeError('Could not SSH to remote host.')
+
             print_info("Execute check on remote master")
 
-            stderr = ''
-            remote_addr = "%s@%s" % (user, options.master)
-            (stdout, stderr, returncode) = ipautil.run(['/usr/bin/ssh',
-                '-q', '-o StrictHostKeychecking=no',
-                '-o UserKnownHostsFile=/dev/null', remote_addr,
-                "/usr/sbin/ipa-replica-conncheck " + " ".join(remote_check_opts)],
-                env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME' : CCACHE_FILE},
-                raiseonerr=False)
+            stdout, stderr, returncode = run_ssh(
+                "/usr/sbin/ipa-replica-conncheck " +
+                    " ".join(remote_check_opts))
 
             print_info(stdout)
 
