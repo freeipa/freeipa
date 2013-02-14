@@ -392,21 +392,18 @@ def _find_aci_by_name(acis, aciprefix, aciname):
             return a
     raise errors.NotFound(reason=_('ACI with name "%s" not found') % aciname)
 
-def validate_permissions(ugettext, permissions):
-    valid_permissions = []
-    permissions = permissions.split(',')
-    for p in permissions:
-        p = p.strip().lower()
-        if not p in _valid_permissions_values:
-             return '"%s" is not a valid permission' % p
 
-def _normalize_permissions(permissions):
+def validate_permissions(ugettext, perm):
+    perm = perm.strip().lower()
+    if perm not in _valid_permissions_values:
+        return '"%s" is not a valid permission' % perm
+
+
+def _normalize_permissions(perm):
     valid_permissions = []
-    permissions = permissions.split(',')
-    for p in permissions:
-        p = p.strip().lower()
-        if p not in valid_permissions:
-            valid_permissions.append(p)
+    perm = perm.strip().lower()
+    if perm not in valid_permissions:
+        valid_permissions.append(perm)
     return ','.join(valid_permissions)
 
 _prefix_option = StrEnum('aciprefix',
