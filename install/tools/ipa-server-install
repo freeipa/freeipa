@@ -750,6 +750,11 @@ def main():
     admin_password = ""
     reverse_zone = None
 
+    if not options.setup_dns and not options.unattended:
+        if ipautil.user_input("Do you want to configure integrated DNS (BIND)?", False):
+            options.setup_dns = True
+        print ""
+
     # check bind packages are installed
     if options.setup_dns:
         if not bindinstance.check_inst(options.unattended):
