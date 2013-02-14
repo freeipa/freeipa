@@ -2088,12 +2088,6 @@ IPA.combobox_widget = function(spec) {
 
         container.addClass('combobox-widget');
 
-        $(document).keyup(function(e) {
-            if (e.which == 27) { // Escape
-                that.close();
-            }
-        });
-
         that.input_container = $('<div/>', {
             'class': 'combobox-widget-input'
         }).appendTo(container);
@@ -2107,41 +2101,48 @@ IPA.combobox_widget = function(spec) {
             type: 'text',
             name: that.name,
             title: that.tooltip,
-            readonly: !that.editable || that.read_only,
-            keyup: function() {
-                that.input_field_changed.notify([], that);
-            },
+            keydown: that.on_input_keydown,
+            mousedown: that.on_no_close,
             click: function() {
+                that.no_close_flag = false;
                 if (that.editable) return false;
                 if (that.is_open()) {
                     that.close();
+                    IPA.select_range(that.input, 0, 0);
                 } else {
                     that.open();
+                    that.list.focus();
                 }
                 return false;
             }
         }).appendTo(that.input_container);
 
-        that.input.bind('input', function() {
-            that.input_field_changed.notify([], that);
-        });
+
+        that.input.bind('input', that.on_input_input);
 
         that.open_button = IPA.action_button({
             name: 'open',
             icon: 'combobox-icon',
+            focusable: false,
             click: function() {
+                that.no_close_flag = false;
                 if (that.is_open()) {
                     that.close();
+                    IPA.select_range(that.input, 0, 0);
                 } else {
                     that.open();
+                    that.list.focus();
                 }
                 return false;
             }
         }).appendTo(that.input_container);
 
+        that.open_button.bind('mousedown', that.on_no_close);
+
         that.list_container = $('<div/>', {
             'class': 'combobox-widget-list',
-            css: { 'z-index': that.z_index }
+            css: { 'z-index': that.z_index },
+            keydown: that.on_list_container_keydown
         }).appendTo(that.input_container);
 
         var div = $('<div/>', {
@@ -2152,23 +2153,27 @@ IPA.combobox_widget = function(spec) {
             that.filter = $('<input/>', {
                 type: 'text',
                 name: 'filter',
-                keypress: function(e) {
-                    if (e.which == 13) { // Enter
-                        var filter = that.filter.val();
-                        that.search(filter);
-                    }
-                }
+                keyup: that.on_filter_keyup,
+                keydown: that.on_filter_keydown,
+                blur: that.list_child_on_blur
             }).appendTo(div);
 
             that.search_button = IPA.action_button({
                 name: 'search',
                 icon: 'search-icon',
+                focusable: false,
                 click: function() {
+                    that.no_close_flag = false;
                     var filter = that.filter.val();
                     that.search(filter);
+                    // focus the list to allow keyboard usage and to allow
+                    // closing on focus lost
+                    that.list.focus();
                     return false;
                 }
             }).appendTo(div);
+
+            that.search_button.bind('mousedown', that.on_no_close);
 
             div.append('<br/>');
         }
@@ -2177,7 +2182,10 @@ IPA.combobox_widget = function(spec) {
             name: 'list',
             size: that.size,
             style: 'width: 100%',
-            change: that.select_on_change
+            keydown: that.list_on_keydown,
+            keyup: that.list_on_keyup,
+            change: that.list_on_change,
+            blur: that.list_child_on_blur
         }).appendTo(div);
 
         if (that.undo) {
@@ -2187,21 +2195,152 @@ IPA.combobox_widget = function(spec) {
         that.create_error_link(container);
     };
 
-    that.select_on_change = function() {
+    that.on_no_close = function() {
+        // tell list_child_on_blur that focus lost is caused intentionally
+        that.no_close_flag = true;
+    };
 
-        if (!that.is_open()) return;
+    that.on_input_keydown = function(e) {
+
+        var key = e.which;
+
+        if (key === $.ui.keyCode.TAB ||
+            key === $.ui.keyCode.ESCAPE ||
+            key === $.ui.keyCode.ENTER ||
+            key === $.ui.keyCode.SHIFT ||
+            e.ctrlKey ||
+            e.metaKey ||
+            e.altKey) return true;
+
+        if (that.read_only) {
+            e.preventDefault();
+            return true;
+        }
+
+        if (key === $.ui.keyCode.UP || key === $.ui.keyCode.DOWN) {
+            e.preventDefault();
+            that.open();
+
+            if (key === $.ui.keyCode.UP) {
+                that.select_prev();
+            } else {
+                that.select_next();
+            }
+            that.list.focus();
+            return false;
+        }
+
+        if (!that.editable) {
+            e.preventDefault();
+            that.open();
+            that.filter.focus();
+            return false;
+        }
+
+        that.input_field_changed.notify([], that);
+        return true;
+    };
+
+    that.on_input_input = function(e) {
+        if (!that.editable || that.read_only) {
+            e.preventDefault();
+        } else {
+            that.input_field_changed.notify([], that);
+        }
+    };
+
+    that.on_list_container_keydown = function(e) {
+        // close on ESCAPE and consume event to prevent unwanted
+        // behaviour like closing dialog
+        if (e.which == $.ui.keyCode.ESCAPE) {
+            e.preventDefault();
+            e.stopPropagation();
+            that.close();
+            IPA.select_range(that.input, 0, 0);
+            return false;
+        }
+    };
+
+    that.on_filter_keyup = function(e) {
+        if (e.which == $.ui.keyCode.ENTER) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var filter = that.filter.val();
+            that.search(filter);
+            return false;
+        }
+    };
+
+    that.on_filter_keydown = function(e) {
+        var key = e.which;
+        if (key === $.ui.keyCode.UP) {
+            e.preventDefault();
+            that.select_prev();
+            that.list.focus();
+        } else if (key === $.ui.keyCode.DOWN) {
+            e.preventDefault();
+            that.select_next();
+            that.list.focus();
+        }
+    };
+
+    that.list_on_keydown = function(e) {
+        if (e.which === $.ui.keyCode.TAB) {
+            e.preventDefault();
+            if (that.searchable) {
+                that.filter.focus();
+            } else {
+                that.input.focus();
+            }
+            return false;
+        }
+    };
+
+    that.list_on_keyup = function(e) {
+        if (e.which === $.ui.keyCode.ENTER || e.which === $.ui.keyCode.SPACE) {
+            e.stopPropagation();
+            that.close();
+            IPA.select_range(that.input, 0, 0);
+            return false;
+        }
+    };
+
+    that.list_on_change = function(e) {
 
         var value = that.list.val();
         that.input.val(value);
-        IPA.select_range(that.input, 0, 0);
-
-        that.close();
         that.value_changed.notify([[value]], that);
     };
 
+    that.list_child_on_blur = function(e) {
+
+        // wait for the browser to focus new element
+        window.setTimeout(function() {
+
+            // close only when focus went outside of list_container
+            if (that.list_container.find(':focus').length === 0 &&
+                    // don't close when clicked on input, open_button or
+                    // search_button their handlers will call close, otherwise
+                    // they would reopen the list_container
+                    !that.no_close_flag) {
+                that.close();
+            }
+        }, 50);
+    };
+
+    that.option_on_click = function(e) {
+        // Close list when user selects and option by click
+        // doesn't work in IE, can be fixed by moving the handler to list.click,
+        // but it breaks UI automation tests. #3014
+        that.close();
+        IPA.select_range(that.input, 0, 0);
+    };
+
     that.open = function() {
-        if (!that.read_only)
+        if (!that.read_only) {
             that.list_container.css('visibility', 'visible');
+        }
     };
 
     that.close = function() {
@@ -2311,6 +2450,22 @@ IPA.combobox_widget = function(spec) {
         that.value_changed.notify([], that);
     };
 
+    that.select_next = function() {
+        var value = that.list.val();
+        var option = $('option[value="'+value+'"]', that.list);
+        var next = option.next();
+        if (!next.length) return;
+        that.select(next.val());
+    };
+
+    that.select_prev = function() {
+        var value = that.list.val();
+        var option = $('option[value="'+value+'"]', that.list);
+        var prev = option.prev();
+        if (!prev.length) return;
+        that.select(prev.val());
+    };
+
     that.save = function() {
         var value = that.input.val();
         return value === '' ? [] : [value];
@@ -2320,7 +2475,7 @@ IPA.combobox_widget = function(spec) {
         var option = $('<option/>', {
             text: label,
             value: value,
-            click: that.select_on_change
+            click: that.option_on_click
         }).appendTo(that.list);
     };
 
@@ -2456,6 +2611,10 @@ IPA.action_button = function(spec) {
         click: spec.click,
         blur: spec.blur
     });
+
+    if (spec.focusable === false) {
+        button.attr('tabindex', '-1');
+    }
 
     if (spec['class']) button.addClass(spec['class']);
 
