@@ -203,8 +203,6 @@ class test_Param(ClassChecker):
         assert o.flags == frozenset()
         assert o.sortorder == 2
         assert o.csv is False
-        assert o.csv_separator == ','
-        assert o.csv_skipspace is True
 
         # Test that doc defaults from label:
         o = self.cls('my_param', doc=_('Hello world'))
@@ -634,35 +632,6 @@ class test_Param(ClassChecker):
         e = raises(ValidationError, o.split_csv, '"a')
         assert e.name == 'my_list'
         assert e.error == u'Improperly formatted CSV value (newline inside string)'
-
-    def test_split_csv_separator(self):
-        """
-        Test the `ipalib.parameters.Param.split_csv` method with csv and a separator.
-        """
-        o = self.cls('my_list+', csv=True, csv_separator='|')
-
-        n = o.split_csv('a')
-        assert type(n) is tuple
-        assert len(n) is 1
-
-        n = o.split_csv('a|b')
-        assert type(n) is tuple
-        assert len(n) is 2
-
-    def test_split_csv_skipspace(self):
-        """
-        Test the `ipalib.parameters.Param.split_csv` method with csv without skipping spaces.
-        """
-        o = self.cls('my_list+', csv=True, csv_skipspace=False)
-
-        n = o.split_csv('a')
-        assert type(n) is tuple
-        assert len(n) is 1
-
-        n = o.split_csv('a, "b,c", d')
-        assert type(n) is tuple
-        # the output w/o skipspace is ['a',' "b','c"',' d']
-        assert len(n) is 4
 
 
 class test_Flag(ClassChecker):

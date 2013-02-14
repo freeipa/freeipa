@@ -67,7 +67,7 @@ class IPATypeChecker(TypeChecker):
             'default', 'doc', 'required', 'multivalue', 'primary_key',
             'normalizer', 'default_from', 'autofill', 'query', 'attribute',
             'include', 'exclude', 'flags', 'hint', 'alwaysask', 'sortorder',
-            'csv', 'csv_separator', 'csv_skipspace', 'option_group'],
+            'csv', 'option_group'],
         'ipalib.parameters.Bool': ['truths', 'falsehoods'],
         'ipalib.parameters.Data': ['minlength', 'maxlength', 'length',
             'pattern', 'pattern_errmsg'],

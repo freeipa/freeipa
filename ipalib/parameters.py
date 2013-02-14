@@ -356,10 +356,6 @@ class Param(ReadOnly):
       - sortorder: used to sort a list of parameters for Command. See
         `Command.finalize()` for further information
       - csv: this multivalue attribute is given in CSV format
-      - csv_separator: character that separates values in CSV (comma by
-        default)
-      - csv_skipspace: if true, leading whitespace will be ignored in
-        individual CSV values
     """
 
     # This is a dummy type so that most of the functionality of Param can be
@@ -393,8 +389,6 @@ class Param(ReadOnly):
         ('alwaysask', bool, False),
         ('sortorder', int, 2), # see finalize()
         ('csv', bool, False),
-        ('csv_separator', str, ','),
-        ('csv_skipspace', bool, True),
         ('option_group', unicode, None),
 
         # The 'default' kwarg gets appended in Param.__init__():
@@ -690,9 +684,8 @@ class Param(ReadOnly):
     def __unicode_csv_reader(self, unicode_csv_data, dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
-                                dialect=dialect,
-                                delimiter=self.csv_separator, quotechar='"',
-                                skipinitialspace=self.csv_skipspace,
+                                dialect=dialect, delimiter=',', quotechar='"',
+                                skipinitialspace=True,
                                 **kwargs)
         try:
             for row in csv_reader:
@@ -967,8 +960,7 @@ class Param(ReadOnly):
 
     json_exclude_attrs = (
         'alwaysask', 'autofill', 'cli_name', 'cli_short_name', 'csv',
-        'csv_separator', 'csv_skipspace', 'sortorder', 'falsehoods', 'truths',
-        'version',
+        'sortorder', 'falsehoods', 'truths', 'version',
     )
 
     def __json__(self):
