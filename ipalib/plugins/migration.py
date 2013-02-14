@@ -516,7 +516,7 @@ class migrate_ds(Command):
         Str('userobjectclass+',
             cli_name='user_objectclass',
             label=_('User object class'),
-            doc=_('Comma-separated list of objectclasses used to search for user entries in DS'),
+            doc=_('Objectclasses used to search for user entries in DS'),
             csv=True,
             default=(u'person',),
             autofill=True,
@@ -524,7 +524,7 @@ class migrate_ds(Command):
         Str('groupobjectclass+',
             cli_name='group_objectclass',
             label=_('Group object class'),
-            doc=_('Comma-separated list of objectclasses used to search for group entries in DS'),
+            doc=_('Objectclasses used to search for group entries in DS'),
             csv=True,
             default=(u'groupOfUniqueNames', u'groupOfNames'),
             autofill=True,
@@ -532,7 +532,7 @@ class migrate_ds(Command):
         Str('userignoreobjectclass*',
             cli_name='user_ignore_objectclass',
             label=_('Ignore user object class'),
-            doc=_('Comma-separated list of objectclasses to be ignored for user entries in DS'),
+            doc=_('Objectclasses to be ignored for user entries in DS'),
             csv=True,
             default=tuple(),
             autofill=True,
@@ -540,7 +540,7 @@ class migrate_ds(Command):
         Str('userignoreattribute*',
             cli_name='user_ignore_attribute',
             label=_('Ignore user attribute'),
-            doc=_('Comma-separated list of attributes to be ignored for user entries in DS'),
+            doc=_('Attributes to be ignored for user entries in DS'),
             csv=True,
             default=tuple(),
             autofill=True,
@@ -548,7 +548,7 @@ class migrate_ds(Command):
         Str('groupignoreobjectclass*',
             cli_name='group_ignore_objectclass',
             label=_('Ignore group object class'),
-            doc=_('Comma-separated list of objectclasses to be ignored for group entries in DS'),
+            doc=_('Objectclasses to be ignored for group entries in DS'),
             csv=True,
             default=tuple(),
             autofill=True,
@@ -556,7 +556,7 @@ class migrate_ds(Command):
         Str('groupignoreattribute*',
             cli_name='group_ignore_attribute',
             label=_('Ignore group attribute'),
-            doc=_('Comma-separated list of attributes to be ignored for group entries in DS'),
+            doc=_('Attributes to be ignored for group entries in DS'),
             csv=True,
             default=tuple(),
             autofill=True,
@@ -612,7 +612,7 @@ class migrate_ds(Command):
         ),
     )
 
-    exclude_doc = _('comma-separated list of %s to exclude from migration')
+    exclude_doc = _('%s to exclude from migration')
 
     truncated_err_msg = _('''\
 search results for objects to be migrated

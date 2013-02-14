@@ -133,14 +133,14 @@ class permission(LDAPObject):
         Str('permissions+',
             cli_name='permissions',
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant ' \
+            doc=_('Permissions to grant ' \
                 '(read, write, add, delete, all)'),
             csv=True,
         ),
         Str('attrs*',
             cli_name='attrs',
             label=_('Attributes'),
-            doc=_('Comma-separated list of attributes'),
+            doc=_('Attributes to which the permission applies'),
             csv=True,
             normalizer=lambda value: value.lower(),
             flags=('ask_create'),

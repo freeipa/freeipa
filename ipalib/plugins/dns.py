@@ -557,7 +557,7 @@ class DNSRecord(Str):
 
     label_format = _("%s record")
     part_label_format = "%s %s"
-    doc_format = _('Comma-separated list of raw %s records')
+    doc_format = _('Raw %s records')
     option_group_format = _('%s Record')
     see_rfc_msg = _("(see RFC %s for details)")
     part_name_format = "%s_part_%s"
@@ -1694,7 +1694,7 @@ class dnszone(LDAPObject):
             _validate_bind_forwarder,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('A list of per-zone forwarders. A custom port can be specified '
+            doc=_('Per-zone forwarders. A custom port can be specified '
                   'for each forwarder using a standard format "IP_ADDRESS port PORT"'),
             csv=True,
         ),
@@ -2929,8 +2929,8 @@ class dnsconfig(LDAPObject):
             _validate_bind_forwarder,
             cli_name='forwarder',
             label=_('Global forwarders'),
-            doc=_('A list of global forwarders. A custom port can be specified ' \
-                  'for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_('Global forwarders. A custom port can be specified for each '
+                  'forwarder using a standard format "IP_ADDRESS port PORT"'),
             csv=True,
         ),
         StrEnum('idnsforwardpolicy?',

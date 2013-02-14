@@ -1436,7 +1436,7 @@ class LDAPModMember(LDAPQuery):
     Base class for member manipulation.
     """
     member_attributes = ['member']
-    member_param_doc = _('comma-separated list of %s')
+    member_param_doc = _('%s')
     member_count_out = ('%i member processed.', '%i members processed.')
 
     def get_options(self):
@@ -1478,7 +1478,7 @@ class LDAPAddMember(LDAPModMember):
     """
     Add other LDAP entries to members.
     """
-    member_param_doc = _('comma-separated list of %s to add')
+    member_param_doc = _('%s to add')
     member_count_out = ('%i member added.', '%i members added.')
     allow_same = False
 
@@ -1574,7 +1574,7 @@ class LDAPRemoveMember(LDAPModMember):
     """
     Remove LDAP entries from members.
     """
-    member_param_doc = _('comma-separated list of %s to remove')
+    member_param_doc = _('%s to remove')
     member_count_out = ('%i member removed.', '%i members removed.')
 
     has_output = (
@@ -1899,7 +1899,7 @@ class LDAPModReverseMember(LDAPQuery):
     Base class for reverse member manipulation.
     """
     reverse_attributes = ['member']
-    reverse_param_doc = _('comma-separated list of %s')
+    reverse_param_doc = _('%s')
     reverse_count_out = ('%i member processed.', '%i members processed.')
 
     has_output_params = global_output_params
@@ -1924,7 +1924,7 @@ class LDAPAddReverseMember(LDAPModReverseMember):
     The call looks like "add A to B" but in fact executes
     add B to A to handle reverse membership.
     """
-    member_param_doc = _('comma-separated list of %s to add')
+    member_param_doc = _('%s to add')
     member_count_out = ('%i member added.', '%i members added.')
 
     show_command = None
@@ -2024,7 +2024,7 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
     The call looks like "remove A from B" but in fact executes
     remove B from A to handle reverse membership.
     """
-    member_param_doc = _('comma-separated list of %s to remove')
+    member_param_doc = _('%s to remove')
     member_count_out = ('%i member removed.', '%i members removed.')
 
     show_command = None

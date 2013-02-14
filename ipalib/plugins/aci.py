@@ -444,7 +444,7 @@ class aci(Object):
         Str('permissions+', validate_permissions,
             cli_name='permissions',
             label=_('Permissions'),
-            doc=_('comma-separated list of permissions to grant' \
+            doc=_('Permissions to grant' \
                 '(read, write, add, delete, all)'),
             csv=True,
             normalizer=_normalize_permissions,
@@ -452,8 +452,8 @@ class aci(Object):
         ),
         Str('attrs*',
             cli_name='attrs',
-            label=_('Attributes'),
-            doc=_('Comma-separated list of attributes'),
+            label=_('Attributes to which the permission applies'),
+            doc=_('Attributes'),
             csv=True,
             flags=('virtual_attribute',),
         ),
