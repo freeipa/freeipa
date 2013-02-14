@@ -616,23 +616,6 @@ class test_Param(ClassChecker):
         assert o._convert_scalar.value is default
         assert o.normalizer.value is default
 
-    def test_split_csv(self):
-        """
-        Test the `ipalib.parameters.Param.split_csv` method with csv.
-        """
-        o = self.cls('my_list+', csv=True)
-        n = o.split_csv('a,b')
-        assert type(n) is tuple
-        assert len(n) is 2
-
-        n = o.split_csv('bar,   "hi, there",foo')
-        assert type(n) is tuple
-        assert len(n) is 3
-
-        e = raises(ValidationError, o.split_csv, '"a')
-        assert e.name == 'my_list'
-        assert e.error == u'Improperly formatted CSV value (newline inside string)'
-
 
 class test_Flag(ClassChecker):
     """

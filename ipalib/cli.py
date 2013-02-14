@@ -1044,7 +1044,6 @@ class cli(backend.Executioner):
         kw = self.parse(cmd, argv)
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
-        kw = cmd.split_csv(**kw)
         if self.env.interactive:
             try:
                 callbacks = cmd.get_callbacks('interactive_prompt')

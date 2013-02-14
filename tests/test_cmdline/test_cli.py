@@ -72,13 +72,13 @@ class TestCLIParsing(object):
             version=API_VERSION)
 
     def test_sudocmdgroup_add_member(self):
-        # Test CSV splitting is done correctly
+        # Test CSV splitting is not done
         self.check_command(
             # The following is as it would appear on the command line:
-            r'sudocmdgroup-add-member tcmdgroup1 --sudocmds=abc,\"de,f\",\\,g',
+            r'sudocmdgroup-add-member tcmdgroup1 --sudocmds=ab,c --sudocmds=d',
             'sudocmdgroup_add_member',
             cn=u'tcmdgroup1',
-            sudocmd=[u'abc', u'de,f', u'\\', u'g'],
+            sudocmd=[u'ab,c', u'd'],
             raw=False,
             all=False,
             version=API_VERSION)
@@ -122,7 +122,7 @@ class TestCLIParsing(object):
             'dnsrecord_add',
             dnszoneidnsname=u'test-example.com',
             idnsname=u'ns',
-            arecord=[u'1.2.3.4'],
+            arecord=u'1.2.3.4',
             structured=False,
             force=False,
             raw=False,

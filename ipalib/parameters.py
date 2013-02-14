@@ -102,7 +102,6 @@ a more detailed description for clarity.
 import re
 import decimal
 import base64
-import csv
 from xmlrpclib import MAXINT, MININT
 
 from types import NoneType
@@ -355,7 +354,7 @@ class Param(ReadOnly):
         parameter is not `required`
       - sortorder: used to sort a list of parameters for Command. See
         `Command.finalize()` for further information
-      - csv: this multivalue attribute is given in CSV format
+      - csv: this multivalue attribute used to be given in CSV format in CLI
     """
 
     # This is a dummy type so that most of the functionality of Param can be
@@ -674,64 +673,6 @@ class Param(ReadOnly):
         kw = dict(self.__clonekw)
         kw.update(overrides)
         return klass(name, *self.rules, **kw)
-
-    # The following 2 functions were taken from the Python
-    # documentation at http://docs.python.org/library/csv.html
-    def __utf_8_encoder(self, unicode_csv_data):
-        for line in unicode_csv_data:
-            yield line.encode('utf-8')
-
-    def __unicode_csv_reader(self, unicode_csv_data, dialect=csv.excel, **kwargs):
-        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-        csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
-                                dialect=dialect, delimiter=',', quotechar='"',
-                                skipinitialspace=True,
-                                **kwargs)
-        try:
-            for row in csv_reader:
-                # decode UTF-8 back to Unicode, cell by cell:
-                yield [unicode(cell, 'utf-8') for cell in row]
-        except csv.Error, e:
-            raise ValidationError(
-                name=self.get_param_name(),
-                value=unicode_csv_data,
-                error=_("Improperly formatted CSV value (%s)" % e)
-            )
-
-    def split_csv(self, value):
-        """Split CSV strings into individual values.
-
-        For CSV params, ``value`` is a tuple of strings. Each of these is split
-        on commas, and the results are concatenated into one tuple.
-
-        For example::
-
-            >>> param = Param('telephones', multivalue=True, csv=True)
-            >>> param.split_csv((u'1, 2', u'3', u'4, 5, 6'))
-            (u'1', u'2', u'3', u'4', u'5', u'6')
-
-        If ``value`` is not a tuple (or list), it is only split::
-
-            >>> param = Param('telephones', multivalue=True, csv=True)
-            >>> param.split_csv(u'1, 2, 3')
-            (u'1', u'2', u'3')
-
-        For non-CSV params, return the value unchanged.
-        """
-        if self.csv:
-            if type(value) not in (tuple, list):
-                value = (value,)
-            newval = []
-            for v in value:
-                if isinstance(v, basestring):
-                    lines = unicode(v).splitlines()
-                    for row in self.__unicode_csv_reader(lines):
-                        newval.extend(row)
-                else:
-                    newval.append(v)
-            return tuple(newval)
-        else:
-            return value
 
     def normalize(self, value):
         """
