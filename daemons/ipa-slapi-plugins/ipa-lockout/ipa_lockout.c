@@ -226,6 +226,50 @@ done:
     return ret;
 }
 
+int ipalockout_getpolicy(Slapi_Entry *target_entry, Slapi_Entry **policy_entry,
+                         Slapi_ValueSet** values, char **actual_type_name,
+                         const char **policy_dn, int *attr_free_flags,
+                         char **errstr)
+{
+    int ldrc = 0;
+    int flags = 0;
+    int type_name_disposition = 0;
+    Slapi_DN *pdn = NULL;
+
+    /* Only continue if there is a password policy */
+    ldrc = slapi_vattr_values_get(target_entry, "krbPwdPolicyReference",
+                                values,
+                                &type_name_disposition, actual_type_name,
+                                SLAPI_VIRTUALATTRS_REQUEST_POINTERS,
+                                attr_free_flags);
+    if (ldrc == 0) {
+        Slapi_Value *sv = NULL;
+
+        slapi_valueset_first_value(*values, &sv);
+
+        if (values != NULL) {
+            *policy_dn = slapi_value_get_string(sv);
+        }
+    }
+
+    if (*policy_dn == NULL) {
+        LOG_TRACE("No kerberos password policy\n");
+        return LDAP_SUCCESS;
+    } else {
+        pdn = slapi_sdn_new_dn_byref(*policy_dn);
+        ldrc = slapi_search_internal_get_entry(pdn, NULL, policy_entry,
+                getPluginID());
+        slapi_sdn_free(&pdn);
+        if (ldrc != LDAP_SUCCESS) {
+            LOG_FATAL("Failed to retrieve entry \"%s\": %d\n", *policy_dn, ldrc);
+            *errstr = "Failed to retrieve account policy.";
+            return LDAP_OPERATIONS_ERROR;
+        }
+    }
+
+    return LDAP_SUCCESS;
+}
+
 int
 ipalockout_init(Slapi_PBlock *pb)
 {
@@ -346,7 +390,7 @@ ipalockout_close(Slapi_PBlock * pb)
 static int ipalockout_postop(Slapi_PBlock *pb)
 {
     char *dn = NULL;
-    char *policy_dn = NULL;
+    const char *policy_dn = NULL;
     Slapi_Entry *target_entry = NULL;
     Slapi_Entry *policy_entry = NULL;
     Slapi_DN *sdn = NULL;
@@ -358,8 +402,12 @@ static int ipalockout_postop(Slapi_PBlock *pb)
     int ldrc, rc = 0;
     int ret = LDAP_SUCCESS;
     unsigned long failedcount = 0;
+    long old_failedcount;
     char failedcountstr[32];
+    char *failedstr = NULL;
     int failed_bind = 0;
+    unsigned int lockout_duration = 0;
+    unsigned int max_fail = 0;
     struct tm utctime;
     time_t time_now;
     char timestr[GENERALIZED_TIME_LENGTH+1];
@@ -367,6 +415,10 @@ static int ipalockout_postop(Slapi_PBlock *pb)
     char *lastfail = NULL;
     int tries = 0;
     int failure = 1;
+    int type_name_disposition = 0;
+    char *actual_type_name = NULL;
+    int attr_free_flags = 0;
+    Slapi_ValueSet *values = NULL;
 
     LOG_TRACE("--in-->\n");
 
@@ -431,25 +483,24 @@ static int ipalockout_postop(Slapi_PBlock *pb)
     }
     slapi_value_free(&objectclass);
 
-    /* Only update if there is a password policy */
-    policy_dn = slapi_entry_attr_get_charptr(target_entry, "krbPwdPolicyReference");
-    if (policy_dn == NULL) {
-        LOG_TRACE("No kerberos password policy\n");
+    ldrc = ipalockout_getpolicy(target_entry, &policy_entry,
+                                &values, &actual_type_name,
+                                &policy_dn, &attr_free_flags,
+                                &errstr);
+    if (ldrc != LDAP_SUCCESS || policy_dn == NULL) {
         goto done;
-    } else {
-        pdn = slapi_sdn_new_dn_byref(policy_dn);
-        ldrc = slapi_search_internal_get_entry(pdn, NULL, &policy_entry,
-                getPluginID());
-        slapi_sdn_free(&pdn);
-        if (ldrc != LDAP_SUCCESS) {
-            LOG_FATAL("Failed to retrieve entry \"%s\": %d\n", policy_dn, ldrc);
-            errstr = "Failed to retrieve account policy.";
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
     }
 
+    max_fail = slapi_entry_attr_get_uint(policy_entry, "krbPwdMaxFailure");
+    lockout_duration = slapi_entry_attr_get_uint(policy_entry, "krbPwdLockoutDuration");
     failedcount = slapi_entry_attr_get_ulong(target_entry, "krbLoginFailedCount");
+    old_failedcount = failedcount;
+
+    /* Fetch the string value for krbLoginFailedCount to see if the attribute
+     * exists in LDAP at all. We get a 0 if it doesn't exist as a long so we
+     * don't know whether to try delete the existing value later
+     */
+    failedstr = slapi_entry_attr_get_charptr(target_entry, "krbLoginFailedCount");
     failcnt_interval = slapi_entry_attr_get_uint(policy_entry, "krbPwdFailureCountInterval");
     lastfail = slapi_entry_attr_get_charptr(target_entry, "krbLastFailedAuth");
     time_now = time(NULL);
@@ -467,7 +518,15 @@ static int ipalockout_postop(Slapi_PBlock *pb)
             tm.tm_year -= 1900;
             tm.tm_mon -= 1;
 
+            if (failedcount >= max_fail) {
+                if ((lockout_duration == 0) ||
+                    (time_now < timegm(&tm) + lockout_duration)) {
+                    /* Within lockout duration */
+                    goto done;
+                }
+            }
             if (time_now > timegm(&tm) + failcnt_interval) {
+                /* Not within lockout duration, outside of fail interval */
                 failedcount = 0;
             }
         }
@@ -485,37 +544,49 @@ static int ipalockout_postop(Slapi_PBlock *pb)
          * On a successful bind just do a replace and set failurecount to 0.
          */
         if (failed_bind) {
-            PR_snprintf(failedcountstr, sizeof(failedcountstr), "%lu", failedcount);
-            if (!gmtime_r(&(time_now), &utctime)) {
-                errstr = "failed to parse current date (buggy gmtime_r ?)\n";
-                LOG_FATAL("%s", errstr);
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
+            if (failedcount < max_fail) {
+                PR_snprintf(failedcountstr, sizeof(failedcountstr), "%lu", old_failedcount);
+                if (failedstr != NULL) {
+                    slapi_mods_add_string(smods, LDAP_MOD_DELETE, "krbLoginFailedCount", failedcountstr);
+                }
+                failedcount += 1;
+                PR_snprintf(failedcountstr, sizeof(failedcountstr), "%lu", failedcount);
+                slapi_mods_add_string(smods, LDAP_MOD_ADD, "krbLoginFailedCount", failedcountstr);
+                if (lastfail) {
+                    slapi_mods_add_string(smods, LDAP_MOD_DELETE, "krbLastFailedAuth", lastfail);
+                }
+                if (!gmtime_r(&(time_now), &utctime)) {
+                    errstr = "failed to parse current date (buggy gmtime_r ?)\n";
+                    LOG_FATAL("%s", errstr);
+                    ret = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+                     "%Y%m%d%H%M%SZ", &utctime);
+                slapi_mods_add_string(smods, LDAP_MOD_ADD, "krbLastFailedAuth", timestr);
             }
-            strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-                 "%Y%m%d%H%M%SZ", &utctime);
-            slapi_mods_add_string(smods, LDAP_MOD_DELETE, "krbLoginFailedCount", failedcountstr);
-            failedcount += 1;
-            PR_snprintf(failedcountstr, sizeof(failedcountstr), "%lu", failedcount);
-            slapi_mods_add_string(smods, LDAP_MOD_ADD, "krbLoginFailedCount", failedcountstr);
-            if (lastfail)
-                slapi_mods_add_string(smods, LDAP_MOD_DELETE, "krbLastFailedAuth", lastfail);
-            slapi_mods_add_string(smods, LDAP_MOD_ADD, "krbLastFailedAuth", timestr);
         } else {
-            PR_snprintf(failedcountstr, sizeof(failedcountstr), "%lu", 0L);
-            time_now = time(NULL);
-            if (!gmtime_r(&(time_now), &utctime)) {
-                errstr = "failed to parse current date (buggy gmtime_r ?)\n";
-                LOG_FATAL("%s", errstr);
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
+            if (old_failedcount != 0) {
+                PR_snprintf(failedcountstr, sizeof(failedcountstr), "%lu", 0L);
+                slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLoginFailedCount", failedcountstr);
             }
-            strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-                 "%Y%m%d%H%M%SZ", &utctime);
-            slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLoginFailedCount", failedcountstr);
             if (!global_ipactx->disable_last_success) {
+                time_now = time(NULL);
+                if (!gmtime_r(&(time_now), &utctime)) {
+                    errstr = "failed to parse current date (buggy gmtime_r ?)\n";
+                    LOG_FATAL("%s", errstr);
+                    ret = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+                     "%Y%m%d%H%M%SZ", &utctime);
                 slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLastSuccessfulAuth", timestr);
             }
+        }
+
+        if (slapi_mods_get_num_mods(smods) == 0) {
+            LOG_TRACE("No account modification required\n");
+            goto done;
         }
 
         pbtm = slapi_pblock_new();
@@ -555,20 +626,22 @@ static int ipalockout_postop(Slapi_PBlock *pb)
     } /* while */
 
     if (failure) {
+        LOG_FATAL("Unable to change lockout attributes\n");
         ret = LDAP_OPERATIONS_ERROR;
     }
 
 done:
     if (!failed_bind && dn != NULL) slapi_ch_free_string(&dn);
     slapi_entry_free(target_entry);
-    if (policy_dn) {
-        slapi_ch_free_string(&policy_dn);
-        slapi_entry_free(policy_entry);
+    slapi_entry_free(policy_entry);
+    if (values != NULL) {
+        slapi_vattr_values_free(&values, &actual_type_name, attr_free_flags);
     }
     if (sdn) slapi_sdn_free(&sdn);
     if (lastfail) slapi_ch_free_string(&lastfail);
     if (pbtm) slapi_pblock_destroy(pbtm);
     if (smods) slapi_mods_free(&smods);
+    if (failedstr) slapi_ch_free_string(&failedstr);
 
     LOG("postop returning %d: %s\n", ret, errstr ? errstr : "success\n");
 
@@ -588,7 +661,7 @@ done:
 static int ipalockout_preop(Slapi_PBlock *pb)
 {
     char *dn = NULL;
-    char *policy_dn = NULL;
+    const char *policy_dn = NULL;
     Slapi_Entry *target_entry = NULL;
     Slapi_Entry *policy_entry = NULL;
     Slapi_DN *sdn = NULL;
@@ -605,6 +678,10 @@ static int ipalockout_preop(Slapi_PBlock *pb)
     time_t last_failed = 0;
     char *lastfail = NULL;
     char *unlock_time = NULL;
+    int type_name_disposition = 0;
+    char *actual_type_name = NULL;
+    int attr_free_flags = 0;
+    Slapi_ValueSet *values = NULL;
 
     LOG_TRACE("--in-->\n");
 
@@ -655,27 +732,19 @@ static int ipalockout_preop(Slapi_PBlock *pb)
     }
     slapi_value_free(&objectclass);
 
-    /* Only continue if there is a password policy */
-    policy_dn = slapi_entry_attr_get_charptr(target_entry, "krbPwdPolicyReference");
-    if (policy_dn == NULL) {
-        LOG_TRACE("No kerberos password policy\n");
+    ldrc = ipalockout_getpolicy(target_entry, &policy_entry,
+                                &values, &actual_type_name,
+                                &policy_dn, &attr_free_flags,
+                                &errstr);
+    if (ldrc != LDAP_SUCCESS || policy_dn == NULL) {
         goto done;
-    } else {
-        pdn = slapi_sdn_new_dn_byref(policy_dn);
-        ldrc = slapi_search_internal_get_entry(pdn, NULL, &policy_entry,
-                getPluginID());
-        slapi_sdn_free(&pdn);
-        if (ldrc != LDAP_SUCCESS) {
-            LOG_FATAL("Failed to retrieve entry \"%s\": %d\n", policy_dn, ldrc);
-            errstr = "Failed to retrieve account policy.";
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
     }
 
     failedcount = slapi_entry_attr_get_ulong(target_entry, "krbLoginFailedCount");
     time_now = time(NULL);
     failcnt_interval = slapi_entry_attr_get_uint(policy_entry, "krbPwdFailureCountInterval");
+    lockout_duration = slapi_entry_attr_get_uint(policy_entry, "krbPwdLockoutDuration");
+
     lastfail = slapi_entry_attr_get_charptr(target_entry, "krbLastFailedAuth");
     unlock_time = slapi_entry_attr_get_charptr(target_entry, "krbLastAdminUnlock");
     if (lastfail != NULL) {
@@ -693,35 +762,31 @@ static int ipalockout_preop(Slapi_PBlock *pb)
             tm.tm_mon -= 1;
 
             last_failed = timegm(&tm);
-            LOG("%ld > %ld ?\n",
-                (long)time_now, (long)last_failed + failcnt_interval);
-            LOG("diff %ld\n",
-                (long)((last_failed + failcnt_interval) - time_now));
-            if (time_now > last_failed + failcnt_interval) {
-                failedcount = 0;
+        }
+    }
+
+    if (lastfail != NULL && unlock_time != NULL) {
+        time_t unlock;
+        struct tm tm;
+        int res = 0;
+
+        memset(&tm, 0, sizeof(struct tm));
+        res = sscanf(unlock_time,
+                     "%04u%02u%02u%02u%02u%02u",
+                     &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
+                     &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+
+        if (res == 6) {
+            tm.tm_year -= 1900;
+            tm.tm_mon -= 1;
+
+            unlock = timegm(&tm);
+            if (last_failed <= unlock) {
+                /* Administratively unlocked */
+                goto done;
             }
         }
-        if (unlock_time) {
-            time_t unlock;
-
-            memset(&tm, 0, sizeof(struct tm));
-            res = sscanf(lastfail,
-                         "%04u%02u%02u%02u%02u%02u",
-                         &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
-                         &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
-
-            if (res == 6) {
-                tm.tm_year -= 1900;
-                tm.tm_mon -= 1;
-
-                unlock = timegm(&tm);
-                if (last_failed <= unlock) {
-                    goto done;
-                }
-            }
-            slapi_ch_free_string(&unlock_time);
-        }
-        slapi_ch_free_string(&lastfail);
+        slapi_ch_free_string(&unlock_time);
     }
 
     max_fail = slapi_entry_attr_get_uint(policy_entry, "krbPwdMaxFailure");
@@ -729,14 +794,13 @@ static int ipalockout_preop(Slapi_PBlock *pb)
         goto done;
     }
 
-    lockout_duration = slapi_entry_attr_get_uint(policy_entry, "krbPwdLockoutDuration");
-    if (lockout_duration == 0) {
-        errstr = "Entry permanently locked.\n";
-        ret = LDAP_UNWILLING_TO_PERFORM;
-        goto done;
-    }
+    if (failedcount >= max_fail) {
+        if (lockout_duration == 0) {
+            errstr = "Entry permanently locked.\n";
+            ret = LDAP_UNWILLING_TO_PERFORM;
+            goto done;
+        }
 
-    if (failedcount > max_fail) {
         if (time_now < last_failed + lockout_duration) {
             /* Too many failures */
             LOG_TRACE("Too many failed logins. %lu out of %d\n", failedcount, max_fail);
@@ -746,9 +810,12 @@ static int ipalockout_preop(Slapi_PBlock *pb)
     }
 
 done:
+    if (lastfail) slapi_ch_free_string(&lastfail);
     slapi_entry_free(target_entry);
     slapi_entry_free(policy_entry);
-    if (policy_dn) slapi_ch_free_string(&policy_dn);
+    if (values != NULL) {
+        slapi_vattr_values_free(&values, &actual_type_name, attr_free_flags);
+    }
     if (sdn) slapi_sdn_free(&sdn);
 
     LOG("preop returning %d: %s\n", ret, errstr ? errstr : "success\n");
