@@ -244,9 +244,6 @@ def validate_domain_name(domain_name, allow_underscore=False):
     # apply DNS name validator to every name part
     map(lambda label:validate_dns_label(label,allow_underscore), domain_name)
 
-    if not domain_name[-1].isalpha():
-        # see RFC 1123
-        raise ValueError(_('top level domain label must be alphabetic'))
 
 def validate_zonemgr(zonemgr):
     """ See RFC 1033, 1035 """
