@@ -21,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery'], function(IPA, $) {
+define(['dojo/_base/array', './ipa', './jquery'], function(array, IPA, $) {
 
 IPA.field = function(spec) {
     spec = spec || {};
@@ -182,7 +182,7 @@ IPA.field = function(spec) {
                 that.writable = false;
             }
 
-            if (that.metadata.flags && 'no_update' in that.metadata.flags) {
+            if (that.metadata.flags && array.indexOf(that.metadata.flags, 'no_update') > -1) {
                 that.writable = false;
             }
         }
