@@ -2080,7 +2080,6 @@ IPA.combobox_widget = function(spec) {
     that.size = spec.size || 5;
     that.empty_option = spec.empty_option === undefined ? true : spec.empty_option;
     that.options = spec.options || [];
-    that.input_field_changed = IPA.observer();
     that.z_index = spec.z_index ? spec.z_index + 9000000 : 9000000;
 
     that.create = function(container) {
@@ -2237,7 +2236,6 @@ IPA.combobox_widget = function(spec) {
             return false;
         }
 
-        that.input_field_changed.notify([], that);
         return true;
     };
 
@@ -2245,7 +2243,7 @@ IPA.combobox_widget = function(spec) {
         if (!that.editable || that.read_only) {
             e.preventDefault();
         } else {
-            that.input_field_changed.notify([], that);
+            that.value_changed.notify([], that);
         }
     };
 
