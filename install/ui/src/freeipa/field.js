@@ -714,26 +714,6 @@ IPA.select_field = function(spec) {
     return that;
 };
 
-
-IPA.combobox_field = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.field(spec);
-
-    that.widgets_created = function() {
-
-        that.field_widgets_created();
-        that.widget.input_field_changed.attach(that.on_input_field_changed);
-    };
-
-    that.on_input_field_changed = function() {
-        that.validate();
-    };
-
-    return  that;
-};
-
 IPA.link_field = function(spec) {
 
     spec = spec || {};
@@ -935,9 +915,9 @@ IPA.field_builder = function(spec) {
 
 IPA.field_factories['checkbox'] = IPA.checkbox_field;
 IPA.field_factories['checkboxes'] = IPA.checkboxes_field;
-IPA.field_factories['combobox'] = IPA.combobox_field;
+IPA.field_factories['combobox'] = IPA.field;
 IPA.field_factories['enable'] = IPA.enable_field;
-IPA.field_factories['entity_select'] = IPA.combobox_field;
+IPA.field_factories['entity_select'] = IPA.field;
 IPA.field_factories['field'] = IPA.field;
 IPA.field_factories['link'] = IPA.link_field;
 IPA.field_factories['multivalued'] = IPA.multivalued_field;
