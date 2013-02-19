@@ -36,7 +36,9 @@ try:
     from ipaclient.ipadiscovery import CACERT
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
-    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists, realm_to_suffix, convert_ldap_error
+    from ipapython.ipautil import run, user_input, CalledProcessError,\
+                                  file_exists, realm_to_suffix,\
+                                  convert_ldap_error
     import ipapython.services as ipaservices
     from ipapython import ipautil
     from ipapython import sysrestore
@@ -281,9 +283,22 @@ def delete_ipa_domain():
         root_logger.warning("IPA domain could not be deleted. "
             "No access to the /etc/sssd/sssd.conf file.")
 
+def is_ipa_client_installed(on_master=False):
+    """
+    Consider IPA client not installed if nothing is backed up
+    and default.conf file does not exist. If on_master is set to True,
+    the existence of default.conf file is not taken into consideration,
+    since it has been already created by ipa-server-install.
+    """
+
+    installed = fstore.has_files() or \
+       (not on_master and os.path.exists('/etc/ipa/default.conf'))
+
+    return installed
+
 def uninstall(options, env):
 
-    if not fstore.has_files():
+    if not is_ipa_client_installed():
         root_logger.error("IPA client is not configured on this system.")
         return CLIENT_NOT_CONFIGURED
 
@@ -2323,7 +2338,7 @@ def main():
     if options.uninstall:
         return uninstall(options, env)
 
-    if fstore.has_files():
+    if is_ipa_client_installed(on_master=options.on_master):
         root_logger.error("IPA client is already configured on this system.")
         root_logger.info(
             "If you want to reinstall the IPA client, uninstall it first " +
