@@ -3479,7 +3479,7 @@ static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 
 	ret = smbldap_search(smbldap_state,
 			     ldap_state->ipasam_privates->base_dn,
-			     LDAP_SCOPE_SUBTREE,
+			     LDAP_SCOPE_BASE,
 			     "objectclass=domainRelatedObject", attr_list, 0,
 			     &result);
 	if (ret != LDAP_SUCCESS) {
