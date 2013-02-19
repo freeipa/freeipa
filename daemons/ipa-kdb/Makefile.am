@@ -52,6 +52,35 @@ ipadb_la_LIBADD = 		\
 	$(NDRPAC_LIBS)		\
 	$(NULL)
 
+if HAVE_CHECK
+TESTS = ipa_kdb_tests
+check_PROGRAMS = ipa_kdb_tests
+endif
+
+ipa_kdb_tests_SOURCES =        \
+       tests/ipa_kdb_tests.c   \
+       ipa_kdb.c               \
+       ipa_kdb_common.c        \
+       ipa_kdb_mkey.c          \
+       ipa_kdb_passwords.c     \
+       ipa_kdb_principals.c    \
+       ipa_kdb_pwdpolicy.c     \
+       ipa_kdb_mspac.c         \
+       ipa_kdb_delegation.c    \
+       ipa_kdb_audit_as.c      \
+       $(KRB5_UTIL_SRCS)       \
+       $(NULL)
+ipa_kdb_tests_CFLAGS = $(CHECK_CFLAGS)
+ipa_kdb_tests_LDADD =          \
+       $(CHECK_LIBS)           \
+       $(KRB5_LIBS)            \
+       $(LDAP_LIBS)            \
+       $(NDRPAC_LIBS)          \
+       -lnss3                  \
+       -lkdb5                  \
+       -lsss_idmap             \
+       $(NULL)
+
 dist_noinst_DATA = ipa_kdb.exports
 
 EXTRA_DIST =			\
