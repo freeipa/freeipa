@@ -522,7 +522,7 @@ static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
     krb5_error_code kerr;
     char *src_filter = NULL;
     char *esc_original_princ = NULL;
-    int ret, i;
+    int ret;
 
     if (!ipactx->lcontext) {
         ret = ipadb_get_connection(ipactx);
