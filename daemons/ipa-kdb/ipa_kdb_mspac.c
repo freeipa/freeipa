@@ -1938,12 +1938,11 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     if (ipactx->mspac && ipactx->mspac->num_trusts == 0) {
         /* Check if there is any trust configured. If not, just return
          * and do not re-initialize the MS-PAC structure. */
-        ret = ipadb_mspac_check_trusted_domains(ipactx);
-        if (ret == KRB5_KDB_NOENTRY) {
-            ret = 0;
+        kerr = ipadb_mspac_check_trusted_domains(ipactx);
+        if (kerr == KRB5_KDB_NOENTRY) {
+            kerr = 0;
             goto done;
-        } else if (ret != 0) {
-            ret = EIO;
+        } else if (kerr != 0) {
             goto done;
         }
     }
