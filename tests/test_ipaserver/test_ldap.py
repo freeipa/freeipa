@@ -25,13 +25,15 @@
 
 # The DM password needs to be set in ~/.ipa/.dmpw
 
-import nose
 import os
+
+import nose
+from nose.tools import assert_raises  # pylint: disable=E0611
+import nss.nss as nss
+
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.ipaldap import LDAPEntry
 from ipalib.plugins.service import service, service_show
 from ipalib.plugins.host import host
-import nss.nss as nss
 from ipalib import api, x509, create_api, errors
 from ipapython import ipautil
 from ipapython.dn import DN
@@ -147,42 +149,56 @@ class test_ldap(object):
         serial = unicode(x509.get_serial_number(cert, x509.DER))
         assert serial is not None
 
-    def test_entry(self):
-        """
-        Test the LDAPEntry class
-        """
-        cn1 = [u'test1']
-        cn2 = [u'test2']
-        dn1 = DN(('cn', cn1[0]))
-        dn2 = DN(('cn', cn2[0]))
 
+class test_LDAPEntry(object):
+    """
+    Test the LDAPEntry class
+    """
+    cn1 = [u'test1']
+    cn2 = [u'test2']
+    dn1 = DN(('cn', cn1[0]))
+    dn2 = DN(('cn', cn2[0]))
+
+    def setUp(self):
+        self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
         self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
         self.conn.connect()
 
-        e = LDAPEntry(self.conn.conn, dn1, cn=cn1)
-        assert e.dn is dn1
+        self.entry = self.conn.make_entry(self.dn1, cn=self.cn1)
+
+    def tearDown(self):
+        if self.conn and self.conn.isconnected():
+            self.conn.disconnect()
+
+    def test_entry(self):
+        e = self.entry
+        assert e.dn is self.dn1
         assert u'cn' in e
         assert u'cn' in e.keys()
         assert 'CN' in e
         assert 'CN' not in e.keys()
         assert 'commonName' in e
         assert 'commonName' not in e.keys()
-        assert e['CN'] is cn1
+        assert e['CN'] is self.cn1
         assert e['CN'] is e[u'cn']
 
-        e.dn = dn2
-        assert e.dn is dn2
+        e.dn = self.dn2
+        assert e.dn is self.dn2
 
-        e['commonName'] = cn2
+    def test_set_attr(self):
+        e = self.entry
+        e['commonName'] = self.cn2
         assert u'cn' in e
         assert u'cn' not in e.keys()
         assert 'CN' in e
         assert 'CN' not in e.keys()
         assert 'commonName' in e
         assert 'commonName' in e.keys()
-        assert e['CN'] is cn2
+        assert e['CN'] is self.cn2
         assert e['CN'] is e[u'cn']
 
+    def test_del_attr(self):
+        e = self.entry
         del e['CN']
         assert 'CN' not in e
         assert 'CN' not in e.keys()
@@ -190,3 +206,55 @@ class test_ldap(object):
         assert u'cn' not in e.keys()
         assert 'commonName' not in e
         assert 'commonName' not in e.keys()
+
+    def test_popitem(self):
+        e = self.entry
+        assert e.popitem() == ('cn', self.cn1)
+        e.keys() == []
+
+    def test_setdefault(self):
+        e = self.entry
+        assert e.setdefault('cn', self.cn2) == self.cn1
+        assert e['cn'] == self.cn1
+        assert e.setdefault('xyz', self.cn2) == self.cn2
+        assert e['xyz'] == self.cn2
+
+    def test_update(self):
+        e = self.entry
+        e.update({'cn': self.cn2}, xyz=self.cn2)
+        assert e['cn'] == self.cn2
+        assert e['xyz'] == self.cn2
+
+    def test_pop(self):
+        e = self.entry
+        assert e.pop('cn') == self.cn1
+        assert 'cn' not in e
+        assert e.pop('cn', 'default') is 'default'
+        with assert_raises(KeyError):
+            e.pop('cn')
+
+    def test_clear(self):
+        e = self.entry
+        e.clear()
+        assert not e
+        assert 'cn' not in e
+
+    def test_has_key(self):
+        e = self.entry
+        assert not e.has_key('xyz')
+        assert e.has_key('cn')
+        assert e.has_key('COMMONNAME')
+
+    def test_get(self):
+        e = self.entry
+        assert e.get('cn') == self.cn1
+        assert e.get('commonname') == self.cn1
+        assert e.get('COMMONNAME', 'default') == self.cn1
+        assert e.get('bad key', 'default') == 'default'
+
+    def test_single_value(self):
+        e = self.entry
+        assert e.single_value('cn') == self.cn1[0]
+        assert e.single_value('commonname') == self.cn1[0]
+        assert e.single_value('COMMONNAME', 'default') == self.cn1[0]
+        assert e.single_value('bad key', 'default') == 'default'
