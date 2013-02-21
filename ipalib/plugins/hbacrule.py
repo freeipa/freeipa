@@ -303,7 +303,7 @@ class hbacrule_enable(LDAPQuery):
     msg_summary = _('Enabled HBAC rule "%(value)s"')
     has_output = output.standard_value
 
-    def execute(self, cn):
+    def execute(self, cn, **options):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
@@ -330,7 +330,7 @@ class hbacrule_disable(LDAPQuery):
     msg_summary = _('Disabled HBAC rule "%(value)s"')
     has_output = output.standard_value
 
-    def execute(self, cn):
+    def execute(self, cn, **options):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)

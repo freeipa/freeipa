@@ -97,7 +97,7 @@ class exhelloworld(Command):
     # This is where the command functionality should go.
     # It is always executed on the server-side, so don't rely
     # on client-side stuff in here!
-    def execute(self, name):
+    def execute(self, name, **options):
         return dict(summary='Hello world, %s!' % name)
 
 # register the command, uncomment this line if you want to try it out

@@ -306,8 +306,7 @@ class cert_request(VirtualCommand):
         ldap = self.api.Backend.ldap2
         principal = kw.get('principal')
         add = kw.get('add')
-        del kw['principal']
-        del kw['add']
+        request_type = kw.get('request_type')
         service = None
 
         """
@@ -414,7 +413,8 @@ class cert_request(VirtualCommand):
                 api.Command['host_mod'](hostname, usercertificate=None)
 
         # Request the certificate
-        result = self.Backend.ra.request_certificate(csr, **kw)
+        result = self.Backend.ra.request_certificate(
+            csr, request_type=request_type)
         cert = x509.load_certificate(result['certificate'])
         result['issuer'] = unicode(cert.issuer)
         result['valid_not_before'] = unicode(cert.valid_not_before_str)
@@ -596,10 +596,12 @@ class cert_revoke(VirtualCommand):
                 result = api.Command['cert_show'](unicode(serial_number))['result']
             except errors.NotImplementedError:
                 pass
-        if kw['revocation_reason'] == 7:
+        revocation_reason = kw['revocation_reason']
+        if revocation_reason == 7:
             raise errors.CertificateOperationError(error=_('7 is not a valid revocation reason'))
         return dict(
-            result=self.Backend.ra.revoke_certificate(serial_number, **kw)
+            result=self.Backend.ra.revoke_certificate(
+                serial_number, revocation_reason=revocation_reason)
         )
 
 api.register(cert_revoke)

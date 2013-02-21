@@ -20,9 +20,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: aci_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('aciname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: StrEnum('aciprefix', cli_name='prefix', values=(u'permission', u'delegation', u'selfservice', u'none'))
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -160,9 +161,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: automember_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', cli_name='automember_rule')
 option: StrEnum('type', values=(u'group', u'hostgroup'))
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -234,12 +236,13 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: automountkey_del
-args: 2,3,3
+args: 2,4,3
 arg: Str('automountlocationcn', cli_name='automountlocation', query=True, required=True)
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False, exclude='webui', multivalue=False, required=True)
 option: IA5Str('automountkey', cli_name='key')
 option: IA5Str('automountinformation?', cli_name='info')
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -302,9 +305,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: automountlocation_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='location', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -323,10 +327,11 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: automountlocation_import
-args: 2,1,1
+args: 2,2,1
 arg: Str('cn', attribute=True, cli_name='location', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('masterfile')
 option: Flag('continue?', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: automountlocation_show
 args: 1,4,3
@@ -339,8 +344,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: automountlocation_tofiles
-args: 1,0,1
+args: 1,1,1
 arg: Str('cn', attribute=True, cli_name='location', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: automountmap_add
 args: 2,6,3
@@ -371,10 +377,11 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: automountmap_del
-args: 2,1,3
+args: 2,2,3
 arg: Str('automountlocationcn', cli_name='automountlocation', query=True, required=True)
 arg: IA5Str('automountmapname', attribute=True, cli_name='map', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -421,57 +428,63 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: batch
-args: 1,0,2
+args: 1,1,2
 arg: Any('methods*')
+option: Str('version?', exclude='webui')
 output: Output('count', <type 'int'>, None)
 output: Output('results', (<type 'list'>, <type 'tuple'>), None)
 command: cert_find
 args: 0,17,4
-option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
-option: Flag('exactly?', autofill=True, default=False)
-option: Str('issuedon_from?', autofill=False)
-option: Str('issuedon_to?', autofill=False)
-option: Int('max_serial_number?', autofill=False, maxvalue=2147483647)
-option: Int('min_serial_number?', autofill=False, minvalue=0)
-option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
-option: Int('revocation_reason?', autofill=False, maxvalue=10, minvalue=0)
-option: Str('revokedon_from?', autofill=False)
-option: Str('revokedon_to?', autofill=False)
-option: Int('sizelimit?', default=100, minvalue=0)
 option: Str('subject?', autofill=False)
+option: Int('revocation_reason?', autofill=False, maxvalue=10, minvalue=0)
+option: Int('min_serial_number?', autofill=False, minvalue=0)
+option: Int('max_serial_number?', autofill=False, maxvalue=2147483647)
+option: Flag('exactly?', autofill=True, default=False)
 option: Str('validnotafter_from?', autofill=False)
 option: Str('validnotafter_to?', autofill=False)
 option: Str('validnotbefore_from?', autofill=False)
 option: Str('validnotbefore_to?', autofill=False)
+option: Str('issuedon_from?', autofill=False)
+option: Str('issuedon_to?', autofill=False)
+option: Str('revokedon_from?', autofill=False)
+option: Str('revokedon_to?', autofill=False)
+option: Int('sizelimit?', default=100, minvalue=0)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
-output: Output('count', <type 'int'>, None)
-output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
+output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: cert_remove_hold
-args: 1,0,1
+args: 1,1,1
 arg: Str('serial_number')
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: cert_request
-args: 1,3,1
+args: 1,4,1
 arg: File('csr', cli_name='csr_file')
 option: Str('principal')
 option: Str('request_type', autofill=True, default=u'pkcs10')
 option: Flag('add', autofill=True, default=False)
+option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)
 command: cert_revoke
-args: 1,1,1
+args: 1,2,1
 arg: Str('serial_number')
 option: Int('revocation_reason', autofill=True, default=0, maxvalue=10, minvalue=0)
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: cert_show
-args: 1,1,1
+args: 1,2,1
 arg: Str('serial_number')
 option: Str('out?', exclude='webui')
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: cert_status
-args: 1,0,1
+args: 1,1,1
 arg: Str('request_id')
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: config_mod
 args: 0,24,3
@@ -525,9 +538,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: cosentry_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='cn', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -586,8 +600,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: delegation_del
-args: 1,0,3
+args: 1,1,3
 arg: Str('aciname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -630,13 +645,15 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: dns_is_enabled
-args: 0,0,3
+args: 0,1,3
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dns_resolve
-args: 1,0,3
+args: 1,1,3
 arg: Str('hostname')
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -837,10 +854,11 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: dnsrecord_delentry
-args: 2,1,3
+args: 2,2,3
 arg: Str('dnszoneidnsname', cli_name='dnszone', query=True, required=True)
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1062,27 +1080,31 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_add_permission
-args: 1,0,3
+args: 1,1,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_disable
-args: 1,0,3
+args: 1,1,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_enable
-args: 1,0,3
+args: 1,1,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1151,8 +1173,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: dnszone_remove_permission
-args: 1,0,3
+args: 1,1,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1198,11 +1221,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: entitle_import
-args: 1,3,1
+args: 1,4,1
 arg: File('usercertificate*', cli_name='certificate_file')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('uuid?', autofill=True, default=u'IMPORTED')
+option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)
 command: entitle_register
 args: 1,7,3
@@ -1218,7 +1242,8 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: entitle_status
-args: 0,0,1
+args: 0,1,1
+option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)
 command: entitle_sync
 args: 0,4,3
@@ -1230,10 +1255,11 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: env
-args: 1,2,4
+args: 1,3,4
 arg: Str('variables*')
 option: Flag('server?', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=True, exclude='webui')
+option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)
 output: Output('total', <type 'int'>, None)
 output: Output('count', <type 'int'>, None)
@@ -1266,15 +1292,17 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: group_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=True, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: group_detach
-args: 1,0,3
+args: 1,1,3
 arg: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1413,21 +1441,24 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: hbacrule_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: hbacrule_disable
-args: 1,0,3
+args: 1,1,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: hbacrule_enable
-args: 1,0,3
+args: 1,1,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1541,9 +1572,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: hbacsvc_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='service', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1609,9 +1641,10 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: hbacsvcgroup_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1665,7 +1698,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: hbactest
-args: 0,9,6
+args: 0,10,6
 option: Str('user', cli_name='user', primary_key=True)
 option: Str('sourcehost?', cli_name='srchost')
 option: Str('targethost', cli_name='host')
@@ -1675,6 +1708,7 @@ option: Flag('nodetail?', autofill=True, cli_name='nodetail', default=False)
 option: Flag('enabled?', autofill=True, cli_name='enabled', default=False)
 option: Flag('disabled?', autofill=True, cli_name='disabled', default=False)
 option: Int('sizelimit?', autofill=False, minvalue=0)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('warning', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)
 output: Output('matched', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)
@@ -1716,15 +1750,17 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: host_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('updatedns?', autofill=True, default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: host_disable
-args: 1,0,3
+args: 1,1,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1836,9 +1872,10 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: hostgroup_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=True, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$', primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1905,7 +1942,8 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: i18n_messages
-args: 0,0,1
+args: 0,1,1
+option: Str('version?', exclude='webui')
 output: Output('messages', <type 'dict'>, None)
 command: idrange_add
 args: 1,12,3
@@ -1926,9 +1964,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: idrange_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -1983,12 +2022,13 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: json_metadata
-args: 2,3,3
+args: 2,4,3
 arg: Str('objname?')
 arg: Str('methodname?')
 option: Str('object?')
 option: Str('method?')
 option: Str('command?')
+option: Str('version?', exclude='webui')
 output: Output('objects', <type 'dict'>, None)
 output: Output('methods', <type 'dict'>, None)
 output: Output('commands', <type 'dict'>, None)
@@ -2027,7 +2067,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: migrate_ds
-args: 2,16,4
+args: 2,17,4
 arg: Str('ldapuri', cli_name='ldap_uri')
 arg: Password('bindpw', cli_name='password', confirm=False)
 option: DNParam('binddn?', autofill=True, cli_name='bind_dn', default=ipapython.dn.DN('cn=directory manager'))
@@ -2044,6 +2084,7 @@ option: StrEnum('schema?', autofill=True, cli_name='schema', default=u'RFC2307bi
 option: Flag('continue?', autofill=True, default=False)
 option: DNParam('basedn?', cli_name='base_dn')
 option: Flag('compat?', autofill=True, cli_name='with_compat', default=False)
+option: Str('version?', exclude='webui')
 option: Str('exclude_groups*', autofill=True, cli_name='exclude_groups', csv=True, default=())
 option: Str('exclude_users*', autofill=True, cli_name='exclude_users', csv=True, default=())
 output: Output('result', <type 'dict'>, None)
@@ -2081,9 +2122,10 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: netgroup_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$', primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2164,10 +2206,11 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: passwd
-args: 3,0,3
+args: 3,1,3
 arg: Str('principal', autofill=True, cli_name='user', primary_key=True)
 arg: Password('password')
 arg: Password('current_password', autofill=True, confirm=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2210,10 +2253,11 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: permission_del
-args: 1,2,3
+args: 1,3,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, pattern='^[-_ a-zA-Z0-9]+$', primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Flag('force', autofill=True, default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2280,16 +2324,19 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: ping
-args: 0,0,1
+args: 0,1,1
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 command: pkinit_anonymous
-args: 1,0,1
+args: 1,1,1
 arg: Str('action')
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: plugins
-args: 0,2,3
+args: 0,3,3
 option: Flag('server?', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=True, exclude='webui')
+option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)
 output: Output('count', <type 'int'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
@@ -2326,9 +2373,10 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: privilege_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2413,9 +2461,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: pwpolicy_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='group', multivalue=True, primary_key=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2477,28 +2526,28 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, None)
 command: realmdomains_mod
 args: 0,11,3
-option: Str('add_domain', attribute=True, autofill=False, cli_name='add_domain', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
-option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('associateddomain', attribute=True, autofill=False, cli_name='domain', multivalue=True, required=False)
+option: Str('add_domain', attribute=True, autofill=False, cli_name='add_domain', multivalue=False, required=False)
 option: Str('del_domain', attribute=True, autofill=False, cli_name='del_domain', multivalue=False, required=False)
-option: Str('delattr*', cli_name='delattr', exclude='webui')
-option: Flag('force', autofill=True, default=False)
-option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
-option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Flag('force', autofill=True, default=False)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
-output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: realmdomains_show
 args: 0,4,3
+option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
-option: Flag('rights', autofill=True, default=False)
 option: Str('version?', exclude='webui')
-output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: role_add
 args: 1,6,3
@@ -2536,9 +2585,10 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: role_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2617,8 +2667,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: selfservice_del
-args: 1,0,3
+args: 1,1,3
 arg: Str('aciname', attribute=True, cli_name='name', multivalue=False, pattern='^[-_ a-zA-Z0-9]+$', primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2696,21 +2747,24 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: selinuxusermap_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: selinuxusermap_disable
-args: 1,0,3
+args: 1,1,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: selinuxusermap_enable
-args: 1,0,3
+args: 1,1,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2810,15 +2864,17 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: service_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: service_disable
-args: 1,0,3
+args: 1,1,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2888,9 +2944,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: sudocmd_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('sudocmd', attribute=True, cli_name='command', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -2956,9 +3013,10 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: sudocmdgroup_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='sudocmdgroup_name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -3068,9 +3126,10 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: sudorule_add_option
-args: 1,1,1
+args: 1,2,1
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('ipasudoopt', cli_name='sudooption')
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: sudorule_add_runasgroup
 args: 1,4,3
@@ -3105,19 +3164,22 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: sudorule_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: sudorule_disable
-args: 1,0,1
+args: 1,1,1
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: sudorule_enable
-args: 1,0,1
+args: 1,1,1
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: sudorule_find
 args: 1,19,4
@@ -3204,9 +3266,10 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('failed', <type 'dict'>, None)
 output: Output('completed', <type 'int'>, None)
 command: sudorule_remove_option
-args: 1,1,1
+args: 1,2,1
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('ipasudoopt', cli_name='sudooption')
+option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: sudorule_remove_runasgroup
 args: 1,4,3
@@ -3269,9 +3332,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: trust_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -3383,21 +3447,24 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: user_del
-args: 1,1,3
+args: 1,2,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=True, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'dict'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: user_disable
-args: 1,0,3
+args: 1,1,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: user_enable
-args: 1,0,3
+args: 1,1,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
@@ -3514,8 +3581,9 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: user_unlock
-args: 1,0,3
+args: 1,1,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)

@@ -682,7 +682,7 @@ class i18n_messages(Command):
     has_output = (
         Output('messages', dict, doc=_('Dict of I18N messages')),
     )
-    def execute(self):
+    def execute(self, **options):
         return dict([("messages",json_serialize(self.messages))])
 
     def output_for_cli(self, textui, result, *args, **options):

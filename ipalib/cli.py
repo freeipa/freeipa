@@ -755,7 +755,7 @@ class help(frontend.Local):
 
         super(help, self)._on_finalize()
 
-    def run(self, key, outfile=None):
+    def run(self, key, outfile=None, **options):
         if outfile is None:
             outfile = sys.stdout
         writer = self._writer(outfile)
@@ -872,7 +872,7 @@ class console(frontend.Command):
 
     has_output = tuple()
 
-    def run(self):
+    def run(self, **options):
         code.interact(
             '(Custom IPA interactive Python console)',
             local=dict(api=self.api)

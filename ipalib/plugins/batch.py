@@ -95,6 +95,7 @@ class batch(Command):
                 a, kw = arg['params']
                 newkw = dict((str(k), v) for k, v in kw.iteritems())
                 params = api.Command[name].args_options_2_params(*a, **newkw)
+                newkw.setdefault('version', options['version'])
 
                 result = api.Command[name](*a, **newkw)
                 self.info(

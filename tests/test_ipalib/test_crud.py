@@ -156,8 +156,8 @@ class test_Delete(CrudChecker):
         Test the `ipalib.crud.Delete.get_options` method.
         """
         api = self.get_api()
-        assert list(api.Method.user_verb.options) == []
-        assert len(api.Method.user_verb.options) == 0
+        assert list(api.Method.user_verb.options) == ['version']
+        assert len(api.Method.user_verb.options) == 1
 
 
 class test_Search(CrudChecker):

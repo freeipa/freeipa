@@ -321,7 +321,7 @@ api.register(sudorule_show)
 class sudorule_enable(LDAPQuery):
     __doc__ = _('Enable a Sudo Rule.')
 
-    def execute(self, cn):
+    def execute(self, cn, **options):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
@@ -345,7 +345,7 @@ api.register(sudorule_enable)
 class sudorule_disable(LDAPQuery):
     __doc__ = _('Disable a Sudo Rule.')
 
-    def execute(self, cn):
+    def execute(self, cn, **options):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)

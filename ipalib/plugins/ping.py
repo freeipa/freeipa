@@ -58,7 +58,7 @@ class ping(Command):
         output.summary,
     )
 
-    def execute(self):
+    def execute(self, **options):
         """
         A possible enhancement would be to take an argument and echo it
         back but a fixed value works for now.
