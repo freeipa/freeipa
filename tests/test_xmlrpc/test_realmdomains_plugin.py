@@ -32,7 +32,7 @@ dn = DN(('cn', cn), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
 our_domain = api.env.domain
 new_domain_1 = u'example1.com'
 new_domain_2 = u'example2.com'
-bad_domain = u'this-domain-does-not-exist-%s.com' % ''.join(random.choice(string.lowercase) for x in range(10))
+bad_domain = u'doesnotexist.test'
 
 
 class test_realmdomains(Declarative):
