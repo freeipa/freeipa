@@ -49,6 +49,9 @@ _sid_identifier_authority = '(0x[0-9a-f]{1,12}|[0-9]{1,10})'
 fuzzy_domain_sid = Fuzzy(
     '^S-1-5-21-%(idauth)s-%(idauth)s-%(idauth)s$' % dict(idauth=_sid_identifier_authority)
 )
+fuzzy_user_or_group_sid = Fuzzy(
+    '^S-1-5-21-%(idauth)s-%(idauth)s-%(idauth)s-%(idauth)s$' % dict(idauth=_sid_identifier_authority)
+)
 
 # Matches netgroup dn. Note (?i) at the beginning of the regexp is the ingnore case flag
 fuzzy_netgroupdn = Fuzzy(

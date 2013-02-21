@@ -391,6 +391,10 @@ def remove_external_post_callback(memberattr, membertype, externalattr, ldap, co
                     external_entries.remove(entry[0])
                 completed_external += 1
             else:
+                msg = unicode(errors.NotGroupMember().message)
+                newerror = (entry[0], msg)
+                ind = failed[memberattr][membertype].index(entry)
+                failed[memberattr][membertype][ind] = newerror
                 failed_entries.append(membername)
 
         if completed_external:

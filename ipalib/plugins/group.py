@@ -398,7 +398,7 @@ class group_add_member(LDAPAddMember):
             result = add_external_post_callback('member', 'group', 'ipaexternalmember',
                                                 ldap, completed, failed, dn, entry_attrs,
                                                 keys, options, external_callback_normalize=False)
-            failed['member']['group'] = restore + failed_sids
+            failed['member']['group'] += restore + failed_sids
         return result
 
 api.register(group_add_member)
@@ -425,15 +425,34 @@ class group_remove_member(LDAPRemoveMember):
         assert isinstance(dn, DN)
         result = (completed, dn)
         if 'ipaexternalmember' in options:
-            sids = options['ipaexternalmember']
-            restore = list()
+            if not _dcerpc_bindings_installed:
+                raise errors.NotFound(reason=_('Cannot perform external member validation without '
+                                               'Samba 4 support installed. Make sure you have installed '
+                                               'server-trust-ad sub-package of IPA on the server'))
+            domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+            if not domain_validator.is_configured():
+                raise errors.NotFound(reason=_('Cannot perform join operation without own domain configured. '
+                                               'Make sure you have run ipa-adtrust-install on the IPA server first'))
+            sids = []
+            failed_sids = []
+            for sid in options['ipaexternalmember']:
+                if domain_validator.is_trusted_sid_valid(sid):
+                    sids.append(sid)
+                else:
+                    try:
+                        actual_sid = domain_validator.get_trusted_domain_object_sid(sid)
+                    except errors.PublicError, e:
+                        failed_sids.append((sid, unicode(e)))
+                    else:
+                        sids.append(actual_sid)
+            restore = []
             if 'member' in failed and 'group' in failed['member']:
                 restore = failed['member']['group']
             failed['member']['group'] = list((id,id) for id in sids)
             result = remove_external_post_callback('member', 'group', 'ipaexternalmember',
                                                 ldap, completed, failed, dn, entry_attrs,
                                                 keys, options)
-            failed['member']['group'] = restore
+            failed['member']['group'] += restore + failed_sids
         return result
 
 api.register(group_remove_member)
