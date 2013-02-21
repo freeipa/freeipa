@@ -23,18 +23,19 @@ Base classes for all front-end plugins.
 
 import re
 import inspect
+from distutils import version
+
+from ipapython.version import API_VERSION
+from ipapython.ipa_log_manager import root_logger
 from base import lock, check_name, NameSpace
 from plugable import Plugin, is_production_mode
 from parameters import create_param, parse_param_spec, Param, Str, Flag, Password
 from output import Output, Entry, ListOfEntries
 from text import _, ngettext
-
 from errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
-    RequiresRoot, VersionError, RequirementError, OptionError)
-from errors import InvocationError
+    RequiresRoot, VersionError, RequirementError, OptionError, InvocationError)
 from constants import TYPE_ERROR
-from ipapython.version import API_VERSION
-from distutils import version
+from ipalib import messages
 
 
 RULE_FLAG = 'validation_rule'
@@ -740,11 +741,17 @@ class Command(HasParam):
         performs is executed remotely.
         """
         if self.api.env.in_server:
-            if 'version' in options:
+            version_provided = 'version' in options
+            if version_provided:
                 self.verify_client_version(options['version'])
             else:
                 options['version'] = API_VERSION
-            return self.execute(*args, **options)
+            result = self.execute(*args, **options)
+            if not version_provided:
+                messages.add_message(
+                    API_VERSION, result,
+                    messages.VersionMissing(server_version=API_VERSION))
+            return result
         return self.forward(*args, **options)
 
     def execute(self, *args, **kw):
@@ -914,7 +921,7 @@ class Command(HasParam):
                 nice, dict, type(output), output)
             )
         expected_set = set(self.output)
-        actual_set = set(output)
+        actual_set = set(output) - set(['messages'])
         if expected_set != actual_set:
             missing = expected_set - actual_set
             if missing:
@@ -945,6 +952,21 @@ class Command(HasParam):
                 continue
             yield param
 
+    def log_messages(self, output, logger):
+        logger_functions = dict(
+            debug=logger.debug,
+            info=logger.info,
+            warning=logger.warning,
+            error=logger.error,
+        )
+        for message in output.get('messages', ()):
+            try:
+                function = logger_functions[message['type']]
+            except KeyError:
+                logger.error('Server sent a message with a wrong type')
+                function = logger.error
+            function(message.get('message'))
+
     def output_for_cli(self, textui, output, *args, **options):
         """
         Generic output method. Prints values the output argument according
@@ -962,6 +984,8 @@ class Command(HasParam):
             return
 
         rv = 0
+
+        self.log_messages(output, root_logger)
 
         order = [p.name for p in self.output_params()]
         if options.get('all', False):

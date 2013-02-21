@@ -25,9 +25,9 @@ import sys
 import socket
 import nose
 from tests.util import assert_deepequal, Fuzzy
-from ipalib import api, request
-from ipalib import errors
+from ipalib import api, request, errors
 from ipalib.x509 import valid_issuer
+from ipapython.version import API_VERSION
 
 
 # Matches a gidnumber like '1391016742'
@@ -271,6 +271,7 @@ class Declarative(XMLRPC_test):
 
     def check(self, nice, desc, command, expected, extra_check=None):
         (cmd, args, options) = command
+        options.setdefault('version', API_VERSION)
         if cmd not in api.Command:
             raise nose.SkipTest('%r not in api.Command' % cmd)
         if isinstance(expected, errors.PublicError):

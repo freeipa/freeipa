@@ -31,6 +31,7 @@ from ipalib import api
 from ipalib.parameters import Param
 from ipalib.output import Output
 from ipalib.text import Gettext, NGettext
+from ipalib.capabilities import capabilities
 
 API_FILE='API.txt'
 
@@ -210,6 +211,9 @@ def make_api():
             fd.write('option: %s\n' % param_repr(o))
         for o in cmd.output():
             fd.write('output: %s\n' % param_repr(o))
+    for name, version in sorted(
+            capabilities.items(), key=lambda (k, v): (v, k)):
+        fd.write('capability: %s %s\n' % (name, version))
     fd.close()
 
     return 0
@@ -287,6 +291,7 @@ def validate_api():
 
     # First run through the file and compare it to the API
     existing_cmds = []
+    existing_capabilities = set()
     cmd = None
     for line in lines:
         line = line.strip()
@@ -369,6 +374,20 @@ def validate_api():
                 output = find_name(line)
                 print "Option '%s' in command '%s' in API file not found" % (output, name)
                 rval |= API_FILE_DIFFERENCE
+        if line.startswith('capability:'):
+            cap, version = line.replace('capability: ', '').split(' ', 1)
+            existing_capabilities.add(cap)
+            try:
+                expected_version = str(capabilities[cap])
+            except KeyError:
+                print "Capability '%s' in API file not found" % cap
+                rval |= API_FILE_DIFFERENCE
+            else:
+                if version != expected_version:
+                    print (
+                        "Capability '%s' in API file doesn't match. Got %s, "
+                        "expected %s.") % (cap, version, expected_version)
+                    rval |= API_FILE_DIFFERENCE
 
     if cmd:
         if not _finalize_command_validation(cmd, found_args, expected_args,
@@ -381,6 +400,11 @@ def validate_api():
         if cmd.name not in existing_cmds:
             print "Command %s in ipalib, not in API" % cmd.name
             rval |= API_NEW_COMMAND
+
+    for cap in capabilities:
+        if cap not in existing_capabilities:
+            print "Capability %s in ipalib, not in API" % cap
+            rval |= API_FILE_DIFFERENCE
 
     return rval
 

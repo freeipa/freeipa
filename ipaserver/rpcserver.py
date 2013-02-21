@@ -35,7 +35,7 @@ from decimal import Decimal
 import urlparse
 import time
 
-from ipalib import plugable
+from ipalib import plugable, capabilities
 from ipalib.backend import Executioner
 from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError, ExecutionError
 from ipalib.request import context, Connection, destroy_context
@@ -732,6 +732,11 @@ class xmlserver(WSGIExecutioner, HTTP_Status, KerberosSession):
     def unmarshal(self, data):
         (params, name) = xml_loads(data)
         (args, options) = params_2_args_options(params)
+        if 'version' not in options:
+            # Keep backwards compatibility with client containing
+            # bug https://fedorahosted.org/freeipa/ticket/3294:
+            # If `version` is not given in XML-RPC, assume an old version
+            options['version'] = capabilities.VERSION_WITHOUT_CAPABILITIES
         return (name, args, options, None)
 
     def marshal(self, result, error, _id=None):
