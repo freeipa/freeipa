@@ -1231,7 +1231,7 @@ static krb5_error_code filter_logon_info(krb5_context context,
      * */
     if (info->info->info3.sidcount != 0) {
         ipactx = ipadb_get_context(context);
-        if (!ipactx && !ipactx->mspac) {
+        if (!ipactx || !ipactx->mspac) {
             return KRB5_KDB_DBNOTINITED;
         }
         count = info->info->info3.sidcount;
