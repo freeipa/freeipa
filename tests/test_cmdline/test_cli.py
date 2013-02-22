@@ -18,7 +18,8 @@ class TestCLIParsing(object):
         executioner = api.Backend.cli
 
         cmd = executioner.get_command(argv)
-        kw_got = executioner.argv_to_keyword_arguments(cmd, argv[1:])
+        kw_got = executioner.parse(cmd, argv[1:])
+        kw_got = executioner.process_keyword_arguments(cmd, kw_got)
         util.assert_deepequal(expected_command_name, cmd.name, 'Command name')
         util.assert_deepequal(kw_expected, kw_got)
 
