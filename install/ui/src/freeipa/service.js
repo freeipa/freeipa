@@ -25,6 +25,23 @@ IPA.service = {};
 
 IPA.service.entity = function(spec) {
 
+    spec = spec || {};
+
+    spec.policies = spec.policies || [
+        IPA.search_facet_update_policy(),
+        IPA.details_facet_update_policy(),
+        IPA.cert.cert_update_policy({
+            source_facet: 'details',
+            dest_entity: 'cert',
+            dest_facet: 'details'
+        }),
+        IPA.cert.cert_update_policy({
+            source_facet: 'details',
+            dest_entity: 'cert',
+            dest_facet: 'search'
+        })
+    ];
+
     var that = IPA.entity(spec);
 
     that.init = function() {
@@ -172,6 +189,7 @@ IPA.service.details_facet = function(spec, no_init) {
 
     var that = IPA.details_facet(spec, true);
     that.certificate_loaded = IPA.observer();
+    that.certificate_updated = IPA.observer();
 
     if (!no_init) that.init_details_facet();
 

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './dialog'], function(IPA, $) {
+define(['./ipa', './jquery','dojo/_base/lang', './dialog'], function(IPA, $, lang) {
 
 IPA.cert = {};
 
@@ -486,6 +486,7 @@ IPA.cert.load_policy = function(spec) {
 
     var that = IPA.facet_policy();
     that.loader = IPA.build(spec.loader);
+    that.has_reason = spec.has_reason;
 
     that.post_load = function(data) {
 
@@ -499,7 +500,8 @@ IPA.cert.load_policy = function(spec) {
         // initialize another load of certificate because current entity
         // show commands don't contain revocation_reason so previous data
         // might be slightly incorrect
-        if (certificate && certificate.certificate && !IPA.cert.is_selfsign()) {
+        if (!that.has_reason && certificate && certificate.certificate &&
+                !IPA.cert.is_selfsign()) {
             that.load_revocation_reason(certificate.serial_number);
         }
     };
@@ -639,6 +641,7 @@ IPA.cert.request_action = function(spec) {
                     on_success: function(data, text_status, xhr) {
                         facet.refresh();
                         IPA.notify_success(IPA.messages.objects.cert.requested);
+                        facet.certificate_updated.notify([], that.facet);
                     }
                 }).execute();
             }
@@ -672,9 +675,12 @@ IPA.cert.revoke_action = function(spec) {
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
 
-        var title = IPA.messages.objects.cert.revoke_certificate;
-        title = title.replace('${entity}', entity_label);
-        title = title.replace('${primary_key}', entity_name);
+        var title = IPA.messages.objects.cert.revoke_certificate_simple;
+        if (entity_name && entity_label) {
+            title = IPA.messages.objects.cert.revoke_certificate;
+            title = title.replace('${entity}', entity_label);
+            title = title.replace('${primary_key}', entity_name);
+        }
 
         that.dialog.title = title;
         that.dialog.message = that.get_confirm_message(facet);
@@ -694,6 +700,7 @@ IPA.cert.revoke_action = function(spec) {
             on_success: function(data, text_status, xhr) {
                 facet.refresh();
                 IPA.notify_success(IPA.messages.objects.cert.revoked);
+                facet.certificate_updated.notify([], that.facet);
             }
         }).execute();
     };
@@ -725,9 +732,12 @@ IPA.cert.restore_action = function(spec) {
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
 
-        var title = IPA.messages.objects.cert.restore_certificate;
-        title = title.replace('${entity}', entity_label);
-        title = title.replace('${primary_key}', entity_name);
+        var title = IPA.messages.objects.cert.restore_certificate_simple;
+        if (entity_name && entity_label) {
+            title = IPA.messages.objects.cert.restore_certificate;
+            title = title.replace('${entity}', entity_label);
+            title = title.replace('${primary_key}', entity_name);
+        }
 
         that.dialog.title = title;
         that.dialog.message = that.get_confirm_message(facet);
@@ -744,6 +754,7 @@ IPA.cert.restore_action = function(spec) {
             on_success: function(data, text_status, xhr) {
                 facet.refresh();
                 IPA.notify_success(IPA.messages.objects.cert.restored);
+                facet.certificate_updated.notify([], that.facet);
             }
         }).execute();
     };
@@ -922,6 +933,276 @@ IPA.cert.status_field = function(spec) {
 
 IPA.widget_factories['certificate_status'] = IPA.cert.status_widget;
 IPA.field_factories['certificate_status'] = IPA.cert.status_field;
+
+IPA.cert.entity = function(spec) {
+
+    spec = spec || {};
+
+    spec.policies = spec.policies || [
+        IPA.search_facet_update_policy(),
+        IPA.details_facet_update_policy(),
+        IPA.cert.cert_update_policy({
+            source_facet: 'details',
+            dest_facet: 'search'
+        }),
+        IPA.cert.cert_update_policy({
+            source_facet: 'details',
+            dest_entity: 'host',
+            dest_facet: 'details'
+        }),
+        IPA.cert.cert_update_policy({
+            source_facet: 'details',
+            dest_entity: 'service',
+            dest_facet: 'details'
+        })
+    ];
+
+    var that = IPA.entity(spec);
+
+    that.get_default_metadata = function() {
+
+        var add_param = function(name, label, doc,  primary_key) {
+            entity.takes_params.push({
+                name: name,
+                label: label,
+                doc: doc,
+                primary_key: !!primary_key,
+                flags: ['no_update']
+            });
+        };
+
+        var get_param = function(params, name) {
+
+            for (var i=0;i<params.length;i++) {
+                if (params[i].name === name) return params[i];
+            }
+            return null;
+        };
+
+        var cmd = IPA.metadata.commands['cert_find'];
+        var entity = lang.clone(cmd);
+        entity.attribute_members = {};
+        entity.label = IPA.messages.objects.cert.certificates;
+        entity.label_singular = IPA.messages.objects.cert.certificate;
+        entity.methods = [
+            'find',
+            'remove-hold',
+            'request',
+            'revoke',
+            'show',
+            'status'
+        ];
+        entity.name = "certificate";
+        entity.object_name = "certificate";
+        entity.object_name_plural = "certificates";
+        entity.parent_object = "";
+        entity.primary_key = "serial_number";
+        entity.rdn_attribute = "";
+        entity.relationships = {};
+        entity.takes_params = lang.clone(entity.takes_options);
+
+        get_param(entity.takes_params, 'subject').flags = ['no_update'];
+        var reason = get_param(entity.takes_params, 'revocation_reason');
+        reason.flags = ['no_update'];
+        reason.label = IPA.messages.objects.cert.revocation_reason;
+
+        add_param('serial_number',
+                  IPA.messages.objects.cert.serial_number,
+                  IPA.messages.objects.cert.serial_number,
+                  true);
+        add_param('serial_number_hex',
+                  IPA.messages.objects.cert.serial_number_hex,
+                  IPA.messages.objects.cert.serial_number_hex);
+        add_param('issuer',
+                  IPA.messages.objects.cert.issued_by,
+                  IPA.messages.objects.cert.issued_by);
+        add_param('status',
+                  IPA.messages.objects.cert.status,
+                  IPA.messages.objects.cert.status);
+        add_param('valid_not_before',
+                  IPA.messages.objects.cert.issued_on,
+                  IPA.messages.objects.cert.issued_on);
+        add_param('valid_not_after',
+                  IPA.messages.objects.cert.expires_on,
+                  IPA.messages.objects.cert.expires_on);
+        add_param('md5_fingerprint',
+                  IPA.messages.objects.cert.md5_fingerprint,
+                  IPA.messages.objects.cert.md5_fingerprint);
+        add_param('sha1_fingerprint',
+                  IPA.messages.objects.cert.sha1_fingerprint,
+                  IPA.messages.objects.cert.sha1_fingerprint);
+        add_param('certificate',
+                  IPA.messages.objects.cert.certificate,
+                  IPA.messages.objects.cert.certificate);
+
+
+        IPA.metadata.objects.cert = entity;
+        return entity;
+    };
+
+    that.init = function() {
+
+        if (IPA.cert.is_selfsign()) {
+            throw {
+                expected: true
+            };
+        }
+
+        that.entity_init();
+
+        that.builder.search_facet({
+            factory: IPA.cert.search_facet,
+            label: IPA.messages.objects.cert.label,
+            pagination: false,
+            no_update: true,
+            columns: [
+                {
+                    name: 'serial_number',
+                    primary_key: true,
+                    width: '90px'
+                },
+                'subject',
+                {
+                    name: 'status',
+                    width: '120px'
+                }
+            ]
+        }).
+        details_facet({
+            factory: IPA.cert.details_facet,
+            no_update: true,
+            actions: [
+                IPA.cert.revoke_action,
+                IPA.cert.restore_action
+            ],
+            state: {
+                evaluators: [
+                    IPA.cert.certificate_evaluator
+                ]
+            },
+            sections: [
+                {
+                    name: 'details',
+                    label: IPA.messages.objects.cert.certificate,
+                    action_panel: {
+                        factory: IPA.action_panel,
+                        name: 'cert_actions',
+                        actions: [
+                            'revoke_cert', 'restore_cert'
+                        ]
+                    },
+                    fields: [
+                        'serial_number',
+                        'serial_number_hex',
+                        'subject',
+                        'issuer',
+                        'valid_not_before',
+                        'valid_not_after',
+                        'sha1_fingerprint',
+                        'md5_fingerprint',
+                        {
+                            type: 'revocation_reason',
+                            name: 'revocation_reason'
+                        },
+                        {
+                            type: 'textarea',
+                            name: 'certificate',
+                            style: {
+                                width: '550px',
+                                height: '350px'
+                            }
+                        }
+                    ]
+                }
+            ],
+            policies: [
+                IPA.cert.load_policy({ has_reason: true}),
+                IPA.hide_empty_row_policy({
+                    widget: 'revocation_reason',
+                    section: 'details'
+                })
+            ]
+        });
+    };
+
+    return that;
+};
+
+IPA.cert.search_facet = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.search_facet(spec);
+
+
+    that.create_refresh_command = function() {
+
+        var command = that.search_facet_create_refresh_command();
+        var arg = command.args.pop();
+
+        if (arg) {
+            command.set_option('subject', arg);
+        }
+
+        return command;
+    };
+
+    return that;
+};
+
+IPA.cert.details_facet = function(spec, no_init) {
+
+    spec = spec || {};
+
+    var that = IPA.details_facet(spec, true);
+    that.certificate_loaded = IPA.observer();
+    that.certificate_updated = IPA.observer();
+
+    that.create_refresh_command = function() {
+
+        var command = that.details_facet_create_refresh_command();
+        delete command.options.all;
+        delete command.options.rights;
+        return command;
+    };
+
+    if (!no_init) that.init_details_facet();
+
+    return that;
+};
+
+
+IPA.revocation_reason_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.load = function(record) {
+
+        that.field_load(record);
+
+        var reason = record.revocation_reason;
+        var text = IPA.cert.CRL_REASON[reason] || '';
+        that.values = [text];
+
+        that.reset();
+    };
+
+    return that;
+};
+
+IPA.cert.cert_update_policy = function(spec) {
+
+    spec = spec || {};
+    spec.event = spec.event || 'certificate_updated';
+    return IPA.facet_update_policy(spec);
+};
+
+IPA.field_factories['revocation_reason'] = IPA.revocation_reason_field;
+IPA.widget_factories['revocation_reason'] = IPA.text_widget;
+
+IPA.register('cert', IPA.cert.entity);
 
 return {};
 });

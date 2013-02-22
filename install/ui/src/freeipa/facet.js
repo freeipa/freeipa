@@ -38,6 +38,7 @@ IPA.facet = function(spec, no_init) {
     that.title = spec.title || that.label;
     that.tab_label = spec.tab_label || that.label;
     that.display_class = spec.display_class;
+    that.no_update = spec.no_update;
 
     that.disable_breadcrumb = spec.disable_breadcrumb;
     that.disable_facet_tabs = spec.disable_facet_tabs;

@@ -238,21 +238,25 @@ IPA.details_facet = function(spec, no_init) {
         IPA.update_action);
 
     spec.control_buttons = spec.control_buttons || [];
+
+    if (!spec.no_update) {
+        spec.control_buttons.unshift(
+            {
+                name: 'reset',
+                label: IPA.messages.buttons.reset,
+                icon: 'reset-icon'
+            },
+            {
+                name: 'update',
+                label: IPA.messages.buttons.update,
+                icon: 'update-icon'
+            });
+    }
     spec.control_buttons.unshift(
         {
             name: 'refresh',
             label: IPA.messages.buttons.refresh,
             icon: 'reset-icon'
-        },
-        {
-            name: 'reset',
-            label: IPA.messages.buttons.reset,
-            icon: 'reset-icon'
-        },
-        {
-            name: 'update',
-            label: IPA.messages.buttons.update,
-            icon: 'update-icon'
         });
 
     spec.state = spec.state || {};

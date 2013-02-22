@@ -275,7 +275,7 @@ IPA.field = function(spec) {
      */
     that.test_dirty = function() {
 
-        if (that.read_only) return false;
+        if (that.read_only || !that.writable) return false;
 
         var values = that.save();
 
