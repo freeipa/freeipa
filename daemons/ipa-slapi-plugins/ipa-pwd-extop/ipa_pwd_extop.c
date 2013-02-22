@@ -247,7 +247,11 @@ parse_req_done:
                 slapi_sdn_free(&sdn);
                 if (be) {
 			chpwop_pb = slapi_pblock_new();
-			slapi_pblock_set(chpwop_pb, SLAPI_BACKEND, be);
+			if (slapi_pblock_set(chpwop_pb, SLAPI_BACKEND, be)) {
+				LOG_FATAL("slapi_pblock_set failed!\n");
+				rc = LDAP_OPERATIONS_ERROR;
+				goto free_and_return;
+			}
 			rc = slapi_back_transaction_begin(chpwop_pb);
 			if (rc) {
 				LOG_FATAL("failed to start transaction\n");
