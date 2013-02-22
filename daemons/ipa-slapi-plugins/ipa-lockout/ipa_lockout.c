@@ -317,7 +317,7 @@ ipalockout_start(Slapi_PBlock * pb)
 
     g_plugin_started = 1;
 
-    global_ipactx = (struct ipa_context *)malloc(sizeof(global_ipactx));
+    global_ipactx = (struct ipa_context *)malloc(sizeof(*global_ipactx));
     global_ipactx->disable_last_success = false;
     global_ipactx->disable_lockout = false;
     ipalockout_get_global_config(global_ipactx);
