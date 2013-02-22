@@ -1066,6 +1066,56 @@ IPA.cert.entity = function(spec) {
                     name: 'status',
                     width: '120px'
                 }
+            ],
+            search_options:  [
+                {
+                    value: 'subject',
+                    label: IPA.messages.objects.cert.find_subject
+                },
+                {
+                    value: 'revocation_reason',
+                    label: IPA.messages.objects.cert.find_revocation_reason
+                },
+                {
+                    value: 'min_serial_number',
+                    label: IPA.messages.objects.cert.find_min_serial_number
+                },
+                {
+                    value: 'max_serial_number',
+                    label: IPA.messages.objects.cert.find_max_serial_number
+                },
+                {
+                    value: 'validnotafter_from',
+                    label: IPA.messages.objects.cert.find_validnotafter_from
+                },
+                {
+                    value: 'validnotafter_to',
+                    label: IPA.messages.objects.cert.find_validnotafter_to
+                },
+                {
+                    value: 'validnotbefore_from',
+                    label: IPA.messages.objects.cert.find_validnotbefore_from
+                },
+                {
+                    value: 'validnotbefore_to',
+                    label: IPA.messages.objects.cert.find_validnotbefore_to
+                },
+                {
+                    value: 'issuedon_from',
+                    label: IPA.messages.objects.cert.find_issuedon_from
+                },
+                {
+                    value: 'issuedon_to',
+                    label: IPA.messages.objects.cert.find_issuedon_to
+                },
+                {
+                    value: 'revokedon_from',
+                    label: IPA.messages.objects.cert.find_revokedon_from
+                },
+                {
+                    value: 'revokedon_to',
+                    label: IPA.messages.objects.cert.find_revokedon_to
+                }
             ]
         }).
         details_facet({
@@ -1134,17 +1184,68 @@ IPA.cert.search_facet = function(spec) {
 
     var that = IPA.search_facet(spec);
 
+    that.search_options = spec.search_options || [];
+
+    that.create_header = function(container) {
+        that.search_facet_create_header(container);
+
+        that.search_option = $('<select/>', {
+            name: 'search_option',
+            'class': 'search-option'
+        });
+
+        that.filter_container.before(that.search_option);
+
+        for (var i=0; i<that.search_options.length; i++) {
+            var option = that.search_options[i];
+
+            var metadata = IPA.get_command_option('cert_find', option.value);
+            var doc = metadata.doc || '';
+
+            $('<option/>', {
+                text: option.label,
+                value: option.value,
+                title: doc
+            }).appendTo(that.search_option);
+        }
+    };
 
     that.create_refresh_command = function() {
 
         var command = that.search_facet_create_refresh_command();
         var arg = command.args.pop();
 
+        var option = that.search_option.val();
+
         if (arg) {
-            command.set_option('subject', arg);
+            command.set_option(option, arg);
         }
 
         return command;
+    };
+
+    // parent method only sets expired flag when filter change, it doesn't
+    // expect that option can change -> set expire flag for every search
+    that.find = function() {
+        var filter = that.filter.val();
+        var search_opt = that.search_option.val();
+        var old_filter = IPA.nav.get_state(that.managed_entity.name+'-filter');
+        var state = {};
+        state[that.managed_entity.name + '-filter'] = filter;
+        state[that.managed_entity.name + '-search-option'] = search_opt;
+
+        that.set_expired_flag();
+
+        IPA.nav.push_state(state);
+    };
+
+    that.show = function() {
+        that.search_facet_show();
+
+        if (that.search_option) {
+            var search_opt = IPA.nav.get_state(that.entity.name+'-search-option');
+            that.search_option.val(search_opt);
+        }
     };
 
     return that;
