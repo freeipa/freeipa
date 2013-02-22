@@ -52,5 +52,7 @@ for pver in ran:
 print ''
 if fail:
     print '** FAIL **'
+    sys.exit(1)
 else:
     print '** pass **'
+    sys.exit(0)
