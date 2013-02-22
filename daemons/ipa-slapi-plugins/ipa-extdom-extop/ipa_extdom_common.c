@@ -297,7 +297,6 @@ static int get_domain_info(struct ipa_extdom_ctx *ctx, const char *domain_name,
                                    domain_info->sid, &range);
     }
     if (err != IDMAP_SUCCESS) {
-        free_domain_info(domain_info);
         ret = EFAULT;
         goto done;
     }
