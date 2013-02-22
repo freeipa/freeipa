@@ -1825,6 +1825,153 @@
                 ],
                 "takes_options": []
             },
+            "cert_find": {
+                "name": "cert_find",
+                "takes_args": [],
+                "takes_options": [
+                    {
+                        "class": "Str",
+                        "doc": "Subject",
+                        "flags": [],
+                        "label": "Subject",
+                        "name": "subject",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "Reason for revoking the certificate (0-10)",
+                        "flags": [],
+                        "label": "Reason",
+                        "maxvalue": 10,
+                        "minvalue": 0,
+                        "name": "revocation_reason",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "minimum serial number",
+                        "flags": [],
+                        "label": "<min_serial_number>",
+                        "maxvalue": 2147483647,
+                        "minvalue": 0,
+                        "name": "min_serial_number",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "maximum serial number",
+                        "flags": [],
+                        "label": "<max_serial_number>",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "max_serial_number",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Flag",
+                        "doc": "match the common name exactly",
+                        "flags": [],
+                        "label": "<exactly>",
+                        "name": "exactly",
+                        "type": "bool"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Valid not after from this date (YYYY-mm-dd)",
+                        "flags": [],
+                        "label": "<validnotafter_from>",
+                        "name": "validnotafter_from",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Valid not after to this date (YYYY-mm-dd)",
+                        "flags": [],
+                        "label": "<validnotafter_to>",
+                        "name": "validnotafter_to",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Valid not before from this date (YYYY-mm-dd)",
+                        "flags": [],
+                        "label": "<validnotbefore_from>",
+                        "name": "validnotbefore_from",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Valid not before to this date (YYYY-mm-dd)",
+                        "flags": [],
+                        "label": "<validnotbefore_to>",
+                        "name": "validnotbefore_to",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Issued on from this date (YYYY-mm-dd)",
+                        "flags": [],
+                        "label": "<issuedon_from>",
+                        "name": "issuedon_from",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Issued on to this date (YYYY-mm-dd)",
+                        "flags": [],
+                        "label": "<issuedon_to>",
+                        "name": "issuedon_to",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Revoked on from this date (YYYY-mm-dd)",
+                        "flags": [],
+                        "label": "<revokedon_from>",
+                        "name": "revokedon_from",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Revoked on to this date (YYYY-mm-dd)",
+                        "flags": [],
+                        "label": "<revokedon_to>",
+                        "name": "revokedon_to",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Int",
+                        "default": 100,
+                        "doc": "Maximum number of certs returned",
+                        "flags": [
+                            "no_display"
+                        ],
+                        "label": "Size Limit",
+                        "maxvalue": 2147483647,
+                        "minvalue": 0,
+                        "name": "sizelimit",
+                        "type": "int"
+                    },
+                    {
+                        "name": "all"
+                    },
+                    {
+                        "name": "raw"
+                    },
+                    {
+                        "name": "version"
+                    }
+                ]
+            },
             "cert_remove_hold": {
                 "name": "cert_remove_hold",
                 "takes_args": {

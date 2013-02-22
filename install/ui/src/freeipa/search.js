@@ -42,21 +42,25 @@ IPA.search_facet = function(spec, no_init) {
         IPA.add_action);
 
     spec.control_buttons = spec.control_buttons || [];
+
+    if (!spec.no_update) {
+        spec.control_buttons.unshift(
+            {
+                name: 'remove',
+                label: IPA.messages.buttons.remove,
+                icon: 'remove-icon'
+            },
+            {
+                name: 'add',
+                label: IPA.messages.buttons.add,
+                icon: 'add-icon'
+            });
+    }
     spec.control_buttons.unshift(
         {
             name: 'refresh',
             label: IPA.messages.buttons.refresh,
             icon: 'reset-icon'
-        },
-        {
-            name: 'remove',
-            label: IPA.messages.buttons.remove,
-            icon: 'remove-icon'
-        },
-        {
-            name: 'add',
-            label: IPA.messages.buttons.add,
-            icon: 'add-icon'
         });
 
     spec.state = spec.state || {};

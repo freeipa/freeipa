@@ -42,7 +42,8 @@ IPA.admin_navigation = function(spec) {
                  {entity: 'dnsconfig'},
                  {entity: 'dnsrecord', hidden:true}
              ]
-            }
+            },
+            {entity: 'cert', label: IPA.messages.tabs.cert }
         ]},
         {name: 'policy', label: IPA.messages.tabs.policy, children: [
             {name: 'hbac', label: IPA.messages.tabs.hbac, children: [

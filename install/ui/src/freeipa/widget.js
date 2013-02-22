@@ -960,6 +960,7 @@ IPA.textarea_widget = function (spec) {
 
     that.rows = spec.rows || 5;
     that.cols = spec.cols || 40;
+    that.style = spec.style;
 
     that.create = function(container) {
 
@@ -972,11 +973,14 @@ IPA.textarea_widget = function (spec) {
             rows: that.rows,
             cols: that.cols,
             disabled: that.disabled,
+            readOnly: !!that.read_only,
             title: that.tooltip,
             keyup: function() {
                 that.on_value_changed();
             }
         }).appendTo(container);
+
+        if (that.style) that.input.css(that.style);
 
         that.input.bind('input', function() {
             that.on_value_changed();
@@ -990,11 +994,17 @@ IPA.textarea_widget = function (spec) {
     };
 
     that.save = function() {
+        if (that.read_only || !that.writable) {
+            return null;
+        }
         var value = that.input.val();
         return [value];
     };
 
     that.update = function(values) {
+        var read_only = that.read_only || !that.writable;
+        that.input.prop('readOnly', read_only);
+
         var value = values && values.length ? values[0] : '';
         that.input.val(value);
     };
@@ -2943,6 +2953,27 @@ IPA.details_table_section = function(spec) {
     };
 
     that.table_section_create = that.composite_widget_create;
+
+    return that;
+};
+
+IPA.hide_empty_row_policy = function (spec) {
+
+    spec = spec || {};
+
+    var that = IPA.facet_policy();
+    that.value_name = spec.value_name || spec.widget;
+    that.widget_name = spec.widget;
+    that.section_name = spec.section;
+
+    that.post_load = function(data) {
+
+        var value = data.result.result[that.value_name];
+        var visible = !IPA.is_empty(value);
+
+        var section = that.container.widgets.get_widget(that.section_name);
+        section.set_row_visible(that.widget_name, visible);
+    };
 
     return that;
 };
