@@ -1039,9 +1039,8 @@ class cli(backend.Executioner):
         cmd = self.Command[name]
         return cmd
 
-    def argv_to_keyword_arguments(self, cmd, argv):
+    def process_keyword_arguments(self, cmd, kw):
         """Get the keyword arguments for a Command"""
-        kw = self.parse(cmd, argv)
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
         kw = cmd.split_csv(**kw)
@@ -1062,10 +1061,11 @@ class cli(backend.Executioner):
         if cmd is None:
             return
         name = cmd.name
-        kw = self.argv_to_keyword_arguments(cmd, argv[1:])
+        kw = self.parse(cmd, argv[1:])
         if not isinstance(cmd, frontend.Local):
             self.create_context()
         try:
+            kw = self.process_keyword_arguments(cmd, kw)
             result = self.execute(name, **kw)
             if callable(cmd.output_for_cli):
                 for param in cmd.params():
