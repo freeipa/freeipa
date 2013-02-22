@@ -37,8 +37,8 @@ EXAMPLES:
  Add another new host group:
    ipa hostgroup-add --desc="Maryland hosts" maryland
 
- Add members to the hostgroup:
-   ipa hostgroup-add-member --hosts=box1,box2,box3 baltimore
+ Add members to the hostgroup (using Bash brace expansion):
+   ipa hostgroup-add-member --hosts={box1,box2,box3} baltimore
 
  Add a hostgroup as a member of another hostgroup:
    ipa hostgroup-add-member --hostgroups=baltimore maryland

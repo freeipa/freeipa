@@ -33,14 +33,14 @@ EXAMPLES:
    ipa hbacsvcgroup-add --desc="login services" login
 
  Add members to an HBAC service group:
-   ipa hbacsvcgroup-add-member --hbacsvcs=sshd,login login
+   ipa hbacsvcgroup-add-member --hbacsvcs=sshd --hbacsvcs=login login
 
  Display information about a named group:
    ipa hbacsvcgroup-show login
 
  Add a new group to the "login" group:
    ipa hbacsvcgroup-add --desc="switch users" login
-   ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l login
+   ipa hbacsvcgroup-add-member --hbacsvcs=su --hbacsvcs=su-l login
 
  Delete an HBAC service group:
    ipa hbacsvcgroup-del login

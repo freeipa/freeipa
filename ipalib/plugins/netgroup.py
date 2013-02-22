@@ -37,7 +37,7 @@ EXAMPLES:
    ipa netgroup-add --desc="NFS admins" admins
 
  Add members to the netgroup:
-   ipa netgroup-add-member --users=tuser1,tuser2 admins
+   ipa netgroup-add-member --users=tuser1 --users=tuser2 admins
 
  Remove a member from the netgroup:
    ipa netgroup-remove-member --users=tuser2 admins

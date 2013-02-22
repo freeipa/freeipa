@@ -58,7 +58,7 @@ EXAMPLES:
  the FTP service on any machine from any machine:
    ipa hbacsvcgroup-add ftpers
    ipa hbacsvc-add sftp
-   ipa hbacsvcgroup-add-member --hbacsvcs=ftp,sftp ftpers
+   ipa hbacsvcgroup-add-member --hbacsvcs=ftp --hbacsvcs=sftp ftpers
    ipa hbacrule-add --hostcat=all --srchostcat=all john_ftp
    ipa hbacrule-add-user --users=john john_ftp
    ipa hbacrule-add-service --hbacsvcgroups=ftpers john_ftp

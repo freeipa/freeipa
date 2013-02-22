@@ -68,8 +68,8 @@ EXAMPLES:
  To add the "remoteadmins" group to the "localadmins" group:
    ipa group-add-member --groups=remoteadmins localadmins
 
- Add a list of users to the "localadmins" group:
-   ipa group-add-member --users=test1,test2 localadmins
+ Add multiple users to the "localadmins" group:
+   ipa group-add-member --users=test1 --users=test2 localadmins
 
  Remove a user from the "localadmins" group:
    ipa group-remove-member --users=test2 localadmins

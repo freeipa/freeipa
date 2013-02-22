@@ -36,7 +36,7 @@ EXAMPLES:
    ipa sudocmdgroup-del admincmds
 
  Manage Sudo Command Group membership, commands:
-   ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less,/usr/bin/vim admincmds
+   ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less --sudocmds=/usr/bin/vim admincmds
 
  Manage Sudo Command Group membership, commands:
    ipa group-remove-member --sudocmds=/usr/bin/less admincmds

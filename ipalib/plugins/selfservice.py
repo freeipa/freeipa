@@ -37,12 +37,14 @@ A Self-service permission defines what an object can change in its own entry.
 
 EXAMPLES:
 
- Add a self-service rule to allow users to manage their address:
-   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st "Users manage their own address"
+ Add a self-service rule to allow users to manage their address (using Bash
+ brace expansion):
+   ipa selfservice-add --permissions=write --attrs={street,postalCode,l,c,st} "Users manage their own address"
 
  When managing the list of attributes you need to include all attributes
- in the list, including existing ones. Add telephoneNumber to the list:
-   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber "Users manage their own address"
+ in the list, including existing ones.
+ Add telephoneNumber to the list (using Bash brace expansion):
+   ipa selfservice-mod --attrs={street,postalCode,l,c,st,telephoneNumber} "Users manage their own address"
 
  Display our updated rule:
    ipa selfservice-show "Users manage their own address"

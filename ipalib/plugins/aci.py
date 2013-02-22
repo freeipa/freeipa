@@ -101,10 +101,10 @@ command-line now (see last example).
    ipa aci-add --permissions=write --attrs=member --targetgroup=admins --group=editors --prefix=none "Editors manage admins"
 
  Add an ACI that allows members of the admins group to manage the street and zip code of those in the editors group:
-   ipa aci-add --permissions=write --memberof=editors --group=admins --attrs=street,postalcode --prefix=none "admins edit the address of editors"
+   ipa aci-add --permissions=write --memberof=editors --group=admins --attrs=street --attrs=postalcode --prefix=none "admins edit the address of editors"
 
  Add an ACI that allows the admins group manage the street and zipcode of those who work for the boss:
-   ipa aci-add --permissions=write --group=admins --attrs=street,postalcode --filter="(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)" --prefix=none "Edit the address of those who work for the boss"
+   ipa aci-add --permissions=write --group=admins --attrs=street --attrs=postalcode --filter="(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)" --prefix=none "Edit the address of those who work for the boss"
 
  Add an entirely new kind of record to IPA that isn't covered by any of the --type options, creating a permission:
    ipa permission-add  --permissions=add --subtree="cn=*,cn=orange,cn=accounts,dc=example,dc=com" --desc="Add Orange Entries" add_orange

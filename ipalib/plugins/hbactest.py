@@ -90,7 +90,7 @@ EXAMPLES:
 
     3. Test explicitly specified HBAC rules:
     $ ipa hbactest --user=a1a --host=bar --service=sshd \\
-          --rules=my-second-rule,myrule
+          --rules=myrule --rules=my-second-rule
     ---------------------
     Access granted: False
     ---------------------
@@ -99,7 +99,7 @@ EXAMPLES:
 
     4. Use all enabled HBAC rules in IPA database + explicitly specified rules:
     $ ipa hbactest --user=a1a --host=bar --service=sshd \\
-          --rules=my-second-rule,myrule --enabled
+          --rules=myrule --rules=my-second-rule --enabled
     --------------------
     Access granted: True
     --------------------
@@ -117,7 +117,7 @@ EXAMPLES:
 
     6. Test all disabled HBAC rules in IPA database + explicitly specified rules:
     $ ipa hbactest --user=a1a --host=bar --service=sshd \\
-          --rules=my-second-rule,myrule --disabled
+          --rules=myrule --rules=my-second-rule --disabled
     ---------------------
     Access granted: False
     ---------------------
