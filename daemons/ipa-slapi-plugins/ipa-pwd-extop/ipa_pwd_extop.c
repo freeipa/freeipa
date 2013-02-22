@@ -240,26 +240,6 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	}
 
 parse_req_done:
-
-	if (usetxn) {
-                Slapi_DN *sdn = slapi_sdn_new_dn_byref(dn);
-                Slapi_Backend *be = slapi_be_select(sdn);
-                slapi_sdn_free(&sdn);
-                if (be) {
-			chpwop_pb = slapi_pblock_new();
-			if (slapi_pblock_set(chpwop_pb, SLAPI_BACKEND, be)) {
-				LOG_FATAL("slapi_pblock_set failed!\n");
-				rc = LDAP_OPERATIONS_ERROR;
-				goto free_and_return;
-			}
-			rc = slapi_back_transaction_begin(chpwop_pb);
-			if (rc) {
-				LOG_FATAL("failed to start transaction\n");
-			}
-		} else {
-			LOG_FATAL("failed to get be backend from %s\n", dn);
-		}
-	}
 	/* Uncomment for debugging, otherwise we don't want to leak the
 	 * password values into the log... */
 	/* LDAPDebug( LDAP_DEBUG_ARGS, "passwd: dn (%s), oldPasswd (%s),
@@ -312,6 +292,26 @@ parse_req_done:
 		rc = LDAP_OPERATIONS_ERROR;
 		goto free_and_return;
 	 }
+
+	if (usetxn) {
+                Slapi_DN *sdn = slapi_sdn_new_dn_byref(dn);
+                Slapi_Backend *be = slapi_be_select(sdn);
+                slapi_sdn_free(&sdn);
+                if (be) {
+			chpwop_pb = slapi_pblock_new();
+			if (slapi_pblock_set(chpwop_pb, SLAPI_BACKEND, be)) {
+				LOG_FATAL("slapi_pblock_set failed!\n");
+				rc = LDAP_OPERATIONS_ERROR;
+				goto free_and_return;
+			}
+			rc = slapi_back_transaction_begin(chpwop_pb);
+			if (rc) {
+				LOG_FATAL("failed to start transaction\n");
+			}
+		} else {
+			LOG_FATAL("failed to get be backend from %s\n", dn);
+		}
+	}
 
 	 /* Now we have the DN, look for the entry */
 	 ret = ipapwd_getEntry(dn, &targetEntry, attrlist);
