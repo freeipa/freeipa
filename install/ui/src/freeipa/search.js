@@ -83,14 +83,14 @@ IPA.search_facet = function(spec, no_init) {
 
         div.append(IPA.create_network_spinner());
 
-        var filter_container = $('<div/>', {
+        that.filter_container = $('<div/>', {
             'class': 'search-filter'
         }).appendTo(div);
 
         that.filter = $('<input/>', {
             type: 'text',
             name: 'filter'
-        }).appendTo(filter_container);
+        }).appendTo(that.filter_container);
 
         that.filter.keypress(function(e) {
             /* if the key pressed is the enter key */
@@ -106,7 +106,7 @@ IPA.search_facet = function(spec, no_init) {
                 that.find();
                 return false;
             }
-        }).appendTo(filter_container);
+        }).appendTo(that.filter_container);
 
         that.create_control_buttons(that.controls);
     };
@@ -258,6 +258,8 @@ IPA.search_facet = function(spec, no_init) {
     // methods that should be invoked by subclasses
     that.search_facet_refresh = that.refresh;
     that.search_facet_create_refresh_command = that.create_refresh_command;
+    that.search_facet_create_header = that.create_header;
+    that.search_facet_show = that.show;
 
     return that;
 };

@@ -727,6 +727,15 @@ div[name=settings].facet-group li a {
     color: gray;
 }
 
+.search-option {
+    border: 1px solid #9f9e9e;
+    background: url(images/search-background.png);
+    border-radius: 15px !important;
+    height: 22px;
+    line-height: 22px;
+    padding: 0 8px 0;
+}
+
 .search-filter {
     width: 215px;
     -moz-border-radius: 15px !important;
