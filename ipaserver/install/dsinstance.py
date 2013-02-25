@@ -231,24 +231,31 @@ class DsInstance(service.Service):
 
         self.step("configuring directory to start on boot", self.__enable)
 
-    def create_instance(self, realm_name, fqdn, domain_name,
-                        dm_password, pkcs12_info=None, self_signed_ca=False,
-                        idstart=1100, idmax=999999, subject_base=None,
-                        hbac_allow=True):
+    def init_info(self, realm_name, fqdn, domain_name, dm_password,
+                  self_signed_ca, subject_base, idstart, idmax, pkcs12_info):
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
         self.suffix = ipautil.realm_to_suffix(self.realm_name)
         self.fqdn = fqdn
         self.dm_password = dm_password
         self.domain = domain_name
-        self.pkcs12_info = pkcs12_info
-        self.self_signed_ca = self_signed_ca
+        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
+        self.self_signed_ca = False
+        self.subject_base = subject_base
         self.idstart = idstart
         self.idmax = idmax
-        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
-        self.subject_base = subject_base
+        self.pkcs12_info = pkcs12_info
 
         self.__setup_sub_dict()
+
+    def create_instance(self, realm_name, fqdn, domain_name,
+                        dm_password, pkcs12_info=None, self_signed_ca=False,
+                        idstart=1100, idmax=999999, subject_base=None,
+                        hbac_allow=True):
+        self.init_info(
+            realm_name, fqdn, domain_name, dm_password, self_signed_ca,
+            subject_base, idstart, idmax, pkcs12_info)
+
         self.__common_setup()
 
         self.step("adding default layout", self.__add_default_layout)
@@ -269,26 +276,18 @@ class DsInstance(service.Service):
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
                        domain_name, dm_password, pkcs12_info=None):
-        self.realm_name = realm_name.upper()
-        self.serverid = realm_to_serverid(self.realm_name)
-        self.suffix = ipautil.realm_to_suffix(self.realm_name)
-        self.master_fqdn = master_fqdn
-        self.fqdn = fqdn
-        self.dm_password = dm_password
-        self.domain = domain_name
-        self.pkcs12_info = pkcs12_info
-        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
-
-        self.self_signed_ca = False
-        self.subject_base = None
         # idstart and idmax are configured so that the range is seen as
         # depleted by the DNA plugin and the replica will go and get a
         # new range from the master.
         # This way all servers use the initially defined range by default.
-        self.idstart = 1101
-        self.idmax = 1100
+        idstart = 1101
+        idmax = 1100
 
-        self.__setup_sub_dict()
+        self.init_info(
+            realm_name, fqdn, domain_name, dm_password, None, None,
+            idstart, idmax, pkcs12_info)
+        self.master_fqdn = master_fqdn
+
         self.__common_setup(True)
 
         self.step("setting up initial replication", self.__setup_replica)
