@@ -691,6 +691,15 @@ def main():
                 sys.exit(1)
             cert = certdict[certissuer]
 
+    # Figure out what external CA step we're in. See cainstance.py for more
+    # info on the 3 states.
+    if options.external_cert_file:
+        external = 2
+    elif options.external_ca:
+        external = 1
+    else:
+        external = 0
+
     print "=============================================================================="
     print "This program will set up the FreeIPA Server."
     print ""
@@ -717,8 +726,9 @@ def main():
     print "To accept the default shown in brackets, press the Enter key."
     print ""
 
-    # Make sure the 389-ds ports are available
-    check_dirsrv(options.unattended)
+    if external != 2:
+        # Make sure the 389-ds ports are available
+        check_dirsrv(options.unattended)
 
     if options.conf_ntp:
         try:
@@ -921,36 +931,43 @@ def main():
         except ipautil.CalledProcessError, e:
             root_logger.critical("failed to add DS group: %s" % e)
 
-    # Configure ntpd
-    if options.conf_ntp:
-        ipaclient.ntpconf.force_ntpd(sstore)
-        ntp = ntpinstance.NTPInstance(fstore)
-        if not ntp.is_configured():
-            ntp.create_instance()
-
-    # Create a directory server instance
-    ds = dsinstance.DsInstance(fstore=fstore)
-
     if options.dirsrv_pin:
         [pw_fd, pw_name] = tempfile.mkstemp()
         os.write(pw_fd, options.dirsrv_pin)
         os.close(pw_fd)
-
-    if options.dirsrv_pkcs12:
         pkcs12_info = (options.dirsrv_pkcs12, pw_name)
-        try:
+
+    if external != 2:
+        # Configure ntpd
+        if options.conf_ntp:
+            ipaclient.ntpconf.force_ntpd(sstore)
+            ntp = ntpinstance.NTPInstance(fstore)
+            if not ntp.is_configured():
+                ntp.create_instance()
+
+        # Create a directory server instance
+        ds = dsinstance.DsInstance(fstore=fstore)
+
+        if options.dirsrv_pkcs12:
+            try:
+                ds.create_instance(realm_name, host_name, domain_name,
+                                dm_password, pkcs12_info,
+                                subject_base=options.subject,
+                                hbac_allow=not options.hbac_allow)
+            finally:
+                os.remove(pw_name)
+        else:
             ds.create_instance(realm_name, host_name, domain_name,
-                               dm_password, pkcs12_info,
-                               subject_base=options.subject,
-                               hbac_allow=not options.hbac_allow)
-        finally:
-            os.remove(pw_name)
+                            dm_password, self_signed_ca=options.selfsign,
+                            idstart=options.idstart, idmax=options.idmax,
+                            subject_base=options.subject,
+                            hbac_allow=not options.hbac_allow)
     else:
-        ds.create_instance(realm_name, host_name, domain_name,
-                           dm_password, self_signed_ca=options.selfsign,
-                           idstart=options.idstart, idmax=options.idmax,
-                           subject_base=options.subject,
-                           hbac_allow=not options.hbac_allow)
+        ds = dsinstance.DsInstance(fstore=fstore)
+        ds.init_info(
+            realm_name, host_name, domain_name, dm_password,
+            options.selfsign, options.subject, 1101, 1100, None)
+
 
     if options.selfsign:
         ca = certs.CertDB(realm_name, host_name=host_name,
@@ -962,15 +979,6 @@ def main():
             os.remove(certs.CA_SERIALNO)
         except:
             pass
-
-        # Figure out what state we're in. See cainstance.py for more info on
-        # the 3 states.
-        if options.external_cert_file:
-            external = 2
-        elif options.external_ca:
-            external = 1
-        else:
-            external = 0
 
         if not dogtag.install_constants.SHARED_DB:
             cs = cainstance.CADSInstance(

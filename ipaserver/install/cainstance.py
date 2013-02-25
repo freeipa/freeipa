@@ -238,8 +238,10 @@ def get_crl_files(path=None):
 def is_step_one_done():
     '''Read CS.cfg and determine if step one of an external CA install is done
     '''
-    test = installutils.get_directive(
-        dogtag.install_constants.CS_CFG_PATH, 'preop.ca.type', '=')
+    path = dogtag.install_constants.CS_CFG_PATH
+    if not os.path.exists(path):
+        return False
+    test = installutils.get_directive(path, 'preop.ca.type', '=')
     if test == "otherca":
         return True
     return False
@@ -736,16 +738,16 @@ class CAInstance(service.Service):
         finally:
             os.remove(cfg_file)
 
-        if not self.clone:
-            shutil.move("/root/.pki/pki-tomcat/ca_admin_cert.p12", \
-                        "/root/ca-agent.p12")
-        shutil.move("/var/lib/pki/pki-tomcat/alias/ca_backup_keys.p12", \
-                    "/root/cacert.p12")
-
         if self.external == 1:
             print "The next step is to get %s signed by your CA and re-run ipa-server-install as:" % self.csr_file
             print "ipa-server-install --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
             sys.exit(0)
+        else:
+            if not self.clone:
+                shutil.move("/root/.pki/pki-tomcat/ca_admin_cert.p12", \
+                            "/root/ca-agent.p12")
+            shutil.move("/var/lib/pki/pki-tomcat/alias/ca_backup_keys.p12", \
+                        "/root/cacert.p12")
 
         root_logger.debug("completed creating ca instance")
 
