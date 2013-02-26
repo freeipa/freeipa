@@ -5,8 +5,8 @@
 ##
 dn: cn=schema
 attributeTypes: (2.16.840.1.113730.3.8.11.1 NAME 'ipaExternalMember' DESC 'External Group Member Identifier' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.2 NAME 'ipaNTSecurityIdentifier' DESC 'NT Security ID' EQUALITY caseIgnoreIA5Match ORDERING caseIgnoreIA5OrderingMatch SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.23 NAME 'ipaNTTrustedDomainSID' DESC 'NT Trusted Domain Security ID' EQUALITY caseIgnoreIA5Match ORDERING caseIgnoreIA5OrderingMatch SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.2 NAME 'ipaNTSecurityIdentifier' DESC 'NT Security ID' EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.23 NAME 'ipaNTTrustedDomainSID' DESC 'NT Trusted Domain Security ID' EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 attributeTypes: (2.16.840.1.113730.3.8.11.3 NAME 'ipaNTFlatName' DESC 'Flat/Netbios Name' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 attributeTypes: (2.16.840.1.113730.3.8.11.4 NAME 'ipaNTFallbackPrimaryGroup' DESC 'Fallback Group to set the Primary group Security Identifier for users with UPGs' SUP distinguishedName X-ORIGIN 'IPA v3' )
 attributeTypes: (2.16.840.1.113730.3.8.11.5 NAME 'ipaNTHash' DESC 'NT Hash of user password' EQUALITY octetStringMatch ORDERING octetStringOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'IPA v3' )
@@ -14,7 +14,7 @@ attributeTypes: (2.16.840.1.113730.3.8.11.6 NAME 'ipaNTLogonScript' DESC 'User L
 attributeTypes: (2.16.840.1.113730.3.8.11.7 NAME 'ipaNTProfilePath' DESC 'User Profile Path' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 attributeTypes: (2.16.840.1.113730.3.8.11.8 NAME 'ipaNTHomeDirectory' DESC 'User Home Directory Path' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 attributeTypes: (2.16.840.1.113730.3.8.11.9 NAME 'ipaNTHomeDirectoryDrive' DESC 'User Home Drive Letter' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.10 NAME 'ipaNTDomainGUID' DESC 'NT Domain GUID' EQUALITY caseIgnoreIA5Match ORDERING caseIgnoreIA5OrderingMatch SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.10 NAME 'ipaNTDomainGUID' DESC 'NT Domain GUID' EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 attributeTypes: ( 2.16.840.1.113730.3.8.11.11 NAME 'ipaNTTrustType' DESC 'Type of trust' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )
 attributeTypes: ( 2.16.840.1.113730.3.8.11.12 NAME 'ipaNTTrustAttributes' DESC 'Trust attributes for a trusted domain' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )
 attributeTypes: ( 2.16.840.1.113730.3.8.11.13 NAME 'ipaNTTrustDirection' DESC 'Direction of a trust' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )
