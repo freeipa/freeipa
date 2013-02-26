@@ -64,6 +64,9 @@ The password to use if not using Kerberos to authenticate. Use a password of thi
 \fB\-b,\-\-basedn basedn\fR
 The basedn of the IPA server (of the form dc=example,dc=com). This is only needed when not using Kerberos to authenticate and anonymous binds are disallowed in the IPA LDAP server.
 .TP
+\fB\-f,\-\-force\fR
+Force enrolling the host even if host entry exists.
+.TP
 \fB\-u,\-\-unenroll\fR
 Unenroll this host from the IPA server. No keytab entry is removed in the process
 (see

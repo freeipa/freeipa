@@ -558,7 +558,7 @@ done:
 }
 
 static int
-join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **princ, const char **subject, int quiet) {
+join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **princ, const char **subject, int force, int quiet) {
     xmlrpc_env env;
     xmlrpc_value * argArrayP = NULL;
     xmlrpc_value * paramArrayP = NULL;
@@ -663,7 +663,7 @@ join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **pri
         goto cleanup;
     }
     xmlrpc_struct_find_value(&env, structP, "krblastpwdchange", &krblastpwdchangeP);
-    if (krblastpwdchangeP) {
+    if (krblastpwdchangeP && !force) {
         xmlrpc_value * singleprincP = NULL;
 
         /* FIXME: all values are returned as lists currently. Once this is
@@ -929,7 +929,7 @@ cleanup:
 
 
 static int
-join(const char *server, const char *hostname, const char *bindpw, const char *basedn, const char *keytab, int quiet)
+join(const char *server, const char *hostname, const char *bindpw, const char *basedn, const char *keytab, int force, int quiet)
 {
     int rval = 0;
     pid_t childpid = 0;
@@ -1003,7 +1003,8 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
             rval = 6;
             goto cleanup;
         }
-        rval = join_krb5(ipaserver, host, &hostdn, &princ, &subject, quiet);
+        rval = join_krb5(ipaserver, host, &hostdn, &princ, &subject, force,
+                         quiet);
     }
 
     if (rval) goto cleanup;
@@ -1100,6 +1101,7 @@ main(int argc, const char **argv) {
     static const char *basedn = NULL;
     int quiet = 0;
     int unenroll = 0;
+    int force = 0;
     struct poptOption options[] = {
         { "debug", 'd', POPT_ARG_NONE, &debug, 0,
           _("Print the raw XML-RPC output in GSSAPI mode"), NULL },
@@ -1113,6 +1115,8 @@ main(int argc, const char **argv) {
           _("IPA Server to use"), _("hostname") },
         { "keytab", 'k', POPT_ARG_STRING, &keytab, 0,
           _("Specifies where to store keytab information."), _("filename") },
+        { "force", 'f', POPT_ARG_NONE, &force, 0,
+          _("Force the host join. Rejoin even if already joined."), NULL },
         { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0,
           _("LDAP password (if not using Kerberos)"), _("password") },
         { "basedn", 'b', POPT_ARG_STRING, &basedn, 0,
@@ -1149,7 +1153,7 @@ main(int argc, const char **argv) {
     } else {
         ret = check_perms(keytab);
         if (ret == 0)
-            ret = join(server, hostname, bindpw, basedn, keytab, quiet);
+            ret = join(server, hostname, bindpw, basedn, keytab, force, quiet);
     }
 
     exit(ret);
