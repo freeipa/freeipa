@@ -619,7 +619,7 @@ class IPASimpleLDAPObject(object):
 # r[0] == r.dn
 # r[1] == r.data
 class LDAPEntry(collections.MutableMapping):
-    __slots__ = ('_conn', '_dn', '_names', '_data', '_orig')
+    __slots__ = ('_conn', '_dn', '_names', '_data', '_not_list', '_orig')
 
     def __init__(self, _conn, _dn=None, _obj=None, **kwargs):
         """
@@ -656,12 +656,14 @@ class LDAPEntry(collections.MutableMapping):
         self._dn = _dn
         self._names = CIDict()
         self._data = {}
+        self._not_list = set()
         self._orig = self
 
         if isinstance(_obj, LDAPEntry):
             #pylint: disable=E1103
             self._names = CIDict(_obj._names)
             self._data = dict(_obj._data)
+            self._not_list = set(_obj._not_list)
             self._orig = _obj._orig
 
             _obj = {}
@@ -703,6 +705,7 @@ class LDAPEntry(collections.MutableMapping):
 
         result._names = deepcopy(self._names)
         result._data = deepcopy(self._data)
+        result._not_list = deepcopy(self._not_list)
         if self._orig is not self:
             result._orig = self._orig.clone()
 
@@ -739,6 +742,7 @@ class LDAPEntry(collections.MutableMapping):
                         self._names[altname] = name
 
                 del self._data[oldname]
+                self._not_list.discard(oldname)
         else:
             self._names[name] = name
 
@@ -749,6 +753,15 @@ class LDAPEntry(collections.MutableMapping):
                     for altname in attrtype.names:
                         altname = altname.decode('utf-8')
                         self._names[altname] = name
+
+        if not isinstance(value, list):
+            if value is None:
+                value = []
+            else:
+                value = [value]
+            self._not_list.add(name)
+        else:
+            self._not_list.discard(name)
 
         self._data[name] = value
 
@@ -765,7 +778,18 @@ class LDAPEntry(collections.MutableMapping):
             return self
 
         name = self._get_attr_name(name)
-        return self._data[name]
+
+        value = self._data[name]
+        assert isinstance(value, list)
+
+        if name in self._not_list:
+            assert len(value) <= 1
+            if value:
+                value = value[0]
+            else:
+                value = None
+
+        return value
 
     def single_value(self, name, default=_missing):
         """Return a single attribute value
@@ -796,10 +820,12 @@ class LDAPEntry(collections.MutableMapping):
                 del self._names[altname]
 
         del self._data[name]
+        self._not_list.discard(name)
 
     def clear(self):
         self._names.clear()
         self._data.clear()
+        self._not_list.clear()
 
     def __len__(self):
         return len(self._data)

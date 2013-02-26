@@ -922,6 +922,8 @@ last, after all sets and adds."""),
                     raise errors.ValidationError(name=attr, error=err.error)
                 except errors.ConversionError, err:
                     raise errors.ConversionError(name=attr, error=err.error)
+                if isinstance(value, tuple):
+                    value = list(value)
                 entry_attrs[attr] = value
             else:
                 # unknown attribute: remove duplicite and invalid values
