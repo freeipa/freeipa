@@ -353,8 +353,9 @@ class IPASimpleLDAPObject(object):
 
 
     def encode(self, val):
-        '''
-        '''
+        """
+        Encode attribute value to LDAP representation (str).
+        """
         # Booleans are both an instance of bool and int, therefore
         # test for bool before int otherwise the int clause will be
         # entered for a boolean value instead of the boolean clause.
@@ -379,29 +380,33 @@ class IPASimpleLDAPObject(object):
         else:
             raise TypeError("attempt to pass unsupported type to ldap, value=%s type=%s" %(val, type(val)))
 
-    def convert_value_list(self, attr, target_type, values):
-        '''
-        '''
-
-        if not self._decode_attrs:
-            return values
-
-        ipa_values = []
-
-        for original_value in values:
-            if isinstance(target_type, type) and isinstance(original_value, target_type):
-                ipa_value = original_value
-            else:
-                try:
-                    ipa_value = target_type(original_value)
-                except Exception, e:
-                    msg = 'unable to convert the attribute "%s" value "%s" to type %s' % (attr, original_value, target_type)
-                    self.log.error(msg)
-                    raise ValueError(msg)
-
-            ipa_values.append(ipa_value)
-
-        return ipa_values
+    def decode(self, val, attr):
+        """
+        Decode attribute value from LDAP representation (str).
+        """
+        if isinstance(val, str):
+            if not self._decode_attrs:
+                return val
+            target_type = self._SYNTAX_MAPPING.get(self.get_syntax(attr), unicode_from_utf8)
+            if target_type is str:
+                return val
+            try:
+                return target_type(val)
+            except Exception, e:
+                msg = 'unable to convert the attribute "%s" value "%s" to type %s' % (attr, val, target_type)
+                self.log.error(msg)
+                raise ValueError(msg)
+        elif isinstance(val, list):
+            return [self.decode(m, attr) for m in val]
+        elif isinstance(val, tuple):
+            return tuple(self.decode(m, attr) for m in val)
+        elif isinstance(val, dict):
+            dct = dict((unicode_from_utf8(k), self.decode(v, k)) for k, v in val.iteritems())
+            return dct
+        elif val is None:
+            return None
+        else:
+            raise TypeError("attempt to pass unsupported type from ldap, value=%s type=%s" %(val, type(val)))
 
     def convert_result(self, result):
         '''
@@ -438,8 +443,7 @@ class IPASimpleLDAPObject(object):
             ipa_entry = LDAPEntry(self, DN(original_dn))
 
             for attr, original_values in original_attrs.items():
-                target_type = self._SYNTAX_MAPPING.get(self.get_syntax(attr), unicode_from_utf8)
-                ipa_entry[attr] = self.convert_value_list(attr, target_type, original_values)
+                ipa_entry[attr] = self.decode(original_values, attr)
 
             ipa_result.append(ipa_entry)
 
