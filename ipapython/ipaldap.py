@@ -25,6 +25,7 @@ import shutil
 from decimal import Decimal
 from copy import deepcopy
 import contextlib
+import collections
 
 import ldap
 import ldap.sasl
@@ -613,8 +614,8 @@ class IPASimpleLDAPObject(object):
 # r = result[0]
 # r[0] == r.dn
 # r[1] == r.data
-class LDAPEntry(dict):
-    __slots__ = ('_conn', '_dn', '_names', '_orig')
+class LDAPEntry(collections.MutableMapping):
+    __slots__ = ('_conn', '_dn', '_names', '_data', '_orig')
 
     def __init__(self, _conn, _dn=None, _obj=None, **kwargs):
         """
@@ -632,32 +633,34 @@ class LDAPEntry(dict):
 
         Keyword arguments can be used to override values of specific attributes.
         """
-        super(LDAPEntry, self).__init__()
-
         if isinstance(_conn, LDAPEntry):
             assert _dn is None
             _dn = _conn
             _conn = _conn._conn
+        assert isinstance(_conn, IPASimpleLDAPObject)
 
         if isinstance(_dn, LDAPEntry):
             assert _obj is None
             _obj = _dn
-            _dn = DN(_dn._dn)
-
-        if isinstance(_obj, LDAPEntry):
-            orig = _obj._orig
-        else:
-            if _obj is None:
-                _obj = {}
-            orig = self
-
-        assert isinstance(_conn, IPASimpleLDAPObject)
+            _dn = _dn._dn
         assert isinstance(_dn, DN)
+
+        if _obj is None:
+            _obj = {}
 
         self._conn = _conn
         self._dn = _dn
-        self._orig = orig
         self._names = CIDict()
+        self._data = {}
+        self._orig = self
+
+        if isinstance(_obj, LDAPEntry):
+            #pylint: disable=E1103
+            self._names = CIDict(_obj._names)
+            self._data = dict(_obj._data)
+            self._orig = _obj._orig
+
+            _obj = {}
 
         self.update(_obj, **kwargs)
 
@@ -686,8 +689,7 @@ class LDAPEntry(dict):
         return self._orig
 
     def __repr__(self):
-        return '%s(%r, %s)' % (type(self).__name__, self._dn,
-            super(LDAPEntry, self).__repr__())
+        return '%s(%r, %r)' % (type(self).__name__, self._dn, self._data)
 
     def copy(self):
         return LDAPEntry(self)
@@ -695,11 +697,8 @@ class LDAPEntry(dict):
     def clone(self):
         result = LDAPEntry(self._conn, self._dn)
 
-        for name in self.iterkeys():
-            super(LDAPEntry, result).__setitem__(
-                name, deepcopy(super(LDAPEntry, self).__getitem__(name)))
-
         result._names = deepcopy(self._names)
+        result._data = deepcopy(self._data)
         if self._orig is not self:
             result._orig = self._orig.clone()
 
@@ -727,7 +726,7 @@ class LDAPEntry(dict):
     def __setitem__(self, name, value):
         name = self._attr_name(name)
 
-        if self._names.has_key(name):
+        if name in self._names:
             oldname = self._names[name]
 
             if oldname != name:
@@ -735,7 +734,7 @@ class LDAPEntry(dict):
                     if keyname == oldname:
                         self._names[altname] = name
 
-                super(LDAPEntry, self).__delitem__(oldname)
+                del self._data[oldname]
         else:
             self._names[name] = name
 
@@ -747,17 +746,7 @@ class LDAPEntry(dict):
                         altname = altname.decode('utf-8')
                         self._names[altname] = name
 
-        super(LDAPEntry, self).__setitem__(name, value)
-
-    def setdefault(self, name, default):
-        if name not in self:
-            self[name] = default
-        return self[name]
-
-    def update(self, _obj={}, **kwargs):
-        _obj = dict(_obj, **kwargs)
-        for (name, value) in _obj.iteritems():
-            self[name] = value
+        self._data[name] = value
 
     def _get_attr_name(self, name):
         name = self._attr_name(name)
@@ -765,21 +754,14 @@ class LDAPEntry(dict):
         return name
 
     def __getitem__(self, name):
-        # for python-ldap tuple compatibility
+        # FIXME: Remove when python-ldap tuple compatibility is dropped
         if name == 0:
             return self._dn
         elif name == 1:
             return self
 
-        return super(LDAPEntry, self).__getitem__(self._get_attr_name(name))
-
-    def get(self, name, default=None):
-        try:
-            name = self._get_attr_name(name)
-        except KeyError:
-            return default
-
-        return super(LDAPEntry, self).get(name, default)
+        name = self._get_attr_name(name)
+        return self._data[name]
 
     def single_value(self, name, default=_missing):
         """Return a single attribute value
@@ -790,8 +772,7 @@ class LDAPEntry(dict):
         If the entry is missing and default is not given, raise KeyError.
         """
         try:
-            attr_name = self._get_attr_name(name)
-            values = super(LDAPEntry, self).__getitem__(attr_name)
+            values = self[name]
         except KeyError:
             if default is _missing:
                 raise
@@ -803,46 +784,80 @@ class LDAPEntry(dict):
                 '%s has %s values, one expected' % (name, len(values)))
         return values[0]
 
-    def _del_attr_name(self, name):
+    def __delitem__(self, name):
         name = self._get_attr_name(name)
 
         for (altname, keyname) in self._names.items():
             if keyname == name:
                 del self._names[altname]
 
-        return name
-
-    def __delitem__(self, name):
-        super(LDAPEntry, self).__delitem__(self._del_attr_name(name))
-
-    def pop(self, name, *default):
-        try:
-            name = self._del_attr_name(name)
-        except KeyError:
-            if not default:
-                raise
-
-        return super(LDAPEntry, self).pop(name, *default)
-
-    def popitem(self):
-        name, value = super(LDAPEntry, self).popitem()
-        self._del_attr_name(name)
-        return (name, value)
+        del self._data[name]
 
     def clear(self):
-        super(LDAPEntry, self).clear()
         self._names.clear()
+        self._data.clear()
+
+    def __len__(self):
+        return len(self._data)
 
     def __contains__(self, name):
-        return self._names.has_key(self._attr_name(name))
+        return name in self._names
 
     def has_key(self, name):
         return name in self
 
-    # for python-ldap tuple compatibility
+    def __eq__(self, other):
+        if not isinstance(other, LDAPEntry):
+            return NotImplemented
+        return other is self
+
+    def __ne__(self, other):
+        if not isinstance(other, LDAPEntry):
+            return NotImplemented
+        return other is not self
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
     def __iter__(self):
         yield self._dn
         yield self
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
+    def iterkeys(self):
+        return self._data.iterkeys()
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
+    def itervalues(self):
+        return self._data.itervalues()
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
+    def iteritems(self):
+        return self._data.iteritems()
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
+    def keys(self):
+        return list(self.iterkeys())
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
+    def values(self):
+        return list(self.itervalues())
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
+    def items(self):
+        return list(self.iteritems())
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
+    def update(self, _obj={}, **kwargs):
+        _obj = dict(_obj, **kwargs)
+        super(LDAPEntry, self).update(_obj)
+
+    # FIXME: Remove when python-ldap tuple compatibility is dropped
+    def popitem(self):
+        try:
+            name = self.iterkeys().next()
+        except StopIteration:
+            raise KeyError
+
+        return name, self.pop(name)
 
     def toDict(self):
         # FIXME: for backwards compatibility only
