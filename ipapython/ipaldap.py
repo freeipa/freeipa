@@ -619,7 +619,8 @@ class IPASimpleLDAPObject(object):
 # r[0] == r.dn
 # r[1] == r.data
 class LDAPEntry(collections.MutableMapping):
-    __slots__ = ('_conn', '_dn', '_names', '_data', '_not_list', '_orig')
+    __slots__ = ('_conn', '_dn', '_names', '_nice', '_raw', '_sync',
+                 '_not_list', '_orig', '_raw_view')
 
     def __init__(self, _conn, _dn=None, _obj=None, **kwargs):
         """
@@ -655,16 +656,24 @@ class LDAPEntry(collections.MutableMapping):
         self._conn = _conn
         self._dn = _dn
         self._names = CIDict()
-        self._data = {}
+        self._nice = {}
+        self._raw = {}
+        self._sync = {}
         self._not_list = set()
         self._orig = self
+        self._raw_view = None
 
         if isinstance(_obj, LDAPEntry):
             #pylint: disable=E1103
-            self._names = CIDict(_obj._names)
-            self._data = dict(_obj._data)
             self._not_list = set(_obj._not_list)
             self._orig = _obj._orig
+            if _obj.conn is _conn:
+                self._names = CIDict(_obj._names)
+                self._nice = dict(_obj._nice)
+                self._raw = dict(_obj._raw)
+                self._sync = dict(_obj._sync)
+            else:
+                self.raw.update(_obj.raw)
 
             _obj = {}
 
@@ -685,6 +694,12 @@ class LDAPEntry(collections.MutableMapping):
         self._dn = value
 
     @property
+    def raw(self):
+        if self._raw_view is None:
+            self._raw_view = RawLDAPEntryView(self)
+        return self._raw_view
+
+    @property
     def data(self):
         # FIXME: for backwards compatibility only
         return self
@@ -695,7 +710,7 @@ class LDAPEntry(collections.MutableMapping):
         return self._orig
 
     def __repr__(self):
-        return '%s(%r, %r)' % (type(self).__name__, self._dn, self._data)
+        return '%s(%r, %r)' % (type(self).__name__, self._dn, self._raw)
 
     def copy(self):
         return LDAPEntry(self)
@@ -704,7 +719,9 @@ class LDAPEntry(collections.MutableMapping):
         result = LDAPEntry(self._conn, self._dn)
 
         result._names = deepcopy(self._names)
-        result._data = deepcopy(self._data)
+        result._nice = deepcopy(self._nice)
+        result._raw = deepcopy(self._raw)
+        result._sync = deepcopy(self._sync)
         result._not_list = deepcopy(self._not_list)
         if self._orig is not self:
             result._orig = self._orig.clone()
@@ -719,6 +736,51 @@ class LDAPEntry(collections.MutableMapping):
         self._orig = self
         self._orig = self.clone()
 
+    def _sync_attr(self, name):
+        nice = self._nice[name]
+        assert isinstance(nice, list)
+
+        raw = self._raw[name]
+        assert isinstance(raw, list)
+
+        nice_sync, raw_sync = self._sync.setdefault(name, ([], []))
+        if nice == nice_sync and raw == raw_sync:
+            return
+
+        nice_adds = set(nice) - set(nice_sync)
+        nice_dels = set(nice_sync) - set(nice)
+        raw_adds = set(raw) - set(raw_sync)
+        raw_dels = set(raw_sync) - set(raw)
+
+        for value in nice_dels:
+            value = self._conn.encode(value)
+            if value in raw_adds:
+                continue
+            raw.remove(value)
+
+        for value in raw_dels:
+            value = self._conn.decode(value, name)
+            if value in nice_adds:
+                continue
+            nice.remove(value)
+
+        for value in nice_adds:
+            value = self._conn.encode(value)
+            if value in raw_dels:
+                continue
+            raw.append(value)
+
+        for value in raw_adds:
+            value = self._conn.decode(value, name)
+            if value in nice_dels:
+                continue
+            nice.append(value)
+
+        self._sync[name] = (deepcopy(nice), deepcopy(raw))
+
+        if len(nice) > 1:
+            self._not_list.discard(name)
+
     def _attr_name(self, name):
         if not isinstance(name, basestring):
             raise TypeError(
@@ -730,9 +792,7 @@ class LDAPEntry(collections.MutableMapping):
 
         return name
 
-    def __setitem__(self, name, value):
-        name = self._attr_name(name)
-
+    def _add_attr_name(self, name):
         if name in self._names:
             oldname = self._names[name]
 
@@ -741,11 +801,14 @@ class LDAPEntry(collections.MutableMapping):
                     if keyname == oldname:
                         self._names[altname] = name
 
-                del self._data[oldname]
-                self._not_list.discard(oldname)
+                self._nice[name] = self._nice.pop(oldname)
+                self._raw[name] = self._raw.pop(oldname)
+                if oldname in self._sync:
+                    self._sync[name] = self._sync.pop(oldname)
+                if oldname in self._not_list:
+                    self._not_list.remove(oldname)
+                    self._not_list.add(name)
         else:
-            self._names[name] = name
-
             if self._conn.schema is not None:
                 attrtype = self._conn.schema.get_obj(ldap.schema.AttributeType,
                     name.encode('utf-8'))
@@ -753,6 +816,12 @@ class LDAPEntry(collections.MutableMapping):
                     for altname in attrtype.names:
                         altname = altname.decode('utf-8')
                         self._names[altname] = name
+
+            self._names[name] = name
+
+    def _set_nice(self, name, value):
+        name = self._attr_name(name)
+        self._add_attr_name(name)
 
         if not isinstance(value, list):
             if value is None:
@@ -763,24 +832,53 @@ class LDAPEntry(collections.MutableMapping):
         else:
             self._not_list.discard(name)
 
-        self._data[name] = value
+        if self._nice.get(name) is not value:
+            self._nice[name] = value
+            self._raw[name] = None
+            self._sync.pop(name, None)
+
+        if self._raw[name] is not None:
+            self._sync_attr(name)
+
+    def _set_raw(self, name, value):
+        name = self._attr_name(name)
+
+        if not isinstance(value, list):
+            raise TypeError("%s value must be list, got %s object %r" % (
+                name, value.__class__.__name__, value))
+        for (i, item) in enumerate(value):
+            if not isinstance(item, str):
+                raise TypeError("%s[%d] value must be str, got %s object %r" % (
+                    name, i, item.__class__.__name__, item))
+
+        self._add_attr_name(name)
+
+        if self._raw.get(name) is not value:
+            self._raw[name] = value
+            self._nice[name] = None
+            self._sync.pop(name, None)
+
+        if self._nice[name] is not None:
+            self._sync_attr(name)
+
+    def __setitem__(self, name, value):
+        self._set_nice(name, value)
 
     def _get_attr_name(self, name):
         name = self._attr_name(name)
         name = self._names[name]
         return name
 
-    def __getitem__(self, name):
-        # FIXME: Remove when python-ldap tuple compatibility is dropped
-        if name == 0:
-            return self._dn
-        elif name == 1:
-            return self
-
+    def _get_nice(self, name):
         name = self._get_attr_name(name)
 
-        value = self._data[name]
+        value = self._nice[name]
+        if value is None:
+            value = self._nice[name] = []
         assert isinstance(value, list)
+
+        if self._raw[name] is not None:
+            self._sync_attr(name)
 
         if name in self._not_list:
             assert len(value) <= 1
@@ -790,6 +888,28 @@ class LDAPEntry(collections.MutableMapping):
                 value = None
 
         return value
+
+    def _get_raw(self, name):
+        name = self._get_attr_name(name)
+
+        value = self._raw[name]
+        if value is None:
+            value = self._raw[name] = []
+        assert isinstance(value, list)
+
+        if self._nice[name] is not None:
+            self._sync_attr(name)
+
+        return value
+
+    def __getitem__(self, name):
+        # FIXME: Remove when python-ldap tuple compatibility is dropped
+        if name == 0:
+            return self._dn
+        elif name == 1:
+            return self
+
+        return self._get_nice(name)
 
     def single_value(self, name, default=_missing):
         """Return a single attribute value
@@ -819,16 +939,20 @@ class LDAPEntry(collections.MutableMapping):
             if keyname == name:
                 del self._names[altname]
 
-        del self._data[name]
+        del self._nice[name]
+        del self._raw[name]
+        self._sync.pop(name, None)
         self._not_list.discard(name)
 
     def clear(self):
         self._names.clear()
-        self._data.clear()
+        self._nice.clear()
+        self._raw.clear()
+        self._sync.clear()
         self._not_list.clear()
 
     def __len__(self):
-        return len(self._data)
+        return len(self._nice)
 
     def __contains__(self, name):
         return name in self._names
@@ -853,15 +977,17 @@ class LDAPEntry(collections.MutableMapping):
 
     # FIXME: Remove when python-ldap tuple compatibility is dropped
     def iterkeys(self):
-        return self._data.iterkeys()
+        return self._nice.iterkeys()
 
     # FIXME: Remove when python-ldap tuple compatibility is dropped
     def itervalues(self):
-        return self._data.itervalues()
+        for name in self.iterkeys():
+            yield self[name]
 
     # FIXME: Remove when python-ldap tuple compatibility is dropped
     def iteritems(self):
-        return self._data.iteritems()
+        for name in self.iterkeys():
+            yield (name, self[name])
 
     # FIXME: Remove when python-ldap tuple compatibility is dropped
     def keys(self):
@@ -908,6 +1034,38 @@ class LDAPEntry(collections.MutableMapping):
         result = ipautil.CIDict(self.orig_data)
         result['dn'] = self.dn
         return result
+
+class LDAPEntryView(collections.MutableMapping):
+    __slots__ = ('_entry',)
+
+    def __init__(self, entry):
+        assert isinstance(entry, LDAPEntry)
+        self._entry = entry
+
+    def __delitem__(self, name):
+        del self._entry[name]
+
+    def clear(self):
+        self._entry.clear()
+
+    def __iter__(self):
+        return self._entry.iterkeys()
+
+    def __len__(self):
+        return len(self._entry)
+
+    def __contains__(self, name):
+        return name in self._entry
+
+    def has_key(self, name):
+        return name in self
+
+class RawLDAPEntryView(LDAPEntryView):
+    def __getitem__(self, name):
+        return self._entry._get_raw(name)
+
+    def __setitem__(self, name, value):
+        self._entry._set_raw(name, value)
 
 
 class LDAPClient(object):

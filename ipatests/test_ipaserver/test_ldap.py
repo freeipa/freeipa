@@ -257,3 +257,51 @@ class test_LDAPEntry(object):
         assert e.single_value('commonname') == self.cn1[0]
         assert e.single_value('COMMONNAME', 'default') == self.cn1[0]
         assert e.single_value('bad key', 'default') == 'default'
+
+    def test_sync(self):
+        e = self.entry
+
+        nice = e['test'] = [1, 2, 3]
+        assert e['test'] is nice
+
+        raw = e.raw['test']
+        assert raw == ['1', '2', '3']
+
+        nice.remove(1)
+        assert e.raw['test'] is raw
+        assert raw == ['2', '3']
+
+        raw.append('4')
+        assert e['test'] is nice
+        assert nice == [2, 3, u'4']
+
+        nice.remove(2)
+        raw.append('5')
+        assert nice == [3, u'4']
+        assert raw == ['2', '3', '4', '5']
+        assert e['test'] is nice
+        assert e.raw['test'] is raw
+        assert nice == [3, u'4', u'5']
+        assert raw == ['3', '4', '5']
+
+        nice.insert(0, 2)
+        raw.remove('4')
+        assert nice == [2, 3, u'4', u'5']
+        assert raw == ['3', '5']
+        assert e.raw['test'] is raw
+        assert e['test'] is nice
+        assert nice == [2, 3, u'5']
+        assert raw == ['3', '5', '2']
+
+        raw = ['a', 'b']
+        e.raw['test'] = raw
+        assert e['test'] is not nice
+        assert e['test'] == [u'a', u'b']
+
+        nice = 'not list'
+        e['test'] = nice
+        assert e['test'] is nice
+        assert e.raw['test'] == ['not list']
+
+        e.raw['test'].append('second')
+        assert e['test'] == ['not list', u'second']
