@@ -1737,32 +1737,12 @@ class LDAPClient(object):
         # updates better
         # for single value attribute: always MOD_REPLACE
         modlist = []
-        for (k, v) in entry_attrs.iteritems():
-            if v is None and k in entry_attrs_old:
+        for (k, v) in entry_attrs.raw.iteritems():
+            if not v and k in entry_attrs_old:
                 modlist.append((ldap.MOD_DELETE, k, None))
             else:
-                if not isinstance(v, (list, tuple)):
-                    v = [v]
-                v = set(filter(lambda value: value is not None, v))
-                old_v = set(entry_attrs_old.get(k.lower(), []))
-
-                # FIXME: Convert all values to either unicode, DN or str
-                # before detecting value changes (see IPASimpleLDAPObject for
-                # supported types).
-                # This conversion will set a common ground for the comparison.
-                #
-                # This fix can be removed when ticket 2265 is fixed and our
-                # encoded entry_attrs' types will match get_entry result
-                try:
-                    v = set(
-                        unicode_from_utf8(self.conn.encode(value))
-                        if not isinstance(value, (DN, str, unicode))
-                        else value for value in v)
-                except Exception, e:
-                    # Rather let the value slip in modlist than let ldap2 crash
-                    self.log.error(
-                        "Cannot convert attribute '%s' for modlist "
-                        "for modlist comparison: %s", k, e)
+                v = set(v)
+                old_v = set(entry_attrs_old.raw.get(k, []))
 
                 adds = list(v.difference(old_v))
                 rems = list(old_v.difference(v))
@@ -1958,15 +1938,8 @@ class IPAdmin(LDAPClient):
         keys.update(new_entry.keys())
 
         for key in keys:
-            new_values = new_entry.get(key, [])
-            if not(isinstance(new_values,list) or isinstance(new_values,tuple)):
-                new_values = [new_values]
-            new_values = filter(lambda value:value!=None, new_values)
-
-            old_values = old_entry.get(key, [])
-            if not(isinstance(old_values,list) or isinstance(old_values,tuple)):
-                old_values = [old_values]
-            old_values = filter(lambda value:value!=None, old_values)
+            new_values = new_entry.raw.get(key, [])
+            old_values = old_entry.raw.get(key, [])
 
             # We used to convert to sets and use difference to calculate
             # the changes but this did not preserve order which is important
