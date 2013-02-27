@@ -66,6 +66,11 @@ EXAMPLES:
  Override a default list of supported PAC types for the service:
    ipa service-mod HTTP/web.example.com --pac-type=MS-PAC
 
+   A typical use case where overriding the PAC type is needed is NFS.
+   Currently the related code in the Linux kernel can only handle Kerberos
+   tickets up to a maximal size. Since the PAC data can become quite large it
+   is recommended to set --pac-type=NONE for NFS services.
+
  Delete an IPA service:
    ipa service-del HTTP/web.example.com
 
@@ -258,7 +263,8 @@ class service(LDAPObject):
             cli_name='pac_type',
             label=_('PAC type'),
             doc=_("Override default list of supported PAC types."
-                  " Use 'NONE' to disable PAC support for this service"),
+                  " Use 'NONE' to disable PAC support for this service,"
+                  " e.g. this might be necessary for NFS services."),
             values=(u'MS-PAC', u'PAD', u'NONE'),
             csv=True,
         ),
