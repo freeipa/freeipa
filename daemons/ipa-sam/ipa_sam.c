@@ -2293,7 +2293,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 				      &td->trust_forest_trust_info);
 	}
 
-	for (i = 0; ipa_mspac_well_known_sids && ipa_mspac_well_known_sids[i]; i++) {
+	for (i = 0; ipa_mspac_well_known_sids[i]; i++) {
 		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
 				      LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING,
 				      ipa_mspac_well_known_sids[i]);
