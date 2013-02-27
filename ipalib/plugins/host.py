@@ -364,7 +364,7 @@ class host(LDAPObject):
         """
         ng_container = DN(api.env.container_netgroup, api.env.basedn)
         if 'memberofindirect' in entry_attrs:
-            for member in entry_attrs['memberofindirect']:
+            for member in list(entry_attrs['memberofindirect']):
                 memberdn = DN(member)
                 if memberdn.endswith(ng_container):
                     try:
