@@ -443,7 +443,7 @@ class IPASimpleLDAPObject(object):
             ipa_entry = LDAPEntry(self, DN(original_dn))
 
             for attr, original_values in original_attrs.items():
-                ipa_entry[attr] = self.decode(original_values, attr)
+                ipa_entry.raw[attr] = original_values
 
             ipa_result.append(ipa_entry)
 
