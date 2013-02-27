@@ -99,7 +99,7 @@ class hostgroup(LDAPObject):
         """
         if 'memberof' in entry_attrs:
             hgdn = DN(dn)
-            for member in entry_attrs['memberof']:
+            for member in list(entry_attrs['memberof']):
                 ngdn = DN(member)
                 if ngdn['cn'] == hgdn['cn']:
                     try:
