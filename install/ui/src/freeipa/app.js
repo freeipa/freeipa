@@ -30,8 +30,6 @@ define([
     'exports', // for circullar deps
     './ipa',
     './jquery',
-    './navigation',
-    './webui',
     //only entities
     './aci',
     './automember',
