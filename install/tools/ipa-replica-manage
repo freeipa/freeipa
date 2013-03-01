@@ -635,7 +635,10 @@ def del_master(realm, hostname, options):
 
         for master_cn in [m.getValue('cn') for m in masters]:
             master_dn = DN(('cn', master_cn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
-            services = delrepl.conn.getList(master_dn, ldap.SCOPE_ONELEVEL)
+            try:
+                services = delrepl.conn.getList(master_dn, ldap.SCOPE_ONELEVEL)
+            except (ldap.NO_SUCH_OBJECT, errors.NotFound):
+                continue
             services_cns = [s.getValue('cn') for s in services]
 
             if master_cn == hostname:
@@ -669,7 +672,7 @@ def del_master(realm, hostname, options):
             print "There were issues removing a connection for %s from %s: %s" % (hostname, r, convert_error(e))
 
     # 5. Clean RUV for the deleted master
-    if repltype == replication.IPA_REPLICA:
+    if repltype == replication.IPA_REPLICA and rid is not None:
         try:
             thisrepl.cleanallruv(rid)
         except KeyboardInterrupt:
