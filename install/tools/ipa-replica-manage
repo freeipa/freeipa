@@ -654,8 +654,11 @@ def del_master(realm, hostname, options):
 
         for master_cn in [m.single_value('cn') for m in masters]:
             master_dn = DN(('cn', master_cn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
-            services = delrepl.conn.get_entries(master_dn,
-                                                delrepl.conn.SCOPE_ONELEVEL)
+            try:
+                services = delrepl.conn.get_entries(master_dn,
+                                                    delrepl.conn.SCOPE_ONELEVEL)
+            except errors.NotFound:
+                continue
             services_cns = [s.single_value('cn') for s in services]
 
             if master_cn == hostname:
@@ -690,7 +693,7 @@ def del_master(realm, hostname, options):
                 "from %s: %s" % (hostname, r, e))
 
     # 5. Clean RUV for the deleted master
-    if repltype == replication.IPA_REPLICA:
+    if repltype == replication.IPA_REPLICA and rid is not None:
         try:
             thisrepl.cleanallruv(rid)
         except KeyboardInterrupt:
