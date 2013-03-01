@@ -1806,6 +1806,8 @@ class IPAdmin(LDAPClient):
                 if removes:
                     if not force_replace:
                         modlist.append((ldap.MOD_DELETE, key, removes))
+                    elif new_values == []: # delete an empty value
+                        modlist.append((ldap.MOD_DELETE, key, removes))
 
         return modlist
 

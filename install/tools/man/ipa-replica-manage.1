@@ -16,13 +16,13 @@
 .\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
 .\"
-.TH "ipa-replica-manage" "1" "Mar 14 2008" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-replica-manage" "1" "Mar 1 2013" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-replica\-manage \- Manage an IPA replica
 .SH "SYNOPSIS"
-ipa\-replica\-manage [\fIOPTION\fR]...  [connect|disconnect|del|list|re\-initialize|force\-sync]
+ipa\-replica\-manage [\fIOPTION\fR]... [COMMAND]
 .SH "DESCRIPTION"
-Manages the replication agreements of an IPA server.
+Manages the replication agreements of an IPA server. The available commands are:
 .TP
 \fBconnect\fR [SERVER_A] <SERVER_B>
 \- Adds a new replication agreement between SERVER_A/localhost and SERVER_B
@@ -53,6 +53,18 @@ Manages the replication agreements of an IPA server.
 .TP
 \fBlist\-clean\-ruv\fR
 \- List all running CLEANALLRUV and abort CLEANALLRUV tasks.
+.TP
+\fBdnarange\-show [SERVER]\fR
+\- List the DNA ranges
+.TP
+\fBdnarange\-set SERVER START\-END\fR
+\- Set the DNA range on a master
+.TP
+\fBdnanextrange\-show [SERVER]\fR
+\- List the next DNA ranges
+.TP
+\fBdnanextrange\-set SERVER START\-END\fR
+\- Set the DNA next range on a master
 .TP
 The connect and disconnect options are used to manage the replication topology. When a replica is created it is only connected with the master that created it. The connect option may be used to connect it to other existing replicas.
 .TP
@@ -90,7 +102,7 @@ Provide additional information
 Ignore some types of errors, don't prompt when deleting a master
 .TP
 \fB\-c\fR, \fB\-\-cleanup\fR
-When deleting a master with the --force flag, remove leftover references to an already deleted master.
+When deleting a master with the \-\-force flag, remove leftover references to an already deleted master.
 .TP
 \fB\-\-binddn\fR=\fIADMIN_DN\fR
 Bind DN to use with remote server (default is cn=Directory Manager) \- Be careful to quote this value on the command line
@@ -112,6 +124,29 @@ Password for the IPA system user used by the Windows PassSync plugin to synchron
 .TP
 \fB\-\-from\fR=\fISERVER\fR
 The server to pull the data from, used by the re\-initialize and force\-sync commands.
+.SH "RANGES"
+IPA uses the 389\-ds Distributed Numeric Assignment (DNA) Plugin to allocate POSIX ids for users and groups. A range is created when IPA is installed and half the range is assigned to the first IPA master for the purposes of allocation.
+.TP
+New IPA masters do not automatically get a DNA range assignment. A range assignment is done only when a user or POSIX group is added on that master.
+.TP
+The DNA plugin also supports an "on\-deck" or next range configuration. When the primary range is exhaused, rather than going to another master to ask for more, it will use its on\-deck range if one is defined. Each master can have only one range and one on\-deck range defined.
+.TP
+When a master is removed an attempt is made to save its DNA range(s) onto another master in its on\-deck range. IPA will not attempt to extend or merge ranges. If there are no available on\-deck range slots then this is reported to the user. The range is effectively lost unless it is manually merged into the range of another master.
+.TP
+The DNA range and on\-deck (next) values can be managed using the dnarange\-set and dnanextrange\-set commands. The rules for managing these ranges are:
+\- The range must be completely contained within a local range as defined by the ipa idrange command.
+
+\- The range cannot overlap the DNA range or on\-deck range on another IPA master.
+
+\- The range cannot overlap the ID range of an AD Trust.
+
+\- The primary DNA range cannot be removed.
+
+\- An on\-deck range range can be removed by setting it to 0\-0. The assumption is that the range will be manually moved or merged elsewhere.
+.TP
+The range and next range of a specific master can be displayed by passing the FQDN of that master to the dnarange\-show or dnanextrange\-show command.
+.TP
+Performing range changes as a delegated administrator (e.g. not using the Directory Manager password) requires additional 389\-ds ACIs. These are installed in upgraded masters but not existing ones. The changs are made in cn=config which is not replicated. The result is that DNA ranges cannot be managed on non\-upgraded masters as a delegated administrator.
 .SH "EXAMPLES"
 .TP
 List all masters:
@@ -162,7 +197,7 @@ The following examples use the AD administrator account as the synchronization u
 2. Remove any existing kerberos credentials
   # kdestroy
 .TP
-3) Add the winsync replication agreement
+3. Add the winsync replication agreement
   # ipa\-replica\-manage connect \-\-winsync \-\-passsync=<bindpwd_for_syncuser_that will_be_used_for_agreement> \-\-cacert=/path/to/adscacert/WIN\-CA.cer \-\-binddn "cn=administrator,cn=users,dc=ad,dc=example,dc=com" \-\-bindpw <ads_administrator_password> \-v <adserver.fqdn>
 .TP
 You will be prompted to supply the Directory Manager's password.

@@ -20,6 +20,11 @@ changetype: modify
 add: aci
 aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "permission:Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
+dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+changetype: modify
+add: aci
+aci: (targetattr=dnaNextRange || dnaNextValue || dnaMaxValue)(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+
 dn: cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: modify
 add: aci

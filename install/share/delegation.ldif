@@ -545,6 +545,15 @@ cn: Remove Replication Agreements
 ipapermissiontype: SYSTEM
 member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
+dn: cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Modify DNA Range
+ipapermissiontype: SYSTEM
+member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+
 # Entitlement management
 
 dn: cn=Register Entitlements,cn=permissions,cn=pbac,$SUFFIX

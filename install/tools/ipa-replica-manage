@@ -23,6 +23,7 @@ import os
 import re, krbV
 import traceback
 from urllib2 import urlparse
+import ldap
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
@@ -34,6 +35,7 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipaclient import ipadiscovery
+from xmlrpclib import MAXINT
 
 CACERT = "/etc/ipa/ca.crt"
 
@@ -52,6 +54,10 @@ commands = {
     "clean-ruv":(1, 1, "Replica ID of to clean", "must provide replica ID to clean"),
     "abort-clean-ruv":(1, 1, "Replica ID to abort cleaning", "must provide replica ID to abort cleaning"),
     "list-clean-ruv":(0, 0, "", ""),
+    "dnarange-show":(0, 1, "[master fqdn]", ""),
+    "dnanextrange-show":(0, 1, "", ""),
+    "dnarange-set":(2, 2, "<master fqdn> <range>", "must provide a master and ID range"),
+    "dnanextrange-set":(2, 2, "<master fqdn> <range>", "must provide a master and ID range"),
 }
 
 
@@ -124,6 +130,9 @@ def test_connection(realm, host):
         # We do a search in cn=config. NotFound in this case means no
         # permission
         return False
+    except ldap.LOCAL_ERROR:
+        # more than likely a GSSAPI error
+        return False
 
 def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
@@ -147,7 +156,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
     dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
     try:
         entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
-    except:
+    except Exception:
         print "Failed to read master data from '%s': %s" % (host, str(e))
         return
     else:
@@ -157,7 +166,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
     dn = DN(('cn', 'replicas'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
     try:
         entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
-    except:
+    except Exception:
         pass
     else:
         for ent in entries:
@@ -272,6 +281,15 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             repl2.force_sync(repl2.conn, replica1)
             cn, dn = repl2.agreement_dn(repl1.conn.host)
             repl2.wait_for_repl_update(repl2.conn, dn, 30)
+            (range_start, range_max) = repl2.get_DNA_range(repl2.conn.host)
+            (next_start, next_max) = repl2.get_DNA_next_range(repl2.conn.host)
+            if range_start is not None:
+                if not store_DNA_range(repl1, range_start, range_max, repl2.conn.host, realm, dirman_passwd):
+                    print "Unable to save DNA range %d-%d" % (range_start, range_max)
+            if next_start is not None:
+                if not store_DNA_range(repl1, next_start, next_max, repl2.conn.host, realm, dirman_passwd):
+                    print "Unable to save DNA range %d-%d" % (next_start, next_max)
+            repl2.set_readonly(readonly=False)
             repl2.delete_agreement(replica1)
             repl2.delete_referral(replica1)
             repl2.set_readonly(readonly=False)
@@ -282,11 +300,13 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         if failed:
             if force:
                 print "Forcing removal on '%s'" % replica1
+                print "Any DNA range on '%s' will be lost" % replica2
             else:
                 return False
 
     if not repl2 and force:
         print "Forcing removal on '%s'" % replica1
+        print "Any DNA range on '%s' will be lost" % replica2
 
     repl1.delete_agreement(replica2)
     repl1.delete_referral(replica2)
@@ -833,6 +853,254 @@ def force_sync(realm, thishost, fromhost, dirman_passwd):
         repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
         repl.force_sync(repl.conn, thishost)
 
+def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False):
+    """
+    Display the DNA ranges for all current masters.
+
+    hostname: hostname of the master we're listing from
+    master: specific master to show, or None for all
+    realm: our realm, needed to create a connection
+    dirman_passwd: the DM password, needed to create a connection
+    nextrange: if False then show main range, if True then show next
+
+    Returns nothing
+    """
+    for check_host in [hostname, master]:
+        enforce_host_existence(check_host)
+
+    try:
+        repl = replication.ReplicationManager(realm, hostname, dirman_passwd)
+    except Exception, e:
+        sys.exit("Connection failed: %s" % e)
+    dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), repl.suffix)
+    try:
+        entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL)
+    except Exception:
+        return False
+
+    for ent in entries:
+        remote = ent.single_value('cn')
+        if master is not None and remote != master:
+            continue
+        try:
+            repl2 = replication.ReplicationManager(realm, remote, dirman_passwd)
+        except Exception, e:
+            print "%s: Connection failed: %s" % (remote, e)
+            continue
+        if not nextrange:
+            try:
+                (start, max) = repl2.get_DNA_range(remote)
+            except errors.NotFound:
+                print "%s: No permission to read DNA configuration" % remote
+                continue
+            if start is None:
+                print "%s: No range set" % remote
+            else:
+                print "%s: %s-%s" % (remote, start, max)
+        else:
+            try:
+                (next_start, next_max) = repl2.get_DNA_next_range(remote)
+            except errors.NotFound:
+                print "%s: No permission to read DNA configuration" % remote
+                continue
+            if next_start is None:
+                print "%s: No on-deck range set" % remote
+            else:
+                print "%s: %s-%s" % (remote, next_start, next_max)
+
+    return False
+
+
+def store_DNA_range(repl, range_start, range_max, deleted_master, realm,
+                 dirman_passwd):
+    """
+    Given a DNA range try to save it in a remaining master in the
+    on-deck (dnaNextRange) value.
+
+    Return True if range was saved, False if not
+
+    This function focuses on finding an available master.
+
+    repl: ReplicaMaster object for the master we're deleting from
+    range_start: The DNA next value
+    range_max: The DNA max value
+    deleted_master: The hostname of the master to be deleted
+    realm: our realm, needed to create a connection
+    dirman_passwd: the DM password, needed to create a connection
+    """
+    dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), repl.suffix)
+    try:
+        entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL)
+    except Exception:
+        return False
+
+    for ent in entries:
+        candidate = ent.single_value('cn')
+        if candidate == deleted_master:
+            continue
+        try:
+            repl2 = replication.ReplicationManager(realm, candidate, dirman_passwd)
+        except Exception, e:
+            print "Connection failed: %s" % e
+            continue
+        (next_start, next_max) = repl2.get_DNA_next_range(candidate)
+        if next_start is None:
+            try:
+                return repl2.save_DNA_next_range(range_start, range_max)
+            except Exception, e:
+                print '%s: %s' % (candidate, e)
+
+    return False
+
+
+def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False):
+    """
+    Given a DNA range try to change it on the designated master.
+
+    The range must not overlap with any other ranges and must be within
+    one of the IPA local ranges as defined in cn=ranges.
+
+    Setting an on-deck range of 0-0 removes the range.
+
+    Return True if range was saved, False if not
+
+    hostname: hostname of the master to set the range on
+    range: The DNA range to set
+    realm: our realm, needed to create a connection
+    dirman_passwd: the DM password, needed to create a connection
+    next_range: if True then setting a next-range, otherwise a DNA range.
+    """
+    def validate_range(range, allow_all_zero=False):
+        """
+        Do some basic sanity checking on the range.
+
+        Returns None if ok, a string if an error.
+        """
+        try:
+            (dna_next, dna_max) = range.split('-', 1)
+        except ValueError, e:
+            return "Invalid range, must be the form x-y"
+
+        try:
+            dna_next = int(dna_next)
+            dna_max = int(dna_max)
+        except ValueError:
+            return "The range must consist of integers"
+
+        if dna_next == 0 and dna_max == 0 and allow_all_zero:
+            return None
+
+        if dna_next <= 0 or dna_max <= 0 or dna_next >= MAXINT or dna_max >= MAXINT:
+            return "The range must consist of positive integers between 1 and %d" % MAXINT
+
+        if dna_next >= dna_max:
+            return "Invalid range"
+
+        return None
+
+    def range_intersection(s1, s2, r1, r2):
+        return max(s1, r1) <= min(s2, r2)
+
+    enforce_host_existence(hostname)
+
+    err = validate_range(range, allow_all_zero=next_range)
+    if err is not None:
+        sys.exit(err)
+
+    # Normalize the range
+    (dna_next, dna_max) = range.split('-', 1)
+    dna_next = int(dna_next)
+    dna_max = int(dna_max)
+
+    try:
+        repl = replication.ReplicationManager(realm, hostname, dirman_passwd)
+    except Exception, e:
+        sys.exit("Connection failed: %s" % e)
+    if dna_next > 0:
+        # Verify that the new range doesn't overlap with an existing range
+        dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), repl.suffix)
+        try:
+            entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL)
+        except Exception, e:
+            sys.exit("Failed to read master data from '%s': %s" % (repl.conn.host, str(e)))
+        else:
+            for ent in entries:
+                master = ent.single_value('cn')
+                if master == hostname and not next_range:
+                    continue
+                try:
+                    repl2 = replication.ReplicationManager(realm, master, dirman_passwd)
+                except Exception, e:
+                    print "Connection to %s failed: %s" % (master, e)
+                    print "Overlap not checked."
+                    continue
+                try:
+                    (entry_start, entry_max) = repl2.get_DNA_range(master)
+                except errors.NotFound:
+                    print "%s: No permission to read DNA configuration" % master
+                    continue
+                if (entry_start is not None and
+                    range_intersection(entry_start, entry_max,
+                                       dna_next, dna_max)):
+                    sys.exit("New range overlaps the DNA range on %s" % master)
+                (entry_start, entry_max) = repl2.get_DNA_next_range(master)
+                if (entry_start is not None and
+                    range_intersection(entry_start, entry_max,
+                                       dna_next, dna_max)):
+                    sys.exit("New range overlaps the DNA next range on %s" % master)
+                del(repl2)
+
+        # Verify that this is within one of the IPA domain ranges.
+        dn = DN(('cn','ranges'), ('cn','etc'), repl.suffix)
+        try:
+            entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL,
+                                        "(objectclass=ipaDomainIDRange)")
+        except errors.NotFound, e:
+            sys.exit('Unable to load IPA ranges: %s' % e.message)
+
+        for ent in entries:
+            entry_start = int(ent.single_value('ipabaseid'))
+            entry_max = entry_start + int(ent.single_value('ipaidrangesize'))
+            if dna_next >= entry_start and dna_max <= entry_max:
+                break
+        else:
+            sys.exit("New range does not fit within existing IPA ranges. See ipa help idrange command")
+
+        # If this falls within any of the AD ranges then it fails.
+        try:
+            entries = repl.conn.get_entries(dn, repl.conn.SCOPE_BASE,
+                                            "(objectclass=ipatrustedaddomainrange)")
+        except errors.NotFound:
+            entries = []
+
+        for ent in entries:
+            entry_start = int(ent.single_value('ipabaseid'))
+            entry_max = entry_start + int(ent.single_value('ipaidrangesize'))
+            if range_intersection(dna_next, dna_max, entry_start, entry_max):
+                sys.exit("New range overlaps with a Trust range. See ipa help idrange command")
+
+    if next_range:
+        try:
+            if not repl.save_DNA_next_range(dna_next, dna_max):
+                sys.exit("Updating next range failed")
+        except errors.EmptyModlist:
+            sys.exit("No changes to make")
+        except errors.NotFound:
+                sys.exit("No permission to update ranges")
+        except Exception, e:
+            sys.exit("Updating next range failed: %s" % e)
+    else:
+        try:
+            if not repl.save_DNA_range(dna_next, dna_max):
+                sys.exit("Updating range failed")
+        except errors.EmptyModlist:
+            sys.exit("No changes to make")
+        except errors.NotFound:
+                sys.exit("No permission to update ranges")
+        except Exception, e:
+            sys.exit("Updating range failed: %s" % e)
+
+
 def main():
     if os.getegid() == 0:
         installutils.check_server_configuration()
@@ -915,6 +1183,22 @@ def main():
         abort_clean_ruv(realm, args[1], options)
     elif args[0] == "list-clean-ruv":
         list_clean_ruv(realm, host, dirman_passwd, options.verbose)
+    elif args[0] == "dnarange-show":
+        if len(args) == 2:
+            master = args[1]
+        else:
+            master = None
+        show_DNA_ranges(host, master, realm, dirman_passwd, False)
+    elif args[0] == "dnanextrange-show":
+        if len(args) == 2:
+            master = args[1]
+        else:
+            master = None
+        show_DNA_ranges(host, master, realm, dirman_passwd, True)
+    elif args[0] == "dnarange-set":
+        set_DNA_range(args[1], args[2], realm, dirman_passwd, next_range=False)
+    elif args[0] == "dnanextrange-set":
+        set_DNA_range(args[1], args[2], realm, dirman_passwd, next_range=True)
 
 try:
     main()

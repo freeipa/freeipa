@@ -218,6 +218,7 @@ class DsInstance(service.Service):
         self.step("adding master entry", self.__add_master_entry)
         self.step("configuring Posix uid/gid generation",
                   self.__config_uidgid_gen)
+        self.step("adding replication acis", self.__add_replication_acis)
         self.step("enabling compatibility plugin",
                   self.__enable_compat_plugin)
         self.step("tuning directory server", self.__tuning)
@@ -253,7 +254,6 @@ class DsInstance(service.Service):
 
         self.step("adding default layout", self.__add_default_layout)
         self.step("adding delegation layout", self.__add_delegation_layout)
-        self.step("adding replication acis", self.__add_replication_acis)
         self.step("creating container for managed entries", self.__managed_entries)
         self.step("configuring user private groups", self.__user_private_groups)
         self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
@@ -284,7 +284,6 @@ class DsInstance(service.Service):
         self.__common_setup(True)
 
         self.step("setting up initial replication", self.__setup_replica)
-        self.step("adding replication acis", self.__add_replication_acis)
         # See LDIFs for automember configuration during replica install
         self.step("setting Auto Member configuration", self.__add_replica_automember_config)
         self.step("enabling S4U2Proxy delegation", self.__setup_s4u2proxy)

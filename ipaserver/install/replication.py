@@ -37,6 +37,7 @@ IPA_USER_CONTAINER = DN(('cn', 'users'), ('cn', 'accounts'))
 PORT = 636
 TIMEOUT = 120
 REPL_MAN_DN = DN(('cn', 'replication manager'), ('cn', 'config'))
+DNA_DN = DN(('cn', 'Posix IDs'), ('cn', 'Distributed Numeric Assignment Plugin'), ('cn', 'plugins'), ('cn', 'config'))
 
 IPA_REPLICA = 1
 WINSYNC = 2
@@ -1307,3 +1308,100 @@ class ReplicationManager(object):
         print "This may be safely interrupted with Ctrl+C"
 
         wait_for_task(self.conn, dn)
+
+    def get_DNA_range(self, hostname):
+        """
+        Return the DNA range on this server as a tuple, (next, max), or
+        (None, None) if no range has been assigned yet.
+
+        Raises an exception on errors reading an entry.
+        """
+        entry = self.conn.get_entry(DNA_DN)
+
+        nextvalue = int(entry.single_value("dnaNextValue", 0))
+        maxvalue = int(entry.single_value("dnaMaxValue", 0))
+
+        sharedcfgdn = entry.single_value("dnaSharedCfgDN", None)
+        if sharedcfgdn is not None:
+            sharedcfgdn = DN(sharedcfgdn)
+
+            shared_entry = self.conn.get_entry(sharedcfgdn)
+            remaining = int(shared_entry.single_value("dnaRemainingValues", 0))
+        else:
+            remaining = 0
+
+        if nextvalue == 0 and maxvalue == 0:
+            return (None, None)
+
+        # Check the magic values for an unconfigured DNA entry
+        if maxvalue == 1100 and nextvalue == 1101 and remaining == 0:
+            return (None, None)
+        else:
+            return (nextvalue, maxvalue)
+
+    def get_DNA_next_range(self, hostname):
+        """
+        Return the DNA "on-deck" range on this server as a tuple, (next, max),
+        or
+        (None, None) if no range has been assigned yet.
+
+        Raises an exception on errors reading an entry.
+        """
+        entry = self.conn.get_entry(DNA_DN)
+
+        range = entry.single_value("dnaNextRange", None)
+
+        if range is None:
+            return (None, None)
+
+        try:
+            (next, max) = range.split('-')
+        except ValueError:
+            # Should not happen, malformed entry, return nothing.
+            return (None, None)
+
+        return (int(next), int(max))
+
+    def save_DNA_next_range(self, next_start, next_max):
+        """
+        Save a DNA range into the on-deck value.
+
+        This adds a dnaNextRange value to the DNA configuration. This
+        attribute takes the form of start-next.
+
+        Returns True on success.
+        Returns False if the range is already defined.
+        Raises an exception on failure.
+        """
+        entry = self.conn.get_entry(DNA_DN)
+
+        range = entry.single_value("dnaNextRange", None)
+
+        if range is not None and next_start != 0 and next_max != 0:
+            return False
+
+        if next_start == 0 and next_max == 0:
+            entry["dnaNextRange"] = None
+        else:
+            entry["dnaNextRange"] = "%s-%s" % (next_start, next_max)
+
+        self.conn.update_entry(entry)
+
+        return True
+
+    def save_DNA_range(self, next_start, next_max):
+        """
+        Save a DNA range.
+
+        This is potentially very dangerous.
+
+        Returns True on success. Raises an exception on failure.
+        """
+        entry = self.conn.get_entry(DNA_DN)
+
+        entry["dnaNextValue"] = next_start
+        entry["dnaMaxValue"] = next_max
+
+        self.conn.update_entry(entry)
+
+        return True
