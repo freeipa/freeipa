@@ -194,7 +194,7 @@ class config(LDAPObject):
             cli_name='pac_type',
             label=_('Default PAC types'),
             doc=_('Default types of PAC supported for services'),
-            values=(u'MS-PAC', u'PAD'),
+            values=(u'MS-PAC', u'PAD', u'nfs:NONE'),
             csv=True,
         ),
     )
