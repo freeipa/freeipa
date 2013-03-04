@@ -71,6 +71,11 @@ replace:aci:'(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword |
 dn: cn=ipaConfig,cn=etc,$SUFFIX
 addifnew: ipaKrbAuthzData: MS-PAC
 
+# Add authorization data type NONE for NFS because the hardcoded default was
+# removed.
+dn: cn=ipaConfig,cn=etc,$SUFFIX
+add: ipaKrbAuthzData: nfs:NONE
+
 # Fix typo in some installs in the spelling of ORDERING. They were added
 # with a typo which was silently dropped by 389-ds-base, so add in the
 # proper ordering syntax now.
