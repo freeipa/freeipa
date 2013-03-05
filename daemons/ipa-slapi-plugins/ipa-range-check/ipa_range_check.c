@@ -178,6 +178,11 @@ static int ranges_overlap(struct range_info *r1, struct range_info *r2)
     bool rid_ranges_set = (r1->base_rid != 0 || r1->secondary_base_rid != 0) &&
                           (r2->base_rid != 0 || r2->secondary_base_rid != 0);
 
+    /**
+     * ipaNTTrustedDomainSID is not set for local ranges, use it to
+     * determine the type of the range **/
+    bool local_ranges = r1->domain_id == NULL && r2->domain_id == NULL;
+
     bool ranges_from_same_domain =
          (r1->domain_id == NULL && r2->domain_id == NULL) ||
          (r1->domain_id != NULL && r2->domain_id != NULL &&
@@ -185,8 +190,7 @@ static int ranges_overlap(struct range_info *r1, struct range_info *r2)
 
     /**
      * in case rid range is not set or ranges belong to different domains
-     * we can skip rid range tests as they are irrelevant
-     */
+     * we can skip rid range tests as they are irrelevant **/
     if (rid_ranges_set && ranges_from_same_domain){
 
         /* check if rid range overlaps with existing rid range */
@@ -194,20 +198,25 @@ static int ranges_overlap(struct range_info *r1, struct range_info *r2)
             r1->id_range_size, r2->id_range_size))
             return 2;
 
-        /* check if secondary rid range overlaps with existing secondary rid range */
-        if (intervals_overlap(r1->secondary_base_rid, r2->secondary_base_rid,
-            r1->id_range_size, r2->id_range_size))
-            return 3;
+        /**
+         * The following 3 checks are relevant only if both ranges are local.
+         * Check if secondary rid range overlaps with existing secondary rid
+         * range. **/
+        if (local_ranges){
+            if (intervals_overlap(r1->secondary_base_rid,
+                r2->secondary_base_rid, r1->id_range_size, r2->id_range_size))
+                return 3;
 
-        /* check if rid range overlaps with existing secondary rid range */
-        if (intervals_overlap(r1->base_rid, r2->secondary_base_rid,
-            r1->id_range_size, r2->id_range_size))
-            return 4;
+            /* check if rid range overlaps with existing secondary rid range */
+            if (intervals_overlap(r1->base_rid, r2->secondary_base_rid,
+                r1->id_range_size, r2->id_range_size))
+                return 4;
 
-        /* check if secondary rid range overlaps with existing rid range */
-        if (intervals_overlap(r1->secondary_base_rid, r2->base_rid,
-            r1->id_range_size, r2->id_range_size))
-            return 5;
+            /* check if secondary rid range overlaps with existing rid range */
+            if (intervals_overlap(r1->secondary_base_rid, r2->base_rid,
+                r1->id_range_size, r2->id_range_size))
+                return 5;
+            }
     }
 
     return 0;
