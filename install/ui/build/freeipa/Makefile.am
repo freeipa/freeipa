@@ -13,5 +13,10 @@ MAINTAINERCLEANFILES =                  \
         *~                              \
         Makefile.in
 
-app.js:
+core := $(wildcard ../../src/freeipa/*.js)
+base := $(wildcard ../../src/freeipa/_base/*.js)
+widgets := $(wildcard ../../src/freeipa/widgets/*.js)
+nav := $(wildcard ../../src/freeipa/navigation/*.js)
+
+app.js: $(core) $(base) $(widgets) $(nav)
 	../../util/make-ui.sh
