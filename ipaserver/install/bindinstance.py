@@ -42,8 +42,13 @@ from ipalib.util import (validate_zonemgr, normalize_zonemgr,
 NAMED_CONF = '/etc/named.conf'
 RESOLV_CONF = '/etc/resolv.conf'
 
-named_conf_ipa_re = re.compile(r'(?P<indent>\s*)arg\s+"(?P<name>\S+)\s(?P<value>[^"]+)";')
-named_conf_ipa_template = "%(indent)sarg \"%(name)s %(value)s\";\n"
+named_conf_section_ipa_start_re = re.compile('\s*dynamic-db\s+"ipa"\s+{')
+named_conf_section_options_start_re = re.compile('\s*options\s+{')
+named_conf_section_end_re = re.compile('};')
+named_conf_arg_ipa_re = re.compile(r'(?P<indent>\s*)arg\s+"(?P<name>\S+)\s(?P<value>[^"]+)";')
+named_conf_arg_options_re = re.compile(r'(?P<indent>\s*)(?P<name>\S+)\s+"(?P<value>[^"]+)"\s*;')
+named_conf_arg_ipa_template = "%(indent)sarg \"%(name)s %(value)s\";\n"
+named_conf_arg_options_template = "%(indent)s%(name)s \"%(value)s\";\n"
 
 def check_inst(unattended):
     has_bind = True
@@ -85,26 +90,36 @@ def named_conf_exists():
             return True
     return False
 
-def named_conf_get_directive(name):
+NAMED_SECTION_OPTIONS = "options"
+NAMED_SECTION_IPA = "ipa"
+def named_conf_get_directive(name, section=NAMED_SECTION_IPA):
     """Get a configuration option in bind-dyndb-ldap section of named.conf"""
+    if section == NAMED_SECTION_IPA:
+        named_conf_section_start_re = named_conf_section_ipa_start_re
+        named_conf_arg_re = named_conf_arg_ipa_re
+    elif section == NAMED_SECTION_OPTIONS:
+        named_conf_section_start_re = named_conf_section_options_start_re
+        named_conf_arg_re = named_conf_arg_options_re
+    else:
+        raise NotImplementedError('Section "%s" is not supported' % section)
 
     with open(NAMED_CONF, 'r') as f:
-        ipa_section = False
+        target_section = False
         for line in f:
-            if line.startswith('dynamic-db "ipa"'):
-                ipa_section = True
+            if named_conf_section_start_re.match(line):
+                target_section = True
                 continue
-            if line.startswith('};'):
-                if ipa_section:
+            if named_conf_section_end_re.match(line):
+                if target_section:
                     break
 
-            if ipa_section:
-                match = named_conf_ipa_re.match(line)
+            if target_section:
+                match = named_conf_arg_re.match(line)
 
                 if match and name == match.group('name'):
                     return match.group('value')
 
-def named_conf_set_directive(name, value):
+def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA):
     """
     Set configuration option in bind-dyndb-ldap section of named.conf.
 
@@ -116,25 +131,37 @@ def named_conf_set_directive(name, value):
     """
     new_lines = []
 
+    if section == NAMED_SECTION_IPA:
+        named_conf_section_start_re = named_conf_section_ipa_start_re
+        named_conf_arg_re = named_conf_arg_ipa_re
+        named_conf_arg_template = named_conf_arg_ipa_template
+    elif section == NAMED_SECTION_OPTIONS:
+        named_conf_section_start_re = named_conf_section_options_start_re
+        named_conf_arg_re = named_conf_arg_options_re
+        named_conf_arg_template = named_conf_arg_options_template
+    else:
+        raise NotImplementedError('Section "%s" is not supported' % section)
+
     with open(NAMED_CONF, 'r') as f:
-        ipa_section = False
+        target_section = False
         matched = False
         last_indent = "\t"
         for line in f:
-            if line.startswith('dynamic-db "ipa"'):
-                ipa_section = True
-            if line.startswith('};'):
-                if ipa_section and not matched:
+            if named_conf_section_start_re.match(line):
+                target_section = True
+            if named_conf_section_end_re.match(line):
+                if target_section and not matched and \
+                        value is not None:
                     # create a new conf
-                    new_conf = named_conf_ipa_template \
+                    new_conf = named_conf_arg_template \
                             % dict(indent=last_indent,
                                    name=name,
                                    value=value)
                     new_lines.append(new_conf)
-                ipa_section = False
+                target_section = False
 
-            if ipa_section and not matched:
-                match = named_conf_ipa_re.match(line)
+            if target_section and not matched:
+                match = named_conf_arg_re.match(line)
 
                 if match:
                     last_indent = match.group('indent')
@@ -143,7 +170,7 @@ def named_conf_set_directive(name, value):
                         if value is not None:
                             if not isinstance(value, basestring):
                                 value = str(value)
-                            new_conf = named_conf_ipa_template \
+                            new_conf = named_conf_arg_template \
                                     % dict(indent=last_indent,
                                            name=name,
                                            value=value)
