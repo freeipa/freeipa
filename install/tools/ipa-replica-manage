@@ -632,11 +632,11 @@ def del_master(realm, hostname, options):
         this_services = []
         other_services = []
 
-        for master_cn in [m.getValue('cn') for m in masters]:
+        for master_cn in [m.single_value('cn') for m in masters]:
             master_dn = DN(('cn', master_cn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
             services = delrepl.conn.get_entries(master_dn,
                                                 delrepl.conn.SCOPE_ONELEVEL)
-            services_cns = [s.getValue('cn') for s in services]
+            services_cns = [s.single_value('cn') for s in services]
 
             if master_cn == hostname:
                 this_services = services_cns
