@@ -136,7 +136,10 @@ class Fedora16CAService(Fedora16Service):
         timeout = api.env.startup_timeout
         op_timeout = time.time() + timeout
         while time.time() < op_timeout:
-            status = dogtag.ca_status()
+            try:
+                status = dogtag.ca_status()
+            except Exception:
+                status = 'check interrupted'
             root_logger.debug('The CA status is: %s' % status)
             if status == 'running':
                 break
