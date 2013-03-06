@@ -477,6 +477,9 @@ class ADTRUSTInstance(service.Service):
         except ipautil.CalledProcessError, e:
             root_logger.critical("Failed to add key for %s" % self.cifs_principal)
 
+    def srv_rec(self, host, port, prio):
+        return "%(prio)d 100 %(port)d %(host)s" % dict(host=host,prio=prio,port=port)
+
     def __add_dns_service_records(self):
         """
         Add DNS service records for Windows if DNS is enabled and the DNS zone
@@ -486,11 +489,12 @@ class ADTRUSTInstance(service.Service):
 
         zone = self.domain_name
         host = self.fqdn.split(".")[0]
+        priority = 0
 
         ipa_srv_rec = (
-            ("_ldap._tcp", ["0 100 389 %s" % host]),
-            ("_kerberos._tcp", ["0 100 88 %s" % host]),
-            ("_kerberos._udp", ["0 100 88 %s" % host])
+            ("_ldap._tcp", [self.srv_rec(host, 389, priority)], 389),
+            ("_kerberos._tcp", [self.srv_rec(host, 88, priority)], 88),
+            ("_kerberos._udp", [self.srv_rec(host, 88, priority)], 88),
         )
         win_srv_suffix = (".Default-First-Site-Name._sites.dc._msdcs",
                           ".dc._msdcs")
@@ -518,10 +522,12 @@ class ADTRUSTInstance(service.Service):
                     self.print_msg(" - %s%s"  % (srv, suff))
             return
 
-        for (srv, rdata) in ipa_srv_rec:
-            ipa_rdata = get_rr(zone, srv, "SRV")
-            if not ipa_rdata:
-                ipa_rdata = rdata
+        for (srv, rdata, port) in ipa_srv_rec:
+            cifs_rdata = list()
+            for fqdn in self.cifs_hosts:
+                cifs_srv = self.srv_rec(fqdn, port, priority)
+                cifs_rdata.append(cifs_srv)
+            cifs_rdata.extend(rdata)
 
             for suff in win_srv_suffix:
                 win_srv = srv+suff
@@ -529,7 +535,7 @@ class ADTRUSTInstance(service.Service):
                 if win_rdata:
                     for rec in win_rdata:
                         del_rr(zone, win_srv, "SRV", rec)
-                for rec in ipa_rdata:
+                for rec in cifs_rdata:
                     add_rr(zone, win_srv, "SRV", rec)
 
     def __configure_selinux_for_smbd(self):
@@ -618,7 +624,27 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("'dns_lookup_kdc' already set to 'true', "
                            "nothing to do.")
 
+    def __check_replica(self):
+        try:
+            cifs_services = DN(api.env.container_service, self.suffix)
+            # Search for cifs services which also belong to adtrust agents, these are our DCs
+            res = self.admin_conn.get_entries(cifs_services,
+                ldap.SCOPE_ONELEVEL,
+                "(&(krbprincipalname=cifs/*@%s)(memberof=%s))" % (self.realm, str(self.smb_dn)))
+            if len(res) > 1:
+                # there are other CIFS services defined, we are not alone
+                for entry in res:
+                    managedBy = entry.single_value('managedBy', None)
+                    if managedBy:
+                        fqdn = DN(managedBy)['fqdn']
+                        if fqdn != unicode(self.fqdn):
+                            # this is CIFS service of a different host in our
+                            # REALM, we need to remember it to announce via
+                            # SRV records for _msdcs
+                            self.cifs_hosts.append(fqdn.split(".")[0])
 
+        except Exception, e:
+            root_logger.critical("Checking replicas for cifs principals failed with error '%s'" % e)
 
     def __start(self):
         try:
@@ -698,6 +724,7 @@ class ADTRUSTInstance(service.Service):
                              api.env.container_service,
                              self.suffix)
         self.selinux_booleans = ["samba_portmapper"]
+        self.cifs_hosts = list()
 
         self.__setup_sub_dict()
 
@@ -755,6 +782,7 @@ class ADTRUSTInstance(service.Service):
         self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
         self.step("adding cifs Kerberos principal", self.__setup_principal)
+        self.step("check for cifs services defined on other replicas", self.__check_replica)
         self.step("adding cifs principal to S4U2Proxy targets", self.__add_s4u2proxy_target)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
         self.step("adding RID bases", self.__add_rid_bases)
