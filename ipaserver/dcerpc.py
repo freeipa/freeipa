@@ -453,7 +453,7 @@ class DomainValidator(object):
                 # We don't use conn.getEntry() because it will attempt to fetch schema from GC and that will fail
                 filterstr = conn.encode(filter)
                 attrlist = conn.encode(attrs)
-                entries = conn.conn.search_s(str(basedn), scope, filterstr, attrlist, 0)
+                entries = conn.conn.conn.search_s(str(basedn), scope, filterstr, attrlist, 0)
                 os.environ["KRB5CCNAME"] = old_ccache
                 return entries
 
