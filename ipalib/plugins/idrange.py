@@ -289,7 +289,7 @@ class idrange(LDAPObject):
 
         domain_validator = self.get_domain_validator()
 
-        if not domain_validator.is_trusted_sid_valid(sid):
+        if not domain_validator.is_trusted_domain_sid_valid(sid):
             raise errors.ValidationError(name='domain SID',
                   error=_('SID is not recognized as a valid SID for a '
                           'trusted domain'))
