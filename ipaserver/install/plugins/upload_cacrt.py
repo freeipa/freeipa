@@ -39,7 +39,6 @@ class update_upload_cacrt(PostUpdate):
         certdb = certs.CertDB(api.env.realm, nssdir=dirname, subject_base=subject_base)
 
         dercert = certdb.get_cert_from_db(certdb.cacert_name, pem=False)
-        cadercert = base64.b64encode(dercert)
 
         updates = {}
         dn = DN(('cn', 'CACert'), ('cn', 'ipa'), ('cn','etc'), api.env.basedn)
@@ -47,7 +46,7 @@ class update_upload_cacrt(PostUpdate):
         cacrt_entry = ['objectclass:nsContainer',
                        'objectclass:pkiCA',
                        'cn:CAcert',
-                       'cACertificate;binary:%s' % cadercert,
+                       'cACertificate;binary:%s' % dercert,
                       ]
         updates[dn] = {'dn': dn, 'default': cacrt_entry}
 
