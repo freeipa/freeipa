@@ -183,41 +183,65 @@ class DomainValidator(object):
         except errors.NotFound, e:
             return []
 
-    def get_domain_by_sid(self, sid):
+    def get_domain_by_sid(self, sid, exact_match=False):
         if not self.domain:
             # our domain is not configured or self.is_configured() never run
             # reject SIDs as we can't check correctness of them
             raise errors.ValidationError(name='sid',
                   error=_('domain is not configured'))
+
         # Parse sid string to see if it is really in a SID format
         try:
             test_sid = security.dom_sid(sid)
-        except TypeError, e:
+        except TypeError:
             raise errors.ValidationError(name='sid',
                   error=_('SID is not valid'))
+
         # At this point we have SID_NT_AUTHORITY family SID and really need to
         # check it against prefixes of domain SIDs we trust to
         if not self._domains:
             self._domains = self.get_trusted_domains()
         if len(self._domains) == 0:
             # Our domain is configured but no trusted domains are configured
-            # This means we can't check the correctness of a trusted domain SIDs
+            # This means we can't check the correctness of a trusted
+            # domain SIDs
             raise errors.ValidationError(name='sid',
                   error=_('no trusted domain is configured'))
-        # We have non-zero list of trusted domains and have to go through them
-        # one by one and check their sids as prefixes
-        test_sid_subauths = test_sid.sub_auths
-        for domain in self._domains:
-            domsid = self._domains[domain][1]
-            sub_auths = domsid.sub_auths
-            num_auths = min(test_sid.num_auths, domsid.num_auths)
-            if test_sid_subauths[:num_auths] == sub_auths[:num_auths]:
-                return domain
-        raise errors.NotFound(reason=_('SID does not match any trusted domain'))
+
+        # We have non-zero list of trusted domains and have to go through
+        # them one by one and check their sids as prefixes / exact match
+        # depending on the value of exact_match flag
+        if exact_match:
+            # check exact match of sids
+            for domain in self._domains:
+                if sid == str(self._domains[domain][1]):
+                    return domain
+
+            raise errors.NotFound(reason=_("SID does not match exactly"
+                                           "with any trusted domain's SID"))
+        else:
+            # check as prefixes
+            test_sid_subauths = test_sid.sub_auths
+            for domain in self._domains:
+                domsid = self._domains[domain][1]
+                sub_auths = domsid.sub_auths
+                num_auths = min(test_sid.num_auths, domsid.num_auths)
+                if test_sid_subauths[:num_auths] == sub_auths[:num_auths]:
+                    return domain
+            raise errors.NotFound(reason=_('SID does not match any '
+                                           'trusted domain'))
 
     def is_trusted_sid_valid(self, sid):
         try:
             self.get_domain_by_sid(sid)
+        except (errors.ValidationError, errors.NotFound):
+            return False
+        else:
+            return True
+
+    def is_trusted_domain_sid_valid(self, sid):
+        try:
+            self.get_domain_by_sid(sid, exact_match=True)
         except (errors.ValidationError, errors.NotFound):
             return False
         else:
