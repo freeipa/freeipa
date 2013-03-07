@@ -434,7 +434,7 @@ class DomainValidator(object):
         Actual search in AD LDAP server, using SASL GSSAPI authentication
         Returns LDAP result or None
         """
-        conn = IPAdmin(host=host, port=port)
+        conn = IPAdmin(host=host, port=port, no_schema=True, decode_attrs=False)
         auth = self.__extract_trusted_auth(info)
         if attrs is None:
             attrs = []
@@ -450,10 +450,7 @@ class DomainValidator(object):
                 if basedn is None:
                     # Use domain root base DN
                     basedn = DN(*map(lambda p: ('dc', p), info['dns_domain'].split('.')))
-                # We don't use conn.getEntry() because it will attempt to fetch schema from GC and that will fail
-                filterstr = conn.encode(filter)
-                attrlist = conn.encode(attrs)
-                entries = conn.conn.conn.search_s(str(basedn), scope, filterstr, attrlist, 0)
+                entries = conn.get_entries(basedn, scope, filter, attrs)
                 os.environ["KRB5CCNAME"] = old_ccache
                 return entries
 
