@@ -346,15 +346,12 @@ sides.
         else:
             base_id = 200000 + (pysss_murmur.murmurhash3(dom_sid, len(dom_sid), 0xdeadbeef) % 10000) * 200000
 
-        try:
-            new_range = api.Command['idrange_add'](range_name,
-                                                 ipabaseid=base_id,
-                                                 ipaidrangesize=options['range_size'],
-                                                 ipabaserid=0,
-                                                 ipanttrusteddomainsid=dom_sid)
-        except Exception, e:
-            raise errors.ValidationError(name=_('ID range exists'),
-                   error = _('ID range already exists, must be added manually'))
+        # Add new ID range
+        api.Command['idrange_add'](range_name,
+                                   ipabaseid=base_id,
+                                   ipaidrangesize=options['range_size'],
+                                   ipabaserid=0,
+                                   ipanttrusteddomainsid=dom_sid)
 
     def execute_ad(self, *keys, **options):
         # Join domain using full credentials and with random trustdom
