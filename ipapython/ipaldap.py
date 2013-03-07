@@ -1685,9 +1685,6 @@ class LDAPClient(object):
         else:
             assert isinstance(entry_or_dn, DN)
             entry_attrs = self.make_entry(entry_or_dn, entry_attrs)
-            for key, value in entry_attrs.items():
-                if value is None:
-                    entry_attrs[key] = []
             return entry_or_dn, entry_attrs
 
     def add_entry(self, entry, entry_attrs=None):
@@ -1701,10 +1698,7 @@ class LDAPClient(object):
         dn, attrs = self._get_dn_and_attrs(entry, entry_attrs)
 
         # remove all [] values (python-ldap hates 'em)
-        attrs = dict((k, v) for k, v in attrs.iteritems()
-            # FIXME: Once entry values are always lists, this condition can
-            # be just "if v":
-            if v is not None and v != [])
+        attrs = dict((k, v) for k, v in attrs.raw.iteritems() if v)
 
         with self.error_handler():
             self.conn.add_s(dn, attrs.items())
