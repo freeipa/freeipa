@@ -398,6 +398,12 @@
                             "type_ad": "Active Directory domain",
                             "type_local": "Local domain"
                         },
+                        "realmdomains": {
+                            "identity": "Realm Domains",
+                            "check_dns": "Check DNS",
+                            "check_dns_confirmation": "Do you also want to perform DNS check?",
+                            "force_update": "Force Update"
+                        },
                         "role": {
                             "identity": "Role Settings"
                         },

@@ -105,9 +105,10 @@ class realmdomains_mod(LDAPUpdate):
             if get_domain_name() not in associateddomain:
                 raise errors.ValidationError(name='domain', error=_("cannot delete domain of IPA server"))
             if not force:
-                for d in associateddomain:
-                    if not has_soa_or_ns_record(d):
-                        raise errors.ValidationError(name='domain', error=_("no SOA or NS records found for domain %s" % d))
+                bad_domains = [d for d in associateddomain if not has_soa_or_ns_record(d)]
+                if bad_domains:
+                    bad_domains = ', '.join(bad_domains)
+                    raise errors.ValidationError(name='domain', error=_("no SOA or NS records found for domains: %s" % bad_domains))
             return dn
 
         # If --add-domain or --del-domain options were provided, read

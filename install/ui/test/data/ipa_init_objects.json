@@ -6026,6 +6026,48 @@
                 ],
                 "uuid_attribute": ""
             },
+            "realmdomains": {
+                "aciattrs": [],
+                "attribute_members": {},
+                "bindable": false,
+                "container_dn": "",
+                "default_attributes": ["associateddomain"],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "Realm Domains",
+                "label_singular": "Realm Domains",
+                "methods": [
+                    "mod",
+                    "show"
+                ],
+                "name": "realmdomains",
+                "object_class": [
+                    "domainrelatedobject",
+                    "top",
+                    "nscontainter"
+                ],
+                "object_class_config": null,
+                "object_name": "realmdomains",
+                "object_name_plural": "realmdomains",
+                "parent_object": "",
+                "rdn_attribute": "",
+                "relationships": {},
+                "takes_params": [
+                    {
+                        "class": "Str",
+                        "doc": "Domain",
+                        "flags": [],
+                        "label": "Domain",
+                        "name": "associateddomain",
+                        "required": true,
+                        "type": "unicode",
+                        "multivalued": true
+                    }
+                ],
+                "uuid_attribute": ""
+            },
             "role": {
                 "aciattrs": [
                     "businesscategory",
