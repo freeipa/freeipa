@@ -536,6 +536,12 @@ class i18n_messages(Command):
                 "type_ad": _("Active Directory domain"),
                 "type_local": _("Local domain"),
             },
+            "realmdomains": {
+                "identity": _("Realm Domains"),
+                "check_dns": _("Check DNS"),
+                "check_dns_confirmation": _("Do you also want to perform DNS check?"),
+                "force_update": _("Force Update"),
+            },
             "role": {
                 "identity": _("Role Settings"),
             },

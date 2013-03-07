@@ -20,7 +20,6 @@
 Test the `ipalib/plugins/realmdomains.py` module.
 """
 
-import random, string
 from ipalib import api, errors
 from ipapython.dn import DN
 from tests.test_xmlrpc import objectclasses
@@ -131,7 +130,7 @@ class test_realmdomains(Declarative):
             desc='Try to replace list of realm domains with a list with an invalid domain "%s"' % bad_domain,
             command=('realmdomains_mod', [], {'associateddomain': [our_domain, bad_domain]}),
             expected=errors.ValidationError(
-                name='domain', error='no SOA or NS records found for domain %s' % bad_domain),
+                name='domain', error='no SOA or NS records found for domains: %s' % bad_domain),
         ),
         dict(
             desc='Try to add an invalid domain "%s"' % bad_domain,

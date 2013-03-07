@@ -41,6 +41,7 @@ define([
     './idrange',
     './netgroup',
     './policy',
+    './realmdomains',
     './rule',
     './selinux',
     './serverconfig',
