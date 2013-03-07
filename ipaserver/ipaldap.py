@@ -270,13 +270,19 @@ class IPASimpleLDAPObject(object):
         self.log = log_mgr.get_logger(self)
         self.uri = uri
         self.conn = SimpleLDAPObject(uri)
+        self._has_schema = False
         self._schema = None
         self._force_schema_updates = force_schema_updates
 
     def _get_schema(self):
-        if self._schema is None:
-            self._schema = schema_cache.get_schema(
-                self.uri, self.conn, force_update=self._force_schema_updates)
+        if not self._has_schema:
+            try:
+                self._schema = schema_cache.get_schema(
+                    self.uri, self.conn,
+                    force_update=self._force_schema_updates)
+            except (errors.ExecutionError, IndexError):
+                pass
+            self._has_schema = True
         return self._schema
 
     schema = property(_get_schema, None, None, 'schema associated with this LDAP server')
@@ -307,6 +313,7 @@ class IPASimpleLDAPObject(object):
         # logical operations that have the potential to cause a schema
         # change.
 
+        self._has_schema = False
         self._schema = None
 
     def get_syntax(self, attr):
@@ -314,6 +321,9 @@ class IPASimpleLDAPObject(object):
         syntax = self._SCHEMA_OVERRIDE.get(attr)
         if syntax is not None:
             return syntax
+
+        if self.schema is None:
+            return None
 
         # Try to lookup the syntax in the schema returned by the server
         obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
@@ -708,12 +718,8 @@ class LDAPEntry(dict):
         else:
             self._names[name] = name
 
-            try:
-                schema = self._conn.schema
-            except:
-                pass
-            else:
-                attrtype = schema.get_obj(ldap.schema.AttributeType,
+            if self._conn.schema is not None:
+                attrtype = self._conn.schema.get_obj(ldap.schema.AttributeType,
                     name.encode('utf-8'))
                 if attrtype is not None:
                     for altname in attrtype.names:
