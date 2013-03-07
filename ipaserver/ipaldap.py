@@ -255,7 +255,7 @@ class IPASimpleLDAPObject(object):
         'originscope':     DN_SYNTAX_OID, # DN
     })
 
-    def __init__(self, uri, force_schema_updates):
+    def __init__(self, uri, force_schema_updates, no_schema=False):
         """An internal LDAP connection object
 
         :param uri: The LDAP URI to connect to
@@ -266,15 +266,19 @@ class IPASimpleLDAPObject(object):
             Generally, it should be true if the API context is 'installer' or
             'updates', but it must be given explicitly since the API object
             is not always available
+        :param no_schema: If true, schema is never requested from the server.
         """
         self.log = log_mgr.get_logger(self)
         self.uri = uri
         self.conn = SimpleLDAPObject(uri)
+        self._no_schema = no_schema
         self._has_schema = False
         self._schema = None
         self._force_schema_updates = force_schema_updates
 
     def _get_schema(self):
+        if self._no_schema:
+            return None
         if not self._has_schema:
             try:
                 self._schema = schema_cache.get_schema(
@@ -1645,7 +1649,7 @@ class IPAdmin(LDAPClient):
 
     def __init__(self, host='', port=389, cacert=None, debug=None, ldapi=False,
                  realm=None, protocol=None, force_schema_updates=True,
-                 start_tls=False, ldap_uri=None):
+                 start_tls=False, ldap_uri=None, no_schema=False):
         self.conn = None
         log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
@@ -1665,7 +1669,8 @@ class IPAdmin(LDAPClient):
 
         LDAPClient.__init__(self, ldap_uri)
 
-        self.conn = IPASimpleLDAPObject(ldap_uri, force_schema_updates=True)
+        self.conn = IPASimpleLDAPObject(ldap_uri, force_schema_updates=True,
+                                        no_schema=no_schema)
 
         if start_tls:
             self.conn.start_tls_s()
