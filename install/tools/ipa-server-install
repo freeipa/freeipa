@@ -188,9 +188,6 @@ def parse_options():
     cert_group.add_option("--subject", action="callback", callback=subject_callback,
                       type="string",
                       help="The certificate subject base (default O=<realm-name>)")
-    cert_group.add_option("", "--selfsign", dest="selfsign", action="store_true",
-                      default=False, help="Configure a self-signed CA instance rather than a dogtag CA. " \
-                      "WARNING: Certificate management capabilities will be limited")
     parser.add_option_group(cert_group)
 
     dns_group = OptionGroup(parser, "DNS options")
@@ -283,8 +280,9 @@ def parse_options():
     if cnt > 0 and cnt < 4:
         parser.error("All PKCS#12 options are required if any are used.")
 
-    if (options.external_cert_file or options.external_ca_file) and options.selfsign:
-        parser.error("--selfsign cannot be used with the external CA options.")
+    if (options.external_cert_file or options.external_ca_file) and cnt:
+        parser.error(
+            "PKCS#12 options cannot be used with the external CA options.")
 
     if options.external_ca:
         if options.external_cert_file:
@@ -309,8 +307,7 @@ def parse_options():
                     (options.idmax, options.idstart))
 
     #Automatically disable pkinit w/ dogtag until that is supported
-    if not options.pkinit_pkcs12 and not options.selfsign:
-        options.setup_pkinit = False
+    options.setup_pkinit = False
 
     if options.zone_refresh < 0:
         parser.error("negative numbers not allowed for --zone-refresh")
@@ -707,6 +704,12 @@ def main():
         pkinit_pin_file = ipautil.write_tmp_file(options.pkinit_pin)
         pkinit_pkcs12_info = (options.pkinit_pkcs12, pkinit_pin_file.name)
 
+    # We only set up the CA if the PKCS#12 options are not given.
+    if options.dirsrv_pkcs12:
+        setup_ca = False
+    else:
+        setup_ca = True
+
     # Figure out what external CA step we're in. See cainstance.py for more
     # info on the 3 states.
     if options.external_cert_file:
@@ -720,10 +723,7 @@ def main():
     print "This program will set up the FreeIPA Server."
     print ""
     print "This includes:"
-    if options.selfsign:
-        print "  * Configure NSS to handle a self-signed CA"
-        print "    WARNING: certificate management capabilities will be limited"
-    else:
+    if setup_ca:
         print "  * Configure a stand-alone CA (dogtag) for certificate management"
     if options.conf_ntp:
         print "  * Configure the Network Time Daemon (ntpd)"
@@ -914,11 +914,13 @@ def main():
     fd.write("domain=%s\n" % domain_name)
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % format_netloc(host_name))
     fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
-    fd.write("enable_ra=True\n")
-    if not options.selfsign:
+    if setup_ca:
+        fd.write("enable_ra=True\n")
         fd.write("ra_plugin=dogtag\n")
         fd.write("dogtag_version=%s\n" %
             dogtag.install_constants.DOGTAG_VERSION)
+    else:
+        fd.write("enable_ra=False\n")
     fd.write("mode=production\n")
     fd.close()
 
@@ -952,6 +954,9 @@ def main():
         except ipautil.CalledProcessError, e:
             root_logger.critical("failed to add DS group: %s" % e)
 
+    # Create a directory server instance
+    ds = dsinstance.DsInstance(fstore=fstore)
+
     if external != 2:
         # Configure ntpd
         if options.conf_ntp:
@@ -960,9 +965,6 @@ def main():
             if not ntp.is_configured():
                 ntp.create_instance()
 
-        # Create a directory server instance
-        ds = dsinstance.DsInstance(fstore=fstore)
-
         if options.dirsrv_pkcs12:
             ds.create_instance(realm_name, host_name, domain_name,
                             dm_password, dirsrv_pkcs12_info,
@@ -970,22 +972,17 @@ def main():
                             hbac_allow=not options.hbac_allow)
         else:
             ds.create_instance(realm_name, host_name, domain_name,
-                            dm_password, self_signed_ca=options.selfsign,
+                            dm_password,
                             idstart=options.idstart, idmax=options.idmax,
                             subject_base=options.subject,
                             hbac_allow=not options.hbac_allow)
     else:
-        ds = dsinstance.DsInstance(fstore=fstore)
         ds.init_info(
             realm_name, host_name, domain_name, dm_password,
-            options.selfsign, options.subject, 1101, 1100, None)
+            False, options.subject, 1101, 1100, None)
 
 
-    if options.selfsign:
-        ca = certs.CertDB(realm_name, host_name=host_name,
-                          subject_base=options.subject)
-        ca.create_self_signed()
-    else:
+    if setup_ca:
         # Clean up any previous self-signed CA that may exist
         try:
             os.remove(certs.CA_SERIALNO)
@@ -1027,15 +1024,15 @@ def main():
                                   cert_chain_file=options.external_ca_file,
                                   subject_base=options.subject)
 
-    # Now put the CA cert where other instances exepct it
-    ca.publish_ca_cert("/etc/ipa/ca.crt")
+        # Now put the CA cert where other instances exepct it
+        ca.publish_ca_cert("/etc/ipa/ca.crt")
 
     # we now need to enable ssl on the ds
     ds.enable_ssl()
     ds.restart()
 
     # We need to ldap_enable the CA now that DS is up and running
-    if not options.selfsign:
+    if setup_ca:
         ca.ldap_enable('CA', host_name, dm_password,
                        ipautil.realm_to_suffix(realm_name))
         if not dogtag.install_constants.SHARED_DB:
@@ -1064,7 +1061,6 @@ def main():
         krb.create_instance(realm_name, host_name, domain_name,
                             dm_password, master_password,
                             setup_pkinit=options.setup_pkinit,
-                            self_signed_ca=options.selfsign,
                             subject_base=options.subject)
 
     # The DS instance is created before the keytab, add the SSL cert we
@@ -1083,7 +1079,9 @@ def main():
             pkcs12_info=http_pkcs12_info, subject_base=options.subject,
             auto_redirect=options.ui_redirect)
     else:
-        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=options.selfsign, subject_base=options.subject, auto_redirect=options.ui_redirect)
+        http.create_instance(
+            realm_name, host_name, domain_name, dm_password, autoconfig=True,
+            subject_base=options.subject, auto_redirect=options.ui_redirect)
     ipaservices.restore_context("/var/cache/ipa/sessions")
 
     set_subject_in_config(realm_name, dm_password, ipautil.realm_to_suffix(realm_name), options.subject)
@@ -1107,7 +1105,7 @@ def main():
                zone_refresh=options.zone_refresh,
                persistent_search=options.persistent_search,
                serial_autoincrement=options.serial_autoincrement,
-               ca_configured=not options.selfsign)
+               ca_configured=setup_ca)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)
 
@@ -1173,19 +1171,15 @@ def main():
         print "\t   and servers for correct operation. You should consider enabling ntpd."
 
     print ""
-    if options.http_pkcs12:
+    if setup_ca:
+        print "Be sure to back up the CA certificate stored in /root/cacert.p12"
+        print "This file is required to create replicas. The password for this"
+        print "file is the Directory Manager password"
+    else:
         print "In order for Firefox autoconfiguration to work you will need to"
         print "use a SSL signing certificate. See the IPA documentation for more details."
         print "You also need to install a PEM copy of the CA certificate into"
         print "/usr/share/ipa/html/ca.crt"
-    else:
-        if options.selfsign:
-            print "Be sure to back up the CA certificate stored in /etc/httpd/alias/cacert.p12"
-            print "The password for this file is in /etc/httpd/alias/pwdfile.txt"
-        else:
-            print "Be sure to back up the CA certificate stored in /root/cacert.p12"
-            print "This file is required to create replicas. The password for this"
-            print "file is the Directory Manager password"
 
     if ipautil.file_exists(ANSWER_CACHE):
         os.remove(ANSWER_CACHE)
