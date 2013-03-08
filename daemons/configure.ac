@@ -334,6 +334,7 @@ AC_CONFIG_FILES([
     ipa-sam/Makefile
     ipa-slapi-plugins/Makefile
     ipa-slapi-plugins/ipa-cldap/Makefile
+    ipa-slapi-plugins/ipa-dns/Makefile
     ipa-slapi-plugins/ipa-enrollment/Makefile
     ipa-slapi-plugins/ipa-lockout/Makefile
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
