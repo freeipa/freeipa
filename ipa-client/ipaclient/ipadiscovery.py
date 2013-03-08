@@ -330,9 +330,11 @@ class IPADiscovery(object):
             if ca_cert_path:
                 lh = ipaldap.IPAdmin(thost, protocol='ldap',
                                      cacert=ca_cert_path, start_tls=True,
+                                     no_schema=True, decode_attrs=False,
                                      demand_cert=True)
             else:
-                lh = ipaldap.IPAdmin(thost, protocol='ldap')
+                lh = ipaldap.IPAdmin(thost, protocol='ldap',
+                                     no_schema=True, decode_attrs=False)
             try:
                 lh.do_simple_bind(DN(), '')
             except errors.ACIError:
