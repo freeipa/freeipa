@@ -2,6 +2,7 @@ NULL =
 
 SUBDIRS =			\
 	ipa-cldap		\
+	ipa-dns			\
 	ipa-enrollment		\
 	ipa-lockout		\
 	ipa-modrdn		\

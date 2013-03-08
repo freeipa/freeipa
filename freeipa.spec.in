@@ -341,6 +341,7 @@ rm %{buildroot}/%{plugin_dir}/libipa_uuid.la
 rm %{buildroot}/%{plugin_dir}/libipa_modrdn.la
 rm %{buildroot}/%{plugin_dir}/libipa_lockout.la
 rm %{buildroot}/%{plugin_dir}/libipa_cldap.la
+rm %{buildroot}/%{plugin_dir}/libipa_dns.la
 rm %{buildroot}/%{plugin_dir}/libipa_sidgen.la
 rm %{buildroot}/%{plugin_dir}/libipa_sidgen_task.la
 rm %{buildroot}/%{plugin_dir}/libipa_extdom_extop.la
@@ -667,6 +668,7 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_modrdn.so
 %attr(755,root,root) %{plugin_dir}/libipa_lockout.so
 %attr(755,root,root) %{plugin_dir}/libipa_cldap.so
+%attr(755,root,root) %{plugin_dir}/libipa_dns.so
 %attr(755,root,root) %{plugin_dir}/libipa_range_check.so
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
