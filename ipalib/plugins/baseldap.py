@@ -768,12 +768,6 @@ last, after all sets and adds."""),
                 # None means "delete this attribute"
                 value = None
 
-            if ldap.has_dn_syntax(attr):
-                try:
-                    value = DN(value)
-                except ValueError:
-                    raise errors.InvalidSyntax(attr=attr)
-
             if attr in newdict:
                 if type(value) in (tuple,):
                     newdict[attr] += list(value)

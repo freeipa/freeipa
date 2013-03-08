@@ -33,18 +33,25 @@ selinuxuser2 = u'xguest_u:s0'
 user1 = u'tuser1'
 group1 = u'testgroup1'
 host1 = u'testhost1.%s' % api.env.domain
-hostdn1 = DN(('fqdn',host1),('cn','computers'),('cn','accounts'),
+hostdn1 = DN(('fqdn', host1), ('cn', 'computers'), ('cn', 'accounts'),
              api.env.basedn)
 hbacrule1 = u'testhbacrule1'
 hbacrule2 = u'testhbacrule12'
 
 # Note (?i) at the beginning of the regexp is the ingnore case flag
 fuzzy_selinuxusermapdn = Fuzzy(
-    '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s' % (api.env.container_selinux, api.env.basedn)
+    '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}'
+    '-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s'
+    % (api.env.container_selinux, api.env.basedn)
 )
 fuzzy_hbacruledn = Fuzzy(
-    '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s' % (api.env.container_hbac, api.env.basedn)
+    '(?i)ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}'
+    '-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s'
+    % (api.env.container_hbac, api.env.basedn)
 )
+
+allow_all_rule_dn = api.Command['hbacrule_show'](u'allow_all')['result']['dn']
+
 
 class test_selinuxusermap(Declarative):
     cleanup_commands = [
@@ -85,7 +92,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule %r' % rule1,
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1)
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=selinuxuser1)
             ),
             expected=dict(
                 value=rule1,
@@ -95,7 +103,7 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             ),
@@ -105,7 +113,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Try to create duplicate %r' % rule1,
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1)
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=selinuxuser1)
             ),
             expected=errors.DuplicateEntry(message=u'SELinux User Map rule ' +
                 u'with name "%s" already exists' % rule1),
@@ -121,7 +130,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser1],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             ),
@@ -131,13 +140,14 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Update rule %r' % rule1,
             command=(
-                'selinuxusermap_mod', [rule1], dict(ipaselinuxuser=selinuxuser2)
+                'selinuxusermap_mod', [rule1],
+                    dict(ipaselinuxuser=selinuxuser2)
             ),
             expected=dict(
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                 ),
                 summary=u'Modified SELinux User Map "%s"' % rule1,
                 value=rule1,
@@ -153,7 +163,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
                 ),
                 summary=None,
@@ -171,7 +181,7 @@ class test_selinuxusermap(Declarative):
                     dict(
                         cn=[rule1],
                         ipaselinuxuser=[selinuxuser2],
-                        ipaenabledflag = [u'TRUE'],
+                        ipaenabledflag=[u'TRUE'],
                         dn=fuzzy_selinuxusermapdn,
                     ),
                 ],
@@ -206,12 +216,15 @@ class test_selinuxusermap(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
+                    krbpwdpolicyreference=[DN(('cn', 'global_policy'),
+                                              ('cn', api.env.realm),
+                                              ('cn', 'kerberos'),
+                                              api.env.basedn)
+                                        ],
+                    mepmanagedentry=[DN(('cn', user1), ('cn', 'groups'),
+                        ('cn', 'accounts'), api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=DN(('uid',user1),('cn','users'),('cn','accounts'),
+                    dn=DN(('uid', user1), ('cn', 'users'), ('cn', 'accounts'),
                           api.env.basedn),
                     has_keytab=False,
                     has_password=False,
@@ -233,7 +246,7 @@ class test_selinuxusermap(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('cn',group1),('cn','groups'),('cn','accounts'),
+                    dn=DN(('cn', group1), ('cn', 'groups'), ('cn', 'accounts'),
                           api.env.basedn),
                 ),
             ),
@@ -254,8 +267,8 @@ class test_selinuxusermap(Declarative):
                     ),
                 ),
                 result={
-                        'dn': DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
+                        'dn': DN(('cn', group1), ('cn', 'groups'),
+                            ('cn', 'accounts'), api.env.basedn),
                         'member_user': (user1,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
@@ -344,8 +357,8 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
-                    memberuser_user = [user1],
+                    ipaenabledflag=[u'TRUE'],
+                    memberuser_user=[user1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -354,15 +367,19 @@ class test_selinuxusermap(Declarative):
 
         dict(
             desc='Add non-existent user to %r' % rule1,
-            command=('selinuxusermap_add_user', [rule1], dict(user=u'notfound')),
+            command=('selinuxusermap_add_user', [rule1],
+                dict(user=u'notfound')),
             expected=dict(
-                failed=dict(memberuser=dict(group=[], user=[(u'notfound', u'no such entry')])),
+                failed=dict(
+                    memberuser=dict(group=[],
+                                    user=[(u'notfound', u'no such entry')])
+                        ),
                 completed=0,
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
-                    memberuser_user = [user1],
+                    ipaenabledflag=[u'TRUE'],
+                    memberuser_user=[user1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -378,7 +395,7 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -387,14 +404,19 @@ class test_selinuxusermap(Declarative):
 
         dict(
             desc='Remove non-existent user to %r' % rule1,
-            command=('selinuxusermap_remove_user', [rule1], dict(user=u'notfound')),
+            command=('selinuxusermap_remove_user', [rule1],
+                dict(user=u'notfound')),
             expected=dict(
-                failed=dict(memberuser=dict(group=[], user=[(u'notfound', u'This entry is not a member')])),
+                failed=dict(
+                    memberuser=dict(group=[],
+                        user=[(u'notfound', u'This entry is not a member')]
+                            )
+                        ),
                 completed=0,
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -410,8 +432,8 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
-                    memberuser_group = [group1],
+                    ipaenabledflag=[u'TRUE'],
+                    memberuser_group=[group1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -427,9 +449,9 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
-                    memberhost_host = [host1],
-                    memberuser_group = [group1],
+                    ipaenabledflag=[u'TRUE'],
+                    memberhost_host=[host1],
+                    memberuser_group=[group1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -494,8 +516,8 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
-                    memberuser_group = [group1],
+                    ipaenabledflag=[u'TRUE'],
+                    memberuser_group=[group1],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -504,14 +526,15 @@ class test_selinuxusermap(Declarative):
 
         dict(
             desc='Remove group from %r' % rule1,
-            command=('selinuxusermap_remove_user', [rule1], dict(group=group1)),
+            command=('selinuxusermap_remove_user', [rule1],
+                dict(group=group1)),
             expected=dict(
                 failed=dict(memberuser=dict(group=[], user=[])),
                 completed=1,
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             )
@@ -537,8 +560,8 @@ class test_selinuxusermap(Declarative):
                 result=dict(
                     cn=[rule1],
                     ipaselinuxuser=[selinuxuser2],
-                    ipaenabledflag = [u'TRUE'],
-                    seealso = hbacrule1,
+                    ipaenabledflag=[u'TRUE'],
+                    seealso=hbacrule1,
                 ),
                 summary=u'Modified SELinux User Map "%s"' % rule1,
                 value=rule1,
@@ -565,7 +588,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Try to delete HBAC rule pointed to by %r' % rule1,
             command=('hbacrule_del', [hbacrule1], {}),
-            expected=errors.DependentEntry(key=hbacrule1, label=u'SELinux User Map', dependent=rule1)
+            expected=errors.DependentEntry(key=hbacrule1,
+                label=u'SELinux User Map', dependent=rule1)
         ),
 
 
@@ -606,10 +630,11 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule with unknown user %r' % rule1,
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'notfound:s0:c0')
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=u'notfound:s0:c0')
             ),
-            expected=errors.NotFound(reason=u'SELinux user notfound:s0:c0 not ' +
-                u'found in ordering list (in config)'),
+            expected=errors.NotFound(reason=u'SELinux user notfound:s0:c0 ' +
+                u'not found in ordering list (in config)'),
         ),
 
 
@@ -619,14 +644,16 @@ class test_selinuxusermap(Declarative):
                 'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'bad+user')
             ),
             expected=errors.ValidationError(name='selinuxuser',
-                error=u'Invalid SELinux user name, only a-Z and _ are allowed'),
+                error=u'Invalid SELinux user name, only a-Z and _ are allowed'
+                ),
         ),
 
 
         dict(
             desc='Create rule with invalid MCS xguest_u:s999',
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'xguest_u:s999')
+                'selinuxusermap_add', [rule1],
+                     dict(ipaselinuxuser=u'xguest_u:s999')
             ),
             expected=errors.ValidationError(name='selinuxuser',
                 error=u'Invalid MLS value, must match s[0-15](-s[0-15])'),
@@ -636,7 +663,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule with invalid MLS xguest_u:s0:p88',
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'xguest_u:s0:p88')
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=u'xguest_u:s0:p88')
             ),
             expected=errors.ValidationError(name='selinuxuser',
                 error=u'Invalid MCS value, must match c[0-1023].c[0-1023] ' +
@@ -647,7 +675,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule with invalid MLS xguest_u:s0:c0.c1028',
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=u'xguest_u:s0-s0:c0.c1028')
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=u'xguest_u:s0-s0:c0.c1028')
             ),
             expected=errors.ValidationError(name='selinuxuser',
                 error=u'Invalid MCS value, must match c[0-1023].c[0-1023] ' +
@@ -658,7 +687,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule with invalid user via setattr',
             command=(
-                'selinuxusermap_mod', [rule1], dict(setattr=u'ipaselinuxuser=deny')
+                'selinuxusermap_mod', [rule1],
+                    dict(setattr=u'ipaselinuxuser=deny')
             ),
             expected=errors.ValidationError(name='ipaselinuxuser',
                 error=u'Invalid MLS value, must match s[0-15](-s[0-15])'),
@@ -667,7 +697,10 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule with both --hbacrule and --usercat set',
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1,usercategory=u'all')
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=selinuxuser1,
+                         seealso=hbacrule1,
+                         usercategory=u'all')
             ),
             expected=errors.MutuallyExclusiveError(
                 reason=u'HBAC rule and local members cannot both be set'),
@@ -676,25 +709,36 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule with both --hbacrule and --hostcat set',
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1,hostcategory=u'all')
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=selinuxuser1,
+                         seealso=hbacrule1,
+                         hostcategory=u'all')
             ),
             expected=errors.MutuallyExclusiveError(
                 reason=u'HBAC rule and local members cannot both be set'),
         ),
 
         dict(
-            desc='Create rule with both --hbacrule and --usercat set via setattr',
+            desc='Create rule with both --hbacrule '
+                 'and --usercat set via setattr',
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1,setattr=u'usercategory=all')
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=selinuxuser1,
+                         seealso=hbacrule1,
+                         setattr=u'usercategory=all')
             ),
             expected=errors.MutuallyExclusiveError(
                 reason=u'HBAC rule and local members cannot both be set'),
         ),
 
         dict(
-            desc='Create rule with both --hbacrule and --hostcat set via setattr',
+            desc='Create rule with both --hbacrule '
+                 'and --hostcat set via setattr',
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1,setattr=u'hostcategory=all')
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=selinuxuser1,
+                         seealso=hbacrule1,
+                         setattr=u'hostcategory=all')
             ),
             expected=errors.MutuallyExclusiveError(
                 reason=u'HBAC rule and local members cannot both be set'),
@@ -703,7 +747,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule %r with --hbacrule' % rule1,
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,seealso=hbacrule1)
+                'selinuxusermap_add', [rule1],
+                dict(ipaselinuxuser=selinuxuser1, seealso=hbacrule1)
             ),
             expected=dict(
                 value=rule1,
@@ -713,7 +758,7 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
                     seealso=hbacrule1
                 ),
@@ -741,7 +786,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Add an usercat via setattr to %r that has HBAC set' % rule1,
             command=(
-                'selinuxusermap_mod', [rule1], dict(setattr=u'usercategory=all')
+                'selinuxusermap_mod', [rule1],
+                dict(setattr=u'usercategory=all')
             ),
             expected=errors.MutuallyExclusiveError(
                 reason=u'HBAC rule and local members cannot both be set'),
@@ -750,7 +796,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Add an hostcat via setattr to %r that has HBAC set' % rule1,
             command=(
-                'selinuxusermap_mod', [rule1], dict(setattr=u'hostcategory=all')
+                'selinuxusermap_mod', [rule1],
+                dict(setattr=u'hostcategory=all')
             ),
             expected=errors.MutuallyExclusiveError(
                 reason=u'HBAC rule and local members cannot both be set'),
@@ -769,7 +816,10 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule %r with usercat and hostcat set' % rule1,
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1,usercategory=u'all',hostcategory=u'all')
+                'selinuxusermap_add', [rule1],
+                    dict(ipaselinuxuser=selinuxuser1,
+                         usercategory=u'all',
+                         hostcategory=u'all')
             ),
             expected=dict(
                 value=rule1,
@@ -779,10 +829,10 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
-                    usercategory = [u'all'],
-                    hostcategory = [u'all']
+                    usercategory=[u'all'],
+                    hostcategory=[u'all']
                 ),
             ),
         ),
@@ -809,7 +859,8 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Create rule %r' % rule1,
             command=(
-                'selinuxusermap_add', [rule1], dict(ipaselinuxuser=selinuxuser1)
+                'selinuxusermap_add', [rule1],
+                dict(ipaselinuxuser=selinuxuser1)
             ),
             expected=dict(
                 value=rule1,
@@ -819,7 +870,7 @@ class test_selinuxusermap(Declarative):
                     ipaselinuxuser=[selinuxuser1],
                     objectclass=objectclasses.selinuxusermap,
                     ipauniqueid=[fuzzy_uuid],
-                    ipaenabledflag = [u'TRUE'],
+                    ipaenabledflag=[u'TRUE'],
                     dn=fuzzy_selinuxusermapdn,
                 ),
             ),
@@ -828,10 +879,47 @@ class test_selinuxusermap(Declarative):
         dict(
             desc='Add HBAC rule, hostcat and usercat to %r' % rule1,
             command=(
-                'selinuxusermap_mod', [rule1], dict(seealso=hbacrule1,usercategory=u'all',hostcategory=u'all')
+                'selinuxusermap_mod', [rule1],
+                    dict(seealso=hbacrule1,
+                         usercategory=u'all',
+                         hostcategory=u'all')
             ),
             expected=errors.MutuallyExclusiveError(
                 reason=u'HBAC rule and local members cannot both be set'),
+        ),
+
+        dict(
+            desc='Delete %r' % rule1,
+            command=('selinuxusermap_del', [rule1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=rule1,
+                summary=u'Deleted SELinux User Map "%s"' % rule1,
+            )
+        ),
+
+       dict(
+            desc='Create rule %r with '
+                 '--setattr=seealso=<allow_all rule DN>' % rule1,
+            command=(
+                'selinuxusermap_add',
+                [rule1],
+                dict(ipaselinuxuser=selinuxuser1,
+                     setattr=u'seealso=%s' % allow_all_rule_dn)
+            ),
+            expected=dict(
+                value=rule1,
+                summary=u'Added SELinux User Map "%s"' % rule1,
+                result=dict(
+                    cn=[rule1],
+                    ipaselinuxuser=[selinuxuser1],
+                    objectclass=objectclasses.selinuxusermap,
+                    ipauniqueid=[fuzzy_uuid],
+                    ipaenabledflag=[u'TRUE'],
+                    dn=fuzzy_selinuxusermapdn,
+                    seealso=u'allow_all',
+                ),
+            ),
         ),
 
         dict(
