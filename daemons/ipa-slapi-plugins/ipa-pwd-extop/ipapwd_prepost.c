@@ -211,21 +211,25 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             slapi_ch_free_string(&userpw);
             userpw = tmp;
         } else if (slapi_is_encoded(userpw)) {
-            /* check if we have access to the unhashed user password */
-            char *userpw_clear =
-                slapi_entry_attr_get_charptr(e, "unhashed#user#password");
+            const char *userpw_clear = NULL;
+            Slapi_Value **pwvals = NULL;
 
-            /* unhashed#user#password doesn't always contain the clear text
-             * password, therefore we need to check if its value isn't the same
-             * as userPassword to make sure */
+            /* Try to get clear password from an entry extension.
+             * This function does not return a copy of the values,
+             * no need to free them. */
+            rc = slapi_pw_get_entry_ext(e, &pwvals);
+            if (LDAP_SUCCESS == rc) {
+                userpw_clear = slapi_value_get_string(pwvals[0]);
+            }
+
+            /* Fail if we did not get a real clear text password from
+             * the extension. This will happen if the password is hashed. */
             if (!userpw_clear || (0 == strcmp(userpw, userpw_clear))) {
                 rc = LDAP_CONSTRAINT_VIOLATION;
                 slapi_ch_free_string(&userpw);
             } else {
                 userpw = slapi_ch_strdup(userpw_clear);
             }
-
-            slapi_ch_free_string(&userpw_clear);
 
             if (rc != LDAP_SUCCESS) {
                 /* we don't have access to the clear text password;
