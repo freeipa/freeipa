@@ -23,4 +23,10 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-rhino -main $DIR/uglify-js.js $DIR/ug.js $1 $2 -v
+# rhino-1.7R4 doesn't have -main option to enable CommonJS support. It was
+# replaced by -require option.
+if [ `rhino --help | grep -e -require | wc -l` -gt 0 ] ; then
+    rhino -require $DIR/uglify-js.js $@
+else
+    rhino -main $DIR/uglify-js.js $DIR/ug.js $@
+fi
