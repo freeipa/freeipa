@@ -328,10 +328,35 @@ class group_find(LDAPSearch):
             cli_name='private',
             doc=_('search for private groups'),
         ),
+        Flag('posix',
+             cli_name='posix',
+             doc=_('search for POSIX groups'),
+        ),
+        Flag('external',
+             cli_name='external',
+             doc=_('search for groups with support of external non-IPA members from trusted domains'),
+        ),
+        Flag('nonposix',
+             cli_name='nonposix',
+             doc=_('search for non-POSIX groups'),
+        ),
     )
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         assert isinstance(base_dn, DN)
+
+        # filter groups by pseudo type
+        filters = []
+        if options['posix']:
+            search_kw = {'objectclass': ['posixGroup']}
+            filters.append(ldap.make_filter(search_kw, rules=ldap.MATCH_ALL))
+        if options['external']:
+            search_kw = {'objectclass': ['ipaExternalGroup']}
+            filters.append(ldap.make_filter(search_kw, rules=ldap.MATCH_ALL))
+        if options['nonposix']:
+            search_kw = {'objectclass': ['posixGroup' , 'ipaExternalGroup']}
+            filters.append(ldap.make_filter(search_kw, rules=ldap.MATCH_NONE))
+
         # if looking for private groups, we need to create a new search filter,
         # because private groups have different object classes
         if options['private']:
@@ -351,6 +376,9 @@ class group_find(LDAPSearch):
             cflt = ldap.make_filter(search_kw, exact=False)
 
             filter = ldap.combine_filters((oflt, cflt), rules=ldap.MATCH_ALL)
+        elif filters:
+            filters.append(filter)
+            filter = ldap.combine_filters(filters, rules=ldap.MATCH_ALL)
         return (filter, base_dn, scope)
 
 api.register(group_find)

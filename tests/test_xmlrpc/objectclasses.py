@@ -46,6 +46,7 @@ group = [
 ]
 
 externalgroup = group + [u'ipaexternalgroup']
+posixgroup = group + [u'posixgroup']
 
 host = [
     u'ipasshhost',

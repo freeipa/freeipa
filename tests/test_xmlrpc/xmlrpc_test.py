@@ -83,6 +83,10 @@ fuzzy_dergeneralizedtime = Fuzzy('^[0-9]{14}Z$')
 # match any string
 fuzzy_string = Fuzzy(type=basestring)
 
+# case insensitive match of sets
+def fuzzy_set_ci(s):
+    return Fuzzy(test=lambda other: set(x.lower() for x in other) == set(y.lower() for y in s))
+
 try:
     if not api.Backend.xmlclient.isconnected():
         api.Backend.xmlclient.connect(fallback=False)

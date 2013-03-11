@@ -23,7 +23,8 @@ Test the `ipalib/plugins/group.py` module.
 
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from tests.util import Fuzzy
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_set_ci
 from ipapython.dn import DN
 
 group1 = u'testgroup1'
@@ -248,7 +249,7 @@ class test_group(Declarative):
                     cn=[group2],
                     description=[u'Test desc 2'],
                     gidnumber=[fuzzy_digits],
-                    objectclass=objectclasses.group + [u'posixgroup'],
+                    objectclass=objectclasses.posixgroup,
                     ipauniqueid=[fuzzy_uuid],
                     dn=get_group_dn('testgroup2'),
                 ),
@@ -382,6 +383,98 @@ class test_group(Declarative):
             ),
         ),
 
+        dict(
+            desc='Search for non-POSIX groups',
+            command=('group_find', [], dict(nonposix=True, all=True)),
+            expected=dict(
+                summary=u'2 groups matched',
+                count=2,
+                truncated=False,
+                result=[
+                    {
+                        'dn': get_group_dn('ipausers'),
+                        'cn': [u'ipausers'],
+                        'description': [u'Default group for all users'],
+                        'objectclass': fuzzy_set_ci(objectclasses.group),
+                        'ipauniqueid': [fuzzy_uuid],
+                    },
+                    {
+                        'dn': get_group_dn('trust admins'),
+                        'member_user': [u'admin'],
+                        'cn': [u'trust admins'],
+                        'description': [u'Trusts administrators group'],
+                        'objectclass': fuzzy_set_ci(objectclasses.group),
+                        'ipauniqueid': [fuzzy_uuid],
+                    },
+                ],
+            ),
+        ),
+
+        dict(
+            desc='Search for non-POSIX groups with criteria filter',
+            command=('group_find', [u'users'], dict(nonposix=True, all=True)),
+            expected=dict(
+                summary=u'1 group matched',
+                count=1,
+                truncated=False,
+                result=[
+                    {
+                        'dn': get_group_dn('ipausers'),
+                        'cn': [u'ipausers'],
+                        'description': [u'Default group for all users'],
+                        'objectclass': fuzzy_set_ci(objectclasses.group),
+                        'ipauniqueid': [fuzzy_uuid],
+                    },
+                ],
+            ),
+        ),
+
+        dict(
+            desc='Search for POSIX groups',
+            command=('group_find', [], dict(posix=True, all=True)),
+            expected=dict(
+                summary=u'4 groups matched',
+                count=4,
+                truncated=False,
+                result=[
+                    {
+                        'dn': get_group_dn('admins'),
+                        'member_user': [u'admin'],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [u'admins'],
+                        'description': [u'Account administrators group'],
+                        'objectclass': fuzzy_set_ci(objectclasses.posixgroup),
+                        'ipauniqueid': [fuzzy_uuid],
+                    },
+                    {
+                        'dn': get_group_dn('editors'),
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [u'editors'],
+                        'description': [u'Limited admins who can edit other users'],
+                        'objectclass': fuzzy_set_ci(objectclasses.posixgroup),
+                        'ipauniqueid': [fuzzy_uuid],
+                    },
+                    dict(
+                        dn=get_group_dn(group1),
+                        cn=[group1],
+                        description=[u'New desc 1'],
+                        gidnumber=[fuzzy_digits],
+                        objectclass=fuzzy_set_ci(objectclasses.posixgroup),
+                        ipauniqueid=[fuzzy_uuid],
+                    ),
+                    dict(
+                        dn=get_group_dn(group2),
+                        cn=[group2],
+                        description=[u'New desc 2'],
+                        gidnumber=[fuzzy_digits],
+                        objectclass=fuzzy_set_ci(objectclasses.posixgroup),
+                        ipauniqueid=[fuzzy_uuid],
+                    ),
+                ],
+            ),
+        ),
+
+
         ###############
         # test external SID members for group3:
         dict(
@@ -399,6 +492,25 @@ class test_group(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     dn=get_group_dn(group3),
                 ),
+            ),
+        ),
+
+        dict(
+            desc='Search for external groups',
+            command=('group_find', [], dict(external=True, all=True)),
+            expected=dict(
+                summary=u'1 group matched',
+                count=1,
+                truncated=False,
+                result=[
+                    dict(
+                        cn=[group3],
+                        description=[u'Test desc 3'],
+                        objectclass=fuzzy_set_ci(objectclasses.externalgroup),
+                        ipauniqueid=[fuzzy_uuid],
+                        dn=get_group_dn(group3),
+                    ),
+                ],
             ),
         ),
 
