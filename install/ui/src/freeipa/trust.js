@@ -28,6 +28,13 @@ IPA.trust.entity = function(spec) {
     var that = IPA.entity(spec);
 
     that.init = function() {
+
+        if (!IPA.trust_enabled) {
+            throw {
+                expected: true
+            };
+        }
+
         that.entity_init();
 
         that.builder.search_facet({
@@ -198,6 +205,13 @@ IPA.trust.config_entity = function(spec) {
     var that = IPA.entity(spec);
 
     that.init = function() {
+
+        if (!IPA.trust_enabled) {
+            throw {
+                expected: true
+            };
+        }
+
         that.entity_init();
 
         that.builder.details_facet({

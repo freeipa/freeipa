@@ -140,7 +140,17 @@ var IPA = function() {
             }
         }));
 
-
+        batch.add_command(IPA.command({
+            entity: 'trustconfig',
+            method: 'show',
+            retry: false,
+            on_success: function(data, text_status, xhr) {
+                that.trust_enabled = true;
+            },
+            on_error: function(xhr, text_status, error_thrown) {
+                that.trust_enabled = false;
+            }
+        }));
 
         batch.execute();
     };

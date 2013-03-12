@@ -2,7 +2,7 @@
     "error": null,
     "id": null,
     "result": {
-        "count": 4,
+        "count": 5,
         "results": [
             {
                 "error": null,
@@ -786,6 +786,29 @@
                 "result": true,
                 "summary": null,
                 "value": ""
+            },
+            {
+                "error": null,
+                "result": {
+                    "cn": [
+                        "test.example.com"
+                    ],
+                    "dn": "cn=test.example.com,cn=etc,dc=test,dc=example,dc=com",
+                    "ipantdomainguid": [
+                        "ae391b8e-a104-476f-a7ee-146239a31dde"
+                    ],
+                    "ipantfallbackprimarygroup": [
+                        "Default SMB Group"
+                    ],
+                    "ipantflatname": [
+                        "EXAMPLE"
+                    ],
+                    "ipantsecurityidentifier": [
+                        "S-1-5-21-1849636185-3637193423-921922997"
+                    ]
+                },
+                "summary": null,
+                "value": "ad"
             }
         ]
     }
