@@ -2,7 +2,7 @@ NULL =
 
 PLUGIN_COMMON_DIR=../common
 
-INCLUDES =							\
+AM_CPPFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(PLUGIN_COMMON_DIR)					\

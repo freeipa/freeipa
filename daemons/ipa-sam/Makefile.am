@@ -8,7 +8,7 @@ SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 KRB5_UTIL_DIR=../../util
 KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c $(KRB5_UTIL_DIR)/ipa_pwd_ntlm.c
 
-INCLUDES =						\
+AM_CPPFLAGS =						\
 	-I.						\
 	-I$(srcdir)					\
 	-I/usr/include/samba-4.0			\

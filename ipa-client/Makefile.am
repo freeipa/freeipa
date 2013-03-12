@@ -15,7 +15,7 @@ export AM_CFLAGS
 KRB5_UTIL_DIR=../util
 KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
 
-INCLUDES =							\
+AM_CPPFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(KRB5_UTIL_DIR)					\

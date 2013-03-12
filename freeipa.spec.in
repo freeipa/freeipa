@@ -803,7 +803,7 @@ fi
 - Add certmonger condrestart to server post scriptlet
 - Make certmonger a (pre) Requires on the server subpackage
 
-* Fri Jan 22 2013 Petr Vobornik <pvoborni@redhat.com> - 3.0.99-11
+* Tue Jan 22 2013 Petr Vobornik <pvoborni@redhat.com> - 3.0.99-11
 - dependency fix
 - Add BuildRequires: java-1.7.0-openjdk.
 - Removed BuildRequires: rhino
@@ -881,7 +881,7 @@ fi
 * Mon Aug 20 2012 Tomas Babej <tbabej@redhat.com> - 2.99.0-42
 - Add samba4-winbind to build dependencies for AD server-side code
 
-* Thu Aug 17 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-41
+* Fri Aug 17 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-41
 - Set min for bind-dyndb-ldap to 1.1.0-0.16.rc1 to pick up complete zone transfer
   support
 
@@ -900,14 +900,14 @@ fi
 - Set minimum tomcat6 to 6.0.35-4 in F-18
 - Set minimum mod_auth_kerb to 5.4-16 in F-18
 
-* Fri Jun 21 2012 Sumit Bose <sbose@redhat.com> - 2.99.0-36
+* Thu Jun 21 2012 Sumit Bose <sbose@redhat.com> - 2.99.0-36
 - Add extdom extop plugin
 
-* Fri Jun 21 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-35
+* Thu Jun 21 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-35
 - Add client requires on libsss-autofs, autofs, libnfsidmap and nfs-utils
   for configuring automount and NFS.
 
-* Fri Jun 21 2012 Petr Vobornik <pvoborni@redhat.com> - 2.99.0-34
+* Thu Jun 21 2012 Petr Vobornik <pvoborni@redhat.com> - 2.99.0-34
 - Add Web UI reset password pages
 
 * Wed Jun 20 2012 Ondrej Hamada <ohamada@redhat.com> - 2.99.0-33
@@ -941,13 +941,13 @@ fi
 * Tue Mar 27 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-26
 - Add python-krbV Requires on client package
 
-* Wed Mar 26 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-25
+* Mon Mar 26 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-25
 - Set min for 389-ds-base to 1.2.10.4-2 to fix upgrade issue
 
 * Fri Mar 23 2012 Petr Viktorin <pviktori@redhat.com> - 2.99.0-24
 - Add python-lxml and python-pyasn1 to BuildRequires
 
-* Wed Mar 19 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-23
+* Mon Mar 19 2012 Martin Kosek <mkosek@redhat.com> - 2.99.0-23
 - Set min for bind-dyndb-ldap and bind to pick up new features and bug fixes
 
 * Thu Mar 1 2012 Jan Cholasta <jcholast@redhat.com> - 2.99.0-22
@@ -983,12 +983,12 @@ fi
 * Fri Dec 9 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-13
 - Fix dependency for samba4-devel package
 
-* Wed Nov 17 2011 Simo Sorce <simo@redhat.com> - 2.99.0-12
+* Thu Nov 17 2011 Simo Sorce <simo@redhat.com> - 2.99.0-12
 - Add CLDAP plugin
 - Set min nvr of 389-ds-base to 1.2.10-0.5.a5 for SLAPI_PLUGIN_CONFIG_ENTRY
   support
 
-* Wed Nov 14 2011 Endi S. Dewata <edewata@redhat.com> - 2.99.0-11
+* Mon Nov 14 2011 Endi S. Dewata <edewata@redhat.com> - 2.99.0-11
 - Make sure changes to extension.js are not removed.
 
 * Wed Oct 26 2011 Endi S. Dewata <edewata@redhat.com> - 2.99.0-10
@@ -1018,7 +1018,7 @@ fi
 * Mon Aug 29 2011 Rob Crittenden <rcritten@redhat.com> - 2.99.0-2
 - Set min nvr of pki-ca to 9.0.12 for fix in BZ 700505
 
-* Wed Aug 25 2011 Simo Sorce <ssorce#redhat.com> - 2.99.0-1
+* Thu Aug 25 2011 Simo Sorce <ssorce#redhat.com> - 2.99.0-1
 - Remove ipa_kpasswd.
 
 * Tue Aug 23 2011 Jan Cholasta <jcholast@redhat.com> - 2.1.0-1
@@ -1036,7 +1036,7 @@ fi
 * Tue Aug 2 2011 Endi S. Dewata <edewata@redhat.com> - 2.0.90-10
 - Add *.ico files
 
-* Tue Jul 29 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.0.90-9
+* Fri Jul 29 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.0.90-9
 - Add libipa_hbac-python dependency for hbactest plugin
 
 * Thu Jul 28 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-8
@@ -1078,7 +1078,7 @@ fi
 * Wed Feb  9 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-44
 - Set minimum version of sssd to 1.5.1
 
-* Thu Feb  2 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-43
+* Wed Feb  2 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-43
 - Set min version of 389-ds-base to 1.2.8
 - Set min version of mod_nss 1.0.8-10
 - Set min version of selinux-policy to 3.9.7-27
@@ -1093,7 +1093,7 @@ fi
 - Remove some explicit Requires in client that aren't needed
 - Consistent use of buildroot vs RPM_BUILD_ROOT
 
-* Thu Jan 19 2011 Adam Young <ayoung@redhat.com> - 1.99-40
+* Wed Jan 19 2011 Adam Young <ayoung@redhat.com> - 1.99-40
 - Moved directory install/static to install/ui
 
 * Thu Jan 13 2011 Simo Sorce <ssorce@redhat.com> - 1.99-39
@@ -1215,7 +1215,7 @@ fi
 - Move ipalib to ipa-python subpackage
 - Bump minimum version of slapi-nis to 0.15
 
-* Thu May  6 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-5
+* Wed May  6 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-5
 - Set 0.14 as minimum version for slapi-nis
 
 * Wed Apr 22 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-4
@@ -1303,7 +1303,7 @@ fi
 - Pull upstream changelog 722
 - Add Conflicts mod_ssl (435360)
 
-* Thu Feb 29 2008 Rob Crittenden <rcritten@redhat.com> 0.99-11
+* Fri Feb 29 2008 Rob Crittenden <rcritten@redhat.com> 0.99-11
 - Pull upstream changelog 698
 - Fix ownership of /var/log/ipa_error.log during install (435119)
 - Add pwpolicy command and man page
@@ -1393,7 +1393,7 @@ fi
 * Fri Aug 10 2007 Karl MacMillan <kmacmill@redhat.com> - 0.2.0-1
 - Added support for ipa_kpasswd and ipa_pwd_extop
 
-* Mon Aug  5 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-3
+* Sun Aug  5 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-3
 - Abstracted client class to work directly or over RPC
 
 * Wed Aug  1 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-2
