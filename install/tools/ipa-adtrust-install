@@ -172,7 +172,7 @@ def set_and_check_netbios_name(netbios_name, unattended):
         raise Exception('Unexpected state while checking NetBIOS domain name')
 
     if not adtrustinstance.check_netbios_name(netbios_name):
-        if unattended:
+        if unattended and not gen_netbios_name:
             netbios_name_error(netbios_name)
             sys.exit("Aborting installation.")
         else:
@@ -182,6 +182,9 @@ def set_and_check_netbios_name(netbios_name, unattended):
 
     if not unattended and not netbios_name:
         netbios_name = read_netbios_name(gen_netbios_name)
+
+    if unattended and not netbios_name and gen_netbios_name:
+        netbios_name = gen_netbios_name
 
     return (netbios_name, reset_netbios_name)
 
