@@ -202,6 +202,7 @@ class DsInstance(service.Service):
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("configuring uuid plugin", self.__config_uuid_module)
         self.step("configuring modrdn plugin", self.__config_modrdn_module)
+        self.step("configuring DNS plugin", self.__config_dns_module)
         self.step("enabling entryUSN plugin", self.__enable_entryusn)
         self.step("configuring lockout plugin", self.__config_lockout_module)
         self.step("creating indices", self.__create_indices)
@@ -500,6 +501,11 @@ class DsInstance(service.Service):
     def __config_modrdn_module(self):
         self._ldap_mod("modrdn-conf.ldif")
         self._ldap_mod("modrdn-krbprinc.ldif", self.sub_dict)
+
+    def __config_dns_module(self):
+        # Configure DNS plugin unconditionally as we would otherwise have
+        # troubles if other replica just configured DNS with ipa-dns-install
+        self._ldap_mod("ipa-dns-conf.ldif")
 
     def __config_lockout_module(self):
         self._ldap_mod("lockout-conf.ldif")

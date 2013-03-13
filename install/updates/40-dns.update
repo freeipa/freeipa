@@ -41,3 +41,19 @@ replace:aci:'(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dn
 # replace DNS tree deny rule with managedBy enhanced allow rule
 dn: cn=dns, $SUFFIX
 replace:aci:'(targetattr = "*")(version 3.0; acl "No access to DNS tree without a permission"; deny (read,search,compare) (groupdn != "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX") and (groupdn != "ldap:///cn=Read DNS Entries,cn=permissions,cn=pbac,$SUFFIX");)::(targetattr = "*")(version 3.0; acl "Allow read access"; allow (read,search,compare) groupdn = "ldap:///cn=Read DNS Entries,cn=permissions,cn=pbac,$SUFFIX" or userattr = "parent[0,1].managedby#GROUPDN";)'
+
+# add DNS plugin
+dn: cn=IPA DNS,cn=plugins,cn=config
+default: objectclass: top
+default: objectclass: nsslapdPlugin
+default: objectclass: extensibleObject
+default: cn: IPA DNS
+default: nsslapd-plugindescription: IPA DNS support plugin
+default: nsslapd-pluginenabled: on
+default: nsslapd-pluginid: ipa_dns
+default: nsslapd-plugininitfunc: ipadns_init
+default: nsslapd-pluginpath: libipa_dns.so
+default: nsslapd-plugintype: preoperation
+default: nsslapd-pluginvendor: Red Hat, Inc.
+default: nsslapd-pluginversion: 1.0
+default: nsslapd-plugin-depends-on-type: database

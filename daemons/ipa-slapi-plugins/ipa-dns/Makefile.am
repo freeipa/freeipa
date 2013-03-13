@@ -32,7 +32,13 @@ libipa_dns_la_LIBADD = 	\
 	$(LDAP_LIBS)		\
 	$(NULL)
 
+appdir = $(IPA_DATA_DIR)
+app_DATA =          \
+    ipa-dns-conf.ldif \
+    $(NULL)
+
 EXTRA_DIST =			\
+	$(app_DATA)		\
 	$(NULL)
 
 MAINTAINERCLEANFILES =		\
