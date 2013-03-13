@@ -1735,6 +1735,17 @@ def install(options, env, fstore, statestore):
 
     ret = ds.search(domain=options.domain, servers=options.server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
 
+    if options.server and ret != 0:
+        # There is no point to continue with installation as server list was
+        # passed as a fixed list of server and thus we cannot discover any
+        # better result
+        root_logger.error("Failed to verify that %s is an IPA Server.",
+                ', '.join(options.server))
+        root_logger.error("This may mean that the remote server is not up "
+            "or is not reachable due to network or firewall settings.")
+        print_port_conf_info()
+        return CLIENT_INSTALL_ERROR
+
     if ret == ipadiscovery.BAD_HOST_CONFIG:
         root_logger.error("Can't get the fully qualified name of this host")
         root_logger.info("Check that the client is properly configured")
