@@ -611,6 +611,41 @@ def uninstall(options, env):
     if was_sshd_configured and ipaservices.knownservices.sshd.is_running():
         ipaservices.knownservices.sshd.restart()
 
+    rv = 0
+
+    if fstore.has_files():
+        root_logger.error('Some files have not been restored, see '
+                          '/var/lib/ipa-client/sysrestore/sysrestore.index')
+    has_state = False
+    for module in statestore.modules.keys():
+            root_logger.error('Some installation state for %s has not been '
+                'restored, see /var/lib/ipa/sysrestore/sysrestore.state',
+                module)
+            has_state = True
+            rv = 1
+
+    if has_state:
+        root_logger.warning(
+            'Some installation state has not been restored.\n'
+            'This may cause re-installation to fail.\n'
+            'It should be safe to remove /var/lib/ipa-client/sysrestore.state '
+            'but it may\n mean your system hasn\'t been restored '
+            'to its pre-installation state.')
+
+    # Remove the IPA configuration file
+    try:
+        os.remove("/etc/ipa/default.conf")
+    except OSError, e:
+        root_logger.warning('/etc/ipa/default.conf could not be removed: %s',
+                            str(e))
+        root_logger.warning('Please remove /etc/ipa/default.conf manually, '
+                            'as it can cause subsequent installation to fail.')
+
+    root_logger.info("Client uninstall complete.")
+
+    # The next block of code prompts for reboot, therefore all uninstall
+    # logic has to be done before
+
     if not options.unattended:
         root_logger.info(
             "The original nsswitch.conf configuration has been restored.")
@@ -625,26 +660,7 @@ def uninstall(options, env):
                         "Reboot command failed to exceute: %s", str(e))
                     return CLIENT_UNINSTALL_ERROR
 
-    rv = 0
-
-    if fstore.has_files():
-        root_logger.error('Some files have not been restored, see /var/lib/ipa-client/sysrestore/sysrestore.index')
-    has_state = False
-    for module in statestore.modules.keys():
-            root_logger.error('Some installation state for %s has not been restored, see /var/lib/ipa/sysrestore/sysrestore.state' % module)
-            has_state = True
-            rv = 1
-
-    if has_state:
-        root_logger.warning('Some installation state has not been restored.\nThis may cause re-installation to fail.\nIt should be safe to remove /var/lib/ipa-client/sysrestore.state but it may\nmean your system hasn\'t be restored to its pre-installation state.')
-
-    # Remove the IPA configuration file
-    try:
-        os.remove("/etc/ipa/default.conf")
-    except Exception:
-        pass
-
-    root_logger.info("Client uninstall complete.")
+    # IMPORTANT: Do not put any client uninstall logic after the block above
 
     return rv
 
