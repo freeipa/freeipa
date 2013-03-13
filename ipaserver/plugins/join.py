@@ -23,11 +23,12 @@ Joining an IPA domain
 
 import krbV
 
-from ipalib import api, util
+from ipalib import api
 from ipalib import Command, Str
 from ipalib import errors
 from ipalib import _
 from ipaserver.install import installutils
+
 
 def get_realm():
     """
@@ -37,6 +38,7 @@ def get_realm():
 
     return unicode(krbctx.default_realm)
 
+
 def validate_host(ugettext, cn):
     """
     Require at least one dot in the hostname (to support localhost.localdomain)
@@ -45,6 +47,7 @@ def validate_host(ugettext, cn):
     if dots < 2:
         return 'Fully-qualified hostname required'
     return None
+
 
 class join(Command):
     """Join an IPA domain"""
@@ -59,7 +62,8 @@ class join(Command):
             #normalizer=lamda value: value.lower(),
         ),
     )
-    takes_options= (
+
+    takes_options = (
         Str('realm',
             doc=_("The IPA realm"),
             default_from=lambda: get_realm(),
@@ -90,33 +94,43 @@ class join(Command):
         assert 'cn' not in kw
         ldap = self.api.Backend.ldap2
 
-        host = None
         try:
             # First see if the host exists
             kw = {'fqdn': hostname, 'all': True}
             attrs_list = api.Command['host_show'](**kw)['result']
             dn = attrs_list['dn']
 
+            # No error raised so far means that host entry exists
+            self.log.info('Host entry for %s already exists, '
+                          'joining may fail on the client side '
+                          'if not forced', hostname)
+
             # If no principal name is set yet we need to try to add
             # one.
             if 'krbprincipalname' not in attrs_list:
                 service = "host/%s@%s" % (hostname, api.env.realm)
                 api.Command['host_mod'](hostname, krbprincipalname=service)
+                self.log.info('No principal set, setting to %s', service)
 
             # It exists, can we write the password attributes?
             allowed = ldap.can_write(dn, 'krblastpwdchange')
             if not allowed:
-                raise errors.ACIError(info=_("Insufficient 'write' privilege to the 'krbLastPwdChange' attribute of entry '%s'.") % dn)
+                raise errors.ACIError(info=_("Insufficient 'write' privilege "
+                    "to the 'krbLastPwdChange' attribute of entry '%s'.") % dn)
 
+            # Reload the attrs_list and dn so that we return update values
             kw = {'fqdn': hostname, 'all': True}
             attrs_list = api.Command['host_show'](**kw)['result']
             dn = attrs_list['dn']
+
         except errors.NotFound:
-            attrs_list = api.Command['host_add'](hostname, force=True)['result']
+            attrs_list = api.Command['host_add'](hostname,
+                                                 force=True)['result']
             dn = attrs_list['dn']
 
         config = api.Command['config_show']()['result']
-        attrs_list['ipacertificatesubjectbase'] = config['ipacertificatesubjectbase']
+        attrs_list['ipacertificatesubjectbase'] =\
+            config['ipacertificatesubjectbase']
 
         return (dn, attrs_list)
 
