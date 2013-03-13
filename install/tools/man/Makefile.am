@@ -19,7 +19,10 @@ man1_MANS = 				\
 	ipa-compat-manage.1		\
 	ipa-nis-manage.1		\
 	ipa-managed-entries.1		\
-	ipa-compliance.1
+	ipa-compliance.1		\
+	ipa-backup.1			\
+	ipa-restore.1			\
+        $(NULL)
 
 man8_MANS =				\
 	ipactl.8			\

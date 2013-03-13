@@ -421,6 +421,7 @@ mkdir -p %{buildroot}%{_unitdir}
 install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
 install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
 # END
+mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 %endif  # ! %{ONLY_CLIENT}
 
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/
@@ -568,6 +569,8 @@ fi
 %files server -f server-python.list
 %defattr(-,root,root,-)
 %doc COPYING README Contributors.txt
+%{_sbindir}/ipa-backup
+%{_sbindir}/ipa-restore
 %{_sbindir}/ipa-ca-install
 %{_sbindir}/ipa-dns-install
 %{_sbindir}/ipa-server-install
@@ -688,6 +691,7 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_dns.so
 %attr(755,root,root) %{plugin_dir}/libipa_range_check.so
 %dir %{_localstatedir}/lib/ipa
+%attr(755,root,root) %dir %{_localstatedir}/lib/ipa/backup
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
@@ -711,6 +715,8 @@ fi
 %{_mandir}/man8/ipactl.8.gz
 %{_mandir}/man8/ipa-upgradeconfig.8.gz
 %{_mandir}/man1/ipa-compliance.1.gz
+%{_mandir}/man1/ipa-backup.1.gz
+%{_mandir}/man1/ipa-restore.1.gz
 
 %files server-selinux
 %defattr(-,root,root,-)
@@ -788,14 +794,18 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
-* Thu Apr  4 2013 Alexander Bokovoy <abokovoy@redhat.com> - 3.1.99-3
+* Fri Apr  5 2013 Rob Crittenden <rcritten@redhat.com> - 3.1.99-5
+- Add backup and restore
+- Own /var/lib/ipa/backup
+
+* Thu Apr  4 2013 Alexander Bokovoy <abokovoy@redhat.com> - 3.1.99-4
 - Make sure build against Krb5 1.11 in Fedora 18 environment creates proper dependencies
 
-* Tue Apr  2 2013 Martin Kosek <mkosek@redhat.com> - 3.1.99-2
+* Tue Apr  2 2013 Martin Kosek <mkosek@redhat.com> - 3.1.99-3
 - Require 389-base-base >= 1.3.0.5 to pull the following fixes:
-  - upgrade deadlock caused by DNA plugin reconfiguration
-  - CVE-2013-1897: unintended information exposure when
-    nsslapd-allow-anonymous-access is set to rootdse
+- upgrade deadlock caused by DNA plugin reconfiguration
+- CVE-2013-1897: unintended information exposure when
+  nsslapd-allow-anonymous-access is set to rootdse
 
 * Wed Mar 27 2013 Martin Kosek <mkosek@redhat.com> - 3.1.99-2
 - Remove conflict with krb5-server > 1.11 as ipa-kdb is compatible

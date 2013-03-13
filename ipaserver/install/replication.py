@@ -18,6 +18,7 @@
 #
 
 import time
+import datetime
 import sys
 import os
 
@@ -794,7 +795,7 @@ class ReplicationManager(object):
         except Exception, e:
             root_logger.debug("Failed to remove referral value: %s" % str(e))
 
-    def check_repl_init(self, conn, agmtdn):
+    def check_repl_init(self, conn, agmtdn, start):
         done = False
         hasError = 0
         attrlist = ['cn', 'nsds5BeginReplicaRefresh',
@@ -819,16 +820,20 @@ class ReplicationManager(object):
                     done = True
                     hasError = 2
                 elif status.find("Total update succeeded") > -1:
-                    print "Update succeeded"
+                    print "\nUpdate succeeded"
                     done = True
                 elif inprogress.lower() == 'true':
-                    print "Update in progress yet not in progress"
+                    print "\nUpdate in progress yet not in progress"
                 else:
-                    print "[%s] reports: Update failed! Status: [%s]" % (conn.host, status)
+                    print "\n[%s] reports: Update failed! Status: [%s]" % (conn.host, status)
                     hasError = 1
                     done = True
             else:
-                print "Update in progress"
+                now = datetime.datetime.now()
+                d = now - start
+                sys.stdout.write('\r')
+                sys.stdout.write("Update in progress, %d seconds elapsed" % int(d.total_seconds()))
+                sys.stdout.flush()
 
         return done, hasError
 
@@ -873,9 +878,11 @@ class ReplicationManager(object):
     def wait_for_repl_init(self, conn, agmtdn):
         done = False
         haserror = 0
+        start = datetime.datetime.now()
         while not done and not haserror:
             time.sleep(1)  # give it a few seconds to get going
-            done, haserror = self.check_repl_init(conn, agmtdn)
+            done, haserror = self.check_repl_init(conn, agmtdn, start)
+        print ""
         return haserror
 
     def wait_for_repl_update(self, conn, agmtdn, maxtries=600):
@@ -1070,7 +1077,8 @@ class ReplicationManager(object):
         self.setup_agreement(r_conn, self.conn.host, isgssapi=True)
 
     def initialize_replication(self, dn, conn):
-        mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
+        mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start'),
+               (ldap.MOD_REPLACE, 'nsds5ReplicaEnabled', 'on')]
         try:
             conn.modify_s(dn, mod)
         except ldap.ALREADY_EXISTS:
@@ -1081,9 +1089,10 @@ class ReplicationManager(object):
         newschedule = '2358-2359 0'
 
         filter = self.get_agreement_filter(host=hostname)
-        entries = conn.get_entries(
-            DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
-        if len(entries) == 0:
+        try:
+            entries = conn.get_entries(
+                DN(('cn', 'config')), ldap.SCOPE_SUBTREE, filter)
+        except errors.NotFound:
             root_logger.error("Unable to find replication agreement for %s" %
                           (hostname))
             raise RuntimeError("Unable to proceed")
@@ -1405,3 +1414,137 @@ class ReplicationManager(object):
         self.conn.update_entry(entry)
 
         return True
+
+    def disable_agreement(self, hostname):
+        """
+        Disable the replication agreement to hostname.
+        """
+        cn, dn = self.agreement_dn(hostname)
+
+        entry = self.conn.get_entry(dn)
+        entry['nsds5ReplicaEnabled'] = 'off'
+
+        try:
+            self.conn.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+
+    def enable_agreement(self, hostname):
+        """
+        Enable the replication agreement to hostname.
+
+        Note: for replication to work it needs to be enabled both ways.
+        """
+        cn, dn = self.agreement_dn(hostname)
+
+        entry = self.conn.get_entry(dn)
+        entry['nsds5ReplicaEnabled'] = 'on'
+
+        try:
+            self.conn.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+
+class CSReplicationManager(ReplicationManager):
+    """ReplicationManager specific to CA agreements
+
+    Note that in most cases we don't know if we're connecting to an old-style
+    separate PKI DS, or to a host with a merged DB.
+    Use the get_cs_replication_manager function to determine this and return
+    an appropriate CSReplicationManager.
+    """
+
+    def __init__(self, realm, hostname, dirman_passwd, port):
+        super(CSReplicationManager, self).__init__(
+            realm, hostname, dirman_passwd, port, starttls=True)
+        self.suffix = DN(('o', 'ipaca'))
+        self.hostnames = [] # set before calling or agreement_dn() will fail
+
+    def agreement_dn(self, hostname, master=None):
+        """
+        Construct a dogtag replication agreement name. This needs to be much
+        more agressive than the IPA replication agreements because the name
+        is different on each side.
+
+        hostname is the local hostname, not the remote one, for both sides
+        NOTE: The agreement number is hardcoded in dogtag as well
+
+        TODO: configurable instance name
+        """
+        dn = None
+        cn = None
+        if self.conn.port == 7389:
+            instance_name = 'pki-ca'
+        else:
+            instance_name = dogtag.configured_constants(api).PKI_INSTANCE_NAME
+
+        # if master is not None we know what dn to return:
+        if master is not None:
+            if master is True:
+                name = "master"
+            else:
+                name = "clone"
+            cn="%sAgreement1-%s-%s" % (name, hostname, instance_name)
+            dn = DN(('cn', cn), self.replica_dn())
+            return (cn, dn)
+
+        for host in self.hostnames:
+            for master in ["master", "clone"]:
+                try:
+                    cn="%sAgreement1-%s-%s" % (master, host, instance_name)
+                    dn = DN(('cn', cn), self.replica_dn())
+                    self.conn.get_entry(dn)
+                    return (cn, dn)
+                except errors.NotFound:
+                    dn = None
+                    cn = None
+
+        raise errors.NotFound(reason='No agreement found for %s' % hostname)
+
+    def delete_referral(self, hostname, port):
+        dn = DN(('cn', self.suffix), ('cn', 'mapping tree'), ('cn', 'config'))
+        entry = self.conn.get_entry(dn)
+        try:
+            # TODO: should we detect proto somehow ?
+            entry['nsslapd-referral'].remove('ldap://%s/%s' %
+                (ipautil.format_netloc(hostname, port), self.suffix))
+            self.conn.update_entry(entry)
+        except Exception, e:
+            root_logger.debug("Failed to remove referral value: %s" % e)
+
+    def has_ipaca(self):
+        try:
+            entry = self.conn.get_entry(self.suffix)
+        except errors.NotFound:
+            return False
+        else:
+            return True
+
+def get_cs_replication_manager(realm, host, dirman_passwd):
+    """Get a CSReplicationManager for a remote host
+
+    Detects if the host has a merged database, connects to appropriate port.
+    """
+
+    # Try merged database port first. If it has the ipaca tree, return
+    # corresponding replication manager
+    # If we can't connect to it at all, we're not dealing with an IPA master
+    # anyway; let the exception propagate up
+    # Fall back to the old PKI-only DS port. Check that it has the ipaca tree
+    # (IPA with merged DB theoretically leaves port 7389 free for anyone).
+    # If it doesn't, raise exception.
+    ports = [
+        dogtag.Dogtag10Constants.DS_PORT,
+        dogtag.Dogtag9Constants.DS_PORT,
+    ]
+    for port in ports:
+        root_logger.debug('Looking for PKI DS on %s:%s' % (host, port))
+        replication_manager = CSReplicationManager(
+            realm, host, dirman_passwd, port)
+        if replication_manager.has_ipaca():
+            root_logger.debug('PKI DS found on %s:%s' % (host, port))
+            return replication_manager
+        else:
+            root_logger.debug('PKI tree not found on %s:%s' % (host, port))
+
+    raise errors.NotFound(reason='Cannot reach PKI DS at %s on ports %s' % (host, ports))

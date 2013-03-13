@@ -1,0 +1,84 @@
+.\" A man page for ipa-backup
+.\" Copyright (C) 2013 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.TH "ipa-backup" "1" "Mar 22 2013" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-backup \- Back up an IPA master
+.SH "SYNOPSIS"
+ipa\-backup [\fIOPTION\fR]...
+.SH "DESCRIPTION"
+Two kinds of backups: full and data\-only.
+.TP
+The back up is optionally encrypted using either the default root GPG key or a named key. No passphrase is supported.
+.TP
+Backups are stored in a subdirectory in /var/lib/ipa/backup.
+.TP
+The naming convention for full backups is ipa\-full\-YEAR\-MM\-DD\-HH\-MM\-SS in the GMT time zone.
+.TP
+The naming convention for data backups is ipa\-data\-YEAR\-MM\-DD\-HH\-MM\-SS In the GMT time zone.
+.TP
+Within the subdirectory is file, header, that describes the back up including the type, system, date of backup, the version of IPA, the version of the backup and the services on the master.
+.TP
+A backup can not be restored on another host.
+.TP
+A backup can not be restored in a different version of IPA.
+.SH "OPTIONS"
+.TP
+\fB\-\-data\fR
+Back up data only. The default is to back up all IPA files plus data.
+.TP
+\fB\-\-gpg\fR
+Encrypt the back up file.
+.TP
+\fB\-\-gpg\-keyring\fR=\fIGPG_KEYRING\fR
+The full path to a GPG keyring. The keyring consists of two files, a public and a private key (.sec and .pub respectively). Specify the path without an extension.
+.TP
+\fB\-\-logs\fR
+Include the IPA service log files in the backup.
+.TP
+\fB\-\-online\fR
+Perform the backup on\-line. Requires the \-\-data option.
+.TP
+\fB\-\-v\fR, \fB\-\-verbose\fR
+Print debugging information
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Alias for \-\-verbose
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors
+.TP
+\fB\-\-log\-file\fR=\fIFILE\fR
+Log to the given file
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+.SH "FILES"
+.PP
+\fI/var/lib/ipa/backup\fR
+.RS 4
+The default directory for storing backup files.
+.RE
+.PP
+\fl/var/log/ipabackup.log\fR
+.RS 4
+The log file for backups
+.PP
+.SH "SEE ALSO"
+ipa\-restore(1).

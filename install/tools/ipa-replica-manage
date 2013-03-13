@@ -827,6 +827,10 @@ def re_initialize(realm, thishost, fromhost, dirman_passwd):
     else:
         repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
         agreement = repl.get_replication_agreement(thishost)
+
+        thisrepl.enable_agreement(fromhost)
+        repl.enable_agreement(thishost)
+
         repl.force_sync(repl.conn, thishost)
 
         repl.initialize_replication(agreement.dn, repl.conn)

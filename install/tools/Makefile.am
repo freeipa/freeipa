@@ -22,6 +22,8 @@ sbin_SCRIPTS =			\
 	ipa-ldap-updater	\
 	ipa-upgradeconfig	\
 	ipa-compliance		\
+	ipa-backup		\
+	ipa-restore		\
 	$(NULL)
 
 EXTRA_DIST =			\
