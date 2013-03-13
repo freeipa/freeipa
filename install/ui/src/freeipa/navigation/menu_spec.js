@@ -69,13 +69,38 @@ var nav = {};
             {entity: 'pwpolicy'},
             {entity: 'krbtpolicy'},
             {entity: 'selinuxusermap'},
-            {name: 'automember', label: '@i18n:tabs.automember',
-            children: [
-                { name: 'amgroup', entity: 'automember',
-                facet: 'searchgroup', label: '@i18n:objects.automember.usergrouprules'},
-                { name: 'amhostgroup', entity: 'automember',
-                facet: 'searchhostgroup', label: '@i18n:objects.automember.hostgrouprules'}
-            ]}
+            {
+                name: 'automember',
+                label: '@i18n:tabs.automember',
+                children: [
+                    {
+                        name: 'amgroup',
+                        entity: 'automember',
+                        facet: 'searchgroup',
+                        label: '@i18n:objects.automember.usergrouprules',
+                        children: [
+                            {
+                                entity: 'automember',
+                                facet: 'usergrouprule',
+                                hidden: true
+                            }
+                        ]
+                    },
+                    {
+                        name: 'amhostgroup',
+                        entity: 'automember',
+                        facet: 'searchhostgroup',
+                        label: '@i18n:objects.automember.hostgrouprules',
+                        children: [
+                            {
+                                entity: 'automember',
+                                facet: 'hostgrouprule',
+                                hidden: true
+                            }
+                        ]
+                    }
+                ]
+            }
         ]},
         {name: 'ipaserver', label: '@i18n:tabs.ipaserver', children: [
             {name: 'rolebased', label: '@i18n:tabs.role', children: [
