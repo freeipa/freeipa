@@ -259,27 +259,38 @@ define(['dojo/_base/declare',
 
         _navigate_to_menu_item: function(menu_item) {
 
-            if (menu_item.entity) {
-                // entity pages
-                this.router.navigate_to_entity_facet(
-                    menu_item.entity,
-                    menu_item.facet,
-                    menu_item.pkeys,
-                    menu_item.args);
-            } else if (menu_item.facet) {
-                // concrete facets
-                this.router.navigate_to_facet(menu_item.facet, menu_item.args);
-            } else {
-                // categories, select first posible child
-                var children = this.menu.query({parent: menu_item.name });
-                if (children.total) {
-                    var success = false;
-                    for (var i=0; i<children.total;i++) {
-                        success = this._navigate_to_menu_item(children[i]);
-                        if (success) break;
-                    }
+            var child;
+
+            // always go deeper if child previuosly selected
+            if (menu_item.selected_child) {
+                child = this.menu.items.get(menu_item.selected_child);
+                if (child) {
+                    this._navigate_to_menu_item(child);
+                }
+            }
+            if (!child) {
+                if(menu_item.entity) {
+                    // entity pages
+                    this.router.navigate_to_entity_facet(
+                        menu_item.entity,
+                        menu_item.facet,
+                        menu_item.pkeys,
+                        menu_item.args);
+                } else if (menu_item.facet) {
+                    // concrete facets
+                    this.router.navigate_to_facet(menu_item.facet, menu_item.args);
                 } else {
-                    return false;
+                    // categories, select first posible child, it may be the last
+                    var children = this.menu.query({parent: menu_item.name });
+                    if (children.total) {
+                        var success = false;
+                        for (var i=0; i<children.total;i++) {
+                            success = this._navigate_to_menu_item(children[i]);
+                            if (success) break;
+                        }
+                    } else {
+                        return false;
+                    }
                 }
             }
 
@@ -298,20 +309,14 @@ define(['dojo/_base/declare',
          */
         on_menu_select: function(select_state) {
 
-            var has_visible = function(query_result) {
-                for (var i=0; i<query_result.total; i++) {
-                    if (!query_result[i].hidden) return true;
-                }
-                return false;
-            };
-
-            var item = select_state.item;
-            var visible_simblings = has_visible(this.menu.query({parent: item.parent}));
-            var visible_children = has_visible(this.menu.query({parent: item.name}));
-
+            var visible_levels = 0;
             var levels = select_state.new_selection.length;
+            for (var i=0; i< levels; i++) {
+                var item = select_state.new_selection[i];
+                if(!item.hidden) visible_levels++;
+            }
 
-            var three_levels = levels >= 3 && (visible_children > 0 || visible_simblings > 0);
+            var three_levels = visible_levels >= 3;
 
             dom_class.toggle(this.app_widget.content_node,
                              'nav-space-3',

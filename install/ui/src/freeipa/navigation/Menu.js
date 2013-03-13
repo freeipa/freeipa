@@ -192,6 +192,7 @@ return declare([Evented], {
 
         if (item.parent) {
             var parent = this.items.get(item.parent);
+            parent.selected_child = item.name;
             this._select(parent);
         }
     },
