@@ -383,7 +383,7 @@ def named_enable_psearch():
         # "connections" option, bail out
         pass
     else:
-        if connections is None or connections < minimum_connections:
+        if connections is not None and connections < minimum_connections:
             try:
                 bindinstance.named_conf_set_directive('connections',
                                                         minimum_connections)
