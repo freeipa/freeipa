@@ -451,6 +451,72 @@ def named_enable_serial_autoincrement():
 
     return changed
 
+def named_update_gssapi_configuration():
+    """
+    Update GSSAPI configuration in named.conf to a recent API.
+    tkey-gssapi-credential and tkey-domain is replaced with tkey-gssapi-keytab.
+    Details can be found in https://fedorahosted.org/freeipa/ticket/3429.
+
+    When some change in named.conf is done, this functions returns True
+    """
+
+    root_logger.info('[Updating GSSAPI configuration in DNS]')
+
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
+    if sysupgrade.get_upgrade_state('named.conf', 'gssapi_updated'):
+        root_logger.debug('Skip GSSAPI configuration check')
+        return False
+
+    try:
+        gssapi_keytab = bindinstance.named_conf_get_directive('tkey-gssapi-keytab',
+                bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot retrieve tkey-gssapi-keytab option from %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+    else:
+        if gssapi_keytab:
+            root_logger.debug('GSSAPI configuration already updated')
+            sysupgrade.set_upgrade_state('named.conf', 'gssapi_updated', True)
+            return False
+
+    try:
+        tkey_credential = bindinstance.named_conf_get_directive('tkey-gssapi-credential',
+                bindinstance.NAMED_SECTION_OPTIONS)
+        tkey_domain = bindinstance.named_conf_get_directive('tkey-domain',
+                bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot retrieve tkey-gssapi-credential option from %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+
+    if not tkey_credential or not tkey_domain:
+        root_logger.error('Either tkey-gssapi-credential or tkey-domain is missing in %s. '
+            'Skip update.', bindinstance.NAMED_CONF)
+        return False
+
+    try:
+        bindinstance.named_conf_set_directive('tkey-gssapi-credential', None,
+                                              bindinstance.NAMED_SECTION_OPTIONS)
+        bindinstance.named_conf_set_directive('tkey-domain', None,
+                                              bindinstance.NAMED_SECTION_OPTIONS)
+        bindinstance.named_conf_set_directive('tkey-gssapi-keytab', '/etc/named.keytab',
+                                              bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot update GSSAPI configuration in %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+    else:
+        root_logger.debug('GSSAPI configuration updated')
+
+    sysupgrade.set_upgrade_state('named.conf', 'gssapi_updated', True)
+    return True
+
+
 def enable_certificate_renewal(ca):
     """
     If the CA subsystem certificates are not being tracked for renewal then
@@ -741,7 +807,8 @@ def main():
     add_server_cname_records()
     changed_psearch = named_enable_psearch()
     changed_autoincrement = named_enable_serial_autoincrement()
-    if changed_psearch or changed_autoincrement:
+    changed_gssapi_conf = named_update_gssapi_configuration()
+    if changed_psearch or changed_autoincrement or changed_gssapi_conf:
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
         bind = bindinstance.BindInstance(fstore)

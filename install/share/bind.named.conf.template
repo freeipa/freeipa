@@ -14,8 +14,7 @@ options {
 	// Any host is permitted to issue recursive queries
 	allow-recursion { any; };
 
-	tkey-gssapi-credential "DNS/$FQDN";
-	tkey-domain "$REALM";
+	tkey-gssapi-keytab "/etc/named.keytab";
 };
 
 /* If you want to enable debugging, eg. using the 'rndc trace' command,
