@@ -1974,6 +1974,9 @@ def install(options, env, fstore, statestore):
                 root_logger.error("Test kerberos configuration failed")
                 return CLIENT_INSTALL_ERROR
             env['KRB5_CONFIG'] = krb_name
+            (ccache_fd, ccache_name) = tempfile.mkstemp()
+            os.close(ccache_fd)
+            env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = ccache_name
             join_args = ["/usr/sbin/ipa-join", "-s", cli_server[0], "-b", str(realm_to_suffix(cli_realm))]
             if options.debug:
                 join_args.append("-d")
@@ -2086,6 +2089,10 @@ def install(options, env, fstore, statestore):
                 os.remove(krb_name)
             except OSError:
                 root_logger.error("Could not remove %s", krb_name)
+            try:
+                os.remove(ccache_name)
+            except OSError:
+                pass
             try:
                 os.remove(krb_name + ".ipabkp")
             except OSError:
