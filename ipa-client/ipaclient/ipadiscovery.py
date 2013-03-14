@@ -248,7 +248,7 @@ class IPADiscovery(object):
                 self.realm = ldapret[2]
                 self.server_source = self.realm_source = (
                     'Discovered from LDAP DNS records in %s' % self.server)
-                valid_servers.insert(0, server)
+                valid_servers.append(server)
                 # verified, we actually talked to the remote server and it
                 # is definetely an IPA server
                 verified_servers = True
@@ -258,7 +258,7 @@ class IPADiscovery(object):
                     break
             elif ldapret[0] == NO_ACCESS_TO_LDAP or ldapret[0] == NO_TLS_LDAP:
                 ldapaccess = False
-                valid_servers.insert(0, server)
+                valid_servers.append(server)
                 # we may set verified_servers below, we don't have it yet
                 if autodiscovered:
                     # No need to keep verifying servers if we discovered them
@@ -266,11 +266,14 @@ class IPADiscovery(object):
                     break
             elif ldapret[0] == NOT_IPA_SERVER:
                 root_logger.warn(
-                    '%s (realm %s) is not an IPA server', server, self.realm)
+                   'Skip %s: not an IPA server', server)
             elif ldapret[0] == NO_LDAP_SERVER:
-                root_logger.debug(
-                    'Unable to verify that %s (realm %s) is an IPA server',
-                                    server, self.realm)
+                root_logger.warn(
+                   'Skip %s: LDAP server is not responding, unable to verify if '
+                   'this is an IPA server', server)
+            else:
+                root_logger.warn(
+                   'Skip %s: cannot verify if this is an IPA server', server)
 
         # If one of LDAP servers checked rejects access (maybe anonymous
         # bind is disabled), assume realm and basedn generated off domain.
@@ -401,7 +404,7 @@ class IPADiscovery(object):
                 root_logger.debug("LDAP server returned UNWILLING_TO_PERFORM. This likely means that minssf is enabled")
                 return [NO_TLS_LDAP]
 
-            root_logger.error("LDAP Error: %s: %s" %
+            root_logger.debug("LDAP Error: %s: %s" %
                (err.args[0]['desc'], err.args[0].get('info', '')))
             return [UNKNOWN_ERROR]
 
