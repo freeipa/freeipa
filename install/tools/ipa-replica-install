@@ -536,6 +536,9 @@ def main():
             fd.write("ra_plugin=dogtag\n")
             fd.write("dogtag_version=%s\n" %
                 dogtag.install_constants.DOGTAG_VERSION)
+        else:
+            fd.write("enable_ra=False\n")
+            fd.write("ra_plugin=none\n")
         fd.write("mode=production\n")
         fd.close()
     finally:
@@ -560,9 +563,7 @@ def main():
     sstore.backup_state("install", "group_exists", group_exists)
 
     #Automatically disable pkinit w/ dogtag until that is supported
-    #[certs.ipa_self_signed() must be called only after api.finalize()]
-    if not ipautil.file_exists(config.dir + "/pkinitcert.p12") and not certs.ipa_self_signed():
-        options.setup_pkinit = False
+    options.setup_pkinit = False
 
     # Install CA cert so that we can do SSL connections with ldap
     install_ca_cert(config)

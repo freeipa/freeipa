@@ -40,6 +40,7 @@ from ipalib.util import validate_hostname
 from ipapython import config
 from ipalib import errors
 from ipapython.dn import DN
+from ipaserver.install import certs
 
 # Used to determine install status
 IPA_MODULES = [
@@ -699,3 +700,56 @@ def handle_error(error, log_file_name=None):
         message = "Unexpected error"
     message += '\n%s: %s' % (type(error).__name__, error)
     return message, 1
+
+
+def check_pkcs12(pkcs12_info, ca_file, hostname):
+    """Check the given PKCS#12 with server cert and return the cert nickname
+
+    This is used for files given to --*_pkcs12 to ipa-server-install and
+    ipa-replica-prepare.
+
+    Return a (server cert name, CA cert names) tuple
+    """
+    pkcs12_filename, pin_filename = pkcs12_info
+    root_logger.debug('Checking PKCS#12 certificate %s', pkcs12_filename)
+    db_pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
+    with certs.NSSDatabase() as nssdb:
+        nssdb.create_db(db_pwd_file.name)
+
+        # Import the CA cert first so it has a known nickname
+        # (if it's present in the PKCS#12 it won't be overwritten)
+        ca_cert_name = 'The Root CA'
+        nssdb.import_pem_cert(ca_cert_name, "CT,C,C", ca_file)
+
+        # Import everything in the PKCS#12
+        nssdb.import_pkcs12(pkcs12_filename, db_pwd_file.name, pin_filename)
+
+        # Check we have exactly one server cert (one with a private key)
+        server_certs = nssdb.find_server_certs()
+        if not server_certs:
+            raise ScriptError(
+                'no server certificate found in %s' % pkcs12_filename)
+        if len(server_certs) > 1:
+            raise ScriptError(
+                '%s server certificates found in %s, expecting only one' %
+                (len(server_certs), pkcs12_filename))
+        [(server_cert_name, server_cert_trust)] = server_certs
+
+        # Check we have the whole cert chain & the CA is in it
+        for cert_name in nssdb.get_trust_chain(server_cert_name):
+            if cert_name == ca_cert_name:
+                break
+        else:
+            raise ScriptError(
+                '%s is not signed by %s, or the full certificate chain is not '
+                'present in the PKCS#12 file' % (pkcs12_filename, ca_file))
+
+        # Check server validity
+        try:
+            nssdb.verify_server_cert_validity(server_cert_name, hostname)
+        except ValueError as e:
+            raise ScriptError(
+                'The server certificate in %s is not valid: %s' %
+                (pkcs12_filename, e))
+
+        return server_cert_name

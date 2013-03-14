@@ -36,7 +36,7 @@ import certs
 import ldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
-from ipalib import errors
+from ipalib import errors, api
 from ipapython.dn import DN
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
@@ -541,7 +541,10 @@ class DsInstance(service.Service):
             # We only handle one server cert
             nickname = server_certs[0][0]
             self.dercert = dsdb.get_cert_from_db(nickname, pem=False)
-            dsdb.track_server_cert(nickname, self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid )
+            if api.env.enable_ra:
+                dsdb.track_server_cert(
+                    nickname, self.principal, dsdb.passwd_fname,
+                    'restart_dirsrv %s' % self.serverid)
         else:
             nickname = self.nickname
             cadb = certs.CertDB(self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
@@ -592,15 +595,30 @@ class DsInstance(service.Service):
         # check for open secure port 636 from now on
         self.open_ports.append(636)
 
-    def upload_ca_cert(self):
+    def export_ca_cert(self, nickname, location):
+        dirname = config_dirname(self.serverid)
+        dsdb = certs.NSSDatabase(nssdir=dirname)
+        dsdb.export_pem_cert(nickname, location)
+
+    def upload_ca_cert(self, cacert_name=None):
         """
-        Upload the CA certificate in DER form in the LDAP directory.
+        Upload the CA certificate from the NSS database to the LDAP directory.
         """
 
         dirname = config_dirname(self.serverid)
         certdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
 
-        dercert = certdb.get_cert_from_db(certdb.cacert_name, pem=False)
+        if cacert_name is None:
+            cacert_name = certdb.cacert_name
+        dercert = certdb.get_cert_from_db(cacert_name, pem=False)
+        self.upload_ca_dercert(dercert)
+
+    def upload_ca_dercert(self, dercert):
+        """Upload the CA DER certificate to the LDAP directory
+        """
+        # Note: Don't try to optimize if base64 data is already available.
+        # We want to re-encode using Python's b64encode to ensure the
+        # data is normalized (no extra newlines in the ldif)
         self.sub_dict['CADERCERT'] = base64.b64encode(dercert)
 
         self._ldap_mod('upload-cacert.ldif', self.sub_dict)

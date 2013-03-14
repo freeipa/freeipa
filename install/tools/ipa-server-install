@@ -38,6 +38,7 @@ import pickle
 import random
 import tempfile
 import nss.error
+import base64
 from optparse import OptionGroup, OptionValueError, SUPPRESS_HELP
 
 from ipaserver.install import dsinstance
@@ -60,7 +61,7 @@ from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipapython import ipautil
 from ipapython import dogtag
-from ipalib import api, errors, util
+from ipalib import api, errors, util, x509
 from ipapython.config import IPAOptionParser
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 from ipalib.util import validate_domain_name
@@ -185,6 +186,8 @@ def parse_options():
                       help="The password of the Apache Server PKCS#12 file")
     cert_group.add_option("--pkinit_pin", dest="pkinit_pin",
                       help="The password of the Kerberos KDC PKCS#12 file")
+    cert_group.add_option("--root-ca-file", dest="root_ca_file",
+                      help="PEM file with root CA certificate(s) to trust")
     cert_group.add_option("--subject", action="callback", callback=subject_callback,
                       type="string",
                       help="The certificate subject base (default O=<realm-name>)")
@@ -280,7 +283,14 @@ def parse_options():
     if cnt > 0 and cnt < 4:
         parser.error("All PKCS#12 options are required if any are used.")
 
-    if (options.external_cert_file or options.external_ca_file) and cnt:
+    if options.dirsrv_pkcs12 and not options.root_ca_file:
+        parser.error(
+            "--root-ca-file must be given with the PKCS#12 options.")
+    if options.dirsrv_pkcs12 and not options.root_ca_file:
+        parser.error(
+            "The PKCS#12 options must be given with --root-ca-file.")
+
+    if (options.external_cert_file or options.external_ca_file) and options.dirsrv_pkcs12:
         parser.error(
             "PKCS#12 options cannot be used with the external CA options.")
 
@@ -289,6 +299,8 @@ def parse_options():
             parser.error("You cannot specify --external_cert_file together with --external-ca")
         if options.external_ca_file:
             parser.error("You cannot specify --external_ca_file together with --external-ca")
+        if options.dirsrv_pkcs12:
+            parser.error("You cannot specify PKCS#12 options together with --external-ca")
 
     if ((options.external_cert_file and not options.external_ca_file) or
        (not options.external_cert_file and options.external_ca_file)):
@@ -561,6 +573,7 @@ def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
             conn.update_entry(dn, mod)
         conn.disconnect()
 
+
 def main():
     global ds
     global uninstalling
@@ -821,6 +834,13 @@ def main():
     else:
         domain_name = options.domain_name
 
+    if options.http_pkcs12:
+        # Check the given PKCS#12 files
+        ca_file = options.root_ca_file
+        check_pkcs12 = installutils.check_pkcs12
+        http_cert_name = check_pkcs12(http_pkcs12_info, ca_file, host_name)
+        dirsrv_cert_name = check_pkcs12(dirsrv_pkcs12_info, ca_file, host_name)
+
     domain_name = domain_name.lower()
 
     ip = get_server_ip_address(host_name, fstore, options.unattended, options)
@@ -921,6 +941,7 @@ def main():
             dogtag.install_constants.DOGTAG_VERSION)
     else:
         fd.write("enable_ra=False\n")
+        fd.write("ra_plugin=none\n")
     fd.write("mode=production\n")
     fd.close()
 
@@ -955,8 +976,6 @@ def main():
             root_logger.critical("failed to add DS group: %s" % e)
 
     # Create a directory server instance
-    ds = dsinstance.DsInstance(fstore=fstore)
-
     if external != 2:
         # Configure ntpd
         if options.conf_ntp:
@@ -966,17 +985,22 @@ def main():
                 ntp.create_instance()
 
         if options.dirsrv_pkcs12:
+            ds = dsinstance.DsInstance(fstore=fstore,
+                cert_nickname=dirsrv_cert_name)
             ds.create_instance(realm_name, host_name, domain_name,
                             dm_password, dirsrv_pkcs12_info,
+                            idstart=options.idstart, idmax=options.idmax,
                             subject_base=options.subject,
                             hbac_allow=not options.hbac_allow)
         else:
+            ds = dsinstance.DsInstance(fstore=fstore)
             ds.create_instance(realm_name, host_name, domain_name,
                             dm_password,
                             idstart=options.idstart, idmax=options.idmax,
                             subject_base=options.subject,
                             hbac_allow=not options.hbac_allow)
     else:
+        ds = dsinstance.DsInstance(fstore=fstore)
         ds.init_info(
             realm_name, host_name, domain_name, dm_password,
             False, options.subject, 1101, 1100, None)
@@ -1031,8 +1055,8 @@ def main():
     ds.enable_ssl()
     ds.restart()
 
-    # We need to ldap_enable the CA now that DS is up and running
     if setup_ca:
+        # We need to ldap_enable the CA now that DS is up and running
         ca.ldap_enable('CA', host_name, dm_password,
                        ipautil.realm_to_suffix(realm_name))
         if not dogtag.install_constants.SHARED_DB:
@@ -1047,8 +1071,29 @@ def main():
             ca.enable_client_auth_to_db()
             ca.restart()
 
-    # Upload the CA cert to the directory
-    ds.upload_ca_cert()
+        # Upload the CA cert to the directory
+        ds.upload_ca_cert()
+    else:
+        with open(options.root_ca_file) as f:
+            pem_cert = f.read()
+
+        # Trust the CA cert
+        root_logger.info(
+            'Trusting certificate authority from %s' % options.root_ca_file)
+
+        certs.NSSDatabase('/etc/pki/nssdb').import_pem_cert(
+            'External CA cert', 'CT,,', options.root_ca_file)
+
+        # Put a CA cert where other instances expect it
+        with open('/etc/ipa/ca.crt', 'wb') as f:
+            f.write(pem_cert)
+
+        # Install the CA cert for the HTTP server
+        with open('/usr/share/ipa/html/ca.crt', 'wb') as f:
+            f.write(pem_cert)
+
+        # Upload the CA cert to the directory
+        ds.upload_ca_dercert(base64.b64decode(x509.strip_header(pem_cert)))
 
     krb = krbinstance.KrbInstance(fstore)
     if options.pkinit_pkcs12:
@@ -1178,8 +1223,6 @@ def main():
     else:
         print "In order for Firefox autoconfiguration to work you will need to"
         print "use a SSL signing certificate. See the IPA documentation for more details."
-        print "You also need to install a PEM copy of the CA certificate into"
-        print "/usr/share/ipa/html/ca.crt"
 
     if ipautil.file_exists(ANSWER_CACHE):
         os.remove(ANSWER_CACHE)

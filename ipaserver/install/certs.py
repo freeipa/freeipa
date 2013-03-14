@@ -29,6 +29,8 @@ import base64
 from hashlib import sha1
 from ConfigParser import RawConfigParser, MissingSectionHeaderError
 
+from nss import nss
+
 from ipapython import dogtag
 from ipapython import sysrestore
 from ipapython import ipautil
@@ -293,9 +295,11 @@ class NSSDatabase(object):
             ipautil.run(args)
         except ipautil.CalledProcessError, e:
             if e.returncode == 17:
-                raise RuntimeError("incorrect password for pkcs#12 file")
+                raise RuntimeError("incorrect password for pkcs#12 file %s" %
+                    pkcs12_filename)
             else:
-                raise RuntimeError("unknown error import pkcs#12 file")
+                raise RuntimeError("unknown error import pkcs#12 file %s" %
+                    pkcs12_filename)
 
     def find_root_cert_from_pkcs12(self, pkcs12_fname, passwd_fname=None):
         """Given a PKCS#12 file, try to find any certificates that do
@@ -354,6 +358,53 @@ class NSSDatabase(object):
         with open(location, "w+") as fd:
             fd.write(cert)
         os.chmod(location, 0444)
+
+    def import_pem_cert(self, nickname, flags, location):
+        """Import a cert form the given PEM file.
+
+        The file must contain exactly one certificate.
+        """
+        with open(location) as fd:
+            certs = fd.read()
+
+        cert, st = find_cert_from_txt(certs)
+        self.add_single_pem_cert(nickname, flags, cert)
+
+        try:
+            find_cert_from_txt(certs, st)
+        except RuntimeError:
+            pass
+        else:
+            raise ValueError('%s contains more than one certificate')
+
+    def add_single_pem_cert(self, nick, flags, cert):
+        """Import a cert in PEM format"""
+        self.run_certutil(["-A", "-n", nick,
+                            "-t", flags,
+                            "-a"],
+                            stdin=cert)
+
+    def verify_server_cert_validity(self, nickname, hostname):
+        """Verify a certificate is valid for a SSL server with given hostname
+
+        Raises a ValueError if the certificate is invalid.
+        """
+        certdb = cert = None
+        nss.nss_init(self.secdir)
+        try:
+            certdb = nss.get_default_certdb()
+            cert = nss.find_cert_from_nickname(nickname)
+            intended_usage = nss.certificateUsageSSLServer
+            approved_usage = cert.verify_now(certdb, True, intended_usage)
+            if not approved_usage & intended_usage:
+                raise ValueError('invalid for a SSL server')
+            if not cert.verify_hostname(hostname):
+                raise ValueError('invalid for server %s' % hostname)
+        finally:
+            del certdb, cert
+            nss.nss_shutdown()
+
+        return None
 
 
 class CertDB(object):
@@ -610,10 +661,7 @@ class CertDB(object):
                     nick = get_ca_nickname(self.realm)
                 else:
                     nick = str(subject_dn)
-                self.run_certutil(["-A", "-n", nick,
-                                   "-t", "CT,,C",
-                                   "-a"],
-                                   stdin=cert)
+                self.nssdb.add_single_pem_cert(nick, "CT,,C", cert)
             except RuntimeError:
                 break
 

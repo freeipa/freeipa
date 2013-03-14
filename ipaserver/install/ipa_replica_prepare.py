@@ -99,6 +99,9 @@ class ReplicaPrepare(admintool.AdminTool):
             self.option_parser.error("You cannot specify a --reverse-zone "
                 "option together with --no-reverse")
 
+        #Automatically disable pkinit w/ dogtag until that is supported
+        options.setup_pkinit = False
+
         # If any of the PKCS#12 options are selected, all are required.
         pkcs12_opts = [options.dirsrv_pkcs12, options.dirsrv_pin,
                     options.http_pkcs12, options.http_pin]
@@ -127,11 +130,6 @@ class ReplicaPrepare(admintool.AdminTool):
         if api.env.host == self.replica_fqdn:
             raise admintool.ScriptError("You can't create a replica on itself")
 
-        #Automatically disable pkinit w/ dogtag until that is supported
-        #[certs.ipa_self_signed() must be called only after api.finalize()]
-        if not options.pkinit_pkcs12 and not certs.ipa_self_signed():
-            options.setup_pkinit = False
-
         # FIXME: certs.ipa_self_signed_master return value can be
         # True, False, None, with different meanings.
         # So, we need to explicitly compare to False
@@ -139,11 +137,29 @@ class ReplicaPrepare(admintool.AdminTool):
             raise admintool.ScriptError("A selfsign CA backend can only "
                 "prepare on the original master")
 
+        if not api.env.enable_ra and not options.http_pkcs12:
+            raise admintool.ScriptError(
+                "Cannot issue certificates: a CA is not installed. Use the "
+                "--http_pkcs12, --dirsrv_pkcs12 options to provide custom "
+                "certificates.")
+
+        if options.http_pkcs12:
+            # Check the given PKCS#12 files
+            self.check_pkcs12(options.http_pkcs12, options.http_pin)
+            self.check_pkcs12(options.dirsrv_pkcs12, options.dirsrv_pin)
+
         config_dir = dsinstance.config_dirname(
             dsinstance.realm_to_serverid(api.env.realm))
         if not ipautil.dir_exists(config_dir):
             raise admintool.ScriptError(
                 "could not find directory instance: %s" % config_dir)
+
+    def check_pkcs12(self, pkcs12_file, pkcs12_pin):
+        pin_file = ipautil.write_tmp_file(pkcs12_pin)
+        installutils.check_pkcs12(
+            pkcs12_info=(pkcs12_file, pin_file.name),
+            ca_file='/etc/ipa/ca.crt',
+            hostname=self.replica_fqdn)
 
     def ask_for_options(self):
         options = self.options
@@ -275,7 +291,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 "Creating SSL certificate for the Directory Server")
             self.export_certdb("dscert", passwd_fname)
 
-        if not certs.ipa_self_signed():
+        if not options.dirsrv_pkcs12 and not certs.ipa_self_signed():
             self.log.info(
                 "Creating SSL certificate for the dogtag Directory Server")
             self.export_certdb("dogtagcert", passwd_fname)

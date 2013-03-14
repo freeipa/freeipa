@@ -61,7 +61,10 @@ class HTTPInstance(service.Service):
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
-    def create_instance(self, realm, fqdn, domain_name, dm_password=None, autoconfig=True, pkcs12_info=None, self_signed_ca=False, subject_base=None, auto_redirect=True):
+    def create_instance(self, realm, fqdn, domain_name, dm_password=None,
+                        autoconfig=True, pkcs12_info=None,
+                        self_signed_ca=False, subject_base=None,
+                        auto_redirect=True):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
@@ -247,10 +250,13 @@ class HTTPInstance(service.Service):
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
 
             db.create_password_conf()
+
             # We only handle one server cert
             nickname = server_certs[0][0]
             self.dercert = db.get_cert_from_db(nickname, pem=False)
-            db.track_server_cert(nickname, self.principal, db.passwd_fname, 'restart_httpd')
+
+            if api.env.enable_ra:
+                db.track_server_cert(nickname, self.principal, db.passwd_fname, 'restart_httpd')
 
             self.__set_mod_nss_nickname(nickname)
         else:
