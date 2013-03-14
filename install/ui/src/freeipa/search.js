@@ -131,7 +131,12 @@ IPA.search_facet = function(spec, no_init) {
 
     that.show_add_dialog = function() {
         var dialog = that.managed_entity.get_dialog('add');
-        dialog.facet = that;
+        if (!that.adder_dialog) {
+            that.adder_dialog = dialog;
+            dialog.added.attach(function() {
+                that.refresh();
+            });
+        }
         dialog.pkey_prefix = that.managed_entity_pkey_prefix();
         dialog.open(that.container);
     };

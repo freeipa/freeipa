@@ -154,12 +154,13 @@ IPA.attribute_adder_dialog = function(spec) {
     spec.subject = metadata.label;
 
     var that = IPA.entity_adder_dialog(spec);
+    that.pkeys = spec.pkeys || [];
 
     that.create_add_command = function(record) {
 
         var command = that.entity_adder_dialog_create_add_command(record);
 
-        command.add_args(that.entity.get_primary_key());
+        command.add_args(that.pkeys);
 
         return command;
     };
@@ -1100,7 +1101,6 @@ IPA.association_facet = function (spec, no_init) {
             if (that.indirect_radio) that.indirect_radio.prop('checked', true);
         }
 
-        //var pkey = that.entity.get_primary_key();
         var pkeys = that.get_pkeys();
 
         var command = IPA.command({
@@ -1232,7 +1232,7 @@ IPA.attribute_facet = function(spec, no_init) {
 
     that.refresh = function() {
 
-        var pkey = that.entity.get_primary_key();
+        var pkey = that.get_pkeys();
 
         var command = IPA.command({
             entity: that.entity.name,
@@ -1269,9 +1269,13 @@ IPA.attribute_facet = function(spec, no_init) {
 
         var dialog = IPA.attribute_adder_dialog({
             attribute: spec.attribute,
-            entity: that.entity
+            entity: that.entity,
+            pkeys: that.get_pkeys()
         });
 
+        dialog.added.attach(function() {
+            that.refresh();
+        });
         dialog.open(that.container);
     };
 
@@ -1310,7 +1314,7 @@ IPA.attribute_facet = function(spec, no_init) {
 
     that.remove = function(values, on_success, on_error) {
 
-        var pkey = that.entity.get_primary_key();
+        var pkey = that.get_pkeys();
 
         var command = IPA.command({
             entity: that.entity.name,
