@@ -1624,7 +1624,7 @@ def get_ca_cert(fstore, options, server, basedn):
                 except Exception, e:
                     os.unlink(ca_file)
                     raise
-            except errors.NoCertificateError, e:
+            except (errors.NoCertificateError, errors.LDAPError), e:
                 root_logger.debug(str(e))
                 url = http_url()
                 if existing_ca_cert:
