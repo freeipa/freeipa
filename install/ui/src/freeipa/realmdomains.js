@@ -24,6 +24,8 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
 
     IPA.realmdomains.entity = function (spec) {
 
+        spec = spec || {};
+        spec.defines_key = false;
         var that = IPA.entity(spec);
 
         that.init = function () {

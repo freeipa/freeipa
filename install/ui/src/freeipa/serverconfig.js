@@ -26,6 +26,8 @@ IPA.serverconfig = {};
 
 IPA.serverconfig.entity = function(spec) {
 
+    spec = spec || {};
+    spec.defines_key = false;
     var that = IPA.entity(spec);
 
     that.init = function() {

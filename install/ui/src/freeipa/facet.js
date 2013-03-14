@@ -198,8 +198,8 @@ IPA.facet = function(spec, no_init) {
         var cur_l = cur_keys.length;
         var tot_c = 0;
         while (current_entity) {
+            if (current_entity.defines_key) tot_c++;
             current_entity = current_entity.get_containing_entity();
-            tot_c++;
         }
 
         if (tot_c < arg_l || tot_c < cur_l) throw {

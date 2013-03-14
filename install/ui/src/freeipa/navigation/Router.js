@@ -312,6 +312,8 @@ define(['dojo/_base/declare',
          */
         _decode_pkeys: function(str) {
 
+            if (!str) return [];
+
             var keys = str.split('&');
             for (var i=0; i<keys.length; i++) {
                 keys[i] = decodeURIComponent(keys[i]);

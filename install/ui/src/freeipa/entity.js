@@ -37,6 +37,8 @@ IPA.entity = function(spec) {
     that.name = spec.name;
     that.label = spec.label;
 
+    that.defines_key = spec.defines_key !== undefined ? spec.defines_key : true;
+
     that.metadata = spec.metadata;
     that.builder = spec.builder;
 
