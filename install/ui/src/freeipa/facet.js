@@ -2425,7 +2425,7 @@ var FacetState = declare([Stateful, Evented], {
         this.set(object);
         var new_state = this.clone();
         this._watchCallbacks = _watchCallbacks;
-        this.emit('reset', new_state, old_state);
+        this.emit('reset', old_state, new_state);
     }
 });
 
