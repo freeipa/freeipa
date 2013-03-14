@@ -169,6 +169,20 @@ IPA.attribute_adder_dialog = function(spec) {
         that.buttons.remove('add_and_edit');
     };
 
+    that.on_add = function() {
+
+        that.hide_message();
+        that.add(
+            function(data, text_status, xhr) {
+                if (data.result.completed > 0) {
+                    that.added.notify();
+                    that.close();
+                    that.notify_success(data);
+                }
+            },
+            that.on_error);
+    };
+
     that.create_buttons();
 
     return that;
