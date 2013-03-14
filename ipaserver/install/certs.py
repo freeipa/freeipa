@@ -1101,7 +1101,8 @@ class CertDB(object):
         # We only handle one server cert
         nickname = server_certs[0][0]
 
-        ca_names = self.find_root_cert_from_pkcs12(pkcs12_fname, pkcs12_pwd_fname)
+        ca_names = [name for name, flags
+                    in self.nssdb.list_certs() if 'u' not in flags]
         if len(ca_names) == 0:
             raise RuntimeError("Could not find a CA cert in %s" % pkcs12_fname)
 
