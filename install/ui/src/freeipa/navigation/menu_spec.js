@@ -38,9 +38,13 @@ var nav = {};
                     name:'dns',
                     label: '@i18n:tabs.dns',
                     children: [
-                        { entity: 'dnszone' },
-                        { entity: 'dnsconfig' },
-                        { entity: 'dnsrecord', hidden:true }
+                        {
+                            entity: 'dnszone',
+                            children: [
+                                { entity: 'dnsrecord', hidden:true }
+                            ]
+                        },
+                        { entity: 'dnsconfig' }
                     ]
                 }
             ]
