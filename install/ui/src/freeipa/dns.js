@@ -1449,8 +1449,8 @@ IPA.dns.record_prepare_details_for_type = function(type, fields, container) {
 IPA.dnsrecord_host_link_field = function(spec) {
     var that = IPA.link_field(spec);
     that.other_pkeys = function() {
-        var pkey = that.entity.get_primary_key();
-        return [pkey[0]+'.'+pkey[1]];
+        var pkey = that.facet.get_pkeys();
+        return [pkey[1]+'.'+pkey[0]];
     };
     return that;
 };

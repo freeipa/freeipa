@@ -514,7 +514,7 @@ IPA.host_dnsrecord_entity_link_field = function(spec){
     var that = IPA.link_field(spec);
 
     that.other_pkeys = function(){
-        var pkey = that.entity.get_primary_key()[0];
+        var pkey = that.facet.get_pkey();
         var first_dot = pkey.search(/\./);
         var pkeys = [];
         pkeys[1] = pkey.substring(0,first_dot);
@@ -664,7 +664,7 @@ IPA.host_unprovision_dialog = function(spec) {
 
     that.unprovision = function(on_success, on_error) {
 
-        var pkey = that.entity.get_primary_key();
+        var pkey = that.facet.get_pkeys();
 
         var command = IPA.command({
             name: that.entity.name+'_disable_'+pkey,
@@ -866,7 +866,7 @@ IPA.host.set_otp_dialog = function(spec) {
     };
 
     that.set_otp = function(password) {
-        var pkey = that.entity.get_primary_key();
+        var pkey = that.facet.get_pkeys();
 
         var command = IPA.command({
             entity: that.entity.name,

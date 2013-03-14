@@ -291,16 +291,6 @@ IPA.details_facet = function(spec, no_init) {
     that.dirty = false;
     that.dirty_changed = IPA.observer();
 
-    /* the primary key used for show and update is built as an array.
-       for most entities, this will be a single element long, but for some
-       it requires the containing entities primary keys as well.*/
-    //FIXME: obsolete this stuff
-    that.get_primary_key = function(from_url) {
-
-        var pkeys = that.get_pkeys();
-        return pkeys;
-    };
-
     that.create = function(container) {
         if (that.entity.facets.length == 1) {
             if (that.disable_breadcrumb === undefined) {
@@ -481,8 +471,7 @@ IPA.details_facet = function(spec, no_init) {
 
     that.nofify_update_success = function() {
         var msg = IPA.messages.details.updated;
-        var key = that.get_primary_key();
-        key = key[key.length -1] || '';
+        var key = that.get_pkey();
         msg = msg.replace('${entity}', that.entity.metadata.label_singular);
         msg = msg.replace('${primary_key}', key);
         IPA.notify_success(msg);
@@ -513,7 +502,7 @@ IPA.details_facet = function(spec, no_init) {
 
     that.create_fields_update_command = function(update_info) {
 
-        var args = that.get_primary_key();
+        var args = that.get_pkeys();
 
         var options = { all: true };
         if (that.check_rights) options.rights = true;
@@ -619,7 +608,7 @@ IPA.details_facet = function(spec, no_init) {
         });
 
         if (that.get_pkey()) {
-            command.args = that.get_primary_key(true);
+            command.args = that.get_pkeys();
         }
 
         return command;

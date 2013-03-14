@@ -909,7 +909,7 @@ IPA.sudo.options_section = function(spec) {
         var command = IPA.command({
             entity: that.facet.entity.name,
             method: 'show',
-            args: that.facet.get_primary_key(true),
+            args: that.facet.get_pkeys(),
             on_success: function(data) {
                 that.table.load(data.result.result);
             }

@@ -163,20 +163,6 @@ IPA.entity = function(spec) {
         return that;
     };
 
-    that.get_primary_key_prefix = function(facet) {
-        window.console.log('Obsolete function usage: entity.get_primary_key_prefix');
-        var prefix = that.get_primary_key(facet);
-        prefix.pop();
-        return prefix;
-    };
-
-    that.get_primary_key = function(facet) {
-        window.console.log('Obsolete function usage: entity.get_primary_key');
-        facet = facet || that.facet;
-        var pkeys = facet.get_pkeys();
-        return pkeys;
-    };
-
     that.entity_init = that.init;
 
     return that;

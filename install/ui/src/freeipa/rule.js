@@ -209,7 +209,7 @@ IPA.rule_association_table_field = function(spec) {
                 var command = IPA.command({
                     entity: that.entity.name,
                     method: that.widget.remove_method,
-                    args: that.entity.get_primary_key()
+                    args: that.facet.get_pkeys()
                 });
 
                 command.set_option(that.widget.other_entity.name, values);

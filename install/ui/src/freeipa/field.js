@@ -732,7 +732,7 @@ IPA.link_field = function(spec) {
     that.other_entity = IPA.get_entity(spec.other_entity);
 
     function other_pkeys () {
-        return that.entity.get_primary_key();
+        return that.facet.get_pkeys();
     }
     that.other_pkeys = spec.other_pkeys || other_pkeys;
 
@@ -810,7 +810,7 @@ IPA.enable_field = function(spec) {
             var command = IPA.command({
                 entity: that.entity.name,
                 method: method,
-                args: that.entity.get_primary_key(),
+                args: that.facet.get_pkeys(),
                 options: {all: true, rights: true}
             });
 
