@@ -407,6 +407,9 @@ class IPADiscovery(object):
             root_logger.debug("LDAP Error: %s: %s" %
                (err.args[0]['desc'], err.args[0].get('info', '')))
             return [UNKNOWN_ERROR]
+        except Exception, e:
+            root_logger.error("Error checking LDAP: %s", e)
+            return [UNKNOWN_ERROR]
 
 
     def ipadns_search_srv(self, domain, srv_record_name, default_port,

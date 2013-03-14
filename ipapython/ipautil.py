@@ -835,13 +835,22 @@ def get_ipa_basedn(conn):
         '', scope=ldap.SCOPE_BASE, attrlist=['defaultnamingcontext', 'namingcontexts']
     )
 
-    contexts = entries[0][1]['namingcontexts']
-    if entries[0][1].get('defaultnamingcontext'):
+    # get_ipa_basedn may be used in client discovery and may thus hit other
+    # LDAP servers beyond 389-ds. These may not return "namingcontexts"
+    # attribute as lowercase but rather as CamelCase (e.g. openldap server)
+    # which could make client discovery to crash.
+    # Hotfix this issue by converting LDAP entry to CIDict.
+    # Proper fix was pushed in https://fedorahosted.org/freeipa/ticket/3446
+    dn, entry = entries[0]
+    entry = CIDict(entry)
+
+    contexts = entry['namingcontexts']
+    if entry.get('defaultnamingcontext'):
         # If there is a defaultNamingContext examine that one first
-        default = entries[0][1]['defaultnamingcontext'][0]
+        default = entry['defaultnamingcontext'][0]
         if default in contexts:
             contexts.remove(default)
-        contexts.insert(0, entries[0][1]['defaultnamingcontext'][0])
+        contexts.insert(0, entry['defaultnamingcontext'][0])
     for context in contexts:
         root_logger.debug("Check if naming context '%s' is for IPA" % context)
         try:
