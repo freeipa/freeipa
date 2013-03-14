@@ -241,11 +241,18 @@ IPA.facet = function(spec, no_init) {
                 if (a.hasOwnProperty(key) && !(key in skip)) {
                     var va = a[key];
                     var vb = b[key];
-                    if ((lang.isArray(va) && !IPA.array_diff(va,vb)) ||
-                        (a[key] !== b[key])) {
-                        same = false;
-                        skip[a] = true;
-                        break;
+                    if (lang.isArray(va)) {
+                        if (IPA.array_diff(va,vb)) {
+                            same = false;
+                            skip[a] = true;
+                            break;
+                        }
+                    } else {
+                        if (va !== vb) {
+                            same = false;
+                            skip[a] = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -294,14 +301,16 @@ IPA.facet = function(spec, no_init) {
         // basically a show method without displaying the facet
         // TODO: change to something fine grained
 
-        // we don't have to reflect any changes if facet dom is not yet built
-
         that._notify_state_change(state);
 
-        if (!that.domNode) return;
-
-        var needs_update = that.needs_update();
+        var needs_update = that.needs_update(state);
         that.old_state = state;
+
+        // we don't have to reflect any changes if facet dom is not yet created
+        if (!that.domNode) {
+            if (needs_update) that.set_expired_flag();
+            return;
+        }
 
         if (needs_update) {
             that.clear();
@@ -405,7 +414,9 @@ IPA.facet = function(spec, no_init) {
         if (!that.domNode) {
             that.create();
 
-            var needs_update = that.needs_update();
+            var state = that.state.clone();
+            var needs_update = that.needs_update(state);
+            that.old_state = state;
 
             if (needs_update) {
                 that.clear();
@@ -455,10 +466,11 @@ IPA.facet = function(spec, no_init) {
     that.clear = function() {
     };
 
-    that.needs_update = function() {
+    that.needs_update = function(new_state) {
 
         if (that._needs_update !== undefined) return that._needs_update;
 
+        new_state = new_state || that.state.clone();
         var needs_update = false;
 
         if (that.expire_timeout && that.expire_timeout > 0) {
@@ -474,7 +486,7 @@ IPA.facet = function(spec, no_init) {
         needs_update = needs_update || that.expired_flag;
         needs_update = needs_update || that.error_displayed();
 
-        needs_update = needs_update || that.state_diff(that.old_state || {}, that.state);
+        needs_update = needs_update || that.state_diff(that.old_state || {}, new_state);
 
         return needs_update;
     };
