@@ -50,12 +50,14 @@ class WebGuiInstance(service.SimpleServiceInstance):
         service.SimpleServiceInstance.__init__(self, "ipa_webgui")
 
 class HTTPInstance(service.Service):
-    def __init__(self, fstore = None):
+    def __init__(self, fstore=None, cert_nickname='Server-Cert'):
         service.Service.__init__(self, "httpd", service_desc="the web interface")
         if fstore:
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+        self.cert_nickname = cert_nickname
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
@@ -256,8 +258,10 @@ class HTTPInstance(service.Service):
                 db.create_from_cacert(ca_db.cacert_fname)
 
             db.create_password_conf()
-            self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
-            db.track_server_cert("Server-Cert", self.principal, db.passwd_fname, 'restart_httpd')
+            self.dercert = db.create_server_cert(self.cert_nickname, self.fqdn,
+                                                 ca_db)
+            db.track_server_cert(self.cert_nickname, self.principal,
+                                 db.passwd_fname, 'restart_httpd')
             db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
 
         # Fix the database permissions
@@ -365,7 +369,7 @@ class HTTPInstance(service.Service):
             self.stop()
 
         db = certs.CertDB(api.env.realm)
-        db.untrack_server_cert("Server-Cert")
+        db.untrack_server_cert(self.cert_nickname)
         if not enabled is None and not enabled:
             self.disable()
 

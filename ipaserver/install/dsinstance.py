@@ -154,14 +154,15 @@ info: IPA V2.0
 """
 
 class DsInstance(service.Service):
-    def __init__(self, realm_name=None, domain_name=None, dm_password=None, fstore=None):
+    def __init__(self, realm_name=None, domain_name=None, dm_password=None,
+                 fstore=None, cert_nickname='Server-Cert'):
         service.Service.__init__(self, "dirsrv",
             service_desc="directory server",
             dm_password=dm_password,
             ldapi=False,
             autobind=service.DISABLED
             )
-        self.nickname = 'Server-Cert'
+        self.nickname = cert_nickname
         self.dm_password = dm_password
         self.realm_name = realm_name
         self.sub_dict = None
@@ -542,19 +543,24 @@ class DsInstance(service.Service):
             self.dercert = dsdb.get_cert_from_db(nickname, pem=False)
             dsdb.track_server_cert(nickname, self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid )
         else:
-            nickname = "Server-Cert"
+            nickname = self.nickname
             cadb = certs.CertDB(self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
             if self.self_signed_ca:
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                self.dercert = dsdb.create_server_cert("Server-Cert", self.fqdn, cadb)
-                dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid)
+                self.dercert = dsdb.create_server_cert(nickname, self.fqdn, cadb)
+                dsdb.track_server_cert(
+                    nickname, self.principal, dsdb.passwd_fname,
+                    'restart_dirsrv %s' % self.serverid)
                 dsdb.create_pin_file()
             else:
                 # FIXME, need to set this nickname in the RA plugin
                 cadb.export_ca_cert('ipaCert', False)
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                self.dercert = dsdb.create_server_cert("Server-Cert", self.fqdn, cadb)
-                dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname, 'restart_dirsrv %s' % self.serverid)
+                self.dercert = dsdb.create_server_cert(
+                    nickname, self.fqdn, cadb)
+                dsdb.track_server_cert(
+                    nickname, self.principal, dsdb.passwd_fname,
+                    'restart_dirsrv %s' % self.serverid)
                 dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin(self.fqdn)
@@ -685,7 +691,7 @@ class DsInstance(service.Service):
             # will match what is in certmonger
             dirname = config_dirname(serverid)[:-1]
             dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
-            dsdb.untrack_server_cert("Server-Cert")
+            dsdb.untrack_server_cert(self.nickname)
             erase_ds_instance_data(serverid)
 
         # At one time we removed this user on uninstall. That can potentially
