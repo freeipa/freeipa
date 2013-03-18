@@ -111,6 +111,9 @@ def parse_options():
                       help="The hostname of this machine (FQDN). If specified, the hostname will be set and "
                            "the system configuration will be updated to persist over reboot. "
                            "By default a nodename result from uname(2) is used.")
+    basic_group.add_option("", "--force-join", dest="force_join",
+                      action="store_true", default=False,
+                      help="Force client enrollment even if already enrolled")
     basic_group.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
     basic_group.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
@@ -1989,6 +1992,8 @@ def install(options, env, fstore, statestore):
             if options.hostname:
                 join_args.append("-h")
                 join_args.append(options.hostname)
+            if options.force_join:
+                join_args.append("-f")
             if options.principal is not None:
                 stdin = None
                 principal = options.principal

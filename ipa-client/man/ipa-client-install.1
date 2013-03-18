@@ -77,13 +77,16 @@ Password for joining a machine to the IPA realm. Assumes bulk password unless pr
 Prompt for the password for joining a machine to the IPA realm.
 .TP
 \fB\-k\fR, \fB\-\-keytab\fR
-Path to backed up host keytab from previous enrollment.
+Path to backed up host keytab from previous enrollment. Joins the host even if it is already enrolled.
 .TP
 \fB\-\-mkhomedir\fR
 Configure PAM to create a users home directory if it does not exist.
 .TP
 \fB\-\-hostname\fR
 The hostname of this machine (FQDN). If specified, the hostname will be set and the system configuration will be updated to persist over reboot. By default a nodename result from uname(2) is used.
+.TP
+\fB\-\-force\-join\fR
+Join the host even if it is already enrolled.
 .TP
 \fB\-\-ntp\-server\fR=\fINTP_SERVER\fR
 Configure ntpd to use this NTP server.
