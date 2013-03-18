@@ -850,7 +850,7 @@ class show_mappings(frontend.Command):
     )
     has_output = tuple()
 
-    def run(self, command_name):
+    def run(self, command_name, **options):
         command_name = from_cli(command_name)
         if command_name not in self.Command:
             raise CommandError(name=command_name)
