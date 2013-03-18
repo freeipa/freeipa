@@ -51,12 +51,12 @@ define([
  * == Display facet by route ==
  * 1) somebody sets route
  * 2) Route is evaluated, arguments extracted.
- * 3) Facet state is updated `update_state(args, pkeys)`.(saves previous state)
+ * 3) Facet state is updated `set_state(args, pkeys)`.(saves previous state)
  * 4) Facet show() is called
  *
  * == Display facet with defined arguments ==
  * 1) Somebody calls navigation.show(xxx);
- * 2) Facet state is updated `update_state(args, pkeys)`.(saves previous state)
+ * 2) Facet state is updated `set_state(args, pkeys)`.(saves previous state)
  * 3) Route is updated, but the hash change is ignored
  * 4) Facet show() is called.
  *      5.1) First time show
@@ -76,7 +76,7 @@ define([
  * step 2.
  *
  * ==  Update facet state ==
- * 1) update_state(args, pkeys?)
+ * 1) set_state(args, pkeys?)
  * 2) needs_update()?
  *      true:
  *        a) clear()
@@ -172,7 +172,7 @@ IPA.facet = function(spec, no_init) {
      * @type String
      */
     that.get_pkey = function() {
-        var pkeys = that.state.get('pkeys');
+        var pkeys = that.get_pkeys();
         if (pkeys.length) {
             return pkeys[pkeys.length-1];
         }
@@ -264,7 +264,7 @@ IPA.facet = function(spec, no_init) {
         return diff;
     };
 
-    that.set_state = function(state) {
+    that.reset_state = function(state) {
 
         if (state.pkeys) {
             state.pkeys = that.get_pkeys(state.pkeys);
@@ -279,7 +279,7 @@ IPA.facet = function(spec, no_init) {
     /**
      * Merges state into current and notifies it.
      */
-    that.update_state = function(state) {
+    that.set_state = function(state) {
 
         if (state.pkeys) {
             state.pkeys = that.get_pkeys(state.pkeys);
@@ -287,14 +287,10 @@ IPA.facet = function(spec, no_init) {
         that.state.set(state);
     };
 
-    that.on_state_reset = function(old_state, state) {
+    that.on_state_set = function(old_state, state) {
         that._on_state_change(state);
     };
 
-    that.on_state_change = function(name, old_value, value) {
-        var new_state = that.state.clone();
-        that._on_state_change(new_state);
-    };
 
     that._on_state_change = function(state) {
 
@@ -327,7 +323,7 @@ IPA.facet = function(spec, no_init) {
     that._notify_state_change =  function(state) {
         topic.publish('facet-state-change', {
             facet: that,
-            state:state
+            state: state
         });
     };
 
@@ -637,8 +633,7 @@ IPA.facet = function(spec, no_init) {
         that.action_state.init(that);
         that.actions.init(that);
         that.header.init();
-        on(that.state, 'reset', that.on_state_reset);
-        that.state.watch(that.on_state_change);
+        on(that.state, 'set', that.on_state_set);
 
         var buttons_spec = {
             factory: IPA.control_buttons_widget,
@@ -2384,7 +2379,7 @@ var FacetState = declare([Stateful, Evented], {
     /**
      * Properties to ignore in clear and clone operation
      */
-    _ignore_properties: {_watchCallbacks:1, onreset:1},
+    _ignore_properties: {_watchCallbacks:1, onset:1,_updating:1, _inherited:1},
 
     /**
      * Gets object containing shallow copy of state's properties.
@@ -2409,23 +2404,49 @@ var FacetState = declare([Stateful, Evented], {
                 this.set(x, undefined);
             }
         }
+        return this;
+    },
+
+    /*
+     * Set a property
+     *
+     * Sets named properties on a stateful object and notifies any watchers of
+     * the property. A programmatic setter may be defined in subclasses.
+     *
+     * Can be called with hash of name/value pairs.
+     *
+     * Raises 'set' event.
+     */
+    set: function(name, value) {
+
+        var old_state;
+        var updating = this._updating;
+        if (!updating) old_state = this.clone();
+        this._updating = true;
+        this.inherited(arguments);
+        if (!updating) {
+            delete this._updating;
+            var new_state = this.clone();
+            this.emit('set', old_state, new_state);
+        }
+
+        return this;
     },
 
     /**
      * Set completly new state. Old state is cleared.
      *
-     * Supresses all watch callbacks.
-     * Others can be notified by listening to 'reset' event.
+     * Raises 'reset' event.
      */
     reset: function(object) {
-        var _watchCallbacks = this._watchCallbacks;
-        delete this._watchCallbacks; //prevent watch callbacks
         var old_state = this.clone();
+        this._updating = true;
         this.clear();
         this.set(object);
+        delete this.updating;
         var new_state = this.clone();
-        this._watchCallbacks = _watchCallbacks;
-        this.emit('reset', old_state, new_state);
+        this.emit('set', old_state, new_state);
+        return this;
     }
 });
 

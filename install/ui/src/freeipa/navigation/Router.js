@@ -135,7 +135,7 @@ define(['dojo/_base/declare',
             //var entity = entities.get(entity_name);
             var entity = IPA.get_entity(entity_name); // TODO: replace with prev line
             var facet = entity.get_facet(facet_name);
-            facet.set_state(args);
+            facet.reset_state(args);
 
             this.show_facet(facet);
         },
@@ -161,7 +161,7 @@ define(['dojo/_base/declare',
 
             // set new facet state
             var facet = facets.get(facet_name);
-            facet.set_state(args);
+            facet.reset_state(args);
 
             this.show_facet(facet);
         },
