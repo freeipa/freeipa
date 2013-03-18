@@ -1215,12 +1215,12 @@ IPA.cert.search_facet = function(spec) {
     that.create_refresh_command = function() {
 
         var command = that.search_facet_create_refresh_command();
-        var arg = command.args.pop();
 
-        var option = that.search_option.val();
+        var value = command.args.pop();
+        var opt_name = that.state.search_option;
 
-        if (arg) {
-            command.set_option(option, arg);
+        if (value) {
+            command.set_option(opt_name, value);
         }
 
         return command;
@@ -1229,24 +1229,21 @@ IPA.cert.search_facet = function(spec) {
     // parent method only sets expired flag when filter change, it doesn't
     // expect that option can change -> set expire flag for every search
     that.find = function() {
+
         var filter = that.filter.val();
         var search_opt = that.search_option.val();
-        var old_filter = IPA.nav.get_state(that.managed_entity.name+'-filter');
-        var state = {};
-        state[that.managed_entity.name + '-filter'] = filter;
-        state[that.managed_entity.name + '-search-option'] = search_opt;
 
-        that.set_expired_flag();
-
-        IPA.nav.push_state(state);
+        that.state.set({
+            'search_option': search_opt,
+            'filter': filter
+        });
     };
 
     that.show = function() {
         that.search_facet_show();
 
         if (that.search_option) {
-            var search_opt = IPA.nav.get_state(that.entity.name+'-search-option');
-            that.search_option.val(search_opt);
+            that.search_option.val(that.state.search_option);
         }
     };
 
