@@ -1716,13 +1716,15 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'bool'>, None)
 output: Output('warning', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)
 command: host_add
-args: 1,18,3
+args: 1,20,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
 option: Flag('force', autofill=True, default=False)
 option: Str('ip_address?')
+option: Bool('ipakrbokasdelegate', attribute=False, cli_name='ok_as_delegate', multivalue=False, required=False)
+option: Bool('ipakrbrequirespreauth', attribute=False, cli_name='requires_pre_auth', multivalue=False, required=False)
 option: Str('ipasshpubkey', attribute=True, cli_name='sshpubkey', csv=True, multivalue=True, required=False)
 option: Str('l', attribute=True, cli_name='locality', multivalue=False, required=False)
 option: Str('macaddress', attribute=True, cli_name='macaddress', csv=True, multivalue=True, pattern='^([a-fA-F0-9]{2}[:|\\-]?){5}[a-fA-F0-9]{2}$', required=False)
@@ -1803,12 +1805,14 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: host_mod
-args: 1,19,3
+args: 1,21,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
+option: Bool('ipakrbokasdelegate', attribute=False, autofill=False, cli_name='ok_as_delegate', multivalue=False, required=False)
+option: Bool('ipakrbrequirespreauth', attribute=False, autofill=False, cli_name='requires_pre_auth', multivalue=False, required=False)
 option: Str('ipasshpubkey', attribute=True, autofill=False, cli_name='sshpubkey', csv=True, multivalue=True, required=False)
 option: Str('krbprincipalname?', attribute=True, cli_name='principalname')
 option: Str('l', attribute=True, autofill=False, cli_name='locality', multivalue=False, required=False)
@@ -2840,12 +2844,14 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
 command: service_add
-args: 1,8,3
+args: 1,10,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('force', autofill=True, default=False)
 option: StrEnum('ipakrbauthzdata', attribute=True, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD', u'NONE'))
+option: Bool('ipakrbokasdelegate', attribute=False, cli_name='ok_as_delegate', multivalue=False, required=False)
+option: Bool('ipakrbrequirespreauth', attribute=False, cli_name='requires_pre_auth', multivalue=False, required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=False, required=False)
@@ -2896,12 +2902,14 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: service_mod
-args: 1,9,3
+args: 1,11,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD', u'NONE'))
+option: Bool('ipakrbokasdelegate', attribute=False, autofill=False, cli_name='ok_as_delegate', multivalue=False, required=False)
+option: Bool('ipakrbrequirespreauth', attribute=False, autofill=False, cli_name='requires_pre_auth', multivalue=False, required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')

@@ -29,9 +29,9 @@ import string
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
-from ipalib.plugins.service import split_principal
-from ipalib.plugins.service import validate_certificate
-from ipalib.plugins.service import set_certificate_attrs
+from ipalib.plugins.service import (split_principal, validate_certificate,
+    set_certificate_attrs, ticket_flags_params, update_krbticketflags,
+    set_kerberos_attrs)
 from ipalib.plugins.dns import (dns_container_exists, _record_types,
         add_records_for_host_validation, add_records_for_host,
         _hostname_validator, get_reverse_zone)
@@ -323,7 +323,7 @@ class host(LDAPObject):
             csv=True,
             flags=['no_search'],
         ),
-    )
+    ) + ticket_flags_params
 
     def get_dn(self, *keys, **options):
         hostname = keys[-1]
@@ -439,6 +439,9 @@ class host_add(LDAPCreate):
         entry_attrs['managedby'] = dn
         entry_attrs['objectclass'].append('ieee802device')
         entry_attrs['objectclass'].append('ipasshhost')
+        update_krbticketflags(ldap, entry_attrs, attrs_list, options, False)
+        if 'krbticketflags' in entry_attrs:
+            entry_attrs['objectclass'].append('krbticketpolicyaux')
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -473,6 +476,7 @@ class host_add(LDAPCreate):
                 reason=_('The host was added but the DNS update failed with: %(exc)s') % dict(exc=exc)
             )
         set_certificate_attrs(entry_attrs)
+        set_kerberos_attrs(entry_attrs, options)
 
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
@@ -677,6 +681,7 @@ class host_mod(LDAPUpdate):
         if options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password(characters=host_pwd_chars)
             setattr(context, 'randompassword', entry_attrs['userpassword'])
+
         if 'macaddress' in entry_attrs:
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
@@ -708,6 +713,15 @@ class host_mod(LDAPUpdate):
             if 'ipasshhost' not in obj_classes:
                 obj_classes.append('ipasshhost')
 
+        update_krbticketflags(ldap, entry_attrs, attrs_list, options, True)
+
+        if 'krbticketflags' in entry_attrs:
+            if 'objectclass' not in entry_attrs:
+                entry_attrs_old = ldap.get_entry(dn, ['objectclass'])
+                entry_attrs['objectclass'] = entry_attrs_old['objectclass']
+            if 'krbticketpolicyaux' not in entry_attrs['objectclass']:
+                entry_attrs['objectclass'].append('krbticketpolicyaux')
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -715,6 +729,7 @@ class host_mod(LDAPUpdate):
         if options.get('random', False):
             entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
         set_certificate_attrs(entry_attrs)
+        set_kerberos_attrs(entry_attrs, options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         if entry_attrs['has_password']:
             # If an OTP is set there is no keytab, at least not one
@@ -801,6 +816,7 @@ class host_find(LDAPSearch):
         for entry in entries:
             (dn, entry_attrs) = entry
             set_certificate_attrs(entry_attrs)
+            set_kerberos_attrs(entry_attrs, options)
             self.obj.get_password_attributes(ldap, dn, entry_attrs)
             self.obj.suppress_netgroup_memberof(entry_attrs)
             if entry_attrs['has_password']:
@@ -839,6 +855,7 @@ class host_show(LDAPRetrieve):
             entry_attrs['has_keytab'] = False
 
         set_certificate_attrs(entry_attrs)
+        set_kerberos_attrs(entry_attrs, options)
 
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)

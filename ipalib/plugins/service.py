@@ -23,7 +23,7 @@ import base64
 import os
 
 from ipalib import api, errors, util
-from ipalib import Str, Flag, Bytes, StrEnum
+from ipalib import Str, Flag, Bytes, StrEnum, Bool
 from ipalib.plugins.baseldap import *
 from ipalib import x509
 from ipalib import _, ngettext
@@ -127,6 +127,28 @@ output_params = (
     )
 )
 
+ticket_flags_params = (
+    Bool('ipakrbrequirespreauth?',
+        cli_name='requires_pre_auth',
+        label=_('Requires pre-authentication'),
+        doc=_('Pre-authentication is required for the service'),
+        flags=['virtual_attribute', 'no_search'],
+    ),
+    Bool('ipakrbokasdelegate?',
+        cli_name='ok_as_delegate',
+        label=_('Trusted for delegation'),
+        doc=_('Client credentials may be delegated to the service'),
+        flags=['virtual_attribute', 'no_search'],
+    ),
+)
+
+_ticket_flags_map = {
+    'ipakrbrequirespreauth': 0x00000080,
+    'ipakrbokasdelegate': 0x00100000,
+}
+
+_ticket_flags_default = _ticket_flags_map['ipakrbrequirespreauth']
+
 def split_principal(principal):
     service = hostname = realm = None
 
@@ -217,6 +239,54 @@ def check_required_principal(ldap, hostname, service):
         if service in service_types:
             raise errors.ValidationError(name='principal', error=_('This principal is required by the IPA master'))
 
+def update_krbticketflags(ldap, entry_attrs, attrs_list, options, existing):
+    add = remove = 0
+
+    for (name, value) in _ticket_flags_map.iteritems():
+        if name not in options:
+            continue
+        if options[name]:
+            add |= value
+        else:
+            remove |= value
+
+    if not add and not remove:
+        return
+
+    if 'krbticketflags' not in entry_attrs and existing:
+        old_entry_attrs = ldap.get_entry(entry_attrs.dn, ['krbticketflags'])
+    else:
+        old_entry_attrs = entry_attrs
+
+    try:
+        ticket_flags = old_entry_attrs.single_value('krbticketflags')
+        ticket_flags = int(ticket_flags)
+    except (KeyError, ValueError):
+        ticket_flags = _ticket_flags_default
+
+    ticket_flags |= add
+    ticket_flags &= ~remove
+
+    entry_attrs['krbticketflags'] = [ticket_flags]
+    attrs_list.append('krbticketflags')
+
+def set_kerberos_attrs(entry_attrs, options):
+    if options.get('raw', False):
+        return
+
+    try:
+        ticket_flags = entry_attrs.single_value('krbticketflags',
+                                                _ticket_flags_default)
+        ticket_flags = int(ticket_flags)
+    except ValueError:
+        return
+
+    all_opt = options.get('all', False)
+
+    for (name, value) in _ticket_flags_map.iteritems():
+        if name in options or all_opt:
+            entry_attrs[name] = bool(ticket_flags & value)
+
 class service(LDAPObject):
     """
     Service object.
@@ -268,7 +338,7 @@ class service(LDAPObject):
             values=(u'MS-PAC', u'PAD', u'NONE'),
             csv=True,
         ),
-    )
+    ) + ticket_flags_params
 
     def validate_ipakrbauthzdata(self, entry):
         new_value = entry.get('ipakrbauthzdata', [])
@@ -300,6 +370,7 @@ class service_add(LDAPCreate):
             doc=_('force principal name even if not in DNS'),
         ),
     )
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         (service, hostname, realm) = split_principal(keys[-1])
@@ -338,6 +409,12 @@ class service_add(LDAPCreate):
         # in a list of default objectclasses, add it manually
         entry_attrs['objectclass'].append('ipakrbprincipal')
 
+        update_krbticketflags(ldap, entry_attrs, attrs_list, options, False)
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        set_kerberos_attrs(entry_attrs, options)
         return dn
 
 api.register(service_add)
@@ -397,7 +474,7 @@ class service_mod(LDAPUpdate):
 
     member_attributes = ['managedby']
 
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
@@ -422,11 +499,15 @@ class service_mod(LDAPUpdate):
                 entry_attrs['usercertificate'] = dercert
             else:
                 entry_attrs['usercertificate'] = None
+
+        update_krbticketflags(ldap, entry_attrs, attrs_list, options, True)
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         set_certificate_attrs(entry_attrs)
+        set_kerberos_attrs(entry_attrs, options)
         return dn
 
 api.register(service_mod)
@@ -464,6 +545,7 @@ class service_find(LDAPSearch):
             (dn, entry_attrs) = entry
             self.obj.get_password_attributes(ldap, dn, entry_attrs)
             set_certificate_attrs(entry_attrs)
+            set_kerberos_attrs(entry_attrs, options)
         return truncated
 
 api.register(service_find)
@@ -485,6 +567,7 @@ class service_show(LDAPRetrieve):
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
 
         set_certificate_attrs(entry_attrs)
+        set_kerberos_attrs(entry_attrs, options)
 
         return dn
 
