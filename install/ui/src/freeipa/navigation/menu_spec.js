@@ -46,7 +46,9 @@ var nav = {};
                         },
                         { entity: 'dnsconfig' }
                     ]
-                }
+                },
+                { entity: 'cert', label: '@i18n:tabs.cert' },
+                { entity: 'realmdomains' }
             ]
         },
         {name: 'policy', label: '@i18n:tabs.policy', children: [
