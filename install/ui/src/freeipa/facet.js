@@ -520,6 +520,8 @@ IPA.facet = function(spec, no_init) {
             facet: that
         });
 
+        dialog.callback = permit_callback;
+
         return dialog;
     };
 

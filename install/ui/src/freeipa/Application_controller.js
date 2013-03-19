@@ -179,13 +179,13 @@ define(['dojo/_base/declare',
             var current_facet = this.current_facet;
 
             if (current_facet && !current_facet.can_leave()) {
-                var permit_clb = function() {
+                var permit_clb = lang.hitch(this, function() {
                     // Some facet's might not call reset before this call but after
                     // so they are still dirty. Calling reset prevent's opening of
                     // dirty dialog again.
                     if (current_facet.is_dirty()) current_facet.reset(); //TODO change
                     this.router.navigate_to_hash(event.hash, event.facet);
-                };
+                });
 
                 var dialog = current_facet.show_leave_dialog(permit_clb);
                 this.router.canceled = true;

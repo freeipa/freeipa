@@ -129,9 +129,7 @@ define(['dojo/_base/declare',
                         click: click_handler
                     }, ul_node);
 
-                    var a_node = construct.create('a', {
-                        click: click_handler
-                    }, li_node);
+                    var a_node = construct.create('a', {}, li_node);
 
                     this._update_item(menu_item, li_node);
 
