@@ -27,6 +27,7 @@
 define(['dojo/_base/declare',
         'dojo/_base/lang',
         'dojo/_base/array',
+        'dojo/Deferred',
         'dojo/on',
         'dojo/topic',
         'dojo/query',
@@ -37,7 +38,7 @@ define(['dojo/_base/declare',
         './navigation/Router',
         './navigation/menu_spec'
        ],
-       function(declare, lang, array, on, topic, query, dom_class,
+       function(declare, lang, array, Deferred, on, topic, query, dom_class,
             App_widget, IPA, Menu, Router, menu_spec) {
 
     /**
@@ -113,6 +114,10 @@ define(['dojo/_base/declare',
             this.app_widget.menu_widget.ignore_changes = false;
             this.app_widget.menu_widget.render();
             this.app_widget.menu_widget.select(this.menu.selected);
+        },
+
+        start_runtime: function() {
+            this.run_time = new Deferred();
 
             // now we are ready for displaying a facet
             // cat match a facet if hash is set
@@ -120,12 +125,18 @@ define(['dojo/_base/declare',
 
             // choose default facet if not defined by route
             if (!this.current_facet) {
-                if (selfservice) {
+                if (IPA.is_selfservice) {
                     this.on_profile();
                 } else {
                     this.router.navigate_to_entity_facet('user', 'search');
                 }
             }
+
+            return this.run_time.promise;
+        },
+
+        start_logout: function() {
+            IPA.logout();
         },
 
         is_selfservice: function() {
@@ -162,7 +173,7 @@ define(['dojo/_base/declare',
         },
 
         on_logout: function(event) {
-            IPA.logout();
+            this.run_time.resolve();
         },
 
         on_phase_error: function(error) {

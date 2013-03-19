@@ -36,10 +36,11 @@ define([
             //'resource-load', // implicit phase
             'registration',
             'alternation',
-            'app-init',
+            'init',
             'metadata',
             'profile',
-            'logout'
+            'runtime',
+            'shutdown'
         ]
     };
 

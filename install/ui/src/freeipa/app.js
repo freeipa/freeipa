@@ -71,7 +71,7 @@ define([
          */
         register_phases: function() {
 
-            phases.on('app-init', lang.hitch(this, function() {
+            phases.on('init', lang.hitch(this, function() {
                 var app = this.app = new this.App_class();
                 app.init();
                 return app;
@@ -91,6 +91,14 @@ define([
 
             phases.on('profile', lang.hitch(this, function() {
                 this.app.choose_profile();
+            }));
+
+            phases.on('runtime', lang.hitch(this, function() {
+                return this.app.start_runtime();
+            }));
+
+            phases.on('shutdown', lang.hitch(this, function() {
+                return this.app.start_logout();
             }));
         },
 
