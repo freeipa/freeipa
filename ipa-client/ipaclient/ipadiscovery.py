@@ -236,7 +236,6 @@ class IPADiscovery(object):
         ldapaccess = True
         root_logger.debug("[LDAP server check]")
         valid_servers = []
-        verified_servers = False # is at least one server valid?
         for server in servers:
             root_logger.debug('Verifying that %s (realm %s) is an IPA server',
                 server, self.realm)
@@ -251,7 +250,6 @@ class IPADiscovery(object):
                 valid_servers.append(server)
                 # verified, we actually talked to the remote server and it
                 # is definetely an IPA server
-                verified_servers = True
                 if autodiscovered:
                     # No need to keep verifying servers if we discovered them
                     # via DNS
@@ -287,14 +285,12 @@ class IPADiscovery(object):
             self.realm_source = 'Assumed same as domain'
             root_logger.debug(
                 "Assuming realm is the same as domain: %s", self.realm)
-            verified_servers = True
 
         if not ldapaccess and self.basedn is None:
             # Generate suffix from realm
             self.basedn = realm_to_suffix(self.realm)
             self.basedn_source = 'Generated from Kerberos realm'
             root_logger.debug("Generated basedn from realm: %s" % self.basedn)
-            verified_servers = True
 
         root_logger.debug(
             "Discovery result: %s; server=%s, domain=%s, kdc=%s, basedn=%s",
@@ -306,7 +302,7 @@ class IPADiscovery(object):
 
         # If we have any servers left then override the last return value
         # to indicate success.
-        if verified_servers:
+        if valid_servers:
             self.server = servers[0]
             ldapret[0] = 0
 
