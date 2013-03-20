@@ -88,10 +88,10 @@ An unattended installation that will never prompt for user input
 Generate a CSR to be signed by an external CA
 .TP
 \fB\-\-external_cert_file\fR=\fIFILE\fR
-File containing PKCS#10 certificate
+PEM file containing a certificate signed by the external CA. Must be given with \-\-external_ca_file.
 .TP
 \fB\-\-external_ca_file\fR=\fIFILE\fR
-File containing PKCS#10 of the external CA chain
+PEM file containing the external CA chain
 .TP
 \fB\-\-no\-pkinit\fR
 Disables pkinit setup steps

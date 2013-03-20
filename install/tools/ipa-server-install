@@ -169,9 +169,9 @@ def parse_options():
     cert_group.add_option("", "--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR to be signed by an external CA")
     cert_group.add_option("", "--external_cert_file", dest="external_cert_file",
-                      help="File containing PKCS#10 certificate")
+                      help="PEM file containing a certificate signed by the external CA")
     cert_group.add_option("", "--external_ca_file", dest="external_ca_file",
-                      help="File containing PKCS#10 of the external CA chain")
+                      help="PEM file containing the external CA chain")
     cert_group.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
     cert_group.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
@@ -670,7 +670,7 @@ def main():
         try:
             extcert = load_certificate_from_file(options.external_cert_file)
         except IOError, e:
-            print "Can't load the PKCS#10 certificate: %s." % str(e)
+            print "Can't load the PEM certificate: %s." % str(e)
             sys.exit(1)
         except nss.error.NSPRError:
             print "'%s' is not a valid PEM-encoded certificate." % options.external_cert_file
@@ -679,7 +679,7 @@ def main():
         certsubject = DN(str(extcert.subject))
         wantsubject = DN(('CN','Certificate Authority'), options.subject)
         if certsubject != wantsubject:
-            print "Subject of the PKCS#10 certificate is not correct (got %s, expected %s)." % (certsubject, wantsubject)
+            print "Subject of the external certificate is not correct (got %s, expected %s)." % (certsubject, wantsubject)
             sys.exit(1)
 
         try:
@@ -694,7 +694,7 @@ def main():
         certdict = dict((DN(str(cert.subject)), cert) for cert in extchain)
         certissuer = DN(str(extcert.issuer))
         if certissuer not in certdict:
-            print "The PKCS#10 certificate is not signed by the external CA (unknown issuer %s)." % certissuer
+            print "The external certificate is not signed by the external CA (unknown issuer %s)." % certissuer
             sys.exit(1)
 
         cert = extcert
