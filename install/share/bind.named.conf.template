@@ -15,6 +15,7 @@ options {
 	allow-recursion { any; };
 
 	tkey-gssapi-keytab "/etc/named.keytab";
+	pid-file "/run/named/named.pid";
 };
 
 /* If you want to enable debugging, eg. using the 'rndc trace' command,

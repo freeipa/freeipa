@@ -516,6 +516,47 @@ def named_update_gssapi_configuration():
     sysupgrade.set_upgrade_state('named.conf', 'gssapi_updated', True)
     return True
 
+def named_update_pid_file():
+    """
+    Make sure that named reads the pid file from the right file
+    """
+    root_logger.info('[Updating pid-file configuration in DNS]')
+
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
+    if sysupgrade.get_upgrade_state('named.conf', 'pid-file_updated'):
+        root_logger.debug('Skip pid-file configuration check')
+        return False
+
+    try:
+        pid_file = bindinstance.named_conf_get_directive('pid-file',
+                bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot retrieve pid-file option from %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+    else:
+        if pid_file:
+            root_logger.debug('pid-file configuration already updated')
+            sysupgrade.set_upgrade_state('named.conf', 'pid-file_updated', True)
+            return False
+
+    try:
+        bindinstance.named_conf_set_directive('pid-file', '/run/named/named.pid',
+                                              bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot update pid-file configuration in %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+    else:
+        root_logger.debug('pid-file configuration updated')
+
+    sysupgrade.set_upgrade_state('named.conf', 'pid-file_updated', True)
+    return True
+
 
 def enable_certificate_renewal(ca):
     """
@@ -808,7 +849,9 @@ def main():
     changed_psearch = named_enable_psearch()
     changed_autoincrement = named_enable_serial_autoincrement()
     changed_gssapi_conf = named_update_gssapi_configuration()
-    if changed_psearch or changed_autoincrement or changed_gssapi_conf:
+    changed_pid_file_conf = named_update_pid_file()
+    if (changed_psearch or changed_autoincrement or changed_gssapi_conf
+            or changed_pid_file_conf):
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
         bind = bindinstance.BindInstance(fstore)
