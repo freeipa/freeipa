@@ -4,7 +4,6 @@ NULL =
 
 SUBDIRS =  				\
 	build				\
-	ext				\
 	images				\
 	src				\
 	$(NULL)

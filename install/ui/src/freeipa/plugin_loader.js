@@ -1,0 +1,82 @@
+/*  Authors:
+ *    Petr Vobornik <pvoborni@redhat.com>
+ *
+ * Copyright (C) 2013 Red Hat
+ * see file 'COPYING'./for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+ * Plugin loader
+ */
+define([
+    'dojo/_base/array',
+    'dojo/_base/lang',
+    'dojo/Deferred',
+    'dojo/promise/all'
+],function(array, lang, Deferred, all) {
+
+    var plugin_loader = {
+
+        register_plugins: function(plugins) {
+
+            var packages = [];
+
+            array.forEach(plugins, function(name) {
+                packages.push({
+                    name: name,
+                    location: 'plugins/'+name
+                });
+            });
+
+            require({ packages: packages});
+        },
+
+        load_plugin: function(name) {
+            var plugin_loaded = new Deferred();
+
+            var mid = name+'/'+name;
+
+            require([mid], function(plugin) {
+                plugin_loaded.resolve(plugin);
+            });
+
+            return plugin_loaded.promise;
+        },
+
+        load_plugins: function() {
+
+            var plugins_loaded = new Deferred();
+
+            require(['freeipa/plugins'], lang.hitch(this, function(plugins) {
+                var loading = [];
+
+                this.register_plugins(plugins);
+
+                array.forEach(plugins, lang.hitch(this, function(plugin) {
+                    loading.push(this.load_plugin(plugin));
+                }));
+
+                all(loading).then(function(results) {
+                    plugins_loaded.resolve(results);
+                });
+            }));
+
+           return plugins_loaded.promise;
+        }
+    };
+
+    return plugin_loader;
+});

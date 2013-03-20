@@ -86,7 +86,6 @@ AC_CONFIG_FILES([
     migration/Makefile
     share/Makefile
     ui/Makefile
-    ui/ext/Makefile
     ui/src/Makefile
     ui/src/libs/Makefile
     ui/images/Makefile

@@ -25,6 +25,8 @@ define([
     //core
     'dojo/_base/lang',
     'dojo/Deferred',
+    'dojo/when',
+    './plugin_loader',
     './phases',
     './Application_controller',
     'exports', // for circullar deps
@@ -52,7 +54,7 @@ define([
     './trust',
     './user',
     'dojo/domReady!'
-],function(lang, Deferred, phases, Application_controller, exports) {
+],function(lang, Deferred, when, plugin_loader, phases, Application_controller, exports) {
 
     var app = {
 
@@ -102,10 +104,12 @@ define([
             }));
         },
 
-       run: function() {
-           this.register_phases();
-           phases.controller.run();
-       }
+        run: function() {
+            when(plugin_loader.load_plugins(), lang.hitch(this, function() {
+                this.register_phases();
+                phases.controller.run();
+            }));
+        }
     };
 
     lang.mixin(exports, app);

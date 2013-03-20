@@ -54,6 +54,7 @@ install/ui/test/results
 install/ui/release
 install/ui/src/dojo
 install/ui/src/build
+install/ui/src/plugins
 ipa-client/COPYING
 ipa-client/ChangeLog
 ipa-client/INSTALL

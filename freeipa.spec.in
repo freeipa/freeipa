@@ -413,6 +413,9 @@ mkdir -p %{buildroot}%{_initrddir}
 mkdir %{buildroot}%{_sysconfdir}/sysconfig/
 install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_memcached
 
+# Web UI plugin dir
+mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
+
 # NOTE: systemd specific section
 mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d/
 install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_sysconfdir}/tmpfiles.d/ipa.conf
@@ -462,6 +465,7 @@ if [ $1 -gt 1 ] ; then
     /bin/systemctl condrestart certmonger.service 2>&1 || :
     /usr/sbin/ipa-upgradeconfig --quiet >/dev/null || :
 fi
+/usr/sbin/ipa-webui-regen >/dev/null || :
 
 %posttrans server
 # This must be run in posttrans so that updates from previous
@@ -632,6 +636,7 @@ fi
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-compliance
+%{_sbindir}/ipa-webui-regen
 %{_libexecdir}/certmonger/dogtag-ipa-retrieve-agent-submit
 %{_sysconfdir}/cron.d/ipa-compliance
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
@@ -689,14 +694,13 @@ fi
 %{_usr}/share/ipa/ui/*.svg
 %{_usr}/share/ipa/ui/*.ttf
 %{_usr}/share/ipa/ui/*.woff
-%dir %{_usr}/share/ipa/ui/ext
-%config(noreplace) %{_usr}/share/ipa/ui/ext/extension.js
 %dir %{_usr}/share/ipa/ui/js/dojo
 %{_usr}/share/ipa/ui/js/dojo/dojo.js
 %dir %{_usr}/share/ipa/ui/js/libs
 %{_usr}/share/ipa/ui/js/libs/*.js
 %dir %{_usr}/share/ipa/ui/js/freeipa
 %{_usr}/share/ipa/ui/js/freeipa/app.js
+%dir %{_usr}/share/ipa/ui/js/plugins
 %dir %{_usr}/share/ipa/ui/images
 %{_usr}/share/ipa/ui/images/*.png
 %{_usr}/share/ipa/ui/images/*.gif

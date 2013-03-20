@@ -1,0 +1,66 @@
+#!/usr/bin/python
+# Authors: Petr Vobornik <pvoborni@redhat.com>
+#
+# Copyright (C) 2013  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+import sys
+import os
+from optparse import OptionParser
+
+log_file_name = "/var/log/ipaserver-install.log"
+plugins_dir = "/usr/share/ipa/ui/js/plugins"
+index_file = "/usr/share/ipa/ui/js/freeipa/plugins.js"
+
+def parse_options():
+    usage = "%prog"
+    parser = OptionParser(usage=usage)
+
+    parser.add_option("-p", "--plugins-dir", action="store", dest="directory",
+                      help="Plugin directory path.", default=plugins_dir)
+
+    parser.add_option("-i", "--index-file", action="store", dest="index",
+                      help="Plugin index path", default=index_file)
+
+    options, args = parser.parse_args()
+    return options, args
+
+def main():
+    retval = 0
+    options, args = parse_options()
+    plugins_dir = options.directory
+    index_file = options.index
+
+    if not os.path.isdir(plugins_dir):
+        sys.exit("Supplied plugin directory path is not a directory")
+
+    dirs = os.listdir(plugins_dir)
+    index = u'define([],function(){return['
+    index += u','.join("'"+x+"'" for x in dirs)
+    index += u'];});'
+    print 'Plugins: '+', '.join(dirs)
+    try:
+        with open(index_file,'w') as f:
+            f.write(index)
+            print 'Plugin index updated'
+    except IOError, e:
+        sys.exit("Plugin index update failed: %s" % (str(e)))
+
+    return retval
+
+if __name__ == '__main__':
+    sys.exit(main())

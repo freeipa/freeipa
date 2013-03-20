@@ -14,7 +14,7 @@ sbin_SCRIPTS =			\
 	ipa-replica-prepare	\
 	ipa-replica-manage	\
 	ipa-csreplica-manage	\
- 	ipa-server-certinstall  \
+	ipa-server-certinstall  \
 	ipactl			\
 	ipa-compat-manage	\
 	ipa-nis-manage		\
@@ -24,6 +24,7 @@ sbin_SCRIPTS =			\
 	ipa-compliance		\
 	ipa-backup		\
 	ipa-restore		\
+	ipa-webui-regen		\
 	$(NULL)
 
 EXTRA_DIST =			\
