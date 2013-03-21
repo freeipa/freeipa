@@ -112,7 +112,7 @@ Requires: python-memcached
 Requires: systemd-units >= 36-3
 Requires(pre): systemd-units
 Requires(post): systemd-units
-Requires: selinux-policy >= 3.11.1-71
+Requires: selinux-policy >= 3.11.1-86
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.44
 Requires: pki-ca >= 10.0.0-0.54.b3
@@ -771,6 +771,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Thu Mar 21 2013 Martin Kosek <mkosek@redhat.com> - 3.1.99-1
+- Require selinux-policy 3.11.1-86 to fix Fedora 17 to 18 upgrade issue
+
 * Tue Jan 29 2013 Petr Viktorin <pviktori@redhat.com> - 3.0.99-14
 - Use ipa-ldap-updater --quiet instead of redirecting to /dev/null
 
