@@ -2197,6 +2197,8 @@ class dnsrecord(LDAPObject):
     def postprocess_record(self, record, **options):
         if options.get('structured', False):
             for attr in record.keys():
+                # attributes in LDAPEntry may not be normalized
+                attr = attr.lower()
                 try:
                     param = self.params[attr]
                 except KeyError:

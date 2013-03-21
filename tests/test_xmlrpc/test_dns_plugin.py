@@ -1079,6 +1079,34 @@ class test_dns(Declarative):
         ),
 
         dict(
+            desc='Show record %r in zone %r with --structured and --all options'\
+                    % (dnsrev1, revdnszone1),
+            command=('dnsrecord_show', [revdnszone1, dnsrev1],
+                {'structured': True, 'all': True}),
+            expected={
+                'value': dnsrev1,
+                'summary': None,
+                'result': {
+                    'dn': dnsrev1_dn,
+                    'idnsname': [dnsrev1],
+                    'objectclass': objectclasses.dnsrecord,
+                    'dnsrecords': [
+                        {
+                            'dnstype': u'PTR',
+                            'dnsdata': u'foo-1.example.com.',
+                            'ptr_part_hostname': u'foo-1.example.com.'
+                        },
+                        {
+                            'dnstype': u'CNAME',
+                            'dnsdata': u'foo-1.example.com.',
+                            'cname_part_hostname': u'foo-1.example.com.'
+                        }
+                    ],
+                },
+            },
+        ),
+
+        dict(
             desc='Update global DNS settings',
             command=('dnsconfig_mod', [], {'idnsforwarders' : [u'80.142.15.80'],}),
             expected={
