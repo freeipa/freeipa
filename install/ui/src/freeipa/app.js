@@ -116,11 +116,14 @@ define([
         container.append('<p>'+error_thrown.message+'</p>');
     }
 
+
     return {
         run: function() {
-            IPA.init({
-                on_success: init_on_success,
-                on_error: init_on_error
+            require(['./ext/extension.js'], function() {
+                IPA.init({
+                    on_success: init_on_success,
+                    on_error: init_on_error
+                });
             });
         }
     };
