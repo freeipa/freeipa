@@ -835,7 +835,7 @@ IPA.permission_target_policy = function (widget_name) {
             }
         }
 
-        if (target_info.action) target_info.action();
+        if (visible && target_info.action) target_info.action();
     };
 
 
