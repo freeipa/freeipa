@@ -131,6 +131,12 @@
                         "search": "Search"
                     },
                     "false": "False",
+                    "krbauthzdata": {
+                        "inherited": "Inherited from server configuration",
+                        "mspac": "MS-PAC",
+                        "override": "Override inherited settings",
+                        "pad": "PAD"
+                    },
                     "login": {
                         "form_auth": "To login with username and password, enter them in the fields below then click Login.",
                         "header": "Logged In As",

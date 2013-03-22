@@ -71,8 +71,32 @@ IPA.service.entity = function(spec) {
                         },
                         {
                             name: 'ipakrbauthzdata',
-                            type: 'checkboxes',
-                            options: IPA.create_options(['MS-PAC', 'PAD'])
+                            type: 'radio',
+                            layout: 'vertical',
+                            options: [
+                                {
+                                    label: IPA.messages.krbauthzdata.inherited,
+                                    value: ''
+                                },
+                                {
+                                    label: IPA.messages.krbauthzdata.override,
+                                    name: 'ipakrbauthzdata_override',
+                                    factory: IPA.option_widget_base,
+                                    input_type: 'checkbox',
+                                    value: 'NONE',
+                                    combine_values: false,
+                                    options: [
+                                        {
+                                            label: IPA.messages.krbauthzdata.mspac,
+                                            value: 'MS-PAC'
+                                        },
+                                        {
+                                            label: IPA.messages.krbauthzdata.pad,
+                                            value: 'PAD'
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },

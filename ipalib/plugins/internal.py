@@ -266,6 +266,12 @@ class i18n_messages(Command):
             "search": _("Search"),
         },
         "false": _("False"),
+        "krbauthzdata": {
+            "inherited": _("Inherited from server configuration"),
+            "mspac": _("MS-PAC"),
+            "override": _("Override inherited settings"),
+            "pad": _("PAD"),
+        },
         "login": {
             "form_auth": _("To login with username and password, enter them in the fields below then click Login."),
             "header": _("Logged In As"),
