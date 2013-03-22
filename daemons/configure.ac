@@ -252,6 +252,16 @@ AC_CHECK_LIB([wbclient],
              [$SAMBA40EXTRA_LIBPATH])
 AC_SUBST(WBCLIENT_LIBS)
 
+AC_CHECK_LIB([pdb],
+             [make_pdb_method],
+             [HAVE_LIBPDB=1],
+             [AC_MSG_ERROR([libpdb does not have make_pdb_method])],
+             [$SAMBA40EXTRA_LIBPATH])
+AC_CHECK_LIB([pdb],[pdb_enum_upn_suffixes],
+             [AC_DEFINE([HAVE_PDB_ENUM_UPN_SUFFIXES], [1], [Ability to enumerate UPN suffixes])],
+             [AC_MSG_WARN([libpdb does not have pdb_enum_upn_suffixes, no support for realm domains in ipasam])],
+             [$SAMBA40EXTRA_LIBPATH])
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for check unit test framework http://check.sourceforge.net/
 dnl ---------------------------------------------------------------------------

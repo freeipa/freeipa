@@ -1,6 +1,7 @@
 #define HAVE_IMMEDIATE_STRUCTURES 1
 #define LDAP_DEPRECATED 1
 
+#include "config.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -127,6 +128,7 @@ bool secrets_store(const char *key, const void *data, size_t size); /* available
 #define LDAP_ATTRIBUTE_NTHASH "ipaNTHash"
 #define LDAP_ATTRIBUTE_UIDNUMBER "uidnumber"
 #define LDAP_ATTRIBUTE_GIDNUMBER "gidnumber"
+#define LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN "associatedDomain"
 
 #define LDAP_OBJ_KRB_PRINCIPAL "krbPrincipal"
 #define LDAP_OBJ_KRB_PRINCIPAL_AUX "krbPrincipalAux"
@@ -141,6 +143,9 @@ bool secrets_store(const char *key, const void *data, size_t size); /* available
 #define LDAP_OBJ_NESTEDGROUP "nestedGroup"
 #define LDAP_OBJ_IPAUSERGROUP "ipaUserGroup"
 #define LDAP_OBJ_POSIXGROUP "posixGroup"
+#define LDAP_OBJ_DOMAINRELATED "domainRelatedObject"
+
+#define LDAP_CN_REALM_DOMAINS "cn=Realm Domains,cn=ipa,cn=etc"
 
 #define HAS_KRB_PRINCIPAL (1<<0)
 #define HAS_KRB_PRINCIPAL_AUX (1<<1)
@@ -166,6 +171,12 @@ struct ipasam_privates {
 	char *client_princ;
 	struct sss_idmap_ctx *idmap_ctx;
 };
+
+
+static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
+				       TALLOC_CTX *mem_ctx,
+				       char **domain_name);
+
 
 static void *idmap_talloc(size_t size, void *pvt)
 {
@@ -293,6 +304,56 @@ static bool strnequal(const char *s1, const char *s2, size_t n) {
 static LDAP *priv2ld(struct ldapsam_privates *priv)
 {
 	return priv->smbldap_state->ldap_struct;
+}
+
+/*
+ * get_attribute_values() returns array of all values of the attribute
+ * allocated over mem_ctx
+ */
+static char **get_attribute_values(TALLOC_CTX *mem_ctx, LDAP *ldap_struct,
+				   LDAPMessage *entry, const char *attribute, int *num_values)
+{
+	struct berval **values;
+	int count, i;
+	char **result = NULL;
+	size_t conv_size;
+
+	if (attribute == NULL || entry == NULL) {
+		return NULL;
+	}
+
+	values = ldap_get_values_len(ldap_struct, entry, attribute);
+	if (values == NULL) {
+		DEBUG(10, ("Attribute [%s] not found.\n", attribute));
+		return NULL;
+	}
+
+	count = ldap_count_values_len(values);
+	if (count == 0) {
+		goto done;
+	}
+
+	result = talloc_array(mem_ctx, char *, count);
+	if (result == NULL) {
+		goto done;
+	}
+
+	*num_values = count;
+	for (i = 0; i < count; i++) {
+		if (!convert_string_talloc(result, CH_UTF8, CH_UNIX,
+					   values[i]->bv_val, values[i]->bv_len,
+					   &result[i], &conv_size)) {
+			DEBUG(10, ("Failed to convert %dth value of [%s] out of %d.\n",
+				   i, attribute, count));
+			talloc_free(result);
+			result = NULL;
+			goto done;
+		}
+	}
+
+done:
+	ldap_value_free_len(values);
+	return result;
 }
 
 static char *get_single_attribute(TALLOC_CTX *mem_ctx, LDAP *ldap_struct,
@@ -3250,9 +3311,8 @@ static struct pdb_domain_info *pdb_ipasam_get_domain_info(struct pdb_methods *pd
 		goto fail;
 	}
 
-	/* TODO: read dns_domain, dns_forest and guid from LDAP */
-	info->dns_domain = strlower_talloc(info, ldap_state->ipasam_privates->realm);
-	if (info->dns_domain == NULL) {
+	status = ipasam_get_domain_name(ldap_state, info, &info->dns_domain);
+	if (!NT_STATUS_IS_OK(status) || (info->dns_domain == NULL)) {
 		goto fail;
 	}
 	info->dns_forest = talloc_strdup(info, info->dns_domain);
@@ -3464,7 +3524,7 @@ static NTSTATUS ipasam_get_base_dn(struct smbldap_state *smbldap_state,
 
 static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 				       TALLOC_CTX *mem_ctx,
-				       const char **domain_name)
+				       char **domain_name)
 {
 	int ret;
 	LDAPMessage *result;
@@ -3473,14 +3533,14 @@ static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 	char *cn;
 	struct smbldap_state *smbldap_state = ldap_state->smbldap_state;
 	const char *attr_list[] = {
-					"associatedDomain",
+					LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN,
 					NULL
 				  };
 
 	ret = smbldap_search(smbldap_state,
 			     ldap_state->ipasam_privates->base_dn,
 			     LDAP_SCOPE_BASE,
-			     "objectclass=domainRelatedObject", attr_list, 0,
+			     "objectclass=" LDAP_OBJ_DOMAINRELATED, attr_list, 0,
 			     &result);
 	if (ret != LDAP_SUCCESS) {
 		DEBUG(1, ("Failed to get domain name: %s\n",
@@ -3494,11 +3554,10 @@ static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 		DEBUG(1, ("Unexpected number of results [%d] for domain name "
 			  "search.\n", count));
 		ldap_msgfree(result);
-		return NT_STATUS_OK;
+		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	entry = ldap_first_entry(smbldap_state->ldap_struct,
-				 result);
+	entry = ldap_first_entry(smbldap_state->ldap_struct, result);
 	if (entry == NULL) {
 		DEBUG(0, ("Could not get domainRelatedObject entry\n"));
 		ldap_msgfree(result);
@@ -3506,7 +3565,7 @@ static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 	}
 
 	cn = get_single_attribute(mem_ctx, smbldap_state->ldap_struct, entry,
-				  "associatedDomain");
+				  LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN);
 	if (cn == NULL) {
 		ldap_msgfree(result);
 		return NT_STATUS_UNSUCCESSFUL;
@@ -3571,6 +3630,112 @@ static NTSTATUS ipasam_get_realm(struct ldapsam_privates *ldap_state,
 	ldap_msgfree(result);
 	return NT_STATUS_OK;
 }
+
+#ifdef HAVE_PDB_ENUM_UPN_SUFFIXES
+static NTSTATUS ipasam_enum_upn_suffixes(struct pdb_methods *pdb_methods,
+					 TALLOC_CTX *mem_ctx,
+					 uint32_t *num_suffixes,
+					 char ***suffixes)
+{
+	int ret;
+	LDAPMessage *result;
+	LDAPMessage *entry = NULL;
+	int count, i;
+	char *realmdomains_dn = NULL;
+	char **domains = NULL;
+	struct ldapsam_privates *ldap_state;
+	struct smbldap_state *smbldap_state;
+	const char *attr_list[] = {
+					LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN,
+					NULL
+				  };
+
+	if ((suffixes == NULL) || (num_suffixes == NULL)) {
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	ldap_state = (struct ldapsam_privates *)pdb_methods->private_data;
+	smbldap_state = ldap_state->smbldap_state;
+
+	realmdomains_dn = talloc_asprintf(mem_ctx, "%s,%s", LDAP_CN_REALM_DOMAINS,
+					  ldap_state->ipasam_privates->base_dn);
+	if (realmdomains_dn == NULL) {
+		return NT_STATUS_NO_MEMORY;
+	}
+
+	ret = smbldap_search(smbldap_state,
+			     realmdomains_dn,
+			     LDAP_SCOPE_BASE,
+			     "objectclass=" LDAP_OBJ_DOMAINRELATED, attr_list, 0,
+			     &result);
+	if (ret != LDAP_SUCCESS) {
+		DEBUG(1, ("Failed to get list of realm domains: %s\n",
+			  ldap_err2string (ret)));
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+	if (count != 1) {
+		DEBUG(1, ("Unexpected number of results [%d] for realm domains "
+			  "search.\n", count));
+		ldap_msgfree(result);
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	entry = ldap_first_entry(smbldap_state->ldap_struct, result);
+	if (entry == NULL) {
+		DEBUG(0, ("Could not get domainRelatedObject entry\n"));
+		ldap_msgfree(result);
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	domains = get_attribute_values(mem_ctx, smbldap_state->ldap_struct, entry,
+					LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN, &count);
+	if (domains == NULL) {
+		ldap_msgfree(result);
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	/* Since associatedDomain has attributeType MUST, there must be at least one domain */
+	for (i = 0; i < count ; i++) {
+		/* TODO: use comparison function friendly to IDN */
+		if (strcasecmp(ldap_state->domain_name, domains[i]) == 0) {
+			break;
+		}
+	}
+
+	if (i < count) {
+		/* If we found our primary domain in the list and it is alone, exit with empty list */
+		if (count == 1) {
+			ldap_msgfree(result);
+			talloc_free(domains);
+			return NT_STATUS_UNSUCCESSFUL;
+		}
+
+		talloc_free(domains[i]);
+
+		/* if i is not last element, move everything down */
+		if (i != (count - 1)) {
+			memmove(domains + i, domains + i + 1, sizeof(char *) * (count - i - 1));
+		}
+
+		/* we don't resize whole list, only reduce number of elements in it
+		 * since sizing down a single pointer will not reduce memory usage in talloc
+		 */
+		domains[count - 1] = NULL;
+		*suffixes = domains;
+		*num_suffixes = count - 1;
+	} else {
+		/* There is no our primary domain in the list */
+		*suffixes = domains;
+		*num_suffixes = count;
+	}
+
+	ldap_msgfree(result);
+	return NT_STATUS_OK;
+}
+#endif /* HAVE_PDB_ENUM_UPN_SUFFIXES */
+
 
 #define SECRETS_DOMAIN_SID    "SECRETS/SID"
 static char *sec_key(TALLOC_CTX *mem_ctx, const char *d)
@@ -4030,7 +4195,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	}
 
 	status = ipasam_get_domain_name(ldap_state, ldap_state,
-					&ldap_state->domain_name);
+					(char**) &ldap_state->domain_name);
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to get domain name.\n"));
 		return status;
@@ -4150,6 +4315,11 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	(*pdb_method)->set_trusted_domain = ipasam_set_trusted_domain;
 	(*pdb_method)->del_trusted_domain = ipasam_del_trusted_domain;
 	(*pdb_method)->enum_trusted_domains = ipasam_enum_trusted_domains;
+#ifdef HAVE_PDB_ENUM_UPN_SUFFIXES
+	(*pdb_method)->enum_upn_suffixes = ipasam_enum_upn_suffixes;
+	DEBUG(1, ("pdb_init_ipasam: support for pdb_enum_upn_suffixes "
+		  "enabled for domain %s\n", ldap_state->domain_name));
+#endif
 
 	return NT_STATUS_OK;
 }
