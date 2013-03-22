@@ -277,6 +277,7 @@ class KrbInstance(service.Service):
             nsSaslMapRegexString=['\(.*\)@\(.*\)'],
             nsSaslMapBaseDNTemplate=[self.suffix],
             nsSaslMapFilterTemplate=['(krbPrincipalName=\\1@\\2)'],
+            nsSaslMapPriority=['10'],
         )
         self.admin_conn.add_entry(entry)
 
@@ -288,8 +289,8 @@ class KrbInstance(service.Service):
             cn=["Name Only"],
             nsSaslMapRegexString=['^[^:@]+$'],
             nsSaslMapBaseDNTemplate=[self.suffix],
-            nsSaslMapFilterTemplate=[
-                '(krbPrincipalName=&@%s)' % self.realm],
+            nsSaslMapFilterTemplate=['(krbPrincipalName=&@%s)' % self.realm],
+            nsSaslMapPriority=['10'],
         )
         self.admin_conn.add_entry(entry)
 

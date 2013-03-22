@@ -215,6 +215,7 @@ class DsInstance(service.Service):
         self.step("configure autobind for root", self.__root_autobind)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
         self.step("configure dirsrv ccache", self.configure_dirsrv_ccache)
+        self.step("enable SASL mapping fallback", self.__enable_sasl_mapping_fallback)
         self.step("restarting directory server", self.__restart_instance)
 
     def __common_post_setup(self):
@@ -656,6 +657,9 @@ class DsInstance(service.Service):
 
     def __enable_ldapi(self):
         self._ldap_mod("ldapi.ldif", self.sub_dict)
+
+    def __enable_sasl_mapping_fallback(self):
+        self._ldap_mod("sasl-mapping-fallback.ldif", self.sub_dict)
 
     def add_hbac(self):
         self._ldap_mod("default-hbac.ldif", self.sub_dict)
