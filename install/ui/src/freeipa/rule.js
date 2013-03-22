@@ -43,7 +43,8 @@ IPA.rule_details_widget = function(spec) {
         that.enable_radio.value_changed.attach(that.on_enable_radio_changed);
     };
 
-    that.on_enable_radio_changed = function(value) {
+    that.on_enable_radio_changed = function() {
+        var value = that.enable_radio.save();
         if(value.length > 0) {
             var enabled = ('' === value[0]);
             for (var i=0; i<that.tables.length; i++) {

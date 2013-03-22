@@ -477,7 +477,7 @@ IPA.attributes_widget = function(spec) {
             'class': 'aci-attribute-table-container'
         }).appendTo(container);
 
-        that.table = $('<table/>', {
+        that.$node = that.table = $('<table/>', {
             id:id,
             'class':'search-table aci-attribute-table scrollable'
         }).
@@ -520,9 +520,12 @@ IPA.attributes_widget = function(spec) {
             var tr = $('<tr/>').appendTo(tbody);
 
             var td =  $('<td/>').appendTo(tr);
+            var name = that.get_input_name();
+            var id = that.option_next_id + name;
             td.append($('<input/>',{
+                id: id,
                 type: 'checkbox',
-                name: that.name,
+                name: name,
                 value: value,
                 'class': 'aci-attribute',
                 change: function() {
@@ -531,8 +534,10 @@ IPA.attributes_widget = function(spec) {
             }));
             td = $('<td/>').appendTo(tr);
             td.append($('<label/>',{
-                text: value
+                text: value,
+                'for': id
             }));
+            that.new_option_id();
         }
     };
 
@@ -553,7 +558,7 @@ IPA.attributes_widget = function(spec) {
 
         that.populate(that.object_type);
         that.append();
-        that.checkboxes_update(values);
+        that.owb_update(values);
     };
 
     that.populate = function(object_type) {
@@ -567,6 +572,7 @@ IPA.attributes_widget = function(spec) {
 
         var aciattrs = metadata.aciattrs;
 
+        that.options = that.prepare_options(aciattrs);
         that.create_options(aciattrs);
     };
 
@@ -585,6 +591,7 @@ IPA.attributes_widget = function(spec) {
         }
 
         if (unmatched.length > 0 && !that.skip_unmatched) {
+            that.options.push.apply(that.options, that.prepare_options(unmatched));
             that.create_options(unmatched);
         }
     };

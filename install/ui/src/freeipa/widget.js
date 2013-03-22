@@ -21,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery'], function(IPA, $) {
+define(['dojo/_base/array', './ipa', './jquery'], function(array, IPA, $) {
 
 IPA.checkbox_column_width = 22;
 IPA.required_indicator = '*';
@@ -616,147 +616,395 @@ IPA.multivalued_widget = function(spec) {
     return that;
 };
 
-IPA.checkbox_widget = function (spec) {
+/**
+ * Widget base for checkboxes and radios. Doesn't handle dirty state's but
+ * its supposed to be nestable.
+ *
+ * Nesting rules:
+ *  1. parent should be checked when one of its child is checked
+ *     Consequences:
+ *        * childs get unchecked when parent gets unchecked
+ *        * parent will be checked when child is checked even when input
+ *          values don't contain parent's value.
+ *  2. parent can be configured not to include it's value when children are
+ *     checked
+ *  3. each subtree containing a checked input has to return at least one value
+ *     on save()
+ *  4. each option has to have unique value
+ *
+ * Has subset of widget interface - overrides the values in widget
+ *   * save(): get values
+ *   * update(values): set values
+ *   * value_changed: event when change happens
+ *   * create: creates HTML
+ */
+IPA.option_widget_base = function(spec, that) {
 
     spec = spec || {};
 
-    var that = IPA.input_widget(spec);
+    // when that is specified, this constructor behaves like a mixin
+    that = that || {};
 
-    // default value
-    that.checked = spec.checked || false;
+    // classic properties
+    that.name = spec.name;
+    that.label = spec.label;
+    that.tooltip = spec.tooltip;
+    that.value_changed = IPA.observer();
+    that.default_value = spec.default_value || null;
 
-    that.create = function(container) {
+    /**
+     * Jquery reference to current node
+     */
+    that.$node = null;
 
-        that.widget_create(container);
+    /**
+     * Type of rendered inputs: ['checkbox', 'radio']
+     */
+    that.input_type = spec.input_type || 'checkbox';
 
-        container.addClass('checkbox-widget');
+    /**
+     * CSS class for container
+     */
+    that.css_class = spec.css_class || '';
 
-        that.input = $('<input/>', {
-            type: 'checkbox',
-            name: that.name,
-            checked: that.checked,
-            title: that.tooltip,
-            change: function() {
-                that.value_changed.notify([that.save()], that);
+    /**
+     * If it's nested widget
+     */
+    that.nested = !!spec.nested;
+
+    /**
+     * How items should be rendered.
+     *
+     * values: ['inline', 'vertical']
+     */
+    that.layout = spec.layout || 'vertical';
+
+    // private properties
+    that._child_widgets = [];
+    that._input_name = null;
+    that._selector = null;
+    that._option_next_id = 0;
+
+
+    /**
+     * Normalizes options spec
+     */
+    that.prepare_options = function(options) {
+
+        var ret = [];
+
+        if (!options) return options;
+
+        for (var i=0; i<options.length; i++) {
+            ret.push(that.prepare_option(options[i]));
+        }
+
+        return ret;
+    };
+
+    /**
+     * Option has following interface: {
+     *      label: String
+     *      value: String
+     *      nested: Boolean
+     *      widget: Widget
+     *      combine_values: Boolean, default true. Whether to include this value
+     *                      if some of its children is specified
+     * }
+     */
+    that.prepare_option = function(spec) {
+
+        var option = spec;
+
+        if (!option) throw {
+            error: 'Invalid option specified',
+            option: option
+        };
+
+        if (typeof option === 'string') {
+            option = {
+                label: option,
+                value: option
+            };
+        } else {
+            if (option.type || option.factory) {
+                var factory = option.factory || IPA.widget_factories[option.type];
+                if (typeof factory !== 'function') throw {
+                    error: 'Invalid factory',
+                    factory: factory
+                };
+                option.nested = true;
+                option.widget = factory(option);
+                option.widget.value_changed.attach(that.on_input_change);
+
+                that._child_widgets.push(option.widget);
             }
+        }
+
+        option.combine_values = option.combine_values === undefined ? true :
+                                    !!option.combine_values;
+
+        return option;
+    };
+
+    that.add_option = function(option, suppress_update) {
+        that.options.push(that.prepare_option(option));
+        if (!suppress_update) that.update_dom();
+    };
+
+    that.update_dom = function() {
+
+        if (that.$node) {
+            var values = that.save();
+            var container = that.$node.parent();
+            that.create(container);
+            that.update(values);
+        }
+    };
+
+    that.create_options = function(container) {
+        for (var i=0; i<that.options.length; i++) {
+            var option_container = that.create_option_container();
+            var option = that.options[i];
+            that.create_option(option, option_container);
+            option_container.appendTo(container);
+        }
+    };
+
+    that.create_option_container = function() {
+        return $('<li/>');
+    };
+
+    that._create_option = function(option, container) {
+        var input_name = that.get_input_name();
+        var id = that._option_next_id + input_name;
+
+        $('<input/>', {
+            id: id,
+            type: that.input_type,
+            name: input_name,
+            value: option.value,
+            title: option.tooltip || that.tooltip,
+            change: that.on_input_change
         }).appendTo(container);
 
-        if (that.undo) {
-            that.create_undo(container);
+        $('<label/>', {
+            text: option.label,
+            title: option.tooltip || that.tooltip,
+            'for': id
+        }).appendTo(container);
+
+        that.new_option_id();
+    };
+
+    that.create_option = function(option, container) {
+
+        that._create_option(option, container);
+
+        if (option.widget) {
+            option.widget.create(container);
         }
-
-        that.create_error_link(container);
     };
 
-    that.save = function() {
-        var value = that.input.is(':checked');
-        return [value];
+    that.new_option_id = function() {
+        that._option_next_id++;
     };
 
-    that.update = function(values) {
-        var value;
+    that.get_input_name = function() {
 
-        if (values && values.length) {
-            value = values[0];
+        if (!that._input_name) {
+            var name = that.name;
+            if (that.input_type === 'radio') {
+                name = IPA.html_util.get_next_id(name);
+            }
+            that._input_name = name;
+            that._selector = 'input[name="'+name+'"]';
         }
-
-        if (typeof value !== 'boolean') {
-            // use default value
-            value = that.checked;
-        }
-
-        that.input.prop('checked', value);
+        return that._input_name;
     };
-
-    that.clear = function() {
-        that.input.prop('checked', false);
-    };
-
-    that.checkbox_save = that.save;
-
-    return that;
-};
-
-IPA.checkboxes_widget = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.input_widget(spec);
-
-    that.options = spec.options || [];
-    that.direction = spec.direction || 'vertical';
 
     that.create = function(container) {
+        that.destroy();
+        that.create_options(that.$node);
+        var css_class = [that.css_class, 'option_widget', that.layout,
+                that.nested ? 'nested': ''].join(' ');
 
-        that.widget_create(container);
+        that.$node = $('<ul/>', { 'class': css_class });
+        that.create_options(that.$node);
 
-        container.addClass('checkboxes-widget');
+        if (container) that.$node.appendTo(container);
+    };
 
-        var vertical = that.direction === 'vertical';
+    that.destroy = function() {
+        if (that.$node) {
+            that.$node.empty();
+            that.$node.remove();
+        }
 
+        for (var i=0; i< that._child_widgets.length; i++) {
+            that._child_widgets[i].destroy();
+        }
+    };
+
+    that.get_option = function(value) {
         for (var i=0; i<that.options.length; i++) {
             var option = that.options[i];
-            $('<input/>', {
-                type: 'checkbox',
-                name: that.name,
-                value: option.value,
-                title: that.tooltip
-            }).appendTo(container);
+            if (option.value === value) return option;
+        }
+        return null;
+    };
 
-            $('<label/>', {
-                text: option.label,
-                title: that.tooltip
-            }).appendTo(container);
+    /**
+     * Get values for specific option and its children.
+     *
+     * If option is not specified, gets values of all options and children.
+     */
+    that.get_values = function(option) {
 
-            if (vertical) {
-                $('<br/>').appendTo(container);
+        var values = [];
+        if (option) {
+            values.push(option.value);
+            if (option.widget) {
+                values.push.apply(values, option.widget.get_values());
+            }
+        } else {
+            for (var i=0; i<that.options.length; i++) {
+                var vals = that.get_values(that.options[i]);
+                values.push.apply(values, vals);
             }
         }
 
-        if (that.undo) {
-            that.create_undo(container);
+        return values;
+    };
+
+    that.on_input_change = function(e) {
+
+        // uncheck child widgets on uncheck of parent option
+        if (that._child_widgets.length > 0) {
+
+            var parents_selected = [];
+
+            $(that._selector+':checked', that.container).each(function() {
+                var value = $(this).val();
+                var option = that.get_option(value);
+                if (option && option.nested) {
+                    parents_selected.push(value);
+                }
+            });
+
+            for (var i=0; i<that.options.length; i++) {
+
+                var option = that.options[i];
+
+                if (option.nested) {
+                    var selected = parents_selected.indexOf(option.value) > -1;
+                    option.widget.set_enabled(selected);
+                }
+            }
         }
-
-        var input = $('input[name="'+that.name+'"]', that.container);
-        input.change(function() {
-            that.value_changed.notify([that.save()], that);
-        });
-
-        that.create_error_link(container);
+        that.value_changed.notify([], that);
     };
 
     that.save = function() {
+
         var values = [];
 
-        $('input[name="'+that.name+'"]:checked', that.container).each(function() {
-            values.push($(this).val());
-        });
+        if (that.$node) {
+
+            $(that._selector+':checked', that.container).each(function() {
+                var value = $(this).val();
+                var child_values = [];
+                var option = that.get_option(value);
+
+                if (option.widget) {
+                    child_values = option.widget.save();
+                    values.push.apply(values, child_values);
+                }
+
+                // don't use value if cannot be combined with children's value
+                if (!(child_values.length > 0 && !option.combine_values)) {
+                    values.push(value);
+                }
+            });
+        }
 
         return values;
     };
 
     that.update = function(values) {
-        var inputs = $('input[name="'+that.name+'"]', that.container);
-        inputs.prop('checked', false);
 
-        for (var j=0; values && j<values.length; j++) {
-            var value = values[j];
-            var input = $('input[name="'+that.name+'"][value="'+value+'"]', that.container);
-            if (!input.length) continue;
-            input.prop('checked', true);
+        var check = function(selector, uncheck) {
+            $(selector, that.$node).prop('checked', !uncheck);
+        };
+
+        if (that.$node) {
+
+            // uncheck all inputs
+            check(that._selector, true /*uncheck*/);
+
+            if (values && values.length > 0) {
+
+                // check the option when option or some of its child should be
+                // checked
+                for (var i=0; i<that.options.length; i++) {
+                    var option = that.options[i];
+                    var opt_vals = that.get_values(option);
+                    var has_opt = array.some(values, function(val) {
+                        return array.indexOf(opt_vals, val) > -1;
+                    });
+
+                    if (has_opt) {
+                        check(that._selector+'[value="'+ option.value +'"]');
+                    }
+                    if (option.widget) {
+                        option.widget.set_enabled(has_opt);
+                    }
+                }
+            } else {
+                // select default if none specified
+                if (that.default_value !== null) {
+                    check(that._selector+'[value="'+that.default_value+'"]');
+                } else {
+                    // otherwise select empty
+                    check(that._selector+'[value=""]');
+                }
+            }
+
+            for (var j=0; j<that._child_widgets.length; j++) {
+                that._child_widgets[j].update(values);
+            }
         }
     };
 
+    that.set_enabled = function(enabled) {
+
+        $(that._selector, that.container).prop('disabled', !enabled);
+        if (!enabled) that.clear();
+        for (var i=0; i<that._child_widgets.length;i++){
+            that._child_widgets[i].set_enabled(enabled);
+        }
+    };
+
+
     that.clear = function() {
-        $('input[name="'+that.name+'"]').prop('checked', false);
+
+        $(that._selector, that.$node).prop('checked', false);
+
+        if (that.default_value) {
+            $(that._selector+'[value="'+that.default_value+'"]', that.$node).
+                prop('checked', true);
+        }
+
+        for (var i=0; i<that._child_widgets.length; i++) {
+            that._child_widgets[i].clear();
+        }
     };
 
-    that.add_option = function(option) {
-        that.options.push(option);
-    };
+    that.options = that.prepare_options(spec.options || []);
 
-    // methods that should be invoked by subclasses
-    that.checkboxes_update = that.update;
+    that.owb_create = that.create;
+    that.owb_save = that.save;
+    that.owb_update = that.update;
 
     return that;
 };
@@ -764,89 +1012,65 @@ IPA.checkboxes_widget = function (spec) {
 IPA.radio_widget = function(spec) {
 
     spec = spec || {};
+    spec.input_type = spec.input_type || 'radio';
+    spec.layout = spec.layout || 'inline';
 
     var that = IPA.input_widget(spec);
-
-    that.default_value = spec.default_value;
-    that.options = spec.options;
+    IPA.option_widget_base(spec, that);
 
     that.create = function(container) {
-
         that.widget_create(container);
-
+        that.owb_create(container);
         container.addClass('radio-widget');
-
-        var name = IPA.html_util.get_next_id(that.name+'-');
-        that.selector = 'input[name="'+name+'"]';
-
-        for (var i=0; i<that.options.length; i++) {
-            var option = that.options[i];
-
-            var id = name+'-'+i;
-
-            $('<input/>', {
-                id: id,
-                type: 'radio',
-                name: name,
-                value: option.value
-            }).appendTo(container);
-
-            $('<label/>', {
-                text: option.label,
-                'for': id
-            }).appendTo(container);
-        }
 
         if (that.undo) {
             that.create_undo(container);
         }
 
-        var input = $(that.selector, that.container);
-        input.change(function() {
-            that.value_changed.notify([that.save()], that);
-        });
-
         that.create_error_link(container);
     };
+    return that;
+};
+
+IPA.checkbox_widget = function (spec) {
+
+    var checked = 'checked';
+
+    spec = spec || {};
+    spec.input_type = spec.input_type || 'checkbox';
+
+    if (!spec.options) {
+        spec.options = [ { value: checked, label: '' } ];
+    }
+
+    if (spec.checked) spec.default_value = spec.checked;
+
+    var that = IPA.radio_widget(spec);
 
     that.save = function() {
-        var input = $(that.selector+':checked', that.container);
-        if (!input.length) return [];
-        return [input.val()];
+        var values = that.owb_save();
+        return [values.length > 0];
     };
 
     that.update = function(values) {
+        var value = values ? values[0] : '';
 
-        $(that.selector, that.container).each(function() {
-            var input = this;
-            input.checked = false;
-        });
-
-        var value = values && values.length ? values[0] : '';
-        var input = $(that.selector+'[value="'+value+'"]', that.container);
-        if (input.length) {
-            input.prop('checked', true);
-        } else if (that.default_value) {
-            input = $(that.selector+'[value="'+that.default_value+'"]', that.container);
-            input.prop('checked', true);
+        if (typeof value !== 'boolean') {
+            value = that.default_value || '';
+        } else {
+            value = value ? checked : '';
         }
-
-        that.value_changed.notify([that.save()], that);
+        that.owb_update([value]);
     };
 
-    that.clear = function() {
-        $(that.selector, that.container).prop('checked', false);
+    return that;
+};
 
-        if (that.default_value) {
-            var input = $(that.selector+'[value="'+that.default_value+'"]', that.container);
-            input.prop('checked', true);
-        }
-    };
-
-    // methods that should be invoked by subclasses
-    that.radio_create = that.create;
-    that.radio_save = that.save;
-
+IPA.checkboxes_widget = function (spec) {
+    spec = spec || {};
+    spec.input_type = spec.input_type || 'checkbox';
+    spec.layout = spec.layout || 'vertical';
+    var that = IPA.radio_widget(spec);
     return that;
 };
 

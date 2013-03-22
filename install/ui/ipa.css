@@ -1294,6 +1294,21 @@ table.scrollable tbody {
     width: 400px;
 }
 
+.option_widget {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.option_widget.nested {
+    padding-left: 40px;
+}
+
+.option_widget.inline,
+.option_widget.inline > li {
+    display: inline;
+}
+
 .combobox-widget-input {
     display: inline-block;
     position: relative;
