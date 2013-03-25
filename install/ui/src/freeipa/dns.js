@@ -20,8 +20,18 @@
  */
 
 
-define(['./ipa', './jquery', './net', './navigation', './details', './search', './association',
-       './entity'], function(IPA, $, NET, navigation) {
+define([
+    './ipa',
+    './jquery',
+    './net',
+    './navigation',
+    './menu',
+    './phases',
+    './details',
+    './search',
+    './association',
+    './entity'],
+       function(IPA, $, NET, navigation, menu, phases) {
 
 IPA.dns = {
     zone_permission_name: 'Manage DNS zone ${dnszone}'
@@ -2538,6 +2548,12 @@ IPA.network_validator = function(spec) {
 
     return that;
 };
+
+phases.on('profile', function() {
+    if (!IPA.dns_enabled) {
+        menu.remove_item('identity/dns');
+    }
+}, 20);
 
 IPA.register('dnsconfig', IPA.dns.config_entity);
 IPA.register('dnszone', IPA.dns.zone_entity);
