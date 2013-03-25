@@ -101,7 +101,7 @@ return declare([Evented], {
      * @param {String|menu_item} parent
      * @param {Object} options
      */
-    add_item: function(item, parent, options ) {
+    add_item: function(item, parent, options) {
 
         item = lang.clone(item); //don't modify original spec
 
@@ -115,7 +115,9 @@ return declare([Evented], {
         if (item.entity) {
             // FIXME: replace with 'entities' module in future
             var entity = IPA.get_entity(item.entity);
-            if (!entity) return; //quit
+            if (!entity) {
+                return false; //quit
+            }
             //item.name = entity.name;
             if (!item.label) item.label = entity.label;
             if (!item.title) item.title = entity.title;
@@ -163,6 +165,7 @@ return declare([Evented], {
                 this.add_item(child, item);
             }, this);
         }
+        return true;
     },
 
     add_items: function(/* Array */ items) {

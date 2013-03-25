@@ -21,7 +21,7 @@
 /**
  * Navigation tells application to show certain facet.
  *
- * It's proxy for navigation/Router instace in current running
+ * It's proxy for navigation/Router instance in current running
  * application.
  *
  * Modules just use the interface, they don't have to care about the logic in
@@ -29,9 +29,9 @@
  */
 define([
         'dojo/_base/lang',
-        './app', // creates circullar dependency
+        './app', // creates circular dependency
         './ipa',
-        'exports' // for handling circullar dependency
+        'exports' // for handling circular dependency
        ],
        function(lang, app, IPA, exports) {
 
