@@ -1467,11 +1467,11 @@ body.info-page  {
     margin:  0;
 }
 
-div.entity[name=hbactest] .content-table tbody {
+div.facet[data-entity=hbactest] .content-table tbody {
     bottom: 68px;
 }
 
-div.entity[name=hbactest] .content-table tfoot td[name=external] {
+div.facet[data-entity=hbactest] .content-table tfoot td[name=external] {
     background-color: #F6F6F6;
     border: 1px solid #DFDFDF;
     color: #333333;
@@ -1480,11 +1480,11 @@ div.entity[name=hbactest] .content-table tfoot td[name=external] {
     text-align: left;
 }
 
-div.entity[name=hbactest] div.facet[name=run_test] .hbac-test-header {
+div.facet[data-name=run_test][data-entity=hbactest] .hbac-test-header {
     height: 100px;
 }
 
-div.entity[name=hbactest] div.facet[name=run_test] .hbac-test-content {
+div.facet[data-name=run_test][data-entity=hbactest] .hbac-test-content {
     top: 100px;
 }
 

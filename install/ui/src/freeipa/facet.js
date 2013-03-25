@@ -338,13 +338,17 @@ IPA.facet = function(spec, no_init) {
 
     that.create = function() {
 
+        var entity_name = !!that.entity ? that.entity.name : '';
+
         if (that.domNode) {
             that.domNode.empty();
             that.domNode.detach();
         } else {
             that.domNode = $('<div/>', {
                 'class': 'facet',
-                name: that.name
+                name: that.name,
+                'data-name': that.name,
+                'data-entity': entity_name
             });
         }
 
