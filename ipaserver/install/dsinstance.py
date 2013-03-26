@@ -228,7 +228,8 @@ class DsInstance(service.Service):
         self.step("configuring directory to start on boot", self.__enable)
 
     def init_info(self, realm_name, fqdn, domain_name, dm_password,
-                  self_signed_ca, subject_base, idstart, idmax, pkcs12_info):
+                  self_signed_ca, subject_base, idstart, idmax, pkcs12_info,
+                  ca_file=None):
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
         self.suffix = ipautil.realm_to_suffix(self.realm_name)
@@ -241,16 +242,17 @@ class DsInstance(service.Service):
         self.idstart = idstart
         self.idmax = idmax
         self.pkcs12_info = pkcs12_info
+        self.ca_file = ca_file
 
         self.__setup_sub_dict()
 
     def create_instance(self, realm_name, fqdn, domain_name,
                         dm_password, pkcs12_info=None, self_signed_ca=False,
                         idstart=1100, idmax=999999, subject_base=None,
-                        hbac_allow=True):
+                        hbac_allow=True, ca_file=None):
         self.init_info(
             realm_name, fqdn, domain_name, dm_password, self_signed_ca,
-            subject_base, idstart, idmax, pkcs12_info)
+            subject_base, idstart, idmax, pkcs12_info, ca_file=ca_file)
 
         self.__common_setup()
 
@@ -270,7 +272,8 @@ class DsInstance(service.Service):
         self.start_creation(runtime=60)
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
-                       domain_name, dm_password, pkcs12_info=None):
+                       domain_name, dm_password, pkcs12_info=None,
+                       ca_file=None):
         # idstart and idmax are configured so that the range is seen as
         # depleted by the DNA plugin and the replica will go and get a
         # new range from the master.
@@ -280,7 +283,7 @@ class DsInstance(service.Service):
 
         self.init_info(
             realm_name, fqdn, domain_name, dm_password, None, None,
-            idstart, idmax, pkcs12_info)
+            idstart, idmax, pkcs12_info, ca_file=ca_file)
         self.master_fqdn = master_fqdn
 
         self.__common_setup(True)
@@ -533,7 +536,8 @@ class DsInstance(service.Service):
         dirname = config_dirname(self.serverid)
         dsdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
         if self.pkcs12_info:
-            dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
+            dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
+                                    ca_file=self.ca_file)
             server_certs = dsdb.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])

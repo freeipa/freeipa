@@ -64,7 +64,7 @@ class HTTPInstance(service.Service):
     def create_instance(self, realm, fqdn, domain_name, dm_password=None,
                         autoconfig=True, pkcs12_info=None,
                         self_signed_ca=False, subject_base=None,
-                        auto_redirect=True):
+                        auto_redirect=True, ca_file=None):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
@@ -82,6 +82,7 @@ class HTTPInstance(service.Service):
             AUTOREDIR='' if auto_redirect else '#',
             CRL_PUBLISH_PATH=dogtag.install_constants.CRL_PUBLISH_PATH,
         )
+        self.ca_file = ca_file
 
         # get a connection to the DS
         self.ldap_connect()
@@ -244,7 +245,8 @@ class HTTPInstance(service.Service):
 
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
         if self.pkcs12_info:
-            db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd=None)
+            db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
+                                  passwd=None, ca_file=self.ca_file)
             server_certs = db.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])

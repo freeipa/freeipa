@@ -340,7 +340,7 @@ class ReplicaPrepare(admintool.AdminTool):
     def copy_misc_files(self):
         self.log.info("Copying additional files")
 
-        self.copy_info_file("/usr/share/ipa/html/ca.crt", "ca.crt")
+        self.copy_info_file("/etc/ipa/ca.crt", "ca.crt")
         preferences_filename = "/usr/share/ipa/html/preferences.html"
         if ipautil.file_exists(preferences_filename):
             self.copy_info_file(preferences_filename, "preferences.html")

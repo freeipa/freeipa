@@ -375,7 +375,8 @@ class NSSDatabase(object):
         except RuntimeError:
             pass
         else:
-            raise ValueError('%s contains more than one certificate')
+            raise ValueError('%s contains more than one certificate' %
+                             location)
 
     def add_single_pem_cert(self, nick, flags, cert):
         """Import a cert in PEM format"""
@@ -1127,7 +1128,8 @@ class CertDB(object):
         self.create_certdbs()
         self.load_cacert(cacert_fname)
 
-    def create_from_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, passwd=None):
+    def create_from_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, passwd=None,
+                           ca_file=None):
         """Create a new NSS database using the certificates in a PKCS#12 file.
 
            pkcs12_fname: the filename of the PKCS#12 file
@@ -1137,6 +1139,8 @@ class CertDB(object):
 
            The global CA may be added as well in case it wasn't included in the
            PKCS#12 file. Extra certs won't hurt in any case.
+
+           The global CA may be specified in ca_file, as a PEM filename.
         """
         self.create_noise_file()
         self.create_passwd_file(passwd)
@@ -1145,6 +1149,9 @@ class CertDB(object):
         server_certs = self.find_server_certs()
         if len(server_certs) == 0:
             raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_fname)
+
+        if ca_file:
+            self.nssdb.import_pem_cert('CA', 'CT,CT,', ca_file)
 
         # We only handle one server cert
         nickname = server_certs[0][0]

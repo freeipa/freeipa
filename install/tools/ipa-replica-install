@@ -164,7 +164,7 @@ def install_replica_ds(config):
     ds.create_replica(config.realm_name,
                       config.master_host_name, config.host_name,
                       config.domain_name, config.dirman_password,
-                      pkcs12_info)
+                      pkcs12_info, ca_file = config.dir + "/ca.crt")
 
     return ds
 
@@ -209,7 +209,10 @@ def install_http(config, auto_redirect):
     memcache.create_instance('MEMCACHE', config.host_name, config.dirman_password, ipautil.realm_to_suffix(config.realm_name))
 
     http = httpinstance.HTTPInstance()
-    http.create_instance(config.realm_name, config.host_name, config.domain_name, config.dirman_password, False, pkcs12_info, self_signed_ca=True, auto_redirect=auto_redirect)
+    http.create_instance(
+        config.realm_name, config.host_name, config.domain_name,
+        config.dirman_password, False, pkcs12_info,
+        auto_redirect=auto_redirect, ca_file = config.dir + "/ca.crt")
 
     # Now copy the autoconfiguration files
     if ipautil.file_exists(config.dir + "/preferences.html"):
