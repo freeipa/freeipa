@@ -709,11 +709,7 @@ class DsInstance(service.Service):
 
         serverid = self.restore_state("serverid")
         if not serverid is None:
-            # drop the trailing / off the config_dirname so the directory
-            # will match what is in certmonger
-            dirname = config_dirname(serverid)[:-1]
-            dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
-            dsdb.untrack_server_cert(self.nickname)
+            self.stop_tracking_certificates(serverid)
             erase_ds_instance_data(serverid)
 
         # At one time we removed this user on uninstall. That can potentially
@@ -734,6 +730,16 @@ class DsInstance(service.Service):
                 ipaservices.knownservices.dirsrv.restart(ds_instance, wait=False)
             except Exception, e:
                 root_logger.error('Unable to restart ds instance %s: %s', ds_instance, e)
+
+    def stop_tracking_certificates(self, serverid=None):
+        if serverid is None:
+            serverid = self.get_state("serverid")
+        if not serverid is None:
+            # drop the trailing / off the config_dirname so the directory
+            # will match what is in certmonger
+            dirname = config_dirname(serverid)[:-1]
+            dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
+            dsdb.untrack_server_cert(self.nickname)
 
     # we could probably move this function into the service.Service
     # class - it's very generic - all we need is a way to get an

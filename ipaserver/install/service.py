@@ -292,6 +292,9 @@ class Service(object):
     def restore_state(self, key):
         return self.sstore.restore_state(self.service_name, key)
 
+    def get_state(self, key):
+        return self.sstore.get_state(self.service_name, key)
+
     def print_msg(self, message):
         print_msg(message, self.output_fd)
 

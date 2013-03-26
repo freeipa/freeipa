@@ -29,6 +29,7 @@ import os
 import shutil
 import pwd
 import fileinput
+import ConfigParser
 
 from ipalib import api
 import ipalib.util
@@ -757,6 +758,25 @@ def add_ca_dns_records():
 
     sysupgrade.set_upgrade_state('dns', 'ipa_ca_records', True)
 
+def uninstall_selfsign(ds, http):
+    root_logger.info('[Removing self-signed CA]')
+    """Replace self-signed CA by a CA-less install"""
+    if api.env.ra_plugin != 'selfsign':
+        root_logger.debug('Self-signed CA is not installed')
+        return
+
+    root_logger.warning(
+        'Removing self-signed CA. Certificates will need to managed manually.')
+    p = ConfigParser.SafeConfigParser()
+    p.read('/etc/ipa/default.conf')
+    p.set('global', 'enable_ra', 'False')
+    p.set('global', 'ra_plugin', 'none')
+    with open('/etc/ipa/default.conf', 'w') as f:
+        p.write(f)
+
+    ds.stop_tracking_certificates()
+    http.stop_tracking_certificates()
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -834,6 +854,10 @@ def main():
     http.remove_httpd_ccache()
     http.configure_selinux_for_httpd()
 
+    ds = dsinstance.DsInstance()
+
+    uninstall_selfsign(ds, http)
+
     memcache = memcacheinstance.MemcacheInstance()
     memcache.ldapi = True
     memcache.realm = api.env.realm
@@ -841,7 +865,6 @@ def main():
         if not memcache.is_configured():
             # 389-ds needs to be running to create the memcache instance
             # because we record the new service in cn=masters.
-            ds = dsinstance.DsInstance()
             ds.start()
             memcache.create_instance('MEMCACHE', fqdn, None, ipautil.realm_to_suffix(api.env.realm))
     except ipalib.errors.DuplicateEntry:

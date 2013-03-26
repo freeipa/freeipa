@@ -376,8 +376,7 @@ class HTTPInstance(service.Service):
         if not running is None:
             self.stop()
 
-        db = certs.CertDB(api.env.realm)
-        db.untrack_server_cert(self.cert_nickname)
+        self.stop_tracking_certificates()
         if not enabled is None and not enabled:
             self.disable()
 
@@ -404,3 +403,7 @@ class HTTPInstance(service.Service):
 
         if not running is None and running:
             self.start()
+
+    def stop_tracking_certificates(self):
+        db = certs.CertDB(api.env.realm)
+        db.untrack_server_cert(self.cert_nickname)
