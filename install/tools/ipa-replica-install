@@ -299,13 +299,23 @@ def install_dns_records(config, options):
     # before our DS server is installed.
     with temporary_ldap2_connection(
             config.master_host_name, config.dirman_password):
-        bind = bindinstance.BindInstance(dm_password=config.dirman_password)
-        reverse_zone = bindinstance.find_reverse_zone(config.ip)
+        try:
+            bind = bindinstance.BindInstance(dm_password=config.dirman_password)
+            reverse_zone = bindinstance.find_reverse_zone(config.ip)
 
-        bind.add_master_dns_records(config.host_name, config.ip_address,
-                                    config.realm_name, config.domain_name,
-                                    reverse_zone, options.conf_ntp,
-                                    options.setup_ca)
+            bind.add_master_dns_records(config.host_name, config.ip_address,
+                                        config.realm_name, config.domain_name,
+                                        reverse_zone, options.conf_ntp,
+                                        options.setup_ca)
+        except errors.NotFound, e:
+            root_logger.debug('Replica DNS records could not be added '
+                              'on master: %s', str(e))
+
+        # we should not fail here no matter what
+        except Exception, e:
+            root_logger.info('Replica DNS records could not be added '
+                             'on master: %s', str(e))
+
 
 def check_dirsrv():
     (ds_unsecure, ds_secure) = dsinstance.check_ports()
