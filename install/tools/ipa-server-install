@@ -132,6 +132,12 @@ def parse_options():
     basic_group.add_option("-a", "--admin-password",
                       sensitive=True, dest="admin_password",
                       help="admin user kerberos password")
+    basic_group.add_option("--mkhomedir",
+                           dest="mkhomedir",
+                           action="store_true",
+                           default=False,
+                           help="create home directories for users "
+                                "on their first login")
     basic_group.add_option("--hostname", dest="host_name", help="fully qualified name of server")
     basic_group.add_option("--ip-address", dest="ip_address",
                       type="ip", ip_local=True,
@@ -1138,6 +1144,8 @@ def main():
             args.append("--no-ssh")
         if not options.conf_sshd:
             args.append("--no-sshd")
+        if options.mkhomedir:
+            args.append("--mkhomedir")
         run(args)
     except Exception, e:
         sys.exit("Configuration of client side components failed!\nipa-client-install returned: " + str(e))
