@@ -610,7 +610,7 @@ IPA.dns.add_permission_action = function(spec) {
 
     that.execute_action = function(facet) {
 
-        var pkey = that.get_pkey();
+        var pkey = facet.get_pkey();
 
          var command = IPA.command({
             entity: 'dnszone',
@@ -640,7 +640,7 @@ IPA.dns.remove_permission_action = function(spec) {
 
     that.execute_action = function(facet) {
 
-        var pkey = that.get_pkey();
+        var pkey = facet.get_pkey();
 
          var command = IPA.command({
             entity: 'dnszone',
@@ -1837,12 +1837,11 @@ IPA.dns.record_type_table_widget = function(spec) {
 
     that.remove = function(values, pkey, on_success, on_error) {
 
-        var dnszone = that.facet.get_pkey();
-
+        var pkeys = that.facet.get_pkeys();
         var command = IPA.command({
             entity: that.entity.name,
             method: 'del',
-            args: [dnszone, pkey],
+            args: pkeys,
             on_success: on_success,
             on_error: on_error
         });
@@ -1934,10 +1933,9 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_add_command = function(record) {
 
-            var dnszone = that.facet.get_pkey();
-
+            var pkeys = that.facet.get_pkeys();
             var command = dialog.entity_adder_dialog_create_add_command(record);
-            command.args = [dnszone, that.idnsname[0]];
+            command.args = pkeys;
             command.set_option('structured', true);
 
             return command;
@@ -2028,11 +2026,9 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_add_command = function(record) {
 
-            var dnszone = that.facet.get_pkey();
             var command = dialog.entity_adder_dialog_create_add_command(record);
-
             command.method = 'mod';
-            command.args = [dnszone, that.idnsname[0]];
+            command.args = that.facet.get_pkeys();
 
             var record_name = that.dnstype.toLowerCase()+'record';
             command.set_option(record_name, dialog.full_value);
@@ -2191,9 +2187,15 @@ IPA.dns.ptr_redirection_column = function(spec) {
     that.link_handler = function(value) {
 
         var address = NET.ip_address(value);
+        var pkeys = that.facet.get_pkeys();
+        var record = {
+            zone: pkeys[0],
+            name: pkeys[1]
+        };
 
         var dialog = IPA.dns.ptr_redirection_dialog({
-            address: address
+            address: address,
+            dns_record: record
         });
         dialog.open();
 
@@ -2210,6 +2212,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
     spec.title = IPA.messages.objects.dnsrecord.ptr_redir_title;
 
     var that = IPA.dialog(spec);
+    that.dns_record = spec.dns_record;
 
     that.address = spec.address;
 
@@ -2263,19 +2266,6 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
             that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_address_err);
         } else {
             that.reverse_address = that.address.get_reverse().toLowerCase()+'.';
-
-            var pkeys = that.facet.get_pkeys();
-
-            var record = pkeys[1];
-            var zone = pkeys[0];
-
-            if (record && zone && record !== '' && zone !== '') {
-                that.dns_record = {
-                    name: record,
-                    zone: zone
-                };
-            }
-
             that.get_zones();
         }
     };
