@@ -120,7 +120,7 @@ Requires: acl
 Requires: python-pyasn1
 Requires: memcached
 Requires: python-memcached
-Requires: systemd-units >= 36-3
+Requires: systemd-units >= 38
 Requires(pre): systemd-units
 Requires(post): systemd-units
 Requires: selinux-policy >= 3.11.1-86
@@ -786,6 +786,8 @@ fi
 - Remove conflict with krb5-server > 1.11 as ipa-kdb is compatible
 - ipa-ldap-updater show produce errors only
 - update policycoreutils version to 2.1.12-5 to match Requires in Fedora
+- require at least systemd 38 which provides the journal (we no longer
+  need to require syslog.target)
 
 * Thu Mar 21 2013 Martin Kosek <mkosek@redhat.com> - 3.1.99-1
 - Require selinux-policy 3.11.1-86 to fix Fedora 17 to 18 upgrade issue
