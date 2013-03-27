@@ -50,9 +50,8 @@ Implements a set of commands for managing server SSL certificates.
 Certificate requests exist in the form of a Certificate Signing Request (CSR)
 in PEM format.
 
-If using the selfsign back end then the subject in the CSR needs to match
-the subject configured in the server. The dogtag CA uses just the CN
-value of the CSR and forces the rest of the subject.
+The dogtag CA uses just the CN value of the CSR and forces the rest of the
+subject to values configured in the server.
 
 A certificate is stored with a service principal and a service principal
 needs a host.

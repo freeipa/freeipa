@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test the `ipalib/plugins/cert.py` module against the selfsign plugin.
+Test the `ipalib/plugins/cert.py` module against a RA.
 """
 
 import sys
@@ -57,7 +57,7 @@ def is_db_configured():
 # To test against Apache directly then no changes are required. Just be
 # sure the xmlrpc_uri in ~/.ipa/default.conf points to Apache.
 #
-# To test against a selfsign or dogtag CA in the lite-server:
+# To test against Dogtag CA in the lite-server:
 #
 # - Copy the 3 NSS db files from /etc/httpd/alias to ~/.ipa/alias
 # - Copy /etc/httpd/alias/pwdfile.txt to  ~/.ipa/alias/.pwd.

@@ -92,6 +92,3 @@ IPA is not relocatable.
 
 When building rpms the version contains the GIT id in the version. To prevent
 this pass the argument IPA_VERSION_IS_GIT_SNAPSHOT=yes to make.
-
-If you don't need a full CA during testing then using the self-signed CA
-(pass --selfsign to ipa-server-install) takes less time to install.

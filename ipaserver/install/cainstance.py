@@ -469,7 +469,6 @@ def stop_tracking_certificates(dogtag_constants):
 
 class CAInstance(service.Service):
     """
-    In the self-signed case the CA exists in the NSS_DB database.
     When using a dogtag CA the DS database contains just the
     server cert for DS. The mod_nss database will contain the RA agent
     cert that will be used to do authenticated requests against dogtag.
@@ -1697,7 +1696,7 @@ def replica_ca_install_check(config, master_ds_port):
 
     cafile = config.dir + "/cacert.p12"
     if not ipautil.file_exists(cafile):
-        # self-signed replica
+        # Replica of old "self-signed" master - CA won't be installed
         return
 
     master_ds_port = int(master_ds_port)
@@ -1759,7 +1758,7 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
     cafile = config.dir + "/cacert.p12"
 
     if not ipautil.file_exists(cafile):
-        # self-signed replica
+        # Replica of old "self-signed" master - skip installing CA
         return (None, None)
 
     if not config.setup_ca:
