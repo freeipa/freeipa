@@ -17,20 +17,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os, stat, subprocess, re
+import os
+import stat
+import re
 import sys
 import tempfile
 import shutil
-from ipapython.ipa_log_manager import *
 import xml.dom.minidom
 import pwd
-import fcntl
 import base64
 from hashlib import sha1
-from ConfigParser import RawConfigParser, MissingSectionHeaderError
 
 from nss import nss
 
+from ipapython.ipa_log_manager import root_logger
 from ipapython import dogtag
 from ipapython import sysrestore
 from ipapython import ipautil
@@ -45,32 +45,6 @@ from ipalib.text import _
 # Apache needs access to this database so we need to create it
 # where apache can reach
 NSS_DIR = "/etc/httpd/alias"
-
-CA_SERIALNO="/var/lib/ipa/ca_serialno"
-
-def ipa_self_signed():
-    """
-    Determine if the current IPA CA is self-signed or using another CA
-
-    We do this based on the CA plugin that is currently in use.
-    """
-    if api.env.ra_plugin == 'selfsign':
-        return True
-    else:
-        return False
-
-def ipa_self_signed_master():
-    """
-    The selfsign backend is enabled only one a single master.
-
-    Return True/False whether this is that master.
-
-    Returns None if not a self-signed server.
-    """
-    if ipa_self_signed():
-        return api.env.enable_ra
-    else:
-        return None
 
 def find_cert_from_txt(cert, start=0):
     """
@@ -105,90 +79,6 @@ def get_cert_nickname(cert):
     dn = DN(subject)
 
     return (str(dn[0]), dn)
-
-def next_serial(serial_file=CA_SERIALNO):
-    """
-    Get the next serial number if we're using an NSS-based self-signed CA.
-
-    The file is an ini-like file with following properties:
-       lastvalue = the last serial number handed out
-       nextreplica = the serial number the next replica should start with
-       replicainterval = the number to add to nextreplica the next time a
-                         replica is created
-
-    File locking is attempted so we have unique serial numbers.
-    """
-    fp = None
-    parser = RawConfigParser()
-    if ipautil.file_exists(serial_file):
-        try:
-            fp = open(serial_file, "r+")
-            fcntl.flock(fp.fileno(), fcntl.LOCK_EX)
-            parser.readfp(fp)
-            serial = parser.getint('selfsign', 'lastvalue')
-            cur_serial = serial + 1
-        except IOError, e:
-            raise RuntimeError("Unable to determine serial number: %s" % str(e))
-        except MissingSectionHeaderError:
-            fcntl.flock(fp.fileno(), fcntl.LOCK_UN)
-            fp.close()
-            f=open(serial_file,"r")
-            r = f.readline()
-            f.close()
-            cur_serial = int(r) + 1
-            fp = open(serial_file, "w")
-            fcntl.flock(fp.fileno(), fcntl.LOCK_EX)
-            parser.add_section('selfsign')
-            parser.set('selfsign', 'nextreplica', 500000)
-            parser.set('selfsign', 'replicainterval', 500000)
-    else:
-        fp = open(serial_file, "w")
-        fcntl.flock(fp.fileno(), fcntl.LOCK_EX)
-        parser.add_section('selfsign')
-        parser.set('selfsign', 'nextreplica', 500000)
-        parser.set('selfsign', 'replicainterval', 500000)
-        cur_serial = 1000
-
-    try:
-        fp.seek(0)
-        parser.set('selfsign', 'lastvalue', cur_serial)
-        parser.write(fp)
-        fp.flush()
-        fcntl.flock(fp.fileno(), fcntl.LOCK_UN)
-        fp.close()
-    except IOError, e:
-        raise RuntimeError("Unable to increment serial number: %s" % str(e))
-
-    return str(cur_serial)
-
-def next_replica(serial_file=CA_SERIALNO):
-    """
-    Return the starting serial number for a new self-signed replica
-    """
-    fp = None
-    parser = RawConfigParser()
-    if ipautil.file_exists(serial_file):
-        try:
-            fp = open(serial_file, "r+")
-            fcntl.flock(fp.fileno(), fcntl.LOCK_EX)
-            parser.readfp(fp)
-            serial = parser.getint('selfsign', 'nextreplica')
-            nextreplica = serial + parser.getint('selfsign', 'replicainterval')
-        except IOError, e:
-            raise RuntimeError("Unable to determine serial number: %s" % str(e))
-    else:
-        raise RuntimeError("%s does not exist, cannot create replica" % serial_file)
-    try:
-        fp.seek(0)
-        parser.set('selfsign', 'nextreplica', nextreplica)
-        parser.write(fp)
-        fp.flush()
-        fcntl.flock(fp.fileno(), fcntl.LOCK_UN)
-        fp.close()
-    except IOError, e:
-        raise RuntimeError("Unable to increment serial number: %s" % str(e))
-
-    return str(serial)
 
 
 class NSSDatabase(object):
@@ -440,15 +330,10 @@ class CertDB(object):
         except OSError, e:
             raise RuntimeError("Unable to determine the current directory: %s" % str(e))
 
-        self.self_signed_ca = ipa_self_signed()
-
         if not subject_base:
             self.subject_base = DN(('O', 'IPA'))
 
-        if self.self_signed_ca:
-            self.cacert_name = get_ca_nickname(self.realm, 'CN=%s Certificate Authority')
-        else:
-            self.cacert_name = get_ca_nickname(self.realm)
+        self.cacert_name = get_ca_nickname(self.realm)
         self.valid_months = "120"
         self.keysize = "1024"
 
@@ -495,22 +380,6 @@ class CertDB(object):
         # sure we are in a unique place when this happens
         os.chdir(self.reqdir)
 
-    def set_serial_from_pkcs12(self):
-        """A CA cert was loaded from a PKCS#12 file. Set up our serial file"""
-
-        cur_serial = self.find_cacert_serial()
-        try:
-            fp = open(CA_SERIALNO, "w")
-            parser = RawConfigParser()
-            parser.add_section('selfsign')
-            parser.set('selfsign', 'lastvalue', cur_serial)
-            parser.set('selfsign', 'nextreplica', 500000)
-            parser.set('selfsign', 'replicainterval', 500000)
-            parser.write(fp)
-            fp.close()
-        except IOError, e:
-            raise RuntimeError("Unable to increment serial number: %s" % str(e))
-
     def set_perms(self, fname, write=False, uid=None):
         if uid:
             pent = pwd.getpwnam(uid)
@@ -529,13 +398,10 @@ class CertDB(object):
         return self.nssdb.run_certutil(args, stdin)
 
     def run_signtool(self, args, stdin=None):
-        if not self.self_signed_ca:
-            f = open(self.passwd_fname, "r")
+        with open(self.passwd_fname, "r") as f:
             password = f.readline()
-            f.close()
-            new_args = ["/usr/bin/signtool", "-d", self.secdir, "-p", password]
-        else:
-            new_args = ["/usr/bin/signtool", "-d", self.secdir]
+        new_args = ["/usr/bin/signtool", "-d", self.secdir, "-p", password]
+
         new_args = new_args + args
         ipautil.run(new_args, stdin)
 
@@ -584,41 +450,6 @@ class CertDB(object):
                 return True
 
         return False
-
-    def create_ca_cert(self):
-        os.chdir(self.secdir)
-        subject = DN(('cn', '%s Certificate Authority' % self.realm))
-        p = subprocess.Popen(["/usr/bin/certutil",
-                              "-d", self.secdir,
-                              "-S", "-n", self.cacert_name,
-                              "-s", str(subject),
-                              "-x",
-                              "-t", "CT,,C",
-                              "-1",
-                              "-2",
-                              "-5",
-                              "-m", next_serial(),
-                              "-v", self.valid_months,
-                              "-z", self.noise_fname,
-                              "-f", self.passwd_fname],
-                               stdin=subprocess.PIPE,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-        # Create key usage extension
-        # 0 - Digital Signature
-        # 1 - Non-repudiation
-        # 5 - Cert signing key
-        # Is this a critical extension [y/N]? y
-        p.stdin.write("0\n1\n5\n9\ny\n")
-        # Create basic constraint extension
-        # Is this a CA certificate [y/N]?  y
-        # Enter the path length constraint, enter to skip [<0 for unlimited pat
-        # Is this a critical extension [y/N]? y
-        # 5 6 7 9 n  -> SSL, S/MIME, Object signing CA
-        p.stdin.write("y\n\ny\n")
-        p.stdin.write("5\n6\n7\n9\nn\n")
-        p.wait()
-        os.chdir(self.cwd)
 
     def export_ca_cert(self, nickname, create_pkcs12=False):
         """create_pkcs12 tells us whether we should create a PKCS#12 file
@@ -686,16 +517,6 @@ class CertDB(object):
         except ipautil.CalledProcessError:
             return ''
 
-    def find_cacert_serial(self):
-        (out, err, returncode) = self.run_certutil(["-L", "-n", self.cacert_name])
-        data = out.split('\n')
-        for line in data:
-            x = re.match(r'\s+Serial Number: (\d+) .*', line)
-            if x is not None:
-                return x.group(1)
-
-        raise RuntimeError("Unable to find serial number")
-
     def track_server_cert(self, nickname, principal, password_file=None, command=None):
         """
         Tell certmonger to track the given certificate nickname.
@@ -752,12 +573,7 @@ class CertDB(object):
 
     def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):
         """
-        other_certdb can mean one of two things, depending on the context.
-
-        If we are using a self-signed CA then other_certdb contains the
-        CA that will be signing our CSR.
-
-        If we are using a dogtag CA then it contains the RA agent key
+        If we are using a dogtag CA then other_certdb contains the RA agent key
         that will issue our cert.
 
         You can override the certificate Subject by specifying a subject.
@@ -802,179 +618,117 @@ class CertDB(object):
                 "-k", certtype,
                 "-g", keysize,
                 "-z", self.noise_fname,
-                "-f", self.passwd_fname]
-        if not self.self_signed_ca:
-            args.append("-a")
+                "-f", self.passwd_fname,
+                "-a"]
         (stdout, stderr, returncode) = self.run_certutil(args)
         os.remove(self.noise_fname)
         return (stdout, stderr)
 
     def issue_server_cert(self, certreq_fname, cert_fname):
         self.setup_cert_request()
-        if self.self_signed_ca:
-            p = subprocess.Popen(["/usr/bin/certutil",
-                                  "-d", self.secdir,
-                                  "-C", "-c", self.cacert_name,
-                                  "-i", certreq_fname,
-                                  "-o", cert_fname,
-                                  "-m", next_serial(),
-                                  "-v", self.valid_months,
-                                  "-f", self.passwd_fname,
-                                  "-1", "-5"],
-                                 stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE)
 
-            # Bah - this sucks, but I guess it isn't possible to fully
-            # control this with command line arguments.
-            #
-            # What this is requesting is:
-            #  -1 (Create key usage extension)
-            #     2 - Key encipherment
-            #     9 - done
-            #     n - not critical
-            #
-            #  -5 (Create netscape cert type extension)
-            #     1 - SSL Server
-            #     9 - done
-            #     n - not critical
-            p.stdin.write("2\n9\nn\n1\n9\nn\n")
-            p.wait()
-        else:
-            if self.host_name is None:
-                raise RuntimeError("CA Host is not set.")
+        if self.host_name is None:
+            raise RuntimeError("CA Host is not set.")
 
-            f = open(certreq_fname, "r")
-            csr = f.readlines()
-            f.close()
-            csr = "".join(csr)
+        f = open(certreq_fname, "r")
+        csr = f.readlines()
+        f.close()
+        csr = "".join(csr)
 
-            # We just want the CSR bits, make sure there is nothing else
-            csr = pkcs10.strip_header(csr)
+        # We just want the CSR bits, make sure there is nothing else
+        csr = pkcs10.strip_header(csr)
 
-            params = {'profileId': 'caIPAserviceCert',
-                    'cert_request_type': 'pkcs10',
-                    'requestor_name': 'IPA Installer',
-                    'cert_request': csr,
-                    'xmlOutput': 'true'}
+        params = {'profileId': 'caIPAserviceCert',
+                'cert_request_type': 'pkcs10',
+                'requestor_name': 'IPA Installer',
+                'cert_request': csr,
+                'xmlOutput': 'true'}
 
-            # Send the request to the CA
-            f = open(self.passwd_fname, "r")
-            password = f.readline()
-            f.close()
-            result = dogtag.https_request(
-                self.host_name,
-                api.env.ca_ee_install_port or
-                    dogtag.configured_constants().EE_SECURE_PORT,
-                "/ca/ee/ca/profileSubmitSSLClient",
-                self.secdir, password, "ipaCert", **params)
-            http_status, http_reason_phrase, http_headers, http_body = result
+        # Send the request to the CA
+        f = open(self.passwd_fname, "r")
+        password = f.readline()
+        f.close()
+        result = dogtag.https_request(
+            self.host_name,
+            api.env.ca_ee_install_port or
+                dogtag.configured_constants().EE_SECURE_PORT,
+            "/ca/ee/ca/profileSubmitSSLClient",
+            self.secdir, password, "ipaCert", **params)
+        http_status, http_reason_phrase, http_headers, http_body = result
 
-            if http_status != 200:
-                raise CertificateOperationError(
-                    error=_('Unable to communicate with CMS (%s)') %
-                        http_reason_phrase)
+        if http_status != 200:
+            raise CertificateOperationError(
+                error=_('Unable to communicate with CMS (%s)') %
+                    http_reason_phrase)
 
-            # The result is an XML blob. Pull the certificate out of that
-            doc = xml.dom.minidom.parseString(http_body)
-            item_node = doc.getElementsByTagName("b64")
+        # The result is an XML blob. Pull the certificate out of that
+        doc = xml.dom.minidom.parseString(http_body)
+        item_node = doc.getElementsByTagName("b64")
+        try:
             try:
-                try:
-                    cert = item_node[0].childNodes[0].data
-                except IndexError:
-                    raise RuntimeError("Certificate issuance failed")
-            finally:
-                doc.unlink()
+                cert = item_node[0].childNodes[0].data
+            except IndexError:
+                raise RuntimeError("Certificate issuance failed")
+        finally:
+            doc.unlink()
 
-            # base64-decode the result for uniformity
-            cert = base64.b64decode(cert)
+        # base64-decode the result for uniformity
+        cert = base64.b64decode(cert)
 
-            # Write the certificate to a file. It will be imported in a later
-            # step. This file will be read later to be imported.
-            f = open(cert_fname, "w")
-            f.write(cert)
-            f.close()
-
-        return
+        # Write the certificate to a file. It will be imported in a later
+        # step. This file will be read later to be imported.
+        f = open(cert_fname, "w")
+        f.write(cert)
+        f.close()
 
     def issue_signing_cert(self, certreq_fname, cert_fname):
         self.setup_cert_request()
-        if self.self_signed_ca:
-            p = subprocess.Popen(["/usr/bin/certutil",
-                                  "-d", self.secdir,
-                                  "-C", "-c", self.cacert_name,
-                                  "-i", certreq_fname,
-                                  "-o", cert_fname,
-                                  "-m", next_serial(),
-                                  "-v", self.valid_months,
-                                  "-f", self.passwd_fname,
-                                  "-1", "-5"],
-                                 stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE)
 
-            # Bah - this sucks, but I guess it isn't possible to fully
-            # control this with command line arguments.
-            #
-            # What this is requesting is:
-            #  -1 (Create key usage extension)
-            #     0 - Digital Signature
-            #     5 - Cert signing key
-            #     9 - done
-            #     n - not critical
-            #
-            #  -5 (Create netscape cert type extension)
-            #     3 - Object Signing
-            #     9 - done
-            #     n - not critical
-            p.stdin.write("0\n5\n9\nn\n3\n9\nn\n")
-            p.wait()
-        else:
-            if self.host_name is None:
-                raise RuntimeError("CA Host is not set.")
+        if self.host_name is None:
+            raise RuntimeError("CA Host is not set.")
 
-            f = open(certreq_fname, "r")
-            csr = f.readlines()
-            f.close()
-            csr = "".join(csr)
+        f = open(certreq_fname, "r")
+        csr = f.readlines()
+        f.close()
+        csr = "".join(csr)
 
-            # We just want the CSR bits, make sure there is no thing else
-            csr = pkcs10.strip_header(csr)
+        # We just want the CSR bits, make sure there is no thing else
+        csr = pkcs10.strip_header(csr)
 
-            params = {'profileId': 'caJarSigningCert',
-                    'cert_request_type': 'pkcs10',
-                    'requestor_name': 'IPA Installer',
-                    'cert_request': csr,
-                    'xmlOutput': 'true'}
+        params = {'profileId': 'caJarSigningCert',
+                'cert_request_type': 'pkcs10',
+                'requestor_name': 'IPA Installer',
+                'cert_request': csr,
+                'xmlOutput': 'true'}
 
-            # Send the request to the CA
-            f = open(self.passwd_fname, "r")
-            password = f.readline()
-            f.close()
-            result = dogtag.https_request(
-                self.host_name,
-                api.env.ca_ee_install_port or
-                    dogtag.configured_constants().EE_SECURE_PORT,
-                "/ca/ee/ca/profileSubmitSSLClient",
-                self.secdir, password, "ipaCert", **params)
-            http_status, http_reason_phrase, http_headers, http_body = result
-            if http_status != 200:
-                raise RuntimeError("Unable to submit cert request")
+        # Send the request to the CA
+        f = open(self.passwd_fname, "r")
+        password = f.readline()
+        f.close()
+        result = dogtag.https_request(
+            self.host_name,
+            api.env.ca_ee_install_port or
+                dogtag.configured_constants().EE_SECURE_PORT,
+            "/ca/ee/ca/profileSubmitSSLClient",
+            self.secdir, password, "ipaCert", **params)
+        http_status, http_reason_phrase, http_headers, http_body = result
+        if http_status != 200:
+            raise RuntimeError("Unable to submit cert request")
 
-            # The result is an XML blob. Pull the certificate out of that
-            doc = xml.dom.minidom.parseString(http_body)
-            item_node = doc.getElementsByTagName("b64")
-            cert = item_node[0].childNodes[0].data
-            doc.unlink()
+        # The result is an XML blob. Pull the certificate out of that
+        doc = xml.dom.minidom.parseString(http_body)
+        item_node = doc.getElementsByTagName("b64")
+        cert = item_node[0].childNodes[0].data
+        doc.unlink()
 
-            # base64-decode the cert for uniformity
-            cert = base64.b64decode(cert)
+        # base64-decode the cert for uniformity
+        cert = base64.b64decode(cert)
 
-            # Write the certificate to a file. It will be imported in a later
-            # step. This file will be read later to be imported.
-            f = open(cert_fname, "w")
-            f.write(cert)
-            f.close()
-
-        return
+        # Write the certificate to a file. It will be imported in a later
+        # step. This file will be read later to be imported.
+        f = open(cert_fname, "w")
+        f.write(cert)
+        f.close()
 
     def add_cert(self, cert_fname, nickname):
         """
@@ -1020,48 +774,11 @@ class CertDB(object):
         """
         root_nicknames = self.nssdb.get_trust_chain(nickname)
 
-        # Try to work around a change in the F-11 certutil where untrusted
-        # CA's are not shown in the chain. This will make a default IPA
-        # server installable.
-        if len(root_nicknames) == 0 and self.self_signed_ca:
-            return [self.cacert_name]
-
         return root_nicknames
 
     def find_root_cert_from_pkcs12(self, pkcs12_fname, passwd_fname=None):
-        """Given a PKCS#12 file, try to find any certificates that do
-           not have a key. The assumption is that these are the root CAs.
-        """
-        args = ["/usr/bin/pk12util", "-d", self.secdir,
-                "-l", pkcs12_fname,
-                "-k", passwd_fname]
-        if passwd_fname:
-            args = args + ["-w", passwd_fname]
-        try:
-            (stdout, stderr, returncode) = ipautil.run(args)
-        except ipautil.CalledProcessError, e:
-            if e.returncode == 17:
-                raise RuntimeError("incorrect password")
-            else:
-                raise RuntimeError("unknown error using pkcs#12 file")
-
-        lines = stdout.split('\n')
-
-        # A simple state machine.
-        # 1 = looking for "Certificate:"
-        # 2 = looking for the Friendly name (nickname)
-        nicknames = []
-        state = 1
-        for line in lines:
-            if state == 2:
-                m = re.match("\W+Friendly Name: (.*)", line)
-                if m:
-                    nicknames.append( m.groups(0)[0])
-                    state = 1
-            if line == "Certificate:":
-                state = 2
-
-        return nicknames
+        return self.nssdb.find_root_cert_from_pkcs12(pkcs12_fname,
+                                                     passwd_fname=passwd_fname)
 
     def trust_root_cert(self, root_nickname):
         if root_nickname is None:
@@ -1096,14 +813,6 @@ class CertDB(object):
                      "-export", "-name", nickname,
                      "-in", pem_fname, "-out", pkcs12_fname,
                      "-passout", "file:" + pkcs12_pwd_fname])
-
-    def create_self_signed(self, passwd=None):
-        self.create_noise_file()
-        self.create_passwd_file(passwd)
-        self.create_certdbs()
-        self.create_ca_cert()
-        self.export_ca_cert(self.cacert_name, True)
-        self.create_pin_file()
 
     def create_from_cacert(self, cacert_fname, passwd=None):
         if ipautil.file_exists(self.certdb_fname):
@@ -1167,94 +876,6 @@ class CertDB(object):
 
         self.create_pin_file()
         self.export_ca_cert(nickname, False)
-        self.self_signed_ca=False
-
-        # This file implies that we have our own self-signed CA. Ensure
-        # that it no longer exists (from previous installs, for example).
-        try:
-            os.remove(CA_SERIALNO)
-        except:
-            pass
-
-    def create_kdc_cert(self, nickname, hostname, destdir):
-        """Create a new certificate with the spcial othername encoding needed
-           by a KDC certificate.
-
-           nickname: the CN name set in the certificate
-           destdir: the location where cert and key are to be installed
-
-           destdir will contain kdc.pem if the operation is successful
-        """
-
-        reqcfg = "kdc_req.conf"
-        extcfg = ipautil.SHARE_DIR + "kdc_extensions.template"
-        key_fname = destdir + "/kdckey.pem"
-        cert_fname = destdir + "/kdccert.pem"
-        key_cert_fname = destdir + "/kdc.pem"
-
-        # Setup the temp dir
-        self.setup_cert_request()
-
-        # Copy the CA password file because openssl apparently can't use
-        # the same file twice within the same command and throws an error
-        ca_pwd_file = self.reqdir + "pwdfile.txt"
-        shutil.copyfile(self.passwd_fname, ca_pwd_file)
-
-        # Extract the cacert.pem file used by openssl to sign the certs
-        ipautil.run(["/usr/bin/openssl", "pkcs12",
-                     "-in", self.pk12_fname,
-                     "-passin", "file:" + self.passwd_fname,
-                     "-passout", "file:" + ca_pwd_file,
-                     "-out", "cacert.pem"])
-
-        # Create the kdc key
-        ipautil.run(["/usr/bin/openssl", "genrsa",
-                     "-out", key_fname, "2048"])
-
-        # Prepare a simple cert request
-        req_dict = dict(PASSWORD=self.gen_password(),
-                        SUBJBASE=self.subject_base,
-                        CERTNAME=DN(('CN', nickname)))
-        req_template = ipautil.SHARE_DIR + reqcfg + ".template"
-        conf = ipautil.template_file(req_template, req_dict)
-        fd = open(reqcfg, "w+")
-        fd.write(conf)
-        fd.close()
-
-        base = str(self.subject_base).replace(",", "/")
-        esc_subject = DN(('CN', '%s/%s' % (nickname, base)))
-
-        ipautil.run(["/usr/bin/openssl", "req", "-new",
-                     "-config", reqcfg,
-                     "-subj", str(esc_subject),
-                     "-key", key_fname,
-                     "-out", "kdc.req"])
-
-        # Finally, sign the cert using the extensions file to set the
-        # special name
-        ipautil.run(["/usr/bin/openssl", "x509", "-req",
-                     "-CA", "cacert.pem",
-                     "-extfile", extcfg,
-                     "-extensions", "kdc_cert",
-                     "-passin", "file:" + ca_pwd_file,
-                     "-set_serial", next_serial(),
-                     "-in", "kdc.req",
-                     "-out", cert_fname],
-                    env = { 'REALM':self.realm, 'HOST_FQDN':hostname })
-
-        # Merge key and cert in a single file
-        fd = open(key_fname, "r")
-        key = fd.read()
-        fd.close()
-        fd = open(cert_fname, "r")
-        cert = fd.read()
-        fd.close()
-        fd = open(key_cert_fname, "w")
-        fd.write(key)
-        fd.write(cert)
-        fd.close()
-        os.unlink(key_fname)
-        os.unlink(cert_fname)
 
     def install_pem_from_p12(self, p12_fname, p12_pwd_fname, pem_fname):
         ipautil.run(["/usr/bin/openssl", "pkcs12", "-nodes",

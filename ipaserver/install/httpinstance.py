@@ -63,15 +63,13 @@ class HTTPInstance(service.Service):
 
     def create_instance(self, realm, fqdn, domain_name, dm_password=None,
                         autoconfig=True, pkcs12_info=None,
-                        self_signed_ca=False, subject_base=None,
-                        auto_redirect=True, ca_file=None):
+                        subject_base=None, auto_redirect=True, ca_file=None):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
         self.dm_password = dm_password
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.pkcs12_info = pkcs12_info
-        self.self_signed_ca = self_signed_ca
         self.principal = "HTTP/%s@%s" % (self.fqdn, self.realm)
         self.dercert = None
         self.subject_base = subject_base
@@ -237,9 +235,7 @@ class HTTPInstance(service.Service):
             print "Adding Include conf.d/ipa-rewrite to %s failed." % NSS_CONF
 
     def __setup_ssl(self):
-        fqdn = None
-        if not self.self_signed_ca:
-            fqdn = self.fqdn
+        fqdn = self.fqdn
 
         ca_db = certs.CertDB(self.realm, host_name=fqdn, subject_base=self.subject_base)
 
@@ -262,8 +258,6 @@ class HTTPInstance(service.Service):
 
             self.__set_mod_nss_nickname(nickname)
         else:
-            if self.self_signed_ca:
-                db.create_from_cacert(ca_db.cacert_fname)
 
             db.create_password_conf()
             self.dercert = db.create_server_cert(self.cert_nickname, self.fqdn,
@@ -287,13 +281,6 @@ class HTTPInstance(service.Service):
         # Fix SELinux permissions on the database
         ipaservices.restore_context(certs.NSS_DIR + "/cert8.db")
         ipaservices.restore_context(certs.NSS_DIR + "/key3.db")
-
-        # In case this got generated as part of the install, reset the
-        # context
-        if ipautil.file_exists(certs.CA_SERIALNO):
-            ipaservices.restore_context(certs.CA_SERIALNO)
-            os.chown(certs.CA_SERIALNO, 0, pent.pw_gid)
-            os.chmod(certs.CA_SERIALNO, 0664)
 
     def __setup_autoconfig(self):
         target_fname = '/usr/share/ipa/html/preferences.html'

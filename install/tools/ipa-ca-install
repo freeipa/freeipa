@@ -112,7 +112,7 @@ def main():
     api.bootstrap(in_server=True)
     api.finalize()
 
-    if certs.ipa_self_signed():
+    if api.env.ra_plugin == 'selfsign':
         sys.exit('A selfsign CA can not be added')
 
     # get the directory manager password

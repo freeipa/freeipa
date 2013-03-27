@@ -44,11 +44,9 @@ class rabase(Backend):
         if api.env.in_tree:
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
             self.pwd_file = self.sec_dir + os.sep + '.pwd'
-            self.serial_file = self.sec_dir + os.sep + 'ca_serialno'
         else:
             self.sec_dir = "/etc/httpd/alias"
             self.pwd_file = "/etc/httpd/alias/pwdfile.txt"
-            self.serial_file = certs.CA_SERIALNO
         super(rabase, self).__init__()
 
 

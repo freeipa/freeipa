@@ -130,13 +130,6 @@ class ReplicaPrepare(admintool.AdminTool):
         if api.env.host == self.replica_fqdn:
             raise admintool.ScriptError("You can't create a replica on itself")
 
-        # FIXME: certs.ipa_self_signed_master return value can be
-        # True, False, None, with different meanings.
-        # So, we need to explicitly compare to False
-        if certs.ipa_self_signed_master() == False:
-            raise admintool.ScriptError("A selfsign CA backend can only "
-                "prepare on the original master")
-
         if not api.env.enable_ra and not options.http_pkcs12:
             raise admintool.ScriptError(
                 "Cannot issue certificates: a CA is not installed. Use the "
@@ -227,8 +220,7 @@ class ReplicaPrepare(admintool.AdminTool):
                     options.reverse_zone, options.ip_address):
                 raise admintool.ScriptError("Invalid reverse zone")
 
-        if (not certs.ipa_self_signed() and
-                not ipautil.file_exists(
+        if (not ipautil.file_exists(
                     dogtag.configured_constants().CS_CFG_PATH) and
                 not options.dirsrv_pin):
             self.log.info("If you installed IPA with your own certificates "
@@ -281,17 +273,17 @@ class ReplicaPrepare(admintool.AdminTool):
                 options.dirsrv_pkcs12)
             self.copy_info_file(options.dirsrv_pkcs12, "dscert.p12")
         else:
-            if not certs.ipa_self_signed():
-                if ipautil.file_exists(options.ca_file):
-                    self.copy_info_file(options.ca_file, "cacert.p12")
-                else:
-                    raise admintool.ScriptError("Root CA PKCS#12 not "
-                        "found in %s" % options.ca_file)
+            if ipautil.file_exists(options.ca_file):
+                self.copy_info_file(options.ca_file, "cacert.p12")
+            else:
+                raise admintool.ScriptError("Root CA PKCS#12 not "
+                    "found in %s" % options.ca_file)
+
             self.log.info(
                 "Creating SSL certificate for the Directory Server")
             self.export_certdb("dscert", passwd_fname)
 
-        if not options.dirsrv_pkcs12 and not certs.ipa_self_signed():
+        if not options.dirsrv_pkcs12:
             self.log.info(
                 "Creating SSL certificate for the dogtag Directory Server")
             self.export_certdb("dogtagcert", passwd_fname)
@@ -318,8 +310,7 @@ class ReplicaPrepare(admintool.AdminTool):
             self.export_certdb("httpcert", passwd_fname)
 
             self.log.info("Exporting RA certificate")
-            if not certs.ipa_self_signed():
-                self.export_ra_pkcs12()
+            self.export_ra_pkcs12()
 
     def copy_pkinit_certificate(self):
         options = self.options
@@ -464,19 +455,14 @@ class ReplicaPrepare(admintool.AdminTool):
             nickname = "Server-Cert"
 
         try:
-            self_signed = certs.ipa_self_signed()
-
             db = certs.CertDB(
                 api.env.realm, nssdir=self.dir, subject_base=subject_base)
             db.create_passwd_file()
             ca_db = certs.CertDB(
                 api.env.realm, host_name=api.env.host,
                 subject_base=subject_base)
-            if is_kdc:
-                ca_db.create_kdc_cert("KDC-Cert", hostname, self.dir)
-            else:
-                db.create_from_cacert(ca_db.cacert_fname)
-                db.create_server_cert(nickname, hostname, ca_db)
+            db.create_from_cacert(ca_db.cacert_fname)
+            db.create_server_cert(nickname, hostname, ca_db)
 
             pkcs12_fname = os.path.join(self.dir, fname + ".p12")
 

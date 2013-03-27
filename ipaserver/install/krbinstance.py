@@ -81,7 +81,6 @@ class KrbInstance(service.Service):
         self.kdc_password = None
         self.sub_dict = None
         self.pkcs12_info = None
-        self.self_signed_ca = None
 
         if fstore:
             self.fstore = fstore
@@ -158,10 +157,9 @@ class KrbInstance(service.Service):
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
 
-    def create_instance(self, realm_name, host_name, domain_name, admin_password, master_password, setup_pkinit=False, pkcs12_info=None, self_signed_ca=False, subject_base=None):
+    def create_instance(self, realm_name, host_name, domain_name, admin_password, master_password, setup_pkinit=False, pkcs12_info=None, subject_base=None):
         self.master_password = master_password
         self.pkcs12_info = pkcs12_info
-        self.self_signed_ca = self_signed_ca
         self.subject_base = subject_base
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
@@ -189,9 +187,8 @@ class KrbInstance(service.Service):
                        master_fqdn, host_name,
                        domain_name, admin_password,
                        setup_pkinit=False, pkcs12_info=None,
-                       self_signed_ca=False, subject_base=None):
+                       subject_base=None):
         self.pkcs12_info = pkcs12_info
-        self.self_signed_ca = self_signed_ca
         self.subject_base = subject_base
         self.master_fqdn = master_fqdn
 
@@ -412,23 +409,15 @@ class KrbInstance(service.Service):
         self.move_service_to_host(host_principal)
 
     def __setup_pkinit(self):
-        if self.self_signed_ca:
-            ca_db = certs.CertDB(self.realm,
-                                 subject_base=self.subject_base)
-        else:
-            ca_db = certs.CertDB(self.realm, host_name=self.fqdn,
-                                 subject_base=self.subject_base)
+        ca_db = certs.CertDB(self.realm, host_name=self.fqdn,
+                                subject_base=self.subject_base)
 
         if self.pkcs12_info:
             ca_db.install_pem_from_p12(self.pkcs12_info[0],
                                        self.pkcs12_info[1],
                                        "/var/kerberos/krb5kdc/kdc.pem")
         else:
-            if self.self_signed_ca:
-                ca_db.create_kdc_cert("KDC-Cert", self.fqdn,
-                                      "/var/kerberos/krb5kdc")
-            else:
-                raise RuntimeError("PKI not supported yet\n")
+            raise RuntimeError("PKI not supported yet\n")
 
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context

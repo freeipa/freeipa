@@ -36,7 +36,7 @@ import certs
 import ldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
-from ipalib import errors, api
+from ipalib import errors
 from ipapython.dn import DN
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
@@ -228,8 +228,7 @@ class DsInstance(service.Service):
         self.step("configuring directory to start on boot", self.__enable)
 
     def init_info(self, realm_name, fqdn, domain_name, dm_password,
-                  self_signed_ca, subject_base, idstart, idmax, pkcs12_info,
-                  ca_file=None):
+                  subject_base, idstart, idmax, pkcs12_info, ca_file=None):
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
         self.suffix = ipautil.realm_to_suffix(self.realm_name)
@@ -237,7 +236,6 @@ class DsInstance(service.Service):
         self.dm_password = dm_password
         self.domain = domain_name
         self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
-        self.self_signed_ca = False
         self.subject_base = subject_base
         self.idstart = idstart
         self.idmax = idmax
@@ -247,11 +245,11 @@ class DsInstance(service.Service):
         self.__setup_sub_dict()
 
     def create_instance(self, realm_name, fqdn, domain_name,
-                        dm_password, pkcs12_info=None, self_signed_ca=False,
+                        dm_password, pkcs12_info=None,
                         idstart=1100, idmax=999999, subject_base=None,
                         hbac_allow=True, ca_file=None):
         self.init_info(
-            realm_name, fqdn, domain_name, dm_password, self_signed_ca,
+            realm_name, fqdn, domain_name, dm_password,
             subject_base, idstart, idmax, pkcs12_info, ca_file=ca_file)
 
         self.__common_setup()
@@ -282,7 +280,7 @@ class DsInstance(service.Service):
         idmax = 1100
 
         self.init_info(
-            realm_name, fqdn, domain_name, dm_password, None, None,
+            realm_name, fqdn, domain_name, dm_password, None,
             idstart, idmax, pkcs12_info, ca_file=ca_file)
         self.master_fqdn = master_fqdn
 
@@ -545,30 +543,21 @@ class DsInstance(service.Service):
             # We only handle one server cert
             nickname = server_certs[0][0]
             self.dercert = dsdb.get_cert_from_db(nickname, pem=False)
-            if api.env.enable_ra:
-                dsdb.track_server_cert(
-                    nickname, self.principal, dsdb.passwd_fname,
-                    'restart_dirsrv %s' % self.serverid)
+            dsdb.track_server_cert(nickname, self.principal, dsdb.passwd_fname,
+                                   'restart_dirsrv %s' % self.serverid)
         else:
             nickname = self.nickname
             cadb = certs.CertDB(self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
-            if self.self_signed_ca:
-                dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                self.dercert = dsdb.create_server_cert(nickname, self.fqdn, cadb)
-                dsdb.track_server_cert(
-                    nickname, self.principal, dsdb.passwd_fname,
-                    'restart_dirsrv %s' % self.serverid)
-                dsdb.create_pin_file()
-            else:
-                # FIXME, need to set this nickname in the RA plugin
-                cadb.export_ca_cert('ipaCert', False)
-                dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                self.dercert = dsdb.create_server_cert(
-                    nickname, self.fqdn, cadb)
-                dsdb.track_server_cert(
-                    nickname, self.principal, dsdb.passwd_fname,
-                    'restart_dirsrv %s' % self.serverid)
-                dsdb.create_pin_file()
+
+            # FIXME, need to set this nickname in the RA plugin
+            cadb.export_ca_cert('ipaCert', False)
+            dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
+            self.dercert = dsdb.create_server_cert(
+                nickname, self.fqdn, cadb)
+            dsdb.track_server_cert(
+                nickname, self.principal, dsdb.passwd_fname,
+                'restart_dirsrv %s' % self.serverid)
+            dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin(self.fqdn)
         conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)

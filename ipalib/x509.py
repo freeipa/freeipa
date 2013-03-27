@@ -61,10 +61,9 @@ def subject_base():
     return _subject_base
 
 def valid_issuer(issuer):
+    # Handle all supported forms of issuer -- currently dogtag only.
     if api.env.ra_plugin == 'dogtag':
         return DN(issuer) == DN(('CN', 'Certificate Authority'), subject_base())
-    else:
-        return DN(issuer) == DN(('CN', '%s Certificate Authority' % api.env.realm))
 
 def strip_header(pem):
     """
@@ -238,7 +237,6 @@ def verify_cert_subject(ldap, hostname, dercert):
     issuer = str(nsscert.issuer)
     del(nsscert)
 
-    # Handle both supported forms of issuer, from selfsign and dogtag.
     if (not valid_issuer(issuer)):
         raise errors.CertificateOperationError(error=_('Issuer "%(issuer)s" does not match the expected issuer') % \
         {'issuer' : issuer})
