@@ -70,6 +70,12 @@ def parse_options():
                       help="Directory Manager (existing master) password")
     basic_group.add_option("-w", "--admin-password", dest="admin_password", sensitive=True,
                       help="Admin user Kerberos password used for connection check")
+    basic_group.add_option("--mkhomedir",
+                           dest="mkhomedir",
+                           action="store_true",
+                           default=False,
+                           help="create home directories for users "
+                                "on their first login")
     basic_group.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
                       help="do not configure ntp", default=True)
     basic_group.add_option("--no-ui-redirect", dest="ui_redirect", action="store_false",
@@ -691,6 +697,8 @@ def main():
             args.append("--no-ssh")
         if not options.conf_sshd:
             args.append("--no-sshd")
+        if options.mkhomedir:
+            args.append("--mkhomedir")
         ipautil.run(args)
     except Exception, e:
         print "Configuration of client side components failed!"
