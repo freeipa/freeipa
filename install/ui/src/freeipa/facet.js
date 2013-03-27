@@ -248,7 +248,7 @@ IPA.facet = function(spec, no_init) {
                             break;
                         }
                     } else {
-                        if (va !== vb) {
+                        if (va != vb) {
                             same = false;
                             skip[a] = true;
                             break;
@@ -2449,7 +2449,7 @@ var FacetState = declare([Stateful, Evented], {
         this._updating = true;
         this.clear();
         this.set(object);
-        delete this.updating;
+        delete this._updating;
         var new_state = this.clone();
         this.emit('set', old_state, new_state);
         return this;
