@@ -263,6 +263,37 @@ else
 fi
 AM_CONDITIONAL([HAVE_CHECK], [test x$have_check != x])
 
+dnl ---------------------------------------------------------------------------
+dnl - Check for cmocka unit test framework http://cmocka.cryptomilk.org/
+dnl   This will be simplified when cmocka carries a .pc file.
+dnl ---------------------------------------------------------------------------
+AC_SUBST(CMOCKA_LIBS)
+AC_SUBST(CMOCKA_CFLAGS)
+
+AC_CHECK_HEADERS(
+    [setjmp.h cmocka.h],,,
+    [[ #include <stdarg.h>
+     # include <stddef.h>
+     #ifdef HAVE_SETJMP_H
+     # include <setjmp.h>
+     #endif
+    ]]
+)
+
+if test "x$ac_cv_header_setjmp_h" = "xyes" && test "x$ac_cv_header_cmocka_h" = "xyes" ; then
+    AC_CHECK_LIB([cmocka], [_will_return],
+                 [ CMOCKA_LIBS="-lcmocka"
+                   AC_MSG_RESULT([libcmocka available, cmocka tests will be build])
+                   have_cmocka="yes" ],
+                 [AC_MSG_WARN([No libcmocka library found, cmocka tests will not be build])
+                   have_cmocka="no" ])
+else
+    AC_MSG_WARN([Required header files for libcmocka are missing, cmocka tests will not be build])
+    have_cmocka="no"
+fi
+
+AM_CONDITIONAL([HAVE_CMOCKA], [test x$have_cmocka = xyes])
+
 dnl -- dirsrv is needed for the extdom unit tests --
 PKG_CHECK_MODULES([DIRSRV], [dirsrv  >= 1.3.0])
 dnl -- sss_idmap is needed by the extdom exop --
