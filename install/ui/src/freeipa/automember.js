@@ -183,7 +183,25 @@ IPA.automember.rule_search_facet = function(spec) {
 
         that.default_group_widget.create(header);
         that.table.create(content);
+    };
 
+    that.show_add_dialog = function() {
+        var dialog = that.managed_entity.get_dialog('add');
+        if (!that.adder_dialog) {
+            that.adder_dialog = dialog;
+            dialog.added.attach(function() {
+                that.refresh();
+            });
+        }
+        dialog.pkey_prefix = that.managed_entity_pkey_prefix();
+        dialog.group_type = that.group_type;
+        dialog.open(that.container);
+    };
+
+    that.create_remove_dialog = function() {
+        var dialog = that.search_facet_create_remove_dialog();
+        dialog.group_type = that.group_type;
+        return dialog;
     };
 
     init();
@@ -324,6 +342,7 @@ IPA.automember.rule_adder_dialog = function(spec) {
     spec = spec || {};
 
     var that = IPA.entity_adder_dialog(spec);
+    that.group_type = spec.group_type || '';
 
     that.show_edit_page = function (entity,result) {
         var pkey_name = entity.metadata.primary_key;
@@ -332,7 +351,7 @@ IPA.automember.rule_adder_dialog = function(spec) {
             pkey = pkey[0];
         }
 
-        var facetname = that.facet.group_type === 'group' ? 'usergrouprule' :
+        var facetname = that.group_type === 'group' ? 'usergrouprule' :
                             'hostgrouprule';
 
         navigation.show_entity(that.entity.name, facetname, [pkey]);
@@ -342,7 +361,7 @@ IPA.automember.rule_adder_dialog = function(spec) {
 
         var field = that.fields.get_field('cn');
 
-        field.widget.other_entity = IPA.get_entity(that.facet.group_type);
+        field.widget.other_entity = IPA.get_entity(that.group_type);
 
         that.dialog_reset();
     };
@@ -350,8 +369,8 @@ IPA.automember.rule_adder_dialog = function(spec) {
     that.create_add_command = function(record) {
 
         var command = that.entity_adder_dialog_create_add_command(record);
-        command.name = that.entity.name+that.facet.group_type+'_show';
-        command.set_option('type', that.facet.group_type);
+        command.name = that.entity.name+that.group_type+'_show';
+        command.set_option('type', that.group_type);
 
         return command;
     };
@@ -365,6 +384,7 @@ IPA.automember.rule_deleter_dialog = function(spec) {
     spec = spec || {};
 
     var that = IPA.search_deleter_dialog(spec);
+    that.group_type = spec.group_type || '';
 
     that.create_command = function() {
 
@@ -372,7 +392,7 @@ IPA.automember.rule_deleter_dialog = function(spec) {
 
         for (var i=0; i<batch.commands.length; i++) {
             var command = batch.commands[i];
-            command.set_option('type', that.facet.group_type);
+            command.set_option('type', that.group_type);
         }
 
         return batch;

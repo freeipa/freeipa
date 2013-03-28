@@ -141,15 +141,14 @@ IPA.search_facet = function(spec, no_init) {
         dialog.open(that.container);
     };
 
-    that.show_remove_dialog = function() {
-
+    that.create_remove_dialog = function() {
         var values = that.get_selected_values();
 
         var title;
         if (!values.length) {
             title = IPA.messages.dialogs.remove_empty;
             alert(title);
-            return;
+            return null;
         }
 
         var dialog = that.managed_entity.get_dialog('remove');
@@ -169,6 +168,12 @@ IPA.search_facet = function(spec, no_init) {
 
         dialog.set_values(values);
 
+        return dialog;
+    };
+
+    that.show_remove_dialog = function() {
+
+        var dialog = that.create_remove_dialog();
         dialog.open(that.container);
     };
 
@@ -268,6 +273,7 @@ IPA.search_facet = function(spec, no_init) {
     // methods that should be invoked by subclasses
     that.search_facet_refresh = that.refresh;
     that.search_facet_create_refresh_command = that.create_refresh_command;
+    that.search_facet_create_remove_dialog = that.create_remove_dialog;
     that.search_facet_create_header = that.create_header;
     that.search_facet_show = that.show;
 
