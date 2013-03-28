@@ -35,7 +35,7 @@ define([
         phases: [
             //'resource-load', // implicit phase
             'registration',
-            'alternation',
+            'customization',
             'init',
             'metadata',
             'profile',
