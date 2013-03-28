@@ -99,7 +99,8 @@ define(['dojo/_base/declare',
 
 
             this.domNode = construct.create('div', {
-                id: this.app_id
+                id: this.app_id,
+                'class': 'app-container'
             });
 
             if (this.container_node) {
@@ -113,27 +114,27 @@ define(['dojo/_base/declare',
             construct.place(this.menu_node, this.domNode);
 
             this.content_node = construct.create('div', {
-                id: 'content'
+                'class': 'content'
             }, this.domNode);
         },
 
         _render_background: function() {
             var inner_html = ''+
-                '<div id="background-header"></div>'+
-                '<div id="background-navigation"></div>'+
-                '<div id="background-left"></div>'+
-                '<div id="background-center"></div>'+
-                '<div id="background-right"></div>';
+                '<div class="background-header"></div>'+
+                '<div class="background-navigation"></div>'+
+                '<div class="background-left"></div>'+
+                '<div class="background-center"></div>'+
+                '<div class="background-right"></div>';
 
             this.background_node = construct.create('div', {
-                id: 'background',
+                'class': 'background',
                 innerHTML: inner_html
             }, this.domNode);
         },
 
         _render_header: function() {
             this.header_node = construct.create('div', {
-                id: 'header'
+                'class': 'header'
             }, this.domNode);
 
             // logo
@@ -147,13 +148,13 @@ define(['dojo/_base/declare',
             construct.place(''+
             '<span class="header-right">'+
                 '<span class="header-passwordexpires"></span>'+
-                '<span id="loggedinas" class="header-loggedinas" style="visibility:hidden;">'+
-                    '<a href="#"><span id="login_header">Logged in as</span>: <span class="login"></span></a>'+
+                '<span class="loggedinas header-loggedinas" style="visibility:hidden;">'+
+                    '<a href="#"><span class="login_header">Logged in as</span>: <span class="login"></span></a>'+
                 '</span>'+
                 '<span class="header-loggedinas" style="visibility:hidden;">'+
-                    ' | <a href="#logout" id="logout">Logout</a>'+
+                    ' | <a href="#logout" class="logout">Logout</a>'+
                 '</span>'+
-                '<span id="header-network-activity-indicator" class="network-activity-indicator">'+
+                '<span class="header-network-activity-indicator network-activity-indicator">'+
                     '<img src="images/spinner-header.gif" />'+
                 '</span>'+
             '</span>', this.header_node);
@@ -161,10 +162,10 @@ define(['dojo/_base/declare',
 
             this.password_expires_node = query('.header-passwordexpires', this.header_node)[0];
             this.logged_nodes = query('.header-loggedinas', this.header_node);
-            this.logged_header_node = dom.byId('login_header');// maybe ditch the id?
-            this.logged_user_node = query('#loggedinas .login', this.header_node)[0];
-            this.logged_user_link_node = query('#loggedinas a', this.header_node)[0];
-            this.logout_link_node = dom.byId('logout');
+            this.logged_header_node = query('.login_header')[0];
+            this.logged_user_node = query('.loggedinas .login', this.header_node)[0];
+            this.logged_user_link_node = query('.loggedinas a', this.header_node)[0];
+            this.logout_link_node = query('.logout')[0];
 
             on(this.logout_link_node, 'click', lang.hitch(this,this.on_logout));
             on(this.logged_user_link_node, 'click', lang.hitch(this,this.on_profile));

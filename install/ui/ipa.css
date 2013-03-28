@@ -64,7 +64,7 @@ body {
 
 /* ---- Container ---- */
 
-#container {
+.app-container {
     position: absolute;
     top: 0;
     left: 0;
@@ -76,7 +76,7 @@ body {
 
 /* ---- Background ---- */
 
-#background-header {
+.background-header {
     position: absolute;
     top: 0;
     left: 0;
@@ -85,7 +85,7 @@ body {
     background: url(images/top-background.png) #0C3B00;
 }
 
-#background-navigation {
+.background-navigation {
     position: absolute;
     top: 34px;
     left: 0;
@@ -94,7 +94,7 @@ body {
     background: url(images/mainnav-background.png);
 }
 
-#background-left {
+.background-left {
     position: absolute;
     top: 106px;
     left: 0;
@@ -104,7 +104,7 @@ body {
     background-repeat: no-repeat;
 }
 
-#background-center {
+.background-center {
     position: absolute;
     top: 106px;
     left: 10px;
@@ -114,7 +114,7 @@ body {
     background-repeat: repeat-x;
 }
 
-#background-right {
+.background-right {
     position: absolute;
     top: 106px;
     right: 0;
@@ -207,7 +207,7 @@ body {
 }
 
 /*  ----  Header  ----  */
-#header {
+.header {
     position: absolute;
     top: 0;
     left: 6px;
@@ -216,25 +216,25 @@ body {
     background: transparent;
 }
 
-#header a {
+.header a {
     text-decoration: none;
 }
 
-#header a:link {
-    text-decoration: none;
-    color: white;
-}
-
-#header a:visited {
+.header a:link {
     text-decoration: none;
     color: white;
 }
 
-#header span.header-logo {
+.header a:visited {
+    text-decoration: none;
+    color: white;
+}
+
+.header span.header-logo {
     padding-left: 2em;
 }
 
-#header span.header-logo a img {
+.header span.header-logo a img {
     border: 0;
 }
 
@@ -433,7 +433,7 @@ body {
 }
 
 /* ---- Content ---- */
-#content {
+.content {
     position: absolute;
     top: 151px;
     left: 6px;
@@ -441,7 +441,7 @@ body {
     bottom: 10px;
 }
 
-#content.nav-space-3 {
+.content.nav-space-3 {
     top: 175px;
 }
 
