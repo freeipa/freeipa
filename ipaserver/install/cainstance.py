@@ -1004,8 +1004,11 @@ class CAInstance(service.Service):
         outputList = get_outputList(data)
 
         self.ra_cert = outputList['b64_cert']
-        self.ra_cert = self.ra_cert.replace('\\n','')
+
+        # Strip certificate headers and convert it to proper line ending
         self.ra_cert = x509.strip_header(self.ra_cert)
+        self.ra_cert = "\n".join(line.strip() for line
+                                 in self.ra_cert.splitlines() if line.strip())
 
         # Add the new RA cert to the database in /etc/httpd/alias
         (agent_fd, agent_name) = tempfile.mkstemp()
