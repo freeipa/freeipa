@@ -251,11 +251,11 @@ define(['dojo/_base/declare',
             delete state.pkeys;
             var args = ioquery.objectToQuery(state || {});
 
-            var hash = [this.route_prefix, 'e', entity_name, facet.name];
-            if (!IPA.is_empty(args)) hash.push(pkeys, args);
-            else if (!IPA.is_empty(pkeys)) hash.push(pkeys);
+            var path = [this.route_prefix, 'e', entity_name, facet.name];
+            if (!IPA.is_empty(args)) path.push(pkeys, args);
+            else if (!IPA.is_empty(pkeys)) path.push(pkeys);
 
-            hash = hash.join('/');
+            var hash = path.join('/');
             return hash;
         },
 
@@ -264,10 +264,10 @@ define(['dojo/_base/declare',
          */
         _create_facet_hash: function(facet, state) {
             var args = ioquery.objectToQuery(state.args || {});
-            var hash = [this.route_prefix, 'p', facet.name];
+            var path = [this.route_prefix, 'p', facet.name];
 
-            if (!IPA.is_empty(args)) hash.push(args);
-            hash = hash.join('/');
+            if (!IPA.is_empty(args)) path.push(args);
+            var hash = path.join('/');
             return hash;
         },
 
