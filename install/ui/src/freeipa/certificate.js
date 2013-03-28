@@ -501,7 +501,7 @@ IPA.cert.load_policy = function(spec) {
         // show commands don't contain revocation_reason so previous data
         // might be slightly incorrect
         if (!that.has_reason && certificate && certificate.certificate &&
-                !IPA.cert.is_selfsign()) {
+                IPA.cert.is_enabled()) {
             that.load_revocation_reason(certificate.serial_number);
         }
     };
@@ -529,8 +529,8 @@ IPA.cert.load_policy = function(spec) {
     return that;
 };
 
-IPA.cert.is_selfsign = function() {
-    return IPA.env.ra_plugin == 'selfsign';
+IPA.cert.is_enabled = function() {
+    return !!IPA.env.enable_ra;
 };
 
 IPA.cert.view_action = function(spec) {
@@ -604,6 +604,7 @@ IPA.cert.request_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'request_cert';
     spec.label = spec.label || IPA.messages.objects.cert.new_certificate;
+    spec.enable_cond = spec.enable_cond || ['ra_enabled'];
 
     var that = IPA.action(spec);
     that.entity_label = spec.entity_label;
@@ -660,7 +661,7 @@ IPA.cert.revoke_action = function(spec) {
     spec.label = spec.label || IPA.messages.buttons.revoke;
     spec.enable_cond = spec.enable_cond || ['has_certificate'];
     spec.disable_cond = spec.disable_cond || ['certificate_revoked'];
-    spec.hide_cond = spec.hide_cond || ['selfsign'];
+    spec.hide_cond = spec.hide_cond || ['ra_disabled'];
     spec.confirm_dialog = spec.confirm_dialog || IPA.cert.revoke_dialog;
     spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
 
@@ -714,7 +715,7 @@ IPA.cert.restore_action = function(spec) {
     spec.name = spec.name || 'restore_cert';
     spec.label = spec.label || IPA.messages.buttons.restore;
     spec.enable_cond = spec.enable_cond || ['has_certificate', 'certificate_hold'];
-    spec.hide_cond = spec.hide_cond || ['selfsign'];
+    spec.hide_cond = spec.hide_cond || ['ra_disabled'];
     spec.confirm_msg = spec.confirm_msg || IPA.messages.objects.cert.restore_confirmation;
     spec.confirm_dialog = spec.confirm_dialog || {
         factory: IPA.confirm_dialog,
@@ -788,8 +789,10 @@ IPA.cert.certificate_evaluator = function(spec) {
             }
         }
 
-        if (IPA.cert.is_selfsign()) {
-            that.state.push('selfsign');
+        if (IPA.cert.is_enabled()) {
+            that.state.push('ra_enabled');
+        } else {
+            that.state.push('ra_disabled');
         }
 
         that.notify_on_change(old_state);
@@ -869,12 +872,11 @@ IPA.cert.status_widget = function(spec) {
 
         certificate = certificate || {};
 
-        var selfsign = IPA.cert.is_selfsign();
         var has_certificate = certificate.certificate;
         var revoked = certificate.revocation_reason !== undefined;
         var status = IPA.cert.CERTIFICATE_STATUS_MISSING;
 
-        if (has_certificate && (selfsign || !revoked)) {
+        if (has_certificate && !revoked) {
             status = IPA.cert.CERTIFICATE_STATUS_VALID;
         } else if (has_certificate) {
             status = IPA.cert.CERTIFICATE_STATUS_REVOKED;
@@ -893,7 +895,7 @@ IPA.cert.status_widget = function(spec) {
         that.status_valid.css('display', status === IPA.cert.CERTIFICATE_STATUS_VALID ? '' : 'none');
         that.status_missing.css('display', status === IPA.cert.CERTIFICATE_STATUS_MISSING ? '' : 'none');
 
-        if (!IPA.cert.is_selfsign()) {
+        if (!IPA.cert.is_enabled()) {
             that.status_revoked.css('display', status === IPA.cert.CERTIFICATE_STATUS_REVOKED ? '' : 'none');
 
             var reason = IPA.cert.CRL_REASON[revocation_reason];
@@ -1042,7 +1044,7 @@ IPA.cert.entity = function(spec) {
 
     that.init = function() {
 
-        if (IPA.cert.is_selfsign()) {
+        if (!IPA.cert.is_enabled()) {
             throw {
                 expected: true
             };
