@@ -809,7 +809,7 @@ IPA.facet_header = function(spec) {
                 }
 
                 var pkeys = that.facet.get_pkeys();
-                navigation.show(other_facet, [pkeys]);
+                navigation.show(other_facet, pkeys);
 
                 return false;
             }
