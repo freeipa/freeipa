@@ -71,11 +71,10 @@ define(['dojo/_base/declare',
             on(this.app_widget, 'logout-click', lang.hitch(this, this.on_logout));
             on(this.menu, 'selected', lang.hitch(this, this.on_menu_select));
 
-            topic.subscribe('facet-show', lang.hitch(this, this.on_facet_show));
-            topic.subscribe('facet-change', lang.hitch(this, this.on_facet_change));
-            topic.subscribe('facet-change-canceled', lang.hitch(this, this.on_facet_canceled));
+            on(this.router, 'facet-show', lang.hitch(this, this.on_facet_show));
+            on(this.router, 'facet-change', lang.hitch(this, this.on_facet_change));
+            on(this.router, 'facet-change-canceled', lang.hitch(this, this.on_facet_canceled));
             topic.subscribe('phase-error', lang.hitch(this, this.on_phase_error));
-            topic.subscribe('facet-state-change', lang.hitch(this, this.on_facet_state_changed));
 
             this.app_widget.render();
         },
@@ -223,6 +222,7 @@ define(['dojo/_base/declare',
 
             if (!facet.container) {
                 facet.container_node = this.app_widget.content_node;
+                on(facet, 'facet-state-change', lang.hitch(this, this.on_facet_state_changed));
             }
             if (this.current_facet) {
                 this.current_facet.hide();

@@ -24,7 +24,6 @@
 define([
         'dojo/_base/declare',
         'dojo/_base/lang',
-        'dojo/topic',
         'dojo/dom-construct',
         'dojo/on',
         'dojo/Stateful',
@@ -35,7 +34,7 @@ define([
         './dialog',
         './field',
         './widget'
-       ], function(declare, lang, topic, construct, on, Stateful, Evented,
+       ], function(declare, lang, construct, on, Stateful, Evented,
                    IPA, $, navigation) {
 
 /**
@@ -101,7 +100,7 @@ IPA.facet = function(spec, no_init) {
     spec.state = spec.state || {};
     $.extend(spec.state, { factory: IPA.state });
 
-    var that = {};
+    var that = new Evented();
 
     that.entity = IPA.get_entity(spec.entity);
 
@@ -321,7 +320,7 @@ IPA.facet = function(spec, no_init) {
     };
 
     that._notify_state_change =  function(state) {
-        topic.publish('facet-state-change', {
+        that.emit('facet-state-change', {
             facet: that,
             state: state
         });

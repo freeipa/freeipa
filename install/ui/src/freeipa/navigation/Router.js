@@ -19,16 +19,16 @@
 */
 
 define(['dojo/_base/declare',
-        'dojo/router',
         'dojo/_base/lang',
         'dojo/_base/array',
+        'dojo/Evented',
         'dojo/io-query',
-        'dojo/topic',
+        'dojo/router',
         '../entities',
         '../facets',
         '../ipa' //TODO: remove dependancy
        ],
-       function(declare, router, lang, array, ioquery, topic, entities, facets, IPA) {
+       function(declare, lang, array, Evented, ioquery, router, entities, facets, IPA) {
 
     /**
     * Class navigation
@@ -38,7 +38,7 @@ define(['dojo/_base/declare',
     * displayed facet. This change can be canceled in 'facet-change'
     * event handler.
     */
-    var navigation = declare(null, {
+    var navigation = declare([Evented], {
 
         /**
          * Holds references to register route handlers.
@@ -212,9 +212,9 @@ define(['dojo/_base/declare',
         navigate_to_hash: function(hash, facet) {
 
             this.canceled = false;
-            topic.publish('facet-change', { facet: facet, hash: hash });
+            this.emit('facet-change', { facet: facet, hash: hash });
             if (this.canceled) {
-                topic.publish('facet-change-canceled', { facet: facet, hash : hash });
+                this.emit('facet-change-canceled', { facet: facet, hash : hash });
                 return false;
             }
             this.update_hash(hash, false);
@@ -288,7 +288,7 @@ define(['dojo/_base/declare',
          */
         show_facet: function(facet) {
 
-            topic.publish('facet-show', {
+            this.emit('facet-show', {
                 facet: facet
             });
         },
