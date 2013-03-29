@@ -112,7 +112,7 @@ define([
         },
 
         /**
-         * Add task for a phase.
+         * Adds task for a phase.
          *
          * At phase execution, tasks are sorted by priority and executed in
          * that order.
@@ -134,17 +134,48 @@ define([
         },
 
         /**
-         * Adds a phase.
+         * Adds a phase
+         *
+         * Possible options:
+         *   before: 'name-of-phase'
+         *   after: 'name-of-phase'
+         *   position: 'position for new phase'
+         *
          * @param {String} phase name
+         * @param {Array} tasks
+         * @param {Object} options
          */
-        add_phase: function(name, tasks) {
+        add_phase: function(name, tasks, options) {
 
             var phase = {
                 name: name,
                 tasks: tasks || []
             };
 
-            this.phases.put(name, phase);
+            var position;
+            if (options) {
+                if (options.before) {
+                    position = this.phases.get_key_index(options.before);
+                } else if (options.after) {
+                    position = this.phases.get_key_index(options.after);
+                    if (position === -1) position = this.phases.length;
+                    else position++;
+                } else if (options.position) {
+                    position = options.position;
+                }
+            }
+
+            this.phases.put(name, phase, position);
+        },
+
+        /**
+         * Checks if phases with given name exists
+         *
+         * @param {String} name
+         * @return {Boolean}
+         */
+        exists: function(name) {
+            return !!this.phases.get(name);
         },
 
         constructor: function(spec) {

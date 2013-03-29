@@ -54,10 +54,39 @@ define([
         controller: new Phase_controller(spec),
 
         /**
-         * Registers phase task
+         * Registers a phase task
+         *
+         * @param {String} Phase name
+         * @param {Function} Task handler. Should return promise if async.
+         * @param {Number} Priority of task. Default 10.
          */
         on: function(phase_name, handler, priority) {
             this.controller.add_task(phase_name, handler, priority);
+        },
+
+       /**
+         * Adds a phase
+         *
+         * Possible options:
+         *   before: 'name-of-phase'
+         *   after: 'name-of-phase'
+         *   position: 'position for new phase'
+         *
+         * @param {String} Phase name
+         * @param {Object} Options
+         */
+        add: function(phase_name, options) {
+            this.controller.add_phase(phase_name, null, options);
+        },
+
+        /**
+         * Checks if phases with given name exists
+         *
+         * @param {String} Name
+         * @return {Boolean}
+         */
+        exists: function(name) {
+            return this.controller.exists(name);
         }
     };
 

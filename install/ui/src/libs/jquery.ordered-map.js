@@ -35,15 +35,25 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
         return that.map[key];
     };
 
-    that.put = function(key, value) {
+    that.put = function(key, value, position) {
+
+        var undefined;
 
         var i = that.get_key_index(key);
         if (i >= 0) {
             that.values[i] = value;
         } else {
-            that.keys.push(key);
-            that.values.push(value);
-            that.length = that.keys.length;
+            if (typeof position !== 'number') {
+                that.keys.push(key);
+                that.values.push(value);
+                that.length = that.keys.length;
+            } else {
+                if (position < 0) position = 0;
+                else if (position > that.length) position = that.length;
+                that.keys.splice(position, 0, key);
+                that.values.splice(position, 0, value);
+                that.length = that.keys.length;
+            }
         }
 
         that.map[key] = value;

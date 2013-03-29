@@ -43,16 +43,47 @@ test("Testing $.ordered_map.put().", function() {
     var key2 = 'key2';
     var value2 = 'value2';
 
+    var key3 = 'key3';
+    var value3 = 'value3';
+
+    var key4 = 'key4';
+    var value4 = 'value4';
+
+    var key5 = 'key5';
+    var value5 = 'value5';
+
+    var key6 = 'key6';
+    var value6 = 'value6';
+
+    var key7 = 'key7';
+    var value7 = 'value7';
+
+    var key8 = 'key8';
+    var value8 = 'value8';
+
     var map = {};
     map[key1] = value1;
     map[key2] = value2;
+    map[key3] = value3;
+    map[key4] = value4;
+    map[key5] = value5;
+    map[key6] = value6;
+    map[key7] = value7;
+    map[key8] = value8;
 
     test.put(key1, value1);
     test.put(key2, value2);
 
-    strictEqual(test.length, 2, 'Checking length.');
-    deepEqual(test.keys, [key1, key2], 'Checking keys.');
-    deepEqual(test.values, [value1, value2], 'Checking values.');
+    test.put(key3, value3, 1); //put before key2
+    test.put(key4, value4, 0); //put at beginning
+    test.put(key5, value5, -2); //put at beginning
+    test.put(key6, value6, 5); //put at end
+    test.put(key7, value7, 100); //put at end
+    test.put(key8, value8, 'foobar'); //put at end
+
+    strictEqual(test.length, 8, 'Checking length.');
+    deepEqual(test.keys, [key5, key4, key1, key3, key2, key6, key7, key8], 'Checking keys.');
+    deepEqual(test.values, [value5, value4, value1, value3, value2, value6, value7, value8], 'Checking values.');
     deepEqual(test.map, map, 'Checking map.');
 });
 
