@@ -97,6 +97,11 @@ IPA.service.entity = function(spec) {
                                     ]
                                 }
                             ]
+                        },
+                        {
+                            name: 'ipakrbokasdelegate',
+                            type: 'checkbox',
+                            acl_param: 'krbticketflags'
                         }
                     ]
                 },

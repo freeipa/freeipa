@@ -32,6 +32,12 @@ IPA.field = function(spec) {
     that.container = null;
     that.name = spec.name;
     that.param = spec.param || spec.name;
+
+    /**
+     * For most options param == acl_param. But some params might be virtual and
+     * actual rights might be defined by other param.
+     */
+    that.acl_param = spec.acl_param || that.param;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
     that.measurement_unit = spec.measurement_unit;
@@ -188,7 +194,7 @@ IPA.field = function(spec) {
         }
 
         if (record.attributelevelrights) {
-            var rights = record.attributelevelrights[that.param];
+            var rights = record.attributelevelrights[that.acl_param];
             var oc_rights= record.attributelevelrights['objectclass'];
             var write_oc = oc_rights && oc_rights.indexOf('w') > -1;
 

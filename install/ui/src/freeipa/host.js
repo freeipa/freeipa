@@ -88,6 +88,11 @@ IPA.host.entity = function(spec) {
                             type: 'multivalued',
                             name: 'macaddress',
                             flags: ['w_if_no_aci']
+                        },
+                        {
+                            name: 'ipakrbokasdelegate',
+                            type: 'checkbox',
+                            acl_param: 'krbticketflags'
                         }
                     ]
                 },

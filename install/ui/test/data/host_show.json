@@ -29,7 +29,7 @@
                 "krbprincipaltype": "rsc",
                 "krbpwdhistory": "rsc",
                 "krbpwdpolicyreference": "rsc",
-                "krbticketflags": "rsc",
+                "krbticketflags": "rscwo",
                 "krbticketpolicyreference": "rsc",
                 "krbupenabled": "rsc",
                 "l": "rscwo",

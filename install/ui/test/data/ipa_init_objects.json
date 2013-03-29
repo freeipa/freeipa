@@ -5019,6 +5019,17 @@
                         "name": "ipasshpubkey",
                         "noextrawhitespace": true,
                         "type": "unicode"
+                    },
+                    {
+                        "class": "Bool",
+                        "doc": "Client credentials may be delegated to the service",
+                        "flags": [
+                            "virtual_attribute",
+                            "no_search"
+                        ],
+                        "label": "Trusted for delegation",
+                        "name": "ipakrbokasdelegate",
+                        "type": "bool"
                     }
                 ],
                 "uuid_attribute": "ipauniqueid"
@@ -6562,8 +6573,20 @@
                         "type": "unicode",
                         "values": [
                             "MS-PAC",
-                            "PAD"
+                            "PAD",
+                            "NONE"
                         ]
+                    },
+                    {
+                        "class": "Bool",
+                        "doc": "Client credentials may be delegated to the service",
+                        "flags": [
+                            "virtual_attribute",
+                            "no_search"
+                        ],
+                        "label": "Trusted for delegation",
+                        "name": "ipakrbokasdelegate",
+                        "type": "bool"
                     }
                 ],
                 "uuid_attribute": "ipauniqueid"

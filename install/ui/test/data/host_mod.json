@@ -27,6 +27,7 @@
                 "krbprincipaltype": "rscwo",
                 "krbpwdhistory": "rscwo",
                 "krbpwdpolicyreference": "rscwo",
+                "krbticketflags": "rscwo",
                 "krbticketpolicyreference": "rscwo",
                 "krbupenabled": "rscwo",
                 "l": "rscwo",
