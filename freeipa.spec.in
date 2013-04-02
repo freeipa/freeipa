@@ -86,7 +86,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires: %{name}-server-selinux = %{version}-%{release}
-Requires: 389-ds-base >= 1.3.0
+Requires: 389-ds-base >= 1.3.0.5
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -128,6 +128,7 @@ Requires: zip
 Requires: policycoreutils >= %{POLICYCOREUTILSVER}
 Requires: tar
 Requires(pre): certmonger >= 0.65
+Requires(pre): 389-ds-base >= 1.3.0.5
 
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
@@ -763,6 +764,12 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue Apr  2 2013 Martin Kosek <mkosek@redhat.com> - 3.1.3-1
+- Require 389-base-base >= 1.3.0.5 to pull the following fixes:
+  - upgrade deadlock caused by DNA plugin reconfiguration
+  - CVE-2013-1897: unintended information exposure when
+    nsslapd-allow-anonymous-access is set to rootdse
+
 * Thu Mar 21 2013 Martin Kosek <mkosek@redhat.com> - 3.1.2-1
 - Require selinux-policy 3.11.1-86 to fix Fedora 17 to 18 upgrade issue
 
