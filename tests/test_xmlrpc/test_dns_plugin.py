@@ -53,6 +53,8 @@ dnsrev2 = u'81'
 dnsrev2_dn = DN(('idnsname',dnsrev2), revdnszone1_dn)
 dnsrescname = u'testcnamerec'
 dnsrescname_dn = DN(('idnsname',dnsrescname), dnszone1_dn)
+dnsresdname = u'testdns-dname'
+dnsresdname_dn = DN(('idnsname',dnsresdname), dnszone1_dn)
 
 class test_dns(Declarative):
 
@@ -223,15 +225,6 @@ class test_dns(Declarative):
             },
         ),
 
-        dict(
-            desc='Delete zone %r' % dnszone2,
-            command=('dnszone_del', [dnszone2], {}),
-            expected={
-                'value': dnszone2,
-                'summary': None,
-                'result': {'failed': u''},
-            },
-        ),
 
         dict(
             desc='Retrieve zone %r' % dnszone1,
@@ -835,6 +828,85 @@ class test_dns(Declarative):
                     'idnsname': [dnsrescname],
                     'arecord': [u'10.0.0.1'],
                 },
+            },
+        ),
+
+        dict(
+            desc='Try to add multiple DNAME records to %r using dnsrecord_add' % (dnsresdname),
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'dnamerecord':
+                [u'foo-1.example.com.', u'foo-2.example.com.']}),
+            expected=errors.ValidationError(name='dnamerecord',
+                error=u'only one DNAME record is allowed per name (RFC 6672, section 2.4)'),
+        ),
+
+        dict(
+            desc='Try to add invalid DNAME record %r using dnsrecord_add' % (dnsresdname),
+            command=('dnsrecord_add', [dnszone1, dnsresdname], {'dnamerecord': u'-.example.com.'}),
+            expected=errors.ValidationError(name='target',
+                error=u'invalid domain-name: only letters, numbers, and - ' +
+                    u'are allowed. DNS label may not start or end with -'),
+        ),
+
+        dict(
+            desc='Add DNAME record to %r using dnsrecord_add' % (dnsresdname),
+            command=('dnsrecord_add', [dnszone1, dnsresdname],
+                {'dnamerecord': u'd.example.com.', 'arecord': u'10.0.0.1'}),
+            expected={
+                'value': dnsresdname,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': dnsresdname_dn,
+                    'idnsname': [dnsresdname],
+                    'dnamerecord': [u'd.example.com.'],
+                    'arecord': [u'10.0.0.1'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Try to add CNAME record to %r using dnsrecord_add' % (dnsresdname),
+            command=('dnsrecord_add', [dnszone1, dnsresdname], {'cnamerecord': u'foo-1.example.com.'}),
+            expected=errors.ValidationError(name='cnamerecord',
+                error=u'CNAME record is not allowed to coexist with any other '
+                      u'record (RFC 1034, section 3.6.2)'),
+        ),
+
+        dict(
+            desc='Try to add NS record to %r using dnsrecord_add' % (dnsresdname),
+            command=('dnsrecord_add', [dnszone1, dnsresdname],
+                {'nsrecord': u'%s.%s.' % (dnsres1, dnszone1)}),
+            expected=errors.ValidationError(name='dnamerecord',
+                error=u'DNAME record is not allowed to coexist with an NS '
+                      u'record except when located in a zone root record (RFC 6672, section 2.3)'),
+        ),
+
+        dict(
+            desc='Add NS+DNAME record to %r zone record using dnsrecord_add' % (dnszone2),
+            command=('dnsrecord_add', [dnszone2, u'@'],
+                {'dnamerecord': u'd.example.com.',
+                 'nsrecord': dnszone1_mname}),
+            expected = {
+                'value': u'@',
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnszone,
+                    'dnamerecord': [u'd.example.com.'],
+                    'dn': dnszone2_dn,
+                    'nsrecord': [dnszone2_mname, dnszone1_mname],
+                    'idnsname': [u'@']
+                }
+            },
+        ),
+
+
+        dict(
+            desc='Delete zone %r' % dnszone2,
+            command=('dnszone_del', [dnszone2], {}),
+            expected={
+                'value': dnszone2,
+                'summary': None,
+                'result': {'failed': u''},
             },
         ),
 

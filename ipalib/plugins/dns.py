@@ -2267,7 +2267,7 @@ class dnsrecord(LDAPObject):
                 processed.append(rrparam.name)
                 yield rrparam
 
-    def check_record_type_collisions(self, old_entry, entry_attrs):
+    def check_record_type_collisions(self, keys, old_entry, entry_attrs):
         # Test that only allowed combination of record types was created
         rrattrs = {}
         if old_entry is not None:
@@ -2297,6 +2297,24 @@ class dnsrecord(LDAPObject):
                     raise errors.ValidationError(name='cnamerecord',
                           error=_('CNAME record is not allowed to coexist '
                                   'with any other record (RFC 1034, section 3.6.2)'))
+
+        # DNAME record validation
+        try:
+            dnames = rrattrs['dnamerecord']
+        except KeyError:
+            pass
+        else:
+            if dnames is not None:
+                if len(dnames) > 1:
+                    raise errors.ValidationError(name='dnamerecord',
+                        error=_('only one DNAME record is allowed per name '
+                                '(RFC 6672, section 2.4)'))
+                # DNAME must not coexist with CNAME, but this is already checked earlier
+                if rrattrs.get('nsrecord') and keys[1] != _dns_zone_record:
+                    raise errors.ValidationError(name='dnamerecord',
+                          error=_('DNAME record is not allowed to coexist with an '
+                                  'NS record except when located in a zone root '
+                                  'record (RFC 6672, section 2.3)'))
 
 api.register(dnsrecord)
 
@@ -2459,7 +2477,7 @@ class dnsrecord_add(LDAPCreate):
                     vals = list(entry_attrs[attr])
                 entry_attrs[attr] = list(set(old_entry.get(attr, []) + vals))
 
-        self.obj.check_record_type_collisions(old_entry, entry_attrs)
+        self.obj.check_record_type_collisions(keys, old_entry, entry_attrs)
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
@@ -2560,7 +2578,7 @@ class dnsrecord_mod(LDAPUpdate):
                 new_dnsvalue = [param._convert_scalar(modified_parts)]
                 entry_attrs[attr] = list(set(old_entry[attr] + new_dnsvalue))
 
-        self.obj.check_record_type_collisions(old_entry, entry_attrs)
+        self.obj.check_record_type_collisions(keys, old_entry, entry_attrs)
         return dn
 
     def execute(self, *keys, **options):
