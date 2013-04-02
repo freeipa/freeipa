@@ -644,6 +644,15 @@ def uninstall(options, env):
         root_logger.warning('Please remove /etc/ipa/default.conf manually, '
                             'as it can cause subsequent installation to fail.')
 
+    # Remove the CA cert
+    try:
+        os.remove(CACERT)
+    except OSError, e:
+        root_logger.warning('%s could not be removed: %s', CACERT, str(e))
+        root_logger.warning('Please remove %s manually, '
+                            'as it can cause subsequent '
+                            'installation to fail.', CACERT)
+
     root_logger.info("Client uninstall complete.")
 
     # The next block of code prompts for reboot, therefore all uninstall
