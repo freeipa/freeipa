@@ -773,7 +773,8 @@ class test_dns(Declarative):
             desc='Try to add CNAME record to %r using dnsrecord_add' % (dnsres1),
             command=('dnsrecord_add', [dnszone1, dnsres1], {'cnamerecord': u'foo-1.example.com.'}),
             expected=errors.ValidationError(name='cnamerecord',
-                error=u'CNAME record is not allowed to coexist with any other records except PTR'),
+                error=u'CNAME record is not allowed to coexist with any other '
+                      u'record (RFC 1034, section 3.6.2)'),
         ),
 
         dict(
@@ -782,6 +783,14 @@ class test_dns(Declarative):
             expected=errors.ValidationError(name='hostname',
                 error=u'invalid domain-name: only letters, numbers, and - ' +
                     u'are allowed. DNS label may not start or end with -'),
+        ),
+
+        dict(
+            desc='Try to add multiple CNAME record %r using dnsrecord_add' % (dnsrescname),
+            command=('dnsrecord_add', [dnszone1, dnsrescname], {'cnamerecord':
+                [u'1.example.com.', u'2.example.com.']}),
+            expected=errors.ValidationError(name='cnamerecord',
+                error=u'only one CNAME record is allowed per name (RFC 2136, section 1.1.5)'),
         ),
 
         dict(
@@ -803,14 +812,16 @@ class test_dns(Declarative):
             desc='Try to add other record to CNAME record %r using dnsrecord_add' % (dnsrescname),
             command=('dnsrecord_add', [dnszone1, dnsrescname], {'arecord': u'10.0.0.1'}),
             expected=errors.ValidationError(name='cnamerecord',
-                error=u'CNAME record is not allowed to coexist with any other records except PTR'),
+                error=u'CNAME record is not allowed to coexist with any other '
+                      u'record (RFC 1034, section 3.6.2)'),
         ),
 
         dict(
             desc='Try to add other record to CNAME record %r using dnsrecord_mod' % (dnsrescname),
             command=('dnsrecord_mod', [dnszone1, dnsrescname], {'arecord': u'10.0.0.1'}),
             expected=errors.ValidationError(name='cnamerecord',
-                error=u'CNAME record is not allowed to coexist with any other records except PTR'),
+                error=u'CNAME record is not allowed to coexist with any other '
+                      u'record (RFC 1034, section 3.6.2)'),
         ),
 
         dict(
@@ -1063,22 +1074,6 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Test that CNAME/PTR record type combination in record %r is allowed' % (dnsrev1),
-            command=('dnsrecord_add', [revdnszone1, dnsrev1], {'cnamerecord': u'foo-1.example.com.' }),
-            expected={
-                'value': dnsrev1,
-                'summary': None,
-                'result': {
-                    'objectclass': objectclasses.dnsrecord,
-                    'dn': dnsrev1_dn,
-                    'idnsname': [dnsrev1],
-                    'ptrrecord': [u'foo-1.example.com.'],
-                    'cnamerecord': [u'foo-1.example.com.'],
-                },
-            },
-        ),
-
-        dict(
             desc='Show record %r in zone %r with --structured and --all options'\
                     % (dnsrev1, revdnszone1),
             command=('dnsrecord_show', [revdnszone1, dnsrev1],
@@ -1096,11 +1091,6 @@ class test_dns(Declarative):
                             'dnsdata': u'foo-1.example.com.',
                             'ptr_part_hostname': u'foo-1.example.com.'
                         },
-                        {
-                            'dnstype': u'CNAME',
-                            'dnsdata': u'foo-1.example.com.',
-                            'cname_part_hostname': u'foo-1.example.com.'
-                        }
                     ],
                 },
             },

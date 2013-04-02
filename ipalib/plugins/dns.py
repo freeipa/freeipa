@@ -2269,23 +2269,34 @@ class dnsrecord(LDAPObject):
 
     def check_record_type_collisions(self, old_entry, entry_attrs):
         # Test that only allowed combination of record types was created
-        attrs = set(attr for attr in entry_attrs.keys() if attr in _record_attributes
-                        and entry_attrs[attr])
-        attrs.update(attr for attr in old_entry.keys() if attr not in entry_attrs)
-        try:
-            attrs.remove('cnamerecord')
-        except KeyError:
-            rec_has_cname = False
-        else:
-            rec_has_cname = True
-        # CNAME and PTR record combination is allowed
-        attrs.discard('ptrrecord')
-        rec_has_other_types = True if attrs else False
+        rrattrs = {}
+        if old_entry is not None:
+            old_rrattrs = dict((key, value) for key, value in old_entry.iteritems()
+                            if key in self.params and
+                            isinstance(self.params[key], DNSRecord))
+            rrattrs.update(old_rrattrs)
+        new_rrattrs = dict((key, value) for key, value in entry_attrs.iteritems()
+                        if key in self.params and
+                        isinstance(self.params[key], DNSRecord))
+        rrattrs.update(new_rrattrs)
 
-        if rec_has_cname and rec_has_other_types:
-            raise errors.ValidationError(name='cnamerecord',
-                      error=_('CNAME record is not allowed to coexist with any other '
-                              'records except PTR'))
+        # CNAME record validation
+        try:
+            cnames = rrattrs['cnamerecord']
+        except KeyError:
+            pass
+        else:
+            if cnames is not None:
+                if len(cnames) > 1:
+                    raise errors.ValidationError(name='cnamerecord',
+                        error=_('only one CNAME record is allowed per name '
+                                '(RFC 2136, section 1.1.5)'))
+                if any(rrvalue is not None
+                       and rrattr != 'cnamerecord'
+                       for rrattr, rrvalue in rrattrs.iteritems()):
+                    raise errors.ValidationError(name='cnamerecord',
+                          error=_('CNAME record is not allowed to coexist '
+                                  'with any other record (RFC 1034, section 3.6.2)'))
 
 api.register(dnsrecord)
 
@@ -2435,7 +2446,7 @@ class dnsrecord_add(LDAPCreate):
         try:
             (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
-            pass
+            old_entry = None
         else:
             for attr in entry_attrs.keys():
                 if attr not in _record_attributes:
@@ -2448,7 +2459,7 @@ class dnsrecord_add(LDAPCreate):
                     vals = list(entry_attrs[attr])
                 entry_attrs[attr] = list(set(old_entry.get(attr, []) + vals))
 
-            self.obj.check_record_type_collisions(old_entry, entry_attrs)
+        self.obj.check_record_type_collisions(old_entry, entry_attrs)
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
