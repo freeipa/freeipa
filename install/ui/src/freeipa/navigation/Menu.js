@@ -25,9 +25,9 @@ define(['dojo/_base/declare',
        'dojo/_base/lang',
        'dojo/store/Observable',
        'dojo/Evented',
-       '../_base/i18n',
+       '../text',
        '../ipa' // TODO: remove dependance
-       ], function(declare, Memory_store, array, lang, Observable, Evented, i18n, IPA) {
+       ], function(declare, Memory_store, array, lang, Observable, Evented, text, IPA) {
 
 /**
  * Menu store
@@ -109,8 +109,8 @@ return declare([Evented], {
         // FIXME: consider to move entity and facet stuff outside of this object
         item.name = item.name || item.facet || item.entity;
         if (!name) throw 'Missing menu item property: name';
-        if (item.label) item.label = i18n.message(item.label);
-        if (item.title) item.title = i18n.message(item.title);
+        if (item.label) item.label = text.get(item.label);
+        if (item.title) item.title = text.get(item.title);
 
         if (item.entity) {
             // FIXME: replace with 'entities' module in future

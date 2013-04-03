@@ -22,7 +22,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['./jquery', './json2'], function($, JSON) {
+define(['./jquery', './json2','./_base/i18n', './_base/metadata_provider'], function($, JSON, i18n, metadata_provider) {
 
 var IPA = function() {
 
@@ -42,6 +42,7 @@ var IPA = function() {
     };
 
     that.metadata = {};
+    metadata_provider.source = that.metadata;
     that.messages = {};
     that.whoami = {};
 
@@ -111,6 +112,7 @@ var IPA = function() {
             method: 'i18n_messages',
             on_success: function(data, text_status, xhr) {
                 that.messages = data.texts;
+                i18n.source = that.messages;
             }
         }));
 
@@ -1268,71 +1270,23 @@ IPA.default_factory = function(spec) {
 /* helper function used to retrieve information about an attribute */
 IPA.get_entity_param = function(entity_name, name) {
 
-    var metadata = IPA.metadata.objects[entity_name];
-    if (!metadata) {
-        return null;
-    }
-
-    var params = metadata.takes_params;
-    if (!params) {
-        return null;
-    }
-
-    for (var i=0; i<params.length; i++) {
-        if (params[i].name === name) {
-            return params[i];
-        }
-    }
-
-    return null;
+    return metadata_provider.get(['@mo-param', entity_name, name].join(':'));
 };
 
 IPA.get_command_arg = function(command_name, arg_name) {
 
-    var metadata = IPA.metadata.commands[command_name];
-    if (!metadata) {
-        return null;
-    }
-
-    var args = metadata.takes_args;
-    if (!args) {
-        return null;
-    }
-
-    for (var i=0; i<args.length; i++) {
-        if (args[i].name === arg_name) {
-            return args[i];
-        }
-    }
-
-    return null;
+    return metadata_provider.get(['@mc-arg', command_name, arg_name].join(':'));
 };
 
 IPA.get_command_option = function(command_name, option_name) {
 
-    var metadata = IPA.metadata.commands[command_name];
-    if (!metadata) {
-        return null;
-    }
-
-    var options = metadata.takes_options;
-    if (!options) {
-        return null;
-    }
-
-    for (var i=0; i<options.length; i++) {
-        if (options[i].name === option_name) {
-            return options[i];
-        }
-    }
-
-    return null;
+    return metadata_provider.get(['@mc-opt', command_name, option_name].join(':'));
 };
 
 /* helper function used to retrieve attr name with members of type `member` */
 IPA.get_member_attribute = function(obj_name, member) {
 
-    var obj = IPA.metadata.objects[obj_name];
+    var obj = metadata_provider.get('@mo:'+obj_name);
     if (!obj) {
         return null;
     }

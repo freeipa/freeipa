@@ -1,7 +1,7 @@
 /*  Authors:
  *    Petr Vobornik <pvoborni@redhat.com>
  *
- * Copyright (C) 2012 Red Hat
+ * Copyright (C) 2013 Red Hat
  * see file 'COPYING' for use and warranty information
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,21 +19,22 @@
 */
 
 /**
-* Gets translated message.
-*
-* If a message starts with @i18n: it tries to get the message from
-* message object. If it doesn't contain a string with
-* the key it returns alternate string.
-*
-* It all other cases the message itself or empty string is returned.
-*/
-define(['dojo/_base/lang', './Provider'], function(lang, Provider) {
+ * Text provider
+ *
+ * Serves for returning labels, titles, messages from various providers.
+ * Other providers can extends functionality.
+ */
+define(['./_base/Provider', './_base/i18n', './_base/metadata_provider'],
+       function(Provider, i18n, metadata) {
 
-    var i18n = new Provider({
-        code: '@i18n:',
+    var text = new Provider({
+        providers: [
+            i18n,
+            metadata
+        ],
         null_value: '',
         required_type: 'string'
     });
 
-    return i18n;
+    return text;
 });
