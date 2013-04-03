@@ -37,7 +37,7 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
                 sections: [
                     {
                         name: 'identity',
-                        label: IPA.messages.objects.realmdomains.identity,
+                        label: '@i18n:objects.realmdomains.identity',
                         fields: [
                             {
                                 name: 'associateddomain',
@@ -72,7 +72,7 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
             var dialog = IPA.confirm_dialog({
                 title: IPA.messages.objects.realmdomains.check_dns,
                 message: IPA.messages.objects.realmdomains.check_dns_confirmation,
-                ok_label: IPA.messages.objects.realmdomains.check_dns,
+                ok_label: '@i18n:objects.realmdomains.check_dns',
                 on_ok: function () {
                     command.execute();
                 }
@@ -83,7 +83,7 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
 
             dialog.create_button({
                 name: 'force',
-                label: IPA.messages.objects.realmdomains.force_update,
+                label: '@i18n:objects.realmdomains.force_update',
                 visible: true,
                 click: function () {
                     command.set_option('force', true);

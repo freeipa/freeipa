@@ -60,13 +60,13 @@ IPA.service.entity = function(spec) {
                         {
                             type: 'service_name',
                             name: 'service',
-                            label: IPA.messages.objects.service.service,
+                            label: '@i18n:objects.service.service',
                             read_only: true
                         },
                         {
                             type: 'service_host',
                             name: 'host',
-                            label: IPA.messages.objects.service.host,
+                            label: '@i18n:objects.service.host',
                             read_only: true
                         },
                         {
@@ -75,11 +75,11 @@ IPA.service.entity = function(spec) {
                             layout: 'vertical',
                             options: [
                                 {
-                                    label: IPA.messages.krbauthzdata.inherited,
+                                    label: '@i18n:krbauthzdata.inherited',
                                     value: ''
                                 },
                                 {
-                                    label: IPA.messages.krbauthzdata.override,
+                                    label: '@i18n:krbauthzdata.override',
                                     name: 'ipakrbauthzdata_override',
                                     factory: IPA.option_widget_base,
                                     input_type: 'checkbox',
@@ -87,11 +87,11 @@ IPA.service.entity = function(spec) {
                                     combine_values: false,
                                     options: [
                                         {
-                                            label: IPA.messages.krbauthzdata.mspac,
+                                            label: '@i18n:krbauthzdata.mspac',
                                             value: 'MS-PAC'
                                         },
                                         {
-                                            label: IPA.messages.krbauthzdata.pad,
+                                            label: '@i18n:krbauthzdata.pad',
                                             value: 'PAD'
                                         }
                                     ]
@@ -116,7 +116,7 @@ IPA.service.entity = function(spec) {
                         {
                             type: 'service_provisioning_status',
                             name: 'has_keytab',
-                            label: IPA.messages.objects.service.status
+                            label: '@i18n:objects.service.status'
                         }
                     ]
                 },
@@ -134,7 +134,7 @@ IPA.service.entity = function(spec) {
                         {
                             type: 'certificate_status',
                             name: 'certificate_status',
-                            label: IPA.messages.objects.service.status
+                            label: '@i18n:objects.service.status'
                         }
                     ]
                 }
@@ -173,7 +173,7 @@ IPA.service.entity = function(spec) {
                         {
                             type: 'combobox',
                             name: 'service',
-                            label: IPA.messages.objects.service.service,
+                            label: '@i18n:objects.service.service',
                             options: [
                                 'cifs',
                                 'DNS',
@@ -196,7 +196,7 @@ IPA.service.entity = function(spec) {
                             name: 'host',
                             other_entity: 'host',
                             other_field: 'fqdn',
-                            label: IPA.messages.objects.service.host,
+                            label: '@i18n:objects.service.host',
                             required: true,
                             z_index: 1
                         },
@@ -397,7 +397,7 @@ IPA.service.unprovision_dialog = function(spec) {
 
         that.create_button({
             name: 'unprovision',
-            label: IPA.messages.objects.service.unprovision,
+            label: '@i18n:objects.service.unprovision',
             click: function() {
                 that.unprovision();
             }
@@ -405,7 +405,7 @@ IPA.service.unprovision_dialog = function(spec) {
 
         that.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 that.close();
             }

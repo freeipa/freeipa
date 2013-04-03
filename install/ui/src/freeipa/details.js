@@ -243,19 +243,19 @@ IPA.details_facet = function(spec, no_init) {
         spec.control_buttons.unshift(
             {
                 name: 'reset',
-                label: IPA.messages.buttons.reset,
+                label: '@i18n:buttons.reset',
                 icon: 'reset-icon'
             },
             {
                 name: 'update',
-                label: IPA.messages.buttons.update,
+                label: '@i18n:buttons.update',
                 icon: 'update-icon'
             });
     }
     spec.control_buttons.unshift(
         {
             name: 'refresh',
-            label: IPA.messages.buttons.refresh,
+            label: '@i18n:buttons.refresh',
             icon: 'reset-icon'
         });
 
@@ -319,7 +319,7 @@ IPA.details_facet = function(spec, no_init) {
         that.expand_button = IPA.action_button({
             name: 'expand_all',
             href: 'expand_all',
-            label: IPA.messages.details.expand_all,
+            label: '@i18n:details.expand_all',
             'class': 'right-aligned-facet-controls',
             style: 'display: none;',
             click: function() {
@@ -340,7 +340,7 @@ IPA.details_facet = function(spec, no_init) {
         that.collapse_button = IPA.action_button({
             name: 'collapse_all',
             href: 'collapse_all',
-            label: IPA.messages.details.collapse_all,
+            label: '@i18n:details.collapse_all',
             'class': 'right-aligned-facet-controls',
             click: function() {
                 that.expand_button.css('display', 'inline-block');

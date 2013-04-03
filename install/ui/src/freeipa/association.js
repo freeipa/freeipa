@@ -431,7 +431,7 @@ IPA.association_table_widget = function (spec) {
 
         that.remove_button = IPA.action_button({
             name: 'remove',
-            label: IPA.messages.buttons.remove,
+            label: '@i18n:buttons.remove',
             icon: 'remove-icon',
             'class': 'action-button-disabled',
             click: function() {
@@ -444,7 +444,7 @@ IPA.association_table_widget = function (spec) {
 
         that.add_button = IPA.action_button({
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             icon: 'add-icon',
             click: function() {
                 if (!that.add_button.hasClass('action-button-disabled')) {
@@ -786,17 +786,17 @@ IPA.association_facet = function (spec, no_init) {
     spec.control_buttons.unshift(
         {
             name: 'refresh',
-            label: IPA.messages.buttons.refresh,
+            label: '@i18n:buttons.refresh',
             icon: 'reset-icon'
         },
         {
             name: 'remove',
-            label: IPA.messages.buttons.remove,
+            label: '@i18n:buttons.remove',
             icon: 'remove-icon'
         },
         {
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             icon: 'add-icon'
         });
 
@@ -1169,17 +1169,17 @@ IPA.attribute_facet = function(spec, no_init) {
     spec.control_buttons.unshift(
         {
             name: 'refresh',
-            label: IPA.messages.buttons.refresh,
+            label: '@i18n:buttons.refresh',
             icon: 'reset-icon'
         },
         {
             name: 'remove',
-            label: IPA.messages.buttons.remove,
+            label: '@i18n:buttons.remove',
             icon: 'remove-icon'
         },
         {
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             icon: 'add-icon'
         });
 

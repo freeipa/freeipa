@@ -2232,7 +2232,7 @@ IPA.action_list_widget = function(spec) {
         {
             type: 'button',
             name: 'apply',
-            label: IPA.messages.actions.apply
+            label: '@i18n:actions.apply'
         }
     ];
 

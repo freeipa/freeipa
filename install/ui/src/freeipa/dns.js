@@ -60,7 +60,7 @@ IPA.dns.config_entity = function(spec) {
             sections: [
                 {
                     name: 'options',
-                    label: IPA.messages.objects.dnsconfig.options,
+                    label: '@i18n:objects.dnsconfig.options',
                     fields: [
                         {
                             type: 'checkbox',
@@ -78,15 +78,15 @@ IPA.dns.config_entity = function(spec) {
                             options: [
                                 {
                                     value: 'first',
-                                    label: IPA.messages.objects.dnsconfig.forward_first
+                                    label: '@i18n:objects.dnsconfig.forward_first'
                                 },
                                 {
                                     value: 'only',
-                                    label: IPA.messages.objects.dnsconfig.forward_only
+                                    label: '@i18n:objects.dnsconfig.forward_only'
                                 },
                                 {
                                     value: 'none',
-                                    label: IPA.messages.objects.dnsconfig.forward_none
+                                    label: '@i18n:objects.dnsconfig.forward_none'
                                 }
                             ]
                         },
@@ -123,7 +123,7 @@ IPA.dns.zone_entity = function(spec) {
                 'idnsname',
                 {
                     name: 'idnszoneactive',
-                    label: IPA.messages.status.label,
+                    label: '@i18n:status.label',
                     formatter: IPA.boolean_status_formatter()
                 }
             ],
@@ -134,12 +134,12 @@ IPA.dns.zone_entity = function(spec) {
             control_buttons: [
                 {
                     name: 'disable',
-                    label: IPA.messages.buttons.disable,
+                    label: '@i18n:buttons.disable',
                     icon: 'disabled-icon'
                 },
                 {
                     name: 'enable',
-                    label: IPA.messages.buttons.enable,
+                    label: '@i18n:buttons.enable',
                     icon: 'enabled-icon'
                 }
             ]
@@ -211,15 +211,15 @@ IPA.dns.zone_entity = function(spec) {
                         options: [
                             {
                                 value: 'first',
-                                label: IPA.messages.objects.dnsconfig.forward_first
+                                label: '@i18n:objects.dnsconfig.forward_first'
                             },
                             {
                                 value: 'only',
-                                label: IPA.messages.objects.dnsconfig.forward_only
+                                label: '@i18n:objects.dnsconfig.forward_only'
                             },
                             {
                                     value: 'none',
-                                    label: IPA.messages.objects.dnsconfig.forward_none
+                                    label: '@i18n:objects.dnsconfig.forward_none'
                             }
                         ]
                     },
@@ -274,11 +274,11 @@ IPA.dns.zone_entity = function(spec) {
                 },
                 {
                     name: 'type',
-                    label: IPA.messages.objects.dnsrecord.type
+                    label: '@i18n:objects.dnsrecord.type'
                 },
                 {
                     name: 'data',
-                    label: IPA.messages.objects.dnsrecord.data
+                    label: '@i18n:objects.dnsrecord.data'
                 }
             ]
         }).
@@ -1170,7 +1170,7 @@ IPA.dns.record_entity = function(spec) {
             widgets:[
                 {
                     name: 'identity',
-                    label: IPA.messages.details.identity,
+                    label: '@i18n:details.identity',
                     type: 'details_table_section',
                     widgets: [
                         {
@@ -1207,7 +1207,7 @@ IPA.dns.record_entity = function(spec) {
                         {
                             type: 'dnsrecord_type',
                             name: 'record_type',
-                            label: IPA.messages.objects.dnsrecord.type
+                            label: '@i18n:objects.dnsrecord.type'
                         }
                     ]
                 }
@@ -1397,14 +1397,14 @@ IPA.dns.record_prepare_details_spec = function(spec, type_prepare_method) {
     var standard_record_section = {
         name: 'standard_types',
         type: 'details_table_section',
-        label: IPA.messages.objects.dnsrecord.standard,
+        label: '@i18n:objects.dnsrecord.standard',
         widgets: []
     };
 
     var other_record_section = {
         name: 'other_types',
         type: 'details_table_section',
-        label: IPA.messages.objects.dnsrecord.other,
+        label: '@i18n:objects.dnsrecord.other',
         widgets: []
     };
 
@@ -1712,7 +1712,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         that.remove_button = IPA.action_button({
             name: 'remove',
-            label: IPA.messages.buttons.remove,
+            label: '@i18n:buttons.remove',
             icon: 'remove-icon',
             'class': 'action-button-disabled',
             click: function() {
@@ -1725,7 +1725,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         that.add_button = IPA.action_button({
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             icon: 'add-icon',
             click: function() {
                 if (!that.add_button.hasClass('action-button-disabled')) {
@@ -1889,7 +1889,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_button({
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             click: function() {
                 dialog.hide_message();
                 dialog.add(
@@ -1910,7 +1910,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_button({
             name: 'add_and_add_another',
-            label: IPA.messages.buttons.add_and_add_another,
+            label: '@i18n:buttons.add_and_add_another',
             click: function() {
                 dialog.hide_message();
                 dialog.add(
@@ -1976,7 +1976,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_button({
             name: 'modify',
-            label: IPA.messages.buttons.update,
+            label: '@i18n:buttons.update',
             click: function() {
                 dialog.modify();
             }
@@ -1984,7 +1984,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 dialog.reset();
                 dialog.close();
@@ -2228,7 +2228,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
 
         that.create_button({
             name: 'close',
-            label: IPA.messages.buttons.close,
+            label: '@i18n:buttons.close',
             click: function() {
                 that.close();
             }

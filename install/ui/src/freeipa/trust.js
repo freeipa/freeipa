@@ -46,32 +46,32 @@ IPA.trust.entity = function(spec) {
             sections: [
                 {
                     name: 'details',
-                    label: IPA.messages.objects.trust.details,
+                    label: '@i18n:objects.trust.details',
                     fields: [
                         'cn',
                         {
                             name: 'ipantflatname',
-                            label: IPA.messages.objects.trust.ipantflatname,
+                            label: '@i18n:objects.trust.ipantflatname',
                             read_only: true
                         },
                         {
                             name: 'ipanttrusteddomainsid',
-                            label: IPA.messages.objects.trust.ipanttrusteddomainsid,
+                            label: '@i18n:objects.trust.ipanttrusteddomainsid',
                             read_only: true
                         },
                         {
                             name: 'trustdirection',
-                            label: IPA.messages.objects.trust.trustdirection
+                            label: '@i18n:objects.trust.trustdirection'
                         },
                         {
                             name: 'trusttype',
-                            label: IPA.messages.objects.trust.trusttype
+                            label: '@i18n:objects.trust.trusttype'
                         }
                     ]
                 },
                 {
                     name: 'blacklists',
-                    label: IPA.messages.objects.trust.blacklists,
+                    label: '@i18n:objects.trust.blacklists',
                     fields: [
                         {
                             type: 'multivalued',
@@ -84,7 +84,7 @@ IPA.trust.entity = function(spec) {
 // trust status not supported by show command at the moment
 //                         {
 //                             name: 'truststatus',
-//                             label: IPA.messages.objects.trust.truststatus
+//                             label: '@i18n:objects.trust.truststatus'
 //                         }
                     ]
                 }
@@ -95,30 +95,30 @@ IPA.trust.entity = function(spec) {
             fields: [
                 {
                     name: 'cn',
-                    label: IPA.messages.objects.trust.domain,
+                    label: '@i18n:objects.trust.domain',
                     widget: 'realm.realm_server'
                 },
                 {
                     name: 'realm_admin',
-                    label: IPA.messages.objects.trust.account,
+                    label: '@i18n:objects.trust.account',
                     widget: 'method.realm_admin'
                 },
                 {
                     type: 'password',
                     name: 'realm_passwd',
-                    label: IPA.messages.password.password,
+                    label: '@i18n:password.password',
                     widget: 'method.realm_passwd'
                 },
                 {
                     type: 'password',
                     name: 'trust_secret',
-                    label: IPA.messages.password.password,
+                    label: '@i18n:password.password',
                     widget: 'method.trust_secret'
                 },
                 {
                     type: 'password',
                     name: 'trust_secret_verify',
-                    label: IPA.messages.password.verify_password,
+                    label: '@i18n:password.verify_password',
                     widget: 'method.trust_secret_verify',
                     flags: ['no_command'],
                     validators: [IPA.same_password_validator({
@@ -137,18 +137,18 @@ IPA.trust.entity = function(spec) {
                 {
                     type: 'multiple_choice_section',
                     name: 'method',
-                    label: IPA.messages.objects.trust.establish_using,
+                    label: '@i18n:objects.trust.establish_using',
                     choices: [
                         {
                             name: 'admin-account',
-                            label: IPA.messages.objects.trust.admin_account,
+                            label: '@i18n:objects.trust.admin_account',
                             fields: ['realm_admin', 'realm_passwd'],
                             required: ['realm_admin', 'realm_passwd'],
                             enabled: true
                         },
                         {
                             name: 'preshared_password',
-                            label: IPA.messages.objects.trust.preshared_password,
+                            label: '@i18n:objects.trust.preshared_password',
                             fields: ['trust_secret', 'trust_secret_verify'],
                             required: ['trust_secret', 'trust_secret_verify']
                         }

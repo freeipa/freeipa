@@ -41,7 +41,7 @@ IPA.hbac.rule_entity = function(spec) {
                 'cn',
                 {
                     name: 'ipaenabledflag',
-                    label: IPA.messages.status.label,
+                    label: '@i18n:status.label',
                     formatter: IPA.boolean_status_formatter()
                 },
                 'description'
@@ -53,12 +53,12 @@ IPA.hbac.rule_entity = function(spec) {
             control_buttons: [
                 {
                     name: 'disable',
-                    label: IPA.messages.buttons.disable,
+                    label: '@i18n:buttons.disable',
                     icon: 'disabled-icon'
                 },
                 {
                     name: 'enable',
-                    label: IPA.messages.buttons.enable,
+                    label: '@i18n:buttons.enable',
                     icon: 'enabled-icon'
                 }
             ]
@@ -112,7 +112,7 @@ IPA.hbac.service_entity = function(spec) {
             sections: [
                 {
                     name: 'general',
-                    label: IPA.messages.details.general,
+                    label: '@i18n:details.general',
                     fields: [
                         'cn',
                         {
@@ -174,7 +174,7 @@ IPA.hbac.service_group_entity = function(spec) {
             sections: [
                 {
                     name: 'general',
-                    label: IPA.messages.details.general,
+                    label: '@i18n:details.general',
                     fields: [
                         'cn',
                         {
@@ -243,7 +243,7 @@ IPA.hbacrule_details_facet = function(spec) {
         {
             type: 'details_table_section',
             name: 'general',
-            label: IPA.messages.details.general,
+            label: '@i18n:details.general',
             widgets: [
                 {
                     name: 'cn'
@@ -284,7 +284,7 @@ IPA.hbacrule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'user',
-            label: IPA.messages.objects.hbacrule.user,
+            label: '@i18n:objects.hbacrule.user',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
@@ -292,9 +292,9 @@ IPA.hbacrule_details_facet = function(spec) {
                     radio_name: 'usercategory',
                     options: [
                         { value: 'all',
-                        label: IPA.messages.objects.hbacrule.anyone },
+                        label: '@i18n:objects.hbacrule.anyone' },
                         { value: '',
-                        label: IPA.messages.objects.hbacrule.specified_users }
+                        label: '@i18n:objects.hbacrule.specified_users' }
                     ],
                     tables: [
                         { name: 'memberuser_user' },
@@ -353,7 +353,7 @@ IPA.hbacrule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'host',
-            label: IPA.messages.objects.hbacrule.host,
+            label: '@i18n:objects.hbacrule.host',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
@@ -426,7 +426,7 @@ IPA.hbacrule_details_facet = function(spec) {
     {
             factory: IPA.collapsible_section,
             name: 'service',
-            label: IPA.messages.objects.hbacrule.service,
+            label: '@i18n:objects.hbacrule.service',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,

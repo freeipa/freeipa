@@ -182,7 +182,7 @@ IPA.cert.download_dialog = function(spec) {
 
     that.create_button({
         name: 'close',
-        label: IPA.messages.buttons.close,
+        label: '@i18n:buttons.close',
         click: function() {
             that.close();
         }
@@ -271,7 +271,7 @@ IPA.cert.view_dialog = function(spec) {
 
     that.create_button({
         name: 'close',
-        label: IPA.messages.buttons.close,
+        label: '@i18n:buttons.close',
         click: function() {
             that.close();
         }
@@ -395,7 +395,7 @@ IPA.cert.request_dialog = function(spec) {
 
     that.create_button({
         name: 'issue',
-        label: IPA.messages.buttons.issue,
+        label: '@i18n:buttons.issue',
         click: function() {
             var values = {};
             var request = $.trim(that.textarea.val());
@@ -409,7 +409,7 @@ IPA.cert.request_dialog = function(spec) {
 
     that.create_button({
         name: 'cancel',
-        label: IPA.messages.buttons.cancel,
+        label: '@i18n:buttons.cancel',
         click: function() {
             that.close();
         }
@@ -720,7 +720,7 @@ IPA.cert.restore_action = function(spec) {
     spec.confirm_msg = spec.confirm_msg || '@i18n:objects.cert.restore_confirmation';
     spec.confirm_dialog = spec.confirm_dialog || {
         factory: IPA.confirm_dialog,
-        ok_label: IPA.messages.buttons.restore
+        ok_label: '@i18n:buttons.restore'
     };
     spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
 
@@ -1055,7 +1055,7 @@ IPA.cert.entity = function(spec) {
 
         that.builder.search_facet({
             factory: IPA.cert.search_facet,
-            label: IPA.messages.objects.cert.label,
+            label: '@i18n:objects.cert.label',
             pagination: false,
             no_update: true,
             columns: [
@@ -1073,51 +1073,51 @@ IPA.cert.entity = function(spec) {
             search_options:  [
                 {
                     value: 'subject',
-                    label: IPA.messages.objects.cert.find_subject
+                    label: '@i18n:objects.cert.find_subject'
                 },
                 {
                     value: 'revocation_reason',
-                    label: IPA.messages.objects.cert.find_revocation_reason
+                    label: '@i18n:objects.cert.find_revocation_reason'
                 },
                 {
                     value: 'min_serial_number',
-                    label: IPA.messages.objects.cert.find_min_serial_number
+                    label: '@i18n:objects.cert.find_min_serial_number'
                 },
                 {
                     value: 'max_serial_number',
-                    label: IPA.messages.objects.cert.find_max_serial_number
+                    label: '@i18n:objects.cert.find_max_serial_number'
                 },
                 {
                     value: 'validnotafter_from',
-                    label: IPA.messages.objects.cert.find_validnotafter_from
+                    label: '@i18n:objects.cert.find_validnotafter_from'
                 },
                 {
                     value: 'validnotafter_to',
-                    label: IPA.messages.objects.cert.find_validnotafter_to
+                    label: '@i18n:objects.cert.find_validnotafter_to'
                 },
                 {
                     value: 'validnotbefore_from',
-                    label: IPA.messages.objects.cert.find_validnotbefore_from
+                    label: '@i18n:objects.cert.find_validnotbefore_from'
                 },
                 {
                     value: 'validnotbefore_to',
-                    label: IPA.messages.objects.cert.find_validnotbefore_to
+                    label: '@i18n:objects.cert.find_validnotbefore_to'
                 },
                 {
                     value: 'issuedon_from',
-                    label: IPA.messages.objects.cert.find_issuedon_from
+                    label: '@i18n:objects.cert.find_issuedon_from'
                 },
                 {
                     value: 'issuedon_to',
-                    label: IPA.messages.objects.cert.find_issuedon_to
+                    label: '@i18n:objects.cert.find_issuedon_to'
                 },
                 {
                     value: 'revokedon_from',
-                    label: IPA.messages.objects.cert.find_revokedon_from
+                    label: '@i18n:objects.cert.find_revokedon_from'
                 },
                 {
                     value: 'revokedon_to',
-                    label: IPA.messages.objects.cert.find_revokedon_to
+                    label: '@i18n:objects.cert.find_revokedon_to'
                 }
             ]
         }).
@@ -1136,7 +1136,7 @@ IPA.cert.entity = function(spec) {
             sections: [
                 {
                     name: 'details',
-                    label: IPA.messages.objects.cert.certificate,
+                    label: '@i18n:objects.cert.certificate',
                     action_panel: {
                         factory: IPA.action_panel,
                         name: 'cert_actions',

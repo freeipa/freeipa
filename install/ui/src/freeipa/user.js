@@ -44,7 +44,7 @@ IPA.user.entity = function(spec) {
                 'sn',
                 {
                     name: 'nsaccountlock',
-                    label: IPA.messages.status.label,
+                    label: '@i18n:status.label',
                     formatter: IPA.boolean_status_formatter({
                         invert_value: true
                     })
@@ -67,12 +67,12 @@ IPA.user.entity = function(spec) {
             control_buttons: [
                 {
                     name: 'disable',
-                    label: IPA.messages.buttons.disable,
+                    label: '@i18n:buttons.disable',
                     icon: 'disabled-icon'
                 },
                 {
                     name: 'enable',
-                    label: IPA.messages.buttons.enable,
+                    label: '@i18n:buttons.enable',
                     icon: 'enabled-icon'
                 }
             ]
@@ -82,7 +82,7 @@ IPA.user.entity = function(spec) {
             sections: [
                 {
                     name: 'identity',
-                    label: IPA.messages.details.identity,
+                    label: '@i18n:details.identity',
                     fields: [
                         'title',
                         'givenname',
@@ -109,7 +109,7 @@ IPA.user.entity = function(spec) {
                         },
                         {
                             name: 'krbpasswordexpiration',
-                            label: IPA.messages.objects.user.krbpasswordexpiration,
+                            label: '@i18n:objects.user.krbpasswordexpiration',
                             read_only: true,
                             formatter: IPA.utc_date_formatter()
                         },
@@ -120,13 +120,13 @@ IPA.user.entity = function(spec) {
                         {
                             type: 'sshkeys',
                             name: 'ipasshpubkey',
-                            label: IPA.messages.objects.sshkeystore.keys
+                            label: '@i18n:objects.sshkeystore.keys'
                         }
                     ]
                 },
                 {
                     name: 'pwpolicy',
-                    label: IPA.messages.objects.pwpolicy.identity,
+                    label: '@i18n:objects.pwpolicy.identity',
                     fields: [
                         {
                             name: 'krbmaxpwdlife',
@@ -175,7 +175,7 @@ IPA.user.entity = function(spec) {
                 },
                 {
                     name: 'krbtpolicy',
-                    label: IPA.messages.objects.krbtpolicy.identity,
+                    label: '@i18n:objects.krbtpolicy.identity',
                     fields: [
                         {
                             name: 'krbmaxrenewableage',
@@ -299,12 +299,12 @@ IPA.user.entity = function(spec) {
                     fields: [
                         {
                             name: 'userpassword',
-                            label: IPA.messages.password.new_password,
+                            label: '@i18n:password.new_password',
                             type: 'password'
                         },
                         {
                             name: 'userpassword2',
-                            label: IPA.messages.password.verify_password,
+                            label: '@i18n:password.verify_password',
                             type: 'password'
                         }
                     ]
@@ -480,19 +480,19 @@ IPA.user_password_dialog = function(spec) {
             fields: [
                 {
                     name: 'current_password',
-                    label: IPA.messages.password.current_password,
+                    label: '@i18n:password.current_password',
                     type: 'password',
                     required: true
                 },
                 {
                     name: 'password1',
-                    label: IPA.messages.password.new_password,
+                    label: '@i18n:password.new_password',
                     type: 'password',
                     required: true
                 },
                 {
                     name: 'password2',
-                    label: IPA.messages.password.verify_password,
+                    label: '@i18n:password.verify_password',
                     type: 'password',
                     validators: [IPA.same_password_validator({
                         other_field: 'password1'
@@ -532,13 +532,13 @@ IPA.user_password_dialog = function(spec) {
 
         that.create_button({
             name: 'reset_password',
-            label: IPA.messages.password.reset_password,
+            label: '@i18n:password.reset_password',
             click: that.on_reset_click
         });
 
         that.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 that.close();
             }

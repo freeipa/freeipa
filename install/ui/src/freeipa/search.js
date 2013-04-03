@@ -47,19 +47,19 @@ IPA.search_facet = function(spec, no_init) {
         spec.control_buttons.unshift(
             {
                 name: 'remove',
-                label: IPA.messages.buttons.remove,
+                label: '@i18n:buttons.remove',
                 icon: 'remove-icon'
             },
             {
                 name: 'add',
-                label: IPA.messages.buttons.add,
+                label: '@i18n:buttons.add',
                 icon: 'add-icon'
             });
     }
     spec.control_buttons.unshift(
         {
             name: 'refresh',
-            label: IPA.messages.buttons.refresh,
+            label: '@i18n:buttons.refresh',
             icon: 'reset-icon'
         });
 

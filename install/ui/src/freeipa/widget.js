@@ -2020,7 +2020,7 @@ IPA.attribute_table_widget = function(spec) {
 
         that.remove_button = IPA.action_button({
             name: 'remove',
-            label: IPA.messages.buttons.remove,
+            label: '@i18n:buttons.remove',
             icon: 'remove-icon',
             'class': 'action-button-disabled',
             click: function() {
@@ -2033,7 +2033,7 @@ IPA.attribute_table_widget = function(spec) {
 
         that.add_button = IPA.action_button({
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             icon: 'add-icon',
             click: function() {
                 if (!that.add_button.hasClass('action-button-disabled')) {
@@ -2223,7 +2223,7 @@ IPA.attribute_table_widget = function(spec) {
 
         dialog.create_button({
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             click: function() {
                 dialog.hide_message();
                 dialog.add(
@@ -2238,7 +2238,7 @@ IPA.attribute_table_widget = function(spec) {
 
         dialog.create_button({
             name: 'add_and_add_another',
-            label: IPA.messages.buttons.add_and_add_another,
+            label: '@i18n:buttons.add_and_add_another',
             click: function() {
                 dialog.hide_message();
                 dialog.add(
@@ -3746,7 +3746,7 @@ IPA.sshkey_widget = function(spec) {
 
         dialog.create_button({
             name: 'update',
-            label: IPA.messages.buttons.set,
+            label: '@i18n:buttons.set',
             click: function() {
                 var value = dialog.textarea.val();
                 that.set_user_value(value);
@@ -3756,7 +3756,7 @@ IPA.sshkey_widget = function(spec) {
 
         dialog.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 dialog.close();
             }

@@ -39,7 +39,7 @@ IPA.sudo.rule_entity = function(spec) {
                 'cn',
                 {
                     name: 'ipaenabledflag',
-                    label: IPA.messages.status.label,
+                    label: '@i18n:status.label',
                     formatter: IPA.boolean_status_formatter()
                 },
                 'description'
@@ -51,12 +51,12 @@ IPA.sudo.rule_entity = function(spec) {
             control_buttons: [
                 {
                     name: 'disable',
-                    label: IPA.messages.buttons.disable,
+                    label: '@i18n:buttons.disable',
                     icon: 'disabled-icon'
                 },
                 {
                     name: 'enable',
-                    label: IPA.messages.buttons.enable,
+                    label: '@i18n:buttons.enable',
                     icon: 'enabled-icon'
                 }
             ]
@@ -110,7 +110,7 @@ IPA.sudo.command_entity = function(spec) {
             sections: [
                 {
                     name: 'general',
-                    label: IPA.messages.details.general,
+                    label: '@i18n:details.general',
                     fields: [
                         'sudocmd',
                         {
@@ -172,7 +172,7 @@ IPA.sudo.command_group_entity = function(spec) {
             sections: [
                 {
                     name: 'general',
-                    label: IPA.messages.details.general,
+                    label: '@i18n:details.general',
                     fields: [
                         'cn',
                         {
@@ -241,7 +241,7 @@ IPA.sudorule_details_facet = function(spec) {
         {
             type: 'details_table_section',
             name: 'general',
-            label: IPA.messages.details.general,
+            label: '@i18n:details.general',
             widgets: [
                 {
                     name: 'cn'
@@ -269,7 +269,7 @@ IPA.sudorule_details_facet = function(spec) {
         {
             factory: IPA.sudo.options_section,
             name: 'options',
-            label: IPA.messages.objects.sudorule.options,
+            label: '@i18n:objects.sudorule.options',
             facet: that
         }
     );
@@ -303,7 +303,7 @@ IPA.sudorule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'user',
-            label: IPA.messages.objects.sudorule.user,
+            label: '@i18n:objects.sudorule.user',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
@@ -312,11 +312,11 @@ IPA.sudorule_details_facet = function(spec) {
                     options: [
                         {
                             value: 'all',
-                            label: IPA.messages.objects.sudorule.anyone
+                            label: '@i18n:objects.sudorule.anyone'
                         },
                         {
                             value: '',
-                            label: IPA.messages.objects.sudorule.specified_users
+                            label: '@i18n:objects.sudorule.specified_users'
                         }
                     ],
                     tables: [
@@ -378,7 +378,7 @@ IPA.sudorule_details_facet = function(spec) {
     {
             factory: IPA.collapsible_section,
             name: 'host',
-            label: IPA.messages.objects.sudorule.host,
+            label: '@i18n:objects.sudorule.host',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
@@ -387,11 +387,11 @@ IPA.sudorule_details_facet = function(spec) {
                     options: [
                         {
                             'value': 'all',
-                            'label': IPA.messages.objects.sudorule.any_host
+                            label: '@i18n:objects.sudorule.any_host'
                         },
                         {
                             'value': '',
-                            'label': IPA.messages.objects.sudorule.specified_hosts
+                            label: '@i18n:objects.sudorule.specified_hosts'
                         }
                     ],
                     tables: [
@@ -464,7 +464,7 @@ IPA.sudorule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'command',
-            label: IPA.messages.objects.sudorule.command,
+            label: '@i18n:objects.sudorule.command',
             widgets: [
                 {
                     factory: IPA.header_widget,
@@ -479,11 +479,11 @@ IPA.sudorule_details_facet = function(spec) {
                     options: [
                         {
                             value: 'all',
-                            label: IPA.messages.objects.sudorule.any_command
+                            label: '@i18n:objects.sudorule.any_command'
                         },
                         {
                             value: '',
-                            label: IPA.messages.objects.sudorule.specified_commands
+                            label: '@i18n:objects.sudorule.specified_commands'
                         }
                     ],
                     tables: [
@@ -580,15 +580,15 @@ IPA.sudorule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'runas',
-            label: IPA.messages.objects.sudorule.runas,
+            label: '@i18n:objects.sudorule.runas',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
                     name: 'runas_users',
                     radio_name: 'ipasudorunasusercategory',
                     options: [
-                        { value: 'all', label: IPA.messages.objects.sudorule.anyone },
-                        { value: '', label: IPA.messages.objects.sudorule.specified_users }
+                        { value: 'all', label: '@i18n:objects.sudorule.anyone' },
+                        { value: '', label: '@i18n:objects.sudorule.specified_users' }
                     ],
                     tables: [
                         { name: 'ipasudorunas_user' },
@@ -621,8 +621,8 @@ IPA.sudorule_details_facet = function(spec) {
                     name: 'runas_groups',
                     radio_name: 'ipasudorunasgroupcategory',
                     options: [
-                        { value: 'all', label: IPA.messages.objects.sudorule.any_group },
-                        { value: '', label: IPA.messages.objects.sudorule.specified_groups }
+                        { value: 'all', label: '@i18n:objects.sudorule.any_group' },
+                        { value: '', label: '@i18n:objects.sudorule.specified_groups' }
                     ],
                     tables: [
                         { name: 'ipasudorunasgroup_group' }
@@ -691,7 +691,7 @@ IPA.sudo.options_section = function(spec) {
 
             that.remove_button = IPA.action_button({
                 name: 'remove',
-                label: IPA.messages.buttons.remove,
+                label: '@i18n:buttons.remove',
                 icon: 'remove-icon',
                 'class': 'action-button-disabled',
                 click: function() {
@@ -704,7 +704,7 @@ IPA.sudo.options_section = function(spec) {
 
             that.add_button = IPA.action_button({
                 name: 'add',
-                label: IPA.messages.buttons.add,
+                label: '@i18n:buttons.add',
                 icon: 'add-icon',
                 click: function() {
                     if (!that.add_button.hasClass('action-button-disabled')) {
@@ -802,7 +802,7 @@ IPA.sudo.options_section = function(spec) {
 
         dialog.create_button({
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             click: function() {
                 var ipasudoopt = dialog.fields.get_field('ipasudoopt');
                 var value = ipasudoopt.save()[0];
@@ -833,7 +833,7 @@ IPA.sudo.options_section = function(spec) {
 
         dialog.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 dialog.close();
             }

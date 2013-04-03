@@ -47,7 +47,7 @@ IPA.automount.location_entity = function(spec) {
             sections:[
                 {
                     name: 'identity',
-                    label: IPA.messages.details.identity,
+                    label: '@i18n:details.identity',
                     fields: [ 'cn' ]
                 }
             ]
@@ -90,7 +90,7 @@ IPA.automount.map_entity = function(spec) {
             sections: [
                 {
                     name: 'identity',
-                    label: IPA.messages.details.identity,
+                    label: '@i18n:details.identity',
                     fields: [
                         'automountmapname',
                         {
@@ -111,15 +111,15 @@ IPA.automount.map_entity = function(spec) {
                             type: 'radio',
                             name: 'method',
                             enabled: false, //don't use value in add command
-                            label: IPA.messages.objects.automountmap.map_type,
+                            label: '@i18n:objects.automountmap.map_type',
                             options: [
                                 {
                                     value: 'add',
-                                    label: IPA.messages.objects.automountmap.direct
+                                    label: '@i18n:objects.automountmap.direct'
                                 },
                                 {
                                     value: 'add_indirect',
-                                    label: IPA.messages.objects.automountmap.indirect
+                                    label: '@i18n:objects.automountmap.indirect'
                                 }
                             ]
                         },
@@ -175,7 +175,7 @@ IPA.automount.key_entity = function(spec) {
             sections: [
                 {
                     name:'identity',
-                    label: IPA.messages.details.identity,
+                    label: '@i18n:details.identity',
                     fields: [
                         {
                             name: 'automountkey',

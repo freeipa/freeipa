@@ -1331,7 +1331,7 @@ IPA.dirty_dialog = function(spec) {
 
     that.create_button({
         name: 'update',
-        label: IPA.messages.buttons.update,
+        label: '@i18n:buttons.update',
         click: function() {
             that.facet.update(function() {
                 that.close();
@@ -1342,7 +1342,7 @@ IPA.dirty_dialog = function(spec) {
 
     that.create_button({
         name: 'reset',
-        label: IPA.messages.buttons.reset,
+        label: '@i18n:buttons.reset',
         click: function() {
             that.facet.reset();
             that.close();
@@ -1352,7 +1352,7 @@ IPA.dirty_dialog = function(spec) {
 
     that.create_button({
         name: 'cancel',
-        label: IPA.messages.buttons.cancel,
+        label: '@i18n:buttons.cancel',
         click: function() {
             that.close();
         }

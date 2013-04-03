@@ -55,7 +55,7 @@ IPA.automember.entity = function(spec) {
             factory: IPA.automember.rule_search_facet,
             name: 'searchgroup',
             group_type: 'group',
-            label: IPA.messages.objects.automember.usergrouprules,
+            label: '@i18n:objects.automember.usergrouprules',
             details_facet: 'usergrouprule',
             pagination: false,
             columns: [
@@ -67,7 +67,7 @@ IPA.automember.entity = function(spec) {
             factory: IPA.automember.rule_search_facet,
             name: 'searchhostgroup',
             group_type: 'hostgroup',
-            label: IPA.messages.objects.automember.hostgrouprules,
+            label: '@i18n:objects.automember.hostgrouprules',
             details_facet: 'hostgrouprule',
             pagination: false,
             columns: [
@@ -79,7 +79,7 @@ IPA.automember.entity = function(spec) {
             factory: IPA.automember.rule_details_facet,
             name: 'usergrouprule',
             group_type: 'group',
-            label: IPA.messages.objects.automember.usergrouprule,
+            label: '@i18n:objects.automember.usergrouprule',
             disable_facet_tabs: true,
             check_rights: false,
             redirect_info: { facet: 'searchgroup' }
@@ -88,7 +88,7 @@ IPA.automember.entity = function(spec) {
             factory: IPA.automember.rule_details_facet,
             name: 'hostgrouprule',
             group_type: 'hostgroup',
-            label: IPA.messages.objects.automember.hostgrouprule,
+            label: '@i18n:objects.automember.hostgrouprule',
             disable_facet_tabs: true,
             check_rights: false,
             redirect_info: { facet: 'searchhostgroup' }
@@ -239,7 +239,7 @@ IPA.automember.rule_details_facet = function(spec) {
             {
             type: 'details_table_section',
             name: 'general',
-            label: IPA.messages.details.general,
+            label: '@i18n:details.general',
             widgets: [
                 {
                     name: 'cn'
@@ -253,7 +253,7 @@ IPA.automember.rule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'inclusive',
-            label: IPA.messages.objects.automember.inclusive,
+            label: '@i18n:objects.automember.inclusive',
             widgets: [
                 {
                     type: 'automember_condition',
@@ -268,11 +268,11 @@ IPA.automember.rule_details_facet = function(spec) {
                                 name: 'key',
                                 type: 'select',
                                 options: IPA.automember.get_condition_attributes(spec.group_type),
-                                label: IPA.messages.objects.automember.attribute
+                                label: '@i18n:objects.automember.attribute'
                             },
                             {
                                 name: 'automemberinclusiveregex',
-                                label: IPA.messages.objects.automember.expression
+                                label: '@i18n:objects.automember.expression'
                             }
                         ]
                     }
@@ -282,7 +282,7 @@ IPA.automember.rule_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'exclusive',
-            label: IPA.messages.objects.automember.exclusive,
+            label: '@i18n:objects.automember.exclusive',
             widgets: [
                 {
                     type: 'automember_condition',
@@ -297,11 +297,11 @@ IPA.automember.rule_details_facet = function(spec) {
                                 name: 'key',
                                 type: 'select',
                                 options: IPA.automember.get_condition_attributes(spec.group_type),
-                                label: IPA.messages.objects.automember.attribute
+                                label: '@i18n:objects.automember.attribute'
                             },
                             {
                                 name: 'automemberexclusiveregex',
-                                label: IPA.messages.objects.automember.expression
+                                label: '@i18n:objects.automember.expression'
                             }
                         ]
                     }
@@ -461,11 +461,11 @@ IPA.automember.condition_widget = function(spec) {
     spec.columns = $.merge(spec.columns || [], [
         {
             name: 'attribute',
-            label: IPA.messages.objects.automember.attribute
+            label: '@i18n:objects.automember.attribute'
         },
         {
             name: 'expression',
-            label: IPA.messages.objects.automember.expression
+            label: '@i18n:objects.automember.expression'
         }
     ]);
 

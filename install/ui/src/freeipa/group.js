@@ -53,8 +53,8 @@ IPA.group.entity = function(spec) {
                             type: 'value_map',
                             name: 'external',
                             param: 'objectclass',
-                            label: IPA.messages.objects.group.type,
-                            default_label: IPA.messages.objects.group.normal,
+                            label: '@i18n:objects.group.type',
+                            default_label: '@i18n:objects.group.normal',
                             value_map: {
                                 ipaexternalgroup: '@i18n:objects.group.external',
                                 posixgroup: '@i18n:objects.group.posix'
@@ -150,21 +150,21 @@ IPA.group.entity = function(spec) {
                 {
                     type: 'radio',
                     name: 'type',
-                    label: IPA.messages.objects.group.type,
+                    label: '@i18n:objects.group.type',
                     flags: ['no_command'],
                     default_value: 'posix',
                     options: [
                         {
                             value: 'normal',
-                            label: IPA.messages.objects.group.normal
+                            label: '@i18n:objects.group.normal'
                         },
                         {
                             value: 'external',
-                            label: IPA.messages.objects.group.external
+                            label: '@i18n:objects.group.external'
                         },
                         {
                             value: 'posix',
-                            label: IPA.messages.objects.group.posix
+                            label: '@i18n:objects.group.posix'
                         }
                     ]
                 },

@@ -38,7 +38,7 @@ IPA.serverconfig.entity = function(spec) {
             sections: [
                 {
                     name: 'search',
-                    label: IPA.messages.objects.config.search,
+                    label: '@i18n:objects.config.search',
                     fields: [
                         'ipasearchrecordslimit',
                         'ipasearchtimelimit'
@@ -46,7 +46,7 @@ IPA.serverconfig.entity = function(spec) {
                 },
                 {
                     name: 'user',
-                    label: IPA.messages.objects.config.user,
+                    label: '@i18n:objects.config.user',
                     fields: [
                         'ipausersearchfields',
                         'ipadefaultemaildomain',
@@ -80,7 +80,7 @@ IPA.serverconfig.entity = function(spec) {
                 },
                 {
                     name: 'group',
-                    label: IPA.messages.objects.config.group,
+                    label: '@i18n:objects.config.group',
                     fields: [
                         'ipagroupsearchfields',
                         {
@@ -91,7 +91,7 @@ IPA.serverconfig.entity = function(spec) {
                 },
                 {
                     name: 'selinux',
-                    label: IPA.messages.objects.config.selinux,
+                    label: '@i18n:objects.config.selinux',
                     fields: [
                         'ipaselinuxusermaporder',
                         'ipaselinuxusermapdefault'
@@ -99,7 +99,7 @@ IPA.serverconfig.entity = function(spec) {
                 },
                 {
                     name: 'service',
-                    label: IPA.messages.objects.config.service,
+                    label: '@i18n:objects.config.service',
                     fields: [
                         {
                             name: 'ipakrbauthzdata',

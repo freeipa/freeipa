@@ -448,7 +448,7 @@ IPA.adder_dialog = function(spec) {
 
         that.find_button = IPA.button({
             name: 'find',
-            label: IPA.messages.buttons.find,
+            label: '@i18n:buttons.find',
             click: function() {
                 that.search();
                 return false;
@@ -558,7 +558,7 @@ IPA.adder_dialog = function(spec) {
 
         var add_button = that.create_button({
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             click: function() {
                 if (!add_button.is_enabled()) return;
                 that.execute();
@@ -567,7 +567,7 @@ IPA.adder_dialog = function(spec) {
 
         that.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 that.close();
             }

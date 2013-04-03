@@ -120,7 +120,7 @@ IPA.rule_association_table_widget = function(spec) {
             if (that.external) {
                 that.create_column({
                     name: that.external,
-                    label: IPA.messages.objects.sudorule.external,
+                    label: '@i18n:objects.sudorule.external',
                     entity: that.other_entity,
                     formatter: IPA.boolean_formatter(),
                     width: '200px'

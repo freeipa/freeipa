@@ -92,7 +92,7 @@ IPA.netgroup.details_facet = function(spec) {
         {
             type: 'details_table_section',
             name: 'identity',
-            label: IPA.messages.details.general,
+            label: '@i18n:details.general',
             widgets: [
                 {
                     name: 'cn'
@@ -137,7 +137,7 @@ IPA.netgroup.details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'user',
-            label: IPA.messages.objects.netgroup.user,
+            label: '@i18n:objects.netgroup.user',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
@@ -145,9 +145,9 @@ IPA.netgroup.details_facet = function(spec) {
                     radio_name: 'usercategory',
                     options: [
                         { value: 'all',
-                        label: IPA.messages.objects.netgroup.anyone },
+                        label: '@i18n:objects.netgroup.anyone' },
                         { value: '',
-                        label: IPA.messages.objects.netgroup.specified_users }
+                        label: '@i18n:objects.netgroup.specified_users' }
                     ],
                     tables: [
                         { name: 'memberuser_user' },
@@ -165,7 +165,7 @@ IPA.netgroup.details_facet = function(spec) {
                             columns: [
                                 {
                                     name: 'memberuser_user',
-                                    label: IPA.messages.objects.netgroup.users,
+                                    label: '@i18n:objects.netgroup.users',
                                     link: true
                                 }
                             ]
@@ -181,7 +181,7 @@ IPA.netgroup.details_facet = function(spec) {
                             columns: [
                                 {
                                     name: 'memberuser_group',
-                                    label: IPA.messages.objects.netgroup.usergroups,
+                                    label: '@i18n:objects.netgroup.usergroups',
                                     link: true
                                 }
                             ]
@@ -221,7 +221,7 @@ IPA.netgroup.details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'host',
-            label: IPA.messages.objects.netgroup.host,
+            label: '@i18n:objects.netgroup.host',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
@@ -230,11 +230,11 @@ IPA.netgroup.details_facet = function(spec) {
                     options: [
                         {
                             'value': 'all',
-                            'label': IPA.messages.objects.netgroup.any_host
+                            label: '@i18n:objects.netgroup.any_host'
                         },
                         {
                             'value': '',
-                            'label': IPA.messages.objects.netgroup.specified_hosts
+                            label: '@i18n:objects.netgroup.specified_hosts'
                         }
                     ],
                     tables: [
@@ -254,12 +254,12 @@ IPA.netgroup.details_facet = function(spec) {
                             columns: [
                                 {
                                     name: 'memberhost_host',
-                                    label: IPA.messages.objects.netgroup.hosts,
+                                    label: '@i18n:objects.netgroup.hosts',
                                     link: true
                                 },
                                 {
                                     name: 'externalhost',
-                                    label: IPA.messages.objects.netgroup.external,
+                                    label: '@i18n:objects.netgroup.external',
                                     formatter: IPA.boolean_formatter(),
                                     width: '200px'
                                 }
@@ -276,7 +276,7 @@ IPA.netgroup.details_facet = function(spec) {
                             columns: [
                                 {
                                     name: 'memberhost_hostgroup',
-                                    label: IPA.messages.objects.netgroup.hostgroups,
+                                    label: '@i18n:objects.netgroup.hostgroups',
                                     link: true
                                 }
                             ]

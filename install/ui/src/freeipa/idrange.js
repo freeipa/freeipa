@@ -47,27 +47,27 @@ IPA.idrange.entity = function(spec) {
                         'iparangetype',
                         {
                             name: 'ipabaseid',
-                            label: IPA.messages.objects.idrange.ipabaseid,
+                            label: '@i18n:objects.idrange.ipabaseid',
                             tooltip: IPA.get_entity_param('idrange', 'ipabaseid').label
                         },
                         {
                             name: 'ipaidrangesize',
-                            label: IPA.messages.objects.idrange.ipaidrangesize,
+                            label: '@i18n:objects.idrange.ipaidrangesize',
                             tooltip: IPA.get_entity_param('idrange', 'ipaidrangesize').label
                         },
                         {
                             name: 'ipabaserid',
-                            label: IPA.messages.objects.idrange.ipabaserid,
+                            label: '@i18n:objects.idrange.ipabaserid',
                             tooltip: IPA.get_entity_param('idrange', 'ipabaserid').label
                         },
                         {
                             name: 'ipasecondarybaserid',
-                            label: IPA.messages.objects.idrange.ipasecondarybaserid,
+                            label: '@i18n:objects.idrange.ipasecondarybaserid',
                             tooltip: IPA.get_entity_param('idrange', 'ipasecondarybaserid').label
                         },
                         {
                             name: 'ipanttrusteddomainsid',
-                            label: IPA.messages.objects.idrange.ipanttrusteddomainsid,
+                            label: '@i18n:objects.idrange.ipanttrusteddomainsid',
                             tooltip: IPA.get_entity_param('idrange', 'ipanttrusteddomainsid').label
                         }
                     ]
@@ -82,31 +82,31 @@ IPA.idrange.entity = function(spec) {
                 },
                 {
                     name: 'ipabaseid',
-                    label: IPA.messages.objects.idrange.ipabaseid,
+                    label: '@i18n:objects.idrange.ipabaseid',
                     tooltip: IPA.get_entity_param('idrange', 'ipabaseid').label,
                     widget: 'idrange.ipabaseid'
                 },
                 {
                     name: 'ipaidrangesize',
-                    label: IPA.messages.objects.idrange.ipaidrangesize,
+                    label: '@i18n:objects.idrange.ipaidrangesize',
                     tooltip: IPA.get_entity_param('idrange', 'ipaidrangesize').label,
                     widget: 'idrange.ipaidrangesize'
                 },
                 {
                     name: 'ipabaserid',
-                    label: IPA.messages.objects.idrange.ipabaserid,
+                    label: '@i18n:objects.idrange.ipabaserid',
                     tooltip: IPA.get_entity_param('idrange', 'ipabaserid').label,
                     widget: 'idrange.ipabaserid'
                 },
                 {
                     name: 'ipasecondarybaserid',
-                    label: IPA.messages.objects.idrange.ipasecondarybaserid,
+                    label: '@i18n:objects.idrange.ipasecondarybaserid',
                     tooltip: IPA.get_entity_param('idrange', 'ipasecondarybaserid').label,
                     widget: 'type.ipasecondarybaserid'
                 },
                 {
                     name: 'ipanttrusteddomainsid',
-                    label: IPA.messages.objects.idrange.ipanttrusteddomainsid,
+                    label: '@i18n:objects.idrange.ipanttrusteddomainsid',
                     tooltip: IPA.get_entity_param('idrange', 'ipanttrusteddomainsid').label,
                     widget: 'type.ipanttrusteddomainsid'
                 }
@@ -125,18 +125,18 @@ IPA.idrange.entity = function(spec) {
                 {
                     type: 'multiple_choice_section',
                     name: 'type',
-                    label: IPA.messages.objects.idrange.type,
+                    label: '@i18n:objects.idrange.type',
                     choices: [
                         {
                             name: 'local',
-                            label: IPA.messages.objects.idrange.type_local,
+                            label: '@i18n:objects.idrange.type_local',
                             fields: ['ipasecondarybaserid'],
                             required: ['ipasecondarybaserid'],
                             enabled: true
                         },
                         {
                             name: 'ad',
-                            label: IPA.messages.objects.idrange.type_ad,
+                            label: '@i18n:objects.idrange.type_ad',
                             fields: ['ipanttrusteddomainsid'],
                             required: ['ipanttrusteddomainsid']
                         }

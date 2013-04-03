@@ -54,7 +54,7 @@ IPA.host.entity = function(spec) {
                 'description',
                 {
                     name: 'has_keytab',
-                    label: IPA.messages.objects.host.enrolled,
+                    label: '@i18n:objects.host.enrolled',
                     formatter: IPA.boolean_formatter()
                 }
             ]
@@ -82,7 +82,7 @@ IPA.host.entity = function(spec) {
                         {
                             type: 'sshkeys',
                             name: 'ipasshpubkey',
-                            label: IPA.messages.objects.sshkeystore.keys
+                            label: '@i18n:objects.sshkeystore.keys'
                         },
                         {
                             type: 'multivalued',
@@ -107,12 +107,12 @@ IPA.host.entity = function(spec) {
                         {
                             factory: IPA.host_keytab_widget,
                             name: 'has_keytab',
-                            label: IPA.messages.objects.host.keytab
+                            label: '@i18n:objects.host.keytab'
                         },
                         {
                             type: 'host_password',
                             name: 'has_password',
-                            label: IPA.messages.objects.host.password
+                            label: '@i18n:objects.host.password'
                         }
                     ]
                 },
@@ -130,7 +130,7 @@ IPA.host.entity = function(spec) {
                         {
                             type: 'certificate_status',
                             name: 'certificate_status',
-                            label: IPA.messages.objects.host.status
+                            label: '@i18n:objects.host.status'
                         }
                     ]
                 }
@@ -140,14 +140,14 @@ IPA.host.entity = function(spec) {
                 {
                     factory: IPA.host.set_otp_action,
                     name: 'set_otp',
-                    label: IPA.messages.objects.host.password_set_title,
+                    label: '@i18n:objects.host.password_set_title',
                     status: 'missing',
                     hide_cond: ['has_password']
                 },
                 {
                     factory: IPA.host.set_otp_action,
                     name: 'reset_otp',
-                    label: IPA.messages.objects.host.password_reset_title,
+                    label: '@i18n:objects.host.password_reset_title',
                     status: 'present',
                     show_cond: ['has_password']
                 },
@@ -264,7 +264,7 @@ IPA.host_fqdn_widget = function(spec) {
         {
             type: 'text',
             name: 'hostname',
-            label: IPA.messages.objects.service.host,
+            label: '@i18n:objects.service.host',
             required: true
         },
         {
@@ -638,7 +638,7 @@ IPA.host_unprovision_dialog = function(spec) {
 
         that.create_button({
             name: 'unprovision',
-            label: IPA.messages.objects.host.unprovision,
+            label: '@i18n:objects.host.unprovision',
             click: function() {
                 that.unprovision(
                     function(data, text_status, xhr) {
@@ -655,7 +655,7 @@ IPA.host_unprovision_dialog = function(spec) {
 
         that.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 that.close();
             }
@@ -800,13 +800,13 @@ IPA.host.set_otp_dialog = function(spec) {
             fields: [
                 {
                     name: 'password1',
-                    label: IPA.messages.password.new_password,
+                    label: '@i18n:password.new_password',
                     type: 'password',
                     required: true
                 },
                 {
                     name: 'password2',
-                    label: IPA.messages.password.verify_password,
+                    label: '@i18n:password.verify_password',
                     type: 'password',
                     required: true,
                     validators: [IPA.same_password_validator({
@@ -850,7 +850,7 @@ IPA.host.set_otp_dialog = function(spec) {
 
         that.create_button({
             name: 'set_password',
-            label: IPA.messages.objects.host.password_set_button,
+            label: '@i18n:objects.host.password_set_button',
             click: function() {
                 that.on_confirm();
             }
@@ -858,7 +858,7 @@ IPA.host.set_otp_dialog = function(spec) {
 
         that.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 that.close();
             }

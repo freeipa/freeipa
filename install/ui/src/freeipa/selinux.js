@@ -40,7 +40,7 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
                 'ipaselinuxuser',
                 {
                     name: 'ipaenabledflag',
-                    label: IPA.messages.status.label,
+                    label: '@i18n:status.label',
                     formatter: IPA.boolean_status_formatter()
                 },
                 'description'
@@ -52,12 +52,12 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
             control_buttons: [
                 {
                     name: 'disable',
-                    label: IPA.messages.buttons.disable,
+                    label: '@i18n:buttons.disable',
                     icon: 'disabled-icon'
                 },
                 {
                     name: 'enable',
-                    label: IPA.messages.buttons.enable,
+                    label: '@i18n:buttons.enable',
                     icon: 'enabled-icon'
                 }
             ]
@@ -131,7 +131,7 @@ IPA.selinux_details_facet = function(spec) {
         {
             type: 'details_table_section',
             name: 'general',
-            label: IPA.messages.details.general,
+            label: '@i18n:details.general',
             widgets: [
                 {
                     name: 'cn'
@@ -182,7 +182,7 @@ IPA.selinux_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'user',
-            label: IPA.messages.objects.selinuxusermap.user,
+            label: '@i18n:objects.selinuxusermap.user',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
@@ -190,9 +190,9 @@ IPA.selinux_details_facet = function(spec) {
                     radio_name: 'usercategory',
                     options: [
                         { value: 'all',
-                        label: IPA.messages.objects.selinuxusermap.anyone },
+                        label: '@i18n:objects.selinuxusermap.anyone' },
                         { value: '',
-                        label: IPA.messages.objects.selinuxusermap.specified_users }
+                        label: '@i18n:objects.selinuxusermap.specified_users' }
                     ],
                     tables: [
                         { name: 'memberuser_user' },
@@ -251,7 +251,7 @@ IPA.selinux_details_facet = function(spec) {
         {
             factory: IPA.collapsible_section,
             name: 'host',
-            label: IPA.messages.objects.selinuxusermap.host,
+            label: '@i18n:objects.selinuxusermap.host',
             widgets: [
                 {
                     factory: IPA.rule_details_widget,
@@ -260,11 +260,11 @@ IPA.selinux_details_facet = function(spec) {
                     options: [
                         {
                             'value': 'all',
-                            'label': IPA.messages.objects.selinuxusermap.any_host
+                            label: '@i18n:objects.selinuxusermap.any_host'
                         },
                         {
                             'value': '',
-                            'label': IPA.messages.objects.selinuxusermap.specified_hosts
+                            label: '@i18n:objects.selinuxusermap.specified_hosts'
                         }
                     ],
                     tables: [

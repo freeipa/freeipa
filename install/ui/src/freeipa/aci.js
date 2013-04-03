@@ -98,7 +98,7 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'details_table_section',
                     name: 'identity',
-                    label: IPA.messages.objects.permission.identity,
+                    label: '@i18n:objects.permission.identity',
                     widgets: [
                         'cn'
                     ]
@@ -106,7 +106,7 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'details_table_section',
                     name: 'rights',
-                    label: IPA.messages.objects.permission.rights,
+                    label: '@i18n:objects.permission.rights',
                     widgets: [
                         {
                             type: 'rights',
@@ -117,7 +117,7 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'permission_target',
                     container_factory: IPA.details_table_section,
-                    label: IPA.messages.objects.permission.target,
+                    label: '@i18n:objects.permission.target',
                     name: 'target',
                     show_target: false
                 }
@@ -245,7 +245,7 @@ IPA.aci.privilege_entity = function(spec) {
             sections: [
                 {
                     name: 'identity',
-                    label: IPA.messages.details.identity,
+                    label: '@i18n:details.identity',
                     fields: [
                         'cn',
                         {
@@ -302,7 +302,7 @@ IPA.aci.role_entity = function(spec) {
             sections: [
                 {
                     name: 'identity',
-                    label: IPA.messages.objects.role.identity,
+                    label: '@i18n:objects.role.identity',
                     fields: [
                         'cn',
                         {
@@ -350,7 +350,7 @@ IPA.aci.selfservice_entity = function(spec) {
             sections: [
                 {
                     name: 'general',
-                    label: IPA.messages.details.general,
+                    label: '@i18n:details.general',
                     fields: [
                         'aciname',
                         {
@@ -395,7 +395,7 @@ IPA.aci.delegation_entity = function(spec) {
             sections: [
                 {
                     name: 'general',
-                    label: IPA.messages.details.general,
+                    label: '@i18n:details.general',
                     fields: [
                         'aciname',
                         {
@@ -641,7 +641,7 @@ IPA.permission_target_widget = function(spec) {
         that.target_select = IPA.select_widget({
             entity: that.entity,
             name: 'target',
-            label: IPA.messages.objects.permission.target,
+            label: '@i18n:objects.permission.target',
             hidden: !that.show_target
         });
 

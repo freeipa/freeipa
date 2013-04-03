@@ -45,7 +45,7 @@ IPA.entity_adder_dialog = function(spec) {
     var init = function() {
         that.create_button({
             name: 'add',
-            label: IPA.messages.buttons.add,
+            label: '@i18n:buttons.add',
             click: function() {
                 that.on_add();
             }
@@ -53,7 +53,7 @@ IPA.entity_adder_dialog = function(spec) {
 
         that.create_button({
             name: 'add_and_add_another',
-            label: IPA.messages.buttons.add_and_add_another,
+            label: '@i18n:buttons.add_and_add_another',
             click: function() {
                 that.hide_message();
                 that.add(
@@ -69,7 +69,7 @@ IPA.entity_adder_dialog = function(spec) {
 
         that.create_button({
             name: 'add_and_edit',
-            label: IPA.messages.buttons.add_and_edit,
+            label: '@i18n:buttons.add_and_edit',
             click: function() {
                 that.hide_message();
                 that.add(
@@ -86,7 +86,7 @@ IPA.entity_adder_dialog = function(spec) {
 
         that.create_button({
             name: 'cancel',
-            label: IPA.messages.buttons.cancel,
+            label: '@i18n:buttons.cancel',
             click: function() {
                 that.hide_message();
                 that.close();

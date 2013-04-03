@@ -38,7 +38,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_select_facet,
             name: 'user',
-            label: IPA.messages.objects.hbacrule.user,
+            label: '@i18n:objects.hbacrule.user',
             managed_entity: 'user',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -49,7 +49,7 @@ IPA.hbac.test_entity = function(spec) {
                 'sn',
                 {
                     name: 'nsaccountlock',
-                    label: IPA.messages.status.label,
+                    label: '@i18n:status.label',
                     formatter: IPA.boolean_status_formatter({
                         invert_value: true
                     })
@@ -59,7 +59,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_select_facet,
             name: 'targethost',
-            label: IPA.messages.objects.hbacrule.host,
+            label: '@i18n:objects.hbacrule.host',
             managed_entity: 'host',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -68,7 +68,7 @@ IPA.hbac.test_entity = function(spec) {
                 'description',
                 {
                     name: 'has_keytab',
-                    label: IPA.messages.objects.host.enrolled,
+                    label: '@i18n:objects.host.enrolled',
                     formatter: IPA.boolean_formatter()
                 }
             ]
@@ -76,7 +76,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_select_facet,
             name: 'service',
-            label: IPA.messages.objects.hbacrule.service,
+            label: '@i18n:objects.hbacrule.service',
             managed_entity: 'hbacsvc',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -88,7 +88,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_rules_facet,
             name: 'rules',
-            label: IPA.messages.objects.hbactest.rules,
+            label: '@i18n:objects.hbactest.rules',
             managed_entity: 'hbacrule',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -97,7 +97,7 @@ IPA.hbac.test_entity = function(spec) {
                 'cn',
                 {
                     name: 'ipaenabledflag',
-                    label: IPA.messages.status.label,
+                    label: '@i18n:status.label',
                     formatter: IPA.boolean_status_formatter()
                 },
                 'description'
@@ -106,7 +106,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_run_facet,
             name: 'run_test',
-            label: IPA.messages.objects.hbactest.run_test,
+            label: '@i18n:objects.hbactest.run_test',
             managed_entity: 'hbacrule',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -115,12 +115,12 @@ IPA.hbac.test_entity = function(spec) {
                 'cn',
                 {
                     name: 'matched',
-                    label: IPA.messages.objects.hbactest.matched,
+                    label: '@i18n:objects.hbactest.matched',
                     formatter: IPA.boolean_formatter()
                 },
                 {
                     name: 'ipaenabledflag',
-                    label: IPA.messages.status.label,
+                    label: '@i18n:status.label',
                     formatter: IPA.boolean_status_formatter()
                 },
                 'description'
@@ -165,7 +165,7 @@ IPA.hbac.test_facet = function(spec) {
         if (index > 0) {
             that.prev_button = IPA.button({
                 name: 'prev',
-                label: IPA.messages.widget.prev,
+                label: '@i18n:widget.prev',
                 icon: 'ui-icon ui-icon-triangle-1-w',
                 click: function() {
                     if (!that.prev_button.hasClass('action-button-disabled')) {
@@ -180,7 +180,7 @@ IPA.hbac.test_facet = function(spec) {
 
         that.next_button = IPA.button({
             name: 'next',
-            label: IPA.messages.widget.next,
+            label: '@i18n:widget.next',
             icon: 'ui-icon ui-icon-triangle-1-e',
             click: function() {
                 if (!that.next_button.hasClass('action-button-disabled')) {
@@ -516,7 +516,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
         that.run_button = IPA.button({
             name: 'run_test',
-            label: IPA.messages.objects.hbactest.run_test,
+            label: '@i18n:objects.hbactest.run_test',
             click: function() {
                 if (!that.run_button.hasClass('action-button-disabled')) {
                     that.run();
@@ -588,7 +588,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
         that.prev_button = IPA.button({
             name: 'prev',
-            label: IPA.messages.widget.prev,
+            label: '@i18n:widget.prev',
             icon: 'ui-icon ui-icon-triangle-1-w',
             click: function() {
                 if (!that.prev_button.hasClass('action-button-disabled')) {
@@ -602,7 +602,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
         that.new_test_button = IPA.button({
             name: 'new_test',
-            label: IPA.messages.objects.hbactest.new_test,
+            label: '@i18n:objects.hbactest.new_test',
             click: function() {
                 if (!that.new_test_button.hasClass('action-button-disabled')) {
                     that.new_test();

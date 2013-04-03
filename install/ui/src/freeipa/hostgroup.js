@@ -40,7 +40,7 @@ IPA.hostgroup.entity = function(spec) {
             sections: [
                 {
                     name: 'identity',
-                    label: IPA.messages.objects.hostgroup.identity,
+                    label: '@i18n:objects.hostgroup.identity',
                     fields: [
                         'cn',
                         {
