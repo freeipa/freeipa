@@ -1098,7 +1098,8 @@ class cli(backend.Executioner):
     def build_parser(self, cmd):
         parser = CLIOptionParser(
             usage=' '.join(self.usage_iter(cmd)),
-            description=cmd.summary,
+            description=unicode(cmd.doc),
+            formatter=IPAHelpFormatter(),
         )
         option_groups = {}
         for option in cmd.options():
@@ -1255,6 +1256,21 @@ class cli(backend.Executioner):
                             name=to_cli(p.cli_name), error=_('No file to read')
                         )
                 kw[p.name] = self.Backend.textui.decode(raw)
+
+
+class IPAHelpFormatter(optparse.IndentedHelpFormatter):
+    """Formatter suitable for printing IPA command help
+
+    The default help formatter reflows text to fit the terminal, but it
+    ignores line/paragraph breaks.
+    IPA's descriptions already have correct line breaks. This formatter
+    doesn't touch them (save for removing initial/trailing whitespace).
+    """
+    def format_description(self, description):
+        if description:
+            return description.strip()
+        else:
+            return ""
 
 
 cli_plugins = (
