@@ -161,7 +161,7 @@ IPA.netgroup.details_facet = function(spec) {
                             add_method: 'add_member',
                             remove_method: 'remove_member',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member,
+                            remove_title: '@i18n:association.remove.member',
                             columns: [
                                 {
                                     name: 'memberuser_user',
@@ -177,7 +177,7 @@ IPA.netgroup.details_facet = function(spec) {
                             add_method: 'add_member',
                             remove_method: 'remove_member',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member,
+                            remove_title: '@i18n:association.remove.member',
                             columns: [
                                 {
                                     name: 'memberuser_group',
@@ -250,7 +250,7 @@ IPA.netgroup.details_facet = function(spec) {
                             remove_method: 'remove_member',
                             external: 'externalhost',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member,
+                            remove_title: '@i18n:association.remove.member',
                             columns: [
                                 {
                                     name: 'memberhost_host',
@@ -272,7 +272,7 @@ IPA.netgroup.details_facet = function(spec) {
                             add_method: 'add_member',
                             remove_method: 'remove_member',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member,
+                            remove_title: '@i18n:association.remove.member',
                             columns: [
                                 {
                                     name: 'memberhost_hostgroup',

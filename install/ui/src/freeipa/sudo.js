@@ -332,7 +332,7 @@ IPA.sudorule_details_facet = function(spec) {
                             remove_method: 'remove_user',
                             external: 'externaluser',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member
+                            remove_title: '@i18n:association.remove.member'
                         },
                         {
                             type: 'rule_association_table',
@@ -341,7 +341,7 @@ IPA.sudorule_details_facet = function(spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member
+                            remove_title: '@i18n:association.remove.member'
                         }
                     ]
                 }
@@ -407,7 +407,7 @@ IPA.sudorule_details_facet = function(spec) {
                             remove_method: 'remove_host',
                             external: 'externalhost',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member
+                            remove_title: '@i18n:association.remove.member'
                         },
                         {
                             type: 'rule_association_table',
@@ -416,7 +416,7 @@ IPA.sudorule_details_facet = function(spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member
+                            remove_title: '@i18n:association.remove.member'
                         }
                     ]
                 }
@@ -498,7 +498,7 @@ IPA.sudorule_details_facet = function(spec) {
                             add_method: 'add_allow_command',
                             remove_method: 'remove_allow_command',
                             add_title: '@i18n:association.add.memberallowcmd',
-                            remove_title: IPA.messages.association.remove.memberallowcmd
+                            remove_title: '@i18n:association.remove.memberallowcmd'
                         },
                         {
                             type: 'rule_association_table',
@@ -507,7 +507,7 @@ IPA.sudorule_details_facet = function(spec) {
                             add_method: 'add_allow_command',
                             remove_method: 'remove_allow_command',
                             add_title: '@i18n:association.add.memberallowcmd',
-                            remove_title: IPA.messages.association.remove.memberallowcmd
+                            remove_title: '@i18n:association.remove.memberallowcmd'
                         }
                     ]
                 },
@@ -524,7 +524,7 @@ IPA.sudorule_details_facet = function(spec) {
                     add_method: 'add_deny_command',
                     remove_method: 'remove_deny_command',
                     add_title: '@i18n:association.add.memberdenycmd',
-                    remove_title: IPA.messages.association.remove.memberdenycmd
+                    remove_title: '@i18n:association.remove.memberdenycmd'
                 },
                 {
                     type: 'rule_association_table',
@@ -533,7 +533,7 @@ IPA.sudorule_details_facet = function(spec) {
                     add_method: 'add_deny_command',
                     remove_method: 'remove_deny_command',
                     add_title: '@i18n:association.add.memberdenycmd',
-                    remove_title: IPA.messages.association.remove.memberdenycmd
+                    remove_title: '@i18n:association.remove.memberdenycmd'
                 }
             ]
         }
@@ -603,7 +603,7 @@ IPA.sudorule_details_facet = function(spec) {
                             add_method: 'add_runasuser',
                             remove_method: 'remove_runasuser',
                             add_title: '@i18n:association.add.ipasudorunas',
-                            remove_title: IPA.messages.association.remove.ipasudorunas
+                            remove_title: '@i18n:association.remove.ipasudorunas'
                         },
                         {
                             type: 'rule_association_table',
@@ -612,7 +612,7 @@ IPA.sudorule_details_facet = function(spec) {
                             add_method: 'add_runasuser',
                             remove_method: 'remove_runasuser',
                             add_title: '@i18n:association.add.ipasudorunas',
-                            remove_title: IPA.messages.association.remove.ipasudorunas
+                            remove_title: '@i18n:association.remove.ipasudorunas'
                         }
                     ]
                 },
@@ -635,7 +635,7 @@ IPA.sudorule_details_facet = function(spec) {
                         add_method: 'add_runasgroup',
                         remove_method: 'remove_runasgroup',
                         add_title: '@i18n:association.add.ipasudorunasgroup',
-                        remove_title: IPA.messages.association.remove.ipasudorunasgroup
+                        remove_title: '@i18n:association.remove.ipasudorunasgroup'
                     }]
                 }
             ]

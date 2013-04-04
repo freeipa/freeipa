@@ -206,7 +206,7 @@ IPA.selinux_details_facet = function(spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member
+                            remove_title: '@i18n:association.remove.member'
                         },
                         {
                             type: 'rule_association_table',
@@ -215,7 +215,7 @@ IPA.selinux_details_facet = function(spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member
+                            remove_title: '@i18n:association.remove.member'
                         }
                     ]
                 }
@@ -279,7 +279,7 @@ IPA.selinux_details_facet = function(spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member
+                            remove_title: '@i18n:association.remove.member'
                         },
                         {
                             type: 'rule_association_table',
@@ -288,7 +288,7 @@ IPA.selinux_details_facet = function(spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             add_title: '@i18n:association.add.member',
-                            remove_title: IPA.messages.association.remove.member
+                            remove_title: '@i18n:association.remove.member'
                         }
                     ]
                 }
