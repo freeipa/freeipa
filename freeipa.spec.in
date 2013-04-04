@@ -74,6 +74,11 @@ BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  java-1.7.0-openjdk
 
+# Find out Kerberos middle version to infer ABI changes in DAL driver
+# We cannot load DAL driver into KDC with wrong ABI.
+# This is also needed to support ipa-devel repository where krb5 1.11 is available for F18
+%global krb5_dal_version %{expand:%(echo "#include <kdb.h>"|cpp -dM|grep KRB5_KDB_DAL_MAJOR_VERSION|cut -d' ' -f3)}
+
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
 user, virtual machines, groups, authentication credentials), Policy
@@ -92,10 +97,10 @@ Requires: 389-ds-base >= 1.3.0.5
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
-%if 0%{?fedora} >= 19
+%if 0%{?krb5_dal_version} >= 4
 Requires: krb5-server >= 1.11
 %else
-%if 0%{?fedora} == 18
+%if 0%{krb5_dal_version} == 3
 # krb5 1.11 bumped DAL interface major version, a rebuild is needed
 Requires: krb5-server < 1.11
 Requires: krb5-server >= 1.10
@@ -783,6 +788,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Thu Apr  4 2013 Alexander Bokovoy <abokovoy@redhat.com> - 3.1.99-3
+- Make sure build against Krb5 1.11 in Fedora 18 environment creates proper dependencies
+
 * Tue Apr  2 2013 Martin Kosek <mkosek@redhat.com> - 3.1.99-2
 - Require 389-base-base >= 1.3.0.5 to pull the following fixes:
   - upgrade deadlock caused by DNA plugin reconfiguration
