@@ -21,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './facet'], function(IPA, $) {
+define(['./ipa', './jquery', './text', './facet'], function(IPA, $, text) {
 
 IPA.search_facet = function(spec, no_init) {
 
@@ -425,7 +425,7 @@ IPA.batch_items_action = function(spec) {
     var that = IPA.action(spec);
 
     that.method = spec.method || 'disable';
-    that.success_msg = spec.success_msg;
+    that.success_msg = text.get(spec.success_msg);
 
     that.execute_action = function(facet, on_success, on_error) {
 

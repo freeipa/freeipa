@@ -23,7 +23,7 @@
 
 /* IPA Object Details - populating definiton lists from entry data */
 
-define(['./ipa', './jquery', './facet', './add'], function(IPA, $) {
+define(['./ipa', './jquery', './text', './facet', './add'], function(IPA, $, text) {
 
 IPA.expanded_icon = 'expanded-icon';
 IPA.collapsed_icon = 'collapsed-icon';
@@ -270,7 +270,7 @@ IPA.details_facet = function(spec, no_init) {
     that.command_mode = spec.command_mode || 'save'; // [save, info]
     that.check_rights = spec.check_rights !== undefined ? spec.check_rights : true;
 
-    that.label = spec.label || IPA.messages && IPA.messages.facets && IPA.messages.facets.details;
+    that.label = text.get(spec.label) || text.get('facets.details');
     that.facet_group = spec.facet_group || 'settings';
 
     that.widgets = IPA.widget_container();
@@ -1071,7 +1071,7 @@ IPA.object_action = function(spec) {
     var that = IPA.action(spec);
 
     that.method = spec.method;
-    that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
+    that.confirm_msg = text.get(spec.confirm_msg || '@i18n:actions.confirm');
     that.options = spec.options || {};
 
     that.execute_action = function(facet, on_success, on_error) {

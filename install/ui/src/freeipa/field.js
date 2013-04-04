@@ -22,8 +22,8 @@
  */
 
 
-define(['dojo/_base/array', './ipa', './jquery', './navigation'],
-       function(array, IPA, $, navigation) {
+define(['dojo/_base/array', './ipa', './jquery', './navigation', './text'],
+       function(array, IPA, $, navigation, text) {
 
 IPA.field = function(spec) {
     spec = spec || {};
@@ -41,8 +41,8 @@ IPA.field = function(spec) {
      * actual rights might be defined by other param.
      */
     that.acl_param = spec.acl_param || that.param;
-    that.label = spec.label;
-    that.tooltip = spec.tooltip;
+    that.label = text.get(spec.label);
+    that.tooltip = text.get(spec.tooltip);
     that.measurement_unit = spec.measurement_unit;
     that.formatter = spec.formatter;
 
@@ -79,11 +79,11 @@ IPA.field = function(spec) {
             that.metadata = IPA.get_entity_param(that.entity.name, that.param);
         }
         if (that.metadata) {
-            if (that.label === undefined) {
-                that.label = that.metadata.label;
+            if (!that.label) {
+                that.label = that.metadata.label || '';
             }
-            if (that.tooltip === undefined) {
-                that.tooltip = that.metadata.doc;
+            if (!that.tooltip) {
+                that.tooltip = that.metadata.doc || '';
             }
         }
 
@@ -418,7 +418,7 @@ IPA.validator = function(spec) {
 
     var that = {};
 
-    that.message = spec.message || IPA.get_message('widget.validation.error');
+    that.message = text.get(spec.message || '@i18n:widget.validation.error');
 
     that.false_result = function(message) {
         return {
@@ -518,7 +518,7 @@ IPA.same_password_validator = function(spec) {
     var that = IPA.validator(spec);
     that.other_field = spec.other_field;
 
-    that.message = spec.message || IPA.get_message('password.password_must_match',
+    that.message = text.get(spec.message || '@i18n:password.password_must_match',
                             "Passwords must match");
     that.validate = function(value, context) {
 

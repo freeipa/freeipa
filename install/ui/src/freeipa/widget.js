@@ -21,7 +21,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['dojo/_base/array', './ipa', './jquery'], function(array, IPA, $) {
+
+define(['dojo/_base/array', './ipa', './jquery', './text'],
+       function(array, IPA, $, text) {
+
 
 IPA.checkbox_column_width = 22;
 IPA.required_indicator = '*';
@@ -34,8 +37,8 @@ IPA.widget = function(spec) {
 
     that.name = spec.name;
     that.id = spec.id;
-    that.label = spec.label;
-    that.tooltip = spec.tooltip;
+    that.label = text.get(spec.label);
+    that.tooltip = text.get(spec.tooltip);
     that.measurement_unit = spec.measurement_unit;
     that.entity = IPA.get_entity(spec.entity); //some old widgets still need it
     that.facet = spec.facet;
@@ -740,7 +743,7 @@ IPA.option_widget_base = function(spec, that) {
                 that._child_widgets.push(option.widget);
             }
         }
-
+        option.label = text.get(option.label);
         option.combine_values = option.combine_values === undefined ? true :
                                     !!option.combine_values;
 
@@ -1267,8 +1270,8 @@ IPA.boolean_formatter = function(spec) {
 
     var that = IPA.formatter(spec);
 
-    that.true_value = spec.true_value || IPA.messages['true'];
-    that.false_value = spec.false_value || IPA.messages['false'];
+    that.true_value = text.get(spec.true_value || IPA.messages['true']);
+    that.false_value = text.get(spec.false_value || IPA.messages['false']);
     that.show_false = spec.show_false;
     that.invert_value = spec.invert_value;
 
@@ -1327,10 +1330,11 @@ IPA.boolean_status_formatter = function(spec) {
 
     spec = spec || {};
 
+    spec.true_value = spec.true_value || IPA.messages.status.enabled;
+    spec.false_value = spec.false_value || IPA.messages.status.disabled;
+
     var that = IPA.boolean_formatter(spec);
 
-    that.true_value = spec.true_value || IPA.messages.status.enabled;
-    that.false_value = spec.false_value || IPA.messages.status.disabled;
     that.show_false = true;
     that.type = 'html';
 
@@ -1374,7 +1378,7 @@ IPA.column = function (spec) {
     that.entity = IPA.get_entity(spec.entity);
     that.name = spec.name;
 
-    that.label = spec.label;
+    that.label = text.get(spec.label);
     that.width = spec.width;
     that.primary_key = spec.primary_key;
     that.link = spec.link;
@@ -2206,7 +2210,7 @@ IPA.attribute_table_widget = function(spec) {
 
         var label = that.entity.metadata.label_singular;
         var pkey = that.facet.get_pkey();
-        dialog_spec.title = dialog_spec.title || IPA.messages.dialogs.add_title;
+        dialog_spec.title = text.get(dialog_spec.title || '@i18n:dialogs.add_title');
         dialog_spec.title = dialog_spec.title.replace('${entity}', label);
         dialog_spec.title = dialog_spec.title.replace('${pkey}', pkey);
 
@@ -2841,7 +2845,7 @@ IPA.action_button = function(spec) {
         id: spec.id,
         name: spec.name,
         href: spec.href || '#' + (spec.name || 'button'),
-        title: spec.title || spec.label,
+        title: text.get(spec.title || spec.label),
         'class': 'button action-button',
         style: spec.style,
         click: spec.click,
@@ -2863,7 +2867,7 @@ IPA.action_button = function(spec) {
     if (spec.label) {
         $('<span/>', {
             'class': 'button-label',
-            html: spec.label
+            html: text.get(spec.label)
         }).appendTo(button);
     }
 
@@ -2881,7 +2885,7 @@ IPA.button = function(spec) {
     });
 
     var icons = { primary: spec.icon };
-    var label = spec.label;
+    var label = text.get(spec.label);
 
     button.button({
         icons: icons,
@@ -3293,7 +3297,7 @@ IPA.multiple_choice_section = function(spec) {
         }).appendTo(header);
 
         $('<label/>',{
-            text: choice.label,
+            text: text.get(choice.label),
             'for': radio_id
         }).appendTo(header);
 
@@ -3380,8 +3384,8 @@ IPA.header_widget = function(spec) {
     var that = IPA.widget(spec);
 
     that.level = spec.level || 3;
-    that.text = spec.text;
-    that.description = spec.description;
+    that.text = text.get(spec.text);
+    that.description = text.get(spec.description);
 
     that.create = function(container) {
         container.append($('<h'+that.level+' />', {
@@ -3908,7 +3912,7 @@ IPA.value_map_widget = function(spec) {
 
     var that = IPA.input_widget(spec);
     that.value_map = spec.value_map || {};
-    that.default_label = spec.default_label || '';
+    that.default_label = text.get(spec.default_label || '');
 
     that.create = function(container) {
         that.widget_create(container);
@@ -3931,7 +3935,7 @@ IPA.value_map_widget = function(spec) {
                 if (!that.value_map.hasOwnProperty(value)) continue;
 
                 if (values.indexOf(value) > -1) {
-                    label = that.value_map[value];
+                    label = text.get(that.value_map[value]);
                     found = true;
                 }
             }

@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './navigation', './details', './search', './association',
-       './entity'], function(IPA, $, navigation) {
+define(['./ipa', './jquery', './navigation', './text', './details', './search',
+       './association', './entity'], function(IPA, $, navigation, text) {
 
 IPA.automember = {};
 

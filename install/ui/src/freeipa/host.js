@@ -19,8 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity', './certificate'], function(IPA, $) {
+define(['./ipa', './jquery', './text', './details', './search', './association',
+       './entity', './certificate'], function(IPA, $, text) {
 
 IPA.host = {};
 

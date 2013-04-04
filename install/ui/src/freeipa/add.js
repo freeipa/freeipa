@@ -19,8 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['./ipa', './jquery', './navigation', './field', './widget', './dialog'],
-       function(IPA, $, navigation) {
+define(['./ipa', './jquery', './navigation', './text', './field', './widget', './dialog'],
+       function(IPA, $, navigation, text) {
 
 IPA.entity_adder_dialog = function(spec) {
 

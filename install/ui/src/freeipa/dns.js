@@ -27,11 +27,12 @@ define([
     './navigation',
     './menu',
     './phases',
+    './text',
     './details',
     './search',
     './association',
     './entity'],
-       function(IPA, $, NET, navigation, menu, phases) {
+       function(IPA, $, NET, navigation, menu, phases, text) {
 
 IPA.dns = {
     zone_permission_name: 'Manage DNS zone ${dnszone}'
@@ -2155,7 +2156,7 @@ IPA.dns.record_modify_column = function(spec) {
 
     var that = IPA.column(spec);
 
-    that.text = spec.text || IPA.messages.buttons.edit;
+    that.text = text.get(spec.text || IPA.messages.buttons.edit);
 
     that.setup = function(container, record, suppress_link) {
 

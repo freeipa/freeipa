@@ -19,7 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery','dojo/_base/lang', './dialog'], function(IPA, $, lang) {
+define(['./ipa', './jquery','dojo/_base/lang', './text', './dialog'],
+       function(IPA, $, lang, text) {
 
 IPA.cert = {};
 
@@ -388,7 +389,7 @@ IPA.cert.request_dialog = function(spec) {
 
     that.width = spec.width || 600;
     that.height = spec.height || 480;
-    that.message = spec.message;
+    that.message = text.get(spec.message);
 
     that.request = spec.request;
 
@@ -1205,7 +1206,7 @@ IPA.cert.search_facet = function(spec) {
             var doc = metadata.doc || '';
 
             $('<option/>', {
-                text: option.label,
+                text: text.get(option.label),
                 value: option.value,
                 title: doc
             }).appendTo(that.search_option);

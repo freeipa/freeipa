@@ -22,8 +22,8 @@
 /* CURRENTLY ALSO REQUIRES search.js, because it reuses it's code to create
  * the AssociationList elements; IT NEEDS IT'S OWN CODE! */
 
-define(['./ipa', './jquery', './navigation', './search', './dialog'],
-       function(IPA, $, navigation) {
+define(['./ipa', './jquery', './navigation', './text', './search', './dialog'],
+       function(IPA, $, navigation, text) {
 
 IPA.associator = function (spec) {
 
@@ -356,8 +356,8 @@ IPA.association_table_widget = function (spec) {
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
 
-    that.add_title = spec.add_title || IPA.messages.association.add.member;
-    that.remove_title = spec.remove_title || IPA.messages.association.remove.member;
+    that.add_title = text.get(spec.add_title || '@i18n:association.add.member');
+    that.remove_title = text.get(spec.remove_title || '@i18n:association.remove.member');
 
     that.adder_columns = $.ordered_map();
 
@@ -823,8 +823,8 @@ IPA.association_facet = function (spec, no_init) {
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
 
-    that.add_title = spec.add_title || IPA.messages.association.add.member;
-    that.remove_title = spec.remove_title || IPA.messages.association.remove.member;
+    that.add_title = text.get(spec.add_title || '@i18n:association.add.member');
+    that.remove_title = text.get(spec.remove_title || '@i18n:association.remove.member');
 
     that.adder_columns = $.ordered_map();
 

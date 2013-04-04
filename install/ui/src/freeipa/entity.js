@@ -21,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './facet'], function(IPA, $) {
+define(['./ipa', './jquery', './text', './facet'], function(IPA, $, text) {
 
 IPA.entity = function(spec) {
 
@@ -35,7 +35,7 @@ IPA.entity = function(spec) {
     var that = {};
 
     that.name = spec.name;
-    that.label = spec.label;
+    that.label = text.get(spec.label);
 
     that.defines_key = spec.defines_key !== undefined ? spec.defines_key : true;
 
@@ -72,7 +72,7 @@ IPA.entity = function(spec) {
                 };
             }
         }
-        that.label = that.label || that.metadata.label || that.name;
+        that.label = text.get(that.label) || that.metadata.label || that.name;
     };
 
     that.get_default_metadata = function() {

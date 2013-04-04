@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define(['./ipa', './jquery', './text', './details', './search', './association',
+       './entity'], function(IPA, $, text) {
 
 IPA.aci = {};
 

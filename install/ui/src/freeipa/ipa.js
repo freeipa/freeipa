@@ -22,7 +22,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['./jquery', './json2','./_base/i18n', './_base/metadata_provider'], function($, JSON, i18n, metadata_provider) {
+define(['./jquery', './json2','./_base/i18n', './_base/metadata_provider', './text'],
+       function($, JSON, i18n, metadata_provider, text) {
 
 var IPA = function() {
 
@@ -612,7 +613,7 @@ IPA.command = function(spec) {
 
     that.retry = typeof spec.retry == 'undefined' ? true : spec.retry;
 
-    that.error_message = spec.error_message || IPA.get_message('dialogs.batch_error_message', 'Some operations failed.');
+    that.error_message = text.get(spec.error_message || '@i18n:dialogs.batch_error_message', 'Some operations failed.');
     that.error_messages = $.ordered_map({
         911: 'Missing HTTP referer. <br/> You have to configure your browser to send HTTP referer header.'
     });
@@ -1322,7 +1323,7 @@ IPA.dirty_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
     that.facet = spec.facet;
-    that.message = spec.message || IPA.messages.dialogs.dirty_message;
+    that.message = text.get(spec.message || '@i18n:dialogs.dirty_message');
 
     that.create = function() {
         that.container.append(that.message);

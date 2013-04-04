@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './add',
-       './facet', './entity', './field', './widget'], function(IPA, $) {
+define(['./ipa', './jquery', './text', './details', './search', './add',
+       './facet', './entity', './field', './widget'], function(IPA, $, text) {
 
 IPA.entitle = {};
 
@@ -521,8 +521,8 @@ IPA.entitle.certificate_dialog = function(spec) {
 
     that.width = spec.width || 500;
     that.height = spec.height || 400;
-    that.message = spec.message;
-    that.label = spec.label;
+    that.message = text.get(spec.message);
+    that.label = text.get(spec.label);
 
     that.get_certificate = function() {
         var certificate = that.textarea.val();

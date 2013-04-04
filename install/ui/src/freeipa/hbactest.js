@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './navigation', './details', './search',
-       './association', './entity', './hbac'], function(IPA, $, navigation) {
+define(['./ipa', './jquery', './navigation', './text', './details', './search',
+       './association', './entity', './hbac'], function(IPA, $, navigation, text) {
 
 IPA.hbac.test_entity = function(spec) {
 
@@ -32,7 +32,7 @@ IPA.hbac.test_entity = function(spec) {
     that.init = function() {
         that.entity_init();
 
-        that.label = IPA.messages.objects.hbactest.label;
+        that.label = text.get('@i18n:objects.hbactest.label');
 
         that.builder.facet_groups([ 'default' ]).
         facet({

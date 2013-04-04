@@ -20,7 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './field', './widget'], function(IPA, $) {
+define(['./ipa', './jquery', './text', './field', './widget'], function(IPA, $, text) {
 
 IPA.opened_dialogs = {
 
@@ -57,7 +57,7 @@ IPA.dialog_button = function(spec) {
     var that = {};
 
     that.name = spec.name;
-    that.label = spec.label || spec.name;
+    that.label = text.get(spec.label || spec.name);
     that.click = spec.click || click;
     that.visible = spec.visible !== undefined ? spec.visible : true;
 
@@ -91,7 +91,7 @@ IPA.dialog = function(spec) {
     that.entity = IPA.get_entity(spec.entity);
     that.name = spec.name || 'dialog';
     that.id = spec.id;
-    that.title = spec.title;
+    that.title = text.get(spec.title);
     that.width = spec.width || 500;
     that.height = spec.height;
     that.close_on_escape = spec.close_on_escape !== undefined ?

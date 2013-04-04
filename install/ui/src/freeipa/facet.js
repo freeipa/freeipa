@@ -31,11 +31,12 @@ define([
         './ipa',
         './jquery',
         './navigation',
+        './text',
         './dialog',
         './field',
         './widget'
        ], function(declare, lang, construct, on, Stateful, Evented,
-                   IPA, $, navigation) {
+                   IPA, $, navigation, text) {
 
 /**
  * Facet represents the content of currently displayed page.
@@ -105,9 +106,9 @@ IPA.facet = function(spec, no_init) {
     that.entity = IPA.get_entity(spec.entity);
 
     that.name = spec.name;
-    that.label = spec.label;
-    that.title = spec.title || that.label;
-    that.tab_label = spec.tab_label || that.label;
+    that.label = text.get(spec.label);
+    that.title = text.get(spec.title || that.label);
+    that.tab_label = text.get(spec.tab_label || that.label);
     that.display_class = spec.display_class;
     that.no_update = spec.no_update;
 
@@ -1431,7 +1432,7 @@ IPA.facet_group = function(spec) {
     var that = {};
 
     that.name = spec.name;
-    that.label = spec.label;
+    that.label = text.get(spec.label);
 
     that.facets = $.ordered_map();
 
@@ -1622,7 +1623,7 @@ IPA.action = function(spec) {
     var that = {};
 
     that.name = spec.name;
-    that.label = spec.label;
+    that.label = text.get(spec.label);
 
     that.enabled = spec.enabled !== undefined ? spec.enabled : true;
     that.enable_cond = spec.enable_cond || [];
@@ -1637,7 +1638,7 @@ IPA.action = function(spec) {
     that.handler = spec.handler;
 
     that.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
-    that.confirm_msg = spec.confirm_msg || IPA.messages.actions.confirm;
+    that.confirm_msg = text.get(spec.confirm_msg || '@i18n:actions.confirm');
 
     that.confirm_dialog = spec.confirm_dialog !== undefined ? spec.confirm_dialog :
                                                               IPA.confirm_dialog;
@@ -2069,8 +2070,8 @@ IPA.action_button_widget = function(spec) {
     var that = IPA.widget(spec);
 
     that.name = spec.name;
-    that.label = spec.label;
-    that.tooltip = spec.tooltip;
+    that.label = text.get(spec.label);
+    that.tooltip = text.get(spec.tooltip);
     that.href = spec.href || that.name;
     that.icon = spec.icon;
 
