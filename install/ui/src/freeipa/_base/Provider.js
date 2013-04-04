@@ -165,13 +165,15 @@ define(['dojo/_base/declare','dojo/_base/lang'], function(declare, lang) {
                 } else if(this._handle_children(key)) {
                     value = this._handling_provider.get(key);
                 } else {
-                    // Return key as value when it's not a proper key.
-                    window.console.log('Using key as value:'+key);
+                    // Report invalid keys
+                    if (typeof key === 'string' && key[0] === '@') {
+                        window.console.warn('Using key as value:'+key);
+                    }
                 }
             }
 
             var ret = value || alternate;
-            if (!ret) {
+            if (!ret && key) {
                 window.console.log('No value for:'+key);
             }
 
