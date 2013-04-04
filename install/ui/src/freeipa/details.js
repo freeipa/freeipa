@@ -124,8 +124,9 @@ IPA.section_builder = function(spec) {
         section_spec.facet = that.container;
 
         if (!section_spec.label && section_spec.name && that.container.entity) {
-            var obj_messages = text.get('@i18n:objects.'+that.container.entity.name);
-            section_spec.label = obj_messages[section_spec.name];
+            var section_label = '@i18n:objects.'+that.container.entity.name+
+                    '.' + section_spec.name;
+            section_spec.label = section_label;
         }
 
         if(!section_spec.name) section_spec.name = 'section'+index;
