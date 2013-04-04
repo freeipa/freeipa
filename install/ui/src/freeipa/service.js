@@ -424,7 +424,7 @@ IPA.service.unprovision_dialog = function(spec) {
             on_success: function(data, text_status, xhr) {
                 that.facet.refresh();
                 that.close();
-                IPA.notify_success(IPA.messages.objects.service.unprovisioned);
+                IPA.notify_success('@i18n:objects.service.unprovisioned');
             },
             on_error: function(xhr, text_status, error_thrown) {
                 that.close();

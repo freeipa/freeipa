@@ -819,7 +819,7 @@ IPA.sudo.options_section = function(spec) {
                     on_success: function(data) {
                         that.table.load(data.result.result);
                         dialog.close();
-                        IPA.notify_success(IPA.messages.objects.sudorule.option_added);
+                        IPA.notify_success('@i18n:objects.sudorule.option_added');
                     },
                     on_error: function(data) {
                         that.reload();
@@ -880,7 +880,7 @@ IPA.sudo.options_section = function(spec) {
                         that.reload();
                     }
 
-                    IPA.notify_success(IPA.messages.objects.sudorule.option_removed);
+                    IPA.notify_success('@i18n:objects.sudorule.option_removed');
                 },
                 on_error: function(data) {
                     that.reload();

@@ -642,7 +642,7 @@ IPA.cert.request_action = function(spec) {
                     },
                     on_success: function(data, text_status, xhr) {
                         facet.refresh();
-                        IPA.notify_success(IPA.messages.objects.cert.requested);
+                        IPA.notify_success('@i18n:objects.cert.requested');
                         facet.certificate_updated.notify([], that.facet);
                     }
                 }).execute();
@@ -701,7 +701,7 @@ IPA.cert.revoke_action = function(spec) {
             },
             on_success: function(data, text_status, xhr) {
                 facet.refresh();
-                IPA.notify_success(IPA.messages.objects.cert.revoked);
+                IPA.notify_success('@i18n:objects.cert.revoked');
                 facet.certificate_updated.notify([], that.facet);
             }
         }).execute();
@@ -755,7 +755,7 @@ IPA.cert.restore_action = function(spec) {
             args: [certificate.serial_number],
             on_success: function(data, text_status, xhr) {
                 facet.refresh();
-                IPA.notify_success(IPA.messages.objects.cert.restored);
+                IPA.notify_success('@i18n:objects.cert.restored');
                 facet.certificate_updated.notify([], that.facet);
             }
         }).execute();

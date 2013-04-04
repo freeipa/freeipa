@@ -644,7 +644,7 @@ IPA.host_unprovision_dialog = function(spec) {
                     function(data, text_status, xhr) {
                         that.facet.refresh();
                         that.close();
-                        IPA.notify_success(IPA.messages.objects.host.unprovisioned);
+                        IPA.notify_success('@i18n:objects.host.unprovisioned');
                     },
                     function(xhr, text_status, error_thrown) {
                         that.close();
@@ -880,7 +880,7 @@ IPA.host.set_otp_dialog = function(spec) {
             on_success: function(data) {
                 that.facet.load(data);
                 that.close();
-                IPA.notify_success(IPA.messages.objects.host.password_set_success);
+                IPA.notify_success('@i18n:objects.host.password_set_success');
             },
             on_error: function() {
                 that.close();

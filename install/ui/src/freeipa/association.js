@@ -586,7 +586,7 @@ IPA.association_table_widget = function (spec) {
                 function() {
                     that.refresh();
                     dialog.close();
-                    IPA.notify_success(IPA.messages.association.added);
+                    IPA.notify_success('@i18n:association.added');
                 },
                 function() {
                     that.refresh();
@@ -647,7 +647,7 @@ IPA.association_table_widget = function (spec) {
                 selected_values,
                 function() {
                     that.refresh();
-                    IPA.notify_success(IPA.messages.association.removed);
+                    IPA.notify_success('@i18n:association.removed');
                 },
                 function() {
                     that.refresh();
@@ -1012,7 +1012,7 @@ IPA.association_facet = function (spec, no_init) {
                 on_success: function() {
                     that.refresh();
                     dialog.close();
-                    IPA.notify_success(IPA.messages.association.added);
+                    IPA.notify_success('@i18n:association.added');
                 },
                 on_error: function() {
                     that.refresh();
@@ -1063,7 +1063,7 @@ IPA.association_facet = function (spec, no_init) {
                 method: that.remove_method,
                 on_success: function() {
                     that.refresh();
-                    IPA.notify_success(IPA.messages.association.removed);
+                    IPA.notify_success('@i18n:association.removed');
                 },
                 on_error: function() {
                     that.refresh();
@@ -1300,7 +1300,7 @@ IPA.attribute_facet = function(spec, no_init) {
                 function(data) {
                     that.load(data);
                     that.show_content();
-                    IPA.notify_success(IPA.messages.association.removed);
+                    IPA.notify_success('@i18n:association.removed');
                 },
                 function() {
                     that.refresh();

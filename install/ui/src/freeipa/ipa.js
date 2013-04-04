@@ -2055,6 +2055,8 @@ IPA.notify_success = function(message, timeout) {
 
     if (!message) return; // don't show undefined, null and such
 
+    message = text.get(message);
+
     function destroy_timeout() {
         if (IPA.notify_success.timeout) window.clearTimeout(IPA.notify_success.timeout);
     }

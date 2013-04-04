@@ -591,7 +591,7 @@ IPA.user_password_dialog = function(spec) {
         if (that.success_handler) {
             that.success_handler.call(this, data, text_status, xhr);
         } else {
-            IPA.notify_success(IPA.messages.password.password_change_complete);
+            IPA.notify_success('@i18n:password.password_change_complete');
             that.close();
 
             // refresh password expiration field
