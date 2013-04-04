@@ -56,8 +56,8 @@ IPA.group.entity = function(spec) {
                             label: IPA.messages.objects.group.type,
                             default_label: IPA.messages.objects.group.normal,
                             value_map: {
-                                ipaexternalgroup: IPA.messages.objects.group.external,
-                                posixgroup: IPA.messages.objects.group.posix
+                                ipaexternalgroup: '@i18n:objects.group.external',
+                                posixgroup: '@i18n:objects.group.posix'
                             }
                         },
                         'gidnumber'
@@ -227,7 +227,7 @@ IPA.group.make_posix_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'make_posix';
     spec.method = spec.method || 'mod';
-    spec.label = spec.label || IPA.messages.objects.group.make_posix;
+    spec.label = spec.label || '@i18n:objects.group.make_posix';
     spec.disable_cond = spec.disable_cond || ['oc_posixgroup', 'oc_ipaexternalgroup'];
     spec.options = spec.options || {
         posix: true
@@ -243,7 +243,7 @@ IPA.group.make_external_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'make_external';
     spec.method = spec.method || 'mod';
-    spec.label = spec.label || IPA.messages.objects.group.make_external;
+    spec.label = spec.label || '@i18n:objects.group.make_external';
     spec.disable_cond = spec.disable_cond || ['oc_posixgroup','oc_ipaexternalgroup'];
     spec.options = spec.options || {
         external: true

@@ -150,7 +150,7 @@ IPA.attribute_adder_dialog = function(spec) {
             required: true
         }
     ];
-    spec.title = spec.title || IPA.messages.dialogs.add_title.replace('${entity}', metadata.label);
+    spec.title = spec.title || text.get('@i18n:dialogs.add_title').replace('${entity}', metadata.label);
     spec.subject = metadata.label;
 
     var that = IPA.entity_adder_dialog(spec);

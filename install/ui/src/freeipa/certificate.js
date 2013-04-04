@@ -210,7 +210,7 @@ IPA.cert.revoke_dialog = function(spec) {
 
     spec = spec || {};
     spec.width = spec.width || 500;
-    spec.ok_label = spec.ok_label || IPA.messages.buttons.revoke;
+    spec.ok_label = spec.ok_label || '@i18n:buttons.revoke';
 
     var that = IPA.confirm_dialog(spec);
 
@@ -538,7 +538,7 @@ IPA.cert.view_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'view_cert';
-    spec.label = spec.label || IPA.messages.buttons.view;
+    spec.label = spec.label || '@i18n:buttons.view';
     spec.enable_cond = spec.enable_cond || ['has_certificate'];
 
     var that = IPA.action(spec);
@@ -571,7 +571,7 @@ IPA.cert.get_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'get_cert';
-    spec.label = spec.label || IPA.messages.buttons.get;
+    spec.label = spec.label || '@i18n:buttons.get';
     spec.enable_cond = spec.enable_cond || ['has_certificate'];
 
     var that = IPA.action(spec);
@@ -604,7 +604,7 @@ IPA.cert.request_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'request_cert';
-    spec.label = spec.label || IPA.messages.objects.cert.new_certificate;
+    spec.label = spec.label || '@i18n:objects.cert.new_certificate';
     spec.enable_cond = spec.enable_cond || ['ra_enabled'];
 
     var that = IPA.action(spec);
@@ -659,7 +659,7 @@ IPA.cert.revoke_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'revoke_cert';
-    spec.label = spec.label || IPA.messages.buttons.revoke;
+    spec.label = spec.label || '@i18n:buttons.revoke';
     spec.enable_cond = spec.enable_cond || ['has_certificate'];
     spec.disable_cond = spec.disable_cond || ['certificate_revoked'];
     spec.hide_cond = spec.hide_cond || ['ra_disabled'];
@@ -714,10 +714,10 @@ IPA.cert.restore_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'restore_cert';
-    spec.label = spec.label || IPA.messages.buttons.restore;
+    spec.label = spec.label || '@i18n:buttons.restore';
     spec.enable_cond = spec.enable_cond || ['has_certificate', 'certificate_hold'];
     spec.hide_cond = spec.hide_cond || ['ra_disabled'];
-    spec.confirm_msg = spec.confirm_msg || IPA.messages.objects.cert.restore_confirmation;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.cert.restore_confirmation';
     spec.confirm_dialog = spec.confirm_dialog || {
         factory: IPA.confirm_dialog,
         ok_label: IPA.messages.buttons.restore

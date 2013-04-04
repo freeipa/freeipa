@@ -494,10 +494,11 @@ IPA.metadata_validator = function(spec) {
 
 IPA.unsupported_validator = function(spec) {
 
+    spec.message = spec.message ||'@i18n:widgets.validation.unsupported';
+
     var that = IPA.validator(spec);
 
     that.unsupported = spec.unsupported || [];
-    that.message = spec.message || IPA.messages.widget.validation.unsupported;
 
     that.validate = function(value, context) {
 

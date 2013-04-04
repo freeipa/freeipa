@@ -750,8 +750,8 @@ IPA.hbac.test_run_facet = function(spec) {
 IPA.hbac.validation_dialog = function(spec)  {
 
     spec = spec || {};
-    spec.title = spec.title || IPA.messages.dialogs.validation_title;
-    spec.message = spec.message || IPA.messages.dialogs.validation_message;
+    spec.title = spec.title || '@i18n:dialogs.validation_title';
+    spec.message = spec.message || '@i18n:dialogs.validation_message';
 
     var that = IPA.message_dialog(spec);
 

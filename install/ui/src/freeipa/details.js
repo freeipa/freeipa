@@ -547,8 +547,8 @@ IPA.details_facet = function(spec, no_init) {
     that.show_validation_error = function() {
         var dialog = IPA.message_dialog({
             name: 'validation_error',
-            title: IPA.messages.dialogs.validation_title,
-            message: IPA.messages.dialogs.validation_message
+            title: '@i18n:dialogs.validation_title',
+            message: '@i18n:dialogs.validation_message'
         });
         dialog.open();
     };
@@ -845,7 +845,7 @@ IPA.refresh_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'refresh';
-    spec.label = spec.label || IPA.messages.buttons.refresh;
+    spec.label = spec.label || '@i18n:buttons.refresh';
 
     var that = IPA.action(spec);
 
@@ -860,7 +860,7 @@ IPA.reset_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'reset';
-    spec.label = spec.label || IPA.messages.buttons.reset;
+    spec.label = spec.label || '@i18n:buttons.reset';
     spec.enable_cond = spec.enable_cond || ['dirty'];
 
     var that = IPA.action(spec);
@@ -876,7 +876,7 @@ IPA.update_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'update';
-    spec.label = spec.label || IPA.messages.buttons.update;
+    spec.label = spec.label || '@i18n:buttons.update';
     spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
     spec.enable_cond = spec.enable_cond || ['dirty'];
 
@@ -1128,8 +1128,8 @@ IPA.enable_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'enable';
     spec.method = spec.method || 'enable';
-    spec.confirm_msg = spec.confirm_msg || IPA.messages.actions.enable_confirm;
-    spec.label = spec.label || IPA.messages.buttons.enable;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:actions.enable_confirm';
+    spec.label = spec.label || '@i18n:buttons.enable';
     spec.disable_cond = spec.disable_cond || ['enabled'];
 
     var that = IPA.object_action(spec);
@@ -1142,8 +1142,8 @@ IPA.disable_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'disable';
     spec.method = spec.method || 'disable';
-    spec.confirm_msg = spec.confirm_msg || IPA.messages.actions.disable_confirm;
-    spec.label = spec.label || IPA.messages.buttons.disable;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:actions.disable_confirm';
+    spec.label = spec.label || '@i18n:buttons.disable';
     spec.enable_cond = spec.enable_cond || ['enabled'];
 
     var that = IPA.object_action(spec);
@@ -1156,8 +1156,8 @@ IPA.delete_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'delete';
     spec.method = spec.method || 'del';
-    spec.confirm_msg = spec.confirm_msg || IPA.messages.actions.delete_confirm;
-    spec.label = spec.label || IPA.messages.buttons.remove;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:actions.delete_confirm';
+    spec.label = spec.label || '@i18n:buttons.remove';
 
     var that = IPA.object_action(spec);
 

@@ -621,7 +621,7 @@ IPA.host_keytab_widget = function(spec) {
 
 IPA.host_unprovision_dialog = function(spec) {
 
-    spec.title = spec.title || IPA.messages.objects.host.unprovision_title;
+    spec.title = spec.title || '@i18n:objects.host.unprovision_title';
 
     spec = spec || {};
 
@@ -687,7 +687,7 @@ IPA.host.unprovision_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'unprovision';
-    spec.label = spec.label || IPA.messages.objects.host.unprovision;
+    spec.label = spec.label || '@i18n:objects.host.unprovision';
     spec.enable_cond = spec.enable_cond || ['has_keytab', 'krbprincipalkey_w'];
 
     var that = IPA.action(spec);
@@ -899,7 +899,7 @@ IPA.host.set_otp_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'set_otp';
-    spec.label = spec.label || IPA.messages.objects.host.password_set_title;
+    spec.label = spec.label || '@i18n:objects.host.password_set_title';
     spec.enable_cond = spec.enable_cond || ['userpassword_w'];
 
     var that = IPA.action(spec);

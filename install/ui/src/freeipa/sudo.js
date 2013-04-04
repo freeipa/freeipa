@@ -469,8 +469,8 @@ IPA.sudorule_details_facet = function(spec) {
                 {
                     factory: IPA.header_widget,
                     name: 'allow_header',
-                    text: IPA.messages.objects.sudorule.allow,
-                    description: IPA.messages.objects.sudorule.allow
+                    text: '@i18n:objects.sudorule.allow',
+                    description: '@i18n:objects.sudorule.allow'
                 },
                 {
                     factory: IPA.rule_details_widget,
@@ -514,8 +514,8 @@ IPA.sudorule_details_facet = function(spec) {
                 {
                     factory: IPA.header_widget,
                     name: 'deny_header',
-                    text: IPA.messages.objects.sudorule.deny,
-                    description: IPA.messages.objects.sudorule.deny
+                    text: '@i18n:objects.sudorule.deny',
+                    description: '@i18n:objects.sudorule.deny'
                 },
                 {
                     type: 'rule_association_table',

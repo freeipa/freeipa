@@ -116,7 +116,7 @@ IPA.entitle.entity = function(spec) {
         dialog({
             factory: IPA.entitle.register_online_dialog,
             name: 'online_registration',
-            title: IPA.messages.objects.entitle.registration,
+            title: '@i18n:objects.entitle.registration',
             fields: [
                 {
                     name: 'username',
@@ -138,8 +138,8 @@ IPA.entitle.entity = function(spec) {
         dialog({
             factory: IPA.entitle.register_offline_dialog,
             name: 'offline_registration',
-            title: IPA.messages.objects.entitle.import_certificate,
-            message: IPA.messages.objects.entitle.import_message,
+            title: '@i18n:objects.entitle.import_certificate',
+            message: '@i18n:objects.entitle.import_message',
             fields: [
                 {
                     name: 'certificate',
@@ -150,7 +150,7 @@ IPA.entitle.entity = function(spec) {
         dialog({
             factory: IPA.entitle.consume_dialog,
             name: 'consume',
-            title: IPA.messages.objects.entitle.consume_entitlement,
+            title: '@i18n:objects.entitle.consume_entitlement',
             fields: [
                 {
                     name: 'quantity',
@@ -162,8 +162,8 @@ IPA.entitle.entity = function(spec) {
         dialog({
             factory: IPA.entitle.import_dialog,
             name: 'import',
-            title: IPA.messages.objects.entitle.import_certificate,
-            message: IPA.messages.objects.entitle.import_message,
+            title: '@i18n:objects.entitle.import_certificate',
+            message: '@i18n:objects.entitle.import_message',
             fields: [
                 {
                     name: 'certificate',

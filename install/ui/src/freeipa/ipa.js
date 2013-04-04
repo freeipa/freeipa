@@ -353,7 +353,7 @@ IPA.logout = function() {
         var dialog = IPA.message_dialog({
             name: 'logout_error',
             message: message,
-            title: IPA.messages.login.logout_error
+            title: '@i18n:login.logout_error'
         });
         dialog.open();
     }
@@ -1318,7 +1318,7 @@ IPA.create_network_spinner = function(){
 IPA.dirty_dialog = function(spec) {
 
     spec = spec || {};
-    spec.title = spec.title || IPA.messages.dialogs.dirty_title;
+    spec.title = spec.title || '@i18n:dialogs.dirty_title';
     spec.width = spec.width || '25em';
 
     var that = IPA.dialog(spec);

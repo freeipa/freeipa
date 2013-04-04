@@ -307,8 +307,8 @@ IPA.hbacrule_details_facet = function(spec) {
                             name: 'memberuser_user',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: IPA.messages.association.add.member,
-                            remove_title: IPA.messages.association.remove.member
+                            add_title: '@i18n:association.add.member',
+                            remove_title: '@i18n:association.remove.member'
                         },
                         {
                             type: 'rule_association_table',
@@ -316,8 +316,8 @@ IPA.hbacrule_details_facet = function(spec) {
                             name: 'memberuser_group',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: IPA.messages.association.add.member,
-                            remove_title: IPA.messages.association.remove.member
+                            add_title: '@i18n:association.add.member',
+                            remove_title: '@i18n:association.remove.member'
                         }
                     ]
                 }
@@ -362,11 +362,11 @@ IPA.hbacrule_details_facet = function(spec) {
                     options: [
                         {
                             'value': 'all',
-                            'label': IPA.messages.objects.hbacrule.any_host
+                            'label': '@i18n:objects.hbacrule.any_host'
                         },
                         {
                             'value': '',
-                            'label': IPA.messages.objects.hbacrule.specified_hosts
+                            'label': '@i18n:objects.hbacrule.specified_hosts'
                         }
                     ],
                     tables: [
@@ -380,8 +380,8 @@ IPA.hbacrule_details_facet = function(spec) {
                             name: 'memberhost_host',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: IPA.messages.association.add.member,
-                            remove_title: IPA.messages.association.remove.member
+                            add_title: '@i18n:association.add.member',
+                            remove_title: '@i18n:association.remove.member'
                         },
                         {
                             type: 'rule_association_table',
@@ -389,8 +389,8 @@ IPA.hbacrule_details_facet = function(spec) {
                             name: 'memberhost_hostgroup',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: IPA.messages.association.add.member,
-                            remove_title: IPA.messages.association.remove.member
+                            add_title: '@i18n:association.add.member',
+                            remove_title: '@i18n:association.remove.member'
                         }
                     ]
                 }
@@ -433,8 +433,8 @@ IPA.hbacrule_details_facet = function(spec) {
                     name: 'rule',
                     radio_name: 'servicecategory',
                     options: [
-                        { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_service },
-                        { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_services }
+                        { 'value': 'all', 'label': '@i18n:objects.hbacrule.any_service' },
+                        { 'value': '', 'label': '@i18n:objects.hbacrule.specified_services' }
                     ],
                     tables: [
                         { 'name': 'memberservice_hbacsvc' },
@@ -447,8 +447,8 @@ IPA.hbacrule_details_facet = function(spec) {
                             name: 'memberservice_hbacsvc',
                             add_method: 'add_service',
                             remove_method: 'remove_service',
-                            add_title: IPA.messages.association.add.member,
-                            remove_title: IPA.messages.association.remove.member
+                            add_title: '@i18n:association.add.member',
+                            remove_title: '@i18n:association.remove.member'
                         },
                         {
                             type: 'rule_association_table',
@@ -456,8 +456,8 @@ IPA.hbacrule_details_facet = function(spec) {
                             name: 'memberservice_hbacsvcgroup',
                             add_method: 'add_service',
                             remove_method: 'remove_service',
-                            add_title: IPA.messages.association.add.member,
-                            remove_title: IPA.messages.association.remove.member
+                            add_title: '@i18n:association.add.member',
+                            remove_title: '@i18n:association.remove.member'
                         }
                     ]
                 }

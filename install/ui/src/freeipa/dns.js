@@ -604,7 +604,7 @@ IPA.dns.add_permission_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'add_permission';
-    spec.label = spec.label || IPA.messages.objects.dnszone.add_permission;
+    spec.label = spec.label || '@i18n:objects.dnszone.add_permission';
     spec.enable_cond = spec.enable_cond || ['permission-none', 'managedby_w'];
 
     var that = IPA.action(spec);
@@ -634,7 +634,7 @@ IPA.dns.remove_permission_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'remove_permission';
-    spec.label = spec.label || IPA.messages.objects.dnszone.remove_permission;
+    spec.label = spec.label || '@i18n:objects.dnszone.remove_permission';
     spec.enable_cond = spec.enable_cond || ['permission-set', 'managedby_w'];
 
     var that = IPA.action(spec);
@@ -1267,7 +1267,7 @@ IPA.dns.record_details_facet = function(spec) {
 
 IPA.dnsrecord_redirection_dialog = function(spec) {
     spec = spec || {};
-    spec.title = spec.title || IPA.messages.dialogs.redirection;
+    spec.title = spec.title || '@i18n:dialogs.redirection';
 
     var that = IPA.message_dialog(spec);
 
@@ -2156,7 +2156,7 @@ IPA.dns.record_modify_column = function(spec) {
 
     var that = IPA.column(spec);
 
-    that.text = text.get(spec.text || IPA.messages.buttons.edit);
+    that.text = text.get(spec.text || '@i18n:buttons.edit');
 
     that.setup = function(container, record, suppress_link) {
 
@@ -2210,7 +2210,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
 
     spec = spec || {};
 
-    spec.title = IPA.messages.objects.dnsrecord.ptr_redir_title;
+    spec.title = spec.title || '@i18n:objects.dnsrecord.ptr_redir_title';
 
     var that = IPA.dialog(spec);
     that.dns_record = spec.dns_record;
@@ -2395,10 +2395,11 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
 IPA.ip_address_validator = function(spec) {
 
     spec = spec || {};
+    spec.message = spec.message || '@i18n:widget.validation.ip_address';
+
     var that = IPA.validator(spec);
 
     that.address_type = spec.address_type;
-    that.message = spec.message || IPA.messages.widget.validation.ip_address;
 
     that.validate = function(value) {
 
@@ -2432,7 +2433,7 @@ IPA.ip_v4_address_validator = function(spec) {
 
     spec = spec || {};
     spec.address_type = 'IPv4';
-    spec.message = IPA.messages.widget.validation.ip_v4_address;
+    spec.message = spec.message || '@i18n:widget.validation.ip_v4_address';
     return IPA.ip_address_validator(spec);
 };
 
@@ -2440,7 +2441,7 @@ IPA.ip_v6_address_validator = function(spec) {
 
     spec = spec || {};
     spec.address_type = 'IPv6';
-    spec.message = IPA.messages.widget.validation.ip_v6_address;
+    spec.message = spec.message || '@i18n:widget.validation.ip_v6_address';
     return IPA.ip_address_validator(spec);
 };
 
@@ -2478,12 +2479,13 @@ IPA.network_validator = function(spec) {
 
     spec = spec || {};
 
+    spec.message = spec.message || '@i18n:widget.validation.net_address';
+
     var that = IPA.validator(spec);
 
     that.allow_negation = spec.allow_negation;
     that.allow_host_address = spec.allow_host_address;
     that.specials = spec.specials || [];
-    that.message = spec.message || IPA.messages.widget.validation.net_address;
 
     that.validate = function(value) {
 

@@ -471,7 +471,7 @@ IPA.user_password_dialog = function(spec) {
     spec = spec || {};
 
     spec.width = spec.width || 400;
-    spec.title = spec.title || IPA.messages.password.reset_password;
+    spec.title = spec.title || '@i18n:password.reset_password';
     spec.sections = spec.sections || [];
 
     spec.sections.push(
@@ -622,7 +622,7 @@ IPA.user.reset_password_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'reset_password';
-    spec.label = spec.label || IPA.messages.password.reset_password;
+    spec.label = spec.label || '@i18n:password.reset_password';
     spec.enable_cond = spec.enable_cond || ['userpassword_w'];
 
     var that = IPA.action(spec);

@@ -641,10 +641,10 @@ IPA.deleter_dialog =  function (spec) {
 
     spec = spec || {};
 
-    spec.title = spec.title || IPA.messages.buttons.remove;
+    spec.title = spec.title || '@i18n:buttons.remove';
     spec.name = spec.name || 'deleter_dialog';
-    spec.message = spec.message || IPA.messages.search.delete_confirm;
-    spec.ok_label = spec.ok_label || IPA.messages.buttons.remove;
+    spec.message = spec.message || '@i18n:search.delete_confirm';
+    spec.ok_label = spec.ok_label || '@i18n:buttons.remove';
 
     var that = IPA.confirm_dialog(spec);
     that.values = spec.values || [];
@@ -726,16 +726,16 @@ IPA.confirm_dialog = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'confirm_dialog';
-    spec.title = spec.title || IPA.messages.dialogs.confirmation;
+    spec.title = spec.title || '@i18n:dialogs.confirmation';
 
     var that = IPA.dialog(spec);
     IPA.confirm_mixin().apply(that);
 
-    that.message = spec.message || '';
+    that.message = text.get(spec.message);
     that.on_ok = spec.on_ok;
     that.on_cancel = spec.on_cancel;
-    that.ok_label = spec.ok_label || IPA.messages.buttons.ok;
-    that.cancel_label = spec.cancel_label || IPA.messages.buttons.cancel;
+    that.ok_label = text.get(spec.ok_label || '@i18n:buttons.ok');
+    that.cancel_label = text.get(spec.cancel_label || '@i18n:buttons.cancel');
     that.confirmed = false;
     that.confirm_on_enter = spec.confirm_on_enter !== undefined ? spec.confirm_on_enter : true;
 

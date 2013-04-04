@@ -385,7 +385,7 @@ IPA.batch_remove_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'remove';
-    spec.label = spec.label || IPA.messages.buttons.remove;
+    spec.label = spec.label || '@i18n:buttons.remove';
     spec.enable_cond = spec.enable_cond || ['item-selected'];
     spec.hide_cond = spec.hide_cond || ['self-service'];
 
@@ -402,7 +402,7 @@ IPA.add_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'add';
-    spec.label = spec.label || IPA.messages.buttons.add;
+    spec.label = spec.label || '@i18n:buttons.add';
     spec.hide_cond = spec.hide_cond || ['self-service'];
 
     var that = IPA.action(spec);
@@ -482,8 +482,8 @@ IPA.batch_disable_action = function(spec) {
     spec.method = spec.method || 'disable';
     spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
     spec.enable_cond = spec.enable_cond || ['item-selected'];
-    spec.success_msg = spec.success_msg || IPA.messages.search.disabled;
-    spec.confirm_msg = spec.confirm_msg || IPA.messages.search.disable_confirm;
+    spec.success_msg = spec.success_msg || '@i18n:search.disabled';
+    spec.confirm_msg = spec.confirm_msg || '@i18n:search.disable_confirm';
 
     return IPA.batch_items_action(spec);
 };
@@ -496,8 +496,8 @@ IPA.batch_enable_action = function(spec) {
     spec.method = spec.method || 'enable';
     spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
     spec.enable_cond = spec.enable_cond || ['item-selected'];
-    spec.success_msg = spec.success_msg || IPA.messages.search.enabled;
-    spec.confirm_msg = spec.confirm_msg || IPA.messages.search.enable_confirm;
+    spec.success_msg = spec.success_msg || '@i18n:search.enabled';
+    spec.confirm_msg = spec.confirm_msg || '@i18n:search.enable_confirm';
 
     return IPA.batch_items_action(spec);
 };

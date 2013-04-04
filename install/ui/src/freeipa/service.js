@@ -381,7 +381,7 @@ IPA.widget_factories['service_provisioning_status'] = IPA.service_provisioning_s
 IPA.service.unprovision_dialog = function(spec) {
 
     spec = spec || {};
-    spec.title = spec.title || IPA.messages.objects.service.unprovision_title;
+    spec.title = spec.title || '@i18n:objects.service.unprovision_title';
 
     var that = IPA.dialog(spec);
     that.facet = spec.facet;
@@ -441,7 +441,7 @@ IPA.service.unprovision_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'unprovision';
-    spec.label = spec.label || IPA.messages.objects.service.delete_key_unprovision;
+    spec.label = spec.label || '@i18n:objects.service.delete_key_unprovision';
     spec.enable_cond = spec.enable_cond || ['has_keytab', 'krbprincipalkey_w'];
 
     var that = IPA.action(spec);

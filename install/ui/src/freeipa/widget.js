@@ -1270,8 +1270,8 @@ IPA.boolean_formatter = function(spec) {
 
     var that = IPA.formatter(spec);
 
-    that.true_value = text.get(spec.true_value || IPA.messages['true']);
-    that.false_value = text.get(spec.false_value || IPA.messages['false']);
+    that.true_value = text.get(spec.true_value || '@i18n:true');
+    that.false_value = text.get(spec.false_value || '@i18n:false');
     that.show_false = spec.show_false;
     that.invert_value = spec.invert_value;
 
@@ -1330,8 +1330,8 @@ IPA.boolean_status_formatter = function(spec) {
 
     spec = spec || {};
 
-    spec.true_value = spec.true_value || IPA.messages.status.enabled;
-    spec.false_value = spec.false_value || IPA.messages.status.disabled;
+    spec.true_value = spec.true_value || '@i18n:status.enabled';
+    spec.false_value = spec.false_value || '@i18n:status.disabled';
 
     var that = IPA.boolean_formatter(spec);
 
@@ -3784,7 +3784,7 @@ IPA.sshkey_widget = function(spec) {
 IPA.action_panel = function(spec) {
 
     spec = spec || {};
-    spec.label = spec.label || IPA.messages.actions.title;
+    spec.label = spec.label || '@i18n:actions.title';
 
     var that = IPA.widget(spec);
 

@@ -1515,7 +1515,7 @@ IPA.facet_builder = function(entity) {
 
         spec.title = spec.title || entity.metadata.label;
         spec.label = spec.label || entity.metadata.label;
-        spec.tab_label = spec.tab_label || IPA.messages.facets.search;
+        spec.tab_label = spec.tab_label || '@i18n:facets.search';
         spec.factory = spec.factory || IPA.search_facet;
 
         add_redirect_info();
@@ -1526,7 +1526,7 @@ IPA.facet_builder = function(entity) {
 
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || entity.metadata.label;
-        spec.tab_label = spec.tab_label || IPA.messages.facets.search;
+        spec.tab_label = spec.tab_label || '@i18n:facets.search';
         spec.factory = spec.factory || IPA.nested_search_facet;
 
         return spec;
@@ -1535,7 +1535,7 @@ IPA.facet_builder = function(entity) {
     that.prepare_details_spec = function(spec) {
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || entity.metadata.label_singular;
-        spec.tab_label = spec.tab_label || IPA.messages.facets.details;
+        spec.tab_label = spec.tab_label || '@i18n:facets.details';
         spec.factory = spec.factory || IPA.details_facet;
 
         return spec;
@@ -1568,8 +1568,8 @@ IPA.facet_builder = function(entity) {
         spec.other_entity = spec.other_entity ||
             spec.name.substring(index+1);
 
-        spec.add_title = IPA.messages.association.add[spec.attribute_member];
-        spec.remove_title = IPA.messages.association.remove[spec.attribute_member];
+        spec.add_title = '@i18n:association.add.'+spec.attribute_member;
+        spec.remove_title = '@i18n:association.remove.'+spec.attribute_member;
 
         spec.facet_group = spec.facet_group || spec.attribute_member;
 
