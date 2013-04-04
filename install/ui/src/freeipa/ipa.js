@@ -1651,13 +1651,13 @@ IPA.unauthorized_dialog = function(spec) {
 
     that.title = spec.title || IPA.get_message('login.login', "Login");
 
-    that.message = spec.message || IPA.get_message('ajax.401.message',
+    that.message = text.get(spec.message || '@i18n:ajax.401.message',
                     "Your session has expired. Please re-login.");
 
-    that.form_auth_msg = spec.form_auth_msg || IPA.get_message('login.form_auth',
+    that.form_auth_msg = text.get(spec.form_auth_msg || '@i18n:login.form_auth',
                     "To login with username and password, enter them in the fields below then click Login.");
 
-    that.krb_auth_msg = spec.krb_auth_msg || IPA.get_message('login.krb_auth_msg',
+    that.krb_auth_msg = text.get(spec.krb_auth_msg || '@i18n:login.krb_auth_msg',
                     " To login with Kerberos, please make sure you" +
                     " have valid tickets (obtainable via kinit) and " +
                     "<a href='http://${host}/ipa/config/unauthorized.html'>configured</a>" +
