@@ -501,7 +501,7 @@ IPA.entitle.certificate_column = function(spec) {
             html: IPA.messages.objects.entitle.download,
             click: function() {
                 var dialog = IPA.cert.download_dialog({
-                    title: IPA.messages.objects.entitle.download_certificate,
+                    title: '@i18n:objects.entitle.download_certificate',
                     certificate: certificate
                 });
                 dialog.open();
@@ -717,7 +717,7 @@ IPA.entitle.download_widget = function(spec) {
                          * Hence the reason add_pem_delimiters is false.
                          */
                         var dialog = IPA.cert.download_dialog({
-                            title: IPA.messages.objects.entitle.download_certificate,
+                            title: '@i18n:objects.entitle.download_certificate',
                             certificate: userpkcs12[0].__base64__,
                             add_pem_delimiters: false
                         });

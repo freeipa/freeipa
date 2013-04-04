@@ -70,7 +70,7 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
             };
 
             var dialog = IPA.confirm_dialog({
-                title: IPA.messages.objects.realmdomains.check_dns,
+                title: '@i18n:objects.realmdomains.check_dns',
                 message: '@i18n:objects.realmdomains.check_dns_confirmation',
                 ok_label: '@i18n:objects.realmdomains.check_dns',
                 on_ok: function () {
