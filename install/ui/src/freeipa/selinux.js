@@ -205,7 +205,7 @@ IPA.selinux_details_facet = function(spec) {
                             name: 'memberuser_user',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member
                         },
                         {
@@ -214,7 +214,7 @@ IPA.selinux_details_facet = function(spec) {
                             name: 'memberuser_group',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member
                         }
                     ]
@@ -278,7 +278,7 @@ IPA.selinux_details_facet = function(spec) {
                             name: 'memberhost_host',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member
                         },
                         {
@@ -287,7 +287,7 @@ IPA.selinux_details_facet = function(spec) {
                             name: 'memberhost_hostgroup',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member
                         }
                     ]

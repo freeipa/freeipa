@@ -160,7 +160,7 @@ IPA.netgroup.details_facet = function(spec) {
                             name: 'memberuser_user',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member,
                             columns: [
                                 {
@@ -176,7 +176,7 @@ IPA.netgroup.details_facet = function(spec) {
                             name: 'memberuser_group',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member,
                             columns: [
                                 {
@@ -249,7 +249,7 @@ IPA.netgroup.details_facet = function(spec) {
                             add_method: 'add_member',
                             remove_method: 'remove_member',
                             external: 'externalhost',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member,
                             columns: [
                                 {
@@ -271,7 +271,7 @@ IPA.netgroup.details_facet = function(spec) {
                             name: 'memberhost_hostgroup',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member,
                             columns: [
                                 {

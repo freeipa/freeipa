@@ -331,7 +331,7 @@ IPA.sudorule_details_facet = function(spec) {
                             add_method: 'add_user',
                             remove_method: 'remove_user',
                             external: 'externaluser',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member
                         },
                         {
@@ -340,7 +340,7 @@ IPA.sudorule_details_facet = function(spec) {
                             name: 'memberuser_group',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member
                         }
                     ]
@@ -406,7 +406,7 @@ IPA.sudorule_details_facet = function(spec) {
                             add_method: 'add_host',
                             remove_method: 'remove_host',
                             external: 'externalhost',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member
                         },
                         {
@@ -415,7 +415,7 @@ IPA.sudorule_details_facet = function(spec) {
                             name: 'memberhost_hostgroup',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
-                            add_title: IPA.messages.association.add.member,
+                            add_title: '@i18n:association.add.member',
                             remove_title: IPA.messages.association.remove.member
                         }
                     ]
@@ -497,7 +497,7 @@ IPA.sudorule_details_facet = function(spec) {
                             name: 'memberallowcmd_sudocmd',
                             add_method: 'add_allow_command',
                             remove_method: 'remove_allow_command',
-                            add_title: IPA.messages.association.add.memberallowcmd,
+                            add_title: '@i18n:association.add.memberallowcmd',
                             remove_title: IPA.messages.association.remove.memberallowcmd
                         },
                         {
@@ -506,7 +506,7 @@ IPA.sudorule_details_facet = function(spec) {
                             name: 'memberallowcmd_sudocmdgroup',
                             add_method: 'add_allow_command',
                             remove_method: 'remove_allow_command',
-                            add_title: IPA.messages.association.add.memberallowcmd,
+                            add_title: '@i18n:association.add.memberallowcmd',
                             remove_title: IPA.messages.association.remove.memberallowcmd
                         }
                     ]
@@ -523,7 +523,7 @@ IPA.sudorule_details_facet = function(spec) {
                     name: 'memberdenycmd_sudocmd',
                     add_method: 'add_deny_command',
                     remove_method: 'remove_deny_command',
-                    add_title: IPA.messages.association.add.memberdenycmd,
+                    add_title: '@i18n:association.add.memberdenycmd',
                     remove_title: IPA.messages.association.remove.memberdenycmd
                 },
                 {
@@ -532,7 +532,7 @@ IPA.sudorule_details_facet = function(spec) {
                     name: 'memberdenycmd_sudocmdgroup',
                     add_method: 'add_deny_command',
                     remove_method: 'remove_deny_command',
-                    add_title: IPA.messages.association.add.memberdenycmd,
+                    add_title: '@i18n:association.add.memberdenycmd',
                     remove_title: IPA.messages.association.remove.memberdenycmd
                 }
             ]
@@ -602,7 +602,7 @@ IPA.sudorule_details_facet = function(spec) {
                             external: 'ipasudorunasextuser',
                             add_method: 'add_runasuser',
                             remove_method: 'remove_runasuser',
-                            add_title: IPA.messages.association.add.ipasudorunas,
+                            add_title: '@i18n:association.add.ipasudorunas',
                             remove_title: IPA.messages.association.remove.ipasudorunas
                         },
                         {
@@ -611,7 +611,7 @@ IPA.sudorule_details_facet = function(spec) {
                             name: 'ipasudorunas_group',
                             add_method: 'add_runasuser',
                             remove_method: 'remove_runasuser',
-                            add_title: IPA.messages.association.add.ipasudorunas,
+                            add_title: '@i18n:association.add.ipasudorunas',
                             remove_title: IPA.messages.association.remove.ipasudorunas
                         }
                     ]
@@ -634,7 +634,7 @@ IPA.sudorule_details_facet = function(spec) {
                         external: 'ipasudorunasextgroup',
                         add_method: 'add_runasgroup',
                         remove_method: 'remove_runasgroup',
-                        add_title: IPA.messages.association.add.ipasudorunasgroup,
+                        add_title: '@i18n:association.add.ipasudorunasgroup',
                         remove_title: IPA.messages.association.remove.ipasudorunasgroup
                     }]
                 }
