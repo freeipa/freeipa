@@ -289,7 +289,7 @@ IPA.search_deleter_dialog = function(spec) {
 
     that.create_command = function() {
         var batch = IPA.batch_command({
-            error_message: IPA.messages.search.partial_delete
+            error_message: '@i18n:search.partial_delete'
         });
 
         for (var i=0; i<that.values.length; i++) {
