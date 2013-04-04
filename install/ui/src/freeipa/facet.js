@@ -544,7 +544,7 @@ IPA.facet = function(spec, no_init) {
             }).appendTo(li);
         };
 
-        var title = IPA.messages.error_report.title;
+        var title = text.get('@i18n:error_report.title');
         title = title.replace('${error}', error_thrown.name);
 
         that.error_container.empty();
@@ -556,14 +556,14 @@ IPA.facet = function(spec, no_init) {
         details.append('<p>'+error_thrown.message+'</p>');
 
         $('<div/>', {
-            text: IPA.messages.error_report.options
+            text: text.get('@i18n:error_report.options')
         }).appendTo(that.error_container);
 
         var options_list = $('<ul/>').appendTo(that.error_container);
 
         add_option(
             options_list,
-            IPA.messages.error_report.refresh,
+            text.get('@i18n:error_report.refresh'),
             function() {
                 that.refresh();
             }
@@ -571,7 +571,7 @@ IPA.facet = function(spec, no_init) {
 
         add_option(
             options_list,
-            IPA.messages.error_report.main_page,
+            text.get('@i18n:error_report.main_page'),
             function() {
                 navigation.show_default();
             }
@@ -579,13 +579,13 @@ IPA.facet = function(spec, no_init) {
 
         add_option(
             options_list,
-            IPA.messages.error_report.reload,
+            text.get('@i18n:error_report.reload'),
             function() {
                 window.location.reload(false);
             }
         );
 
-        that.error_container.append('<p>'+IPA.messages.error_report.problem_persists+'</p>');
+        that.error_container.append('<p>'+text.get('@i18n:error_report.problem_persists')+'</p>');
 
         that.show_error();
     };
@@ -1168,7 +1168,7 @@ IPA.table_facet = function(spec, no_init) {
         that.load_records(records);
 
         if (data.result.truncated) {
-            var message = IPA.messages.search.truncated;
+            var message = text.get('@i18n:search.truncated');
             message = message.replace('${counter}', data.result.count);
             that.table.summary.text(message);
         } else {
@@ -1214,7 +1214,7 @@ IPA.table_facet = function(spec, no_init) {
         that.table.current_page = page;
 
         if (!total) {
-            that.table.summary.text(IPA.messages.association.no_entries);
+            that.table.summary.text(text.get('@i18n:association.no_entries'));
             that.load_records([]);
             return;
         }
@@ -1224,7 +1224,7 @@ IPA.table_facet = function(spec, no_init) {
         var end = that.table.current_page * that.table.page_length;
         end = end > total ? total : end;
 
-        var summary = IPA.messages.association.paging;
+        var summary = text.get('@i18n:association.paging');
         summary = summary.replace('${start}', start);
         summary = summary.replace('${end}', end);
         summary = summary.replace('${total}', total);

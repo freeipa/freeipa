@@ -467,7 +467,7 @@ IPA.adder_dialog = function(spec) {
         }).appendTo(left_panel);
 
         $('<div/>', {
-            html: IPA.messages.dialogs.available,
+            html: text.get('@i18n:dialogs.available'),
             'class': 'adder-dialog-header ui-widget-header'
         }).appendTo(available_panel);
 
@@ -488,7 +488,7 @@ IPA.adder_dialog = function(spec) {
         }).appendTo(right_panel);
 
         $('<div/>', {
-            html: IPA.messages.dialogs.prospective,
+            html: text.get('@i18n:dialogs.prospective'),
             'class': 'adder-dialog-header ui-widget-header'
         }).appendTo(selected_panel);
 
@@ -537,7 +537,7 @@ IPA.adder_dialog = function(spec) {
             }).appendTo(left_panel);
 
             $('<div/>', {
-                html: IPA.messages.objects.sudorule.external,
+                html: text.get('@i18n:objects.sudorule.external'),
                 'class': 'adder-dialog-header ui-widget-header'
             }).appendTo(external_panel);
 

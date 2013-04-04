@@ -111,7 +111,7 @@ IPA.entity_adder_dialog = function(spec) {
     };
 
     that.get_success_message = function(data) {
-        var message = IPA.messages.dialogs.add_confirmation;
+        var message = text.get('@i18n:dialogs.add_confirmation');
         return  message.replace('${entity}', that.subject);
     };
 
@@ -191,7 +191,7 @@ IPA.entity_adder_dialog = function(spec) {
         div.append(' ');
 
         $('<span/>', {
-            text: IPA.messages.widget.validation.required
+            text: text.get('@i18n:widget.validation.required')
         }).appendTo(div);
     };
 

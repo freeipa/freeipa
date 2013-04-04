@@ -370,12 +370,12 @@ IPA.host_fqdn_field = function(spec) {
         var valid = true;
 
         if(!hostname.length || hostname[0] === '') {
-            that.hostname_widget.show_error(IPA.messages.widget.validation.required);
+            that.hostname_widget.show_error(text.get('@i18n:widget.validation.required'));
             that.valid = valid = false;
         }
 
         if(!dnszone.length || dnszone[0] === '') {
-            that.dns_zone_widget.show_error(IPA.messages.widget.validation.required);
+            that.dns_zone_widget.show_error(text.get('@i18n:widget.validation.required'));
             that.valid = valid = false;
         }
 
@@ -585,7 +585,7 @@ IPA.host_keytab_widget = function(spec) {
 
         that.missing_span.append(' ');
 
-        that.missing_span.append(IPA.messages.objects.host.keytab_missing);
+        that.missing_span.append(text.get('@i18n:objects.host.keytab_missing'));
 
         that.present_span = $('<span/>', {
             name: 'present',
@@ -599,7 +599,7 @@ IPA.host_keytab_widget = function(spec) {
 
         that.present_span.append(' ');
 
-        that.present_span.append(IPA.messages.objects.host.keytab_present);
+        that.present_span.append(text.get('@i18n:objects.host.keytab_present'));
     };
 
     that.update = function(values) {
@@ -631,7 +631,7 @@ IPA.host_unprovision_dialog = function(spec) {
     that.title = that.title.replace('${entity}', that.entity.metadata.label_singular);
 
     that.create = function() {
-        that.container.append(IPA.messages.objects.host.unprovision_confirmation);
+        that.container.append(text.get('@i18n:objects.host.unprovision_confirmation'));
     };
 
     that.create_buttons = function() {
@@ -746,7 +746,7 @@ IPA.host_password_widget = function(spec) {
 
         that.missing_span.append(' ');
 
-        that.missing_span.append(IPA.messages.objects.host.password_missing);
+        that.missing_span.append(text.get('@i18n:objects.host.password_missing'));
 
         that.present_span = $('<span/>', {
             name: 'present',
@@ -760,7 +760,7 @@ IPA.host_password_widget = function(spec) {
 
         that.present_span.append(' ');
 
-        that.present_span.append(IPA.messages.objects.host.password_present);
+        that.present_span.append(text.get('@i18n:objects.host.password_present'));
     };
 
     that.update = function(values) {
@@ -828,11 +828,11 @@ IPA.host.set_otp_dialog = function(spec) {
         var button = that.get_button('set_password');
 
         if (status == 'missing') {
-            that.title = IPA.messages.objects.host.password_set_title;
-            button.label = IPA.messages.objects.host.password_set_button;
+            that.title = text.get('@i18n:objects.host.password_set_title');
+            button.label = text.get('@i18n:objects.host.password_set_button');
         } else {
-            that.title = IPA.messages.objects.host.password_reset_title;
-            button.label = IPA.messages.objects.host.password_reset_button;
+            that.title = text.get('@i18n:objects.host.password_reset_title');
+            button.label = text.get('@i18n:objects.host.password_reset_button');
         }
     };
 

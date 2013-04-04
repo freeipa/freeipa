@@ -518,7 +518,7 @@ IPA.update_password_expiration = function() {
         diff = Math.floor(diff / 86400000);
 
         if (diff <= notify_days) {
-            message = IPA.messages.password.expires_in;
+            message = text.get('@i18n:password.expires_in');
             message = message.replace('${days}', diff);
             container.append(message + ' ');
             $('<a/>', {
@@ -527,8 +527,8 @@ IPA.update_password_expiration = function() {
                     IPA.password_selfservice();
                     return false;
                 },
-                text: IPA.messages.password.reset_password_sentence,
-                title: IPA.messages.password.reset_password
+                text: text.get('@i18n:password.reset_password_sentence'),
+                title: text.get('@i18n:password.reset_password')
             }).appendTo(container);
         }
     }
@@ -546,7 +546,7 @@ IPA.password_selfservice = function() {
             };
             command.execute();
 
-            alert(IPA.messages.password.password_change_complete);
+            alert(text.get('@i18n:password.password_change_complete'));
             reset_dialog.close();
         }
     });
@@ -1421,14 +1421,14 @@ IPA.error_dialog = function(spec) {
 
             var show_details = $('<a />', {
                 href: '#',
-                title: IPA.messages.dialogs.show_details,
-                text: IPA.messages.dialogs.show_details
+                title: text.get('@i18n:dialogs.show_details'),
+                text: text.get('@i18n:dialogs.show_details')
             }).appendTo(errors_title_div);
 
             var hide_details = $('<a />', {
                 href: '#',
-                title: IPA.messages.dialogs.hide_details,
-                text: IPA.messages.dialogs.hide_details,
+                title: text.get('@i18n:dialogs.hide_details'),
+                text: text.get('@i18n:dialogs.hide_details'),
                 style : 'display: none'
             }).appendTo(errors_title_div);
 

@@ -498,7 +498,7 @@ IPA.attributes_widget = function(spec) {
             })
         })).append($('<th/>', {
             'class': 'aci-attribute-column',
-            html: IPA.messages.objects.aci.attribute
+            html: text.get('@i18n:objects.aci.attribute')
         }));
 
         if (that.undo) {

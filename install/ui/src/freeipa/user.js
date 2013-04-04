@@ -417,7 +417,7 @@ IPA.user_adder_dialog = function(spec) {
         var password2 = field2.save()[0];
 
         if (password1 !== password2) {
-            field2.show_error(IPA.messages.password.password_must_match);
+            field2.show_error(text.get('@i18n:password.password_must_match'));
             valid = false;
         }
 

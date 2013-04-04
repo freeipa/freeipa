@@ -455,25 +455,25 @@ IPA.metadata_validator = function(spec) {
         if (metadata.type === 'int') {
             number = true;
             if (!value.match(/^-?\d+$/)) {
-                return that.false_result(IPA.messages.widget.validation.integer);
+                return that.false_result(text.get('@i18n:widget.validation.integer'));
             }
         } else if (metadata.type === 'Decimal') {
             number = true;
             if (!value.match(/^-?\d+(\.\d+)?$/)) {
-                return that.false_result(IPA.messages.widget.validation.decimal);
+                return that.false_result(text.get('@i18n:widget.validation.decimal'));
             }
         }
 
         if (number) {
 
             if (IPA.defined(metadata.minvalue, true) && Number(value) < Number(metadata.minvalue)) {
-                message = IPA.messages.widget.validation.min_value;
+                message = text.get('@i18n:widget.validation.min_value');
                 message = message.replace('${value}', metadata.minvalue);
                 return that.false_result(message);
             }
 
             if (IPA.defined(metadata.maxvalue, true) && Number(value) > Number(metadata.maxvalue)) {
-                message = IPA.messages.widget.validation.max_value;
+                message = text.get('@i18n:widget.validation.max_value');
                 message = message.replace('${value}', metadata.maxvalue);
                 return that.false_result(message);
             }

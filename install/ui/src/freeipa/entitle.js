@@ -351,7 +351,7 @@ IPA.entitle.details_facet = function(spec) {
     that.refresh = function() {
 
         var summary = $('span[name=summary]', that.container).empty();
-        summary.append(IPA.messages.objects.entitle.loading);
+        summary.append(text.get('@i18n:objects.entitle.loading'));
 
         function on_success(data, text_status, xhr) {
             if (that.entity.status == IPA.entitle.unregistered) {
@@ -498,7 +498,7 @@ IPA.entitle.certificate_column = function(spec) {
 
         $('<a/>', {
             href: '#download',
-            html: IPA.messages.objects.entitle.download,
+            html: text.get('@i18n:objects.entitle.download'),
             click: function() {
                 var dialog = IPA.cert.download_dialog({
                     title: '@i18n:objects.entitle.download_certificate',
@@ -700,13 +700,13 @@ IPA.entitle.download_widget = function(spec) {
     that.create = function(container) {
         that.link = $('<a/>', {
             'href': '#download',
-            'html': IPA.messages.objects.entitle.download,
+            'html': text.get('@i18n:objects.entitle.download'),
             'click': function() {
                 that.entity.get_accounts(
                     function(data, text_status, xhr) {
                         var userpkcs12 = data.result.result[0].userpkcs12;
                         if (!userpkcs12) {
-                            alert(IPA.messages.objects.entitle.no_certificate);
+                            alert(text.get('@i18n:objects.entitle.no_certificate'));
                             return;
                         }
 

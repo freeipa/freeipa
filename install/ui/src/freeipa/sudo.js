@@ -782,7 +782,7 @@ IPA.sudo.options_section = function(spec) {
 
         var label = IPA.get_command_option('sudorule_add_option', 'ipasudoopt').label;
 
-        var title = IPA.messages.dialogs.add_title;
+        var title = text.get('@i18n:dialogs.add_title');
         title = title.replace('${entity}', label);
 
         var dialog = IPA.dialog({
@@ -848,14 +848,14 @@ IPA.sudo.options_section = function(spec) {
         var values = that.table.get_selected_values();
 
         if (!values.length) {
-            var message = IPA.messages.dialogs.remove_empty;
+            var message = text.get('@i18n:dialogs.remove_empty');
             alert(message);
             return;
         }
 
         var pkey = that.facet.get_pkey();
 
-        var title = IPA.messages.dialogs.remove_title;
+        var title = text.get('@i18n:dialogs.remove_title');
         title = title.replace('${entity}', label);
 
         var dialog = IPA.deleter_dialog({

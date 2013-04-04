@@ -124,7 +124,7 @@ IPA.section_builder = function(spec) {
         section_spec.facet = that.container;
 
         if (!section_spec.label && section_spec.name && that.container.entity) {
-            var obj_messages = IPA.messages.objects[that.container.entity.name];
+            var obj_messages = text.get('@i18n:objects.'+that.container.entity.name);
             section_spec.label = obj_messages[section_spec.name];
         }
 
@@ -470,7 +470,7 @@ IPA.details_facet = function(spec, no_init) {
     };
 
     that.nofify_update_success = function() {
-        var msg = IPA.messages.details.updated;
+        var msg = text.get('@i18n:details.updated');
         var key = that.get_pkey();
         msg = msg.replace('${entity}', that.entity.metadata.label_singular);
         msg = msg.replace('${primary_key}', key);
@@ -1183,7 +1183,7 @@ IPA.enabled_summary_cond = function() {
     return {
         pos: ['enabled'],
         neg: [],
-        description: IPA.messages.status.enabled,
+        description: text.get('@i18n:status.enabled'),
         state: ['enabled']
     };
 };
@@ -1192,7 +1192,7 @@ IPA.disabled_summary_cond = function() {
     return {
         pos: [],
         neg: ['enabled'],
-        description: IPA.messages.status.disabled,
+        description: text.get('@i18n:status.disabled'),
         state: ['disabled']
     };
 };

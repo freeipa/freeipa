@@ -327,7 +327,7 @@ IPA.hbac.test_select_facet = function(spec) {
             }
         }).appendTo(td);
 
-        var message = IPA.messages.objects.hbactest.specify_external;
+        var message = text.get('@i18n:objects.hbactest.specify_external');
         message = message.replace('${entity}', that.managed_entity.metadata.label_singular);
 
         $('<label/>', {
@@ -434,7 +434,7 @@ IPA.hbac.test_rules_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-include-enabled',
-            text: IPA.messages.objects.hbactest.include_enabled
+            text: text.get('@i18n:objects.hbactest.include_enabled')
         }).appendTo(header);
 
         that.disabled = $('<input/>', {
@@ -445,7 +445,7 @@ IPA.hbac.test_rules_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-include-disabled',
-            text: IPA.messages.objects.hbactest.include_disabled
+            text: text.get('@i18n:objects.hbactest.include_disabled')
         }).appendTo(header);
 
         var content = $('<div/>', {
@@ -534,7 +534,7 @@ IPA.hbac.test_run_facet = function(spec) {
         }).appendTo(result_panel);
 
         var title = $('<span/>', {
-            text: IPA.messages.objects.hbactest.rules,
+            text: text.get('@i18n:objects.hbactest.rules'),
             'class': 'hbac-test-title'
         }).appendTo(header);
 
@@ -553,7 +553,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-matched',
-            text: IPA.messages.objects.hbactest.matched
+            text: text.get('@i18n:objects.hbactest.matched')
         }).appendTo(header);
 
         that.unmatched_checkbox = $('<input/>', {
@@ -569,7 +569,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-unmatched',
-            text: IPA.messages.objects.hbactest.unmatched
+            text: text.get('@i18n:objects.hbactest.unmatched')
         }).appendTo(header);
 
         var content = $('<div/>', {
@@ -644,8 +644,8 @@ IPA.hbac.test_run_facet = function(spec) {
     that.refresh = function() {
         if (that.data) {
             var message = that.data.result.value ?
-                IPA.messages.objects.hbactest.access_granted :
-                IPA.messages.objects.hbactest.access_denied;
+                text.get('@i18n:objects.hbactest.access_granted') :
+                text.get('@i18n:objects.hbactest.access_denied');
             that.test_result.text(message);
 
         } else {
@@ -770,7 +770,7 @@ IPA.hbac.validation_dialog = function(spec)  {
 
             if (invalid_facets.length > 0) {
                 var div = $('<div/>',{
-                     text: IPA.messages.objects.hbactest.missing_values
+                     text: text.get('@i18n:objects.hbactest.missing_values')
                 }).appendTo(that.container);
                 ul = $('<ul/>').appendTo(that.container);
             }

@@ -210,7 +210,7 @@ IPA.entity_builder = function() {
         }
 
         if (facet_group.label == undefined) {
-            facet_group.label = IPA.messages.facet_groups[facet_group.name];
+            facet_group.label = text.get('@i18n:facet_groups.'+facet_group.name);
         }
 
         entity.add_facet_group(facet_group);
@@ -398,7 +398,7 @@ IPA.entity_builder = function() {
         spec.name = spec.name || 'add';
 
         if (!spec.title) {
-            var title = IPA.messages.dialogs.add_title;
+            var title = text.get('@i18n:dialogs.add_title');
             var label = entity.metadata.label_singular;
             spec.title = title.replace('${entity}', label);
         }

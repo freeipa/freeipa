@@ -1273,10 +1273,10 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
 
     that.create = function() {
         $('<p/>', {
-            'text': IPA.messages.objects.dnsrecord.deleted_no_data
+            'text': text.get('@i18n:objects.dnsrecord.deleted_no_data')
         }).appendTo(that.container);
         $('<p/>', {
-            'text': IPA.messages.objects.dnsrecord.redirection_dnszone
+            'text': text.get('@i18n:objects.dnsrecord.redirection_dnszone')
         }).appendTo(that.container);
     };
 
@@ -1807,7 +1807,7 @@ IPA.dns.record_type_table_widget = function(spec) {
         var selected_values = that.get_selected_values();
 
         if (!selected_values.length) {
-            var message = IPA.messages.dialogs.remove_empty;
+            var message = text.get('@i18n:dialogs.remove_empty');
             alert(message);
             return;
         }
@@ -1856,7 +1856,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
     that.create_add_dialog = function() {
 
-        var title = IPA.messages.dialogs.add_title;
+        var title = text.get('@i18n:dialogs.add_title');
         var label = that.entity.metadata.label_singular;
 
         var dialog_spec = {
@@ -1882,7 +1882,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.get_add_message = function() {
             var label = that.entity.metadata.label_singular;
-            var message = IPA.messages.dialogs.add_confirmation;
+            var message = text.get('@i18n:dialogs.add_confirmation');
             message = message.replace('${entity}', label);
             return message;
         };
@@ -1953,7 +1953,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
     that.create_mod_dialog = function() {
 
-        var title = IPA.messages.dialogs.edit_title;
+        var title = text.get('@i18n:dialogs.edit_title');
         var label = that.entity.metadata.label_singular;
 
         var dialog_spec = {
@@ -2238,7 +2238,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
     that.create_add_record_button = function() {
 
         $('<a />', {
-            text:  IPA.messages.objects.dnsrecord.ptr_redir_create,
+            text:  text.get('@i18n:objects.dnsrecord.ptr_redir_create'),
             href: '#create_record',
             click: function() {
                 that.create_record();
@@ -2264,7 +2264,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
     that.start_redirect = function() {
 
         if (!that.address.valid) {
-            that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_address_err);
+            that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_address_err'));
         } else {
             that.reverse_address = that.address.get_reverse().toLowerCase()+'.';
             that.get_zones();
@@ -2274,7 +2274,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
     //1st step: get all zones
     that.get_zones = function() {
 
-        that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_zones);
+        that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_zones'));
 
         var command = IPA.command({
             entity: 'dnszone',
@@ -2284,7 +2284,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
             },
             on_success: that.find_zone,
             on_error: function() {
-                that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_zones_err);
+                that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_zones_err'));
             }
         });
 
@@ -2300,7 +2300,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
 
             var zone_name = zones[i].idnsname[0];
             if (that.reverse_address.indexOf(zone_name) > -1) {
-                var msg = IPA.messages.objects.dnsrecord.ptr_redir_zone;
+                var msg = text.get('@i18n:objects.dnsrecord.ptr_redir_zone');
                 msg = msg.replace('${zone}', zone_name);
                 that.append_status(msg);
 
@@ -2318,14 +2318,14 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
             that.zone = target_zone;
             that.check_record();
         } else {
-            that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_zone_err);
+            that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_zone_err'));
         }
     };
 
     //3rd step: check record existance
     that.check_record = function(zone) {
 
-        that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_record);
+        that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_record'));
 
         var i1 = that.reverse_address.indexOf(that.zone);
         var record_name = that.reverse_address.substring(0,i1 - 1);
@@ -2339,7 +2339,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
                 that.redirect();
             },
             on_error: function() {
-                that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_record_err);
+                that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_record_err'));
                 if (that.dns_record) {
                     that.create_add_record_button();
                 }
@@ -2364,7 +2364,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
     //4th-b optional step: create PTR record
     that.create_record = function() {
 
-        that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_creating);
+        that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_creating'));
 
         var ptr = that.dns_record.name +'.' + that.dns_record.zone;
 
@@ -2379,7 +2379,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
                 that.redirect();
             },
             on_error: function() {
-                that.append_status(IPA.messages.objects.dnsrecord.ptr_redir_creating_err);
+                that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_creating_err'));
             }
         });
 
@@ -2463,7 +2463,7 @@ IPA.dnsforwarder_validator = function(spec) {
             var port = parts[2];
 
             if (!port.match(/^[1-9]\d*$|^0$/) || port < 0 || port > 65535) {
-                var message = IPA.messages.widget.validation.port;
+                var message = text.get('@i18n:widget.validation.port');
                 message = message.replace('${port}', port);
                 return that.false_result(message);
             }

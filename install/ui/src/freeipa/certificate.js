@@ -225,15 +225,15 @@ IPA.cert.revoke_dialog = function(spec) {
         var tr = $('<tr/>').appendTo(table);
 
         var td = $('<td/>').appendTo(tr);
-        td.append(IPA.messages.objects.cert.note+':');
+        td.append(text.get('@i18n:objects.cert.note')+':');
 
         td = $('<td/>').appendTo(tr);
-        td.append(IPA.messages.objects.cert.revoke_confirmation);
+        td.append(text.get('@i18n:objects.cert.revoke_confirmation'));
 
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>').appendTo(tr);
-        td.append(IPA.messages.objects.cert.reason+':');
+        td.append(text.get('@i18n:objects.cert.reason')+':');
 
         td = $('<td/>').appendTo(tr);
 
@@ -243,7 +243,7 @@ IPA.cert.revoke_dialog = function(spec) {
             if (!reason) continue;
             $('<option/>', {
                 'value': i,
-                'html': IPA.messages.objects.cert[reason]
+                'html': text.get('@i18n:objects.cert.'+reason)
             }).appendTo(that.select);
         }
     };
@@ -284,35 +284,35 @@ IPA.cert.view_dialog = function(spec) {
         var tr = $('<tr/>').appendTo(table);
         $('<td/>', {
             'colspan': 2,
-            'html': '<h3>'+IPA.messages.objects.cert.issued_to+'</h3>'
+            'html': '<h3>'+text.get('@i18n:objects.cert.issued_to')+'</h3>'
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.common_name+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.common_name')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.subject.cn
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.organization+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.organization')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.subject.o
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.organizational_unit+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.organizational_unit')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.subject.ou
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.serial_number+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.serial_number')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.serial_number
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.serial_number_hex+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.serial_number_hex')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.serial_number_hex
         }).appendTo(tr);
@@ -320,23 +320,23 @@ IPA.cert.view_dialog = function(spec) {
         tr = $('<tr/>').appendTo(table);
         $('<td/>', {
             'colspan': 2,
-            'html': '<h3>'+IPA.messages.objects.cert.issued_by+'</h3>'
+            'html': '<h3>'+text.get('@i18n:objects.cert.issued_by')+'</h3>'
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.common_name+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.common_name')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.issuer.cn
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.organization+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.organization')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.issuer.o
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.organizational_unit+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.organizational_unit')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.issuer.ou
         }).appendTo(tr);
@@ -344,17 +344,17 @@ IPA.cert.view_dialog = function(spec) {
         tr = $('<tr/>').appendTo(table);
         $('<td/>', {
             'colspan': 2,
-            'html': '<h3>'+IPA.messages.objects.cert.validity+'</h3>'
+            'html': '<h3>'+text.get('@i18n:objects.cert.validity')+'</h3>'
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.issued_on+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.issued_on')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.issued_on
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.expires_on+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.expires_on')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.expires_on
         }).appendTo(tr);
@@ -362,17 +362,17 @@ IPA.cert.view_dialog = function(spec) {
         tr = $('<tr/>').appendTo(table);
         $('<td/>', {
             'colspan': 2,
-            'html': '<h3>'+IPA.messages.objects.cert.fingerprints+'</h3>'
+            'html': '<h3>'+text.get('@i18n:objects.cert.fingerprints')+'</h3>'
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.sha1_fingerprint+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.sha1_fingerprint')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.sha1_fingerprint
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
-        $('<td>'+IPA.messages.objects.cert.md5_fingerprint+':</td>').appendTo(tr);
+        $('<td>'+text.get('@i18n:objects.cert.md5_fingerprint')+':</td>').appendTo(tr);
         $('<td/>', {
             text: that.md5_fingerprint
         }).appendTo(tr);
@@ -552,7 +552,7 @@ IPA.cert.view_action = function(spec) {
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
 
-        var title = IPA.messages.objects.cert.view_certificate;
+        var title = text.get('@i18n:objects.cert.view_certificate');
         title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', entity_name);
 
@@ -585,7 +585,7 @@ IPA.cert.get_action = function(spec) {
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
 
-        var title = IPA.messages.objects.cert.view_certificate;
+        var title = text.get('@i18n:objects.cert.view_certificate');
         title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', entity_name);
 
@@ -620,11 +620,11 @@ IPA.cert.request_action = function(spec) {
         var entity_name = certificate.entity_info.name;
         var hostname = certificate.entity_info.hostname;
 
-        var title = IPA.messages.objects.cert.issue_certificate;
+        var title = text.get('@i18n:objects.cert.issue_certificate');
         title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', entity_name);
 
-        var request_message = IPA.messages.objects.cert.request_message;
+        var request_message = text.get('@i18n:objects.cert.request_message');
         request_message = request_message.replace(/\$\{hostname\}/g, hostname);
         request_message = request_message.replace(/\$\{realm\}/g, IPA.env.realm);
 
@@ -677,9 +677,9 @@ IPA.cert.revoke_action = function(spec) {
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
 
-        var title = IPA.messages.objects.cert.revoke_certificate_simple;
+        var title = text.get('@i18n:objects.cert.revoke_certificate_simple');
         if (entity_name && entity_label) {
-            title = IPA.messages.objects.cert.revoke_certificate;
+            title = text.get('@i18n:objects.cert.revoke_certificate');
             title = title.replace('${entity}', entity_label);
             title = title.replace('${primary_key}', entity_name);
         }
@@ -734,9 +734,9 @@ IPA.cert.restore_action = function(spec) {
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
 
-        var title = IPA.messages.objects.cert.restore_certificate_simple;
+        var title = text.get('@i18n:objects.cert.restore_certificate_simple');
         if (entity_name && entity_label) {
-            title = IPA.messages.objects.cert.restore_certificate;
+            title = text.get('@i18n:objects.cert.restore_certificate');
             title = title.replace('${entity}', entity_label);
             title = title.replace('${primary_key}', entity_name);
         }
@@ -828,7 +828,7 @@ IPA.cert.status_widget = function(spec) {
             style: 'float: left;'
         }).appendTo(that.status_valid);
 
-        content_div.append('<b>'+IPA.messages.objects.cert.valid+'</b>');
+        content_div.append('<b>'+text.get('@i18n:objects.cert.valid')+'</b>');
 
         that.status_revoked = $('<div/>', {
             name: 'certificate-revoked',
@@ -845,7 +845,7 @@ IPA.cert.status_widget = function(spec) {
             style: 'float: left;'
         }).appendTo(that.status_revoked);
 
-        content_div.append('<b>'+IPA.messages.objects.cert.revoked+'</b>');
+        content_div.append('<b>'+text.get('@i18n:objects.cert.revoked')+'</b>');
         content_div.append(' ');
         that.revocation_reason = $('<span/>', {
             'name': 'revocation_reason'
@@ -866,7 +866,7 @@ IPA.cert.status_widget = function(spec) {
             style: 'float: left;'
         }).appendTo(that.status_missing);
 
-        content_div.append('<b>'+IPA.messages.objects.cert.missing+'</b>');
+        content_div.append('<b>'+text.get('@i18n:objects.cert.missing')+'</b>');
     };
 
     that.update = function(certificate) {
@@ -900,7 +900,7 @@ IPA.cert.status_widget = function(spec) {
             that.status_revoked.css('display', status === IPA.cert.CERTIFICATE_STATUS_REVOKED ? '' : 'none');
 
             var reason = IPA.cert.CRL_REASON[revocation_reason];
-            that.revocation_reason.html(revocation_reason === undefined || reason === null ? '' : IPA.messages.objects.cert[reason]);
+            that.revocation_reason.html(revocation_reason === undefined || reason === null ? '' : text.get('@i18n:objects.cert.'+reason));
         }
     };
 
@@ -985,8 +985,8 @@ IPA.cert.entity = function(spec) {
         var cmd = IPA.metadata.commands['cert_find'];
         var entity = lang.clone(cmd);
         entity.attribute_members = {};
-        entity.label = IPA.messages.objects.cert.certificates;
-        entity.label_singular = IPA.messages.objects.cert.certificate;
+        entity.label = text.get('@i18n:objects.cert.certificates');
+        entity.label_singular = text.get('@i18n:objects.cert.certificate');
         entity.methods = [
             'find',
             'remove-hold',
@@ -1007,36 +1007,36 @@ IPA.cert.entity = function(spec) {
         get_param(entity.takes_params, 'subject').flags = ['no_update'];
         var reason = get_param(entity.takes_params, 'revocation_reason');
         reason.flags = ['no_update'];
-        reason.label = IPA.messages.objects.cert.revocation_reason;
+        reason.label = text.get('@i18n:objects.cert.revocation_reason');
 
         add_param('serial_number',
-                  IPA.messages.objects.cert.serial_number,
-                  IPA.messages.objects.cert.serial_number,
+                  text.get('@i18n:objects.cert.serial_number'),
+                  text.get('@i18n:objects.cert.serial_number'),
                   true);
         add_param('serial_number_hex',
-                  IPA.messages.objects.cert.serial_number_hex,
-                  IPA.messages.objects.cert.serial_number_hex);
+                  text.get('@i18n:objects.cert.serial_number_hex'),
+                  text.get('@i18n:objects.cert.serial_number_hex'));
         add_param('issuer',
-                  IPA.messages.objects.cert.issued_by,
-                  IPA.messages.objects.cert.issued_by);
+                  text.get('@i18n:objects.cert.issued_by'),
+                  text.get('@i18n:objects.cert.issued_by'));
         add_param('status',
-                  IPA.messages.objects.cert.status,
-                  IPA.messages.objects.cert.status);
+                  text.get('@i18n:objects.cert.status'),
+                  text.get('@i18n:objects.cert.status'));
         add_param('valid_not_before',
-                  IPA.messages.objects.cert.issued_on,
-                  IPA.messages.objects.cert.issued_on);
+                  text.get('@i18n:objects.cert.issued_on'),
+                  text.get('@i18n:objects.cert.issued_on'));
         add_param('valid_not_after',
-                  IPA.messages.objects.cert.expires_on,
-                  IPA.messages.objects.cert.expires_on);
+                  text.get('@i18n:objects.cert.expires_on'),
+                  text.get('@i18n:objects.cert.expires_on'));
         add_param('md5_fingerprint',
-                  IPA.messages.objects.cert.md5_fingerprint,
-                  IPA.messages.objects.cert.md5_fingerprint);
+                  text.get('@i18n:objects.cert.md5_fingerprint'),
+                  text.get('@i18n:objects.cert.md5_fingerprint'));
         add_param('sha1_fingerprint',
-                  IPA.messages.objects.cert.sha1_fingerprint,
-                  IPA.messages.objects.cert.sha1_fingerprint);
+                  text.get('@i18n:objects.cert.sha1_fingerprint'),
+                  text.get('@i18n:objects.cert.sha1_fingerprint'));
         add_param('certificate',
-                  IPA.messages.objects.cert.certificate,
-                  IPA.messages.objects.cert.certificate);
+                  text.get('@i18n:objects.cert.certificate'),
+                  text.get('@i18n:objects.cert.certificate'));
 
 
         IPA.metadata.objects.cert = entity;

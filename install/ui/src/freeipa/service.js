@@ -336,7 +336,7 @@ IPA.service_provisioning_status_widget = function (spec) {
             style: 'float: left;'
         }).appendTo(that.status_valid);
 
-        content_div.append('<b>'+IPA.messages.objects.service.valid+'</b>');
+        content_div.append('<b>'+text.get('@i18n:objects.service.valid')+'</b>');
 
         that.status_missing = $('<div/>', {
             name: 'kerberos-key-missing',
@@ -353,7 +353,7 @@ IPA.service_provisioning_status_widget = function (spec) {
             style: 'float: left;'
         }).appendTo(that.status_missing);
 
-        content_div.append('<b>'+IPA.messages.objects.service.missing+'</b>');
+        content_div.append('<b>'+text.get('@i18n:objects.service.missing')+'</b>');
     };
 
     that.update = function(values) {
@@ -390,7 +390,7 @@ IPA.service.unprovision_dialog = function(spec) {
     that.title = that.title.replace('${entity}', entity_singular);
 
     that.create = function() {
-        that.container.append(IPA.messages.objects.service.unprovision_confirmation);
+        that.container.append(text.get('@i18n:objects.service.unprovision_confirmation'));
     };
 
     that.create_buttons = function() {

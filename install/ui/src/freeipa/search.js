@@ -146,7 +146,7 @@ IPA.search_facet = function(spec, no_init) {
 
         var title;
         if (!values.length) {
-            title = IPA.messages.dialogs.remove_empty;
+            title = text.get('@i18n:dialogs.remove_empty');
             alert(title);
             return null;
         }
@@ -162,7 +162,7 @@ IPA.search_facet = function(spec, no_init) {
         dialog.facet = that;
         dialog.pkey_prefix = that.managed_entity_pkey_prefix();
 
-        title = IPA.messages.dialogs.remove_title;
+        title = text.get('@i18n:dialogs.remove_title');
         var label = that.managed_entity.metadata.label;
         dialog.title = title.replace('${entity}', label);
 

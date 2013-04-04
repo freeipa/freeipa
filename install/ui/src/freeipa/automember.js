@@ -679,9 +679,9 @@ IPA.automember.default_group_widget = function(spec) {
 
     that.get_title = function() {
         if (that.group_type === 'group') {
-            return IPA.messages.objects.automember.default_user_group;
+            return text.get('@i18n:objects.automember.default_user_group');
         } else {
-            return IPA.messages.objects.automember.default_host_group;
+            return text.get('@i18n:objects.automember.default_host_group');
         }
     };
 

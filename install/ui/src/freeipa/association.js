@@ -619,7 +619,7 @@ IPA.association_table_widget = function (spec) {
         var selected_values = that.get_selected_values();
 
         if (!selected_values.length) {
-            var message = IPA.messages.dialogs.remove_empty;
+            var message = text.get('@i18n:dialogs.remove_empty');
             alert(message);
             return;
         }
@@ -910,7 +910,7 @@ IPA.association_facet = function (spec, no_init) {
                 'class': 'right-aligned-facet-controls'
             }).appendTo(that.controls);
 
-            div.append(IPA.messages.association.show_results);
+            div.append(text.get('@i18n:association.show_results'));
             div.append(' ');
 
             var name = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity.name+'-type-radio';
@@ -929,7 +929,7 @@ IPA.association_facet = function (spec, no_init) {
             }).appendTo(div);
 
             $('<label/>', {
-                text: IPA.messages.association.direct_membership,
+                text: text.get('@i18n:association.direct_membership'),
                 'for': direct_id
             }).appendTo(div);
 
@@ -950,7 +950,7 @@ IPA.association_facet = function (spec, no_init) {
             }).appendTo(div);
 
             $('<label/>', {
-                text: IPA.messages.association.indirect_membership,
+                text: text.get('@i18n:association.indirect_membership'),
                 'for': indirect_id
             }).appendTo(div);
         }
@@ -1031,7 +1031,7 @@ IPA.association_facet = function (spec, no_init) {
         var values = that.table.get_selected_values();
 
         if (!values.length) {
-            var message = IPA.messages.dialogs.remove_empty;
+            var message = text.get('@i18n:dialogs.remove_empty');
             alert(message);
             return;
         }
@@ -1284,7 +1284,7 @@ IPA.attribute_facet = function(spec, no_init) {
         var selected_values = that.get_selected_values();
 
         if (!selected_values.length) {
-            var message = IPA.messages.dialogs.remove_empty;
+            var message = text.get('@i18n:dialogs.remove_empty');
             alert(message);
             return;
         }

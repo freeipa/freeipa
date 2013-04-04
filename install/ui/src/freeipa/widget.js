@@ -147,7 +147,7 @@ IPA.input_widget = function(spec) {
                 name: 'undo',
                 style: 'display: none;',
                 'class': 'ui-state-highlight ui-corner-all undo',
-                html: IPA.messages.widget.undo
+                html: text.get('@i18n:widget.undo')
             }).appendTo(container);
 
         if(on_undo === undefined) {
@@ -483,8 +483,8 @@ IPA.multivalued_widget = function(spec) {
         row.remove_link = $('<a/>', {
             name: 'remove',
             href: 'jslink',
-            title: IPA.messages.buttons.remove,
-            html: IPA.messages.buttons.remove,
+            title: text.get('@i18n:buttons.remove'),
+            html: text.get('@i18n:buttons.remove'),
             click: function () {
                 that.remove_row(row);
                 that.value_changed.notify([], that);
@@ -512,8 +512,8 @@ IPA.multivalued_widget = function(spec) {
         that.add_link = $('<a/>', {
             name: 'add',
             href: 'jslink',
-            title: IPA.messages.buttons.add,
-            html: IPA.messages.buttons.add,
+            title: text.get('@i18n:buttons.add'),
+            html: text.get('@i18n:buttons.add'),
             click: function() {
                 that.add_row('');
                 that.focus_last();
@@ -528,7 +528,7 @@ IPA.multivalued_widget = function(spec) {
             name: 'undo_all',
             style: 'display: none;',
             'class': 'ui-state-highlight ui-corner-all undo',
-            html: IPA.messages.widget.undo_all,
+            html: text.get('@i18n:widget.undo_all'),
             click: function() {
                 that.undo_clicked.notify([], that);
             }
@@ -1528,7 +1528,7 @@ IPA.table_widget = function (spec) {
                 var select_all_checkbox = $('<input/>', {
                     type: 'checkbox',
                     name: that.name,
-                    title: IPA.messages.search.select_all
+                    title: text.get('@i18n:search.select_all')
                 }).appendTo(th);
 
                 select_all_checkbox.change(function() {
@@ -1688,7 +1688,7 @@ IPA.table_widget = function (spec) {
         if (that.pagination) {
 
             $('<a/>', {
-                text: IPA.messages.widget.prev,
+                text: text.get('@i18n:widget.prev'),
                 name: 'prev_page',
                 click: function() {
                     that.prev_page();
@@ -1699,7 +1699,7 @@ IPA.table_widget = function (spec) {
             that.pagination_control.append(' ');
 
             $('<a/>', {
-                text: IPA.messages.widget.next,
+                text: text.get('@i18n:widget.next'),
                 name: 'next_page',
                 click: function() {
                     that.next_page();
@@ -1708,7 +1708,7 @@ IPA.table_widget = function (spec) {
             }).appendTo(that.pagination_control);
 
             that.pagination_control.append(' ');
-            that.pagination_control.append(IPA.messages.widget.page);
+            that.pagination_control.append(text.get('@i18n:widget.page'));
             that.pagination_control.append(': ');
 
             that.current_page_input = $('<input/>', {
@@ -1760,14 +1760,14 @@ IPA.table_widget = function (spec) {
 
     that.select_all = function() {
         $('input[name="'+that.name+'"]', that.thead).prop('checked', true).
-            attr('title', IPA.messages.search.unselect_all);
+            attr('title', text.get('@i18n:search.unselect_all'));
         $('input[name="'+that.name+'"]', that.tbody).prop('checked', true);
         that.select_changed();
     };
 
     that.unselect_all = function() {
         $('input[name="'+that.name+'"]', that.thead).prop('checked', false).
-            attr('title', IPA.messages.search.select_all);
+            attr('title', text.get('@i18n:search.select_all'));
         $('input[name="'+that.name+'"]', that.tbody).prop('checked', false);
         that.select_changed();
     };
@@ -2129,7 +2129,7 @@ IPA.attribute_table_widget = function(spec) {
         var selected_values = that.get_selected_values();
 
         if (!selected_values.length) {
-            var message = IPA.messages.dialogs.remove_empty;
+            var message = text.get('@i18n:dialogs.remove_empty');
             alert(message);
             return null;
         }
@@ -2244,7 +2244,7 @@ IPA.attribute_table_widget = function(spec) {
                 dialog.add(
                     function(data, text_status, xhr) {
                         var label = that.entity.metadata.label_singular;
-                        var message = IPA.messages.dialogs.add_confirmation;
+                        var message = text.get('@i18n:dialogs.add_confirmation');
                         message = message.replace('${entity}', label);
                         dialog.show_message(message);
 
@@ -3138,7 +3138,7 @@ IPA.table_layout = function(spec) {
     that.get_measurement_unit_text = function(widget) {
 
         if (widget.measurement_unit) {
-            var unit = IPA.messages.measurement_units[widget.measurement_unit];
+            var unit = text.get('@i18n:measurement_units.'+widget.measurement_unit);
             return ' (' + unit + ')';
         }
         return '';
@@ -3636,7 +3636,7 @@ IPA.sshkey_widget = function(spec) {
             name: that.name,
             href: '#show-certificate',
             title: that.tooltip,
-            text: IPA.messages.objects.sshkeystore.show_set_key,
+            text: text.get('@i18n:objects.sshkeystore.show_set_key'),
             click: function() {
                 that.open_edit_dialog();
                 return false;
@@ -3696,9 +3696,9 @@ IPA.sshkey_widget = function(spec) {
 
             if (value !== that.original_key) {
                 if (value === '') {
-                    text = IPA.messages.objects.sshkeystore.status_mod_ns;
+                    text = text.get('@i18n:objects.sshkeystore.status_mod_ns');
                 } else {
-                    text = IPA.messages.objects.sshkeystore.status_mod_s;
+                    text = text.get('@i18n:objects.sshkeystore.status_mod_s');
                 }
             } else {
                 text = that.key.fingerprint;
@@ -3707,9 +3707,9 @@ IPA.sshkey_widget = function(spec) {
         } else {
 
             if (!value || value === '') {
-                text = IPA.messages.objects.sshkeystore.status_new_ns;
+                text = text.get('@i18n:objects.sshkeystore.status_new_ns');
             } else {
-                text = IPA.messages.objects.sshkeystore.status_new_s;
+                text = text.get('@i18n:objects.sshkeystore.status_new_s');
             }
         }
 
@@ -3742,7 +3742,7 @@ IPA.sshkey_widget = function(spec) {
             height: 380
         });
 
-        dialog.message = IPA.messages.objects.sshkeystore.set_dialog_help;
+        dialog.message = text.get('@i18n:objects.sshkeystore.set_dialog_help');
 
         dialog.create_button({
             name: 'update',
