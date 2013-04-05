@@ -1055,7 +1055,6 @@ IPA.cert.entity = function(spec) {
 
         that.builder.search_facet({
             factory: IPA.cert.search_facet,
-            label: '@i18n:objects.cert.label',
             pagination: false,
             no_update: true,
             columns: [
