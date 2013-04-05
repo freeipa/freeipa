@@ -50,10 +50,12 @@ define(['dojo/_base/declare',
          *
          * May be defined by single construction spec object:
          *   var construction_spec = {
-         *       type: string,
-         *       factory: function,
-         *       constructor: function,
-         *       spec: object
+         *       type: String,
+         *       factory: Function,
+         *       constructor: Function,
+         *       spec: Object,
+         *       pre_ops: [],
+         *       post_ops: []
          *   };
          *   register(construction_spec);
          *
@@ -62,13 +64,13 @@ define(['dojo/_base/declare',
          */
         register: function(type, func, default_spec) {
 
-            var spec, f, c;
+            var cs, f, c;
 
             if (typeof type === 'object') {
-                spec = type;
+                cs = type;
             } else {
                 construct.is_constructor(func) ? c = func : f = func;
-                spec = {
+                cs = {
                     type: type,
                     factory: f,
                     constructor: c,
@@ -76,16 +78,87 @@ define(['dojo/_base/declare',
                 };
             }
 
-            if (typeof spec.type !== 'string' || spec.type !== '') {
-                throw 'Argument exception: Invalid type';
-            }
-            if (typeof spec.factory !== 'function' &&
-                    typeof spec.constructor !== 'function') {
-                throw 'Argument exception: No factory or constructor defined';
+            if (!cs.pre_ops) cs.pre_ops = [];
+            if (!cs.post_ops) cs.post_ops = [];
+
+            this._check_spec(cs);
+
+            this._map[cs.type] = cs;
+            return cs;
+        },
+
+        /**
+         * Makes a copy of construct specification of original type. Extends
+         * it with values in supplied construct specification.
+         *
+         * @param {String} Original type
+         * @param {String} New type
+         * @param {Object} Construction specification
+         */
+        copy: function(org_type, new_type, construct_spec) {
+
+            var def_cs = construct_spec;
+            var old_cs = this._check_get(org_type);
+            var cs = construct.copy_cs(old_cs);
+
+            cs.type = new_type;
+            if (def_cs.pre_ops) cs.pre_ops.push.call(cs.pre_ops, def_cs.pre_ops);
+            if (def_cs.post_ops) cs.post_ops.push.call(cs.post_ops, def_cs.post_ops);
+            if (def_cs.factory) cs.factory = def_cs.factory;
+            if (def_cs.constructor) cs.constructor = def_cs.constructor;
+            if (def_cs.spec) {
+                cs.spec = cs.spec || {};
+                lang.mixin(cs.spec, def_cs.spec);
             }
 
-            this._map[spec.type] = spec;
-            return spec;
+            this._check_spec(cs);
+
+            this._map[cs.type] = cs;
+            return cs;
+        },
+
+        /**
+         * Registers pre operation.
+         *
+         * Purpose of pre operation is to modify spec object before build
+         * operation.
+         *
+         * When op is Function it gets called with spec as a param and should
+         * return modified spec.
+         *
+         * When op is Object, the object gets mixed in into spec.
+         *
+         * @param {type} type
+         * @param {Function|Object} op
+         * @param {Boolean} move op to first position
+         */
+        register_pre_op: function(type, op, first) {
+
+            var cs = this._check_get(type);
+            if (first) cs.pre_ops.unshift(op);
+            else cs.pre_ops.push(op);
+        },
+
+        /**
+         * Registers post operation.
+         *
+         * Purpose of post operation is to modify built object.
+         *
+         * When op is Function it gets called with built object as a param
+         * and should return modified obj.
+         *
+         * When op is Object, the object gets mixed in into built object. Use
+         * with caution.
+         *
+         * @param {type} type
+         * @param {Function|Object} op
+         * @param {Boolean} move op to first position
+         */
+        register_post_op: function(type, op, first) {
+
+            var cs = this._check_get(type);
+            if (first) cs.post_ops.unshift(op);
+            else cs.post_ops.push(op);
         },
 
         /**
@@ -96,6 +169,28 @@ define(['dojo/_base/declare',
          */
         get: function(type) {
             return this._map[type] || null;
+        },
+
+        _check_get: function(type) {
+            var cs = this.get(type);
+            if (!cs) throw construct.no_cs_for_type_error(type);
+            return cs;
+        },
+
+        _check_spec: function(spec) {
+            if (typeof spec.type !== 'string' || spec.type === '') {
+                throw 'Argument exception: Invalid type';
+            }
+            if (typeof spec.factory !== 'function' &&
+                    typeof spec.constructor !== 'function') {
+                throw 'Argument exception: No factory or constructor defined';
+            }
+            if (!lang.isArrayLike(spec.pre_ops)) {
+                throw 'Argument exception: Invalid pre_ops type.';
+            }
+            if (!lang.isArrayLike(spec.post_ops)) {
+                throw 'Argument exception: Invalid post_ops type.';
+            }
         }
     });
 

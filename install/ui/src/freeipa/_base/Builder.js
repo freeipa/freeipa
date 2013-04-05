@@ -41,17 +41,19 @@ define(['dojo/_base/declare',
         /**
          * Build object based on spec.
          *
-         * @param spec {String|Function|Object} Build spec
+         * @param {String|Function|Object} Build spec
          *
          * String: type name, queries registry
          * Function: factory or constructor
          * Object: spec object
          *
          * Build control properies of spec object:
-         *      constructor: Function
-         *      factory: Function
-         *      mixim_spec: Boolean
-         *      type: String
+         *      $constructor: Function
+         *      $factory: Function
+         *      $mixim_spec: Boolean
+         *      $type: String
+         *      $pre_ops: []
+         *      $post_ops: []
          *
          * All other properties will be passed to object construction method.
          */
@@ -78,16 +80,20 @@ define(['dojo/_base/declare',
                 // spec is type name
                 cs = this._query_registry(spec);
             } else if (typeof spec === 'object') {
-                var c = spec.constructor,
-                    f = spec.factory,
-                    m = spec.mixim_spec,
-                    t = spec.type;
+                var c = spec.$constructor,
+                    f = spec.$factory,
+                    m = spec.$mixim_spec,
+                    t = spec.$type,
+                    pre = spec.$pre_ops,
+                    post = spec.$post_ops;
 
                 var s = lang.clone(spec);
-                delete s.constructor;
-                delete s.factory;
-                delete s.mixim_spec;
-                delete s.type;
+                delete s.$constructor;
+                delete s.$factory;
+                delete s.$mixim_spec;
+                delete s.$type;
+                delete s.$pre_ops;
+                delete s.$post_ops;
 
                 if (c) {
                     cs.constructor = c;
@@ -105,19 +111,30 @@ define(['dojo/_base/declare',
                         cs.spec = s;
                     }
                 }
+
+                cs.pre_ops = cs.pre_ops || [];
+                cs.post_ops = cs.post_ops || [];
+                if (pre) cs.pre_ops.push.call(cs.pre_ops, pre);
+                if (pre) cs.post_ops.push.call(cs.post_ops, post);
             }
 
             return cs;
         },
 
+        /**
+         * Queries registry and returns copy of construction specification
+         */
         _query_registry: function(type) {
 
             if (this.registry) {
-                return this.registry.get(type);
+                var cs = this.registry.get(type);
+                if (!cs) throw construct.no_cs_for_type_error(type);
+                cs = construct.copy_cs(cs);
+                return cs;
             } else {
                 throw {
                     error: 'Build error: construct registry required',
-                    spec: type
+                    builder: this
                 };
             }
         },
@@ -125,7 +142,22 @@ define(['dojo/_base/declare',
         _build: function(construction_spec) {
 
             var cs = construction_spec,
-                obj = null;
+                obj = null,
+                i;
+
+            if (cs.pre_ops) {
+                for (i=0; i<cs.pre_ops.length; i++) {
+                    var preop = cs.pre_ops[i];
+                    var preop_t = typeof preop;
+                    if (preop_t === 'function') {
+                        cs.spec = preop(cs.spec || {});
+                    } else if (preop_t === 'object') {
+                        lang.mixin(cs.spec, preop);
+                    }
+                }
+            }
+
+            cs.spec = cs.spec || {};
 
             if (cs.factory && typeof cs.factory === 'function') {
                 obj = cs.factory(cs.spec);
@@ -136,6 +168,18 @@ define(['dojo/_base/declare',
                     error: 'Build error: missing or invalid constructor or factory',
                     spec: cs
                 };
+            }
+
+            if (cs.post_ops && obj) {
+                for (i=0; i<cs.post_ops.length; i++) {
+                    var postop = cs.post_ops[i];
+                    var postop_t = typeof postop;
+                    if (postop_t === 'function') {
+                        obj = postop(obj);
+                    } else if (postop_t === 'object') {
+                        lang.mixin(obj, postop);
+                    }
+                }
             }
 
             return obj;

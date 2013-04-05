@@ -37,6 +37,26 @@ define(['dojo/_base/declare',
             // TODO: Find better method. Check by extend might not be very
             // reliable.
             return typeof obj === 'function' && typeof obj.extend === 'function';
+        },
+
+        /**
+         * Creates copy of construction specification
+         *
+         * It makes sure that pre_ops, post_ops and spec are new Arrays/Object
+         */
+        copy_cs: function(org_cs) {
+            var cs = lang.clone(org_cs);
+            if (cs.spec) cs.spec = lang.clone(cs.spec);
+            cs.pre_ops = cs.pre_ops.slice(0);
+            cs.post_ops = cs.pre_ops.slice(0);
+            return cs;
+        },
+
+        no_cs_for_type_error: function(type) {
+            return {
+                error: 'No construction specification for given type',
+                type: type
+            };
         }
     };
     return construct;
