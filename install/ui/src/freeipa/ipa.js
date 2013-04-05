@@ -288,35 +288,6 @@ var IPA = function() {
         }
     };
 
-    that.get_message = function(id, default_message) {
-        var messages = IPA.messages;
-        var keys = id.split(/\./);
-
-        for (var i=0; messages && i<keys.length; i++) {
-            var key = keys[i];
-            var value = messages[key];
-
-            // undefined key => not found
-            if (!value) return default_message;
-
-            // if value is string
-            if (typeof value === 'string') {
-
-                // and it's the last key => found
-                if (i === keys.length-1) return value;
-
-                // otherwise value should have been a container => not found
-                return default_message;
-            }
-
-            // value is container => check next key
-            messages = value;
-        }
-
-        // no more keys/messages => not found
-        return default_message;
-    };
-
     return that;
 }();
 
@@ -450,7 +421,7 @@ IPA.reset_password = function(username, old_password, new_password) {
     status = 'invalid';
     result = {
         status: status,
-        message: IPA.get_message('password.reset_failure',
+        message: text.get('@i18n:password.reset_failure',
                 "Password reset was not successful.")
     };
 
@@ -461,7 +432,7 @@ IPA.reset_password = function(username, old_password, new_password) {
         if (result.status === 'policy-error') {
             result.message = xhr.getResponseHeader("X-IPA-Pwchange-Policy-Error");
         } else if (result.status === 'invalid-password') {
-            result.message = IPA.get_message('password.invalid_password',
+            result.message = text.get('@i18n:password.invalid_password',
                           "The password or username you entered is incorrect.");
         }
 
@@ -735,8 +706,8 @@ IPA.command = function(spec) {
                 return;
             } else if (!error_thrown) {
                 error_thrown = {
-                    name: xhr.responseText || IPA.get_message('errors.unknown_error', 'Unknown Error'),
-                    message: xhr.statusText || IPA.get_message('errors.unknown_error', 'Unknown Error')
+                    name: xhr.responseText || text.get('@i18n:errors.unknown_error', 'Unknown Error'),
+                    message: xhr.statusText || text.get('@i18n:errors.unknown_error', 'Unknown Error')
                 };
 
             } else if (typeof error_thrown == 'string') {
@@ -777,9 +748,9 @@ IPA.command = function(spec) {
             if (!data) {
                 // error_handler() calls IPA.hide_activity_icon()
                 error_handler.call(this, xhr, text_status, /* error_thrown */ {
-                    name: IPA.get_message('errors.http_error', 'HTTP Error')+' '+xhr.status,
+                    name: text.get('@i18n:errors.http_error', 'HTTP Error')+' '+xhr.status,
                     url: this.url,
-                    message: data ? xhr.statusText : IPA.get_message('errors.no_response', 'No response')
+                    message: data ? xhr.statusText : text.get('@i18n:errors.no_response', 'No response')
                 });
 
             } else if (IPA.version && data.version && IPA.version !== data.version) {
@@ -791,7 +762,7 @@ IPA.command = function(spec) {
             } else if (data.error) {
                 // error_handler() calls IPA.hide_activity_icon()
                 error_handler.call(this, xhr, text_status,  /* error_thrown */ {
-                    name: IPA.get_message('errors.ipa_error', 'IPA Error')+' '+data.error.code,
+                    name: text.get('@i18n:errors.ipa_error', 'IPA Error')+' '+data.error.code,
                     code: data.error.code,
                     message: data.error.message,
                     data: data
@@ -807,7 +778,7 @@ IPA.command = function(spec) {
                         xhr: xhr,
                         text_status: text_status,
                         error_thrown: {
-                            name: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
+                            name: text.get('@i18n:dialogs.batch_error_title', 'Operations Error'),
                             message: that.error_message
                         },
                         command: that,
@@ -853,7 +824,7 @@ IPA.command = function(spec) {
                     var member = result.failed[association][member_name];
                     for(var i = 0; i < member.length; i++) {
                         if(member[i].length > 1) {
-                            var name = IPA.get_message('errors.ipa_error', 'IPA Error');
+                            var name = text.get('@i18n:errors.ipa_error', 'IPA Error');
                             var message = member[i][1];
                             if(member[i][0])
                                 message = member[i][0] + ': ' + message;
@@ -953,8 +924,8 @@ IPA.batch_command = function (spec) {
             var message = '';
 
             if (!result) {
-                name = IPA.get_message('errors.internal_error', 'Internal Error')+' '+xhr.status;
-                message = result ? xhr.statusText : IPA.get_message('errors.internal_error', 'Internal Error');
+                name = text.get('@i18n:errors.internal_error', 'Internal Error')+' '+xhr.status;
+                message = result ? xhr.statusText : text.get('@i18n:errors.internal_error', 'Internal Error');
 
                 that.errors.add(command, name, message, text_status);
 
@@ -970,7 +941,7 @@ IPA.batch_command = function (spec) {
 
             } else if (result.error) {
                 var code = result.error.code || result.error_code;
-                name = IPA.get_message('errors.ipa_error', 'IPA Error')+(code ? ' '+code : '');
+                name = text.get('@i18n:errors.ipa_error', 'IPA Error')+(code ? ' '+code : '');
                 message = result.error.message || result.error;
 
                 if (command.retry) that.errors.add(command, name, message, text_status);
@@ -1002,7 +973,7 @@ IPA.batch_command = function (spec) {
                 xhr: xhr,
                 text_status: text_status,
                 error_thrown: {
-                    name: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
+                    name: text.get('@i18n:dialogs.batch_error_title', 'Operations Error'),
                     message: that.error_message
                 },
                 command: that,
@@ -1064,8 +1035,8 @@ IPA.concurrent_command = function(spec) {
             if(!command) {
                 var dialog = IPA.message_dialog({
                     name: 'internal_error',
-                    title: IPA.get_message('errors.error', 'Error'),
-                    message: IPA.get_message('errors.internal_error', 'Internal error.')
+                    title: text.get('@i18n:errors.error', 'Error'),
+                    message: text.get('@i18n:errors.internal_error', 'Internal error.')
                 });
                 break;
             }
@@ -1160,8 +1131,8 @@ IPA.concurrent_command = function(spec) {
         } else {
             var dialog = IPA.message_dialog({
                 name: 'operation_error',
-                title: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
-                message: IPA.get_message('dialogs.batch_error_message', 'Some operations failed.')
+                title: text.get('@i18n:dialogs.batch_error_title', 'Operations Error'),
+                message: text.get('@i18n:dialogs.batch_error_message', 'Some operations failed.')
             });
 
             dialog.open();
@@ -1405,7 +1376,7 @@ IPA.error_dialog = function(spec) {
     that.create = function() {
         if (that.error_thrown.url) {
             $('<p/>', {
-                text: IPA.get_message('errors.url', 'URL')+': '+that.error_thrown.url
+                text: text.get('@i18n:errors.url', 'URL')+': '+that.error_thrown.url
             }).appendTo(that.container);
         }
 
@@ -1470,7 +1441,7 @@ IPA.error_dialog = function(spec) {
         */
 
         var visible = that.visible_buttons.indexOf('retry') > -1;
-        var label = IPA.get_message('buttons.retry', 'Retry');
+        var label = text.get('@i18n:buttons.retry', 'Retry');
         that.create_button({
             name: 'retry',
             label: label,
@@ -1481,7 +1452,7 @@ IPA.error_dialog = function(spec) {
         });
 
         visible = that.visible_buttons.indexOf('ok') > -1;
-        label = IPA.get_message('buttons.ok', 'OK');
+        label = text.get('@i18n:buttons.ok', 'OK');
         that.create_button({
             name: 'ok',
             label: label,
@@ -1492,7 +1463,7 @@ IPA.error_dialog = function(spec) {
         });
 
         visible = that.visible_buttons.indexOf('cancel') > -1;
-        label = IPA.get_message('buttons.cancel', 'Cancel');
+        label = text.get('@i18n:buttons.cancel', 'Cancel');
         that.create_button({
             name: 'cancel',
             label: label,
@@ -1606,12 +1577,12 @@ IPA.unauthorized_dialog = function(spec) {
             fields: [
                 {
                     name: 'username',
-                    label: IPA.get_message('login.username', "Username")
+                    label: text.get('@i18n:login.username', "Username")
                 },
                 {
                     name: 'password',
                     type: 'password',
-                    label: IPA.get_message('login.password', "Password")
+                    label: text.get('@i18n:login.password', "Password")
                 }
             ]
         },
@@ -1622,19 +1593,19 @@ IPA.unauthorized_dialog = function(spec) {
                 {
                     name: 'username_r',
                     read_only: true,
-                    label: IPA.get_message('login.username', "Username")
+                    label: text.get('@i18n:login.username', "Username")
                 },
                 {
                     name: 'new_password',
                     type: 'password',
                     required: true,
-                    label: IPA.get_message('password.new_password)', "New Password")
+                    label: text.get('@i18n:password.new_password)', "New Password")
                 },
                 {
                     name: 'verify_password',
                     type: 'password',
                     required: true,
-                    label: IPA.get_message('password.verify_password', "Verify Password"),
+                    label: text.get('@i18n:password.verify_password', "Verify Password"),
                     validators: [IPA.same_password_validator({
                         other_field: 'new_password'
                     })]
@@ -1649,7 +1620,7 @@ IPA.unauthorized_dialog = function(spec) {
 
     var that = IPA.error_dialog(spec);
 
-    that.title = spec.title || IPA.get_message('login.login', "Login");
+    that.title = spec.title || text.get('@i18n:login.login', "Login");
 
     that.message = text.get(spec.message || '@i18n:ajax.401.message',
                     "Your session has expired. Please re-login.");
@@ -1750,7 +1721,7 @@ IPA.unauthorized_dialog = function(spec) {
         that.buttons.empty();
 
         var visible = that.visible_buttons.indexOf('login') > -1;
-        var label = IPA.get_message('login.login', "Login");
+        var label = text.get('@i18n:login.login', "Login");
         that.create_button({
             name: 'login',
             label: label,
@@ -1761,7 +1732,7 @@ IPA.unauthorized_dialog = function(spec) {
         });
 
         visible = that.visible_buttons.indexOf('reset') > -1;
-        label = IPA.get_message('buttons.reset_password_and_login', "Reset Password and Login");
+        label = text.get('@i18n:buttons.reset_password_and_login', "Reset Password and Login");
         that.create_button({
             name: 'reset',
             label: label,
@@ -1772,7 +1743,7 @@ IPA.unauthorized_dialog = function(spec) {
         });
 
         visible = that.visible_buttons.indexOf('cancel') > -1;
-        label = IPA.get_message('buttons.cancel', "Cancel");
+        label = text.get('@i18n:buttons.cancel', "Cancel");
         that.create_button({
             name: 'cancel',
             label: label,

@@ -171,8 +171,8 @@ IPA.dns.zone_entity = function(spec) {
                         type: 'radio',
                         name: 'idnsallowdynupdate',
                         options: [
-                            { value: 'TRUE', label: IPA.get_message('true') },
-                            { value: 'FALSE', label: IPA.get_message('false') }
+                            { value: 'TRUE', label: text.get('@i18n:true') },
+                            { value: 'FALSE', label: text.get('@i18n:false') }
                         ]
                     },
                     {

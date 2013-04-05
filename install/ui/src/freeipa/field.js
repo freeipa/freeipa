@@ -114,7 +114,7 @@ IPA.field = function(spec) {
         var values = that.save();
         if (IPA.is_empty(values) && that.is_required() && that.enabled) {
             that.valid = false;
-            var message = IPA.get_message('widget.validation.required',
+            var message = text.get('@i18n:widget.validation.required',
                 "Required field");
             that.show_error(message);
             return false;
