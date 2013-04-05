@@ -188,12 +188,11 @@ IPA.group_adder_dialog = function(spec) {
         type_field.widget.value_changed.attach(that.on_type_change);
     };
 
-    that.on_type_change = function(value) {
+    that.on_type_change = function() {
 
+        var type_field = that.fields.get_field('type');
         var gid_field = that.fields.get_field('gidnumber');
-        var external_field = that.fields.get_field('external');
-
-        var posix = value[0] === 'posix';
+        var posix = type_field.save()[0] === 'posix';
 
         if (!posix) {
             gid_field.reset();
