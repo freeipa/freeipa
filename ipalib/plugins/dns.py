@@ -2679,6 +2679,8 @@ api.register(dnsrecord_delentry)
 class dnsrecord_del(LDAPUpdate):
     __doc__ = _('Delete DNS resource record.')
 
+    has_output = output.standard_delete
+
     no_option_msg = _('Neither --del-all nor options to delete a specific record provided.\n'\
             "Command help may be consulted for all supported record types.")
 

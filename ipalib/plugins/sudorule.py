@@ -605,6 +605,7 @@ api.register(sudorule_remove_runasgroup)
 class sudorule_add_option(LDAPQuery):
     __doc__ = _('Add an option to the Sudo Rule.')
 
+    has_output = output.standard_entry
     takes_options = (
         Str('ipasudoopt',
             cli_name='sudooption',
@@ -642,7 +643,7 @@ class sudorule_add_option(LDAPQuery):
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
-        return dict(result=entry_attrs)
+        return dict(result=entry_attrs, value=cn)
 
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(_('Added option "%(option)s" to Sudo Rule "%(rule)s"') % \
@@ -657,6 +658,7 @@ api.register(sudorule_add_option)
 class sudorule_remove_option(LDAPQuery):
     __doc__ = _('Remove an option from Sudo Rule.')
 
+    has_output = output.standard_entry
     takes_options = (
         Str('ipasudoopt',
             cli_name='sudooption',
@@ -697,7 +699,7 @@ class sudorule_remove_option(LDAPQuery):
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
-        return dict(result=entry_attrs)
+        return dict(result=entry_attrs, value=cn)
 
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(_('Removed option "%(option)s" from Sudo Rule "%(rule)s"') % \

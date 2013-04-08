@@ -147,8 +147,6 @@ class TestCLIParsing(object):
                     idnsname=u'ns',
                     del_all=True,
                     structured=False,
-                    raw=False,
-                    all=False,
                     version=API_VERSION)
             with self.fake_stdin('YeS\n'):
                 self.check_command('dnsrecord_del test-example.com ns',
@@ -157,8 +155,6 @@ class TestCLIParsing(object):
                     idnsname=u'ns',
                     del_all=True,
                     structured=False,
-                    raw=False,
-                    all=False,
                     version=API_VERSION)
         finally:
             self.run_command('dnszone_del', idnsname=u'test-example.com')
@@ -184,8 +180,6 @@ class TestCLIParsing(object):
                     del_all=False,
                     sshfprecord=records,
                     structured=False,
-                    raw=False,
-                    all=False,
                     version=API_VERSION)
         finally:
             self.run_command('dnszone_del', idnsname=u'test-example.com')
@@ -261,8 +255,6 @@ class TestCLIParsing(object):
                     del_all=False,
                     txtrecord=[u'"A pretty little problem," said Holmes.'],
                     structured=False,
-                    raw=False,
-                    all=False,
                     version=API_VERSION)
         finally:
             self.run_command('dnszone_del', idnsname=u'test-example.com')
