@@ -229,33 +229,20 @@ test("Testing details lifecycle: create, load.", function(){
     });
 
     var entity = IPA.get_entity('user');
-
-    var entity_container = $('<div/>', {
-        name: 'user',
-        title: 'User',
-        'class': 'entity'
-    }).appendTo(details_container);
-
-    entity.create(entity_container);
-
+    var container = $('<div/>', {}).appendTo(details_container);
     var facet = entity.get_facet('details');
-
-    var facet_container = $('<div/>', {
-        name: facet.name,
-        'class': 'facet'
-    });
-
-    facet.create(facet_container);
+    facet.container_node = container[0];
+    facet.create();
 
     facet.load(data);
 
-    var contact = $('.details-section[name=contact]', facet_container);
+    var contact = $('.details-section[name=contact]', facet.domNode);
 
     ok(
         contact.length,
         'Verifying section for contact is created');
 
-    var identity = $('.details-section[name=identity]', facet_container);
+    var identity = $('.details-section[name=identity]', facet.domNode);
 
     ok(
         identity.length,
@@ -266,8 +253,6 @@ test("Testing details lifecycle: create, load.", function(){
     same(
         rows.length, 6,
         'Verifying rows for identity');
-
-    facet_container.attr('id','user');
 
     ok (load_called, 'load manager called');
 

@@ -23,7 +23,7 @@ define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/entity', 'freeipa/search',
        'freeipa/details'], function(IPA, $) {
     return function() {
 
-var entities_container;
+var container;
 
 module('entity',{
     setup: function() {
@@ -54,11 +54,11 @@ module('entity',{
             }
         });
 
-        entities_container = $('<div id="entities"/>').appendTo(document.body);
+        container = $('<div id="content"/>').appendTo(document.body);
 
     },
     teardown: function() {
-        entities_container.remove();
+        container.remove();
 
     }
 });
@@ -70,23 +70,9 @@ test('Testing IPA.entity_set_search_definition().', function() {
     };
 
     var entity = IPA.get_entity('user');
-
-    var entity_container = $('<div/>', {
-        name: 'user',
-        title: 'User',
-        'class': 'entity'
-    }).appendTo(entities_container);
-
-    entity.create(entity_container);
-
     var facet = entity.get_facet('search');
-
-    var facet_container = $('<div/>', {
-        name: facet.name,
-        'class': 'facet'
-    });
-
-    facet.create(facet_container);
+    facet.container_node = container[0];
+    facet.create();
 
     var column = facet.get_columns()[0];
     ok(

@@ -101,10 +101,10 @@ module('aci', {
                     IPA.permission_target_policy('target')
                 ]
             });
-           entity.add_facet('details', target_facet);
-
-            target_container = $('<div id="target"/>').appendTo(document.body);
-            target_facet.create(target_container);
+            entity.add_facet('details', target_facet);
+            target_container = $('<div id="content"/>').appendTo(document.body);
+            target_facet.container_node = target_container[0];
+            target_facet.create();
             target_widget = target_facet.widgets.get_widget('target');
         },
         teardown: function() {
