@@ -21,8 +21,9 @@
 define(['dojo/_base/declare',
         'dojo/_base/array',
         'dojo/_base/lang',
-        './construct'
-        ], function(declare, array, lang, construct) {
+        './construct',
+        './Spec_mod'
+        ], function(declare, array, lang, construct, Spec_mod) {
 
     var Builder = declare(null, {
         /**
@@ -37,6 +38,11 @@ define(['dojo/_base/declare',
          * @property ./Construct_registry
          */
         registry: null,
+
+        /**
+         * Specification modifier
+         */
+        spec_mod: null,
 
         /**
          * Build object based on spec.
@@ -152,12 +158,19 @@ define(['dojo/_base/declare',
                     if (preop_t === 'function') {
                         cs.spec = preop(cs.spec || {});
                     } else if (preop_t === 'object') {
+                        var temp = lang.clone(preop);
+                        this.spec_mod.mod(cs.spec, temp);
+                        this.spec_mod.del_rules(temp);
                         lang.mixin(cs.spec, preop);
                     }
                 }
             }
 
             cs.spec = cs.spec || {};
+
+            // do we want following?, remove?
+            this.spec_mod.mod(cs.spec, cs.spec);
+            this.spec_mod.del_rules(cs.spec);
 
             if (cs.factory && typeof cs.factory === 'function') {
                 obj = cs.factory(cs.spec);
@@ -194,6 +207,8 @@ define(['dojo/_base/declare',
 
             spec = spec || {};
             if (spec.registry) this.registry = spec.registry;
+            if (spec.spec_mod) this.spec_mod = spec.spec_mod;
+            else this.spec_mod = new Spec_mod();
         }
     });
 

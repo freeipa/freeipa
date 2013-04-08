@@ -23,8 +23,9 @@
             'test/aci_tests',
             'test/widget_tests',
             'test/ip_tests',
-            'test/utils_tests'
-        ], function(om, ipa, details, entity, as, nav, cert, aci, wid, ip, ut){
+            'test/utils_tests',
+            'test/build_tests'
+        ], function(om, ipa, details, entity, as, nav, cert, aci, wid, ip, ut, bt){
             om();
             ipa();
             details();
@@ -36,6 +37,7 @@
             wid();
             ip();
             ut();
+            bt();
         });
     </script>
 </head>
