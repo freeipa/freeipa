@@ -262,7 +262,9 @@ def del_master(realm, hostname, options):
         # server not up, just remove it from this server
         replica_names = [options.host]
     else:
-        replica_names = delrepl.find_ipa_replication_agreements()
+        replica_entries = delrepl.find_ipa_replication_agreements()
+        replica_names = [rep.single_value('nsds5replicahost', None)
+                         for rep in replica_entries]
 
     # 5. Remove each agreement
     for r in replica_names:

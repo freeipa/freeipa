@@ -307,20 +307,15 @@ class ReplicationManager(object):
         Return the list of hosts we have replication agreements.
         """
 
-        res = []
-
         filt = self.get_agreement_filter(IPA_REPLICA)
         try:
             ents = self.conn.get_entries(
                 DN(('cn', 'mapping tree'), ('cn', 'config')),
                 ldap.SCOPE_SUBTREE, filt)
         except errors.NotFound:
-            return res
+            ents = []
 
-        for ent in ents:
-            res.append(ent.single_value('nsds5replicahost', None))
-
-        return res
+        return ents
 
     def get_replication_agreement(self, hostname):
         """

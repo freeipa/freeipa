@@ -34,7 +34,8 @@ class update_replica_attribute_lists(PreUpdate):
     has all the required attributes so that we don't cause replication
     storms.
     """
-    order=MIDDLE
+
+    order = MIDDLE
 
     def execute(self, **options):
         # We need an IPAdmin connection to the backend
@@ -44,9 +45,13 @@ class update_replica_attribute_lists(PreUpdate):
 
         repl = replication.ReplicationManager(api.env.realm, api.env.host,
                                               None, conn=conn)
-        entries = repl.find_replication_agreements()
-        self.log.debug("Found %d agreement(s)", len(entries))
-        for replica in entries:
+
+        # We need to update only IPA replica agreements, not winsync
+        ipa_replicas = repl.find_ipa_replication_agreements()
+
+        self.log.debug("Found %d agreement(s)", len(ipa_replicas))
+
+        for replica in ipa_replicas:
             self.log.debug(replica.single_value('description', None))
 
             self._update_attr(repl, replica,

@@ -518,7 +518,10 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
 
     returns: hostname of orphaned server or None
     """
-    replica_names = delrepl.find_ipa_replication_agreements()
+    replica_entries = delrepl.find_ipa_replication_agreements()
+
+    replica_names = [rep.single_value('nsds5replicahost', None)
+                     for rep in replica_entries]
 
     orphaned = []
     # Connect to each remote server and see what agreements it has
@@ -531,7 +534,11 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
             if not force and not ipautil.user_input("Continue to delete?", False):
                 sys.exit("Aborted")
             continue
-        names = repl.find_ipa_replication_agreements()
+
+        entries = repl.find_ipa_replication_agreements()
+        names = [rep.single_value('nsds5replicahost', None)
+                 for rep in entries]
+
         if len(names) == 1 and names[0] == delrepl.hostname:
             orphaned.append(replica)
 
@@ -611,7 +618,9 @@ def del_master(realm, hostname, options):
                 pass
         else:
             # Get list of agreements.
-            replica_names = delrepl.find_ipa_replication_agreements()
+            replica_entries = delrepl.find_ipa_replication_agreements()
+            replica_names = [rep.single_value('nsds5replicahost', None)
+                             for rep in replica_entries]
     else:
         # WINSYNC replica, delete agreement from current host
         winsync = True

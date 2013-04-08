@@ -373,7 +373,10 @@ class Restore(admintool.AdminTool):
 
             services_cns = [s.single_value('cn') for s in services]
 
-            hosts = repl.find_ipa_replication_agreements()
+            host_entries = repl.find_ipa_replication_agreements()
+            hosts = [rep.single_value('nsds5replicahost', None)
+                     for rep in host_entries]
+
             for host in hosts:
                 self.log.info('Disabling replication agreement on %s to %s' % (master, host))
                 repl.disable_agreement(host)
@@ -385,7 +388,9 @@ class Restore(admintool.AdminTool):
                 except Exception, e:
                     self.log.critical("Unable to disable agreement on %s: %s" % (master, e))
 
-                hosts = repl.find_ipa_replication_agreements()
+                host_entries = repl.find_ipa_replication_agreements()
+                hosts = [rep.single_value('nsds5replicahost', None)
+                         for rep in host_entries]
                 for host in hosts:
                     self.log.info('Disabling CA replication agreement on %s to %s' % (master, host))
                     repl.hostnames = [master, host]
