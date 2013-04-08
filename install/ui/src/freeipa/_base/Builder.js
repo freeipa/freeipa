@@ -44,6 +44,10 @@ define(['dojo/_base/declare',
          */
         spec_mod: null,
 
+        post_ops: [],
+
+        pre_ops: [],
+
         /**
          * Build object based on spec.
          *
@@ -63,10 +67,10 @@ define(['dojo/_base/declare',
          *
          * All other properties will be passed to object construction method.
          */
-        build: function(spec) {
+        build: function(spec, context) {
 
             var cs = this._get_construction_spec(spec);
-            var obj = this._build(cs);
+            var obj = this._build(cs, context);
             return obj;
         },
 
@@ -122,6 +126,7 @@ define(['dojo/_base/declare',
                 cs.post_ops = cs.post_ops || [];
                 if (pre) cs.pre_ops.push.call(cs.pre_ops, pre);
                 if (pre) cs.post_ops.push.call(cs.post_ops, post);
+                cs.spec = cs.spec || {};
             }
 
             return cs;
@@ -145,27 +150,15 @@ define(['dojo/_base/declare',
             }
         },
 
-        _build: function(construction_spec) {
+        _build: function(construction_spec, context) {
 
             var cs = construction_spec,
-                obj = null,
-                i;
+                obj = null;
 
+            cs.spec = this._run_preops(this.pre_ops, cs.spec, context);
             if (cs.pre_ops) {
-                for (i=0; i<cs.pre_ops.length; i++) {
-                    var preop = cs.pre_ops[i];
-                    var preop_t = typeof preop;
-                    if (preop_t === 'function') {
-                        cs.spec = preop(cs.spec || {});
-                    } else if (preop_t === 'object') {
-                        var temp = lang.clone(preop);
-                        this.spec_mod.mod(cs.spec, temp);
-                        this.spec_mod.del_rules(temp);
-                        lang.mixin(cs.spec, preop);
-                    }
-                }
+                cs.spec = this._run_preops(cs.pre_ops, cs.spec, context);
             }
-
             cs.spec = cs.spec || {};
 
             // do we want following?, remove?
@@ -183,18 +176,40 @@ define(['dojo/_base/declare',
                 };
             }
 
-            if (cs.post_ops && obj) {
-                for (i=0; i<cs.post_ops.length; i++) {
-                    var postop = cs.post_ops[i];
-                    var postop_t = typeof postop;
-                    if (postop_t === 'function') {
-                        obj = postop(obj);
-                    } else if (postop_t === 'object') {
-                        lang.mixin(obj, postop);
-                    }
-                }
+            obj = this._run_post_ops(this.post_ops, obj, cs.spec, context);
+            if (cs.post_ops) {
+                obj = this._run_post_ops(cs.post_ops, obj, cs.spec, context);
             }
 
+            return obj;
+        },
+
+        _run_preops: function(pre_ops, spec, context) {
+            for (var i=0; i<pre_ops.length; i++) {
+                var preop = pre_ops[i];
+                var preop_t = typeof preop;
+                if (preop_t === 'function') {
+                    spec = preop(spec, context);
+                } else if (preop_t === 'object') {
+                    var temp = lang.clone(preop);
+                    this.spec_mod.mod(spec, temp);
+                    this.spec_mod.del_rules(temp);
+                    lang.mixin(spec, preop);
+                }
+            }
+            return spec;
+        },
+
+        _run_post_ops: function(post_ops, obj, spec, context) {
+            for (var i=0; i<post_ops.length; i++) {
+                var postop = post_ops[i];
+                var postop_t = typeof postop;
+                if (postop_t === 'function') {
+                    obj = postop(obj, spec, context);
+                } else if (postop_t === 'object') {
+                    lang.mixin(obj, postop);
+                }
+            }
             return obj;
         },
 
@@ -209,6 +224,8 @@ define(['dojo/_base/declare',
             if (spec.registry) this.registry = spec.registry;
             if (spec.spec_mod) this.spec_mod = spec.spec_mod;
             else this.spec_mod = new Spec_mod();
+            if (spec.pre_ops) this.pre_ops.push.call(this.pre_ops, spec.pre_ops);
+            if (spec.post_ops) this.post_ops.push.call(this.post_ops, spec.post_ops);
         }
     });
 
