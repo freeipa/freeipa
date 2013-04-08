@@ -1849,6 +1849,8 @@ api.register(dnszone_add)
 class dnszone_del(LDAPDelete):
     __doc__ = _('Delete DNS zone (SOA record).')
 
+    msg_summary = _('Deleted DNS zone "%(value)s"')
+
     def post_callback(self, ldap, dn, *keys, **options):
         try:
             api.Command['permission_del'](self.obj.permission_name(keys[-1]),

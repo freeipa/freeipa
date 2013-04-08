@@ -394,7 +394,7 @@ class test_dns(Declarative):
             command=('dnszone_del', [revdnszone1], {}),
             expected={
                 'value': revdnszone1,
-                'summary': None,
+                'summary': u'Deleted DNS zone "%s"' % revdnszone1,
                 'result': {'failed': u''},
             },
         ),
@@ -905,7 +905,7 @@ class test_dns(Declarative):
             command=('dnszone_del', [dnszone2], {}),
             expected={
                 'value': dnszone2,
-                'summary': None,
+                'summary': u'Deleted DNS zone "%s"' % dnszone2,
                 'result': {'failed': u''},
             },
         ),
@@ -1397,7 +1397,7 @@ class test_dns(Declarative):
             command=('dnszone_del', [dnszone1], {}),
             expected={
                 'value': dnszone1,
-                'summary': None,
+                'summary': u'Deleted DNS zone "%s"' % dnszone1,
                 'result': {'failed': u''},
             },
         ),
@@ -1460,7 +1460,7 @@ class test_dns(Declarative):
             command=('dnszone_del', [dnszone1], {}),
             expected={
                 'value': dnszone1,
-                'summary': None,
+                'summary': u'Deleted DNS zone "%s"' % dnszone1,
                 'result': {'failed': u''},
             },
         ),
