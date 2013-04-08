@@ -1275,17 +1275,18 @@ class CAInstance(service.Service):
         changed = False
 
         # OCSP extension
+        ocsp_url = 'http://%s.%s/ca/ocsp' % (IPA_CA_CNAME, ipautil.format_netloc(domain))
+
         ocsp_location_0 = installutils.get_directive(
             self.dogtag_constants.IPA_SERVICE_PROFILE,
             'policyset.serverCertSet.5.default.params.authInfoAccessADLocation_0',
             separator='=')
 
-        if not ocsp_location_0:
+        if ocsp_location_0 != ocsp_url:
             # Set the first OCSP URI
             installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.5.default.params.authInfoAccessADLocation_0',
-                'https://%s.%s/ca/ocsp' % (IPA_CA_CNAME, ipautil.format_netloc(domain)),
-                quotes=False, separator='=')
+                ocsp_url, quotes=False, separator='=')
             changed = True
 
         ocsp_profile_count = installutils.get_directive(
@@ -1293,34 +1294,22 @@ class CAInstance(service.Service):
             'policyset.serverCertSet.5.default.params.authInfoAccessNumADs',
             separator='=')
 
-        if ocsp_profile_count == '1':
-            # add the second OCSP URI
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.5.default.params.authInfoAccessADEnable_1',
-                'true', quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.5.default.params.authInfoAccessADLocationType_1',
-                'URIName', quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.5.default.params.authInfoAccessADLocation_1',
-                'http://%s/ca/ocsp' % ipautil.format_netloc(fqdn),
-                quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.5.default.params.authInfoAccessADMethod_1',
-                '1.3.6.1.5.5.7.48.1', quotes=False, separator='=')
+        if ocsp_profile_count != '1':
             installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.5.default.params.authInfoAccessNumADs',
-                '2', quotes=False, separator='=')
+                '1', quotes=False, separator='=')
             changed = True
 
 
         # CRL extension
-        crl_issuer_0 = installutils.get_directive(
+        crl_url = 'http://%s.%s/ipa/crl/MasterCRL.bin'% (IPA_CA_CNAME, ipautil.format_netloc(domain))
+
+        crl_point_0 = installutils.get_directive(
             self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.9.default.params.crlDistPointsIssuerName_0',
+            'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0',
             separator='=')
 
-        if not crl_issuer_0:
+        if crl_point_0 != crl_url:
             installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.9.default.params.crlDistPointsIssuerName_0',
                 'CN=Certificate Authority,o=ipaca', quotes=False, separator='=')
@@ -1329,8 +1318,7 @@ class CAInstance(service.Service):
                 'DirectoryName', quotes=False, separator='=')
             installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0',
-                'https://%s.%s/ipa/crl/MasterCRL.bin'% (IPA_CA_CNAME, ipautil.format_netloc(domain)),
-                quotes=False, separator='=')
+                crl_url, quotes=False, separator='=')
             changed = True
 
         crl_profile_count = installutils.get_directive(
@@ -1338,29 +1326,10 @@ class CAInstance(service.Service):
             'policyset.serverCertSet.9.default.params.crlDistPointsNum',
             separator='=')
 
-        if crl_profile_count == '1':
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsEnable_1',
-                'true', quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsIssuerName_1',
-                'CN=Certificate Authority,o=ipaca', quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsIssuerType_1',
-                'DirectoryName', quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsPointName_1',
-                'https://%s/ipa/crl/MasterCRL.bin' % ipautil.format_netloc(fqdn),
-                quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsPointType_1',
-                'URIName', quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsReasons_1',
-                '', quotes=False, separator='=')
+        if crl_profile_count != '1':
             installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.9.default.params.crlDistPointsNum',
-                '2', quotes=False, separator='=')
+                '1', quotes=False, separator='=')
             changed = True
 
         # CRL extension is not enabled by default
