@@ -84,6 +84,8 @@ def parse_options():
     parser.add_option("--passsync", dest="passsync", default=None,
                       help="Password for the IPA system user used by the Windows PassSync plugin to synchronize passwords")
     parser.add_option("--from", dest="fromhost", help="Host to get data from")
+    parser.add_option("--no-lookup", dest="nolookup", action="store_true", default=False,
+                      help="do not perform DNS lookup checks")
 
     options, args = parser.parse_args()
 
@@ -111,7 +113,7 @@ def parse_options():
 
     return options, args
 
-def test_connection(realm, host):
+def test_connection(realm, host, nolookup=False):
     """
     Make a GSSAPI connection to the remote LDAP server to test out credentials.
 
@@ -120,6 +122,8 @@ def test_connection(realm, host):
     returns True if connection successful, False otherwise
     """
     try:
+        if not nolookup:
+            enforce_host_existence(host)
         replman = replication.ReplicationManager(realm, host, None)
         ents = replman.find_replication_agreements()
         del replman
@@ -134,10 +138,12 @@ def test_connection(realm, host):
         # more than likely a GSSAPI error
         return False
 
-def list_replicas(realm, host, replica, dirman_passwd, verbose):
+def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
 
-    for check_host in [host, replica]:
-        enforce_host_existence(check_host)
+    if not nolookup:
+        enforce_host_existence(host)
+        if replica is not None:
+            enforce_host_existence(replica)
 
     is_replica = False
     winsync_peer = None
@@ -232,9 +238,6 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     @force: force deletion even if one server is down
     """
 
-    for check_host in [replica1, replica2]:
-        enforce_host_existence(check_host)
-
     repl2 = None
 
     try:
@@ -327,12 +330,13 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
     return True
 
-def get_ruv(realm, host, dirman_passwd):
+def get_ruv(realm, host, dirman_passwd, nolookup=False):
     """
     Return the RUV entries as a list of tuples: (hostname, rid)
     """
 
-    enforce_host_existence(host)
+    if not nolookup:
+        enforce_host_existence(host)
 
     try:
         thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
@@ -364,23 +368,21 @@ def get_ruv(realm, host, dirman_passwd):
 
     return servers
 
-def list_ruv(realm, host, dirman_passwd, verbose):
+def list_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     """
     List the Replica Update Vectors on this host to get the available
     replica IDs.
     """
 
-    enforce_host_existence(host)
-
-    servers = get_ruv(realm, host, dirman_passwd)
+    servers = get_ruv(realm, host, dirman_passwd, nolookup)
     for (netloc, rid) in servers:
         print "%s: %s" % (netloc, rid)
 
-def get_rid_by_host(realm, sourcehost, host, dirman_passwd):
+def get_rid_by_host(realm, sourcehost, host, dirman_passwd, nolookup=False):
     """
     Try to determine the RID by host name.
     """
-    servers = get_ruv(realm, sourcehost, dirman_passwd)
+    servers = get_ruv(realm, sourcehost, dirman_passwd, nolookup)
     for (netloc, rid) in servers:
         if '%s:389' % host == netloc:
             return int(rid)
@@ -394,7 +396,8 @@ def clean_ruv(realm, ruv, options):
     except ValueError:
         sys.exit("Replica ID must be an integer: %s" % ruv)
 
-    servers = get_ruv(realm, options.host, options.dirman_passwd)
+    servers = get_ruv(realm, options.host, options.dirman_passwd,
+                      options.nolookup)
     found = False
     for (netloc, rid) in servers:
         if ruv == int(rid):
@@ -427,7 +430,8 @@ def abort_clean_ruv(realm, ruv, options):
     except ValueError:
         sys.exit("Replica ID must be an integer: %s" % ruv)
 
-    servers = get_ruv(realm, options.host, options.dirman_passwd)
+    servers = get_ruv(realm, options.host, options.dirman_passwd,
+                      options.nolookup)
     found = False
     for (netloc, rid) in servers:
         if ruv == int(rid):
@@ -438,7 +442,8 @@ def abort_clean_ruv(realm, ruv, options):
     if not found:
         sys.exit("Replica ID %s not found" % ruv)
 
-    servers = get_ruv(realm, options.host, options.dirman_passwd)
+    servers = get_ruv(realm, options.host, options.dirman_passwd,
+                      options.nolookup)
     found = False
     for (netloc, rid) in servers:
         if ruv == int(rid):
@@ -457,12 +462,13 @@ def abort_clean_ruv(realm, ruv, options):
 
     print "Cleanup task stopped"
 
-def list_clean_ruv(realm, host, dirman_passwd, verbose):
+def list_clean_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     """
     List all clean RUV tasks.
     """
 
-    enforce_host_existence(host)
+    if not nolookup:
+        enforce_host_existence(host)
 
     repl = replication.ReplicationManager(realm, host, dirman_passwd)
     dn = DN(('cn', 'cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
@@ -548,15 +554,13 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
         return None
 
 def enforce_host_existence(host, message=None):
-    if not ipautil.host_exists(host):
+    if host is not None and not ipautil.host_exists(host):
         if message is None:
             message = "Unknown host %s" % host
 
         sys.exit(message)
 
 def del_master(realm, hostname, options):
-
-    enforce_host_existence(hostname)
 
     force_del = False
     delrepl = None
@@ -688,7 +692,8 @@ def del_master(realm, hostname, options):
 
     # Save the RID value before we start deleting
     if repltype == replication.IPA_REPLICA:
-        rid = get_rid_by_host(realm, options.host, hostname, options.dirman_passwd)
+        rid = get_rid_by_host(realm, options.host, hostname,
+                              options.dirman_passwd, options.nolookup)
 
     # 4. Remove each agreement
 
@@ -734,8 +739,9 @@ def del_master(realm, hostname, options):
 
 def add_link(realm, replica1, replica2, dirman_passwd, options):
 
-    for check_host in [replica1,replica2]:
-        enforce_host_existence(check_host)
+    if not options.nolookup:
+        for check_host in [replica1,replica2]:
+            enforce_host_existence(check_host)
 
     if options.winsync:
         if not options.binddn or not options.bindpw or not options.cacert or not options.passsync:
@@ -819,10 +825,11 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         repl1.setup_gssapi_replication(replica2, DN(('cn', 'Directory Manager')), dirman_passwd)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
-def re_initialize(realm, thishost, fromhost, dirman_passwd):
+def re_initialize(realm, thishost, fromhost, dirman_passwd, nolookup=False):
 
-    for check_host in [thishost, fromhost]:
-        enforce_host_existence(check_host)
+    if not nolookup:
+        for check_host in [thishost, fromhost]:
+            enforce_host_existence(check_host)
 
     thisrepl = replication.ReplicationManager(realm, thishost, dirman_passwd)
     agreement = thisrepl.get_replication_agreement(fromhost)
@@ -852,10 +859,11 @@ def re_initialize(realm, thishost, fromhost, dirman_passwd):
         ds = dsinstance.DsInstance(realm_name = realm, dm_password = dirman_passwd)
         ds.init_memberof()
 
-def force_sync(realm, thishost, fromhost, dirman_passwd):
+def force_sync(realm, thishost, fromhost, dirman_passwd, nolookup=False):
 
-    for check_host in [thishost, fromhost]:
-        enforce_host_existence(check_host)
+    if not nolookup:
+        for check_host in [thishost, fromhost]:
+            enforce_host_existence(check_host)
 
     thisrepl = replication.ReplicationManager(realm, thishost, dirman_passwd)
     agreement = thisrepl.get_replication_agreement(fromhost)
@@ -870,7 +878,8 @@ def force_sync(realm, thishost, fromhost, dirman_passwd):
         repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
         repl.force_sync(repl.conn, thishost)
 
-def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False):
+def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False,
+                    nolookup=False):
     """
     Display the DNA ranges for all current masters.
 
@@ -882,8 +891,11 @@ def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False):
 
     Returns nothing
     """
-    for check_host in [hostname, master]:
-        enforce_host_existence(check_host)
+
+    if not nolookup:
+        enforce_host_existence(hostname)
+        if master is not None:
+            enforce_host_existence(master)
 
     try:
         repl = replication.ReplicationManager(realm, hostname, dirman_passwd)
@@ -929,7 +941,7 @@ def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False):
 
 
 def store_DNA_range(repl, range_start, range_max, deleted_master, realm,
-                 dirman_passwd):
+                    dirman_passwd):
     """
     Given a DNA range try to save it in a remaining master in the
     on-deck (dnaNextRange) value.
@@ -970,7 +982,8 @@ def store_DNA_range(repl, range_start, range_max, deleted_master, realm,
     return False
 
 
-def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False):
+def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
+                  nolookup=False):
     """
     Given a DNA range try to change it on the designated master.
 
@@ -1018,7 +1031,8 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False):
     def range_intersection(s1, s2, r1, r2):
         return max(s1, r1) <= min(s2, r2)
 
-    enforce_host_existence(hostname)
+    if not nolookup:
+        enforce_host_existence(hostname)
 
     err = validate_range(range, allow_all_zero=next_range)
     if err is not None:
@@ -1151,7 +1165,7 @@ def main():
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
-        if not test_connection(realm, host):
+        if not test_connection(realm, host, options.nolookup):
             dirman_passwd = installutils.read_password("Directory Manager",
                 confirm=False, validate=False, retry=False)
             if dirman_passwd is None:
@@ -1163,21 +1177,24 @@ def main():
         replica = None
         if len(args) == 2:
             replica = args[1]
-        list_replicas(realm, host, replica, dirman_passwd, options.verbose)
+        list_replicas(realm, host, replica, dirman_passwd, options.verbose,
+                      options.nolookup)
     elif args[0] == "list-ruv":
-        list_ruv(realm, host, dirman_passwd, options.verbose)
+        list_ruv(realm, host, dirman_passwd, options.verbose, options.nolookup)
     elif args[0] == "del":
         del_master(realm, args[1], options)
     elif args[0] == "re-initialize":
         if not options.fromhost:
             print "re-initialize requires the option --from <host name>"
             sys.exit(1)
-        re_initialize(realm, host, options.fromhost, dirman_passwd)
+        re_initialize(realm, host, options.fromhost, dirman_passwd,
+                      options.nolookup)
     elif args[0] == "force-sync":
         if not options.fromhost:
             print "force-sync requires the option --from <host name>"
             sys.exit(1)
-        force_sync(realm, host, options.fromhost, options.dirman_passwd)
+        force_sync(realm, host, options.fromhost, options.dirman_passwd,
+                   options.nolookup)
     elif args[0] == "connect":
         if len(args) == 3:
             replica1 = args[1]
@@ -1199,23 +1216,28 @@ def main():
     elif args[0] == "abort-clean-ruv":
         abort_clean_ruv(realm, args[1], options)
     elif args[0] == "list-clean-ruv":
-        list_clean_ruv(realm, host, dirman_passwd, options.verbose)
+        list_clean_ruv(realm, host, dirman_passwd, options.verbose,
+                       options.nolookup)
     elif args[0] == "dnarange-show":
         if len(args) == 2:
             master = args[1]
         else:
             master = None
-        show_DNA_ranges(host, master, realm, dirman_passwd, False)
+        show_DNA_ranges(host, master, realm, dirman_passwd, False,
+                        options.nolookup)
     elif args[0] == "dnanextrange-show":
         if len(args) == 2:
             master = args[1]
         else:
             master = None
-        show_DNA_ranges(host, master, realm, dirman_passwd, True)
+        show_DNA_ranges(host, master, realm, dirman_passwd, True,
+                        options.nolookup)
     elif args[0] == "dnarange-set":
-        set_DNA_range(args[1], args[2], realm, dirman_passwd, next_range=False)
+        set_DNA_range(args[1], args[2], realm, dirman_passwd, next_range=False,
+                      nolookup=options.nolookup)
     elif args[0] == "dnanextrange-set":
-        set_DNA_range(args[1], args[2], realm, dirman_passwd, next_range=True)
+        set_DNA_range(args[1], args[2], realm, dirman_passwd, next_range=True,
+                      nolookup=options.nolookup)
 
 try:
     main()
