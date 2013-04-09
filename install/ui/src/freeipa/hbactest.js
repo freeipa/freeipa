@@ -86,23 +86,6 @@ IPA.hbac.test_entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.hbac.test_select_facet,
-            name: 'sourcehost',
-            label: IPA.messages.objects.hbacrule.sourcehost,
-            managed_entity: 'host',
-            disable_breadcrumb: true,
-            facet_group: 'default',
-            columns: [
-                'fqdn',
-                'description',
-                {
-                    name: 'has_keytab',
-                    label: IPA.messages.objects.host.enrolled,
-                    formatter: IPA.boolean_formatter()
-                }
-            ]
-        }).
-        facet({
             factory: IPA.hbac.test_rules_facet,
             name: 'rules',
             label: IPA.messages.objects.hbactest.rules,
@@ -645,9 +628,6 @@ IPA.hbac.test_run_facet = function(spec) {
         facet = that.entity.get_facet('service');
         facet.reset();
 
-        facet = that.entity.get_facet('sourcehost');
-        facet.reset();
-
         facet = that.entity.get_facet('rules');
         facet.reset();
 
@@ -701,10 +681,6 @@ IPA.hbac.test_run_facet = function(spec) {
         that.validate_facet(facet, options, validation_results);
 
         facet = that.entity.get_facet('service');
-        facet.save(options);
-        that.validate_facet(facet, options, validation_results);
-
-        facet = that.entity.get_facet('sourcehost');
         facet.save(options);
         that.validate_facet(facet, options, validation_results);
 
