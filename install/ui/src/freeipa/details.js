@@ -25,10 +25,12 @@
 
 define(['./ipa', './jquery', './text', './facet', './add'], function(IPA, $, text) {
 
-IPA.expanded_icon = 'expanded-icon';
-IPA.collapsed_icon = 'collapsed-icon';
+var exp = {};
 
-IPA.details_builder = function(spec) {
+exp.expanded_icon = IPA.expanded_icon = 'expanded-icon';
+exp.collapsed_icon = IPA.collapsed_icon = 'collapsed-icon';
+
+exp.details_builder = IPA.details_builder = function(spec) {
 
     var that = {};
 
@@ -98,7 +100,7 @@ IPA.details_builder = function(spec) {
     return that;
 };
 
-IPA.section_builder = function(spec) {
+exp.section_builder = IPA.section_builder = function(spec) {
 
     spec = spec || {};
 
@@ -163,7 +165,7 @@ IPA.section_builder = function(spec) {
     return that;
 };
 
-IPA.facet_policy = function() {
+exp.facet_policy = IPA.facet_policy = function() {
 
     var that = {};
 
@@ -179,7 +181,7 @@ IPA.facet_policy = function() {
     return that;
 };
 
-IPA.facet_policies = function(spec) {
+exp.facet_policies = IPA.facet_policies = function(spec) {
 
     var that = {};
 
@@ -227,7 +229,7 @@ IPA.facet_policies = function(spec) {
     return that;
 };
 
-IPA.details_facet = function(spec, no_init) {
+exp.details_facet = IPA.details_facet = function(spec, no_init) {
 
     spec = spec || {};
     spec.name = spec.name || 'details';
@@ -717,7 +719,7 @@ IPA.details_facet = function(spec, no_init) {
     return that;
 };
 
-IPA.update_info = function(spec) {
+exp.update_info = IPA.update_info = function(spec) {
 
     var that = {};
 
@@ -737,7 +739,7 @@ IPA.update_info = function(spec) {
     return that;
 };
 
-IPA.command_info = function(spec) {
+exp.command_info = IPA.command_info = function(spec) {
 
     var that = {};
 
@@ -747,7 +749,7 @@ IPA.command_info = function(spec) {
     return that;
 };
 
-IPA.field_info = function(spec) {
+exp.field_info = IPA.field_info = function(spec) {
 
     var that = {};
 
@@ -757,7 +759,7 @@ IPA.field_info = function(spec) {
     return that;
 };
 
-IPA.update_info_builder = function() {
+exp.update_info_builder = IPA.update_info_builder = function() {
 
     var that = {};
 
@@ -797,7 +799,7 @@ IPA.update_info_builder = function() {
     return that;
 }();
 
-IPA.command_builder = function() {
+exp.command_builder = IPA.command_builder = function() {
 
     var that = {};
 
@@ -828,7 +830,7 @@ IPA.command_builder = function() {
     return that;
 }();
 
-IPA.select_action = function(spec) {
+exp.select_action = IPA.select_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'select_action';
@@ -842,7 +844,7 @@ IPA.select_action = function(spec) {
     return that;
 };
 
-IPA.refresh_action = function(spec) {
+exp.refresh_action = IPA.refresh_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'refresh';
@@ -857,7 +859,7 @@ IPA.refresh_action = function(spec) {
     return that;
 };
 
-IPA.reset_action = function(spec) {
+exp.reset_action = IPA.reset_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'reset';
@@ -873,7 +875,7 @@ IPA.reset_action = function(spec) {
     return that;
 };
 
-IPA.update_action = function(spec) {
+exp.update_action = IPA.update_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'update';
@@ -896,7 +898,7 @@ IPA.update_action = function(spec) {
     return that;
 };
 
-IPA.boolean_state_evaluator = function(spec) {
+exp.boolean_state_evaluator = IPA.boolean_state_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -934,7 +936,7 @@ IPA.boolean_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.enable_state_evaluator = function(spec) {
+exp.enable_state_evaluator = IPA.enable_state_evaluator = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'enable_state_evaluator';
@@ -946,7 +948,7 @@ IPA.enable_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.acl_state_evaluator = function(spec) {
+exp.acl_state_evaluator = IPA.acl_state_evaluator = function(spec) {
 
     spec.name = spec.name || 'acl_state_evaluator';
     spec.event = spec.event || 'post_load';
@@ -982,7 +984,7 @@ IPA.acl_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.value_state_evaluator = function(spec) {
+exp.value_state_evaluator = IPA.value_state_evaluator = function(spec) {
 
     spec.name = spec.name || 'value_state_evaluator';
     spec.event = spec.event || 'post_load';
@@ -1038,7 +1040,7 @@ IPA.value_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.object_class_evaluator = function(spec) {
+exp.object_class_evaluator = IPA.object_class_evaluator = function(spec) {
 
     spec.name = spec.name || 'object_class_evaluator';
     spec.event = spec.event || 'post_load';
@@ -1065,7 +1067,7 @@ IPA.object_class_evaluator = function(spec) {
     return that;
 };
 
-IPA.object_action = function(spec) {
+exp.object_action = IPA.object_action = function(spec) {
 
     spec = spec || {};
 
@@ -1124,7 +1126,7 @@ IPA.object_action = function(spec) {
     return that;
 };
 
-IPA.enable_action = function(spec) {
+exp.enable_action = IPA.enable_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'enable';
@@ -1138,7 +1140,7 @@ IPA.enable_action = function(spec) {
     return that;
 };
 
-IPA.disable_action = function(spec) {
+exp.disable_action = IPA.disable_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'disable';
@@ -1152,7 +1154,7 @@ IPA.disable_action = function(spec) {
     return that;
 };
 
-IPA.delete_action = function(spec) {
+exp.delete_action = IPA.delete_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'delete';
@@ -1180,7 +1182,7 @@ IPA.delete_action = function(spec) {
 };
 
 
-IPA.enabled_summary_cond = function() {
+exp.enabled_summary_cond = IPA.enabled_summary_cond = function() {
     return {
         pos: ['enabled'],
         neg: [],
@@ -1189,7 +1191,7 @@ IPA.enabled_summary_cond = function() {
     };
 };
 
-IPA.disabled_summary_cond = function() {
+exp.disabled_summary_cond = IPA.disabled_summary_cond = function() {
     return {
         pos: [],
         neg: ['enabled'],
@@ -1198,5 +1200,5 @@ IPA.disabled_summary_cond = function() {
     };
 };
 
-return {};
+return exp;
 });
