@@ -35,9 +35,9 @@ syslog.syslog(syslog.LOG_NOTICE, "certmonger stopping %sd" % dogtag_instance)
 
 try:
     if configured_constants.DOGTAG_VERSION == 9:
-        ipaservices.knownservices.pki_cad.start(dogtag_instance)
+        ipaservices.knownservices.pki_cad.stop(dogtag_instance)
     else:
-        ipaservices.knownservices.pki_tomcatd.start(dogtag_instance)
+        ipaservices.knownservices.pki_tomcatd.stop(dogtag_instance)
 except Exception, e:
     syslog.syslog(syslog.LOG_ERR, "Cannot stop %sd: %s" %
                   (dogtag_instance, str(e)))
