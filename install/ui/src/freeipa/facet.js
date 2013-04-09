@@ -95,7 +95,11 @@ define([
  *
  *
  */
-IPA.facet = function(spec, no_init) {
+
+var exp = {};
+exp.facet_spec = {};
+
+exp.facet = IPA.facet = function(spec, no_init) {
 
     spec = spec || {};
     spec.state = spec.state || {};
@@ -666,7 +670,7 @@ IPA.facet = function(spec, no_init) {
     return that;
 };
 
-IPA.facet_header = function(spec) {
+exp.facet_header = IPA.facet_header = function(spec) {
 
     spec = spec || {};
 
@@ -997,7 +1001,7 @@ IPA.facet_header = function(spec) {
     return that;
 };
 
-IPA.facet_title = function(spec) {
+exp.facet_title = IPA.facet_title = function(spec) {
 
     spec = spec || {};
 
@@ -1066,7 +1070,7 @@ IPA.facet_title = function(spec) {
     return that;
 };
 
-IPA.table_facet = function(spec, no_init) {
+exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
     spec = spec || {};
 
@@ -1425,7 +1429,7 @@ IPA.table_facet = function(spec, no_init) {
     return that;
 };
 
-IPA.facet_group = function(spec) {
+exp.facet_group = IPA.facet_group = function(spec) {
 
     spec = spec || {};
 
@@ -1459,7 +1463,7 @@ IPA.facet_group = function(spec) {
     return that;
 };
 
-IPA.facet_builder = function(entity) {
+exp.facet_builder = IPA.facet_builder = function(entity) {
 
     var that = {};
 
@@ -1616,7 +1620,7 @@ IPA.facet_builder = function(entity) {
     return that;
 };
 
-IPA.action = function(spec) {
+exp.action = IPA.action = function(spec) {
 
     spec = spec || {};
 
@@ -1712,7 +1716,7 @@ IPA.action = function(spec) {
     return that;
 };
 
-IPA.action_builder = function(spec) {
+exp.action_builder = IPA.action_builder = function(spec) {
 
     spec = spec || {};
     spec.factory = spec.factory || IPA.action;
@@ -1721,7 +1725,7 @@ IPA.action_builder = function(spec) {
 };
 
 
-IPA.action_holder = function(spec) {
+exp.action_holder = IPA.action_holder = function(spec) {
 
     spec = spec || {};
 
@@ -1778,7 +1782,7 @@ IPA.action_holder = function(spec) {
     return that;
 };
 
-IPA.action_holder_builder = function(spec) {
+exp.action_holder_builder = IPA.action_holder_builder = function(spec) {
 
     spec = spec || {};
     spec.factory = spec.factory || IPA.action_holder;
@@ -1787,7 +1791,7 @@ IPA.action_holder_builder = function(spec) {
 };
 
 
-IPA.state = function(spec) {
+exp.state = IPA.state = function(spec) {
 
     spec = spec || {};
     spec.summary_evaluator = spec.summary_evaluator || IPA.summary_evaluator;
@@ -1857,7 +1861,7 @@ IPA.state = function(spec) {
     return that;
 };
 
-IPA.summary_evaluator = function(spec) {
+exp.summary_evaluator = IPA.summary_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -1892,7 +1896,7 @@ IPA.summary_evaluator = function(spec) {
     return that;
 };
 
-IPA.state_evaluator = function(spec) {
+exp.state_evaluator = IPA.state_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -1927,7 +1931,7 @@ IPA.state_evaluator = function(spec) {
     return that;
 };
 
-IPA.state_evaluator_builder = function(spec) {
+exp.state_evaluator_builder = IPA.state_evaluator_builder = function(spec) {
 
     spec = spec || {};
     spec.factory = spec.factory || IPA.state_evaluator;
@@ -1935,7 +1939,7 @@ IPA.state_evaluator_builder = function(spec) {
     return that;
 };
 
-IPA.dirty_state_evaluator = function(spec) {
+exp.dirty_state_evaluator = IPA.dirty_state_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -1959,7 +1963,7 @@ IPA.dirty_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.selected_state_evaluator = function(spec) {
+exp.selected_state_evaluator = IPA.selected_state_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -1983,7 +1987,7 @@ IPA.selected_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.self_service_state_evaluator = function(spec) {
+exp.self_service_state_evaluator = IPA.self_service_state_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -2007,7 +2011,7 @@ IPA.self_service_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.facet_attr_state_evaluator = function(spec) {
+exp.facet_attr_state_evaluator = IPA.facet_attr_state_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -2036,7 +2040,7 @@ IPA.facet_attr_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.read_only_state_evaluator = function(spec) {
+exp.read_only_state_evaluator = IPA.read_only_state_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -2049,8 +2053,7 @@ IPA.read_only_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.association_type_state_evaluator = function(spec) {
-
+exp.association_type_state_evaluator = IPA.association_type_state_evaluator = function(spec) {
 
     spec = spec || {};
 
@@ -2063,7 +2066,7 @@ IPA.association_type_state_evaluator = function(spec) {
     return that;
 };
 
-IPA.action_button_widget = function(spec) {
+exp.action_button_widget = IPA.action_button_widget = function(spec) {
 
     spec = spec || {};
 
@@ -2145,7 +2148,7 @@ IPA.action_button_widget = function(spec) {
     return that;
 };
 
-IPA.action_button_widget_builder = function(spec) {
+exp.action_button_widget_builder = IPA.action_button_widget_builder = function(spec) {
 
     spec = spec || {};
     spec.factory = spec.factory || IPA.action_button_widget;
@@ -2153,8 +2156,7 @@ IPA.action_button_widget_builder = function(spec) {
     return that;
 };
 
-IPA.control_buttons_widget = function(spec) {
-
+exp.control_buttons_widget = IPA.control_buttons_widget = function(spec) {
 
     spec = spec || {};
 
@@ -2189,7 +2191,7 @@ IPA.control_buttons_widget = function(spec) {
     return that;
 };
 
-IPA.eval_cond = function(enable_cond, disable_cond, state) {
+exp.eval_cond = IPA.eval_cond = function(enable_cond, disable_cond, state) {
 
     var i, cond;
 
@@ -2215,7 +2217,7 @@ IPA.eval_cond = function(enable_cond, disable_cond, state) {
 };
 
 
-IPA.action_list_widget = function(spec) {
+exp.action_list_widget = IPA.action_list_widget = function(spec) {
 
     spec = spec || {};
 
@@ -2380,7 +2382,7 @@ IPA.action_list_widget = function(spec) {
     return that;
 };
 
-var FacetState = declare([Stateful, Evented], {
+var FacetState = exp.FacetState = declare([Stateful, Evented], {
 
     /**
      * Properties to ignore in clear and clone operation
@@ -2456,5 +2458,5 @@ var FacetState = declare([Stateful, Evented], {
     }
 });
 
-return { FacetState: FacetState};
+return exp;
 });
