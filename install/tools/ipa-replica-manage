@@ -24,6 +24,7 @@ import re, krbV
 import traceback
 from urllib2 import urlparse
 import ldap
+import socket
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
@@ -751,9 +752,17 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
             root_logger.error("winsync agreements need to be created as root")
             sys.exit(1)
 
-    # See if we already have an agreement with this host
     try:
         repl = replication.ReplicationManager(realm, replica1, dirman_passwd)
+    except errors.NotFound:
+        print "Cannot find replica '%s'" % replica1
+        return
+    except Exception, e:
+        print "Failed to connect to '%s': %s" % (replica1, e)
+        return
+
+    # See if we already have an agreement with this host
+    try:
         if repl.get_agreement_type(replica2) == replication.WINSYNC:
             agreement = repl.get_replication_agreement(replica2)
             sys.exit("winsync agreement already exists on subtree %s" %
@@ -1247,6 +1256,9 @@ except SystemExit, e:
     sys.exit(e)
 except RuntimeError, e:
     sys.exit(e)
+except socket.timeout:
+    print "Connection timed out."
+    sys.exit(1)
 except Exception, e:
     print "unexpected error: %s" % str(e)
     sys.exit(1)
