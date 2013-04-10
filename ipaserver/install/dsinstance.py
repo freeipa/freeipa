@@ -472,7 +472,7 @@ class DsInstance(service.Service):
     def apply_updates(self):
         ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password, sub_dict=self.sub_dict, plugins=True)
         files = ld.get_all_files(ldapupdate.UPDATES_DIR)
-        ld.update(files)
+        ld.update(files, ordered=True)
 
     def __add_referint_module(self):
         self._ldap_mod("referint-conf.ldif")

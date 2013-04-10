@@ -185,7 +185,7 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
         if not self.files:
             self.files = ld.get_all_files(UPDATES_DIR)
 
-        modified = ld.update(self.files)
+        modified = ld.update(self.files, ordered=True)
 
         if modified and options.test:
             self.log.info('Update complete, changes to be made, test mode')
