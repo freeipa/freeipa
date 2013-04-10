@@ -35,7 +35,7 @@ import pyhbac
 __doc__ = _("""
 Simulate use of Host-based access controls
 
-HBAC rules control who can access what services on what hosts and from where.
+HBAC rules control who can access what services on what hosts.
 You can use HBAC to control which users or groups can access a service,
 or group of services, on a target host.
 
@@ -48,7 +48,7 @@ having access to the production environment.
 
  ipa hbactest --user= --host= --service=
               [--rules=rules-list] [--nodetail] [--enabled] [--disabled]
-              [--srchost= ] [--sizelimit= ]
+              [--sizelimit= ]
 
  --user, --host, and --service are mandatory, others are optional.
 
@@ -67,8 +67,6 @@ having access to the production environment.
  If no --rules specified, simulation is run against all IPA enabled rules.
  By default there is a IPA-wide limit to number of entries fetched, you can change it
  with --sizelimit option.
-
- If --srchost is specified, it will be ignored. It is left because of compatibility reasons only.
 
 EXAMPLES:
 

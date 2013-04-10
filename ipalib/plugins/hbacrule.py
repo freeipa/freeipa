@@ -25,15 +25,15 @@ from ipalib import _, ngettext
 __doc__ = _("""
 Host-based access control
 
-Control who can access what services on what hosts and from where. You
-can use HBAC to control which users or groups on a source host can
+Control who can access what services on what hosts. You
+can use HBAC to control which users or groups can
 access a service, or group of services, on a target host.
 
-You can also specify a category of users, target hosts, and source
-hosts. This is currently limited to "all", but might be expanded in the
+You can also specify a category of users and target hosts.
+This is currently limited to "all", but might be expanded in the
 future.
 
-Target hosts and source hosts in HBAC rules must be hosts managed by IPA.
+Target hosts in HBAC rules must be hosts managed by IPA.
 
 The available services and groups of services are controlled by the
 hbacsvc and hbacsvcgroup plug-ins respectively.
@@ -42,7 +42,7 @@ EXAMPLES:
 
  Create a rule, "test1", that grants all users access to the host "server" from
  anywhere:
-   ipa hbacrule-add --usercat=all --srchostcat=all test1
+   ipa hbacrule-add --usercat=all test1
    ipa hbacrule-add-host --hosts=server.example.com test1
 
  Display the properties of a named HBAC rule:
@@ -50,7 +50,7 @@ EXAMPLES:
 
  Create a rule for a specific service. This lets the user john access
  the sshd service on any machine from any machine:
-   ipa hbacrule-add --hostcat=all --srchostcat=all john_sshd
+   ipa hbacrule-add --hostcat=all john_sshd
    ipa hbacrule-add-user --users=john john_sshd
    ipa hbacrule-add-service --hbacsvcs=sshd john_sshd
 
@@ -59,7 +59,7 @@ EXAMPLES:
    ipa hbacsvcgroup-add ftpers
    ipa hbacsvc-add sftp
    ipa hbacsvcgroup-add-member --hbacsvcs=ftp,sftp ftpers
-   ipa hbacrule-add --hostcat=all --srchostcat=all john_ftp
+   ipa hbacrule-add --hostcat=all john_ftp
    ipa hbacrule-add-user --users=john john_ftp
    ipa hbacrule-add-service --hbacsvcgroups=ftpers john_ftp
 
