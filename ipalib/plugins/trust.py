@@ -623,7 +623,7 @@ class trustconfig(LDAPObject):
                     group,
                     ['posixgroup'],
                     [''],
-                    self.api.Object['group'].container_dn)
+                    DN(api.env.container_group, api.env.basedn))
             except errors.NotFound:
                 self.api.Object['group'].handle_not_found(group)
             else:
