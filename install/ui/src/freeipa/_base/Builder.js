@@ -84,6 +84,7 @@ define(['dojo/_base/declare',
             var f,c;
 
             if (spec === undefined || spec === null) return null;
+            if (!construct.is_spec(spec)) return spec;
 
             context = context || {};
 

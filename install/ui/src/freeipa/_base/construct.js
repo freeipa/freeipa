@@ -34,9 +34,25 @@ define(['dojo/_base/declare',
          */
         is_ctor: function(obj) {
 
-            // TODO: Find better method. Check by extend might not be very
-            // reliable.
             return typeof obj === 'function' && typeof obj.extend === 'function';
+        },
+
+        /**
+         *  Finds out if object is a spec object.
+         *
+         *  Object is not a spec object when any of following applies:
+         *   * has __fw_obj === true
+         *   * has isInstanceOf function - basically tells if it's a instance of
+         *                                 dojo-based class
+         *
+         */
+        is_spec: function(obj) {
+            var ret = false;
+            if (typeof obj === 'object') {
+                ret = obj.__fw_obj === true ||
+                      typeof obj.isInstanceOf === 'function';
+            }
+            return !ret;
         },
 
         /**

@@ -59,6 +59,7 @@ test('Testing builder', function() {
 
     var o2 = b2.build({});
     var o21 = b2.build({ foo: 'baz'});
+    var o22 = b2.build(o21);
 
     var r1 = { foo: 'bar' };
     var r11 = { foo: 'baz' };
@@ -70,6 +71,8 @@ test('Testing builder', function() {
 
     deepEqual(o2, r2, 'Constructor, default');
     deepEqual(o21, r21, 'Constructor, spec use');
+
+    strictEqual(o21, o22, 'Don\'t build built object');
 
 });
 

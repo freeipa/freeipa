@@ -293,8 +293,25 @@ var IPA = function() {
         }
     };
 
+    that.obj_cls = function() {};
+    that.obj_cls.prototype.__fw_obj = true;
+
     return that;
 }();
+
+/**
+ * Basic object
+ *
+ * Framework objects created by factories should use this instead of {} when
+ * creating base objects. As an alternative they can just set __fw_obj
+ * property.
+ *
+ * __fw_obj property serves for telling the framework that it's instantiated
+ * object and not an object specification (spec).
+ */
+IPA.object = function() {
+    return new IPA.obj_cls();
+};
 
 IPA.get_credentials = function() {
     var status;
