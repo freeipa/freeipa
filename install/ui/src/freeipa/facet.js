@@ -673,7 +673,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.facet = spec.facet;
 
@@ -1004,7 +1004,7 @@ exp.facet_title = IPA.facet_title = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.update = function(data) {
 
@@ -1432,7 +1432,7 @@ exp.facet_group = IPA.facet_group = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.name = spec.name;
     that.label = text.get(spec.label);
@@ -1464,7 +1464,7 @@ exp.facet_group = IPA.facet_group = function(spec) {
 
 exp.facet_builder = IPA.facet_builder = function(entity) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.prepare_methods = {};
 
@@ -1623,7 +1623,7 @@ exp.action = IPA.action = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.name = spec.name;
     that.label = text.get(spec.label);
@@ -1719,7 +1719,7 @@ exp.action_holder = IPA.action_holder = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.actions = $.ordered_map();
 
@@ -1776,7 +1776,7 @@ exp.state = IPA.state = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.state = $.ordered_map();
 
@@ -1845,7 +1845,7 @@ exp.summary_evaluator = IPA.summary_evaluator = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.evaluate = function(state) {
 
@@ -1880,7 +1880,7 @@ exp.state_evaluator = IPA.state_evaluator = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.name = spec.name || 'state_evaluator';
     that.event_name = spec.event;

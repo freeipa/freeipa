@@ -29,7 +29,7 @@ IPA.associator = function (spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.entity = IPA.get_entity(spec.entity);
     that.pkey = spec.pkey;
@@ -327,7 +327,7 @@ IPA.association_config = function (spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.name = spec.name;
     that.associator = spec.associator;

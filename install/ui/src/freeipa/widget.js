@@ -33,7 +33,7 @@ IPA.widget = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.name = spec.name;
     that.id = spec.id;
@@ -1247,7 +1247,7 @@ IPA.formatter = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.type = spec.type; // default is text
 
@@ -1373,7 +1373,7 @@ IPA.column = function (spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.entity = IPA.get_entity(spec.entity);
     that.name = spec.name;
@@ -3399,7 +3399,7 @@ IPA.header_widget = function(spec) {
 
 IPA.observer = function(spec) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.listeners = [];
 
@@ -3430,7 +3430,7 @@ IPA.observer = function(spec) {
 
 IPA.html_util = function() {
 
-    var that = {};
+    var that = IPA.object();
     that.id_count = 0;
 
     that.get_next_id = function(prefix) {
@@ -3445,7 +3445,7 @@ IPA.widget_container = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.new_container_for_child = spec.new_container_for_child !== undefined ?
     spec.new_container_for_child : true;
@@ -3523,7 +3523,7 @@ IPA.widget_builder = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.default_factory = spec.default_factory || IPA.text_widget;
     that.container = spec.container;

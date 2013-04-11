@@ -28,7 +28,7 @@ define(['dojo/_base/array', './ipa', './jquery', './navigation', './text'],
 IPA.field = function(spec) {
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.entity = IPA.get_entity(spec.entity);
     that.facet = spec.facet;
@@ -416,7 +416,7 @@ IPA.validator = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.message = text.get(spec.message || '@i18n:widget.validation.error');
 
@@ -830,7 +830,7 @@ IPA.field_container = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.container = spec.container; //usually facet or dialog
 
@@ -866,7 +866,7 @@ IPA.field_builder = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.default_factory = spec.default_factory || IPA.field;
     that.container = spec.container;

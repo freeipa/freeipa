@@ -430,7 +430,7 @@ IPA.cert.loader = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
     that.get_pkey = spec.get_pkey;
     that.get_name = spec.get_name;
     that.get_principal = spec.get_principal;

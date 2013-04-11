@@ -22,9 +22,10 @@ define([
         'dojo/_base/declare',
         'freeipa/_base/Builder',
         'freeipa/_base/Spec_mod',
+        'freeipa/ipa',
         'freeipa/spec_util'
        ],
-       function(declare, Builder, Spec_mod, su) {  return function() {
+       function(declare, Builder, Spec_mod, IPA, su) {  return function() {
 
 
 module('build',{
@@ -39,7 +40,7 @@ test('Testing builder', function() {
 
     var simple_factory = function(spec) {
 
-        var that = {};
+        var that = IPA.object();
         su.set(that, spec, 'foo', 'bar');
         return that;
     };
@@ -56,13 +57,14 @@ test('Testing builder', function() {
 
     var o1 = b1.build({});
     var o11 = b1.build({ foo: 'baz'});
+    var o12 = b1.build(o11);
 
     var o2 = b2.build({});
     var o21 = b2.build({ foo: 'baz'});
     var o22 = b2.build(o21);
 
-    var r1 = { foo: 'bar' };
-    var r11 = { foo: 'baz' };
+    var r1 = simple_factory({});
+    var r11 = simple_factory({ foo: 'baz' });
     var r2 = new Simple_class({});
     var r21 = new Simple_class({ foo:'baz'});
 
@@ -72,7 +74,8 @@ test('Testing builder', function() {
     deepEqual(o2, r2, 'Constructor, default');
     deepEqual(o21, r21, 'Constructor, spec use');
 
-    strictEqual(o21, o22, 'Don\'t build built object');
+    strictEqual(o11, o12, 'Don\'t build built object - factory');
+    strictEqual(o21, o22, 'Don\'t build built object - constructor');
 
 });
 

@@ -32,7 +32,7 @@ NET.ip_address = function(spec) {
         };
     }
 
-    var that = {};
+    var that = IPA.object();
 
     that.input = spec.address;
 

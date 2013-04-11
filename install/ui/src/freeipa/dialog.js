@@ -54,7 +54,7 @@ IPA.dialog_button = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.name = spec.name;
     that.label = text.get(spec.label || spec.name);
@@ -86,7 +86,7 @@ IPA.dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.entity = IPA.get_entity(spec.entity);
     that.name = spec.name || 'dialog';

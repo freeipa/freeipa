@@ -32,7 +32,7 @@ IPA.entity = function(spec) {
         IPA.details_facet_update_policy()
     ];
 
-    var that = {};
+    var that = IPA.object();
 
     that.name = spec.name;
     that.label = text.get(spec.label);
@@ -172,7 +172,7 @@ IPA.entity = function(spec) {
 
 IPA.entity_builder = function() {
 
-    var that = {};
+    var that = IPA.object();
 
     var entity = null;
     var facet_group = null;
@@ -422,7 +422,7 @@ IPA.entity_builder = function() {
 
 IPA.dialog_builder = function(entity) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.build_dialogs = function() {
 
@@ -450,7 +450,7 @@ IPA.entity_policy = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.entity = spec.entity;
 
@@ -462,7 +462,7 @@ IPA.entity_policy = function(spec) {
 
 IPA.entity_policies = function(spec) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.entity = spec.entity;
     that.policies = [];

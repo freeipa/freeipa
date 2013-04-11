@@ -591,7 +591,7 @@ IPA.command = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.name = spec.name;
 
@@ -1029,7 +1029,7 @@ IPA.batch_command = function (spec) {
 IPA.concurrent_command = function(spec) {
 
     spec = spec || {};
-    var that = {};
+    var that = IPA.object();
 
     that.commands = [];
     that.on_success = spec.on_success;
@@ -1177,7 +1177,7 @@ IPA.default_factory = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     $.extend(that, spec);
 
@@ -1443,7 +1443,7 @@ IPA.error_dialog = function(spec) {
 };
 
 IPA.error_list = function() {
-    var that = {};
+    var that = IPA.object();
 
     that.clear = function() {
         that.errors = [];

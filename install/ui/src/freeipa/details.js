@@ -32,7 +32,7 @@ exp.collapsed_icon = IPA.collapsed_icon = 'collapsed-icon';
 
 exp.details_builder = IPA.details_builder = function(spec) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.widgets = spec.container.widgets;
     that.fields = spec.container.fields;
@@ -104,7 +104,7 @@ exp.section_builder = IPA.section_builder = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.object();
 
     that.container = spec.container;
     that.section_factory = spec.section_factory || IPA.details_table_section;
@@ -167,7 +167,7 @@ exp.section_builder = IPA.section_builder = function(spec) {
 
 exp.facet_policy = IPA.facet_policy = function() {
 
-    var that = {};
+    var that = IPA.object();
 
     that.init = function() {
     };
@@ -183,7 +183,7 @@ exp.facet_policy = IPA.facet_policy = function() {
 
 exp.facet_policies = IPA.facet_policies = function(spec) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.container = spec.container;
     that.policies = [];
@@ -721,7 +721,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
 
 exp.update_info = IPA.update_info = function(spec) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.fields = spec.fields || [];
     that.commands = spec.commands || [];
@@ -741,7 +741,7 @@ exp.update_info = IPA.update_info = function(spec) {
 
 exp.command_info = IPA.command_info = function(spec) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.command = spec.command;
     that.priority = spec.priority || IPA.config.default_priority;
@@ -751,7 +751,7 @@ exp.command_info = IPA.command_info = function(spec) {
 
 exp.field_info = IPA.field_info = function(spec) {
 
-    var that = {};
+    var that = IPA.object();
 
     that.field = spec.field;
     that.value = spec.value;
@@ -761,7 +761,7 @@ exp.field_info = IPA.field_info = function(spec) {
 
 exp.update_info_builder = IPA.update_info_builder = function() {
 
-    var that = {};
+    var that = IPA.object();
 
     that.new_update_info = function (fields, commands) {
         return IPA.update_info({
@@ -801,7 +801,7 @@ exp.update_info_builder = IPA.update_info_builder = function() {
 
 exp.command_builder = IPA.command_builder = function() {
 
-    var that = {};
+    var that = IPA.object();
 
     that.add_field_option = function(command, field, values) {
         if (!field || !values) return;
