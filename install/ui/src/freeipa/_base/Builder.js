@@ -25,6 +25,8 @@ define(['dojo/_base/declare',
         './Spec_mod'
         ], function(declare, array, lang, construct, Spec_mod) {
 
+    var undefined;
+
     var Builder = declare(null, {
         /**
          * Builds objects based on specication.
@@ -80,6 +82,8 @@ define(['dojo/_base/declare',
         build: function(spec, context, overrides) {
 
             var f,c;
+
+            if (spec === undefined || spec === null) return null;
 
             context = context || {};
 
