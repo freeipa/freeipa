@@ -173,9 +173,42 @@ done:
     return base;
 }
 
+static const struct {
+    const char *name;
+    enum ipadb_user_auth flag;
+} userauth_table[] = {
+    { "disabled", IPADB_USER_AUTH_DISABLED },
+    { "password", IPADB_USER_AUTH_PASSWORD },
+    { "radius", IPADB_USER_AUTH_RADIUS },
+    { "otp", IPADB_USER_AUTH_OTP },
+    { }
+};
+
+void ipadb_get_user_auth(LDAP *lcontext, LDAPMessage *le,
+                         enum ipadb_user_auth *userauth)
+{
+    struct berval **vals;
+    int i, j;
+
+    *userauth = IPADB_USER_AUTH_EMPTY;
+    vals = ldap_get_values_len(lcontext, le, IPA_USER_AUTH_TYPE);
+    if (!vals)
+        return;
+
+    for (i = 0; vals[i]; i++) {
+        for (j = 0; userauth_table[j].name; j++) {
+            if (strcasecmp(vals[i]->bv_val, userauth_table[j].name) == 0) {
+                *userauth |= userauth_table[j].flag;
+                break;
+            }
+        }
+    }
+}
+
 int ipadb_get_global_configs(struct ipadb_context *ipactx)
 {
-    char *attrs[] = { "ipaConfigString", IPA_KRB_AUTHZ_DATA_ATTR, NULL };
+    char *attrs[] = { "ipaConfigString", IPA_KRB_AUTHZ_DATA_ATTR,
+                      IPA_USER_AUTH_TYPE, NULL };
     struct berval **vals = NULL;
     LDAPMessage *res = NULL;
     LDAPMessage *first;
@@ -202,6 +235,9 @@ int ipadb_get_global_configs(struct ipadb_context *ipactx)
         ret = 0;
         goto done;
     }
+
+    /* Check for permitted authentication types. */
+    ipadb_get_user_auth(ipactx->lcontext, res, &ipactx->user_auth);
 
     vals = ldap_get_values_len(ipactx->lcontext, first,
                                "ipaConfigString");

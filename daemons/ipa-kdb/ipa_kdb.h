@@ -75,8 +75,17 @@
 #define IPA_SETUP "ipa-setup-override-restrictions"
 
 #define IPA_KRB_AUTHZ_DATA_ATTR "ipaKrbAuthzData"
+#define IPA_USER_AUTH_TYPE "ipaUserAuthType"
 
 struct ipadb_mspac;
+
+enum ipadb_user_auth {
+  IPADB_USER_AUTH_EMPTY    = 0,
+  IPADB_USER_AUTH_DISABLED = 1 << 0,
+  IPADB_USER_AUTH_PASSWORD = 1 << 1,
+  IPADB_USER_AUTH_RADIUS   = 1 << 2,
+  IPADB_USER_AUTH_OTP      = 1 << 3,
+};
 
 struct ipadb_context {
     char *uri;
@@ -92,6 +101,7 @@ struct ipadb_context {
     bool disable_last_success;
     bool disable_lockout;
     char **authz_data;
+    enum ipadb_user_auth user_auth;
 };
 
 #define IPA_E_DATA_MAGIC 0x0eda7a
@@ -259,3 +269,6 @@ void ipadb_audit_as_req(krb5_context kcontext,
                         krb5_timestamp authtime,
                         krb5_error_code error_code);
 
+/* AUTH METHODS */
+void ipadb_get_user_auth(LDAP *lcontext, LDAPMessage *le,
+                         enum ipadb_user_auth *user_auth);
