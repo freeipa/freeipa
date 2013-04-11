@@ -64,6 +64,7 @@ static char *std_principal_attrs[] = {
     "nsaccountlock",
     "passwordHistory",
     IPA_KRB_AUTHZ_DATA_ATTR,
+    IPA_USER_AUTH_TYPE,
 
     "objectClass",
     NULL
@@ -228,6 +229,9 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               krb5_db_entry **kentry,
                                               uint32_t *polmask)
 {
+    krb5_octet otp_string[] = {'o', 't', 'p', 0, '[', ']', 0 };
+    enum ipadb_user_auth user_ua = IPADB_USER_AUTH_EMPTY;
+    enum ipadb_user_auth *active_ua = &user_ua;
     struct ipadb_context *ipactx;
     LDAP *lcontext;
     krb5_db_entry *entry;
@@ -261,6 +265,17 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
 
     entry->magic = KRB5_KDB_MAGIC_NUMBER;
     entry->len = KRB5_KDB_V1_BASE_LENGTH;
+
+    /* Get the user's user_auth settings. */
+    ipadb_get_user_auth(ipactx->lcontext, lentry, &user_ua);
+
+    /* TODO: Should we confirm the existence of ipatokenRadiusConfigLink in
+     *       the case of RADIUS? Existence of a token for OTP? */
+
+    /* Determine which user_auth policy is active: user or global. */
+    if ((ipactx->user_auth & IPADB_USER_AUTH_DISABLED)
+        || user_ua == IPADB_USER_AUTH_EMPTY)
+        active_ua = &ipactx->user_auth;
 
     /* ignore mask for now */
 
@@ -393,6 +408,13 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                       &res_key_data, &result, &mkvno);
     switch (ret) {
     case 0:
+        /* Only set a principal's key if password auth should be used. */
+        if ((*active_ua & ~IPADB_USER_AUTH_DISABLED) != IPADB_USER_AUTH_EMPTY
+            && !(*active_ua & IPADB_USER_AUTH_PASSWORD)) {
+            /* This is the same behavior as ENOENT below. */
+            break;
+        }
+
         entry->key_data = res_key_data;
         entry->n_key_data = result;
         if (mkvno) {
@@ -515,6 +537,12 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         ied->authz_data = authz_data_list;
     }
 
+    /* If enabled, set the otp user string, enabling otp. */
+    if ((*active_ua & (IPADB_USER_AUTH_RADIUS | IPADB_USER_AUTH_OTP)) &&
+        !(*active_ua & IPADB_USER_AUTH_DISABLED)) {
+        ret = ipadb_set_tl_data(entry, KRB5_TL_STRING_ATTRS,
+                                sizeof(otp_string), otp_string);
+    }
 
     kerr = 0;
 
