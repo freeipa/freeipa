@@ -11,6 +11,7 @@ app_DATA =				\
 	60ipadns.ldif			\
 	61kerberos-ipav3.ldif		\
 	65ipasudo.ldif			\
+	70ipaotp.ldif			\
 	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\
 	caJarSigningCert.cfg.template	\

@@ -20,8 +20,6 @@
 from copy import deepcopy
 from ipaserver.install.plugins import FIRST, LAST
 from ipaserver.install.plugins.baseupdate import PostUpdate
-#from ipalib.frontend import Updater
-#from ipaserver.install.plugins import baseupdate
 from ipalib import api
 from ipalib.aci import ACI
 from ipalib.plugins import aci
@@ -37,6 +35,8 @@ class update_anonymous_aci(PostUpdate):
         aciname = u'Enable Anonymous access'
         aciprefix = u'none'
         ldap = self.obj.backend
+        targetfilter = '(&(!(objectClass=ipaToken))(!(objectClass=ipatokenTOTP))(!(objectClass=ipatokenRadiusProxyUser))(!(objectClass=ipatokenRadiusConfiguration)))'
+        filter = None
 
         (dn, entry_attrs) = ldap.get_entry(api.env.basedn, ['aci'])
 
@@ -45,6 +45,9 @@ class update_anonymous_aci(PostUpdate):
         rawaci = aci._find_aci_by_name(acilist, aciprefix, aciname)
 
         attrs = rawaci.target['targetattr']['expression']
+        rawfilter = rawaci.target.get('targetfilter', None)
+        if rawfilter is not None:
+            filter = rawfilter['expression']
 
         update_attrs = deepcopy(attrs)
 
@@ -54,12 +57,10 @@ class update_anonymous_aci(PostUpdate):
                 needed_attrs.append(attr)
 
         update_attrs.extend(needed_attrs)
-        if len(attrs) == len(update_attrs):
+        if (len(attrs) == len(update_attrs) and
+            filter == targetfilter):
             root_logger.debug("Anonymous ACI already update-to-date")
             return (False, False, [])
-        else:
-            root_logger.debug("New Anonymous ACI attributes needed: %s",
-                needed_attrs)
 
         for tmpaci in acistrs:
             candidate = ACI(tmpaci)
@@ -67,7 +68,17 @@ class update_anonymous_aci(PostUpdate):
                 acistrs.remove(tmpaci)
                 break
 
-        rawaci.target['targetattr']['expression'] = update_attrs
+        if len(attrs) != len(update_attrs):
+            root_logger.debug("New Anonymous ACI attributes needed: %s",
+                needed_attrs)
+
+            rawaci.target['targetattr']['expression'] = update_attrs
+
+        if filter != targetfilter:
+            root_logger.debug("New Anonymous ACI targetfilter needed.")
+
+            rawaci.set_target_filter(targetfilter)
+
         acistrs.append(unicode(rawaci))
         entry_attrs['aci'] = acistrs
 
