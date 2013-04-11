@@ -41,7 +41,7 @@ define(['dojo/_base/declare',
          * Registers construction specification
          *
          * @param type {String|Object} type or construction spec
-         * @param func {Function} constructor or factory function
+         * @param func {Function} ctor or factory function
          * @param [default_spec] {Object} default spec object for given type
          *
          * @returns Object
@@ -52,7 +52,7 @@ define(['dojo/_base/declare',
          *   var construction_spec = {
          *       type: String,
          *       factory: Function,
-         *       constructor: Function,
+         *       ctor: Function,
          *       spec: Object,
          *       pre_ops: [],
          *       post_ops: []
@@ -60,7 +60,7 @@ define(['dojo/_base/declare',
          *   register(construction_spec);
          *
          * or by defining them separately as params:
-         *   register(type, factory|constructor, spec);
+         *   register(type, factory|ctor, spec);
          */
         register: function(type, func, default_spec) {
 
@@ -69,11 +69,11 @@ define(['dojo/_base/declare',
             if (typeof type === 'object') {
                 cs = type;
             } else {
-                construct.is_constructor(func) ? c = func : f = func;
+                construct.is_ctor(func) ? c = func : f = func;
                 cs = {
                     type: type,
                     factory: f,
-                    constructor: c,
+                    ctor: c,
                     spec: default_spec
                 };
             }
@@ -105,7 +105,7 @@ define(['dojo/_base/declare',
             if (def_cs.pre_ops) cs.pre_ops.push.call(cs.pre_ops, def_cs.pre_ops);
             if (def_cs.post_ops) cs.post_ops.push.call(cs.post_ops, def_cs.post_ops);
             if (def_cs.factory) cs.factory = def_cs.factory;
-            if (def_cs.constructor) cs.constructor = def_cs.constructor;
+            if (def_cs.ctor) cs.ctor = def_cs.ctor;
             if (def_cs.spec) {
                 cs.spec = cs.spec || {};
                 lang.mixin(cs.spec, def_cs.spec);
@@ -182,8 +182,8 @@ define(['dojo/_base/declare',
                 throw 'Argument exception: Invalid type';
             }
             if (typeof spec.factory !== 'function' &&
-                    typeof spec.constructor !== 'function') {
-                throw 'Argument exception: No factory or constructor defined';
+                    typeof spec.ctor !== 'function') {
+                throw 'Argument exception: No factory or ctor defined';
             }
             if (!lang.isArrayLike(spec.pre_ops)) {
                 throw 'Argument exception: Invalid pre_ops type.';

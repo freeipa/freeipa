@@ -46,7 +46,7 @@ define(['dojo/_base/declare',
 
         factory: null,
 
-        constructor: null,
+        ctor: null,
 
         post_ops: [],
 
@@ -60,12 +60,12 @@ define(['dojo/_base/declare',
          * @param {Object} overrides
          *
          * String: type name, queries registry
-         * Function: factory or constructor
+         * Function: factory or ctor
          * Object: spec object
          * Array: array of spec objects
          *
          * Build control properies of spec object:
-         *      $constructor: Function
+         *      $ctor: Function
          *      $factory: Function
          *      $mixim_spec: Boolean
          *      $type: String
@@ -74,7 +74,7 @@ define(['dojo/_base/declare',
          *
          * All other properties will be passed to object construction method.
          *
-         * Builder default factory and constructor is overridden by those specified
+         * Builder default factory and ctor is overridden by those specified
          * in overrides when overrides are set.
          */
         build: function(spec, context, overrides) {
@@ -85,16 +85,16 @@ define(['dojo/_base/declare',
 
             if (overrides) {
                 f = this.factory;
-                c = this.constructor;
+                c = this.ctor;
                 if (typeof overrides === 'function') {
-                    if (construct.is_constructor(overrides)) {
-                        overrides = { constructor: overrides };
+                    if (construct.is_ctor(overrides)) {
+                        overrides = { ctor: overrides };
                     } else {
                         overrides = { factory: overrides };
                     }
                 }
                 this.factory = overrides.factory;
-                this.constructor = overrides.constructor;
+                this.ctor = overrides.ctor;
             }
 
             var objects;
@@ -110,7 +110,7 @@ define(['dojo/_base/declare',
 
             if (overrides) {
                 this.factory = f;
-                this.constructor = c;
+                this.ctor = c;
             }
 
             return objects;
@@ -127,10 +127,10 @@ define(['dojo/_base/declare',
             var cs = {};
 
             if (typeof spec === 'function') {
-                // spec constructor or factory
+                // spec ctor or factory
 
-                if (construct.is_constructor(spec)) {
-                    cs.constructor = spec;
+                if (construct.is_ctor(spec)) {
+                    cs.ctor = spec;
                 } else {
                     cs.factory = spec;
                 }
@@ -138,7 +138,7 @@ define(['dojo/_base/declare',
                 // spec is type name
                 cs = this._query_registry(spec);
             } else if (typeof spec === 'object') {
-                var c = spec.$constructor,
+                var c = spec.$ctor,
                     f = spec.$factory,
                     m = spec.$mixim_spec,
                     t = spec.$type,
@@ -146,7 +146,7 @@ define(['dojo/_base/declare',
                     post = spec.$post_ops;
 
                 var s = lang.clone(spec);
-                delete s.$constructor;
+                delete s.$ctor;
                 delete s.$factory;
                 delete s.$mixim_spec;
                 delete s.$type;
@@ -154,7 +154,7 @@ define(['dojo/_base/declare',
                 delete s.$post_ops;
 
                 if (c) {
-                    cs.constructor = c;
+                    cs.ctor = c;
                     cs.spec = s;
                 }
                 else if (f) {
@@ -168,6 +168,8 @@ define(['dojo/_base/declare',
                     } else {
                         cs.spec = s;
                     }
+                } else {
+                    cs.spec = s;
                 }
 
                 cs.pre_ops = cs.pre_ops || [];
@@ -176,8 +178,8 @@ define(['dojo/_base/declare',
                 if (pre) cs.post_ops.push.call(cs.post_ops, post);
                 cs.spec = cs.spec || {};
 
-                if (!cs.factory && !cs.constructor) {
-                    if (this.constructor) cs.constructor = this.constructor;
+                if (!cs.factory && !cs.ctor) {
+                    if (this.ctor) cs.ctor = this.ctor;
                     else if (this.factory) cs.factory = this.factory;
                 }
             }
@@ -220,11 +222,11 @@ define(['dojo/_base/declare',
 
             if (cs.factory && typeof cs.factory === 'function') {
                 obj = cs.factory(cs.spec);
-            } else if (cs.constructor && typeof cs.constructor === 'function') {
-                obj = new cs.constructor(cs.spec);
+            } else if (cs.ctor && typeof cs.ctor === 'function') {
+                obj = new cs.ctor(cs.spec);
             } else {
                 throw {
-                    error: 'Build error: missing or invalid constructor or factory',
+                    error: 'Build error: missing or invalid ctor or factory',
                     spec: cs
                 };
             }
@@ -275,7 +277,7 @@ define(['dojo/_base/declare',
 
             spec = spec || {};
             if (spec.factory) this.factory = spec.factory;
-            if (spec.constructor) this.constructor = spec.constructor;
+            if (spec.ctor) this.ctor = spec.ctor;
             if (spec.registry) this.registry = spec.registry;
             if (spec.spec_mod) this.spec_mod = spec.spec_mod;
             else this.spec_mod = new Spec_mod();

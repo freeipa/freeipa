@@ -81,7 +81,7 @@ define(['dojo/_base/declare',
          * Registers construction specification
          *
          * @param type {String|Object} type or construction spec
-         * @param func {Function} constructor or factory function
+         * @param func {Function} ctor or factory function
          * @param [default_spec] {Object} default spec object for given type
          *
          * @returns Object

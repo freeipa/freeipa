@@ -32,7 +32,7 @@ define(['dojo/_base/declare',
          * Checks if supplied object is a construtor function.
          * It can recognize only classes declared by ''dojo/_base/declare''.
          */
-        is_constructor: function(obj) {
+        is_ctor: function(obj) {
 
             // TODO: Find better method. Check by extend might not be very
             // reliable.
