@@ -4,6 +4,7 @@ appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
 	10-60basev2.update		\
 	10-60basev3.update		\
+	10-70ipaotp.update		\
 	10-RFC2307bis.update		\
 	10-RFC4876.update		\
 	10-config.update		\
@@ -13,6 +14,7 @@ app_DATA =				\
 	10-ssh.update			\
 	10-bind-schema.update		\
 	10-uniqueness.update		\
+	10-schema_compat.update		\
 	19-managed-entries.update	\
 	20-aci.update			\
 	20-dna.update			\
@@ -20,7 +22,6 @@ app_DATA =				\
 	20-indices.update		\
 	20-nss_ldap.update		\
 	20-replication.update		\
-	10-schema_compat.update		\
 	20-user_private_groups.update	\
 	20-winsync_index.update		\
 	21-replicas_container.update	\
@@ -32,6 +33,7 @@ app_DATA =				\
 	40-replication.update		\
 	40-dns.update			\
 	40-automember.update		\
+	40-otp.update			\
 	45-roles.update			\
 	50-lockout-policy.update	\
 	50-groupuuid.update		\

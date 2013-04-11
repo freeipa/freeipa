@@ -31,6 +31,7 @@ SCHEMA_FILENAMES = (
     "60ipadns.ldif",
     "61kerberos-ipav3.ldif",
     "65ipasudo.ldif",
+    "70ipaotp.ldif",
     "05rfc2247.ldif",
 )
 
