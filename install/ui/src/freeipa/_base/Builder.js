@@ -92,13 +92,13 @@ define(['dojo/_base/declare',
                 c = this.ctor;
                 if (typeof overrides === 'function') {
                     if (construct.is_ctor(overrides)) {
-                        overrides = { ctor: overrides };
+                        overrides = { $ctor: overrides };
                     } else {
-                        overrides = { factory: overrides };
+                        overrides = { $factory: overrides };
                     }
                 }
-                this.factory = overrides.factory;
-                this.ctor = overrides.ctor;
+                this.factory = overrides.$factory;
+                this.ctor = overrides.$ctor;
             }
 
             var objects;
