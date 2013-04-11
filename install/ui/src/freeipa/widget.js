@@ -74,7 +74,7 @@ IPA.widget = function(spec) {
             facet: that.facet
         });
 
-        var child = IPA.build(spec, factory);
+        var child = IPA.build(spec,{}, factory);
         return child;
     };
 
@@ -3152,7 +3152,7 @@ IPA.details_table_section = function(spec) {
     spec = spec || {};
 
     var that = IPA.details_section(spec);
-    that.layout = IPA.build_default(spec.layout, IPA.table_layout);
+    that.layout = IPA.build(spec.layout || IPA.table_layout);
     that.action_panel = that.build_child(spec.action_panel);
 
     that.rows = $.ordered_map();
@@ -3228,7 +3228,7 @@ IPA.multiple_choice_section = function(spec) {
 
     var that = IPA.composite_widget(spec);
     that.choices = $.ordered_map().put_array(spec.choices, 'name');
-    that.layout = IPA.build_default(spec.layout, IPA.table_layout);
+    that.layout = IPA.build(spec.layout || IPA.table_layout);
 
     that.create = function(container) {
 

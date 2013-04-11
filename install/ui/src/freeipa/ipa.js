@@ -22,8 +22,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['./jquery', './json2','./_base/i18n', './_base/metadata_provider', './text'],
-       function($, JSON, i18n, metadata_provider, text) {
+define(['./jquery',
+        './json2',
+        './_base/Builder',
+        './_base/i18n',
+        './_base/metadata_provider',
+        './text'],
+       function($, JSON, Builder, i18n, metadata_provider, text) {
 
 var IPA = function() {
 
@@ -1144,88 +1149,11 @@ IPA.concurrent_command = function(spec) {
     return that;
 };
 
-IPA.builder = function(spec) {
+IPA.builder = new Builder();
 
-    spec = spec || {};
+IPA.build = function(spec, context, overrides) {
 
-    var that = {};
-
-    that.factory = spec.factory || IPA.default_factory;
-
-    that.build = function(spec) {
-
-        var factory = spec.factory || that.factory;
-
-        //when spec is a factory function
-        if (!spec.factory && typeof spec === 'function') {
-            factory = spec;
-            spec = {};
-        }
-
-        var obj = factory(spec);
-        return obj;
-    };
-
-    that.build_objects = function(specs) {
-
-        var objects = [];
-
-        for (var i=0; i<specs.length; i++) {
-            var spec = specs[i];
-            var obj = that.build(spec);
-            objects.push(obj);
-        }
-
-        return objects;
-    };
-
-    return that;
-};
-
-IPA.build = function(spec, builder_fac) {
-
-    if (!spec) return null;
-
-    if (!builder_fac) builder_fac = IPA.builder;
-
-    var builder = builder_fac();
-    var product;
-
-    if ($.isArray(spec)) {
-        product = builder.build_objects(spec);
-    } else {
-        product = builder.build(spec);
-    }
-
-    return product;
-};
-
-IPA.build_default = function(spec, def_spec) {
-
-    var builder, factory, default_object;
-
-    if (!spec && !def_spec) return null;
-
-    if (typeof def_spec === 'function') { //factory function
-        factory = def_spec;
-    } else if (typeof def_spec === 'object') {
-        default_object = def_spec;
-    }
-
-    builder = IPA.builder({
-        factory: factory
-    });
-
-    var product;
-    spec = spec || default_object || {};
-
-    if ($.isArray(spec)) {
-        product = builder.build_objects(spec);
-    } else {
-        product = builder.build(spec);
-    }
-
-    return product;
+    return IPA.builder.build(spec, context, overrides);
 };
 
 IPA.default_factory = function(spec) {

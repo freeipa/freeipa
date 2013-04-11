@@ -28,6 +28,7 @@ define([
         'dojo/on',
         'dojo/Stateful',
         'dojo/Evented',
+        './_base/Builder',
         './ipa',
         './jquery',
         './navigation',
@@ -36,7 +37,7 @@ define([
         './field',
         './widget'
        ], function(declare, lang, construct, on, Stateful, Evented,
-                   IPA, $, navigation, text) {
+                   Builder, IPA, $, navigation, text) {
 
 /**
  * Facet represents the content of currently displayed page.
@@ -102,8 +103,6 @@ exp.facet_spec = {};
 exp.facet = IPA.facet = function(spec, no_init) {
 
     spec = spec || {};
-    spec.state = spec.state || {};
-    $.extend(spec.state, { factory: IPA.state });
 
     var that = new Evented();
 
@@ -119,8 +118,8 @@ exp.facet = IPA.facet = function(spec, no_init) {
     that.disable_breadcrumb = spec.disable_breadcrumb;
     that.disable_facet_tabs = spec.disable_facet_tabs;
 
-    that.action_state = IPA.build(spec.state);
-    that.actions = IPA.build({ actions: spec.actions }, IPA.action_holder_builder);
+    that.action_state = IPA.build(spec.state, {}, { factory: exp.state });
+    that.actions = exp.action_holder_builder.build({ actions: spec.actions });
 
     that.header_actions = spec.header_actions;
     that.header = spec.header || IPA.facet_header({ facet: that });
@@ -1716,15 +1715,6 @@ exp.action = IPA.action = function(spec) {
     return that;
 };
 
-exp.action_builder = IPA.action_builder = function(spec) {
-
-    spec = spec || {};
-    spec.factory = spec.factory || IPA.action;
-    var that = IPA.builder(spec);
-    return that;
-};
-
-
 exp.action_holder = IPA.action_holder = function(spec) {
 
     spec = spec || {};
@@ -1738,7 +1728,7 @@ exp.action_holder = IPA.action_holder = function(spec) {
         var i, action, actions;
 
         that.facet = facet;
-        actions = IPA.build(spec.actions, IPA.action_builder) || [];
+        actions = exp.action_builder.build(spec.actions);
 
         for (i=0; i<actions.length; i++) {
             action = actions[i];
@@ -1782,19 +1772,9 @@ exp.action_holder = IPA.action_holder = function(spec) {
     return that;
 };
 
-exp.action_holder_builder = IPA.action_holder_builder = function(spec) {
-
-    spec = spec || {};
-    spec.factory = spec.factory || IPA.action_holder;
-    var that = IPA.builder(spec);
-    return that;
-};
-
-
 exp.state = IPA.state = function(spec) {
 
     spec = spec || {};
-    spec.summary_evaluator = spec.summary_evaluator || IPA.summary_evaluator;
 
     var that = {};
 
@@ -1803,8 +1783,8 @@ exp.state = IPA.state = function(spec) {
     //when state changes. Params: state, Context: this
     that.changed = IPA.observer();
 
-    that.evaluators = IPA.build(spec.evaluators, IPA.state_evaluator_builder) || [];
-    that.summary_evaluator = IPA.build(spec.summary_evaluator);
+    that.evaluators = exp.state_evaluator_builder.build(spec.evaluators);
+    that.summary_evaluator = IPA.build(spec.summary_evaluator || IPA.summary_evaluator);
 
     that.summary_conditions = spec.summary_conditions || [];
 
@@ -1928,14 +1908,6 @@ exp.state_evaluator = IPA.state_evaluator = function(spec) {
         }
     };
 
-    return that;
-};
-
-exp.state_evaluator_builder = IPA.state_evaluator_builder = function(spec) {
-
-    spec = spec || {};
-    spec.factory = spec.factory || IPA.state_evaluator;
-    var that = IPA.builder(spec);
     return that;
 };
 
@@ -2148,21 +2120,13 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
     return that;
 };
 
-exp.action_button_widget_builder = IPA.action_button_widget_builder = function(spec) {
-
-    spec = spec || {};
-    spec.factory = spec.factory || IPA.action_button_widget;
-    var that = IPA.builder(spec);
-    return that;
-};
-
 exp.control_buttons_widget = IPA.control_buttons_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.widget(spec);
 
-    that.buttons = IPA.build(spec.buttons, IPA.action_button_widget_builder) || [];
+    that.buttons = IPA.action_button_widget_builder.build(spec.buttons);
 
     that.init = function(facet) {
 
@@ -2456,6 +2420,26 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
         this.emit('set', old_state, new_state);
         return this;
     }
+});
+
+exp.action_builder = IPA.action_builder = new Builder({
+    factory: exp.action
+});
+
+exp.action_holder_builder = new Builder({
+    factory: exp.action_holder
+});
+
+exp.state_builder = IPA.state_builder = new Builder({
+    factory: exp.state
+});
+
+exp.state_evaluator_builder = IPA.state_evaluator_builder = new Builder({
+    factory: exp.state
+});
+
+exp.action_button_widget_builder = IPA.action_button_widget_builder = new Builder({
+    factory: exp.action_button_widget
 });
 
 return exp;
