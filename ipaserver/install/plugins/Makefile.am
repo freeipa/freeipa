@@ -10,6 +10,7 @@ app_PYTHON = 			\
 	updateclient.py		\
 	update_services.py	\
 	update_anonymous_aci.py	\
+	update_pacs.py		\
 	$(NULL)
 
 EXTRA_DIST =			\
