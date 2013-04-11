@@ -232,7 +232,7 @@ var IPA = function() {
             var builder = IPA.entity_builder();
 
             builder.entity({
-                factory: factory,
+                $factory: factory,
                 name: name
             });
 

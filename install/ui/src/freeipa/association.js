@@ -1189,7 +1189,7 @@ IPA.attribute_facet = function(spec, no_init) {
         IPA.selected_state_evaluator,
         IPA.read_only_state_evaluator,
         {
-            factory: IPA.attr_read_only_evaluator,
+            $factory: IPA.attr_read_only_evaluator,
             attribute: spec.attribute
         });
 

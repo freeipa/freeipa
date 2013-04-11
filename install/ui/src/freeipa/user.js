@@ -56,11 +56,11 @@ IPA.user.entity = function(spec) {
             ],
             actions: [
                 {
-                    factory: IPA.batch_disable_action,
+                    $factory: IPA.batch_disable_action,
                     hide_cond: ['self-service']
                 },
                 {
-                    factory: IPA.batch_enable_action,
+                    $factory: IPA.batch_enable_action,
                     hide_cond: ['self-service']
                 }
             ],
@@ -78,7 +78,7 @@ IPA.user.entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.user.details_facet,
+            $factory: IPA.user.details_facet,
             sections: [
                 {
                     name: 'identity',
@@ -96,14 +96,14 @@ IPA.user.entity = function(spec) {
                 {
                     name: 'account',
                     action_panel: {
-                        factory: IPA.action_panel,
+                        $factory: IPA.action_panel,
                         name: 'account_actions',
                         actions: ['reset_password']
                     },
                     fields: [
                         'uid',
                         {
-                            factory: IPA.user_password_widget,
+                            $factory: IPA.user_password_widget,
                             name: 'has_password',
                             metadata: IPA.get_entity_param('user', 'userpassword')
                         },
@@ -233,7 +233,7 @@ IPA.user.entity = function(spec) {
             state: {
                 evaluators: [
                     {
-                        factory: IPA.enable_state_evaluator,
+                        $factory: IPA.enable_state_evaluator,
                         field: 'nsaccountlock',
                         invert_value: true
                     },
@@ -283,7 +283,7 @@ IPA.user.entity = function(spec) {
             link: link
         }).
         adder_dialog({
-            factory: IPA.user_adder_dialog,
+            $factory: IPA.user_adder_dialog,
             sections: [
                 {
                     fields: [

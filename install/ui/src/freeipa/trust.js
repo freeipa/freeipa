@@ -91,7 +91,7 @@ IPA.trust.entity = function(spec) {
             ]
         }).
         adder_dialog({
-            factory: IPA.trust.adder_dialog,
+            $factory: IPA.trust.adder_dialog,
             fields: [
                 {
                     name: 'cn',

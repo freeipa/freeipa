@@ -140,7 +140,7 @@ IPA.group.entity = function(spec) {
         }).
         standard_association_facets().
         adder_dialog({
-            factory: IPA.group_adder_dialog,
+            $factory: IPA.group_adder_dialog,
             fields: [
                 'cn',
                 {

@@ -36,7 +36,7 @@ IPA.aci.permission_entity = function(spec) {
             columns: [ 'cn' ]
         }).
         details_facet({
-            factory: IPA.aci.permission_details_facet,
+            $factory: IPA.aci.permission_details_facet,
             fields: [
                 {
                     name:'cn',

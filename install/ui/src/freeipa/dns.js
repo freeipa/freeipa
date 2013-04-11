@@ -145,7 +145,7 @@ IPA.dns.zone_entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.dnszone_details_facet,
+            $factory: IPA.dnszone_details_facet,
             command_mode: 'info',
             sections: [
             {
@@ -242,11 +242,11 @@ IPA.dns.zone_entity = function(spec) {
             state: {
                 evaluators: [
                     {
-                        factory: IPA.enable_state_evaluator,
+                        $factory: IPA.enable_state_evaluator,
                         field: 'idnszoneactive'
                     },
                     {
-                        factory: IPA.acl_state_evaluator,
+                        $factory: IPA.acl_state_evaluator,
                         attribute: 'managedby'
                     },
                     IPA.dns.zone_has_permission_evaluator
@@ -258,7 +258,7 @@ IPA.dns.zone_entity = function(spec) {
             }
         }).
         nested_search_facet({
-            factory: IPA.dns.record_search_facet,
+            $factory: IPA.dns.record_search_facet,
             facet_group: 'dnsrecord',
             nested_entity : 'dnsrecord',
             name: 'records',
@@ -284,11 +284,11 @@ IPA.dns.zone_entity = function(spec) {
         }).
         standard_association_facets().
         adder_dialog({
-            factory: IPA.dnszone_adder_dialog,
+            $factory: IPA.dnszone_adder_dialog,
             height: 300,
             sections: [
                 {
-                    factory: IPA.dnszone_name_section,
+                    $factory: IPA.dnszone_name_section,
                     name: 'name',
                     fields: [
                         {
@@ -804,7 +804,7 @@ IPA.dns.get_record_metadata = function() {
             ],
             columns: [
                 {
-                    factory: IPA.dns.ptr_redirection_column,
+                    $factory: IPA.dns.ptr_redirection_column,
                     name: 'a_part_ip_address'
                 }
             ]
@@ -823,7 +823,7 @@ IPA.dns.get_record_metadata = function() {
             ],
             columns: [
                 {
-                    factory: IPA.dns.ptr_redirection_column,
+                    $factory: IPA.dns.ptr_redirection_column,
                     name: 'aaaa_part_ip_address'
                 }
             ]
@@ -1157,7 +1157,7 @@ IPA.dns.record_entity = function(spec) {
 
         that.builder.containing_entity('dnszone').
         details_facet({
-            factory: IPA.dns.record_details_facet,
+            $factory: IPA.dns.record_details_facet,
             disable_breadcrumb: false,
             fields: [
                 {
@@ -1185,7 +1185,7 @@ IPA.dns.record_entity = function(spec) {
             ]
         }).
         adder_dialog({
-            factory: IPA.dns.record_adder_dialog,
+            $factory: IPA.dns.record_adder_dialog,
             fields: [
                 {
                     name: 'idnsname',
@@ -1665,7 +1665,7 @@ IPA.dns.record_type_table_widget = function(spec) {
     spec.columns.push({
         name: 'position',
         label: '',
-        factory: IPA.dns.record_modify_column,
+        $factory: IPA.dns.record_modify_column,
         width: '106px'
     });
 

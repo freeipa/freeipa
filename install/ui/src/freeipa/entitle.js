@@ -40,7 +40,7 @@ IPA.entitle.entity = function(spec) {
 
         that.builder.facet_groups([ 'account', 'certificates' ]).
         details_facet({
-            factory: IPA.entitle.details_facet,
+            $factory: IPA.entitle.details_facet,
             label: '@i18n:objects.entitle.account',
             facet_group: 'account',
             sections: [
@@ -54,7 +54,7 @@ IPA.entitle.entity = function(spec) {
                             read_only: true
                         },
                         {
-                            factory: IPA.entitle.download_widget,
+                            $factory: IPA.entitle.download_widget,
                             name: 'certificate',
                             label: '@i18n:objects.entitle.certificate'
                         }
@@ -84,7 +84,7 @@ IPA.entitle.entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.entitle.certificates_facet,
+            $factory: IPA.entitle.certificates_facet,
             name: 'certificates',
             label: '@i18n:objects.entitle.certificates',
             facet_group: 'certificates',
@@ -106,7 +106,7 @@ IPA.entitle.entity = function(spec) {
                     label: '@i18n:objects.entitle.end'
                 },
                 {
-                    factory: IPA.entitle.certificate_column,
+                    $factory: IPA.entitle.certificate_column,
                     name: 'certificate',
                     label: '@i18n:objects.entitle.certificate'
                 }
@@ -114,7 +114,7 @@ IPA.entitle.entity = function(spec) {
         }).
         standard_association_facets().
         dialog({
-            factory: IPA.entitle.register_online_dialog,
+            $factory: IPA.entitle.register_online_dialog,
             name: 'online_registration',
             title: '@i18n:objects.entitle.registration',
             fields: [
@@ -136,7 +136,7 @@ IPA.entitle.entity = function(spec) {
             ]
         }).
         dialog({
-            factory: IPA.entitle.register_offline_dialog,
+            $factory: IPA.entitle.register_offline_dialog,
             name: 'offline_registration',
             title: '@i18n:objects.entitle.import_certificate',
             message: '@i18n:objects.entitle.import_message',
@@ -148,7 +148,7 @@ IPA.entitle.entity = function(spec) {
             ]
         }).
         dialog({
-            factory: IPA.entitle.consume_dialog,
+            $factory: IPA.entitle.consume_dialog,
             name: 'consume',
             title: '@i18n:objects.entitle.consume_entitlement',
             fields: [
@@ -160,7 +160,7 @@ IPA.entitle.entity = function(spec) {
             ]
         }).
         dialog({
-            factory: IPA.entitle.import_dialog,
+            $factory: IPA.entitle.import_dialog,
             name: 'import',
             title: '@i18n:objects.entitle.import_certificate',
             message: '@i18n:objects.entitle.import_message',

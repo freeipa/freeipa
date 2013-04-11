@@ -51,7 +51,7 @@ IPA.service.entity = function(spec) {
             columns: [ 'krbprincipalname' ]
         }).
         details_facet({
-            factory: IPA.service.details_facet,
+            $factory: IPA.service.details_facet,
             sections: [
                 {
                     name: 'details',
@@ -81,7 +81,7 @@ IPA.service.entity = function(spec) {
                                 {
                                     label: '@i18n:krbauthzdata.override',
                                     name: 'ipakrbauthzdata_override',
-                                    factory: IPA.option_widget_base,
+                                    $factory: IPA.option_widget_base,
                                     input_type: 'checkbox',
                                     value: 'NONE',
                                     combine_values: false,
@@ -108,7 +108,7 @@ IPA.service.entity = function(spec) {
                 {
                     name: 'provisioning',
                     action_panel: {
-                        factory: IPA.action_panel,
+                        $factory: IPA.action_panel,
                         name: 'provisioning_actions',
                         actions: ['unprovision']
                     },
@@ -123,7 +123,7 @@ IPA.service.entity = function(spec) {
                 {
                     name: 'certificate',
                     action_panel: {
-                        factory: IPA.action_panel,
+                        $factory: IPA.action_panel,
                         name: 'cert_actions',
                         actions: [
                             'request_cert', 'view_cert', 'get_cert',
@@ -165,7 +165,7 @@ IPA.service.entity = function(spec) {
         }).
         standard_association_facets().
         adder_dialog({
-            factory: IPA.service_adder_dialog,
+            $factory: IPA.service_adder_dialog,
             height: 350,
             sections: [
                 {

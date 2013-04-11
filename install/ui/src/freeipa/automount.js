@@ -70,7 +70,7 @@ IPA.automount.map_entity = function(spec) {
         that.builder.containing_entity('automountlocation').
         facet_groups([ 'automountkey', 'settings' ]).
         nested_search_facet({
-            factory: IPA.automount.key_search_facet,
+            $factory: IPA.automount.key_search_facet,
             facet_group: 'automountkey',
             nested_entity: 'automountkey',
             search_all_entries: true,
@@ -79,7 +79,7 @@ IPA.automount.map_entity = function(spec) {
             name: 'keys',
             columns: [
                 {
-                    factory: IPA.automount_key_column,
+                    $factory: IPA.automount_key_column,
                     name: 'automountkey',
                     label: IPA.get_entity_param('automountkey', 'automountkey').label
                 },
@@ -102,7 +102,7 @@ IPA.automount.map_entity = function(spec) {
             ]
         }).
         adder_dialog({
-            factory: IPA.automountmap_adder_dialog,
+            $factory: IPA.automountmap_adder_dialog,
             sections: [
                 {
                     name: 'general',
@@ -171,7 +171,7 @@ IPA.automount.key_entity = function(spec) {
 
         that.builder.containing_entity('automountmap').
         details_facet({
-            factory: IPA.automount.key_details_facet,
+            $factory: IPA.automount.key_details_facet,
             sections: [
                 {
                     name:'identity',

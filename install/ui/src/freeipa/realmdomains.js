@@ -32,7 +32,7 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
             that.entity_init();
 
             that.builder.details_facet({
-                factory: IPA.realmdomains_details_facet,
+                $factory: IPA.realmdomains_details_facet,
                 title: IPA.metadata.objects.realmdomains.label,
                 sections: [
                     {

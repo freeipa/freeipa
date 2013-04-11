@@ -478,7 +478,7 @@ IPA.cert.load_policy = function(spec) {
 
     spec = spec || {};
     spec.loader = spec.loader || {
-        factory: IPA.cert.loader,
+        $factory: IPA.cert.loader,
         get_pkey: spec.get_pkey,
         get_name: spec.get_name,
         get_principal: spec.get_principal,
@@ -719,7 +719,7 @@ IPA.cert.restore_action = function(spec) {
     spec.hide_cond = spec.hide_cond || ['ra_disabled'];
     spec.confirm_msg = spec.confirm_msg || '@i18n:objects.cert.restore_confirmation';
     spec.confirm_dialog = spec.confirm_dialog || {
-        factory: IPA.confirm_dialog,
+        $factory: IPA.confirm_dialog,
         ok_label: '@i18n:buttons.restore'
     };
     spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
@@ -1054,7 +1054,7 @@ IPA.cert.entity = function(spec) {
         that.entity_init();
 
         that.builder.search_facet({
-            factory: IPA.cert.search_facet,
+            $factory: IPA.cert.search_facet,
             pagination: false,
             no_update: true,
             columns: [
@@ -1121,7 +1121,7 @@ IPA.cert.entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.cert.details_facet,
+            $factory: IPA.cert.details_facet,
             no_update: true,
             actions: [
                 IPA.cert.revoke_action,
@@ -1137,7 +1137,7 @@ IPA.cert.entity = function(spec) {
                     name: 'details',
                     label: '@i18n:objects.cert.certificate',
                     action_panel: {
-                        factory: IPA.action_panel,
+                        $factory: IPA.action_panel,
                         name: 'cert_actions',
                         actions: [
                             'revoke_cert', 'restore_cert'

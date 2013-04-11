@@ -64,7 +64,7 @@ IPA.widget = function(spec) {
 
         if (typeof spec === 'function') {
             spec = {
-                factory: spec
+                $factory: spec
             };
         }
 
@@ -734,7 +734,7 @@ IPA.option_widget_base = function(spec, that) {
                 var factory = option.factory || IPA.widget_factories[option.type];
                 if (typeof factory !== 'function') throw {
                     error: 'Invalid factory',
-                    factory: factory
+                    $factory: factory
                 };
                 option.nested = true;
                 option.widget = factory(option);

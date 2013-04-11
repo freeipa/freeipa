@@ -118,7 +118,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
     that.disable_breadcrumb = spec.disable_breadcrumb;
     that.disable_facet_tabs = spec.disable_facet_tabs;
 
-    that.action_state = IPA.build(spec.state, {}, { factory: exp.state });
+    that.action_state = IPA.build(spec.state, {}, { $factory: exp.state });
     that.actions = exp.action_holder_builder.build({ actions: spec.actions });
 
     that.header_actions = spec.header_actions;
@@ -645,7 +645,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
         on(that.state, 'set', that.on_state_set);
 
         var buttons_spec = {
-            factory: IPA.control_buttons_widget,
+            $factory: IPA.control_buttons_widget,
             name: 'control-buttons',
             'class': 'control-buttons',
             buttons: spec.control_buttons
@@ -689,7 +689,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
             });
 
             var widget = {
-                factory: IPA.action_list_widget,
+                $factory: IPA.action_list_widget,
                 actions: that.facet.header_actions
             };
 
@@ -1553,7 +1553,7 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
         spec.factory = spec.factory || IPA.attribute_facet;
 
         entity.policies.add_policy(IPA.build({
-            factory: IPA.facet_update_policy,
+            $factory: IPA.facet_update_policy,
             source_facet: 'search',
             dest_facet: spec.name
         }));
@@ -1595,7 +1595,7 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
         }
 
         entity.policies.add_policy(IPA.build({
-            factory: IPA.facet_update_policy,
+            $factory: IPA.facet_update_policy,
             source_facet: 'search',
             dest_facet: spec.name
         }));
@@ -2423,23 +2423,23 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
 });
 
 exp.action_builder = IPA.action_builder = new Builder({
-    factory: exp.action
+    $factory: exp.action
 });
 
 exp.action_holder_builder = new Builder({
-    factory: exp.action_holder
+    $factory: exp.action_holder
 });
 
 exp.state_builder = IPA.state_builder = new Builder({
-    factory: exp.state
+    $factory: exp.state
 });
 
 exp.state_evaluator_builder = IPA.state_evaluator_builder = new Builder({
-    factory: exp.state
+    $factory: exp.state
 });
 
 exp.action_button_widget_builder = IPA.action_button_widget_builder = new Builder({
-    factory: exp.action_button_widget
+    $factory: exp.action_button_widget
 });
 
 return exp;

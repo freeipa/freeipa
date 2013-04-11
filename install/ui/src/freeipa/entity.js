@@ -383,7 +383,7 @@ IPA.entity_builder = function() {
 
         } else {
             spec = {
-                factory: IPA.dialog,
+                $factory: IPA.dialog,
                 name: spec,
                 entity: entity
             };

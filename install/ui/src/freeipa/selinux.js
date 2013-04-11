@@ -63,7 +63,7 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.selinux_details_facet,
+            $factory: IPA.selinux_details_facet,
             entity: that,
             command_mode: 'info',
             actions: [
@@ -76,7 +76,7 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
             state: {
                 evaluators: [
                     {
-                        factory: IPA.enable_state_evaluator,
+                        $factory: IPA.enable_state_evaluator,
                         field: 'ipaenabledflag'
                     }
                 ],
@@ -180,12 +180,12 @@ IPA.selinux_details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'user',
             label: '@i18n:objects.selinuxusermap.user',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'usercategory',
                     options: [
@@ -249,12 +249,12 @@ IPA.selinux_details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'host',
             label: '@i18n:objects.selinuxusermap.host',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'hostcategory',
                     options: [

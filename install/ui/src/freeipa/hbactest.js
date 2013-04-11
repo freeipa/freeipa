@@ -36,7 +36,7 @@ IPA.hbac.test_entity = function(spec) {
 
         that.builder.facet_groups([ 'default' ]).
         facet({
-            factory: IPA.hbac.test_select_facet,
+            $factory: IPA.hbac.test_select_facet,
             name: 'user',
             label: '@i18n:objects.hbacrule.user',
             managed_entity: 'user',
@@ -57,7 +57,7 @@ IPA.hbac.test_entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.hbac.test_select_facet,
+            $factory: IPA.hbac.test_select_facet,
             name: 'targethost',
             label: '@i18n:objects.hbacrule.host',
             managed_entity: 'host',
@@ -74,7 +74,7 @@ IPA.hbac.test_entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.hbac.test_select_facet,
+            $factory: IPA.hbac.test_select_facet,
             name: 'service',
             label: '@i18n:objects.hbacrule.service',
             managed_entity: 'hbacsvc',
@@ -104,7 +104,7 @@ IPA.hbac.test_entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.hbac.test_run_facet,
+            $factory: IPA.hbac.test_run_facet,
             name: 'run_test',
             label: '@i18n:objects.hbactest.run_test',
             managed_entity: 'hbacrule',

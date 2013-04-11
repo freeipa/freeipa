@@ -60,7 +60,7 @@ IPA.host.entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.host.details_facet,
+            $factory: IPA.host.details_facet,
             sections: [
                 {
                     name: 'details',
@@ -99,13 +99,13 @@ IPA.host.entity = function(spec) {
                 {
                     name: 'enrollment',
                     action_panel: {
-                        factory: IPA.action_panel,
+                        $factory: IPA.action_panel,
                         name: 'enrollment_actions',
                         actions: ['unprovision', 'set_otp', 'reset_otp']
                     },
                     fields: [
                         {
-                            factory: IPA.host_keytab_widget,
+                            $factory: IPA.host_keytab_widget,
                             name: 'has_keytab',
                             label: '@i18n:objects.host.keytab'
                         },
@@ -119,7 +119,7 @@ IPA.host.entity = function(spec) {
                 {
                     name: 'certificate',
                     action_panel: {
-                        factory: IPA.action_panel,
+                        $factory: IPA.action_panel,
                         name: 'cert_actions',
                         actions: [
                             'request_cert', 'view_cert', 'get_cert',
@@ -138,14 +138,14 @@ IPA.host.entity = function(spec) {
             actions: [
                 IPA.host.unprovision_action,
                 {
-                    factory: IPA.host.set_otp_action,
+                    $factory: IPA.host.set_otp_action,
                     name: 'set_otp',
                     label: '@i18n:objects.host.password_set_title',
                     status: 'missing',
                     hide_cond: ['has_password']
                 },
                 {
-                    factory: IPA.host.set_otp_action,
+                    $factory: IPA.host.set_otp_action,
                     name: 'reset_otp',
                     label: '@i18n:objects.host.password_reset_title',
                     status: 'present',
@@ -202,11 +202,11 @@ IPA.host.entity = function(spec) {
         }).
         standard_association_facets().
         adder_dialog({
-            factory: IPA.host_adder_dialog,
+            $factory: IPA.host_adder_dialog,
             height: 300,
             sections: [
                 {
-                    factory: IPA.composite_widget,
+                    $factory: IPA.composite_widget,
                     name: 'fqdn',
                     fields: [
                         {
@@ -234,7 +234,7 @@ IPA.host.entity = function(spec) {
             ]
         }).
         deleter_dialog({
-            factory: IPA.host_deleter_dialog
+            $factory: IPA.host_deleter_dialog
         });
     };
 

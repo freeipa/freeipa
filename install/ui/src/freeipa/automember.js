@@ -52,7 +52,7 @@ IPA.automember.entity = function(spec) {
         that.entity_init();
 
         that.builder.search_facet({
-            factory: IPA.automember.rule_search_facet,
+            $factory: IPA.automember.rule_search_facet,
             name: 'searchgroup',
             group_type: 'group',
             label: '@i18n:objects.automember.usergrouprules',
@@ -64,7 +64,7 @@ IPA.automember.entity = function(spec) {
             ]
         }).
         search_facet({
-            factory: IPA.automember.rule_search_facet,
+            $factory: IPA.automember.rule_search_facet,
             name: 'searchhostgroup',
             group_type: 'hostgroup',
             label: '@i18n:objects.automember.hostgrouprules',
@@ -76,7 +76,7 @@ IPA.automember.entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.automember.rule_details_facet,
+            $factory: IPA.automember.rule_details_facet,
             name: 'usergrouprule',
             group_type: 'group',
             label: '@i18n:objects.automember.usergrouprule',
@@ -85,7 +85,7 @@ IPA.automember.entity = function(spec) {
             redirect_info: { facet: 'searchgroup' }
         }).
         details_facet({
-            factory: IPA.automember.rule_details_facet,
+            $factory: IPA.automember.rule_details_facet,
             name: 'hostgrouprule',
             group_type: 'hostgroup',
             label: '@i18n:objects.automember.hostgrouprule',
@@ -94,7 +94,7 @@ IPA.automember.entity = function(spec) {
             redirect_info: { facet: 'searchhostgroup' }
         }).
         adder_dialog({
-            factory: IPA.automember.rule_adder_dialog,
+            $factory: IPA.automember.rule_adder_dialog,
             title: '@i18n:objects.automember.add_rule',
             fields: [
                 {
@@ -107,7 +107,7 @@ IPA.automember.entity = function(spec) {
             height: '300'
         }).
         deleter_dialog({
-            factory: IPA.automember.rule_deleter_dialog
+            $factory: IPA.automember.rule_deleter_dialog
         });
     };
 
@@ -251,7 +251,7 @@ IPA.automember.rule_details_facet = function(spec) {
             ]
         },
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'inclusive',
             label: '@i18n:objects.automember.inclusive',
             widgets: [
@@ -280,7 +280,7 @@ IPA.automember.rule_details_facet = function(spec) {
             ]
         },
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'exclusive',
             label: '@i18n:objects.automember.exclusive',
             widgets: [

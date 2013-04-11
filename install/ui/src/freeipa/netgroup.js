@@ -41,7 +41,7 @@ IPA.netgroup.entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.netgroup.details_facet,
+            $factory: IPA.netgroup.details_facet,
             entity: that,
             command_mode: 'info'
         }).
@@ -135,12 +135,12 @@ IPA.netgroup.details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'user',
             label: '@i18n:objects.netgroup.user',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'usercategory',
                     options: [
@@ -219,12 +219,12 @@ IPA.netgroup.details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'host',
             label: '@i18n:objects.netgroup.host',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'hostcategory',
                     options: [

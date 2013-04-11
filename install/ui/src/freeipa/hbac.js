@@ -64,7 +64,7 @@ IPA.hbac.rule_entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.hbacrule_details_facet,
+            $factory: IPA.hbacrule_details_facet,
             entity: that,
             command_mode: 'info',
             actions: [
@@ -77,7 +77,7 @@ IPA.hbac.rule_entity = function(spec) {
             state: {
                 evaluators: [
                     {
-                        factory: IPA.enable_state_evaluator,
+                        $factory: IPA.enable_state_evaluator,
                         field: 'ipaenabledflag'
                     }
                 ],
@@ -282,12 +282,12 @@ IPA.hbacrule_details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'user',
             label: '@i18n:objects.hbacrule.user',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'usercategory',
                     options: [
@@ -351,12 +351,12 @@ IPA.hbacrule_details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'host',
             label: '@i18n:objects.hbacrule.host',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'hostcategory',
                     options: [
@@ -424,12 +424,12 @@ IPA.hbacrule_details_facet = function(spec) {
 
     spec.widgets.push(
     {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'service',
             label: '@i18n:objects.hbacrule.service',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'servicecategory',
                     options: [

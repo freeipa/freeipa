@@ -62,7 +62,7 @@ IPA.sudo.rule_entity = function(spec) {
             ]
         }).
         details_facet({
-            factory: IPA.sudorule_details_facet,
+            $factory: IPA.sudorule_details_facet,
             entity: that,
             command_mode: 'info',
             actions: [
@@ -75,7 +75,7 @@ IPA.sudo.rule_entity = function(spec) {
             state: {
                 evaluators: [
                     {
-                        factory: IPA.enable_state_evaluator,
+                        $factory: IPA.enable_state_evaluator,
                         field: 'ipaenabledflag'
                     }
                 ],
@@ -267,7 +267,7 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.sudo.options_section,
+            $factory: IPA.sudo.options_section,
             name: 'options',
             label: '@i18n:objects.sudorule.options',
             facet: that
@@ -301,12 +301,12 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'user',
             label: '@i18n:objects.sudorule.user',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'usercategory',
                     options: [
@@ -376,12 +376,12 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.widgets.push(
     {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'host',
             label: '@i18n:objects.sudorule.host',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'hostcategory',
                     options: [
@@ -462,18 +462,18 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'command',
             label: '@i18n:objects.sudorule.command',
             widgets: [
                 {
-                    factory: IPA.header_widget,
+                    $factory: IPA.header_widget,
                     name: 'allow_header',
                     text: '@i18n:objects.sudorule.allow',
                     description: '@i18n:objects.sudorule.allow'
                 },
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'rule',
                     radio_name: 'cmdcategory',
                     options: [
@@ -512,7 +512,7 @@ IPA.sudorule_details_facet = function(spec) {
                     ]
                 },
                 {
-                    factory: IPA.header_widget,
+                    $factory: IPA.header_widget,
                     name: 'deny_header',
                     text: '@i18n:objects.sudorule.deny',
                     description: '@i18n:objects.sudorule.deny'
@@ -578,12 +578,12 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.widgets.push(
         {
-            factory: IPA.collapsible_section,
+            $factory: IPA.collapsible_section,
             name: 'runas',
             label: '@i18n:objects.sudorule.runas',
             widgets: [
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'runas_users',
                     radio_name: 'ipasudorunasusercategory',
                     options: [
@@ -617,7 +617,7 @@ IPA.sudorule_details_facet = function(spec) {
                     ]
                 },
                 {
-                    factory: IPA.rule_details_widget,
+                    $factory: IPA.rule_details_widget,
                     name: 'runas_groups',
                     radio_name: 'ipasudorunasgroupcategory',
                     options: [

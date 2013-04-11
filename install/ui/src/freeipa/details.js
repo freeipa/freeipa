@@ -912,7 +912,7 @@ exp.boolean_state_evaluator = IPA.boolean_state_evaluator = function(spec) {
     that.false_state = spec.false_state || that.field_name + '-false';
     that.invert_value = spec.invert_value;
     that.parser = IPA.build({
-        factory: spec.parser || IPA.boolean_formatter,
+        $factory: spec.parser || IPA.boolean_formatter,
         invert_value: that.invert_value
     });
 
