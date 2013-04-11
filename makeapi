@@ -31,7 +31,7 @@ import operator
 from ipalib import api
 from ipalib.parameters import Param
 from ipalib.output import Output
-from ipalib.text import Gettext, NGettext
+from ipalib.text import Gettext, NGettext, ConcatenatedLazyText
 from ipalib.capabilities import capabilities
 
 API_FILE='API.txt'
@@ -120,7 +120,7 @@ def validate_doc():
 
     def is_i18n(obj):
         'Helper utility to determine if object has been internationalized'
-        return isinstance(obj, (Gettext, NGettext))
+        return isinstance(obj, (Gettext, NGettext, ConcatenatedLazyText))
 
     # The return value
     rval = 0

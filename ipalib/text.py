@@ -136,6 +136,9 @@ class LazyText(object):
 
     This class is not used directly.  See the `Gettext` and `NGettext`
     subclasses.
+
+    Concatenating LazyText objects with the + operator gives
+    ConcatenatedLazyText objects.
     """
 
     __slots__ = ('domain', 'localedir', 'key', 'args')
@@ -175,6 +178,12 @@ class LazyText(object):
         as subclasses must define an *args* instance attribute.
         """
         return not self.__eq__(other)
+
+    def __add__(self, other):
+        return ConcatenatedLazyText(self) + other
+
+    def __radd__(self, other):
+        return other + ConcatenatedLazyText(self)
 
 
 class Gettext(LazyText):
@@ -388,6 +397,43 @@ class NGettext(LazyText):
         else:
             ng = create_translation(self.key).ungettext
         return ng(self.singular, self.plural, count)
+
+
+class ConcatenatedLazyText(object):
+    """Concatenation of multiple strings, or any objects convertible to unicode
+
+    Used to concatenate several LazyTexts together.
+    This allows large strings like help text to be split, so translators
+    do not have to re-translate the whole text when only a small part changes.
+
+    Additional strings may be added to the end with the + or += operators.
+    """
+    def __init__(self, *components):
+        self.components = list(components)
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.components)
+
+    def __unicode__(self):
+        return u''.join(unicode(c) for c in self.components)
+
+    def __json__(self):
+        return unicode(self)
+
+    def __mod__(self, kw):
+        return unicode(self) % kw
+
+    def __add__(self, other):
+        if isinstance(other, ConcatenatedLazyText):
+            return ConcatenatedLazyText(*self.components + other.components)
+        else:
+            return ConcatenatedLazyText(*self.components + [other])
+
+    def __radd__(self, other):
+        if isinstance(other, ConcatenatedLazyText):
+            return ConcatenatedLazyText(*other.components + self.components)
+        else:
+            return ConcatenatedLazyText(*[other] + self.components)
 
 
 class GettextFactory(object):

@@ -332,3 +332,49 @@ class test_NGettextFactory(object):
         assert ng.plural is plural
         assert ng.domain == 'foo'
         assert ng.localedir == 'bar'
+
+
+class test_ConcatenatedText(object):
+
+    klass = text.ConcatenatedLazyText
+
+    def test_init(self):
+        lst = ['a', 'b', 'c', 3]
+        inst = self.klass(*lst)
+        assert inst.components == lst
+        assert unicode(inst) == 'abc3'
+
+    def test_repr(self):
+        lazytext = text.Gettext('foo', 'bar', 'baz')
+        inst = self.klass(lazytext)
+        assert repr(inst) == "ConcatenatedLazyText([%r])" % lazytext
+
+    def test_unicode(self):
+        inst = self.klass('[', text.Gettext('green', 'foo', 'bar'), 1, ']')
+        assert unicode(inst) == u'[green1]'
+
+    def test_mod(self):
+        inst = self.klass('[', text.Gettext('%(color)s', 'foo', 'bar'), ']')
+        assert inst % dict(color='red', stuff='junk') == '[red]'
+
+    def test_add(self):
+        inst = (text.Gettext('pale ', 'foo', 'bar') +
+                text.Gettext('blue', 'foo', 'bar'))
+        assert unicode(inst) == 'pale blue'
+
+        inst = (text.Gettext('bright ', 'foo', 'bar') +
+                text.Gettext('pale ', 'foo', 'bar') +
+                text.Gettext('blue', 'foo', 'bar'))
+        assert unicode(inst) == 'bright pale blue'
+
+        inst = text.Gettext('yellow', 'foo', 'bar') + '!'
+        assert unicode(inst) == 'yellow!'
+
+        inst = '!' + text.Gettext('yellow', 'foo', 'bar')
+        assert unicode(inst) == '!yellow'
+
+        inst = '!' + ('!' + text.Gettext('yellow', 'foo', 'bar'))
+        assert unicode(inst) == '!!yellow'
+
+        inst = (text.Gettext('yellow', 'foo', 'bar') + '!') + '!'
+        assert unicode(inst) == 'yellow!!'
