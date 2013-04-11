@@ -1,0 +1,9 @@
+[Unit]
+Description=ipa-otpd service
+
+[Service]
+EnvironmentFile=@sysconfdir@/ipa/default.conf
+ExecStart=@libexecdir@/ipa-otpd $ldap_uri
+StandardInput=socket
+StandardOutput=socket
+StandardError=syslog
