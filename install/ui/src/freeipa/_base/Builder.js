@@ -44,6 +44,10 @@ define(['dojo/_base/declare',
          */
         spec_mod: null,
 
+        factory: null,
+
+        constructor: null,
+
         post_ops: [],
 
         pre_ops: [],
@@ -51,11 +55,14 @@ define(['dojo/_base/declare',
         /**
          * Build object based on spec.
          *
-         * @param {String|Function|Object} Build spec
+         * @param {String|Function|Object|Array} Build spec
+         * @param {Object} build context
+         * @param {Object} overrides
          *
          * String: type name, queries registry
          * Function: factory or constructor
          * Object: spec object
+         * Array: array of spec objects
          *
          * Build control properies of spec object:
          *      $constructor: Function
@@ -66,11 +73,52 @@ define(['dojo/_base/declare',
          *      $post_ops: []
          *
          * All other properties will be passed to object construction method.
+         *
+         * Builder default factory and constructor is overridden by those specified
+         * in overrides when overrides are set.
          */
-        build: function(spec, context) {
+        build: function(spec, context, overrides) {
 
+            var f,c;
+
+            context = context || {};
+
+            if (overrides) {
+                f = this.factory;
+                c = this.constructor;
+                if (typeof overrides === 'function') {
+                    if (construct.is_constructor(overrides)) {
+                        overrides = { constructor: overrides };
+                    } else {
+                        overrides = { factory: overrides };
+                    }
+                }
+                this.factory = overrides.factory;
+                this.constructor = overrides.constructor;
+            }
+
+            var objects;
+            if (lang.isArray(spec)) {
+                objects = [];
+                for (var i=0; i<spec.length; i++) {
+                    var obj = this._build(spec[i], context);
+                    objects.push(obj);
+                }
+            } else {
+                objects = this._build(spec, context);
+            }
+
+            if (overrides) {
+                this.factory = f;
+                this.constructor = c;
+            }
+
+            return objects;
+        },
+
+        _build: function(spec, context) {
             var cs = this._get_construction_spec(spec);
-            var obj = this._build(cs, context);
+            var obj = this._build_core(cs, context);
             return obj;
         },
 
@@ -127,6 +175,11 @@ define(['dojo/_base/declare',
                 if (pre) cs.pre_ops.push.call(cs.pre_ops, pre);
                 if (pre) cs.post_ops.push.call(cs.post_ops, post);
                 cs.spec = cs.spec || {};
+
+                if (!cs.factory && !cs.constructor) {
+                    if (this.constructor) cs.constructor = this.constructor;
+                    else if (this.factory) cs.factory = this.factory;
+                }
             }
 
             return cs;
@@ -150,7 +203,7 @@ define(['dojo/_base/declare',
             }
         },
 
-        _build: function(construction_spec, context) {
+        _build_core: function(construction_spec, context) {
 
             var cs = construction_spec,
                 obj = null;
@@ -221,6 +274,8 @@ define(['dojo/_base/declare',
         constructor: function(spec) {
 
             spec = spec || {};
+            if (spec.factory) this.factory = spec.factory;
+            if (spec.constructor) this.constructor = spec.constructor;
             if (spec.registry) this.registry = spec.registry;
             if (spec.spec_mod) this.spec_mod = spec.spec_mod;
             else this.spec_mod = new Spec_mod();
