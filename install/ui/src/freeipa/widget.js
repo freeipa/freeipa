@@ -730,8 +730,8 @@ IPA.option_widget_base = function(spec, that) {
                 value: option
             };
         } else {
-            if (option.type || option.factory) {
-                var factory = option.factory || IPA.widget_factories[option.type];
+            if (option.type || option.$factory) {
+                var factory = option.$factory || IPA.widget_factories[option.type];
                 if (typeof factory !== 'function') throw {
                     error: 'Invalid factory',
                     $factory: factory
@@ -1995,7 +1995,7 @@ IPA.attribute_table_widget = function(spec) {
 
         spec.entity = that.entity;
 
-        var factory = spec.factory || IPA.column;
+        var factory = spec.$factory || IPA.column;
 
         var column = factory(spec);
         that.add_column(column);
@@ -2215,7 +2215,7 @@ IPA.attribute_table_widget = function(spec) {
         dialog_spec.title = dialog_spec.title.replace('${pkey}', pkey);
 
 
-        var factory = dialog_spec.factory || IPA.entity_adder_dialog;
+        var factory = dialog_spec.$factory || IPA.entity_adder_dialog;
         var dialog = factory(dialog_spec);
 
         var cancel_button = dialog.buttons.get('cancel');
@@ -3532,8 +3532,8 @@ IPA.widget_builder = function(spec) {
     that.get_widget_factory = function(spec) {
 
         var factory;
-        if (spec.factory) {
-            factory = spec.factory;
+        if (spec.$factory) {
+            factory = spec.$factory;
         } else if(spec.type) {
             factory = IPA.widget_factories[spec.type];
         }

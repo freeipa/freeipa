@@ -111,7 +111,7 @@ IPA.dialog = function(spec) {
     });
 
     that.create_button = function(spec) {
-        var factory = spec.factory || IPA.dialog_button;
+        var factory = spec.$factory || IPA.dialog_button;
         var button = factory(spec);
         that.add_button(button);
         return button;

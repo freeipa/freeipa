@@ -1684,7 +1684,7 @@ IPA.dns.record_type_table_widget = function(spec) {
         spec.entity = that.entity;
         spec.label = spec.label || IPA.dns.record_get_attr_label(spec.name);
 
-        var factory = spec.factory || IPA.column;
+        var factory = spec.$factory || IPA.column;
 
         var column = factory(spec);
         that.add_column(column);

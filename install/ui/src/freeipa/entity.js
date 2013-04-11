@@ -182,7 +182,7 @@ IPA.entity_builder = function() {
     that.entity = function(spec) {
         var factory = IPA.entity;
         if (spec instanceof Object) {
-            factory = spec.factory || IPA.entity;
+            factory = spec.$factory || IPA.entity;
         } else {
             spec = { name: spec };
         }
@@ -203,7 +203,7 @@ IPA.entity_builder = function() {
     that.facet_group = function(spec) {
         spec.entity = entity;
         if (spec instanceof Object) {
-            var factory = spec.factory || IPA.facet_group;
+            var factory = spec.$factory || IPA.facet_group;
             facet_group = factory(spec);
         } else {
             facet_group = IPA.facet_group({ name: spec });
@@ -378,7 +378,7 @@ IPA.entity_builder = function() {
     that.dialog = function(spec) {
 
         if (spec instanceof Object) {
-            spec.factory = spec.factory || IPA.dialog;
+            spec.$factory = spec.$factory || IPA.dialog;
             spec.entity = entity;
 
         } else {
@@ -394,7 +394,7 @@ IPA.entity_builder = function() {
     };
 
     that.adder_dialog = function(spec) {
-        spec.factory = spec.factory || IPA.entity_adder_dialog;
+        spec.$factory = spec.$factory || IPA.entity_adder_dialog;
         spec.name = spec.name || 'add';
 
         if (!spec.title) {
@@ -407,7 +407,7 @@ IPA.entity_builder = function() {
     };
 
     that.deleter_dialog = function(spec) {
-        spec.factory = spec.factory || IPA.search_deleter_dialog;
+        spec.$factory = spec.$factory || IPA.search_deleter_dialog;
         spec.name = spec.name || 'remove';
 
         return that.dialog(spec);
@@ -439,7 +439,7 @@ IPA.dialog_builder = function(entity) {
         spec.entity = entity;
 
         //add dialog
-        var dialog = spec.factory(spec);
+        var dialog = spec.$factory(spec);
         entity.dialog(dialog);
     };
 

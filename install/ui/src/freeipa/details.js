@@ -133,8 +133,8 @@ exp.section_builder = IPA.section_builder = function(spec) {
 
         if(!section_spec.name) section_spec.name = 'section'+index;
 
-        section_spec.factory = section_spec.factory || that.section_factory;
-        var section = section_spec.factory(section_spec);
+        section_spec.$factory = section_spec.$factory || that.section_factory;
+        var section = section_spec.$factory(section_spec);
 
         that.container.widgets.add_widget(section);
 
@@ -152,8 +152,8 @@ exp.section_builder = IPA.section_builder = function(spec) {
 
         var widget = that.widget_builder.build_widget(field_spec, section.widgets);
 
-        //spec.factory refers to widget factory
-        if(field_spec.factory) delete field_spec.factory;
+        //spec.$factory refers to widget factory
+        if(field_spec.$factory) delete field_spec.$factory;
 
         var field = that.field_builder.build_field(field_spec, that.container.fields);
 

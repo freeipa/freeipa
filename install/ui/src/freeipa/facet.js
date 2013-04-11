@@ -1109,7 +1109,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     that.create_column = function(spec) {
         var column;
         if (spec instanceof Object) {
-            var factory = spec.factory || IPA.column;
+            var factory = spec.$factory || IPA.column;
         } else {
             factory = IPA.column;
             spec = { name: spec };
@@ -1502,7 +1502,7 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
         }
 
         //add facet
-        var facet = spec.factory(spec);
+        var facet = spec.$factory(spec);
         entity.add_facet(facet);
     };
 
@@ -1519,7 +1519,7 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
         spec.title = spec.title || entity.metadata.label;
         spec.label = spec.label || entity.metadata.label;
         spec.tab_label = spec.tab_label || '@i18n:facets.search';
-        spec.factory = spec.factory || IPA.search_facet;
+        spec.$factory = spec.$factory || IPA.search_facet;
 
         add_redirect_info();
         return spec;
@@ -1530,7 +1530,7 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || entity.metadata.label;
         spec.tab_label = spec.tab_label || '@i18n:facets.search';
-        spec.factory = spec.factory || IPA.nested_search_facet;
+        spec.$factory = spec.$factory || IPA.nested_search_facet;
 
         return spec;
     };
@@ -1539,7 +1539,7 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || entity.metadata.label_singular;
         spec.tab_label = spec.tab_label || '@i18n:facets.details';
-        spec.factory = spec.factory || IPA.details_facet;
+        spec.$factory = spec.$factory || IPA.details_facet;
 
         return spec;
     };
@@ -1550,7 +1550,7 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
 
         var attr_metadata = IPA.get_entity_param(entity.name, spec.attribute);
         spec.tab_label = spec.tab_label || attr_metadata.label;
-        spec.factory = spec.factory || IPA.attribute_facet;
+        spec.$factory = spec.$factory || IPA.attribute_facet;
 
         entity.policies.add_policy(IPA.build({
             $factory: IPA.facet_update_policy,
@@ -1576,7 +1576,7 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
 
         spec.facet_group = spec.facet_group || spec.attribute_member;
 
-        spec.factory = spec.factory || IPA.association_facet;
+        spec.$factory = spec.$factory || IPA.association_facet;
 
         spec.label = spec.label || entity.metadata.label_singular;
         spec.tab_label = spec.tab_label ||
@@ -2423,23 +2423,23 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
 });
 
 exp.action_builder = IPA.action_builder = new Builder({
-    $factory: exp.action
+    factory: exp.action
 });
 
 exp.action_holder_builder = new Builder({
-    $factory: exp.action_holder
+    factory: exp.action_holder
 });
 
 exp.state_builder = IPA.state_builder = new Builder({
-    $factory: exp.state
+    factory: exp.state
 });
 
 exp.state_evaluator_builder = IPA.state_evaluator_builder = new Builder({
-    $factory: exp.state
+    factory: exp.state
 });
 
 exp.action_button_widget_builder = IPA.action_button_widget_builder = new Builder({
-    $factory: exp.action_button_widget
+    factory: exp.action_button_widget
 });
 
 return exp;

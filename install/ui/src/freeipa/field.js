@@ -875,8 +875,8 @@ IPA.field_builder = function(spec) {
     that.get_field_factory = function(spec) {
 
         var factory;
-        if (spec.factory) {
-            factory = spec.factory;
+        if (spec.$factory) {
+            factory = spec.$factory;
         } else if(spec.type) {
             factory = IPA.field_factories[spec.type];
         }

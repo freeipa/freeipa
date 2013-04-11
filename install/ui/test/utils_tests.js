@@ -49,7 +49,7 @@ test('Testing metadata validator', function() {
     // using strings as values because it is an output of inputs
 
     var validator = IPA.build({
-        factory: IPA.metadata_validator
+        $factory: IPA.metadata_validator
     });
 
     var metadata = {

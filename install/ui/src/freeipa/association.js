@@ -842,7 +842,7 @@ IPA.association_facet = function (spec, no_init) {
         var column;
         var factory;
         if (spec instanceof Object) {
-            factory = spec.factory || IPA.column;
+            factory = spec.$factory || IPA.column;
         } else {
             factory  = IPA.column;
             spec = { name: spec };
