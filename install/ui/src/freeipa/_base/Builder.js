@@ -149,7 +149,7 @@ define(['dojo/_base/declare',
                     pre = spec.$pre_ops,
                     post = spec.$post_ops;
 
-                var s = lang.clone(spec);
+                var s = lang.mixin({},spec);
                 delete s.$ctor;
                 delete s.$factory;
                 delete s.$mixim_spec;
@@ -213,6 +213,9 @@ define(['dojo/_base/declare',
 
             var cs = construction_spec,
                 obj = null;
+
+            // here we should clone cs.spec to prevent modification of original
+            // by pre_ops
 
             cs.spec = this._run_preops(this.pre_ops, cs.spec, context);
             if (cs.pre_ops) {

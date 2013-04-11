@@ -45,8 +45,8 @@ define(['dojo/_base/declare',
          * It makes sure that pre_ops, post_ops and spec are new Arrays/Object
          */
         copy_cs: function(org_cs) {
-            var cs = lang.clone(org_cs);
-            if (cs.spec) cs.spec = lang.clone(cs.spec);
+            var cs = lang.mixin({}, org_cs);
+            if (cs.spec) cs.spec = lang.mixin({}, cs.spec);
             cs.pre_ops = cs.pre_ops.slice(0);
             cs.post_ops = cs.pre_ops.slice(0);
             return cs;
