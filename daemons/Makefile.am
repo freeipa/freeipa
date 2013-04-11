@@ -16,6 +16,7 @@ SUBDIRS =			\
 	ipa-kdb			\
 	ipa-slapi-plugins	\
 	ipa-sam			\
+	ipa-otpd		\
 	$(NULL)
 
 DISTCLEANFILES =		\

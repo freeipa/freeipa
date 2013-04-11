@@ -37,11 +37,7 @@ BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
 BuildRequires:  openldap-devel
-%if 0%{?fedora} >= 19
 BuildRequires:  krb5-devel >= 1.11
-%else
-BuildRequires:  krb5-devel >= 1.10
-%endif
 BuildRequires:  krb5-workstation
 BuildRequires:  libuuid-devel
 BuildRequires:  libcurl-devel >= 7.21.7-2
@@ -73,6 +69,8 @@ BuildRequires:  m2crypto
 BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  java-1.7.0-openjdk
+BuildRequires:  libverto-devel
+BuildRequires:  systemd
 
 # Find out Kerberos middle version to infer ABI changes in DAL driver
 # We cannot load DAL driver into KDC with wrong ABI.
@@ -639,6 +637,7 @@ fi
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-compliance
 %{_libexecdir}/certmonger/dogtag-ipa-retrieve-agent-submit
+%{_libexecdir}/ipa-otpd
 %{_sysconfdir}/cron.d/ipa-compliance
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
@@ -647,6 +646,8 @@ fi
 %config %{_sysconfdir}/tmpfiles.d/ipa.conf
 %attr(644,root,root) %{_unitdir}/ipa.service
 %attr(644,root,root) %{_unitdir}/ipa_memcached.service
+%attr(644,root,root) %{_unitdir}/ipa-otpd.socket
+%attr(644,root,root) %{_unitdir}/ipa-otpd@.service
 # END
 %dir %{python_sitelib}/ipaserver
 %dir %{python_sitelib}/ipaserver/install
