@@ -210,6 +210,14 @@ define(['dojo/_base/declare',
             var cs = construction_spec,
                 obj = null;
 
+            if (!(cs.factory && typeof cs.factory === 'function') &&
+                !(cs.ctor && typeof cs.ctor === 'function')) {
+                throw {
+                    error: 'Build error: missing or invalid ctor or factory',
+                    spec: cs
+                };
+            }
+
             // deep clone to prevent modification of original spec by preops
             cs.spec = construct.clone(cs.spec);
 
@@ -223,15 +231,20 @@ define(['dojo/_base/declare',
             this.spec_mod.mod(cs.spec, cs.spec);
             this.spec_mod.del_rules(cs.spec);
 
-            if (cs.factory && typeof cs.factory === 'function') {
-                obj = cs.factory(cs.spec);
-            } else if (cs.ctor && typeof cs.ctor === 'function') {
-                obj = new cs.ctor(cs.spec);
-            } else {
-                throw {
-                    error: 'Build error: missing or invalid ctor or factory',
-                    spec: cs
-                };
+            try {
+                if (cs.factory) {
+                    obj = cs.factory(cs.spec);
+                } else {
+                    obj = new cs.ctor(cs.spec);
+                }
+            } catch (e) {
+                if (e.expected) {
+                    // expected exceptions thrown by builder just mean that
+                    // object is not to be built
+                    obj = null;
+                } else {
+                    throw e;
+                }
             }
 
             obj = this._run_post_ops(this.post_ops, obj, cs.spec, context);
