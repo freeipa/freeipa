@@ -41,7 +41,6 @@ IPA.entity = function(spec) {
     that.defines_key = spec.defines_key !== undefined ? spec.defines_key : true;
 
     that.metadata = spec.metadata;
-    that.builder = spec.builder;
 
     that.dialogs = $.ordered_map();
     that.dialog_specs = spec.dialogs || [];
@@ -180,40 +179,20 @@ IPA.entity = function(spec) {
         return that;
     };
 
+    that.builder = spec.builder || IPA.entity_builder(that);
+
     that.entity_init = that.init;
 
     return that;
 };
 
-IPA.entity_builder = function() {
+IPA.entity_builder = function(entity) {
 
     var that = IPA.object();
 
-    var entity = null;
     var facet_group = null;
     var facet = null;
     var section = null;
-
-    that.entity = function(spec) {
-        var factory = IPA.entity;
-        if (spec instanceof Object) {
-            factory = spec.$factory || IPA.entity;
-        } else {
-            spec = { name: spec };
-        }
-        spec.builder = that;
-
-        entity = factory(spec);
-
-        that.facet_groups([
-            'member',
-            'settings',
-            'memberof',
-            'managedby'
-        ]);
-
-        return that;
-    };
 
     that.facet_group = function(spec) {
         spec.entity = entity;
@@ -427,9 +406,14 @@ IPA.entity_builder = function() {
         return that.dialog(spec);
     };
 
-    that.build = function(){
-        return entity;
-    };
+    that.facet_groups([
+        'member',
+        'settings',
+        'memberof',
+        'managedby'
+    ]);
+
+
 
     return that;
 };

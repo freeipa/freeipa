@@ -27,8 +27,9 @@ define(['./jquery',
         './_base/Builder',
         './_base/i18n',
         './_base/metadata_provider',
+        './entities',
         './text'],
-       function($, JSON, Builder, i18n, metadata_provider, text) {
+       function($, JSON, Builder, i18n, metadata_provider, entities, text) {
 
 var IPA = function() {
 
@@ -220,64 +221,16 @@ var IPA = function() {
     };
 
     that.register = function(name, factory) {
-        that.remove_entity(name);
-        that.entity_factories[name] = factory;
-    };
-
-    that.create_entity = function(name) {
-        var factory = that.entity_factories[name];
-        if (!factory) return null;
-
-        try {
-            var builder = IPA.entity_builder();
-
-            builder.entity({
-                $factory: factory,
-                name: name
-            });
-
-            var entity = builder.build();
-            entity.init();
-
-            return entity;
-
-        } catch (e) {
-            if (e.expected) {
-                /*expected exceptions thrown by builder just mean that
-                  entities are not to be registered. */
-                return null;
-            }
-
-            if (e.message) {
-                alert(e.message);
-            } else {
-                alert(e);
-            }
-
-            return null;
-        }
-    };
-
-    that.get_entities = function() {
-        return that.entities.values;
+        entities.remove(name);
+        entities.register({
+            type: name,
+            factory: factory,
+            spec: { name: name }
+        });
     };
 
     that.get_entity = function(name) {
-        if (typeof name === 'object') return name;
-        var entity = that.entities.get(name);
-        if (!entity) {
-            entity = that.create_entity(name);
-            if (entity) that.add_entity(entity);
-        }
-        return entity;
-    };
-
-    that.add_entity = function(entity) {
-        that.entities.put(entity.name, entity);
-    };
-
-    that.remove_entity = function(name) {
-        that.entities.remove(name);
+        return entities.get(name);
     };
 
     that.display_activity_icon = function() {

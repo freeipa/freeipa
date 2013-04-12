@@ -39,6 +39,18 @@ define(['./_base/Singleton_registry'], function(Singleton_registry) {
      * entities.get('entity_name');
      *
      */
+
     var entities = new Singleton_registry();
+
+    var init = function(entity, spec, context) {
+
+        if (entity.init) {
+            entity.init(spec, context);
+        }
+        return entity;
+    };
+    entities.builder.post_ops.push(init);
+
+
     return entities;
 });
