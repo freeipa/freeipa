@@ -1841,6 +1841,18 @@ class dnszone_add(LDAPCreate):
                                dns_record,
                                nameserver_ip_address)
 
+        # Add entry to realmdomains
+        # except for our own domain, forwarded zones and reverse zones
+        zone = keys[0]
+
+        if (zone != api.env.domain
+            and not options.get('idnsforwarders')
+            and not zone_is_reverse(zone)):
+            try:
+                api.Command['realmdomains_mod'](add_domain=zone, force=True)
+            except errors.EmptyModlist:
+                pass
+
         return dn
 
 api.register(dnszone_add)
@@ -1857,6 +1869,17 @@ class dnszone_del(LDAPDelete):
                     force=True)
         except errors.NotFound:
             pass
+
+        # Delete entry from realmdomains
+        # except for our own domain
+        zone = keys[0]
+
+        if zone != api.env.domain:
+            try:
+                api.Command['realmdomains_mod'](del_domain=zone, force=True)
+            except errors.AttrValueNotFound:
+                pass
+
         return True
 
 api.register(dnszone_del)

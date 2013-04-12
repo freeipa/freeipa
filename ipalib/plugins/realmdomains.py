@@ -49,6 +49,10 @@ EXAMPLES:
 """)
 
 
+def _domain_name_normalizer(d):
+    return d.lower().rstrip('.')
+
+
 class realmdomains(LDAPObject):
     """
     List of domains associated with IPA realm.
@@ -64,16 +68,19 @@ class realmdomains(LDAPObject):
     takes_params = (
         Str('associateddomain+',
             _domain_name_validator,
+            normalizer=_domain_name_normalizer,
             cli_name='domain',
             label=_('Domain'),
         ),
         Str('add_domain?',
             _domain_name_validator,
+            normalizer=_domain_name_normalizer,
             cli_name='add_domain',
             label=_('Add domain'),
         ),
         Str('del_domain?',
             _domain_name_validator,
+            normalizer=_domain_name_normalizer,
             cli_name='del_domain',
             label=_('Delete domain'),
         ),
@@ -132,6 +139,49 @@ class realmdomains_mod(LDAPUpdate):
 
         entry_attrs['associateddomain'] = domains
         return dn
+
+    def execute(self, *keys, **options):
+        dn = self.obj.get_dn(*keys, **options)
+        ldap = self.obj.backend
+
+        domains_old = set(ldap.get_entry(dn)[1]['associateddomain'])
+        result = super(realmdomains_mod, self).execute(*keys, **options)
+        domains_new = set(ldap.get_entry(dn)[1]['associateddomain'])
+
+        domains_added = domains_new - domains_old
+        domains_deleted = domains_old - domains_new
+
+        # Add a _kerberos TXT record for zones that correspond with
+        # domains which were added
+        for d in domains_added:
+            # Skip our own domain
+            if d == api.env.domain:
+                continue
+            try:
+                api.Command['dnsrecord_add'](
+                    unicode(d),
+                    u'_kerberos',
+                    txtrecord=api.env.realm
+                )
+            except (errors.EmptyModlist, errors.NotFound):
+                pass
+
+        # Delete _kerberos TXT record from zones that correspond with
+        # domains which were deleted
+        for d in domains_deleted:
+            # Skip our own domain
+            if d == api.env.domain:
+                continue
+            try:
+                api.Command['dnsrecord_del'](
+                    unicode(d),
+                    u'_kerberos',
+                    txtrecord=api.env.realm
+                )
+            except (errors.AttrValueNotFound, errors.NotFound):
+                pass
+
+        return result
 
 api.register(realmdomains_mod)
 

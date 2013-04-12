@@ -34,6 +34,7 @@ dnszone1_rname = u'root.%s.' % dnszone1
 dnszone1_permission = u'Manage DNS zone %s' % dnszone1
 dnszone1_permission_dn = DN(('cn',dnszone1_permission),
                             api.env.container_permission,api.env.basedn)
+dnszone1_txtrec_dn = DN(('idnsname', '_kerberos'), dnszone1_dn)
 dnszone2 = u'dnszone2.test'
 dnszone2_dn = DN(('idnsname', dnszone2), api.env.container_dns, api.env.basedn)
 dnszone2_mname = u'ns1.%s.' % dnszone2
@@ -526,13 +527,18 @@ class test_dns(Declarative):
             command=('dnsrecord_find', [dnszone1], {}),
             expected={
                 'summary': None,
-                'count': 3,
+                'count': 4,
                 'truncated': False,
                 'result': [
                     {
                         'dn': dnszone1_dn,
                         'nsrecord': (dnszone1_mname,),
                         'idnsname': [u'@'],
+                    },
+                    {
+                        'dn': dnszone1_txtrec_dn,
+                        'txtrecord': [api.env.realm],
+                        'idnsname': [u'_kerberos'],
                     },
                     {
                         'dn': dnszone1_mname_dn,
