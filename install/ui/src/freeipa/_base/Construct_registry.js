@@ -35,7 +35,7 @@ define(['dojo/_base/declare',
          * Internal map for construction specifications.
          * @protected
          */
-        _map: {},
+        _map: null,
 
         /**
          * Registers construction specification
@@ -191,6 +191,10 @@ define(['dojo/_base/declare',
             if (!lang.isArrayLike(spec.post_ops)) {
                 throw 'Argument exception: Invalid post_ops type.';
             }
+        },
+
+        constructor: function(spec) {
+            this._map = {};
         }
     });
 
