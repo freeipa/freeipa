@@ -158,15 +158,7 @@ define(['dojo/_base/declare',
                 delete s.$pre_ops;
                 delete s.$post_ops;
 
-                if (c) {
-                    cs.ctor = c;
-                    cs.spec = s;
-                }
-                else if (f) {
-                    cs.factory = f;
-                    cs.spec = s;
-                }
-                else if (t) {
+                if (t) {
                     cs = this._query_registry(t);
                     if (cs.spec && m) {
                         lang.mixin(cs.spec, s);
@@ -176,6 +168,9 @@ define(['dojo/_base/declare',
                 } else {
                     cs.spec = s;
                 }
+
+                if (c) cs.ctor = c;
+                if (f) cs.factory = f;
 
                 cs.pre_ops = cs.pre_ops || [];
                 cs.post_ops = cs.post_ops || [];
