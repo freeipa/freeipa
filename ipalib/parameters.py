@@ -1800,6 +1800,23 @@ class DNParam(Param):
                                   error=ugettext(e))
         return dn
 
+
+class DeprecatedParam(Any):
+    kwargs = Param.kwargs + (
+        ('deprecate', bool, True),
+    )
+
+    def __init__(self, name, *rules, **kw):
+        if 'flags' in kw:
+            kw['flags'] = list(kw['flags']) + ['no_option']
+        else:
+            kw['flags'] = ['no_option']
+
+        super(DeprecatedParam, self).__init__(name, *rules, **kw)
+
+    def _rule_deprecate(self, _, value):
+        return _('this option is deprecated')
+
 def create_param(spec):
     """
     Create an `Str` instance from the shorthand ``spec``.

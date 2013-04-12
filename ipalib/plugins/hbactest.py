@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors, output, util
-from ipalib import Command, Str, Flag, Int
+from ipalib import Command, Str, Flag, Int, DeprecatedParam
 from types import NoneType
 from ipalib.cli import to_cli
 from ipalib import _, ngettext
@@ -255,10 +255,7 @@ class hbactest(Command):
             label=_('User name'),
             primary_key=True,
         ),
-        Str('sourcehost?',
-            cli_name='srchost',
-            label=_('Source host'),
-        ),
+        DeprecatedParam('sourcehost?'),
         Str('targethost',
             cli_name='host',
             label=_('Target host'),
@@ -304,7 +301,7 @@ class hbactest(Command):
     def execute(self, *args, **options):
         # First receive all needed information:
         # 1. HBAC rules (whether enabled or disabled)
-        # 2. Required options are (user, source host, target host, service)
+        # 2. Required options are (user, target host, service)
         # 3. Options: rules to test (--rules, --enabled, --disabled), request for detail output
         rules = []
 
@@ -436,21 +433,6 @@ class hbactest(Command):
             except:
                 pass
 
-        if options.get('sourcehost'):
-            warning_flag = True
-            if options['sourcehost'] != u'all':
-                try:
-                    request.srchost.name = self.canonicalize(options['sourcehost'])
-                    srchost_result = self.api.Command.host_show(request.srchost.name)['result']
-                    groups = srchost_result['memberof_hostgroup']
-                    if 'memberofindirect_hostgroup' in srchost_result:
-                        groups += srchost_result['memberofindirect_hostgroup']
-                    request.srchost.groups = sorted(set(groups))
-                except:
-                     pass
-        else:
-            warning_flag = False
-
         if options['targethost'] != u'all':
             try:
                 request.targethost.name = self.canonicalize(options['targethost'])
@@ -477,8 +459,6 @@ class hbactest(Command):
                         matched_rules.append(ipa_rule.name)
                     if res == pyhbac.HBAC_EVAL_DENY:
                         notmatched_rules.append(ipa_rule.name)
-                    if warning_flag:
-                        warning_rules.append(_(u'Sourcehost value of rule "%s" is ignored') % (ipa_rule.name))
                 except pyhbac.HbacError as (code, rule_name):
                     if code == pyhbac.HBAC_EVAL_ERROR:
                         error_rules.append(rule_name)

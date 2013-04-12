@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
-from ipalib import AccessTime, Password, Str, StrEnum, Bool
+from ipalib import AccessTime, Password, Str, StrEnum, Bool, DeprecatedParam
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
@@ -150,7 +150,7 @@ class hbacrule(LDAPObject):
             exclude='webui',
             flags=['no_option', 'no_output'],
         ),
-        # FIXME: {user,host,sourcehost,service}categories should expand in the future
+        # FIXME: {user,host,service}categories should expand in the future
         StrEnum('usercategory?',
             cli_name='usercat',
             label=_('User category'),
@@ -163,12 +163,7 @@ class hbacrule(LDAPObject):
             doc=_('Host category the rule applies to'),
             values=(u'all', ),
         ),
-        StrEnum('sourcehostcategory?',
-            cli_name='srchostcat',
-            label=_('Source host category'),
-            doc=_('Source host category the rule applies to'),
-            values=(u'all', ),
-        ),
+        DeprecatedParam('sourcehostcategory?'),
         StrEnum('servicecategory?',
             cli_name='servicecat',
             label=_('Service category'),
@@ -203,14 +198,8 @@ class hbacrule(LDAPObject):
             label=_('Host Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('sourcehost_host?',
-            label=_('Source Hosts'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('sourcehost_hostgroup?',
-            label=_('Source Host Groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
+        DeprecatedParam('sourcehost_host?'),
+        DeprecatedParam('sourcehost_hostgroup?'),
         Str('memberservice_hbacsvc?',
             label=_('Services'),
             flags=['no_create', 'no_update', 'no_search'],
@@ -272,8 +261,6 @@ class hbacrule_mod(LDAPUpdate):
             raise errors.MutuallyExclusiveError(reason=_("user category cannot be set to 'all' while there are allowed users"))
         if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are allowed hosts"))
-        if is_all(options, 'sourcehostcategory') and 'sourcehost' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("sourcehost category cannot be set to 'all' while there are allowed sourcehosts"))
         if is_all(options, 'servicecategory') and 'memberservice' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_("service category cannot be set to 'all' while there are allowed services"))
         return dn
@@ -493,39 +480,25 @@ api.register(hbacrule_remove_host)
 
 
 class hbacrule_add_sourcehost(LDAPAddMember):
-    __doc__ = _('Add source hosts and hostgroups from a HBAC rule.')
+    NO_CLI = True
 
     member_attributes = ['sourcehost']
     member_count_out = ('%i object added.', '%i objects added.')
 
-    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
-        assert isinstance(dn, DN)
-        try:
-            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        if 'sourcehostcategory' in entry_attrs and \
-            entry_attrs['sourcehostcategory'][0].lower() == 'all':
-            raise errors.MutuallyExclusiveError(reason=_(
-                "source hosts cannot be added when sourcehost category='all'"))
-        return add_external_pre_callback('host', ldap, dn, keys, options)
-
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
-        return add_external_post_callback('sourcehost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
+    def validate(self, **kw):
+        raise errors.DeprecationError(name='hbacrule_add_sourcehost')
 
 api.register(hbacrule_add_sourcehost)
 
 
 class hbacrule_remove_sourcehost(LDAPRemoveMember):
-    __doc__ = _('Remove source hosts and hostgroups from an HBAC rule.')
+    NO_CLI = True
 
     member_attributes = ['sourcehost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
-        return remove_external_post_callback('sourcehost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
+    def validate(self, **kw):
+        raise errors.DeprecationError(name='hbacrule_remove_sourcehost')
 
 api.register(hbacrule_remove_sourcehost)
 

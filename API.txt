@@ -1379,7 +1379,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
 command: hbacrule_add
-args: 1,13,3
+args: 1,15,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: StrEnum('accessruletype', attribute=True, autofill=True, cli_name='type', default=u'allow', exclude='webui', multivalue=False, required=True, values=(u'allow', u'deny'))
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -1391,7 +1391,9 @@ option: Bool('ipaenabledflag', attribute=True, cli_name='ipaenabledflag', multiv
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: StrEnum('servicecategory', attribute=True, cli_name='servicecat', multivalue=False, required=False, values=(u'all',))
 option: Str('setattr*', cli_name='setattr', exclude='webui')
-option: StrEnum('sourcehostcategory', attribute=True, cli_name='srchostcat', multivalue=False, required=False, values=(u'all',))
+option: DeprecatedParam('sourcehost_host', attribute=True, cli_name='sourcehost_host', multivalue=False, required=False)
+option: DeprecatedParam('sourcehost_hostgroup', attribute=True, cli_name='sourcehost_hostgroup', multivalue=False, required=False)
+option: DeprecatedParam('sourcehostcategory', attribute=True, cli_name='sourcehostcategory', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
@@ -1464,7 +1466,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
 command: hbacrule_find
-args: 1,15,4
+args: 1,17,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: StrEnum('accessruletype', attribute=True, autofill=False, cli_name='type', default=u'allow', exclude='webui', multivalue=False, query=True, required=False, values=(u'allow', u'deny'))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1477,7 +1479,9 @@ option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: StrEnum('servicecategory', attribute=True, autofill=False, cli_name='servicecat', multivalue=False, query=True, required=False, values=(u'all',))
 option: Int('sizelimit?', autofill=False, minvalue=0)
-option: StrEnum('sourcehostcategory', attribute=True, autofill=False, cli_name='srchostcat', multivalue=False, query=True, required=False, values=(u'all',))
+option: DeprecatedParam('sourcehost_host', attribute=True, autofill=False, cli_name='sourcehost_host', multivalue=False, query=True, required=False)
+option: DeprecatedParam('sourcehost_hostgroup', attribute=True, autofill=False, cli_name='sourcehost_hostgroup', multivalue=False, query=True, required=False)
+option: DeprecatedParam('sourcehostcategory', attribute=True, autofill=False, cli_name='sourcehostcategory', multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, query=True, required=False, values=(u'all',))
 option: Str('version?', exclude='webui')
@@ -1486,7 +1490,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: hbacrule_mod
-args: 1,15,3
+args: 1,17,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: StrEnum('accessruletype', attribute=True, autofill=False, cli_name='type', default=u'allow', exclude='webui', multivalue=False, required=False, values=(u'allow', u'deny'))
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -1500,7 +1504,9 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui
 option: Flag('rights', autofill=True, default=False)
 option: StrEnum('servicecategory', attribute=True, autofill=False, cli_name='servicecat', multivalue=False, required=False, values=(u'all',))
 option: Str('setattr*', cli_name='setattr', exclude='webui')
-option: StrEnum('sourcehostcategory', attribute=True, autofill=False, cli_name='srchostcat', multivalue=False, required=False, values=(u'all',))
+option: DeprecatedParam('sourcehost_host', attribute=True, autofill=False, cli_name='sourcehost_host', multivalue=False, required=False)
+option: DeprecatedParam('sourcehost_hostgroup', attribute=True, autofill=False, cli_name='sourcehost_hostgroup', multivalue=False, required=False)
+option: DeprecatedParam('sourcehostcategory', attribute=True, autofill=False, cli_name='sourcehostcategory', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
@@ -1706,7 +1712,7 @@ option: Flag('nodetail?', autofill=True, cli_name='nodetail', default=False)
 option: Str('rules*', cli_name='rules', csv=True)
 option: Str('service', cli_name='service')
 option: Int('sizelimit?', autofill=False, minvalue=0)
-option: Str('sourcehost?', cli_name='srchost')
+option: DeprecatedParam('sourcehost?')
 option: Str('targethost', cli_name='host')
 option: Str('user', cli_name='user', primary_key=True)
 option: Str('version?', exclude='webui')
