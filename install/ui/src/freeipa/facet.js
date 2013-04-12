@@ -29,15 +29,18 @@ define([
         'dojo/Stateful',
         'dojo/Evented',
         './_base/Builder',
+        './facets',
         './ipa',
         './jquery',
         './navigation',
+        './phases',
+        './spec_util',
         './text',
         './dialog',
         './field',
         './widget'
        ], function(declare, lang, construct, on, Stateful, Evented,
-                   Builder, IPA, $, navigation, text) {
+                   Builder, facets, IPA, $, navigation, phases, su, text) {
 
 /**
  * Facet represents the content of currently displayed page.
@@ -1462,95 +1465,53 @@ exp.facet_group = IPA.facet_group = function(spec) {
     return that;
 };
 
-exp.facet_builder = IPA.facet_builder = function(entity) {
+exp.facet_preops = {
+    search: function(spec, context) {
 
-    var that = IPA.object();
-
-    that.prepare_methods = {};
-
-    function init() {
-        that.prepare_methods.search = that.prepare_search_spec;
-        that.prepare_methods.nested_search = that.prepare_nested_search_spec;
-        that.prepare_methods.details = that.prepare_details_spec;
-        that.prepare_methods.association = that.prepare_association_spec;
-        that.prepare_methods.attribute = that.prepare_attribute_spec;
-    }
-
-    that.build_facets = function() {
-
-        if(entity.facet_specs && entity.facet_specs.length) {
-            var facets = entity.facet_specs;
-            for(var i=0; i<facets.length; i++) {
-                var facet_spec = facets[i];
-                that.build_facet(facet_spec);
-            }
-        }
-    };
-
-    that.build_facet = function(spec) {
-
-        //do common logic
-        spec.entity = entity;
-
-        //prepare spec based on type
-        var type = spec.type;
-        if (type) {
-            var prepare_method = that.prepare_methods[type];
-            if (prepare_method) {
-                prepare_method.call(that, spec);
-            }
-        }
-
-        //add facet
-        var facet = spec.$factory(spec);
-        entity.add_facet(facet);
-    };
-
-    function add_redirect_info(facet_name) {
-
-        facet_name = facet_name || 'search';
-        if (!entity.redirect_facet){
-            entity.redirect_facet = facet_name;
-        }
-    }
-
-    that.prepare_search_spec = function(spec) {
+        var entity = context.entity;
+        su.context_entity(spec, context);
 
         spec.title = spec.title || entity.metadata.label;
         spec.label = spec.label || entity.metadata.label;
         spec.tab_label = spec.tab_label || '@i18n:facets.search';
-        spec.$factory = spec.$factory || IPA.search_facet;
 
-        add_redirect_info();
         return spec;
-    };
+    },
 
-    that.prepare_nested_search_spec = function(spec) {
+    nested_search: function(spec, context) {
+
+        var entity = context.entity;
+        su.context_entity(spec, context);
 
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || entity.metadata.label;
         spec.tab_label = spec.tab_label || '@i18n:facets.search';
-        spec.$factory = spec.$factory || IPA.nested_search_facet;
 
         return spec;
-    };
+    },
 
-    that.prepare_details_spec = function(spec) {
+    details: function(spec, context) {
+
+        var entity = context.entity;
+        su.context_entity(spec, context);
+
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || entity.metadata.label_singular;
         spec.tab_label = spec.tab_label || '@i18n:facets.details';
-        spec.$factory = spec.$factory || IPA.details_facet;
 
         return spec;
-    };
+    },
 
-    that.prepare_attribute_spec = function(spec) {
+    attribute: function(spec, context) {
+
+        var entity = context.entity;
+        su.context_entity(spec, context);
+
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || entity.metadata.label_singular;
 
         var attr_metadata = IPA.get_entity_param(entity.name, spec.attribute);
         spec.tab_label = spec.tab_label || attr_metadata.label;
-        spec.$factory = spec.$factory || IPA.attribute_facet;
 
         entity.policies.add_policy(IPA.build({
             $factory: IPA.facet_update_policy,
@@ -1559,10 +1520,23 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
         }));
 
         return spec;
-    };
+    },
 
-    that.prepare_association_spec = function(spec) {
+    association: function(spec, context) {
 
+        var has_indirect_attribute_member = function(spec) {
+
+            var indirect_members = entity.metadata.attribute_members[spec.attribute_member + 'indirect'];
+            if (indirect_members) {
+                if (indirect_members.indexOf(spec.other_entity) > -1) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        var entity = context.entity;
+        su.context_entity(spec, context);
         spec.entity = entity;
 
         var index = spec.name.indexOf('_');
@@ -1576,14 +1550,12 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
 
         spec.facet_group = spec.facet_group || spec.attribute_member;
 
-        spec.$factory = spec.$factory || IPA.association_facet;
-
         spec.label = spec.label || entity.metadata.label_singular;
         spec.tab_label = spec.tab_label ||
             (IPA.metadata.objects[spec.other_entity] ?
             IPA.metadata.objects[spec.other_entity].label : spec.other_entity);
 
-        if (that.has_indirect_attribute_member(spec)) {
+        if (has_indirect_attribute_member(spec)) {
 
             spec.indirect_attribute_member = spec.attribute_member + 'indirect';
         }
@@ -1601,23 +1573,51 @@ exp.facet_builder = IPA.facet_builder = function(entity) {
         }));
 
         return spec;
-    };
-
-    that.has_indirect_attribute_member = function(spec) {
-
-        var indirect_members = entity.metadata.attribute_members[spec.attribute_member + 'indirect'];
-        if (indirect_members) {
-            if (indirect_members.indexOf(spec.other_entity) > -1) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    init();
-
-    return that;
+    }
 };
+
+phases.on('registration', function() {
+
+    facets.register({
+        type: 'search',
+        factory: IPA.search_facet,
+        pre_ops: [
+            exp.facet_preops.search
+        ]
+    });
+
+    facets.register({
+        type: 'nested_search',
+        factory: IPA.nested_search_facet,
+        pre_ops: [
+            exp.facet_preops.nested_search
+        ]
+    });
+
+    facets.register({
+        type: 'details',
+        factory: IPA.details_facet,
+        pre_ops: [
+            exp.facet_preops.details
+        ]
+    });
+
+    facets.register({
+        type: 'association',
+        factory: IPA.association_facet,
+        pre_ops: [
+            exp.facet_preops.association
+        ]
+    });
+
+    facets.register({
+        type: 'attribute',
+        factory: IPA.attribute_facet,
+        pre_ops: [
+            exp.facet_preops.attribute
+        ]
+    });
+});
 
 exp.action = IPA.action = function(spec) {
 

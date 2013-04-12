@@ -21,7 +21,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './facet'], function(IPA, $, text) {
+define(['./ipa', './jquery', './text', './facets', './facet'],
+       function(IPA, $, text, facet_reg) {
 
 IPA.entity = function(spec) {
 
@@ -117,12 +118,26 @@ IPA.entity = function(spec) {
         that.facet_groups.empty();
     };
 
+    that.add_redirect_info = function(facet_name) {
+        if (!that.redirect_facet && facet_name){
+             that.redirect_facet = facet_name;
+        }
+    };
+
     that.get_facet = function(name) {
+
+        var i, facets;
 
         //build all facets on the first time
         if(!that.facets_created) {
-            var builder = IPA.facet_builder(that);
-            builder.build_facets();
+            facets = facet_reg.builder.build(that.facet_specs, { entity: that });
+            for (i=0; i<facets.length; i++) {
+                var facet = facets[i];
+                that.add_facet(facet);
+                if (facet.name === 'search') {
+                    that.add_redirect_info(facet.name);
+                }
+            }
             that.facets_created = true;
             that.policies.facets_created();
         }
@@ -137,9 +152,9 @@ IPA.entity = function(spec) {
         } else if (name === 'default') {
             // return the first facet in the first facet group
             var facet_groups = that.facet_groups.values;
-            for (var i=0; i<facet_groups.length; i++) {
+            for (i=0; i<facet_groups.length; i++) {
                 var facet_group = facet_groups[i];
-                var facets = facet_group.facets.values;
+                facets = facet_group.facets.values;
                 if (!facets.length) continue;
                 return facets[0];
             }
@@ -232,7 +247,6 @@ IPA.entity_builder = function() {
 
     that.facet = function(spec) {
 
-        spec.entity  = entity;
         entity.facet_specs.push(spec);
 
         return that;
@@ -240,7 +254,7 @@ IPA.entity_builder = function() {
 
     that.search_facet = function(spec) {
 
-        spec.type = spec.type || 'search';
+        spec.$type = spec.$type || 'search';
 
         that.facet(spec);
 
@@ -251,7 +265,7 @@ IPA.entity_builder = function() {
 
     that.nested_search_facet = function(spec) {
 
-        spec.type = spec.type || 'nested_search';
+        spec.$type = spec.$type || 'nested_search';
 
         that.facet(spec);
 
@@ -260,7 +274,7 @@ IPA.entity_builder = function() {
 
     that.details_facet = function(spec) {
 
-        spec.type = spec.type || 'details';
+        spec.$type = spec.$type || 'details';
 
         that.facet(spec);
 
@@ -269,7 +283,7 @@ IPA.entity_builder = function() {
 
     that.association_facet = function(spec) {
 
-        spec.type = spec.type || 'association';
+        spec.$type = spec.$type || 'association';
 
         that.facet(spec);
 
@@ -278,7 +292,7 @@ IPA.entity_builder = function() {
 
     that.attribute_facet = function(spec) {
 
-        spec.type = spec.type || 'attribute';
+        spec.$type = spec.$type || 'attribute';
 
         that.facet(spec);
 

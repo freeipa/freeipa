@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/details',
-       'freeipa/entity'], function(IPA, $) {
+define(['freeipa/ipa', 'freeipa/jquery','freeipa/facet', 'freeipa/facets', 'freeipa/details',
+       'freeipa/entity'], function(IPA, $, mod_facet, facets) {
     return function() {
 
 var details_container;
@@ -29,18 +29,20 @@ module('details', {
     setup: function() {
         IPA.ajax_options.async = false;
 
+        facets.register({
+            type: 'details',
+            factory: IPA.details_facet,
+            pre_ops: [
+                mod_facet.facet_preops.details
+            ]
+        });
+
         IPA.init({
             url: 'data',
             on_error: function(xhr, text_status, error_thrown) {
                 ok(false, "ipa_init() failed: "+error_thrown);
             }
         });
-
-        IPA.nav = {};
-
-        IPA.nav.get_state = function(key){
-            return $.bbq.getState(key);
-        };
 
         details_container = $('<div id="details"/>').appendTo(document.body);
 
@@ -54,6 +56,7 @@ module('details', {
     },
     teardown: function() {
         details_container.remove();
+        facets.remove('details');
     }
 });
 
