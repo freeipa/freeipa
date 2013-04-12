@@ -78,6 +78,17 @@ define(['dojo/_base/declare',
         },
 
         /**
+         * Removes object of given type from registry
+         *
+         * @param {String} type
+         */
+        remove: function(type) {
+
+            var undefined;
+            this._map[type] = undefined;
+        },
+
+        /**
          * Registers construction specification
          *
          * @param type {String|Object} type or construction spec
@@ -93,6 +104,7 @@ define(['dojo/_base/declare',
                     context: this
                 };
             }
+
             this.builder.registry.register(type, func, default_spec);
         },
 
