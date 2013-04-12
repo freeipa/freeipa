@@ -24,7 +24,8 @@
  * Controls interaction between navigation, menu and facets.
  */
 
-define(['dojo/_base/declare',
+define([
+        'dojo/_base/declare',
         'dojo/_base/lang',
         'dojo/_base/array',
         'dojo/Deferred',
@@ -32,6 +33,7 @@ define(['dojo/_base/declare',
         'dojo/topic',
         'dojo/query',
         'dojo/dom-class',
+       './json2',
         './widgets/App',
         './ipa',
        './navigation/Menu',
@@ -39,7 +41,7 @@ define(['dojo/_base/declare',
         './navigation/menu_spec'
        ],
        function(declare, lang, array, Deferred, on, topic, query, dom_class,
-            App_widget, IPA, Menu, Router, menu_spec) {
+            JSON, App_widget, IPA, Menu, Router, menu_spec) {
 
     /**
      * Main application
@@ -176,11 +178,24 @@ define(['dojo/_base/declare',
         },
 
         on_phase_error: function(error) {
-            // FIXME: CHANGE!!!
-            window.alert('Initialization error, have a coffee and relax.');
-//             var container = $('#content').empty();
-//             container.append('<p>Error: '+error_thrown.name+'</p>');
-//             container.append('<p>'+error_thrown.message+'</p>');
+
+            window.console.error(error);
+            error = error || {};
+            var name = error.name || 'Runtime error';
+            var error_container = $('<div/>', {
+                'class': 'facet-content facet-error'
+            }).appendTo($('.content').empty());
+            error_container.append('<h1>'+name+'</h1>');
+            var details = $('<div/>', {
+                'class': 'error-details'
+            }).appendTo(error_container);
+
+            details.append('<p> Web UI got in unrecoverable state during "'+error.phase+'" phase.</p>');
+
+            if (error.results) {
+                details.append('<strong>Technical details:</strong>');
+                details.append('<p>'+JSON.stringify(error.results)+'</p>');
+            }
         },
 
         on_facet_change: function(event) {

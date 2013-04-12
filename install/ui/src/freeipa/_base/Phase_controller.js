@@ -22,10 +22,11 @@ define([
     'dojo/_base/lang',
     'dojo/_base/array',
     'dojo/_base/declare',
+    'dojo/Deferred',
     'dojo/promise/all',
     'dojo/topic',
     '../ordered-map'
-], function(lang, array, declare, all, topic, ordered_map) {
+], function(lang, array, declare, Deferred, all, topic, ordered_map) {
 
     var Phase_controller = declare(null, {
 
@@ -76,7 +77,14 @@ define([
             });
 
             array.forEach(tasks, function(task) {
-                var promise = task.handler();
+                var promise;
+                try {
+                    promise = task.handler();
+                } catch (e) {
+                    var fail = new Deferred();
+                    fail.reject(e, true);
+                    promise = fail.promise;
+                }
                 promises.push(promise);
             });
 
