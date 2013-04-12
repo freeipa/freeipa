@@ -25,6 +25,7 @@ from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
 from types import NoneType
+from nose.tools import raises
 
 # Test strategy:
 # 1. Create few allow rules: with user categories, with explicit users, with user groups, with groups, with services
@@ -95,10 +96,6 @@ class test_hbactest(XMLRPC_test):
                 self.rule_names[i], host=self.test_host, hostgroup=self.test_hostgroup
             )
 
-            ret = api.Command['hbacrule_add_sourcehost'](
-                self.rule_names[i], host=self.test_sourcehost, hostgroup=self.test_sourcehostgroup
-            )
-
             ret = api.Command['hbacrule_add_service'](
                 self.rule_names[i], hbacsvc=self.test_service
             )
@@ -110,20 +107,6 @@ class test_hbactest(XMLRPC_test):
         """
         Test 'ipa hbactest --rules' (explicit IPA rules, detailed output)
         """
-        ret = api.Command['hbactest'](
-            user=self.test_user,
-            sourcehost=self.test_sourcehost,
-            targethost=self.test_host,
-            service=self.test_service,
-            rules=self.rule_names
-        )
-        assert ret['value'] == True
-        assert type(ret['error']) == NoneType
-        for i in [0,1,2,3]:
-            assert self.rule_names[i] in ret['matched']
-            assert self.rule_names[i] in ret['warning'][i]
-
-        # same test without sourcehost value
         ret = api.Command['hbactest'](
             user=self.test_user,
             targethost=self.test_host,
@@ -139,21 +122,6 @@ class test_hbactest(XMLRPC_test):
         """
         Test 'ipa hbactest --rules --nodetail' (explicit IPA rules, no detailed output)
         """
-        ret = api.Command['hbactest'](
-            user=self.test_user,
-            sourcehost=self.test_sourcehost,
-            targethost=self.test_host,
-            service=self.test_service,
-            rules=self.rule_names,
-            nodetail=True
-        )
-        assert ret['value'] == True
-        assert ret['error'] == None
-        assert ret['matched'] == None
-        assert ret['notmatched'] == None
-        assert ret['warning'] == None
-
-        # same test without sourcehost value
         ret = api.Command['hbactest'](
             user=self.test_user,
             targethost=self.test_host,
@@ -172,7 +140,6 @@ class test_hbactest(XMLRPC_test):
         """
         ret = api.Command['hbactest'](
             user=self.test_user,
-            sourcehost=self.test_sourcehost,
             targethost=self.test_host,
             service=self.test_service,
             enabled=True
@@ -182,17 +149,6 @@ class test_hbactest(XMLRPC_test):
         # Thus, check that our two enabled rules are in matched, nothing more
         for i in [0,2]:
             assert self.rule_names[i] in ret['matched']
-            assert self.check_rule_presence(self.rule_names[i], ret['warning'])
-
-        # same test without sourcehost value
-        ret = api.Command['hbactest'](
-            user=self.test_user,
-            targethost=self.test_host,
-            service=self.test_service,
-            enabled=True
-        )
-        for i in [0,2]:
-            assert self.rule_names[i] in ret['matched']
 
     def test_d_hbactest_check_rules_disabled_detail(self):
         """
@@ -200,7 +156,6 @@ class test_hbactest(XMLRPC_test):
         """
         ret = api.Command['hbactest'](
             user=self.test_user,
-            sourcehost=self.test_sourcehost,
             targethost=self.test_host,
             service=self.test_service,
             disabled=True
@@ -210,17 +165,6 @@ class test_hbactest(XMLRPC_test):
         # Thus, check that our two disabled rules are in matched, nothing more
         for i in [1,3]:
             assert self.rule_names[i] in ret['matched']
-            assert self.check_rule_presence(self.rule_names[i], ret['warning'])
-
-        # same test without sourcehost value
-        ret = api.Command['hbactest'](
-            user=self.test_user,
-            targethost=self.test_host,
-            service=self.test_service,
-            disabled=True
-        )
-        for i in [1,3]:
-            assert self.rule_names[i] in ret['matched']
 
     def test_e_hbactest_check_non_existing_rule_detail(self):
         """
@@ -228,7 +172,6 @@ class test_hbactest(XMLRPC_test):
         """
         ret = api.Command['hbactest'](
             user=self.test_user,
-            sourcehost=self.test_sourcehost,
             targethost=self.test_host,
             service=self.test_service,
             rules=[u'%s_1x1' % (rule) for rule in self.rule_names],
@@ -241,30 +184,27 @@ class test_hbactest(XMLRPC_test):
         for rule in self.rule_names:
             assert u'%s_1x1' % (rule) in ret['error']
 
-        # same test without sourcehost value
-        ret = api.Command['hbactest'](
+    @raises(errors.ValidationError)
+    def test_f_hbactest_check_sourcehost_option_is_deprecated(self):
+        """
+        Test running 'ipa hbactest' with --srchost option raises ValidationError
+        """
+        api.Command['hbactest'](
             user=self.test_user,
             targethost=self.test_host,
+            sourcehost=self.test_sourcehost,
             service=self.test_service,
-            rules=[u'%s_1x1' % (rule) for rule in self.rule_names],
+            rules=[u'%s_1x1' % rule for rule in self.rule_names],
             nodetail=True
         )
 
-        assert ret['value'] == False
-        assert ret['matched'] == None
-        assert ret['notmatched'] == None
-        for rule in self.rule_names:
-            assert u'%s_1x1' % (rule) in ret['error']
-
-    def test_f_hbactest_clear_testing_data(self):
+    def test_g_hbactest_clear_testing_data(self):
         """
         Clear data for HBAC test plugin testing.
         """
         for i in [0,1,2,3]:
             api.Command['hbacrule_remove_host'](self.rule_names[i], host=self.test_host)
             api.Command['hbacrule_remove_host'](self.rule_names[i], hostgroup=self.test_hostgroup)
-            api.Command['hbacrule_remove_sourcehost'](self.rule_names[i], host=self.test_sourcehost)
-            api.Command['hbacrule_remove_sourcehost'](self.rule_names[i], hostgroup=self.test_sourcehostgroup)
             api.Command['hbacrule_del'](self.rule_names[i])
 
         api.Command['user_del'](self.test_user)

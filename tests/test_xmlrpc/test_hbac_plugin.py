@@ -45,8 +45,6 @@ class test_hbac(XMLRPC_test):
     test_group = u'hbacrule_test_group'
     test_host = u'hbacrule.testnetgroup'
     test_hostgroup = u'hbacrule_test_hostgroup'
-    test_sourcehost = u'hbacrule.testsrchost'
-    test_sourcehostgroup = u'hbacrule_test_src_hostgroup'
     test_service = u'sshd'
     test_host_external = u'notfound.example.com'
 
@@ -149,12 +147,6 @@ class test_hbac(XMLRPC_test):
         )
         self.failsafe_add(api.Object.hostgroup,
             self.test_hostgroup, description=u'description'
-        )
-        self.failsafe_add(api.Object.host,
-            self.test_sourcehost, force=True
-        )
-        self.failsafe_add(api.Object.hostgroup,
-            self.test_sourcehostgroup, description=u'desc'
         )
         self.failsafe_add(api.Object.hbacsvc,
             self.test_service, description=u'desc',
@@ -268,34 +260,14 @@ class test_hbac(XMLRPC_test):
         assert 'memberhost_host' not in entry
         assert 'memberhost_hostgroup' not in entry
 
-    def test_a_hbacrule_add_sourcehost(self):
+    @raises(errors.DeprecationError)
+    def test_a_hbacrule_add_sourcehost_deprecated(self):
         """
-        Test adding source host and hostgroup to HBAC rule using `xmlrpc.hbacrule_add_host`.
+        Test deprecated command hbacrule_add_sourcehost.
         """
         ret = api.Command['hbacrule_add_sourcehost'](
             self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
         )
-        assert ret['completed'] == 2
-        failed = ret['failed']
-        assert 'sourcehost' in failed
-        assert 'host' in failed['sourcehost']
-        assert not failed['sourcehost']['host']
-        assert 'hostgroup' in failed['sourcehost']
-        assert not failed['sourcehost']['hostgroup']
-        entry = ret['result']
-        assert_attr_equal(entry, 'sourcehost_host', self.test_host)
-        assert_attr_equal(entry, 'sourcehost_hostgroup', self.test_hostgroup)
-
-    def test_a_hbacrule_add_invalid_sourcehost(self):
-        """
-        Test adding invalid source host to HBAC rule using `xmlrpc.hbacrule_add_host`.
-        """
-        try:
-            api.Command['hbacrule_add_sourcehost'](
-                self.rule_name, host=self.test_invalid_sourcehost, hostgroup=self.test_hostgroup
-            )
-        except errors.ValidationError:
-            pass
 
     def test_a_hbacrule_add_service(self):
         """
@@ -327,55 +299,14 @@ class test_hbac(XMLRPC_test):
         entry = ret['result']
         assert 'memberservice service' not in entry
 
-    def test_b_hbacrule_remove_sourcehost(self):
+    @raises(errors.DeprecationError)
+    def test_b_hbacrule_remove_sourcehost_deprecated(self):
         """
-        Test removing source host and hostgroup from HBAC rule using `xmlrpc.hbacrule_remove_host`.
+        Test deprecated command hbacrule_remove_sourcehost.
         """
         ret = api.Command['hbacrule_remove_sourcehost'](
             self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
         )
-        assert ret['completed'] == 2
-        failed = ret['failed']
-        assert 'sourcehost' in failed
-        assert 'host' in failed['sourcehost']
-        assert not failed['sourcehost']['host']
-        assert 'hostgroup' in failed['sourcehost']
-        assert not failed['sourcehost']['hostgroup']
-        entry = ret['result']
-        assert 'sourcehost host' not in entry
-        assert 'sourcehost hostgroup' not in entry
-
-    def test_c_hbacrule_add_external_host(self):
-        """
-        Test adding an external host using `xmlrpc.hbacrule_add_host`.
-        """
-        ret = api.Command['hbacrule_add_sourcehost'](
-            self.rule_name, host=self.test_host_external
-        )
-        assert ret['completed'] == 1
-        failed = ret['failed']
-        assert 'sourcehost' in failed
-        assert 'host' in failed['sourcehost']
-        assert not failed['sourcehost']['host']
-        assert 'hostgroup' in failed['sourcehost']
-        assert not failed['sourcehost']['hostgroup']
-        entry = ret['result']
-        assert_attr_equal(entry, 'externalhost', self.test_host_external)
-
-    def test_c_hbacrule_add_same_external(self):
-        """
-        Test adding the same external host using `xmlrpc.hbacrule_add_host`.
-        """
-        ret = api.Command['hbacrule_add_sourcehost'](
-            self.rule_name, host=self.test_host_external
-        )
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'sourcehost' in failed
-        assert 'host' in failed['sourcehost']
-        assert (self.test_host_external, unicode(errors.AlreadyGroupMember())) in failed['sourcehost']['host']
-        entry = ret['result']
-        assert_attr_equal(entry, 'externalhost', self.test_host_external)
 
     @raises(errors.ValidationError)
     def test_c_hbacrule_mod_invalid_external_setattr(self):
@@ -385,40 +316,6 @@ class test_hbac(XMLRPC_test):
         ret = api.Command['hbacrule_mod'](
             self.rule_name, setattr=self.test_invalid_sourcehost
         )
-
-    def test_c_hbacrule_remove_external_host(self):
-        """
-        Test removing external source host using `xmlrpc.hbacrule_remove_host`.
-        """
-        ret = api.Command['hbacrule_remove_sourcehost'](
-            self.rule_name, host=self.test_host_external
-        )
-        assert ret['completed'] == 1
-        failed = ret['failed']
-        assert 'sourcehost' in failed
-        assert 'host' in failed['sourcehost']
-        assert not failed['sourcehost']['host']
-        assert 'hostgroup' in failed['sourcehost']
-        assert not failed['sourcehost']['hostgroup']
-        entry = ret['result']
-        assert 'sourcehost host' not in entry
-        assert 'sourcehost hostgroup' not in entry
-
-    def test_c_hbacrule_remove_nonexist_external(self):
-        """
-        Test removing non-existent external source host using `xmlrpc.hbacrule_remove_host`.
-        """
-        ret = api.Command['hbacrule_remove_sourcehost'](
-            self.rule_name, host=self.test_host_external
-        )
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'sourcehost' in failed
-        assert 'host' in failed['sourcehost']
-        assert (self.test_host_external, unicode(errors.NotGroupMember())) in failed['sourcehost']['host']
-        assert 'hostgroup' in failed['sourcehost']
-        assert not failed['sourcehost']['hostgroup']
-        entry = ret['result']
 
     def test_d_hbacrule_disable(self):
         """
@@ -551,17 +448,12 @@ class test_hbac(XMLRPC_test):
         """
         Test adding various links to HBAC rule
         """
-        api.Command['hbacrule_add_sourcehost'](
-            self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
-        )
         api.Command['hbacrule_add_service'](
             self.rule_name, hbacsvc=self.test_service
         )
 
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
         assert_attr_equal(entry, 'cn', self.rule_name)
-        assert_attr_equal(entry, 'sourcehost_host', self.test_host)
-        assert_attr_equal(entry, 'sourcehost_hostgroup', self.test_hostgroup)
         assert_attr_equal(entry, 'memberservice_hbacsvc', self.test_service)
 
     def test_y_hbacrule_zap_testing_data(self):
@@ -574,8 +466,6 @@ class test_hbac(XMLRPC_test):
         api.Command['group_del'](self.test_group)
         api.Command['host_del'](self.test_host)
         api.Command['hostgroup_del'](self.test_hostgroup)
-        api.Command['host_del'](self.test_sourcehost)
-        api.Command['hostgroup_del'](self.test_sourcehostgroup)
         api.Command['hbacsvc_del'](self.test_service)
 
     def test_k_2_sudorule_referential_integrity(self):
@@ -596,3 +486,12 @@ class test_hbac(XMLRPC_test):
         # verify that it's gone
         with assert_raises(errors.NotFound):
             api.Command['hbacrule_show'](self.rule_name)
+
+    @raises(errors.ValidationError)
+    def test_zz_hbacrule_add_with_deprecated_option(self):
+        """
+        Test using a deprecated command option 'sourcehostcategory' with 'hbacrule_add'.
+        """
+        api.Command['hbacrule_add'](
+            self.rule_name, sourcehostcategory=u'all'
+        )

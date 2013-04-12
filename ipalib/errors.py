@@ -796,6 +796,21 @@ class PromptFailed(InvocationError):
     format = _('Could not get %(name)s interactively')
 
 
+class DeprecationError(InvocationError):
+    """
+    **3015** Raise when a command has been deprecated
+
+    For example:
+
+    >>> raise DeprecationError(name='hbacrule_add_sourcehost')
+    Traceback (most recent call last):
+      ...
+    DeprecationError: Command 'hbacrule_add_sourcehost' has been deprecated
+    """
+    errno = 3015
+    format = _("Command '%(name)s' has been deprecated")
+
+
 ##############################################################################
 # 4000 - 4999: Execution errors
 
