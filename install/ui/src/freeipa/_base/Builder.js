@@ -200,7 +200,7 @@ define(['dojo/_base/declare',
             if (this.registry) {
                 var cs = this.registry.get(type);
                 if (!cs) throw construct.no_cs_for_type_error(type);
-                cs = construct.copy_cs(cs);
+                cs = construct.clone(cs);
                 return cs;
             } else {
                 throw {
@@ -215,8 +215,8 @@ define(['dojo/_base/declare',
             var cs = construction_spec,
                 obj = null;
 
-            // here we should clone cs.spec to prevent modification of original
-            // by pre_ops
+            // deep clone to prevent modification of original spec by preops
+            cs.spec = construct.clone(cs.spec);
 
             cs.spec = this._run_preops(this.pre_ops, cs.spec, context);
             if (cs.pre_ops) {

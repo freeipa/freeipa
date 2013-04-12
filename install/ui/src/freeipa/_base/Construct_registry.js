@@ -99,7 +99,7 @@ define(['dojo/_base/declare',
 
             var def_cs = construct_spec;
             var old_cs = this._check_get(org_type);
-            var cs = construct.copy_cs(old_cs);
+            var cs = construct.clone(old_cs);
 
             cs.type = new_type;
             if (def_cs.pre_ops) cs.pre_ops.push.call(cs.pre_ops, def_cs.pre_ops);

@@ -56,16 +56,50 @@ define(['dojo/_base/declare',
         },
 
         /**
-         * Creates copy of construction specification
+         * Deep clone.
+         *  - does not clone framework objects
+         *  - fails on cyclic non-framework objects
          *
-         * It makes sure that pre_ops, post_ops and spec are new Arrays/Object
+         * based on dojo/_base/lang.clone
+         *
+         * @param {anything} object to clone
          */
-        copy_cs: function(org_cs) {
-            var cs = lang.mixin({}, org_cs);
-            if (cs.spec) cs.spec = lang.mixin({}, cs.spec);
-            cs.pre_ops = cs.pre_ops.slice(0);
-            cs.post_ops = cs.pre_ops.slice(0);
-            return cs;
+        clone: function(src) {
+
+            if(!src || typeof src != "object" || lang.isFunction(src)) {
+                // null, undefined, any non-object, or function
+                return src; // anything
+            }
+            if(src.nodeType && "cloneNode" in src) {
+                // DOM Node
+                return src.cloneNode(true); // Node
+            }
+            if (!construct.is_spec(src)) {
+                // framework object
+                return src;
+            }
+            if (src instanceof Date) {
+                // Date
+                return new Date(src.getTime()); // Date
+            }
+            if (src instanceof RegExp) {
+                // RegExp
+                return new RegExp(src);   // RegExp
+            }
+            var r, i, l;
+            if (lang.isArray(src)){
+                // array
+                r = [];
+                for (i = 0, l = src.length; i < l; ++i) {
+                    if (i in src){
+                        r.push(construct.clone(src[i]));
+                    }
+                }
+            } else {
+                // generic objects
+                r = src.constructor ? new src.constructor() : {};
+            }
+            return lang._mixin(r, src, construct.clone);
         },
 
         no_cs_for_type_error: function(type) {
