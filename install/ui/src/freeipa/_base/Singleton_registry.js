@@ -108,9 +108,11 @@ define(['dojo/_base/declare',
             this.builder.registry.register(type, func, default_spec);
         },
 
+
         constructor: function(spec) {
 
             spec = spec || {};
+            this._map = {};
             this.builder = spec.builder || new Builder({
                 registry: new Construct_registry()
             });

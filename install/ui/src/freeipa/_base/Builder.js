@@ -50,9 +50,9 @@ define(['dojo/_base/declare',
 
         ctor: null,
 
-        post_ops: [],
+        post_ops: null,
 
-        pre_ops: [],
+        pre_ops: null,
 
         /**
          * Build object based on spec.
@@ -292,6 +292,8 @@ define(['dojo/_base/declare',
         constructor: function(spec) {
 
             spec = spec || {};
+            this.pre_ops = [];
+            this.post_ops = [];
             if (spec.factory) this.factory = spec.factory;
             if (spec.ctor) this.ctor = spec.ctor;
             if (spec.registry) this.registry = spec.registry;
