@@ -175,13 +175,13 @@ define(['dojo/_base/declare',
                 cs.pre_ops = cs.pre_ops || [];
                 cs.post_ops = cs.post_ops || [];
                 if (pre) cs.pre_ops.push.call(cs.pre_ops, pre);
-                if (pre) cs.post_ops.push.call(cs.post_ops, post);
-                cs.spec = cs.spec || {};
+                if (post) cs.post_ops.push.call(cs.post_ops, post);
+            }
 
-                if (!cs.factory && !cs.ctor) {
-                    if (this.ctor) cs.ctor = this.ctor;
-                    else if (this.factory) cs.factory = this.factory;
-                }
+            cs.spec = cs.spec || {};
+            if (!cs.factory && !cs.ctor) {
+                if (this.ctor) cs.ctor = this.ctor;
+                else if (this.factory) cs.factory = this.factory;
             }
 
             return cs;
@@ -194,7 +194,7 @@ define(['dojo/_base/declare',
 
             if (this.registry) {
                 var cs = this.registry.get(type);
-                if (!cs) throw construct.no_cs_for_type_error(type);
+                if (!cs) cs = {};
                 cs = construct.clone(cs);
                 return cs;
             } else {
