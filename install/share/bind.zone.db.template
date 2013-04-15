@@ -26,4 +26,4 @@ _kpasswd._udp		IN SRV 0 100 464	$HOST
 $OPTIONAL_NTP
 
 ; CNAME for IPA CA replicas (used for CRL, OCSP)
-$IPA_CA_CNAME		IN CNAME		$HOST
+$IPA_CA_RECORD

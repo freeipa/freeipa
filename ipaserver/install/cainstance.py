@@ -71,7 +71,7 @@ PKI_DS_USER = dogtag.install_constants.DS_USER
 
 # When IPA is installed with DNS support, this CNAME should hold all IPA
 # replicas with CA configured
-IPA_CA_CNAME = "ipa-ca"
+IPA_CA_RECORD = "ipa-ca"
 
 # We need to reset the template because the CA uses the regular boot
 # information
@@ -1275,7 +1275,7 @@ class CAInstance(service.Service):
         changed = False
 
         # OCSP extension
-        ocsp_url = 'http://%s.%s/ca/ocsp' % (IPA_CA_CNAME, ipautil.format_netloc(domain))
+        ocsp_url = 'http://%s.%s/ca/ocsp' % (IPA_CA_RECORD, ipautil.format_netloc(domain))
 
         ocsp_location_0 = installutils.get_directive(
             self.dogtag_constants.IPA_SERVICE_PROFILE,
@@ -1302,7 +1302,7 @@ class CAInstance(service.Service):
 
 
         # CRL extension
-        crl_url = 'http://%s.%s/ipa/crl/MasterCRL.bin'% (IPA_CA_CNAME, ipautil.format_netloc(domain))
+        crl_url = 'http://%s.%s/ipa/crl/MasterCRL.bin'% (IPA_CA_RECORD, ipautil.format_netloc(domain))
 
         crl_point_0 = installutils.get_directive(
             self.dogtag_constants.IPA_SERVICE_PROFILE,
