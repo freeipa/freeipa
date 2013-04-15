@@ -133,6 +133,11 @@ define([
 
             var phase = this.phases.get(phase_name);
 
+            if (!phase) {
+                window.console.warn('no such phase: ' + phase_name);
+                return;
+            }
+
             if (typeof priority !== 'number') priority = 10;
 
             phase.tasks.push({
