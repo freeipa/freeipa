@@ -8,16 +8,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2012-10-12 04:08-0400\n"
-"PO-Revision-Date: 2012-09-14 10:30+0000\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
+"product=freeIPA\n"
+"POT-Creation-Date: 2013-04-15 16:42+0200\n"
+"PO-Revision-Date: 2013-04-15 15:12+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Japanese <trans-ja@lists.fedoraproject.org>\n"
-"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #, python-format
@@ -34,22 +34,6 @@ msgstr "%(server)s から未知のエラー %(code)d: %(error)s"
 
 msgid "an internal error has occurred"
 msgstr "内部エラーが発生しました"
-
-#, python-format
-msgid "an internal error has occurred on server at %(server)r"
-msgstr "サーバー %(server)r で内部エラーが発生しました"
-
-#, python-format
-msgid "unknown command %(name)r"
-msgstr "不明なコマンド %(name)r"
-
-#, python-format
-msgid "error on server %(server)r: %(error)s"
-msgstr "%(server)r においてエラー: %(error)s"
-
-#, python-format
-msgid "cannot connect to %(uri)r: %(error)s"
-msgstr "%(uri)rへ接続できません:%(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -74,7 +58,15 @@ msgstr "このエントリーはすでに存在します"
 
 #, python-format
 msgid "Base64 decoding failed: %(reason)s"
-msgstr "Base64形式のデコードに失敗: %(reason)s"
+msgstr "Base64 形式のデコードに失敗: %(reason)s"
+
+#, python-format
+msgid "%(desc)s: %(info)s"
+msgstr "%(desc)s: %(info)s"
+
+#, python-format
+msgid "%(info)s"
+msgstr "%(info)s"
 
 msgid "must be an integer"
 msgstr "整数である必要があります"
@@ -341,6 +333,9 @@ msgstr "標準のホストグループ"
 msgid "Default user group"
 msgstr "標準のユーザーグループ"
 
+msgid "Certificates"
+msgstr "証明書"
+
 msgid "Group Options"
 msgstr "グループオプション"
 
@@ -355,9 +350,6 @@ msgstr "オプション"
 
 msgid "Account"
 msgstr "アカウント"
-
-msgid "Certificates"
-msgstr "証明書"
 
 msgid "Download"
 msgstr "ダウンロード"
@@ -434,6 +426,18 @@ msgstr "役割を検索します。"
 msgid "Display information about a role."
 msgstr "役割に関する情報を表示します。"
 
+msgid "sudo command"
+msgstr "sudo コマンド"
+
+msgid "sudo commands"
+msgstr "sudo コマンド"
+
+msgid "Sudo Commands"
+msgstr "sudo コマンド"
+
+msgid "Sudo Command"
+msgstr "sudo コマンド"
+
 msgid "sudo rule"
 msgstr "sudo ルール"
 
@@ -441,7 +445,10 @@ msgid "sudo rules"
 msgstr "sudo ルール"
 
 msgid "Sudo Rules"
-msgstr "Sudo ルール"
+msgstr "sudo ルール"
+
+msgid "Sudo Rule"
+msgstr "sudo ルール"
 
 msgid "user"
 msgstr "ユーザー"
@@ -467,5 +474,8 @@ msgstr "ユーザーアカウントを有効化します。"
 msgid "invalid SSH public key"
 msgstr "無効な SSH 公開鍵"
 
-#~ msgid "must be one of %(values)r"
-#~ msgstr "%(values)r のどれかである必要があります"
+msgid "Out of memory!?\n"
+msgstr "メモリー不足!?\n"
+
+msgid "Out of memory\n"
+msgstr "メモリー不足\n"

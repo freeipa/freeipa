@@ -10,16 +10,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2012-10-12 04:08-0400\n"
-"PO-Revision-Date: 2012-09-14 10:30+0000\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
+"product=freeIPA\n"
+"POT-Creation-Date: 2013-04-15 16:42+0200\n"
+"PO-Revision-Date: 2013-04-15 15:12+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Russian <trans-ru@lists.fedoraproject.org>\n"
-"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
@@ -31,25 +31,8 @@ msgstr "Повторно введите %(label)s для проверки: "
 msgid "Passwords do not match!"
 msgstr "Пароли не совпадают!"
 
-#, python-format
-msgid "Purpose: %s"
-msgstr "Назначение: %s"
-
-msgid "Usage: ipa [global-options] COMMAND ..."
-msgstr "Использование: ipa [глобальные-параметры] КОМАНДА ..."
-
-msgid "Built-in commands:"
-msgstr "Встроенные команды:"
-
-msgid "Try `ipa --help` for a list of global options."
-msgstr "Наберите «ipa --help» для списка глобальных параметров."
-
 msgid "Command name"
 msgstr "Имя команды"
-
-#, python-format
-msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
-msgstr "%(cver)s клиент несовместим с %(sver)s сервером на %(server)r"
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -57,22 +40,6 @@ msgstr "получена неизвестная ошибка %(code)d от %(ser
 
 msgid "an internal error has occurred"
 msgstr "произошла внутренняя ошибка"
-
-#, python-format
-msgid "an internal error has occurred on server at %(server)r"
-msgstr "произошла внутренняя ошибка на сервере %(server)r"
-
-#, python-format
-msgid "unknown command %(name)r"
-msgstr "неизвестная команда %(name)r"
-
-#, python-format
-msgid "error on server %(server)r: %(error)s"
-msgstr "ошибка на сервере %(server)r: %(error)s"
-
-#, python-format
-msgid "cannot connect to %(uri)r: %(error)s"
-msgstr "невозможно подключиться к %(uri)r: %(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -84,10 +51,6 @@ msgstr "Ошибка Kerberos: %(major)s/%(minor)s"
 
 msgid "did not receive Kerberos credentials"
 msgstr "не получены регистрационные данные Kerberos"
-
-#, python-format
-msgid "Service %(service)r not found in Kerberos database"
-msgstr "Служба %(service)r не найдена в базе данных Kerberos"
 
 msgid "No credentials cache found"
 msgstr "Кэш регистрационных данных не найден"
@@ -110,33 +73,6 @@ msgstr "Сеансовая ошибка"
 #, python-format
 msgid "Insufficient access: %(info)s"
 msgstr "Недостаточно прав для доступа: %(info)s"
-
-#, python-format
-msgid "command %(name)r takes no arguments"
-msgstr "команде %(name)r не требуются параметры"
-
-#, python-format
-msgid "command %(name)r takes at most %(count)d argument"
-msgid_plural "command %(name)r takes at most %(count)d arguments"
-msgstr[0] "команда %(name)r принимает не более %(count)d аргумента"
-msgstr[1] "команда %(name)r принимает не более %(count)d аргументов"
-msgstr[2] "команда %(name)r принимает не более %(count)d аргументов"
-
-#, python-format
-msgid "overlapping arguments and options: %(names)r"
-msgstr "наложение аргументов и параметров: %(names)r"
-
-#, python-format
-msgid "%(name)r is required"
-msgstr "требуется %(name)r"
-
-#, python-format
-msgid "invalid %(name)r: %(error)s"
-msgstr "неверный(ое) %(name)r: %(error)s"
-
-#, python-format
-msgid "api has no such namespace: %(name)r"
-msgstr "api не предоставляет такого пространства имен (namespace): %(name)r"
 
 msgid "Passwords do not match"
 msgstr "Пароли не совпадают"
@@ -177,10 +113,6 @@ msgstr "Этой команде требуются права администр
 msgid "This is already a posix group"
 msgstr "Уже является posix группой"
 
-#, python-format
-msgid "Principal is not of the form user@REALM: %(principal)r"
-msgstr "Учетная запись задана в форме отличной от user@REALM: %(principal)r"
-
 msgid "A group may not be a member of itself"
 msgstr "Группа не может входить в состав самой себя"
 
@@ -204,10 +136,6 @@ msgstr ""
 #, python-format
 msgid "Unable to create private group. A group '%(group)s' already exists."
 msgstr "Не удалось создать личную группу. Группа «%(group)s» уже существует."
-
-#, python-format
-msgid "no command nor help topic %(topic)r"
-msgstr "нет команды или раздела справки для %(topic)r"
 
 msgid "change collided with another change"
 msgstr "изменение противоречит другому сделанному изменению"
@@ -339,9 +267,6 @@ msgstr "Разрешения"
 
 msgid "Attributes"
 msgstr "Атрибуты"
-
-msgid "Comma-separated list of attributes"
-msgstr "Список атрибутов, разделенных запятой"
 
 msgid "Type"
 msgstr "Тип"
@@ -1182,6 +1107,10 @@ msgid "invalid SSH public key"
 msgstr "неверный открытый ключ SSH"
 
 #, python-format
+msgid "objectclass %s not found"
+msgstr "класс объектов %s не найден"
+
+#, python-format
 msgid "Unable to communicate with CMS (%s)"
 msgstr "Невозможно связаться с CMS (%s)"
 
@@ -1190,10 +1119,6 @@ msgstr "Аппаратная платформа узла (например, Leno
 
 msgid "Operating System and version of the host (e.g. Fedora 9)"
 msgstr "Операционная система и версия узла (например, Fedora 9)"
-
-#, python-format
-msgid "objectclass %s not found"
-msgstr "класс объектов %s не найден"
 
 #, python-format
 msgid ""
@@ -1238,6 +1163,3 @@ msgstr "basedn"
 #, c-format
 msgid "kvno %d\n"
 msgstr "kvno %d\n"
-
-#~ msgid "must be one of %(values)r"
-#~ msgstr "должно являться одним из %(values)r"

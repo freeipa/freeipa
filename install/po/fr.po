@@ -4,26 +4,27 @@
 #
 # Translators:
 # Automatically generated, 2010.
-# Jérôme Fenal <jfenal@gmail.com>, 2011-2012.
+# Jérôme Fenal <jfenal@gmail.com>, 2011-2013.
 #   <jfenal@gmail.com>, 2011.
+# Petr Viktorin <encukou@gmail.com>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2012-10-12 04:08-0400\n"
-"PO-Revision-Date: 2012-10-06 10:27+0000\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
+"product=freeIPA\n"
+"POT-Creation-Date: 2013-04-15 16:42+0200\n"
+"PO-Revision-Date: 2013-04-15 15:38+0000\n"
 "Last-Translator: Jérôme Fenal <jfenal@gmail.com>\n"
 "Language-Team: French <trans-fr@lists.fedoraproject.org>\n"
-"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
-msgstr "Entrer à nouveau %(label)s pour validation : "
+msgstr "Entrer à nouveau %(label)s pour validation :"
 
 #, c-format
 msgid "Passwords do not match!"
@@ -32,27 +33,20 @@ msgstr "Les mots de passe ne correspondent pas !"
 msgid "No matching entries found"
 msgstr "Aucune entrée correspondante trouvée"
 
-#, python-format
-msgid "Purpose: %s"
-msgstr "Objectif : %s"
+msgid "Topic or Command"
+msgstr "Thème ou commande"
 
-msgid "Usage: ipa [global-options] COMMAND ..."
-msgstr "Utilisation : ipa [options-globales] COMMAND ..."
-
-msgid "Built-in commands:"
-msgstr "Commandes intégrées :"
-
-msgid "Help subtopics:"
-msgstr "Sous-thèmes de l'aide :"
-
-msgid "Help topics:"
-msgstr "Thèmes de l'aide :"
-
-msgid "Try `ipa --help` for a list of global options."
-msgstr "Utiliser `ipa --help` pour obtenir la liste des options globales."
+msgid "The topic or command name."
+msgstr "Le nom du thème ou de la commande."
 
 msgid "Topic commands:"
 msgstr "Commandes du thème :"
+
+msgid "To get command help, use:"
+msgstr "Pour obtenir de l'aide, utiliser :"
+
+msgid "  ipa <command> --help"
+msgstr "  ipa <command> --help"
 
 msgid "Command name"
 msgstr "Nom de commande"
@@ -64,10 +58,8 @@ msgid "No file to read"
 msgstr "Pas de fichier à lire"
 
 #, python-format
-msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
-msgstr ""
-"Version de client %(cver)s incompatible avec la version %(sver)s du serveur "
-"%(server)r"
+msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
+msgstr "Client %(cver)s incompatible avec un serveur %(sver)s à « %(server)s »"
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -77,20 +69,20 @@ msgid "an internal error has occurred"
 msgstr "une erreur interne est survenue"
 
 #, python-format
-msgid "an internal error has occurred on server at %(server)r"
-msgstr "une erreur interne est survenue sur le serveur %(server)r"
+msgid "an internal error has occurred on server at '%(server)s'"
+msgstr "une erreur interne est survenue sur le serveur à « %(server)s »"
 
 #, python-format
-msgid "unknown command %(name)r"
-msgstr "commande inconnue %(name)r"
+msgid "unknown command '%(name)s'"
+msgstr "commande « %(name)s » inconnue"
 
 #, python-format
-msgid "error on server %(server)r: %(error)s"
-msgstr "erreur sur le serveur %(server)r: %(error)s"
+msgid "error on server '%(server)s': %(error)s"
+msgstr "erreur sur le serveur « %(server)s » : %(error)s"
 
 #, python-format
-msgid "cannot connect to %(uri)r: %(error)s"
-msgstr "impossible de se connecter à %(uri)r: %(error)s"
+msgid "cannot connect to '%(uri)s': %(error)s"
+msgstr "impossible de se connecter à « %(uri)s » : %(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -112,8 +104,8 @@ msgid "did not receive Kerberos credentials"
 msgstr "n'ai pas reçu les crédits Kerberos"
 
 #, python-format
-msgid "Service %(service)r not found in Kerberos database"
-msgstr "Service %(service)r introuvable dans la base Kerberos"
+msgid "Service '%(service)s' not found in Kerberos database"
+msgstr "Service « %(service)s » introuvable dans la base de données Kerberos"
 
 msgid "No credentials cache found"
 msgstr "Cache de crédits introuvable"
@@ -142,30 +134,30 @@ msgid "Insufficient access: %(info)s"
 msgstr "Accès insuffisant : %(info)s"
 
 #, python-format
-msgid "command %(name)r takes no arguments"
-msgstr "la commande %(name)r ne prend aucun argument"
+msgid "command '%(name)s' takes no arguments"
+msgstr "la commande « %(name)s » ne prend pas d'argument"
 
 #, python-format
-msgid "command %(name)r takes at most %(count)d argument"
-msgid_plural "command %(name)r takes at most %(count)d arguments"
-msgstr[0] "la commande %(name)r prend au plus %(count)d argument"
-msgstr[1] "la commande %(name)r prend au plus %(count)d arguments"
+msgid "command '%(name)s' takes at most %(count)d argument"
+msgid_plural "command '%(name)s' takes at most %(count)d arguments"
+msgstr[0] "la commande « %(name)s » prend au plus %(count)d argument"
+msgstr[1] "la commande « %(name)s » prend au plus %(count)d arguments"
 
 #, python-format
-msgid "overlapping arguments and options: %(names)r"
-msgstr "arguments et options se chevauchant : %(names)r"
+msgid "overlapping arguments and options: %(names)s"
+msgstr "les arguments et options se chevauchent : %(names)s"
 
 #, python-format
-msgid "%(name)r is required"
-msgstr "%(name)r est requis"
+msgid "'%(name)s' is required"
+msgstr "« %(name)s » est requis"
 
 #, python-format
-msgid "invalid %(name)r: %(error)s"
-msgstr "%(name)r invalide : %(error)s"
+msgid "invalid '%(name)s': %(error)s"
+msgstr "« %(name)s » invalide : %(error)s"
 
 #, python-format
-msgid "api has no such namespace: %(name)r"
-msgstr "l'API n'a pas d'espace de nom : %(name)r"
+msgid "api has no such namespace: '%(name)s'"
+msgstr "l'API ne possède pas cet espace de nom : « %(name)s »"
 
 msgid "Passwords do not match"
 msgstr "Les mots de passe ne correspondent pas"
@@ -209,8 +201,8 @@ msgid "This is already a posix group"
 msgstr "Ce groupe est déjà de type POSIX"
 
 #, python-format
-msgid "Principal is not of the form user@REALM: %(principal)r"
-msgstr "Le principal n'est pas de la forme user@REALM: %(principal)r"
+msgid "Principal is not of the form user@REALM: '%(principal)s'"
+msgstr "Le principal n'est pas de la forme user@REALM : « %(principal)s »"
 
 msgid "This entry is already enabled"
 msgstr "Cette entrée est déjà activée"
@@ -289,8 +281,8 @@ msgstr ""
 "Ce groupe est déjà de type posix et ne peut être converti en groupe externe"
 
 #, python-format
-msgid "no command nor help topic %(topic)r"
-msgstr "pas de commande ou de sujet d'aide pour %(topic)r"
+msgid "no command nor help topic '%(topic)s'"
+msgstr "pas de commande ou de sujet d'aide pour « %(topic)s »"
 
 msgid "change collided with another change"
 msgstr "la modification a subit un collision avec une autre"
@@ -324,6 +316,12 @@ msgstr "%(attr)s : syntaxe invalide."
 msgid "Bad search filter %(info)s"
 msgstr "Filtre de recherche invalide %(info)s"
 
+msgid "Not allowed on non-leaf entry"
+msgstr "Interdit sur une entrée de type nœud"
+
+msgid "LDAP timeout"
+msgstr "expiration de délai LDAP"
+
 #, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "L'opération sur le certification ne peut être effectuée : %(error)s"
@@ -351,6 +349,14 @@ msgstr ""
 "%(key)s ne peut être supprimé ou désactivé étant le dernier membre de "
 "l'objet %(container)s %(label)s"
 
+#, python-format
+msgid "%(label)s %(key)s cannot be deleted/modified: %(reason)s"
+msgstr "%(label)s %(key)s ne peut être supprimé ou modifié : %(reason)s"
+
+#, python-format
+msgid "%(name)s certificate is not valid"
+msgstr "le certificat %(name)s est invalide"
+
 msgid "Results are truncated, try a more specific search"
 msgstr "Résultats tronqués, essayer un recherche plus spécifique"
 
@@ -376,6 +382,18 @@ msgstr ""
 
 msgid "Forward to server instead of running locally"
 msgstr "Transférer au serveur au lieu d'exécuter localement"
+
+msgid "Additional instructions:"
+msgstr "Instructions complémentaires :"
+
+#, python-format
+msgid ""
+"API Version number was not sent, forward compatibility not guaranteed. "
+"Assuming server's API version, %(server_version)s"
+msgstr ""
+"Le serveur n'a pas envoyé de version d'API, la compatibilité ascendante "
+"n'est pas garantie. On part du principe que la version de l'API est "
+"%(server_version)s"
 
 msgid "A dictionary representing an LDAP entry"
 msgstr "Un dictionnaire représente une entrée LDAP"
@@ -481,8 +499,16 @@ msgid "must be exactly %(length)d characters"
 msgstr "doit être d'exactement %(length)d caractères"
 
 #, python-format
-msgid "The character '%(char)r' is not allowed."
-msgstr "Le caractère '%(char)r' n'est pas autorisé."
+msgid "The character %(char)r is not allowed."
+msgstr "Le caractère « %(char)r » n'est pas autorisé."
+
+#, python-format
+msgid "must be '%(value)s'"
+msgstr "doit être « %(value)s »"
+
+#, python-format
+msgid "must be one of %(values)s"
+msgstr "doit être une valeur parmi %(values)s"
 
 msgid "incomplete time value"
 msgstr "valeur de temps incomplète"
@@ -524,6 +550,10 @@ msgid "Syntax Error: %(error)s"
 msgstr "Erreur de syntaxe : %(error)s"
 
 #, python-format
+msgid "invalid DN (%s)"
+msgstr "DN invalide (%s)"
+
+#, python-format
 msgid "ACI with name \"%s\" not found"
 msgstr "ACI nommée \"%s\" introuvable"
 
@@ -558,17 +588,14 @@ msgstr "L'ACI groupe utilisateur donne accès à"
 msgid "Permissions"
 msgstr "Permissions"
 
-msgid ""
-"comma-separated list of permissions to grant(read, write, add, delete, all)"
-msgstr ""
-"Liste séparée par des virgules de permissions à accorder (read, write, add, "
-"delete, all)"
+msgid "Permissions to grant(read, write, add, delete, all)"
+msgstr "Permissions à accorder (read, write, add, delete, all)"
+
+msgid "Attributes to which the permission applies"
+msgstr "Attributs auxquels les permissions s'appliquent"
 
 msgid "Attributes"
 msgstr "Attributs"
-
-msgid "Comma-separated list of attributes"
-msgstr "Liste séparée par des virgules d'attributs"
 
 msgid "Type"
 msgstr "Type"
@@ -1507,16 +1534,16 @@ msgid "the entry was deleted while being modified"
 msgstr "cette entrée a été supprimée pendant sa modification"
 
 #, python-format
-msgid "comma-separated list of %s"
-msgstr "liste séparée par des virgules de %s"
+msgid "%s"
+msgstr "%s"
 
 #, python-format
 msgid "member %s"
 msgstr "%s membre"
 
 #, python-format
-msgid "comma-separated list of %s to add"
-msgstr "liste séparée par des virgules de %s à ajouter"
+msgid "%s to add"
+msgstr "%s à ajouter"
 
 msgid "Members that could not be added"
 msgstr "Membres n'ayant pu être ajoutés"
@@ -1525,8 +1552,8 @@ msgid "Number of members added"
 msgstr "Nombre de membres ajoutés"
 
 #, python-format
-msgid "comma-separated list of %s to remove"
-msgstr "liste séparée par des virgules de %s à supprimer"
+msgid "%s to remove"
+msgstr "%s à supprimer"
 
 msgid "Members that could not be removed"
 msgstr "Membres n'ayant pu être supprimé"
@@ -1573,142 +1600,8 @@ msgstr ""
 "Une chaîne de caractère recherchées dans tous les attributs d'objets "
 "pertinents"
 
-msgid "added"
-msgstr "ajouté"
-
-msgid "removed"
-msgstr "retiré"
-
 msgid "Nested Methods to execute"
 msgstr "Commandes imbriquées à exécuter"
-
-msgid ""
-"\n"
-"IPA certificate operations\n"
-"\n"
-"Implements a set of commands for managing server SSL certificates.\n"
-"\n"
-"Certificate requests exist in the form of a Certificate Signing Request "
-"(CSR)\n"
-"in PEM format.\n"
-"\n"
-"If using the selfsign back end then the subject in the CSR needs to match\n"
-"the subject configured in the server. The dogtag CA uses just the CN\n"
-"value of the CSR and forces the rest of the subject.\n"
-"\n"
-"A certificate is stored with a service principal and a service principal\n"
-"needs a host.\n"
-"\n"
-"In order to request a certificate:\n"
-"\n"
-"* The host must exist\n"
-"* The service must exist (or you use the --add option to automatically add "
-"it)\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Request a new certificate and add the principal:\n"
-"   ipa cert-request --add --principal=HTTP/lion.example.com example.csr\n"
-"\n"
-" Retrieve an existing certificate:\n"
-"   ipa cert-show 1032\n"
-"\n"
-" Revoke a certificate (see RFC 5280 for reason details):\n"
-"   ipa cert-revoke --revocation-reason=6 1032\n"
-"\n"
-" Remove a certificate from revocation hold status:\n"
-"   ipa cert-remove-hold 1032\n"
-"\n"
-" Check the status of a signing request:\n"
-"   ipa cert-status 10\n"
-"\n"
-"IPA currently immediately issues (or declines) all certificate requests so\n"
-"the status of a request is not normally useful. This is for future use\n"
-"or the case where a CA does not immediately issue a certificate.\n"
-"\n"
-"The following revocation reasons are supported:\n"
-"\n"
-"    * 0 - unspecified\n"
-"    * 1 - keyCompromise\n"
-"    * 2 - cACompromise\n"
-"    * 3 - affiliationChanged\n"
-"    * 4 - superseded\n"
-"    * 5 - cessationOfOperation\n"
-"    * 6 - certificateHold\n"
-"    * 8 - removeFromCRL\n"
-"    * 9 - privilegeWithdrawn\n"
-"    * 10 - aACompromise\n"
-"\n"
-"Note that reason code 7 is not used.  See RFC 5280 for more details:\n"
-"\n"
-"http://www.ietf.org/rfc/rfc5280.txt\n"
-"\n"
-msgstr ""
-"\n"
-"Opération sur les certificats IPA\n"
-"\n"
-"Met en œuvre un jeu de commandes permettant l'administration\n"
-"des certificats SSL de serveurs.\n"
-"\n"
-"Les requêtes de certificats existent sous la forme d'un Certificate Signing "
-"Request (CSR)\n"
-"au format PEM.\n"
-"\n"
-"En cas d'utilisation du module d'auto-signature, alors le sujet du CSR "
-"devra\n"
-"être identique au sujet configuré dans le serveur. L'autorité de "
-"certification\n"
-"dogtag utilise uniquement la valeur du CN du CSR, et remplace le reste du "
-"sujet.\n"
-"\n"
-"Un certificat est stocké avec un principal de service, qui requiert\n"
-"lui un système.\n"
-"Afin de demander un certificat  :\n"
-"\n"
-"* Le système doit exister\n"
-"* Le service doit exister (ou utiliser l'option --add pour l'ajouter "
-"automatiquement)\n"
-"\n"
-"EXEMPLES:\n"
-"\n"
-" Demander un nouveau certificat et l'ajouter au principal :\n"
-"   ipa cert-request --add --principal=HTTP/lion.example.com example.csr\n"
-"\n"
-" Récupérer un certificat existant :\n"
-"   ipa cert-show 1032\n"
-"\n"
-" Révoquer un certificat (cf. RFC 5280 pour les détails sur les raisons) :\n"
-"   ipa cert-revoke --revocation-reason=6 1032\n"
-"\n"
-" Supprimer l'état en maintien de révocation d'un certificat :\n"
-"   ipa cert-remove-hold 1032\n"
-"\n"
-" Vérifier l'état d'une demande de signature :\n"
-"   ipa cert-status 10\n"
-"\n"
-"IPA émet actuellement (ou refuse d'émettre) toutes les demandes de\n"
-"certificats, rendant inutile l'état de la requête. Cette commande sera "
-"utile\n"
-"dans une version future, dans le cas où l'AC n'émet pas immédiatement\n"
-"le certificat.\n"
-"\n"
-"Les raisons suivantes de révocation sont supportées :\n"
-"\n"
-"    * 0 - unspecified\n"
-"    * 1 - keyCompromise\n"
-"    * 2 - cACompromise\n"
-"    * 3 - affiliationChanged\n"
-"    * 4 - superseded\n"
-"    * 5 - cessationOfOperation\n"
-"    * 6 - certificateHold\n"
-"    * 8 - removeFromCRL\n"
-"    * 9 - privilegeWithdrawn\n"
-"    * 10 - aACompromise\n"
-"\n"
-"N.B.: le code 7 n'est pas utilisé.  Cf. RFC 5280 pour les détails :\n"
-"\n"
-"http://www.ietf.org/rfc/rfc5280.txt\n"
-"\n"
 
 msgid "Failure decoding Certificate Signing Request:"
 msgstr "Échec dans le décodage du Certificate Signing Request :"
@@ -1765,6 +1658,9 @@ msgstr "Numéro de série (hex)"
 
 msgid "Dictionary mapping variable name to value"
 msgstr "Nom de variable de correspondance de la valeur"
+
+msgid "No hostname was found in subject of request."
+msgstr "Aucun nom de système n'a été trouvé dans le sujet de la demande."
 
 #, python-format
 msgid ""
@@ -1848,6 +1744,54 @@ msgstr "Réintégré"
 
 msgid "Error"
 msgstr "Erreur"
+
+msgid "Search for existing certificates."
+msgstr "Recherche de certificat existant."
+
+msgid "minimum serial number"
+msgstr "plancher des numéros de série"
+
+msgid "maximum serial number"
+msgstr "plafond des numéros de série"
+
+msgid "match the common name exactly"
+msgstr "doit correspondre exactement au nom commun"
+
+msgid "Valid not after from this date (YYYY-mm-dd)"
+msgstr "Valide à partir de cette date (AAAA-mm-jj)"
+
+msgid "Valid not after to this date (YYYY-mm-dd)"
+msgstr "Valide jusque cette date (AAAA-mm-jj)"
+
+msgid "Valid not before from this date (YYYY-mm-dd)"
+msgstr "Invalide avant, à partir de cette date (AAAA-mm-jj)"
+
+msgid "Valid not before to this date (YYYY-mm-dd)"
+msgstr "Invalide avant, jusque cette date (AAAA-mm-jj)"
+
+msgid "Issued on from this date (YYYY-mm-dd)"
+msgstr "Émis le, à partir de cette date (AAAA-mm-jj)"
+
+msgid "Issued on to this date (YYYY-mm-dd)"
+msgstr "Émis le, jusque cette date (AAAA-mm-jj)"
+
+msgid "Revoked on from this date (YYYY-mm-dd)"
+msgstr "Révoqué le, à partir de cette date (AAAA-mm-jj)"
+
+msgid "Revoked on to this date (YYYY-mm-dd)"
+msgstr "Révoqué le, jusque cette date (AAAA-mm-jj)"
+
+msgid "Maximum number of certs returned"
+msgstr "Nombre maximum de certificats renvoyés"
+
+msgid "Status"
+msgstr "État"
+
+#, python-format
+msgid "%(count)d certificate matched"
+msgid_plural "%(count)d certificates matched"
+msgstr[0] "%(count)d certificat correspondant"
+msgstr[1] "%(count)d certificats correspondants"
 
 msgid ""
 "\n"
@@ -2061,6 +2005,12 @@ msgstr ""
 "Utilisateur SELinux par défaut quand il n'y a aucune correspondance dans la "
 "règle de carte SELinux"
 
+msgid "Default PAC types"
+msgstr "Types de PAC par défaut"
+
+msgid "Default types of PAC supported for services"
+msgstr "Types de PAC par défaut pris en charge pour les services"
+
 msgid "Modify configuration options."
 msgstr "Modifier les options de configuration."
 
@@ -2078,72 +2028,18 @@ msgstr "Ne peut être vide"
 msgid "%(obj)s default attribute %(attr)s would not be allowed!"
 msgstr "L'attribut par défaut %(attr)s de %(obj)s ne serait pas autorisé !"
 
+msgid "A list of SELinux users delimited by $ expected"
+msgstr "Une liste des utilisateurs SELinux délimitée par $ est attendue"
+
+#, python-format
+msgid "SELinux user '%(user)s' is not valid: %(error)s"
+msgstr "L'utilisateur SELinux « %(user)s » n'est pas valide : %(error)s"
+
 msgid "SELinux user map default user not in order list"
 msgstr "La carte des utilisateurs par défaut n'est pas une liste ordonnée"
 
 msgid "Show the current configuration."
 msgstr "Afficher la configuration actuelle."
-
-msgid ""
-"\n"
-"Group to Group Delegation\n"
-"\n"
-"A permission enables fine-grained delegation of permissions. Access Control\n"
-"Rules, or instructions (ACIs), grant permission to permissions to perform\n"
-"given tasks such as adding a user, modifying a group, etc.\n"
-"\n"
-"Group to Group Delegations grants the members of one group to update a set\n"
-"of attributes of members of another group.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a delegation rule to allow managers to edit employee's addresses:\n"
-"   ipa delegation-add --attrs=street --group=managers --"
-"membergroup=employees \"managers edit employees' street\"\n"
-"\n"
-" When managing the list of attributes you need to include all attributes\n"
-" in the list, including existing ones. Add postalCode to the list:\n"
-"   ipa delegation-mod --attrs=street,postalCode --group=managers --"
-"membergroup=employees \"managers edit employees' street\"\n"
-"\n"
-" Display our updated rule:\n"
-"   ipa delegation-show \"managers edit employees' street\"\n"
-"\n"
-" Delete a rule:\n"
-"   ipa delegation-del \"managers edit employees' street\"\n"
-msgstr ""
-"\n"
-"Délégation de groupe à groupe\n"
-"\n"
-"Une permission permet une délégation fine des autorisations. Les règles de\n"
-"contrôle d'accès, ou les instructions (ACI), accordent la possibilité aux\n"
-"permissions de réaliser certaines tâches comme l'ajout d'utilisateur, la\n"
-"modification d'un groupe, etc.\n"
-"\n"
-"La délégation de groupe à groupe permet aux membres d'un groupe de modifier\n"
-"un jeu d'attributs de membres d'un autre groupe.\n"
-"\n"
-"EXEMPLES:\n"
-"\n"
-" Ajouter une règle de délégation permettant aux directeurs de modifier\n"
-" les adresses des administrateurs :\n"
-"   ipa delegation-add --attrs=street --membergroup=admins --group=editors "
-"'les directeurs modifient les adresses des administrateurs'\n"
-"\n"
-" Lors de la gestion d'une liste d'attributs, vous devez toujours spécifier\n"
-" la liste complète des attributs, y compris les attributs existants. "
-"Ajouter \n"
-" postalCode à la liste :\n"
-"   ipa delegation-mod --attrs=street,postalCode --membergroup=admins --"
-"group=editors 'les directeurs modifient les adresses des administrateurs'\n"
-"\n"
-" Afficher la règle modifiée :\n"
-"   ipa delegation-show 'les directeurs modifient les adresses des "
-"administrateurs'\n"
-"\n"
-" Supprimer une règle :\n"
-"   ipa delegation-del 'les directeurs modifient les adresses des "
-"administrateurs'\n"
 
 msgid "delegation"
 msgstr "délégation"
@@ -2160,11 +2056,11 @@ msgstr "Délégation"
 msgid "Delegation name"
 msgstr "Nom de la délégation"
 
-msgid ""
-"Comma-separated list of permissions to grant (read, write). Default is write."
-msgstr ""
-"Liste séparée par des virgules des permissions à accorder (read, write). La "
-"valeur par défaut est write."
+msgid "Permissions to grant (read, write). Default is write."
+msgstr "Permissions à accorder (read, write). La valeur par défaut est write."
+
+msgid "Attributes to which the delegation applies"
+msgstr "Attributs auxquels la délégation s'applique"
 
 msgid "Member user group"
 msgstr "Membre du groupe d'utilisateurs"
@@ -2254,8 +2150,8 @@ msgid "%s record"
 msgstr "enregistrement %s"
 
 #, python-format
-msgid "Comma-separated list of raw %s records"
-msgstr "Liste séparée par des virgules d'enregistrements %s bruts"
+msgid "Raw %s records"
+msgstr "Enregistrements %s bruts"
 
 #, python-format
 msgid "%s Record"
@@ -2628,14 +2524,23 @@ msgid "Zone forwarders"
 msgstr "Transmetteurs de zone"
 
 msgid ""
-"A list of per-zone forwarders. A custom port can be specified for each "
-"forwarder using a standard format \"IP_ADDRESS port PORT\""
+"Per-zone forwarders. A custom port can be specified for each forwarder using "
+"a standard format \"IP_ADDRESS port PORT\""
 msgstr ""
-"Une liste de transmetteurs de zone. Un port personnalisé peut être spécifié "
-"pour chaque transmetteur en utilisant le format « ADRESSE_IP port PORT »"
+"Transmetteur par zone. Un port personnalisé peut être spécifié pour chaque "
+"transmetteur en utilisant le format standard « adresse_IP port PORT »"
 
 msgid "Forward policy"
 msgstr "Politique de transmission"
+
+msgid ""
+"Per-zone conditional forwarding policy. Set to \"none\" to disable "
+"forwarding to global forwarder for this zone. In that case, conditional zone "
+"forwarders are disregarded."
+msgstr ""
+"Politique de tranmission conditionnelle par zone. Mettre à « none » pour "
+"désactiver la transmission à un transmetteur global pour cette zone. Dans ce "
+"cas, les transmetteurs de zone conditionnels sont ignorés."
 
 msgid "Allow PTR sync"
 msgstr "Autoriser la synchronisation PTR"
@@ -2653,26 +2558,49 @@ msgstr "Créer une nouvelle zone DNS (enregistrement SOA)."
 msgid "Force"
 msgstr "Forcer"
 
-msgid "Force DNS zone creation even if nameserver not in DNS."
+msgid "Force DNS zone creation even if nameserver is not resolvable."
 msgstr ""
 "Forcer la création de la zone DNS zone même si le serveur de nom n'est pas "
-"dans le DNS."
+"résolvable."
 
-msgid "Add the nameserver to DNS with this IP address"
-msgstr "Ajouter le serveur de nom avec cette adresse IP"
+msgid "Add forward record for nameserver located in the created zone"
+msgstr ""
+"Ajouter un enregistrement direct pour les serveurs de noms situés dans la "
+"zone créée"
 
 msgid "DNS is not configured"
 msgstr "Le DNS n'est pas configuré"
 
-msgid "Nameserver address is not a fully qualified domain name"
+msgid "Nameserver address is not a domain name"
+msgstr "L'adresse du serveur de nom n'est pas un nom de domaine"
+
+msgid "Nameserver for reverse zone cannot be a relative DNS name"
+msgstr "Le serveur de nom pour la zone inverse ne peut être un nom DNS relatif"
+
+msgid "Nameserver DNS record is created for for forward zones only"
 msgstr ""
-"L'adresse du serveur de nom n'est pas un nom de domaine pleinement qualifié"
+"L'enregistrement DNS du serveur de nom est créé pour les zones directes "
+"uniquement"
+
+msgid "Nameserver DNS record is created only for nameservers in current zone"
+msgstr ""
+"L'enregistrement DNS du serveur de nom est créé pour les serveurs de noms "
+"uniquement"
 
 msgid "Delete DNS zone (SOA record)."
 msgstr "Supprimer la zone DNS (enregistrement SOA)."
 
+#, python-format
+msgid "Deleted DNS zone \"%(value)s\""
+msgstr "Zone DNS « %(value)s » supprimée"
+
 msgid "Modify DNS zone (SOA record)."
 msgstr "Modifier la zone DNS (enregistrement SOA)."
+
+msgid "Force nameserver change even if nameserver not in DNS"
+msgstr ""
+"Forcer un changement de serveur de nom même si le serveur de nom n'est pas "
+"dans le DNS"
 
 msgid "Search for DNS zones (SOA records)."
 msgstr "Rechercher des zones DNS (enregistrements SOA)."
@@ -2762,9 +2690,30 @@ msgstr ""
 "La zone inverse %(name)s requiert exactement %(count)d composants d'adresses "
 "IP, %(user_count)d donnés"
 
+msgid "only one CNAME record is allowed per name (RFC 2136, section 1.1.5)"
+msgstr ""
+"seul un unique enregistrement CNAME est autorisé par nom (RFC 2136, section "
+"1.1.5)"
+
 msgid ""
-"CNAME record is not allowed to coexist with any other records except PTR"
-msgstr "L'enregistrement CNAME ne peut coexister avec aucun autre hormis PTR"
+"CNAME record is not allowed to coexist with any other record (RFC 1034, "
+"section 3.6.2)"
+msgstr ""
+"Un enregistrement CNAME ne peut coexister avec aucun autre enregistrement "
+"(RFC 1034, section 3.6.2)"
+
+msgid "only one DNAME record is allowed per name (RFC 6672, section 2.4)"
+msgstr ""
+"seuil un unique enregistrement DNAME est autorisé par nom (RFC 6672, section "
+"2.4)"
+
+msgid ""
+"DNAME record is not allowed to coexist with an NS record except when located "
+"in a zone root record (RFC 6672, section 2.3)"
+msgstr ""
+"Un enregistrement DNAME ne peut coexister avec un enregistrement NS, sauf "
+"lorsqu'il se trouve dans l'enregistrement racine de la zone (RFC 6672, "
+"section 2.3)"
 
 msgid "Add new DNS resource record."
 msgstr "Ajouter un nouvel enregistrement de ressources DNS."
@@ -2787,6 +2736,12 @@ msgstr "Type de ressource d'enregistrement DNS"
 #, python-format
 msgid "Invalid or unsupported type. Allowed values are: %s"
 msgstr "Type invalide ou non pris en compte. Les valeurs autorisées sont : %s"
+
+#, python-format
+msgid "Raw value of a DNS record was already set by \"%(name)s\" option"
+msgstr ""
+"La valeur brute d'un enregistrement DNS a déjà été configurée par l'option « "
+"%(name)s »"
 
 msgid "Modify a DNS resource record."
 msgstr "Modifier un enregistrement de ressources DNS."
@@ -2881,11 +2836,18 @@ msgid "Global forwarders"
 msgstr "Transmetteurs globaux"
 
 msgid ""
-"A list of global forwarders. A custom port can be specified for each "
-"forwarder using a standard format \"IP_ADDRESS port PORT\""
+"Global forwarders. A custom port can be specified for each forwarder using a "
+"standard format \"IP_ADDRESS port PORT\""
 msgstr ""
-"Une liste de transmetteurs globaux. Un port particulier peut être spécifié "
-"pour chaque transmetteur en utilisant le format « ADRESSE_IP port PORT »"
+"Transmetteurs globaux. Un port personnalisé peut être spécifié pour chaque "
+"transmetteur en utilisant le format standard « adresse_IP port PORT »"
+
+msgid ""
+"Global forwarding policy. Set to \"none\" to disable any configured global "
+"forwarders."
+msgstr ""
+"Politique de transmission globale. Mettre à « none » pour désactiver tout "
+"transmetteur global configuré."
 
 msgid "Allow synchronization of forward (A, AAAA) and reverse (PTR) records"
 msgstr ""
@@ -3084,7 +3046,7 @@ msgid "User Groups"
 msgstr "Groupes d'utilisateurs"
 
 msgid "User Group"
-msgstr "Groupe de l'utilisateur"
+msgstr "Groupe d'Utilisateurs"
 
 msgid "Group name"
 msgstr "Nom du groupe"
@@ -3101,9 +3063,8 @@ msgstr "GID (utiliser cette option pour le positionner manuellement)"
 msgid "External member"
 msgstr "Member externe"
 
-msgid "comma-separated SIDs of members of a trusted domain"
-msgstr ""
-"liste séparée par des virgules de SID de membres d'un domaine de confiance"
+msgid "Members of a trusted domain in DOM\\name or name@domain form"
+msgstr "Membres d'un domaine approuvé sous la forme DOM\\nom ou nom@domaine"
 
 msgid "Create a new group."
 msgstr "Créer un nouveau groupe."
@@ -3156,19 +3117,40 @@ msgstr[1] "%(count)d groupes correspondants"
 msgid "search for private groups"
 msgstr "rechercher des groupes privés"
 
+msgid "search for POSIX groups"
+msgstr "rechercher des groupes POSIX"
+
+msgid ""
+"search for groups with support of external non-IPA members from trusted "
+"domains"
+msgstr ""
+"rechercher des groupes autorisant des membres externes non-IPA depuis les "
+"domaines approuvés"
+
+msgid "search for non-POSIX groups"
+msgstr "rechercher des groupes non-POSIX"
+
 msgid "Display information about a named group."
 msgstr "Afficher les informations d'un groupe nommé."
 
 msgid "Add members to a group."
 msgstr "Ajouter des membres à un groupe."
 
-msgid "external member"
-msgstr "membre externe"
-
-msgid "values are not recognized as valid SIDs from trusted domain"
+msgid ""
+"Cannot perform external member validation without Samba 4 support installed. "
+"Make sure you have installed server-trust-ad sub-package of IPA on the server"
 msgstr ""
-"les valeurs ne sont pas reconnues comme des SID valides d'un domaine de "
-"confiance"
+"Impossible de réaliser la validation de membre externe sans installer la "
+"prise en charge Samba 4. Assurez-vous d'avoir installé le sous-paquet "
+"IPAserver-trust-ad sub-package sur le serveur"
+
+msgid ""
+"Cannot perform join operation without own domain configured. Make sure you "
+"have run ipa-adtrust-install on the IPA server first"
+msgstr ""
+"Impossible de rejoindre un domaine sans avoir au préalable configuré son "
+"propre domaine. Assurez-vous d'avoir d'abord lancé ipa-adtrust-install sur "
+"le serveur"
 
 msgid "Remove members from a group."
 msgstr "Supprimer des membres d'un groupe."
@@ -3188,107 +3170,6 @@ msgstr "interdit de modifier les entrées de groupe"
 
 msgid "Not a managed group"
 msgstr "Pas un groupe administré"
-
-msgid ""
-"\n"
-"Host-based access control\n"
-"\n"
-"Control who can access what services on what hosts and from where. You\n"
-"can use HBAC to control which users or groups on a source host can\n"
-"access a service, or group of services, on a target host.\n"
-"\n"
-"You can also specify a category of users, target hosts, and source\n"
-"hosts. This is currently limited to \"all\", but might be expanded in the\n"
-"future.\n"
-"\n"
-"Target hosts and source hosts in HBAC rules must be hosts managed by IPA.\n"
-"\n"
-"The available services and groups of services are controlled by the\n"
-"hbacsvc and hbacsvcgroup plug-ins respectively.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Create a rule, \"test1\", that grants all users access to the host \"server"
-"\" from\n"
-" anywhere:\n"
-"   ipa hbacrule-add --usercat=all --srchostcat=all test1\n"
-"   ipa hbacrule-add-host --hosts=server.example.com test1\n"
-"\n"
-" Display the properties of a named HBAC rule:\n"
-"   ipa hbacrule-show test1\n"
-"\n"
-" Create a rule for a specific service. This lets the user john access\n"
-" the sshd service on any machine from any machine:\n"
-"   ipa hbacrule-add --hostcat=all --srchostcat=all john_sshd\n"
-"   ipa hbacrule-add-user --users=john john_sshd\n"
-"   ipa hbacrule-add-service --hbacsvcs=sshd john_sshd\n"
-"\n"
-" Create a rule for a new service group. This lets the user john access\n"
-" the FTP service on any machine from any machine:\n"
-"   ipa hbacsvcgroup-add ftpers\n"
-"   ipa hbacsvc-add sftp\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=ftp,sftp ftpers\n"
-"   ipa hbacrule-add --hostcat=all --srchostcat=all john_ftp\n"
-"   ipa hbacrule-add-user --users=john john_ftp\n"
-"   ipa hbacrule-add-service --hbacsvcgroups=ftpers john_ftp\n"
-"\n"
-" Disable a named HBAC rule:\n"
-"   ipa hbacrule-disable test1\n"
-"\n"
-" Remove a named HBAC rule:\n"
-"   ipa hbacrule-del allow_server\n"
-msgstr ""
-"\n"
-"Contrôle d'accès des systèmes (HBAC)\n"
-"\n"
-"HBAC (Host-based acces control) permet de contrôler qui peut accéder\n"
-"à quels services sur quels systèmes, et d'où. Il est possible\n"
-"d'utiliser le système HBAC afin de contrôler quels utilisateurs ou\n"
-"groupes d'un système source peuvent accéder quels services, ou groupes\n"
-"de services, sur un système cible.\n"
-"\n"
-"Vous pouvez aussi spécifier une catégorie d'utilisateur, de systèmes\n"
-"cibles et de systèmes sources. La seule catégorie existante pour le\n"
-"moment est \"all\", mais pourra être étendu dans le futur.\n"
-"\n"
-"Les systèmes sources et cibles des règles HBAC doivent être des systèmes\n"
-"administrés par IPA.\n"
-"\n"
-"Les services et groupes de services disponibles sont gérés respectivement\n"
-"par les greffons hbacsvc and hbacsvcgroup.\n"
-"\n"
-"EXEMPLES:\n"
-"\n"
-" Créer une règle \"test1\" autorisant tous les utilisateurs à accéder\n"
-" le serveur \"server\" depuis n'importe où :\n"
-"   ipa hbacrule-add --type=allow --usercat=all --srchostcat=all test1\n"
-"   ipa hbacrule-add-host --hosts=server.example.com test1\n"
-"\n"
-" Afficher les propriétés d'une règle nommée HBAC :\n"
-"   ipa hbacrule-show test1\n"
-"\n"
-" Créer une règle pour un service spécifique, permettant à\n"
-" l'utilisateur john d'accéder au service sshd sur toute machine depuis\n"
-" n'importe quelle machine :\n"
-"   ipa hbacrule-add --type=allow --hostcat=all --srchostcat=all john_sshd\n"
-"   ipa hbacrule-add-user --users=john john_sshd\n"
-"   ipa hbacrule-add-service --hbacsvcs=sshd john_sshd\n"
-"\n"
-" Créer une règle pour un nouveau groupe de services, permettant à\n"
-" l'utilisateur john d'accéder au service FTP de toute machine depuis\n"
-" n'importe quelle machine.\n"
-"   ipa hbacsvcgroup-add ftpers\n"
-"   ipa hbacsvc-add sftp\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=ftp,sftp ftpers\n"
-"   ipa hbacrule-add --type=allow --hostcat=all --srchostcat=all john_ftp\n"
-"   ipa hbacrule-add-user --users=john john_ftp\n"
-"   ipa hbacrule-add-service --hbacsvcgroups=ftpers john_ftp\n"
-"\n"
-" Désactiver une règle HBAC nommée :\n"
-"   ipa hbacrule-disable test1\n"
-"\n"
-" Supprimer une règle HBAC nommée :\n"
-"   ipa hbacrule-del allow_server\n"
 
 msgid "Host-based access control commands"
 msgstr "Commandes de contrôle d'accès des systèmes"
@@ -3329,12 +3210,6 @@ msgstr "Catégorie de système"
 msgid "Host category the rule applies to"
 msgstr "Catégorie de système sur laquelle la règle s'applique"
 
-msgid "Source host category"
-msgstr "Catégorie de système source"
-
-msgid "Source host category the rule applies to"
-msgstr "Catégorie de système sources sur laquelle la règle s'applique"
-
 msgid "Service category"
 msgstr "Catégorie de service"
 
@@ -3352,12 +3227,6 @@ msgstr "Systèmes"
 
 msgid "Host Groups"
 msgstr "Groupes de systèmes"
-
-msgid "Source Hosts"
-msgstr "Systèmes sources"
-
-msgid "Source Host Groups"
-msgstr "Groupes de systèmes source"
 
 msgid "Services"
 msgstr "Services"
@@ -3395,13 +3264,6 @@ msgid "host category cannot be set to 'all' while there are allowed hosts"
 msgstr ""
 "la catégorie système ne peut être définie à 'all' alors qu'il reste des "
 "systèmes autorisés"
-
-msgid ""
-"sourcehost category cannot be set to 'all' while there are allowed "
-"sourcehosts"
-msgstr ""
-"la catégorie système source ne peut être définie à 'all' alors qu'il reste "
-"des systèmes source autorisés"
 
 msgid ""
 "service category cannot be set to 'all' while there are allowed services"
@@ -3459,17 +3321,6 @@ msgstr ""
 
 msgid "Remove target hosts and hostgroups from an HBAC rule."
 msgstr "Retirer des systèmes et groupes de systèmes cibles d'une règle HBAC."
-
-msgid "Add source hosts and hostgroups from a HBAC rule."
-msgstr "Ajouter des systèmes et groupes de systèmes sources à une règle HBAC."
-
-msgid "source hosts cannot be added when sourcehost category='all'"
-msgstr ""
-"aucun système source ne peut être ajouté quand la catégorie de systèmes "
-"sources est à « all »"
-
-msgid "Remove source hosts and hostgroups from an HBAC rule."
-msgstr "Retirer des systèmes et groupes de systèmes sources d'une règle HBAC."
 
 msgid "Add services to an HBAC rule."
 msgstr "Ajouter des services à une règle HBAC."
@@ -3580,56 +3431,6 @@ msgstr[1] "%(count)d services HBAC correspondants"
 msgid "Display information about an HBAC service."
 msgstr "Afficher les informations sur un service HBAC."
 
-msgid ""
-"\n"
-"HBAC Service Groups\n"
-"\n"
-"HBAC service groups can contain any number of individual services,\n"
-"or \"members\". Every group must have a description.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a new HBAC service group:\n"
-"   ipa hbacsvcgroup-add --desc=\"login services\" login\n"
-"\n"
-" Add members to an HBAC service group:\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=sshd,login login\n"
-"\n"
-" Display information about a named group:\n"
-"   ipa hbacsvcgroup-show login\n"
-"\n"
-" Add a new group to the \"login\" group:\n"
-"   ipa hbacsvcgroup-add --desc=\"switch users\" login\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l login\n"
-"\n"
-" Delete an HBAC service group:\n"
-"   ipa hbacsvcgroup-del login\n"
-msgstr ""
-"\n"
-"Groupes de services HBAC\n"
-"\n"
-"Les groupes de services HBAC peuvent contenir n'importe quel nombre de\n"
-"services individuels, dit « membres ». Chaque groupe doit avoir une\n"
-"description.\n"
-"\n"
-"EXEMPLES:\n"
-"\n"
-" Ajouter un nouveau groupe de services HBAC :\n"
-"   ipa hbacsvcgroup-add --desc=\"login services\" login\n"
-"\n"
-" Ajouter des membres à un groupe de services HBAC :\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=sshd,login login\n"
-"\n"
-" Afficher les informations d'un groupe nommé :\n"
-"   ipa hbacsvcgroup-show login\n"
-"\n"
-" Ajouter un nouveau groupe au groupe \"login\" :\n"
-"   ipa hbacsvcgroup-add --desc=\"switch users\" login\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l login\n"
-"\n"
-" Supprimer un groupe de services HBAC :\n"
-"   ipa hbacsvcgroup-del login\n"
-
 msgid "HBAC service group"
 msgstr "Groupe de services HBAC"
 
@@ -3687,249 +3488,6 @@ msgstr "Ajouter des membres à un groupe de services HBAC."
 msgid "Remove members from an HBAC service group."
 msgstr "Supprimer des membres d'un groupe de services HBAC."
 
-msgid ""
-"\n"
-"Simulate use of Host-based access controls\n"
-"\n"
-"HBAC rules control who can access what services on what hosts and from "
-"where.\n"
-"You can use HBAC to control which users or groups can access a service,\n"
-"or group of services, on a target host.\n"
-"\n"
-"Since applying HBAC rules implies use of a production environment,\n"
-"this plugin aims to provide simulation of HBAC rules evaluation without\n"
-"having access to the production environment.\n"
-"\n"
-" Test user coming to a service on a named host against\n"
-" existing enabled rules.\n"
-"\n"
-" ipa hbactest --user= --host= --service=\n"
-"              [--rules=rules-list] [--nodetail] [--enabled] [--disabled]\n"
-"              [--srchost= ] [--sizelimit= ]\n"
-"\n"
-" --user, --host, and --service are mandatory, others are optional.\n"
-"\n"
-" If --rules is specified simulate enabling of the specified rules and test\n"
-" the login of the user using only these rules.\n"
-"\n"
-" If --enabled is specified, all enabled HBAC rules will be added to "
-"simulation\n"
-"\n"
-" If --disabled is specified, all disabled HBAC rules will be added to "
-"simulation\n"
-"\n"
-" If --nodetail is specified, do not return information about rules matched/"
-"not matched.\n"
-"\n"
-" If both --rules and --enabled are specified, apply simulation to --rules "
-"_and_\n"
-" all IPA enabled rules.\n"
-"\n"
-" If no --rules specified, simulation is run against all IPA enabled rules.\n"
-" By default there is a IPA-wide limit to number of entries fetched, you can "
-"change it\n"
-" with --sizelimit option.\n"
-"\n"
-" If --srchost is specified, it will be ignored. It is left because of "
-"compatibility reasons only.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-"    1. Use all enabled HBAC rules in IPA database to simulate:\n"
-"    $ ipa  hbactest --user=a1a --host=bar --service=sshd\n"
-"    --------------------\n"
-"    Access granted: True\n"
-"    --------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: my-third-rule\n"
-"      notmatched: myrule\n"
-"      matched: allow_all\n"
-"\n"
-"    2. Disable detailed summary of how rules were applied:\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd --nodetail\n"
-"    --------------------\n"
-"    Access granted: True\n"
-"    --------------------\n"
-"\n"
-"    3. Test explicitly specified HBAC rules:\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd           --rules=my-"
-"second-rule,myrule\n"
-"    ---------------------\n"
-"    Access granted: False\n"
-"    ---------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: myrule\n"
-"\n"
-"    4. Use all enabled HBAC rules in IPA database + explicitly specified "
-"rules:\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd           --rules=my-"
-"second-rule,myrule --enabled\n"
-"    --------------------\n"
-"    Access granted: True\n"
-"    --------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: my-third-rule\n"
-"      notmatched: myrule\n"
-"      matched: allow_all\n"
-"\n"
-"    5. Test all disabled HBAC rules in IPA database:\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd --disabled\n"
-"    ---------------------\n"
-"    Access granted: False\n"
-"    ---------------------\n"
-"      notmatched: new-rule\n"
-"\n"
-"    6. Test all disabled HBAC rules in IPA database + explicitly specified "
-"rules:\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd           --rules=my-"
-"second-rule,myrule --disabled\n"
-"    ---------------------\n"
-"    Access granted: False\n"
-"    ---------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: my-third-rule\n"
-"      notmatched: myrule\n"
-"\n"
-"    7. Test all (enabled and disabled) HBAC rules in IPA database:\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd           --enabled "
-"--disabled\n"
-"    --------------------\n"
-"    Access granted: True\n"
-"    --------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: my-third-rule\n"
-"      notmatched: myrule\n"
-"      notmatched: new-rule\n"
-"      matched: allow_all\n"
-"\n"
-msgstr ""
-"\n"
-"Simuler l'utilisation des contrôles d'accès basés sur les systèmes\n"
-"\n"
-"Les règles HBAC contrôlent qui peut accéder à quel service et d'où.\n"
-"Vous pouvez utiliser HBAC pour contrôler quelques utilisateurs et groupes\n"
-"peuvent accéder à un service ou à un groupe de services, sur un système "
-"cible.\n"
-"\n"
-"Comme l'application des règles HBAC suppose l'utilisation d'un environnement "
-"de\n"
-"production, ce greffon vise à fournir une simulation de l'évaluation des "
-"règles\n"
-"HBAC sans nécessiter l'accès à l'environnement de production.\n"
-"\n"
-" Tester les règles activées existantes au regard de l'arrivée d'un "
-"utilisateur\n"
-" sur un service sur un système nommé.\n"
-"\n"
-" ipa hbactest --user= --host= --service=\n"
-"              [--rules=rules-list] [--nodetail] [--enabled] [--disabled]\n"
-"              [--srchost= ] [--sizelimit= ]\n"
-"\n"
-" --user, --host, et --service sont obligatoires, les autres sont "
-"optionnelles.\n"
-"\n"
-" Si --rules est spécifié, simuler l'activation des règles spécifiées et "
-"tester\n"
-" l'identifiant de l'utilisateur uniquement sur ces règles.\n"
-"\n"
-" Si --enabled est spécifié, toutes les règles HBAC activées seront ajoutées "
-"à la\n"
-" simulation\n"
-"\n"
-" Si --disabled est spécifié, toutes les règles HBAC désactivées seront "
-"ajoutées\n"
-" à la simulation\n"
-"\n"
-" Si --nodetail est spécifié, ne pas renvoyer d'information au sujet des "
-"règles\n"
-" en correspondance ou pas.\n"
-"\n"
-" Si --rules et --enabled sont spécifiés conjointement, appliquer la "
-"simulation à\n"
-" --rules _et_ à tous les règles IPA activées.\n"
-"\n"
-" Si --rules n'est pas spécifié, la simulation sera lancée avec toutes les "
-"règles\n"
-" IPA activées. Par défaut, il existe une limite globale à IPA sur le nombre\n"
-" d'entrées renvoyées, vous pouvez la modifier avec l'option --sizelimit.\n"
-"\n"
-" Si --srchost est spécifié, elle sera ignorée. Elle est conservée pour des\n"
-" raisons de compatibilité uniquement.\n"
-"\n"
-"EXEMPLES :\n"
-"\n"
-"    1. Utiliser toutes les règles HBAC activées dans IPA pour la "
-"simulation :\n"
-"    $ ipa  hbactest --user=a1a --host=bar --service=sshd\n"
-"    --------------------\n"
-"    Access granted: True\n"
-"    --------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: my-third-rule\n"
-"      notmatched: myrule\n"
-"      matched: allow_all\n"
-"\n"
-"    2. Désactiver le résumé détaillé de la façon dont les règles sont "
-"appliquées :\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd --nodetail\n"
-"    --------------------\n"
-"    Access granted: True\n"
-"    --------------------\n"
-"\n"
-"    3. Tester explicitement les règles HBAC spécifiées :\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd          \n"
-"--rules=my-second-rule,myrule\n"
-"    ---------------------\n"
-"    Access granted: False\n"
-"    ---------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: myrule\n"
-"\n"
-"    4. Utiliser toutes les règles HBAC de la base de données IPA database + "
-"les règles explicitement spécifiées :\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd          \n"
-"--rules=my-second-rule,myrule --enabled\n"
-"    --------------------\n"
-"    Access granted: True\n"
-"    --------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: my-third-rule\n"
-"      notmatched: myrule\n"
-"      matched: allow_all\n"
-"\n"
-"    5. Tester toutes les règles HBAC désactivées de la base de données "
-"IPA :\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd --disabled\n"
-"    ---------------------\n"
-"    Access granted: False\n"
-"    ---------------------\n"
-"      notmatched: new-rule\n"
-"\n"
-"    6. Tester toutes les règles HBAC désactivées de la base de données IPA \n"
-"       + les règles explicitement spécifiées :\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd          \n"
-"--rules=my-second-rule,myrule --disabled\n"
-"    ---------------------\n"
-"    Access granted: False\n"
-"    ---------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: my-third-rule\n"
-"      notmatched: myrule\n"
-"\n"
-"    7. Tester toutes les règles HBAC (actives et inactives) de la base de "
-"données IPA :\n"
-"    $ ipa hbactest --user=a1a --host=bar --service=sshd           --enabled\n"
-"--disabled\n"
-"    --------------------\n"
-"    Access granted: True\n"
-"    --------------------\n"
-"      notmatched: my-second-rule\n"
-"      notmatched: my-third-rule\n"
-"      notmatched: myrule\n"
-"      notmatched: new-rule\n"
-"      matched: allow_all\n"
-"\n"
-
 msgid "Simulate use of Host-based access controls"
 msgstr "Simulation de règles de contrôle d'accès basé sur les systèmes"
 
@@ -3950,9 +3508,6 @@ msgstr "Résultat de la simulation"
 
 msgid "User name"
 msgstr "Nom d'utilisateur"
-
-msgid "Source host"
-msgstr "Système source"
 
 msgid "Target host"
 msgstr "Système cible"
@@ -3977,9 +3532,13 @@ msgstr ""
 msgid "Unresolved rules in --rules"
 msgstr "Règles non résolues dans --rules"
 
-#, python-format
-msgid "Sourcehost value of rule \"%s\" is ignored"
-msgstr "La valeur système source de la règle \"%s\" est ignorée"
+msgid ""
+"Cannot search in trusted domains without own domain configured. Make sure "
+"you have run ipa-adtrust-install on the IPA server first"
+msgstr ""
+"Impossible d'effectuer une recherche sur les domaines approuvés sans avoir "
+"au préalable configuré son propre domaine. Assurez-vous d'avoir d'abord "
+"lancé ipa-adtrust-install sur le serveur"
 
 #, python-format
 msgid "Access granted: %s"
@@ -4262,65 +3821,6 @@ msgstr "Ajouter les systèmes qui peuvent gérer ce système."
 msgid "Remove hosts that can manage this host."
 msgstr "Supprimer les systèmes qui peuvent gérer ce système."
 
-msgid ""
-"\n"
-"Groups of hosts.\n"
-"\n"
-"Manage groups of hosts. This is useful for applying access control to a\n"
-"number of hosts by using Host-based Access Control.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a new host group:\n"
-"   ipa hostgroup-add --desc=\"Baltimore hosts\" baltimore\n"
-"\n"
-" Add another new host group:\n"
-"   ipa hostgroup-add --desc=\"Maryland hosts\" maryland\n"
-"\n"
-" Add members to the hostgroup:\n"
-"   ipa hostgroup-add-member --hosts=box1,box2,box3 baltimore\n"
-"\n"
-" Add a hostgroup as a member of another hostgroup:\n"
-"   ipa hostgroup-add-member --hostgroups=baltimore maryland\n"
-"\n"
-" Remove a host from the hostgroup:\n"
-"   ipa hostgroup-remove-member --hosts=box2 baltimore\n"
-"\n"
-" Display a host group:\n"
-"   ipa hostgroup-show baltimore\n"
-"\n"
-" Delete a hostgroup:\n"
-"   ipa hostgroup-del baltimore\n"
-msgstr ""
-"\n"
-"Groupes de systèmes.\n"
-"\n"
-"Gestion des groupes de systèmes. Permet d'appliquer des contrôles d'accès\n"
-"à plusieurs systèmes en utilisant les contrôles HBAC.\n"
-"\n"
-"EXEMPLES :\n"
-"\n"
-" Ajouter un nouveau groupe de systèmes :\n"
-"   ipa hostgroup-add --desc=\"Systèmes de Baltimore\" baltimore\n"
-"\n"
-" Ajouter un nouveau groupe de systèmes :\n"
-"   ipa hostgroup-add --desc=\"Systèmes du Maryland\" maryland\n"
-"\n"
-" Ajouter des membres à un groupe de systèmes :\n"
-"   ipa hostgroup-add-member --hosts=box1,box2,box3 baltimore\n"
-"\n"
-" Ajouter un groupe de systèmes en tant que membre d'un autre :\n"
-"   ipa hostgroup-add-member --hostgroups=baltimore maryland\n"
-"\n"
-" Supprimer un système d'un groupe :\n"
-"   ipa hostgroup-remove-member --hosts=box2 baltimore\n"
-"\n"
-" Afficher un groupe de systèmes :\n"
-"   ipa hostgroup-show baltimore\n"
-"\n"
-" Supprimer un groupe de systèmes :\n"
-"   ipa hostgroup-del baltimore\n"
-
 msgid "host group"
 msgstr "groupe de systèmes"
 
@@ -4410,14 +3910,17 @@ msgstr "Premier RID dans la plage de RID secondaire"
 msgid "Domain SID of the trusted domain"
 msgstr "SID du domaine à approuver"
 
+msgid "Name of the trusted domain"
+msgstr "Nom du domaine à approuver"
+
 msgid "Range type"
 msgstr "Type de plage"
 
 msgid "Active Directory domain range"
-msgstr "Plage pour le domaine Active Directory"
+msgstr "Plage pour domaine Active Directory"
 
 msgid "local domain range"
-msgstr "Plage pour le domaine local"
+msgstr "Plage pour domaine local"
 
 msgid ""
 "range modification leaving objects with ID out of the defined range is not "
@@ -4426,22 +3929,55 @@ msgstr ""
 "la modification de plage laissant des objets ayant un ID en dehors de la "
 "plage n'est pas autorisée"
 
+msgid ""
+"Cannot perform SID validation without Samba 4 support installed. Make sure "
+"you have installed server-trust-ad sub-package of IPA on the server"
+msgstr ""
+"Impossible de réaliser la validation de SID sans installer la prise en "
+"charge Samba 4. Assurez-vous d'avoir installé le sous-paquet IPAserver-trust-"
+"ad sub-package sur le serveur"
+
+msgid ""
+"Cross-realm trusts are not configured. Make sure you have run ipa-adtrust-"
+"install on the IPA server first"
+msgstr ""
+"Les approbations de domaines n'ont pas été configurées. Assurez-vous d'avoir "
+"d'abord lancé ipa-adtrust-install sur le serveur"
+
+msgid "SID is not recognized as a valid SID for a trusted domain"
+msgstr "Le SID n'est pas reconnu comme SID valide pour un domaine approuvé"
+
 #, python-format
 msgid "Added ID range \"%(value)s\""
 msgstr "Plage d'ID « %(value)s » ajoutée"
 
-msgid "Options dom_sid and secondary_rid_base cannot be used together"
+msgid "Options dom-sid and dom-name cannot be used together"
 msgstr ""
-"Les options dom_sid et secondary_rid_base ne peuvent être utilisées "
+"Les options dom-sid et dom-name ne peuvent être utilisées simultanément"
+
+msgid ""
+"SID for the specified trusted domain name could not be found. Please specify "
+"the SID directly using dom-sid option."
+msgstr ""
+"Impossible de trouver le SID du domaine à approuver spécifié. Merci de "
+"spécifier le SID directement avec l'option dom-sid."
+
+msgid "Options dom-sid/dom-name and secondary-rid-base cannot be used together"
+msgstr ""
+"Les options dom-sid/dom-name et secondary-rid-base ne peuvent être utilisées "
 "simultanément"
 
-msgid "Options dom_sid and rid_base must be used together"
-msgstr "Les options dom_sid et rid_base doivent être utilisées simultanément"
-
-msgid "Options secondary_rid_base and rid_base must be used together"
+msgid "Options dom-sid/dom-name and rid-base must be used together"
 msgstr ""
-"Les options secondary_rid_base et rid_base  doivent être utilisées "
+"Les options dom-sid/dom-name et rid-base doivent être utilisées simultanément"
+
+msgid "Options secondary-rid-base and rid-base must be used together"
+msgstr ""
+"Les options secondary-rid-base et rid-base doivent être utilisées "
 "simultanément"
+
+msgid "Primary RID range and secondary RID range cannot overlap"
+msgstr "Les plages de RID primaires et secondaires ne peuvent se recouvrir"
 
 msgid "Delete an ID range."
 msgstr "Supprimer une plage d'ID.."
@@ -4468,6 +4004,14 @@ msgstr "Modifier une plage."
 #, python-format
 msgid "Modified ID range \"%(value)s\""
 msgstr "Plage d'ID « %(value)s » modifiée"
+
+msgid "Options dom-sid and secondary-rid-base cannot be used together"
+msgstr ""
+"Les options dom-sid et secondary-rid-base ne peuvent être utilisées "
+"simultanément"
+
+msgid "Options dom-sid and rid-base must be used together"
+msgstr "Les options dom-sid et rid-base doivent être utilisées simultanément"
 
 msgid "Name of object to export"
 msgstr "Nom de l'objet à exporter"
@@ -4529,9 +4073,6 @@ msgstr "Ajouter Deny ${other_entity} à ${entity} ${primary_key}"
 msgid "Add ${entity} ${primary_key} into ${other_entity}"
 msgstr "Ajouter ${entity} ${primary_key} à ${other_entity}"
 
-msgid "Add Source ${other_entity} into ${entity} ${primary_key}"
-msgstr "Ajouter Source ${other_entity} à ${entity} ${primary_key}"
-
 msgid "Items added"
 msgstr "Éléments ajoutés"
 
@@ -4569,9 +4110,6 @@ msgstr ""
 
 msgid "Remove ${entity} ${primary_key} from ${other_entity}"
 msgstr "Supprimer ${entity} ${primary_key} de ${other_entity}"
-
-msgid "Remove Source ${other_entity} from ${entity} ${primary_key}"
-msgstr "Supprimer la source ${other_entity} de ${entity} ${primary_key}"
 
 msgid "Items removed"
 msgstr "Éléments supprimés"
@@ -4655,7 +4193,7 @@ msgid "View"
 msgstr "Voir"
 
 msgid "Collapse All"
-msgstr "Tout replier"
+msgstr "T"
 
 msgid "Expand All"
 msgstr "Tout déplier"
@@ -4744,6 +4282,9 @@ msgstr "Recharger le navigateur."
 msgid "Return to the main page and retry the operation"
 msgstr "Retourner à la page principale et retenter l'opération"
 
+msgid "An error has occurred (${error})"
+msgstr "Une erreur est survenue (${error})"
+
 msgid "HTTP Error"
 msgstr "Erreur HTTP"
 
@@ -4780,6 +4321,18 @@ msgstr "Rechercher"
 msgid "False"
 msgstr "Faux"
 
+msgid "Inherited from server configuration"
+msgstr "Hérité de la configuration du serveur"
+
+msgid "MS-PAC"
+msgstr "MS-PAC"
+
+msgid "Override inherited settings"
+msgstr "Surcharger la configuration héritée"
+
+msgid "PAD"
+msgstr "PAD"
+
 msgid ""
 "To login with username and password, enter them in the fields below then "
 "click Login."
@@ -4789,6 +4342,16 @@ msgstr ""
 
 msgid "Logged In As"
 msgstr "Connecté en tant que"
+
+msgid ""
+"To login with Kerberos, please make sure you have valid tickets (obtainable "
+"via kinit) and <a href='http://${host}/ipa/config/unauthorized."
+"html'>configured</a> the browser correctly, then click Login."
+msgstr ""
+"Afin de se connecter avec Kerberos, il faut s'assurer d'avoir un ticket "
+"valide (via kinit), que le navigateur est <a href='http://${host}/ipa/config/"
+"unauthorized.html'>configuré</a> correctement, puis cliquer sur « Connexion "
+"»."
 
 msgid "Login"
 msgstr "Connexion"
@@ -4862,6 +4425,9 @@ msgstr "L'affiliation a changé"
 msgid "CA Compromise"
 msgstr "AC compromise"
 
+msgid "Certificates"
+msgstr "Certificats"
+
 msgid "Certificate Hold"
 msgstr "Certificat bloqué"
 
@@ -4873,6 +4439,36 @@ msgstr "Nom usuel"
 
 msgid "Expires On"
 msgstr "Expire le"
+
+msgid "Issued on from"
+msgstr "Émis à partir du"
+
+msgid "Issued on to"
+msgstr "Émis jusqu'au"
+
+msgid "Maximum serial number"
+msgstr "Numéro de série maximum"
+
+msgid "Minimum serial number"
+msgstr "Numéro de série minimum"
+
+msgid "Revoked on from"
+msgstr "Révoqué à partir du"
+
+msgid "Revoked on to"
+msgstr "Révoqué jusqu'au"
+
+msgid "Valid not after from"
+msgstr "Invalide après, à partir du"
+
+msgid "Valid not after to"
+msgstr "Invalide après, jusqu'au"
+
+msgid "Valid not before from"
+msgstr "Invalide avant, à partir du"
+
+msgid "Valid not before to"
+msgstr "Invalide avant, jusqu'au"
 
 msgid "Fingerprints"
 msgstr "Condensés"
@@ -4925,6 +4521,9 @@ msgstr "Certificat demandé"
 msgid "Restore Certificate for ${entity} ${primary_key}"
 msgstr "Restaurer un certificat pour ${entity} ${primary_key}"
 
+msgid "Restore Certificate"
+msgstr "Restaurer le certificat"
+
 msgid ""
 "To confirm your intention to restore this certificate, click the \"Restore\" "
 "button."
@@ -4937,6 +4536,9 @@ msgstr "Certificat restauré"
 
 msgid "Revoke Certificate for ${entity} ${primary_key}"
 msgstr "Révoquer un certificat pour l'objet ${entity} ${primary_key}"
+
+msgid "Revoke Certificate"
+msgstr "Révoquer le certificat"
 
 msgid ""
 "To confirm your intention to revoke this certificate, select a reason from "
@@ -4984,6 +4586,9 @@ msgstr "Options utilisateurs"
 msgid "Forward first"
 msgstr "Forward first"
 
+msgid "Forwarding disabled"
+msgstr "Transmission désactivée"
+
 msgid "Forward only"
 msgstr "Forward only"
 
@@ -5029,6 +4634,9 @@ msgstr "Zone inverse cible non trouvée."
 msgid "Fetching DNS zones."
 msgstr "Récupération des zones DNS."
 
+msgid "An error occurred while fetching dns zones."
+msgstr "Une erreur est survenue lors de la récupération des zones DNS."
+
 msgid "You will be redirected to DNS Zone."
 msgstr "Vous allez être redirigé vers la zone DNS."
 
@@ -5052,9 +4660,6 @@ msgstr "Supprimer une permission"
 
 msgid "Account"
 msgstr "Compte"
-
-msgid "Certificates"
-msgstr "Certificats"
 
 msgid "Consume"
 msgstr "Consomme"
@@ -5088,9 +4693,6 @@ msgstr "Enregistrer"
 
 msgid "Registration"
 msgstr "Enregistrement"
-
-msgid "Status"
-msgstr "État"
 
 msgid "Group Settings"
 msgstr "Paramètres de groupe"
@@ -5130,9 +4732,6 @@ msgstr "État de la règle"
 
 msgid "Via Service"
 msgstr "Via le service"
-
-msgid "From"
-msgstr "Depuis"
 
 msgid "Specified Hosts and Groups"
 msgstr "Systèmes et groupes spécifiques"
@@ -5245,6 +4844,9 @@ msgstr "Êtes-vous sûr de vouloir décommissionner ce système ?"
 msgid "Unprovisioning ${entity}"
 msgstr "Décommissionnement de l'objet ${entity}"
 
+msgid "Host unprovisioned"
+msgstr "Système déprovisionné"
+
 msgid "Host Group Settings"
 msgstr "Paramètres du groupe de systèmes"
 
@@ -5292,6 +4894,18 @@ msgstr "Domaine Active Directory"
 
 msgid "Local domain"
 msgstr "Domaine local :"
+
+msgid "Realm Domains"
+msgstr "Domaines"
+
+msgid "Check DNS"
+msgstr "Vérification DNS"
+
+msgid "Do you also want to perform DNS check?"
+msgstr "Voulez-vous aussi faire une vérification DNS ?"
+
+msgid "Force Update"
+msgstr "Forcer la mise à jour"
 
 msgid "Role Settings"
 msgstr "Paramètres de rôles"
@@ -5380,11 +4994,35 @@ msgstr "Groupes spécifiés"
 msgid "Administrative account"
 msgstr "Compte administrateur"
 
+msgid "SID blacklists"
+msgstr "Listes noires de SID"
+
 msgid "Trust Settings"
 msgstr "Configuration des approbations"
 
 msgid "Domain"
 msgstr "Domaine"
+
+msgid "Establish using"
+msgstr "Établir en utilisant"
+
+msgid "Domain NetBIOS name"
+msgstr "Nom de domaine NetBIOS"
+
+msgid "Domain Security Identifier"
+msgstr "Identifiant de sécurité du domaine"
+
+msgid "Pre-shared password"
+msgstr "Mot de passe pré-partagé"
+
+msgid "Trust direction"
+msgstr "Sens de l'approbation"
+
+msgid "Trust status"
+msgstr "État de l'approbation"
+
+msgid "Trust type"
+msgstr "Type d'approbation"
 
 msgid "Account Settings"
 msgstr "Paramètres de compte"
@@ -5426,8 +5064,17 @@ msgstr "Mot de passe actuel"
 msgid "Current password is required"
 msgstr "Le mot de passe actuel est requis"
 
+msgid "Your password expires in ${days} days."
+msgstr "Votre mot de passe expire dans ${days} jours."
+
+msgid "The password or username you entered is incorrect."
+msgstr "Le mot de passe ou le nom d'utilisateur entré est incorrect."
+
 msgid "New Password"
 msgstr "Nouveau mot de passe"
+
+msgid "New password is required"
+msgstr "Un nouveau mot de passe est requis"
 
 msgid "Password change complete"
 msgstr "Modification du mot de passe terminée"
@@ -5435,14 +5082,35 @@ msgstr "Modification du mot de passe terminée"
 msgid "Passwords must match"
 msgstr "Les mots de passe doivent correspondre"
 
+msgid "Password reset was not successful."
+msgstr "La réinitialisation du mot de passe a échoué."
+
 msgid "Reset Password"
 msgstr "Réinitialiser le mot de passe"
+
+msgid "Reset your password."
+msgstr "Réinitialiser votre mot de passe."
 
 msgid "Verify Password"
 msgstr "Vérifier le mot de passe"
 
 msgid "Are you sure you want to delete selected entries?"
 msgstr "Êtes-vous sûr de vouloir supprimer les entrées sélectionnées ?"
+
+msgid "Selected entries were deleted."
+msgstr "Les entrées sélectionnées ont été supprimées."
+
+msgid "Are you sure you want to disable selected entries?"
+msgstr "Êtes-vous sûr de vouloir désactiver les entrées sélectionnées ?"
+
+msgid "${count} items were disabled"
+msgstr "${count} éléments ont été désactivés"
+
+msgid "Are you sure you want to enable selected entries?"
+msgstr "Êtes-vous sûr de vouloir activer les entrées sélectionnées ?"
+
+msgid "${count} items were enabled"
+msgstr "${count} éléments ont été activés"
 
 msgid "Some entries were not deleted"
 msgstr "Certaines entrées n'ont pas été supprimées"
@@ -5470,7 +5138,7 @@ msgid "Audit"
 msgstr "Audit"
 
 msgid "Automember"
-msgstr "Membre automatique"
+msgstr "Auto-adhésion"
 
 msgid "Automount"
 msgstr "Automontage"
@@ -5488,10 +5156,13 @@ msgid "Policy"
 msgstr "Politique"
 
 msgid "Role Based Access Control"
-msgstr "Contrôle d'accès basé sur les rôles (RBAC)"
+msgstr "Contrôle d'accès basé sur les rôles"
 
 msgid "Sudo"
 msgstr "Sudo"
+
+msgid "Trusts"
+msgstr "Approbations"
 
 msgid "True"
 msgstr "Vrai"
@@ -5514,6 +5185,9 @@ msgstr "tout défaire"
 msgid "Text does not match field pattern"
 msgstr "Le texte ne correspond pas au motif de champ"
 
+msgid "Must be a decimal number"
+msgstr "Doit être un nombre décimal"
+
 msgid "Must be an integer"
 msgstr "Doit être un entier"
 
@@ -5532,8 +5206,17 @@ msgstr "La valeur maximale est ${value}"
 msgid "Minimum value is ${value}"
 msgstr "La valeur minimale est ${value}"
 
+msgid "Not a valid network address"
+msgstr "Pas une adresse réseau valide"
+
+msgid "'${port}' is not a valid port"
+msgstr "« ${port} » n'est pas un port valide"
+
 msgid "Required field"
 msgstr "Champ requis"
+
+msgid "Unsupported value"
+msgstr "Valeur non supportée"
 
 msgid "Dict of I18N messages"
 msgstr "Dictionnaire de messages I18N"
@@ -5642,7 +5325,7 @@ msgid "Display the current Kerberos ticket policy."
 msgstr "Afficher la politique de ticket Kerberos."
 
 msgid "Reset Kerberos ticket policy to the default values."
-msgstr "Remettre à zéro la politique de ticket Kerberos."
+msgstr "Réinitialiser la politique de ticket Kerberos."
 
 #, python-format
 msgid ""
@@ -5650,6 +5333,14 @@ msgid ""
 msgstr ""
 "Le principal Kerberos %s existe déjà. Utiliser la commande 'ipa user-mod' "
 "pour le créer manuellement."
+
+#, python-format
+msgid ""
+"Unable to determine if Kerberos principal %s already exists. Use 'ipa user-"
+"mod' to set it manually."
+msgstr ""
+"Impossible de savoir si le principal Kerberos %s existe déjà. Utiliser la "
+"commande 'ipa user-mod' pour le créer manuellement."
 
 msgid ""
 "Failed to add user to the default group. Use 'ipa group-add-member' to add "
@@ -5696,61 +5387,57 @@ msgstr "DN de connexion"
 msgid "User container"
 msgstr "Conteneur d'utilisateurs"
 
+msgid "DN of container for users in DS relative to base DN"
+msgstr ""
+"DN du conteneur pour les utilisateurs dans l'annuaire, relatif par rapport "
+"au DN de base"
+
 msgid "Group container"
 msgstr "Conteneur de groupes"
+
+msgid "DN of container for groups in DS relative to base DN"
+msgstr "DN du conteneur pour les groupes relatif par rapport au DN de base"
 
 msgid "User object class"
 msgstr "Classes d'objet utilisateur"
 
-msgid ""
-"Comma-separated list of objectclasses used to search for user entries in DS"
+msgid "Objectclasses used to search for user entries in DS"
 msgstr ""
-"Liste séparée par des virgules des classes d'objet à utiliser pour la "
-"recherche d'entrées utilisateurs dans l'annuaire"
+"Classes d'objet à utiliser pour la recherche d'entrées utilisateurs dans "
+"l'annuaire"
 
 msgid "Group object class"
 msgstr "Classes d'objets groupes"
 
-msgid ""
-"Comma-separated list of objectclasses used to search for group entries in DS"
+msgid "Objectclasses used to search for group entries in DS"
 msgstr ""
-"Liste séparée par des virgules des classes d'objet à utiliser pour la "
-"recherche d'entrées groupes dans l'annuaire"
+"Classes d'objet à utiliser pour la recherche d'entrées de groupes dans "
+"l'annuaire"
 
 msgid "Ignore user object class"
 msgstr "Ignorer une classe d'objet de l'utilisateur"
 
-msgid ""
-"Comma-separated list of objectclasses to be ignored for user entries in DS"
+msgid "Objectclasses to be ignored for user entries in DS"
 msgstr ""
-"Liste séparée par des virgules de classes d'objets à ignorer dans les "
-"entrées utilisateurs dans DS"
+"Classes d'objets à ignorer pour les entrées utilisateurs dans l'annuaire"
 
 msgid "Ignore user attribute"
 msgstr "Ignorer des attributs d'un utilisateur"
 
-msgid "Comma-separated list of attributes to be ignored for user entries in DS"
-msgstr ""
-"Liste séparée par des virgules d'attributs à ignorer dans les entrées "
-"utilisateurs dans DS"
+msgid "Attributes to be ignored for user entries in DS"
+msgstr "Attributs à ignorer dans les entrées utilisateurs dans l'annuaire"
 
 msgid "Ignore group object class"
 msgstr "Ignorer les classes d'objet des groupes"
 
-msgid ""
-"Comma-separated list of objectclasses to be ignored for group entries in DS"
-msgstr ""
-"Liste séparée par des virgules des classes d'objets à ignorer pour les "
-"entrées de groupe du DS"
+msgid "Objectclasses to be ignored for group entries in DS"
+msgstr "Classes d'objets à ignorer pour les entrées de groupes dans l'annuaire"
 
 msgid "Ignore group attribute"
 msgstr "Ignorer l'attribut groupe"
 
-msgid ""
-"Comma-separated list of attributes to be ignored for group entries in DS"
-msgstr ""
-"Liste séparée par des virgules des attributs à ignorer dans les entrées de "
-"groupe du DS"
+msgid "Attributes to be ignored for group entries in DS"
+msgstr "Attributs à ignorer dans les entrées de groupes dans l'annuaire"
 
 msgid "Overwrite GID"
 msgstr "Réécrire le GID"
@@ -5779,6 +5466,15 @@ msgid ""
 "Continuous operation mode. Errors are reported but the process continues"
 msgstr "Mode continu. Les erreurs sont rapportées mais le processus continue"
 
+msgid "Base DN"
+msgstr "DN de base"
+
+msgid "Base DN on remote LDAP server"
+msgstr "DN de base sur l'annuaire distant"
+
+msgid "Ignore compat plugin"
+msgstr "Ignorer le greffon de compatibilité"
+
 msgid "Allows migration despite the usage of compat plugin"
 msgstr "Autoriser les migrations malgré l'utilisation du greffon compat"
 
@@ -5791,9 +5487,14 @@ msgstr "Liste des objets n'ayant pu être migrés, catégorisés par type."
 msgid "False if migration mode was disabled."
 msgstr "Faux si le mode de migration est désactivé."
 
+msgid "False if migration fails because the compatibility plug-in is enabled."
+msgstr ""
+"False si la migration échoue parce que le greffon de compatibilité est "
+"activé."
+
 #, python-format
-msgid "comma-separated list of %s to exclude from migration"
-msgstr "Liste séparée par des virgules des %s à exclure de la migration"
+msgid "%s to exclude from migration"
+msgstr "%s à exclure de la migration"
 
 msgid ""
 "search results for objects to be migrated\n"
@@ -5821,6 +5522,14 @@ msgstr ""
 "utiliser les mots de passe en clair. Tous les utilisateurs\n"
 "migrés devront se connecter à https://your.domain/ipa/migration/\n"
 "avant de pouvoir utiliser leur compte Kerberos."
+
+#, python-format
+msgid ""
+"%(container)s LDAP search did not return any result (search base: "
+"%(search_base)s, objectclass: %(objectclass)s)"
+msgstr ""
+"La recherche LDAP %(container)s ne retourne aucun résultat (base de "
+"recherche : %(search_base)s, classe d'objet : %(objectclass)s)"
 
 msgid "Default group for new users not found"
 msgstr "Groupe par défaut pour les nouveaux utilisateurs introuvable"
@@ -5862,53 +5571,6 @@ msgstr[1] "%(count)d greffons chargés"
 
 msgid "Number of plugins loaded"
 msgstr "Nombre de greffons chargés"
-
-msgid ""
-"\n"
-"Netgroups\n"
-"\n"
-"A netgroup is a group used for permission checking. It can contain both\n"
-"user and host values.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a new netgroup:\n"
-"   ipa netgroup-add --desc=\"NFS admins\" admins\n"
-"\n"
-" Add members to the netgroup:\n"
-"   ipa netgroup-add-member --users=tuser1,tuser2 admins\n"
-"\n"
-" Remove a member from the netgroup:\n"
-"   ipa netgroup-remove-member --users=tuser2 admins\n"
-"\n"
-" Display information about a netgroup:\n"
-"   ipa netgroup-show admins\n"
-"\n"
-" Delete a netgroup:\n"
-"   ipa netgroup-del admins\n"
-msgstr ""
-"\n"
-"Netgroups\n"
-"\n"
-"Un netgroup est un groupe utilisé pour la vérification de permissions. Il\n"
-"peut contenir à la fois des utilisateurs et des noms de systèmes.\n"
-"\n"
-"EXEMPLES :\n"
-"\n"
-" Ajouter un nouveau netgroup :\n"
-"   ipa netgroup-add --desc=\"NFS admins\" admins\n"
-"\n"
-" Ajouter des membres au netgroup :\n"
-"   ipa netgroup-add-member --users=tuser1,tuser2 admins\n"
-"\n"
-" Retirer un membre du netgroup :\n"
-"   ipa netgroup-remove-member --users=tuser2 admins\n"
-"\n"
-" Afficher les informations sur un netgroup :\n"
-"   ipa netgroup-show admins\n"
-"\n"
-" Supprimer un netgroup :\n"
-"   ipa netgroup-del admins\n"
 
 msgid "Member Host"
 msgstr "Système membre"
@@ -6164,11 +5826,8 @@ msgstr "permissions"
 msgid "Permission name"
 msgstr "Nom de permission"
 
-msgid ""
-"Comma-separated list of permissions to grant (read, write, add, delete, all)"
-msgstr ""
-"Liste séparée par des virgules des permissions à accorder (read, write, add, "
-"delete, all)"
+msgid "Permissions to grant (read, write, add, delete, all)"
+msgstr "Permissions à accorder (read, write, add, delete, all)"
 
 msgid ""
 "Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)"
@@ -6207,12 +5866,24 @@ msgstr "Supprimer une permission."
 msgid "Deleted permission \"%(value)s\""
 msgstr "Permission \"%(value)s\" supprimée"
 
+msgid "force delete of SYSTEM permissions"
+msgstr "forcer la suppression des permissions SYSTEM"
+
+msgid "A SYSTEM permission may not be removed"
+msgstr "Une permission SYSTEM ne peut être supprimée"
+
 msgid "Modify a permission."
 msgstr "Modifier une permission."
 
 #, python-format
 msgid "Modified permission \"%(value)s\""
 msgstr "Permission \"%(value)s\" modifiée"
+
+msgid "A SYSTEM permission may not be modified"
+msgstr "Une permission SYSTEM ne peut être modifiée"
+
+msgid "New name can not be empty"
+msgstr "Un nouveau nom ne peut être vide"
 
 msgid "Search for permissions."
 msgstr "Recherche des permissions."
@@ -6334,6 +6005,10 @@ msgstr "pkinit"
 
 msgid "PKINIT"
 msgstr "PKINIT"
+
+#, python-format
+msgid "Unknown command %s"
+msgstr "Commande %s inconnue"
 
 msgid "Enable or Disable Anonymous PKINIT."
 msgstr "Active ou désactive le pkinit anonyme"
@@ -6640,6 +6315,42 @@ msgstr "Afficher la politique effective sur un utilisateur spécifique"
 msgid "Search for group password policies."
 msgstr "Rechercher des politiques de mot de passe de groupe."
 
+msgid "Realm domains"
+msgstr "Domaines"
+
+msgid "Add domain"
+msgstr "Ajouter un domaine"
+
+msgid "Delete domain"
+msgstr "Supprimer un domaine"
+
+msgid "Modify realm domains."
+msgstr "Modifier les domaines."
+
+msgid "Force adding domain even if not in DNS"
+msgstr "Forcer l'ajout d'un domaine même si absent des DNS"
+
+msgid ""
+"you cannot specify the --domain option together with --add-domain or --del-"
+"domain"
+msgstr ""
+"Impossible d'utiliser l'option --domain avec les options --add-domain ou --"
+"del-domain"
+
+msgid "cannot delete domain of IPA server"
+msgstr "Impossible de supprimer le domaine du serveur IPA"
+
+#, python-format
+msgid "no SOA or NS records found for domains: %s"
+msgstr "aucun enregistrement SOA ou NS trouvé pour les domaines : %s"
+
+#, python-format
+msgid "no SOA or NS records found for domain %s"
+msgstr "aucun enregistrement SOA ou NS trouvé pour le domaine : %s"
+
+msgid "Display the list of realm domains."
+msgstr "Afficher la liste des domaines."
+
 msgid ""
 "\n"
 "Roles\n"
@@ -6783,66 +6494,6 @@ msgstr "Supprimer des privilèges d'un rôle."
 msgid "Number of privileges removed"
 msgstr "Nombre de privilèges retirés"
 
-msgid ""
-"\n"
-"Self-service Permissions\n"
-"\n"
-"A permission enables fine-grained delegation of permissions. Access Control\n"
-"Rules, or instructions (ACIs), grant permission to permissions to perform\n"
-"given tasks such as adding a user, modifying a group, etc.\n"
-"\n"
-"A Self-service permission defines what an object can change in its own "
-"entry.\n"
-"\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a self-service rule to allow users to manage their address:\n"
-"   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st "
-"\"Users manage their own address\"\n"
-"\n"
-" When managing the list of attributes you need to include all attributes\n"
-" in the list, including existing ones. Add telephoneNumber to the list:\n"
-"   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber "
-"\"Users manage their own address\"\n"
-"\n"
-" Display our updated rule:\n"
-"   ipa selfservice-show \"Users manage their own address\"\n"
-"\n"
-" Delete a rule:\n"
-"   ipa selfservice-del \"Users manage their own address\"\n"
-msgstr ""
-"\n"
-"Permissions self-service\n"
-"\n"
-"Une permission permet la délégation fine de permissions. Les règles ou\n"
-"instructions de contrôle d'accès (ACI) accorde la permission d'effectuer\n"
-"des tâches spécifiques comme ajouter un utilisateur, modifier un groupe, "
-"etc.\n"
-"\n"
-"Une permission self-service définit ce qu'un objet peut modifier dans sa\n"
-"propre entrée.\n"
-"\n"
-"\n"
-"EXEMPLES :\n"
-"\n"
-" Ajouter une règle self-service permettant aux utilisateurs de gérer leur "
-"adresse :\n"
-"   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st "
-"\"Users manage their own address\"\n"
-"\n"
-" Tous les attributs doivent être mentionnés lors de l'utilisation de listes "
-"d'attributs,\n"
-" y compris ceux déjà existants. Ajouter telephoneNumber à la liste :\n"
-"   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber "
-"\"Users manage their own address\"\n"
-"\n"
-" Afficher la règle modifiée :\n"
-"   ipa selfservice-show \"Users manage their own address\"\n"
-"\n"
-" Supprimer une règle :\n"
-"   ipa selfservice-del \"Users manage their own address\"\n"
-
 msgid "self service permission"
 msgstr "permission self-service"
 
@@ -6857,6 +6508,9 @@ msgstr "Permission Self-Service"
 
 msgid "Self-service name"
 msgstr "Nom de la permission self-service"
+
+msgid "Attributes to which the permission applies."
+msgstr "Attributs auxquels les permissions s'appliquent."
 
 msgid "Add a new self-service permission."
 msgstr "Ajouter une nouvelle permission self-service."
@@ -6925,7 +6579,7 @@ msgid "SELinux User Map rules"
 msgstr "Règles de correspondance d'utilisateurs SELinux"
 
 msgid "SELinux User Maps"
-msgstr "Listes de correspondance d'utilisateurs SELinux"
+msgstr "Correspondance utilisateurs SELinux"
 
 msgid "SELinux User Map"
 msgstr "Liste de correspondance d'utilisateurs SELinux"
@@ -7014,6 +6668,19 @@ msgstr ""
 "Supprimer des systèmes et groupes de systèmes cibles d'une règle de "
 "correspondance d'utilisateurs SELinux"
 
+msgid "Requires pre-authentication"
+msgstr "Nécessite une pré-authentification"
+
+msgid "Pre-authentication is required for the service"
+msgstr "Une pré-authentification est requise pour le service"
+
+msgid "Trusted for delegation"
+msgstr "Approuvé pour délégation."
+
+msgid "Client credentials may be delegated to the service"
+msgstr ""
+"Les informations d'identification du client peuvent être déléguées au service"
+
 msgid "missing service"
 msgstr "service manquant"
 
@@ -7022,6 +6689,9 @@ msgstr "service vierge"
 
 msgid "unable to determine realm"
 msgstr "impossible de déterminer le domaine"
+
+msgid "This principal is required by the IPA master"
+msgstr "Ce principal est nécessaire au serveur IPA"
 
 msgid "service"
 msgstr "service"
@@ -7035,6 +6705,17 @@ msgstr "Principal du service"
 msgid "PAC type"
 msgstr "type de PAC"
 
+msgid ""
+"Override default list of supported PAC types. Use 'NONE' to disable PAC "
+"support for this service, e.g. this might be necessary for NFS services."
+msgstr ""
+"Surcharger la liste par défaut des types PAC pris en charge. Utiliser « NONE "
+"» pour désactiver la prise en charge PAC pour ce service, ce qui peut être "
+"nécessaire pour les services NFS par exemple."
+
+msgid "NONE value cannot be combined with other PAC types"
+msgstr "La valeur NONE ne peut être combinée avec d'autres types de PAC"
+
 msgid "Add a new IPA new service."
 msgstr "Ajouter un nouveau service IPA."
 
@@ -7044,6 +6725,10 @@ msgstr "Service \"%(value)s\" ajouté"
 
 msgid "force principal name even if not in DNS"
 msgstr "forcer le nom du principal même si absent du DNS"
+
+#, python-format
+msgid "The host '%s' does not exist to add a service to."
+msgstr "Le système « %s » auquel ajouter un service n'existe pas."
 
 msgid "Delete an IPA service."
 msgstr "Supprimer un service IPA."
@@ -7164,55 +6849,6 @@ msgstr[1] "%(count)d commandes Sudo correspondantes"
 msgid "Display Sudo Command."
 msgstr "Afficher une commande Sudo."
 
-msgid ""
-"\n"
-"Groups of Sudo Commands\n"
-"\n"
-"Manage groups of Sudo Commands.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a new Sudo Command Group:\n"
-"   ipa sudocmdgroup-add --desc='administrators commands' admincmds\n"
-"\n"
-" Remove a Sudo Command Group:\n"
-"   ipa sudocmdgroup-del admincmds\n"
-"\n"
-" Manage Sudo Command Group membership, commands:\n"
-"   ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less,/usr/bin/vim "
-"admincmds\n"
-"\n"
-" Manage Sudo Command Group membership, commands:\n"
-"   ipa group-remove-member --sudocmds=/usr/bin/less admincmds\n"
-"\n"
-" Show a Sudo Command Group:\n"
-"   ipa group-show localadmins\n"
-msgstr ""
-"\n"
-"Groupes de commandes Sudo\n"
-"\n"
-"Administre les groupes de commandes Sudo.\n"
-"\n"
-"EXEMPLES :\n"
-"\n"
-" Ajouter un nouveau groupe de commandes Sudo :\n"
-"   ipa sudocmdgroup-add --desc='commandes administrateurs' admincmds\n"
-"\n"
-" Supprimer un groupe de commandes Sudo :\n"
-"   ipa sudocmdgroup-del admincmds\n"
-"\n"
-" Administrer l'appartenance et les commandes d'un groupe de commandes "
-"Sudo :\n"
-"   ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less,/usr/bin/vim "
-"admincmds\n"
-"\n"
-" Administrer l'appartenance et les commandes d'un groupe de commandes "
-"Sudo :\n"
-"   ipa group-remove-member --sudocmds=/usr/bin/less admincmds\n"
-"\n"
-" Afficher un groupe de commandes Sudo :\n"
-"   ipa group-show localadmins\n"
-
 msgid "sudo command group"
 msgstr "groupe de commandes sudo"
 
@@ -7297,6 +6933,12 @@ msgstr "Catégorie RunAs Group"
 msgid "RunAs Group category the rule applies to"
 msgstr "Catégorie RunAs Group à laquelle la règle s'applique"
 
+msgid "Sudo order"
+msgstr "Ordre sudo"
+
+msgid "integer to order the Sudo rules"
+msgstr "nombre entier pour ordonner  les règles sudo"
+
 msgid "Sudo Allow Commands"
 msgstr "Commandes sudo allow"
 
@@ -7352,6 +6994,11 @@ msgstr "RunAs Groups"
 
 msgid "Run with the gid of a specified POSIX group"
 msgstr "Lancer avec le GID d'un groupe POSIX spécifique"
+
+#, python-format
+msgid "order must be a unique value (%(order)d already used by %(rule)s)"
+msgstr ""
+"l'ordre doit être une valeur unique (%(order)d déjà utilisée par %(rule)s)"
 
 msgid "Create new Sudo Rule."
 msgstr "Créer une nouvelle règle Sudo."
@@ -7489,20 +7136,265 @@ msgstr "Retirer une option d'une règle Sudo."
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
 msgstr "Option \"%(option)s\" supprimée de la règle Sudo \"%(rule)s\""
 
+msgid "Non-Active Directory domain"
+msgstr "Domaine non-Active Directory"
+
+msgid "RFC4120-compliant Kerberos realm"
+msgstr "Domaine Kerberos conforme à la RFC4120"
+
+msgid "Trusting forest"
+msgstr "Forêt en cours d'approbation"
+
+msgid "Trusted forest"
+msgstr "Forêt approuvée"
+
+msgid "Two-way trust"
+msgstr "Approbation croisée"
+
+msgid "Established and verified"
+msgstr "Établie et vérifiée"
+
+msgid "Waiting for confirmation by remote side"
+msgstr "En attente de confirmation par la partie distante"
+
+msgid "Unknown"
+msgstr "Inconnu"
+
+msgid "Trust type (ad for Active Directory, default)"
+msgstr "Type d'approbation (par défaut, ad pour Active Directory)"
+
+msgid "trust"
+msgstr "approbation"
+
+msgid "trusts"
+msgstr "approbations"
+
+msgid "Trust"
+msgstr "Approbation"
+
 msgid "Realm name"
 msgstr "Nom du royaume"
 
-msgid "Add new trust to use"
-msgstr "Ajouter une nouvelle relation d'approbation à utiliser"
+msgid "SID blacklist incoming"
+msgstr "liste noire de SID entrante"
+
+msgid "SID blacklist outgoing"
+msgstr "liste noire de SID sortante"
+
+#, python-format
+msgid "invalid SID: %(value)s"
+msgstr "SID invalide : %(value)s"
 
 msgid "Active Directory domain administrator"
 msgstr "Administrateur du domaine Active Directory"
 
+msgid "Active directory domain administrator's password"
+msgstr "Mot de passe de l'administrateur du domaine Active Directory"
+
+msgid "Domain controller for the Active Directory domain (optional)"
+msgstr "Contrôleur de domaine pour le domaine Active Directory (optionnel)"
+
+msgid "Shared secret for the trust"
+msgstr "Secret partagé pour l'approbation"
+
+msgid "First Posix ID of the range reserved for the trusted domain"
+msgstr "Premier ID POSIX de la plage pour le domaine approuvé"
+
+msgid "Size of the ID range reserved for the trusted domain"
+msgstr "Taille de la plage d'ID pour le domaine approuvé"
+
+#, python-format
+msgid "Added Active Directory trust for realm \"%(value)s\""
+msgstr "Approbation Active Directory ajoutée pour le domaine « %(value)s »"
+
+msgid "missing base_id"
+msgstr "base_id manquant"
+
+msgid "pysss_murmur is not available on the server and no base-id is given."
+msgstr ""
+"pysss_murmur n'est pas disponible sur le serveur, et aucun base-id n'a été "
+"fourni."
+
+msgid "trust type"
+msgstr "type d'approbation"
+
+msgid "only \"ad\" is supported"
+msgstr "seul « ad » est pris en compte"
+
+msgid "range exists"
+msgstr "la plage existe"
+
+msgid ""
+"ID range with the same name but different domain SID already exists. The ID "
+"range for the new trusted domain must be created manually."
+msgstr ""
+"Une plage d'ID avec le même nom mais pour un SID de domaine différent existe "
+"déjà. La plage d'ID pour le nouveau domaine approuvé doit être créée "
+"manuellement."
+
 msgid "AD Trust setup"
 msgstr "Configuration des relations d'approbations avec AD"
 
+msgid ""
+"Cannot perform join operation without Samba 4 support installed.\n"
+"                              Make sure you have installed server-trust-ad "
+"sub-package of IPA"
+msgstr ""
+"Impossible de rejoindre le domaine sans l'installation du support Samba 4.\n"
+"                                  Assurez-vous de bien avoir installé sur le "
+"serveur le paquet server-trust-ad sub-package de IPA"
+
+msgid ""
+"Cannot perform join operation without own domain configured.\n"
+"                              Make sure you have run ipa-adtrust-install on "
+"the IPA server first"
+msgstr ""
+"Impossible d'opérer l'opération d'enregistrement sans domaine configuré.\n"
+"                                  Assurez-vous de bien avoir lancé ipa-"
+"adtrust-install sur le serveur"
+
+#, python-format
+msgid "Re-established trust to domain \"%(value)s\""
+msgstr "Ré-approbation du domaine « %(value)s »"
+
+msgid "Trusted domain and administrator account use different realms"
+msgstr ""
+"Le domaine approuvé et le compte administrateur utilisent des domaines "
+"différents"
+
+msgid "Realm administrator password should be specified"
+msgstr "Le mot de passe de l'administrateur du domaine doit être spécifié"
+
+#, python-format
+msgid "Unable to resolve domain controller for '%s' domain. "
+msgstr "Impossible de résoudre le contrôleur de domaine du domaine « %s »."
+
+msgid ""
+"Forward policy is defined for it in IPA DNS, perhaps forwarder points to "
+"incorrect host?"
+msgstr ""
+"La politique de transmission est déjà définie dans le DNS IPA, peut-être le "
+"transmetteur pointe-t'il vers un système incorrect ?"
+
+#, python-format
+msgid ""
+"IPA manages DNS, please verify your DNS configuration and make sure that "
+"service records of the '%(domain)s' domain can be resolved. Examples how to "
+"configure DNS with CLI commands or the Web UI can be found in the "
+"documentation. "
+msgstr ""
+"IPA administre les DNS, merci de vérifier votre configuration DNS et de vous "
+"assurer que les enregistrement de service du domaine « %(domain)s » peuvent "
+"être résolus. La documentation apporte des exemples sur la manière de "
+"configurer DNS à l'aide de commandes en ligne ou avec l'interface web."
+
+#, python-format
+msgid ""
+"Since IPA does not manage DNS records, ensure DNS is configured to resolve "
+"'%(domain)s' domain from IPA hosts and back."
+msgstr ""
+"Puisque IPA ne gère pas les enregistrements DNS, s'assurer que les DNS sont "
+"bien configurés pour résoudre le domaine « %(domain)s » depuis les serveurs "
+"IPA, en résolution directe et inverse."
+
+msgid "Unable to verify write permissions to the AD"
+msgstr "Impossible de vérifier les permissions en écriture vers AD"
+
+msgid "Not enough arguments specified to perform trust setup"
+msgstr "Arguments insuffisants pour établir la relation d'approbation"
+
+msgid "Delete a trust."
+msgstr "Supprimer une approbation."
+
+#, python-format
+msgid "Deleted trust \"%(value)s\""
+msgstr "Approbation « %(value)s » supprimée"
+
+msgid ""
+"\n"
+"    Modify a trust (for future use).\n"
+"\n"
+"    Currently only the default option to modify the LDAP attributes is\n"
+"    available. More specific options will be added in coming releases.\n"
+"    "
+msgstr ""
+"\n"
+"    Modifier une approbation (pour une utilisation future).\n"
+"\n"
+"    Actuellement seule l'option par défaut d'utiliser LDAP pour modifier\n"
+"    les attributs est disponible. Des options plus précises seront ajoutées\n"
+"    dans les versions à venir.\n"
+"    "
+
+#, python-format
+msgid "Modified trust \"%(value)s\" (change will be effective in 60 seconds)"
+msgstr ""
+"Relation d'approbation « %(value)s » modifiée (la modification prendra effet "
+"d'ici 60 secondes)"
+
+msgid "Search for trusts."
+msgstr "Rechercher des approbations."
+
+#, python-format
+msgid "%(count)d trust matched"
+msgid_plural "%(count)d trusts matched"
+msgstr[0] "%(count)d approbation correspondante"
+msgstr[1] "%(count)d approbations correspondantes"
+
+msgid "Display information about a trust."
+msgstr "Afficher les informations sur une relation d'approbation."
+
+msgid "trust configuration"
+msgstr "configuration des relations d'approbation"
+
+msgid "Global Trust Configuration"
+msgstr "Configuration globale des relations d'approbation"
+
+msgid "Security Identifier"
+msgstr "Identifiant de sécurité"
+
+msgid "NetBIOS name"
+msgstr "Nom NetBIOS"
+
+msgid "Domain GUID"
+msgstr "GUID du domaine"
+
+msgid "Fallback primary group"
+msgstr "Groupe principal de repli"
+
+msgid "unsupported trust type"
+msgstr "type de relation d'approbation non pris en charge"
+
+msgid "Modify global trust configuration."
+msgstr "Modifier la configuration globale des relations d'approbation."
+
+#, python-format
+msgid "Modified \"%(value)s\" trust configuration"
+msgstr "Configuration de la relation d'approbation « %(value)s » modifiée."
+
+msgid "Show global trust configuration."
+msgstr "Afficher la configuration globale des relations d'approbation."
+
 msgid "Kerberos keys available"
 msgstr "Clés Kerberos disponibles"
+
+msgid "Server"
+msgstr "Serveur"
+
+msgid "Failed logins"
+msgstr "Connexions échouées"
+
+msgid "Last successful authentication"
+msgstr "Dernière authentification réussie"
+
+msgid "Last failed authentication"
+msgstr "Dernière authentification échouée"
+
+msgid "Time now"
+msgstr "Heure actuelle"
+
+msgid "must be TRUE or FALSE"
+msgstr "doit être TRUE ou FALSE"
 
 msgid "user"
 msgstr "utilisateur"
@@ -7599,6 +7491,10 @@ msgid "Account disabled"
 msgstr "Compte désactivé"
 
 #, python-format
+msgid "invalid e-mail format: %(email)s"
+msgstr "format d'e-mail invalide : %(email)s"
+
+#, python-format
 msgid "manager %(manager)s not found"
 msgstr "responsable %(manager)s introuvable"
 
@@ -7615,6 +7511,9 @@ msgstr "Ne pas créer de groupe privé"
 #, python-format
 msgid "can be at most %(len)d characters"
 msgstr "doit contenir au plus %(len)d caractères"
+
+msgid "Default group for new users is not POSIX"
+msgstr "Le groupe par défaut des nouveaux utilisateurs n'est pas POSIX"
 
 msgid "Delete a user."
 msgstr "Supprimer un utilisateur."
@@ -7687,15 +7586,58 @@ msgid "Unlocked account \"%(value)s\""
 msgstr "Compte utilisateur \"%(value)s\" déverrouillé"
 
 #, python-format
+msgid "%(host)s failed: %(error)s"
+msgstr "%(host)s en échec : %(error)s"
+
+#, python-format
+msgid "%(host)s failed"
+msgstr "%(host)s en échec"
+
+#, python-format
 msgid "Account disabled: %(disabled)s"
 msgstr "Compte désactivé : %(disabled)s"
+
+msgid "operation not defined"
+msgstr "opération non définie"
+
+msgid "No such virtual command"
+msgstr "Commande virtuelle inconnue"
+
+msgid "any of the configured servers"
+msgstr "n'importe lequel des serveurs configurés"
 
 msgid "could not allocate unique new session_id"
 msgstr "impossible d'allouer un unique session_id"
 
+msgid "Filename is empty"
+msgstr "Le nom de fichier est vide"
+
 #, python-format
 msgid "Permission denied: %(file)s"
 msgstr "Autorisation refusée : %(file)s"
+
+msgid "empty DNS label"
+msgstr "libellé DNS vide"
+
+msgid "DNS label cannot be longer that 63 characters"
+msgstr "un libellé DNS ne peut excéder 63 caractères"
+
+#, python-format
+msgid ""
+"only letters, numbers,%(underscore)s and - are allowed. DNS label may not "
+"start or end with -"
+msgstr ""
+"seuls des lettres, nombres %(underscore)s et - sont autorisés. Les noms DNS "
+"ne peuvent commencer ou se terminer par -"
+
+msgid ""
+"mail account may only include letters, numbers, -, _ and a dot. There may "
+"not be consecutive -, _ and . characters. Its parts may not start or end "
+"with - or _"
+msgstr ""
+"un compte de messagerie ne peut inclure que des lettres, des chiffres, -, _ "
+"et un point. Il ne peut y avoir de caractères -, _ et . consécutifs. Il ne "
+"peut démarrer ou finir par - ou _"
 
 msgid "cannot be longer that 255 characters"
 msgstr "ne peut excéder 255 caractères."
@@ -7706,22 +7648,178 @@ msgstr "trop de caractères '@'"
 msgid "missing address domain"
 msgstr "domaine d'adresse manquant"
 
+msgid "missing mail account"
+msgstr "compte de messagerie manquant"
+
+msgid "hostname contains empty label (consecutive dots)"
+msgstr ""
+"le nom du système contient un libellé vide (plusieurs points consécutifs)"
+
 msgid "not fully qualified"
 msgstr "pas pleinement qualifié"
 
 msgid "invalid SSH public key"
 msgstr "clé publique SSH invalide"
 
+msgid "options are not allowed"
+msgstr "les options ne sont pas autorisées"
+
+msgid "improperly formatted DER-encoded certificate"
+msgstr "formatage incorrect du certificat encodé DER"
+
 #, python-format
 msgid "Issuer \"%(issuer)s\" does not match the expected issuer"
 msgstr "L'Émetteur \"%(issuer)s\" ne correspond pas à l'émetteur attendu"
 
+#, python-format
+msgid "Retrieving CA cert chain failed: %s"
+msgstr "Échec de la récupération de la chaîne de certificat de l'AC : %s"
+
+#, python-format
+msgid "request failed with HTTP status %d"
+msgstr "échec de la requête avec le code état HTTP %d"
+
+#, python-format
+msgid "Retrieving CA status failed: %s"
+msgstr "Échec de la récupération de l'état de l'AC : %s"
+
+#, python-format
+msgid "objectclass %s not found"
+msgstr "classe d'objet %s introuvable"
+
+msgid ""
+"\n"
+"Classes to manage trust joins using DCE-RPC calls\n"
+"\n"
+"The code in this module relies heavily on samba4-python package\n"
+"and Samba4 python bindings.\n"
+msgstr ""
+"\n"
+"Classes permettant de gérer les insertions d'approbations utilisant les "
+"appels DCE-RPC\n"
+"\n"
+"Le code de ce module s'appuie en majeure partie sur le paquet samba4-python "
+"package\n"
+"and Samba4 python bindings.\n"
+
+msgid "CIFS server denied your credentials"
+msgstr "Le serveur CIFS a refusé vos informations d'identification"
+
+msgid "communication with CIFS server was unsuccessful"
+msgstr "la communication avec le serveur CIFS a échoué"
+
 msgid "AD domain controller"
 msgstr "Contrôleur de domaine AD"
+
+msgid "unsupported functional level"
+msgstr "niveau de fonctionnalité non pris en charge"
+
+msgid "Cannot find specified domain or server name"
+msgstr "Impossible de trouver le domaine ou le serveur indiqué"
+
+msgid "At least the domain or IP address should be specified"
+msgstr "Au moins un nom de domaine ou une adresse IP doit être indiquée"
+
+#, python-format
+msgid ""
+"CIFS server communication error: code \"%(num)s\",\n"
+"                  message \"%(message)s\" (both may be \"None\")"
+msgstr ""
+"Erreur de communication avec le serveur CIFS : code \"%(num)s\",\n"
+"                  message \"%(message)s\" (les deux pouvant être vides)"
+
+msgid ""
+"communication with trusted domains is allowed for Trusts administrator group "
+"members only"
+msgstr ""
+"la communication avec les domaines approuvé n'est autorisée que pour les "
+"membres du groupe d'administration des relations d'approbation."
+
+msgid "domain is not configured"
+msgstr "le domaine n'est pas configuré"
+
+msgid "SID is not valid"
+msgstr "Le SID est invalide"
+
+msgid "no trusted domain is configured"
+msgstr "pas de relation d'approbation configurée"
+
+msgid "SID does not match exactlywith any trusted domain's SID"
+msgstr "Le SID ne correspond à aucun SID du domaine approuvé"
+
+msgid "SID does not match any trusted domain"
+msgstr "Le SID ne correspond à aucun domaine approuvé"
+
+msgid "Trust setup"
+msgstr "Configuration des relations d'approbation"
+
+msgid "Our domain is not configured"
+msgstr "Notre domaine n'est pas configuré"
+
+msgid "No trusted domain is not configured"
+msgstr "Aucun domaine approuvé n'est pas configuré"
+
+msgid "trusted domain object"
+msgstr "objet domaine approuvé"
+
+msgid "domain is not trusted"
+msgstr "le domaine n'est pas approuvé"
+
+msgid "no trusted domain matched the specified flat name"
+msgstr "aucun domaine approuvé ne correspond au nom spécifié"
+
+msgid "trusted domain object not found"
+msgstr "objet relation d'approbation introuvable"
+
+msgid "Ambiguous search, user domain was not specified"
+msgstr "Recherche ambigüe, le domaine utilisateur n'a pas été spécifié"
+
+msgid "Trusted domain did not return a unique object"
+msgstr "Le domaine approuvé n'a pas renvoyé un unique objet"
+
+msgid "Trusted domain did not return a valid SID for the object"
+msgstr "Le domaine approuvé n'a pas renvoyé un SID valide pour l'objet"
+
+msgid "trusted domain user not found"
+msgstr "utilisateur de domaine approuvé introuvable"
+
+#, python-format
+msgid ""
+"KDC for %(domain)s denied trust account for IPA domain with a message "
+"'%(message)s'"
+msgstr ""
+"Le KDC pour %(domain)s a refusé le compte approuvé pour le domaine  IPA avec "
+"le message « %(message)s »"
+
+msgid "Cannot retrieve trusted domain GC list"
+msgstr "Impossible de récupérer la liste de GC pour le domaine approuvé"
+
+msgid "CIFS credentials object"
+msgstr "Objet identification CIFS"
+
+#, python-format
+msgid "CIFS server %(host)s denied your credentials"
+msgstr "Le serveur CIFS %(host)s a refusé vos informations d'identification"
+
+#, python-format
+msgid "Cannot establish LSA connection to %(host)s. Is CIFS server running?"
+msgstr ""
+"Impossible d'établir la connexion LSA vers %(host)s. Le serveur CIFS est-il "
+"en fonction ?"
+
+#, python-format
+msgid ""
+"the IPA server and the remote domain cannot share the same NetBIOS name: %s"
+msgstr ""
+"le serveur IPA et le domaine distant ne peuvent partager le même nom "
+"NetBIOS : %s"
 
 #, python-format
 msgid "Unable to communicate with CMS (%s)"
 msgstr "Impossible de communiquer avec le CMS (%s)"
+
+msgid "Unable to communicate with CMS"
+msgstr "Impossible de communiquer avec le CMS"
 
 msgid "The hostname to register as"
 msgstr "Le nom de système sous lequel s'enregistrer"
@@ -7736,8 +7834,12 @@ msgid "Operating System and version of the host (e.g. Fedora 9)"
 msgstr "Système d'exploitation et version du système (par ex. Fedora 9)"
 
 #, python-format
-msgid "objectclass %s not found"
-msgstr "classe d'objet %s introuvable"
+msgid ""
+"Insufficient 'write' privilege to the 'krbLastPwdChange' attribute of entry "
+"'%s'."
+msgstr ""
+"Privilège en écriture insuffisant sur l'attribut « krbLastPwdChange »de  "
+"l'entrée « %s »."
 
 #, python-format
 msgid ""
@@ -7760,6 +7862,31 @@ msgstr "impossible d'obtenir le nouveau numéro de série"
 msgid "certutil failure"
 msgstr "échec de certutil"
 
+#, python-format
+msgid "Unable to decode certificate in entry: %s"
+msgstr "Impossible de décoder le certificat de l'entrée %s"
+
+msgid "Request must be a dict"
+msgstr "La requête doit être un dictionnaire"
+
+msgid "Request is missing \"method\""
+msgstr "Il manque le paramètre « method » à la requête"
+
+msgid "Request is missing \"params\""
+msgstr "Il manque le paramètre « params » à la requête"
+
+msgid "params must be a list"
+msgstr "params doit être une liste"
+
+msgid "params must contain [args, options]"
+msgstr "params doit contenir [args, options]"
+
+msgid "params[0] (aka args) must be a list"
+msgstr "params[0] (args) doit être une liste"
+
+msgid "params[1] (aka options) must be a dict"
+msgstr "params[1] (options) doit être un dictionnaire "
+
 #, c-format
 msgid "cannot open configuration file %s\n"
 msgstr "impossible d'ouvrir le fichier de configuration %s\n"
@@ -7775,6 +7902,14 @@ msgstr "mémoire saturée\n"
 #, c-format
 msgid "read error\n"
 msgstr "erreur en lecture\n"
+
+#, c-format
+msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
+msgstr "Échec de l'initialisation du contexte Kerberos : %1$s (%2$d)\n"
+
+#, c-format
+msgid "Unable to parse principal: %1$s (%2$d)\n"
+msgstr "Impossible d'analyser le principal : %1$s (%2$d)\n"
 
 #, c-format
 msgid "No keys accepted by KDC\n"
@@ -7819,6 +7954,22 @@ msgstr "Absence de contrôle dans la réponse !\n"
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
 msgstr "Échec de ber_init(), contrôle invalide ?!\n"
+
+#, c-format
+msgid "ber_scanf() failed, unable to find kvno ?!\n"
+msgstr "échec de ber_scanf() failed, kvno introuvable ?!\n"
+
+#, c-format
+msgid "Failed to retrieve encryption type type #%d\n"
+msgstr "Échec lors de la récupération du type de chiffrement #%d\n"
+
+#, c-format
+msgid "Failed to retrieve encryption type %1$s (#%2$d)\n"
+msgstr "Échec lors de la récupération du type de chiffrement %1$s (#%2$d)\n"
+
+#, c-format
+msgid "Failed to retrieve any keys"
+msgstr "Échec lors de la récupération des clés"
 
 msgid "New Principal Password"
 msgstr "Nouveau mot de passe du principal"
@@ -7978,6 +8129,10 @@ msgid "Bind failed: %s\n"
 msgstr "Échec de bind : %s\n"
 
 #, c-format
+msgid "Search for %1$s on rootdse failed with error %2$d\n"
+msgstr "La recherche de %1$s sur rootdse a échoué avec l'erreur %2$d\n"
+
+#, c-format
 msgid "No values for %s"
 msgstr "Pas de valeurs pour %s"
 
@@ -8042,6 +8197,10 @@ msgstr "Erreur à la résolution du keytab : %s.\n"
 #, c-format
 msgid "Error getting default Kerberos realm: %s.\n"
 msgstr "Erreur lors de l'obtention du domaine Kerberos par défaut : %s.\n"
+
+#, c-format
+msgid "Error parsing \"%1$s\": %2$s.\n"
+msgstr "Erreur à l'analyse de « %1$s » : %2$s.\n"
 
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
@@ -8132,6 +8291,11 @@ msgstr "Spécifie où stocker l'information keytab."
 msgid "filename"
 msgstr "nom de fichier"
 
+msgid "Force the host join. Rejoin even if already joined."
+msgstr ""
+"Forcer l'hôte à rejoindre le domaine. Rejoindre à nouveau même s'il a déjà "
+"rejoint le domaine."
+
 msgid "LDAP password (if not using Kerberos)"
 msgstr "Mot de passe LDAP (hors utilisation de Kerberos)"
 
@@ -8149,6 +8313,10 @@ msgid "Unable to parse principal name\n"
 msgstr "Impossible d'analyser le nom du principal\n"
 
 #, c-format
+msgid "krb5_parse_name %1$d: %2$s\n"
+msgstr "krb5_parse_name %1$d : %2$s\n"
+
+#, c-format
 msgid "Removing principal %s\n"
 msgstr "Suppression du principal %s\n"
 
@@ -8161,6 +8329,10 @@ msgid "principal not found\n"
 msgstr "principal introuvable\n"
 
 #, c-format
+msgid "krb5_kt_get_entry %1$d: %2$s\n"
+msgstr "krb5_kt_get_entry %1$d : %2$s\n"
+
+#, c-format
 msgid "Unable to remove entry\n"
 msgstr "Impossible de supprimer l'entrée\n"
 
@@ -8169,8 +8341,16 @@ msgid "kvno %d\n"
 msgstr "kvno %d\n"
 
 #, c-format
+msgid "krb5_kt_remove_entry %1$d: %2$s\n"
+msgstr "krb5_kt_remove_entry %1$d : %2$s\n"
+
+#, c-format
 msgid "Unable to parse principal\n"
 msgstr "Impossible d'analyser le principal\n"
+
+#, c-format
+msgid "krb5_unparse_name %1$d: %2$s\n"
+msgstr "krb5_unparse_name %1$d : %2$s\n"
 
 #, c-format
 msgid "realm not found\n"
@@ -8186,14 +8366,28 @@ msgid "Remove all principals in this realm"
 msgstr "Retirer tous les principals de ce royaume"
 
 #, c-format
+msgid "Failed to open keytab '%1$s': %2$s\n"
+msgstr "Échec lors de l'ouverture de la keytab « %1$s » : %2$s\n"
+
+#, c-format
 msgid "Closing keytab failed\n"
 msgstr "La fermeture du keytab a échoué\n"
+
+#, c-format
+msgid "krb5_kt_close %1$d: %2$s\n"
+msgstr "krb5_kt_close %1$d : %2$s\n"
 
 msgid "Out of memory!?\n"
 msgstr "Mémoire saturée !?\n"
 
 msgid "Out of memory\n"
 msgstr "Mémoire saturée\n"
+
+msgid "Warning unrecognized encryption type.\n"
+msgstr "Avertissement, type de chiffrement inconnu.\n"
+
+msgid "Warning unrecognized salt type.\n"
+msgstr "Avertissement, type de sel inconnu.\n"
 
 msgid "Enctype comparison failed!\n"
 msgstr "Échec de comparaison enctype !\n"
@@ -8204,269 +8398,5 @@ msgstr "Échec à la création de la clé aléatoire !\n"
 msgid "Failed to create key!\n"
 msgstr "Échec à la création de la clé !\n"
 
-#~ msgid "%(label)s %(key)s cannot be deleted: %(reason)s"
-#~ msgstr "%(key)s %(label)s ne peut être supprimé : %(reason)s"
-
-#~ msgid "must be one of %(values)r"
-#~ msgstr "doit être l'un parmi %(values)r"
-
-#~ msgid "Default types of PAC for new services"
-#~ msgstr "Types de PAC par défaut pour les nouveaux services"
-
-#~ msgid ""
-#~ "\n"
-#~ "Groups of users\n"
-#~ "\n"
-#~ "Manage groups of users. By default, new groups are POSIX groups. You\n"
-#~ "can add the --nonposix option to the group-add command to mark a new "
-#~ "group\n"
-#~ "as non-POSIX. You can use the --posix argument with the group-mod "
-#~ "command\n"
-#~ "to convert a non-POSIX group into a POSIX group. POSIX groups cannot be\n"
-#~ "converted to non-POSIX groups.\n"
-#~ "\n"
-#~ "Every group must have a description.\n"
-#~ "\n"
-#~ "POSIX groups must have a Group ID (GID) number. Changing a GID is\n"
-#~ "supported but can have an impact on your file permissions. It is not "
-#~ "necessary\n"
-#~ "to supply a GID when creating a group. IPA will generate one "
-#~ "automatically\n"
-#~ "if it is not provided.\n"
-#~ "\n"
-#~ "EXAMPLES:\n"
-#~ "\n"
-#~ " Add a new group:\n"
-#~ "   ipa group-add --desc='local administrators' localadmins\n"
-#~ "\n"
-#~ " Add a new non-POSIX group:\n"
-#~ "   ipa group-add --nonposix --desc='remote administrators' remoteadmins\n"
-#~ "\n"
-#~ " Convert a non-POSIX group to posix:\n"
-#~ "   ipa group-mod --posix remoteadmins\n"
-#~ "\n"
-#~ " Add a new POSIX group with a specific Group ID number:\n"
-#~ "   ipa group-add --gid=500 --desc='unix admins' unixadmins\n"
-#~ "\n"
-#~ " Add a new POSIX group and let IPA assign a Group ID number:\n"
-#~ "   ipa group-add --desc='printer admins' printeradmins\n"
-#~ "\n"
-#~ " Remove a group:\n"
-#~ "   ipa group-del unixadmins\n"
-#~ "\n"
-#~ " To add the \"remoteadmins\" group to the \"localadmins\" group:\n"
-#~ "   ipa group-add-member --groups=remoteadmins localadmins\n"
-#~ "\n"
-#~ " Add a list of users to the \"localadmins\" group:\n"
-#~ "   ipa group-add-member --users=test1,test2 localadmins\n"
-#~ "\n"
-#~ " Remove a user from the \"localadmins\" group:\n"
-#~ "   ipa group-remove-member --users=test2 localadmins\n"
-#~ "\n"
-#~ " Display information about a named group.\n"
-#~ "   ipa group-show localadmins\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Groupes d'utilisateurs\n"
-#~ "\n"
-#~ "Gestion des groupes d'utilisateur. Par défaut, les nouveaux groupes sont\n"
-#~ "des groupes POSIX. Vous pouvez utiliser l'option --nonposix de la "
-#~ "commande\n"
-#~ "group-add pour le marquer comme non-POSIX. Vous pouvez utiliser l'option\n"
-#~ "--posix de la commande group-mod pour convertir un groupe non-POSIX en "
-#~ "groupe\n"
-#~ "POSIX. Les groupes POSIX ne peuvent être convertis en groupes non-POSIX.\n"
-#~ "\n"
-#~ "Chaque groupe doit avoir une description.\n"
-#~ "\n"
-#~ "Les groupes POSIX doivent avoir un numéro d'identifiant de groupe (GID).\n"
-#~ "La modification d'un GID est supportée, mais peut avoir un impact sur "
-#~ "les\n"
-#~ "permissions de vos fichiers. Il n'est pas nécessaire de fournir un GID à\n"
-#~ "la création d'un groupe. IPA en créera un automatiquement s'il n'est pas\n"
-#~ "spécifié.\n"
-#~ "\n"
-#~ "EXEMPLES:\n"
-#~ "\n"
-#~ " Ajouter un nouveau groupe :\n"
-#~ "   ipa group-add --desc='administrateurs locaux' localadmins\n"
-#~ "\n"
-#~ " Ajouter un nouveau groupe non-POSIX :\n"
-#~ "   ipa group-add --nonposix --desc='administrateurs distants' "
-#~ "remoteadmins\n"
-#~ "\n"
-#~ " Convertir un groupe non-POSIX en POSIX :\n"
-#~ "   ipa group-mod --posix remoteadmins\n"
-#~ "\n"
-#~ " Ajouter un nouveau groupe POSIX avec un numéro d'identifiant\n"
-#~ " de groupe spécifique :\n"
-#~ "   ipa group-add --gid=500 --desc='Administrateurs Unix' unixadmins\n"
-#~ "\n"
-#~ " Ajouter un nouveau groupe POSIX en laissant IPA choisir le numéro\n"
-#~ " d'identifiant de groupe :\n"
-#~ "   ipa group-add --desc='printer admins' printeradmins\n"
-#~ "\n"
-#~ " Supprimer un groupe :\n"
-#~ "   ipa group-del unixadmins\n"
-#~ "\n"
-#~ " Pour ajouter le groupe \"remoteadmins\" au groupe \"localadmins\" :\n"
-#~ "   ipa group-add-member --groups=remoteadmins localadmins\n"
-#~ "\n"
-#~ " Ajouter une liste d'utilisateurs au groupe \"localadmins\" :\n"
-#~ "   ipa group-add-member --users=test1,test2 localadmins\n"
-#~ "\n"
-#~ " Supprimer un utilisateur du groupe \"localadmins\" :\n"
-#~ "   ipa group-remove-member --users=test2 localadmins\n"
-#~ "\n"
-#~ " Afficher l'information sur un groupe nommé.\n"
-#~ "   ipa group-show localadmins\n"
-
-#~ msgid "AD Trust"
-#~ msgstr "Relations d'approbations avec AD"
-
-#~ msgid ""
-#~ "Cannot perform external member validation without Samba 4 support "
-#~ "installed.\n"
-#~ "                                  Make sure you have installed server-"
-#~ "trust-ad sub-package of IPA on the server"
-#~ msgstr ""
-#~ "Impossible de réaliser l'approbation de membre externe sans "
-#~ "l'installation du support Samba 4.\n"
-#~ "                                  Assurez-vous de bien avoir installé sur "
-#~ "le serveur le paquet server-trust-ad sub-package de IPA"
-
-#~ msgid ""
-#~ "Cannot perform join operation without own domain configured.\n"
-#~ "                                  Make sure you have run ipa-adtrust-"
-#~ "install on the IPA server first"
-#~ msgstr ""
-#~ "Impossible d'opérer l'opération d'enregistrement sans domaine configuré.\n"
-#~ "Assurez-vous de bien avoir lancé ipa-adtrust-install sur le serveur"
-
-#~ msgid "ID Range setup"
-#~ msgstr "Configuration des plages d'ID"
-
-#~ msgid "An error has occured (${error})"
-#~ msgstr "Une erreur est survenue (${error})"
-
-#~ msgid ""
-#~ "To login with Kerberos, please make sure you have valid tickets "
-#~ "(obtainable via kinit) and <a href='/ipa/config/unauthorized."
-#~ "html'>configured</a> the browser correctly, then click Login."
-#~ msgstr ""
-#~ "Afin de vous connecter avec Kerberos, assurez-vous d'avoir un ticket "
-#~ "valide (via kinit), que votre navigateur est <a href='/ipa/config/"
-#~ "unauthorized.html'>configuré</a> correctement, et cliquer sur « Connexion "
-#~ "»."
-
-#~ msgid ""
-#~ "\n"
-#~ "Services\n"
-#~ "\n"
-#~ "A IPA service represents a service that runs on a host. The IPA service\n"
-#~ "record can store a Kerberos principal, an SSL certificate, or both.\n"
-#~ "\n"
-#~ "An IPA service can be managed directly from a machine, provided that\n"
-#~ "machine has been given the correct permission. This is true even for\n"
-#~ "machines other than the one the service is associated with. For example,\n"
-#~ "requesting an SSL certificate using the host service principal "
-#~ "credentials\n"
-#~ "of the host. To manage a service using host credentials you need to\n"
-#~ "kinit as the host:\n"
-#~ "\n"
-#~ " # kinit -kt /etc/krb5.keytab host/ipa.example.com@EXAMPLE.COM\n"
-#~ "\n"
-#~ "Adding an IPA service allows the associated service to request an SSL\n"
-#~ "certificate or keytab, but this is performed as a separate step; they\n"
-#~ "are not produced as a result of adding the service.\n"
-#~ "\n"
-#~ "Only the public aspect of a certificate is stored in a service record;\n"
-#~ "the private key is not stored.\n"
-#~ "\n"
-#~ "EXAMPLES:\n"
-#~ "\n"
-#~ " Add a new IPA service:\n"
-#~ "   ipa service-add HTTP/web.example.com\n"
-#~ "\n"
-#~ " Allow a host to manage an IPA service certificate:\n"
-#~ "  ipa service-add-host --hosts=web.example.com HTTP/web.example.com\n"
-#~ "  ipa role-add-member --hosts=web.example.com certadmin\n"
-#~ "\n"
-#~ " Delete an IPA service:\n"
-#~ "   ipa service-del HTTP/web.example.com\n"
-#~ "\n"
-#~ " Find all IPA services associated with a host:\n"
-#~ "   ipa service-find web.example.com\n"
-#~ "\n"
-#~ " Find all HTTP services:\n"
-#~ "   ipa service-find HTTP\n"
-#~ "\n"
-#~ " Disable the service Kerberos key and SSL certificate:\n"
-#~ "   ipa service-disable HTTP/web.example.com\n"
-#~ "\n"
-#~ " Request a certificate for an IPA service:\n"
-#~ "   ipa cert-request --principal=HTTP/web.example.com example.csr\n"
-#~ "\n"
-#~ " Generate and retrieve a keytab for an IPA service:\n"
-#~ "   ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/"
-#~ "httpd.keytab\n"
-#~ "\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Services\n"
-#~ "\n"
-#~ "Un service IPA représente un service tournant sur un système.\n"
-#~ "L'enregistrement de service IPA peut stocker un principal Kerberos,\n"
-#~ "un certificat SSL, ou les deux.\n"
-#~ "\n"
-#~ "Un service IPA peut être directement administré depuis la machine,\n"
-#~ "pourvu que la machine ait reçu les permissions adéquates. Cela est\n"
-#~ "aussi vrai pour les machines autres que celles associées au service.\n"
-#~ "Par exemple, demander un certificat SSL en utilisant les informations de\n"
-#~ "crédit du principal de service du système sur le système. Pour "
-#~ "administrer\n"
-#~ "le service à l'aide des données de crédit, il faut lancer kinit en tant\n"
-#~ "que le système :\n"
-#~ "\n"
-#~ " # kinit -kt /etc/krb5.keytab host/ipa.example.com@EXAMPLE.COM\n"
-#~ "\n"
-#~ "Le fait d'ajouter un service IPA permet au service associé de demander "
-#~ "un\n"
-#~ "certificat SSL ou un keytab. Ces opérations doivent être réalisées\n"
-#~ "séparément, elles ne sont pas le résultat de l'ajout du service.\n"
-#~ "\n"
-#~ "Seul la partie publique d'un certificat est stockée dans "
-#~ "l'enregistrement\n"
-#~ "de service, la clé privée n'est pas stockée.\n"
-#~ "\n"
-#~ "EXEMPLES :\n"
-#~ "\n"
-#~ " Ajouter un nouveau service IPA :\n"
-#~ "   ipa service-add HTTP/web.example.com\n"
-#~ "\n"
-#~ " Autoriser un système à gérer le certificat du service IPA :\n"
-#~ "  ipa service-add-host --hosts=web.example.com HTTP/web.example.com\n"
-#~ "  ipa role-add-member --hosts=web.example.com certadmin\n"
-#~ "\n"
-#~ " Supprimer un service IPA :\n"
-#~ "   ipa service-del HTTP/web.example.com\n"
-#~ "\n"
-#~ " Rechercher tous les services IPA associés à un système :\n"
-#~ "   ipa service-find web.example.com\n"
-#~ "\n"
-#~ " Rechercher tous les services HTTP :\n"
-#~ "   ipa service-find HTTP\n"
-#~ "\n"
-#~ " Disable the service Kerberos key and SSL certificate:\n"
-#~ "   ipa service-disable HTTP/web.example.com\n"
-#~ "\n"
-#~ " Request a certificate for an IPA service:\n"
-#~ "   ipa cert-request --principal=HTTP/web.example.com example.csr\n"
-#~ "\n"
-#~ " Generate and retrieve a keytab for an IPA service:\n"
-#~ "   ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/"
-#~ "httpd.keytab\n"
-#~ "\n"
-
-#~ msgid "Active directory domain adminstrator's password"
-#~ msgstr "Mot de passe de l'administrateur du domaine Active Directory"
+msgid "Bad or unsupported salt type.\n"
+msgstr "Type de sel non-conforme ou non pris en compte.\n"

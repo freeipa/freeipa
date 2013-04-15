@@ -4,6 +4,7 @@
 #
 # Translators:
 # Eduardo Villagrán M <gotencool@gmail.com>, 2012.
+#  <ehespinosa@ya.com>, 2013.
 # gguerrer <gguerrer@redhat.com>, 2011.
 # Héctor Daniel Cabrera <logan@fedoraproject.org>, 2011.
 # Hugo Jiménez Hernández <hjimenezhdez@gmail.com>, 2011.
@@ -12,16 +13,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2012-10-12 04:08-0400\n"
-"PO-Revision-Date: 2012-09-14 10:30+0000\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
+"product=freeIPA\n"
+"POT-Creation-Date: 2013-04-15 16:42+0200\n"
+"PO-Revision-Date: 2013-04-15 15:12+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Spanish <trans-es@lists.fedoraproject.org>\n"
-"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #, python-format
@@ -32,8 +33,8 @@ msgstr "Ingrese %(label)s nuevamente para verificar: "
 msgid "Passwords do not match!"
 msgstr "¡Las contraseñas no coinciden!"
 
-msgid "Try `ipa --help` for a list of global options."
-msgstr "Pruebe `ipa --help` para una lista de opciones generales."
+msgid "Topic commands:"
+msgstr "Tema comandos:"
 
 msgid "Command name"
 msgstr "Nombre del comando"
@@ -42,32 +43,11 @@ msgid "No file to read"
 msgstr "No existe el fichero para leer"
 
 #, python-format
-msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
-msgstr ""
-"el cliente %(cver)s no es compatible con el servidor %(sver)s en %(server)r"
-
-#, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
 msgstr "error %(code)d desconocido de %(server)s: %(error)s"
 
 msgid "an internal error has occurred"
 msgstr "ha ocurrido un error interno"
-
-#, python-format
-msgid "an internal error has occurred on server at %(server)r"
-msgstr "ha ocurrido un error interno en el servidor en %(server)r"
-
-#, python-format
-msgid "unknown command %(name)r"
-msgstr "comando desconocido %(name)r"
-
-#, python-format
-msgid "error on server %(server)r: %(error)s"
-msgstr "error en el servidor %(server)r: %(error)s"
-
-#, python-format
-msgid "cannot connect to %(uri)r: %(error)s"
-msgstr "no es posible conectar con %(uri)r: %(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -83,11 +63,6 @@ msgstr "Error de kerberos:  %(major)s/%(minor)s"
 
 msgid "did not receive Kerberos credentials"
 msgstr "no se ha recibido ninguna credencial de Kerberos"
-
-#, python-format
-msgid "Service %(service)r not found in Kerberos database"
-msgstr ""
-"El servicio %(service)r no se ha encontrado en la base de datos Kerberos"
 
 msgid "No credentials cache found"
 msgstr "No se han encontrado credenciales de cache"
@@ -107,32 +82,6 @@ msgstr "No es posible resolver KDC para el reinado solicitado"
 #, python-format
 msgid "Insufficient access: %(info)s"
 msgstr "Acceso insuficiente: %(info)s"
-
-#, python-format
-msgid "command %(name)r takes no arguments"
-msgstr "el comando %(name)r no tiene argumentos"
-
-#, python-format
-msgid "command %(name)r takes at most %(count)d argument"
-msgid_plural "command %(name)r takes at most %(count)d arguments"
-msgstr[0] "el comando %(name)r lleva al menos %(count)d argumento"
-msgstr[1] "el comando %(name)r lleva al menos %(count)d argumentos"
-
-#, python-format
-msgid "overlapping arguments and options: %(names)r"
-msgstr "superponiendo argumentos y opciones: %(names)r"
-
-#, python-format
-msgid "%(name)r is required"
-msgstr "%(name)r es necesario"
-
-#, python-format
-msgid "invalid %(name)r: %(error)s"
-msgstr "%(name)r inválido: %(error)s"
-
-#, python-format
-msgid "api has no such namespace: %(name)r"
-msgstr "API  no posee tal nombre de espacio: %(name)r"
 
 msgid "Passwords do not match"
 msgstr "Las contraseñas no coinciden"
@@ -172,10 +121,6 @@ msgstr "Este comando necesita acceso de usuario root"
 
 msgid "This is already a posix group"
 msgstr "Este ya es un grupo posix"
-
-#, python-format
-msgid "Principal is not of the form user@REALM: %(principal)r"
-msgstr "El principal no tiene la forma usuario@REINADO: %(principal)r"
 
 msgid "This entry is already enabled"
 msgstr "Esta entrada ya está habilitada"
@@ -232,8 +177,15 @@ msgstr ""
 "%(exc)s"
 
 #, python-format
-msgid "no command nor help topic %(topic)r"
-msgstr "no existe un comando para el tópico de ayuda %(topic)r"
+msgid "%(attr)s does not contain '%(value)s'"
+msgstr "%(attr)s no contiene '%(value)s'"
+
+#, python-format
+msgid ""
+"The search criteria was not specific enough. Expected 1 and found %(found)d."
+msgstr ""
+"El criterio de búsqueda no fue bastante específico. Se esperaba 1 y se "
+"encontró %(found)d."
 
 msgid "change collided with another change"
 msgstr "la modificación choca con otra modificación diferente"
@@ -359,6 +311,9 @@ msgstr "debe ser exactamente de %(length)d bytes"
 msgid "must be Unicode text"
 msgstr "debe ser texto Unicode"
 
+msgid "Leading and trailing spaces are not allowed"
+msgstr "No están permitidos espacios iniciales ni finales"
+
 #, python-format
 msgid "must be at least %(minlength)d characters"
 msgstr "debe tener como mínimo %(minlength)d caracteres"
@@ -370,10 +325,6 @@ msgstr "puede tener a lo sumo %(maxlength)d caracteres"
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr "debe tener exactamente %(length)d caracteres"
-
-#, python-format
-msgid "The character '%(char)r' is not allowed."
-msgstr "El carácter '%(char)r' no está permitido."
 
 msgid "A list of ACI values"
 msgstr "Una lista de valores ACI"
@@ -446,17 +397,8 @@ msgstr "El grupo de usuarios ACI permite el acceso a"
 msgid "Permissions"
 msgstr "Permisos"
 
-msgid ""
-"comma-separated list of permissions to grant(read, write, add, delete, all)"
-msgstr ""
-"lista separada por comas de la concesión de permisos (leer, escribir, "
-"agregar, eliminar, todos) "
-
 msgid "Attributes"
 msgstr "Atributos"
-
-msgid "Comma-separated list of attributes"
-msgstr "Lista de atributos separada por comas"
 
 msgid "Type"
 msgstr "Tipo"
@@ -526,8 +468,39 @@ msgstr "     Nuevo nombre de ACI"
 msgid "Renamed ACI to \"%(value)s\""
 msgstr "ACI renombrado a \"%(value)s\""
 
+msgid "Inclusive Regex"
+msgstr "Regex inclusivo"
+
+msgid "Exclusive Regex"
+msgstr "Regex exclusivo"
+
+msgid "Attribute Key"
+msgstr "Atributo Clave"
+
+msgid ""
+"Attribute to filter via regex. For example fqdn for a host, or manager for a "
+"user"
+msgstr ""
+"Atributo a filtrar por medio de regex. Por ejemplo fqdn para un host o "
+"gestor para un usuario"
+
+msgid "Grouping Type"
+msgstr "Tipo de Agrupamiento"
+
+msgid "Grouping to which the rule applies"
+msgstr "Agrupamiento al cual se aplican las reglas"
+
+msgid "Automember Rule"
+msgstr "Regla Automiembro"
+
+msgid "Auto Membership Rule"
+msgstr "Regla Auto Afiliación"
+
 msgid "Description"
 msgstr "Descripción"
+
+msgid "A description of this auto member rule"
+msgstr "Una descripción de esta regla auto miembro"
 
 #, python-format
 msgid "Group: %s not found!"
@@ -537,11 +510,67 @@ msgstr "Grupo: %s no encontrado!"
 msgid "%s is not a valid attribute."
 msgstr "%s no es un atributo válido."
 
+msgid ""
+"\n"
+"    Add an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Añadir una regla automiembro.\n"
+"    "
+
+#, python-format
+msgid "Added automember rule \"%(value)s\""
+msgstr "Regla automiembro añadida \"%(value)s\""
+
+msgid "Auto Membership is not configured"
+msgstr "Auto Afiliación no está configurada"
+
+msgid ""
+"\n"
+"    Add conditions to an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Añadir condiciones a una regla automiembro.\n"
+"    "
+
+msgid "Failed to add"
+msgstr "Fallo al añadir"
+
+#, python-format
+msgid "Added condition(s) to \"%(value)s\""
+msgstr "Añadida condición(es) a \"%(value)s\""
+
 msgid "Conditions that could not be added"
 msgstr "Condiciones que no pueden ser agregadas"
 
 msgid "Number of conditions added"
 msgstr "Número de condiciones agregadas"
+
+#, python-format
+msgid "Auto member rule: %s not found!"
+msgstr "Regla auto miembro: %s no encontrada!"
+
+msgid ""
+"\n"
+"        Override this so we can add completed and failed to the return "
+"result.\n"
+"        "
+msgstr ""
+"\n"
+"        Anula esto de modo que podamos añadir completados y fallados al "
+"resultado devuelto.\n"
+"        "
+
+msgid ""
+"\n"
+"    Remove conditions from an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Borrar condiciones de una regla automiembro.\n"
+"    "
 
 msgid "Conditions that could not be removed"
 msgstr "Condiciones que no pueden ser eliminadas"
@@ -549,14 +578,114 @@ msgstr "Condiciones que no pueden ser eliminadas"
 msgid "Number of conditions removed"
 msgstr "Número de condiciones eliminadas"
 
+msgid ""
+"\n"
+"        Override this so we can set completed and failed.\n"
+"        "
+msgstr ""
+"\n"
+"        Anula esto de modo que podamos fijar completados y fallados.\n"
+"        "
+
+msgid ""
+"\n"
+"    Modify an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Modificar una regla automiembro.\n"
+"    "
+
+#, python-format
+msgid "Modified automember rule \"%(value)s\""
+msgstr "Modificada regla de automiembro \"%(value)s\""
+
+msgid ""
+"\n"
+"    Delete an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Borra una regla automiembro.\n"
+"    "
+
+#, python-format
+msgid "Deleted automember rule \"%(value)s\""
+msgstr "Borrada regla automiembro \"%(value)s\""
+
+msgid ""
+"\n"
+"    Search for automember rules.\n"
+"    "
+msgstr ""
+"\n"
+"    Búsqueda reglas automiembro.\n"
+"    "
+
+#, python-format
+msgid "%(count)d rules matched"
+msgid_plural "%(count)d rules matched"
+msgstr[0] "%(count)d reglas coincidentes"
+msgstr[1] "%(count)d reglas coincidentes"
+
+msgid ""
+"\n"
+"    Display information about an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Muestra información sobre una regla automiembro.\n"
+"    "
+
+msgid "automount location"
+msgstr "localización automontaje"
+
+msgid "automount locations"
+msgstr "localizaciones de automontaje"
+
 msgid "Automount Locations"
 msgstr "Ubicaciones de automontado"
+
+msgid "Automount Location"
+msgstr "Localización de Automontaje"
 
 msgid "Location"
 msgstr "Ubicación"
 
 msgid "Automount location name."
 msgstr "Nombre de la ubicación de montaje automático."
+
+msgid "Create a new automount location."
+msgstr "Crear una nueva localización de automontaje."
+
+#, python-format
+msgid "Added automount location \"%(value)s\""
+msgstr "Añadida localización de automontaje \"%(value)s\""
+
+msgid "Delete an automount location."
+msgstr "Borrar una localización de automontaje."
+
+#, python-format
+msgid "Deleted automount location \"%(value)s\""
+msgstr "Borrada una localización de automontaje \"%(value)s\""
+
+msgid "Display an automount location."
+msgstr "Mostrar una localización de automontaje"
+
+msgid "Search for an automount location."
+msgstr "Buscar una localización de automontaje."
+
+#, python-format
+msgid "%(count)d automount location matched"
+msgid_plural "%(count)d automount locations matched"
+msgstr[0] "%(count)d localización de automontaje coincidente"
+msgstr[1] "%(count)d localizaciones de automontaje coincidentes"
+
+msgid "Generate automount files for a specific location."
+msgstr "Generar ficheros de automontaje para una localización específica."
+
+msgid "Import automount files for a specific location."
+msgstr "Importar ficheros de automontaje para una localización específica."
 
 msgid "Master file"
 msgstr "    Archivo maestro"
@@ -574,6 +703,12 @@ msgstr ""
 msgid "File %(file)s not found"
 msgstr "No se encontró el archivo %(file)s "
 
+msgid "automount map"
+msgstr "mapa de automontaje"
+
+msgid "automount maps"
+msgstr "mapas de automontaje"
+
 msgid "Map"
 msgstr "Mapa"
 
@@ -582,6 +717,51 @@ msgstr "  Nombre del mapa automount."
 
 msgid "Automount Maps"
 msgstr "Mapas de montaje automático"
+
+msgid "Automount Map"
+msgstr "Mapa de Automontaje"
+
+msgid "Create a new automount map."
+msgstr "Crear un nuevo mapa de automontaje"
+
+#, python-format
+msgid "Added automount map \"%(value)s\""
+msgstr "Añadido mapa de automontaje \"%(value)s\""
+
+msgid "Delete an automount map."
+msgstr "Borrar un mapa de automontaje."
+
+#, python-format
+msgid "Deleted automount map \"%(value)s\""
+msgstr "Borrado un mapa de automontaje \"%(value)s\""
+
+msgid "Modify an automount map."
+msgstr "Modificar un mapa de automontaje"
+
+#, python-format
+msgid "Modified automount map \"%(value)s\""
+msgstr "Modificado un mapa de automontaje \"%(value)s\""
+
+msgid "Search for an automount map."
+msgstr "Buscar un mapa de automontaje."
+
+#, python-format
+msgid "%(count)d automount map matched"
+msgid_plural "%(count)d automount maps matched"
+msgstr[0] "%(count)d mapa de automontaje coincidente"
+msgstr[1] "%(count)d mapas de automontaje coincidentes"
+
+msgid "Display an automount map."
+msgstr "Mostrar un mapa de automontaje"
+
+msgid "Automount key object."
+msgstr "Objeto clave de automontaje"
+
+msgid "automount key"
+msgstr "clave de automontaje"
+
+msgid "automount keys"
+msgstr "claves de automontaje"
 
 msgid "Key"
 msgstr "Llave"
@@ -597,6 +777,9 @@ msgstr "descripción"
 
 msgid "Automount Keys"
 msgstr "Llaves de montaje automático"
+
+msgid "Automount Key"
+msgstr "Clave de Automontaje"
 
 #, python-format
 msgid ""
@@ -622,6 +805,20 @@ msgstr ""
 "Se ha encontrado más de una entrada con la llave %(key)s, utilice --info "
 "para seleccionar una entrada específica."
 
+msgid "Create a new automount key."
+msgstr "Crear una nueva clave de automontaje."
+
+#, python-format
+msgid "Added automount key \"%(value)s\""
+msgstr "Añadida clave de automontaje \"%(value)s\""
+
+msgid "Create a new indirect mount point."
+msgstr "Crear un nuevo punto de montaje indirecto."
+
+#, python-format
+msgid "Added automount indirect map \"%(value)s\""
+msgstr "Añadido mapa de automontaje indirecto \"%(value)s\""
+
 msgid "Mount point"
 msgstr "Punto de montaje"
 
@@ -632,8 +829,34 @@ msgid "Name of parent automount map (default: auto.master)."
 msgstr ""
 "Nombre del mapa de montaje automático de padre (por defecto: auto.master)."
 
+msgid "Delete an automount key."
+msgstr "Borrar una clave de automontaje."
+
+#, python-format
+msgid "Deleted automount key \"%(value)s\""
+msgstr "Borrada clave de automontaje \"%(value)s\""
+
+msgid "Modify an automount key."
+msgstr "Modificar una clave de automontaje."
+
+#, python-format
+msgid "Modified automount key \"%(value)s\""
+msgstr "Modificada clave de automontaje \"%(value)s\""
+
 msgid "New mount information"
 msgstr "Nueva información de montaje"
+
+msgid "Search for an automount key."
+msgstr "Buscar una clave de automontaje."
+
+#, python-format
+msgid "%(count)d automount key matched"
+msgid_plural "%(count)d automount keys matched"
+msgstr[0] "%(count)d clave de automontaje coincidente"
+msgstr[1] "%(count)d claves de automontaje coincidentes"
+
+msgid "Display an automount key."
+msgstr "Mostrar una clave de automontaje."
 
 msgid "Password"
 msgstr "Contraseña"
@@ -735,6 +958,9 @@ msgstr ""
 "httpd.keytab\\n\n"
 "\\n"
 
+msgid "Member HBAC service"
+msgstr "Miembro del servicio HBAC"
+
 msgid "Member HBAC service groups"
 msgstr "Grupos de servicio de Miembros HBAC"
 
@@ -767,17 +993,29 @@ msgstr "Grupo de servicio HBAC de miembros indirectos "
 msgid "Indirect Member netgroups"
 msgstr "Miembros indirectos netgroups"
 
+msgid "Failed source hosts/hostgroups"
+msgstr "Fallada fuente hosts/grupos de hosts"
+
 msgid "Failed hosts/hostgroups"
 msgstr "Falló host/hostgroups"
 
 msgid "Failed users/groups"
 msgstr "Falló usuarios/grupos"
 
+msgid "Failed service/service groups"
+msgstr "Fallado servicio/servicio grupos"
+
 msgid "Failed to remove"
 msgstr "No se ha podido quitar"
 
 msgid "External host"
 msgstr "Equipo externo"
+
+msgid "entry"
+msgstr "entrada"
+
+msgid "entries"
+msgstr "entradas"
 
 msgid "Entry"
 msgstr "Entrada"
@@ -806,6 +1044,20 @@ msgstr ""
 "Para los atributos de valor múltiple, el comando sustituye los valores ya "
 "presentes."
 
+msgid ""
+"Add an attribute/value pair. Format is attr=value. The attribute\n"
+"must be part of the schema."
+msgstr ""
+"Añadir un par atributo/valor. El formato es attr=value. El atributo debe ser "
+"parte del esquema."
+
+msgid ""
+"Delete an attribute/value pair. The option will be evaluated\n"
+"last, after all sets and adds."
+msgstr ""
+"Borrar un par atributo/valor. La opción será evaluada al final, después de "
+"todos los ajustes y añadidos."
+
 msgid "Continuous mode: Don't stop on errors."
 msgstr "Modo continuo: No se detenga en los errores."
 
@@ -829,6 +1081,10 @@ msgstr "Cambie el nombre del %(ldap_obj_name)s  objeto"
 msgid "the entry was deleted while being modified"
 msgstr "la entrada fue eliminada mientras estaba siendo modificada"
 
+#, python-format
+msgid "member %s"
+msgstr "miembro %s"
+
 msgid "Members that could not be added"
 msgstr "Miembros que no han podido ser añadidos"
 
@@ -840,6 +1096,14 @@ msgstr "Miembros que no han podido ser eliminados"
 
 msgid "Number of members removed"
 msgstr "Cantidad de miembros eliminados"
+
+msgid "Primary key only"
+msgstr "Sólo clave primaria"
+
+#, python-format
+msgid "Results should contain primary key attribute only (\"%s\")"
+msgstr ""
+"Los resultados deberían contener sólo atributo de clave primaria (“%s”)"
 
 msgid "Time Limit"
 msgstr "Tiempo límite"
@@ -853,144 +1117,8 @@ msgstr "Tamaño límite"
 msgid "Maximum number of entries returned"
 msgstr "Cantidad máxima de entradas obtenidas"
 
-msgid "added"
-msgstr "Agregado"
-
-msgid "removed"
-msgstr "eliminado"
-
 msgid "Nested Methods to execute"
 msgstr "Métodos anidados para ejecutar"
-
-msgid ""
-"\n"
-"IPA certificate operations\n"
-"\n"
-"Implements a set of commands for managing server SSL certificates.\n"
-"\n"
-"Certificate requests exist in the form of a Certificate Signing Request "
-"(CSR)\n"
-"in PEM format.\n"
-"\n"
-"If using the selfsign back end then the subject in the CSR needs to match\n"
-"the subject configured in the server. The dogtag CA uses just the CN\n"
-"value of the CSR and forces the rest of the subject.\n"
-"\n"
-"A certificate is stored with a service principal and a service principal\n"
-"needs a host.\n"
-"\n"
-"In order to request a certificate:\n"
-"\n"
-"* The host must exist\n"
-"* The service must exist (or you use the --add option to automatically add "
-"it)\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Request a new certificate and add the principal:\n"
-"   ipa cert-request --add --principal=HTTP/lion.example.com example.csr\n"
-"\n"
-" Retrieve an existing certificate:\n"
-"   ipa cert-show 1032\n"
-"\n"
-" Revoke a certificate (see RFC 5280 for reason details):\n"
-"   ipa cert-revoke --revocation-reason=6 1032\n"
-"\n"
-" Remove a certificate from revocation hold status:\n"
-"   ipa cert-remove-hold 1032\n"
-"\n"
-" Check the status of a signing request:\n"
-"   ipa cert-status 10\n"
-"\n"
-"IPA currently immediately issues (or declines) all certificate requests so\n"
-"the status of a request is not normally useful. This is for future use\n"
-"or the case where a CA does not immediately issue a certificate.\n"
-"\n"
-"The following revocation reasons are supported:\n"
-"\n"
-"    * 0 - unspecified\n"
-"    * 1 - keyCompromise\n"
-"    * 2 - cACompromise\n"
-"    * 3 - affiliationChanged\n"
-"    * 4 - superseded\n"
-"    * 5 - cessationOfOperation\n"
-"    * 6 - certificateHold\n"
-"    * 8 - removeFromCRL\n"
-"    * 9 - privilegeWithdrawn\n"
-"    * 10 - aACompromise\n"
-"\n"
-"Note that reason code 7 is not used.  See RFC 5280 for more details:\n"
-"\n"
-"http://www.ietf.org/rfc/rfc5280.txt\n"
-"\n"
-msgstr ""
-"\n"
-"\\n\n"
-"Operaciones de certificado IPA\\n\n"
-"\\n\n"
-"Ejecuta un conjunto de comandos para administrar los certificados SSL del "
-"servidor.\\n\n"
-"\\n\n"
-"Las solicitudes de certificados existen en la forma de Solicitud de Firma de "
-"Certificado (CSR)\\n\n"
-"en formato PEM.\\n\n"
-"\\n\n"
-"Si utiliza el back end de autofirma el asunto en la CSR debe coincidir\\n\n"
-"con el asunto configurado en el servidor. El Certificado dogtag usa justo el "
-"valor CN\\n\n"
-"de la CSR y fuerza al resto del asunto.\\n\n"
-"\\n\n"
-"Un certificado se almacena con un principal de servicio y un principal de "
-"servicio que el host\\n\n"
-"necesita.\\n\n"
-"\\n\n"
-"Para solicitar un certificado:\\n\n"
-"\\n\n"
-"* El host debe existir\\n\n"
-"* El servicio debe existir (o use la opción --add para añadirlo "
-"automáticamente)\\n\n"
-"\\n\n"
-"EJEMPLOS:\\n\n"
-"\\n\n"
-" Solicite un nuevo certificado y añada el principal:\\n\n"
-"   ipa cert-request --add --principal=HTTP/lion.example.com example.csr\\n\n"
-"\\n\n"
-" Recupere un certificado existente:\\n\n"
-"   ipa cert-show 1032\\n\n"
-"\\n\n"
-" Recupere un certificado (see RFC 5280 for reason details):\\n\n"
-"   ipa cert-revoke --revocation-reason=6 1032\\n\n"
-"\\n\n"
-" Retire un certificado del estatus de suspendido:\\n\n"
-"   ipa cert-remove-hold 1032\\n\n"
-"\\n\n"
-" Revise el estatus de una solicitud de firma:\\n\n"
-"   ipa cert-status 10\\n\n"
-"\\n\n"
-"IPA inmediatamente acepta (o declina) todas las solicitudes de certificado"
-"\\n\n"
-"por lo tanto, el estatus de una solicitud no suele ser normal. Esto es para "
-"el uso futuro o \\n\n"
-"el caso en el que un CA no expide inmediatamente un certificado.\\n\n"
-"\\n\n"
-"Las siguientes razones de revocación están soportadas:\\n\n"
-"\\n\n"
-"    * 0 - no especificado\\n\n"
-"    * 1 - compromiso de clave\\n\n"
-"    * 2 - compromiso de cA\\n\n"
-"    * 3 - afiliación cambiada\\n\n"
-"    * 4 - sustituida\\n\n"
-"    * 5 - cese de operación\\n\n"
-"    * 6 - certificado retenido\\n\n"
-"    * 8 - retirar de CRL\\n\n"
-"    * 9 - privilegio negado \\n\n"
-"    * 10 - Compromiso A\\n\n"
-"\\n\n"
-"Observe que la razón del código 7 no se utiliza. Consulte RFC 5280 para "
-"mayor información:\\n\n"
-"\\n\n"
-"http://www.ietf.org/rfc/rfc5280.txt\\n\n"
-"\\n\n"
 
 msgid "Failure decoding Certificate Signing Request:"
 msgstr ""
@@ -1005,6 +1133,9 @@ msgid "Failure decoding Certificate Signing Request: %s"
 msgstr ""
 "Falla al intentar decodificar la petición de identificación de certificado: "
 "%s"
+
+msgid "Submit a certificate signing request."
+msgstr "Enviar una petición de firma de certificado."
 
 msgid "CSR"
 msgstr "CSR"
@@ -1058,6 +1189,9 @@ msgstr "Estado de la petición"
 msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
 msgstr "Número de serie en decimales, o hexadecimales, si tiene un prefijo 0x"
 
+msgid "Retrieve an existing certificate."
+msgstr "Recuperar un certificado existente."
+
 msgid "Revocation reason"
 msgstr "Motivo de la revocación"
 
@@ -1082,11 +1216,17 @@ msgstr "Motivo por el cual el certificado ha sido revocado (0-10)"
 msgid "7 is not a valid revocation reason"
 msgstr "7 no es una razón válida de revocación"
 
+msgid "Take a revoked certificate off hold."
+msgstr "Tomar un certificado revocado de espera."
+
 msgid "Unrevoked"
 msgstr "No revocado"
 
 msgid "Error"
 msgstr "Error"
+
+msgid "Status"
+msgstr "Estatus"
 
 msgid "searchtimelimit must be -1 or > 1."
 msgstr "searchtimelimit debe ser -1 o&gt; 1."
@@ -1103,6 +1243,9 @@ msgstr "Largo máximo para nombre de usuario"
 msgid "Home directory base"
 msgstr "Base del directorio principal"
 
+msgid "Default location of home directories"
+msgstr "Localización por defecto de los directorios home"
+
 msgid "Default shell"
 msgstr "Shell predeterminada"
 
@@ -1115,17 +1258,45 @@ msgstr "Grupo de usuarios predeterminado"
 msgid "Default group for new users"
 msgstr "Grupo predeterminado para usuarios nuevos"
 
+msgid "Default e-mail domain"
+msgstr "Dominio de correo electrónico por defecto"
+
 msgid "Search time limit"
 msgstr "Buscar límite de tiempo"
+
+msgid ""
+"Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)"
+msgstr ""
+"Máxima cantidad de tiempo (segundos) parab una búsqueda (> 0, o -1 para "
+"ilimitado)"
 
 msgid "Search size limit"
 msgstr "Límite del tamaño de la búsqueda"
 
+msgid "Maximum number of records to search (-1 is unlimited)"
+msgstr "Máximo número de registros a buscar (-1 es ilimitado)"
+
 msgid "User search fields"
 msgstr "Campos de búsqueda de usuario"
 
+msgid "A comma-separated list of fields to search in when searching for users"
+msgstr ""
+"Una lista separada por comas de los campos a buscar cuando se está buscando "
+"usuarios"
+
+msgid "A comma-separated list of fields to search in when searching for groups"
+msgstr ""
+"Una lista separada por comas de los campos a buscar cuando se está buscando "
+"grupos"
+
+msgid "Enable migration mode"
+msgstr "Habilitar modo migración"
+
 msgid "Certificate Subject base"
 msgstr "Base de certificado de asunto"
+
+msgid "Base for certificate subjects (OU=Test,O=Example)"
+msgstr "Base para sujetos certificados (OU=Prueba,O=Ejemplo)"
 
 msgid "Default group objectclasses"
 msgstr "Grupo predeterminado objectclass"
@@ -1151,12 +1322,6 @@ msgstr "Delegación"
 
 msgid "Delegation name"
 msgstr "Nombre de delegación"
-
-msgid ""
-"Comma-separated list of permissions to grant (read, write). Default is write."
-msgstr ""
-"Lista separada por comas de los permisos a otorgar (lectura, escritura). El "
-"valor predeterminado es escritura."
 
 msgid "Member user group"
 msgstr "Miembro del grupo de usuarios"
@@ -1278,12 +1443,6 @@ msgstr "Permitir actualizaciones dinámicas."
 
 msgid "Force"
 msgstr "Forzar"
-
-msgid "Force DNS zone creation even if nameserver not in DNS."
-msgstr "Fuerza la creación de la zona DNS del servidor de nombres no en DNS."
-
-msgid "Add the nameserver to DNS with this IP address"
-msgstr "Agregue el servidor de nombres de DNS con esta dirección IP"
 
 msgid "DNS is not configured"
 msgstr "DNS no está configurado"
@@ -1580,12 +1739,6 @@ msgstr "Categoría del equipo"
 msgid "Host category the rule applies to"
 msgstr "Categoría del equipo al que se aplica la regla"
 
-msgid "Source host category"
-msgstr "Categoría del equipo de origen"
-
-msgid "Source host category the rule applies to"
-msgstr "Categoría del equipo de origen al que se aplica la regla"
-
 msgid "Service category"
 msgstr "   Añadir servicios a una regla de HBAC"
 
@@ -1715,55 +1868,6 @@ msgid "%(count)d HBAC service matched"
 msgid_plural "%(count)d HBAC services matched"
 msgstr[0] "Servicio HBAC %(count)d coincidente"
 msgstr[1] "Servicios HBAC %(count)d coincidentes"
-
-msgid ""
-"\n"
-"HBAC Service Groups\n"
-"\n"
-"HBAC service groups can contain any number of individual services,\n"
-"or \"members\". Every group must have a description.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a new HBAC service group:\n"
-"   ipa hbacsvcgroup-add --desc=\"login services\" login\n"
-"\n"
-" Add members to an HBAC service group:\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=sshd,login login\n"
-"\n"
-" Display information about a named group:\n"
-"   ipa hbacsvcgroup-show login\n"
-"\n"
-" Add a new group to the \"login\" group:\n"
-"   ipa hbacsvcgroup-add --desc=\"switch users\" login\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l login\n"
-"\n"
-" Delete an HBAC service group:\n"
-"   ipa hbacsvcgroup-del login\n"
-msgstr ""
-"\n"
-"Grupos de servicio HBAC\n"
-"\n"
-"Grupos de servicio HBAC pueden contener cualquier número de servicios "
-"individuales, o \"miembros\". Cada grupo debe contener una descripción\n"
-"\n"
-"EJEMPLOS:\n"
-"\n"
-" Añadir un nuevo grupo de servicio HBAC:\n"
-"   ipa hbacsvcgroup-add --desc=\"login services\" login\n"
-"\n"
-" Añadir miembros a un grupo de servicio HBAC:\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=sshd,login login\n"
-"\n"
-" Mostrar información sobre grupo llamado:\n"
-"   ipa hbacsvcgroup-show login\n"
-"\n"
-" Añadir un nuevo grupo al grupo \"login\":\n"
-"   ipa hbacsvcgroup-add --desc=\"switch users\" login\n"
-"   ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l login\n"
-"\n"
-" Eliminar un grupo de servicio HBAC:\n"
-"   ipa hbacsvcgroup-del login\n"
 
 msgid "Service group name"
 msgstr ""
@@ -1897,66 +2001,6 @@ msgstr "Certificado almacenado en el archivo '%(file)s'"
 #, python-format
 msgid "Disabled host \"%(value)s\""
 msgstr "Host desactivado \"%(value)s\""
-
-msgid ""
-"\n"
-"Groups of hosts.\n"
-"\n"
-"Manage groups of hosts. This is useful for applying access control to a\n"
-"number of hosts by using Host-based Access Control.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a new host group:\n"
-"   ipa hostgroup-add --desc=\"Baltimore hosts\" baltimore\n"
-"\n"
-" Add another new host group:\n"
-"   ipa hostgroup-add --desc=\"Maryland hosts\" maryland\n"
-"\n"
-" Add members to the hostgroup:\n"
-"   ipa hostgroup-add-member --hosts=box1,box2,box3 baltimore\n"
-"\n"
-" Add a hostgroup as a member of another hostgroup:\n"
-"   ipa hostgroup-add-member --hostgroups=baltimore maryland\n"
-"\n"
-" Remove a host from the hostgroup:\n"
-"   ipa hostgroup-remove-member --hosts=box2 baltimore\n"
-"\n"
-" Display a host group:\n"
-"   ipa hostgroup-show baltimore\n"
-"\n"
-" Delete a hostgroup:\n"
-"   ipa hostgroup-del baltimore\n"
-msgstr ""
-"\n"
-"Grupos de hosts.\n"
-"\n"
-"Administrar grupos de hosts. Es útili para aplicar control a un número de "
-"hosts mediante Host-basado en Control de Acceso.\n"
-"\n"
-"EJEMPLOS:\n"
-"\n"
-" Añadir un nuevo grupo de host:\n"
-"   ipa hostgroup-add --desc=\"Baltimore hosts\" baltimore\n"
-"\n"
-" Añadir otro nuevo grupo de host:\n"
-"   ipa hostgroup-add --desc=\"Maryland hosts\" maryland\n"
-"\n"
-" Añadir miembros de hostgroup:\n"
-"   ipa hostgroup-add-member --hosts=box1,box2,box3 baltimore\n"
-"\n"
-" Añadir un hostgroup como miembro de otro\n"
-" hostgroup:\n"
-"   ipa hostgroup-add-member --hostgroups=baltimore maryland\n"
-"\n"
-" Quitar un host de un hostgroup:\n"
-"   ipa hostgroup-remove-member --hosts=box2 baltimore\n"
-"\n"
-" Mostrar un grupo de host:\n"
-"   ipa hostgroup-show baltimore\n"
-"\n"
-" Eliminar un hostgroup:\n"
-"   ipa hostgroup-del baltimore\n"
 
 msgid "Host-group"
 msgstr "Grupo de equipo"
@@ -2117,6 +2161,9 @@ msgstr "Expira el"
 msgid "Fingerprints"
 msgstr "Las huellas dactilares"
 
+msgid "Issue New Certificate for ${entity} ${primary_key}"
+msgstr "Enviar Nuevo Certificado para ${entity} ${primary_key}"
+
 msgid "Issued By"
 msgstr "Expedido por"
 
@@ -2155,6 +2202,9 @@ msgstr "Motivo de la revocación"
 
 msgid "Remove from CRL"
 msgstr "Borrar de CRL"
+
+msgid "Restore Certificate for ${entity} ${primary_key}"
+msgstr "Restablecer Certificado para ${entity} ${primary_key}"
 
 msgid ""
 "To confirm your intention to restore this certificate, click the \"Restore\" "
@@ -2203,9 +2253,6 @@ msgstr "Los registros para la zona DNS"
 msgid "DNS Zone Settings"
 msgstr "Configuración de la Zona DNS"
 
-msgid "Status"
-msgstr "Estatus"
-
 msgid "Group Settings"
 msgstr "Configuración del grupo"
 
@@ -2229,9 +2276,6 @@ msgstr "Estatus de reglas"
 
 msgid "Via Service"
 msgstr "Vía de servicio"
-
-msgid "From"
-msgstr "Desde"
 
 msgid "Specified Hosts and Groups"
 msgstr "Hosts y grupos especificados"
@@ -2277,6 +2321,9 @@ msgstr "Unprovision"
 
 msgid "Are you sure you want to unprovision this host?"
 msgstr "¿Está seguro que desea unprovision este equipo?"
+
+msgid "Unprovisioning ${entity}"
+msgstr "Cancelación ${entity}"
 
 msgid "Host Group Settings"
 msgstr "Configuraciones del Grupo de Host"
@@ -2557,20 +2604,8 @@ msgstr "Contenedor de grupoi"
 msgid "User object class"
 msgstr "Clase de objeto de usuario"
 
-msgid ""
-"Comma-separated list of objectclasses used to search for user entries in DS"
-msgstr ""
-"Lista separada por comas de clases de objetos utilizados para buscar las "
-"entradas de usuario en DS"
-
 msgid "Group object class"
 msgstr "Clase de objeto de grupo"
-
-msgid ""
-"Comma-separated list of objectclasses used to search for group entries in DS"
-msgstr ""
-"Lista separada por comas de clases de objetos utilizados para la búsqueda de "
-"entradas de grupo en DS"
 
 msgid "LDAP schema"
 msgstr "Esquema LDAP"
@@ -2596,10 +2631,6 @@ msgstr "Lista de objetos que no pueden ser migrados; categorizados por tipo."
 
 msgid "False if migration mode was disabled."
 msgstr "\"False\", si el modo de migración fue inhabilitado."
-
-#, python-format
-msgid "comma-separated list of %s to exclude from migration"
-msgstr "lista de %s separada por comas a ser excluida de la migración"
 
 msgid ""
 "search results for objects to be migrated\n"
@@ -2660,51 +2691,6 @@ msgstr[1] "%(count)d complementos cargados"
 
 msgid "Number of plugins loaded"
 msgstr "Cantidad de complementos cargados"
-
-msgid ""
-"\n"
-"Netgroups\n"
-"\n"
-"A netgroup is a group used for permission checking. It can contain both\n"
-"user and host values.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a new netgroup:\n"
-"   ipa netgroup-add --desc=\"NFS admins\" admins\n"
-"\n"
-" Add members to the netgroup:\n"
-"   ipa netgroup-add-member --users=tuser1,tuser2 admins\n"
-"\n"
-" Remove a member from the netgroup:\n"
-"   ipa netgroup-remove-member --users=tuser2 admins\n"
-"\n"
-" Display information about a netgroup:\n"
-"   ipa netgroup-show admins\n"
-"\n"
-" Delete a netgroup:\n"
-"   ipa netgroup-del admins\n"
-msgstr ""
-"\n"
-"Grupos de Red\n"
-"Un grupo de red es un grupo usado para comprobación de permisos. Puede "
-"contener valores tanto del usuario como del host.\n"
-"EJEMPLOS:\n"
-"\n"
-" Añadir un nuevo grupo de red:\n"
-"   ipa netgroup-add --desc=\"NFS admins\" admins\n"
-"\n"
-" Añadir miembros al grupo de red:\n"
-"   ipa netgroup-add-member --users=tuser1,tuser2 admins\n"
-"\n"
-" Eliminar miembro del grupo de red:\n"
-"   ipa netgroup-remove-member --users=tuser2 admins\n"
-"\n"
-" Mostrar información sobre el grupo de red:\n"
-"   ipa netgroup-show admins\n"
-"\n"
-" Borrar un grupo de red:\n"
-"   ipa netgroup-del admins\n"
 
 msgid "Member Host"
 msgstr "Miembro del equipo anfitrión"
@@ -2894,10 +2880,6 @@ msgstr "Tipo de permiso"
 
 msgid "Permission name"
 msgstr "Nombre de permiso"
-
-msgid ""
-"Comma-separated list of permissions to grant (read, write, add, delete, all)"
-msgstr "Lista de permisos que otorgan (leer, escribir, añadir, borrar, todos)"
 
 msgid ""
 "Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)"
@@ -3244,62 +3226,6 @@ msgstr "Número de privilegios agregados"
 
 msgid "Number of privileges removed"
 msgstr "Número de privilegios eliminados"
-
-msgid ""
-"\n"
-"Self-service Permissions\n"
-"\n"
-"A permission enables fine-grained delegation of permissions. Access Control\n"
-"Rules, or instructions (ACIs), grant permission to permissions to perform\n"
-"given tasks such as adding a user, modifying a group, etc.\n"
-"\n"
-"A Self-service permission defines what an object can change in its own "
-"entry.\n"
-"\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a self-service rule to allow users to manage their address:\n"
-"   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st "
-"\"Users manage their own address\"\n"
-"\n"
-" When managing the list of attributes you need to include all attributes\n"
-" in the list, including existing ones. Add telephoneNumber to the list:\n"
-"   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber "
-"\"Users manage their own address\"\n"
-"\n"
-" Display our updated rule:\n"
-"   ipa selfservice-show \"Users manage their own address\"\n"
-"\n"
-" Delete a rule:\n"
-"   ipa selfservice-del \"Users manage their own address\"\n"
-msgstr ""
-"\n"
-"Permisos de autoservicio\n"
-"\n"
-"Un permiso permite la delegación de grano fino de permisos. \n"
-"\n"
-"Las reglas o instrucciones (ACI), conceden el permiso para realizar tareas, "
-"tales como, agregar un usuario, modificar un grupo, etc. \n"
-"Un permiso de autoservicio define lo que un objeto puede cambiar en su "
-"propia entrada. \n"
-"\n"
-"\n"
-"EJEMPLOS:\n"
-"\n"
-"Agregar una regla de auto-servicio para permitir a los usuarios administrar "
-"su dirección: \n"
-"   ipa selfservice-add --permissions=write \n"
-"--attrs=street,postalCode,l,c,st \"Users manage their own address\n"
-"\n"
-"Al administrar la lista de atributos necesita incluir todos los atributos de "
-"la lista, incluyendo los ya existentes. Añadir telephoneNumber a la lista:\n"
-"\"Users manage their own address\"\n"
-"Mostrar una regla actualizada:\n"
-"   ipa selfservice-show \"Users manage their own address\"\n"
-"\n"
-"Borrar una regla:\n"
-"   ipa selfservice-del \"Users manage their own address\"  \n"
 
 msgid "Self Service Permissions"
 msgstr "Permisos de autoservicio"
@@ -4012,111 +3938,3 @@ msgstr "Falló la creación de clave aleatoria\n"
 
 msgid "Failed to create key!\n"
 msgstr "¡Falló la creación de clave!\n"
-
-#~ msgid "must be one of %(values)r"
-#~ msgstr "debe ser uno de %(values)r"
-
-#~ msgid ""
-#~ "\n"
-#~ "Services\n"
-#~ "\n"
-#~ "A IPA service represents a service that runs on a host. The IPA service\n"
-#~ "record can store a Kerberos principal, an SSL certificate, or both.\n"
-#~ "\n"
-#~ "An IPA service can be managed directly from a machine, provided that\n"
-#~ "machine has been given the correct permission. This is true even for\n"
-#~ "machines other than the one the service is associated with. For example,\n"
-#~ "requesting an SSL certificate using the host service principal "
-#~ "credentials\n"
-#~ "of the host. To manage a service using host credentials you need to\n"
-#~ "kinit as the host:\n"
-#~ "\n"
-#~ " # kinit -kt /etc/krb5.keytab host/ipa.example.com@EXAMPLE.COM\n"
-#~ "\n"
-#~ "Adding an IPA service allows the associated service to request an SSL\n"
-#~ "certificate or keytab, but this is performed as a separate step; they\n"
-#~ "are not produced as a result of adding the service.\n"
-#~ "\n"
-#~ "Only the public aspect of a certificate is stored in a service record;\n"
-#~ "the private key is not stored.\n"
-#~ "\n"
-#~ "EXAMPLES:\n"
-#~ "\n"
-#~ " Add a new IPA service:\n"
-#~ "   ipa service-add HTTP/web.example.com\n"
-#~ "\n"
-#~ " Allow a host to manage an IPA service certificate:\n"
-#~ "  ipa service-add-host --hosts=web.example.com HTTP/web.example.com\n"
-#~ "  ipa role-add-member --hosts=web.example.com certadmin\n"
-#~ "\n"
-#~ " Delete an IPA service:\n"
-#~ "   ipa service-del HTTP/web.example.com\n"
-#~ "\n"
-#~ " Find all IPA services associated with a host:\n"
-#~ "   ipa service-find web.example.com\n"
-#~ "\n"
-#~ " Find all HTTP services:\n"
-#~ "   ipa service-find HTTP\n"
-#~ "\n"
-#~ " Disable the service Kerberos key and SSL certificate:\n"
-#~ "   ipa service-disable HTTP/web.example.com\n"
-#~ "\n"
-#~ " Request a certificate for an IPA service:\n"
-#~ "   ipa cert-request --principal=HTTP/web.example.com example.csr\n"
-#~ "\n"
-#~ " Generate and retrieve a keytab for an IPA service:\n"
-#~ "   ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/"
-#~ "httpd.keytab\n"
-#~ "\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Servicios\n"
-#~ "\n"
-#~ "Un servicio IPA es un servicio que se ejecuta en un host. El servicio de "
-#~ "registro IPA puede almacenar un principal de Kerberos, un certificado "
-#~ "SSL, o ambos.\n"
-#~ "\n"
-#~ "Un servicio IPA puede ser adminstrado directamente desde una máquina, "
-#~ "siempre y cuando las máquinas tengarn el permiso  correcto. \n"
-#~ "\n"
-#~ "Esto es cierto incluso para máquinas diferentes con la que se asocia el "
-#~ "servicio. Por ejemplo,\n"
-#~ "solicitando un certificado SSL mediante las credenciales del principal de "
-#~ "servicio de host necesita autenticarse con kinit como el host:\n"
-#~ "# kinit -kt /etc/krb5.keytab host/ipa.example.com@EXAMPLE.COM\n"
-#~ "\n"
-#~ "Añadir un servicio de IPA le permite al servicio solicitar un certificado "
-#~ "o tabla de claves SSL, pero se realiza como un paso separado: no se "
-#~ "produce como resultado de adicionar el servicio.\n"
-#~ "\n"
-#~ "Solamente el aspecto público de un certificado se almacena en un registro "
-#~ "de servicio; la clave privada no se almacena.\n"
-#~ "\n"
-#~ "EJEMPLOS:\n"
-#~ "\n"
-#~ "Añadir un nuevo servicio IPA:\n"
-#~ "   ipa service-add HTTP/web.example.com\n"
-#~ "\n"
-#~ "Permitir a un host administrar un certificado de servicio IPA:\n"
-#~ "  ipa service-add-host --hosts=web.example.com HTTP/web.example.com\n"
-#~ "  ipa role-add-member --hosts=web.example.com certadmin\n"
-#~ "\n"
-#~ "Borrar un servicio IPA:\n"
-#~ "   ipa service-del HTTP/web.example.com\n"
-#~ "\n"
-#~ "Buscar todos los servicios IPA asociados con el host:\n"
-#~ "   ipa service-find web.example.com\n"
-#~ "\n"
-#~ "Encontrar todos los servicio HTTP:\n"
-#~ "   ipa service-find HTTP\n"
-#~ "\n"
-#~ " Disable the service Kerberos key and SSL certificate:\n"
-#~ "   ipa service-disable HTTP/web.example.com\n"
-#~ "\n"
-#~ "Solicitar un certificado para un servicio IPA:\n"
-#~ "   ipa cert-request --principal=HTTP/web.example.com example.csr\n"
-#~ "\n"
-#~ " Generar y recuperar una tabla de claves para un servicio IPA:\n"
-#~ "   ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/"
-#~ "httpd.keytab\n"
-#~ "\n"

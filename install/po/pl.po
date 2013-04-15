@@ -4,20 +4,21 @@
 #
 # Translators:
 # jdennis <jdennis@redhat.com>, 2011.
-# Piotr Drąg <piotrdrag@gmail.com>, 2010.
+# Mateusz Marzantowicz <mmarzantowicz@osdf.com.pl>, 2013.
+# Piotr Drąg <piotrdrag@gmail.com>, 2010,2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2012-10-12 04:08-0400\n"
-"PO-Revision-Date: 2012-09-14 10:30+0000\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
+"product=freeIPA\n"
+"POT-Creation-Date: 2013-04-15 16:42+0200\n"
+"PO-Revision-Date: 2013-04-15 15:12+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
-"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: pl\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
@@ -30,33 +31,11 @@ msgid "Passwords do not match!"
 msgstr "Hasła się nie zgadzają."
 
 #, python-format
-msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
-msgstr ""
-"klient w wersji %(cver)s nie jest zgodny z serwerem w wersji %(sver)s na "
-"%(server)r"
-
-#, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
 msgstr "nieznany błąd %(code)d z %(server)s: %(error)s"
 
 msgid "an internal error has occurred"
 msgstr "wystąpił wewnętrzny błąd"
-
-#, python-format
-msgid "an internal error has occurred on server at %(server)r"
-msgstr "wystąpił wewnętrzny błąd w serwerze na %(server)r"
-
-#, python-format
-msgid "unknown command %(name)r"
-msgstr "nieznane polecenie %(name)r"
-
-#, python-format
-msgid "error on server %(server)r: %(error)s"
-msgstr "błąd w serwerze %(server)r: %(error)s"
-
-#, python-format
-msgid "cannot connect to %(uri)r: %(error)s"
-msgstr "nie można połączyć się z %(uri)r: %(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -68,10 +47,6 @@ msgstr "Błąd Kerberosa: %(major)s/%(minor)s"
 
 msgid "did not receive Kerberos credentials"
 msgstr "nie otrzymano danych uwierzytelniających Kerberosa"
-
-#, python-format
-msgid "Service %(service)r not found in Kerberos database"
-msgstr "Nie odnaleziono usługi %(service)r w bazie danych Kerberosa"
 
 msgid "No credentials cache found"
 msgstr "Nie odnaleziono pamięci podręcznej danych uwierzytelniających"
@@ -92,33 +67,6 @@ msgstr "Nie można rozwiązać KDC dla żądanego obszaru"
 #, python-format
 msgid "Insufficient access: %(info)s"
 msgstr "Niewystarczający dostęp: %(info)s"
-
-#, python-format
-msgid "command %(name)r takes no arguments"
-msgstr "polecenie %(name)r nie przyjmuje parametrów"
-
-#, python-format
-msgid "command %(name)r takes at most %(count)d argument"
-msgid_plural "command %(name)r takes at most %(count)d arguments"
-msgstr[0] "polecenie %(name)r przyjmuje co najwyżej %(count)d parametr"
-msgstr[1] "polecenie %(name)r przyjmuje co najwyżej %(count)d parametry"
-msgstr[2] "polecenie %(name)r przyjmuje co najwyżej %(count)d parametrów"
-
-#, python-format
-msgid "overlapping arguments and options: %(names)r"
-msgstr "pokrywanie parametrów i opcji: %(names)r"
-
-#, python-format
-msgid "%(name)r is required"
-msgstr "%(name)r jest wymagane"
-
-#, python-format
-msgid "invalid %(name)r: %(error)s"
-msgstr "nieprawidłowe %(name)r: %(error)s"
-
-#, python-format
-msgid "api has no such namespace: %(name)r"
-msgstr "API nie posiada takiej przestrzeni nazw: %(name)r"
 
 msgid "Passwords do not match"
 msgstr "Hasła się nie zgadzają"
@@ -154,10 +102,6 @@ msgstr "Te polecenie wymaga dostępu roota"
 msgid "This is already a posix group"
 msgstr "To jest już grupa POSIX"
 
-#, python-format
-msgid "Principal is not of the form user@REALM: %(principal)r"
-msgstr "Naczelnik nie jest w formacie użytkownik@OBSZAR: %(principal)r"
-
 msgid "A group may not be a member of itself"
 msgstr "Grupa nie może być własnym elementem"
 
@@ -180,8 +124,8 @@ msgstr ""
 "odłączona."
 
 #, python-format
-msgid "no command nor help topic %(topic)r"
-msgstr "nie ma takiego polecenia lub tematu pomocy %(topic)r"
+msgid "%(attr)s does not contain '%(value)s'"
+msgstr "%(attr)s nie zawiera \"%(value)s\""
 
 msgid "change collided with another change"
 msgstr "zmiana koliduje z inną zmianą"
@@ -297,6 +241,10 @@ msgid "Group '%s' does not exist"
 msgstr "Grupa \"%s\" nie istnieje"
 
 #, python-format
+msgid "Syntax Error: %(error)s"
+msgstr "Błąd składni: %(error)s"
+
+#, python-format
 msgid "ACI with name \"%s\" not found"
 msgstr "Nie odnaleziono ACI o nazwie \"%s\""
 
@@ -315,17 +263,8 @@ msgstr "Grupa użytkowników, do której ACI zapewnia dostęp"
 msgid "Permissions"
 msgstr "Uprawnienia"
 
-msgid ""
-"comma-separated list of permissions to grant(read, write, add, delete, all)"
-msgstr ""
-"lista uprawnień oddzielonych przecinkami do udzielenia (odczyt, zapis, "
-"dodanie, usunięcie, wszystkie)"
-
 msgid "Attributes"
 msgstr "Atrybuty"
-
-msgid "Comma-separated list of attributes"
-msgstr "Lista atrybutów oddzielonych przecinkami"
 
 msgid "Type"
 msgstr "Typ"
@@ -382,8 +321,16 @@ msgstr[2] "Pasuje %(count)d ACI"
 msgid "Description"
 msgstr "Opis"
 
+#, python-format
+msgid "Group: %s not found!"
+msgstr "Grupa: nie odnaleziono %s."
+
 msgid "Location"
 msgstr "Położenie"
+
+#, python-format
+msgid "File %(file)s not found"
+msgstr "Nie odnaleziono pliku %(file)s"
 
 msgid "Map"
 msgstr "Mapa"
@@ -421,6 +368,9 @@ msgstr "Elementy użytkowników"
 msgid "Member groups"
 msgstr "Elementy grupy"
 
+msgid "Member of groups"
+msgstr "Członek grup"
+
 msgid "Member hosts"
 msgstr "Element komputerów"
 
@@ -429,6 +379,9 @@ msgstr "Element grupy komputerów"
 
 msgid "Member of host-groups"
 msgstr "Element grupy komputerów"
+
+msgid "Roles"
+msgstr "Role"
 
 msgid "Sudo Command Groups"
 msgstr "Grupy polecenia sudo"
@@ -457,8 +410,15 @@ msgstr "%(pkey)s: nie odnaleziono %(oname)s"
 msgid "Continuous mode: Don't stop on errors."
 msgstr "Tryb ciągły: bez zatrzymywania po błędach."
 
+msgid "Rights"
+msgstr "Uprawnienia"
+
 msgid "the entry was deleted while being modified"
 msgstr "wpis został usunięty podczas modyfikowania"
+
+#, python-format
+msgid "member %s"
+msgstr "członek %s"
 
 msgid "Members that could not be added"
 msgstr "Elementy, które nie mogły zostać dodane"
@@ -543,6 +503,9 @@ msgstr ""
 msgid "Revocation reason"
 msgstr "Przyczyna unieważnienia"
 
+msgid "Revoke a certificate."
+msgstr "Odrzuć certyfikat."
+
 msgid "Revoked"
 msgstr "Unieważniono"
 
@@ -558,6 +521,9 @@ msgstr "Cofnięto unieważnienie"
 msgid "Error"
 msgstr "Błąd"
 
+msgid "Status"
+msgstr "Stan"
+
 msgid "Configuration"
 msgstr "Konfiguracja"
 
@@ -567,8 +533,14 @@ msgstr "Podstawa katalogu domowego"
 msgid "Default shell"
 msgstr "Domyślna powłoka"
 
+msgid "Default shell for new users"
+msgstr "Domyślna powłoka dla nowych użytkowników"
+
 msgid "Default users group"
 msgstr "Domyślna grupa użytkowników"
+
+msgid "Default group for new users"
+msgstr "Domyślna grupa dla nowych użytkowników"
 
 msgid "Search time limit"
 msgstr "Ograniczenie czasu wyszukiwania"
@@ -585,6 +557,9 @@ msgstr "Podstawa tematu certyfikatu"
 msgid "Hostname"
 msgstr "Nazwa komputera"
 
+msgid "Target"
+msgstr "Cel"
+
 msgid "Priority"
 msgstr "Priorytet"
 
@@ -593,6 +568,9 @@ msgstr "Nazwa strefy"
 
 msgid "Zone name (FQDN)"
 msgstr "Nazwa strefy (FQDN)"
+
+msgid "Administrator e-mail address"
+msgstr "Adres e-mail administratora"
 
 msgid "SOA serial"
 msgstr "Numer seryjny SOA"
@@ -618,11 +596,23 @@ msgstr "Klasa SOA"
 msgid "BIND update policy"
 msgstr "Polityka aktualizacji BIND"
 
+msgid "Active zone"
+msgstr "Aktywna strefa"
+
+msgid "DNS is not configured"
+msgstr "DNS nie jest skonfigurowany"
+
 msgid "Time to live"
 msgstr "Czas życia"
 
 msgid "Class"
 msgstr "Klasa"
+
+msgid "Delete all associated records"
+msgstr "Usuń wszystkie powiązane wpisy"
+
+msgid "Delete all?"
+msgstr "Usunąć wszystko?"
 
 #, python-format
 msgid "Found '%(value)s'"
@@ -631,6 +621,12 @@ msgstr "Odnaleziono \"%(value)s\""
 #, python-format
 msgid "Host '%(host)s' not found"
 msgstr "Nie odnaleziono komputera \"%(host)s\""
+
+msgid "UUID"
+msgstr "UUID"
+
+msgid "Product"
+msgstr "Produkt"
 
 msgid "User Groups"
 msgstr "Grupy użytkowników"
@@ -699,12 +695,6 @@ msgstr "Kategoria komputerów"
 
 msgid "Host category the rule applies to"
 msgstr "Kategoria komputerów, do których zastosowywana jest reguła"
-
-msgid "Source host category"
-msgstr "Kategoria komputerów źródłowych"
-
-msgid "Source host category the rule applies to"
-msgstr "Kategoria komputerów źródłowych, do których zastosowywana jest reguła"
 
 msgid "Service category"
 msgstr "Kategoria usług"
@@ -849,6 +839,18 @@ msgstr "Słownik obiektów IPA zakodowanych w formacie JSON"
 msgid "Add"
 msgstr "Dodaj"
 
+msgid "Add and Close"
+msgstr "Dodaj i zamknij"
+
+msgid "Add and Edit"
+msgstr "Dodaj i edytuj"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "Close"
+msgstr "Zamknij"
+
 msgid "Find"
 msgstr "Znajdź"
 
@@ -858,20 +860,47 @@ msgstr "Usuń"
 msgid "Reset"
 msgstr "Przywróć"
 
+msgid "Restore"
+msgstr "Przywróć"
+
+msgid "Retry"
+msgstr "Ponów"
+
 msgid "Update"
 msgstr "Zaktualizuj"
 
 msgid "Back to Top"
 msgstr "Wróć na górę"
 
+msgid "Settings"
+msgstr "Ustawienia"
+
+msgid "Search"
+msgstr "Wyszukaj"
+
 msgid "Logged In As"
 msgstr "Zalogowano jako"
+
+msgid "Attribute"
+msgstr "Atrybut"
+
+msgid "New Certificate"
+msgstr "Nowy certyfikat"
+
+msgid "Certificate Revoked"
+msgstr "Odrzucono certyfikat"
 
 msgid "Data"
 msgstr "Dane"
 
+msgid "DNS Zone Settings"
+msgstr "Ustawienia strefy DNS"
+
 msgid "Host Name"
 msgstr "Nazwa komputera"
+
+msgid "Set OTP"
+msgstr "Ustaw OTP"
 
 msgid "Kerberos Ticket Policy"
 msgstr "Polityka zgłoszeń Kerberosa"
@@ -888,11 +917,23 @@ msgstr "Grupy"
 msgid "Commands"
 msgstr "Polecenia"
 
+msgid "Account Settings"
+msgstr "Ustawienia konta"
+
 msgid "Mailing Address"
 msgstr "Adres pocztowy"
 
 msgid "Misc. Information"
 msgstr "Różne informacje"
+
+msgid "New Password"
+msgstr "Nowe hasło"
+
+msgid "Password change complete"
+msgstr "Ukończono zmianę hasła"
+
+msgid "Passwords must match"
+msgstr "Hasła muszą się zgadzać"
 
 msgid "Quick Links"
 msgstr "Szybkie odnośniki"
@@ -908,6 +949,9 @@ msgstr "Automatyczne montowanie"
 
 msgid "DNS"
 msgstr "DNS"
+
+msgid "Role Based Access Control"
+msgstr "Kontrola dostępu oparta na rolach"
 
 msgid "Dict of I18N messages"
 msgstr "Słownik komunikatów umiędzynaradawiania"
@@ -959,6 +1003,9 @@ msgstr "Kontener użytkownika"
 msgid "Group container"
 msgstr "Kontener grupy"
 
+msgid "LDAP schema"
+msgstr "Schemat LDAP"
+
 msgid "Lists of objects migrated; categorized by type."
 msgstr "Lista migrowanych obiektów, ułożonych w kategorie według typu."
 
@@ -969,10 +1016,6 @@ msgstr ""
 
 msgid "False if migration mode was disabled."
 msgstr "Fałsz, jeśli wyłączono tryb migracji"
-
-#, python-format
-msgid "comma-separated list of %s to exclude from migration"
-msgstr "lista %s oddzielonych przecinkami do wykluczenia z migracji"
 
 msgid "Migration mode is disabled. Use 'ipa config-mod' to enable it."
 msgstr ""
@@ -1030,6 +1073,13 @@ msgstr "Nazwa domeny NIS"
 
 msgid "IPA unique ID"
 msgstr "Unikalny identyfikator IPA"
+
+#, python-format
+msgid "Changed password for \"%(value)s\""
+msgstr "Zmieniono hasło dla \"%(value)s\""
+
+msgid "Member of group"
+msgstr "Członek grupy"
 
 #, python-format
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
@@ -1137,6 +1187,12 @@ msgstr "Imię"
 msgid "Last name"
 msgstr "Nazwisko"
 
+msgid "Full name"
+msgstr "Pełna nazwa"
+
+msgid "Home directory"
+msgstr "Katalog domowy"
+
 msgid "GECOS field"
 msgstr "Pole GECOS"
 
@@ -1159,6 +1215,9 @@ msgstr ""
 
 msgid "Street address"
 msgstr "Adres zamieszkania"
+
+msgid "City"
+msgstr "Miasto"
 
 msgid "Telephone Number"
 msgstr "Numer telefonu"
@@ -1559,6 +1618,9 @@ msgstr "Wypisuje ten komputer z serwera IPA"
 msgid "IPA Server to use"
 msgstr "Serwer IPA do użycia"
 
+msgid "password"
+msgstr "hasło"
+
 #, c-format
 msgid "Unable to parse principal name\n"
 msgstr "Nie można przetworzyć nazwy naczelnika\n"
@@ -1614,6 +1676,3 @@ msgstr "Utworzenie losowego klucza nie powiodło się.\n"
 
 msgid "Failed to create key!\n"
 msgstr "Utworzenie klucza nie powiodło się.\n"
-
-#~ msgid "must be one of %(values)r"
-#~ msgstr "musi być jednym z %(values)r"

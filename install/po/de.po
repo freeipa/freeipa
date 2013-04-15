@@ -8,16 +8,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2012-10-12 04:08-0400\n"
-"PO-Revision-Date: 2012-09-14 10:30+0000\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
+"product=freeIPA\n"
+"POT-Creation-Date: 2013-04-15 16:42+0200\n"
+"PO-Revision-Date: 2013-04-15 15:12+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: German <trans-de@lists.fedoraproject.org>\n"
-"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #, python-format
@@ -31,23 +31,11 @@ msgstr "Passwörter stimmen nicht überein!"
 msgid "an internal error has occurred"
 msgstr "Ein interner Fehler ist aufgetreten"
 
-#, python-format
-msgid "unknown command %(name)r"
-msgstr "Unbekannter Befehl %(name)r"
-
 msgid "No credentials cache found"
 msgstr "Keine Anmeldeinformationen-Cache gefunden"
 
 msgid "Ticket expired"
 msgstr "Ticket abgelaufen"
-
-#, python-format
-msgid "%(name)r is required"
-msgstr "%(name)r wird benötigt"
-
-#, python-format
-msgid "invalid %(name)r: %(error)s"
-msgstr "%(name)r ungültig: %(error)s "
 
 msgid "Passwords do not match"
 msgstr "Passwörter stimmen nicht überein"

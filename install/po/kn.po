@@ -8,17 +8,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2012-10-12 04:08-0400\n"
-"PO-Revision-Date: 2012-09-14 10:30+0000\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
+"product=freeIPA\n"
+"POT-Creation-Date: 2013-04-15 16:42+0200\n"
+"PO-Revision-Date: 2013-04-15 15:12+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Kannada (http://www.transifex.com/projects/p/fedora/language/"
 "kn/)\n"
-"Language: kn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: kn\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #, python-format
@@ -30,31 +30,11 @@ msgid "Passwords do not match!"
 msgstr "ಗುಪ್ತಪದಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ!"
 
 #, python-format
-msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
-msgstr "%(server)r ನಲ್ಲಿ ಕ್ಲೈಂಟ್ %(cver)s ಸರ್ವರ್‌ %(sver)s ನೊಂದಿಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ"
-
-#, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
 msgstr "%(server)s ಸರ್ವರ್‌ನಿಂದ ಅಜ್ಞಾತ ದೋಷ %(code)d: %(error)s"
 
 msgid "an internal error has occurred"
 msgstr "ಆಂತರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ"
-
-#, python-format
-msgid "an internal error has occurred on server at %(server)r"
-msgstr "%(server)r ನಲ್ಲಿ ಸರ್ವರ್‌ನಲ್ಲಿ ಆಂತರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ"
-
-#, python-format
-msgid "unknown command %(name)r"
-msgstr "ಅಜ್ಞಾತ ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) %(name)r "
-
-#, python-format
-msgid "error on server %(server)r: %(error)s"
-msgstr "%(server)r ಸರ್ವರ್‌ನಲ್ಲಿ ದೋಷ: %(error)s"
-
-#, python-format
-msgid "cannot connect to %(uri)r: %(error)s"
-msgstr "%(uri)r ಗೆ ಸಂಪರ್ಕಿಸಲು ಆಗುತ್ತಿಲ್ಲ: %(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -66,10 +46,6 @@ msgstr "Kerberos ದೋಷ: %(major)s/%(minor)s"
 
 msgid "did not receive Kerberos credentials"
 msgstr "Kerberos ಯೋಗ್ಯತಾಪತ್ರಗಳನ್ನು ಪಡೆದಿಲ್ಲ"
-
-#, python-format
-msgid "Service %(service)r not found in Kerberos database"
-msgstr "Kerberos ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ %(service)r ಸೇವೆ(ಸರ್ವಿಸ್) ಸಿಗುತ್ತಿಲ್ಲ"
 
 msgid "No credentials cache found"
 msgstr "ಕ್ಯಾಶ್‌ನಲ್ಲಿ ಯೋಗ್ಯತಾಪತ್ರಗಳು ಸಿಗುತ್ತಿಲ್ಲ"
@@ -89,26 +65,6 @@ msgstr "ಕೋರಿದ ಕ್ಷೇತ್ರ(ರೆಲ್ಮ್)ಕ್ಕಾಗ
 #, python-format
 msgid "Insufficient access: %(info)s"
 msgstr "ನಿಲುಕಣೆ(ಆಕ್ಸೆಸ್) ಸಾಲದಾಗಿದೆ: %(info)s"
-
-#, python-format
-msgid "command %(name)r takes no arguments"
-msgstr "%(name)r ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಯಾವುದೇ ಆರ್ಗುಮೆಂಟ್‌ಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವುದಿಲ್ಲ"
-
-#, python-format
-msgid "overlapping arguments and options: %(names)r"
-msgstr "ಆರ್ಗುಮೆಂಟ್‌ಗಳನ್ನು ಮತ್ತು ಆಯ್ಕೆಗಳನ್ನು ಒಂದರಮೇಲೊಂದಾಗಿಸಲಾಗುತ್ತಿದೆ: %(names)r"
-
-#, python-format
-msgid "%(name)r is required"
-msgstr "%(name)r ಅಗತ್ಯವಿದೆ"
-
-#, python-format
-msgid "invalid %(name)r: %(error)s"
-msgstr "ಅಸಿಂಧುವಾದ %(name)r: %(error)s"
-
-#, python-format
-msgid "api has no such namespace: %(name)r"
-msgstr "apiನಲ್ಲಿ ಆ ತರಹದ ಯಾವುದೇ ನೇಮ್‌ಸ್ಪೇಸ್ ಇಲ್ಲ: %(name)r"
 
 msgid "Passwords do not match"
 msgstr "ಗುಪ್ತಪದಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ"
@@ -145,10 +101,6 @@ msgstr "ಈ ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ರೂಟ್(root) ನಿ�
 msgid "This is already a posix group"
 msgstr "ಇದು ಈಗಾಗಲೇ posix ಗುಂಪು"
 
-#, python-format
-msgid "Principal is not of the form user@REALM: %(principal)r"
-msgstr "Principalನ ಸ್ವರೂಪ  user@REALM ನಂತಲ್ಲ: %(principal)r"
-
 msgid "A group may not be a member of itself"
 msgstr "ಒಂದು ಗುಂಪು ಅದರ ಒಂದು ಸದಸ್ಯ ಆಗದಿರಬಹುದು"
 
@@ -161,10 +113,6 @@ msgstr "ಒಂದು ಗುಂಪು ಅದರ ಒಂದು ಸದಸ್ಯನ�
 
 msgid "The default users group cannot be removed"
 msgstr "ಡಿಫಾಲ್ಟ್ ಬಳಕೆದಾರರ ಗುಂಪನ್ನು ತೆಗೆದುಹಾಕಲು ಆಗುವುದಿಲ್ಲ"
-
-#, python-format
-msgid "no command nor help topic %(topic)r"
-msgstr "ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಇಲ್ಲ ಸಹಾಯದ ಟಾಪಿಕ್ %(topic)r ಕೂಡ ಇಲ್ಲ"
 
 msgid "change collided with another change"
 msgstr "ಬದಲಾವಣೆ ಮತ್ತೊಂದು ಬದಲಾವಣೆಯೊಂದಿಗೆ ಡಿಕ್ಕಿಹೊಡೆದಿದೆ"
@@ -277,9 +225,6 @@ msgstr "ಅನುಮತಿಗಳು"
 
 msgid "Attributes"
 msgstr "ವೈಶಿಷ್ಟ್ಯಗಳು"
-
-msgid "Comma-separated list of attributes"
-msgstr "Comma-separated ವೈಶಿಷ್ಟ್ಯಗಳ ಪಟ್ಟಿ"
 
 msgid "Type"
 msgstr "ಬಗೆ"
@@ -527,12 +472,6 @@ msgstr "ಹೋಸ್ಟ್ ವರ್ಗ"
 
 msgid "Host category the rule applies to"
 msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಹೋಸ್ಟ್ ವರ್ಗ"
-
-msgid "Source host category"
-msgstr "ಮೂಲ ಹೋಸ್ಟ್ ವರ್ಗ"
-
-msgid "Source host category the rule applies to"
-msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಮೂಲ ಹೋಸ್ಟ್ ವರ್ಗ"
 
 msgid "Users"
 msgstr "ಬಳಕೆದಾರರು"
@@ -795,6 +734,3 @@ msgstr "ಮುಂದಿನ ಸೀರಿಯಲ್ ನಂಬರ್ ಅನ್ನು
 
 msgid "certutil failure"
 msgstr "certutil ವಿಫಲತೆ"
-
-#~ msgid "must be one of %(values)r"
-#~ msgstr "%(values)r ನಲ್ಲಿ ಒಂದು ಆಗಿರಲೇಬೇಕು"
