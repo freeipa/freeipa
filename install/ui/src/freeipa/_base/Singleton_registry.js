@@ -78,6 +78,16 @@ define(['dojo/_base/declare',
         },
 
         /**
+         * Set object of given type - overwrites existing
+         *
+         * @param {String} type
+         * @param {anything} object
+         */
+        set: function (type, obj) {
+            this._map[type] = obj;
+        },
+
+        /**
          * Removes object of given type from registry
          *
          * @param {String} type
