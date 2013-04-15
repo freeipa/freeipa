@@ -316,8 +316,13 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
             raise AssertionError(
                 LEN % (doc, len(expected), len(got), expected, got, stack)
             )
-        s_got = sorted(got)
-        s_expected = sorted(expected)
+        # Sort list elements, unless they are dictionaries
+        if expected and isinstance(expected[0], dict):
+            s_got = got
+            s_expected = expected
+        else:
+            s_got = sorted(got)
+            s_expected = sorted(expected)
         for (i, e_sub) in enumerate(s_expected):
             g_sub = s_got[i]
             assert_deepequal(e_sub, g_sub, doc, stack + (i,))

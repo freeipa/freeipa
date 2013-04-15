@@ -466,16 +466,16 @@ class test_netgroup(Declarative):
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
-                        'cn': [netgroup2],
-                        'description': [u'Test netgroup 2'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                    },
-                    {
-                        'dn': fuzzy_netgroupdn,
                         'memberhost_host': (host1,),
                         'memberhost_hostgroup': (hostgroup1,),
                         'cn': [netgroup1],
                         'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                    },
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup2],
+                        'description': [u'Test netgroup 2'],
                         'nisdomainname': [u'%s' % api.env.domain],
                     },
                 ],
