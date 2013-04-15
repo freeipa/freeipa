@@ -85,7 +85,7 @@ def install_dns_records(config, options):
     try:
         api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
                                   bind_pw=config.dirman_password)
-        bind.add_ipa_ca_cname(config.host_name, config.domain_name)
+        bind.add_ipa_ca_dns_records(config.host_name, config.domain_name)
     finally:
         if api.Backend.ldap2.isconnected():
              api.Backend.ldap2.disconnect()

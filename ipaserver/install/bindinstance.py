@@ -29,7 +29,7 @@ import installutils
 import service
 from ipaserver.plugins import ldap2
 from ipaserver.install.dsinstance import realm_to_serverid
-from ipaserver.install.cainstance import IPA_CA_CNAME
+from ipaserver.install.cainstance import IPA_CA_RECORD
 from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
@@ -357,6 +357,13 @@ def del_rr(zone, name, type, rdata):
     except (errors.NotFound, errors.AttrValueNotFound, errors.EmptyModlist):
         pass
 
+def del_fwd_rr(zone, host, ip_address):
+    addr = netaddr.IPAddress(ip_address)
+    if addr.version == 4:
+        del_rr(zone, host, "A", ip_address)
+    elif addr.version == 6:
+        del_rr(zone, host, "AAAA", ip_address)
+
 def get_rr(zone, name, type):
     rectype = '%srecord' % unicode(type.lower())
     ret = api.Command.dnsrecord_find(unicode(zone), unicode(name))
@@ -366,6 +373,9 @@ def get_rr(zone, name, type):
                 return r[rectype]
 
     return []
+
+def get_fwd_rr(zone, host):
+    return [x for t in ("A", "AAAA") for x in get_rr(zone, host, t)]
 
 def zonemgr_callback(option, opt_str, value, parser):
     """
@@ -523,7 +533,7 @@ class BindInstance(service.Service):
         if self.reverse_zone is not None:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
         self.step("setting up our own record", self.__add_self)
-        self.step("setting up CA CNAME record", self.__add_ipa_ca_cname)
+        self.step("setting up CA record", self.__add_ipa_ca_record)
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
@@ -568,6 +578,15 @@ class BindInstance(service.Service):
         else:
             optional_ntp = ""
 
+        addr = netaddr.IPAddress(self.ip_address)
+        if addr.version in (4, 6):
+            ipa_ca = "%s\t\t\tIN %s\t\t\t%s\n" % (
+                IPA_CA_RECORD,
+                "A" if addr.version == 4 else "AAAA",
+                self.ip_address)
+        else:
+            ipa_ca = ""
+
         boolean_var = {}
         for var in ('persistent_search', 'serial_autoincrement'):
             boolean_var[var] = "yes" if getattr(self, var, False) else "no"
@@ -583,7 +602,7 @@ class BindInstance(service.Service):
                              OPTIONAL_NTP=optional_ntp,
                              ZONEMGR=self.zonemgr,
                              ZONE_REFRESH=self.zone_refresh,
-                             IPA_CA_CNAME=IPA_CA_CNAME,
+                             IPA_CA_RECORD=ipa_ca,
                              PERSISTENT_SEARCH=boolean_var['persistent_search'],
                              SERIAL_AUTOINCREMENT=boolean_var['serial_autoincrement'],)
 
@@ -610,27 +629,35 @@ class BindInstance(service.Service):
     def __add_self_ns(self):
         add_ns_rr(self.domain, api.env.host, self.dns_backup, force=True)
 
-    def __add_ipa_ca_cname(self):
-        if self.ca_configured is False:
-            root_logger.debug("CA is not configured, skip this step")
+    def _add_ipa_ca_dns_records(self, domain_name, fqdn, addrs, ca_configured):
+        if ca_configured is False:
+            root_logger.debug("CA is not configured")
             return
-        elif self.ca_configured is None:
+        elif ca_configured is None:
             # we do not know if CA is configured for this host and we can
-            # add the CA CNAME record. So we need to find out
+            # add the CA record. So we need to find out
             root_logger.debug("Check if CA is enabled for this host")
-            base_dn = DN(('cn', api.env.host), ('cn', 'masters'), ('cn', 'ipa'),
+            base_dn = DN(('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'),
                          ('cn', 'etc'), api.env.basedn)
             ldap_filter = '(&(objectClass=ipaConfigObject)(cn=CA))'
             try:
                 api.Backend.ldap2.find_entries(filter=ldap_filter, base_dn=base_dn)
             except ipalib.errors.NotFound:
-                # CA is not configured
                 root_logger.debug("CA is not configured")
                 return
             else:
-                root_logger.debug("CA is configured for this host, continue")
+                root_logger.debug("CA is configured for this host")
 
-        add_rr(self.domain, IPA_CA_CNAME, "CNAME", self.host_in_rr)
+        try:
+            for addr in addrs:
+                add_fwd_rr(domain_name, IPA_CA_RECORD, addr)
+        except errors.ValidationError:
+            # there is a CNAME record in ipa-ca, we can't add A/AAAA records
+            pass
+
+    def __add_ipa_ca_record(self):
+        self._add_ipa_ca_dns_records(self.domain, self.fqdn, [self.ip_address],
+                                     self.ca_configured)
 
     def __add_self(self):
         zone = self.domain
@@ -743,14 +770,62 @@ class BindInstance(service.Service):
         self.ca_configured = ca_configured
 
         self.__add_self()
-        self.__add_ipa_ca_cname()
+        self.__add_ipa_ca_record()
 
-    def add_ipa_ca_cname(self, fqdn, domain_name, ca_configured=True):
-        self.host = fqdn.split(".")[0]
-        self.fqdn = fqdn
-        self.domain = domain_name
-        self.ca_configured = ca_configured
-        self.__add_ipa_ca_cname()
+    def add_ipa_ca_dns_records(self, fqdn, domain_name, ca_configured=True):
+        host, zone = fqdn.split(".", 1)
+        if dns_zone_exists(zone):
+            addrs = get_fwd_rr(zone, host)
+        else:
+            addrs = installutils.resolve_host(fqdn)
+
+        self._add_ipa_ca_dns_records(domain_name, fqdn, addrs, ca_configured)
+
+    def convert_ipa_ca_cnames(self, domain_name):
+        # get ipa-ca CNAMEs
+        cnames = get_rr(domain_name, IPA_CA_RECORD, "CNAME")
+        if not cnames:
+            return
+
+        root_logger.info('Converting IPA CA CNAME records to A/AAAA records')
+
+        # create CNAME to FQDN mapping
+        cname_fqdn = {}
+        for cname in cnames:
+            if cname.endswith('.'):
+                fqdn = cname[:-1]
+            else:
+                fqdn = '%s.%s' % (cname, domain_name)
+            cname_fqdn[cname] = fqdn
+
+        # get FQDNs of all IPA masters
+        ldap = api.Backend.ldap2
+        try:
+            entries = ldap.get_entries(
+                DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                   api.env.basedn),
+                ldap.SCOPE_ONELEVEL, None, ['cn'])
+            masters = set(e['cn'][0] for e in entries)
+        except errors.NotFound:
+            masters = set()
+
+        # check if all CNAMEs point to IPA masters
+        for cname in cnames:
+            fqdn = cname_fqdn[cname]
+            if fqdn not in masters:
+                root_logger.warning(
+                    "Cannot convert IPA CA CNAME records to A/AAAA records, "
+                    "please convert them manually if necessary")
+                return
+
+        # delete all CNAMEs
+        for cname in cnames:
+            del_rr(domain_name, IPA_CA_RECORD, "CNAME", cname)
+
+        # add A/AAAA records
+        for cname in cnames:
+            fqdn = cname_fqdn[cname]
+            self.add_ipa_ca_dns_records(fqdn, domain_name, None)
 
     def remove_master_dns_records(self, fqdn, realm_name, domain_name):
         host = fqdn.split(".")[0]
@@ -769,16 +844,15 @@ class BindInstance(service.Service):
             ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host_in_rr),
             ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host_in_rr),
             ("_ntp._udp", "SRV", "0 100 123 %s" % self.host_in_rr),
-            (IPA_CA_CNAME, "CNAME", self.host_in_rr),
             ("@", "NS", fqdn+"."),
         )
 
         for (record, type, rdata) in resource_records:
             del_rr(zone, record, type, rdata)
 
-        areclist = [("A", x) for x in get_rr(zone, host, "A")] + [("AAAA", x) for x in get_rr(zone, host, "AAAA")]
-        for (type, rdata) in areclist:
-            del_rr(zone, host, type, rdata)
+        areclist = get_fwd_rr(zone, host)
+        for rdata in areclist:
+            del_fwd_rr(zone, host, rdata)
 
             rzone = find_reverse_zone(rdata)
             if rzone is not None:
@@ -786,6 +860,16 @@ class BindInstance(service.Service):
                 del_rr(rzone, record, "PTR", fqdn+".")
                 # remove also master NS record from the reverse zone
                 del_rr(rzone, "@", "NS", fqdn+".")
+
+    def remove_ipa_ca_dns_records(self, fqdn, domain_name):
+        host, zone = fqdn.split(".", 1)
+        if dns_zone_exists(zone):
+            addrs = get_fwd_rr(zone, host)
+        else:
+            addrs = installutils.resolve_host(fqdn)
+
+        for addr in addrs:
+            del_fwd_rr(domain_name, IPA_CA_RECORD, addr)
 
     def check_global_configuration(self):
         """
