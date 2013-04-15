@@ -755,12 +755,17 @@ class jsonserver_session(jsonserver, KerberosSession):
 
         return response
 
-class jsonserver_kerb(jsonserver):
+
+class jsonserver_kerb(jsonserver, KerberosSession):
     """
     JSON RPC server protected with kerberos auth.
     """
 
     key = '/json'
+
+    def _on_finalize(self):
+        super(jsonserver_kerb, self)._on_finalize()
+        self.kerb_session_on_finalize()
 
     def __call__(self, environ, start_response):
         '''
@@ -777,6 +782,10 @@ class jsonserver_kerb(jsonserver):
 
         try:
             response = super(jsonserver_kerb, self).__call__(environ, start_response)
+            if (getattr(context, 'session_data', None) is None and
+                    self.env.context != 'lite'):
+                self.finalize_kerberos_acquisition('jsonserver', user_ccache,
+                                                environ, start_response)
         finally:
             destroy_context()
 
