@@ -677,7 +677,7 @@ class test_dns(Declarative):
                                                                  'srv_part_port' : 123,
                                                                  'srv_part_target' : u'foo bar'}),
             expected=errors.ValidationError(name='srv_target',
-                error=u'invalid domain-name: only letters, numbers, and - ' +
+                error=u'invalid domain-name: only letters, numbers, _, and - ' +
                     u'are allowed. DNS label may not start or end with -'),
         ),
 
@@ -780,7 +780,7 @@ class test_dns(Declarative):
             desc='Try to add invalid CNAME record %r using dnsrecord_add' % (dnsrescname),
             command=('dnsrecord_add', [dnszone1, dnsrescname], {'cnamerecord': u'-.example.com'}),
             expected=errors.ValidationError(name='hostname',
-                error=u'invalid domain-name: only letters, numbers, and - ' +
+                error=u'invalid domain-name: only letters, numbers, _, and - ' +
                     u'are allowed. DNS label may not start or end with -'),
         ),
 
@@ -849,7 +849,7 @@ class test_dns(Declarative):
             desc='Try to add invalid DNAME record %r using dnsrecord_add' % (dnsresdname),
             command=('dnsrecord_add', [dnszone1, dnsresdname], {'dnamerecord': u'-.example.com.'}),
             expected=errors.ValidationError(name='target',
-                error=u'invalid domain-name: only letters, numbers, and - ' +
+                error=u'invalid domain-name: only letters, numbers, _, and - ' +
                     u'are allowed. DNS label may not start or end with -'),
         ),
 

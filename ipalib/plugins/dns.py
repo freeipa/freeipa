@@ -373,7 +373,7 @@ def _bind_hostname_validator(ugettext, value):
     try:
         # Allow domain name which is not fully qualified. These are supported
         # in bind and then translated as <non-fqdn-name>.<domain>.
-        validate_hostname(value, check_fqdn=False)
+        validate_hostname(value, check_fqdn=False, allow_underscore=True)
     except ValueError, e:
         return _('invalid domain-name: %s') \
             % unicode(e)
