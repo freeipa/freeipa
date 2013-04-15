@@ -24,12 +24,12 @@
 
 define(['./jquery',
         './json2',
-        './_base/Builder',
         './_base/i18n',
         './_base/metadata_provider',
+        './builder',
         './entities',
         './text'],
-       function($, JSON, Builder, i18n, metadata_provider, entities, text) {
+       function($, JSON, i18n, metadata_provider, builder, entities, text) {
 
 var IPA = function() {
 
@@ -1119,11 +1119,9 @@ IPA.concurrent_command = function(spec) {
     return that;
 };
 
-IPA.builder = new Builder();
-
 IPA.build = function(spec, context, overrides) {
 
-    return IPA.builder.build(spec, context, overrides);
+    return builder.build(null, spec, context, overrides);
 };
 
 IPA.default_factory = function(spec) {
