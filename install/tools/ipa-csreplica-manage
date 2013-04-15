@@ -25,7 +25,7 @@ import os
 import krbV
 from ipapython.ipa_log_manager import *
 
-from ipaserver.install import replication, installutils
+from ipaserver.install import replication, installutils, bindinstance
 from ipalib import api, errors, util
 from ipapython import ipautil, ipaldap, version, dogtag
 from ipapython.dn import DN
@@ -270,6 +270,18 @@ def del_master(realm, hostname, options):
             del_link(realm, r, hostname, options.dirman_passwd, force=True)
         except Exception, e:
             sys.exit("There were issues removing a connection: %s" % e)
+
+    # 6. And clean up the removed replica DNS entries if any.
+    try:
+        if bindinstance.dns_container_exists(options.host, api.env.basedn,
+                                             dm_password=options.dirman_passwd):
+            api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
+                                      bind_pw=options.dirman_passwd)
+            bind = bindinstance.BindInstance()
+            bind.remove_ipa_ca_dns_records(hostname, realm.lower())
+    except Exception, e:
+        print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
+        print "You may need to manually remove them from the tree"
 
 def add_link(realm, replica1, replica2, dirman_passwd, options):
     try:
