@@ -22,8 +22,9 @@ define(['dojo/_base/declare',
         'dojo/_base/array',
         'dojo/_base/lang',
         './construct',
+        './Construct_registry',
         './Spec_mod'
-        ], function(declare, array, lang, construct, Spec_mod) {
+        ], function(declare, array, lang, construct, Construct_registry, Spec_mod) {
 
     var undefined;
 
@@ -297,6 +298,7 @@ define(['dojo/_base/declare',
             if (spec.factory) this.factory = spec.factory;
             if (spec.ctor) this.ctor = spec.ctor;
             if (spec.registry) this.registry = spec.registry;
+            else this.registry = new Construct_registry();
             if (spec.spec_mod) this.spec_mod = spec.spec_mod;
             else this.spec_mod = new Spec_mod();
             if (spec.pre_ops) this.pre_ops.push.call(this.pre_ops, spec.pre_ops);
