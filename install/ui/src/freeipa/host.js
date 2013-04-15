@@ -19,8 +19,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './details', './search', './association',
-       './entity', './certificate'], function(IPA, $, text) {
+define(['./ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './text',
+        './details',
+        './search',
+        './association',
+        './entity',
+        './certificate'],
+    function(IPA, $, phases, reg, text) {
 
 IPA.host = {};
 
@@ -415,9 +424,6 @@ IPA.host_fqdn_field = function(spec) {
     return that;
 };
 
-IPA.field_factories['host_fqdn'] = IPA.host_fqdn_field;
-IPA.widget_factories['host_fqdn'] = IPA.host_fqdn_widget;
-
 IPA.host_adder_dialog = function(spec) {
 
     spec = spec || {};
@@ -507,9 +513,6 @@ IPA.dnszone_select_widget = function(spec) {
     return that;
 };
 
-IPA.field_factories['dnszone_select'] = IPA.field;
-IPA.widget_factories['dnszone_select'] = IPA.dnszone_select_widget;
-
 IPA.host_dnsrecord_entity_link_field = function(spec){
     var that = IPA.link_field(spec);
 
@@ -525,18 +528,12 @@ IPA.host_dnsrecord_entity_link_field = function(spec){
     return that;
 };
 
-IPA.field_factories['host_dnsrecord_entity_link'] = IPA.host_dnsrecord_entity_link_field;
-IPA.widget_factories['host_dnsrecord_entity_link'] = IPA.link_widget;
-
 IPA.force_host_add_checkbox_widget = function(spec) {
     var metadata = IPA.get_command_option('host_add', spec.name);
     spec.label = metadata.label;
     spec.tooltip = metadata.doc;
     return IPA.checkbox_widget(spec);
 };
-
-IPA.widget_factories['force_host_add_checkbox'] = IPA.force_host_add_checkbox_widget;
-IPA.field_factories['force_host_add_checkbox'] = IPA.checkbox_field;
 
 IPA.host.enrollment_policy = function(spec) {
 
@@ -788,9 +785,6 @@ IPA.host_password_widget = function(spec) {
     return that;
 };
 
-IPA.widget_factories['host_password'] = IPA.host_password_widget;
-IPA.field_factories['host_password'] = IPA.field;
-
 IPA.host.set_otp_dialog = function(spec) {
 
     spec = spec || {};
@@ -966,6 +960,23 @@ IPA.host.certificate_policy = function(spec) {
 };
 
 IPA.register('host', IPA.host.entity);
+
+phases.on('registration', function() {
+    var w = reg.widget;
+    var f = reg.field;
+
+    f.register('host_fqdn', IPA.host_fqdn_field);
+    w.register('host_fqdn', IPA.host_fqdn_widget);
+    f.register('dnszone_select', IPA.field);
+    w.register('dnszone_select', IPA.dnszone_select_widget);
+    f.register('host_dnsrecord_entity_link', IPA.host_dnsrecord_entity_link_field);
+    w.register('host_dnsrecord_entity_link', IPA.link_widget);
+    f.register('force_host_add_checkbox', IPA.checkbox_field);
+    w.register('force_host_add_checkbox', IPA.force_host_add_checkbox_widget);
+    f.register('host_password', IPA.field);
+    w.register('host_password', IPA.host_password_widget);
+});
+
 
 return {};
 });

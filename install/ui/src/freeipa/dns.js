@@ -27,12 +27,13 @@ define([
     './navigation',
     './menu',
     './phases',
+    './reg',
     './text',
     './details',
     './search',
     './association',
     './entity'],
-       function(IPA, $, NET, navigation, menu, phases, text) {
+       function(IPA, $, NET, navigation, menu, phases, reg, text) {
 
 IPA.dns = {
     zone_permission_name: 'Manage DNS zone ${dnszone}'
@@ -574,7 +575,6 @@ IPA.dnszone_name_widget = function(spec) {
     return that;
 };
 
-IPA.widget_factories['dnszone_name'] = IPA.dnszone_name_widget;
 
 IPA.force_dnszone_add_checkbox_widget = function(spec) {
     var metadata = IPA.get_command_option('dnszone_add', spec.name);
@@ -582,9 +582,6 @@ IPA.force_dnszone_add_checkbox_widget = function(spec) {
     spec.tooltip = metadata.doc;
     return IPA.checkbox_widget(spec);
 };
-
-IPA.widget_factories['force_dnszone_add_checkbox'] = IPA.force_dnszone_add_checkbox_widget;
-IPA.field_factories['force_dnszone_add_checkbox'] = IPA.checkbox_field;
 
 IPA.dnszone_adder_dialog = function(spec) {
 
@@ -1469,9 +1466,6 @@ IPA.dnsrecord_host_link_field = function(spec) {
     return that;
 };
 
-IPA.field_factories['dnsrecord_host_link'] = IPA.dnsrecord_host_link_field;
-IPA.widget_factories['dnsrecord_host_link'] = IPA.link_widget;
-
 IPA.dns_record_types = function() {
 
     //only supported
@@ -1542,18 +1536,12 @@ IPA.dnsrecord_type_field = function(spec) {
     return that;
 };
 
-IPA.field_factories['dnsrecord_type'] = IPA.dnsrecord_type_field;
-
-
 IPA.dnsrecord_type_widget = function(spec) {
 
     spec.options = IPA.dns_record_types();
     var that = IPA.select_widget(spec);
     return that;
 };
-
-IPA.widget_factories['dnsrecord_type'] = IPA.dnsrecord_type_widget;
-
 
 IPA.dnsrecord_adder_dialog_type_policy = function(spec) {
 
@@ -1653,9 +1641,6 @@ IPA.dns.record_type_table_field = function(spec) {
 
     return that;
 };
-
-IPA.field_factories['dnsrecord_type_table'] = IPA.dns.record_type_table_field;
-
 
 IPA.dns.record_type_table_widget = function(spec) {
 
@@ -2076,8 +2061,6 @@ IPA.dns.record_type_table_widget = function(spec) {
     return that;
 };
 
-IPA.widget_factories['dnsrecord_type_table'] = IPA.dns.record_type_table_widget;
-
 IPA.dns.netaddr_field = function(spec) {
 
     spec = spec || {};
@@ -2144,11 +2127,6 @@ IPA.dns.netaddr_field = function(spec) {
 
     return that;
 };
-
-IPA.field_factories['netaddr'] = IPA.dns.netaddr_field;
-IPA.widget_factories['netaddr'] = IPA.multivalued_widget;
-
-
 
 IPA.dns.record_modify_column = function(spec) {
 
@@ -2551,6 +2529,23 @@ phases.on('profile', function() {
 IPA.register('dnsconfig', IPA.dns.config_entity);
 IPA.register('dnszone', IPA.dns.zone_entity);
 IPA.register('dnsrecord', IPA.dns.record_entity);
+
+phases.on('registration', function() {
+    var w = reg.widget;
+    var f = reg.field;
+
+    w.register('dnszone_name', IPA.dnszone_name_widget);
+    w.register('force_dnszone_add_checkbox', IPA.force_dnszone_add_checkbox_widget);
+    f.register('force_dnszone_add_checkbox', IPA.checkbox_field);
+    w.register('dnsrecord_host_link', IPA.link_widget);
+    f.register('dnsrecord_host_link', IPA.dnsrecord_host_link_field);
+    w.register('dnsrecord_type', IPA.dnsrecord_type_widget);
+    f.register('dnsrecord_type', IPA.dnsrecord_type_field);
+    w.register('dnsrecord_type_table', IPA.dns.record_type_table_widget);
+    f.register('dnsrecord_type_table', IPA.dns.record_type_table_field);
+    w.register('netaddr', IPA.multivalued_widget);
+    f.register('netaddr', IPA.dns.netaddr_field);
+});
 
 return {};
 });

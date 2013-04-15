@@ -19,8 +19,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-define(['./ipa', './jquery', './text', './details', './search', './association',
-       './entity'], function(IPA, $, text) {
+define([
+    './ipa',
+    './jquery',
+    './phases',
+    './reg',
+    './text',
+    './details',
+    './search',
+    './association',
+    './entity'],
+        function(IPA, $, phases, reg, text) {
 
 IPA.aci = {};
 
@@ -603,9 +612,6 @@ IPA.attributes_widget = function(spec) {
     return that;
 };
 
-IPA.widget_factories['attributes'] = IPA.attributes_widget;
-IPA.field_factories['attributes'] = IPA.checkboxes_field;
-
 IPA.rights_widget = function(spec) {
 
     var that = IPA.checkboxes_widget(spec);
@@ -618,9 +624,6 @@ IPA.rights_widget = function(spec) {
 
     return that;
 };
-
-IPA.widget_factories['rights'] = IPA.rights_widget;
-IPA.field_factories['rights'] = IPA.checkboxes_field;
 
 IPA.permission_target_widget = function(spec) {
 
@@ -893,14 +896,25 @@ IPA.permission_target_policy = function (widget_name) {
     return that;
 };
 
-IPA.widget_factories['permission_target'] = IPA.permission_target_widget;
-
 
 IPA.register('permission', IPA.aci.permission_entity);
 IPA.register('privilege', IPA.aci.privilege_entity);
 IPA.register('role', IPA.aci.role_entity);
 IPA.register('selfservice', IPA.aci.selfservice_entity);
 IPA.register('delegation', IPA.aci.delegation_entity);
+
+IPA.aci.register = function() {
+    var w = reg.widget;
+    var f = reg.field;
+
+    w.register('attributes', IPA.attributes_widget);
+    f.register('attributes', IPA.checkboxes_field);
+    w.register('rights', IPA.rights_widget);
+    f.register('rights', IPA.checkboxes_field);
+    w.register('permission_target', IPA.permission_target_widget);
+};
+
+phases.on('registration', IPA.aci.register);
 
 return IPA.aci;
 });

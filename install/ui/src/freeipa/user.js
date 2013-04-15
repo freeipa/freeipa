@@ -24,7 +24,7 @@
 define(['./ipa', './jquery', './text', './details', './search', './association',
        './entity', './certificate'], function(IPA, $, text) {
 
-IPA.user = {};
+var exp = IPA.user = {};
 
 IPA.user.entity = function(spec) {
 
@@ -403,6 +403,20 @@ IPA.user.details_facet = function(spec) {
     return that;
 };
 
+/**
+ * Makes user association facets read-only in self service
+ */
+IPA.user.association_facet_ss_post_op = function(spec, context) {
+
+    var self_service = IPA.is_selfservice;
+
+    spec.read_only = self_service;
+    spec.link = self_service ? false : undefined;
+
+    return spec;
+};
+
+
 IPA.user_adder_dialog = function(spec) {
 
     var that = IPA.entity_adder_dialog(spec);
@@ -652,5 +666,5 @@ IPA.user.reset_password_acl_evaluator = function(spec) {
 
 IPA.register('user', IPA.user.entity);
 
-return {};
+return exp;
 });

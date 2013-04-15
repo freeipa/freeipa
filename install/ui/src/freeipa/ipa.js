@@ -55,8 +55,6 @@ var IPA = function() {
 
     that.entities = $.ordered_map();
     that.entity_factories = {};
-    that.field_factories = {};
-    that.widget_factories = {};
 
     that.network_call_count = 0;
 

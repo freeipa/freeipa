@@ -19,8 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery','dojo/_base/lang', './text', './dialog'],
-       function(IPA, $, lang, text) {
+define([
+    'dojo/_base/lang',
+    './ipa',
+    './jquery',
+    './phases',
+    './reg',
+    './text',
+    './dialog'],
+        function(lang, IPA, $, phases, reg, text) {
 
 IPA.cert = {};
 
@@ -934,8 +941,7 @@ IPA.cert.status_field = function(spec) {
     return that;
 };
 
-IPA.widget_factories['certificate_status'] = IPA.cert.status_widget;
-IPA.field_factories['certificate_status'] = IPA.cert.status_field;
+
 
 IPA.cert.entity = function(spec) {
 
@@ -1299,10 +1305,20 @@ IPA.cert.cert_update_policy = function(spec) {
     return IPA.facet_update_policy(spec);
 };
 
-IPA.field_factories['revocation_reason'] = IPA.revocation_reason_field;
-IPA.widget_factories['revocation_reason'] = IPA.text_widget;
+
 
 IPA.register('cert', IPA.cert.entity);
+
+phases.on('registration', function() {
+    var w = reg.widget;
+    var f = reg.field;
+
+    w.register('certificate_status', IPA.cert.status_widget);
+    f.register('certificate_status', IPA.cert.status_field);
+
+    f.register('revocation_reason', IPA.revocation_reason_field);
+    w.register('revocation_reason', IPA.text_widget);
+});
 
 return {};
 });

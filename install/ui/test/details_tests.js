@@ -18,8 +18,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['freeipa/ipa', 'freeipa/jquery','freeipa/facet', 'freeipa/facets', 'freeipa/details',
-       'freeipa/entity'], function(IPA, $, mod_facet, facets) {
+define([
+    'freeipa/ipa',
+    'freeipa/jquery',
+    'freeipa/facet',
+    'freeipa/facets',
+    'freeipa/reg',
+    'freeipa/details',
+    'freeipa/entity',
+    'freeipa/field',
+    'freeipa/widget'],
+        function(IPA, $, mod_facet, facets, reg) {
     return function() {
 
 var details_container;
@@ -177,8 +186,8 @@ test("Testing details lifecycle: create, load.", function(){
         return that;
     }
 
-    IPA.field_factories['test'] = test_field;
-    IPA.widget_factories['test'] = test_widget;
+    reg.field.register('test', test_field);
+    reg.widget.register('test', test_widget);
 
     IPA.register('user', function(spec) {
 

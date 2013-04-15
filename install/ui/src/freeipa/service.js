@@ -18,8 +18,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './details', './search', './association',
-       './entity'], function(IPA, $, text) {
+define([
+    './ipa',
+    './jquery',
+    './phases',
+    './reg',
+    './text',
+    './details',
+    './search',
+    './association',
+    './entity'],
+        function(IPA, $, phases, reg, text) {
 
 IPA.service = {};
 
@@ -284,10 +293,6 @@ IPA.service_name_field = function(spec) {
     return that;
 };
 
-IPA.field_factories['service_name'] = IPA.service_name_field;
-IPA.widget_factories['service_name'] = IPA.text_widget;
-
-
 IPA.service_host_field = function(spec) {
 
     spec = spec || {};
@@ -307,9 +312,6 @@ IPA.service_host_field = function(spec) {
 
     return that;
 };
-
-IPA.field_factories['service_host'] = IPA.service_host_field;
-IPA.widget_factories['service_host'] = IPA.text_widget;
 
 IPA.service_provisioning_status_widget = function (spec) {
 
@@ -373,10 +375,6 @@ IPA.service_provisioning_status_widget = function (spec) {
 
     return that;
 };
-
-IPA.field_factories['service_provisioning_status'] = IPA.field;
-IPA.widget_factories['service_provisioning_status'] = IPA.service_provisioning_status_widget;
-
 
 IPA.service.unprovision_dialog = function(spec) {
 
@@ -510,6 +508,19 @@ IPA.service.certificate_policy = function(spec) {
 };
 
 IPA.register('service', IPA.service.entity);
+
+phases.on('registration', function() {
+    var w = reg.widget;
+    var f = reg.field;
+
+    f.register('service_name', IPA.service_name_field);
+    w.register('service_name', IPA.text_widget);
+    f.register('service_host', IPA.service_host_field);
+    w.register('service_host', IPA.text_widget);
+    f.register('service_provisioning_status', IPA.field);
+    w.register('service_provisioning_status', IPA.service_provisioning_status_widget);
+});
+
 
 return {};
 });

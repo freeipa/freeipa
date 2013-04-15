@@ -22,8 +22,18 @@
  */
 
 
-define(['dojo/_base/array', './ipa', './jquery', './navigation', './text'],
-       function(array, IPA, $, navigation, text) {
+define([
+    'dojo/_base/array',
+    './builder',
+    './ipa',
+    './jquery',
+    './navigation',
+    './phases',
+    './reg',
+    './text'],
+       function(array, builder, IPA, $, navigation, phases, reg, text) {
+
+var exp = {};
 
 IPA.field = function(spec) {
     spec = spec || {};
@@ -878,7 +888,8 @@ IPA.field_builder = function(spec) {
         if (spec.$factory) {
             factory = spec.$factory;
         } else if(spec.type) {
-            factory = IPA.field_factories[spec.type];
+            factory = reg.field.get(spec.type);
+            factory = factory ? factory.factory : undefined;
         }
 
         if (!factory) {
@@ -923,21 +934,31 @@ IPA.field_builder = function(spec) {
     return that;
 };
 
-IPA.field_factories['checkbox'] = IPA.checkbox_field;
-IPA.field_factories['checkboxes'] = IPA.checkboxes_field;
-IPA.field_factories['combobox'] = IPA.field;
-IPA.field_factories['enable'] = IPA.enable_field;
-IPA.field_factories['entity_select'] = IPA.field;
-IPA.field_factories['field'] = IPA.field;
-IPA.field_factories['link'] = IPA.link_field;
-IPA.field_factories['multivalued'] = IPA.multivalued_field;
-IPA.field_factories['password'] = IPA.field;
-IPA.field_factories['radio'] = IPA.radio_field;
-IPA.field_factories['select'] = IPA.select_field;
-IPA.field_factories['sshkeys'] = IPA.sshkeys_field;
-IPA.field_factories['textarea'] = IPA.field;
-IPA.field_factories['text'] = IPA.field;
-IPA.field_factories['value_map'] = IPA.field;
+// New builder and registry
+exp.builder = builder.get('field');
+exp.builder.factory = IPA.field;
+reg.set('field', exp.builder.registry);
 
-return {};
+exp.register = function() {
+    var f = reg.field;
+
+    f.register('checkbox', IPA.checkbox_field);
+    f.register('checkboxes', IPA.checkboxes_field);
+    f.register('combobox', IPA.field);
+    f.register('enable', IPA.enable_field);
+    f.register('entity_select', IPA.field);
+    f.register('field', IPA.field);
+    f.register('link', IPA.link_field);
+    f.register('multivalued', IPA.multivalued_field);
+    f.register('password', IPA.field);
+    f.register('radio', IPA.radio_field);
+    f.register('select', IPA.select_field);
+    f.register('sshkeys', IPA.sshkeys_field);
+    f.register('textarea', IPA.field);
+    f.register('text', IPA.field);
+    f.register('value_map', IPA.field);
+};
+phases.on('registration', exp.register);
+
+return exp;
 });

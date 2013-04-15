@@ -22,9 +22,17 @@
  */
 
 
-define(['dojo/_base/array', './ipa', './jquery', './text'],
-       function(array, IPA, $, text) {
+define(['dojo/_base/array',
+       './builder',
+       './ipa',
+       './jquery',
+       './phases',
+       './reg',
+       './text'
+       ],
+       function(array, builder, IPA, $, phases, reg, text) {
 
+var exp = {};
 
 IPA.checkbox_column_width = 22;
 IPA.required_indicator = '*';
@@ -731,7 +739,7 @@ IPA.option_widget_base = function(spec, that) {
             };
         } else {
             if (option.type || option.$factory) {
-                var factory = option.$factory || IPA.widget_factories[option.type];
+                var factory = option.$factory || reg.widget.get(option.type);
                 if (typeof factory !== 'function') throw {
                     error: 'Invalid factory',
                     $factory: factory
@@ -3535,7 +3543,8 @@ IPA.widget_builder = function(spec) {
         if (spec.$factory) {
             factory = spec.$factory;
         } else if(spec.type) {
-            factory = IPA.widget_factories[spec.type];
+            factory = reg.widget.get(spec.type);
+            factory = factory ? factory.factory : undefined;
         }
 
         if (!factory) {
@@ -3955,28 +3964,39 @@ IPA.value_map_widget = function(spec) {
     return that;
 };
 
-IPA.widget_factories['attribute_table'] = IPA.attribute_table_widget;
-IPA.widget_factories['button'] = IPA.button_widget;
-IPA.widget_factories['checkbox'] = IPA.checkbox_widget;
-IPA.widget_factories['checkboxes'] = IPA.checkboxes_widget;
-IPA.widget_factories['combobox'] = IPA.combobox_widget;
-IPA.widget_factories['composite_widget'] = IPA.composite_widget;
-IPA.widget_factories['details_table_section'] = IPA.details_table_section;
-IPA.widget_factories['details_table_section_nc'] = IPA.details_table_section_nc;
-IPA.widget_factories['multiple_choice_section'] = IPA.multiple_choice_section;
-IPA.widget_factories['enable'] = IPA.enable_widget;
-IPA.widget_factories['entity_select'] = IPA.entity_select_widget;
-IPA.widget_factories['header'] = IPA.header_widget;
-IPA.widget_factories['html'] = IPA.html_widget;
-IPA.widget_factories['link'] = IPA.link_widget;
-IPA.widget_factories['multivalued'] = IPA.multivalued_widget;
-IPA.widget_factories['password'] = IPA.password_widget;
-IPA.widget_factories['radio'] = IPA.radio_widget;
-IPA.widget_factories['select'] = IPA.select_widget;
-IPA.widget_factories['sshkeys'] = IPA.sshkeys_widget;
-IPA.widget_factories['textarea'] = IPA.textarea_widget;
-IPA.widget_factories['text'] = IPA.text_widget;
-IPA.widget_factories['value_map'] = IPA.value_map_widget;
+// New builder and registry
+exp.builder = builder.get('widget');
+exp.builder.factory = IPA.widget;
+reg.set('widget', exp.builder.registry);
 
-return {};
+exp.register = function() {
+    var w = reg.widget;
+
+    w.register('attribute_table', IPA.attribute_table_widget);
+    w.register('button', IPA.button_widget);
+    w.register('checkbox', IPA.checkbox_widget);
+    w.register('checkboxes', IPA.checkboxes_widget);
+    w.register('combobox', IPA.combobox_widget);
+    w.register('composite_widget', IPA.composite_widget);
+    w.register('details_table_section', IPA.details_table_section);
+    w.register('details_table_section_nc', IPA.details_table_section_nc);
+    w.register('multiple_choice_section', IPA.multiple_choice_section);
+    w.register('enable', IPA.enable_widget);
+    w.register('entity_select', IPA.entity_select_widget);
+    w.register('header', IPA.header_widget);
+    w.register('html', IPA.html_widget);
+    w.register('link', IPA.link_widget);
+    w.register('multivalued', IPA.multivalued_widget);
+    w.register('password', IPA.password_widget);
+    w.register('radio', IPA.radio_widget);
+    w.register('select', IPA.select_widget);
+    w.register('sshkeys', IPA.sshkeys_widget);
+    w.register('textarea', IPA.textarea_widget);
+    w.register('text', IPA.text_widget);
+    w.register('value_map', IPA.value_map_widget);
+};
+
+phases.on('registration', exp.register);
+
+return exp;
 });

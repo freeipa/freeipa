@@ -18,8 +18,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+    './ipa',
+    './jquery',
+    './phases',
+    './reg',
+    './details',
+    './search',
+    './association',
+    './entity'],
+        function(IPA, $, phases, reg) {
 
 IPA.rule_details_widget = function(spec) {
 
@@ -223,9 +231,6 @@ IPA.rule_association_table_field = function(spec) {
     return that;
 };
 
-IPA.widget_factories['rule_association_table'] = IPA.rule_association_table_widget;
-IPA.field_factories['rule_association_table'] = IPA.rule_association_table_field;
-
 IPA.rule_association_adder_dialog = function(spec) {
 
     spec = spec || {};
@@ -252,6 +257,14 @@ IPA.rule_association_adder_dialog = function(spec) {
 
     return that;
 };
+
+phases.on('registration', function() {
+    var w = reg.widget;
+    var f = reg.field;
+
+    w.register('rule_association_table', IPA.rule_association_table_widget);
+    f.register('rule_association_table', IPA.rule_association_table_field);
+});
 
 return {};
 });

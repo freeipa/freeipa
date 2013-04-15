@@ -18,7 +18,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/aci'], function(IPA, $) {
+define([
+        'freeipa/aci',
+        'freeipa/field',
+        'freeipa/ipa',
+        'freeipa/jquery',
+        'freeipa/reg',
+        'freeipa/widget'
+       ],
+        function(aci, fields, IPA, $, reg, widgets) {
     return function() {
 
 var target_container;
@@ -29,6 +37,11 @@ var group_entity = IPA.entity({ name: 'group' });
 
 module('aci', {
         setup: function() {
+
+            fields.register();
+            widgets.register();
+            aci.register();
+
             IPA.ajax_options.async = false;
             IPA.init({
                 url: 'data',

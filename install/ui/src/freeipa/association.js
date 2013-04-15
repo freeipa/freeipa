@@ -22,8 +22,16 @@
 /* CURRENTLY ALSO REQUIRES search.js, because it reuses it's code to create
  * the AssociationList elements; IT NEEDS IT'S OWN CODE! */
 
-define(['./ipa', './jquery', './navigation', './text', './search', './dialog'],
-       function(IPA, $, navigation, text) {
+define([
+    './ipa',
+    './jquery',
+    './navigation',
+    './phases',
+    './reg',
+    './text',
+    './search',
+    './dialog'],
+        function(IPA, $, navigation, phases, reg, text) {
 
 IPA.associator = function (spec) {
 
@@ -740,10 +748,6 @@ IPA.association_table_field = function (spec) {
     return that;
 };
 
-IPA.widget_factories['association_table'] = IPA.association_table_widget;
-IPA.field_factories['association_table'] = IPA.association_table_field;
-
-
 IPA.association_facet = function (spec, no_init) {
 
     spec = spec || {};
@@ -1380,6 +1384,14 @@ IPA.attr_read_only_evaluator = function(spec) {
 
     return that;
 };
+
+phases.on('registration', function() {
+    var w = reg.widget;
+    var f = reg.field;
+
+    w.register('association_table', IPA.association_table_widget);
+    f.register('association_table', IPA.association_table_field);
+});
 
 return {};
 });

@@ -18,8 +18,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './navigation', './text', './details', './search',
-       './association', './entity'], function(IPA, $, navigation, text) {
+define([
+    './ipa',
+    './jquery',
+    './navigation',
+    './phases',
+    './reg',
+    './text',
+    './details',
+    './search',
+    './association',
+    './entity'],
+    function(IPA, $, navigation, phases, reg, text) {
 
 IPA.automember = {};
 
@@ -452,8 +462,6 @@ IPA.automember.condition_field = function(spec) {
     return that;
 };
 
-IPA.field_factories['automember_condition'] = IPA.automember.condition_field;
-
 IPA.automember.condition_widget = function(spec) {
 
     spec = spec || {};
@@ -534,8 +542,6 @@ IPA.automember.condition_widget = function(spec) {
 
     return that;
 };
-
-IPA.widget_factories['automember_condition'] = IPA.automember.condition_widget;
 
 IPA.automember.default_group_widget = function(spec) {
 
@@ -692,6 +698,14 @@ IPA.automember.default_group_widget = function(spec) {
 
 
 IPA.register('automember', IPA.automember.entity);
+
+phases.on('registration', function() {
+    var w = reg.widget;
+    var f = reg.field;
+
+    w.register('automember_condition', IPA.automember.condition_widget);
+    f.register('automember_condition', IPA.automember.condition_field);
+});
 
 return {};
 });
