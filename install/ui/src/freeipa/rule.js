@@ -130,7 +130,7 @@ IPA.rule_association_table_widget = function(spec) {
                     name: that.external,
                     label: '@i18n:objects.sudorule.external',
                     entity: that.other_entity,
-                    formatter: IPA.boolean_formatter(),
+                    formatter: 'boolean',
                     width: '200px'
                 });
             }

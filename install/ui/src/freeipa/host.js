@@ -64,7 +64,7 @@ IPA.host.entity = function(spec) {
                 {
                     name: 'has_keytab',
                     label: '@i18n:objects.host.enrolled',
-                    formatter: IPA.boolean_formatter()
+                    formatter: 'boolean'
                 }
             ]
         }).

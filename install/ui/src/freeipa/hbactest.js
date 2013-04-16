@@ -50,9 +50,10 @@ IPA.hbac.test_entity = function(spec) {
                 {
                     name: 'nsaccountlock',
                     label: '@i18n:status.label',
-                    formatter: IPA.boolean_status_formatter({
+                    formatter: {
+                        $type: 'boolean_status',
                         invert_value: true
-                    })
+                    }
                 }
             ]
         }).
@@ -69,7 +70,7 @@ IPA.hbac.test_entity = function(spec) {
                 {
                     name: 'has_keytab',
                     label: '@i18n:objects.host.enrolled',
-                    formatter: IPA.boolean_formatter()
+                    formatter: 'boolean'
                 }
             ]
         }).
@@ -98,7 +99,7 @@ IPA.hbac.test_entity = function(spec) {
                 {
                     name: 'ipaenabledflag',
                     label: '@i18n:status.label',
-                    formatter: IPA.boolean_status_formatter()
+                    formatter: 'boolean_status'
                 },
                 'description'
             ]
@@ -116,12 +117,12 @@ IPA.hbac.test_entity = function(spec) {
                 {
                     name: 'matched',
                     label: '@i18n:objects.hbactest.matched',
-                    formatter: IPA.boolean_formatter()
+                    formatter: 'boolean'
                 },
                 {
                     name: 'ipaenabledflag',
                     label: '@i18n:status.label',
-                    formatter: IPA.boolean_status_formatter()
+                    formatter: 'boolean_status'
                 },
                 'description'
             ]

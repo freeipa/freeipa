@@ -260,7 +260,7 @@ IPA.netgroup.details_facet = function(spec) {
                                 {
                                     name: 'externalhost',
                                     label: '@i18n:objects.netgroup.external',
-                                    formatter: IPA.boolean_formatter(),
+                                    formatter: 'boolean',
                                     width: '200px'
                                 }
                             ]

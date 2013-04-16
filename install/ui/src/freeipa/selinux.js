@@ -41,7 +41,7 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
                 {
                     name: 'ipaenabledflag',
                     label: '@i18n:status.label',
-                    formatter: IPA.boolean_status_formatter()
+                    formatter: 'boolean_status'
                 },
                 'description'
             ],

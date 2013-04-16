@@ -45,9 +45,10 @@ IPA.user.entity = function(spec) {
                 {
                     name: 'nsaccountlock',
                     label: '@i18n:status.label',
-                    formatter: IPA.boolean_status_formatter({
+                    formatter: {
+                        $type: 'boolean_status',
                         invert_value: true
-                    })
+                    }
                 },
                 'uidnumber',
                 'mail',
@@ -111,7 +112,7 @@ IPA.user.entity = function(spec) {
                             name: 'krbpasswordexpiration',
                             label: '@i18n:objects.user.krbpasswordexpiration',
                             read_only: true,
-                            formatter: IPA.utc_date_formatter()
+                            formatter: 'utc_date'
                         },
                         'uidnumber',
                         'gidnumber',
