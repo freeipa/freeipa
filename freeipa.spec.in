@@ -23,7 +23,7 @@ BuildRequires:  /usr/share/selinux/devel/Makefile
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 BuildRequires:  systemd-units
 %if 0%{?fedora} >= 18
-BuildRequires:  samba-devel >= 4.0.0-150
+BuildRequires:  samba-devel >= 2:4.0.5-1
 BuildRequires:  samba-python
 BuildRequires:  libwbclient-devel
 %else
@@ -98,7 +98,7 @@ Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
 %if 0%{?krb5_dal_version} >= 4
-Requires: krb5-server >= 1.11
+Requires: krb5-server >= 1.11.2-1
 %else
 %if 0%{krb5_dal_version} == 3
 # krb5 1.11 bumped DAL interface major version, a rebuild is needed
@@ -194,7 +194,7 @@ Requires: %{name}-server = %version-%release
 Requires: m2crypto
 %if 0%{?fedora} >= 18
 Requires: samba-python
-Requires: samba
+Requires: samba >= 2:4.0.5-1
 Requires: samba-winbind
 %else
 Requires: samba4-python
@@ -691,7 +691,7 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_dns.so
 %attr(755,root,root) %{plugin_dir}/libipa_range_check.so
 %dir %{_localstatedir}/lib/ipa
-%attr(755,root,root) %dir %{_localstatedir}/lib/ipa/backup
+%attr(700,root,root) %dir %{_localstatedir}/lib/ipa/backup
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
@@ -794,6 +794,11 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Mon Apr 15 2013 Martin Kosek <mkosek@redhat.com> - 3.1.99-6
+- Require samba 4.0.5, includes new passdb API
+- Require krb5 1.11.2-1, fixes missing PAC issue
+- Change permissions on backup dir to 700
+
 * Fri Apr  5 2013 Rob Crittenden <rcritten@redhat.com> - 3.1.99-5
 - Add backup and restore
 - Own /var/lib/ipa/backup
