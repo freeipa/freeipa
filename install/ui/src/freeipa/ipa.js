@@ -1475,7 +1475,7 @@ IPA.unauthorized_dialog = function(spec) {
                 },
                 {
                     name: 'password',
-                    type: 'password',
+                    $type: 'password',
                     label: text.get('@i18n:login.password', "Password")
                 }
             ]
@@ -1491,13 +1491,13 @@ IPA.unauthorized_dialog = function(spec) {
                 },
                 {
                     name: 'new_password',
-                    type: 'password',
+                    $type: 'password',
                     required: true,
                     label: text.get('@i18n:password.new_password)', "New Password")
                 },
                 {
                     name: 'verify_password',
-                    type: 'password',
+                    $type: 'password',
                     required: true,
                     label: text.get('@i18n:password.verify_password', "Verify Password"),
                     validators: [IPA.same_password_validator({

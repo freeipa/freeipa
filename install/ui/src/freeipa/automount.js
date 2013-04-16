@@ -94,7 +94,7 @@ IPA.automount.map_entity = function(spec) {
                     fields: [
                         'automountmapname',
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -108,7 +108,7 @@ IPA.automount.map_entity = function(spec) {
                     name: 'general',
                     fields: [
                         {
-                            type: 'radio',
+                            $type: 'radio',
                             name: 'method',
                             enabled: false, //don't use value in add command
                             label: '@i18n:objects.automountmap.map_type',
@@ -125,7 +125,7 @@ IPA.automount.map_entity = function(spec) {
                         },
                         'automountmapname',
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'description'
                         }
                     ]

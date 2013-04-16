@@ -118,7 +118,7 @@ IPA.user.entity = function(spec) {
                         'loginshell',
                         'homedirectory',
                         {
-                            type: 'sshkeys',
+                            $type: 'sshkeys',
                             name: 'ipasshpubkey',
                             label: '@i18n:objects.sshkeystore.keys'
                         }
@@ -194,11 +194,11 @@ IPA.user.entity = function(spec) {
                 {
                     name: 'contact',
                     fields: [
-                        { type: 'multivalued', name: 'mail' },
-                        { type: 'multivalued', name: 'telephonenumber' },
-                        { type: 'multivalued', name: 'pager' },
-                        { type: 'multivalued', name: 'mobile' },
-                        { type: 'multivalued', name: 'facsimiletelephonenumber' }
+                        { $type: 'multivalued', name: 'mail' },
+                        { $type: 'multivalued', name: 'telephonenumber' },
+                        { $type: 'multivalued', name: 'pager' },
+                        { $type: 'multivalued', name: 'mobile' },
+                        { $type: 'multivalued', name: 'facsimiletelephonenumber' }
                     ]
                 },
                 {
@@ -210,7 +210,7 @@ IPA.user.entity = function(spec) {
                     fields: [
                         'ou',
                         {
-                            type: 'entity_select',
+                            $type: 'entity_select',
                             name: 'manager',
                             other_entity: 'user',
                             other_field: 'uid'
@@ -300,12 +300,12 @@ IPA.user.entity = function(spec) {
                         {
                             name: 'userpassword',
                             label: '@i18n:password.new_password',
-                            type: 'password'
+                            $type: 'password'
                         },
                         {
                             name: 'userpassword2',
                             label: '@i18n:password.verify_password',
-                            type: 'password'
+                            $type: 'password'
                         }
                     ]
                 }
@@ -495,19 +495,19 @@ IPA.user_password_dialog = function(spec) {
                 {
                     name: 'current_password',
                     label: '@i18n:password.current_password',
-                    type: 'password',
+                    $type: 'password',
                     required: true
                 },
                 {
                     name: 'password1',
                     label: '@i18n:password.new_password',
-                    type: 'password',
+                    $type: 'password',
                     required: true
                 },
                 {
                     name: 'password2',
                     label: '@i18n:password.verify_password',
-                    type: 'password',
+                    $type: 'password',
                     validators: [IPA.same_password_validator({
                         other_field: 'password1'
                     })],

@@ -2187,16 +2187,16 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
 
     spec.widgets = spec.widgets || [
         {
-            type: 'html',
+            $type: 'html',
             css_class: 'separator'
         },
         {
-            type: 'select',
+            $type: 'select',
             name: 'action',
             undo: false
         },
         {
-            type: 'button',
+            $type: 'button',
             name: 'apply',
             label: '@i18n:actions.apply'
         }

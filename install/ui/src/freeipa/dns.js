@@ -64,16 +64,16 @@ IPA.dns.config_entity = function(spec) {
                     label: '@i18n:objects.dnsconfig.options',
                     fields: [
                         {
-                            type: 'checkbox',
+                            $type: 'checkbox',
                             name: 'idnsallowsyncptr'
                         },
                         {
-                            type: 'multivalued',
+                            $type: 'multivalued',
                             name: 'idnsforwarders',
                             validators: [IPA.dnsforwarder_validator()]
                         },
                         {
-                            type: 'radio',
+                            $type: 'radio',
                             name: 'idnsforwardpolicy',
                             default_value: 'first',
                             options: [
@@ -162,14 +162,14 @@ IPA.dns.zone_entity = function(spec) {
                     'idnssoaminimum',
                     'dnsttl',
                     {
-                        type: 'combobox',
+                        $type: 'combobox',
                         name: 'dnsclass',
                         options: [
                             'IN', 'CS', 'CH', 'HS'
                         ]
                     },
                     {
-                        type: 'radio',
+                        $type: 'radio',
                         name: 'idnsallowdynupdate',
                         options: [
                             { value: 'TRUE', label: '@i18n:true' },
@@ -177,11 +177,11 @@ IPA.dns.zone_entity = function(spec) {
                         ]
                     },
                     {
-                        type: 'textarea',
+                        $type: 'textarea',
                         name: 'idnsupdatepolicy'
                     },
                     {
-                        type: 'netaddr',
+                        $type: 'netaddr',
                         name: 'idnsallowquery',
                         validators: [
                             IPA.network_validator({
@@ -191,7 +191,7 @@ IPA.dns.zone_entity = function(spec) {
                         })]
                     },
                     {
-                        type: 'netaddr',
+                        $type: 'netaddr',
                         name: 'idnsallowtransfer',
                         validators: [
                             IPA.network_validator({
@@ -201,12 +201,12 @@ IPA.dns.zone_entity = function(spec) {
                         })]
                     },
                     {
-                        type: 'multivalued',
+                        $type: 'multivalued',
                         name: 'idnsforwarders',
                         validators: [IPA.dnsforwarder_validator()]
                     },
                     {
-                        type: 'radio',
+                        $type: 'radio',
                         name: 'idnsforwardpolicy',
                         default_value: 'first',
                         options: [
@@ -225,7 +225,7 @@ IPA.dns.zone_entity = function(spec) {
                         ]
                     },
                     {
-                        type: 'checkbox',
+                        $type: 'checkbox',
                         name: 'idnsallowsyncptr'
                     }
                 ]
@@ -293,13 +293,13 @@ IPA.dns.zone_entity = function(spec) {
                     name: 'name',
                     fields: [
                         {
-                            type: 'dnszone_name',
+                            $type: 'dnszone_name',
                             name: 'idnsname',
                             required: false,
                             radio_name: 'dnszone_name_type'
                         },
                         {
-                            type: 'dnszone_name',
+                            $type: 'dnszone_name',
                             name: 'name_from_ip',
                             radio_name: 'dnszone_name_type',
                             validators: [IPA.network_validator()]
@@ -315,7 +315,7 @@ IPA.dns.zone_entity = function(spec) {
                             required: false
                         },
                         {
-                            type: 'force_dnszone_add_checkbox',
+                            $type: 'force_dnszone_add_checkbox',
                             name: 'force',
                             metadata: IPA.get_command_option('dnszone_add', 'force')
                         }
@@ -795,7 +795,7 @@ IPA.dns.get_record_metadata = function() {
                     validators: [IPA.ip_v4_address_validator()]
                 },
                 {
-                    type: 'checkbox',
+                    $type: 'checkbox',
                     name: 'a_extra_create_reverse'
                 }
             ],
@@ -814,7 +814,7 @@ IPA.dns.get_record_metadata = function() {
                     validators: [IPA.ip_v6_address_validator()]
                 },
                 {
-                    type: 'checkbox',
+                    $type: 'checkbox',
                     name: 'aaaa_extra_create_reverse'
                 }
             ],
@@ -848,7 +848,7 @@ IPA.dns.get_record_metadata = function() {
                 'cert_part_algorithm',
                 {
                     name: 'cert_part_certificate_or_crl',
-                    type: 'textarea'
+                    $type: 'textarea'
                 }
             ],
             columns: ['cert_part_type','cert_part_key_tag','cert_part_algorithm']
@@ -875,7 +875,7 @@ IPA.dns.get_record_metadata = function() {
                 'ds_part_digest_type',
                 {
                     name: 'ds_part_digest',
-                    type: 'textarea'
+                    $type: 'textarea'
                 }
             ],
             columns: ['ds_part_key_tag', 'ds_part_algorithm',
@@ -889,7 +889,7 @@ IPA.dns.get_record_metadata = function() {
                 'key_part_algorithm',
                 {
                     name: 'key_part_public_key',
-                    type: 'textarea'
+                    $type: 'textarea'
                 }
             ],
             columns: ['key_part_flags', 'key_part_protocol',
@@ -912,7 +912,7 @@ IPA.dns.get_record_metadata = function() {
                 {
                     name: 'loc_part_lat_dir',
                     options: IPA.create_options(['N','S']),
-                    type: 'radio',
+                    $type: 'radio',
                     widget_opt: {
                         default_value: 'N'
                     }
@@ -923,7 +923,7 @@ IPA.dns.get_record_metadata = function() {
                 {
                     name: 'loc_part_lon_dir',
                     options: IPA.create_options(['E','W']),
-                    type: 'radio',
+                    $type: 'radio',
                     widget_opt: {
                         default_value: 'E'
                     }
@@ -950,7 +950,7 @@ IPA.dns.get_record_metadata = function() {
                 'naptr_part_preference',
                 {
                     name: 'naptr_part_flags',
-                    type: 'select',
+                    $type: 'select',
                     options:  IPA.create_options(['S', 'A', 'U', 'P'])
                 },
                 'naptr_part_service',
@@ -982,7 +982,7 @@ IPA.dns.get_record_metadata = function() {
 //                         'DS', 'HIP', 'IPSECKEY', 'KEY', 'KX', 'LOC', 'MX', 'NAPTR',
 //                         'NS', 'NSEC','NSEC3', 'NSEC3PARAM', 'PTR', 'RRSIG', 'RP',
 //                         'SIG', 'SPF', 'SRV', 'SSHFP', 'TA', 'TKEY', 'TSIG', 'TXT']),
-//                     type: 'select'
+//                     $type: 'select'
 //                 }
             ],
             adder_attributes: [],
@@ -1001,7 +1001,7 @@ IPA.dns.get_record_metadata = function() {
             attributes: [
                 {
                     name: 'rrsig_part_type_covered',
-                    type: 'select',
+                    $type: 'select',
                     options:  IPA.create_options(['SOA', 'A', 'AAAA', 'A6', 'AFSDB',
                                 'APL', 'CERT', 'CNAME', 'DHCID', 'DLV', 'DNAME',
                                 'DNSKEY', 'DS', 'HIP', 'IPSECKEY', 'KEY', 'KX',
@@ -1018,7 +1018,7 @@ IPA.dns.get_record_metadata = function() {
                 'rrsig_part_signers_name',
                 {
                     name: 'rrsig_part_signature',
-                    type: 'textarea'
+                    $type: 'textarea'
                 }
             ],
             adder_attributes: [],
@@ -1029,7 +1029,7 @@ IPA.dns.get_record_metadata = function() {
             attributes: [
                 {
                     name: 'sig_part_type_covered',
-                    type: 'select',
+                    $type: 'select',
                     options:  IPA.create_options(['SOA', 'A', 'AAAA', 'A6', 'AFSDB',
                                 'APL', 'CERT', 'CNAME', 'DHCID', 'DLV', 'DNAME',
                                 'DNSKEY', 'DS', 'HIP', 'IPSECKEY', 'KEY', 'KX',
@@ -1046,7 +1046,7 @@ IPA.dns.get_record_metadata = function() {
                 'sig_part_signers_name',
                 {
                     name: 'sig_part_signature',
-                    type: 'textarea'
+                    $type: 'textarea'
                 }
             ],
             adder_attributes: [],
@@ -1071,7 +1071,7 @@ IPA.dns.get_record_metadata = function() {
                 'sshfp_part_fp_type',
                 {
                     name: 'sshfp_part_fingerprint',
-                    type: 'textarea'
+                    $type: 'textarea'
                 }
             ],
             adder_attributes: [],
@@ -1158,7 +1158,7 @@ IPA.dns.record_entity = function(spec) {
             disable_breadcrumb: false,
             fields: [
                 {
-                    type: 'dnsrecord_host_link',
+                    $type: 'dnsrecord_host_link',
                     name: 'idnsname',
                     other_entity: 'host',
                     widget: 'identity.idnsname'
@@ -1168,10 +1168,10 @@ IPA.dns.record_entity = function(spec) {
                 {
                     name: 'identity',
                     label: '@i18n:details.identity',
-                    type: 'details_table_section',
+                    $type: 'details_table_section',
                     widgets: [
                         {
-                            type: 'dnsrecord_host_link',
+                            $type: 'dnsrecord_host_link',
                             name: 'idnsname',
                             other_entity: 'host',
                             label: IPA.get_entity_param(
@@ -1190,7 +1190,7 @@ IPA.dns.record_entity = function(spec) {
                 },
                 {
                     name: 'record_type',
-                    type: 'dnsrecord_type',
+                    $type: 'dnsrecord_type',
                     flags: ['no_command'],
                     widget: 'general.record_type'
                 }
@@ -1198,11 +1198,11 @@ IPA.dns.record_entity = function(spec) {
             widgets: [
                 {
                     name: 'general',
-                    type: 'details_table_section_nc',
+                    $type: 'details_table_section_nc',
                     widgets: [
                         'idnsname',
                         {
-                            type: 'dnsrecord_type',
+                            $type: 'dnsrecord_type',
                             name: 'record_type',
                             label: '@i18n:objects.dnsrecord.type'
                         }
@@ -1338,7 +1338,7 @@ IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets, update)
 
     var section = {
         name: type.name,
-        type: 'details_table_section_nc',
+        $type: 'details_table_section_nc',
         widgets: []
     };
     widgets.push(section);
@@ -1393,14 +1393,14 @@ IPA.dns.record_prepare_details_spec = function(spec, type_prepare_method) {
 
     var standard_record_section = {
         name: 'standard_types',
-        type: 'details_table_section',
+        $type: 'details_table_section',
         label: '@i18n:objects.dnsrecord.standard',
         widgets: []
     };
 
     var other_record_section = {
         name: 'other_types',
-        type: 'details_table_section',
+        $type: 'details_table_section',
         label: '@i18n:objects.dnsrecord.other',
         widgets: []
     };
@@ -1432,7 +1432,7 @@ IPA.dns.record_prepare_details_for_type = function(type, fields, container) {
 
     var type_widget = {
         name: type.name,
-        type: 'dnsrecord_type_table',
+        $type: 'dnsrecord_type_table',
         record_type: type.name,
         value_attribute: 'dnsdata',
         dnstype: dnstype,
@@ -1443,7 +1443,7 @@ IPA.dns.record_prepare_details_for_type = function(type, fields, container) {
 
     var field = {
         name: type.name,
-        type: 'dnsrecord_type_table',
+        $type: 'dnsrecord_type_table',
         dnstype: dnstype,
         label: dnstype,
         widget: container.name+'.'+type.name

@@ -40,7 +40,7 @@ IPA.pwpolicy.entity = function(spec) {
                     name : 'identity',
                     fields:[
                         {
-                            type: 'link',
+                            $type: 'link',
                             name: 'cn',
                             other_entity: 'group'
                         },
@@ -68,7 +68,7 @@ IPA.pwpolicy.entity = function(spec) {
         adder_dialog({
             fields: [
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'cn',
                     other_entity: 'group',
                     other_field: 'cn',

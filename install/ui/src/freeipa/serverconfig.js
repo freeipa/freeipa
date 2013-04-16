@@ -51,7 +51,7 @@ IPA.serverconfig.entity = function(spec) {
                         'ipausersearchfields',
                         'ipadefaultemaildomain',
                         {
-                            type: 'entity_select',
+                            $type: 'entity_select',
                             name: 'ipadefaultprimarygroup',
                             other_entity: 'group',
                             other_field: 'cn'
@@ -62,18 +62,18 @@ IPA.serverconfig.entity = function(spec) {
                         'ipapwdexpadvnotify',
                         {
                             name: 'ipaconfigstring',
-                            type: 'checkboxes',
+                            $type: 'checkboxes',
                             options: IPA.create_options([
                                 'AllowLMhash', 'AllowNThash',
                                 'KDC:Disable Last Success', 'KDC:Disable Lockout'
                             ])
                         },
                         {
-                            type: 'checkbox',
+                            $type: 'checkbox',
                             name: 'ipamigrationenabled'
                         },
                         {
-                            type: 'multivalued',
+                            $type: 'multivalued',
                             name: 'ipauserobjectclasses'
                         }
                     ]
@@ -84,7 +84,7 @@ IPA.serverconfig.entity = function(spec) {
                     fields: [
                         'ipagroupsearchfields',
                         {
-                            type: 'multivalued',
+                            $type: 'multivalued',
                             name: 'ipagroupobjectclasses'
                         }
                     ]
@@ -103,7 +103,7 @@ IPA.serverconfig.entity = function(spec) {
                     fields: [
                         {
                             name: 'ipakrbauthzdata',
-                            type: 'checkboxes',
+                            $type: 'checkboxes',
                             options: IPA.create_options(['MS-PAC', 'PAD', 'nfs:NONE'])
                         }
                     ]

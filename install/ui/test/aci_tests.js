@@ -54,7 +54,7 @@ module('aci', {
                 entity: entity,
                 fields: [
                     {
-                        type: 'select',
+                        $type: 'select',
                         name: 'target',
                         widget: 'target.target',
                         enabled: false
@@ -65,7 +65,7 @@ module('aci', {
                         enabled: false
                     },
                     {
-                        type: 'entity_select',
+                        $type: 'entity_select',
                         name: 'memberof',
                         widget: 'target.memberof',
                         enabled: false
@@ -76,13 +76,13 @@ module('aci', {
                         enabled: false
                     },
                     {
-                        type: 'entity_select',
+                        $type: 'entity_select',
                         name: 'targetgroup',
                         widget: 'target.targetgroup',
                         enabled: false
                     },
                     {
-                        type: 'select',
+                        $type: 'select',
                         name: 'type',
                         widget: 'target.type',
                         enabled: false
@@ -95,14 +95,14 @@ module('aci', {
                     {
                         name: 'attrs_multi',
                         param: 'attrs',
-                        type: 'multivalued',
+                        $type: 'multivalued',
                         widget: 'target.attrs_multi',
                         enabled: false
                     }
                 ],
                 widgets: [
                     {
-                        type: 'permission_target',
+                        $type: 'permission_target',
                         container_factory: IPA.details_table_section,
                         group_entity: group_entity,
                         name: 'target',

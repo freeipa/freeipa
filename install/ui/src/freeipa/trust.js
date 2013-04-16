@@ -74,11 +74,11 @@ IPA.trust.entity = function(spec) {
                     label: '@i18n:objects.trust.blacklists',
                     fields: [
                         {
-                            type: 'multivalued',
+                            $type: 'multivalued',
                             name: 'ipantsidblacklistincoming'
                         },
                         {
-                            type: 'multivalued',
+                            $type: 'multivalued',
                             name: 'ipantsidblacklistoutgoing'
                         }
 // trust status not supported by show command at the moment
@@ -104,19 +104,19 @@ IPA.trust.entity = function(spec) {
                     widget: 'method.realm_admin'
                 },
                 {
-                    type: 'password',
+                    $type: 'password',
                     name: 'realm_passwd',
                     label: '@i18n:password.password',
                     widget: 'method.realm_passwd'
                 },
                 {
-                    type: 'password',
+                    $type: 'password',
                     name: 'trust_secret',
                     label: '@i18n:password.password',
                     widget: 'method.trust_secret'
                 },
                 {
-                    type: 'password',
+                    $type: 'password',
                     name: 'trust_secret_verify',
                     label: '@i18n:password.verify_password',
                     widget: 'method.trust_secret_verify',
@@ -128,14 +128,14 @@ IPA.trust.entity = function(spec) {
             ],
             widgets: [
                 {
-                    type: 'details_table_section_nc',
+                    $type: 'details_table_section_nc',
                     name: 'realm',
                     widgets: [
                         'realm_server'
                     ]
                 },
                 {
-                    type: 'multiple_choice_section',
+                    $type: 'multiple_choice_section',
                     name: 'method',
                     label: '@i18n:objects.trust.establish_using',
                     choices: [
@@ -158,15 +158,15 @@ IPA.trust.entity = function(spec) {
                             name: 'realm_admin'
                         },
                         {
-                            type: 'password',
+                            $type: 'password',
                             name: 'realm_passwd'
                         },
                         {
-                            type: 'password',
+                            $type: 'password',
                             name: 'trust_secret'
                         },
                         {
-                            type: 'password',
+                            $type: 'password',
                             name: 'trust_secret_verify'
                         }
                     ]

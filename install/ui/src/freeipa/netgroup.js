@@ -54,7 +54,7 @@ IPA.netgroup.entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -78,7 +78,7 @@ IPA.netgroup.details_facet = function(spec) {
             widget: 'identity.cn'
         },
         {
-            type: 'textarea',
+            $type: 'textarea',
             name: 'description',
             widget: 'identity.description'
         },
@@ -90,7 +90,7 @@ IPA.netgroup.details_facet = function(spec) {
 
     spec.widgets = [
         {
-            type: 'details_table_section',
+            $type: 'details_table_section',
             name: 'identity',
             label: '@i18n:details.general',
             widgets: [
@@ -98,7 +98,7 @@ IPA.netgroup.details_facet = function(spec) {
                     name: 'cn'
                 },
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 },
                 {
@@ -115,18 +115,18 @@ IPA.netgroup.details_facet = function(spec) {
 
     spec.fields.push(
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'usercategory',
             widget: 'user.rule.usercategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberuser_user',
             widget: 'user.rule.memberuser_user',
             priority: IPA.netgroup.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberuser_group',
             widget: 'user.rule.memberuser_group',
             priority: IPA.netgroup.remove_method_priority
@@ -155,7 +155,7 @@ IPA.netgroup.details_facet = function(spec) {
                     ],
                     widgets: [
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_user',
                             name: 'memberuser_user',
                             add_method: 'add_member',
@@ -171,7 +171,7 @@ IPA.netgroup.details_facet = function(spec) {
                             ]
                         },
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_group',
                             name: 'memberuser_group',
                             add_method: 'add_member',
@@ -198,19 +198,19 @@ IPA.netgroup.details_facet = function(spec) {
 
     spec.fields.push(
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'hostcategory',
             widget: 'host.rule.hostcategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberhost_host',
             widget: 'host.rule.memberhost_host',
             priority: IPA.netgroup.remove_method_priority,
             external: 'externalhost'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberhost_hostgroup',
             widget: 'host.rule.memberhost_hostgroup',
             priority: IPA.netgroup.remove_method_priority
@@ -243,7 +243,7 @@ IPA.netgroup.details_facet = function(spec) {
                     ],
                     widgets: [
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberhost_host',
                             name: 'memberhost_host',
                             add_method: 'add_member',
@@ -266,7 +266,7 @@ IPA.netgroup.details_facet = function(spec) {
                             ]
                         },
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberhost_hostgroup',
                             name: 'memberhost_hostgroup',
                             add_method: 'add_member',

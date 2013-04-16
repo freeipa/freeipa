@@ -75,13 +75,13 @@ IPA.host.entity = function(spec) {
                     name: 'details',
                     fields: [
                         {
-                            type: 'host_dnsrecord_entity_link',
+                            $type: 'host_dnsrecord_entity_link',
                             name: 'fqdn',
                             other_entity: 'dnsrecord'
                         },
                         'krbprincipalname',
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'description'
                         },
                         'l',
@@ -89,18 +89,18 @@ IPA.host.entity = function(spec) {
                         'nshardwareplatform',
                         'nsosversion',
                         {
-                            type: 'sshkeys',
+                            $type: 'sshkeys',
                             name: 'ipasshpubkey',
                             label: '@i18n:objects.sshkeystore.keys'
                         },
                         {
-                            type: 'multivalued',
+                            $type: 'multivalued',
                             name: 'macaddress',
                             flags: ['w_if_no_aci']
                         },
                         {
                             name: 'ipakrbokasdelegate',
-                            type: 'checkbox',
+                            $type: 'checkbox',
                             acl_param: 'krbticketflags'
                         }
                     ]
@@ -119,7 +119,7 @@ IPA.host.entity = function(spec) {
                             label: '@i18n:objects.host.keytab'
                         },
                         {
-                            type: 'host_password',
+                            $type: 'host_password',
                             name: 'has_password',
                             label: '@i18n:objects.host.password'
                         }
@@ -137,7 +137,7 @@ IPA.host.entity = function(spec) {
                     },
                     fields: [
                         {
-                            type: 'certificate_status',
+                            $type: 'certificate_status',
                             name: 'certificate_status',
                             label: '@i18n:objects.host.status'
                         }
@@ -219,7 +219,7 @@ IPA.host.entity = function(spec) {
                     name: 'fqdn',
                     fields: [
                         {
-                            type: 'host_fqdn',
+                            $type: 'host_fqdn',
                             name: 'fqdn',
                             required: true
                         }
@@ -234,7 +234,7 @@ IPA.host.entity = function(spec) {
                             metadata: IPA.get_command_option('host_add', 'ip_address')
                         },
                         {
-                            type: 'force_host_add_checkbox',
+                            $type: 'force_host_add_checkbox',
                             name: 'force',
                             metadata: IPA.get_command_option('host_add', 'force')
                         }
@@ -271,13 +271,13 @@ IPA.host_fqdn_widget = function(spec) {
 
     spec.widgets = [
         {
-            type: 'text',
+            $type: 'text',
             name: 'hostname',
             label: '@i18n:objects.service.host',
             required: true
         },
         {
-            type: 'dnszone_select',
+            $type: 'dnszone_select',
             name: 'dnszone',
             label: IPA.metadata.objects.dnszone.label_singular,
             editable: true,
@@ -466,7 +466,7 @@ IPA.host_deleter_dialog = function(spec) {
         var metadata = IPA.get_command_option('host_del', 'updatedns');
 
         that.updatedns = $('<input/>', {
-            type: 'checkbox',
+            $type: 'checkbox',
             name: 'updatedns',
             title: metadata.doc
         }).appendTo(that.container);
@@ -795,13 +795,13 @@ IPA.host.set_otp_dialog = function(spec) {
                 {
                     name: 'password1',
                     label: '@i18n:password.new_password',
-                    type: 'password',
+                    $type: 'password',
                     required: true
                 },
                 {
                     name: 'password2',
                     label: '@i18n:password.verify_password',
-                    type: 'password',
+                    $type: 'password',
                     required: true,
                     validators: [IPA.same_password_validator({
                         other_field: 'password1'

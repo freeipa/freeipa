@@ -113,7 +113,7 @@ IPA.idrange.entity = function(spec) {
             ],
             widgets: [
                 {
-                    type: 'details_table_section_nc',
+                    $type: 'details_table_section_nc',
                     name: 'idrange',
                     widgets: [
                         'cn',
@@ -123,7 +123,7 @@ IPA.idrange.entity = function(spec) {
                     ]
                 },
                 {
-                    type: 'multiple_choice_section',
+                    $type: 'multiple_choice_section',
                     name: 'type',
                     label: '@i18n:objects.idrange.type',
                     choices: [

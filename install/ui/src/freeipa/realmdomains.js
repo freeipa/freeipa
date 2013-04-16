@@ -41,7 +41,7 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
                         fields: [
                             {
                                 name: 'associateddomain',
-                                type: 'multivalued'
+                                $type: 'multivalued'
                             }
                         ]
                     }

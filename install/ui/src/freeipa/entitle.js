@@ -125,7 +125,7 @@ IPA.entitle.entity = function(spec) {
                 {
                     name: 'password',
                     label: IPA.get_command_option('entitle_register', 'password').label,
-                    type: 'password'
+                    $type: 'password'
                 }
 /* currently not supported
                 , {

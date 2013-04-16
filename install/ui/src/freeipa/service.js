@@ -67,20 +67,20 @@ IPA.service.entity = function(spec) {
                     fields: [
                         'krbprincipalname',
                         {
-                            type: 'service_name',
+                            $type: 'service_name',
                             name: 'service',
                             label: '@i18n:objects.service.service',
                             read_only: true
                         },
                         {
-                            type: 'service_host',
+                            $type: 'service_host',
                             name: 'host',
                             label: '@i18n:objects.service.host',
                             read_only: true
                         },
                         {
                             name: 'ipakrbauthzdata',
-                            type: 'radio',
+                            $type: 'radio',
                             layout: 'vertical',
                             options: [
                                 {
@@ -109,7 +109,7 @@ IPA.service.entity = function(spec) {
                         },
                         {
                             name: 'ipakrbokasdelegate',
-                            type: 'checkbox',
+                            $type: 'checkbox',
                             acl_param: 'krbticketflags'
                         }
                     ]
@@ -123,7 +123,7 @@ IPA.service.entity = function(spec) {
                     },
                     fields: [
                         {
-                            type: 'service_provisioning_status',
+                            $type: 'service_provisioning_status',
                             name: 'has_keytab',
                             label: '@i18n:objects.service.status'
                         }
@@ -141,7 +141,7 @@ IPA.service.entity = function(spec) {
                     },
                     fields: [
                         {
-                            type: 'certificate_status',
+                            $type: 'certificate_status',
                             name: 'certificate_status',
                             label: '@i18n:objects.service.status'
                         }
@@ -180,7 +180,7 @@ IPA.service.entity = function(spec) {
                 {
                     fields: [
                         {
-                            type: 'combobox',
+                            $type: 'combobox',
                             name: 'service',
                             label: '@i18n:objects.service.service',
                             options: [
@@ -201,7 +201,7 @@ IPA.service.entity = function(spec) {
                             z_index: 2
                         },
                         {
-                            type: 'entity_select',
+                            $type: 'entity_select',
                             name: 'host',
                             other_entity: 'host',
                             other_field: 'fqdn',
@@ -210,7 +210,7 @@ IPA.service.entity = function(spec) {
                             z_index: 1
                         },
                         {
-                            type: 'checkbox',
+                            $type: 'checkbox',
                             name: 'force',
                             metadata: IPA.get_command_option('service_add', 'force')
                         }
@@ -248,7 +248,7 @@ IPA.service_adder_dialog = function(spec) {
         //fields definition and create custom field with two associated
         //widgets - 'service' and 'host' with this dialog's save logic.
         that.builder.build_field({
-            type: 'field',
+            $type: 'field',
             name: 'krbprincipalname',
             required: false
         });

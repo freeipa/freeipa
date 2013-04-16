@@ -24,6 +24,7 @@
 
 define([
     'dojo/_base/array',
+    'dojo/_base/lang',
     './builder',
     './ipa',
     './jquery',
@@ -31,7 +32,7 @@ define([
     './phases',
     './reg',
     './text'],
-       function(array, builder, IPA, $, navigation, phases, reg, text) {
+       function(array, lang, builder, IPA, $, navigation, phases, reg, text) {
 
 var exp = {};
 
@@ -878,66 +879,49 @@ IPA.field_builder = function(spec) {
 
     var that = IPA.object();
 
-    that.default_factory = spec.default_factory || IPA.field;
     that.container = spec.container;
     that.field_options = spec.field_options || {};
 
-    that.get_field_factory = function(spec) {
-
-        var factory;
-        if (spec.$factory) {
-            factory = spec.$factory;
-        } else if(spec.type) {
-            factory = reg.field.get(spec.type);
-            factory = factory ? factory.factory : undefined;
-        }
-
-        if (!factory) {
-            factory = that.default_factory;
-        }
-
-        return factory;
-    };
 
     that.build_field = function(spec, container) {
 
-        container = container || that.container;
-
-        if(!(spec instanceof Object)) {
-            spec = { name: spec };
-        }
-
-        if(that.field_options) {
-            $.extend(spec, that.field_options);
-        }
-
-        var factory = that.get_field_factory(spec);
-
-        var field = factory(spec);
-
-        if(container) {
-            container.add_field(field);
-        }
-
+        var context = lang.mixin({}, that.field_options);
+        context.container = container || that.container;
+        var field = builder.build('field', spec, context);
         return field;
     };
 
     that.build_fields = function(specs, container) {
 
-        container = container || that.container;
-
-        for(var i=0; i<specs.length; i++) {
-            that.build_field(specs[i], container);
-        }
+        return that.build_field(specs, container);
     };
 
     return that;
 };
 
+
+exp.pre_op = function(spec, context) {
+
+    if (context.facet) spec.facet = context.facet;
+    if (context.entity) spec.entity = context.entity;
+    if (context.undo !== undefined) spec.undo = context.undo;
+    return spec;
+};
+
+exp.post_op = function(obj, spec, context) {
+
+    if (context.container) context.container.add_field(obj);
+    return obj;
+};
+
 // New builder and registry
 exp.builder = builder.get('field');
 exp.builder.factory = IPA.field;
+exp.builder.string_mode = 'property';
+exp.builder.string_property = 'name';
 reg.set('field', exp.builder.registry);
+exp.builder.pre_ops.push(exp.pre_op);
+exp.builder.post_ops.push(exp.post_op);
 
 exp.register = function() {
     var f = reg.field;

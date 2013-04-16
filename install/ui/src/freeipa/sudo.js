@@ -114,7 +114,7 @@ IPA.sudo.command_entity = function(spec) {
                     fields: [
                         'sudocmd',
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -145,7 +145,7 @@ IPA.sudo.command_entity = function(spec) {
             fields: [
                 'sudocmd',
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -176,7 +176,7 @@ IPA.sudo.command_group_entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -206,7 +206,7 @@ IPA.sudo.command_group_entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -231,7 +231,7 @@ IPA.sudorule_details_facet = function(spec) {
             widget: 'general.cn'
         },
         {
-            type: 'textarea',
+            $type: 'textarea',
             name: 'description',
             widget: 'general.description'
         }
@@ -239,7 +239,7 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.widgets = [
         {
-            type: 'details_table_section',
+            $type: 'details_table_section',
             name: 'general',
             label: '@i18n:details.general',
             widgets: [
@@ -247,7 +247,7 @@ IPA.sudorule_details_facet = function(spec) {
                     name: 'cn'
                 },
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -280,19 +280,19 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.fields.push(
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'usercategory',
             widget: 'user.rule.usercategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberuser_user',
             widget: 'user.rule.memberuser_user',
             external: 'externaluser',
             priority: IPA.sudo.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberuser_group',
             widget: 'user.rule.memberuser_group',
             priority: IPA.sudo.remove_method_priority
@@ -325,7 +325,7 @@ IPA.sudorule_details_facet = function(spec) {
                     ],
                     widgets: [
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_user',
                             name: 'memberuser_user',
                             add_method: 'add_user',
@@ -335,7 +335,7 @@ IPA.sudorule_details_facet = function(spec) {
                             remove_title: '@i18n:association.remove.member'
                         },
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_group',
                             name: 'memberuser_group',
                             add_method: 'add_user',
@@ -355,19 +355,19 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.fields.push(
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'hostcategory',
             widget: 'host.rule.hostcategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberhost_host',
             widget: 'host.rule.memberhost_host',
             external: 'externalhost',
             priority: IPA.sudo.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberhost_hostgroup',
             widget: 'host.rule.memberhost_hostgroup',
             priority: IPA.sudo.remove_method_priority
@@ -400,7 +400,7 @@ IPA.sudorule_details_facet = function(spec) {
                     ],
                     widgets: [
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_user',
                             name: 'memberhost_host',
                             add_method: 'add_host',
@@ -410,7 +410,7 @@ IPA.sudorule_details_facet = function(spec) {
                             remove_title: '@i18n:association.remove.member'
                         },
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_group',
                             name: 'memberhost_hostgroup',
                             add_method: 'add_host',
@@ -430,30 +430,30 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.fields.push(
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'cmdcategory',
             widget: 'command.rule.cmdcategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberallowcmd_sudocmd',
             widget: 'command.rule.memberallowcmd_sudocmd',
             priority: IPA.sudo.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberallowcmd_sudocmdgroup',
             widget: 'command.rule.memberallowcmd_sudocmdgroup',
             priority: IPA.sudo.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberdenycmd_sudocmd',
             widget: 'command.memberdenycmd_sudocmd',
             priority: IPA.sudo.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberdenycmd_sudocmdgroup',
             widget: 'command.memberdenycmd_sudocmdgroup',
             priority: IPA.sudo.remove_method_priority
@@ -492,7 +492,7 @@ IPA.sudorule_details_facet = function(spec) {
                     ],
                     widgets: [
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberallowcmd_sudocmd',
                             name: 'memberallowcmd_sudocmd',
                             add_method: 'add_allow_command',
@@ -501,7 +501,7 @@ IPA.sudorule_details_facet = function(spec) {
                             remove_title: '@i18n:association.remove.memberallowcmd'
                         },
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberallowcmd_sudocmdgroup',
                             name: 'memberallowcmd_sudocmdgroup',
                             add_method: 'add_allow_command',
@@ -518,7 +518,7 @@ IPA.sudorule_details_facet = function(spec) {
                     description: '@i18n:objects.sudorule.deny'
                 },
                 {
-                    type: 'rule_association_table',
+                    $type: 'rule_association_table',
                     id: entity_name+'-memberdenycmd_sudocmd',
                     name: 'memberdenycmd_sudocmd',
                     add_method: 'add_deny_command',
@@ -527,7 +527,7 @@ IPA.sudorule_details_facet = function(spec) {
                     remove_title: '@i18n:association.remove.memberdenycmd'
                 },
                 {
-                    type: 'rule_association_table',
+                    $type: 'rule_association_table',
                     id: entity_name+'-memberdenycmd_sudocmdgroup',
                     name: 'memberdenycmd_sudocmdgroup',
                     add_method: 'add_deny_command',
@@ -545,30 +545,30 @@ IPA.sudorule_details_facet = function(spec) {
 
     spec.fields.push(
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'ipasudorunasusercategory',
             widget: 'runas.runas_users.ipasudorunasusercategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'ipasudorunas_user',
             widget: 'runas.runas_users.ipasudorunas_user',
             external: 'ipasudorunasextuser',
             priority: IPA.sudo.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'ipasudorunas_group',
             widget: 'runas.runas_users.ipasudorunas_group',
             priority: IPA.sudo.remove_method_priority
         },
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'ipasudorunasgroupcategory',
             widget: 'runas.runas_groups.ipasudorunasgroupcategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'ipasudorunasgroup_group',
             widget: 'runas.runas_groups.ipasudorunasgroup_group',
             external: 'ipasudorunasextgroup',
@@ -596,7 +596,7 @@ IPA.sudorule_details_facet = function(spec) {
                     ],
                     widgets: [
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-runasruser_user',
                             name: 'ipasudorunas_user',
                             external: 'ipasudorunasextuser',
@@ -606,7 +606,7 @@ IPA.sudorule_details_facet = function(spec) {
                             remove_title: '@i18n:association.remove.ipasudorunas'
                         },
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-runasuser_group',
                             name: 'ipasudorunas_group',
                             add_method: 'add_runasuser',
@@ -628,7 +628,7 @@ IPA.sudorule_details_facet = function(spec) {
                         { name: 'ipasudorunasgroup_group' }
                     ],
                     widgets: [{
-                        type: 'rule_association_table',
+                        $type: 'rule_association_table',
                         id: entity_name+'-runasgroup_group',
                         name: 'ipasudorunasgroup_group',
                         external: 'ipasudorunasextgroup',

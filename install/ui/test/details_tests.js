@@ -152,16 +152,6 @@ test("Testing details lifecycle: create, load.", function(){
     var update_success_called = false;
     var update_failure_called = false;
 
-
-    function save_password(){
-        save_called = true;
-        return [];
-    }
-
-    function load_manager(){
-        load_called = true;
-    }
-
     function test_field(spec) {
         var that = IPA.field(spec);
 
@@ -208,27 +198,27 @@ test("Testing details lifecycle: create, load.", function(){
                         label: 'contact',
                         fields: [
                             {
-                                type: 'test',
+                                $type: 'test',
                                 name:'test'
                             },
                             {
-                                type: 'multivalued',
+                                $type: 'multivalued',
                                 name:'mail'
                             },
                             {
-                                type: 'multivalued',
+                                $type: 'multivalued',
                                 name:'telephonenumber'
                             },
                             {
-                                type: 'multivalued',
+                                $type: 'multivalued',
                                 name:'pager'
                             },
                             {
-                                type: 'multivalued',
+                                $type: 'multivalued',
                                 name:'mobile'
                             },
                             {
-                                type: 'multivalued',
+                                $type: 'multivalued',
                                 name:'facsimiletelephonenumber'
                             }
                         ]

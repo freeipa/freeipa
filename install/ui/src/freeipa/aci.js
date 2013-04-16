@@ -52,12 +52,12 @@ IPA.aci.permission_entity = function(spec) {
                     widget: 'identity.cn'
                 },
                 {
-                    type: 'rights',
+                    $type: 'rights',
                     name: 'permissions',
                     widget: 'rights.permissions'
                 },
                 {
-                    type: 'select',
+                    $type: 'select',
                     name: 'target',
                     widget: 'target.target',
                     enabled: false
@@ -68,7 +68,7 @@ IPA.aci.permission_entity = function(spec) {
                     enabled: false
                 },
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'memberof',
                     widget: 'target.memberof',
                     enabled: false
@@ -79,13 +79,13 @@ IPA.aci.permission_entity = function(spec) {
                     enabled: false
                 },
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'targetgroup',
                     widget: 'target.targetgroup',
                     enabled: false
                 },
                 {
-                    type: 'select',
+                    $type: 'select',
                     name: 'type',
                     widget: 'target.type',
                     enabled: false
@@ -98,14 +98,14 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     name: 'attrs_multi',
                     param: 'attrs',
-                    type: 'multivalued',
+                    $type: 'multivalued',
                     widget: 'target.attrs_multi',
                     enabled: false
                 }
             ],
             widgets: [
                 {
-                    type: 'details_table_section',
+                    $type: 'details_table_section',
                     name: 'identity',
                     label: '@i18n:objects.permission.identity',
                     widgets: [
@@ -113,18 +113,18 @@ IPA.aci.permission_entity = function(spec) {
                     ]
                 },
                 {
-                    type: 'details_table_section',
+                    $type: 'details_table_section',
                     name: 'rights',
                     label: '@i18n:objects.permission.rights',
                     widgets: [
                         {
-                            type: 'rights',
+                            $type: 'rights',
                             name: 'permissions'
                         }
                     ]
                 },
                 {
-                    type: 'permission_target',
+                    $type: 'permission_target',
                     container_factory: IPA.details_table_section,
                     label: '@i18n:objects.permission.target',
                     name: 'target',
@@ -147,12 +147,12 @@ IPA.aci.permission_entity = function(spec) {
                     widget: 'general.cn'
                 },
                 {
-                    type: 'rights',
+                    $type: 'rights',
                     name: 'permissions',
                     widget: 'general.permissions'
                 },
                 {
-                    type: 'select',
+                    $type: 'select',
                     name: 'target',
                     widget: 'target.target',
                     enabled: false
@@ -163,7 +163,7 @@ IPA.aci.permission_entity = function(spec) {
                     enabled: false
                 },
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'memberof',
                     widget: 'target.memberof',
                     enabled: false
@@ -174,13 +174,13 @@ IPA.aci.permission_entity = function(spec) {
                     enabled: false
                 },
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'targetgroup',
                     widget: 'target.targetgroup',
                     enabled: false
                 },
                 {
-                    type: 'select',
+                    $type: 'select',
                     name: 'type',
                     widget: 'target.type',
                     enabled: false
@@ -192,7 +192,7 @@ IPA.aci.permission_entity = function(spec) {
                 },
                 {
                     name: 'attrs_multi',
-                    type: 'multivalued',
+                    $type: 'multivalued',
                     param: 'attrs',
                     widget: 'target.attrs_multi',
                     enabled: false
@@ -200,18 +200,18 @@ IPA.aci.permission_entity = function(spec) {
             ],
             widgets: [
                 {
-                    type: 'details_table_section_nc',
+                    $type: 'details_table_section_nc',
                     name: 'general',
                     widgets: [
                         'cn',
                         {
-                            type: 'rights',
+                            $type: 'rights',
                             name: 'permissions'
                         }
                     ]
                 },
                 {
-                    type: 'permission_target',
+                    $type: 'permission_target',
                     name:'target',
                     show_target: true
                 }
@@ -258,7 +258,7 @@ IPA.aci.privilege_entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -283,7 +283,7 @@ IPA.aci.privilege_entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -315,7 +315,7 @@ IPA.aci.role_entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -333,7 +333,7 @@ IPA.aci.role_entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -363,7 +363,7 @@ IPA.aci.selfservice_entity = function(spec) {
                     fields: [
                         'aciname',
                         {
-                            type: 'attributes',
+                            $type: 'attributes',
                             object_type: 'user',
                             name: 'attrs'
                         }
@@ -375,7 +375,7 @@ IPA.aci.selfservice_entity = function(spec) {
             fields: [
                 'aciname',
                 {
-                    type: 'attributes',
+                    $type: 'attributes',
                     object_type: 'user',
                     name: 'attrs'
                 }
@@ -408,25 +408,25 @@ IPA.aci.delegation_entity = function(spec) {
                     fields: [
                         'aciname',
                         {
-                            type: 'checkboxes',
+                            $type: 'checkboxes',
                             name: 'permissions',
                             required: true,
                             options: IPA.create_options(['read', 'write'])
                         },
                         {
-                            type: 'entity_select',
+                            $type: 'entity_select',
                             name: 'group',
                             other_entity: that.group_entity,
                             other_field: 'cn'
                         },
                         {
-                            type: 'entity_select',
+                            $type: 'entity_select',
                             name: 'memberof',
                             other_entity: that.group_entity,
                             other_field: 'cn'
                         },
                         {
-                            type: 'attributes',
+                            $type: 'attributes',
                             name: 'attrs',
                             object_type: 'user'
                         }
@@ -439,24 +439,24 @@ IPA.aci.delegation_entity = function(spec) {
             fields: [
                 'aciname',
                 {
-                    type: 'checkboxes',
+                    $type: 'checkboxes',
                     name: 'permissions',
                     options: IPA.create_options(['read', 'write'])
                 },
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'group',
                     other_entity: that.group_entity,
                     other_field: 'cn'
                 },
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'memberof',
                     other_entity: that.group_entity,
                     other_field: 'cn'
                 },
                 {
-                    type: 'attributes',
+                    $type: 'attributes',
                     name: 'attrs',
                     object_type: 'user'
                 }

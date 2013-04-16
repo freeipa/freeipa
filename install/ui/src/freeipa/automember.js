@@ -108,7 +108,7 @@ IPA.automember.entity = function(spec) {
             title: '@i18n:objects.automember.add_rule',
             fields: [
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'cn',
                     other_entity: 'group',
                     other_field: 'cn'
@@ -229,17 +229,17 @@ IPA.automember.rule_details_facet = function(spec) {
             widget: 'general.cn'
         },
         {
-            type: 'textarea',
+            $type: 'textarea',
             name: 'description',
             widget: 'general.description'
         },
         {
-            type: 'automember_condition',
+            $type: 'automember_condition',
             name: 'automemberinclusiveregex',
             widget: 'inclusive.automemberinclusiveregex'
         },
         {
-            type: 'automember_condition',
+            $type: 'automember_condition',
             name: 'automemberexclusiveregex',
             widget: 'exclusive.automemberexclusiveregex'
         }
@@ -247,7 +247,7 @@ IPA.automember.rule_details_facet = function(spec) {
 
     spec.widgets = [
             {
-            type: 'details_table_section',
+            $type: 'details_table_section',
             name: 'general',
             label: '@i18n:details.general',
             widgets: [
@@ -255,7 +255,7 @@ IPA.automember.rule_details_facet = function(spec) {
                     name: 'cn'
                 },
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -266,7 +266,7 @@ IPA.automember.rule_details_facet = function(spec) {
             label: '@i18n:objects.automember.inclusive',
             widgets: [
                 {
-                    type: 'automember_condition',
+                    $type: 'automember_condition',
                     name: 'automemberinclusiveregex',
                     group_type: spec.group_type,
                     add_command: 'add_condition',
@@ -276,7 +276,7 @@ IPA.automember.rule_details_facet = function(spec) {
                         fields: [
                             {
                                 name: 'key',
-                                type: 'select',
+                                $type: 'select',
                                 options: IPA.automember.get_condition_attributes(spec.group_type),
                                 label: '@i18n:objects.automember.attribute'
                             },
@@ -295,7 +295,7 @@ IPA.automember.rule_details_facet = function(spec) {
             label: '@i18n:objects.automember.exclusive',
             widgets: [
                 {
-                    type: 'automember_condition',
+                    $type: 'automember_condition',
                     name: 'automemberexclusiveregex',
                     group_type: spec.group_type,
                     add_command: 'add_condition',
@@ -305,7 +305,7 @@ IPA.automember.rule_details_facet = function(spec) {
                         fields:  [
                             {
                                 name: 'key',
-                                type: 'select',
+                                $type: 'select',
                                 options: IPA.automember.get_condition_attributes(spec.group_type),
                                 label: '@i18n:objects.automember.attribute'
                             },

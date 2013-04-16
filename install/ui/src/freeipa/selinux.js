@@ -112,7 +112,7 @@ IPA.selinux_details_facet = function(spec) {
             widget: 'general.cn'
         },
         {
-            type: 'textarea',
+            $type: 'textarea',
             name: 'description',
             widget: 'general.description'
         },
@@ -121,7 +121,7 @@ IPA.selinux_details_facet = function(spec) {
             widget: 'general.ipaselinuxuser'
         },
         {
-            type: 'entity_select',
+            $type: 'entity_select',
             name: 'seealso',
             widget: 'general.seealso'
         }
@@ -129,7 +129,7 @@ IPA.selinux_details_facet = function(spec) {
 
     spec.widgets = [
         {
-            type: 'details_table_section',
+            $type: 'details_table_section',
             name: 'general',
             label: '@i18n:details.general',
             widgets: [
@@ -137,7 +137,7 @@ IPA.selinux_details_facet = function(spec) {
                     name: 'cn'
                 },
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 },
                 {
@@ -145,7 +145,7 @@ IPA.selinux_details_facet = function(spec) {
                     widget: 'general.ipaselinuxuser'
                 },
                 {
-                    type: 'entity_select',
+                    $type: 'entity_select',
                     name: 'seealso',
                     other_entity: 'hbacrule',
                     other_field: 'cn'
@@ -160,18 +160,18 @@ IPA.selinux_details_facet = function(spec) {
 
     spec.fields.push(
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'usercategory',
             widget: 'user.rule.usercategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberuser_user',
             widget: 'user.rule.memberuser_user',
             priority: IPA.selinux.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberuser_group',
             widget: 'user.rule.memberuser_group',
             priority: IPA.selinux.remove_method_priority
@@ -200,7 +200,7 @@ IPA.selinux_details_facet = function(spec) {
                     ],
                     widgets: [
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_user',
                             name: 'memberuser_user',
                             add_method: 'add_user',
@@ -209,7 +209,7 @@ IPA.selinux_details_facet = function(spec) {
                             remove_title: '@i18n:association.remove.member'
                         },
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_group',
                             name: 'memberuser_group',
                             add_method: 'add_user',
@@ -229,18 +229,18 @@ IPA.selinux_details_facet = function(spec) {
 
     spec.fields.push(
         {
-            type: 'radio',
+            $type: 'radio',
             name: 'hostcategory',
             widget: 'host.rule.hostcategory'
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberhost_host',
             widget: 'host.rule.memberhost_host',
             priority: IPA.selinux.remove_method_priority
         },
         {
-            type: 'rule_association_table',
+            $type: 'rule_association_table',
             name: 'memberhost_hostgroup',
             widget: 'host.rule.memberhost_hostgroup',
             priority: IPA.selinux.remove_method_priority
@@ -273,7 +273,7 @@ IPA.selinux_details_facet = function(spec) {
                     ],
                     widgets: [
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_user',
                             name: 'memberhost_host',
                             add_method: 'add_host',
@@ -282,7 +282,7 @@ IPA.selinux_details_facet = function(spec) {
                             remove_title: '@i18n:association.remove.member'
                         },
                         {
-                            type: 'rule_association_table',
+                            $type: 'rule_association_table',
                             id: entity_name+'-memberuser_group',
                             name: 'memberhost_hostgroup',
                             add_method: 'add_host',

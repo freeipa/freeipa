@@ -23,6 +23,7 @@
 
 
 define(['dojo/_base/array',
+       'dojo/_base/lang',
        './builder',
        './ipa',
        './jquery',
@@ -30,7 +31,7 @@ define(['dojo/_base/array',
        './reg',
        './text'
        ],
-       function(array, builder, IPA, $, phases, reg, text) {
+       function(array, lang, builder, IPA, $, phases, reg, text) {
 
 var exp = {};
 
@@ -3459,7 +3460,6 @@ IPA.widget_container = function(spec) {
     spec.new_container_for_child : true;
 
     that.widgets = $.ordered_map();
-    that.widget_builder = spec.widget_builder || IPA.widget_builder();
 
     that.add_widget = function(widget) {
         that.widgets.put(widget.name, widget);
@@ -3533,61 +3533,20 @@ IPA.widget_builder = function(spec) {
 
     var that = IPA.object();
 
-    that.default_factory = spec.default_factory || IPA.text_widget;
     that.container = spec.container;
-    that.widget_options = spec.widget_options || {};
-
-    that.get_widget_factory = function(spec) {
-
-        var factory;
-        if (spec.$factory) {
-            factory = spec.$factory;
-        } else if(spec.type) {
-            factory = reg.widget.get(spec.type);
-            factory = factory ? factory.factory : undefined;
-        }
-
-        if (!factory) {
-            factory = that.default_factory;
-        }
-
-        return factory;
-    };
+    that.widget_options = spec.widget_options;
 
     that.build_widget = function(spec, container) {
 
-        container = container || that.container;
-
-        if(!(spec instanceof Object)) {
-            spec = { name: spec };
-        }
-
-        if(that.widget_options) {
-            $.extend(spec, that.widget_options);
-        }
-
-        var factory = that.get_widget_factory(spec);
-
-        var widget = factory(spec);
-
-        if(container) {
-            container.add_widget(widget);
-        }
-
-        if(spec.widgets) {
-            that.build_widgets(spec.widgets, widget.widgets);
-        }
-
+        var context = lang.mixin({}, that.widget_options);
+        context.container = container || that.container;
+        var widget = builder.build('widget', spec, context);
         return widget;
     };
 
     that.build_widgets = function(specs, container) {
 
-        container = container || that.container;
-
-        for(var i=0; i<specs.length; i++) {
-            that.build_widget(specs[i], container);
-        }
+        return that.build_widget(specs, container);
     };
 
     return that;
@@ -3964,9 +3923,36 @@ IPA.value_map_widget = function(spec) {
     return that;
 };
 
+exp.pre_op = function(spec, context) {
+
+    if (context.facet) spec.facet = context.facet;
+    if (context.entity) spec.entity = context.entity;
+    return spec;
+};
+
+/**
+ * Enables widget nesting
+ */
+exp.post_op = function(obj, spec, context) {
+
+    if (context.container) context.container.add_widget(obj);
+
+    if (spec.widgets) {
+        var nc = lang.mixin({}, context);
+        nc.container = obj.widgets;
+        builder.build('widget', spec.widgets, nc);
+    }
+    return obj;
+};
+
 // New builder and registry
 exp.builder = builder.get('widget');
-exp.builder.factory = IPA.widget;
+exp.builder.factory = IPA.text_widget;
+exp.builder.string_mode = 'property';
+exp.builder.string_property = 'name';
+exp.builder.pre_ops.push(exp.pre_op);
+exp.builder.post_ops.push(exp.post_op);
+
 reg.set('widget', exp.builder.registry);
 
 exp.register = function() {

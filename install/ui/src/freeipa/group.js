@@ -46,11 +46,11 @@ IPA.group.entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'description'
                         },
                         {
-                            type: 'value_map',
+                            $type: 'value_map',
                             name: 'external',
                             param: 'objectclass',
                             label: '@i18n:objects.group.type',
@@ -144,11 +144,11 @@ IPA.group.entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    type: 'textarea',
+                    $type: 'textarea',
                     name: 'description'
                 },
                 {
-                    type: 'radio',
+                    $type: 'radio',
                     name: 'type',
                     label: '@i18n:objects.group.type',
                     flags: ['no_command'],

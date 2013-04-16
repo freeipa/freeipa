@@ -1159,11 +1159,11 @@ IPA.cert.entity = function(spec) {
                         'sha1_fingerprint',
                         'md5_fingerprint',
                         {
-                            type: 'revocation_reason',
+                            $type: 'revocation_reason',
                             name: 'revocation_reason'
                         },
                         {
-                            type: 'textarea',
+                            $type: 'textarea',
                             name: 'certificate',
                             style: {
                                 width: '550px',
