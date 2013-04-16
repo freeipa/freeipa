@@ -121,7 +121,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
     that.disable_breadcrumb = spec.disable_breadcrumb;
     that.disable_facet_tabs = spec.disable_facet_tabs;
 
-    that.action_state = IPA.build(spec.state, {}, { $factory: exp.state });
+    that.action_state = IPA.build(spec.state || {}, {}, { $factory: exp.state });
     that.actions = exp.action_holder_builder.build({ actions: spec.actions });
 
     that.header_actions = spec.header_actions;
@@ -1728,7 +1728,7 @@ exp.action_holder = IPA.action_holder = function(spec) {
         var i, action, actions;
 
         that.facet = facet;
-        actions = exp.action_builder.build(spec.actions);
+        actions = exp.action_builder.build(spec.actions) || [];
 
         for (i=0; i<actions.length; i++) {
             action = actions[i];
@@ -1783,7 +1783,7 @@ exp.state = IPA.state = function(spec) {
     //when state changes. Params: state, Context: this
     that.changed = IPA.observer();
 
-    that.evaluators = exp.state_evaluator_builder.build(spec.evaluators);
+    that.evaluators = exp.state_evaluator_builder.build(spec.evaluators) || [];
     that.summary_evaluator = IPA.build(spec.summary_evaluator || IPA.summary_evaluator);
 
     that.summary_conditions = spec.summary_conditions || [];
@@ -2126,7 +2126,7 @@ exp.control_buttons_widget = IPA.control_buttons_widget = function(spec) {
 
     var that = IPA.widget(spec);
 
-    that.buttons = IPA.action_button_widget_builder.build(spec.buttons);
+    that.buttons = IPA.action_button_widget_builder.build(spec.buttons) || [];
 
     that.init = function(facet) {
 
