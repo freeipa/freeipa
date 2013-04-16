@@ -55,7 +55,7 @@ IPA.field = function(spec) {
     that.label = text.get(spec.label);
     that.tooltip = text.get(spec.tooltip);
     that.measurement_unit = spec.measurement_unit;
-    that.formatter = spec.formatter;
+    that.formatter = builder.build('formatter', spec.formatter);
 
     that.widget = null;
     that.widget_name = spec.widget;

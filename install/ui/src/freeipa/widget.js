@@ -1391,7 +1391,7 @@ IPA.column = function (spec) {
     that.width = spec.width;
     that.primary_key = spec.primary_key;
     that.link = spec.link;
-    that.formatter = spec.formatter;
+    that.formatter = builder.build('formatter', spec.formatter);
 
     if (!that.entity) {
         throw {
@@ -3945,7 +3945,7 @@ exp.post_op = function(obj, spec, context) {
     return obj;
 };
 
-// New builder and registry
+// Widget builder and registry
 exp.builder = builder.get('widget');
 exp.builder.factory = IPA.text_widget;
 exp.builder.string_mode = 'property';
@@ -3955,8 +3955,15 @@ exp.builder.post_ops.push(exp.post_op);
 
 reg.set('widget', exp.builder.registry);
 
+// Formatter builder and registry
+exp.formatter_builder = builder.get('formatter');
+exp.formatter_builder.factory = IPA.formatter;
+reg.set('formatter', exp.formatter_builder.registry);
+
+
 exp.register = function() {
     var w = reg.widget;
+    var f = reg.formatter;
 
     w.register('attribute_table', IPA.attribute_table_widget);
     w.register('button', IPA.button_widget);
@@ -3980,6 +3987,10 @@ exp.register = function() {
     w.register('textarea', IPA.textarea_widget);
     w.register('text', IPA.text_widget);
     w.register('value_map', IPA.value_map_widget);
+
+    f.register('boolean', IPA.boolean_formatter);
+    f.register('boolean_status', IPA.boolean_status_formatter);
+    f.register('utc_date', IPA.utc_date_formatter);
 };
 
 phases.on('registration', exp.register);
