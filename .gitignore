@@ -7,8 +7,10 @@ Makefile.in
 .libs/
 *.la
 *.lo
+*.log
 *.o
 *.pyc
+*.trs
 .bzr
 freeipa2-dev-doc
 build
