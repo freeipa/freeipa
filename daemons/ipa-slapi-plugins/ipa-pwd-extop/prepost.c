@@ -67,6 +67,9 @@
 #define IPAPWD_OP_ADD 1
 #define IPAPWD_OP_MOD 2
 
+#define IPAPWD_OP_NOT_HANDLED 0
+#define IPAPWD_OP_HANDLED     1
+
 extern Slapi_PluginDesc ipapwd_plugin_desc;
 extern void *ipapwd_plugin_id;
 extern const char *ipa_realm_tree;
@@ -975,7 +978,77 @@ static int ipapwd_regen_nthash(Slapi_PBlock *pb, Slapi_Mods *smods,
     return ret;
 }
 
-static int ipapwd_post_op(Slapi_PBlock *pb)
+/*
+ * Check if we want to process this operation.  We need to be
+ * sure that the operation succeeded.
+ */
+static bool ipapwd_otp_oktodo(Slapi_PBlock *pb)
+{
+    bool ok = false;
+    int oprc = 0;
+    int ret = 1;
+
+    ret = slapi_pblock_get(pb, SLAPI_PLUGIN_OPRETURN, &oprc);
+    if (ret != 0) {
+        LOG_FATAL("Could not get parameters\n");
+        goto done;
+    }
+
+    /* This plugin should only execute if the operation succeeded. */
+    ok = oprc == 0;
+
+done:
+    return ok;
+}
+
+static bool ipapwd_dn_is_otp_config(Slapi_DN *sdn)
+{
+    bool ret = false;
+    Slapi_DN *dn;
+
+    /* If an alternate config area is configured, it is considered to be
+     * the config entry, otherwise the main plug-in config entry is used. */
+    if (sdn != NULL) {
+        dn = ipapwd_get_otp_config_area();
+        if (dn == NULL)
+            dn = ipapwd_get_plugin_sdn();
+
+        ret = slapi_sdn_compare(sdn, dn) == 0;
+    }
+
+    return ret;
+}
+
+static int ipapwd_post_modadd_otp(Slapi_PBlock *pb)
+{
+    Slapi_Entry *config_entry = NULL;
+    Slapi_DN *sdn = NULL;
+
+    /* Just bail if we are not started yet, or if the operation failed. */
+    if (!ipapwd_get_plugin_started() || !ipapwd_otp_oktodo(pb)) {
+        goto done;
+    }
+
+    /* Check if a change affected our config entry and reload the
+     * in-memory config settings if needed. */
+    slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
+    if (ipapwd_dn_is_otp_config(sdn)) {
+        /* The config entry was added or modified, so reload it from
+         * the post-op entry. */
+        slapi_pblock_get(pb, SLAPI_ENTRY_POST_OP, &config_entry);
+        if (config_entry == NULL) {
+            LOG_FATAL("Unable to retrieve config entry.\n");
+            goto done;
+        }
+
+        ipapwd_parse_otp_config_entry(config_entry, true);
+    }
+
+done:
+    return 0;
+}
+
+static int ipapwd_post_modadd(Slapi_PBlock *pb)
 {
     void *op;
     struct ipapwd_operation *pwdop = NULL;
@@ -990,6 +1063,11 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     Slapi_Value *ipahost;
 
     LOG_TRACE("=>\n");
+
+    ret = ipapwd_post_modadd_otp(pb);
+    if (ret != 0) {
+        return ret;
+    }
 
     /* time to get the operation handler */
     ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
@@ -1111,6 +1189,202 @@ done:
     return 0;
 }
 
+static int ipapwd_post_modrdn_otp(Slapi_PBlock *pb)
+{
+    Slapi_Entry *config_entry = NULL;
+    Slapi_DN *new_sdn = NULL;
+    Slapi_DN *sdn = NULL;
+
+    /* Just bail if we are not started yet, or if the operation failed. */
+    if (!ipapwd_get_plugin_started() || !ipapwd_otp_oktodo(pb)) {
+        goto done;
+    }
+
+    /* Check if a change affected our config entry and reload the
+     * in-memory config settings if needed. */
+    slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
+    if (ipapwd_dn_is_otp_config(sdn)) {
+        /* Our config entry was renamed.  We treat this like the entry
+         * was deleted, so just set the defaults. */
+        ipapwd_parse_otp_config_entry(NULL, true);
+    } else {
+        /* Check if an entry was renamed such that it has become our
+         * config entry.  If so, reload the config from this new entry. */
+        slapi_pblock_get(pb, SLAPI_ENTRY_POST_OP, &config_entry);
+        if (config_entry == NULL) {
+            LOG_FATAL("Unable to retrieve renamed entry.\n");
+            goto done;
+        }
+
+        new_sdn = slapi_entry_get_sdn(config_entry);
+        if (new_sdn == NULL) {
+            LOG_FATAL("Unable to retrieve DN of renamed entry.\n");
+            goto done;
+        }
+
+        if (ipapwd_dn_is_otp_config(new_sdn)) {
+            ipapwd_parse_otp_config_entry(config_entry, true);
+        }
+    }
+
+done:
+    return 0;
+}
+
+static int ipapwd_post_del_otp(Slapi_PBlock *pb)
+{
+    Slapi_DN *sdn = NULL;
+    int ret = 0;
+
+    /* Just bail if we are not started yet, or if the operation failed. */
+    if (!ipapwd_get_plugin_started() || !ipapwd_otp_oktodo(pb)) {
+        goto done;
+    }
+
+    /* Check if a change affected our config entry and reload the
+     * in-memory config settings if needed. */
+    slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
+    if (ipapwd_dn_is_otp_config(sdn)) {
+        /* The config entry was deleted, so this just sets the defaults. */
+        ipapwd_parse_otp_config_entry(NULL, true);
+    }
+
+done:
+    return ret;
+}
+
+/* Handle OTP authentication. */
+static int ipapwd_pre_bind_otp(Slapi_PBlock * pb)
+{
+    char *user_attrs[] = { IPA_USER_AUTH_TYPE, NULL };
+    int ret = IPAPWD_OP_NOT_HANDLED;
+    Slapi_Entry *bind_entry = NULL;
+    struct berval *creds = NULL;
+    const char *bind_dn = NULL;
+    Slapi_DN *bind_sdn = NULL;
+    int result = LDAP_SUCCESS;
+    char **auth_types = NULL;
+    int method;
+    int i;
+
+    /* If we didn't start successfully, bail. */
+    if (!ipapwd_get_plugin_started()) {
+        goto done;
+    }
+
+    /* If global disabled flag is set, just punt. */
+    if (ipapwd_otp_is_disabled()) {
+        goto done;
+    }
+
+    /* Retrieve parameters for bind operation. */
+    i = slapi_pblock_get(pb, SLAPI_BIND_METHOD, &method);
+    if (i == 0) {
+        i = slapi_pblock_get(pb, SLAPI_BIND_TARGET_SDN, &bind_sdn);
+        if (i == 0) {
+            i = slapi_pblock_get(pb, SLAPI_BIND_CREDENTIALS, &creds);
+        }
+    }
+    if (i != 0) {
+        LOG_FATAL("Not handled (can't retrieve bind parameters)\n");
+        goto done;
+    }
+
+    bind_dn = slapi_sdn_get_dn(bind_sdn);
+
+    /* We only handle non-anonymous simple binds.  We just pass everything
+     * else through to the server. */
+    if (method != LDAP_AUTH_SIMPLE || *bind_dn == '\0' || creds->bv_len == 0) {
+        LOG_TRACE("Not handled (not simple bind or NULL dn/credentials)\n");
+        goto done;
+    }
+
+    /* Check if any allowed authentication types are set in the user entry.
+     * If not, we just use the global settings from the config entry. */
+    result = slapi_search_internal_get_entry(bind_sdn, user_attrs, &bind_entry,
+                                             ipapwd_get_plugin_id());
+    if (result != LDAP_SUCCESS) {
+        LOG_FATAL("Not handled (could not search for BIND dn %s - error "
+                  "%d : %s)\n", bind_dn, result, ldap_err2string(result));
+        goto done;
+    }
+    if (bind_entry == NULL) {
+        LOG_FATAL("Not handled (could not find entry for BIND dn %s)\n", bind_dn);
+        goto done;
+    }
+
+    i = slapi_check_account_lock(pb, bind_entry, 0, 0, 0);
+    if (i == 1) {
+        LOG_TRACE("Not handled (account %s inactivated.)\n", bind_dn);
+        goto done;
+    }
+
+    auth_types = slapi_entry_attr_get_charray(bind_entry, IPA_USER_AUTH_TYPE);
+
+    /*
+     * IMPORTANT SECTION!
+     *
+     * This section handles authentication logic, so be careful!
+     *
+     * The basic idea of this section is:
+     * 1. If OTP is enabled, try to use it first. If successful, send response.
+     * 2. If OTP was not enabled/successful, check if password is enabled.
+     * 3. If password is not enabled, send failure response.
+     * 4. Otherwise, fall through to standard server password authentication.
+     *
+     */
+
+    /* If OTP is allowed, attempt to do OTP authentication. */
+    if (ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_OTP)) {
+        LOG_PLUGIN_NAME(IPAPWD_PLUGIN_NAME,
+                        "Attempting OTP authentication for '%s'.\n", bind_dn);
+        if (ipapwd_do_otp_auth(bind_entry, creds)) {
+            /* FIXME - NGK - If the auth type request control was sent,
+             * construct the response control to indicate what auth type was
+             * used.  We might be able to do this in the
+             * SLAPI_PLUGIN_PRE_RESULT_FN callback instead of here. */
+
+            /* FIXME - NGK - What about other controls, like the pwpolicy
+             * control? If any other critical controls are set, we need to
+             * either process them properly or reject the operation with an
+             * unsupported critical control error. */
+
+            /* Send response approving authentication. */
+            slapi_send_ldap_result(pb, LDAP_SUCCESS, NULL, NULL, 0, NULL);
+            ret = IPAPWD_OP_HANDLED;
+        }
+    }
+
+    /* If OTP failed or was not enabled, we need to figure out if we can fall
+     * back to standard password authentication or give an error. */
+    if (ret != IPAPWD_OP_HANDLED) {
+        if (!ipapwd_is_auth_type_allowed(auth_types,
+                                         IPA_OTP_AUTH_TYPE_PASSWORD)) {
+            /* Password authentication is disabled, so we have failed. */
+            slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
+                                   NULL, NULL, 0, NULL);
+            ret = IPAPWD_OP_HANDLED;
+            goto done;
+        }
+
+        /* Password authentication is permitted, so tell the server that we
+         * didn't handle this request. Then the server will perform standard
+         * password authentication. */
+        LOG_PLUGIN_NAME(IPAPWD_PLUGIN_NAME,
+                        "Attempting PASSWORD authentication for \"%s\".\n",
+                        bind_dn);
+
+        /* FIXME - NGK - Do we need to figure out how to build
+         * the reponse control in this case?  Maybe we can use a
+         * SLAPI_PLUGIN_PRE_RESULT_FN callback to handle that? */
+    }
+
+done:
+    slapi_ch_array_free(auth_types);
+    slapi_entry_free(bind_entry);
+    return ret;
+}
+
 /* PRE BIND Operation:
  * Used for password migration from DS to IPA.
  * Gets the clean text password, authenticates the user and generates
@@ -1136,6 +1410,12 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     char *principal = NULL;
 
     LOG_TRACE("=>\n");
+
+    /* Try to do OTP first. */
+    ret = ipapwd_pre_bind_otp(pb);
+    if (ret == IPAPWD_OP_HANDLED) {
+        return ret;
+    }
 
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET, &dn);
@@ -1295,8 +1575,6 @@ done:
     return 0;
 }
 
-
-
 /* Init pre ops */
 int ipapwd_pre_init(Slapi_PBlock *pb)
 {
@@ -1330,9 +1608,24 @@ int ipapwd_post_init(Slapi_PBlock *pb)
 
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_ADD_FN, (void *)ipapwd_post_op);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN, (void *)ipapwd_post_op);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_ADD_FN, (void *)ipapwd_post_modadd);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_DELETE_FN, (void *)ipapwd_post_del_otp);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN, (void *)ipapwd_post_modadd);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODRDN_FN, (void *)ipapwd_post_modrdn_otp);
 
+    return ret;
+}
+
+int ipapwd_intpost_init(Slapi_PBlock *pb)
+{
+    int ret;
+
+    ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_03);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_ADD_FN, (void *)ipapwd_post_modadd_otp);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_DELETE_FN, (void *)ipapwd_post_del_otp);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_MODIFY_FN, (void *)ipapwd_post_modadd_otp);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_MODRDN_FN, (void *)ipapwd_post_modrdn_otp);
     return ret;
 }
 
@@ -1342,8 +1635,8 @@ int ipapwd_post_init_betxn(Slapi_PBlock *pb)
 
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_TXN_POST_ADD_FN, (void *)ipapwd_post_op);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_TXN_POST_MODIFY_FN, (void *)ipapwd_post_op);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_TXN_POST_ADD_FN, (void *)ipapwd_post_modadd);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_TXN_POST_MODIFY_FN, (void *)ipapwd_post_modadd);
 
     return ret;
 }
