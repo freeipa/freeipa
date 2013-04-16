@@ -75,7 +75,7 @@ IPA.field = function(spec) {
     that.undo = spec.undo === undefined ? true : spec.undo;
 
     that.metadata = spec.metadata;
-    that.validators = spec.validators || [];
+    that.validators = builder.build('validator', spec.validators) || [];
 
     that.priority = spec.priority;
 
@@ -914,7 +914,7 @@ exp.post_op = function(obj, spec, context) {
     return obj;
 };
 
-// New builder and registry
+// Field builder and registry
 exp.builder = builder.get('field');
 exp.builder.factory = IPA.field;
 exp.builder.string_mode = 'property';
@@ -923,8 +923,14 @@ reg.set('field', exp.builder.registry);
 exp.builder.pre_ops.push(exp.pre_op);
 exp.builder.post_ops.push(exp.post_op);
 
+// Validator builder and registry
+exp.validator_builder = builder.get('validator');
+//exp.validator_builder.factory = IPA.formatter;
+reg.set('validator', exp.validator_builder.registry);
+
 exp.register = function() {
     var f = reg.field;
+    var v = reg.validator;
 
     f.register('checkbox', IPA.checkbox_field);
     f.register('checkboxes', IPA.checkboxes_field);
@@ -941,6 +947,10 @@ exp.register = function() {
     f.register('textarea', IPA.field);
     f.register('text', IPA.field);
     f.register('value_map', IPA.field);
+
+    v.register('metadata', IPA.metadata_validator);
+    v.register('unsupported', IPA.unsupported_validator);
+    v.register('same_password', IPA.same_password_validator);
 };
 phases.on('registration', exp.register);
 

@@ -70,7 +70,7 @@ IPA.dns.config_entity = function(spec) {
                         {
                             $type: 'multivalued',
                             name: 'idnsforwarders',
-                            validators: [IPA.dnsforwarder_validator()]
+                            validators: [ 'dnsforwarder']
                         },
                         {
                             $type: 'radio',
@@ -184,26 +184,28 @@ IPA.dns.zone_entity = function(spec) {
                         $type: 'netaddr',
                         name: 'idnsallowquery',
                         validators: [
-                            IPA.network_validator({
+                            {
+                                $type: 'network',
                                 specials: ['any', 'none', 'localhost', 'localnets'],
                                 allow_negation: true,
                                 allow_host_address: true
-                        })]
+                        }]
                     },
                     {
                         $type: 'netaddr',
                         name: 'idnsallowtransfer',
                         validators: [
-                            IPA.network_validator({
+                            {
+                                $type: 'network',
                                 specials: ['any', 'none', 'localhost', 'localnets'],
                                 allow_negation: true,
                                 allow_host_address: true
-                        })]
+                        }]
                     },
                     {
                         $type: 'multivalued',
                         name: 'idnsforwarders',
-                        validators: [IPA.dnsforwarder_validator()]
+                        validators: [ 'dnsforwarder']
                     },
                     {
                         $type: 'radio',
@@ -302,7 +304,7 @@ IPA.dns.zone_entity = function(spec) {
                             $type: 'dnszone_name',
                             name: 'name_from_ip',
                             radio_name: 'dnszone_name_type',
-                            validators: [IPA.network_validator()]
+                            validators: ['network']
                         }
                     ]
                 },
@@ -792,7 +794,7 @@ IPA.dns.get_record_metadata = function() {
             attributes: [
                 {
                     name: 'a_part_ip_address',
-                    validators: [IPA.ip_v4_address_validator()]
+                    validators: ['ip_v4_address']
                 },
                 {
                     $type: 'checkbox',
@@ -811,7 +813,7 @@ IPA.dns.get_record_metadata = function() {
             attributes: [
                 {
                     name:'aaaa_part_ip_address',
-                    validators: [IPA.ip_v6_address_validator()]
+                    validators: ['ip_v6_address']
                 },
                 {
                     $type: 'checkbox',
@@ -2533,6 +2535,7 @@ IPA.register('dnsrecord', IPA.dns.record_entity);
 phases.on('registration', function() {
     var w = reg.widget;
     var f = reg.field;
+    var v = reg.validator;
 
     w.register('dnszone_name', IPA.dnszone_name_widget);
     w.register('force_dnszone_add_checkbox', IPA.force_dnszone_add_checkbox_widget);
@@ -2545,6 +2548,12 @@ phases.on('registration', function() {
     f.register('dnsrecord_type_table', IPA.dns.record_type_table_field);
     w.register('netaddr', IPA.multivalued_widget);
     f.register('netaddr', IPA.dns.netaddr_field);
+
+    v.register('ip_address', IPA.ip_address_validator);
+    v.register('ip_v4_address', IPA.ip_v4_address_validator);
+    v.register('ip_v6_address', IPA.ip_v6_address_validator);
+    v.register('dnsforwarder', IPA.dnsforwarder_validator);
+    v.register('network', IPA.network_validator);
 });
 
 return {};

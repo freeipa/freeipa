@@ -121,9 +121,10 @@ IPA.trust.entity = function(spec) {
                     label: '@i18n:password.verify_password',
                     widget: 'method.trust_secret_verify',
                     flags: ['no_command'],
-                    validators: [IPA.same_password_validator({
+                    validators: [{
+                        $type: 'same_password',
                         other_field: 'trust_secret'
-                    })]
+                    }]
                 }
             ],
             widgets: [

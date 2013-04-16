@@ -1500,9 +1500,10 @@ IPA.unauthorized_dialog = function(spec) {
                     $type: 'password',
                     required: true,
                     label: text.get('@i18n:password.verify_password', "Verify Password"),
-                    validators: [IPA.same_password_validator({
+                    validators: [{
+                        $type: 'same_password',
                         other_field: 'new_password'
-                    })]
+                    }]
                 }
             ]
         }

@@ -230,7 +230,7 @@ IPA.host.entity = function(spec) {
                     fields: [
                         {
                             name: 'ip_address',
-                            validators: [ IPA.ip_address_validator() ],
+                            validators: [ 'ip_address' ],
                             metadata: IPA.get_command_option('host_add', 'ip_address')
                         },
                         {
@@ -803,9 +803,10 @@ IPA.host.set_otp_dialog = function(spec) {
                     label: '@i18n:password.verify_password',
                     $type: 'password',
                     required: true,
-                    validators: [IPA.same_password_validator({
+                    validators: [{
+                        $type: 'same_password',
                         other_field: 'password1'
-                    })]
+                    }]
                 }
             ]
         }

@@ -509,9 +509,10 @@ IPA.user_password_dialog = function(spec) {
                     name: 'password2',
                     label: '@i18n:password.verify_password',
                     $type: 'password',
-                    validators: [IPA.same_password_validator({
+                    validators: [{
+                        $type: 'same_password',
                         other_field: 'password1'
-                    })],
+                    }],
                     required: true
                 }
             ]
