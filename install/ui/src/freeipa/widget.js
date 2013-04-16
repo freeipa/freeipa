@@ -69,21 +69,14 @@ IPA.widget = function(spec) {
         }
     };
 
-    that.build_child = function(spec, factory) {
+    that.build_child = function(spec, context, overrides) {
 
-        if (typeof spec === 'function') {
-            spec = {
-                $factory: spec
-            };
-        }
-
-        $.extend(spec, {
-            parent: that,
+        var def_c = {
             entity: that.entity,
             facet: that.facet
-        });
-
-        var child = IPA.build(spec,{}, factory);
+        };
+        context = lang.mixin(def_c, context);
+        var child = builder.build('widget', spec, context, overrides);
         return child;
     };
 
@@ -3162,7 +3155,8 @@ IPA.details_table_section = function(spec) {
 
     var that = IPA.details_section(spec);
     that.layout = IPA.build(spec.layout || IPA.table_layout);
-    that.action_panel = that.build_child(spec.action_panel);
+    that.action_panel = that.build_child(spec.action_panel, {},
+                                         { $factory: IPA.action_panel });
 
     that.rows = $.ordered_map();
 
@@ -3965,6 +3959,7 @@ exp.register = function() {
     var w = reg.widget;
     var f = reg.formatter;
 
+    w.register('action_panel', IPA.action_panel);
     w.register('attribute_table', IPA.attribute_table_widget);
     w.register('button', IPA.button_widget);
     w.register('checkbox', IPA.checkbox_widget);
