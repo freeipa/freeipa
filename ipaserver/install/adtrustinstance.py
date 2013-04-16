@@ -630,13 +630,13 @@ class ADTRUSTInstance(service.Service):
         try:
             cifs_services = DN(api.env.container_service, self.suffix)
             # Search for cifs services which also belong to adtrust agents, these are our DCs
-            res = self.admin_conn.get_entries(cifs_services,
+            res = self.admin_conn.getList(cifs_services,
                 ldap.SCOPE_ONELEVEL,
                 "(&(krbprincipalname=cifs/*@%s)(memberof=%s))" % (self.realm, str(self.smb_dn)))
             if len(res) > 1:
                 # there are other CIFS services defined, we are not alone
                 for entry in res:
-                    managedBy = entry.single_value('managedBy', None)
+                    managedBy = entry.getValue('managedBy')
                     if managedBy:
                         fqdn = DN(managedBy)['fqdn']
                         if fqdn != unicode(self.fqdn):
