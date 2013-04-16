@@ -56,6 +56,28 @@ define(['dojo/_base/declare',
         pre_ops: null,
 
         /**
+         * Controls what builder do when spec is a string. Possible values:
+         *      * 'type'
+         *      * 'property'
+         * Type:
+         *   Spec is type. Queries registry for obtaining construction spec.
+         *
+         * Property:
+         *   Spec is a property of spec, name of property is set in
+         *   `string_property`. This mode should be combined with default
+         *   factory or ctor otherwise the build will fail.
+         *
+         * @type {String}
+         */
+        string_mode: 'type',
+
+        /**
+         * Property name for `string_mode` == `property`
+         * @type {String}
+         */
+        string_property: '',
+
+        /**
          * Build object based on spec.
          *
          * @param {String|Function|Object|Array} Build spec
@@ -141,8 +163,8 @@ define(['dojo/_base/declare',
                     cs.factory = spec;
                 }
             } else if (typeof spec === 'string') {
-                // spec is type name
-                cs = this._query_registry(spec);
+                // spec is type name or spec property
+                cs = this._get_cs_string(spec);
             } else if (typeof spec === 'object') {
                 var c = spec.$ctor,
                     f = spec.$factory,
@@ -204,6 +226,22 @@ define(['dojo/_base/declare',
                     builder: this
                 };
             }
+        },
+
+        /**
+         * Get cs from string according to string mode
+         */
+        _get_cs_string: function(spec) {
+
+            var cs;
+            if (this.string_mode === 'type') {
+                cs = this._query_registry(spec);
+            } else {
+                var sp = {};
+                sp[this.string_property] = spec;
+                cs = { spec: sp };
+            }
+            return cs;
         },
 
         _build_core: function(construction_spec, context) {
