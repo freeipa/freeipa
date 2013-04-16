@@ -40,6 +40,9 @@
 #include "ipapwd.h"
 #include "util.h"
 
+/* Attribute defines */
+#define IPA_OTP_USER_AUTH_TYPE "ipaUserAuthType"
+
 /* Type of connection for this operation;*/
 #define LDAP_EXTOP_PASSMOD_CONN_SECURE
 
@@ -66,6 +69,133 @@ static const char *ipapwd_def_encsalts[] = {
     "des-cbc-crc:afs3", */
     NULL
 };
+
+static PRInt32 g_allowed_auth_types = 0;
+
+/*
+ * Checks if an authentication type is allowed.  A NULL terminated
+ * list of allowed auth type values is passed in along with the flag
+ * for the auth type you are inquiring about.  If auth_type_list is
+ * NULL, the global config will be consulted.
+ */
+bool ipapwd_is_auth_type_allowed(char **auth_type_list, int auth_type)
+{
+    char *auth_type_value = NULL;
+    int i = 0;
+
+    /* Get the string value for the authentication type we are checking for. */
+    switch (auth_type) {
+    case IPA_OTP_AUTH_TYPE_OTP:
+        auth_type_value = IPA_OTP_AUTH_TYPE_VALUE_OTP;
+        break;
+    case IPA_OTP_AUTH_TYPE_PASSWORD:
+        auth_type_value = IPA_OTP_AUTH_TYPE_VALUE_PASSWORD;
+        break;
+    case IPA_OTP_AUTH_TYPE_PKINIT:
+        auth_type_value = IPA_OTP_AUTH_TYPE_VALUE_PKINIT;
+        break;
+    default: /* Unknown type.*/
+        return false;
+    }
+
+    if (auth_type_list == NULL) {
+        /* Check if the requested authentication type is in the global list. */
+        PRInt32 auth_type_flags;
+
+        /* Do an atomic read of the allowed auth types bit field. */
+        auth_type_flags = PR_ATOMIC_ADD(&g_allowed_auth_types, 0);
+
+        /* Check if the flag for the desired auth type is set. */
+        return auth_type_flags & auth_type;
+    }
+
+    /* Check if the requested authentication type is in the user list. */
+    for (i = 0; auth_type_list[i]; i++) {
+        if (strcasecmp(auth_type_list[i], auth_type_value) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*
+ * Parses and validates an OTP config entry.  If apply is non-zero, then
+ * we will load and start using the new config.  You can simply
+ * validate config without making any changes by setting apply to false.
+ */
+bool ipapwd_parse_otp_config_entry(Slapi_Entry * e, bool apply)
+{
+    PRInt32 allowed_auth_types = 0;
+    PRInt32 default_auth_types = 0;
+    char **auth_types = NULL;
+
+    /* If no auth types are set, we default to only allowing password
+     * authentication.  Other authentication types can be allowed at the
+     * user level. */
+    default_auth_types |= IPA_OTP_AUTH_TYPE_PASSWORD;
+
+    if (e == NULL) {
+        /* There is no config entry, so just set the defaults. */
+        allowed_auth_types = default_auth_types;
+        goto done;
+    }
+
+    /* Parse and validate the config entry.  We currently tolerate invalid
+     * config settings, so there is no real validation performed.  We will
+     * likely want to reject invalid config as we expand the plug-in
+     * functionality, so the validation logic is here for us to use later. */
+
+    /* Fetch the auth type values from the config entry. */
+    auth_types = slapi_entry_attr_get_charray(e, IPA_OTP_USER_AUTH_TYPE);
+    if (auth_types == NULL) {
+        /* No allowed auth types are specified, so set the defaults. */
+        allowed_auth_types = default_auth_types;
+        goto done;
+    }
+
+    /* Check each type to see if it is set. */
+    if (ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_DISABLED)) {
+        allowed_auth_types |= IPA_OTP_AUTH_TYPE_DISABLED;
+    }
+
+    if (ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_PASSWORD)) {
+        allowed_auth_types |= IPA_OTP_AUTH_TYPE_PASSWORD;
+    }
+
+    if (ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_OTP)) {
+        allowed_auth_types |= IPA_OTP_AUTH_TYPE_OTP;
+    }
+
+    if (ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_PKINIT)) {
+        allowed_auth_types |= IPA_OTP_AUTH_TYPE_PKINIT;
+    }
+
+    if (ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_RADIUS)) {
+        allowed_auth_types |= IPA_OTP_AUTH_TYPE_RADIUS;
+    }
+
+    slapi_ch_array_free(auth_types);
+
+done:
+    if (apply) {
+        /* Atomically set the global allowed types. */
+        PR_ATOMIC_SET(&g_allowed_auth_types, allowed_auth_types);
+    }
+
+    return true;
+}
+
+bool ipapwd_otp_is_disabled(void)
+{
+    PRInt32 auth_type_flags;
+
+    /* Do an atomic read of the allowed auth types bit field. */
+    auth_type_flags = PR_ATOMIC_ADD(&g_allowed_auth_types, 0);
+
+    /* Check if the disabled bit is set. */
+    return auth_type_flags & IPA_OTP_AUTH_TYPE_DISABLED;
+}
 
 static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 {

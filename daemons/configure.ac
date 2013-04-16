@@ -22,37 +22,10 @@ AM_CONDITIONAL([HAVE_GCC], [test "$ac_cv_prog_gcc" = yes])
 AC_SUBST(VERSION)
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for NSPR
+dnl - Check for NSPR/NSS
 dnl ---------------------------------------------------------------------------
-AC_CHECK_HEADER(nspr4/nspr.h)
-AC_CHECK_HEADER(nspr/nspr.h)
-if test "x$ac_cv_header_nspr4_nspr_h" = "xno" && test "x$ac_cv_header_nspr_nspr_h" = "xno" ; then
-	AC_MSG_ERROR([Required NSPR header not available (nspr-devel)])
-fi
-if test "x$ac_cv_header_nspr4_nspr_h" = "xyes" ; then
-	NSPR4="-I/usr/include/nspr4"
-fi
-if test "x$ac_cv_header_nspr_nspr_h" = "xyes" ; then
-	NSPR4="-I/usr/include/nspr"
-fi
-
-dnl ---------------------------------------------------------------------------
-dnl - Check for NSS
-dnl ---------------------------------------------------------------------------
-SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS=$NSPR4
-AC_CHECK_HEADER(nss3/nss.h)
-AC_CHECK_HEADER(nss/nss.h)
-CPPFLAGS=$SAVE_CPPFLAGS
-if test "x$ac_cv_header_nss3_nss_h" = "xno" && test "x$ac_cv_header_nss_nss_h" = "xno" ; then
-	AC_MSG_ERROR([Required NSS header not available (nss-devel)])
-fi
-if test "x$ac_cv_header_nss3_nss_h" = "xyes" ; then
-	NSS3="-I/usr/include/nss3"
-fi
-if test "x$ac_cv_header_nss_nss_h" = "xyes" ; then
-	NSS3="-I/usr/include/nss"
-fi
+PKG_CHECK_MODULES([NSPR], [nspr], [], [AC_MSG_ERROR([libnspr not found])])
+PKG_CHECK_MODULES([NSS], [nss], [], [AC_MSG_ERROR([libnss not found])])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for DS slapi plugin
@@ -60,7 +33,7 @@ dnl ---------------------------------------------------------------------------
 
 # Need to hack CPPFLAGS to be able to correctly detetct slapi-plugin.h
 SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS=$NSPR4
+CPPFLAGS=$NSPR_CFLAGS
 AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
 if test "x$ac_cv_header_dirsrv_slapi-plugin_h" = "xno" ; then
 	AC_MSG_ERROR([Required 389-ds header not available (389-ds-base-devel)])
@@ -96,7 +69,7 @@ dnl - Check for Mozilla LDAP and OpenLDAP SDK
 dnl ---------------------------------------------------------------------------
 
 SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="$NSPR4 $NSS3"
+CPPFLAGS="$NSPR_CFLAGS $NSS_CFLAGS"
 AC_CHECK_HEADER(svrcore.h)
 AC_CHECK_HEADER(svrcore/svrcore.h)
 if test "x$ac_cv_header_svrcore_h" = "xno" && test "x$ac_cv_header_svrcore_svrcore_h" = "xno" ; then
@@ -144,7 +117,7 @@ AC_ARG_WITH([openldap],
                             [compile plugins with openldap instead of mozldap])],
             [], [])
 
-LDAP_CFLAGS="${OPENLDAP_CFLAGS} $NSPR4 $NSS3 -DUSE_OPENLDAP"
+LDAP_CFLAGS="${OPENLDAP_CFLAGS} $NSPR_CFLAGS $NSS_CFLAGS -DUSE_OPENLDAP"
 LDAP_LIBS="${OPENLDAP_LIBS}"
 AC_DEFINE_UNQUOTED(WITH_OPENLDAP, 1, [Use OpenLDAP libraries])
 
