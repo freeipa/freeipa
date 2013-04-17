@@ -766,7 +766,7 @@ IPA.association_facet = function (spec, no_init) {
     //default buttons and their actions
     spec.actions = spec.actions || [];
     spec.actions.unshift(
-        IPA.refresh_action,
+        'refresh',
         {
             name: 'remove',
             hide_cond: ['read-only'],
@@ -1151,7 +1151,7 @@ IPA.attribute_facet = function(spec, no_init) {
     //default buttons and their actions
     spec.actions = spec.actions || [];
     spec.actions.unshift(
-        IPA.refresh_action,
+        'refresh',
         {
             name: 'remove',
             hide_cond: ['read-only'],

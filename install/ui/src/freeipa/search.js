@@ -46,9 +46,9 @@ IPA.search_facet = function(spec, no_init) {
 
     spec.actions = spec.actions || [];
     spec.actions.unshift(
-        IPA.refresh_action,
-        IPA.batch_remove_action,
-        IPA.add_action);
+        'refresh',
+        'batch_remove',
+        'add');
 
     spec.control_buttons = spec.control_buttons || [];
 

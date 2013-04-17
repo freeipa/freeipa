@@ -46,8 +46,8 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
                 'description'
             ],
             actions: [
-                IPA.batch_disable_action,
-                IPA.batch_enable_action
+                'batch_disable',
+                'batch_enable'
             ],
             control_buttons: [
                 {
@@ -67,10 +67,10 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
             entity: that,
             command_mode: 'info',
             actions: [
-                IPA.select_action,
-                IPA.enable_action,
-                IPA.disable_action,
-                IPA.delete_action
+                'select',
+                'enable',
+                'disable',
+                'delete'
             ],
             header_actions: ['select_action', 'enable', 'disable', 'delete'],
             state: {

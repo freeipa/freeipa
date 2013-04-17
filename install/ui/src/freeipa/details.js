@@ -244,9 +244,9 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
 
     spec.actions = spec.actions || [];
     spec.actions.unshift(
-        IPA.refresh_action,
-        IPA.reset_action,
-        IPA.update_action);
+        'refresh',
+        'reset',
+        'update');
 
     spec.control_buttons = spec.control_buttons || [];
 

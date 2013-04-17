@@ -73,10 +73,10 @@ IPA.group.entity = function(spec) {
                 }
             ],
             actions: [
-                IPA.select_action,
-                IPA.group.make_posix_action,
-                IPA.group.make_external_action,
-                IPA.delete_action
+                'select',
+                'make_posix',
+                'make_external',
+                'delete'
             ],
             header_actions: ['select_action', 'make_posix', 'make_external', 'delete'],
             state: {

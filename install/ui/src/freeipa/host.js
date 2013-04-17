@@ -145,26 +145,26 @@ IPA.host.entity = function(spec) {
                 }
             ],
             actions: [
-                IPA.host.unprovision_action,
+                'host_unprovision',
                 {
-                    $factory: IPA.host.set_otp_action,
+                    $type: 'set_otp',
                     name: 'set_otp',
                     label: '@i18n:objects.host.password_set_title',
                     status: 'missing',
                     hide_cond: ['has_password']
                 },
                 {
-                    $factory: IPA.host.set_otp_action,
+                    $type: 'set_otp',
                     name: 'reset_otp',
                     label: '@i18n:objects.host.password_reset_title',
                     status: 'present',
                     show_cond: ['has_password']
                 },
-                IPA.cert.view_action,
-                IPA.cert.get_action,
-                IPA.cert.request_action,
-                IPA.cert.revoke_action,
-                IPA.cert.restore_action
+                'cert_view',
+                'cert_get',
+                'cert_request',
+                'cert_revoke',
+                'cert_restore'
             ],
             state: {
                 evaluators: [

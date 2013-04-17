@@ -1130,8 +1130,8 @@ IPA.cert.entity = function(spec) {
             $factory: IPA.cert.details_facet,
             no_update: true,
             actions: [
-                IPA.cert.revoke_action,
-                IPA.cert.restore_action
+                'cert_revoke',
+                'cert_restore'
             ],
             state: {
                 evaluators: [

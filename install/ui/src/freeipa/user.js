@@ -67,11 +67,11 @@ IPA.user.entity = function(spec) {
             ],
             actions: [
                 {
-                    $factory: IPA.batch_disable_action,
+                    $type: 'batch_disable',
                     hide_cond: ['self-service']
                 },
                 {
-                    $factory: IPA.batch_enable_action,
+                    $type: 'batch_enable',
                     hide_cond: ['self-service']
                 }
             ],
@@ -234,11 +234,11 @@ IPA.user.entity = function(spec) {
                 }
             ],
             actions: [
-                IPA.select_action,
-                IPA.enable_action,
-                IPA.disable_action,
-                IPA.delete_action,
-                IPA.user.reset_password_action
+                'select',
+                'enable',
+                'disable',
+                'delete',
+                'reset_password'
             ],
             header_actions: ['select_action', 'enable', 'disable', 'delete'],
             state: {

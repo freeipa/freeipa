@@ -149,12 +149,12 @@ IPA.service.entity = function(spec) {
                 }
             ],
             actions: [
-                IPA.service.unprovision_action,
-                IPA.cert.view_action,
-                IPA.cert.get_action,
-                IPA.cert.request_action,
-                IPA.cert.revoke_action,
-                IPA.cert.restore_action
+                'service_unprovision',
+                'cert_view',
+                'cert_get',
+                'cert_request',
+                'cert_revoke',
+                'cert_restore'
             ],
             state: {
                 evaluators: [

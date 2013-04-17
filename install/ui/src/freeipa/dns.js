@@ -129,8 +129,8 @@ IPA.dns.zone_entity = function(spec) {
                 }
             ],
             actions: [
-                IPA.batch_disable_action,
-                IPA.batch_enable_action
+                'batch_disable',
+                'batch_enable'
             ],
             control_buttons: [
                 {
@@ -233,12 +233,12 @@ IPA.dns.zone_entity = function(spec) {
                 ]
             }],
             actions: [
-                IPA.select_action,
-                IPA.enable_action,
-                IPA.disable_action,
-                IPA.delete_action,
-                IPA.dns.add_permission_action,
-                IPA.dns.remove_permission_action
+                'select',
+                'enable',
+                'disable',
+                'delete',
+                'dns_add_permission',
+                'dns_remove_permission'
             ],
             header_actions: ['select_action', 'enable', 'disable', 'delete',
                 'add_permission', 'remove_permission'],
