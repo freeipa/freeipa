@@ -214,7 +214,7 @@ IPA.service.entity = function(spec) {
                         {
                             $type: 'checkbox',
                             name: 'force',
-                            metadata: IPA.get_command_option('service_add', 'force')
+                            metadata: '@mc-opt:service_add:force'
                         }
                     ]
                 }

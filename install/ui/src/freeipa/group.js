@@ -117,7 +117,7 @@ IPA.group.entity = function(spec) {
             columns: [
                 {
                     name: 'ipaexternalmember',
-                    label: IPA.get_command_option('group_add_member', 'ipaexternalmember').label
+                    label: '@mc-opt:group_add_member:ipaexternalmember:label'
                 }
             ]
 

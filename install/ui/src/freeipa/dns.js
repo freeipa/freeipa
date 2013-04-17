@@ -319,7 +319,7 @@ IPA.dns.zone_entity = function(spec) {
                         {
                             $type: 'force_dnszone_add_checkbox',
                             name: 'force',
-                            metadata: IPA.get_command_option('dnszone_add', 'force')
+                            metadata: '@mc-opt:dnszone_add:force'
                         }
                     ]
                 }

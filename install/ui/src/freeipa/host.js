@@ -233,12 +233,12 @@ IPA.host.entity = function(spec) {
                         {
                             name: 'ip_address',
                             validators: [ 'ip_address' ],
-                            metadata: IPA.get_command_option('host_add', 'ip_address')
+                            metadata: '@mc-opt:host_add:ip_address'
                         },
                         {
                             $type: 'force_host_add_checkbox',
                             name: 'force',
-                            metadata: IPA.get_command_option('host_add', 'force')
+                            metadata: '@mc-opt:host_add:force'
                         }
                     ]
                 }

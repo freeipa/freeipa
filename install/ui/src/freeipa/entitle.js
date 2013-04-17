@@ -50,7 +50,7 @@ IPA.entitle.entity = function(spec) {
                     fields: [
                         {
                             name: 'uuid',
-                            label: IPA.get_command_option('entitle_register', 'ipaentitlementid').label,
+                            label: '@mc-opt:entitle_register:ipaentitlementid:label',
                             read_only: true
                         },
                         {
@@ -124,13 +124,13 @@ IPA.entitle.entity = function(spec) {
                 },
                 {
                     name: 'password',
-                    label: IPA.get_command_option('entitle_register', 'password').label,
+                    label: '@mc-opt:entitle_register:password:label',
                     $type: 'password'
                 }
 /* currently not supported
                 , {
                     name: 'ipaentitlementid',
-                    label: IPA.get_command_option('entitle_register', 'ipaentitlementid').label
+                    label: '@mc-opt:entitle_register:ipaentitlementid:label'
                 }
 */
             ]
