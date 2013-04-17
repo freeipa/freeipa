@@ -71,7 +71,7 @@ IPA.entitle.entity = function(spec) {
                         },
                         {
                             name: 'quantity',
-                            label: IPA.get_command_arg('entitle_consume', 'quantity').label,
+                            label: '@mc-arg:entitle_consume:quantity:label',
                             read_only: true
                         },
                         {
@@ -95,7 +95,7 @@ IPA.entitle.entity = function(spec) {
                 },
                 {
                     name: 'quantity',
-                    label: IPA.get_command_arg('entitle_consume', 'quantity').label
+                    label: '@mc-arg:entitle_consume:quantity:label'
                 },
                 {
                     name: 'start',
@@ -120,7 +120,7 @@ IPA.entitle.entity = function(spec) {
             fields: [
                 {
                     name: 'username',
-                    label: IPA.get_command_arg('entitle_register', 'username').label
+                    label: '@mc-arg:entitle_register:username:label'
                 },
                 {
                     name: 'password',
@@ -154,8 +154,8 @@ IPA.entitle.entity = function(spec) {
             fields: [
                 {
                     name: 'quantity',
-                    label: IPA.get_command_arg('entitle_consume', 'quantity').label,
-                    metadata: IPA.get_command_arg('entitle_consume', 'quantity')
+                    label: '@mc-arg:entitle_consume:quantity:label',
+                    metadata: '@mc-arg:entitle_consume:quantity'
                 }
             ]
         }).
