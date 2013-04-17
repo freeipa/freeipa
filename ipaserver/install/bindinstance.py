@@ -805,13 +805,12 @@ class BindInstance(service.Service):
             self.add_ipa_ca_dns_records(fqdn, domain_name, None)
 
     def remove_master_dns_records(self, fqdn, realm_name, domain_name):
-        host = fqdn.split(".")[0]
+        host, zone = fqdn.split(".", 1)
         self.host = host
         self.fqdn = fqdn
         self.domain = domain_name
         suffix = ipautil.realm_to_suffix(realm_name)
 
-        zone = domain_name
         resource_records = (
             ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host_in_rr),
             ("_kerberos._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
@@ -825,7 +824,7 @@ class BindInstance(service.Service):
         )
 
         for (record, type, rdata) in resource_records:
-            del_rr(zone, record, type, rdata)
+            del_rr(self.domain, record, type, rdata)
 
         areclist = get_fwd_rr(zone, host)
         for rdata in areclist:
