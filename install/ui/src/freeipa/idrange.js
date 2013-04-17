@@ -48,27 +48,27 @@ IPA.idrange.entity = function(spec) {
                         {
                             name: 'ipabaseid',
                             label: '@i18n:objects.idrange.ipabaseid',
-                            tooltip: IPA.get_entity_param('idrange', 'ipabaseid').label
+                            tooltip: '@mo-param:idrange:ipabaseid:label'
                         },
                         {
                             name: 'ipaidrangesize',
                             label: '@i18n:objects.idrange.ipaidrangesize',
-                            tooltip: IPA.get_entity_param('idrange', 'ipaidrangesize').label
+                            tooltip: '@mo-param:idrange:ipaidrangesize:label'
                         },
                         {
                             name: 'ipabaserid',
                             label: '@i18n:objects.idrange.ipabaserid',
-                            tooltip: IPA.get_entity_param('idrange', 'ipabaserid').label
+                            tooltip: '@mo-param:idrange:ipabaserid:label'
                         },
                         {
                             name: 'ipasecondarybaserid',
                             label: '@i18n:objects.idrange.ipasecondarybaserid',
-                            tooltip: IPA.get_entity_param('idrange', 'ipasecondarybaserid').label
+                            tooltip: '@mo-param:idrange:ipasecondarybaserid:label'
                         },
                         {
                             name: 'ipanttrusteddomainsid',
                             label: '@i18n:objects.idrange.ipanttrusteddomainsid',
-                            tooltip: IPA.get_entity_param('idrange', 'ipanttrusteddomainsid').label
+                            tooltip: '@mo-param:idrange:ipanttrusteddomainsid:label'
                         }
                     ]
                 }
@@ -83,31 +83,31 @@ IPA.idrange.entity = function(spec) {
                 {
                     name: 'ipabaseid',
                     label: '@i18n:objects.idrange.ipabaseid',
-                    tooltip: IPA.get_entity_param('idrange', 'ipabaseid').label,
+                    tooltip: '@mo-param:idrange:ipabaseid:label',
                     widget: 'idrange.ipabaseid'
                 },
                 {
                     name: 'ipaidrangesize',
                     label: '@i18n:objects.idrange.ipaidrangesize',
-                    tooltip: IPA.get_entity_param('idrange', 'ipaidrangesize').label,
+                    tooltip: '@mo-param:idrange:ipaidrangesize:label',
                     widget: 'idrange.ipaidrangesize'
                 },
                 {
                     name: 'ipabaserid',
                     label: '@i18n:objects.idrange.ipabaserid',
-                    tooltip: IPA.get_entity_param('idrange', 'ipabaserid').label,
+                    tooltip: '@mo-param:idrange:ipabaserid:label',
                     widget: 'idrange.ipabaserid'
                 },
                 {
                     name: 'ipasecondarybaserid',
                     label: '@i18n:objects.idrange.ipasecondarybaserid',
-                    tooltip: IPA.get_entity_param('idrange', 'ipasecondarybaserid').label,
+                    tooltip: '@mo-param:idrange:ipasecondarybaserid:label',
                     widget: 'type.ipasecondarybaserid'
                 },
                 {
                     name: 'ipanttrusteddomainsid',
                     label: '@i18n:objects.idrange.ipanttrusteddomainsid',
-                    tooltip: IPA.get_entity_param('idrange', 'ipanttrusteddomainsid').label,
+                    tooltip: '@mo-param:idrange:ipanttrusteddomainsid:label',
                     widget: 'type.ipanttrusteddomainsid'
                 }
             ],

@@ -116,7 +116,7 @@ IPA.user.entity = function(spec) {
                         {
                             $factory: IPA.user_password_widget,
                             name: 'has_password',
-                            metadata: IPA.get_entity_param('user', 'userpassword')
+                            metadata: '@mo-param:user:userpassword'
                         },
                         {
                             name: 'krbpasswordexpiration',
@@ -141,44 +141,44 @@ IPA.user.entity = function(spec) {
                     fields: [
                         {
                             name: 'krbmaxpwdlife',
-                            label: IPA.get_entity_param('pwpolicy', 'krbmaxpwdlife').label,
+                            label: '@mo-param:pwpolicy:krbmaxpwdlife:label',
                             read_only: true
                         },
                         {
                             name: 'krbminpwdlife',
-                            label: IPA.get_entity_param('pwpolicy', 'krbminpwdlife').label,
+                            label: '@mo-param:pwpolicy:krbminpwdlife:label',
                             read_only: true
                         },
                         {
                             name: 'krbpwdhistorylength',
-                            label: IPA.get_entity_param('pwpolicy', 'krbpwdhistorylength').label,
+                            label: '@mo-param:pwpolicy:krbpwdhistorylength:label',
                             read_only: true,
                             measurement_unit: 'number_of_passwords'
                         },
                         {
                             name: 'krbpwdmindiffchars',
-                            label: IPA.get_entity_param('pwpolicy', 'krbpwdmindiffchars').label,
+                            label: '@mo-param:pwpolicy:krbpwdmindiffchars:label',
                             read_only: true
                         },
                         {
                             name: 'krbpwdminlength',
-                            label: IPA.get_entity_param('pwpolicy', 'krbpwdminlength').label,
+                            label: '@mo-param:pwpolicy:krbpwdminlength:label',
                             read_only: true
                         },
                         {
                             name: 'krbpwdmaxfailure',
-                            label: IPA.get_entity_param('pwpolicy', 'krbpwdmaxfailure').label,
+                            label: '@mo-param:pwpolicy:krbpwdmaxfailure:label',
                             read_only: true
                         },
                         {
                             name: 'krbpwdfailurecountinterval',
-                            label: IPA.get_entity_param('pwpolicy', 'krbpwdfailurecountinterval').label,
+                            label: '@mo-param:pwpolicy:krbpwdfailurecountinterval:label',
                             read_only: true,
                             measurement_unit: 'seconds'
                         },
                         {
                             name: 'krbpwdlockoutduration',
-                            label: IPA.get_entity_param('pwpolicy', 'krbpwdlockoutduration').label,
+                            label: '@mo-param:pwpolicy:krbpwdlockoutduration:label',
                             read_only: true,
                             measurement_unit: 'seconds'
                         }
@@ -190,13 +190,13 @@ IPA.user.entity = function(spec) {
                     fields: [
                         {
                             name: 'krbmaxrenewableage',
-                            label: IPA.get_entity_param('krbtpolicy', 'krbmaxrenewableage').label,
+                            label: '@mo-param:krbtpolicy:krbmaxrenewableage:label',
                             read_only: true,
                             measurement_unit: 'seconds'
                         },
                         {
                             name: 'krbmaxticketlife',
-                            label: IPA.get_entity_param('krbtpolicy', 'krbmaxticketlife').label,
+                            label: '@mo-param:krbtpolicy:krbmaxticketlife:label',
                             read_only: true,
                             measurement_unit: 'seconds'
                         }

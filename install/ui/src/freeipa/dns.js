@@ -272,7 +272,7 @@ IPA.dns.zone_entity = function(spec) {
             columns: [
                 {
                     name: 'idnsname',
-                    label: IPA.get_entity_param('dnsrecord', 'idnsname').label,
+                    label: '@mo-param:dnsrecord:idnsname:label',
                     primary_key: true
                 },
                 {
@@ -1177,8 +1177,7 @@ IPA.dns.record_entity = function(spec) {
                             $type: 'dnsrecord_host_link',
                             name: 'idnsname',
                             other_entity: 'host',
-                            label: IPA.get_entity_param(
-                                'dnsrecord', 'idnsname').label
+                            label: '@mo-param:dnsrecord:idnsname:label'
                         }
                    ]
                 }

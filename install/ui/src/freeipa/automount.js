@@ -81,7 +81,7 @@ IPA.automount.map_entity = function(spec) {
                 {
                     $factory: IPA.automount_key_column,
                     name: 'automountkey',
-                    label: IPA.get_entity_param('automountkey', 'automountkey').label
+                    label: '@mo-param:automountkey:automountkey:label'
                 },
                 'automountinformation'
             ]
