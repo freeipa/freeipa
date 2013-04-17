@@ -22,13 +22,14 @@
  */
 
 define([
+        'dojo/_base/lang',
         './builder',
         './ipa',
         './jquery',
         './text',
         './facets',
         './facet'],
-    function(builder, IPA, $, text, facet_reg) {
+    function(lang, builder, IPA, $, text, facet_reg) {
 
 IPA.entity = function(spec) {
 
@@ -89,12 +90,27 @@ IPA.entity = function(spec) {
         return that.containing_entity;
     };
 
+    that.dialog_build_overrides = {
+        $pre_ops: [
+            function (spec, context) {
+                spec.entity = context.entity;
+                return spec;
+            }
+        ],
+        $post_opts: [
+            function (obj, spec, context) {
+                context.entity.add_dialog(obj);
+                return obj;
+            }
+        ],
+        $factory: IPA.dialog
+    };
+
     that.get_dialog = function(name) {
 
         //build all dialogs on the first time
         if(!that.dialogs_created) {
-            var builder = IPA.dialog_builder(that);
-            builder.build_dialogs();
+            that.add_dialog(that.dialog_specs);
             that.dialogs_created = true;
         }
 
@@ -102,12 +118,22 @@ IPA.entity = function(spec) {
     };
 
     that.add_dialog = function(dialog) {
-        return that.dialog(dialog);
-    };
 
-    that.dialog = function(dialog) {
-        dialog.entity = that;
-        that.dialogs.put(dialog.name, dialog);
+        var add = function (dialog) {
+            dialog.entity = that;
+            that.dialogs.put(dialog.name, dialog);
+        };
+
+        var context = { entity: that };
+        dialog = builder.build('', dialog, context, that.dialog_build_overrides);
+        if (lang.isArray(dialog)) {
+            for (var i=0; i<dialog.length; i++) {
+                add(dialog[i]);
+            }
+        } else  {
+            add(dialog);
+        }
+
         return that;
     };
 
@@ -420,32 +446,6 @@ IPA.entity_builder = function(entity) {
     ]);
 
 
-
-    return that;
-};
-
-IPA.dialog_builder = function(entity) {
-
-    var that = IPA.object();
-
-    that.build_dialogs = function() {
-
-        if(entity.dialog_specs && entity.dialog_specs.length) {
-            var dialogs = entity.dialog_specs;
-            for(var i=0; i<dialogs.length; i++) {
-                that.build_dialog(dialogs[i]);
-            }
-        }
-    };
-
-    that.build_dialog = function(spec) {
-        //do common logic
-        spec.entity = entity;
-
-        //add dialog
-        var dialog = spec.$factory(spec);
-        entity.dialog(dialog);
-    };
 
     return that;
 };
