@@ -25,6 +25,7 @@
 define([
     'dojo/_base/array',
     'dojo/_base/lang',
+    './_base/metadata_provider',
     './builder',
     './ipa',
     './jquery',
@@ -32,7 +33,7 @@ define([
     './phases',
     './reg',
     './text'],
-       function(array, lang, builder, IPA, $, navigation, phases, reg, text) {
+       function(array, lang, metadata_provider, builder, IPA, $, navigation, phases, reg, text) {
 
 var exp = {};
 
@@ -86,6 +87,9 @@ IPA.field = function(spec) {
     that.dirty_changed = IPA.observer();
 
     var init = function() {
+        if (typeof that.metadata === 'string') {
+            that.metadata = metadata_provider.get(that.metadata);
+        }
         if (!that.metadata && that.entity) {
             that.metadata = IPA.get_entity_param(that.entity.name, that.param);
         }
