@@ -308,6 +308,7 @@ class WSGIExecutioner(Executioner):
         args = ()
         options = {}
 
+        e = None
         if not 'HTTP_REFERER' in environ:
             return self.marshal(result, RefererError(referer='missing'), _id)
         if not environ['HTTP_REFERER'].startswith('https://%s/ipa' % self.api.env.host) and not self.env.in_tree:
@@ -342,6 +343,8 @@ class WSGIExecutioner(Executioner):
             error = InternalError()
         finally:
             os.environ['LANG'] = lang
+
+        principal = getattr(context, 'principal', 'UNKNOWN')
         if name and name in self.Command:
             try:
                 params = self.Command[name].args_options_2_params(*args, **options)
@@ -351,13 +354,23 @@ class WSGIExecutioner(Executioner):
                 )
                 # get at least some context of what is going on
                 params = options
-            principal = getattr(context, 'principal', 'UNKNOWN')
             if error:
-                self.info('%s: %s(%s): %s', principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
+                result_string = type(e).__name__
             else:
-                self.info('%s: %s(%s): SUCCESS', principal, name, ', '.join(self.Command[name]._repr_iter(**params)))
+                result_string = 'SUCCESS'
+            self.info('[%s] %s: %s(%s): %s',
+                      type(self).__name__,
+                      principal,
+                      name,
+                      ', '.join(self.Command[name]._repr_iter(**params)),
+                      result_string)
         else:
-            self.info('%s: %s', context.principal, e.__class__.__name__)
+            self.info('[%s] %s: %s: %s',
+                      type(self).__name__,
+                      principal,
+                      name,
+                      type(e).__name__)
+
         return self.marshal(result, error, _id)
 
     def simple_unmarshal(self, environ):
