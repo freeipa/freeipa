@@ -1364,7 +1364,7 @@ IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets, update)
         field.name = attribute.name;
         field.label = attribute.label ||
                         IPA.dns.record_get_attr_label(attribute.name);
-        set_defined(attribute.type, field, 'type');
+        set_defined(attribute.$type, field, '$type');
         set_defined(attribute.validators, field, 'validators');
         set_defined(attribute.required, field, 'required');
         copy_obj(widget, attribute.field_opt);
@@ -1378,7 +1378,7 @@ IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets, update)
             widget.name = attribute;
         } else {
             widget.name = attribute.name;
-            set_defined(attribute.type, widget, 'type');
+            set_defined(attribute.$type, widget, '$type');
             set_defined(attribute.options, widget, 'options');
             copy_obj(widget, attribute.widget_opt);
         }
