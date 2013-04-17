@@ -51,9 +51,23 @@ define(['dojo/_base/declare',
 
         ctor: null,
 
-        post_ops: null,
-
+        /**
+         * Array of spec modifiers.
+         *
+         * Spec modifier is a function which is called before build.
+         *      takes params: spec, context
+         *      returns spec
+         */
         pre_ops: null,
+
+        /**
+         * Array of object modifiers.
+         *
+         * Object modifier is a function which is after build.
+         *      takes params: built object, spec, context
+         *      returns object
+         */
+        post_ops: null,
 
         /**
          * Controls what builder do when spec is a string. Possible values:
@@ -104,16 +118,19 @@ define(['dojo/_base/declare',
          */
         build: function(spec, context, overrides) {
 
-            var f,c;
+            var f,c, pre, post;
 
             if (spec === undefined || spec === null) return null;
             if (!construct.is_spec(spec)) return spec;
 
             context = context || {};
 
+            // save
             if (overrides) {
                 f = this.factory;
                 c = this.ctor;
+                pre = this.pre_ops;
+                post = this.post_ops;
                 if (typeof overrides === 'function') {
                     if (construct.is_ctor(overrides)) {
                         overrides = { $ctor: overrides };
@@ -123,8 +140,11 @@ define(['dojo/_base/declare',
                 }
                 this.factory = overrides.$factory;
                 this.ctor = overrides.$ctor;
+                if (overrides.$pre_ops) this.pre_ops = overrides.$pre_ops;
+                if (overrides.$post_ops) this.post_ops = overrides.$post_ops;
             }
 
+            // build
             var objects;
             if (lang.isArray(spec)) {
                 objects = [];
@@ -136,9 +156,12 @@ define(['dojo/_base/declare',
                 objects = this._build(spec, context);
             }
 
+            // restore
             if (overrides) {
                 this.factory = f;
                 this.ctor = c;
+                this.pre_ops = pre;
+                this.post_ops = post;
             }
 
             return objects;
