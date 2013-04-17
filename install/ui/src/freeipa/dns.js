@@ -2536,6 +2536,7 @@ phases.on('registration', function() {
     var w = reg.widget;
     var f = reg.field;
     var v = reg.validator;
+    var a = reg.action;
 
     w.register('dnszone_name', IPA.dnszone_name_widget);
     w.register('force_dnszone_add_checkbox', IPA.force_dnszone_add_checkbox_widget);
@@ -2554,6 +2555,9 @@ phases.on('registration', function() {
     v.register('ip_v6_address', IPA.ip_v6_address_validator);
     v.register('dnsforwarder', IPA.dnsforwarder_validator);
     v.register('network', IPA.network_validator);
+
+    a.register('dns_add_permission', IPA.dns.add_permission_action);
+    a.register('dns_remove_permission', IPA.dns.remove_permission_action);
 });
 
 return {};

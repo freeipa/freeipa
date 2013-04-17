@@ -20,13 +20,15 @@
 
 define([
         'freeipa/aci',
+        'freeipa/details',
+        'freeipa/facet',
         'freeipa/field',
         'freeipa/ipa',
         'freeipa/jquery',
         'freeipa/reg',
         'freeipa/widget'
        ],
-        function(aci, fields, IPA, $, reg, widgets) {
+        function(aci, mod_details, mod_facet, fields, IPA, $, reg, widgets) {
     return function() {
 
 var target_container;
@@ -41,6 +43,8 @@ module('aci', {
             fields.register();
             widgets.register();
             aci.register();
+            mod_facet.register();
+            mod_details.register();
 
             IPA.ajax_options.async = false;
             IPA.init({

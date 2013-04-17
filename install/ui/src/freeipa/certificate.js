@@ -1312,12 +1312,19 @@ IPA.register('cert', IPA.cert.entity);
 phases.on('registration', function() {
     var w = reg.widget;
     var f = reg.field;
+    var a = reg.action;
 
     w.register('certificate_status', IPA.cert.status_widget);
     f.register('certificate_status', IPA.cert.status_field);
 
     f.register('revocation_reason', IPA.revocation_reason_field);
     w.register('revocation_reason', IPA.text_widget);
+
+    a.register('cert_view', IPA.cert.view_action);
+    a.register('cert_get', IPA.cert.get_action);
+    a.register('cert_request', IPA.cert.request_action);
+    a.register('cert_revoke', IPA.cert.revoke_action);
+    a.register('cert_restore', IPA.cert.restore_action);
 });
 
 return {};

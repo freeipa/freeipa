@@ -21,14 +21,14 @@
 define([
     'freeipa/ipa',
     'freeipa/jquery',
+    'freeipa/details',
     'freeipa/facet',
     'freeipa/facets',
     'freeipa/reg',
-    'freeipa/details',
     'freeipa/entity',
     'freeipa/field',
     'freeipa/widget'],
-        function(IPA, $, mod_facet, facets, reg) {
+        function(IPA, $, mod_details, mod_facet, facets, reg) {
     return function() {
 
 var details_container;
@@ -45,6 +45,9 @@ module('details', {
                 mod_facet.facet_preops.details
             ]
         });
+
+        mod_facet.register();
+        mod_details.register();
 
         IPA.init({
             url: 'data',

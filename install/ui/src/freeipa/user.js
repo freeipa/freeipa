@@ -21,8 +21,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './details', './search', './association',
-       './entity', './certificate'], function(IPA, $, text) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './text',
+        './details',
+        './search',
+        './association',
+        './entity',
+        './certificate'],
+    function(IPA, $, phases, reg, text) {
 
 var exp = IPA.user = {};
 
@@ -667,6 +677,13 @@ IPA.user.reset_password_acl_evaluator = function(spec) {
 };
 
 IPA.register('user', IPA.user.entity);
+
+exp.register = function() {
+    var a = reg.action;
+    a.register('reset_password', IPA.user.reset_password_action);
+};
+
+phases.on('registration', exp.register);
 
 return exp;
 });

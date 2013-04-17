@@ -21,7 +21,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './facet'], function(IPA, $, text) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './text',
+        './facet'],
+    function(IPA, $, phases, reg, text) {
+
+var exp = {};
 
 IPA.search_facet = function(spec, no_init) {
 
@@ -502,5 +511,18 @@ IPA.batch_enable_action = function(spec) {
     return IPA.batch_items_action(spec);
 };
 
-return {};
+exp.register = function() {
+
+    var a = reg.action;
+
+    a.register('batch_remove', IPA.batch_remove_action);
+    a.register('add', IPA.add_action);
+    a.register('batch_items', IPA.batch_items_action);
+    a.register('batch_disable', IPA.batch_disable_action);
+    a.register('batch_enable', IPA.batch_enable_action);
+};
+
+phases.on('registration', exp.register);
+
+return exp;
 });

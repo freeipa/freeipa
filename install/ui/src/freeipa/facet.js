@@ -28,19 +28,20 @@ define([
         'dojo/on',
         'dojo/Stateful',
         'dojo/Evented',
-        './_base/Builder',
+        './builder',
         './facets',
         './ipa',
         './jquery',
         './navigation',
         './phases',
+        './reg',
         './spec_util',
         './text',
         './dialog',
         './field',
         './widget'
        ], function(declare, lang, construct, on, Stateful, Evented,
-                   Builder, facets, IPA, $, navigation, phases, su, text) {
+                   builder, facets, IPA, $, navigation, phases, reg, su, text) {
 
 /**
  * Facet represents the content of currently displayed page.
@@ -121,8 +122,8 @@ exp.facet = IPA.facet = function(spec, no_init) {
     that.disable_breadcrumb = spec.disable_breadcrumb;
     that.disable_facet_tabs = spec.disable_facet_tabs;
 
-    that.action_state = IPA.build(spec.state || {}, {}, { $factory: exp.state });
-    that.actions = exp.action_holder_builder.build({ actions: spec.actions });
+    that.action_state = builder.build('', spec.state || {}, {}, { $factory: exp.state });
+    that.actions = builder.build('', { actions: spec.actions }, {}, { $factory: exp.action_holder } );
 
     that.header_actions = spec.header_actions;
     that.header = spec.header || IPA.facet_header({ facet: that });
@@ -1728,7 +1729,7 @@ exp.action_holder = IPA.action_holder = function(spec) {
         var i, action, actions;
 
         that.facet = facet;
-        actions = exp.action_builder.build(spec.actions) || [];
+        actions = builder.build('action', spec.actions) || [];
 
         for (i=0; i<actions.length; i++) {
             action = actions[i];
@@ -1783,8 +1784,8 @@ exp.state = IPA.state = function(spec) {
     //when state changes. Params: state, Context: this
     that.changed = IPA.observer();
 
-    that.evaluators = exp.state_evaluator_builder.build(spec.evaluators) || [];
-    that.summary_evaluator = IPA.build(spec.summary_evaluator || IPA.summary_evaluator);
+    that.evaluators = builder.build('state_evaluator', spec.evaluators) || [];
+    that.summary_evaluator = builder.build('', spec.summary_evaluator || IPA.summary_evaluator);
 
     that.summary_conditions = spec.summary_conditions || [];
 
@@ -2126,7 +2127,8 @@ exp.control_buttons_widget = IPA.control_buttons_widget = function(spec) {
 
     var that = IPA.widget(spec);
 
-    that.buttons = IPA.action_button_widget_builder.build(spec.buttons) || [];
+    that.buttons = builder.build('widget', spec.buttons, {},
+                                 { $factory: exp.action_button_widget} ) || [];
 
     that.init = function(facet) {
 
@@ -2179,7 +2181,6 @@ exp.eval_cond = IPA.eval_cond = function(enable_cond, disable_cond, state) {
 
     return true;
 };
-
 
 exp.action_list_widget = IPA.action_list_widget = function(spec) {
 
@@ -2379,7 +2380,7 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
         return this;
     },
 
-    /*
+    /**
      * Set a property
      *
      * Sets named properties on a stateful object and notifies any watchers of
@@ -2422,25 +2423,26 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
     }
 });
 
-exp.action_builder = IPA.action_builder = new Builder({
-    factory: exp.action
-});
 
-exp.action_holder_builder = new Builder({
-    factory: exp.action_holder
-});
+// Action builder and registry
+exp.action_builder = builder.get('action');
+exp.action_builder.factory = exp.action;
+reg.set('action', exp.action_builder.registry);
 
-exp.state_builder = IPA.state_builder = new Builder({
-    factory: exp.state
-});
+// State Evaluator builder and registry
+exp.state_evaluator_builder = builder.get('state_evaluator');
+exp.state_evaluator.factory = exp.action;
+reg.set('state_evaluator', exp.state_evaluator.registry);
 
-exp.state_evaluator_builder = IPA.state_evaluator_builder = new Builder({
-    factory: exp.state
-});
+exp.register = function() {
+    var w = reg.widget;
 
-exp.action_button_widget_builder = IPA.action_button_widget_builder = new Builder({
-    factory: exp.action_button_widget
-});
+    w.register('action_button', exp.action_button_widget);
+    w.register('control_buttons', exp.control_buttons_widget);
+    w.register('action_list', exp.action_list_widget);
+};
+
+phases.on('registration', exp.register);
 
 return exp;
 });

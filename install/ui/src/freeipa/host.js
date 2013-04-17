@@ -31,7 +31,7 @@ define(['./ipa',
         './certificate'],
     function(IPA, $, phases, reg, text) {
 
-IPA.host = {};
+var exp = IPA.host = {};
 
 IPA.host.entity = function(spec) {
 
@@ -965,6 +965,7 @@ IPA.register('host', IPA.host.entity);
 phases.on('registration', function() {
     var w = reg.widget;
     var f = reg.field;
+    var a = reg.action;
 
     f.register('host_fqdn', IPA.host_fqdn_field);
     w.register('host_fqdn', IPA.host_fqdn_widget);
@@ -976,8 +977,11 @@ phases.on('registration', function() {
     w.register('force_host_add_checkbox', IPA.force_host_add_checkbox_widget);
     f.register('host_password', IPA.field);
     w.register('host_password', IPA.host_password_widget);
+
+    a.register('host_unprovision', exp.unprovision_action);
+    a.register('set_otp', exp.set_otp_action);
 });
 
 
-return {};
+return exp;
 });

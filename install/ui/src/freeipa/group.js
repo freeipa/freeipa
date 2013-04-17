@@ -20,10 +20,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+    function(IPA, $, phases, reg) {
 
-IPA.group = {};
+var exp = IPA.group = {};
 
 IPA.group.entity = function(spec) {
 
@@ -256,5 +264,14 @@ IPA.group.make_external_action = function(spec) {
 
 IPA.register('group', IPA.group.entity);
 
-return {};
+exp.register = function() {
+    var a = reg.action;
+
+    a.register('make_posix', exp.make_posix_action);
+    a.register('make_external', exp.make_external_action);
+};
+
+phases.on('registration', exp.register);
+
+return exp;
 });

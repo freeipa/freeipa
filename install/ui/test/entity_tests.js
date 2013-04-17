@@ -19,10 +19,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['freeipa/ipa', 'freeipa/jquery','freeipa/facet', 'freeipa/facets',
-       'freeipa/entity', 'freeipa/search',
-       'freeipa/details'], function(IPA, $, mod_facet, facets) {
-    return function() {
+define([
+        'freeipa/ipa',
+        'freeipa/jquery',
+        'freeipa/facet',
+        'freeipa/facets',
+        'freeipa/search',
+        'freeipa/entity',
+        'freeipa/details'],
+    function(IPA, $, mod_facet, facets, mod_search) {
+            return function() {
 
 var container;
 
@@ -30,6 +36,8 @@ module('entity',{
     setup: function() {
 
         IPA.ajax_options.async = false;
+
+        mod_search.register();
 
         facets.register({
             type: 'search',

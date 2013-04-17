@@ -512,6 +512,7 @@ IPA.register('service', IPA.service.entity);
 phases.on('registration', function() {
     var w = reg.widget;
     var f = reg.field;
+    var a = reg.action;
 
     f.register('service_name', IPA.service_name_field);
     w.register('service_name', IPA.text_widget);
@@ -519,6 +520,7 @@ phases.on('registration', function() {
     w.register('service_host', IPA.text_widget);
     f.register('service_provisioning_status', IPA.field);
     w.register('service_provisioning_status', IPA.service_provisioning_status_widget);
+    a.register('service_unprovision', IPA.service.unprovision_action);
 });
 
 

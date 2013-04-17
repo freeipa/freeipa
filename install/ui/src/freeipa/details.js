@@ -23,7 +23,15 @@
 
 /* IPA Object Details - populating definiton lists from entry data */
 
-define(['./ipa', './jquery', './text', './facet', './add'], function(IPA, $, text) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './text',
+        './facet',
+        './add'],
+    function(IPA, $, phases, reg, text) {
 
 var exp = {};
 
@@ -1199,6 +1207,21 @@ exp.disabled_summary_cond = IPA.disabled_summary_cond = function() {
         state: ['disabled']
     };
 };
+
+exp.register = function() {
+    var a = reg.action;
+
+    a.register('select', exp.select_action);
+    a.register('refresh', exp.refresh_action);
+    a.register('reset', exp.reset_action);
+    a.register('update', exp.update_action);
+    a.register('object', exp.object_action);
+    a.register('enable', exp.enable_action);
+    a.register('disable', exp.disable_action);
+    a.register('delete', exp.delete_action);
+};
+
+phases.on('registration', exp.register);
 
 return exp;
 });
