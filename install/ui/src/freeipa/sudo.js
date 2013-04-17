@@ -80,8 +80,8 @@ IPA.sudo.rule_entity = function(spec) {
                     }
                 ],
                 summary_conditions: [
-                    IPA.enabled_summary_cond(),
-                    IPA.disabled_summary_cond()
+                    IPA.enabled_summary_cond,
+                    IPA.disabled_summary_cond
                 ]
             }
         }).

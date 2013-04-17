@@ -255,8 +255,8 @@ IPA.dns.zone_entity = function(spec) {
                     IPA.dns.zone_has_permission_evaluator
                 ],
                 summary_conditions: [
-                    IPA.enabled_summary_cond(),
-                    IPA.disabled_summary_cond()
+                    IPA.enabled_summary_cond,
+                    IPA.disabled_summary_cond
                 ]
             }
         }).

@@ -24,6 +24,7 @@
 /* IPA Object Details - populating definiton lists from entry data */
 
 define([
+        'dojo/_base/lang',
         './builder',
         './ipa',
         './jquery',
@@ -32,7 +33,7 @@ define([
         './text',
         './facet',
         './add'],
-    function(builder, IPA, $, phases, reg, text) {
+    function(lang, builder, IPA, $, phases, reg, text) {
 
 var exp = {};
 
@@ -1194,21 +1195,26 @@ exp.delete_action = IPA.delete_action = function(spec) {
 
 
 exp.enabled_summary_cond = IPA.enabled_summary_cond = function() {
-    return {
+
+    var that = IPA.object();
+    lang.mixin(that, {
         pos: ['enabled'],
         neg: [],
         description: text.get('@i18n:status.enabled'),
         state: ['enabled']
-    };
+    });
+    return that;
 };
 
 exp.disabled_summary_cond = IPA.disabled_summary_cond = function() {
-    return {
+    var that = IPA.object();
+    lang.mixin(that, {
         pos: [],
         neg: ['enabled'],
         description: text.get('@i18n:status.disabled'),
         state: ['disabled']
-    };
+    });
+    return that;
 };
 
 exp.register = function() {

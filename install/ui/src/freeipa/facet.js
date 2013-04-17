@@ -1787,7 +1787,7 @@ exp.state = IPA.state = function(spec) {
     that.evaluators = builder.build('state_evaluator', spec.evaluators) || [];
     that.summary_evaluator = builder.build('', spec.summary_evaluator || IPA.summary_evaluator);
 
-    that.summary_conditions = spec.summary_conditions || [];
+    that.summary_conditions = builder.build('', spec.summary_conditions) || [];
 
     that.init = function(facet) {
 

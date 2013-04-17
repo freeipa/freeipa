@@ -251,8 +251,8 @@ IPA.user.entity = function(spec) {
                     IPA.user.reset_password_acl_evaluator
                 ],
                 summary_conditions: [
-                    IPA.enabled_summary_cond(),
-                    IPA.disabled_summary_cond()
+                    IPA.enabled_summary_cond,
+                    IPA.disabled_summary_cond
                 ]
             }
         }).
