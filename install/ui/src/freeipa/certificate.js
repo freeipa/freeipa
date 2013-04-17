@@ -948,22 +948,25 @@ IPA.cert.entity = function(spec) {
     spec = spec || {};
 
     spec.policies = spec.policies || [
-        IPA.search_facet_update_policy(),
-        IPA.details_facet_update_policy(),
-        IPA.cert.cert_update_policy({
+        IPA.search_facet_update_policy,
+        IPA.details_facet_update_policy,
+        {
+            $factory: IPA.cert.cert_update_policy,
             source_facet: 'details',
             dest_facet: 'search'
-        }),
-        IPA.cert.cert_update_policy({
+        },
+        {
+            $factory: IPA.cert.cert_update_policy,
             source_facet: 'details',
             dest_entity: 'host',
             dest_facet: 'details'
-        }),
-        IPA.cert.cert_update_policy({
+        },
+        {
+            $factory: IPA.cert.cert_update_policy,
             source_facet: 'details',
             dest_entity: 'service',
             dest_facet: 'details'
-        })
+        }
     ];
 
     var that = IPA.entity(spec);
@@ -1174,11 +1177,15 @@ IPA.cert.entity = function(spec) {
                 }
             ],
             policies: [
-                IPA.cert.load_policy({ has_reason: true}),
-                IPA.hide_empty_row_policy({
+                {
+                    $factory: IPA.cert.load_policy,
+                    has_reason: true
+                },
+                {
+                    $factory: IPA.hide_empty_row_policy,
                     widget: 'revocation_reason',
                     section: 'details'
-                })
+                }
             ]
         });
     };

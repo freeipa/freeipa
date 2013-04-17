@@ -325,7 +325,7 @@ IPA.dns.zone_entity = function(spec) {
                 }
             ],
             policies: [
-                IPA.add_dns_zone_name_policy()
+                IPA.add_dns_zone_name_policy
             ]
         });
     };
@@ -1134,12 +1134,13 @@ IPA.dns.record_entity = function(spec) {
     spec = spec || {};
 
     spec.policies = spec.policies || [
-        IPA.facet_update_policy({
+        {
+            $factory: IPA.facet_update_policy,
             source_facet: 'details',
             dest_entity: 'dnszone',
             dest_facet: 'records'
-        }),
-        IPA.adder_facet_update_policy()
+        },
+        IPA.adder_facet_update_policy
     ];
 
     var that = IPA.entity(spec);
@@ -1212,9 +1213,10 @@ IPA.dns.record_entity = function(spec) {
                 }
             ],
             policies: [
-                IPA.dnsrecord_adder_dialog_type_policy({
+                {
+                    $factory: IPA.dnsrecord_adder_dialog_type_policy,
                     type_field: 'record_type'
-                })
+                }
             ]
         });
     };

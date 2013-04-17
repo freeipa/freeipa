@@ -38,18 +38,20 @@ IPA.host.entity = function(spec) {
     spec = spec || {};
 
     spec.policies = spec.policies || [
-        IPA.search_facet_update_policy(),
-        IPA.details_facet_update_policy(),
-        IPA.cert.cert_update_policy({
+        IPA.search_facet_update_policy,
+        IPA.details_facet_update_policy,
+        {
+            $factory: IPA.cert.cert_update_policy,
             source_facet: 'details',
             dest_entity: 'cert',
             dest_facet: 'details'
-        }),
-        IPA.cert.cert_update_policy({
+        },
+        {
+            $factory: IPA.cert.cert_update_policy,
             source_facet: 'details',
             dest_entity: 'cert',
             dest_facet: 'search'
-        })
+        }
     ];
 
     var that = IPA.entity(spec);
@@ -176,8 +178,8 @@ IPA.host.entity = function(spec) {
                 ]
             },
             policies: [
-                IPA.host.enrollment_policy(),
-                IPA.host.certificate_policy()
+                IPA.host.enrollment_policy,
+                IPA.host.certificate_policy
             ]
         }).
         association_facet({

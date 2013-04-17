@@ -174,9 +174,10 @@ IPA.trust.entity = function(spec) {
                 }
             ],
             policies: [
-                IPA.multiple_choice_section_policy({
+                {
+                    $factory: IPA.multiple_choice_section_policy,
                     widget: 'method'
-                })
+                }
             ]
         });
     };

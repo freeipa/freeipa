@@ -132,7 +132,10 @@ IPA.aci.permission_entity = function(spec) {
                 }
             ],
             policies: [
-                IPA.permission_target_policy('target')
+                {
+                    $factory: IPA.permission_target_policy,
+                    widget_name: 'target'
+                }
             ]
         }).
         association_facet({
@@ -217,7 +220,10 @@ IPA.aci.permission_entity = function(spec) {
                 }
             ],
             policies: [
-                IPA.permission_target_policy('target')
+                {
+                    $factory: IPA.permission_target_policy,
+                    widget_name: 'target'
+                }
             ]
         });
     };
@@ -740,13 +746,14 @@ IPA.permission_target_widget = function(spec) {
     return that;
 };
 
-IPA.permission_target_policy = function (widget_name) {
+IPA.permission_target_policy = function (spec) {
 
     var that = IPA.facet_policy();
+    that.widget_name = spec.widget_name;
 
     that.init = function() {
 
-        that.permission_target = that.container.widgets.get_widget(widget_name);
+        that.permission_target = that.container.widgets.get_widget(that.widget_name);
         var widgets = that.permission_target.widgets;
 
         var target_select = widgets.get_widget('target');

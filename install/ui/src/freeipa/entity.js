@@ -21,16 +21,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './facets', './facet'],
-       function(IPA, $, text, facet_reg) {
+define([
+        './builder',
+        './ipa',
+        './jquery',
+        './text',
+        './facets',
+        './facet'],
+    function(builder, IPA, $, text, facet_reg) {
 
 IPA.entity = function(spec) {
 
     spec = spec || {};
 
     spec.policies = spec.policies || [
-        IPA.search_facet_update_policy(),
-        IPA.details_facet_update_policy()
+        IPA.search_facet_update_policy,
+        IPA.details_facet_update_policy
     ];
 
     var that = IPA.object();
@@ -487,7 +493,9 @@ IPA.entity_policies = function(spec) {
         }
     };
 
-    that.add_policies(spec.policies);
+    var policies = builder.build('', spec.policies, {},
+                                  { $factory: IPA.entity_policy }) || [];
+    that.add_policies(policies);
 
     return that;
 };

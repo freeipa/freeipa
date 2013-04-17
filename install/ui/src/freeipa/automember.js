@@ -45,14 +45,16 @@ IPA.automember.entity = function(spec) {
     spec = spec || {};
 
     spec.policies = spec.policies || [
-        IPA.facet_update_policy({
+        {
+            $factory: IPA.facet_update_policy,
             source_facet: 'usergrouprule',
             dest_facet: 'searchgroup'
-        }),
-        IPA.facet_update_policy({
+        },
+        {
+            $factory: IPA.facet_update_policy,
             source_facet: 'hostgrouprule',
             dest_facet: 'searchhostgroup'
-        })
+        }
     ];
 
     var that = IPA.entity(spec);

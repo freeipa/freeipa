@@ -115,7 +115,10 @@ module('aci', {
                     }
                 ],
                 policies: [
-                    IPA.permission_target_policy('target')
+                    {
+                        $factory: IPA.permission_target_policy,
+                        widget_name: 'target'
+                    }
                 ]
             });
             entity.add_facet('details', target_facet);

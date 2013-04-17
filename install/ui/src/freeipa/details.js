@@ -24,6 +24,7 @@
 /* IPA Object Details - populating definiton lists from entry data */
 
 define([
+        './builder',
         './ipa',
         './jquery',
         './phases',
@@ -31,7 +32,7 @@ define([
         './text',
         './facet',
         './add'],
-    function(IPA, $, phases, reg, text) {
+    function(builder, IPA, $, phases, reg, text) {
 
 var exp = {};
 
@@ -232,7 +233,9 @@ exp.facet_policies = IPA.facet_policies = function(spec) {
         }
     };
 
-    that.add_policies(spec.policies);
+    var policies = builder.build('', spec.policies, {},
+                                  { $factory: exp.facet_policy }) || [];
+    that.add_policies(policies);
 
     return that;
 };
