@@ -548,6 +548,42 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
+%triggerin -n freeipa-client -- openssh-server
+# Has the client been configured?
+restore=0
+test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
+
+if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
+    if egrep -q '^(AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys|PubKeyAgent /usr/bin/sss_ssh_authorizedkeys %u)$' /etc/ssh/sshd_config 2>/dev/null; then
+        sed -r '
+            /^(AuthorizedKeysCommand(User|RunAs)|PubKeyAgentRunAs)[ \t]/ d
+        ' /etc/ssh/sshd_config >/etc/ssh/sshd_config.ipanew
+
+        if /usr/sbin/sshd -t -f /dev/null -o 'AuthorizedKeysCommand=/usr/bin/sss_ssh_authorizedkeys' -o 'AuthorizedKeysCommandUser=nobody'; then
+            sed -ri '
+                s/^PubKeyAgent (.+) %u$/AuthorizedKeysCommand \1/
+                s/^AuthorizedKeysCommand .*$/\0\nAuthorizedKeysCommandUser nobody/
+            ' /etc/ssh/sshd_config.ipanew
+        elif /usr/sbin/sshd -t -f /dev/null -o 'AuthorizedKeysCommand=/usr/bin/sss_ssh_authorizedkeys' -o 'AuthorizedKeysCommandRunAs=nobody'; then
+            sed -ri '
+                s/^PubKeyAgent (.+) %u$/AuthorizedKeysCommand \1/
+                s/^AuthorizedKeysCommand .*$/\0\nAuthorizedKeysCommandRunAs nobody/
+            ' /etc/ssh/sshd_config.ipanew
+        elif /usr/sbin/sshd -t -f /dev/null -o 'PubKeyAgent=/usr/bin/sss_ssh_authorizedkeys %u' -o 'PubKeyAgentRunAs=nobody'; then
+            sed -ri '
+                s/^AuthorizedKeysCommand (.+)$/PubKeyAgent \1 %u/
+                s/^PubKeyAgent .*$/\0\nPubKeyAgentRunAs nobody/
+            ' /etc/ssh/sshd_config.ipanew
+        fi
+
+        mv /etc/ssh/sshd_config.ipanew /etc/ssh/sshd_config
+        /sbin/restorecon /etc/ssh/sshd_config
+        chmod 600 /etc/ssh/sshd_config
+
+        /bin/systemctl condrestart sshd.service 2>&1 || :
+    fi
+fi
+
 %if ! %{ONLY_CLIENT}
 %files server -f server-python.list
 %defattr(-,root,root,-)
@@ -764,6 +800,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue Apr 30 2013 Jan Cholasta <jcholast@redhat.com> - 3.1.3-2
+- Add triggerin scriptlet to update sshd_config on openssh-server update
+
 * Tue Apr  2 2013 Martin Kosek <mkosek@redhat.com> - 3.1.3-1
 - Require 389-base-base >= 1.3.0.5 to pull the following fixes:
   - upgrade deadlock caused by DNA plugin reconfiguration
