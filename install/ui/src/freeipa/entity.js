@@ -461,6 +461,11 @@ exp.entity_post_ops = {
 
     init: function(entity, spec, context) {
 
+        if (typeof spec.enable_test === 'function') {
+            if (!spec.enable_test()) throw {
+                expected: true
+            };
+        }
         if (entity.init) {
             entity.init(spec, context);
         }
