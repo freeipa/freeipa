@@ -38,10 +38,6 @@ EXAMPLES:
  Display information about a named group:
    ipa hbacsvcgroup-show login
 
- Add a new group to the "login" group:
-   ipa hbacsvcgroup-add --desc="switch users" login
-   ipa hbacsvcgroup-add-member --hbacsvcs=su --hbacsvcs=su-l login
-
  Delete an HBAC service group:
    ipa hbacsvcgroup-del login
 """)
