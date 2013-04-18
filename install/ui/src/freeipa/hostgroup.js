@@ -1,5 +1,6 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Petr Vobornik <pvoborni@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -18,25 +19,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, phases, reg) {
 
-IPA.hostgroup = {};
+var exp = IPA.hostgroup = {};
 
-IPA.hostgroup.entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_spec = function() {
+return {
+    name: 'hostgroup',
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'identity',
@@ -50,43 +58,51 @@ IPA.hostgroup.entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_hostgroup',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
             remove_method: 'remove_host'
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
             remove_method: 'remove_host'
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'cn',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                }
-            ]
-        });
-    };
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            'cn',
+            {
+                $type: 'textarea',
+                name: 'description'
+            }
+        ]
+    }
+};};
 
-    return that;
+
+exp.entity_spec = make_spec();
+exp.register = function() {
+    var e = reg.entity;
+    e.register({type: 'hostgroup', spec: exp.entity_spec});
 };
+phases.on('registration', exp.register);
 
-IPA.register('hostgroup', IPA.hostgroup.entity);
-
-return {};
+return exp;
 });

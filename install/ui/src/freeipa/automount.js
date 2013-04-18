@@ -18,32 +18,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './navigation', './details', './search', './association',
-       './entity'], function(IPA, $, navigation) {
+define([
+        './ipa',
+        './jquery',
+        './navigation',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, navigation, phases, reg) {
 
-IPA.automount = {};
+var exp = IPA.automount = {};
 
-IPA.automount.location_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.facet_groups([ 'automountmap', 'settings' ]).
-        search_facet({
+var make_location_spec = function() {
+return {
+    name: 'automountlocation',
+    facet_groups: [ 'automountmap', 'settings' ],
+    facets: [
+        {
+            $type: 'search',
             title: IPA.metadata.objects.automountlocation.label,
             columns:['cn']
-        }).
-        nested_search_facet({
+        },
+        {
+            $type: 'nested_search',
             facet_group: 'automountmap',
             nested_entity: 'automountmap',
             label: IPA.metadata.objects.automountmap.label,
             tab_label: IPA.metadata.objects.automountmap.label,
             name: 'maps',
             columns: [ 'automountmapname' ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections:[
                 {
                     name: 'identity',
@@ -51,25 +60,21 @@ IPA.automount.location_entity = function(spec) {
                     fields: [ 'cn' ]
                 }
             ]
-        }).
-        adder_dialog({
-            fields: [ 'cn' ]
-        });
-    };
+        }
+    ],
+    adder_dialog: {
+        fields: [ 'cn' ]
+    }
+};};
 
-    return that;
-};
-
-IPA.automount.map_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.containing_entity('automountlocation').
-        facet_groups([ 'automountkey', 'settings' ]).
-        nested_search_facet({
+var make_map_spec = function() {
+return {
+    name: 'automountmap',
+    containing_entity: 'automountlocation',
+    facet_groups: [ 'automountkey', 'settings' ],
+    facets: [
+        {
+            $type: 'nested_search',
             $factory: IPA.automount.key_search_facet,
             facet_group: 'automountkey',
             nested_entity: 'automountkey',
@@ -85,8 +90,9 @@ IPA.automount.map_entity = function(spec) {
                 },
                 'automountinformation'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'identity',
@@ -100,76 +106,69 @@ IPA.automount.map_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        adder_dialog({
-            $factory: IPA.automountmap_adder_dialog,
-            sections: [
-                {
-                    name: 'general',
-                    fields: [
-                        {
-                            $type: 'radio',
-                            name: 'method',
-                            enabled: false, //don't use value in add command
-                            label: '@i18n:objects.automountmap.map_type',
-                            options: [
-                                {
-                                    value: 'add',
-                                    label: '@i18n:objects.automountmap.direct'
-                                },
-                                {
-                                    value: 'add_indirect',
-                                    label: '@i18n:objects.automountmap.indirect'
-                                }
-                            ]
-                        },
-                        'automountmapname',
-                        {
-                            $type: 'textarea',
-                            name: 'description'
-                        }
-                    ]
-                },
-                {
-                    name: 'indirect',
-                    fields: [
-                        {
-                            name: 'key',
-                            label: '@mc-opt:automountmap_add_indirect:key:label'
-                        },
-                        {
-                            name: 'parentmap',
-                            label: '@mc-opt:automountmap_add_indirect:parentmap:label'
-                        }
-                    ]
-                }
-            ]
-        });
-    };
+        }
+    ],
+    adder_dialog: {
+        $factory: IPA.automountmap_adder_dialog,
+        sections: [
+            {
+                name: 'general',
+                fields: [
+                    {
+                        $type: 'radio',
+                        name: 'method',
+                        enabled: false, //don't use value in add command
+                        label: '@i18n:objects.automountmap.map_type',
+                        options: [
+                            {
+                                value: 'add',
+                                label: '@i18n:objects.automountmap.direct'
+                            },
+                            {
+                                value: 'add_indirect',
+                                label: '@i18n:objects.automountmap.indirect'
+                            }
+                        ]
+                    },
+                    'automountmapname',
+                    {
+                        $type: 'textarea',
+                        name: 'description'
+                    }
+                ]
+            },
+            {
+                name: 'indirect',
+                fields: [
+                    {
+                        name: 'key',
+                        label: '@mc-opt:automountmap_add_indirect:key:label'
+                    },
+                    {
+                        name: 'parentmap',
+                        label: '@mc-opt:automountmap_add_indirect:parentmap:label'
+                    }
+                ]
+            }
+        ]
+    }
+};};
 
-    return that;
-};
-
-IPA.automount.key_entity = function(spec) {
-
-    spec = spec || {};
-
-    spec.policies = spec.policies || [
+var make_key_spec = function() {
+return {
+    name: 'automountkey',
+    policies:[
         {
             $factory: IPA.facet_update_policy,
             source_facet: 'details',
             dest_entity: 'automountmap',
             dest_facet: 'keys'
         }
-    ];
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.containing_entity('automountmap').
-        details_facet({
+    ],
+    containing_entity: 'automountmap',
+    facets: [
+        {
+            $type: 'details',
             $factory: IPA.automount.key_details_facet,
             sections: [
                 {
@@ -185,28 +184,26 @@ IPA.automount.key_entity = function(spec) {
                 }
             ],
             disable_breadcrumb: false
-        }).
-        adder_dialog({
-            show_edit_page : function(entity, result){
-                var key = result.automountkey[0];
-                var info = result.automountinformation[0];
-                var pkeys = this.pkey_prefix.slice(0);
-                pkeys.push(key);
+        }
+    ],
+    adder_dialog: {
+        show_edit_page : function(entity, result){
+            var key = result.automountkey[0];
+            var info = result.automountinformation[0];
+            var pkeys = this.pkey_prefix.slice(0);
+            pkeys.push(key);
 
-                var args = {
-                    info: info,
-                    key: key
-                };
+            var args = {
+                info: info,
+                key: key
+            };
 
-                navigation.show_entity(entity.name, 'details', pkeys, args);
-                return false;
-            },
-            fields:['automountkey','automountinformation']
-        });
-    };
-
-    return that;
-};
+            navigation.show_entity(entity.name, 'details', pkeys, args);
+            return false;
+        },
+        fields:['automountkey','automountinformation']
+    }
+};};
 
 IPA.automount.key_details_facet = function(spec) {
 
@@ -355,9 +352,19 @@ IPA.automount.key_search_facet = function(spec) {
     return that;
 };
 
-IPA.register('automountlocation', IPA.automount.location_entity);
-IPA.register('automountmap', IPA.automount.map_entity);
-IPA.register('automountkey', IPA.automount.key_entity);
+exp.location_spec = make_location_spec();
+exp.map_spec = make_map_spec();
+exp.key_spec = make_key_spec();
 
-return {};
+exp.register = function() {
+    var e = reg.entity;
+
+    e.register({type: 'automountlocation', spec: exp.location_spec});
+    e.register({type: 'automountmap', spec: exp.map_spec});
+    e.register({type: 'automountkey', spec: exp.key_spec});
+};
+
+phases.on('registration', exp.register);
+
+return exp;
 });

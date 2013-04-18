@@ -33,21 +33,20 @@ define([
 
 var exp = IPA.group = {};
 
-IPA.group.entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_spec = function() {
+return {
+    name: 'group',
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn',
                 'gidnumber',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'details',
@@ -84,8 +83,9 @@ IPA.group.entity = function(spec) {
                     IPA.object_class_evaluator
                 ]
             }
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'member_user',
             columns:[
                 'uid',
@@ -105,11 +105,13 @@ IPA.group.entity = function(spec) {
                     width: '100px'
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'member_group'
-        }).
-        attribute_facet({
+        },
+        {
+            $type: 'attribute',
             name: 'member_external',
             attribute: 'ipaexternalmember',
             tab_label: 'External',
@@ -120,69 +122,71 @@ IPA.group.entity = function(spec) {
                     label: '@mc-opt:group_add_member:ipaexternalmember:label'
                 }
             ]
-
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_group',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_role',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
             remove_method: 'remove_user'
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
             remove_method: 'remove_user'
-        }).
-        standard_association_facets().
-        adder_dialog({
-            $factory: IPA.group_adder_dialog,
-            fields: [
-                'cn',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                },
-                {
-                    $type: 'radio',
-                    name: 'type',
-                    label: '@i18n:objects.group.type',
-                    flags: ['no_command'],
-                    default_value: 'posix',
-                    options: [
-                        {
-                            value: 'normal',
-                            label: '@i18n:objects.group.normal'
-                        },
-                        {
-                            value: 'external',
-                            label: '@i18n:objects.group.external'
-                        },
-                        {
-                            value: 'posix',
-                            label: '@i18n:objects.group.posix'
-                        }
-                    ]
-                },
-                'gidnumber'
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        $factory: IPA.group_adder_dialog,
+        fields: [
+            'cn',
+            {
+                $type: 'textarea',
+                name: 'description'
+            },
+            {
+                $type: 'radio',
+                name: 'type',
+                label: '@i18n:objects.group.type',
+                flags: ['no_command'],
+                default_value: 'posix',
+                options: [
+                    {
+                        value: 'normal',
+                        label: '@i18n:objects.group.normal'
+                    },
+                    {
+                        value: 'external',
+                        label: '@i18n:objects.group.external'
+                    },
+                    {
+                        value: 'posix',
+                        label: '@i18n:objects.group.posix'
+                    }
+                ]
+            },
+            'gidnumber'
+        ]
+    }
+};};
 
 IPA.group_adder_dialog = function(spec) {
 
@@ -262,10 +266,12 @@ IPA.group.make_external_action = function(spec) {
     return that;
 };
 
-IPA.register('group', IPA.group.entity);
-
+exp.entity_spec = make_spec();
 exp.register = function() {
+    var e = reg.entity;
     var a = reg.action;
+
+    e.register({ type: 'group', spec: exp.entity_spec });
 
     a.register('make_posix', exp.make_posix_action);
     a.register('make_external', exp.make_external_action);

@@ -19,38 +19,34 @@
  */
 
 define([
-    './ipa',
-    './jquery',
-    './phases',
-    './reg',
-    './details',
-    './search',
-    './association',
-    './entity'],
-        function(IPA, $, phases, reg) {
+        './ipa',
+        './jquery',
+        './menu',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, menu, phases, reg) {
 
-IPA.trust = {};
+var exp = IPA.trust = {};
 
-IPA.trust.entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-
-        if (!IPA.trust_enabled) {
-            throw {
-                expected: true
-            };
-        }
-
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_trust_spec = function() {
+return {
+    name: 'trust',
+    enable_test: function() {
+        return IPA.trust_enabled;
+    },
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'details',
@@ -97,101 +93,99 @@ IPA.trust.entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        adder_dialog({
-            $factory: IPA.trust.adder_dialog,
-            fields: [
-                {
-                    name: 'cn',
-                    label: '@i18n:objects.trust.domain',
-                    widget: 'realm.realm_server'
-                },
-                {
-                    name: 'realm_admin',
-                    label: '@i18n:objects.trust.account',
-                    widget: 'method.realm_admin'
-                },
-                {
-                    $type: 'password',
-                    name: 'realm_passwd',
-                    label: '@i18n:password.password',
-                    widget: 'method.realm_passwd'
-                },
-                {
-                    $type: 'password',
-                    name: 'trust_secret',
-                    label: '@i18n:password.password',
-                    widget: 'method.trust_secret'
-                },
-                {
-                    $type: 'password',
-                    name: 'trust_secret_verify',
-                    label: '@i18n:password.verify_password',
-                    widget: 'method.trust_secret_verify',
-                    flags: ['no_command'],
-                    validators: [{
-                        $type: 'same_password',
-                        other_field: 'trust_secret'
-                    }]
-                }
-            ],
-            widgets: [
-                {
-                    $type: 'details_table_section_nc',
-                    name: 'realm',
-                    widgets: [
-                        'realm_server'
-                    ]
-                },
-                {
-                    $type: 'multiple_choice_section',
-                    name: 'method',
-                    label: '@i18n:objects.trust.establish_using',
-                    choices: [
-                        {
-                            name: 'admin-account',
-                            label: '@i18n:objects.trust.admin_account',
-                            fields: ['realm_admin', 'realm_passwd'],
-                            required: ['realm_admin', 'realm_passwd'],
-                            enabled: true
-                        },
-                        {
-                            name: 'preshared_password',
-                            label: '@i18n:objects.trust.preshared_password',
-                            fields: ['trust_secret', 'trust_secret_verify'],
-                            required: ['trust_secret', 'trust_secret_verify']
-                        }
-                    ],
-                    widgets: [
-                        {
-                            name: 'realm_admin'
-                        },
-                        {
-                            $type: 'password',
-                            name: 'realm_passwd'
-                        },
-                        {
-                            $type: 'password',
-                            name: 'trust_secret'
-                        },
-                        {
-                            $type: 'password',
-                            name: 'trust_secret_verify'
-                        }
-                    ]
-                }
-            ],
-            policies: [
-                {
-                    $factory: IPA.multiple_choice_section_policy,
-                    widget: 'method'
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    adder_dialog: {
+        $factory: IPA.trust.adder_dialog,
+        fields: [
+            {
+                name: 'cn',
+                label: '@i18n:objects.trust.domain',
+                widget: 'realm.realm_server'
+            },
+            {
+                name: 'realm_admin',
+                label: '@i18n:objects.trust.account',
+                widget: 'method.realm_admin'
+            },
+            {
+                $type: 'password',
+                name: 'realm_passwd',
+                label: '@i18n:password.password',
+                widget: 'method.realm_passwd'
+            },
+            {
+                $type: 'password',
+                name: 'trust_secret',
+                label: '@i18n:password.password',
+                widget: 'method.trust_secret'
+            },
+            {
+                $type: 'password',
+                name: 'trust_secret_verify',
+                label: '@i18n:password.verify_password',
+                widget: 'method.trust_secret_verify',
+                flags: ['no_command'],
+                validators: [{
+                    $type: 'same_password',
+                    other_field: 'trust_secret'
+                }]
+            }
+        ],
+        widgets: [
+            {
+                $type: 'details_table_section_nc',
+                name: 'realm',
+                widgets: [
+                    'realm_server'
+                ]
+            },
+            {
+                $type: 'multiple_choice_section',
+                name: 'method',
+                label: '@i18n:objects.trust.establish_using',
+                choices: [
+                    {
+                        name: 'admin-account',
+                        label: '@i18n:objects.trust.admin_account',
+                        fields: ['realm_admin', 'realm_passwd'],
+                        required: ['realm_admin', 'realm_passwd'],
+                        enabled: true
+                    },
+                    {
+                        name: 'preshared_password',
+                        label: '@i18n:objects.trust.preshared_password',
+                        fields: ['trust_secret', 'trust_secret_verify'],
+                        required: ['trust_secret', 'trust_secret_verify']
+                    }
+                ],
+                widgets: [
+                    {
+                        name: 'realm_admin'
+                    },
+                    {
+                        $type: 'password',
+                        name: 'realm_passwd'
+                    },
+                    {
+                        $type: 'password',
+                        name: 'trust_secret'
+                    },
+                    {
+                        $type: 'password',
+                        name: 'trust_secret_verify'
+                    }
+                ]
+            }
+        ],
+        policies: [
+            {
+                $factory: IPA.multiple_choice_section_policy,
+                widget: 'method'
+            }
+        ]
+    }
+};};
 
 IPA.trust.adder_dialog = function(spec) {
 
@@ -210,21 +204,15 @@ IPA.trust.adder_dialog = function(spec) {
     return that;
 };
 
-IPA.trust.config_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-
-        if (!IPA.trust_enabled) {
-            throw {
-                expected: true
-            };
-        }
-
-        that.entity_init();
-
-        that.builder.details_facet({
+var make_trustconfig_spec = function() {
+return {
+    name: 'trust',
+    enable_test: function() {
+        return IPA.trust_enabled;
+    },
+    facets: [
+        {
+            $type: 'details',
             $factory: IPA.trust.config_details_facet,
             trust_type:  'ad',
             sections: [
@@ -249,11 +237,9 @@ IPA.trust.config_entity = function(spec) {
                     ]
                 }
             ]
-        });
-    };
-
-    return that;
-};
+        }
+    ]
+};};
 
 IPA.trust.config_details_facet = function(spec) {
 
@@ -298,19 +284,29 @@ IPA.trust.fallbackgroup_select_widget = function(spec) {
     return that;
 };
 
-IPA.register('trust', IPA.trust.entity);
-IPA.register('trustconfig', IPA.trust.config_entity);
+exp.remove_menu_item = function() {
+    if (!IPA.trust_enabled) {
+        menu.remove_item('ipaserver/trusts');
+    }
+};
+
+exp.trust_spec = make_trust_spec();
+exp.trustconfig_spec = make_trustconfig_spec();
 
 IPA.trust.register = function() {
-
+    var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
+
+    e.register({type: 'trust', spec: exp.trust_spec});
+    e.register({type: 'trustconfig', spec: exp.trustconfig_spec});
 
     w.register('trust_fallbackgroup_select', IPA.trust.fallbackgroup_select_widget);
     f.register('trust_fallbackgroup_select', IPA.field);
 };
 
 phases.on('registration', IPA.trust.register);
+phases.on('profile', exp.remove_menu_item, 20);
 
-return {};
+return exp;
 });

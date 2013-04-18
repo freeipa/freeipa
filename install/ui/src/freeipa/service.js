@@ -30,13 +30,12 @@ define([
     './entity'],
         function(IPA, $, phases, reg, text) {
 
-IPA.service = {};
+var exp =IPA.service = {};
 
-IPA.service.entity = function(spec) {
-
-    spec = spec || {};
-
-    spec.policies = spec.policies || [
+var make_spec = function() {
+return {
+    name: 'service',
+    policies: [
         IPA.search_facet_update_policy,
         IPA.details_facet_update_policy,
         {
@@ -51,17 +50,14 @@ IPA.service.entity = function(spec) {
             dest_entity: 'cert',
             dest_facet: 'search'
         }
-    ];
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+    ],
+    facets: [
+        {
+            $type: 'search',
             columns: [ 'krbprincipalname' ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.service.details_facet,
             sections: [
                 {
@@ -168,62 +164,61 @@ IPA.service.entity = function(spec) {
             policies: [
                 IPA.service.certificate_policy
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'managedby_host',
             add_method: 'add_host',
             remove_method: 'remove_host'
-        }).
-        standard_association_facets().
-        adder_dialog({
-            $factory: IPA.service_adder_dialog,
-            height: 350,
-            sections: [
-                {
-                    fields: [
-                        {
-                            $type: 'combobox',
-                            name: 'service',
-                            label: '@i18n:objects.service.service',
-                            options: [
-                                'cifs',
-                                'DNS',
-                                'ftp',
-                                'HTTP',
-                                'imap',
-                                'ldap',
-                                'libvirt',
-                                'nfs',
-                                'smtp',
-                                'qpidd'
-                            ],
-                            editable: true,
-                            size: 10,
-                            required: true,
-                            z_index: 2
-                        },
-                        {
-                            $type: 'entity_select',
-                            name: 'host',
-                            other_entity: 'host',
-                            other_field: 'fqdn',
-                            label: '@i18n:objects.service.host',
-                            required: true,
-                            z_index: 1
-                        },
-                        {
-                            $type: 'checkbox',
-                            name: 'force',
-                            metadata: '@mc-opt:service_add:force'
-                        }
-                    ]
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        $factory: IPA.service_adder_dialog,
+        height: 350,
+        sections: [
+            {
+                fields: [
+                    {
+                        $type: 'combobox',
+                        name: 'service',
+                        label: '@i18n:objects.service.service',
+                        options: [
+                            'cifs',
+                            'DNS',
+                            'ftp',
+                            'HTTP',
+                            'imap',
+                            'ldap',
+                            'libvirt',
+                            'nfs',
+                            'smtp',
+                            'qpidd'
+                        ],
+                        editable: true,
+                        size: 10,
+                        required: true,
+                        z_index: 2
+                    },
+                    {
+                        $type: 'entity_select',
+                        name: 'host',
+                        other_entity: 'host',
+                        other_field: 'fqdn',
+                        label: '@i18n:objects.service.host',
+                        required: true,
+                        z_index: 1
+                    },
+                    {
+                        $type: 'checkbox',
+                        name: 'force',
+                        metadata: '@mc-opt:service_add:force'
+                    }
+                ]
+            }
+        ]
+    }
+};};
 
 IPA.service.details_facet = function(spec, no_init) {
 
@@ -509,12 +504,14 @@ IPA.service.certificate_policy = function(spec) {
     return that;
 };
 
-IPA.register('service', IPA.service.entity);
-
+exp.entity_spec = make_spec();
 phases.on('registration', function() {
+    var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
     var a = reg.action;
+
+    e.register({type: 'service', spec: exp.entity_spec});
 
     f.register('service_name', IPA.service_name_field);
     w.register('service_name', IPA.text_widget);
@@ -526,5 +523,5 @@ phases.on('registration', function() {
 });
 
 
-return {};
+return exp;
 });

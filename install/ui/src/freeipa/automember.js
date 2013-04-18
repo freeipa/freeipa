@@ -31,20 +31,14 @@ define([
     './entity'],
     function(IPA, $, navigation, phases, reg, text) {
 
-IPA.automember = {};
+var exp = IPA.automember = {};
 
-IPA.automember.entity = function(spec) {
+var make_spec = function() {
+return {
 
-     //HACK: Automember takes_params is missing a cn attribute. This hack
-     //copies cn from mod command. Also it is set as pkey.
-    var pkey_attr = IPA.metadata.commands.automember_mod.takes_args[0];
-    pkey_attr.primary_key = true;
-    IPA.metadata.objects.automember.takes_params.push(pkey_attr);
-    IPA.metadata.objects.automember.primary_key = pkey_attr.name;
+    name: 'automember',
 
-    spec = spec || {};
-
-    spec.policies = spec.policies || [
+    policies:[
         {
             $factory: IPA.facet_update_policy,
             source_facet: 'usergrouprule',
@@ -55,16 +49,11 @@ IPA.automember.entity = function(spec) {
             source_facet: 'hostgrouprule',
             dest_facet: 'searchhostgroup'
         }
-    ];
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-
-        that.entity_init();
-
-        that.builder.search_facet({
+    ],
+    facets: [
+        {
             $factory: IPA.automember.rule_search_facet,
+            $type: 'search',
             name: 'searchgroup',
             group_type: 'group',
             label: '@i18n:objects.automember.usergrouprules',
@@ -74,9 +63,10 @@ IPA.automember.entity = function(spec) {
                 'cn',
                 'description'
             ]
-        }).
-        search_facet({
+        },
+        {
             $factory: IPA.automember.rule_search_facet,
+            $type: 'search',
             name: 'searchhostgroup',
             group_type: 'hostgroup',
             label: '@i18n:objects.automember.hostgrouprules',
@@ -86,46 +76,55 @@ IPA.automember.entity = function(spec) {
                 'cn',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
             $factory: IPA.automember.rule_details_facet,
+            $type: 'details',
             name: 'usergrouprule',
             group_type: 'group',
             label: '@i18n:objects.automember.usergrouprule',
             disable_facet_tabs: true,
             check_rights: false,
             redirect_info: { facet: 'searchgroup' }
-        }).
-        details_facet({
+        },
+        {
             $factory: IPA.automember.rule_details_facet,
+            $type: 'details',
             name: 'hostgrouprule',
             group_type: 'hostgroup',
             label: '@i18n:objects.automember.hostgrouprule',
             disable_facet_tabs: true,
             check_rights: false,
             redirect_info: { facet: 'searchhostgroup' }
-        }).
-        adder_dialog({
-            $factory: IPA.automember.rule_adder_dialog,
-            title: '@i18n:objects.automember.add_rule',
-            fields: [
-                {
-                    $type: 'entity_select',
-                    name: 'cn',
-                    other_entity: 'group',
-                    other_field: 'cn'
-                }
-            ],
-            height: '300'
-        }).
-        deleter_dialog({
-            $factory: IPA.automember.rule_deleter_dialog
-        });
-    };
+        }
+    ],
+    adder_dialog: {
+        $factory: IPA.automember.rule_adder_dialog,
+        title: '@i18n:objects.automember.add_rule',
+        fields: [
+            {
+                $type: 'entity_select',
+                name: 'cn',
+                other_entity: 'group',
+                other_field: 'cn'
+            }
+        ],
+        height: '300'
+    },
+    deleter_dialog: {
+        $factory: IPA.automember.rule_deleter_dialog
+    }
+};};
 
-    return that;
+exp.metadata_extension_pre_op = function(spec, context) {
+    //HACK: Automember takes_params is missing a cn attribute. This hack
+    //copies cn from mod command. Also it is set as pkey.
+    var pkey_attr = IPA.metadata.commands.automember_mod.takes_args[0];
+    pkey_attr.primary_key = true;
+    IPA.metadata.objects.automember.takes_params.push(pkey_attr);
+    IPA.metadata.objects.automember.primary_key = pkey_attr.name;
+    return spec;
 };
-
 
 IPA.automember.rule_search_facet = function(spec) {
 
@@ -698,16 +697,23 @@ IPA.automember.default_group_widget = function(spec) {
     return that;
 };
 
+exp.entity_spec = make_spec();
 
-IPA.register('automember', IPA.automember.entity);
-
-phases.on('registration', function() {
+exp.register = function() {
+    var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
 
+    e.register({
+        type: 'automember',
+        spec: exp.entity_spec,
+        pre_ops: [ exp.metadata_extension_pre_op ]
+    });
     w.register('automember_condition', IPA.automember.condition_widget);
     f.register('automember_condition', IPA.automember.condition_field);
-});
+};
 
-return {};
+phases.on('registration', exp.register);
+
+return exp;
 });

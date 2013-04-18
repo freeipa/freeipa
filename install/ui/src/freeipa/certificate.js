@@ -29,7 +29,7 @@ define([
     './dialog'],
         function(lang, IPA, $, phases, reg, text) {
 
-IPA.cert = {};
+var exp = IPA.cert = {};
 
 IPA.cert.BEGIN_CERTIFICATE = '-----BEGIN CERTIFICATE-----';
 IPA.cert.END_CERTIFICATE   = '-----END CERTIFICATE-----';
@@ -942,12 +942,92 @@ IPA.cert.status_field = function(spec) {
 };
 
 
+exp.create_cert_metadata = function() {
 
-IPA.cert.entity = function(spec) {
+    var add_param = function(name, label, doc,  primary_key) {
+        entity.takes_params.push({
+            name: name,
+            label: label,
+            doc: doc,
+            primary_key: !!primary_key,
+            flags: ['no_update']
+        });
+    };
 
-    spec = spec || {};
+    var get_param = function(params, name) {
 
-    spec.policies = spec.policies || [
+        for (var i=0;i<params.length;i++) {
+            if (params[i].name === name) return params[i];
+        }
+        return null;
+    };
+
+    var cmd = IPA.metadata.commands['cert_find'];
+    var entity = lang.clone(cmd);
+    entity.attribute_members = {};
+    entity.label = text.get('@i18n:objects.cert.certificates');
+    entity.label_singular = text.get('@i18n:objects.cert.certificate');
+    entity.methods = [
+        'find',
+        'remove-hold',
+        'request',
+        'revoke',
+        'show',
+        'status'
+    ];
+    entity.name = "certificate";
+    entity.object_name = "certificate";
+    entity.object_name_plural = "certificates";
+    entity.parent_object = "";
+    entity.primary_key = "serial_number";
+    entity.rdn_attribute = "";
+    entity.relationships = {};
+    entity.takes_params = lang.clone(entity.takes_options);
+
+    get_param(entity.takes_params, 'subject').flags = ['no_update'];
+    var reason = get_param(entity.takes_params, 'revocation_reason');
+    reason.flags = ['no_update'];
+    reason.label = text.get('@i18n:objects.cert.revocation_reason');
+
+    add_param('serial_number',
+                text.get('@i18n:objects.cert.serial_number'),
+                text.get('@i18n:objects.cert.serial_number'),
+                true);
+    add_param('serial_number_hex',
+                text.get('@i18n:objects.cert.serial_number_hex'),
+                text.get('@i18n:objects.cert.serial_number_hex'));
+    add_param('issuer',
+                text.get('@i18n:objects.cert.issued_by'),
+                text.get('@i18n:objects.cert.issued_by'));
+    add_param('status',
+                text.get('@i18n:objects.cert.status'),
+                text.get('@i18n:objects.cert.status'));
+    add_param('valid_not_before',
+                text.get('@i18n:objects.cert.issued_on'),
+                text.get('@i18n:objects.cert.issued_on'));
+    add_param('valid_not_after',
+                text.get('@i18n:objects.cert.expires_on'),
+                text.get('@i18n:objects.cert.expires_on'));
+    add_param('md5_fingerprint',
+                text.get('@i18n:objects.cert.md5_fingerprint'),
+                text.get('@i18n:objects.cert.md5_fingerprint'));
+    add_param('sha1_fingerprint',
+                text.get('@i18n:objects.cert.sha1_fingerprint'),
+                text.get('@i18n:objects.cert.sha1_fingerprint'));
+    add_param('certificate',
+                text.get('@i18n:objects.cert.certificate'),
+                text.get('@i18n:objects.cert.certificate'));
+
+
+    IPA.metadata.objects.cert = entity;
+    return entity;
+};
+
+var make_spec = function() {
+return {
+    name: 'cert',
+
+    policies: [
         IPA.search_facet_update_policy,
         IPA.details_facet_update_policy,
         {
@@ -967,102 +1047,13 @@ IPA.cert.entity = function(spec) {
             dest_entity: 'service',
             dest_facet: 'details'
         }
-    ];
-
-    var that = IPA.entity(spec);
-
-    that.get_default_metadata = function() {
-
-        var add_param = function(name, label, doc,  primary_key) {
-            entity.takes_params.push({
-                name: name,
-                label: label,
-                doc: doc,
-                primary_key: !!primary_key,
-                flags: ['no_update']
-            });
-        };
-
-        var get_param = function(params, name) {
-
-            for (var i=0;i<params.length;i++) {
-                if (params[i].name === name) return params[i];
-            }
-            return null;
-        };
-
-        var cmd = IPA.metadata.commands['cert_find'];
-        var entity = lang.clone(cmd);
-        entity.attribute_members = {};
-        entity.label = text.get('@i18n:objects.cert.certificates');
-        entity.label_singular = text.get('@i18n:objects.cert.certificate');
-        entity.methods = [
-            'find',
-            'remove-hold',
-            'request',
-            'revoke',
-            'show',
-            'status'
-        ];
-        entity.name = "certificate";
-        entity.object_name = "certificate";
-        entity.object_name_plural = "certificates";
-        entity.parent_object = "";
-        entity.primary_key = "serial_number";
-        entity.rdn_attribute = "";
-        entity.relationships = {};
-        entity.takes_params = lang.clone(entity.takes_options);
-
-        get_param(entity.takes_params, 'subject').flags = ['no_update'];
-        var reason = get_param(entity.takes_params, 'revocation_reason');
-        reason.flags = ['no_update'];
-        reason.label = text.get('@i18n:objects.cert.revocation_reason');
-
-        add_param('serial_number',
-                  text.get('@i18n:objects.cert.serial_number'),
-                  text.get('@i18n:objects.cert.serial_number'),
-                  true);
-        add_param('serial_number_hex',
-                  text.get('@i18n:objects.cert.serial_number_hex'),
-                  text.get('@i18n:objects.cert.serial_number_hex'));
-        add_param('issuer',
-                  text.get('@i18n:objects.cert.issued_by'),
-                  text.get('@i18n:objects.cert.issued_by'));
-        add_param('status',
-                  text.get('@i18n:objects.cert.status'),
-                  text.get('@i18n:objects.cert.status'));
-        add_param('valid_not_before',
-                  text.get('@i18n:objects.cert.issued_on'),
-                  text.get('@i18n:objects.cert.issued_on'));
-        add_param('valid_not_after',
-                  text.get('@i18n:objects.cert.expires_on'),
-                  text.get('@i18n:objects.cert.expires_on'));
-        add_param('md5_fingerprint',
-                  text.get('@i18n:objects.cert.md5_fingerprint'),
-                  text.get('@i18n:objects.cert.md5_fingerprint'));
-        add_param('sha1_fingerprint',
-                  text.get('@i18n:objects.cert.sha1_fingerprint'),
-                  text.get('@i18n:objects.cert.sha1_fingerprint'));
-        add_param('certificate',
-                  text.get('@i18n:objects.cert.certificate'),
-                  text.get('@i18n:objects.cert.certificate'));
-
-
-        IPA.metadata.objects.cert = entity;
-        return entity;
-    };
-
-    that.init = function() {
-
-        if (!IPA.cert.is_enabled()) {
-            throw {
-                expected: true
-            };
-        }
-
-        that.entity_init();
-
-        that.builder.search_facet({
+    ],
+    enable_test: function() {
+        return IPA.cert.is_enabled();
+    },
+    facets: [
+        {
+            $type: 'search',
             $factory: IPA.cert.search_facet,
             pagination: false,
             no_update: true,
@@ -1128,8 +1119,9 @@ IPA.cert.entity = function(spec) {
                     label: '@i18n:objects.cert.find_revokedon_to'
                 }
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.cert.details_facet,
             no_update: true,
             actions: [
@@ -1187,11 +1179,9 @@ IPA.cert.entity = function(spec) {
                     section: 'details'
                 }
             ]
-        });
-    };
-
-    return that;
-};
+        }
+    ]
+};};
 
 IPA.cert.search_facet = function(spec) {
 
@@ -1314,12 +1304,15 @@ IPA.cert.cert_update_policy = function(spec) {
 
 
 
-IPA.register('cert', IPA.cert.entity);
+exp.entity_spec = make_spec();
 
-phases.on('registration', function() {
+exp.register = function() {
+    var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
     var a = reg.action;
+
+    e.register({type: 'cert', spec: exp.entity_spec});
 
     w.register('certificate_status', IPA.cert.status_widget);
     f.register('certificate_status', IPA.cert.status_field);
@@ -1332,7 +1325,10 @@ phases.on('registration', function() {
     a.register('cert_request', IPA.cert.request_action);
     a.register('cert_revoke', IPA.cert.revoke_action);
     a.register('cert_restore', IPA.cert.restore_action);
-});
+};
 
-return {};
+phases.on('registration', exp.register);
+phases.on('post-metadata', exp.create_cert_metadata);
+
+return exp;
 });

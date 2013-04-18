@@ -31,21 +31,21 @@ define([
     './entity'],
         function(IPA, $, phases, reg, text) {
 
-IPA.aci = {};
+var exp = IPA.aci = {};
 
-IPA.aci.permission_entity = function(spec) {
+var make_permission_spec = function() {
 
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.facet_groups(['settings', 'privilege']).
-        search_facet({
+return {
+    name: 'permission',
+    facet_groups: ['settings', 'privilege'],
+    facets: [
+        {
+            $type: 'search',
             columns: [ 'cn' ]
-        }).
-        details_facet({
+        },
+        {
             $factory: IPA.aci.permission_details_facet,
+            $type: 'details',
             fields: [
                 {
                     name:'cn',
@@ -137,99 +137,98 @@ IPA.aci.permission_entity = function(spec) {
                     widget_name: 'target'
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'member_privilege',
             facet_group: 'privilege'
-        }).
-        adder_dialog({
-            height: 450,
-            fields: [
-                {
-                    name:'cn',
-                    widget: 'general.cn'
-                },
-                {
-                    $type: 'rights',
-                    name: 'permissions',
-                    widget: 'general.permissions'
-                },
-                {
-                    $type: 'select',
-                    name: 'target',
-                    widget: 'target.target',
-                    enabled: false
-                },
-                {
-                    name: 'filter',
-                    widget: 'target.filter',
-                    enabled: false
-                },
-                {
-                    $type: 'entity_select',
-                    name: 'memberof',
-                    widget: 'target.memberof',
-                    enabled: false
-                },
-                {
-                    name: 'subtree',
-                    widget: 'target.subtree',
-                    enabled: false
-                },
-                {
-                    $type: 'entity_select',
-                    name: 'targetgroup',
-                    widget: 'target.targetgroup',
-                    enabled: false
-                },
-                {
-                    $type: 'select',
-                    name: 'type',
-                    widget: 'target.type',
-                    enabled: false
-                },
-                {
-                    name: 'attrs',
-                    widget: 'target.attrs',
-                    enabled: false
-                },
-                {
-                    name: 'attrs_multi',
-                    $type: 'multivalued',
-                    param: 'attrs',
-                    widget: 'target.attrs_multi',
-                    enabled: false
-                }
-            ],
-            widgets: [
-                {
-                    $type: 'details_table_section_nc',
-                    name: 'general',
-                    widgets: [
-                        'cn',
-                        {
-                            $type: 'rights',
-                            name: 'permissions'
-                        }
-                    ]
-                },
-                {
-                    $type: 'permission_target',
-                    name:'target',
-                    show_target: true
-                }
-            ],
-            policies: [
-                {
-                    $factory: IPA.permission_target_policy,
-                    widget_name: 'target'
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    adder_dialog: {
+        height: 450,
+        fields: [
+            {
+                name:'cn',
+                widget: 'general.cn'
+            },
+            {
+                $type: 'rights',
+                name: 'permissions',
+                widget: 'general.permissions'
+            },
+            {
+                $type: 'select',
+                name: 'target',
+                widget: 'target.target',
+                enabled: false
+            },
+            {
+                name: 'filter',
+                widget: 'target.filter',
+                enabled: false
+            },
+            {
+                $type: 'entity_select',
+                name: 'memberof',
+                widget: 'target.memberof',
+                enabled: false
+            },
+            {
+                name: 'subtree',
+                widget: 'target.subtree',
+                enabled: false
+            },
+            {
+                $type: 'entity_select',
+                name: 'targetgroup',
+                widget: 'target.targetgroup',
+                enabled: false
+            },
+            {
+                $type: 'select',
+                name: 'type',
+                widget: 'target.type',
+                enabled: false
+            },
+            {
+                name: 'attrs',
+                widget: 'target.attrs',
+                enabled: false
+            },
+            {
+                name: 'attrs_multi',
+                $type: 'multivalued',
+                param: 'attrs',
+                widget: 'target.attrs_multi',
+                enabled: false
+            }
+        ],
+        widgets: [
+            {
+                $type: 'details_table_section_nc',
+                name: 'general',
+                widgets: [
+                    'cn',
+                    {
+                        $type: 'rights',
+                        name: 'permissions'
+                    }
+                ]
+            },
+            {
+                $type: 'permission_target',
+                name:'target',
+                show_target: true
+            }
+        ],
+        policies: [
+            {
+                $factory: IPA.permission_target_policy,
+                widget_name: 'target'
+            }
+        ]
+    }
+};};
 
 IPA.aci.permission_details_facet = function(spec) {
 
@@ -242,21 +241,20 @@ IPA.aci.permission_details_facet = function(spec) {
     return that;
 };
 
-IPA.aci.privilege_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.facet_groups(['permission', 'settings', 'role']).
-        search_facet({
+var make_privilege_spec = function() {
+return {
+    name: 'privilege',
+    facet_groups: ['permission', 'settings', 'role'],
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'identity',
@@ -270,50 +268,49 @@ IPA.aci.privilege_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'member_role',
             facet_group: 'role',
             add_method: 'add_privilege',
             remove_method: 'remove_privilege',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_permission',
             facet_group: 'permission',
             add_method: 'add_permission',
             remove_method: 'remove_permission'
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'cn',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                }
-            ]
-        });
-    };
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            'cn',
+            {
+                $type: 'textarea',
+                name: 'description'
+            }
+        ]
+    }
+};};
 
-    return that;
-};
-
-IPA.aci.role_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.facet_groups(['member', 'privilege', 'settings']).
-        search_facet({
+var make_role_spec = function() {
+return {
+    name: 'role',
+    facet_groups: ['member', 'privilege', 'settings'],
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'identity',
@@ -327,40 +324,38 @@ IPA.aci.role_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_privilege',
             facet_group: 'privilege',
             add_method: 'add_privilege',
             remove_method: 'remove_privilege'
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'cn',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                }
-            ]
-        });
-    };
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            'cn',
+            {
+                $type: 'textarea',
+                name: 'description'
+            }
+        ]
+    }
+};};
 
-    return that;
-};
-
-IPA.aci.selfservice_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_selfservice_spec = function() {
+return {
+    name: 'selfservice',
+    facets: [
+        {
+            $type: 'search',
             columns: [ 'aciname' ],
             pagination: false
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             check_rights: false,
             sections: [
                 {
@@ -376,36 +371,32 @@ IPA.aci.selfservice_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        adder_dialog({
-            fields: [
-                'aciname',
-                {
-                    $type: 'attributes',
-                    object_type: 'user',
-                    name: 'attrs'
-                }
-            ]
-        });
-    };
+        }
+    ],
+    adder_dialog: {
+        fields: [
+            'aciname',
+            {
+                $type: 'attributes',
+                object_type: 'user',
+                name: 'attrs'
+            }
+        ]
+    }
+};};
 
-    return that;
-};
 
-IPA.aci.delegation_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.group_entity = IPA.get_entity(spec.group_entity || 'group');
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_delegation_spec = function() {
+return {
+    name: 'delegation',
+    facets: [
+        {
+            $type: 'search',
             columns: [ 'aciname' ],
             pagination: false
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             check_rights: false,
             sections: [
                 {
@@ -422,13 +413,13 @@ IPA.aci.delegation_entity = function(spec) {
                         {
                             $type: 'entity_select',
                             name: 'group',
-                            other_entity: that.group_entity,
+                            other_entity: 'group',
                             other_field: 'cn'
                         },
                         {
                             $type: 'entity_select',
                             name: 'memberof',
-                            other_entity: that.group_entity,
+                            other_entity: 'group',
                             other_field: 'cn'
                         },
                         {
@@ -439,39 +430,37 @@ IPA.aci.delegation_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'aciname',
-                {
-                    $type: 'checkboxes',
-                    name: 'permissions',
-                    options: IPA.create_options(['read', 'write'])
-                },
-                {
-                    $type: 'entity_select',
-                    name: 'group',
-                    other_entity: that.group_entity,
-                    other_field: 'cn'
-                },
-                {
-                    $type: 'entity_select',
-                    name: 'memberof',
-                    other_entity: that.group_entity,
-                    other_field: 'cn'
-                },
-                {
-                    $type: 'attributes',
-                    name: 'attrs',
-                    object_type: 'user'
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    standard_association_facets: false,
+    adder_dialog: {
+        fields: [
+            'aciname',
+            {
+                $type: 'checkboxes',
+                name: 'permissions',
+                options: IPA.create_options(['read', 'write'])
+            },
+            {
+                $type: 'entity_select',
+                name: 'group',
+                other_entity: 'group',
+                other_field: 'cn'
+            },
+            {
+                $type: 'entity_select',
+                name: 'memberof',
+                other_entity: 'group',
+                other_field: 'cn'
+            },
+            {
+                $type: 'attributes',
+                name: 'attrs',
+                object_type: 'user'
+            }
+        ]
+    }
+};};
 
 
 IPA.attributes_widget = function(spec) {
@@ -903,16 +892,22 @@ IPA.permission_target_policy = function (spec) {
     return that;
 };
 
+exp.permission_entity_spec = make_permission_spec();
+exp.privilege_entity_spec = make_privilege_spec();
+exp.role_entity_spec = make_role_spec();
+exp.selfservice_entity_spec = make_selfservice_spec();
+exp.delegation_entity_spec = make_delegation_spec();
 
-IPA.register('permission', IPA.aci.permission_entity);
-IPA.register('privilege', IPA.aci.privilege_entity);
-IPA.register('role', IPA.aci.role_entity);
-IPA.register('selfservice', IPA.aci.selfservice_entity);
-IPA.register('delegation', IPA.aci.delegation_entity);
-
-IPA.aci.register = function() {
+exp.register = function() {
+    var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
+
+    e.register({ type: 'permission', spec: exp.permission_entity_spec });
+    e.register({ type: 'privilege', spec: exp.privilege_entity_spec });
+    e.register({ type: 'role', spec: exp.role_entity_spec });
+    e.register({ type: 'selfservice', spec: exp.selfservice_entity_spec });
+    e.register({ type: 'delegation', spec: exp.delegation_entity_spec });
 
     w.register('attributes', IPA.attributes_widget);
     f.register('attributes', IPA.checkboxes_field);
@@ -921,7 +916,7 @@ IPA.aci.register = function() {
     w.register('permission_target', IPA.permission_target_widget);
 };
 
-phases.on('registration', IPA.aci.register);
+phases.on('registration', exp.register);
 
-return IPA.aci;
+return exp;
 });

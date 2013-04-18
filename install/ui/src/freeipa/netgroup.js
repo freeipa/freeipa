@@ -18,51 +18,56 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, phases, reg) {
 
-IPA.netgroup = {
+var exp = IPA.netgroup = {
     remove_method_priority: IPA.config.default_priority - 1,
     enable_priority: IPA.config.default_priority + 1
 };
 
-IPA.netgroup.entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.facet_groups(['settings', 'member', 'memberof']).
-        search_facet({
+var make_spec = function() {
+return {
+    name: 'netgroup',
+    facet_groups: ['settings', 'member', 'memberof'],
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.netgroup.details_facet,
-            entity: that,
             command_mode: 'info'
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'cn',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            'cn',
+            {
+                $type: 'textarea',
+                name: 'description'
+            }
+        ]
+    }
+};};
 
 IPA.netgroup.details_facet = function(spec) {
 
@@ -302,7 +307,13 @@ IPA.netgroup.details_facet = function(spec) {
     return that;
 };
 
-IPA.register('netgroup', IPA.netgroup.entity);
+exp.entity_spec = make_spec();
+exp.register = function() {
+    var e = reg.entity;
+
+    e.register({type: 'netgroup', spec: exp.entity_spec});
+};
+phases.on('registration', exp.register);
 
 return {};
 });

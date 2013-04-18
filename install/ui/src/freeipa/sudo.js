@@ -18,22 +18,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './details', './search', './association',
-       './entity'], function(IPA, $, text) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './text',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, phases, reg, text) {
 
-IPA.sudo = {
+var exp = IPA.sudo = {
     //priority of commands in details facet
     remove_method_priority: IPA.config.default_priority - 1
 };
 
-IPA.sudo.rule_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_rule_spec = function() {
+return {
+    name: 'sudorule',
+    facets: [
+        {
+            $type: 'search',
             row_enabled_attribute: 'ipaenabledflag',
             columns: [
                 'cn',
@@ -60,10 +67,10 @@ IPA.sudo.rule_entity = function(spec) {
                     icon: 'enabled-icon'
                 }
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.sudorule_details_facet,
-            entity: that,
             command_mode: 'info',
             actions: [
                 'select',
@@ -84,29 +91,27 @@ IPA.sudo.rule_entity = function(spec) {
                     IPA.disabled_summary_cond
                 ]
             }
-        }).
-        adder_dialog({
-            fields: [ 'cn' ]
-        });
-    };
+        }
+    ],
+    adder_dialog: {
+        fields: [ 'cn' ]
+    }
+};};
 
-    return that;
-};
 
-IPA.sudo.command_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_cmd_spec = function() {
+return {
+    name: 'sudocmd',
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'sudocmd',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'general',
@@ -120,8 +125,9 @@ IPA.sudo.command_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_sudocmdgroup',
             associator: IPA.serial_associator,
             columns:[
@@ -139,36 +145,34 @@ IPA.sudo.command_entity = function(spec) {
                     width: '100px'
                 }
             ]
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'sudocmd',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                }
-            ]
-        });
-    };
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            'sudocmd',
+            {
+                $type: 'textarea',
+                name: 'description'
+            }
+        ]
+    }
+};};
 
-    return that;
-};
 
-IPA.sudo.command_group_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_cmd_group_spec = function() {
+return {
+    name: 'sudocmdgroup',
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'general',
@@ -182,8 +186,9 @@ IPA.sudo.command_group_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'member_sudocmd',
             columns: [
                 'sudocmd',
@@ -200,21 +205,19 @@ IPA.sudo.command_group_entity = function(spec) {
                     width: '100px'
                 }
             ]
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'cn',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            'cn',
+            {
+                $type: 'textarea',
+                name: 'description'
+            }
+        ]
+    }
+};};
 
 IPA.sudorule_details_facet = function(spec) {
 
@@ -924,9 +927,17 @@ IPA.sudo.options_section = function(spec) {
     return that;
 };
 
-IPA.register('sudorule', IPA.sudo.rule_entity);
-IPA.register('sudocmd', IPA.sudo.command_entity);
-IPA.register('sudocmdgroup', IPA.sudo.command_group_entity);
+exp.rule_spec = make_rule_spec();
+exp.cmd_spec = make_cmd_spec();
+exp.cmdgroup_spec = make_cmd_group_spec();
+exp.register = function() {
+    var e = reg.entity;
 
-return {};
+    e.register({type: 'sudorule', spec: exp.rule_spec});
+    e.register({type: 'sudocmd', spec: exp.cmd_spec});
+    e.register({type: 'sudocmdgroup', spec: exp.cmdgroup_spec});
+};
+phases.on('registration', exp.register);
+
+return exp;
 });

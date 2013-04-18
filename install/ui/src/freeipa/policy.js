@@ -18,23 +18,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, phases, reg) {
 
-IPA.pwpolicy = {};
+var exp = {};
+exp.pwpolicy = IPA.pwpolicy = {};
 
-IPA.pwpolicy.entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_pwpolicy_spec = function() {
+return {
+    name: 'pwpolicy',
+    facets: [
+        {
+            $type: 'search',
             sort_enabled: false,
             columns:['cn','cospriority']
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections:[
                 {
                     name : 'identity',
@@ -63,36 +71,33 @@ IPA.pwpolicy.entity = function(spec) {
                         },
                         'cospriority'
                     ]
-                }]}).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                {
-                    $type: 'entity_select',
-                    name: 'cn',
-                    other_entity: 'group',
-                    other_field: 'cn',
-                    required: true
-                },
-                'cospriority'
-            ],
-            height: 300
-        });
-    };
+                }]
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            {
+                $type: 'entity_select',
+                name: 'cn',
+                other_entity: 'group',
+                other_field: 'cn',
+                required: true
+            },
+            'cospriority'
+        ],
+        height: 300
+    }
+};};
 
-    return that;
-};
+exp.krbtpolicy = IPA.krbtpolicy = {};
 
-IPA.krbtpolicy = {};
-
-IPA.krbtpolicy.entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.details_facet({
+var make_krbtpolicy_spec = function() {
+return {
+    name: 'krbtpolicy',
+    facets: [
+        {
+            $type: 'details',
             title: IPA.metadata.objects.krbtpolicy.label,
             sections: [
                 {
@@ -110,14 +115,18 @@ IPA.krbtpolicy.entity = function(spec) {
                 }
             ],
             needs_update: true
-        });
-    };
+        }
+    ]
+};};
 
-    return that;
+exp.pwpolicy_spec = make_pwpolicy_spec();
+exp.krbtpolicy_spec = make_krbtpolicy_spec();
+exp.register = function() {
+    var e = reg.entity;
+    e.register({type: 'pwpolicy', spec: exp.pwpolicy_spec});
+    e.register({type: 'krbtpolicy', spec: exp.krbtpolicy_spec});
 };
+phases.on('registration', exp.register);
 
-IPA.register('pwpolicy', IPA.pwpolicy.entity);
-IPA.register('krbtpolicy', IPA.krbtpolicy.entity);
-
-return {};
+return exp;
 });

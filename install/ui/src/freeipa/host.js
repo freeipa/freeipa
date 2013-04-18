@@ -33,11 +33,10 @@ define(['./ipa',
 
 var exp = IPA.host = {};
 
-IPA.host.entity = function(spec) {
-
-    spec = spec || {};
-
-    spec.policies = spec.policies || [
+var make_spec = function() {
+return {
+    name: 'host',
+    policies: [
         IPA.search_facet_update_policy,
         IPA.details_facet_update_policy,
         {
@@ -52,14 +51,10 @@ IPA.host.entity = function(spec) {
             dest_entity: 'cert',
             dest_facet: 'search'
         }
-    ];
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+    ],
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'fqdn',
                 'description',
@@ -69,8 +64,9 @@ IPA.host.entity = function(spec) {
                     formatter: 'boolean'
                 }
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.host.details_facet,
             sections: [
                 {
@@ -181,76 +177,80 @@ IPA.host.entity = function(spec) {
                 IPA.host.enrollment_policy,
                 IPA.host.certificate_policy
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'managedby_host',
             add_method: 'add_managedby',
             remove_method: 'remove_managedby'
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_hostgroup',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_netgroup',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_role',
             associator: IPA.serial_associator
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
             remove_method: 'remove_host'
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
             remove_method: 'remove_host'
-        }).
-        standard_association_facets().
-        adder_dialog({
-            $factory: IPA.host_adder_dialog,
-            height: 300,
-            sections: [
-                {
-                    $factory: IPA.composite_widget,
-                    name: 'fqdn',
-                    fields: [
-                        {
-                            $type: 'host_fqdn',
-                            name: 'fqdn',
-                            required: true
-                        }
-                    ]
-                },
-                {
-                    name: 'other',
-                    fields: [
-                        {
-                            name: 'ip_address',
-                            validators: [ 'ip_address' ],
-                            metadata: '@mc-opt:host_add:ip_address'
-                        },
-                        {
-                            $type: 'force_host_add_checkbox',
-                            name: 'force',
-                            metadata: '@mc-opt:host_add:force'
-                        }
-                    ]
-                }
-            ]
-        }).
-        deleter_dialog({
-            $factory: IPA.host_deleter_dialog
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        $factory: IPA.host_adder_dialog,
+        height: 300,
+        sections: [
+            {
+                $factory: IPA.composite_widget,
+                name: 'fqdn',
+                fields: [
+                    {
+                        $type: 'host_fqdn',
+                        name: 'fqdn',
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: 'other',
+                fields: [
+                    {
+                        name: 'ip_address',
+                        validators: [ 'ip_address' ],
+                        metadata: '@mc-opt:host_add:ip_address'
+                    },
+                    {
+                        $type: 'force_host_add_checkbox',
+                        name: 'force',
+                        metadata: '@mc-opt:host_add:force'
+                    }
+                ]
+            }
+        ]
+    },
+    deleter_dialog: {
+        $factory: IPA.host_deleter_dialog
+    }
+};};
 
 IPA.host.details_facet = function(spec, no_init) {
 
@@ -962,13 +962,15 @@ IPA.host.certificate_policy = function(spec) {
     return that;
 };
 
-IPA.register('host', IPA.host.entity);
 
-phases.on('registration', function() {
+exp.entity_spec = make_spec();
+exp.register = function() {
+    var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
     var a = reg.action;
 
+    e.register({type: 'host', spec: exp.entity_spec});
     f.register('host_fqdn', IPA.host_fqdn_field);
     w.register('host_fqdn', IPA.host_fqdn_widget);
     f.register('dnszone_select', IPA.field);
@@ -982,8 +984,8 @@ phases.on('registration', function() {
 
     a.register('host_unprovision', exp.unprovision_action);
     a.register('set_otp', exp.set_otp_action);
-});
-
+};
+phases.on('registration', exp.register);
 
 return exp;
 });

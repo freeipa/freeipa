@@ -18,28 +18,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './details', './search', './add',
-       './facet', './entity', './field', './widget'], function(IPA, $, text) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './text',
+        './details',
+        './search',
+        './add',
+        './facet',
+        './entity',
+        './field',
+        './widget'],
+            function(IPA, $, phases, reg, text) {
 
-IPA.entitle = {};
+var exp = IPA.entitle = {};
 
 IPA.entitle.unregistered = 'unregistered';
 IPA.entitle.online = 'online';
 IPA.entitle.offline = 'offline';
 
-IPA.entitle.entity = function(spec) {
 
-    spec = spec || {};
-
-    var that = IPA.entity(spec);
-
-    that.status = IPA.entitle.unregistered;
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.facet_groups([ 'account', 'certificates' ]).
-        details_facet({
+var make_spec = function() {
+return {
+    name: 'entitle',
+    facet_groups: [ 'account', 'certificates' ],
+    facets: [
+        {
+            $type: 'details',
             $factory: IPA.entitle.details_facet,
             label: '@i18n:objects.entitle.account',
             facet_group: 'account',
@@ -82,8 +89,8 @@ IPA.entitle.entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        facet({
+        },
+        {
             $factory: IPA.entitle.certificates_facet,
             name: 'certificates',
             label: '@i18n:objects.entitle.certificates',
@@ -111,9 +118,11 @@ IPA.entitle.entity = function(spec) {
                     label: '@i18n:objects.entitle.certificate'
                 }
             ]
-        }).
-        standard_association_facets().
-        dialog({
+        }
+    ],
+    standard_association_facets: true,
+    dialogs: [
+        {
             $factory: IPA.entitle.register_online_dialog,
             name: 'online_registration',
             title: '@i18n:objects.entitle.registration',
@@ -134,8 +143,8 @@ IPA.entitle.entity = function(spec) {
                 }
 */
             ]
-        }).
-        dialog({
+        },
+        {
             $factory: IPA.entitle.register_offline_dialog,
             name: 'offline_registration',
             title: '@i18n:objects.entitle.import_certificate',
@@ -146,8 +155,8 @@ IPA.entitle.entity = function(spec) {
                     label: '@i18n:objects.entitle.certificate'
                 }
             ]
-        }).
-        dialog({
+        },
+        {
             $factory: IPA.entitle.consume_dialog,
             name: 'consume',
             title: '@i18n:objects.entitle.consume_entitlement',
@@ -158,8 +167,8 @@ IPA.entitle.entity = function(spec) {
                     metadata: '@mc-arg:entitle_consume:quantity'
                 }
             ]
-        }).
-        dialog({
+        },
+        {
             $factory: IPA.entitle.import_dialog,
             name: 'import',
             title: '@i18n:objects.entitle.import_certificate',
@@ -170,8 +179,17 @@ IPA.entitle.entity = function(spec) {
                     label: '@i18n:objects.entitle.certificate'
                 }
             ]
-        });
-    };
+        }
+    ]
+};};
+
+IPA.entitle.entity = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.entity(spec);
+
+    that.status = spec.status || IPA.entitle.unregistered;
 
     that.get_accounts = function(on_success, on_error) {
 
@@ -740,7 +758,12 @@ IPA.entitle.download_widget = function(spec) {
     return that;
 };
 
-IPA.register('entitle', IPA.entitle.entity);
+exp.entity_spec = make_spec();
+exp.register = function() {
+    var e = reg.entity;
+    e.register({type: 'entitle', spec: exp.entity_spec});
+};
+phases.on('registration', exp.register);
 
-return {};
+return exp;
 });

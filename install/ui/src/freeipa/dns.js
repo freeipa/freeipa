@@ -35,28 +35,20 @@ define([
     './entity'],
        function(IPA, $, NET, navigation, menu, phases, reg, text) {
 
-IPA.dns = {
+var exp = IPA.dns = {
     zone_permission_name: 'Manage DNS zone ${dnszone}'
 };
 
-IPA.dns.config_entity = function(spec) {
-
-    spec = spec || {};
-    spec.defines_key = false;
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-
-        if (!IPA.dns_enabled) {
-            throw {
-                expected: true
-            };
-        }
-
-        that.entity_init();
-
-        that.builder.details_facet({
+var make_config_spec = function() {
+return {
+    name: 'dnsconfig',
+    defines_key: false,
+    enable_test: function() {
+        return IPA.dns_enabled;
+    },
+    facets: [
+        {
+            $type: 'details',
             title: IPA.metadata.objects.config.label,
             sections: [
                 {
@@ -96,28 +88,20 @@ IPA.dns.config_entity = function(spec) {
                 }
             ],
             needs_update: true
-        });
-    };
-
-    return that;
-};
-
-IPA.dns.zone_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-
-        if (!IPA.dns_enabled) {
-            throw {
-                expected: true
-            };
         }
+    ]
+};};
 
-        that.entity_init();
-
-        that.builder.facet_groups([ 'dnsrecord', 'settings' ]).
-        search_facet({
+var make_zone_spec = function() {
+return {
+    name: 'dnszone',
+    enable_test: function() {
+        return IPA.dns_enabled;
+    },
+    facet_groups: [ 'dnsrecord', 'settings' ],
+    facets: [
+        {
+            $type: 'search',
             row_enabled_attribute: 'idnszoneactive',
             title: IPA.metadata.objects.dnszone.label,
             columns: [
@@ -144,8 +128,9 @@ IPA.dns.zone_entity = function(spec) {
                     icon: 'enabled-icon'
                 }
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.dnszone_details_facet,
             command_mode: 'info',
             sections: [
@@ -259,8 +244,9 @@ IPA.dns.zone_entity = function(spec) {
                     IPA.disabled_summary_cond
                 ]
             }
-        }).
-        nested_search_facet({
+        },
+        {
+            $type: 'nested_search',
             $factory: IPA.dns.record_search_facet,
             facet_group: 'dnsrecord',
             nested_entity : 'dnsrecord',
@@ -284,54 +270,53 @@ IPA.dns.zone_entity = function(spec) {
                     label: '@i18n:objects.dnsrecord.data'
                 }
             ]
-        }).
-        standard_association_facets().
-        adder_dialog({
-            $factory: IPA.dnszone_adder_dialog,
-            height: 300,
-            sections: [
-                {
-                    $factory: IPA.dnszone_name_section,
-                    name: 'name',
-                    fields: [
-                        {
-                            $type: 'dnszone_name',
-                            name: 'idnsname',
-                            required: false,
-                            radio_name: 'dnszone_name_type'
-                        },
-                        {
-                            $type: 'dnszone_name',
-                            name: 'name_from_ip',
-                            radio_name: 'dnszone_name_type',
-                            validators: ['network']
-                        }
-                    ]
-                },
-                {
-                    name: 'other',
-                    fields: [
-                        'idnssoamname',
-                        {
-                            name: 'idnssoarname',
-                            required: false
-                        },
-                        {
-                            $type: 'force_dnszone_add_checkbox',
-                            name: 'force',
-                            metadata: '@mc-opt:dnszone_add:force'
-                        }
-                    ]
-                }
-            ],
-            policies: [
-                IPA.add_dns_zone_name_policy
-            ]
-        });
-    };
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        $factory: IPA.dnszone_adder_dialog,
+        height: 300,
+        sections: [
+            {
+                $factory: IPA.dnszone_name_section,
+                name: 'name',
+                fields: [
+                    {
+                        $type: 'dnszone_name',
+                        name: 'idnsname',
+                        required: false,
+                        radio_name: 'dnszone_name_type'
+                    },
+                    {
+                        $type: 'dnszone_name',
+                        name: 'name_from_ip',
+                        radio_name: 'dnszone_name_type',
+                        validators: ['network']
+                    }
+                ]
+            },
+            {
+                name: 'other',
+                fields: [
+                    'idnssoamname',
+                    {
+                        name: 'idnssoarname',
+                        required: false
+                    },
+                    {
+                        $type: 'force_dnszone_add_checkbox',
+                        name: 'force',
+                        metadata: '@mc-opt:dnszone_add:force'
+                    }
+                ]
+            }
+        ],
+        policies: [
+            IPA.add_dns_zone_name_policy
+        ]
+    }
+};};
 
-    return that;
-};
 
 IPA.dnszone_details_facet = function(spec, no_init) {
 
@@ -1129,11 +1114,14 @@ IPA.dns.get_record_type = function(type_name) {
     return null;
 };
 
-IPA.dns.record_entity = function(spec) {
 
-    spec = spec || {};
-
-    spec.policies = spec.policies || [
+var make_record_spec = function() {
+return {
+    name: 'dnsrecord',
+    enable_test: function() {
+        return IPA.dns_enabled;
+    },
+    policies: [
         {
             $factory: IPA.facet_update_policy,
             source_facet: 'details',
@@ -1141,22 +1129,11 @@ IPA.dns.record_entity = function(spec) {
             dest_facet: 'records'
         },
         IPA.adder_facet_update_policy
-    ];
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-
-        if (!IPA.dns_enabled) {
-            throw {
-                expected: true
-            };
-        }
-
-        that.entity_init();
-
-        that.builder.containing_entity('dnszone').
-        details_facet({
+    ],
+    containing_entity: 'dnszone',
+    facets: [
+        {
+            $type: 'details',
             $factory: IPA.dns.record_details_facet,
             disable_breadcrumb: false,
             fields: [
@@ -1182,46 +1159,44 @@ IPA.dns.record_entity = function(spec) {
                    ]
                 }
             ]
-        }).
-        adder_dialog({
-            $factory: IPA.dns.record_adder_dialog,
-            fields: [
-                {
-                    name: 'idnsname',
-                    widget: 'general.idnsname'
-                },
-                {
-                    name: 'record_type',
-                    $type: 'dnsrecord_type',
-                    flags: ['no_command'],
-                    widget: 'general.record_type'
-                }
-            ],
-            widgets: [
-                {
-                    name: 'general',
-                    $type: 'details_table_section_nc',
-                    widgets: [
-                        'idnsname',
-                        {
-                            $type: 'dnsrecord_type',
-                            name: 'record_type',
-                            label: '@i18n:objects.dnsrecord.type'
-                        }
-                    ]
-                }
-            ],
-            policies: [
-                {
-                    $factory: IPA.dnsrecord_adder_dialog_type_policy,
-                    type_field: 'record_type'
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    adder_dialog: {
+        $factory: IPA.dns.record_adder_dialog,
+        fields: [
+            {
+                name: 'idnsname',
+                widget: 'general.idnsname'
+            },
+            {
+                name: 'record_type',
+                $type: 'dnsrecord_type',
+                flags: ['no_command'],
+                widget: 'general.record_type'
+            }
+        ],
+        widgets: [
+            {
+                name: 'general',
+                $type: 'details_table_section_nc',
+                widgets: [
+                    'idnsname',
+                    {
+                        $type: 'dnsrecord_type',
+                        name: 'record_type',
+                        label: '@i18n:objects.dnsrecord.type'
+                    }
+                ]
+            }
+        ],
+        policies: [
+            {
+                $factory: IPA.dnsrecord_adder_dialog_type_policy,
+                type_field: 'record_type'
+            }
+        ]
+    }
+};};
 
 IPA.dns.record_adder_dialog = function(spec) {
 
@@ -2523,21 +2498,25 @@ IPA.network_validator = function(spec) {
     return that;
 };
 
-phases.on('profile', function() {
+exp.remove_menu_item = function() {
     if (!IPA.dns_enabled) {
         menu.remove_item('identity/dns');
     }
-}, 20);
+};
 
-IPA.register('dnsconfig', IPA.dns.config_entity);
-IPA.register('dnszone', IPA.dns.zone_entity);
-IPA.register('dnsrecord', IPA.dns.record_entity);
-
-phases.on('registration', function() {
+exp.config_spec = make_config_spec();
+exp.zone_spec = make_zone_spec();
+exp.record_spec = make_record_spec();
+exp.register = function() {
+    var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
     var v = reg.validator;
     var a = reg.action;
+
+    e.register({type: 'dnsconfig', spec: exp.config_spec});
+    e.register({type: 'dnszone', spec: exp.zone_spec});
+    e.register({type: 'dnsrecord', spec: exp.record_spec});
 
     w.register('dnszone_name', IPA.dnszone_name_widget);
     w.register('force_dnszone_add_checkbox', IPA.force_dnszone_add_checkbox_widget);
@@ -2559,7 +2538,10 @@ phases.on('registration', function() {
 
     a.register('dns_add_permission', IPA.dns.add_permission_action);
     a.register('dns_remove_permission', IPA.dns.remove_permission_action);
-});
+};
 
-return {};
+phases.on('registration', exp.register);
+phases.on('profile', exp.remove_menu_item, 20);
+
+return exp;
 });

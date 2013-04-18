@@ -36,17 +36,12 @@ define([
 
 var exp = IPA.user = {};
 
-IPA.user.entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        var self_service = IPA.is_selfservice;
-        var link = self_service ? false : undefined;
-
-        that.builder.search_facet({
+var make_spec = function() {
+return {
+    name: 'user',
+    facets: [
+        {
+            $type: 'search',
             row_disabled_attribute: 'nsaccountlock',
             columns: [
                 'uid',
@@ -87,8 +82,9 @@ IPA.user.entity = function(spec) {
                     icon: 'enabled-icon'
                 }
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.user.details_facet,
             sections: [
                 {
@@ -255,77 +251,75 @@ IPA.user.entity = function(spec) {
                     IPA.disabled_summary_cond
                 ]
             }
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
+            $post_ops: [ IPA.user.association_facet_ss_post_op ],
             name: 'memberof_group',
-            associator: IPA.serial_associator,
-            link: link,
-            read_only: self_service
-        }).
-        association_facet({
+            associator: IPA.serial_associator
+        },
+        {
+            $type: 'association',
+            $post_ops: [ IPA.user.association_facet_ss_post_op ],
             name: 'memberof_netgroup',
-            associator: IPA.serial_associator,
-            link: link,
-            read_only: self_service
-        }).
-        association_facet({
+            associator: IPA.serial_associator
+        },
+        {
+            $type: 'association',
+            $post_ops: [ IPA.user.association_facet_ss_post_op ],
             name: 'memberof_role',
-            associator: IPA.serial_associator,
-            link: link,
-            read_only: self_service
-        }).
-        association_facet({
+            associator: IPA.serial_associator
+        },
+        {
+            $type: 'association',
+            $post_ops: [ IPA.user.association_facet_ss_post_op ],
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
-            remove_method: 'remove_user',
-            link: link,
-            read_only: self_service
-        }).
-        association_facet({
+            remove_method: 'remove_user'
+        },
+        {
+            $type: 'association',
+            $post_ops: [ IPA.user.association_facet_ss_post_op ],
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
-            remove_method: 'remove_user',
-            link: link,
-            read_only: self_service
-        }).
-        standard_association_facets({
-            link: link
-        }).
-        adder_dialog({
-            $factory: IPA.user_adder_dialog,
-            sections: [
-                {
-                    fields: [
-                        {
-                            name: 'uid',
-                            required: false
-                        },
-                        'givenname',
-                        'sn'
-                    ]
-                },
-                {
-                    fields: [
-                        {
-                            name: 'userpassword',
-                            label: '@i18n:password.new_password',
-                            $type: 'password'
-                        },
-                        {
-                            name: 'userpassword2',
-                            label: '@i18n:password.verify_password',
-                            $type: 'password'
-                        }
-                    ]
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+            remove_method: 'remove_user'
+        }
+    ],
+    standard_association_facets: {
+        $post_ops: [ IPA.user.association_facet_ss_post_op ]
+    },
+    adder_dialog: {
+        $factory: IPA.user_adder_dialog,
+        sections: [
+            {
+                fields: [
+                    {
+                        name: 'uid',
+                        required: false
+                    },
+                    'givenname',
+                    'sn'
+                ]
+            },
+            {
+                fields: [
+                    {
+                        name: 'userpassword',
+                        label: '@i18n:password.new_password',
+                        $type: 'password'
+                    },
+                    {
+                        name: 'userpassword2',
+                        label: '@i18n:password.verify_password',
+                        $type: 'password'
+                    }
+                ]
+            }
+        ]
+    }
+};};
 
 IPA.user.details_facet = function(spec) {
 
@@ -676,13 +670,13 @@ IPA.user.reset_password_acl_evaluator = function(spec) {
     return that;
 };
 
-IPA.register('user', IPA.user.entity);
-
+exp.entity_spec = make_spec();
 exp.register = function() {
+    var e = reg.entity;
     var a = reg.action;
+    e.register({type: 'user', spec: exp.entity_spec});
     a.register('reset_password', IPA.user.reset_password_action);
 };
-
 phases.on('registration', exp.register);
 
 return exp;

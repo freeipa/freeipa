@@ -38,6 +38,7 @@ define([
             'customization',
             'init',
             'metadata',
+            'post-metadata',
             'profile',
             'runtime',
             'shutdown'

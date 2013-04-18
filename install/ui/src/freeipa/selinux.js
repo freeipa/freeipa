@@ -18,21 +18,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, phases, reg) {
 
-IPA.selinux = {
+var exp = IPA.selinux = {
     remove_method_priority: IPA.config.default_priority - 1
 };
 
-IPA.selinux.selinuxusermap_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_spec = function() {
+return {
+    name: 'selinuxusermap',
+    facets: [
+        {
+            $type: 'search',
             row_enabled_attribute: 'ipaenabledflag',
             search_all_attributes: true,
             columns: [
@@ -61,10 +67,10 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
                     icon: 'enabled-icon'
                 }
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.selinux_details_facet,
-            entity: that,
             command_mode: 'info',
             actions: [
                 'select',
@@ -85,17 +91,15 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
                     IPA.disabled_summary_cond
                 ]
             }
-        }).
-        adder_dialog({
-            fields: [
-                'cn',
-                'ipaselinuxuser'
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    adder_dialog: {
+        fields: [
+            'cn',
+            'ipaselinuxuser'
+        ]
+    }
+};};
 
 IPA.selinux_details_facet = function(spec) {
 
@@ -311,7 +315,12 @@ IPA.selinux_details_facet = function(spec) {
     return that;
 };
 
-IPA.register('selinuxusermap', IPA.selinux.selinuxusermap_entity);
+exp.entity_spec = make_spec();
+exp.register = function() {
+    var e = reg.entity;
+    e.register({type: 'selinuxusermap', spec: exp.entity_spec});
+};
+phases.on('registration', exp.register);
 
-return {};
+return exp;
 });

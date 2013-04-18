@@ -18,20 +18,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './details',
+        './entity'],
+            function (IPA, $, phases, reg) {
 
-    IPA.realmdomains = {};
+    var exp = IPA.realmdomains = {};
 
-    IPA.realmdomains.entity = function (spec) {
-
-        spec = spec || {};
-        spec.defines_key = false;
-        var that = IPA.entity(spec);
-
-        that.init = function () {
-            that.entity_init();
-
-            that.builder.details_facet({
+    var make_spec = function() {
+    return {
+        name: 'realmdomains',
+        defines_key: false,
+        facets: [
+            {
+                $type: 'details',
                 $factory: IPA.realmdomains_details_facet,
                 title: IPA.metadata.objects.realmdomains.label,
                 sections: [
@@ -47,10 +51,9 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
                     }
                 ],
                 needs_update: true
-            });
-        };
-        return that;
-    };
+            }
+        ]
+    };};
 
     IPA.realmdomains_details_facet = function (spec) {
         spec = spec || {};
@@ -99,7 +102,12 @@ define(['./ipa', './jquery', './details', './entity'], function (IPA, $) {
         return that;
     };
 
-    IPA.register('realmdomains', IPA.realmdomains.entity);
+    exp.entity_spec = make_spec();
+    exp.register = function() {
+        var e = reg.entity;
+        e.register({type: 'realmdomains', spec: exp.entity_spec});
+    };
+    phases.on('registration', exp.register);
 
-    return {};
+    return exp;
 });

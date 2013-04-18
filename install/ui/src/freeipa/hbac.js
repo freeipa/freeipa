@@ -19,22 +19,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, phases, reg) {
 
-IPA.hbac = {
+var exp = IPA.hbac = {
     //priority of commands in details facet
     remove_method_priority: IPA.config.default_priority - 1
 };
 
-IPA.hbac.rule_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_rule_spec = function() {
+return {
+    name: 'hbacrule',
+    facets: [
+        {
+            $type: 'search',
             row_enabled_attribute: 'ipaenabledflag',
             search_all_attributes: true,
             columns: [
@@ -62,10 +68,10 @@ IPA.hbac.rule_entity = function(spec) {
                     icon: 'enabled-icon'
                 }
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             $factory: IPA.hbacrule_details_facet,
-            entity: that,
             command_mode: 'info',
             actions: [
                 'select',
@@ -86,29 +92,26 @@ IPA.hbac.rule_entity = function(spec) {
                     IPA.disabled_summary_cond
                 ]
             }
-        }).
-        adder_dialog({
-            fields: [ 'cn' ]
-        });
-    };
+        }
+    ],
+    adder_dialog: {
+        fields: [ 'cn' ]
+    }
+};};
 
-    return that;
-};
-
-IPA.hbac.service_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_service_spec = function() {
+return {
+    name: 'hbacsvc',
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'general',
@@ -122,8 +125,9 @@ IPA.hbac.service_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'memberof_hbacsvcgroup',
             associator: IPA.serial_associator,
             columns:[
@@ -141,36 +145,33 @@ IPA.hbac.service_entity = function(spec) {
                     width: '100px'
                 }
             ]
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'cn',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                }
-            ]
-        });
-    };
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            'cn',
+            {
+                $type: 'textarea',
+                name: 'description'
+            }
+        ]
+    }
+};};
 
-    return that;
-};
-
-IPA.hbac.service_group_entity = function(spec) {
-
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.search_facet({
+var make_service_group_spec = function() {
+return {
+    name: 'hbacsvcgroup',
+    facets: [
+        {
+            $type: 'search',
             columns: [
                 'cn',
                 'description'
             ]
-        }).
-        details_facet({
+        },
+        {
+            $type: 'details',
             sections: [
                 {
                     name: 'general',
@@ -184,8 +185,9 @@ IPA.hbac.service_group_entity = function(spec) {
                     ]
                 }
             ]
-        }).
-        association_facet({
+        },
+        {
+            $type: 'association',
             name: 'member_hbacsvc',
             columns:[
                 'cn',
@@ -202,21 +204,19 @@ IPA.hbac.service_group_entity = function(spec) {
                     width: '100px'
                 }
             ]
-        }).
-        standard_association_facets().
-        adder_dialog({
-            fields: [
-                'cn',
-                {
-                    $type: 'textarea',
-                    name: 'description'
-                }
-            ]
-        });
-    };
-
-    return that;
-};
+        }
+    ],
+    standard_association_facets: true,
+    adder_dialog: {
+        fields: [
+            'cn',
+            {
+                $type: 'textarea',
+                name: 'description'
+            }
+        ]
+    }
+};};
 
 IPA.hbacrule_details_facet = function(spec) {
 
@@ -480,9 +480,16 @@ IPA.hbacrule_details_facet = function(spec) {
     return that;
 };
 
-IPA.register('hbacrule', IPA.hbac.rule_entity);
-IPA.register('hbacsvc', IPA.hbac.service_entity);
-IPA.register('hbacsvcgroup', IPA.hbac.service_group_entity);
+exp.rule_spec = make_rule_spec();
+exp.svc_spec = make_service_spec();
+exp.svcgroup_spec = make_service_group_spec();
+exp.register = function() {
+    var e = reg.entity;
+    e.register({type: 'hbacrule', spec: exp.rule_spec});
+    e.register({type: 'hbacsvc', spec: exp.svc_spec});
+    e.register({type: 'hbacsvcgroup', spec: exp.svcgroup_spec});
+};
+phases.on('registration', exp.register);
 
-return {};
+return exp;
 });

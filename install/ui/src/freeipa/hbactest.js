@@ -18,24 +18,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './navigation', './text', './details', './search',
-       './association', './entity', './hbac'], function(IPA, $, navigation, text) {
+define([
+        './ipa',
+        './jquery',
+        './navigation',
+        './phases',
+        './reg',
+        './text',
+        './details',
+        './search',
+        './association',
+        './entity',
+        './hbac'],
+            function(IPA, $, navigation, phases, reg, text) {
 
-IPA.hbac.test_entity = function(spec) {
+var exp = {};
 
-    var that = IPA.entity(spec);
-
-    that.get_default_metadata = function() {
-        return IPA.metadata.commands[that.name];
-    };
-
-    that.init = function() {
-        that.entity_init();
-
-        that.label = text.get('@i18n:objects.hbactest.label');
-
-        that.builder.facet_groups([ 'default' ]).
-        facet({
+var make_spec = function() {
+return {
+    name: 'hbactest',
+    facet_groups: [ 'default' ],
+    facets: [
+        {
             $factory: IPA.hbac.test_select_facet,
             name: 'user',
             label: '@i18n:objects.hbacrule.user',
@@ -56,8 +60,8 @@ IPA.hbac.test_entity = function(spec) {
                     }
                 }
             ]
-        }).
-        facet({
+        },
+        {
             $factory: IPA.hbac.test_select_facet,
             name: 'targethost',
             label: '@i18n:objects.hbacrule.host',
@@ -73,8 +77,8 @@ IPA.hbac.test_entity = function(spec) {
                     formatter: 'boolean'
                 }
             ]
-        }).
-        facet({
+        },
+        {
             $factory: IPA.hbac.test_select_facet,
             name: 'service',
             label: '@i18n:objects.hbacrule.service',
@@ -85,8 +89,8 @@ IPA.hbac.test_entity = function(spec) {
                 'cn',
                 'description'
             ]
-        }).
-        facet({
+        },
+        {
             $factory: IPA.hbac.test_rules_facet,
             name: 'rules',
             label: '@i18n:objects.hbactest.rules',
@@ -103,8 +107,8 @@ IPA.hbac.test_entity = function(spec) {
                 },
                 'description'
             ]
-        }).
-        facet({
+        },
+        {
             $factory: IPA.hbac.test_run_facet,
             name: 'run_test',
             label: '@i18n:objects.hbactest.run_test',
@@ -126,7 +130,17 @@ IPA.hbac.test_entity = function(spec) {
                 },
                 'description'
             ]
-        });
+        }
+    ]
+};};
+
+IPA.hbac.test_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+    that.label = text.get('@i18n:objects.hbactest.label');
+
+    that.get_default_metadata = function() {
+        return IPA.metadata.commands[that.name];
     };
 
     return that;
@@ -806,7 +820,16 @@ IPA.hbac.validation_dialog = function(spec)  {
     return that;
 };
 
-IPA.register('hbactest', IPA.hbac.test_entity);
+exp.entity_spec = make_spec();
+exp.register = function() {
+    var e = reg.entity;
+    e.register({
+        type: 'hbactest',
+        factory: IPA.hbac.test_entity,
+        spec: exp.entity_spec
+    });
+};
+phases.on('registration', exp.register);
 
-return {};
+return exp;
 });

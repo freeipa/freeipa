@@ -19,21 +19,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+        './ipa',
+        './jquery',
+        './phases',
+        './reg',
+        './details',
+        './search',
+        './association',
+        './entity'],
+            function(IPA, $, phases, reg) {
 
-IPA.serverconfig = {};
+var exp = IPA.serverconfig = {};
 
-IPA.serverconfig.entity = function(spec) {
-
-    spec = spec || {};
-    spec.defines_key = false;
-    var that = IPA.entity(spec);
-
-    that.init = function() {
-        that.entity_init();
-
-        that.builder.details_facet({
+var make_spec = function() {
+return {
+    name: 'config',
+    defines_key: false,
+    facets: [
+        {
+            $type: 'details',
             title: IPA.metadata.objects.config.label,
             sections: [
                 {
@@ -110,13 +115,16 @@ IPA.serverconfig.entity = function(spec) {
                 }
             ],
             needs_update: true
-        });
-    };
+        }
+    ]
+};};
 
-    return that;
+exp.entity_spec = make_spec();
+exp.register = function() {
+    var e = reg.entity;
+    e.register({type: 'config', spec: exp.entity_spec});
 };
-
-IPA.register('config', IPA.serverconfig.entity);
+phases.on('registration', exp.register);
 
 return {};
 });
