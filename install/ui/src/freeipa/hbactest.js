@@ -87,7 +87,7 @@ IPA.hbac.test_entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.hbac.test_rules_facet,
+            $factory: IPA.hbac.test_rules_facet,
             name: 'rules',
             label: '@i18n:objects.hbactest.rules',
             managed_entity: 'hbacrule',
