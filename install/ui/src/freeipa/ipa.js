@@ -27,9 +27,9 @@ define(['./jquery',
         './_base/i18n',
         './_base/metadata_provider',
         './builder',
-        './entities',
+        './reg',
         './text'],
-       function($, JSON, i18n, metadata_provider, builder, entities, text) {
+       function($, JSON, i18n, metadata_provider, builder, reg, text) {
 
 var IPA = function() {
 
@@ -219,8 +219,8 @@ var IPA = function() {
     };
 
     that.register = function(name, factory) {
-        entities.remove(name);
-        entities.register({
+        reg.entity.remove(name);
+        reg.entity.register({
             type: name,
             factory: factory,
             spec: { name: name }
@@ -228,7 +228,7 @@ var IPA = function() {
     };
 
     that.get_entity = function(name) {
-        return entities.get(name);
+        return reg.entity.get(name);
     };
 
     that.display_activity_icon = function() {

@@ -23,15 +23,19 @@
 
 define([
         'dojo/_base/lang',
+        './_base/Singleton_registry',
         './builder',
         './ipa',
         './jquery',
+        './reg',
         './text',
         './facets',
         './facet'],
-    function(lang, builder, IPA, $, text, facet_reg) {
+    function(lang, Singleton_registry, builder, IPA, $, reg, text, facet_reg) {
 
-IPA.entity = function(spec) {
+var exp = {};
+
+exp.entity = IPA.entity = function(spec) {
 
     spec = spec || {};
 
@@ -218,7 +222,7 @@ IPA.entity = function(spec) {
     return that;
 };
 
-IPA.entity_builder = function(entity) {
+exp.entity_builder =IPA.entity_builder = function(entity) {
 
     var that = IPA.object();
 
@@ -450,7 +454,51 @@ IPA.entity_builder = function(entity) {
     return that;
 };
 
-IPA.entity_policy = function(spec) {
+exp.entity_post_ops = {
+
+    init: function(entity, spec, context) {
+
+        if (entity.init) {
+            entity.init(spec, context);
+        }
+        return entity;
+    },
+
+    containing_entity: function(entity, spec, context) {
+        if (spec.containing_entity) {
+            entity.builder.containing_entity(spec.containing_entity);
+        }
+        return entity;
+    },
+
+    standard_association_facets: function(entity, spec, context) {
+        var saf = spec.standard_association_facets;
+        if (saf) {
+            var facet_spec;
+            if (typeof saf === 'object') facet_spec = saf;
+            entity.builder.standard_association_facets(facet_spec);
+        }
+        return entity;
+    },
+
+    adder_dialog: function(entity, spec, context) {
+
+        if (spec.adder_dialog) {
+            entity.builder.adder_dialog(spec.adder_dialog);
+        }
+        return entity;
+    },
+
+    deleter_dialog: function(entity, spec, context) {
+
+        if (spec.deleter_dialog) {
+            entity.builder.deleter_dialog(spec.deleter_dialog);
+        }
+        return entity;
+    }
+};
+
+exp.entity_policy = IPA.entity_policy = function(spec) {
 
     spec = spec || {};
 
@@ -464,7 +512,7 @@ IPA.entity_policy = function(spec) {
     return that;
 };
 
-IPA.entity_policies = function(spec) {
+exp.entity_policies = IPA.entity_policies = function(spec) {
 
     var that = IPA.object();
 
@@ -500,7 +548,7 @@ IPA.entity_policies = function(spec) {
     return that;
 };
 
-IPA.facet_update_policy = function(spec) {
+exp.facet_update_policy = IPA.facet_update_policy = function(spec) {
 
     spec = spec || {};
 
@@ -537,7 +585,7 @@ IPA.facet_update_policy = function(spec) {
     return that;
 };
 
-IPA.adder_facet_update_policy = function(spec) {
+exp.adder_facet_update_policy = IPA.adder_facet_update_policy = function(spec) {
 
     spec = spec || {};
 
@@ -574,7 +622,7 @@ IPA.adder_facet_update_policy = function(spec) {
     return that;
 };
 
-IPA.search_facet_update_policy = function(spec) {
+exp.search_facet_update_policy = IPA.search_facet_update_policy = function(spec) {
 
     spec = spec || {};
     spec.source_facet = 'search';
@@ -583,7 +631,7 @@ IPA.search_facet_update_policy = function(spec) {
     return IPA.facet_update_policy(spec);
 };
 
-IPA.details_facet_update_policy = function(spec) {
+exp.details_facet_update_policy =IPA.details_facet_update_policy = function(spec) {
 
     spec = spec || {};
     spec.source_facet = 'details';
@@ -592,5 +640,17 @@ IPA.details_facet_update_policy = function(spec) {
     return IPA.facet_update_policy(spec);
 };
 
-return {};
+// Entity builder and registry
+var registry = new Singleton_registry();
+reg.set('entity', registry);
+builder.set('entity', registry.builder);
+registry.builder.factory = exp.entity;
+registry.builder.post_ops.push(
+    exp.entity_post_ops.init,
+    exp.entity_post_ops.containing_entity,
+    exp.entity_post_ops.standard_association_facets,
+    exp.entity_post_ops.adder_dialog,
+    exp.entity_post_ops.deleter_dialog);
+
+return exp;
 });
