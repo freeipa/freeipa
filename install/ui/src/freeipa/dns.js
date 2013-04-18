@@ -49,7 +49,7 @@ return {
     facets: [
         {
             $type: 'details',
-            title: IPA.metadata.objects.config.label,
+            title: '@mo:config.label',
             sections: [
                 {
                     name: 'options',
@@ -103,7 +103,7 @@ return {
         {
             $type: 'search',
             row_enabled_attribute: 'idnszoneactive',
-            title: IPA.metadata.objects.dnszone.label,
+            title: '@mo:dnszone.label',
             columns: [
                 'idnsname',
                 {
@@ -252,9 +252,9 @@ return {
             nested_entity : 'dnsrecord',
             name: 'records',
             deleter_dialog: IPA.dns.record_search_deleter_dialog,
-            title: IPA.metadata.objects.dnszone.label_singular,
-            label: IPA.metadata.objects.dnsrecord.label,
-            tab_label: IPA.metadata.objects.dnsrecord.label,
+            title: '@mo:dnszone.label_singular',
+            label: '@mo:dnsrecord.label',
+            tab_label: '@mo:dnsrecord.label',
             columns: [
                 {
                     name: 'idnsname',

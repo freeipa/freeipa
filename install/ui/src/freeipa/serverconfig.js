@@ -39,7 +39,7 @@ return {
     facets: [
         {
             $type: 'details',
-            title: IPA.metadata.objects.config.label,
+            title: '@mo:config.label',
             sections: [
                 {
                     name: 'search',

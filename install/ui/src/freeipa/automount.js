@@ -39,15 +39,15 @@ return {
     facets: [
         {
             $type: 'search',
-            title: IPA.metadata.objects.automountlocation.label,
+            title: '@mo:automountlocation.label',
             columns:['cn']
         },
         {
             $type: 'nested_search',
             facet_group: 'automountmap',
             nested_entity: 'automountmap',
-            label: IPA.metadata.objects.automountmap.label,
-            tab_label: IPA.metadata.objects.automountmap.label,
+            label: '@mo:automountmap.label',
+            tab_label: '@mo:automountmap.label',
             name: 'maps',
             columns: [ 'automountmapname' ]
         },
@@ -79,8 +79,8 @@ return {
             facet_group: 'automountkey',
             nested_entity: 'automountkey',
             search_all_entries: true,
-            label: IPA.metadata.objects.automountkey.label,
-            tab_label: IPA.metadata.objects.automountkey.label,
+            label: '@mo:automountkey.label',
+            tab_label: '@mo:automountkey.label',
             name: 'keys',
             columns: [
                 {

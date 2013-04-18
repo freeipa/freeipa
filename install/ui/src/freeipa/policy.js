@@ -98,7 +98,7 @@ return {
     facets: [
         {
             $type: 'details',
-            title: IPA.metadata.objects.krbtpolicy.label,
+            title: '@mo:krbtpolicy.label',
             sections: [
                 {
                     name: 'identity',

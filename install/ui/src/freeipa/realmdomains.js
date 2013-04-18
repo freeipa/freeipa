@@ -37,7 +37,7 @@ define([
             {
                 $type: 'details',
                 $factory: IPA.realmdomains_details_facet,
-                title: IPA.metadata.objects.realmdomains.label,
+                title: '@mo:realmdomains.label',
                 sections: [
                     {
                         name: 'identity',

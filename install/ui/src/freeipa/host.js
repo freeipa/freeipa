@@ -281,7 +281,7 @@ IPA.host_fqdn_widget = function(spec) {
         {
             $type: 'dnszone_select',
             name: 'dnszone',
-            label: IPA.metadata.objects.dnszone.label_singular,
+            label: '@mo:dnszone.label_singular',
             editable: true,
             empty_option: false,
             required: true,
