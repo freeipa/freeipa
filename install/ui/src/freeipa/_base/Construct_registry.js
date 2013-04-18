@@ -181,10 +181,6 @@ define(['dojo/_base/declare',
             if (typeof spec.type !== 'string' || spec.type === '') {
                 throw 'Argument exception: Invalid type';
             }
-            if (typeof spec.factory !== 'function' &&
-                    typeof spec.ctor !== 'function') {
-                throw 'Argument exception: No factory or ctor defined';
-            }
             if (!lang.isArrayLike(spec.pre_ops)) {
                 throw 'Argument exception: Invalid pre_ops type.';
             }
