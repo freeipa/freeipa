@@ -117,7 +117,15 @@ var nav = {};
             {entity: 'selfservice'},
             {entity: 'delegation'},
             {entity: 'idrange'},
-            {entity: 'trust'},
+            {
+                name: 'trusts',
+                label: '@i18n:tabs.trust',
+                children:[
+                    {entity: 'trust'},
+                    {entity: 'trustconfig'}
+                ]
+            },
+
             {entity: 'config'}
         ]}
     ]

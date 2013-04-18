@@ -18,8 +18,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './details', './search', './association',
-       './entity'], function(IPA, $) {
+define([
+    './ipa',
+    './jquery',
+    './phases',
+    './reg',
+    './details',
+    './search',
+    './association',
+    './entity'],
+        function(IPA, $, phases, reg) {
 
 IPA.trust = {};
 
@@ -217,19 +225,19 @@ IPA.trust.config_entity = function(spec) {
         that.entity_init();
 
         that.builder.details_facet({
-            factory: IPA.trust.config_details_facet,
+            $factory: IPA.trust.config_details_facet,
             trust_type:  'ad',
             sections: [
                 {
                     name: 'details',
-                    label: IPA.messages.objects.trustconfig.options,
+                    label: '@i18n:objects.trustconfig.options',
                     fields: [
                         'cn',
                         'ipantsecurityidentifier',
                         'ipantflatname',
                         'ipantdomainguid',
                         {
-                            type: 'trust_fallbackgroup_select',
+                            $type: 'trust_fallbackgroup_select',
                             name: 'ipantfallbackprimarygroup',
                             other_entity: 'group',
                             other_field: 'cn',
@@ -290,11 +298,19 @@ IPA.trust.fallbackgroup_select_widget = function(spec) {
     return that;
 };
 
-IPA.widget_factories['trust_fallbackgroup_select'] = IPA.trust.fallbackgroup_select_widget;
-IPA.field_factories['trust_fallbackgroup_select'] = IPA.field_factories['entity_select'];
-
 IPA.register('trust', IPA.trust.entity);
 IPA.register('trustconfig', IPA.trust.config_entity);
+
+IPA.trust.register = function() {
+
+    var w = reg.widget;
+    var f = reg.field;
+
+    w.register('trust_fallbackgroup_select', IPA.trust.fallbackgroup_select_widget);
+    f.register('trust_fallbackgroup_select', IPA.field);
+};
+
+phases.on('registration', IPA.trust.register);
 
 return {};
 });
