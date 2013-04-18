@@ -299,6 +299,11 @@ define(['dojo/_base/declare',
                 } else {
                     obj = new cs.ctor(cs.spec);
                 }
+
+                obj = this._run_post_ops(this.post_ops, obj, cs.spec, context);
+                if (cs.post_ops) {
+                    obj = this._run_post_ops(cs.post_ops, obj, cs.spec, context);
+                }
             } catch (e) {
                 if (e.expected) {
                     // expected exceptions thrown by builder just mean that
@@ -307,11 +312,6 @@ define(['dojo/_base/declare',
                 } else {
                     throw e;
                 }
-            }
-
-            obj = this._run_post_ops(this.post_ops, obj, cs.spec, context);
-            if (cs.post_ops) {
-                obj = this._run_post_ops(cs.post_ops, obj, cs.spec, context);
             }
 
             return obj;
