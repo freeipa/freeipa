@@ -64,6 +64,10 @@ CLIENT_NOT_CONFIGURED = 2
 CLIENT_ALREADY_CONFIGURED = 3
 CLIENT_UNINSTALL_ERROR = 4 # error after restoring files/state
 
+SSH_AUTHORIZEDKEYSCOMMAND = '/usr/bin/sss_ssh_authorizedkeys'
+SSH_PROXYCOMMAND = '/usr/bin/sss_ssh_knownhostsproxy'
+SSH_KNOWNHOSTSFILE = '/var/lib/sss/pubconf/known_hosts'
+
 client_nss_nickname_format = 'IPA Machine Certificate - %s'
 
 def parse_options():
@@ -1212,9 +1216,9 @@ def configure_ssh_config(fstore, options):
     if options.trust_sshfp:
         changes['VerifyHostKeyDNS'] = 'yes'
         changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
-    elif options.sssd and file_exists('/usr/bin/sss_ssh_knownhostsproxy'):
-        changes['ProxyCommand'] = '/usr/bin/sss_ssh_knownhostsproxy -p %p %h'
-        changes['GlobalKnownHostsFile'] = '/var/lib/sss/pubconf/known_hosts'
+    elif options.sssd and file_exists(SSH_PROXYCOMMAND):
+        changes['ProxyCommand'] = '%s -p %%p %%h' % SSH_PROXYCOMMAND
+        changes['GlobalKnownHostsFile'] = SSH_KNOWNHOSTSFILE
 
     change_ssh_config(ssh_config, changes, ['Host'])
     root_logger.info('Configured %s', ssh_config)
@@ -1237,25 +1241,42 @@ def configure_sshd_config(fstore, options):
         'UsePAM': 'yes',
     }
 
-    if options.sssd and file_exists('/usr/bin/sss_ssh_authorizedkeys'):
-        authorized_keys_command = '/usr/bin/sss_ssh_authorizedkeys'
-        (stdout, stderr, retcode) = ipautil.run(['sshd', '-t', '-f', '/dev/null',
-            '-o', 'AuthorizedKeysCommand=%s' % authorized_keys_command], raiseonerr=False)
-        if retcode == 0:
-            changes['AuthorizedKeysCommand'] = authorized_keys_command
-            changes['AuthorizedKeysCommandRunAs'] = None
-        else:
-            authorized_keys_command = '/usr/bin/sss_ssh_authorizedkeys %u'
-            (stdout, stderr, retcode) = ipautil.run(['sshd', '-t', '-f', '/dev/null',
-                '-o', 'PubKeyAgent=%s' % authorized_keys_command], raiseonerr=False)
+    if options.sssd and file_exists(SSH_AUTHORIZEDKEYSCOMMAND):
+        authorized_keys_changes = None
+
+        candidates = (
+            {
+                'AuthorizedKeysCommand': SSH_AUTHORIZEDKEYSCOMMAND,
+                'AuthorizedKeysCommandUser': 'nobody',
+            },
+            {
+                'AuthorizedKeysCommand': SSH_AUTHORIZEDKEYSCOMMAND,
+                'AuthorizedKeysCommandRunAs': 'nobody',
+            },
+            {
+                'PubKeyAgent': '%s %%u' % SSH_AUTHORIZEDKEYSCOMMAND,
+                'PubKeyAgentRunAs': 'nobody',
+            },
+        )
+
+        for candidate in candidates:
+            args = ['sshd', '-t', '-f', '/dev/null']
+            for item in candidate.iteritems():
+                args.append('-o')
+                args.append('%s=%s' % item)
+
+            (stdout, stderr, retcode) = ipautil.run(args, raiseonerr=False)
             if retcode == 0:
-                changes['PubKeyAgent'] = authorized_keys_command
-                changes['PubkeyAgentRunAs'] = None
-            else:
-                root_logger.warning("Installed OpenSSH server does not " +
-                    "support dynamically loading authorized user keys. " +
-                    "Public key authentication of IPA users will not be " +
-                    "available.")
+                authorized_keys_changes = candidate
+                break
+
+        if authorized_keys_changes is not None:
+            changes.update(authorized_keys_changes)
+        else:
+            root_logger.warning("Installed OpenSSH server does not "
+                "support dynamically loading authorized user keys. "
+                "Public key authentication of IPA users will not be "
+                "available.")
 
     change_ssh_config(sshd_config, changes, ['Match'])
     root_logger.info('Configured %s', sshd_config)
