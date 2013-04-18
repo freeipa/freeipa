@@ -64,6 +64,7 @@ exp.entity = IPA.entity = function(spec) {
 
     that.facets = $.ordered_map();
     that.facet_groups = $.ordered_map();
+    that.facet_group_specs = spec.facet_groups;
     that.facet_specs = spec.facets || [];
     that.facets_created = false;
 
@@ -229,6 +230,13 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
     var facet_group = null;
     var facet = null;
     var section = null;
+
+    that.default_facet_groups = [
+        'member',
+        'settings',
+        'memberof',
+        'managedby'
+    ];
 
     that.facet_group = function(spec) {
         spec.entity = entity;
@@ -442,12 +450,7 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that.dialog(spec);
     };
 
-    that.facet_groups([
-        'member',
-        'settings',
-        'memberof',
-        'managedby'
-    ]);
+    that.facet_groups(entity.facet_group_specs || that.default_facet_groups);
 
 
 
