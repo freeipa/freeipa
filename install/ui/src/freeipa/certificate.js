@@ -23,11 +23,12 @@ define([
     'dojo/_base/lang',
     './ipa',
     './jquery',
+    './menu',
     './phases',
     './reg',
     './text',
     './dialog'],
-        function(lang, IPA, $, phases, reg, text) {
+        function(lang, IPA, $, menu, phases, reg, text) {
 
 var exp = IPA.cert = {};
 
@@ -1302,7 +1303,11 @@ IPA.cert.cert_update_policy = function(spec) {
     return IPA.facet_update_policy(spec);
 };
 
-
+exp.remove_menu_item = function() {
+    if (!IPA.cert.is_enabled()) {
+        menu.remove_item('identity/cert');
+    }
+};
 
 exp.entity_spec = make_spec();
 
@@ -1329,6 +1334,7 @@ exp.register = function() {
 
 phases.on('registration', exp.register);
 phases.on('post-metadata', exp.create_cert_metadata);
+phases.on('profile', exp.remove_menu_item, 20);
 
 return exp;
 });
