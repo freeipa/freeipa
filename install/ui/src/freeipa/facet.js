@@ -2282,13 +2282,9 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
     };
 
     that.on_action_success = function() {
-
-        that.facet.refresh();
     };
 
     that.on_action_error = function() {
-
-        that.facet.refresh();
     };
 
     that.action_enabled_changed = function(enabled) {

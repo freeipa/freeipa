@@ -1108,9 +1108,11 @@ exp.object_action = IPA.object_action = function(spec) {
 
         IPA.notify_success(data.result.summary);
         facet.on_update.notify();
+        facet.refresh();
     };
 
     that.on_error = function(facet, xhr, text_status, error_thrown) {
+        facet.refresh();
     };
 
     that.get_on_success = function(facet, on_success) {
