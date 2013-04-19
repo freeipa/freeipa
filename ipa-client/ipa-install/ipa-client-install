@@ -1608,6 +1608,9 @@ def get_ca_cert(fstore, options, server, basedn):
         url = file_url()
         try:
             get_ca_cert_from_file(url)
+        except errors.FileError, e:
+            root_logger.debug(e)
+            raise
         except Exception, e:
             root_logger.debug(e)
             raise errors.NoCertificateError(entry=url)
@@ -1658,6 +1661,9 @@ def get_ca_cert(fstore, options, server, basedn):
                 except Exception, e:
                     os.unlink(ca_file)
                     raise
+            except errors.FileError, e:
+                root_logger.debug(e)
+                raise
             except (errors.NoCertificateError, errors.LDAPError), e:
                 root_logger.debug(str(e))
                 url = http_url()
@@ -2106,6 +2112,9 @@ def install(options, env, fstore, statestore):
                 os.environ['KRB5_CONFIG'] = env['KRB5_CONFIG']
                 get_ca_cert(fstore, options, cli_server[0], cli_basedn)
                 del os.environ['KRB5_CONFIG']
+            except errors.FileError, e:
+                root_logger.error(e)
+                return CLIENT_INSTALL_ERROR
             except Exception, e:
                 root_logger.error("Cannot obtain CA certificate\n%s", e)
                 return CLIENT_INSTALL_ERROR

@@ -655,7 +655,6 @@ fi
 %dir %{_usr}/share/ipa/ui/images
 %{_usr}/share/ipa/ui/images/*.png
 %{_usr}/share/ipa/ui/images/*.gif
-%dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ffconfig.js
 %config(noreplace) %{_sysconfdir}/ipa/html/ffconfig_page.js
@@ -790,6 +789,7 @@ fi
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
 %{python_sitearch}/python_default_encoding-*.egg-info
+%dir %attr(0755,root,apache) %config(noreplace) %{_sysconfdir}/ipa/
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
