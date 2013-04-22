@@ -777,6 +777,69 @@ def uninstall_selfsign(ds, http):
     ds.stop_tracking_certificates()
     http.stop_tracking_certificates()
 
+
+def fix_schema_file_syntax(ds):
+    """Fix syntax errors in schema files
+
+    https://fedorahosted.org/freeipa/ticket/3578
+    """
+    root_logger.info('[Fix DS schema file syntax]')
+
+    # This is not handled by normal schema updates, because pre-1.3.2 DS will
+    # ignore (auto-fix) these syntax errors, and 1.3.2 and above will choke on
+    # them before checking dynamic schema updates.
+
+    if sysupgrade.get_upgrade_state('ds', 'fix_schema_syntax'):
+        root_logger.info('Syntax already fixed')
+        return
+
+    serverid = dsinstance.realm_to_serverid(api.env.realm)
+
+    ds.stop(serverid)
+
+    ds_dir = dsinstance.config_dirname(serverid)
+
+    # 1. 60ipadns.ldif: Add parenthesis to idnsRecord
+
+    filename = os.path.join(ds_dir, 'schema', '60ipadns.ldif')
+    result_lines = []
+    with open(filename) as file:
+        for line in file:
+            line = line.strip('\n')
+            if (line.startswith('objectClasses:') and
+                    "NAME 'idnsRecord'" in line and
+                    line.count('(') == 2 and
+                    line.count(')') == 1):
+                root_logger.debug('Add closing parenthesis in idnsRecord')
+                line += ' )'
+            result_lines.append(line)
+
+    with open(filename, 'w') as file:
+        file.write('\n'.join(result_lines))
+
+    # 2. 65ipasudo.ldif: Remove extra dollar from ipaSudoRule
+
+    filename = os.path.join(ds_dir, 'schema', '65ipasudo.ldif')
+    result_lines = []
+    with open(filename) as file:
+        for line in file:
+            line = line.strip('\n')
+            if (line.startswith('objectClasses:') and
+                    "NAME 'ipaSudoRule'" in line):
+                root_logger.debug('Remove extra dollar sign in ipaSudoRule')
+                line = line.replace('$$', '$')
+            result_lines.append(line)
+
+    with open(filename, 'w') as file:
+        file.write('\n'.join(result_lines))
+
+    # Done
+
+    ds.start(serverid)
+
+    sysupgrade.set_upgrade_state('ds', 'fix_schema_syntax', True)
+
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -855,6 +918,8 @@ def main():
     http.configure_selinux_for_httpd()
 
     ds = dsinstance.DsInstance()
+
+    fix_schema_file_syntax(ds)
 
     uninstall_selfsign(ds, http)
 
