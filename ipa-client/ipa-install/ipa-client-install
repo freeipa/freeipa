@@ -445,7 +445,10 @@ def uninstall(options, env):
             # disable only those configurations that we enabled during install
             for conf in ('ldap', 'krb5', 'sssd', 'sssdauth', 'mkhomedir'):
                 cnf = statestore.restore_state('authconfig', conf)
-                if cnf:
+                # Do not disable sssd, as this can cause issues with its later
+                # uses. Remove it from statestore however, so that it becomes
+                # empty at the end of uninstall process.
+                if cnf and conf != 'sssd':
                     auth_config.disable(conf)
         else:
             # There was no authconfig status store
@@ -454,10 +457,9 @@ def uninstall(options, env):
             auth_config.disable("ldap").\
                         disable("krb5")
             if not(was_sssd_installed and was_sssd_configured):
-                # assume there was sssd.conf before install and there were more than one domain in it
-                # In such case restoring sssd.conf will require us to keep SSSD running
-                auth_config.disable("sssd").\
-                            disable("sssdauth")
+                # Only disable sssdauth. Disabling sssd would cause issues
+                # with its later uses.
+                auth_config.disable("sssdauth")
             auth_config.disable("mkhomedir")
 
         auth_config.add_option("update")
