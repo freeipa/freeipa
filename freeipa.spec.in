@@ -789,7 +789,7 @@ fi
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
 %{python_sitearch}/python_default_encoding-*.egg-info
-%dir %attr(0755,root,apache) %config(noreplace) %{_sysconfdir}/ipa/
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
