@@ -23,10 +23,12 @@ define([
         './jquery',
         './phases',
         './reg',
-        './details',
-        './search',
         './association',
-        './entity'],
+        './entity',
+        './details',
+        './rule',
+        './search'
+        ],
             function(IPA, $, phases, reg) {
 
 var exp = IPA.selinux = {
@@ -34,7 +36,7 @@ var exp = IPA.selinux = {
 };
 
 var make_spec = function() {
-return {
+var spec = {
     name: 'selinuxusermap',
     facets: [
         {
@@ -99,11 +101,17 @@ return {
             'ipaselinuxuser'
         ]
     }
-};};
+};
 
-IPA.selinux_details_facet = function(spec) {
+    add_selinux_details_facet_widgets(spec.facets[1]);
+    return spec;
+};
 
-    var entity_name = spec.entity.name;
+
+/**
+ * @param {Object} facet spec
+ */
+var add_selinux_details_facet_widgets = function (spec) {
 
     //
     // General
@@ -205,7 +213,7 @@ IPA.selinux_details_facet = function(spec) {
                     widgets: [
                         {
                             $type: 'rule_association_table',
-                            id: entity_name+'-memberuser_user',
+                            id: 'selinuxusermap-memberuser_user',
                             name: 'memberuser_user',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
@@ -214,7 +222,7 @@ IPA.selinux_details_facet = function(spec) {
                         },
                         {
                             $type: 'rule_association_table',
-                            id: entity_name+'-memberuser_group',
+                            id: 'selinuxusermap-memberuser_group',
                             name: 'memberuser_group',
                             add_method: 'add_user',
                             remove_method: 'remove_user',
@@ -278,7 +286,7 @@ IPA.selinux_details_facet = function(spec) {
                     widgets: [
                         {
                             $type: 'rule_association_table',
-                            id: entity_name+'-memberuser_user',
+                            id: 'selinuxusermap-memberuser_user',
                             name: 'memberhost_host',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
@@ -287,7 +295,7 @@ IPA.selinux_details_facet = function(spec) {
                         },
                         {
                             $type: 'rule_association_table',
-                            id: entity_name+'-memberuser_group',
+                            id: 'selinuxusermap-memberuser_group',
                             name: 'memberhost_hostgroup',
                             add_method: 'add_host',
                             remove_method: 'remove_host',
@@ -299,6 +307,9 @@ IPA.selinux_details_facet = function(spec) {
             ]
         }
     );
+};
+
+IPA.selinux_details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 

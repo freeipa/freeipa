@@ -23,10 +23,12 @@ define([
         './jquery',
         './phases',
         './reg',
-        './details',
-        './search',
         './association',
-        './entity'],
+        './entity',
+        './details',
+        './rule',
+        './search'
+        ],
             function(IPA, $, phases, reg) {
 
 var exp = IPA.netgroup = {
@@ -35,7 +37,7 @@ var exp = IPA.netgroup = {
 };
 
 var make_spec = function() {
-return {
+var spec = {
     name: 'netgroup',
     facet_groups: ['settings', 'member', 'memberof'],
     facets: [
@@ -67,11 +69,17 @@ return {
             }
         ]
     }
-};};
+};
 
-IPA.netgroup.details_facet = function(spec) {
+    add_netgroup_details_facet_widgets(spec.facets[1]);
+    return spec;
+};
 
-    var entity_name = spec.entity.name;
+
+/**
+ * @param {Object} facet spec
+ */
+var add_netgroup_details_facet_widgets = function (spec) {
 
     //
     // Identity
@@ -161,7 +169,7 @@ IPA.netgroup.details_facet = function(spec) {
                     widgets: [
                         {
                             $type: 'rule_association_table',
-                            id: entity_name+'-memberuser_user',
+                            id: 'netgroup-memberuser_user',
                             name: 'memberuser_user',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
@@ -177,7 +185,7 @@ IPA.netgroup.details_facet = function(spec) {
                         },
                         {
                             $type: 'rule_association_table',
-                            id: entity_name+'-memberuser_group',
+                            id: 'netgroup-memberuser_group',
                             name: 'memberuser_group',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
@@ -249,7 +257,7 @@ IPA.netgroup.details_facet = function(spec) {
                     widgets: [
                         {
                             $type: 'rule_association_table',
-                            id: entity_name+'-memberhost_host',
+                            id: 'netgroup-memberhost_host',
                             name: 'memberhost_host',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
@@ -272,7 +280,7 @@ IPA.netgroup.details_facet = function(spec) {
                         },
                         {
                             $type: 'rule_association_table',
-                            id: entity_name+'-memberhost_hostgroup',
+                            id: 'netgroup-memberhost_hostgroup',
                             name: 'memberhost_hostgroup',
                             add_method: 'add_member',
                             remove_method: 'remove_member',
@@ -291,6 +299,9 @@ IPA.netgroup.details_facet = function(spec) {
             ]
         }
     );
+};
+
+IPA.netgroup.details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 
@@ -315,5 +326,5 @@ exp.register = function() {
 };
 phases.on('registration', exp.register);
 
-return {};
+return exp;
 });
