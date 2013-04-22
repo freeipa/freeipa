@@ -365,3 +365,11 @@ replace:aci:'(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=account
 dn: cn=ipa,cn=etc,$SUFFIX
 add:aci:'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(version 3.0; acl "Add CA Certificates for renewals"; allow(add) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
 add:aci:'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(targetattr = "userCertificate")(version 3.0; acl "Modify CA Certificates for renewals"; allow(write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
+
+# Add permissions "Retrieve Certificates from the CA" and "Revoke Certificate"
+# to privilege "Host Administrators"
+dn: cn=Retrieve Certificates from the CA,cn=permissions,cn=pbac,$SUFFIX
+add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
+
+dn: cn=Revoke Certificate,cn=permissions,cn=pbac,$SUFFIX
+add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
