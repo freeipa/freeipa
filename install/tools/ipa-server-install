@@ -751,8 +751,9 @@ def main():
         print ""
         print "Excluded by options:"
         print "  * Configure the Network Time Daemon (ntpd)"
-    print ""
-    print "To accept the default shown in brackets, press the Enter key."
+    if not options.unattended:
+        print ""
+        print "To accept the default shown in brackets, press the Enter key."
     print ""
 
     if external != 2:
