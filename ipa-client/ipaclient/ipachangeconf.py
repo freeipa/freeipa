@@ -338,7 +338,16 @@ class IPAChangeConf:
                 if no['action'] == 'set':
                     opts.append(no)
                     continue
-                raise SyntaxError('Unknown action: [%s]' % o['action'])
+                if no['action'] == 'addifnotset':
+                    opts.append({'name': 'comment', 'type': 'comment',
+                                'value': self._dump_line(no['name'],
+                                                         self.dassign,
+                                                         no['value'],
+                                                         u' # modified by IPA'
+                                                         )})
+                    opts.append(o)
+                    continue
+                raise SyntaxError('Unknown action: [%s]' % no['action'])
 
             raise SyntaxError('Unknown type: [%s]' % o['type'])
 
@@ -365,7 +374,7 @@ class IPAChangeConf:
             if no['type'] == "option":
                 (num, o) = self.findOpts(opts, no['type'], no['name'], True)
                 if not o:
-                    if no['action'] == 'set':
+                    if no['action'] == 'set' or no['action'] == 'addifnotset':
                         opts.append(no)
                     continue
                 cline = num + 1
@@ -385,6 +394,7 @@ class IPAChangeConf:
         #  the options as indicated by the contents of newopts
         #Second we fill in the new opts tree with options as indicated
         #  in the newopts tree (this is becaus eentire (sub)sections may
+        #  in the newopts tree (this is becaus entire (sub)sections may
         #  exist in the newopts that do not exist in oldopts)
 
         opts = self.mergeOld(oldopts, newopts)
