@@ -19,6 +19,7 @@
  */
 
 define([
+        './_base/metadata_provider',
         './ipa',
         './jquery',
         './navigation',
@@ -30,7 +31,7 @@ define([
         './association',
         './entity',
         './hbac'],
-            function(IPA, $, navigation, phases, reg, text) {
+            function(metadata_provider, IPA, $, navigation, phases, reg, text) {
 
 var exp = {};
 
@@ -140,7 +141,7 @@ IPA.hbac.test_entity = function(spec) {
     that.label = text.get('@i18n:objects.hbactest.label');
 
     that.get_default_metadata = function() {
-        return IPA.metadata.commands[that.name];
+        return metadata_provider.get('@mc:'+that.name);
     };
 
     return that;

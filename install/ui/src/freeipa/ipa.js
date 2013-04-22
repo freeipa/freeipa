@@ -48,8 +48,6 @@ var IPA = function() {
         processData: false
     };
 
-    that.metadata = {};
-    metadata_provider.source = that.metadata;
     that.messages = {};
     that.whoami = {};
 
@@ -186,7 +184,7 @@ var IPA = function() {
                 object: 'all'
             },
             on_success: function(data, text_status, xhr) {
-                that.metadata.objects = data.result.objects;
+                metadata_provider.source.objects = data.result.objects;
             }
         });
 
@@ -197,7 +195,7 @@ var IPA = function() {
                 command: 'all'
             },
             on_success: function(data, text_status, xhr) {
-                that.metadata.commands = data.result.commands;
+                metadata_provider.source.commands = data.result.commands;
             }
         });
 

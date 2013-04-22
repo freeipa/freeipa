@@ -23,6 +23,7 @@
 
 define([
         'dojo/_base/lang',
+        './_base/metadata_provider',
         './_base/Singleton_registry',
         './builder',
         './ipa',
@@ -31,7 +32,8 @@ define([
         './text',
         './facets',
         './facet'],
-    function(lang, Singleton_registry, builder, IPA, $, reg, text, facet_reg) {
+    function(lang, metadata_provider, Singleton_registry, builder,
+             IPA, $, reg, text, facet_reg) {
 
 var exp = {};
 
@@ -88,7 +90,7 @@ exp.entity = IPA.entity = function(spec) {
     };
 
     that.get_default_metadata = function() {
-        return IPA.metadata.objects[that.name];
+        return metadata_provider.get('@mo:'+that.name);
     };
 
     that.get_containing_entity = function() {

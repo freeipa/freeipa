@@ -28,6 +28,7 @@ define([
         'dojo/on',
         'dojo/Stateful',
         'dojo/Evented',
+        './_base/metadata_provider',
         './builder',
         './facets',
         './ipa',
@@ -40,7 +41,7 @@ define([
         './dialog',
         './field',
         './widget'
-       ], function(declare, lang, construct, on, Stateful, Evented,
+       ], function(declare, lang, construct, on, Stateful, Evented, metadata_provider,
                    builder, facets, IPA, $, navigation, phases, reg, su, text) {
 
 /**
@@ -1552,9 +1553,10 @@ exp.facet_preops = {
         spec.facet_group = spec.facet_group || spec.attribute_member;
 
         spec.label = spec.label || entity.metadata.label_singular;
+
         spec.tab_label = spec.tab_label ||
-            (IPA.metadata.objects[spec.other_entity] ?
-            IPA.metadata.objects[spec.other_entity].label : spec.other_entity);
+                        metadata_provider.get('@mo:'+spec.other_entity+'.label') ||
+                        spec.other_entity;
 
         if (has_indirect_attribute_member(spec)) {
 

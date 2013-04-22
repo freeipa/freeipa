@@ -21,6 +21,7 @@
 
 define([
     'dojo/_base/lang',
+    './_base/metadata_provider',
     './ipa',
     './jquery',
     './menu',
@@ -28,7 +29,7 @@ define([
     './reg',
     './text',
     './dialog'],
-        function(lang, IPA, $, menu, phases, reg, text) {
+        function(lang, metadata_provider, IPA, $, menu, phases, reg, text) {
 
 var exp = IPA.cert = {};
 
@@ -963,7 +964,8 @@ exp.create_cert_metadata = function() {
         return null;
     };
 
-    var cmd = IPA.metadata.commands['cert_find'];
+    var metadata = metadata_provider.source;
+    var cmd = metadata.commands.cert_find;
     var entity = lang.clone(cmd);
     entity.attribute_members = {};
     entity.label = text.get('@i18n:objects.cert.certificates');
@@ -1020,7 +1022,7 @@ exp.create_cert_metadata = function() {
                 text.get('@i18n:objects.cert.certificate'));
 
 
-    IPA.metadata.objects.cert = entity;
+    metadata.objects.cert = entity;
     return entity;
 };
 

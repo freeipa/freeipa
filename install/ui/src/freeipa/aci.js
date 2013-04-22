@@ -20,6 +20,7 @@
  */
 
 define([
+    './_base/metadata_provider',
     './ipa',
     './jquery',
     './phases',
@@ -29,7 +30,7 @@ define([
     './search',
     './association',
     './entity'],
-        function(IPA, $, phases, reg, text) {
+        function(metadata_provider, IPA, $, phases, reg, text) {
 
 var exp = IPA.aci = {};
 
@@ -571,7 +572,7 @@ IPA.attributes_widget = function(spec) {
 
         if (!object_type || object_type === '') return;
 
-        var metadata = IPA.metadata.objects[object_type];
+        var metadata = metadata_provider.get('@mo:'+object_type);
         if (!metadata) return;
 
         var aciattrs = metadata.aciattrs;
@@ -702,7 +703,7 @@ IPA.permission_target_widget = function(spec) {
 
         for (var j=0; j<type_param.values.length; j++) {
             var type_name = type_param.values[j];
-            var type_label = IPA.metadata.objects[type_name].label_singular;
+            var type_label = metadata_provider.get('@mo:'+type_name+'.label_singular');
 
             that.type_select.options.push({
                 label: type_label,

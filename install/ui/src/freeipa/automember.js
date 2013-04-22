@@ -19,6 +19,7 @@
  */
 
 define([
+    './_base/metadata_provider',
     './ipa',
     './jquery',
     './navigation',
@@ -29,7 +30,7 @@ define([
     './search',
     './association',
     './entity'],
-    function(IPA, $, navigation, phases, reg, text) {
+    function(metadata_provider, IPA, $, navigation, phases, reg, text) {
 
 var exp = IPA.automember = {};
 
@@ -119,10 +120,11 @@ return {
 exp.metadata_extension_pre_op = function(spec, context) {
     //HACK: Automember takes_params is missing a cn attribute. This hack
     //copies cn from mod command. Also it is set as pkey.
-    var pkey_attr = IPA.metadata.commands.automember_mod.takes_args[0];
+    var metadata = metadata_provider.source;
+    var pkey_attr = metadata.commands.automember_mod.takes_args[0];
     pkey_attr.primary_key = true;
-    IPA.metadata.objects.automember.takes_params.push(pkey_attr);
-    IPA.metadata.objects.automember.primary_key = pkey_attr.name;
+    metadata.objects.automember.takes_params.push(pkey_attr);
+    metadata.objects.automember.primary_key = pkey_attr.name;
     return spec;
 };
 
@@ -416,9 +418,9 @@ IPA.automember.get_condition_attributes = function(type) {
     var options = [];
 
     if (type === 'group') {
-        options = IPA.metadata.objects.user.aciattrs;
+        options = metadata_provider.get('@mo:user.aciattrs');
     } else if (type === 'hostgroup') {
-        options = IPA.metadata.objects.host.aciattrs;
+        options = metadata_provider.get('@mo:host.aciattrs');
     }
 
     var list_options = IPA.create_options(options);
