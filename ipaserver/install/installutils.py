@@ -132,6 +132,8 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
                         "Please check /etc/hosts or DNS name resolution" % (host_name, ex_name[0]))
         except socket.gaierror:
             pass
+        except socket.error, e:
+            root_logger.debug('socket.gethostbyaddr() error: %d: %s' % (e.errno, e.strerror))
 
     if no_host_dns:
         print "Warning: skipping DNS resolution of host", host_name
