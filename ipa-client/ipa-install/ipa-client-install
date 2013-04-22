@@ -2292,9 +2292,9 @@ def install(options, env, fstore, statestore):
                                                     stdin=stdin,
                                                     env=env)
                 if returncode != 0:
+                    print_port_conf_info()
                     root_logger.error("Kerberos authentication failed")
                     root_logger.info("%s", stdout)
-                    print_port_conf_info()
                     return CLIENT_INSTALL_ERROR
             elif options.keytab:
                 join_args.append("-f")
@@ -2306,10 +2306,10 @@ def install(options, env, fstore, statestore):
                         raiseonerr=False)
 
                     if returncode != 0:
+                        print_port_conf_info()
                         root_logger.error("Kerberos authentication failed "
                                           "using keytab: %s", options.keytab)
                         root_logger.info("%s", stdout)
-                        print_port_conf_info()
                         return CLIENT_INSTALL_ERROR
                 else:
                     root_logger.error("Keytab file could not be found: %s"
