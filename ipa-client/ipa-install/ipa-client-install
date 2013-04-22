@@ -2125,6 +2125,10 @@ def install(options, env, fstore, statestore):
             if returncode != 0:
                 root_logger.error("Joining realm failed: %s", stderr)
                 if not options.force:
+                    if returncode == 13:
+                        root_logger.info("Use --force-join option to override "
+                                         "the host entry on the server "
+                                         "and force client enrollment.")
                     return CLIENT_INSTALL_ERROR
                 root_logger.info("Use ipa-getkeytab to obtain a host " +
                     "principal for this server.")
