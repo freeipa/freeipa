@@ -700,6 +700,7 @@ class test_host(Declarative):
                 dict(
                     description=u'Test host 2',
                     l=u'Undisclosed location 2',
+                    userclass=[u'webserver', u'mailserver'],
                     force=True,
                 ),
             ),
@@ -715,8 +716,30 @@ class test_host(Declarative):
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn2],
+                    userclass=[u'webserver', u'mailserver'],
                     has_keytab=False,
                     has_password=False,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r' % fqdn2,
+            command=('host_show', [fqdn2], {}),
+            expected=dict(
+                value=fqdn2,
+                summary=None,
+                result=dict(
+                    dn=dn2,
+                    fqdn=[fqdn2],
+                    description=[u'Test host 2'],
+                    l=[u'Undisclosed location 2'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn2, api.env.realm)],
+                    has_keytab=False,
+                    has_password=False,
+                    managedby_host=[fqdn2],
+                    userclass=[u'webserver', u'mailserver'],
                 ),
             ),
         ),

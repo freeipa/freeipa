@@ -1723,7 +1723,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'bool'>, None)
 output: Output('warning', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)
 command: host_add
-args: 1,20,3
+args: 1,21,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1743,6 +1743,7 @@ option: Flag('random', attribute=False, autofill=True, cli_name='random', defaul
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=False, required=False)
+option: Str('userclass', attribute=True, cli_name='class', multivalue=True, required=False)
 option: Str('userpassword', attribute=True, cli_name='password', multivalue=False, required=False)
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
@@ -1774,7 +1775,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
 command: host_find
-args: 1,31,4
+args: 1,32,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
@@ -1805,6 +1806,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, query=True, required=False)
+option: Str('userclass', attribute=True, autofill=False, cli_name='class', multivalue=True, query=True, required=False)
 option: Str('userpassword', attribute=True, autofill=False, cli_name='password', multivalue=False, query=True, required=False)
 option: Str('version?', exclude='webui')
 output: Output('count', <type 'int'>, None)
@@ -1812,7 +1814,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: host_mod
-args: 1,21,3
+args: 1,22,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1833,6 +1835,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Flag('updatedns?', autofill=True, default=False)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, required=False)
+option: Str('userclass', attribute=True, autofill=False, cli_name='class', multivalue=True, required=False)
 option: Str('userpassword', attribute=True, autofill=False, cli_name='password', multivalue=False, required=False)
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
