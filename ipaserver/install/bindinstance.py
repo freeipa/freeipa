@@ -486,11 +486,15 @@ class BindInstance(service.Service):
         else:
             self.zonemgr = normalize_zonemgr(zonemgr)
 
+        self.first_instance = not dns_container_exists(
+            self.fqdn, self.suffix, realm=self.realm, ldapi=True,
+            dm_password=self.dm_password)
+
         self.__setup_sub_dict()
 
     @property
     def host_domain(self):
-        return '.'.join(self.fqdn.split(".")[1:])
+        return self.fqdn.split(".", 1)[1]
 
     @property
     def host_in_rr(self):
@@ -523,16 +527,19 @@ class BindInstance(service.Service):
         if installutils.record_in_hosts(self.ip_address, self.fqdn) is None:
             installutils.add_record_to_hosts(self.ip_address, self.fqdn)
 
-        if not dns_container_exists(self.fqdn, self.suffix, realm=self.realm,
-                                    ldapi=True, dm_password=self.dm_password):
+        if self.first_instance:
             self.step("adding DNS container", self.__setup_dns_container)
+
         if dns_zone_exists(self.domain):
             self.step("adding NS record to the zone", self.__add_self_ns)
         else:
             self.step("setting up our zone", self.__setup_zone)
         if self.reverse_zone is not None:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
+
         self.step("setting up our own record", self.__add_self)
+        if self.first_instance:
+            self.step("setting up records for other masters", self.__add_others)
         self.step("setting up CA record", self.__add_ipa_ca_record)
 
         self.step("setting up kerberos principal", self.__setup_principal)
@@ -612,13 +619,6 @@ class BindInstance(service.Service):
     def __setup_zone(self):
         nameserver_ip_address = self.ip_address
         if not self.host_in_default_domain():
-            # add DNS domain for host first
-            root_logger.debug("Host domain (%s) is different from DNS domain (%s)!" \
-                    % (self.host_domain, self.domain))
-            root_logger.debug("Add DNS zone for host first.")
-
-            add_zone(self.host_domain, self.zonemgr, dns_backup=self.dns_backup,
-                    ns_hostname=api.env.host, ns_ip_address=self.ip_address, force=True)
             # Nameserver is in self.host_domain, no forward record added to self.domain
             nameserver_ip_address = None
         # Always use force=True as named is not set up yet
@@ -626,8 +626,83 @@ class BindInstance(service.Service):
                 ns_hostname=api.env.host, ns_ip_address=nameserver_ip_address,
                 force=True)
 
+        add_rr(self.domain, "_kerberos", "TXT", self.realm)
+
     def __add_self_ns(self):
         add_ns_rr(self.domain, api.env.host, self.dns_backup, force=True)
+
+    def __setup_reverse_zone(self):
+        # Always use force=True as named is not set up yet
+        add_zone(self.reverse_zone, self.zonemgr, ns_hostname=api.env.host,
+                dns_backup=self.dns_backup, force=True)
+
+    def __add_master_records(self, fqdn, addrs):
+        host, zone = fqdn.split(".", 1)
+
+        if normalize_zone(zone) == normalize_zone(self.domain):
+            host_in_rr = host
+        else:
+            host_in_rr = normalize_zone(fqdn)
+
+        srv_records = (
+            ("_ldap._tcp", "0 100 389 %s" % host_in_rr),
+            ("_kerberos._tcp", "0 100 88 %s" % host_in_rr),
+            ("_kerberos._udp", "0 100 88 %s" % host_in_rr),
+            ("_kerberos-master._tcp", "0 100 88 %s" % host_in_rr),
+            ("_kerberos-master._udp", "0 100 88 %s" % host_in_rr),
+            ("_kpasswd._tcp", "0 100 464 %s" % host_in_rr),
+            ("_kpasswd._udp", "0 100 464 %s" % host_in_rr),
+        )
+        if self.ntp:
+            srv_records += (
+                ("_ntp._udp", "0 100 123 %s" % host_in_rr),
+            )
+
+        for (rname, rdata) in srv_records:
+            add_rr(self.domain, rname, "SRV", rdata, self.dns_backup)
+
+        if not dns_zone_exists(zone):
+            # add DNS domain for host first
+            root_logger.debug(
+                "Host domain (%s) is different from DNS domain (%s)!" % (
+                    zone, self.domain))
+            root_logger.debug("Add DNS zone for host first.")
+
+            if normalize_zone(zone) == normalize_zone(self.host_domain):
+                ns_ip_address = self.ip_address
+            else:
+                ns_ip_address = None
+
+            add_zone(zone, self.zonemgr, dns_backup=self.dns_backup,
+                     ns_hostname=self.fqdn, ns_ip_address=ns_ip_address,
+                     force=True)
+
+        # Add forward and reverse records to self
+        for addr in addrs:
+            add_fwd_rr(zone, host, addr)
+
+            reverse_zone = find_reverse_zone(addr)
+            if reverse_zone:
+                add_ptr_rr(reverse_zone, addr, normalize_zone(fqdn))
+
+    def __add_self(self):
+        self.__add_master_records(self.fqdn, [self.ip_address])
+
+    def __add_others(self):
+        entries = self.admin_conn.get_entries(
+            DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+               self.suffix),
+            self.admin_conn.SCOPE_ONELEVEL, None, ['dn'])
+
+        for entry in entries:
+            fqdn = entry.dn[0]['cn']
+            if fqdn == self.fqdn:
+                continue
+
+            addrs = installutils.resolve_host(fqdn)
+
+            root_logger.debug("Adding DNS records for master %s" % fqdn)
+            self.__add_master_records(fqdn, addrs)
 
     def _add_ipa_ca_dns_records(self, domain_name, fqdn, addrs, ca_configured):
         if ca_configured is False:
@@ -658,37 +733,6 @@ class BindInstance(service.Service):
     def __add_ipa_ca_record(self):
         self._add_ipa_ca_dns_records(self.domain, self.fqdn, [self.ip_address],
                                      self.ca_configured)
-
-    def __add_self(self):
-        zone = self.domain
-        resource_records = (
-            ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host_in_rr),
-            ("_kerberos", "TXT", self.realm),
-            ("_kerberos._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
-            ("_kerberos._udp", "SRV", "0 100 88 %s" % self.host_in_rr),
-            ("_kerberos-master._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
-            ("_kerberos-master._udp", "SRV", "0 100 88 %s" % self.host_in_rr),
-            ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host_in_rr),
-            ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host_in_rr),
-        )
-
-        for (host, type, rdata) in resource_records:
-            if type == "SRV":
-                add_rr(zone, host, type, rdata, self.dns_backup)
-            else:
-                add_rr(zone, host, type, rdata)
-        if self.ntp:
-            add_rr(zone, "_ntp._udp", "SRV", "0 100 123 %s" % self.host_in_rr)
-
-        # Add forward and reverse records to self
-        add_fwd_rr(self.host_domain, self.host, self.ip_address)
-        if self.reverse_zone is not None and dns_zone_exists(self.reverse_zone):
-            add_ptr_rr(self.reverse_zone, self.ip_address, self.fqdn)
-
-    def __setup_reverse_zone(self):
-        # Always use force=True as named is not set up yet
-        add_zone(self.reverse_zone, self.zonemgr, ns_hostname=api.env.host,
-                dns_backup=self.dns_backup, force=True)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm
