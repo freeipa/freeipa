@@ -29,8 +29,8 @@ define([
         'dojo/Stateful',
         'dojo/Evented',
         './_base/metadata_provider',
+        './_base/Singleton_registry',
         './builder',
-        './facets',
         './ipa',
         './jquery',
         './navigation',
@@ -42,7 +42,7 @@ define([
         './field',
         './widget'
        ], function(declare, lang, construct, on, Stateful, Evented, metadata_provider,
-                   builder, facets, IPA, $, navigation, phases, reg, su, text) {
+                   Singleton_registry, builder, IPA, $, navigation, phases, reg, su, text) {
 
 /**
  * Facet represents the content of currently displayed page.
@@ -1579,9 +1579,10 @@ exp.facet_preops = {
     }
 };
 
-phases.on('registration', function() {
+exp.register_facets = function() {
 
-    facets.register({
+    var f = reg.facet;
+    f.register({
         type: 'search',
         factory: IPA.search_facet,
         pre_ops: [
@@ -1589,7 +1590,7 @@ phases.on('registration', function() {
         ]
     });
 
-    facets.register({
+    f.register({
         type: 'nested_search',
         factory: IPA.nested_search_facet,
         pre_ops: [
@@ -1597,7 +1598,7 @@ phases.on('registration', function() {
         ]
     });
 
-    facets.register({
+    f.register({
         type: 'details',
         factory: IPA.details_facet,
         pre_ops: [
@@ -1605,7 +1606,7 @@ phases.on('registration', function() {
         ]
     });
 
-    facets.register({
+    f.register({
         type: 'association',
         factory: IPA.association_facet,
         pre_ops: [
@@ -1613,14 +1614,14 @@ phases.on('registration', function() {
         ]
     });
 
-    facets.register({
+    f.register({
         type: 'attribute',
         factory: IPA.attribute_facet,
         pre_ops: [
             exp.facet_preops.attribute
         ]
     });
-});
+};
 
 exp.action = IPA.action = function(spec) {
 
@@ -2421,6 +2422,10 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
     }
 });
 
+// Facet builder and registry
+var registry = new Singleton_registry();
+reg.set('facet', registry);
+builder.set('facet', registry.builder);
 
 // Action builder and registry
 exp.action_builder = builder.get('action');
@@ -2441,6 +2446,7 @@ exp.register = function() {
 };
 
 phases.on('registration', exp.register);
+phases.on('registration', exp.register_facets);
 
 return exp;
 });

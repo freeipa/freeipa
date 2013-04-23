@@ -30,10 +30,9 @@ define([
         './jquery',
         './reg',
         './text',
-        './facets',
         './facet'],
     function(lang, metadata_provider, Singleton_registry, builder,
-             IPA, $, reg, text, facet_reg) {
+             IPA, $, reg, text) {
 
 var exp = {};
 
@@ -168,7 +167,7 @@ exp.entity = IPA.entity = function(spec) {
 
         //build all facets on the first time
         if(!that.facets_created) {
-            facets = facet_reg.builder.build(that.facet_specs, { entity: that });
+            facets = builder.build('facet', that.facet_specs, { entity: that });
             for (i=0; i<facets.length; i++) {
                 var facet = facets[i];
                 that.add_facet(facet);

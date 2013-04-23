@@ -23,11 +23,11 @@ define([
         'freeipa/ipa',
         'freeipa/jquery',
         'freeipa/facet',
-        'freeipa/facets',
         'freeipa/search',
+        'freeipa/reg',
         'freeipa/entity',
         'freeipa/details'],
-    function(IPA, $, mod_facet, facets, mod_search) {
+    function(IPA, $, mod_facet, mod_search, reg) {
             return function() {
 
 var container;
@@ -39,7 +39,7 @@ module('entity',{
 
         mod_search.register();
 
-        facets.register({
+        reg.facet.register({
             type: 'search',
             factory: IPA.search_facet,
             pre_ops: [
@@ -76,7 +76,7 @@ module('entity',{
     },
     teardown: function() {
         container.remove();
-        facets.remove('search');
+        reg.facet.remove('search');
     }
 });
 

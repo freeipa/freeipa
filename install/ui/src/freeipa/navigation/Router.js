@@ -24,11 +24,10 @@ define(['dojo/_base/declare',
         'dojo/Evented',
         'dojo/io-query',
         'dojo/router',
-        '../entities',
-        '../facets',
-        '../ipa' //TODO: remove dependancy
+        '../ipa',
+        '../reg'
        ],
-       function(declare, lang, array, Evented, ioquery, router, entities, facets, IPA) {
+       function(declare, lang, array, Evented, ioquery, router, IPA, reg) {
 
     /**
     * Class navigation
@@ -132,8 +131,7 @@ define(['dojo/_base/declare',
             args.pkeys = pkeys;
 
             // set new facet state
-            //var entity = entities.get(entity_name);
-            var entity = IPA.get_entity(entity_name); // TODO: replace with prev line
+            var entity = reg.entity.get(entity_name);
             var facet = entity.get_facet(facet_name);
             facet.reset_state(args);
 
@@ -151,16 +149,8 @@ define(['dojo/_base/declare',
             var facet_name = event.params.page;
             var args = ioquery.queryToObject(event.params.args || '');
 
-//             // Find menu item
-//             var items = this.menu.items.query({ page: facet_name });
-//
-//             // Select menu item
-//             if (items.total > 0) {
-//                 this.menu.select(items[items.total-1]);
-//             }
-
             // set new facet state
-            var facet = facets.get(facet_name);
+            var facet = reg.facet.get(facet_name);
             facet.reset_state(args);
 
             this.show_facet(facet);
@@ -173,8 +163,7 @@ define(['dojo/_base/declare',
          */
         navigate_to_entity_facet: function(entity_name, facet_name, pkeys, args) {
 
-            //var entity = entities.get(entity_name);
-            var entity = IPA.get_entity(entity_name); // TODO: replace with prev line
+            var entity = reg.entity.get(entity_name);
             var facet = entity.get_facet(facet_name);
 
             if (!facet) return false; // TODO: maybe replace with exception
@@ -197,11 +186,10 @@ define(['dojo/_base/declare',
          */
         navigate_to_facet: function(facet_name, args) {
 
-            // TODO: uncoment when `facets` are implemented
-//             var facet = facets.get(facet_name);
-//             if (!args) args = facet.get_args();
-//             var hash = this._create_facet_hash(facet, { args: args });
-//             return this.navigate_to_hash(hash, facet);
+            var facet = reg.facet.get(facet_name);
+            if (!args) args = facet.get_state();
+            var hash = this._create_facet_hash(facet, args);
+            return this.navigate_to_hash(hash, facet);
         },
 
         /**

@@ -19,16 +19,16 @@
  */
 
 define([
+    'freeipa/_base/metadata_provider',
     'freeipa/ipa',
     'freeipa/jquery',
     'freeipa/details',
     'freeipa/facet',
-    'freeipa/facets',
     'freeipa/reg',
     'freeipa/entity',
     'freeipa/field',
     'freeipa/widget'],
-        function(IPA, $, mod_details, mod_facet, facets, reg) {
+        function(md, IPA, $, mod_details, mod_facet, reg) {
     return function() {
 
 var details_container;
@@ -38,7 +38,7 @@ module('details', {
     setup: function() {
         IPA.ajax_options.async = false;
 
-        facets.register({
+        reg.facet.register({
             type: 'details',
             factory: IPA.details_facet,
             pre_ops: [
@@ -62,13 +62,13 @@ module('details', {
 
             return IPA.entity({
                 name: 'user',
-                metadata: IPA.metadata.objects.user
+                metadata: md.source.objects.user
             });
         });
     },
     teardown: function() {
         details_container.remove();
-        facets.remove('details');
+        reg.facet.remove('details');
     }
 });
 

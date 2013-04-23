@@ -19,6 +19,7 @@
  */
 
 define([
+        'freeipa/_base/metadata_provider',
         'freeipa/aci',
         'freeipa/details',
         'freeipa/facet',
@@ -28,7 +29,7 @@ define([
         'freeipa/reg',
         'freeipa/widget'
        ],
-        function(aci, mod_details, mod_facet, fields, IPA, $, reg, widgets) {
+        function(md, aci, mod_details, mod_facet, fields, IPA, $, reg, widgets) {
     return function() {
 
 var target_container;
@@ -135,7 +136,7 @@ module('aci', {
 
 test("IPA.attributes_widget.", function() {
 
-    var aciattrs = IPA.metadata.objects['user'].aciattrs;
+    var aciattrs = md.source.objects.user.aciattrs;
 
     var container = $('<span/>', {
         name: 'attrs'
