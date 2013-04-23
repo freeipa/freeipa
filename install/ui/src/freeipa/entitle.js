@@ -753,6 +753,7 @@ IPA.entitle.download_widget = function(spec) {
         } else {
             that.link.css('display', 'none');
         }
+        that.updated.notify([], that);
     };
 
     return that;

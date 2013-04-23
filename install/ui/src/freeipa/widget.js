@@ -103,6 +103,7 @@ IPA.input_widget = function(spec) {
     //each widget can contain several events
     that.value_changed = IPA.observer();
     that.undo_clicked = IPA.observer();
+    that.updated = IPA.observer();
 
 
     that.create_error_link = function(container) {
@@ -288,6 +289,8 @@ IPA.text_widget = function(spec) {
             that.display_control.css('display', 'none');
             that.input.css('display', 'inline');
         }
+
+        that.updated.notify([], that);
     };
 
     that.save = function() {
@@ -616,6 +619,8 @@ IPA.multivalued_widget = function(spec) {
             var row = that.rows[index];
             row.widget.update(values);
         }
+
+        that.updated.notify([], that);
     };
 
     return that;
@@ -654,7 +659,8 @@ IPA.option_widget_base = function(spec, that) {
     that.name = spec.name;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
-    that.value_changed = IPA.observer();
+    that.value_changed = that.value_changed || IPA.observer();
+    that.updated = that.updated || IPA.observer();
     that.default_value = spec.default_value || null;
 
     /**
@@ -979,6 +985,8 @@ IPA.option_widget_base = function(spec, that) {
                 that._child_widgets[j].update(values);
             }
         }
+
+        that.updated.notify([], that);
     };
 
     that.set_enabled = function(enabled) {
@@ -1141,6 +1149,7 @@ IPA.select_widget = function(spec) {
         var option = $('option[value="'+value+'"]', that.select);
         if (!option.length) return;
         option.prop('selected', true);
+        that.updated.notify([], that);
     };
 
     that.empty = function() {
@@ -1236,6 +1245,7 @@ IPA.textarea_widget = function (spec) {
 
         var value = values && values.length ? values[0] : '';
         that.input.val(value);
+        that.updated.notify([], that);
     };
 
     that.clear = function() {
@@ -1810,6 +1820,7 @@ IPA.table_widget = function (spec) {
             that.values.push(record[that.value_attr_name]);
             that.add_record(record);
         }
+        that.updated.notify([], that);
     };
 
     that.save = function() {
@@ -2660,6 +2671,7 @@ IPA.combobox_widget = function(spec) {
                 that.select(value);
             }
         );
+        that.updated.notify([], that);
     };
 
     that.set_value = function(value) {
@@ -2828,6 +2840,7 @@ IPA.link_widget = function(spec) {
             that.link.css('display','none');
             that.nonlink.css('display','none');
         }
+        that.updated.notify([], that);
     };
 
     that.clear = function() {
@@ -3628,6 +3641,7 @@ IPA.sshkey_widget = function(spec) {
             that.original_key = that.key.key;
         }
         that.update_link();
+        that.updated.notify([], that);
     };
 
     that.set_deleted = function(deleted) {
@@ -3908,6 +3922,7 @@ IPA.value_map_widget = function(spec) {
         }
 
         that.display_control.text(label);
+        that.updated.notify([], that);
     };
 
     that.clear = function() {

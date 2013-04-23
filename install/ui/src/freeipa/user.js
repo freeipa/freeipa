@@ -476,6 +476,7 @@ IPA.user_password_widget = function(spec) {
         } else {
             that.display_control.text(that.unset_value);
         }
+        that.updated.notify([], that);
     };
 
     that.clear = function() {
