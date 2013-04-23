@@ -224,6 +224,7 @@ class host(LDAPObject):
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
         'managedby', 'memberindirect', 'memberofindirect', 'macaddress',
+        'userclass'
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -316,6 +317,12 @@ class host(LDAPObject):
             normalizer=normalize_sshpubkey,
             csv=True,
             flags=['no_search'],
+        ),
+        Str('userclass*',
+            cli_name='class',
+            label=_('Class'),
+            doc=_('Host category (semantics placed on this attribute are for '
+                  'local interpretation)'),
         ),
     )
 
