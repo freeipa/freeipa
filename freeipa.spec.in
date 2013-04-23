@@ -465,7 +465,6 @@ if [ $1 -gt 1 ] ; then
     /bin/systemctl condrestart certmonger.service 2>&1 || :
     /usr/sbin/ipa-upgradeconfig --quiet >/dev/null || :
 fi
-/usr/sbin/ipa-webui-regen >/dev/null || :
 
 %posttrans server
 # This must be run in posttrans so that updates from previous
@@ -636,7 +635,6 @@ fi
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-compliance
-%{_sbindir}/ipa-webui-regen
 %{_libexecdir}/certmonger/dogtag-ipa-retrieve-agent-submit
 %{_sysconfdir}/cron.d/ipa-compliance
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
@@ -704,6 +702,9 @@ fi
 %dir %{_usr}/share/ipa/ui/images
 %{_usr}/share/ipa/ui/images/*.png
 %{_usr}/share/ipa/ui/images/*.gif
+%dir %{_usr}/share/ipa/wsgi
+%{_usr}/share/ipa/wsgi/plugins.py*
+%dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ffconfig.js
 %config(noreplace) %{_sysconfdir}/ipa/html/ffconfig_page.js
@@ -843,6 +844,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Mon May  6 2013 Petr Vobornik <pvoborni@redhat.com> - 3.1.99-11
+- Web UI plugins
+
 * Fri May  3 2013 Rob Crittenden <rcritten@redhat.com> - 3.1.99-10
 - Require pki-ca 10.0.2 for 501 response code on find for d9 -> d10 upgrades
 

@@ -16,6 +16,7 @@ SUBDIRS =			\
         updates			\
         po			\
         restart_scripts		\
+        wsgi			\
 	$(NULL)
 
 install-exec-local:

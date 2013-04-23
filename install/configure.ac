@@ -97,6 +97,7 @@ AC_CONFIG_FILES([
     updates/Makefile
     po/Makefile
     restart_scripts/Makefile
+    wsgi/Makefile
 ])
 
 AC_OUTPUT

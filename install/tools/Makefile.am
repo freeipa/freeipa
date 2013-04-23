@@ -24,7 +24,6 @@ sbin_SCRIPTS =			\
 	ipa-compliance		\
 	ipa-backup		\
 	ipa-restore		\
-	ipa-webui-regen		\
 	$(NULL)
 
 EXTRA_DIST =			\
