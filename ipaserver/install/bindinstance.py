@@ -704,7 +704,7 @@ class BindInstance(service.Service):
             root_logger.debug("Adding DNS records for master %s" % fqdn)
             self.__add_master_records(fqdn, addrs)
 
-    def _add_ipa_ca_dns_records(self, domain_name, fqdn, addrs, ca_configured):
+    def __add_ipa_ca_records(self, fqdn, addrs, ca_configured):
         if ca_configured is False:
             root_logger.debug("CA is not configured")
             return
@@ -725,14 +725,35 @@ class BindInstance(service.Service):
 
         try:
             for addr in addrs:
-                add_fwd_rr(domain_name, IPA_CA_RECORD, addr)
+                add_fwd_rr(self.domain, IPA_CA_RECORD, addr)
         except errors.ValidationError:
             # there is a CNAME record in ipa-ca, we can't add A/AAAA records
             pass
 
     def __add_ipa_ca_record(self):
-        self._add_ipa_ca_dns_records(self.domain, self.fqdn, [self.ip_address],
-                                     self.ca_configured)
+        self.__add_ipa_ca_records(self.fqdn, [self.ip_address],
+                                  self.ca_configured)
+
+        if self.first_instance:
+            ldap = api.Backend.ldap2
+            entries = ldap.get_entries(
+                DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                   api.env.basedn),
+                ldap.SCOPE_SUBTREE, '(&(objectClass=ipaConfigObject)(cn=CA))',
+                ['dn'])
+
+            for entry in entries:
+                fqdn = entry.dn[1]['cn']
+                if fqdn == self.fqdn:
+                    continue
+
+                host, zone = fqdn.split('.', 1)
+                if dns_zone_exists(zone):
+                    addrs = get_fwd_rr(zone, host)
+                else:
+                    addrs = installutils.resolve_host(fqdn)
+
+                self.__add_ipa_ca_records(fqdn, addrs, True)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm
@@ -812,6 +833,7 @@ class BindInstance(service.Service):
         self.ntp = ntp
         self.reverse_zone = reverse_zone
         self.ca_configured = ca_configured
+        self.first_instance = False
 
         self.__add_self()
         self.__add_ipa_ca_record()
@@ -823,7 +845,9 @@ class BindInstance(service.Service):
         else:
             addrs = installutils.resolve_host(fqdn)
 
-        self._add_ipa_ca_dns_records(domain_name, fqdn, addrs, ca_configured)
+        self.domain = domain_name
+
+        self.__add_ipa_ca_records(fqdn, addrs, ca_configured)
 
     def convert_ipa_ca_cnames(self, domain_name):
         # get ipa-ca CNAMEs
