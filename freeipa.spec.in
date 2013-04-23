@@ -136,7 +136,7 @@ Requires(post): systemd-units
 Requires: selinux-policy >= 3.11.1-86
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.44
-Requires: pki-ca >= 10.0.0-0.54.b3
+Requires: pki-ca >= 10.0.2
 Requires: dogtag-pki-server-theme
 %if 0%{?rhel}
 Requires: subscription-manager
@@ -839,6 +839,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Fri May  3 2013 Rob Crittenden <rcritten@redhat.com> - 3.1.99-10
+- Require pki-ca 10.0.2 for 501 response code on find for d9 -> d10 upgrades
+
 * Tue Apr 30 2013 Rob Crittenden <rcritten@redhat.com> - 3.1.99-9
 - Add Conflicts on nss-pam-ldapd < 0.8.4. The mapping from uniqueMember to
   member is now done automatically and having it in the config file raises

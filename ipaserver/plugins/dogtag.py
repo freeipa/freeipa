@@ -1828,6 +1828,10 @@ class ra(rabase.rabase):
         try:
             response = opener.open(req)
         except urllib2.HTTPError, e:
+            self.debug('HTTP Response code: %d' % e.getcode())
+            if e.getcode() == 501:
+                self.raise_certificate_operation_error('find',
+                    detail=_('find not supported on CAs upgraded from 9 to 10'))
             self.raise_certificate_operation_error('find',
                                                    detail=e.msg)
         except urllib2.URLError, e:
