@@ -89,7 +89,8 @@ IPA.user.entity = function(spec) {
                         'sn',
                         'cn',
                         'displayname',
-                        'initials'
+                        'initials',
+                        'gecos'
                     ]
                 },
                 {
