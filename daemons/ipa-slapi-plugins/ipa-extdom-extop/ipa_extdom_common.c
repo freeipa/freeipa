@@ -332,10 +332,13 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
     enum idmap_error_code err;
     char *sid_str;
 
-    ret = get_domain_info(ctx, req->data.name.domain_name, &domain_info);
-    if (ret != 0) {
-        return LDAP_OPERATIONS_ERROR;
+    if (req->input_type != INP_SID) {
+        ret = get_domain_info(ctx, req->data.name.domain_name, &domain_info);
+        if (ret != 0) {
+            return LDAP_OPERATIONS_ERROR;
+        }
     }
+
     if (req->input_type == INP_POSIX_UID || req->input_type == INP_POSIX_GID) {
         if (req->input_type == INP_POSIX_UID) {
             id = req->data.posix_uid.uid;
@@ -372,6 +375,13 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
             if (!WBC_ERROR_IS_OK(werr)) {
                 ret = LDAP_OPERATIONS_ERROR;
                 goto done;
+            }
+
+            if (req->input_type == INP_SID) {
+                ret = get_domain_info(ctx, domain_name, &domain_info);
+                if (ret != 0) {
+                    return LDAP_OPERATIONS_ERROR;
+                }
             }
 
             ret = create_response(req, domain_info, domain_name, name, &sid,
