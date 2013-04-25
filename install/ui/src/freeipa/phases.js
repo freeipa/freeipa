@@ -34,8 +34,8 @@ define([
     var spec = {
         phases: [
             //'resource-load', // implicit phase
-            'registration',
             'customization',
+            'registration',
             'init',
             'metadata',
             'post-metadata',
