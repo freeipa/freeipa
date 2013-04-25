@@ -49,6 +49,35 @@ from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
 from ipaserver.plugins import ldap2
 
 
+def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):
+    """Create a connection for updates"""
+    if ldapi:
+        conn = ipaldap.IPAdmin(ldapi=True, realm=realm)
+    else:
+        conn = ipaldap.IPAdmin(fqdn, ldapi=False, realm=realm)
+    try:
+        if dm_password:
+            conn.do_simple_bind(binddn=DN(('cn', 'directory manager')),
+                                bindpw=dm_password)
+        elif os.getegid() == 0:
+            try:
+                # autobind
+                conn.do_external_bind(pw_name)
+            except errors.NotFound:
+                # Fall back
+                conn.do_sasl_gssapi_bind()
+        else:
+            conn.do_sasl_gssapi_bind()
+    except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN):
+        raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
+    except ldap.INVALID_CREDENTIALS:
+        raise RuntimeError(
+            "The password provided is incorrect for LDAP server %s" % fqdn)
+    except ldap.LOCAL_ERROR, e:
+        raise RuntimeError('%s' % e.args[0].get('info', '').strip())
+    return conn
+
+
 class BadSyntax(installutils.ScriptError):
     def __init__(self, value):
         self.value = value
@@ -187,26 +216,10 @@ class LDAPUpdate:
 
         if online:
             # Try out the connection/password
-            try:
-                conn = ipaldap.IPAdmin(fqdn, ldapi=self.ldapi, realm=self.realm)
-                if self.dm_password:
-                    conn.do_simple_bind(binddn=DN(('cn', 'directory manager')), bindpw=self.dm_password)
-                elif os.getegid() == 0:
-                    try:
-                        # autobind
-                        conn.do_external_bind(self.pw_name)
-                    except errors.NotFound:
-                        # Fall back
-                        conn.do_sasl_gssapi_bind()
-                else:
-                    conn.do_sasl_gssapi_bind()
-                conn.unbind()
-            except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN):
-                raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
-            except ldap.INVALID_CREDENTIALS:
-                raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
-            except ldap.LOCAL_ERROR, e:
-                raise RuntimeError('%s' % e.args[0].get('info', '').strip())
+            # (This will raise if the server is not available)
+            self.create_connection()
+            self.conn.unbind()
+            self.conn = None
         else:
             raise RuntimeError("Offline updates are not supported.")
 
@@ -885,26 +898,9 @@ class LDAPUpdate:
 
     def create_connection(self):
         if self.online:
-            if self.ldapi:
-                self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
-            else:
-                self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'],
-                                            ldapi=False,
-                                            realm=self.realm)
-            try:
-                if self.dm_password:
-                    self.conn.do_simple_bind(binddn=DN(('cn', 'directory manager')), bindpw=self.dm_password)
-                elif os.getegid() == 0:
-                    try:
-                        # autobind
-                        self.conn.do_external_bind(self.pw_name)
-                    except errors.NotFound:
-                        # Fall back
-                        self.conn.do_sasl_gssapi_bind()
-                else:
-                    self.conn.do_sasl_gssapi_bind()
-            except ldap.LOCAL_ERROR, e:
-                raise RuntimeError('%s' % e.args[0].get('info', '').strip())
+            self.conn = connect(
+                ldapi=self.ldapi, realm=self.realm, fqdn=self.sub_dict['FQDN'],
+                dm_password=self.dm_password, pw_name=self.pw_name)
         else:
             raise RuntimeError("Offline updates are not supported.")
 
