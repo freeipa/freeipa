@@ -234,7 +234,8 @@ IPA.association_adder_dialog = function(spec) {
 
             var pkey_attr = that.other_entity.metadata.primary_key;
 
-            var selected = that.get_selected_values();
+            var selected = that.normalize_values(that.get_selected_values());
+            var exclude = that.normalize_values(that.exclude);
 
             var results = data.result;
             var same_entity = that.entity === that.other_entity;
@@ -243,7 +244,8 @@ IPA.association_adder_dialog = function(spec) {
                 var pkey = result[pkey_attr][0];
 
                 if (same_entity && pkey === that.pkey) continue;
-                if (that.exclude.indexOf(pkey) >= 0) continue;
+                pkey = that.normalize_values([pkey])[0];
+                if (exclude.indexOf(pkey) >= 0) continue;
                 if (selected.indexOf(pkey) >= 0) continue;
 
                 that.add_available_value(result);
@@ -283,6 +285,14 @@ IPA.association_adder_dialog = function(spec) {
             options: options,
             on_success: on_success
         }).execute();
+    };
+
+    that.normalize_values = function(values) {
+        var norm = [];
+        for (var i=0; i<values.length;i++) {
+            norm.push(values[i].toLowerCase());
+        }
+        return norm;
     };
 
     init();
