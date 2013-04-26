@@ -220,8 +220,8 @@ define(['dojo/_base/declare',
 
                 cs.pre_ops = cs.pre_ops || [];
                 cs.post_ops = cs.post_ops || [];
-                if (pre) cs.pre_ops.push.call(cs.pre_ops, pre);
-                if (post) cs.post_ops.push.call(cs.post_ops, post);
+                if (pre) cs.pre_ops.push.apply(cs.pre_ops, pre);
+                if (post) cs.post_ops.push.apply(cs.post_ops, post);
             }
 
             cs.spec = cs.spec || {};

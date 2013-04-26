@@ -102,8 +102,8 @@ define(['dojo/_base/declare',
             var cs = construct.clone(old_cs);
 
             cs.type = new_type;
-            if (def_cs.pre_ops) cs.pre_ops.push.call(cs.pre_ops, def_cs.pre_ops);
-            if (def_cs.post_ops) cs.post_ops.push.call(cs.post_ops, def_cs.post_ops);
+            if (def_cs.pre_ops) cs.pre_ops.push.apply(cs.pre_ops, def_cs.pre_ops);
+            if (def_cs.post_ops) cs.post_ops.push.apply(cs.post_ops, def_cs.post_ops);
             if (def_cs.factory) cs.factory = def_cs.factory;
             if (def_cs.ctor) cs.ctor = def_cs.ctor;
             if (def_cs.spec) {
