@@ -65,13 +65,12 @@ define(['dojo/_base/declare',
             var obj = this._map[type];
 
             if (!obj) {
-                if (!this.builder) {
-                    throw {
-                        error: 'Object not initialized: missing builder',
-                        ref: this
-                    };
+                if (!this.builder) return null;
+                try {
+                    obj = this._map[type] = this.builder.build(type);
+                } catch (e) {
+                    if (e.code === 'no-ctor-fac') obj = null;
                 }
-                obj = this._map[type] = this.builder.build(type);
             }
 
             return obj;

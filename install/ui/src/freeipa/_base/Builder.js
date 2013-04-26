@@ -276,6 +276,7 @@ define(['dojo/_base/declare',
                 !(cs.ctor && typeof cs.ctor === 'function')) {
                 throw {
                     error: 'Build error: missing or invalid ctor or factory',
+                    code: 'no-ctor-fac',
                     spec: cs
                 };
             }
