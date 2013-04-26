@@ -432,7 +432,8 @@ int create_response(struct extdom_req *req, struct domain_info *domain_info,
     struct extdom_res *res;
     uint32_t id;
     enum idmap_error_code err;
-    char sid_str[WBC_SID_STRING_BUFLEN + 1];
+    char *sid_str;
+    wbcErr werr;
 
     res = malloc(sizeof(struct extdom_res));
     if (res == NULL) {
@@ -450,9 +451,8 @@ int create_response(struct extdom_req *req, struct domain_info *domain_info,
                 case INP_NAME:
                     res->response_type = RESP_SID;
 
-                    len = wbcSidToStringBuf(sid, sid_str,
-                                            WBC_SID_STRING_BUFLEN);
-                    if (len + 1 > WBC_SID_STRING_BUFLEN) {
+                    werr = wbcSidToString(sid, &sid_str);
+                    if (!WBC_ERROR_IS_OK(werr)) {
                         ret = EINVAL;
                         goto done;
                     }
@@ -465,13 +465,14 @@ int create_response(struct extdom_req *req, struct domain_info *domain_info,
             }
             break;
         case REQ_FULL:
-            len = wbcSidToStringBuf(sid, sid_str, WBC_SID_STRING_BUFLEN);
-            if (len + 1 > WBC_SID_STRING_BUFLEN) {
+            len = wbcSidToString(sid, &sid_str);
+            if (!WBC_ERROR_IS_OK(werr)) {
                 ret = EINVAL;
                 goto done;
             }
 
             err = sss_idmap_sid_to_unix(domain_info->idmap_ctx, sid_str, &id);
+            wbcFreeMemory(sid_str);
             if (err != IDMAP_SUCCESS) {
                 ret = EINVAL;
                 goto done;
@@ -566,6 +567,7 @@ int pack_response(struct extdom_res *res, struct berval **ret_val)
     switch (res->response_type) {
         case RESP_SID:
             ret = ber_printf(ber,"{es}", res->response_type, res->data.sid);
+            wbcFreeMemory(res->data.sid);
             break;
         case RESP_NAME:
             ret = ber_printf(ber,"{e{ss}}", res->response_type,
