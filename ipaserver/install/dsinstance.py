@@ -49,6 +49,19 @@ CACERT="/etc/ipa/ca.crt"
 DS_USER = 'dirsrv'
 DS_GROUP = 'dirsrv'
 
+IPA_SCHEMA_FILES = ("60kerberos.ldif",
+                    "60samba.ldif",
+                    "60ipaconfig.ldif",
+                    "60basev2.ldif",
+                    "60basev3.ldif",
+                    "60ipadns.ldif",
+                    "61kerberos-ipav3.ldif",
+                    "65ipasudo.ldif",
+                    "70ipaotp.ldif")
+
+ALL_SCHEMA_FILES = IPA_SCHEMA_FILES + ("05rfc2247.ldif", )
+
+
 def find_server_root():
     if ipautil.dir_exists(SERVER_ROOT_64):
         return SERVER_ROOT_64
@@ -453,15 +466,7 @@ class DsInstance(service.Service):
 
     def __add_default_schemas(self):
         pent = pwd.getpwnam(DS_USER)
-        for schema_fname in ("60kerberos.ldif",
-                             "60samba.ldif",
-                             "60ipaconfig.ldif",
-                             "60basev2.ldif",
-                             "60basev3.ldif",
-                             "60ipadns.ldif",
-                             "61kerberos-ipav3.ldif",
-                             "65ipasudo.ldif",
-                             "70ipaotp.ldif"):
+        for schema_fname in IPA_SCHEMA_FILES:
             target_fname = schema_dirname(self.serverid) + schema_fname
             shutil.copyfile(ipautil.SHARE_DIR + schema_fname, target_fname)
             os.chmod(target_fname, 0440)    # read access for dirsrv user/group
