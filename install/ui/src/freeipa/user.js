@@ -254,25 +254,25 @@ return {
         },
         {
             $type: 'association',
-            $post_ops: [ IPA.user.association_facet_ss_post_op ],
+            $pre_ops: [ IPA.user.association_facet_ss_pre_op ],
             name: 'memberof_group',
             associator: IPA.serial_associator
         },
         {
             $type: 'association',
-            $post_ops: [ IPA.user.association_facet_ss_post_op ],
+            $pre_ops: [ IPA.user.association_facet_ss_pre_op ],
             name: 'memberof_netgroup',
             associator: IPA.serial_associator
         },
         {
             $type: 'association',
-            $post_ops: [ IPA.user.association_facet_ss_post_op ],
+            $pre_ops: [ IPA.user.association_facet_ss_pre_op ],
             name: 'memberof_role',
             associator: IPA.serial_associator
         },
         {
             $type: 'association',
-            $post_ops: [ IPA.user.association_facet_ss_post_op ],
+            $pre_ops: [ IPA.user.association_facet_ss_pre_op ],
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
@@ -280,7 +280,7 @@ return {
         },
         {
             $type: 'association',
-            $post_ops: [ IPA.user.association_facet_ss_post_op ],
+            $pre_ops: [ IPA.user.association_facet_ss_pre_op ],
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
@@ -288,7 +288,7 @@ return {
         }
     ],
     standard_association_facets: {
-        $post_ops: [ IPA.user.association_facet_ss_post_op ]
+        $pre_ops: [ IPA.user.association_facet_ss_pre_op ]
     },
     adder_dialog: {
         $factory: IPA.user_adder_dialog,
@@ -411,7 +411,7 @@ IPA.user.details_facet = function(spec) {
 /**
  * Makes user association facets read-only in self service
  */
-IPA.user.association_facet_ss_post_op = function(spec, context) {
+IPA.user.association_facet_ss_pre_op = function(spec, context) {
 
     var self_service = IPA.is_selfservice;
 
