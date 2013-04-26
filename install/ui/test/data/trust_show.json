@@ -6,7 +6,11 @@
             "attributelevelrights": {
                 "aci": "rscwo",
                 "cn": "rscwo",
+                "gidnumber": "rscwo",
                 "ipantflatname": "rscwo",
+                "ipantsecurityidentifier": "rscwo",
+                "ipantsidblacklistincoming": "rscwo",
+                "ipantsidblacklistoutgoing": "rscwo",
                 "ipantsupportedencryptiontypes": "rscwo",
                 "ipanttrustattributes": "rscwo",
                 "ipanttrustauthincoming": "rscwo",
@@ -17,7 +21,9 @@
                 "ipanttrustpartner": "rscwo",
                 "ipanttrustposixoffset": "rscwo",
                 "ipanttrusttype": "rscwo",
-                "nsaccountlock": "rscwo"
+                "nsaccountlock": "rscwo",
+                "objectclass": "rscwo",
+                "uidnumber": "rscwo"
             },
             "cn": [
                 "ad.test"
@@ -25,6 +31,58 @@
             "dn": "cn=ad.test,cn=ad,cn=trusts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
             "ipantflatname": [
                 "AD"
+            ],
+            "ipantsidblacklistincoming": [
+                "S-1-0",
+                "S-1-1",
+                "S-1-2",
+                "S-1-3",
+                "S-1-5-1",
+                "S-1-5-2",
+                "S-1-5-3",
+                "S-1-5-4",
+                "S-1-5-5",
+                "S-1-5-6",
+                "S-1-5-7",
+                "S-1-5-8",
+                "S-1-5-9",
+                "S-1-5-10",
+                "S-1-5-11",
+                "S-1-5-12",
+                "S-1-5-13",
+                "S-1-5-14",
+                "S-1-5-15",
+                "S-1-5-16",
+                "S-1-5-17",
+                "S-1-5-18",
+                "S-1-5-19",
+                "S-1-5-20"
+            ],
+            "ipantsidblacklistoutgoing": [
+                "S-1-0",
+                "S-1-1",
+                "S-1-2",
+                "S-1-3",
+                "S-1-5-1",
+                "S-1-5-2",
+                "S-1-5-3",
+                "S-1-5-4",
+                "S-1-5-5",
+                "S-1-5-6",
+                "S-1-5-7",
+                "S-1-5-8",
+                "S-1-5-9",
+                "S-1-5-10",
+                "S-1-5-11",
+                "S-1-5-12",
+                "S-1-5-13",
+                "S-1-5-14",
+                "S-1-5-15",
+                "S-1-5-16",
+                "S-1-5-17",
+                "S-1-5-18",
+                "S-1-5-19",
+                "S-1-5-20"
             ],
             "ipanttrustattributes": [
                 "136"
@@ -52,13 +110,18 @@
                 "2"
             ],
             "objectclass": [
-                "ipaNTTrustedDomain"
+                "ipaNTTrustedDomain",
+                "ipaIDobject",
+                "top"
             ],
             "trustdirection": [
                 "Two-way trust"
             ],
             "trusttype": [
                 "Active Directory domain"
+            ],
+            "uidnumber": [
+                "945800003"
             ]
         },
         "summary": null,

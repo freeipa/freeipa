@@ -206,7 +206,8 @@ IPA.trust.adder_dialog = function(spec) {
 
 var make_trustconfig_spec = function() {
 return {
-    name: 'trust',
+    name: 'trustconfig',
+    defines_key: false,
     enable_test: function() {
         return IPA.trust_enabled;
     },

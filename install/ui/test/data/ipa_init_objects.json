@@ -7324,6 +7324,56 @@
                         "primary_key": true,
                         "required": true,
                         "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Domain NetBIOS name",
+                        "flags": [
+                            "no_update",
+                            "no_create"
+                        ],
+                        "label": "Domain NetBIOS name",
+                        "name": "ipantflatname",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Domain Security Identifier",
+                        "flags": [
+                            "no_update",
+                            "no_create"
+                        ],
+                        "label": "Domain Security Identifier",
+                        "name": "ipanttrusteddomainsid",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "SID blacklist incoming",
+                        "flags": [
+                            "no_create"
+                        ],
+                        "label": "SID blacklist incoming",
+                        "multivalue": true,
+                        "name": "ipantsidblacklistincoming",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "SID blacklist outgoing",
+                        "flags": [
+                            "no_create"
+                        ],
+                        "label": "SID blacklist outgoing",
+                        "multivalue": true,
+                        "name": "ipantsidblacklistoutgoing",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
                     }
                 ],
                 "uuid_attribute": ""
