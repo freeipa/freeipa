@@ -9,7 +9,7 @@ of the DN to get the sorting correct.
 The file names should use the format #-<description>.update where # conforms
 to this:
 
-10 - 19: Schema
+10 - 19: Configuration
 20 - 29: 389-ds configuration, new indices
 30 - 39: Structual elements of the DIT
 40 - 49: Pre-loaded data

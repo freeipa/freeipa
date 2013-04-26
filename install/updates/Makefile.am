@@ -2,17 +2,9 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
-	10-60basev2.update		\
-	10-60basev3.update		\
-	10-70ipaotp.update		\
-	10-RFC2307bis.update		\
-	10-RFC4876.update		\
 	10-config.update		\
 	10-enable-betxn.update		\
 	10-selinuxusermap.update	\
-	10-sudo.update			\
-	10-ssh.update			\
-	10-bind-schema.update		\
 	10-uniqueness.update		\
 	10-schema_compat.update		\
 	19-managed-entries.update	\
