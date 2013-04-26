@@ -449,6 +449,8 @@ int create_response(struct extdom_req *req, struct domain_info *domain_info,
                     res->data.name.object_name = name;
                     break;
                 case INP_NAME:
+                case INP_POSIX_UID:
+                case INP_POSIX_GID:
                     res->response_type = RESP_SID;
 
                     werr = wbcSidToString(sid, &sid_str);
