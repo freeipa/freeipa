@@ -1768,6 +1768,12 @@ class LDAPClient(object):
                     if not force_replace:
                         modlist.append((ldap.MOD_DELETE, k, rems))
 
+        # Usually the modlist order does not matter.
+        # However, for schema updates, we want 'attributetypes' before
+        # 'objectclasses'.
+        # A simple sort will ensure this.
+        modlist.sort(key=lambda m: m[1].lower())
+
         return modlist
 
     def update_entry(self, entry, entry_attrs=None):

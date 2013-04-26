@@ -26,6 +26,7 @@ from ipapython.ipa_log_manager import *
 
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
+from ipaserver.install import schemaupdate
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
 
@@ -38,7 +39,7 @@ class IPAUpgrade(service.Service):
     listeners and updating over ldapi. This way we know the server is
     quiet.
     """
-    def __init__(self, realm_name, files=[], live_run=True):
+    def __init__(self, realm_name, files=[], live_run=True, schema_files=[]):
         """
         realm_name: kerberos realm name, used to determine DS instance dir
         files: list of update files to process. If none use UPDATEDIR
@@ -60,6 +61,7 @@ class IPAUpgrade(service.Service):
         self.badsyntax = False
         self.upgradefailed = False
         self.serverid = serverid
+        self.schema_files = schema_files
 
     def __start_nowait(self):
         # Don't wait here because we've turned off port 389. The connection
@@ -75,6 +77,8 @@ class IPAUpgrade(service.Service):
         self.step("saving configuration", self.__save_config)
         self.step("disabling listeners", self.__disable_listeners)
         self.step("starting directory server", self.__start_nowait)
+        if self.schema_files:
+            self.step("updating schema", self.__update_schema)
         self.step("upgrading server", self.__upgrade)
         self.step("stopping directory server", self.__stop_instance)
         self.step("restoring configuration", self.__restore_config)
@@ -110,12 +114,18 @@ class IPAUpgrade(service.Service):
         installutils.set_directive(self.filename, 'nsslapd-ldapientrysearchbase',
             None, quotes=False, separator=':')
 
+    def __update_schema(self):
+        self.modified = schemaupdate.update_schema(
+            self.schema_files,
+            dm_password='', ldapi=True, live_run=self.live_run) or self.modified
+
     def __upgrade(self):
         try:
             ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True, live_run=self.live_run, plugins=True)
             if len(self.files) == 0:
                 self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
-            self.modified = ld.update(self.files, ordered=True)
+            self.modified = (ld.update(self.files, ordered=True) or
+                             self.modified)
         except ldapupdate.BadSyntax, e:
             root_logger.error('Bad syntax in upgrade %s' % str(e))
             self.modified = False

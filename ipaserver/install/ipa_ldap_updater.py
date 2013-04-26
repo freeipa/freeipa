@@ -30,7 +30,7 @@ import krbV
 
 from ipalib import api
 from ipapython import ipautil, admintool
-from ipaserver.install import installutils
+from ipaserver.install import installutils, dsinstance, schemaupdate
 from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR
 from ipaserver.install.upgradeinstance import IPAUpgrade
 
@@ -60,6 +60,13 @@ class LDAPUpdater(admintool.AdminTool):
             dest="plugins", default=False,
             help="execute update plugins " +
                 "(implied when no input files are given)")
+        parser.add_option("-s", '--schema', action="store_true",
+            dest="update_schema", default=False,
+            help="update the schema "
+                "(implied when no input files are given)")
+        parser.add_option("-S", '--schema-file', action="append",
+            dest="schema_files",
+            help="custom schema ldif file to use (implies -s)")
         parser.add_option("-W", '--password', action="store_true",
             dest="ask_password",
             help="prompt for the Directory Manager password")
@@ -97,6 +104,12 @@ class LDAPUpdater(admintool.AdminTool):
         else:
             self.dirman_password = None
 
+        if options.schema_files or not self.files:
+            options.update_schema = True
+        if not options.schema_files:
+            options.schema_files = [os.path.join(ipautil.SHARE_DIR, f) for f
+                                    in dsinstance.ALL_SCHEMA_FILES]
+
     def setup_logging(self):
         super(LDAPUpdater, self).setup_logging(log_file_mode='a')
 
@@ -125,7 +138,8 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
 
         updates = None
         realm = krbV.default_context().default_realm
-        upgrade = IPAUpgrade(realm, self.files, live_run=not options.test)
+        upgrade = IPAUpgrade(realm, self.files, live_run=not options.test,
+                             schema_files=options.schema_files)
         upgrade.create_instance()
         upgradefailed = upgrade.upgradefailed
 
@@ -174,6 +188,14 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
         super(LDAPUpdater_NonUpgrade, self).run()
         options = self.options
 
+        modified = False
+
+        if options.update_schema:
+            modified = schemaupdate.update_schema(
+                options.schema_files,
+                dm_password=self.dirman_password,
+                live_run=not options.test) or modified
+
         ld = LDAPUpdate(
             dm_password=self.dirman_password,
             sub_dict={},
@@ -184,7 +206,7 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
         if not self.files:
             self.files = ld.get_all_files(UPDATES_DIR)
 
-        modified = ld.update(self.files, ordered=True)
+        modified = ld.update(self.files, ordered=True) or modified
 
         if modified and options.test:
             self.log.info('Update complete, changes to be made, test mode')
