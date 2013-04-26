@@ -76,6 +76,7 @@ define([
             on(this.router, 'facet-show', lang.hitch(this, this.on_facet_show));
             on(this.router, 'facet-change', lang.hitch(this, this.on_facet_change));
             on(this.router, 'facet-change-canceled', lang.hitch(this, this.on_facet_canceled));
+            on(this.router, 'error', lang.hitch(this, this.on_router_error));
             topic.subscribe('phase-error', lang.hitch(this, this.on_phase_error));
 
             this.app_widget.render();
@@ -126,14 +127,18 @@ define([
 
             // choose default facet if not defined by route
             if (!this.current_facet) {
-                if (IPA.is_selfservice) {
-                    this.on_profile();
-                } else {
-                    this.router.navigate_to_entity_facet('user', 'search');
-                }
+                this.navigate_to_default();
             }
 
             return this.run_time.promise;
+        },
+
+        navigate_to_default: function() {
+            if (IPA.is_selfservice) {
+                this.on_profile();
+            } else {
+                this.router.navigate_to_entity_facet('user', 'search');
+            }
         },
 
         start_logout: function() {
@@ -273,6 +278,13 @@ define([
             // select first
             if (items.total) {
                 return items[0];
+            }
+        },
+
+        on_router_error: function(error) {
+
+            if (error.type === 'route') {
+                this.navigate_to_default();
             }
         },
 

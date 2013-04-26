@@ -113,7 +113,9 @@ define(['dojo/_base/declare',
             }, this);
 
             // special pages
-            this.register_route(this.page_routes, this.page_route_handler);
+            array.forEach(this.page_routes, function(route) {
+                this.register_route(route, this.page_route_handler);
+            }, this);
         },
 
         /**
@@ -126,13 +128,27 @@ define(['dojo/_base/declare',
 
             var entity_name = event.params.entity;
             var facet_name = event.params.facet;
-            var pkeys = this._decode_pkeys(event.params.pkeys || '');
-            var args = ioquery.queryToObject(event.params.args || '');
+            var pkeys, args;
+            try {
+                pkeys = this._decode_pkeys(event.params.pkeys || '');
+                args = ioquery.queryToObject(event.params.args || '');
+            } catch (e) {
+                this._error('URI error', 'route', event.params);
+                return;
+            }
             args.pkeys = pkeys;
 
             // set new facet state
             var entity = reg.entity.get(entity_name);
+            if (!entity) {
+                this._error('Unknown entity', 'route', event.params);
+                return;
+            }
             var facet = entity.get_facet(facet_name);
+            if (!facet) {
+                this._error('Unknown facet', 'route', event.params);
+                return;
+            }
             facet.reset_state(args);
 
             this.show_facet(facet);
@@ -147,10 +163,20 @@ define(['dojo/_base/declare',
             if (this.check_clear_ignore()) return;
 
             var facet_name = event.params.page;
-            var args = ioquery.queryToObject(event.params.args || '');
+            var args;
+            try {
+                args = ioquery.queryToObject(event.params.args || '');
+            } catch (e) {
+                this._error('URI error', 'route', event.params);
+                return;
+            }
 
             // set new facet state
             var facet = reg.facet.get(facet_name);
+            if (!facet) {
+                this._error('Unknown facet', 'route', event.params);
+                return;
+            }
             facet.reset_state(args);
 
             this.show_facet(facet);
@@ -164,9 +190,16 @@ define(['dojo/_base/declare',
         navigate_to_entity_facet: function(entity_name, facet_name, pkeys, args) {
 
             var entity = reg.entity.get(entity_name);
-            var facet = entity.get_facet(facet_name);
+            if (!entity) {
+                this._error('Unknown entity', 'navigation', { entity: entity_name});
+                return false;
+            }
 
-            if (!facet) return false; // TODO: maybe replace with exception
+            var facet = entity.get_facet(facet_name);
+            if (!facet) {
+                this._error('Unknown facet', 'navigation', { facet: facet_name});
+                return false;
+            }
 
             // Use current state if none supplied
             if (!pkeys && !args) {
@@ -187,6 +220,10 @@ define(['dojo/_base/declare',
         navigate_to_facet: function(facet_name, args) {
 
             var facet = reg.facet.get(facet_name);
+            if (!facet) {
+                this._error('Unknown facet', 'navigation', { facet: facet_name});
+                return false;
+            }
             if (!args) args = facet.get_state();
             var hash = this._create_facet_hash(facet, args);
             return this.navigate_to_hash(hash, facet);
@@ -307,6 +344,15 @@ define(['dojo/_base/declare',
                 keys[i] = decodeURIComponent(keys[i]);
             }
             return keys;
+        },
+
+        _error: function(msg, type, context) {
+
+            this.emit('error', {
+                message: msg,
+                type: type,
+                context: context
+            });
         },
 
         /**
