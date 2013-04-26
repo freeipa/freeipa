@@ -1963,25 +1963,14 @@ class IPAdmin(LDAPClient):
             if key in FORCE_REPLACE_ON_UPDATE_ATTRS or is_single_value:
                 force_replace = True
 
-            # You can't remove schema online. An add will automatically
-            # replace any existing schema.
-            if old_entry.dn == DN(('cn', 'schema')):
-                if len(adds) > 0:
-                    if key.lower() == 'attributetypes':
-                        modlist.insert(0, (ldap.MOD_ADD, key, adds))
-                    else:
-                        modlist.append((ldap.MOD_ADD, key, adds))
-            else:
-                if adds:
-                    if force_replace:
-                        modlist.append((ldap.MOD_REPLACE, key, adds))
-                    else:
-                        modlist.append((ldap.MOD_ADD, key, adds))
-                if removes:
-                    if not force_replace:
-                        modlist.append((ldap.MOD_DELETE, key, removes))
-                    elif new_values == []: # delete an empty value
-                        modlist.append((ldap.MOD_DELETE, key, removes))
+            if adds:
+                if force_replace:
+                    modlist.append((ldap.MOD_REPLACE, key, adds))
+                else:
+                    modlist.append((ldap.MOD_ADD, key, adds))
+            if removes:
+                if not force_replace or not new_values:
+                    modlist.append((ldap.MOD_DELETE, key, removes))
 
         return modlist
 

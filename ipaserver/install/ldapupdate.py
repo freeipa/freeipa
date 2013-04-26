@@ -32,12 +32,10 @@ import os
 import pwd
 import fnmatch
 import csv
-import inspect
 import re
 
 import krbV
 import ldap
-from ldap.schema.models import ObjectClass, AttributeType
 
 from ipaserver.install import installutils
 from ipapython import ipautil, ipaldap
@@ -576,36 +574,6 @@ class LDAPUpdate:
                 else:
                     entry_values = [entry_values]
 
-            # Replacing objectClassess needs a special handling and
-            # normalization of OC definitions to avoid update failures for
-            # example when X-ORIGIN is the only difference
-            schema_update = False
-            schema_elem_class = None
-            schema_elem_name = None
-            if action == "replace" and entry.dn == DN(('cn', 'schema')):
-                if attr.lower() == "objectclasses":
-                    schema_elem_class = ObjectClass
-                    schema_elem_name = "ObjectClass"
-                elif attr.lower() == "attributetypes":
-                    schema_elem_class = AttributeType
-                    schema_elem_name = "AttributeType"
-
-                if schema_elem_class is not None:
-                    schema_update = True
-                    oid_index = {}
-                    # build the OID index for replacing
-                    for schema_elem in entry_values:
-                        try:
-                            schema_elem_object = schema_elem_class(str(schema_elem))
-                        except Exception, e:
-                            self.error('replace: cannot parse %s "%s": %s',
-                                            schema_elem_name, schema_elem, e)
-                            continue
-                        # In a corner case, there may be more representations of
-                        # the same objectclass/attributetype due to the previous updates
-                        # We want to replace them all
-                        oid_index.setdefault(schema_elem_object.oid, []).append(schema_elem)
-
             for update_value in update_values:
                 if action == 'remove':
                     self.debug("remove: '%s' from %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr,entry_values))
@@ -672,37 +640,6 @@ class LDAPUpdate:
                         (old, new) = update_value.split('::', 1)
                     except ValueError:
                         raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % update_value
-                    try:
-                        if schema_update:
-                            try:
-                                schema_elem_old = schema_elem_class(str(old))
-                            except Exception, e:
-                                self.error('replace: cannot parse replaced %s "%s": %s',
-                                        schema_elem_name, old, e)
-                                continue
-                            replaced_values = []
-                            for schema_elem in oid_index.get(schema_elem_old.oid, []):
-                                schema_elem_object = schema_elem_class(str(schema_elem))
-                                if str(schema_elem_old).lower() == str(schema_elem_object).lower():
-                                    # compare normalized values
-                                    replaced_values.append(schema_elem)
-                                    self.debug('replace: replace %s "%s" with "%s"',
-                                            schema_elem_name,
-                                            safe_output(attr, old),
-                                            safe_output(attr, new))
-                            if not replaced_values:
-                                self.debug('replace: no match for replaced %s "%s"',
-                                        schema_elem_name, safe_output(attr, old))
-                                continue
-                            for value in replaced_values:
-                                entry_values.remove(value)
-                        else:
-                            entry_values.remove(old)
-                        entry_values.append(new)
-                        self.debug('replace: updated value %s', safe_output(attr, entry_values))
-                        entry[attr] = entry_values
-                    except ValueError:
-                        self.debug('replace: %s not found, skipping', safe_output(attr, old))
 
         return entry
 
@@ -719,43 +656,6 @@ class LDAPUpdate:
                     self.debug("\t%s", safe_output(a, l))
             else:
                 self.debug('%s: %s', a, safe_output(a, value))
-
-    def is_schema_updated(self, s):
-        """Compare the schema in 's' with the current schema in the DS to
-           see if anything has changed. This should account for syntax
-           differences (like added parens that make no difference but are
-           detected as a change by generateModList()).
-
-           This doesn't handle re-ordering of attributes. They are still
-           detected as changes, so foo $ bar != bar $ foo.
-
-           return True if the schema has changed
-           return False if it has not
-        """
-        signature = inspect.getargspec(ldap.schema.SubSchema.__init__)
-        if 'check_uniqueness' in signature.args:
-            s = ldap.schema.SubSchema(s, check_uniqueness=0)
-        else:
-            s = ldap.schema.SubSchema(s)
-        s = s.ldap_entry()
-
-        # Get a fresh copy and convert into a SubSchema
-        n = self._get_entry(DN(('cn', 'schema')))[0]
-
-        # Convert IPA data types back to strings
-        d = dict()
-        for k,v in n.data.items():
-            d[k] = [str(x) for x in v]
-
-        # Convert to subschema dict
-        n = ldap.schema.SubSchema(d)
-        n = n.ldap_entry()
-
-        # Are they equal?
-        if s == n:
-            return False
-        else:
-            return True
 
     def _update_record(self, update):
         found = False
@@ -823,14 +723,8 @@ class LDAPUpdate:
             # Update LDAP
             try:
                 changes = self.conn.generateModList(entry.orig_data, entry)
-                if (entry.dn == DN(('cn', 'schema'))):
-                    d = dict()
-                    for k,v in entry.items():
-                        d[k] = [str(x) for x in v]
-                    updated = self.is_schema_updated(d)
-                else:
-                    if len(changes) >= 1:
-                        updated = True
+                if len(changes) >= 1:
+                    updated = True
                 safe_changes = []
                 for (type, attr, values) in changes:
                     safe_changes.append((type, attr, safe_output(attr, values)))
@@ -906,13 +800,12 @@ class LDAPUpdate:
 
     def _run_updates(self, all_updates):
         # For adds and updates we want to apply updates from shortest
-        # to greatest length of the DN. cn=schema must always go first to add
-        # new objectClasses and attributeTypes
+        # to greatest length of the DN.
         # For deletes we want the reverse
         def update_sort_key(dn_update):
             dn, update = dn_update
             assert isinstance(dn, DN)
-            return dn != DN(('cn', 'schema')), len(dn)
+            return len(dn)
 
         sorted_updates = sorted(all_updates.iteritems(), key=update_sort_key)
 
