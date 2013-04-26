@@ -252,7 +252,6 @@ def ipa_start(options):
 
 def ipa_stop(options):
     dirsrv = ipaservices.knownservices.dirsrv
-    svc_list = []
     try:
         svc_list = get_config_from_file()
     except Exception, e:
@@ -270,9 +269,11 @@ def ipa_stop(options):
             finally:
                 raise IpactlError()
 
-    if len(svc_list) == 0:
-        # no service to stop
-        return
+    try:
+        print "Stopping Directory Service"
+        dirsrv.stop(capture_output=False)
+    except:
+        raise IpactlError("Failed to stop Directory Service")
 
     for svc in reversed(svc_list):
         svchandle = ipaservices.service(svc)
@@ -282,14 +283,11 @@ def ipa_stop(options):
         except:
             emit_err("Failed to stop %s Service" % svc)
 
-    try:
-        print "Stopping Directory Service"
-        dirsrv.stop(capture_output=False)
-    except:
-        raise IpactlError("Failed to stop Directory Service")
-
     # remove file with list of started services
-    os.unlink(ipaservices.SVC_LIST_FILE)
+    try:
+        os.unlink(ipaservices.SVC_LIST_FILE)
+    except OSError:
+        pass
 
 
 def ipa_restart(options):
