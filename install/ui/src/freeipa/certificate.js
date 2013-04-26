@@ -895,7 +895,7 @@ IPA.cert.status_widget = function(spec) {
         that.status_valid.css('display', status === IPA.cert.CERTIFICATE_STATUS_VALID ? '' : 'none');
         that.status_missing.css('display', status === IPA.cert.CERTIFICATE_STATUS_MISSING ? '' : 'none');
 
-        if (!IPA.cert.is_enabled()) {
+        if (IPA.cert.is_enabled()) {
             that.status_revoked.css('display', status === IPA.cert.CERTIFICATE_STATUS_REVOKED ? '' : 'none');
 
             var reason = IPA.cert.CRL_REASON[revocation_reason];
