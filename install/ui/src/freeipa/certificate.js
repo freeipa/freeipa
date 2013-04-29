@@ -947,6 +947,8 @@ IPA.cert.status_field = function(spec) {
 
 exp.create_cert_metadata = function() {
 
+    if (!IPA.cert.is_enabled()) return null;
+
     var add_param = function(name, label, doc,  primary_key) {
         entity.takes_params.push({
             name: name,
