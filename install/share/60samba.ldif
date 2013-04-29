@@ -174,7 +174,7 @@ objectClasses: ( 1.3.6.1.4.1.7165.2.2.8 NAME 'sambaIdmapEntry' SUP top AUXILIARY
 objectClasses: ( 1.3.6.1.4.1.7165.2.2.9 NAME 'sambaSidEntry' SUP top STRUCTURAL DESC 'Structural Class for a SID' MUST ( sambaSID ) )
 objectClasses: ( 1.3.6.1.4.1.7165.2.2.10 NAME 'sambaConfig' SUP top AUXILIARY DESC 'Samba Configuration Section' MAY ( description ) )
 objectClasses: ( 1.3.6.1.4.1.7165.2.2.11 NAME 'sambaShare' SUP top STRUCTURAL DESC 'Samba Share Section' MUST ( sambaShareName ) MAY ( description ) )
-objectClasses: ( 1.3.6.1.4.1.7165.2.2.12 NAME 'sambaConfigOption' SUP top STRUCTURAL DESC 'Samba Configuration Option' MUST ( sambaOptionName ) MAY ( sambaBoolOption $ sambaIntegerOption $ sambaStringOption $ sambaStringListoption $ description ) )
+objectClasses: ( 1.3.6.1.4.1.7165.2.2.12 NAME 'sambaConfigOption' SUP top STRUCTURAL DESC 'Samba Configuration Option' MUST ( sambaOptionName ) MAY ( sambaBoolOption $ sambaIntegerOption $ sambaStringOption $ sambaStringListOption $ description ) )
 ## retired during privilege rewrite
 ##objectClasses: ( 1.3.6.1.4.1.7165.2.2.13 NAME 'sambaPrivilege' SUP top AUXILIARY
 ##	DESC 'Samba Privilege'
