@@ -48,6 +48,6 @@ attributeTypes: ( 2.16.840.1.113730.3.8.3.27 NAME 'ipaSELinuxUserMapOrder' DESC 
 ## ObjectClasses
 ##
 ## ipaGuiConfig - GUI config parameters objectclass
-objectClasses: ( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $ ipaGroupSearchFields $ ipaSearchTimeLimit $ ipaSearchRecordsLimit $ ipaCustomFields $ ipaHomesRootDir $ ipaDefaultLoginShell $ ipaDefaultPrimaryGroup $ ipaMaxUsernameLength $ ipaPwdExpAdvNotify $ ipaUserObjectClasses $ ipaGroupObjectClasses $ ipaDefaultEmailDomain $ ipaMigrationEnabled $ ipaCertificateSubjectBase $ ipaSELinuxUserMapDefault $ ipaSELinuxUserMapOrder) )
+objectClasses: ( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $ ipaGroupSearchFields $ ipaSearchTimeLimit $ ipaSearchRecordsLimit $ ipaCustomFields $ ipaHomesRootDir $ ipaDefaultLoginShell $ ipaDefaultPrimaryGroup $ ipaMaxUsernameLength $ ipaPwdExpAdvNotify $ ipaUserObjectClasses $ ipaGroupObjectClasses $ ipaDefaultEmailDomain $ ipaMigrationEnabled $ ipaCertificateSubjectBase $ ipaSELinuxUserMapDefault $ ipaSELinuxUserMapOrder $ ipaKrbAuthzData ) )
 ## ipaConfigObject - Generic config strings object holder
 objectClasses: (2.16.840.1.113730.3.8.4.13 NAME 'ipaConfigObject' DESC 'generic config object for IPA' AUXILIARY MAY ( ipaConfigString ) X-ORIGIN 'IPA v2' )

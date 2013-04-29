@@ -57,7 +57,9 @@ IPA_SCHEMA_FILES = ("60kerberos.ldif",
                     "60ipadns.ldif",
                     "61kerberos-ipav3.ldif",
                     "65ipasudo.ldif",
-                    "70ipaotp.ldif")
+                    "70ipaotp.ldif",
+                    "15rfc2307bis.ldif",
+                    "15rfc4876.ldif")
 
 ALL_SCHEMA_FILES = IPA_SCHEMA_FILES + ("05rfc2247.ldif", )
 

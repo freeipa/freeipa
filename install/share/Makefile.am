@@ -7,6 +7,8 @@ SUBDIRS =  				\
 appdir = $(IPA_DATA_DIR)
 app_DATA =				\
 	05rfc2247.ldif			\
+	15rfc2307bis.ldif		\
+	15rfc4876.ldif			\
 	60kerberos.ldif			\
 	60samba.ldif			\
 	60ipaconfig.ldif		\
