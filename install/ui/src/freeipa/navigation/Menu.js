@@ -25,9 +25,9 @@ define(['dojo/_base/declare',
        'dojo/_base/lang',
        'dojo/store/Observable',
        'dojo/Evented',
-       '../text',
-       '../ipa' // TODO: remove dependance
-       ], function(declare, Memory_store, array, lang, Observable, Evented, text, IPA) {
+       '../reg',
+       '../text'
+       ], function(declare, Memory_store, array, lang, Observable, Evented, reg, text) {
 
 /**
  * Menu store
@@ -113,21 +113,21 @@ return declare([Evented], {
         if (item.title) item.title = text.get(item.title);
 
         if (item.entity) {
-            // FIXME: replace with 'entities' module in future
-            var entity = IPA.get_entity(item.entity);
+            var entity = reg.entity.get(item.entity);
             if (!entity) {
                 return false; //quit
             }
-            //item.name = entity.name;
             if (!item.label) item.label = entity.label;
             if (!item.title) item.title = entity.title;
-        } //else if (item.facet) {
-            // TODO: uncomment when facet repository implemented
-//             var facet = facets.(item.facet);
-//             item.name = facet.name;
-//             if (!item.label) item.label = facet.label;
-//             if (!item.title) item.title = facet.title;
-//        }
+        } else if (item.facet) {
+            var facet = reg.facet.get(item.facet);
+            if (!facet) {
+                return false; //quit
+            }
+            item.name = facet.name;
+            if (!item.label) item.label = facet.label;
+            if (!item.title) item.title = facet.title;
+        }
 
         item.selected = false;
 
@@ -152,7 +152,7 @@ return declare([Evented], {
             item.name = parent.name + this.path_delimiter + item.name;
         }
 
-        // children will be added separatelly
+        // children will be added separately
         var children = item.children;
         delete item.children;
 
