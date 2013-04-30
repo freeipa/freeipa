@@ -3665,31 +3665,31 @@ IPA.sshkey_widget = function(spec) {
 
     that.get_status = function() {
 
-        var text = '';
+        var status = '';
         var value = that.key.key;
 
         if (that.original_key) {
 
             if (value !== that.original_key) {
                 if (value === '') {
-                    text = text.get('@i18n:objects.sshkeystore.status_mod_ns');
+                    status = text.get('@i18n:objects.sshkeystore.status_mod_ns');
                 } else {
-                    text = text.get('@i18n:objects.sshkeystore.status_mod_s');
+                    status = text.get('@i18n:objects.sshkeystore.status_mod_s');
                 }
             } else {
-                text = that.key.fingerprint;
+                status = that.key.fingerprint;
             }
 
         } else {
 
             if (!value || value === '') {
-                text = text.get('@i18n:objects.sshkeystore.status_new_ns');
+                status = text.get('@i18n:objects.sshkeystore.status_new_ns');
             } else {
-                text = text.get('@i18n:objects.sshkeystore.status_new_s');
+                status = text.get('@i18n:objects.sshkeystore.status_new_s');
             }
         }
 
-        return text;
+        return status;
     };
 
     that.set_user_value = function(value) {
