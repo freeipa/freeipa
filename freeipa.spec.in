@@ -161,6 +161,10 @@ Conflicts: bind-dyndb-ldap < 1.1.0-0.12.rc1
 %endif
 Conflicts: bind < 9.8.2-0.4.rc2
 
+# Versions of nss-pam-ldapd < 0.8.4 require a mapping from uniqueMember to
+# member.
+Conflicts: nss-pam-ldapd < 0.8.4
+
 # mod_proxy provides a single API to communicate over SSL. If mod_ssl
 # is even loaded into Apache then it grabs this interface.
 Conflicts: mod_ssl
@@ -835,6 +839,11 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue Apr 30 2013 Rob Crittenden <rcritten@redhat.com> - 3.1.99-9
+- Add Conflicts on nss-pam-ldapd < 0.8.4. The mapping from uniqueMember to
+  member is now done automatically and having it in the config file raises
+  an error.
+
 * Tue Apr 30 2013 Jan Cholasta <jcholast@redhat.com> - 3.1.99-8
 - Add triggerin scriptlet to update sshd_config on openssh-server update
 

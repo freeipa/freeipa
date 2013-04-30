@@ -778,7 +778,6 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
             {'name':'empty', 'type':'empty'},
             {'name':'base passwd', 'type':'option', 'value':str(DN(('cn', 'users'), ('cn', 'accounts'), cli_basedn))},
             {'name':'base group', 'type':'option', 'value':str(DN(('cn', 'groups'), ('cn', 'accounts'), cli_basedn))},
-            {'name':'map group', 'type':'option', 'value':'uniqueMember member'},
             {'name':'timelimit', 'type':'option', 'value':'15'},
             {'name':'empty', 'type':'empty'}]
     if not dnsok or options.force or options.on_master:
