@@ -468,7 +468,7 @@ IPA.host_deleter_dialog = function(spec) {
         var metadata = IPA.get_command_option('host_del', 'updatedns');
 
         that.updatedns = $('<input/>', {
-            $type: 'checkbox',
+            type: 'checkbox',
             name: 'updatedns',
             title: metadata.doc
         }).appendTo(that.container);
