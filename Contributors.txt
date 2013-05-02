@@ -16,6 +16,7 @@ Developers:
 	Martin Kosek
 	Nathan Kinder
 	Ana Krivokapic
+	Nathaniel McCallum
 	Lynn Root
 	Rich Megginson
 	Simo Sorce
