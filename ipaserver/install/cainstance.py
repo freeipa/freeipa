@@ -663,6 +663,7 @@ class CAInstance(service.Service):
         config.set("CA", "pki_admin_nickname", "ipa-ca-agent")
         config.set("CA", "pki_admin_subject_dn",
             str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
+        config.set("CA", "pki_client_admin_cert_p12", "/root/ca-agent.p12")
 
         # Directory server
         config.set("CA", "pki_ds_ldap_port", str(self.ds_port))
@@ -749,9 +750,6 @@ class CAInstance(service.Service):
             print "ipa-server-install --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
             sys.exit(0)
         else:
-            if not self.clone:
-                shutil.move("/root/.pki/pki-tomcat/ca_admin_cert.p12", \
-                            "/root/ca-agent.p12")
             shutil.move("/var/lib/pki/pki-tomcat/alias/ca_backup_keys.p12", \
                         "/root/cacert.p12")
 
