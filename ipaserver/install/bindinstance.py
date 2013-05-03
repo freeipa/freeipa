@@ -342,11 +342,10 @@ def add_fwd_rr(zone, host, ip_address):
 
 def add_ptr_rr(zone, ip_address, fqdn, dns_backup=None):
     name = get_reverse_record_name(zone, ip_address)
-    add_rr(zone, name, "PTR", fqdn+".", dns_backup)
+    add_rr(zone, name, "PTR", normalize_zone(fqdn), dns_backup)
 
 def add_ns_rr(zone, hostname, dns_backup=None, force=True):
-    if not hostname.endswith('.'):
-        hostname += '.'
+    hostname = normalize_zone(hostname)
     add_rr(zone, "@", "NS", hostname, dns_backup=dns_backup,
             force=force)
 
@@ -683,7 +682,7 @@ class BindInstance(service.Service):
 
             reverse_zone = find_reverse_zone(addr)
             if reverse_zone:
-                add_ptr_rr(reverse_zone, addr, normalize_zone(fqdn))
+                add_ptr_rr(reverse_zone, addr, fqdn)
 
     def __add_self(self):
         self.__add_master_records(self.fqdn, [self.ip_address])
@@ -911,7 +910,7 @@ class BindInstance(service.Service):
             ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host_in_rr),
             ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host_in_rr),
             ("_ntp._udp", "SRV", "0 100 123 %s" % self.host_in_rr),
-            ("@", "NS", fqdn+"."),
+            ("@", "NS", normalize_zone(fqdn)),
         )
 
         for (record, type, rdata) in resource_records:
@@ -924,9 +923,9 @@ class BindInstance(service.Service):
             rzone = find_reverse_zone(rdata)
             if rzone is not None:
                 record = get_reverse_record_name(rzone, rdata)
-                del_rr(rzone, record, "PTR", fqdn+".")
+                del_rr(rzone, record, "PTR", normalize_zone(fqdn))
                 # remove also master NS record from the reverse zone
-                del_rr(rzone, "@", "NS", fqdn+".")
+                del_rr(rzone, "@", "NS", normalize_zone(fqdn))
 
     def remove_ipa_ca_dns_records(self, fqdn, domain_name):
         host, zone = fqdn.split(".", 1)
