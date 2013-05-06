@@ -23,6 +23,7 @@
  * the AssociationList elements; IT NEEDS IT'S OWN CODE! */
 
 define([
+    'dojo/Deferred',
     './ipa',
     './jquery',
     './navigation',
@@ -31,7 +32,7 @@ define([
     './text',
     './search',
     './dialog'],
-        function(IPA, $, navigation, phases, reg, text) {
+        function(Deferred, IPA, $, navigation, phases, reg, text) {
 
 IPA.associator = function (spec) {
 
@@ -1363,6 +1364,53 @@ IPA.attribute_facet = function(spec, no_init) {
 
     return that;
 };
+
+IPA.sid_facet = function(spec, no_init) {
+
+    spec.name = spec.name || 'sid_facet';
+
+    var that = IPA.attribute_facet(spec, no_init);
+
+    that.load_records = function(value) {
+        var xlate = {};
+        var sidxlate_command = IPA.command({
+            entity: 'trust',
+            method: 'resolve',
+            options: {
+                sids: ''
+            }
+        });
+        sidxlate_command.on_success = function(data, text_status, xhr) {
+            for (var i=0; i< data.result.result.length; i++) {
+                var entry = data.result.result[i];
+                if (entry.sid[0] in xlate) {
+                    xlate[entry.sid[0]].resolve(entry.name[0]);
+                }
+            }
+        };
+        that.table.empty();
+
+        if (value.length === 0) return;
+
+        var sids = [];
+        for (var i=0; i< value.length; i++) {
+            var sid = value[i][that.attribute];
+            var deferred = new Deferred();
+            value[i][that.attribute] = {
+                promise: deferred.promise,
+                temp: sid
+            };
+            xlate[sid] = deferred;
+            sids.push(sid);
+            that.add_record(value[i]);
+        }
+        sidxlate_command.options.sids = sids;
+        sidxlate_command.execute();
+    };
+
+    return that;
+};
+
 
 IPA.attr_read_only_evaluator = function(spec) {
 

@@ -32,6 +32,12 @@ try:
 except Exception, e:
     _murmur_installed = False
 
+try:
+    import pysss_nss_idmap #pylint: disable=F0401
+    _nss_idmap_installed = True
+except Exception, e:
+    _nss_idmap_installed = False
+
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc #pylint: disable=F0401
@@ -687,3 +693,52 @@ class trustconfig_show(LDAPRetrieve):
         return dn
 
 api.register(trustconfig_show)
+
+if _nss_idmap_installed:
+    _idmap_type_dict = {
+        pysss_nss_idmap.ID_USER  : 'user',
+        pysss_nss_idmap.ID_GROUP : 'group',
+        pysss_nss_idmap.ID_BOTH  : 'both',
+    }
+    def idmap_type_string(level):
+        string = _idmap_type_dict.get(int(level), 'unknown')
+        return unicode(string)
+
+class trust_resolve(Command):
+    __doc__ = _('Resolve security identifiers of users and groups in trusted domains')
+
+    takes_options = (
+        Str('sids+',
+            label = _('Security Identifiers (SIDs)'),
+            csv = True,
+        ),
+    )
+
+    has_output_params = (
+        Str('name', label= _('Name')),
+        Str('sid', label= _('SID')),
+    )
+
+    has_output = (
+        output.ListOfEntries('result'),
+    )
+
+    def execute(self, *keys, **options):
+        result = list()
+        if not _nss_idmap_installed:
+            return dict(result=result)
+        try:
+            sids = map(lambda x: str(x), options['sids'])
+            xlate = pysss_nss_idmap.getnamebysid(sids)
+            for sid in xlate:
+                entry = dict()
+                entry['sid'] = [unicode(sid)]
+                entry['name'] = [unicode(xlate[sid][pysss_nss_idmap.NAME_KEY])]
+                entry['type'] = [idmap_type_string(xlate[sid][pysss_nss_idmap.TYPE_KEY])]
+                result.append(entry)
+        except ValueError, e:
+            pass
+
+        return dict(result=result)
+
+api.register(trust_resolve)

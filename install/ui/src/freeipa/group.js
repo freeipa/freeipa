@@ -112,6 +112,7 @@ return {
         },
         {
             $type: 'attribute',
+            $factory: IPA.sid_facet,
             name: 'member_external',
             attribute: 'ipaexternalmember',
             tab_label: 'External',

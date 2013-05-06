@@ -3398,6 +3398,13 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
+command: trust_resolve
+args: 0,4,1
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('sids+', csv=True)
+option: Str('version?', exclude='webui')
+output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 command: trust_show
 args: 1,4,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, query=True, required=True)

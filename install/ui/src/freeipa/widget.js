@@ -1404,9 +1404,6 @@ IPA.column = function (spec) {
     }
 
     that.setup = function(container, record, suppress_link) {
-
-        container.empty();
-
         var value = record[that.name];
         var type;
         if (that.formatter) {
@@ -1414,7 +1411,34 @@ IPA.column = function (spec) {
             value = that.formatter.format(value);
             type = that.formatter.type;
         }
+
+        var promise, temp = '';
+        if (value && typeof value.then === 'function') promise = value;
+        if (value && value.promise && typeof value.promise.then === 'function') {
+            promise = value.promise;
+            temp = value.temp || '';
+        }
+
+        if (promise) {
+            var fulfilled = false;
+            promise.then(function(val) {
+                fulfilled = true;
+                that.set_value(container, val, type, suppress_link);
+            });
+
+            if (fulfilled) return;
+            // val obj can contain temporal value which is displayed
+            // until promise is fulfilled
+            value = temp;
+        }
+
+        that.set_value(container, value, type, suppress_link);
+    };
+
+    that.set_value = function(container, value, type, suppress_link) {
+
         value = value ? value.toString() : '';
+        container.empty();
 
         var c;
         if (that.link && !suppress_link) {

@@ -211,6 +211,7 @@ Requires: samba4
 Requires: samba4-winbind
 %endif
 Requires: libsss_idmap
+Requires: libsss_nss_idmap-python
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
 # IPA AD trusts cannot be used at the same time with the locator plugin
