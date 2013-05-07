@@ -211,7 +211,9 @@ Requires: samba4
 Requires: samba4-winbind
 %endif
 Requires: libsss_idmap
+%if 0%{?fedora} >= 19
 Requires: libsss_nss_idmap-python
+%endif
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
 # IPA AD trusts cannot be used at the same time with the locator plugin
@@ -845,6 +847,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Tue May  7 2013 Petr Viktorin <pviktori@redhat.com> - 3.1.99-12
+- Require libsss_nss_idmap-python in Fedora 19+
+
 * Mon May  6 2013 Petr Vobornik <pvoborni@redhat.com> - 3.1.99-11
 - Web UI plugins
 
