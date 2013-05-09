@@ -22,19 +22,18 @@ Base classes for all front-end plugins.
 """
 
 import re
-import inspect
 from distutils import version
 
 from ipapython.version import API_VERSION
 from ipapython.ipa_log_manager import root_logger
-from base import lock, check_name, NameSpace
+from base import NameSpace
 from plugable import Plugin, is_production_mode
-from parameters import create_param, parse_param_spec, Param, Str, Flag, Password
+from parameters import create_param, Param, Str, Flag, Password
 from output import Output, Entry, ListOfEntries
-from text import _, ngettext
+from text import _
 from errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
-    RequiresRoot, VersionError, RequirementError, OptionError, InvocationError)
-from constants import TYPE_ERROR
+    VersionError, OptionError, InvocationError,
+    ValidationError, ConversionError)
 from ipalib import messages
 
 
@@ -559,6 +558,32 @@ class Command(HasParam):
         for name in self.options:
             if name in params:
                 yield(name, params[name])
+
+    def prompt_param(self, param, default=None, optional=False, kw=dict(),
+                     label=None):
+        """
+        Prompts the user for the value of given parameter.
+
+        Returns the parameter instance.
+        """
+
+        if label is None:
+            label = param.label
+
+        while True:
+            raw = self.Backend.textui.prompt(label, default, optional=optional)
+
+            # Backend.textui.prompt does not fill in the default value,
+            # we have to do it ourselves
+            if not raw.strip():
+                raw = default
+
+            try:
+                return param(raw, **kw)
+            except (ValidationError, ConversionError), e:
+                # Display error and prompt again
+                self.Backend.textui.print_prompt_attribute_error(unicode(label),
+                                                             unicode(e.error))
 
     def normalize(self, **kw):
         """

@@ -759,26 +759,16 @@ class DNSRecord(Str):
 
         return tuple(self._convert_dnsrecord_extra(extra) for extra in self.extra)
 
-    def __get_part_param(self, backend, part, output_kw, default=None):
+    def __get_part_param(self, cmd, part, output_kw, default=None):
         name = self.part_name_format % (self.rrtype.lower(), part.name)
         label = self.part_label_format % (self.rrtype, unicode(part.label))
         optional = not part.required
 
-        while True:
-            try:
-                raw = backend.textui.prompt(label,
-                                            optional=optional,
-                                            default=default)
-                if not raw.strip():
-                    raw = default
+        output_kw[name] = cmd.prompt_param(part,
+                                           optional=optional,
+                                           label=label)
 
-                output_kw[name] = part(raw)
-                break
-            except (errors.ValidationError, errors.ConversionError), e:
-                backend.textui.print_prompt_attribute_error(
-                        unicode(label), unicode(e.error))
-
-    def prompt_parts(self, backend, mod_dnsvalue=None):
+    def prompt_parts(self, cmd, mod_dnsvalue=None):
         mod_parts = None
         if mod_dnsvalue is not None:
             mod_parts = self._get_part_values(mod_dnsvalue)
@@ -793,18 +783,17 @@ class DNSRecord(Str):
             else:
                 default = None
 
-            self.__get_part_param(backend, part, user_options, default)
+            self.__get_part_param(cmd, part, user_options, default)
 
         return user_options
 
-    def prompt_missing_parts(self, backend, kw, prompt_optional=False):
+    def prompt_missing_parts(self, cmd, kw, prompt_optional=False):
         user_options = {}
         if self.parts is None:
             return user_options
 
         for part in self.parts:
             name = self.part_name_format % (self.rrtype.lower(), part.name)
-            label = self.part_label_format % (self.rrtype, unicode(part.label))
 
             if name in kw:
                 continue
@@ -814,7 +803,7 @@ class DNSRecord(Str):
                 continue
 
             default = part.get_default(**kw)
-            self.__get_part_param(backend, part, user_options, default)
+            self.__get_part_param(cmd, part, user_options, default)
 
         return user_options
 
@@ -2395,7 +2384,7 @@ class dnsrecord_add(LDAPCreate):
             # it can be used to fill all required params by itself
             new_kw = {}
             for rrparam in self.obj.iterate_rrparams_by_parts(kw, skip_extra=True):
-                user_options = rrparam.prompt_missing_parts(self.Backend, kw,
+                user_options = rrparam.prompt_missing_parts(self, kw,
                                                             prompt_optional=False)
                 new_kw.update(user_options)
             kw.update(new_kw)
@@ -2437,7 +2426,7 @@ class dnsrecord_add(LDAPCreate):
                 continue
             ok = True
 
-        user_options = param.prompt_parts(self.Backend)
+        user_options = param.prompt_parts(self)
         kw.update(user_options)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -2698,7 +2687,7 @@ class dnsrecord_mod(LDAPUpdate):
                 mod_value = self.Backend.textui.prompt_yesno(
                         _("Modify %(name)s '%(value)s'?") % dict(name=param.label, value=rec_value), default=False)
                 if mod_value is True:
-                    user_options = param.prompt_parts(self.Backend, mod_dnsvalue=rec_value)
+                    user_options = param.prompt_parts(self, mod_dnsvalue=rec_value)
                     kw[param.name] = [rec_value]
                     kw.update(user_options)
 
