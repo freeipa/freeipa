@@ -1043,7 +1043,6 @@ class cli(backend.Executioner):
         """Get the keyword arguments for a Command"""
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
-        if self.env.interactive:
             try:
                 callbacks = cmd.get_callbacks('interactive_prompt')
             except AttributeError:
