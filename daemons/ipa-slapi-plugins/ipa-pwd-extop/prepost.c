@@ -1217,12 +1217,34 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
 }
 
 static int ipapwd_authenticate(const char *dn, Slapi_Entry *entry,
-                               const struct berval *credentials)
+                               const struct berval *credentials,
+                               const char **errmsg)
 {
     Slapi_Value **pwd_values = NULL; /* values of userPassword attribute */
     Slapi_Value *value = NULL;
     Slapi_Attr *attr = NULL;
+    struct tm expire_tm;
+    char *expire;
+    char *p;
     int ret;
+
+    /* check the if the krbPrincipalKey attribute is present */
+    ret = slapi_entry_attr_find(entry, "krbprincipalkey", &attr);
+    if (!ret) {
+        /* check that the password is not expired */
+        expire = slapi_entry_attr_get_charptr(entry, "krbpasswordexpiration");
+        if (expire) {
+            memset(&expire_tm, 0, sizeof (expire_tm));
+            p = strptime(expire, "%Y%m%d%H%M%SZ", &expire_tm);
+            if (*p) {
+                LOG("Invalid expiration date string format");
+                return 1;
+            } else if (time(NULL) > mktime(&expire_tm)) {
+                *errmsg = "The user password is expired";
+                return 1;
+            }
+        }
+    }
 
     /* retrieve userPassword attribute */
     ret = slapi_entry_attr_find(entry, SLAPI_USERPWD_ATTR, &attr);
@@ -1381,7 +1403,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     static const char *attrs_list[] = {
         SLAPI_USERPWD_ATTR, "ipaUserAuthType", "krbprincipalkey", "uid",
         "krbprincipalname", "objectclass", "passwordexpirationtime",
-        "passwordhistory", "krbprincipalexpiration",
+        "passwordhistory", "krbprincipalexpiration", "krbpasswordexpiration",
         NULL
     };
     struct berval *credentials = NULL;
@@ -1394,6 +1416,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     time_t expire_time;
     char *principal_expire = NULL;
     struct tm expire_tm;
+    const char *errmsg = NULL;
 
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET, &dn);
@@ -1454,10 +1477,12 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 
     /* Authenticate the user. */
-    ret = ipapwd_authenticate(dn, entry, credentials);
+    ret = ipapwd_authenticate(dn, entry, credentials, &errmsg);
     if (ret) {
         slapi_entry_free(entry);
-        return 0;
+        slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
+                               NULL, errmsg, 0, NULL);
+        return 1;
     }
 
     /* Attempt to handle a token synchronization request. */
