@@ -258,3 +258,70 @@ class TestCLIParsing(object):
                     version=API_VERSION)
         finally:
             self.run_command('dnszone_del', idnsname=u'test-example.com')
+
+    def test_dnszone_add(self):
+        """
+        Test dnszone-add with nameserver IP passed interatively
+        """
+        # Pass IP of nameserver interactively for nameserver in zone
+        # (absolute name)
+        with self.fake_stdin('1.1.1.1\n'):
+            self.check_command(
+                'dnszone_add example.com --name-server=ns.example.com. '
+                '--admin-email=admin@example.com',
+                'dnszone_add',
+                idnsname=u'example.com',
+                idnssoamname=u'ns.example.com.',
+                idnssoarname=u'admin@example.com',
+                ip_address=u'1.1.1.1',
+                idnssoaexpire=util.Fuzzy(type=int),
+                idnssoaserial=util.Fuzzy(type=int),
+                idnssoaretry=util.Fuzzy(type=int),
+                idnssoaminimum=util.Fuzzy(type=int),
+                idnssoarefresh=util.Fuzzy(type=int),
+                all=False,
+                raw=False,
+                force=False,
+                version=API_VERSION
+            )
+
+        # Pass IP of nameserver interactively for nameserver in zone
+        # (relative name)
+        with self.fake_stdin('1.1.1.1\n'):
+            self.check_command(
+                'dnszone_add example.com --name-server=ns '
+                '--admin-email=admin@example.com',
+                'dnszone_add',
+                idnsname=u'example.com',
+                idnssoamname=u'ns',
+                idnssoarname=u'admin@example.com',
+                ip_address=u'1.1.1.1',
+                idnssoaexpire=util.Fuzzy(type=int),
+                idnssoaserial=util.Fuzzy(type=int),
+                idnssoaretry=util.Fuzzy(type=int),
+                idnssoaminimum=util.Fuzzy(type=int),
+                idnssoarefresh=util.Fuzzy(type=int),
+                all=False,
+                raw=False,
+                force=False,
+                version=API_VERSION
+            )
+
+        # Nameserver is outside the zone - no need to pass the IP
+        self.check_command(
+            'dnszone_add example.com --name-server=ns.example.net. '
+            '--admin-email=admin@example.com',
+            'dnszone_add',
+            idnsname=u'example.com',
+            idnssoamname=u'ns.example.net.',
+            idnssoarname=u'admin@example.com',
+            idnssoaexpire=util.Fuzzy(type=int),
+            idnssoaserial=util.Fuzzy(type=int),
+            idnssoaretry=util.Fuzzy(type=int),
+            idnssoaminimum=util.Fuzzy(type=int),
+            idnssoarefresh=util.Fuzzy(type=int),
+            all=False,
+            raw=False,
+            force=False,
+            version=API_VERSION
+        )

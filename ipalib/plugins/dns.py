@@ -1781,8 +1781,29 @@ class dnszone_add(LDAPCreate):
         ),
         Str('ip_address?', _validate_ipaddr,
             doc=_('Add forward record for nameserver located in the created zone'),
+            label=_('Nameserver IP address'),
         ),
     )
+
+    def interactive_prompt_callback(self, kw):
+        """
+        Interactive mode should prompt for nameserver IP address only if all
+        of the following conditions are true:
+        * New zone is a forward zone
+        * NS is defined inside the new zone (NS can be given either in the
+          form of absolute or relative name)
+        """
+        if kw.get('ip_address', None):
+            return
+
+        zone = normalize_zone(kw['idnsname'])
+        ns = kw['idnssoamname']
+        relative_ns = not ns.endswith('.')
+        ns_in_zone = self.obj.get_name_in_zone(zone, ns)
+
+        if not zone_is_reverse(zone) and (relative_ns or ns_in_zone):
+            ip_address = self.Backend.textui.prompt(_(u'Nameserver IP address'))
+            kw['ip_address'] = ip_address
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)

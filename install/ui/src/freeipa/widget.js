@@ -303,6 +303,10 @@ IPA.text_widget = function(spec) {
         }
     };
 
+    that.is_enabled = function(value) {
+        return !that.input.prop('disabled');
+    };
+
     that.set_enabled = function(value) {
 
         that.input.prop('disabled', !value);
