@@ -3,22 +3,22 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
-# gundachandru <gundachandru@gmail.com>, 2010.
-# jdennis <jdennis@redhat.com>, 2011.
+# Chandru <gundachandru@gmail.com>, 2010
+# jdennis <jdennis@redhat.com>, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
-"product=freeIPA\n"
-"POT-Creation-Date: 2013-04-15 16:42+0200\n"
-"PO-Revision-Date: 2013-04-15 15:12+0000\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
+"newticket\n"
+"POT-Creation-Date: 2013-05-09 17:50+0200\n"
+"PO-Revision-Date: 2013-05-07 07:53+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Kannada (http://www.transifex.com/projects/p/fedora/language/"
 "kn/)\n"
+"Language: kn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: kn\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #, python-format
@@ -713,24 +713,3 @@ msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಬದಲಾಯಿಸ
 #, python-format
 msgid "Unable to communicate with CMS (%s)"
 msgstr "CMS (%s) ಜೊತೆ ಸಂಪರ್ಕಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ"
-
-#, python-format
-msgid ""
-"Request subject \"%(request_subject)s\" does not match the form "
-"\"%(subject_base)s\""
-msgstr ""
-"ಕೋರಿಕೆ ವಿಷಯ \"%(request_subject)s\" ಸ್ವರೂಪ \"%(subject_base)s\" ಕ್ಕೆ "
-"ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ"
-
-#, python-format
-msgid "unable to decode csr: %s"
-msgstr "csr ವನ್ನು ಡಿಕೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ: %s"
-
-msgid "file operation"
-msgstr "ಕಡತದ ಕಾರ್ಯಾಚರಣೆ"
-
-msgid "cannot obtain next serial number"
-msgstr "ಮುಂದಿನ ಸೀರಿಯಲ್ ನಂಬರ್ ಅನ್ನು ಪಡೆಯಲು ಆಗುತ್ತಿಲ್ಲ"
-
-msgid "certutil failure"
-msgstr "certutil ವಿಫಲತೆ"

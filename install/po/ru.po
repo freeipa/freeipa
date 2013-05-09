@@ -3,23 +3,23 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
-# Alexander Ivanov <hrafn@hrafn.me>, 2011.
-# Andrew Martynov <andrewm@inventa.ru>, 2010.
-# Azamat H. Hackimov <azamat.hackimov@gmail.com>, 2012.
-# jdennis <jdennis@redhat.com>, 2011.
+# Alexander Ivanov <hrafn@hrafn.me>, 2011
+# Andrew Martynov <andrewm@inventa.ru>, 2010
+# Azamat Hackimov <azamat.hackimov@gmail.com>, 2012
+# jdennis <jdennis@redhat.com>, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
-"product=freeIPA\n"
-"POT-Creation-Date: 2013-04-15 16:42+0200\n"
-"PO-Revision-Date: 2013-04-15 15:12+0000\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
+"newticket\n"
+"POT-Creation-Date: 2013-05-09 17:50+0200\n"
+"PO-Revision-Date: 2013-05-07 07:53+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Russian <trans-ru@lists.fedoraproject.org>\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ru\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
@@ -1119,27 +1119,6 @@ msgstr "Аппаратная платформа узла (например, Leno
 
 msgid "Operating System and version of the host (e.g. Fedora 9)"
 msgstr "Операционная система и версия узла (например, Fedora 9)"
-
-#, python-format
-msgid ""
-"Request subject \"%(request_subject)s\" does not match the form "
-"\"%(subject_base)s\""
-msgstr ""
-"Заголовок запроса «%(request_subject)s» не совпадает с формой "
-"«%(subject_base)s»"
-
-#, python-format
-msgid "unable to decode csr: %s"
-msgstr "невозможно декодировать CSR: %s"
-
-msgid "file operation"
-msgstr "операция над файлом"
-
-msgid "cannot obtain next serial number"
-msgstr "невозможно получить следующий порядковый номер"
-
-msgid "certutil failure"
-msgstr "ошибка certutil"
 
 #, c-format
 msgid "cannot open configuration file %s\n"

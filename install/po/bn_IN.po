@@ -3,21 +3,21 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
-# jdennis <jdennis@redhat.com>, 2011.
-# sankarshan mukhopadhyay <sankarshan@fedoraproject.org>, 2010.
+# jdennis <jdennis@redhat.com>, 2011
+# sankarshan mukhopadhyay <sankarshan@fedoraproject.org>, 2010
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
-"product=freeIPA\n"
-"POT-Creation-Date: 2013-04-15 16:42+0200\n"
-"PO-Revision-Date: 2013-04-15 15:12+0000\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
+"newticket\n"
+"POT-Creation-Date: 2013-05-09 17:50+0200\n"
+"PO-Revision-Date: 2013-05-07 07:53+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Bengali (India) <anubad@lists.ankur.org.in>\n"
+"Language: bn_IN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: bn_IN\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "Passwords do not match"
@@ -52,9 +52,3 @@ msgstr[1] "%(count)d প্লাগ-ইন লোড করা হয়েছে"
 #, python-format
 msgid "Added user \"%(value)s\""
 msgstr "\"%(value)s\" ব্যবহারকারী যোগ করা হয়েছে"
-
-msgid "file operation"
-msgstr "ফাইল কার্য"
-
-msgid "cannot obtain next serial number"
-msgstr "সিরিয়াল নম্বর পাওয়া সম্ভব হয়নি"
