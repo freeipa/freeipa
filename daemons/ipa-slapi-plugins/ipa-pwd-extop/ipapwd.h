@@ -96,7 +96,7 @@ struct ipapwd_operation {
 
 #define GENERALIZED_TIME_LENGTH 15
 
-/* from ipapwd_common.c */
+/* from common.c */
 struct ipapwd_krbcfg {
     krb5_context krbctx;
     char *realm;
@@ -131,7 +131,7 @@ int ipapwd_set_extradata(const char *dn,
 void ipapwd_free_slapi_value_array(Slapi_Value ***svals);
 void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg);
 
-/* from ipapwd_encoding.c */
+/* from encoding.c */
 struct ipapwd_keyset {
     uint16_t major_vno;
     uint16_t minor_vno;
@@ -148,7 +148,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                       Slapi_Value ***svals, char **nthash, char **lmhash,
                       Slapi_Value ***ntvals, char **errMesg);
 
-/* from ipapwd_prepost.c */
+/* from prepost.c */
 int ipapwd_ext_init(void);
 int ipapwd_pre_init(Slapi_PBlock *pb);
 int ipapwd_post_init(Slapi_PBlock *pb);
