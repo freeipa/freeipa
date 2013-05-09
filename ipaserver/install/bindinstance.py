@@ -733,13 +733,17 @@ class BindInstance(service.Service):
         self.__add_ipa_ca_records(self.fqdn, [self.ip_address],
                                   self.ca_configured)
 
-        if self.first_instance and self.ca_configured:
+        if self.first_instance:
             ldap = api.Backend.ldap2
-            entries = ldap.get_entries(
-                DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                   api.env.basedn),
-                ldap.SCOPE_SUBTREE, '(&(objectClass=ipaConfigObject)(cn=CA))',
-                ['dn'])
+            try:
+                entries = ldap.get_entries(
+                    DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                       api.env.basedn),
+                    ldap.SCOPE_SUBTREE, '(&(objectClass=ipaConfigObject)(cn=CA))',
+                    ['dn'])
+            except errors.NotFound:
+                root_logger.debug('No server with CA found')
+                entries = []
 
             for entry in entries:
                 fqdn = entry.dn[1]['cn']
