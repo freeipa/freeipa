@@ -733,7 +733,7 @@ class BindInstance(service.Service):
         self.__add_ipa_ca_records(self.fqdn, [self.ip_address],
                                   self.ca_configured)
 
-        if self.first_instance:
+        if self.first_instance and self.ca_configured:
             ldap = api.Backend.ldap2
             entries = ldap.get_entries(
                 DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
