@@ -359,6 +359,41 @@ class idrange_add(LDAPCreate):
 
     msg_summary = _('Added ID range "%(value)s"')
 
+    def interactive_prompt_callback(self, kw):
+        """
+        Ensure that rid-base is prompted for when dom-sid is specified.
+
+        Also ensure that secondary-rid-base is prompted for when rid-base is
+        specified and vice versa, in case that dom-sid was not specified.
+        """
+
+        # dom-sid can be specified using dom-sid or dom-name options
+
+        # it can be also set using --setattr or --addattr, in these cases
+        # we will not prompt, but raise an ValidationError later
+
+        dom_sid_set = any(dom_id in kw for dom_id in
+                          ('ipanttrusteddomainname', 'ipanttrusteddomainsid'))
+
+        rid_base_set = 'ipabaserid' in kw
+        secondary_rid_base_set = 'ipasecondarybaserid' in kw
+
+        # Prompt for RID base if domain SID / name was given
+        if dom_sid_set and not rid_base_set:
+            value = self.prompt_param(self.params['ipabaserid'])
+            kw.update(dict(ipabaserid=value))
+
+        if not dom_sid_set:
+            # Prompt for secondary RID base if RID base was given
+            if rid_base_set and not secondary_rid_base_set:
+                value = self.prompt_param(self.params['ipasecondarybaserid'])
+                kw.update(dict(ipasecondarybaserid=value))
+
+            # Symetrically, prompt for RID base if secondary RID base was given
+            if not rid_base_set and secondary_rid_base_set:
+                value = self.prompt_param(self.params['ipabaserid'])
+                kw.update(dict(ipabaserid=value))
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
@@ -412,9 +447,9 @@ class idrange_add(LDAPCreate):
                     entry_attrs['ipabaserid'],
                     entry_attrs['ipasecondarybaserid'],
                     entry_attrs['ipaidrangesize']):
-                       raise errors.ValidationError(name='ID Range setup',
-                           error=_("Primary RID range and secondary RID range"
-                               " cannot overlap"))
+                        raise errors.ValidationError(name='ID Range setup',
+                            error=_("Primary RID range and secondary RID range"
+                                    " cannot overlap"))
 
             entry_attrs['objectclass'].append('ipadomainidrange')
 
