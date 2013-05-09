@@ -7654,6 +7654,17 @@
                     {
                         "attribute": true,
                         "class": "Str",
+                        "doc": "Add forward record for nameserver located in the created zone",
+                        "flags": [],
+                        "label": "Nameserver IP address",
+                        "name": "ip_address",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Str",
                         "doc": "Administrator e-mail address",
                         "flags": [],
                         "label": "Administrator e-mail address",
