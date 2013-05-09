@@ -1178,11 +1178,13 @@ class cli(backend.Executioner):
         ``self.env.prompt_all`` is ``True``, this method will prompt for any
         params that have a missing values, even if the param is optional.
         """
+
         honor_alwaysask = True
         for param in cmd.params():
             if param.alwaysask and param.name in kw:
                 honor_alwaysask = False
                 break
+
         for param in cmd.params():
             if (param.required and param.name not in kw) or \
                 (param.alwaysask and honor_alwaysask) or self.env.prompt_all:
@@ -1196,19 +1198,16 @@ class cli(backend.Executioner):
                     )
                 else:
                     default = cmd.get_default_of(param.name, **kw)
-                    error = None
-                    while True:
-                        if error is not None:
-                            self.Backend.textui.print_prompt_attribute_error(unicode(param.label),
-                                                                             unicode(error))
-                        raw = self.Backend.textui.prompt(param.label, default, optional=param.alwaysask or not param.required)
-                        try:
-                            value = param(raw, **kw)
-                            if value is not None:
-                                kw[param.name] = value
-                            break
-                        except (ValidationError, ConversionError), e:
-                            error = e.error
+                    optional = param.alwaysask or not param.required
+
+                    value = cmd.prompt_param(param,
+                                             default=default,
+                                             optional=optional,
+                                             kw=kw)
+
+                    if value is not None:
+                        kw[param.name] = value
+
             elif param.password and kw.get(param.name, False) is True:
                 kw[param.name] = self.Backend.textui.prompt_password(
                     param.label, param.confirm
