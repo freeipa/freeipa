@@ -40,7 +40,7 @@ IPA_VERSION_PRE_RELEASE=
 # e.g. IPA_VERSION_BETA_RELEASE=1                      #
 #  ->  "1.0.0beta1"                                    #
 ########################################################
-IPA_VERSION_BETA_RELEASE=1
+IPA_VERSION_BETA_RELEASE=
 
 ########################################################
 # For 'rc' releases the version will be                #
