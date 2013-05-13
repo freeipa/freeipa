@@ -258,36 +258,54 @@ class ADTRUSTInstance(service.Service):
         """
 
         try:
-            res = self.admin_conn.get_entries(
+            # Get the ranges
+            ranges = self.admin_conn.get_entries(
                 DN(api.env.container_ranges, self.suffix),
                 ldap.SCOPE_ONELEVEL, "(objectclass=ipaDomainIDRange)")
-            if len(res) != 1:
-                root_logger.critical("Found more than one ID range for the " \
-                                     "local domain.")
-                raise RuntimeError("Too many ID ranges\n")
 
-            if res[0].single_value('ipaBaseRID', None) or \
-               res[0].single_value('ipaSecondaryBaseRID', None):
+            # Filter out ranges where RID base is already set
+            no_rid_base_set = lambda r: not any((
+                                  r.single_value('ipaBaseRID', None),
+                                  r.single_value('ipaSecondaryBaseRID', None)))
+
+            ranges_with_no_rid_base = filter(no_rid_base_set, ranges)
+
+            # Return if no range is without RID base
+            if len(ranges_with_no_rid_base) == 0:
                 self.print_msg("RID bases already set, nothing to do")
                 return
 
-            size = res[0].single_value('ipaIDRangeSize', None)
+            # Abort if RID base needs to be added to more than one range
+            if len(ranges_with_no_rid_base) != 1:
+                root_logger.critical("Found more than one local domain ID "
+                                     "range with no RID base set.")
+                raise RuntimeError("Too many ID ranges\n")
+
+            # Abort if RID bases are too close
+            local_range = ranges_with_no_rid_base[0]
+            size = local_range.single_value('ipaIDRangeSize', None)
+
             if abs(self.rid_base - self.secondary_rid_base) > size:
-                self.print_msg("Primary and secondary RID base are too close. " \
+                self.print_msg("Primary and secondary RID base are too close. "
                       "They have to differ at least by %d." % size)
                 raise RuntimeError("RID bases too close.\n")
 
+            # Modify the range
+            # If the RID bases would cause overlap with some other range,
+            # this will be detected by ipa-range-check DS plugin
             try:
-                self.admin_conn.modify_s(res[0].dn,
-                                         [(ldap.MOD_ADD, "ipaBaseRID", \
-                                                 str(self.rid_base)), \
-                                         (ldap.MOD_ADD, "ipaSecondaryBaseRID", \
+                self.admin_conn.modify_s(local_range.dn,
+                                         [(ldap.MOD_ADD, "ipaBaseRID",
+                                                 str(self.rid_base)),
+                                         (ldap.MOD_ADD, "ipaSecondaryBaseRID",
                                                  str(self.secondary_rid_base))])
-            except:
-                self.print_msg("Failed to add RID bases to the local range object")
+            except ldap.CONSTRAINT_VIOLATION, e:
+                self.print_msg("Failed to add RID bases to the local range "
+                               "object:\n  %s" % e[0]['info'])
+                raise RuntimeError("Constraint violation.\n")
 
         except errors.NotFound as e:
-            root_logger.critical("ID range of the local domain not found, " \
+            root_logger.critical("ID range of the local domain not found, "
                                  "define it and run again.")
             raise e
 
