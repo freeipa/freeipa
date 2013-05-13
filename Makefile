@@ -10,7 +10,7 @@ TARGET ?= master
 
 SUPPORTED_PLATFORM ?= redhat
 
-IPA_NUM_VERSION ?= $(shell printf %02d%02d%02d $(IPA_VERSION_MAJOR) $(IPA_VERSION_MINOR) $(IPA_VERSION_RELEASE))
+IPA_NUM_VERSION ?= $(shell printf %d%02d%02d $(IPA_VERSION_MAJOR) $(IPA_VERSION_MINOR) $(IPA_VERSION_RELEASE))
 
 # After updating the version in VERSION you should run the version-update
 # target.
