@@ -30,9 +30,12 @@ define([
     './phases',
     './reg',
     './text',
+    './facet',
     './search',
     './dialog'],
-        function(Deferred, IPA, $, navigation, phases, reg, text) {
+        function(Deferred, IPA, $, navigation, phases, reg, text, mod_facet) {
+
+var exp = {};
 
 IPA.associator = function (spec) {
 
@@ -760,16 +763,14 @@ IPA.association_table_field = function (spec) {
     return that;
 };
 
-IPA.association_facet = function (spec, no_init) {
+exp.association_facet_pre_op = function(spec, context) {
 
-    spec = spec || {};
-
-    /*
-       Link parameter is used to turn off the links in selfservice mode.
+     /*
+       Link parameter is used to turn off the links in self-service mode.
        Default it to true if not set so that facets that would not otherwise
        link by default get links set.
 
-       link must be set before the call to the base class, to affect the  table.
+       link must be set before the call to the base class, to affect the table.
      */
     spec.link = spec.link === undefined ? true : spec.link;
     spec.managed_entity = IPA.get_entity(spec.other_entity);
@@ -822,6 +823,13 @@ IPA.association_facet = function (spec, no_init) {
         IPA.selected_state_evaluator,
         IPA.association_type_state_evaluator,
         IPA.read_only_state_evaluator);
+
+    return spec;
+};
+
+exp.association_facet = IPA.association_facet = function (spec, no_init) {
+
+    spec = spec || {};
 
     var that = IPA.table_facet(spec, true);
 
@@ -1181,9 +1189,7 @@ IPA.association_facet = function (spec, no_init) {
     return that;
 };
 
-IPA.attribute_facet = function(spec, no_init) {
-
-    spec = spec || {};
+exp.attribute_facet_pre_op = function(spec, context) {
 
     //default buttons and their actions
     spec.actions = spec.actions || [];
@@ -1236,6 +1242,13 @@ IPA.attribute_facet = function(spec, no_init) {
 
     spec.columns = spec.columns || [ spec.attribute ];
     spec.table_name = spec.table_name || spec.attribute;
+
+    return spec;
+};
+
+exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
+
+    spec = spec || {};
 
     var that = IPA.table_facet(spec, true);
 
@@ -1472,10 +1485,29 @@ IPA.attr_read_only_evaluator = function(spec) {
 phases.on('registration', function() {
     var w = reg.widget;
     var f = reg.field;
+    var fa = reg.facet;
 
     w.register('association_table', IPA.association_table_widget);
     f.register('association_table', IPA.association_table_field);
+
+    fa.register({
+        type: 'association',
+        factory: exp.association_facet,
+        pre_ops: [
+            mod_facet.facet_preops.association,
+            exp.association_facet_pre_op
+        ]
+    });
+
+    fa.register({
+        type: 'attribute',
+        factory: exp.attribute_facet,
+        pre_ops: [
+            mod_facet.facet_preops.attribute,
+            exp.attribute_facet_pre_op
+        ]
+    });
 });
 
-return {};
+return exp;
 });
