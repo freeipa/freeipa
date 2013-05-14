@@ -32,7 +32,7 @@ define(['dojo/_base/lang', './Provider', './Search_provider'],
     var commmads = new Provider({
         code: '@mc:',
         source: metadata,
-        path: 'commmads'
+        path: 'commands'
     });
     var object_param = new Search_provider({
         code: '@mo-param:',
