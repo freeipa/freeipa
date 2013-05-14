@@ -24,7 +24,7 @@
  * Serves for returning labels, titles, messages from various providers.
  * Other providers can extends functionality.
  */
-define(['./_base/Provider', './_base/i18n', './_base/metadata_provider'],
+define(['./_base/Provider', './_base/i18n', './metadata'],
        function(Provider, i18n, metadata) {
 
     var text = new Provider({

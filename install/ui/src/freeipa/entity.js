@@ -23,7 +23,7 @@
 
 define([
         'dojo/_base/lang',
-        './_base/metadata_provider',
+        './metadata',
         './_base/Singleton_registry',
         './builder',
         './ipa',

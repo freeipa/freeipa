@@ -25,7 +25,7 @@
 define([
     'dojo/_base/array',
     'dojo/_base/lang',
-    './_base/metadata_provider',
+    './metadata',
     './builder',
     './ipa',
     './jquery',

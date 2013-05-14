@@ -21,7 +21,7 @@
 
 define([
     'dojo/_base/lang',
-    './_base/metadata_provider',
+    './metadata',
     './ipa',
     './jquery',
     './menu',

@@ -20,7 +20,7 @@
  */
 
 define([
-    './_base/metadata_provider',
+    './metadata',
     './ipa',
     './jquery',
     './phases',

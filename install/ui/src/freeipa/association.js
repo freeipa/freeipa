@@ -24,7 +24,7 @@
 
 define([
     'dojo/Deferred',
-    './_base/metadata_provider',
+    './metadata',
     './ipa',
     './jquery',
     './navigation',

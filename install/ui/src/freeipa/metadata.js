@@ -18,8 +18,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['dojo/_base/lang', './Provider', './Search_provider'],
-       function(lang, Provider, Search_provider) {
+define([
+        'dojo/_base/lang',
+        './_base/Provider',
+        './_base/Search_provider'
+    ], function(lang, Provider, Search_provider) {
 
     var metadata = new Provider({
         code: '@m:'
@@ -29,7 +32,7 @@ define(['dojo/_base/lang', './Provider', './Search_provider'],
         source: metadata,
         path: 'objects'
     });
-    var commmads = new Provider({
+    var commands = new Provider({
         code: '@mc:',
         source: metadata,
         path: 'commands'
@@ -56,7 +59,7 @@ define(['dojo/_base/lang', './Provider', './Search_provider'],
         array_attr: 'name'
     });
 
-    metadata.providers.push(objects, commmads, object_param, cmd_arg, cmd_option);
+    metadata.providers.push(objects, commands, object_param, cmd_arg, cmd_option);
 
     return metadata;
 });
