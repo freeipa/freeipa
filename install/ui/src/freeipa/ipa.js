@@ -25,7 +25,7 @@
 define(['./jquery',
         './json2',
         './_base/i18n',
-        './_base/metadata_provider',
+        './metadata',
         './builder',
         './reg',
         './text'],

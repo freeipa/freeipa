@@ -19,7 +19,7 @@
  */
 
 define([
-        'freeipa/_base/metadata_provider',
+        'freeipa/metadata',
         'freeipa/aci',
         'freeipa/details',
         'freeipa/facet',
