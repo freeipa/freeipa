@@ -26,15 +26,23 @@ define([
         './jquery',
         './phases',
         './reg',
+        './spec_util',
         './text',
         './facet'],
-    function(IPA, $, phases, reg, text, mod_facet) {
+    function(IPA, $, phases, reg, su, text, mod_facet) {
 
 var exp = {};
 
 exp.search_facet_pre_op = function(spec, context) {
 
+    var entity = context.entity;
+    su.context_entity(spec, context);
+
     spec.name = spec.name || 'search';
+    spec.title = spec.title || entity.metadata.label;
+    spec.label = spec.label || entity.metadata.label;
+    spec.tab_label = spec.tab_label || '@i18n:facets.search';
+
     spec.managed_entity = spec.managed_entity ? IPA.get_entity(spec.managed_entity) : spec.entity;
 
     spec.disable_breadcrumb =
@@ -361,7 +369,14 @@ IPA.search_deleter_dialog = function(spec) {
 
 exp.nested_search_facet_preop = function(spec, context) {
 
-    spec.managed_entity = IPA.get_entity(spec.nested_entity);
+    var entity = context.entity;
+    su.context_entity(spec, context);
+
+    spec.title = spec.title || entity.metadata.label_singular;
+    spec.label = spec.label || entity.metadata.label;
+    spec.tab_label = spec.tab_label || '@i18n:facets.search';
+
+    spec.managed_entity = spec.nested_entity;
 
     spec.disable_breadcrumb = false;
     spec.disable_facet_tabs = false;
@@ -537,7 +552,6 @@ exp.register = function() {
         type: 'search',
         factory: IPA.search_facet,
         pre_ops: [
-            mod_facet.facet_preops.search,
             exp.search_facet_pre_op
         ]
     });
@@ -546,7 +560,6 @@ exp.register = function() {
         type: 'nested_search',
         factory: IPA.nested_search_facet,
         pre_ops: [
-            mod_facet.facet_preops.nested_search,
             exp.nested_search_facet_preop
         ]
     });

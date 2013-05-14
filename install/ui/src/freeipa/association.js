@@ -24,16 +24,19 @@
 
 define([
     'dojo/Deferred',
+    './_base/metadata_provider',
     './ipa',
     './jquery',
     './navigation',
     './phases',
     './reg',
+    './spec_util',
     './text',
     './facet',
     './search',
     './dialog'],
-        function(Deferred, IPA, $, navigation, phases, reg, text, mod_facet) {
+        function(Deferred, metadata_provider, IPA, $, navigation,
+                 phases, reg, su, text) {
 
 var exp = {};
 
@@ -765,6 +768,45 @@ IPA.association_table_field = function (spec) {
 
 exp.association_facet_pre_op = function(spec, context) {
 
+    var has_indirect_attribute_member = function(spec) {
+
+        var indirect_members = entity.metadata.attribute_members[spec.attribute_member + 'indirect'];
+        var has_indirect = !!(indirect_members && indirect_members.indexOf(spec.other_entity) > -1);
+        return has_indirect;
+    };
+
+    var entity = context.entity;
+    su.context_entity(spec, context);
+    spec.entity = entity;
+
+    var index = spec.name.indexOf('_');
+    spec.attribute_member = spec.attribute_member ||
+        spec.name.substring(0, index);
+    spec.other_entity = spec.other_entity ||
+        spec.name.substring(index+1);
+
+    spec.add_title = '@i18n:association.add.'+spec.attribute_member;
+    spec.remove_title = '@i18n:association.remove.'+spec.attribute_member;
+
+    spec.facet_group = spec.facet_group || spec.attribute_member;
+
+    spec.label = spec.label || entity.metadata.label_singular;
+
+    spec.tab_label = spec.tab_label ||
+                    metadata_provider.get('@mo:'+spec.other_entity+'.label') ||
+                    spec.other_entity;
+
+    if (has_indirect_attribute_member(spec)) {
+
+        spec.indirect_attribute_member = spec.attribute_member + 'indirect';
+    }
+
+    if (spec.facet_group === 'memberindirect' ||
+        spec.facet_group === 'memberofindirect') {
+
+        spec.read_only = true;
+    }
+
      /*
        Link parameter is used to turn off the links in self-service mode.
        Default it to true if not set so that facets that would not otherwise
@@ -823,6 +865,12 @@ exp.association_facet_pre_op = function(spec, context) {
         IPA.selected_state_evaluator,
         IPA.association_type_state_evaluator,
         IPA.read_only_state_evaluator);
+
+    entity.policies.add_policy(IPA.build({
+        $factory: IPA.facet_update_policy,
+        source_facet: 'search',
+        dest_facet: spec.name
+    }));
 
     return spec;
 };
@@ -1191,6 +1239,21 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
 
 exp.attribute_facet_pre_op = function(spec, context) {
 
+    var entity = context.entity;
+    su.context_entity(spec, context);
+
+    spec.title = spec.title || entity.metadata.label_singular;
+    spec.label = spec.label || entity.metadata.label_singular;
+
+    var attr_metadata = IPA.get_entity_param(entity.name, spec.attribute);
+    spec.tab_label = spec.tab_label || attr_metadata.label;
+
+    entity.policies.add_policy(IPA.build({
+        $factory: IPA.facet_update_policy,
+        source_facet: 'search',
+        dest_facet: spec.name
+    }));
+
     //default buttons and their actions
     spec.actions = spec.actions || [];
     spec.actions.unshift(
@@ -1494,7 +1557,6 @@ phases.on('registration', function() {
         type: 'association',
         factory: exp.association_facet,
         pre_ops: [
-            mod_facet.facet_preops.association,
             exp.association_facet_pre_op
         ]
     });
@@ -1503,7 +1565,6 @@ phases.on('registration', function() {
         type: 'attribute',
         factory: exp.attribute_facet,
         pre_ops: [
-            mod_facet.facet_preops.attribute,
             exp.attribute_facet_pre_op
         ]
     });

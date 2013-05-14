@@ -30,10 +30,11 @@ define([
         './jquery',
         './phases',
         './reg',
+        './spec_util',
         './text',
         './facet',
         './add'],
-    function(lang, builder, IPA, $, phases, reg, text, mod_facet) {
+    function(lang, builder, IPA, $, phases, reg, su, text) {
 
 var exp = {};
 
@@ -243,7 +244,13 @@ exp.facet_policies = IPA.facet_policies = function(spec) {
 
 exp.details_facet_pre_op = function(spec, context) {
 
+    var entity = context.entity;
+    su.context_entity(spec, context);
+
     spec.name = spec.name || 'details';
+    spec.title = spec.title || entity.metadata.label_singular;
+    spec.label = spec.label || entity.metadata.label_singular;
+    spec.tab_label = spec.tab_label || '@i18n:facets.details';
 
     spec.actions = spec.actions || [];
     spec.actions.unshift(
@@ -1241,7 +1248,6 @@ exp.register = function() {
         type: 'details',
         factory: IPA.details_facet,
         pre_ops: [
-            mod_facet.facet_preops.details,
             exp.details_facet_pre_op
         ]
     });
