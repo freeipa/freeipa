@@ -26,6 +26,7 @@ import re
 import time
 import tempfile
 import base64
+import stat
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, sysrestore, dogtag, ipaldap
@@ -213,6 +214,7 @@ class DsInstance(service.Service):
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("configure autobind for root", self.__root_autobind)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
+        self.step("configure dirsrv ccache", self.configure_dirsrv_ccache)
         self.step("restarting directory server", self.__restart_instance)
 
     def __common_post_setup(self):
@@ -514,6 +516,22 @@ class DsInstance(service.Service):
 
     def __repoint_managed_entries(self):
         self._ldap_mod("repoint-managed-entries.ldif", self.sub_dict)
+
+    def configure_dirsrv_ccache(self):
+        pent = pwd.getpwnam("dirsrv")
+        ccache = '/tmp/krb5cc_%d' % pent.pw_uid
+        filepath = '/etc/sysconfig/dirsrv'
+        if not os.path.exists(filepath):
+            # file doesn't exist; create it with correct ownership & mode
+            open(filepath, 'a').close()
+            os.chmod(filepath,
+                stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+            os.chown(filepath, 0, 0)
+
+        replacevars = {'KRB5CCNAME': ccache}
+        old_values = ipautil.backup_config_and_replace_variables(
+            self.fstore, filepath, replacevars=replacevars)
+        ipaservices.restore_context(filepath)
 
     def __managed_entries(self):
         self._ldap_mod("managed-entries.ldif", self.sub_dict)

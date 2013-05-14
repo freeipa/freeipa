@@ -919,6 +919,7 @@ def main():
     http.configure_httpd_ccache()
 
     ds = dsinstance.DsInstance()
+    ds.configure_dirsrv_ccache()
 
     fix_schema_file_syntax(ds)
 
