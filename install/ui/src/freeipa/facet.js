@@ -1579,50 +1579,6 @@ exp.facet_preops = {
     }
 };
 
-exp.register_facets = function() {
-
-    var f = reg.facet;
-    f.register({
-        type: 'search',
-        factory: IPA.search_facet,
-        pre_ops: [
-            exp.facet_preops.search
-        ]
-    });
-
-    f.register({
-        type: 'nested_search',
-        factory: IPA.nested_search_facet,
-        pre_ops: [
-            exp.facet_preops.nested_search
-        ]
-    });
-
-    f.register({
-        type: 'details',
-        factory: IPA.details_facet,
-        pre_ops: [
-            exp.facet_preops.details
-        ]
-    });
-
-    f.register({
-        type: 'association',
-        factory: IPA.association_facet,
-        pre_ops: [
-            exp.facet_preops.association
-        ]
-    });
-
-    f.register({
-        type: 'attribute',
-        factory: IPA.attribute_facet,
-        pre_ops: [
-            exp.facet_preops.attribute
-        ]
-    });
-};
-
 exp.action = IPA.action = function(spec) {
 
     spec = spec || {};
@@ -2406,7 +2362,7 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
     },
 
     /**
-     * Set completly new state. Old state is cleared.
+     * Set completely new state. Old state is cleared.
      *
      * Raises 'reset' event.
      */
@@ -2446,7 +2402,6 @@ exp.register = function() {
 };
 
 phases.on('registration', exp.register);
-phases.on('registration', exp.register_facets);
 
 return exp;
 });

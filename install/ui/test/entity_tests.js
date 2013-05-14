@@ -39,14 +39,6 @@ module('entity',{
 
         mod_search.register();
 
-        reg.facet.register({
-            type: 'search',
-            factory: IPA.search_facet,
-            pre_ops: [
-                mod_facet.facet_preops.search
-            ]
-        });
-
         IPA.init({
             url: 'data',
             on_success: function(data, text_status, xhr) {
