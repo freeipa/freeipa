@@ -28,7 +28,6 @@ define([
         'dojo/on',
         'dojo/Stateful',
         'dojo/Evented',
-        './_base/metadata_provider',
         './_base/Singleton_registry',
         './builder',
         './ipa',
@@ -41,7 +40,7 @@ define([
         './dialog',
         './field',
         './widget'
-       ], function(declare, lang, construct, on, Stateful, Evented, metadata_provider,
+       ], function(declare, lang, construct, on, Stateful, Evented,
                    Singleton_registry, builder, IPA, $, navigation, phases, reg, su, text) {
 
 /**
@@ -1465,118 +1464,6 @@ exp.facet_group = IPA.facet_group = function(spec) {
     };
 
     return that;
-};
-
-exp.facet_preops = {
-    search: function(spec, context) {
-
-        var entity = context.entity;
-        su.context_entity(spec, context);
-
-        spec.title = spec.title || entity.metadata.label;
-        spec.label = spec.label || entity.metadata.label;
-        spec.tab_label = spec.tab_label || '@i18n:facets.search';
-
-        return spec;
-    },
-
-    nested_search: function(spec, context) {
-
-        var entity = context.entity;
-        su.context_entity(spec, context);
-
-        spec.title = spec.title || entity.metadata.label_singular;
-        spec.label = spec.label || entity.metadata.label;
-        spec.tab_label = spec.tab_label || '@i18n:facets.search';
-
-        return spec;
-    },
-
-    details: function(spec, context) {
-
-        var entity = context.entity;
-        su.context_entity(spec, context);
-
-        spec.title = spec.title || entity.metadata.label_singular;
-        spec.label = spec.label || entity.metadata.label_singular;
-        spec.tab_label = spec.tab_label || '@i18n:facets.details';
-
-        return spec;
-    },
-
-    attribute: function(spec, context) {
-
-        var entity = context.entity;
-        su.context_entity(spec, context);
-
-        spec.title = spec.title || entity.metadata.label_singular;
-        spec.label = spec.label || entity.metadata.label_singular;
-
-        var attr_metadata = IPA.get_entity_param(entity.name, spec.attribute);
-        spec.tab_label = spec.tab_label || attr_metadata.label;
-
-        entity.policies.add_policy(IPA.build({
-            $factory: IPA.facet_update_policy,
-            source_facet: 'search',
-            dest_facet: spec.name
-        }));
-
-        return spec;
-    },
-
-    association: function(spec, context) {
-
-        var has_indirect_attribute_member = function(spec) {
-
-            var indirect_members = entity.metadata.attribute_members[spec.attribute_member + 'indirect'];
-            if (indirect_members) {
-                if (indirect_members.indexOf(spec.other_entity) > -1) {
-                    return true;
-                }
-            }
-            return false;
-        };
-
-        var entity = context.entity;
-        su.context_entity(spec, context);
-        spec.entity = entity;
-
-        var index = spec.name.indexOf('_');
-        spec.attribute_member = spec.attribute_member ||
-            spec.name.substring(0, index);
-        spec.other_entity = spec.other_entity ||
-            spec.name.substring(index+1);
-
-        spec.add_title = '@i18n:association.add.'+spec.attribute_member;
-        spec.remove_title = '@i18n:association.remove.'+spec.attribute_member;
-
-        spec.facet_group = spec.facet_group || spec.attribute_member;
-
-        spec.label = spec.label || entity.metadata.label_singular;
-
-        spec.tab_label = spec.tab_label ||
-                        metadata_provider.get('@mo:'+spec.other_entity+'.label') ||
-                        spec.other_entity;
-
-        if (has_indirect_attribute_member(spec)) {
-
-            spec.indirect_attribute_member = spec.attribute_member + 'indirect';
-        }
-
-        if (spec.facet_group === 'memberindirect' ||
-            spec.facet_group === 'memberofindirect') {
-
-            spec.read_only = true;
-        }
-
-        entity.policies.add_policy(IPA.build({
-            $factory: IPA.facet_update_policy,
-            source_facet: 'search',
-            dest_facet: spec.name
-        }));
-
-        return spec;
-    }
 };
 
 exp.action = IPA.action = function(spec) {
