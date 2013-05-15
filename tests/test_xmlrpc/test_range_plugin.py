@@ -27,61 +27,166 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
 from ipapython.dn import *
 
+import ldap, ldap.sasl, ldap.modlist
+
 testrange1 = u'testrange1'
 testrange1_base_id = 900000
 testrange1_size = 99999
 testrange1_base_rid = 10000
-testrange1_secondary_base_rid=200000
+testrange1_secondary_base_rid = 200000
 
 testrange2 = u'testrange2'
 testrange2_base_id = 100
 testrange2_size = 50
 testrange2_base_rid = 100
-testrange2_secondary_base_rid=1000
+testrange2_secondary_base_rid = 1000
 
 testrange3 = u'testrange3'
 testrange3_base_id = 200
 testrange3_size = 50
 testrange3_base_rid = 70
-testrange3_secondary_base_rid=1100
+testrange3_secondary_base_rid = 1100
 
 testrange4 = u'testrange4'
 testrange4_base_id = 300
 testrange4_size = 50
 testrange4_base_rid = 200
-testrange4_secondary_base_rid=1030
+testrange4_secondary_base_rid = 1030
 
 testrange5 = u'testrange5'
 testrange5_base_id = 400
 testrange5_size = 50
 testrange5_base_rid = 1020
-testrange5_secondary_base_rid=1200
+testrange5_secondary_base_rid = 1200
 
 testrange6 = u'testrange6'
 testrange6_base_id = 130
 testrange6_size = 50
 testrange6_base_rid = 500
-testrange6_secondary_base_rid=1300
+testrange6_secondary_base_rid = 1300
 
 testrange7 = u'testrange7'
 testrange7_base_id = 600
 testrange7_size = 50
 testrange7_base_rid = 600
-testrange7_secondary_base_rid=649
+testrange7_secondary_base_rid = 649
 
 testrange8 = u'testrange8'
 testrange8_base_id = 700
 testrange8_size = 50
 testrange8_base_rid = 700
 
-user1=u'tuser1'
+testrange9 = u'testrange9'
+testrange9_base_id = 800
+testrange9_size = 50
+testrange9_base_rid = 800
+
+testrange10 = u'testrange10'
+testrange10_base_id = 900
+testrange10_size = 50
+testrange10_base_rid = 900
+
+testrange9_dn = "cn={name},cn=ranges,cn=etc,{basedn}".format(name=testrange9,
+                                                      basedn=api.env.basedn)
+
+testrange9_add = dict(
+    objectClass=["ipaIDrange", "ipatrustedaddomainrange"],
+    ipaBaseID="{base_id}".format(base_id=testrange9_base_id),
+    ipaBaseRID="{base_rid}".format(base_rid=testrange9_base_rid),
+    ipaIDRangeSize="{size}".format(size=testrange9_size),
+    ipaNTTrustedDomainSID="S-1-5-21-259319770-2312917334-591429603",
+    )
+
+testrange10_dn = "cn={name},cn=ranges,cn=etc,{basedn}".format(name=testrange10,
+                                                       basedn=api.env.basedn)
+
+testrange10_add = dict(
+    objectClass=["ipaIDrange", "ipatrustedaddomainrange"],
+    ipaBaseID="{base_id}".format(base_id=testrange10_base_id),
+    ipaBaseRID="{base_rid}".format(base_rid=testrange10_base_rid),
+    ipaIDRangeSize="{size}".format(size=testrange10_size),
+    ipaNTTrustedDomainSID="S-1-5-21-2997650941-1802118864-3094776726",
+    )
+
+testtrust = u'testtrust'
+testtrust_dn = "cn=testtrust,cn=trusts,{basedn}".format(basedn=api.env.basedn)
+
+testtrust_add = dict(
+    objectClass=["ipaNTTrustedDomain", "ipaIDobject", "top"],
+    ipaNTFlatName='TESTTRUST',
+    ipaNTTrustedDomainSID='S-1-5-21-2997650941-1802118864-3094776726',
+    ipaNTSIDBlacklistIncoming='S-1-0',
+    ipaNTTrustPartner='testtrust.mock',
+    ipaNTTrustType='2',
+    ipaNTTrustDirection='3',
+    ipaNTTrustAttributes='8',
+    )
+
+user1 = u'tuser1'
 user1_uid = 900000
-group1=u'group1'
+group1 = u'group1'
 group1_gid = 900100
 
+
 class test_range(Declarative):
+
+    def __init__(self):
+        super(test_range, self).__init__()
+        self.connection = None
+
+    @classmethod
+    def connect_ldap(self):
+        self.connection = ldap.initialize('ldap://{host}'
+                                     .format(host=api.env.host))
+
+        auth = ldap.sasl.gssapi("")
+        self.connection.sasl_interactive_bind_s('', auth)
+
+    @classmethod
+    def add_entry(self, dn, mods):
+        ldif = ldap.modlist.addModlist(mods)
+        self.connection.add_s(dn, ldif)
+
+    @classmethod
+    def setUpClass(self):
+        super(test_range, self).setUpClass()
+
+        self.tearDownClass()
+
+        try:
+            self.connect_ldap()
+
+            self.add_entry(testrange9_dn, testrange9_add)
+            self.add_entry(testrange10_dn, testrange10_add)
+            self.add_entry(testtrust_dn, testtrust_add)
+
+        except ldap.ALREADY_EXISTS:
+            pass
+
+        finally:
+            if self.connection is not None:
+                self.connection.unbind_s()
+
+    @classmethod
+    def tearDownClass(self):
+
+        try:
+            self.connect_ldap()
+            self.connection.delete_s(testrange9_dn)
+            self.connection.delete_s(testrange10_dn)
+            self.connection.delete_s(testtrust_dn)
+
+        except ldap.NO_SUCH_OBJECT:
+            pass
+
+        finally:
+            if self.connection is not None:
+                self.connection.unbind_s()
+
     cleanup_commands = [
-        ('idrange_del', [testrange1,testrange2,testrange3,testrange4,testrange5,testrange6,testrange7, testrange8], {'continue': True}),
+        ('idrange_del', [testrange1, testrange2, testrange3, testrange4,
+                         testrange5, testrange6, testrange7, testrange8],
+                        {'continue': True}),
         ('user_del', [user1], {}),
         ('group_del', [group1], {}),
     ]
@@ -407,6 +512,25 @@ class test_range(Declarative):
                 value=testrange8,
                 summary=u'Deleted ID range "%s"' % testrange8,
             ),
+        ),
+
+        dict(
+            desc='Delete non-active AD trusted range %r' % testrange9,
+            command=('idrange_del', [testrange9], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=testrange9,
+                summary=u'Deleted ID range "%s"' % testrange9,
+            ),
+        ),
+
+        dict(
+            desc='Try to delete active AD trusted range %r' % testrange10,
+            command=('idrange_del', [testrange10], {}),
+            expected=errors.DependentEntry(
+                    label='Active Trust',
+                    key=testrange10,
+                    dependent=testtrust),
         ),
 
     ]
