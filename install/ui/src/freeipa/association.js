@@ -1025,10 +1025,22 @@ IPA.association_facet = function (spec, no_init) {
                 other_entity: that.other_entity,
                 values: dialog.get_selected_values(),
                 method: that.add_method,
-                on_success: function() {
+                on_success: function(data) {
                     that.refresh();
                     dialog.close();
-                    IPA.notify_success('@i18n:association.added');
+                    var succeeded = data.result.completed;
+
+                    if (!succeeded) {
+                        succeeded = 0;
+                        for (var i = 0; i< data.result.results.length; i++) {
+                            if (data.result.results[i].completed === 1) {
+                                succeeded++;
+                            }
+                        }
+                    }
+
+                    var msg = text.get('@i18n:association.added').replace('${count}', succeeded);
+                    IPA.notify_success(msg);
                 },
                 on_error: function() {
                     that.refresh();
@@ -1077,9 +1089,22 @@ IPA.association_facet = function (spec, no_init) {
                 other_entity: that.other_entity,
                 values: values,
                 method: that.remove_method,
-                on_success: function() {
+                on_success: function(data) {
                     that.refresh();
-                    IPA.notify_success('@i18n:association.removed');
+
+                    var succeeded = data.result.completed;
+
+                    if (!succeeded) {
+                        succeeded = 0;
+                        for (var i = 0; i< data.result.results.length; i++) {
+                            if (data.result.results[i].completed === 1) {
+                                succeeded++;
+                            }
+                        }
+                    }
+
+                    var msg = text.get('@i18n:association.removed').replace('${count}', succeeded);
+                    IPA.notify_success(msg);
                 },
                 on_error: function() {
                     that.refresh();

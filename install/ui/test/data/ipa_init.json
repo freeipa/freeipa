@@ -31,7 +31,7 @@
                             "memberof": "Add ${entity} ${primary_key} into ${other_entity}",
                             "sourcehost": "Add Source ${other_entity} into ${entity} ${primary_key}"
                         },
-                        "added": "Items added",
+                        "added": "${count} item(s) added",
                         "direct_membership": "Direct Membership",
                         "indirect_membership": "Indirect Membership",
                         "no_entries": "No entries.",
@@ -46,7 +46,7 @@
                             "memberof": "Remove ${entity} ${primary_key} from ${other_entity}",
                             "sourcehost": "Remove Source ${other_entity} from ${entity} ${primary_key}"
                         },
-                        "removed": "Items removed",
+                        "removed": "${count} item(s) removed",
                         "show_results": "Show Results"
                     },
                     "buttons": {
@@ -465,7 +465,7 @@
                             "host": "Access this host",
                             "ipaenabledflag": "Rule status",
                             "option_added": "Option added",
-                            "option_removed": "Option(s) removed",
+                            "option_removed": "${count} option(s) removed",
                             "options": "Options",
                             "runas": "As Whom",
                             "specified_commands": "Specified Commands and Groups",
@@ -521,11 +521,11 @@
                     },
                     "search": {
                         "delete_confirm": "Are you sure you want to delete selected entries?",
-                        "deleted": "Selected entries were deleted.",
+                        "deleted": "${count} item(s) deleted",
                         "disable_confirm": "Are you sure you want to disable selected entries?",
-                        "disabled": "${count} items were disabled",
+                        "disabled": "${count} item(s) disabled",
                         "enable_confirm": "Are you sure you want to enable selected entries?",
-                        "enabled": "${count} items were enabled",
+                        "enabled": "${count} item(s) enabled",
                         "partial_delete": "Some entries were not deleted",
                         "quick_links": "Quick Links",
                         "select_all": "Select All",

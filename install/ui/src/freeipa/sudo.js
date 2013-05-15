@@ -881,18 +881,22 @@ IPA.sudo.options_section = function(spec) {
                 on_success: function(data) {
                     //last successful result of batch results contains valid data
                     var result;
-                    for(var i = data.result.results.length - 1; i > -1; i--) {
-                        result = data.result.results[i].result;
-                        if(result) break;
+                    var succeeded = 0;
+
+                    for (var i = data.result.results.length - 1; i > -1; i--) {
+                        var error = data.result.results[i].error;
+                        if (!result) result = data.result.results[i].result;
+                        if (!error) succeeded++;
                     }
 
-                    if(result) {
+                    if (result) {
                         that.table.load(result);
                     } else {
                         that.reload();
                     }
 
-                    IPA.notify_success('@i18n:objects.sudorule.option_removed');
+                    var msg = text.get('@i18n:objects.sudorule.option_removed').replace('${count}', succeeded);
+                    IPA.notify_success(msg);
                 },
                 on_error: function(data) {
                     that.reload();
