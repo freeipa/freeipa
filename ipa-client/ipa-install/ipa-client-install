@@ -1344,18 +1344,24 @@ def do_nsupdate(update_txt):
     return result
 
 UPDATE_TEMPLATE_A = """
+debug
 zone $ZONE.
 update delete $HOSTNAME. IN A
+show
 send
 update add $HOSTNAME. $TTL IN A $IPADDRESS
+show
 send
 """
 
 UPDATE_TEMPLATE_AAAA = """
+debug
 zone $ZONE.
 update delete $HOSTNAME. IN AAAA
+show
 send
 update add $HOSTNAME. $TTL IN AAAA $IPADDRESS
+show
 send
 """
 
@@ -1446,7 +1452,8 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
         zone = '.'.join(hostname.split('.')[1:])
         ttl = 1200
 
-        update_txt = 'zone %s.\nupdate delete %s. IN SSHFP\nsend\n' % (zone, hostname)
+        update_txt = 'debug\nzone %s.\n' % zone
+        update_txt += 'update delete %s. IN SSHFP\nshow\nsend\n' % hostname
         for pubkey in pubkeys:
             sshfp = pubkey.fingerprint_dns_sha1()
             if sshfp is not None:
@@ -1454,7 +1461,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
             sshfp = pubkey.fingerprint_dns_sha256()
             if sshfp is not None:
                 update_txt += 'update add %s. %s IN SSHFP %s\n' % (hostname, ttl, sshfp)
-        update_txt += 'send\n'
+        update_txt += 'show\nsend\n'
 
         if not do_nsupdate(update_txt):
             root_logger.warning("Could not update DNS SSHFP records.")
