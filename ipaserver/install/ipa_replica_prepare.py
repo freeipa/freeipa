@@ -274,6 +274,11 @@ class ReplicaPrepare(admintool.AdminTool):
             self.copy_info_file(options.dirsrv_pkcs12, "dscert.p12")
         else:
             if ipautil.file_exists(options.ca_file):
+                # Since it is possible that the Directory Manager password
+                # has changed since ipa-server-install, we need to regenerate
+                # the CA PKCS#12 file and update the pki admin user password
+                self.regenerate_ca_file(options.ca_file)
+                self.update_pki_admin_password()
                 self.copy_info_file(options.ca_file, "cacert.p12")
             else:
                 raise admintool.ScriptError("Root CA PKCS#12 not "
@@ -505,3 +510,34 @@ class ReplicaPrepare(admintool.AdminTool):
                 db.export_pkcs12(pkcs12_fname, agent_name, "ipaCert")
         finally:
             os.remove(agent_name)
+
+    def update_pki_admin_password(self):
+        ldap = ldap2(shared_instance=False)
+        ldap.connect(
+            bind_dn=DN(('cn', 'directory manager')),
+            bind_pw=self.dirman_password
+        )
+        dn = DN('uid=admin', 'ou=people', 'o=ipaca')
+        ldap.modify_password(dn, self.dirman_password)
+        ldap.disconnect()
+
+    def regenerate_ca_file(self, ca_file):
+        dm_pwd_fd = ipautil.write_tmp_file(self.dirman_password)
+
+        keydb_pwd = ''
+        with open('/etc/pki/pki-tomcat/password.conf') as f:
+            for line in f.readlines():
+                key, value = line.strip().split('=')
+                if key == 'internal':
+                    keydb_pwd = value
+                    break
+
+        keydb_pwd_fd = ipautil.write_tmp_file(keydb_pwd)
+
+        ipautil.run([
+            '/usr/bin/PKCS12Export',
+            '-d', '/etc/pki/pki-tomcat/alias/',
+            '-p', keydb_pwd_fd.name,
+            '-w', dm_pwd_fd.name,
+            '-o', ca_file
+        ])
