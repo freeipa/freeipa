@@ -434,14 +434,31 @@ class idrange_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         try:
-            (old_dn, old_attrs) = ldap.get_entry(dn, ['ipabaseid', 'ipaidrangesize'])
+            (old_dn, old_attrs) = ldap.get_entry(dn, ['ipabaseid',
+                                                      'ipaidrangesize',
+                                                      'ipanttrusteddomainsid'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
+        # Check whether we leave any object with id in deleted range
         old_base_id = int(old_attrs.get('ipabaseid', [0])[0])
         old_range_size = int(old_attrs.get('ipaidrangesize', [0])[0])
         self.obj.check_ids_in_modified_range(
                 old_base_id, old_range_size, 0, 0)
+
+        # Check whether the range does not belong to the active trust
+        range_sid = old_attrs.get('ipanttrusteddomainsid')
+
+        if range_sid is not None:
+            range_sid = range_sid[0]
+            result = api.Command['trust_find'](ipanttrusteddomainsid=range_sid)
+
+            if result['count'] > 0:
+                raise errors.DependentEntry(
+                    label='Active Trust',
+                    key=keys[0],
+                    dependent=result['result'][0]['cn'][0])
+
         return dn
 
 class idrange_find(LDAPSearch):
