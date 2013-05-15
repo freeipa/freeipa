@@ -186,13 +186,13 @@ EXAMPLES:
 
     4. Test if other user from a trusted domain specified by its SID matches any rule:
 
-    $ ipa hbactest --user S-1-5-21-3035198329-144811719-1378114514-500 \\
+    $ ipa hbactest --user S-1-5-21-3035198329-144811719-1378114514-1203 \\
             --host `hostname` --service sshd
     --------------------
     Access granted: True
     --------------------
       Matched rules: allow_all
-      Matched rules: can_login
+      Not matched rules: can_login
 
    5. Test if other user from a trusted domain specified by its shortname matches
        any rule:
