@@ -21,7 +21,7 @@
 
 """
 Generate a custom certificate used in the service unit tests. The certificate
-will be created in tests/test_xmlrpc/service.crt
+will be created in ipatests/test_xmlrpc/service.crt
 """
 import sys
 import os
@@ -33,7 +33,7 @@ from ipaserver.plugins import rabase
 from ipapython import ipautil
 from ipapython.dn import DN
 
-CERTPATH = 'tests/test_xmlrpc/service.crt'
+CERTPATH = 'ipatests/test_xmlrpc/service.crt'
 
 def run_certutil(reqdir, args, stdin=None):
     """
@@ -86,7 +86,7 @@ def makecert(reqdir):
 
     ra = rabase.rabase()
     if not os.path.exists(ra.sec_dir) and api.env.xmlrpc_uri == 'http://localhost:8888/ipa/xml':
-        sys.exit('The in-tree self-signed CA is not configured, see tests/test_xmlrpc/test_cert.py')
+        sys.exit('The in-tree self-signed CA is not configured, see ipatests/test_xmlrpc/test_cert.py')
 
     pwname = reqdir + "/pwd"
 

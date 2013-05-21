@@ -52,7 +52,7 @@ endif
 
 PYTHON ?= $(shell rpm -E %__python)
 
-all: bootstrap-autogen server
+all: bootstrap-autogen server tests
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -71,7 +71,7 @@ client-autogen: version-update
 	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
-install: all server-install
+install: all server-install tests-install
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -118,6 +118,8 @@ version-update: release-update
 		> ipapython/setup.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/version.py.in \
 		> ipapython/version.py
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipatests/setup.py.in \
+		> ipatests/setup.py
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" ipapython/version.py
 	perl -pi -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ daemons/ipa-version.h.in \
@@ -147,6 +149,16 @@ server-install: server
 		$(PYTHON) setup.py install; \
 	else \
 		$(PYTHON) setup.py install --root $(DESTDIR); \
+	fi
+
+tests: version-update
+	cd ipatests; $(PYTHON) setup.py build
+
+tests-install: tests
+	if [ "$(DESTDIR)" = "" ]; then \
+		cd ipatests; $(PYTHON) setup.py install; \
+	else \
+		cd ipatests; $(PYTHON) setup.py install --root $(DESTDIR); \
 	fi
 
 archive:

@@ -38,7 +38,7 @@ except ImportError:
 # File names to ignore when searching for python source files
 IGNORE_FILES = ('.*', '*~', '*.in', '*.pyc', '*.pyo')
 IGNORE_PATHS = ('build', 'rpmbuild', 'dist', 'install/po/test_i18n.py',
-    'lite-server.py', 'make-lint', 'make-test', 'tests')
+    'lite-server.py', 'make-lint', 'make-test', 'ipatests')
 
 class IPATypeChecker(TypeChecker):
     NAMESPACE_ATTRS = ['Command', 'Object', 'Method', 'Property', 'Backend',

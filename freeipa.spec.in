@@ -290,6 +290,26 @@ user, virtual machines, groups, authentication credentials), Policy
 logs, analysis thereof). If you are using IPA you need to install this
 package.
 
+%if ! %{ONLY_CLIENT}
+%package tests
+Summary: IPA tests and test tools
+Requires: %{name}-client = %{version}-%{release}
+Requires: %{name}-python = %{version}-%{release}
+Requires: python-nose
+Requires: python-paste
+Requires: python-coverage
+Requires: python-polib
+
+%description tests
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof).
+This package contains tests that verify IPA functionality.
+
+%endif  # ! %{ONLY_CLIENT}
+
+
 %prep
 %setup -n freeipa-%{version} -q
 
@@ -432,6 +452,10 @@ install -pm 644 ipa-compliance.cron %{buildroot}%{_sysconfdir}/cron.d/ipa-compli
 	grep -v dcerpc | grep -v adtrustinstance | \
 	sed -e 's,\.py.*$,.*,g' | sort -u | \
 	sed -e 's,\./,%%{python_sitelib}/ipaserver/,g' ) >server-python.list
+
+(cd %{buildroot}/%{python_sitelib}/ipatests && find . -type f  | \
+    sed -e 's,\.py.*$,.*,g' | sort -u | \
+    sed -e 's,\./,%%{python_sitelib}/ipatests/,g' ) >tests-python.list
 %endif  # ! %{ONLY_CLIENT}
 
 %clean
@@ -777,7 +801,26 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
+%if ! %{ONLY_CLIENT}
+%files tests -f tests-python.list
+%defattr(-,root,root,-)
+%doc COPYING README Contributors.txt
+%dir %{python_sitelib}/ipatests
+%dir %{python_sitelib}/ipatests/test_cmdline
+%dir %{python_sitelib}/ipatests/test_install
+%dir %{python_sitelib}/ipatests/test_ipalib
+%dir %{python_sitelib}/ipatests/test_ipapython
+%dir %{python_sitelib}/ipatests/test_ipaserver
+%dir %{python_sitelib}/ipatests/test_ipaserver/install
+%dir %{python_sitelib}/ipatests/test_pkcs10
+%dir %{python_sitelib}/ipatests/test_xmlrpc
+%{python_sitelib}/ipatests-*.egg-info
+%endif  # ! %{ONLY_CLIENT}
+
 %changelog
+* Mon Jun 17 2013 Petr Viktorin <pviktori@redhat.com> - 3.2.99-2
+- Add the freeipa-tests subpackage
+
 * Thu Jun 13 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-1
 - Drop freeipa-server-selinux subpackage
 - Drop redundant directory /var/cache/ipa/sessions
