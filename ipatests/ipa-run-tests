@@ -1,0 +1,37 @@
+#!/usr/bin/python
+
+"""Nose wrapper for running an installed (not in-tree) IPA test suite
+
+Any command-line arguments are passed directly to Nose.
+Note that any relative paths given will be based on the ipatests module's path
+"""
+
+import sys
+import os
+from os import path
+
+import ipatests
+
+nose = '/usr/bin/nosetests'
+
+cmd = [
+    nose,
+    '-v',
+    '--with-doctest',
+    '--doctest-tests',
+    '--exclude=plugins',
+    '--where', os.path.dirname(ipatests.__file__),
+]
+cmd += sys.argv[1:]
+
+
+# This must be set so ipalib.api gets initialized property for tests:
+os.environ['IPA_UNIT_TEST_MODE'] = 'cli_test'
+
+
+if not path.isfile(nose):
+    print 'ERROR: need %r' % nose
+    sys.exit(100)
+
+print ' '.join(cmd)
+sys.exit(call(cmd))
