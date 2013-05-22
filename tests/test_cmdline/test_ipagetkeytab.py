@@ -46,7 +46,7 @@ def use_keytab(principal, keytab):
         ccache.init(principal)
         ccache.init_creds_keytab(keytab=keytab, principal=principal)
         conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri, base_dn=api.env.basedn)
-        conn.connect(ccache=ccache.name)
+        conn.connect(ccache=ccache)
         conn.disconnect()
     except krbV.Krb5Error, e:
         raise StandardError('Unable to bind to LDAP. Error initializing principal %s in %s: %s' % (principal.name, keytab, str(e)))

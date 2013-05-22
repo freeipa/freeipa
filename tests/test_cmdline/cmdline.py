@@ -31,7 +31,7 @@ from ipaserver.plugins.ldap2 import ldap2
 from ipapython import ipautil
 
 # See if our LDAP server is up and we can talk to it over GSSAPI
-ccache = krbV.default_context().default_ccache().name
+ccache = krbV.default_context().default_ccache()
 
 try:
     conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri, base_dn=api.env.basedn)
