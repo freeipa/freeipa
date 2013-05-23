@@ -218,12 +218,14 @@ static void ipa_cldap_respond(struct ipa_cldap_ctx *ctx,
         return;
     }
 
-    /* result */
-    ret = ber_printf(be, "{it{s{{s[O]}}}}", req->id,
+    if (nbtblob->bv_len != 0) {
+        /* result */
+        ret = ber_printf(be, "{it{s{{s[O]}}}}", req->id,
                          LDAP_RES_SEARCH_ENTRY, "", "netlogon", nbtblob);
-    if (ret == LBER_ERROR) {
-        LOG("Failed to encode CLDAP reply\n");
-        goto done;
+        if (ret == LBER_ERROR) {
+            LOG("Failed to encode CLDAP reply\n");
+            goto done;
+        }
     }
     /* done */
     ret = ber_printf(be, "{it{ess}}", req->id,
@@ -264,7 +266,17 @@ static void ipa_cldap_process(struct ipa_cldap_ctx *ctx,
     LOG_TRACE("CLDAP Request received");
 
     ret = ipa_cldap_netlogon(ctx, req, &reply);
-    if (ret) {
+    switch (ret) {
+    case 0:
+        /* all fine */
+        break;
+    case EINVAL:
+    case ENOENT:
+        /* bad request, return empty reply as windows does */
+        memset(&reply, 0, sizeof(struct berval));
+        break;
+    default:
+        /* internal error, just get out */
         goto done;
     }
 
