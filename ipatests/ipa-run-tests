@@ -34,12 +34,14 @@ import nose
 
 import ipatests
 from ipatests.beakerlib_plugin import BeakerLibPlugin
+from ipatests.order_plugin import OrderTests
 
 cmd = [
     sys.argv[0],
     '-v',
     '--with-doctest',
     '--doctest-tests',
+    '--with-ordered-tests',
     '--exclude=plugins',
     '--where', os.path.dirname(ipatests.__file__),
 ]
@@ -49,4 +51,4 @@ cmd += sys.argv[1:]
 # This must be set so ipalib.api gets initialized property for tests:
 os.environ['IPA_UNIT_TEST_MODE'] = 'cli_test'
 
-nose.main(argv=cmd, addplugins=[BeakerLibPlugin()])
+nose.main(argv=cmd, addplugins=[BeakerLibPlugin(), OrderTests()])
