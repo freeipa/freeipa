@@ -215,14 +215,14 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
                        struct berval *reply)
 {
     char hostname[MAXHOSTNAMELEN + 1]; /* NOTE: lenght hardcoded in kernel */
-    char domname[MAXHOSTNAMELEN + 1]; /* NOTE: lenght hardcoded in kernel */
+    char *host = NULL;
     char *domain = NULL;
     char *guid = NULL;
     char *sid = NULL;
     char *name = NULL;
     uint32_t ntver = 0;
     uint32_t t;
-    char *p;
+    char *dot;
     int ret;
     int len;
     int i;
@@ -295,22 +295,43 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
         goto done;
     }
 
-    /* If no domain is provide the client is asking for our own domain,
-     * read our own domain name from the system */
-    if (!domain) {
-        ret = getdomainname(domname, MAXHOSTNAMELEN);
-        if (ret == -1) {
-            ret = errno;
+    /* TODO: get our own domain at plugin initialization, and avoid
+     * gethostname() */
+    ret = gethostname(hostname, MAXHOSTNAMELEN);
+    if (ret == -1) {
+        ret = errno;
+        goto done;
+    }
+    /* Make double sure it is terminated */
+    hostname[MAXHOSTNAMELEN] = '\0';
+    dot = strchr(hostname, '.');
+    if (!dot) {
+        /* this name is not fully qualified, therefore invalid */
+        ret = EINVAL;
+        goto done;
+    }
+    *dot = '\0';
+
+    /* this is the unqualified host name */
+    host = strdup(hostname);
+    if (!host) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    /* If a domain is provided, check it is our own.
+     * If no domain is provided the client is asking for our own domain. */
+    if (domain) {
+        ret = strcasecmp(domain, dot + 1);
+        if (ret != 0) {
+            ret = EINVAL;
             goto done;
         }
-        domname[MAXHOSTNAMELEN] = '\0';
-        p = strchr(hostname, '.');
-        if (p) {
-            domain = strdup(p + 1);
-            if (!domain) {
-                ret = ENOMEM;
-                goto done;
-            }
+    } else {
+        domain = strdup(dot + 1);
+        if (!domain) {
+            ret = ENOMEM;
+            goto done;
         }
     }
 
@@ -325,22 +346,12 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
         goto done;
     }
 
-    ret = gethostname(hostname, MAXHOSTNAMELEN);
-    if (ret == -1) {
-        ret = errno;
-        goto done;
-    }
-    hostname[MAXHOSTNAMELEN] = '\0';
-    p = strchr(hostname, '.');
-    if (p) {
-        *p = '\0';
-    }
-
-    ret = ipa_cldap_encode_netlogon(hostname, domain,
+    ret = ipa_cldap_encode_netlogon(host, domain,
                                     guid, sid, name,
                                     ntver, reply);
 
 done:
+    free(host);
     free(domain);
     free(guid);
     free(sid);
