@@ -68,7 +68,6 @@ try:
     # 2. Upgrade /etc/sysconfig/dirsrv for systemd
     print "    Upgrade /etc/sysconfig/dirsrv"
     update_key_val_in_file("/etc/sysconfig/dirsrv", "KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
-    update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
     # 3. Upgrade /etc/sysconfig/krb5kdc for systemd
     print "    Upgrade /etc/sysconfig/krb5kdc"
     replacevars = {'KRB5REALM':config.config.default_realm}
