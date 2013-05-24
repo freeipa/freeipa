@@ -32,14 +32,6 @@ from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
 
 
-def shell_quote(string):
-    """Quote a string for the shell
-
-    Adapted from Python3's shlex.quote
-    """
-    return "'" + str(string).replace("'", "'\"'\"'") + "'"
-
-
 class BeakerLibLogHandler(logging.Handler):
     def __init__(self, beakerlib_command):
         super(BeakerLibLogHandler, self).__init__()
@@ -103,7 +95,7 @@ class BeakerLibPlugin(Plugin):
     def run_beakerlib_command(self, cmd):
         """Given a command as a Popen-style list, run it in the Bash process"""
         for word in cmd:
-            self.bash.stdin.write(shell_quote(word))
+            self.bash.stdin.write(ipautil.shell_quote(word))
             self.bash.stdin.write(' ')
         self.bash.stdin.write('\n')
         self.bash.stdin.flush()

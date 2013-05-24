@@ -1,0 +1,107 @@
+#! /usr/bin/python
+
+import sys
+import os
+import argparse
+
+from ipalib.constants import FQDN
+from ipatests.test_integration import config
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(
+    description='Prints out IPA test configuration for use in shell scripts.'
+        'IPA integration tests are configured via environment variables')
+
+    parser.add_argument('host', nargs='?',
+                        help='Print config for the given hostname')
+
+    parser.add_argument('--global', action='store_true', dest='global_',
+                        help='Print global config (not specific to a host '
+                             'or domain)')
+
+    parser.add_argument('--domain',
+                        help='IPA domain name, or number (the X in _envX)')
+
+    parser.add_argument('--master',
+                        help='Print config for the master',
+                        action='store_true')
+
+    parser.add_argument('--replica', type=int,
+                        help='Print config for the replica with this number')
+
+    parser.add_argument('--client', type=int,
+                        help='Print config for the client with this number')
+
+    parser.add_argument('--no-simple', dest='simple', action='store_false',
+                        help='Do not print Simple Vars '
+                             '(normally included backwards-compatibility)')
+
+    args = parser.parse_args(argv)
+
+    hostsargs = [bool(args.host), bool(args.master), bool(args.replica),
+             bool(args.client)]
+    if hostsargs.count(True) > 1:
+        parser.error('Must specify at most one of host selection options')
+    if any(hostsargs) or args.domain:
+        if args.global_:
+            parser.error('--global may not be combined with host selection options')
+    else:
+        args.host = FQDN
+
+    kwargs = {}
+    if not args.simple:
+        kwargs['simple'] = False
+
+    conf = config.Config.from_env(os.environ)
+
+    return config.env_to_script(get_object(conf, args).to_env(**kwargs))
+
+
+def get_object(conf, args):
+    if args.global_:
+        return conf
+    elif args.host:
+        try:
+            return conf.host_by_name(args.host)
+        except LookupError:
+            exit('Host %s not found in config. Try --global' % args.host)
+    else:
+        if args.domain:
+            try:
+                num = int(args.domain) - 1
+            except ValueError:
+                domains = [d for d in conf.domains if d.name == args.domain]
+                if not domains:
+                    exit('Domain %s not found' % args.domain)
+                domain = domains[0]
+            else:
+                try:
+                    domain = conf.domains[num]
+                except LookupError:
+                    exit('Domain %s not found.' % args.domain)
+        else:
+            try:
+                domain = conf.domains[0]
+            except IndexError:
+                exit('No domains are configured.')
+        if args.master:
+            return domain.master
+        elif args.replica:
+            num = int(args.replica) - 1
+            try:
+                return domain.replicas[args.replica]
+            except LookupError:
+                exit('Domain %s not found in domain %s' % (args.replica, domain.name))
+        elif args.client:
+            num = int(args.client) - 1
+            try:
+                return domain.replicas[args.client]
+            except LookupError:
+                exit('Client %s not found in domain %s' % (args.client, domain.name))
+        else:
+            return domain
+
+
+if __name__ == '__main__':
+    print main(sys.argv[1:]),

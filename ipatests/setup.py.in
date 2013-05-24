@@ -68,13 +68,14 @@ def setup_package():
             packages = ["ipatests",
                         "ipatests.test_cmdline",
                         "ipatests.test_install",
+                        "ipatests.test_integration",
                         "ipatests.test_ipalib",
                         "ipatests.test_ipapython",
                         "ipatests.test_ipaserver",
                         "ipatests.test_ipaserver.install",
                         "ipatests.test_pkcs10",
                         "ipatests.test_xmlrpc"],
-            scripts=['ipa-run-tests'],
+            scripts=['ipa-run-tests', 'ipa-test-config'],
             package_data = {
                 'ipatests.test_install': ['*.update'],
                 'ipatests.test_pkcs10': ['*.csr']}
