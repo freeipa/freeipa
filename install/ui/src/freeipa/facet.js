@@ -352,7 +352,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
             that.domNode.detach();
         } else {
             that.domNode = $('<div/>', {
-                'class': 'facet',
+                'class': 'facet active-facet',
                 name: that.name,
                 'data-name': that.name,
                 'data-entity': entity_name
@@ -386,8 +386,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
         }).appendTo(domNode);
 
         that.create_content(that.content);
-
-
+        domNode.removeClass('active-facet');
     };
 
     that.create_header = function(container) {
@@ -429,7 +428,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
                 that.clear();
             }
 
-            that.domNode.css('display', 'block');
+            that.domNode.addClass('active-facet');
             that.show_content();
             that.header.select_tab();
 
@@ -437,7 +436,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
                 that.refresh();
             }
         } else {
-            that.domNode.css('display', 'block');
+            that.domNode.addClass('active-facet');
             that.show_content();
             that.header.select_tab();
         }
@@ -459,7 +458,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
     };
 
     that.hide = function() {
-        that.domNode.css('display', 'none');
+        that.domNode.removeClass('active-facet');
     };
 
     that.load = function(data) {

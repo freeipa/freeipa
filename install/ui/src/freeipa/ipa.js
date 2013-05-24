@@ -1232,6 +1232,7 @@ IPA.error_dialog = function(spec) {
     spec = spec || {};
 
     spec.id = spec.id || 'error_dialog';
+    spec.name = 'error_dialog';
     spec.title = spec.error_thrown.name;
 
     var that = IPA.dialog(spec);

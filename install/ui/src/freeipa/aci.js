@@ -483,8 +483,9 @@ IPA.attributes_widget = function(spec) {
         }).appendTo(container);
 
         that.$node = that.table = $('<table/>', {
-            id:id,
-            'class':'search-table aci-attribute-table scrollable'
+            id: id,
+            name: that.name,
+            'class': 'search-table aci-attribute-table scrollable'
         }).
             append('<thead/>').
             append('<tbody/>').
@@ -526,7 +527,7 @@ IPA.attributes_widget = function(spec) {
 
             var td =  $('<td/>').appendTo(tr);
             var name = that.get_input_name();
-            var id = that.option_next_id + name;
+            var id = that._option_next_id + name;
             td.append($('<input/>',{
                 id: id,
                 type: 'checkbox',

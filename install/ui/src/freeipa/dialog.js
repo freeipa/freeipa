@@ -251,8 +251,9 @@ IPA.dialog = function(spec) {
         var parent = that.container.parent();
         var buttons = $('.ui-dialog-buttonpane .ui-dialog-buttonset button', parent);
 
-        buttons.each(function(index) {
+        buttons.each(function(index, ui_button) {
             var button = that.buttons.values[index];
+            $(ui_button).prop('name', button.name);
             button.element = $(this);
         });
     };

@@ -1561,7 +1561,8 @@ IPA.table_widget = function (spec) {
         container.addClass('table-widget');
 
         that.table = $('<table/>', {
-            'class': 'search-table'
+            'class': 'search-table',
+            name: that.name
         }).appendTo(container);
 
         if (that['class']) that.table.addClass(that['class']);
