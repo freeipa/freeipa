@@ -1006,6 +1006,9 @@ class LogManager(object):
             Specifies that a FileHandler be created, using the specified
             filename.
 
+        log_handler
+            Specifies a custom logging.Handler to use
+
         Common keys:
         ------------
 
@@ -1140,8 +1143,10 @@ class LogManager(object):
 
         # Iterate over handler configurations.
         for cfg in configs:
-            # File or stream handler?
+            # Type of handler?
             filename = cfg.get('filename')
+            stream = cfg.get("stream")
+            log_handler = cfg.get("log_handler")
             if filename:
                 if cfg.has_key("stream"):
                     raise ValueError("both filename and stream are specified, must be one or the other, config: %s" % cfg)
@@ -1188,11 +1193,7 @@ class LogManager(object):
                 permission = cfg.get('permission')
                 if permission is not None:
                     os.chmod(path, permission)
-            else:
-                stream = cfg.get("stream")
-                if stream is None:
-                    raise ValueError("neither file nor stream specified in config: %s" % cfg)
-
+            elif stream:
                 handler = logging.StreamHandler(stream)
 
                 # Set the handler name
@@ -1200,6 +1201,12 @@ class LogManager(object):
                 if name is None:
                     name = 'stream:%s' % (stream)
                 handler.name = name
+            elif log_handler:
+                handler = log_handler
+            else:
+                raise ValueError(
+                    "neither file nor stream nor log_handler specified in "
+                    "config: %s" % cfg)
 
             # Add the handler
             handlers.append(handler)
