@@ -813,6 +813,7 @@ fi
 %dir %{python_sitelib}/ipatests/test_ipaserver
 %dir %{python_sitelib}/ipatests/test_ipaserver/install
 %dir %{python_sitelib}/ipatests/test_pkcs10
+%dir %{python_sitelib}/ipatests/test_webui
 %dir %{python_sitelib}/ipatests/test_xmlrpc
 %{_bindir}/ipa-run-tests
 %{_bindir}/ipa-test-config
