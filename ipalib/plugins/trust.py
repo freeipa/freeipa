@@ -487,7 +487,8 @@ class trust_mod(LDAPUpdate):
 
 class trust_find(LDAPSearch):
     __doc__ = _('Search for trusts.')
-    has_output_params = LDAPSearch.has_output_params + trust_output_params
+    has_output_params = LDAPSearch.has_output_params + trust_output_params +\
+                        (Str('ipanttrusttype'),)
 
     msg_summary = ngettext(
         '%(count)d trust matched', '%(count)d trusts matched', 0
@@ -505,13 +506,18 @@ class trust_find(LDAPSearch):
 
         for entry in entries:
             (dn, attrs) = entry
-            attrs['trusttype'] = trust_type_string(attrs['ipanttrusttype'][0])
+
+            # Translate ipanttrusttype to trusttype if --raw not used
+            if not options.get('raw', False):
+                attrs['trusttype'] = trust_type_string(attrs['ipanttrusttype'][0])
+                del attrs['ipanttrusttype']
 
         return truncated
 
 class trust_show(LDAPRetrieve):
     __doc__ = _('Display information about a trust.')
-    has_output_params = LDAPRetrieve.has_output_params + trust_output_params
+    has_output_params = LDAPRetrieve.has_output_params + trust_output_params +\
+                        (Str('ipanttrusttype'), Str('ipanttrustdirection'))
 
     def execute(self, *keys, **options):
         error = None
@@ -524,9 +530,7 @@ class trust_show(LDAPRetrieve):
                 result = None
                 error = e
             if result:
-                 result['result']['trusttype'] = [trust_type_string(result['result']['ipanttrusttype'][0])]
-                 result['result']['trustdirection'] = [trust_direction_string(result['result']['ipanttrustdirection'][0])]
-                 break
+                break
         if error or not result:
             self.obj.handle_not_found(*keys)
 
@@ -536,6 +540,24 @@ class trust_show(LDAPRetrieve):
         assert isinstance(dn, DN)
         if 'trust_show_type' in options:
             return make_trust_dn(self.env, options['trust_show_type'], dn)
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+
+        # Translate ipanttrusttype to trusttype
+        # and ipanttrustdirection to trustdirection
+        # if --raw not used
+
+        if not options.get('raw', False):
+            type_str = trust_type_string(entry_attrs['ipanttrusttype'][0])
+            dir_str = trust_direction_string(entry_attrs['ipanttrustdirection']
+                                                        [0])
+            entry_attrs['trusttype'] = [type_str]
+            entry_attrs['trustdirection'] = [dir_str]
+            del entry_attrs['ipanttrusttype']
+            del entry_attrs['ipanttrustdirection']
+
         return dn
 
 api.register(trust)
