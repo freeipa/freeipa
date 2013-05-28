@@ -22,11 +22,11 @@
 import os
 import collections
 import random
-import socket
 
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
+from ipatests.test_integration.host import Host
 
 
 class Config(object):
@@ -36,6 +36,7 @@ class Config(object):
         admin_password = kwargs.get('admin_password') or 'Secret123'
 
         self.test_dir = kwargs.get('test_dir', '/root/ipatests')
+        self.root_password = kwargs.get('root_password')
         self.ipv6 = bool(kwargs.get('ipv6', False))
         self.debug = bool(kwargs.get('debug', False))
         self.admin_name = kwargs.get('admin_name') or 'admin'
@@ -62,6 +63,7 @@ class Config(object):
             by default /root/ipatests
         IPv6SETUP: "TRUE" if setting up with IPv6
         IPADEBUG: non-empty if debugging is turned on
+        IPA_ROOT_SSH_PASSWORD: SSH password for root
 
         ADMINID: Administrator username
         ADMINPW: Administrator password
@@ -84,6 +86,7 @@ class Config(object):
         self = cls(test_dir=env.get('IPATEST_DIR') or '/root/ipatests',
                    ipv6=(env.get('IPv6SETUP') == 'TRUE'),
                    debug=env.get('IPADEBUG'),
+                   root_password=env.get('IPA_ROOT_SSH_PASSWORD'),
                    admin_name=env.get('ADMINID'),
                    admin_password=env.get('ADMINPW'),
                    dirman_dn=env.get('ROOTDN'),
@@ -111,6 +114,7 @@ class Config(object):
         env['IPATEST_DIR'] = self.test_dir
         env['IPv6SETUP'] = 'TRUE' if self.ipv6 else ''
         env['IPADEBUG'] = 'TRUE' if self.debug else ''
+        env['IPA_ROOT_SSH_PASSWORD'] = self.root_password or ''
 
         env['ADMINID'] = self.admin_name
         env['ADMINPW'] = self.admin_password
@@ -290,60 +294,6 @@ class Domain(object):
             if host.hostname == name or host.external_hostname == name:
                 return host
         raise LookupError(name)
-
-
-class Host(object):
-    """Configuration for an IPA host"""
-    def __init__(self, domain, hostname, role, index):
-        self.log = log_mgr.get_logger(self)
-        self.domain = domain
-        self.role = role
-        self.index = index
-
-        shortname, dot, ext_domain = hostname.partition('.')
-        self.hostname = shortname + '.' + self.domain.name
-        self.external_hostname = hostname
-
-        if self.config.ipv6:
-            # $(dig +short $M $rrtype|tail -1)
-            stdout, stderr, returncode = ipautil.run(
-                ['dig', '+short', self.external_hostname, 'AAAA'])
-            self.ip = stdout.splitlines()[-1].strip()
-        else:
-            try:
-                self.ip = socket.gethostbyname(self.external_hostname)
-            except socket.gaierror:
-                self.ip = None
-
-        if not self.ip:
-            self.ip = ''
-            self.role = 'other'
-
-    @classmethod
-    def from_env(cls, env, domain, hostname, role, index):
-        self = cls(domain, hostname, role, index)
-        return self
-
-    @property
-    def config(self):
-        return self.domain.config
-
-    def to_env(self, **kwargs):
-        """Return environment variables specific to this host"""
-        env = self.domain.to_env(**kwargs)
-
-        role = self.role.upper()
-        if self.role != 'master':
-            role += str(self.index)
-
-        env['MYHOSTNAME'] = self.hostname
-        env['MYBREAKERHOSTNAME'] = self.external_hostname
-        env['MYIP'] = self.ip
-
-        env['MYROLE'] = '%s%s' % (role, self.domain._env)
-        env['MYENV'] = str(self.domain.index)
-
-        return env
 
 
 def env_to_script(env):

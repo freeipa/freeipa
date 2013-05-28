@@ -300,6 +300,7 @@ Requires: python-nose
 Requires: python-paste
 Requires: python-coverage
 Requires: python-polib
+Requires: python-paramiko >= 1.10.1
 
 %description tests
 IPA is an integrated solution to provide centrally managed Identity (machine,
