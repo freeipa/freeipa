@@ -98,6 +98,15 @@ static int ipa_cldap_get_tree(BerElement *be, struct kvp_list *kvps)
     char *cookie;
     int ret;
 
+    tag = ber_peek_tag(be, &len);
+    if (tag == LDAP_FILTER_EQUALITY) {
+        /* Special case of a single clause filter, eg. (NtVer=\06\00\00\00) */
+        ret = ipa_cldap_get_kvp(be, kvps);
+        if (ret == 0) {
+            return 0;
+        }
+    }
+
     tag = ber_first_element(be, &len, &cookie);
     while (tag != LBER_DEFAULT) {
         tag = ber_peek_tag(be, &len);
@@ -228,6 +237,7 @@ static void ipa_cldap_respond(struct ipa_cldap_ctx *ctx,
         }
     }
     /* done */
+    /* As per MS-ADTS 6.3.3.3 always return SUCCESS even for invalid filters */
     ret = ber_printf(be, "{it{ess}}", req->id,
                          LDAP_RES_SEARCH_RESULT, 0, "", "");
     if (ret == LBER_ERROR) {
@@ -266,23 +276,15 @@ static void ipa_cldap_process(struct ipa_cldap_ctx *ctx,
     LOG_TRACE("CLDAP Request received");
 
     ret = ipa_cldap_netlogon(ctx, req, &reply);
-    switch (ret) {
-    case 0:
-        /* all fine */
-        break;
-    case EINVAL:
-    case ENOENT:
-        /* bad request, return empty reply as windows does */
+    if (ret != 0) {
+        /* bad request, or internal error, return empty reply */
+        /* as Windows does per MS-ADTS 6.3.3.3 */
         memset(&reply, 0, sizeof(struct berval));
-        break;
-    default:
-        /* internal error, just get out */
-        goto done;
     }
 
+done:
     ipa_cldap_respond(ctx, req, &reply);
 
-done:
     ipa_cldap_free_kvps(&req->kvps);
     free(req);
     return;
