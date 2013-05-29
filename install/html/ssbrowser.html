@@ -16,7 +16,14 @@
             $('.example-domain').text(domain);
 
             if ($.browser.mozilla) {
-                $("#configurefirefox").show();
+                var ff_config = $("#configurefirefox");
+                var obj = $('<object/>', {
+                    type: 'text/html',
+                    'class': 'browser-config'
+                });
+                obj.prop('data', 'jar:/ipa/errors/configure.jar!/preferences.html');
+                obj.appendTo(ff_config);
+                ff_config.show();
             }
         });
     </script>
@@ -72,8 +79,7 @@
             <ul>
                 <li>1. Import <a href="ca.crt">CA certificate</a>. Make sure you checked all three checkboxes.</li>
                 <li>2. Click on "Configure Browser" button below.</li>
-                <li id="configurefirefox" style="display:none"><object data="jar:/ipa/errors/configure.jar!/preferences.html"
-                type="text/html" class="browser-config"></object></li>
+                <li id="configurefirefox" style="display:none"></li>
             </ul>
         </div>
 
