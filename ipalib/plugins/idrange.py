@@ -17,13 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib.plugins.baseldap import *
-from ipalib import api, Str, Password, DefaultFrom, _, ngettext, Object
-from ipalib.parameters import Enum
-from ipalib import Command
+from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
+                                     LDAPRetrieve, LDAPSearch, LDAPUpdate)
+from ipalib import api, Int, Str, DeprecatedParam, _, ngettext
 from ipalib import errors
-from ipapython import ipautil
-from ipalib import util
 from ipapython.dn import DN
 
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -195,11 +192,12 @@ class idrange(LDAPObject):
         ),
         Str('ipanttrusteddomainsid?',
             cli_name='dom_sid',
+            flags=('no_update',),
             label=_('Domain SID of the trusted domain'),
         ),
         Str('ipanttrusteddomainname?',
             cli_name='dom_name',
-            flags=('no_search', 'virtual_attribute'),
+            flags=('no_search', 'virtual_attribute', 'no_update'),
             label=_('Name of the trusted domain'),
         ),
         Str('iparangetype?',
@@ -497,6 +495,11 @@ class idrange_mod(LDAPUpdate):
     __doc__ = _('Modify ID range.')
 
     msg_summary = _('Modified ID range "%(value)s"')
+
+    takes_options = LDAPUpdate.takes_options + (
+        DeprecatedParam('ipanttrusteddomainsid?'),
+        DeprecatedParam('ipanttrusteddomainname?'),
+    )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
