@@ -33,22 +33,7 @@ define([
 
 var exp = {};
 
-exp.search_facet_pre_op = function(spec, context) {
-
-    var entity = context.entity;
-    su.context_entity(spec, context);
-
-    spec.name = spec.name || 'search';
-    spec.title = spec.title || entity.metadata.label;
-    spec.label = spec.label || entity.metadata.label;
-    spec.tab_label = spec.tab_label || '@i18n:facets.search';
-
-    spec.managed_entity = spec.managed_entity ? IPA.get_entity(spec.managed_entity) : spec.entity;
-
-    spec.disable_breadcrumb =
-        spec.disable_breadcrumb === undefined ? true : spec.disable_breadcrumb;
-    spec.disable_facet_tabs =
-        spec.disable_facet_tabs === undefined ? true : spec.disable_facet_tabs;
+exp.search_facet_control_buttons_pre_op = function(spec, context) {
 
     spec.actions = spec.actions || [];
     spec.actions.unshift(
@@ -83,7 +68,27 @@ exp.search_facet_pre_op = function(spec, context) {
     spec.state.evaluators.push(
         IPA.selected_state_evaluator,
         IPA.self_service_state_evaluator);
+    return spec;
+};
 
+exp.search_facet_pre_op = function(spec, context) {
+
+    var entity = context.entity;
+    su.context_entity(spec, context);
+
+    spec.name = spec.name || 'search';
+    spec.title = spec.title || entity.metadata.label;
+    spec.label = spec.label || entity.metadata.label;
+    spec.tab_label = spec.tab_label || '@i18n:facets.search';
+
+    spec.managed_entity = spec.managed_entity ? IPA.get_entity(spec.managed_entity) : spec.entity;
+
+    spec.disable_breadcrumb =
+        spec.disable_breadcrumb === undefined ? true : spec.disable_breadcrumb;
+    spec.disable_facet_tabs =
+        spec.disable_facet_tabs === undefined ? true : spec.disable_facet_tabs;
+
+    exp.search_facet_control_buttons_pre_op(spec, context);
     return spec;
 };
 
@@ -372,6 +377,7 @@ exp.nested_search_facet_preop = function(spec, context) {
     var entity = context.entity;
     su.context_entity(spec, context);
 
+    spec.name = spec.name || 'search';
     spec.title = spec.title || entity.metadata.label_singular;
     spec.label = spec.label || entity.metadata.label;
     spec.tab_label = spec.tab_label || '@i18n:facets.search';
@@ -380,6 +386,8 @@ exp.nested_search_facet_preop = function(spec, context) {
 
     spec.disable_breadcrumb = false;
     spec.disable_facet_tabs = false;
+
+    exp.search_facet_control_buttons_pre_op(spec, context);
     return spec;
 };
 
