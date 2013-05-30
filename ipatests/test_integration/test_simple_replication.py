@@ -36,7 +36,7 @@ class TestSimpleReplication(IntegrationTest):
         time.sleep(5)
 
         result = self.replicas[0].run_command(['ipa', 'user-show', login])
-        assert 'User login: %s' % login in result.output
+        assert 'User login: %s' % login in result.stdout_text
 
     def test_user_replication_to_master(self):
         login = 'testuser2'
@@ -48,4 +48,4 @@ class TestSimpleReplication(IntegrationTest):
         time.sleep(5)
 
         result = self.master.run_command(['ipa', 'user-show', login])
-        assert 'User login: %s' % login in result.output
+        assert 'User login: %s' % login in result.stdout_text
