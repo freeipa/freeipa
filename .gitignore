@@ -30,11 +30,15 @@ daemons/config.status
 daemons/config.sub
 daemons/depcomp
 daemons/install-sh
+daemons/ipa-otpd/ipa-otpd
+daemons/ipa-otpd/ipa-otpd.socket
+daemons/ipa-otpd/ipa-otpd@.service
 daemons/ipa-version.h
 daemons/libtool
 daemons/ltmain.sh
 daemons/missing
 daemons/stamp-h1
+daemons/test-driver
 install/AUTHORS
 install/COPYING
 install/ChangeLog
@@ -76,6 +80,7 @@ ipa-client/missing
 ipa-client/py-compile
 ipa-client/stamp-h1
 ipa-client/version.m4
+tests/test_xmlrpc/service.crt
 freeipa.spec
 ipapython/setup.py
 ipapython/version.py
