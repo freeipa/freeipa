@@ -62,6 +62,7 @@ class update_default_range(PostUpdate):
                        'cn:%s' % id_range_name,
                        'ipabaseid:%s' % id_range_base_id,
                        'ipaidrangesize:%s' % id_range_size,
+                       'iparangetype:ipa-local',
                       ]
 
         updates = {}
