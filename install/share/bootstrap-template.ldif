@@ -428,3 +428,4 @@ objectClass: ipaDomainIDRange
 cn: ${REALM}_id_range
 ipaBaseID: $IDSTART
 ipaIDRangeSize: $IDRANGE_SIZE
+ipaRangeType: ipa-local
