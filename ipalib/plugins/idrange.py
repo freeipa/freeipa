@@ -19,7 +19,7 @@
 
 from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
                                      LDAPRetrieve, LDAPSearch, LDAPUpdate)
-from ipalib import api, Int, Str, DeprecatedParam, _, ngettext
+from ipalib import api, Int, Str, DeprecatedParam, StrEnum, _, ngettext
 from ipalib import errors
 from ipapython.dn import DN
 
@@ -168,6 +168,15 @@ class idrange(LDAPObject):
     label = _('ID Ranges')
     label_singular = _('ID Range')
 
+    range_types = {
+        u'ipa-local': unicode(_('local domain range')),
+        u'ipa-ad-winsync': unicode(_('Active Directory winsync range')),
+        u'ipa-ad-trust': unicode(_('Active Directory domain range')),
+        u'ipa-ad-trust-posix': unicode(_('Active Directory trust range with '
+                                        'POSIX attributes')),
+        u'ipa-ipa-trust': unicode(_('IPA trust range')),
+                  }
+
     takes_params = (
         Str('cn',
             cli_name='name',
@@ -200,18 +209,23 @@ class idrange(LDAPObject):
             flags=('no_search', 'virtual_attribute', 'no_update'),
             label=_('Name of the trusted domain'),
         ),
-        Str('iparangetype?',
+        StrEnum('iparangetype?',
             label=_('Range type'),
-            flags=['no_option'],
+            cli_name='type',
+            doc=(_('ID range type, one of {vals}'
+                 .format(vals=', '.join(range_types.keys())))),
+            values=tuple(range_types.keys()),
+            flags=['no_update'],
         )
     )
 
     def handle_iparangetype(self, entry_attrs, options, keep_objectclass=False):
-        if not options.get('pkey_only', False):
-            if 'ipatrustedaddomainrange' in entry_attrs.get('objectclass', []):
-                entry_attrs['iparangetype'] = [unicode(_('Active Directory domain range'))]
-            else:
-                entry_attrs['iparangetype'] = [unicode(_(u'local domain range'))]
+        if not any((options.get('pkey_only', False),
+                    options.get('raw', False))):
+            range_type = entry_attrs['iparangetype'][0]
+            entry_attrs['iparangetype'] = self.range_types.get(range_type, None)
+
+        # Remove the objectclass
         if not keep_objectclass:
             if not options.get('all', False) or options.get('pkey_only', False):
                 entry_attrs.pop('objectclass', None)
@@ -418,7 +432,21 @@ class idrange_add(LDAPCreate):
                             'not be found. Please specify the SID directly '
                             'using dom-sid option.'))
 
+        # ipaNTTrustedDomainSID attribute set, this is AD Trusted domain range
         if is_set('ipanttrusteddomainsid'):
+            entry_attrs['objectclass'].append('ipatrustedaddomainrange')
+
+            # Default to ipa-ad-trust if no type set
+            if 'iparangetype' not in entry_attrs:
+                entry_attrs['iparangetype'] = u'ipa-ad-trust'
+
+            if entry_attrs['iparangetype'] not in (u'ipa-ad-trust',
+                                                   u'ipa-ad-trust-posix'):
+                raise errors.ValidationError('ID Range setup',
+                    error=_('IPA Range type must be one of ipa-ad-trust '
+                            'or ipa-ad-trust-posix when SID of the trusted '
+                            'domain is specified.'))
+
             if is_set('ipasecondarybaserid'):
                 raise errors.ValidationError(name='ID Range setup',
                     error=_('Options dom-sid/dom-name and secondary-rid-base '
@@ -431,11 +459,24 @@ class idrange_add(LDAPCreate):
 
             # Validate SID as the one of trusted domains
             self.obj.validate_trusted_domain_sid(entry_attrs['ipanttrusteddomainsid'])
-            # Finally, add trusted AD domain range object class
-            entry_attrs['objectclass'].append('ipatrustedaddomainrange')
 
+        # ipaNTTrustedDomainSID attribute not set, this is local domain range
         else:
-             # secondary base rid must be set if and only if base rid is set
+            entry_attrs['objectclass'].append('ipadomainidrange')
+
+            # Default to ipa-local if no type set
+            if 'iparangetype' not in entry_attrs:
+                entry_attrs['iparangetype'] = 'ipa-local'
+
+            # TODO: can also be ipa-ad-winsync here?
+            if entry_attrs['iparangetype'] in (u'ipa-ad-trust',
+                                               u'ipa-ad-trust-posix'):
+                raise errors.ValidationError('ID Range setup',
+                    error=_('IPA Range type must not be one of ipa-ad-trust '
+                            'or ipa-ad-trust-posix when SID of the trusted '
+                            'domain is not specified.'))
+
+            # secondary base rid must be set if and only if base rid is set
             if is_set('ipasecondarybaserid') != is_set('ipabaserid'):
                 raise errors.ValidationError(name='ID Range setup',
                     error=_('Options secondary-rid-base and rid-base must '
@@ -451,13 +492,12 @@ class idrange_add(LDAPCreate):
                             error=_("Primary RID range and secondary RID range"
                                     " cannot overlap"))
 
-            entry_attrs['objectclass'].append('ipadomainidrange')
-
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.handle_iparangetype(entry_attrs, options, keep_objectclass=True)
+        self.obj.handle_iparangetype(entry_attrs, options,
+                                     keep_objectclass=True)
         return dn
 
 class idrange_del(LDAPDelete):
