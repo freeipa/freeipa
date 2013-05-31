@@ -816,7 +816,7 @@ class TrustDomainJoins(object):
         ld.retrieve(installutils.get_fqdn())
         self.local_domain = ld
 
-    def __populate_remote_domain(self, realm, realm_server=None, realm_admin=None, realm_passwd=None):
+    def populate_remote_domain(self, realm, realm_server=None, realm_admin=None, realm_passwd=None):
         def get_instance(self):
             # Fetch data from foreign domain using password only
             rd = TrustDomainInstance('')
@@ -860,7 +860,14 @@ class TrustDomainJoins(object):
         if not self.configured:
             return None
 
-        self.__populate_remote_domain(realm, realm_server, realm_admin, realm_passwd)
+        if not(isinstance(self.remote_domain, TrustDomainInstance)):
+            self.populate_remote_domain(
+                realm,
+                realm_server,
+                realm_admin,
+                realm_passwd
+            )
+
         if not self.remote_domain.read_only:
             trustdom_pass = samba.generate_random_password(128, 128)
             self.remote_domain.establish_trust(self.local_domain, trustdom_pass)
@@ -873,6 +880,8 @@ class TrustDomainJoins(object):
         if not self.configured:
             return None
 
-        self.__populate_remote_domain(realm, realm_server, realm_passwd=None)
+        if not(isinstance(self.remote_domain, TrustDomainInstance)):
+            self.populate_remote_domain(realm, realm_server, realm_passwd=None)
+
         self.local_domain.establish_trust(self.remote_domain, trustdom_passwd)
         return dict(local=self.local_domain, remote=self.remote_domain, verified=False)
