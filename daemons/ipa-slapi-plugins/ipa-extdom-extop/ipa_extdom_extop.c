@@ -141,7 +141,7 @@ done:
     free(req);
     free(res);
     if (err_msg != NULL) {
-        LOG(err_msg);
+        LOG("%s", err_msg);
     }
     slapi_send_ldap_result(pb, rc, NULL, err_msg, 0, NULL);
     return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
