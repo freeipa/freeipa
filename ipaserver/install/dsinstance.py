@@ -562,8 +562,6 @@ class DsInstance(service.Service):
             # We only handle one server cert
             nickname = server_certs[0][0]
             self.dercert = dsdb.get_cert_from_db(nickname, pem=False)
-            dsdb.track_server_cert(nickname, self.principal, dsdb.passwd_fname,
-                                   'restart_dirsrv %s' % self.serverid)
         else:
             nickname = self.nickname
             cadb = certs.CertDB(self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
