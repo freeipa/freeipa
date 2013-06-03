@@ -28,6 +28,7 @@ import shutil
 from ConfigParser import SafeConfigParser, NoOptionError
 import traceback
 import textwrap
+from contextlib import contextmanager
 
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -755,3 +756,24 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
                 (pkcs12_filename, e))
 
         return server_cert_name
+
+
+@contextmanager
+def private_ccache():
+
+    (desc, path) = tempfile.mkstemp(prefix='krbcc')
+    os.close(desc)
+
+    original_value = os.environ.get('KRB5CCNAME', None)
+
+    os.environ['KRB5CCNAME'] = path
+
+    yield
+
+    if original_value is not None:
+        os.environ['KRB5CCNAME'] = original_value
+    else:
+        os.environ.pop('KRB5CCNAME')
+
+    if os.path.exists(path):
+        os.remove(path)
