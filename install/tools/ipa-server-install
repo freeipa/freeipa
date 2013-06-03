@@ -1210,6 +1210,7 @@ def main():
 
 if __name__ == '__main__':
     success = False
+
     try:
         # FIXME: Common option parsing, logging setup, etc should be factored
         # out from all install scripts
@@ -1219,8 +1220,10 @@ if __name__ == '__main__':
         else:
             log_file_name = "/var/log/ipaserver-install.log"
 
-        installutils.run_script(main, log_file_name=log_file_name,
-            operation_name='ipa-server-install')
+        # Use private ccache
+        with private_ccache():
+            installutils.run_script(main, log_file_name=log_file_name,
+                                    operation_name='ipa-server-install')
         success = True
 
     finally:

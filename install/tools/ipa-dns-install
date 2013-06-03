@@ -258,5 +258,6 @@ def main():
     return 0
 
 if __name__ == '__main__':
-    installutils.run_script(main, log_file_name=log_file_name,
-        operation_name='ipa-dns-install')
+    with private_ccache():
+        installutils.run_script(main, log_file_name=log_file_name,
+            operation_name='ipa-dns-install')
