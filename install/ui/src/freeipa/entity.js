@@ -240,17 +240,22 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
     ];
 
     that.facet_group = function(spec) {
-        spec.entity = entity;
-        if (spec instanceof Object) {
-            var factory = spec.$factory || IPA.facet_group;
-            facet_group = factory(spec);
-        } else {
-            facet_group = IPA.facet_group({ name: spec });
+
+        if (typeof spec === 'string') {
+            spec = { name: spec };
         }
 
-        if (facet_group.label == undefined) {
-            facet_group.label = text.get('@i18n:facet_groups.'+facet_group.name);
-        }
+        var preop = function(spec) {
+
+            spec.entity = entity;
+            spec.label = spec.label || '@i18n:facet_groups.'+spec.name;
+            return spec;
+        };
+
+        var facet_group = builder.build('', spec, {}, {
+            $factory: IPA.facet_group,
+            $pre_ops: [preop]
+        });
 
         entity.add_facet_group(facet_group);
 
