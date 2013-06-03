@@ -722,7 +722,10 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
         # Import the CA cert first so it has a known nickname
         # (if it's present in the PKCS#12 it won't be overwritten)
         ca_cert_name = 'The Root CA'
-        nssdb.import_pem_cert(ca_cert_name, "CT,C,C", ca_file)
+        try:
+            nssdb.import_pem_cert(ca_cert_name, "CT,C,C", ca_file)
+        except ValueError, e:
+            raise ScriptError(str(e))
 
         # Import everything in the PKCS#12
         nssdb.import_pkcs12(pkcs12_filename, db_pwd_file.name, pin_filename)
