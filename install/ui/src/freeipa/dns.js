@@ -446,14 +446,14 @@ IPA.dnszone_name_section = function(spec) {
             title: idnsname.label
         }).appendTo(tr);
 
-        var span = $('<span/>', {
+        var widget_cont = $('<div/>', {
             name: 'idnsname',
             'class': 'field'
         }).appendTo(td);
 
-        idnsname.create(span);
+        idnsname.create(widget_cont);
 
-        var idnsname_input = $('input', span);
+        var idnsname_input = $('input', widget_cont);
 
         var name_from_ip = that.widgets.get_widget('name_from_ip');
 
@@ -481,12 +481,12 @@ IPA.dnszone_name_section = function(spec) {
             title: name_from_ip.label
         }).appendTo(tr);
 
-        span = $('<span/>', {
+        widget_cont = $('<div/>', {
             name: 'name_from_ip',
             'class': 'field'
         }).appendTo(td);
 
-        name_from_ip.create(span);
+        name_from_ip.create(widget_cont);
 
         idnsname.radio.click();
     };

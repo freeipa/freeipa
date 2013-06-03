@@ -331,19 +331,19 @@ IPA.host_fqdn_widget = function(spec) {
             'class': 'hostname'
         }).appendTo(tr);
 
-        var span = $('<span/>', {
+        var widget_cont = $('<div/>', {
             name: hostname.name
         }).appendTo(td);
-        hostname.create(span);
+        hostname.create(widget_cont);
 
         td = $('<td/>', {
             'class': 'dnszone'
         }).appendTo(tr);
 
-        span = $('<span/>', {
+        widget_cont = $('<div/>', {
             name: dnszone.name
         }).appendTo(td);
-        dnszone.create(span);
+        dnszone.create(widget_cont);
 
         var hostname_input = $('input', hostname.container);
         var dnszone_input = $('input', dnszone.container);
