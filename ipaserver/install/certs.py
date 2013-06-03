@@ -29,6 +29,7 @@ import base64
 from hashlib import sha1
 
 from nss import nss
+from nss.error import NSPRError
 
 from ipapython.ipa_log_manager import root_logger
 from ipapython import dogtag
@@ -286,7 +287,12 @@ class NSSDatabase(object):
             certdb = nss.get_default_certdb()
             cert = nss.find_cert_from_nickname(nickname)
             intended_usage = nss.certificateUsageSSLServer
-            approved_usage = cert.verify_now(certdb, True, intended_usage)
+            try:
+                approved_usage = cert.verify_now(certdb, True, intended_usage)
+            except NSPRError, e:
+                if e.errno != -8102:
+                    raise ValueError(e.strerror)
+                approved_usage = 0
             if not approved_usage & intended_usage:
                 raise ValueError('invalid for a SSL server')
             if not cert.verify_hostname(hostname):
