@@ -909,7 +909,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
         if (!data) return;
         var result = data.result.result;
         if (!that.facet.disable_facet_tabs) {
-            var pkey = that.facet.pkey;
+            var pkey = that.facet.get_pkey();
 
             var facet_groups = that.facet.entity.facet_groups.values;
             for (var i=0; i<facet_groups.length; i++) {
