@@ -513,6 +513,10 @@ def main():
     config.dir = dir
     config.setup_ca = options.setup_ca
 
+    if config.setup_ca and ipautil.file_exists(config.dir + "/dscert.p12"):
+        print 'CA cannot be installed in CA-less setup.'
+        sys.exit(1)
+
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
     portfile = config.dir + "/dogtag_directory_port.txt"

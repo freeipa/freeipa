@@ -160,6 +160,10 @@ def main():
     config.dir = dir
     config.setup_ca = True
 
+    if ipautil.file_exists(config.dir + "/dscert.p12"):
+        print 'CA cannot be installed in CA-less setup.'
+        sys.exit(1)
+
     portfile = config.dir + "/dogtag_directory_port.txt"
     if not ipautil.file_exists(portfile):
         dogtag_master_ds_port = str(dogtag.Dogtag9Constants.DS_PORT)
