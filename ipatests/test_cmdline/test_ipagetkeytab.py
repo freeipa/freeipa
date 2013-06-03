@@ -59,7 +59,7 @@ class test_ipagetkeytab(cmdline_test):
     """
     Test `ipa-getkeytab`.
     """
-    command = "ipa-client/ipa-getkeytab"
+    command = "ipa-getkeytab"
     host_fqdn = u'ipatest.%s' % api.env.domain
     service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
     [keytabfd, keytabname] = tempfile.mkstemp()

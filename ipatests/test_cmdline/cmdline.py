@@ -23,12 +23,13 @@ Base class for all cmdline tests
 
 import nose
 import krbV
+import distutils.spawn
+import os
 
 from ipalib import api
 from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipaserver.plugins.ldap2 import ldap2
-from ipapython import ipautil
 
 # See if our LDAP server is up and we can talk to it over GSSAPI
 ccache = krbV.default_context().default_ccache()
@@ -51,11 +52,17 @@ class cmdline_test(XMLRPC_test):
     command = '/bin/ls'
 
     def setUp(self):
+        # Find the executable in $PATH
+        # This is neded because ipautil.run resets the PATH to
+        # a system default.
+        original_command = self.command
+        if not os.path.isabs(self.command):
+            self.command = distutils.spawn.find_executable(self.command)
         # raise an error if the command is missing even if the remote
         # server is not available.
-        if not ipautil.file_exists(self.command):
+        if not self.command:
             raise AssertionError(
-                'Command %r not available' % self.command
+                'Command %r not available' % original_command
             )
         super(cmdline_test, self).setUp()
         if not server_available:
