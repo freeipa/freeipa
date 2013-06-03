@@ -21,6 +21,7 @@
 IPA_VERSION_MAJOR=3
 IPA_VERSION_MINOR=1
 IPA_VERSION_RELEASE=5
+# 2013-06-03: re-tag 3.1.5 version due to missing patch
 
 ########################################################
 # For 'pre' releases the version will be               #
