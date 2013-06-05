@@ -1844,6 +1844,15 @@ def install(options, env, fstore, statestore):
                 "nss_ldap or nss-pam-ldapd")
             return CLIENT_INSTALL_ERROR
 
+    if options.keytab and options.principal:
+        root_logger.error("Options 'principal' and 'keytab' cannot be used "
+                          "together.")
+        return CLIENT_INSTALL_ERROR
+
+    if options.keytab and options.force_join:
+        root_logger.warning("Option 'force-join' has no additional effect "
+                            "when used with together with option 'keytab'.")
+
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
 
