@@ -166,6 +166,7 @@ class BeakerLibPlugin(Plugin):
             self.log_exception(err)
             self.run_beakerlib_command(
                 ['rlFail', 'Test failed: unhandled exception'])
+        self.collect_logs(test.context)
 
     def addFailure(self, test, err):
         self.log_exception(err)

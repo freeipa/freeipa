@@ -60,8 +60,12 @@ class IntegrationTest(object):
         for host in cls.get_all_hosts():
             cls.prepare_host(host)
 
-        cls.install()
-        cls.kinit_all()
+        try:
+            cls.install()
+            cls.kinit_all()
+        except:
+            cls.uninstall()
+            raise
 
     @classmethod
     def get_all_hosts(cls):
@@ -69,7 +73,7 @@ class IntegrationTest(object):
 
     @classmethod
     def prepare_host(cls, host):
-        log.info('Preparing host %s', host.hostname)
+        cls.log.info('Preparing host %s', host.hostname)
         env_filename = os.path.join(host.config.test_dir, 'env.sh')
         cls.collect_log(host, env_filename)
         host.mkdir_recursive(host.config.test_dir)
@@ -104,14 +108,11 @@ class IntegrationTest(object):
 
     @classmethod
     def uninstall(cls):
-        cls.collect_log(cls.master, '/var/log/ipaserver-uninstall.log')
-        cls.master.run_command(['ipa-server-install', '--uninstall', '-U'])
+        tasks.uninstall_master(cls.master, collect_log=cls.collect_log)
         for replica in cls.replicas:
-            cls.collect_log(replica, '/var/log/ipaserver-uninstall.log')
-            replica.run_command(['ipa-server-install', '--uninstall', '-U'])
+            tasks.uninstall_master(replica, collect_log=cls.collect_log)
         for client in cls.clients:
-            cls.collect_log(replica, '/var/log/ipaclient-uninstall.log')
-            client.run_command(['ipa-client-install', '--uninstall', '-U'])
+            tasks.uninstall_client(client, collect_log=cls.collect_log)
 
     @classmethod
     def collect_log(cls, host, filename):

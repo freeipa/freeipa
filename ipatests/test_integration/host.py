@@ -23,6 +23,7 @@ import os
 import socket
 import threading
 import subprocess
+import errno
 
 import paramiko
 
@@ -122,6 +123,7 @@ class Host(object):
         self.index = index
 
         shortname, dot, ext_domain = hostname.partition('.')
+        self.shortname = shortname
         self.hostname = shortname + '.' + self.domain.name
         self.external_hostname = hostname
 
@@ -279,3 +281,15 @@ class Host(object):
         self.log.info('WRITE %s', filename)
         with self.sftp.open(filename, 'w') as f:
             return f.write(contents)
+
+    def file_exists(self, filename):
+        """Return true if the named remote file exists"""
+        self.log.info('STAT %s', filename)
+        try:
+            self.sftp.stat(filename)
+        except IOError, e:
+            if e.errno == errno.ENOENT:
+                return False
+            else:
+                raise
+        return True
