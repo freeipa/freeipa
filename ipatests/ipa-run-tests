@@ -29,9 +29,11 @@ Note that any relative paths given will be based on the ipatests module's path
 import sys
 import os
 from os import path
+import logging
 
 import nose
 
+from ipapython.ipa_log_manager import log_mgr
 import ipatests
 from ipatests.beakerlib_plugin import BeakerLibPlugin
 from ipatests.order_plugin import OrderTests
@@ -43,6 +45,7 @@ cmd = [
     '--doctest-tests',
     '--with-ordered-tests',
     '--exclude=plugins',
+    '--logging-filter=-paramiko',
     '--where', os.path.dirname(ipatests.__file__),
 ]
 cmd += sys.argv[1:]
@@ -50,5 +53,29 @@ cmd += sys.argv[1:]
 
 # This must be set so ipalib.api gets initialized property for tests:
 os.environ['IPA_UNIT_TEST_MODE'] = 'cli_test'
+
+
+# Forward IPA logging to a normal Python logger. Nose's logcapture plugin
+# can't work with IPA-managed loggers
+class LogHandler(logging.Handler):
+    name = 'forwarding log handler'
+    logger = logging.getLogger('IPA')
+
+    def emit(self, record):
+        self.logger.log(record.levelno, self.format(record))
+
+if 'console' in log_mgr.handlers:
+    log_mgr.remove_handler('console')
+log_mgr.configure(
+    {
+        'default_level': 'DEBUG',
+        'handlers': [{'log_handler': LogHandler(),
+                      'format': '[%(name)s] %(message)s',
+                      'level': 'debug'},
+                     {'level': 'info',
+                      'name': 'console',
+                      'stream': sys.stderr}]},
+    configure_state='tests')
+
 
 nose.main(argv=cmd, addplugins=[BeakerLibPlugin(), OrderTests()])

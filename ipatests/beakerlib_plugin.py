@@ -88,6 +88,10 @@ class BeakerLibPlugin(Plugin):
         self.setup_log_handler(BeakerLibLogHandler(self.run_beakerlib_command))
 
     def setup_log_handler(self, handler):
+        # Remove the console handler (BeakerLib will print to stderr)
+        if 'console' in log_mgr.handlers:
+            log_mgr.remove_handler('console')
+        # Configure our logger
         log_mgr.configure(
             {
                 'default_level': 'DEBUG',
