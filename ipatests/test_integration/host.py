@@ -145,6 +145,7 @@ class Host(object):
             self.role = 'other'
 
         self.root_password = self.config.root_password
+        self.root_ssh_key_filename = self.config.root_ssh_key_filename
         self.host_key = None
         self.ssh_port = 22
 
@@ -233,8 +234,19 @@ class Host(object):
         except AttributeError:
             sock = socket.create_connection((self.hostname, self.ssh_port))
             self._transport = transport = paramiko.Transport(sock)
-            transport.connect(hostkey=self.host_key, username='root',
-                              password=self.root_password)
+            transport.connect(hostkey=self.host_key)
+            if self.root_ssh_key_filename:
+                self.log.debug('Authenticating with private RSA key')
+                filename = os.path.expanduser(self.root_ssh_key_filename)
+                key = paramiko.RSAKey.from_private_key_file(filename)
+                transport.auth_publickey(username='root', key=key)
+            elif self.root_password:
+                self.log.debug('Authenticating with password')
+                transport.auth_password(username='root',
+                                        password=self.root_password)
+            else:
+                self.log.critical('No SSH credentials configured')
+                raise RuntimeError('No SSH credentials configured')
             return transport
 
     @property

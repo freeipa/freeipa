@@ -37,6 +37,7 @@ class Config(object):
 
         self.test_dir = kwargs.get('test_dir', '/root/ipatests')
         self.root_password = kwargs.get('root_password')
+        self.root_ssh_key_filename = kwargs.get('root_ssh_key_filename')
         self.ipv6 = bool(kwargs.get('ipv6', False))
         self.debug = bool(kwargs.get('debug', False))
         self.admin_name = kwargs.get('admin_name') or 'admin'
@@ -49,6 +50,9 @@ class Config(object):
         self.nis_domain = kwargs.get('nis_domain') or 'ipatest'
         self.ntp_server = kwargs.get('ntp_server') or (
             '%s.pool.ntp.org' % random.randint(0, 3))
+
+        if not self.root_password and not self.root_ssh_key_filename:
+            self.root_ssh_key_filename = '~/.ssh/id_rsa'
 
         self.domains = []
 
@@ -63,7 +67,10 @@ class Config(object):
             by default /root/ipatests
         IPv6SETUP: "TRUE" if setting up with IPv6
         IPADEBUG: non-empty if debugging is turned on
+        IPA_ROOT_SSH_KEY: File with root's private RSA key for SSH
+            (default: ~/.ssh/id_rsa)
         IPA_ROOT_SSH_PASSWORD: SSH password for root
+            (used if IPA_ROOT_SSH_KEY is not set)
 
         ADMINID: Administrator username
         ADMINPW: Administrator password
@@ -87,6 +94,7 @@ class Config(object):
                    ipv6=(env.get('IPv6SETUP') == 'TRUE'),
                    debug=env.get('IPADEBUG'),
                    root_password=env.get('IPA_ROOT_SSH_PASSWORD'),
+                   root_ssh_key_filename=env.get('IPA_ROOT_SSH_KEY'),
                    admin_name=env.get('ADMINID'),
                    admin_password=env.get('ADMINPW'),
                    dirman_dn=env.get('ROOTDN'),
@@ -115,6 +123,7 @@ class Config(object):
         env['IPv6SETUP'] = 'TRUE' if self.ipv6 else ''
         env['IPADEBUG'] = 'TRUE' if self.debug else ''
         env['IPA_ROOT_SSH_PASSWORD'] = self.root_password or ''
+        env['IPA_ROOT_SSH_KEY'] = self.root_ssh_key_filename or ''
 
         env['ADMINID'] = self.admin_name
         env['ADMINPW'] = self.admin_password
