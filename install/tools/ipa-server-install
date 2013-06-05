@@ -287,9 +287,6 @@ def parse_options():
     if options.dirsrv_pkcs12 and not options.root_ca_file:
         parser.error(
             "--root-ca-file must be given with the PKCS#12 options.")
-    if options.dirsrv_pkcs12 and not options.root_ca_file:
-        parser.error(
-            "The PKCS#12 options must be given with --root-ca-file.")
 
     if (options.external_cert_file or options.external_ca_file) and options.dirsrv_pkcs12:
         parser.error(
