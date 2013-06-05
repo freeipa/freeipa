@@ -48,6 +48,7 @@ from ipaserver.install import bindinstance
 from ipaserver.install import service
 from ipaserver.install import cainstance
 from ipaserver.install import certs
+from ipaserver.install import otpdinstance
 from ipaserver.install import sysupgrade
 
 
@@ -925,17 +926,23 @@ def main():
 
     uninstall_selfsign(ds, http)
 
-    memcache = memcacheinstance.MemcacheInstance()
-    memcache.ldapi = True
-    memcache.realm = api.env.realm
-    try:
-        if not memcache.is_configured():
-            # 389-ds needs to be running to create the memcache instance
-            # because we record the new service in cn=masters.
-            ds.start()
-            memcache.create_instance('MEMCACHE', fqdn, None, ipautil.realm_to_suffix(api.env.realm))
-    except ipalib.errors.DuplicateEntry:
-        pass
+    simple_service_list = (
+        (memcacheinstance.MemcacheInstance(), 'MEMCACHE'),
+        (otpdinstance.OtpdInstance(), 'OTPD'),
+    )
+
+    for service, ldap_name in simple_service_list:
+        service.ldapi = True
+        try:
+            if not service.is_configured():
+                # 389-ds needs to be running to create the memcache instance
+                # because we record the new service in cn=masters.
+                ds.start()
+                service.create_instance(ldap_name, fqdn, None,
+                                        ipautil.realm_to_suffix(api.env.realm),
+                                        realm=api.env.realm)
+        except ipalib.errors.DuplicateEntry:
+            pass
 
     cleanup_kdc(fstore)
     setup_firefox_extension(fstore)

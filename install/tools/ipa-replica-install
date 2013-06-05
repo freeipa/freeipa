@@ -35,6 +35,7 @@ from ipapython import ipautil
 from ipaserver.install import dsinstance, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
 from ipaserver.install import memcacheinstance
+from ipaserver.install import otpdinstance
 from ipaserver.install.replication import replica_conn_check, ReplicationManager
 from ipaserver.install.installutils import (HostnameLocalhost, resolve_host,
         ReplicaConfig, expand_replica_info, read_replica_info ,get_host_name,
@@ -672,6 +673,11 @@ def main():
 
     krb = install_krb(config, setup_pkinit=options.setup_pkinit)
     http = install_http(config, auto_redirect=options.ui_redirect)
+
+    otpd = otpdinstance.OtpdInstance()
+    otpd.create_instance('OTPD', config.host_name, config.dirman_password,
+                         ipautil.realm_to_suffix(config.realm_name))
+
     if CA:
         CA.configure_certmonger_renewal()
         CA.import_ra_cert(dir + "/ra.p12")
