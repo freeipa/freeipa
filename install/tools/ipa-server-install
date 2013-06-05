@@ -709,7 +709,7 @@ def main():
 
     if options.http_pkcs12:
         http_pin_file = ipautil.write_tmp_file(options.http_pin)
-        http_pkcs12_info = (options.dirsrv_pkcs12, http_pin_file.name)
+        http_pkcs12_info = (options.http_pkcs12, http_pin_file.name)
 
     if options.dirsrv_pkcs12:
         dirsrv_pin_file = ipautil.write_tmp_file(options.dirsrv_pin)
