@@ -40,14 +40,15 @@ DISABLED = 3
 # The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
 # the first value is the *nix service name, the second the start order.
 SERVICE_LIST = {
-    'KDC':('krb5kdc', 10),
-    'KPASSWD':('kadmin', 20),
-    'DNS':('named', 30),
-    'MEMCACHE':('ipa_memcached', 39),
-    'HTTP':('httpd', 40),
-    'CA':('%sd' % dogtag.configured_constants().PKI_INSTANCE_NAME, 50),
-    'ADTRUST':('smb', 60),
-    'EXTID':('winbind', 70)
+    'KDC': ('krb5kdc', 10),
+    'KPASSWD': ('kadmin', 20),
+    'DNS': ('named', 30),
+    'MEMCACHE': ('ipa_memcached', 39),
+    'HTTP': ('httpd', 40),
+    'CA': ('%sd' % dogtag.configured_constants().PKI_INSTANCE_NAME, 50),
+    'ADTRUST': ('smb', 60),
+    'EXTID': ('winbind', 70),
+    'OTPD': ('ipa-otpd', 80),
 }
 
 def print_msg(message, output_fd=sys.stdout):

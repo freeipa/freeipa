@@ -49,6 +49,7 @@ from ipaserver.install import ntpinstance
 from ipaserver.install import certs
 from ipaserver.install import cainstance
 from ipaserver.install import memcacheinstance
+from ipaserver.install import otpdinstance
 from ipaserver.install import sysupgrade
 
 from ipaserver.install import service, installutils
@@ -513,6 +514,7 @@ def uninstall():
     krbinstance.KrbInstance(fstore).uninstall()
     dsinstance.DsInstance(fstore=fstore).uninstall()
     memcacheinstance.MemcacheInstance().uninstall()
+    otpdinstance.OtpdInstance().uninstall()
     ipaservices.restore_network_configuration(fstore, sstore)
     fstore.restore_all_files()
     try:
@@ -1092,11 +1094,15 @@ def main():
     # generated
     ds.add_cert_to_service()
 
-    # Create a HTTP instance
-
     memcache = memcacheinstance.MemcacheInstance()
-    memcache.create_instance('MEMCACHE', host_name, dm_password, ipautil.realm_to_suffix(realm_name))
+    memcache.create_instance('MEMCACHE', host_name, dm_password,
+                             ipautil.realm_to_suffix(realm_name))
 
+    otpd = otpdinstance.OtpdInstance()
+    otpd.create_instance('OTPD', host_name, dm_password,
+                         ipautil.realm_to_suffix(realm_name))
+
+    # Create a HTTP instance
     http = httpinstance.HTTPInstance(fstore)
     if options.http_pkcs12:
         http.create_instance(
