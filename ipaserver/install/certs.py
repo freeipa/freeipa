@@ -224,7 +224,7 @@ class NSSDatabase(object):
                     state = 1
             if line == "Certificate:":
                 state = 2
-            elif not line.startswith(' '):
+            elif line and not line.startswith(' '):
                 # Top-level item that is not a certificate
                 state = 1
 
