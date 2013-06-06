@@ -490,6 +490,11 @@ class API(DictProxy):
                                           stream=sys.stderr,
                                           level=level,
                                           format=LOGGING_FORMAT_STDERR)])
+
+        if not parser:
+            parser = self.build_global_parser()
+        object.__setattr__(self, 'parser', parser)
+
         # Add file handler:
         if self.env.mode in ('dummy', 'unit_test'):
             return  # But not if in unit-test mode
@@ -503,7 +508,6 @@ class API(DictProxy):
                 log.error('Could not create log_dir %r', log_dir)
                 return
 
-
         level = 'info'
         if self.env.debug:
             level = 'debug'
@@ -515,10 +519,6 @@ class API(DictProxy):
         except IOError, e:
             log.error('Cannot open log file %r: %s', self.env.log, e)
             return
-
-        if not parser:
-            parser = self.build_global_parser()
-        object.__setattr__(self, 'parser', parser)
 
     def build_global_parser(self, parser=None, context=None):
         """
