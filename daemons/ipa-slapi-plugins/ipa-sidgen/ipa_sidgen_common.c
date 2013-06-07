@@ -518,7 +518,8 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
 
     ret = find_sid_for_id(id, plugin_id, base_dn, dom_sid, ranges, &sid);
     if (ret != 0) {
-        LOG_FATAL("Cannot convert Posix ID [%lu] into an unused SID.\n", id);
+        LOG_FATAL("Cannot convert Posix ID [%lu] into an unused SID.\n",
+                  (unsigned long) id);
         goto done;
     }
 
