@@ -150,6 +150,7 @@ IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to be
 modified to match the new range.
 """)
 
+
 class idrange(LDAPObject):
     """
     Range object.
@@ -230,7 +231,8 @@ class idrange(LDAPObject):
             if not options.get('all', False) or options.get('pkey_only', False):
                 entry_attrs.pop('objectclass', None)
 
-    def check_ids_in_modified_range(self, old_base, old_size, new_base, new_size):
+    def check_ids_in_modified_range(self, old_base, old_size, new_base,
+                                    new_size):
         if new_base is None and new_size is None:
             # nothing to check
             return
@@ -243,12 +245,12 @@ class idrange(LDAPObject):
         checked_intervals = []
         low_diff = new_interval[0] - old_interval[0]
         if low_diff > 0:
-            checked_intervals.append(
-                    (old_interval[0], min(old_interval[1], new_interval[0] - 1)))
+            checked_intervals.append((old_interval[0],
+                                    min(old_interval[1], new_interval[0] - 1)))
         high_diff = old_interval[1] - new_interval[1]
         if high_diff > 0:
-            checked_intervals.append(
-                    (max(old_interval[0], new_interval[1] + 1), old_interval[1]))
+            checked_intervals.append((max(old_interval[0], new_interval[1] + 1),
+                                     old_interval[1]))
 
         if not checked_intervals:
             # range is equal or covers the entire old range, nothing to check
@@ -458,7 +460,8 @@ class idrange_add(LDAPCreate):
                             'be used together'))
 
             # Validate SID as the one of trusted domains
-            self.obj.validate_trusted_domain_sid(entry_attrs['ipanttrusteddomainsid'])
+            self.obj.validate_trusted_domain_sid(
+                                        entry_attrs['ipanttrusteddomainsid'])
 
         # ipaNTTrustedDomainSID attribute not set, this is local domain range
         else:
@@ -500,6 +503,7 @@ class idrange_add(LDAPCreate):
                                      keep_objectclass=True)
         return dn
 
+
 class idrange_del(LDAPDelete):
     __doc__ = _('Delete an ID range.')
 
@@ -534,6 +538,7 @@ class idrange_del(LDAPDelete):
 
         return dn
 
+
 class idrange_find(LDAPSearch):
     __doc__ = _('Search for ranges.')
 
@@ -543,7 +548,8 @@ class idrange_find(LDAPSearch):
 
     # Since all range types are stored within separate containers under
     # 'cn=ranges,cn=etc' search can be done on a one-level scope
-    def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
+    def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args,
+                     **options):
         assert isinstance(base_dn, DN)
         attrs_list.append('objectclass')
         return (filters, base_dn, ldap.SCOPE_ONELEVEL)
@@ -552,6 +558,7 @@ class idrange_find(LDAPSearch):
         for dn, entry in entries:
             self.obj.handle_iparangetype(entry, options)
         return truncated
+
 
 class idrange_show(LDAPRetrieve):
     __doc__ = _('Display information about a range.')
@@ -565,6 +572,7 @@ class idrange_show(LDAPRetrieve):
         assert isinstance(dn, DN)
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
+
 
 class idrange_mod(LDAPUpdate):
     __doc__ = _('Modify ID range.')
@@ -629,7 +637,7 @@ class idrange_mod(LDAPUpdate):
                 self.obj.validate_trusted_domain_sid(
                     entry_attrs['ipanttrusteddomainsid'])
 
-           # Add trusted AD domain range object class, if it wasn't there
+            # Add trusted AD domain range object class, if it wasn't there
             if not 'ipatrustedaddomainrange' in old_attrs['objectclass']:
                 entry_attrs['objectclass'].append('ipatrustedaddomainrange')
 
@@ -686,6 +694,7 @@ class idrange_mod(LDAPUpdate):
         assert isinstance(dn, DN)
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
+
 
 api.register(idrange)
 api.register(idrange_add)
