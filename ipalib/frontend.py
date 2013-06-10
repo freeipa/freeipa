@@ -1445,3 +1445,48 @@ class Updater(Method):
         )
 
         return self.execute(**options)
+
+
+class _AdviceOutput(object):
+
+    def __init__(self):
+        self.content = []
+        self.prefix = '# '
+        self.options = None
+
+    def comment(self, line):
+        self.content.append(self.prefix + line)
+
+    def debug(self, line):
+        if self.options.verbose:
+            self.comment('DEBUG: ' + line)
+
+    def command(self, line):
+        self.content.append(line)
+
+
+class Advice(Plugin):
+    """
+    Base class for advices, plugins for ipa-advise.
+    """
+
+    options = None
+    require_root = False
+    description = ''
+
+    def __init__(self):
+        super(Advice, self).__init__()
+        self.log = _AdviceOutput()
+
+    def set_options(self, options):
+        self.options = options
+        self.log.options = options
+
+    def get_info(self):
+        """
+        This method should be overriden by child Advices.
+
+        Returns a string with instructions.
+        """
+
+        raise NotImplementedError

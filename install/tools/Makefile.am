@@ -23,6 +23,7 @@ sbin_SCRIPTS =			\
 	ipa-upgradeconfig	\
 	ipa-backup		\
 	ipa-restore		\
+	ipa-advise		\
 	$(NULL)
 
 EXTRA_DIST =			\

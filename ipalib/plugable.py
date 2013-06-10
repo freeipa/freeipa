@@ -615,6 +615,8 @@ class API(DictProxy):
             self.import_plugins('ipaserver')
         if self.env.context in ('installer', 'updates'):
             self.import_plugins('ipaserver/install/plugins')
+        if self.env.context in ('advise'):
+            self.import_plugins('ipaserver/advise/plugins')
 
     # FIXME: This method has no unit test
     def import_plugins(self, package):

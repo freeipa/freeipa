@@ -1,0 +1,44 @@
+.\" A man page for ipa-advise
+.\" Copyright (C) 2013 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Tomas Babej <tbabej@redhat.com>
+.\"
+.TH "ipa-advise" "1" "Jun 10 2013" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-advise \- Provide configurations advice for various use cases.
+.SH "SYNOPSIS"
+ipa\-advise ADVICE
+.SH "DESCRIPTION"
+Provides customized advice for various IPA configuration issues.
+.TP
+For the list of possible ADVICEs available, run the ipa\-advise with no arguments.
+.SH "OPTIONS"
+.TP
+\fB\-\-v\fR, \fB\-\-verbose\fR
+Print debugging information
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Alias for \-\-verbose
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors
+.TP
+\fB\-\-log\-file\fR=\fIFILE\fR
+Log to the given file
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred

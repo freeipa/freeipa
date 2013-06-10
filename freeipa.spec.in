@@ -600,6 +600,7 @@ fi
 %{_sbindir}/ipa-managed-entries
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
+%{_sbindir}/ipa-advise
 %{_libexecdir}/certmonger/dogtag-ipa-retrieve-agent-submit
 %{_libexecdir}/ipa-otpd
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
@@ -615,6 +616,8 @@ fi
 %dir %{python_sitelib}/ipaserver
 %dir %{python_sitelib}/ipaserver/install
 %dir %{python_sitelib}/ipaserver/install/plugins
+%dir %{python_sitelib}/ipaserver/advise
+%dir %{python_sitelib}/ipaserver/advise/plugins
 %dir %{python_sitelib}/ipaserver/plugins
 %dir %{_libdir}/ipa/certmonger
 %attr(755,root,root) %{_libdir}/ipa/certmonger/*
@@ -730,6 +733,7 @@ fi
 %{_mandir}/man8/ipa-upgradeconfig.8.gz
 %{_mandir}/man1/ipa-backup.1.gz
 %{_mandir}/man1/ipa-restore.1.gz
+%{_mandir}/man1/ipa-advise.1.gz
 
 %files server-trust-ad
 %{_sbindir}/ipa-adtrust-install

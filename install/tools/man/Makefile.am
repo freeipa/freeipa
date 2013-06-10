@@ -21,6 +21,7 @@ man1_MANS = 				\
 	ipa-managed-entries.1		\
 	ipa-backup.1			\
 	ipa-restore.1			\
+	ipa-advise.1			\
         $(NULL)
 
 man8_MANS =				\

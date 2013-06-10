@@ -79,6 +79,8 @@ setup(
         'ipalib',
         'ipalib.plugins',
         'ipaserver',
+        'ipaserver.advise',
+        'ipaserver.advise.plugins',
         'ipaserver.plugins',
         'ipaserver.install',
         'ipaserver.install.plugins',

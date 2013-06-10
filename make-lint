@@ -42,7 +42,7 @@ IGNORE_PATHS = ('build', 'rpmbuild', 'dist', 'install/po/test_i18n.py',
 
 class IPATypeChecker(TypeChecker):
     NAMESPACE_ATTRS = ['Command', 'Object', 'Method', 'Property', 'Backend',
-        'Updater']
+        'Updater', 'Advice']
     LOGGING_ATTRS = ['log', 'debug', 'info', 'warning', 'error', 'exception',
         'critical']
 
