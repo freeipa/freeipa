@@ -55,6 +55,7 @@ def print_msg(message, output_fd=sys.stdout):
     root_logger.debug(message)
     output_fd.write(message)
     output_fd.write("\n")
+    output_fd.flush()
 
 
 class Service(object):
