@@ -20,12 +20,9 @@
 
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.dns import dns_container_exists
-from ipalib import api, Str, StrEnum, Password, DefaultFrom, _, ngettext, Object
-from ipalib.parameters import Enum
+from ipalib import api, Str, StrEnum, Password, _, ngettext
 from ipalib import Command
 from ipalib import errors
-from ipapython import ipautil
-from ipalib import util
 try:
     import pysss_murmur #pylint: disable=F0401
     _murmur_installed = True
@@ -843,3 +840,30 @@ class trust_resolve(Command):
         return dict(result=result)
 
 api.register(trust_resolve)
+
+
+class adtrust_is_enabled(Command):
+    NO_CLI = True
+
+    __doc__ = _('Determine whether ipa-adtrust-install has been run on this '
+                'system')
+
+    def execute(self, *keys, **options):
+        ldap = self.api.Backend.ldap2
+        adtrust_dn = DN(
+            ('cn', 'ADTRUST'),
+            ('cn', api.env.host),
+            ('cn', 'masters'),
+            ('cn', 'ipa'),
+            ('cn', 'etc'),
+            api.env.basedn
+        )
+
+        try:
+            ldap.get_entry(adtrust_dn)
+        except errors.NotFound:
+            return dict(result=False)
+
+        return dict(result=True)
+
+api.register(adtrust_is_enabled)

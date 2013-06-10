@@ -21,13 +21,11 @@
 Test the `ipalib/plugins/idrange.py` module, and XML-RPC in general.
 """
 
-from ipalib import api, errors, _
-from ipatests.util import assert_equal, Fuzzy
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipalib import api, errors
+from xmlrpc_test import Declarative, fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
-from ipapython.dn import *
-
-import ldap, ldap.sasl, ldap.modlist
+from ipatests.util import MockLDAP
+from ipapython.dn import DN
 
 id_shift = 0
 rid_shift = 0
@@ -99,6 +97,7 @@ testrange8 = u'testrange8'
 testrange8_base_id = id_shift + 700
 testrange8_size = 50
 testrange8_base_rid = rid_shift + 700
+testrange8_secondary_base_rid = rid_shift + 800
 
 testrange9 = u'testrange9'
 testrange9_base_id = id_shift + 800
@@ -155,59 +154,23 @@ group1_gid = id_shift + 900100
 
 
 class test_range(Declarative):
-
-    def __init__(self):
-        super(test_range, self).__init__()
-        self.connection = None
+    @classmethod
+    def setUpClass(cls):
+        super(test_range, cls).setUpClass()
+        cls.tearDownClass()
+        cls.mockldap = MockLDAP()
+        cls.mockldap.add_entry(testrange9_dn, testrange9_add)
+        cls.mockldap.add_entry(testrange10_dn, testrange10_add)
+        cls.mockldap.add_entry(testtrust_dn, testtrust_add)
+        cls.mockldap.unbind()
 
     @classmethod
-    def connect_ldap(self):
-        self.connection = ldap.initialize('ldap://{host}'
-                                     .format(host=api.env.host))
-
-        auth = ldap.sasl.gssapi("")
-        self.connection.sasl_interactive_bind_s('', auth)
-
-    @classmethod
-    def add_entry(self, dn, mods):
-        ldif = ldap.modlist.addModlist(mods)
-        self.connection.add_s(dn, ldif)
-
-    @classmethod
-    def setUpClass(self):
-        super(test_range, self).setUpClass()
-
-        self.tearDownClass()
-
-        try:
-            self.connect_ldap()
-
-            self.add_entry(testrange9_dn, testrange9_add)
-            self.add_entry(testrange10_dn, testrange10_add)
-            self.add_entry(testtrust_dn, testtrust_add)
-
-        except ldap.ALREADY_EXISTS:
-            pass
-
-        finally:
-            if self.connection is not None:
-                self.connection.unbind_s()
-
-    @classmethod
-    def tearDownClass(self):
-
-        try:
-            self.connect_ldap()
-            self.connection.delete_s(testrange9_dn)
-            self.connection.delete_s(testrange10_dn)
-            self.connection.delete_s(testtrust_dn)
-
-        except ldap.NO_SUCH_OBJECT:
-            pass
-
-        finally:
-            if self.connection is not None:
-                self.connection.unbind_s()
+    def tearDownClass(cls):
+        cls.mockldap = MockLDAP()
+        cls.mockldap.del_entry(testrange9_dn)
+        cls.mockldap.del_entry(testrange10_dn)
+        cls.mockldap.del_entry(testtrust_dn)
+        cls.mockldap.unbind()
 
     cleanup_commands = [
         ('idrange_del', [testrange1, testrange2, testrange3, testrange4,
@@ -508,7 +471,9 @@ class test_range(Declarative):
             desc='Create ID range %r' % (testrange8),
             command=('idrange_add', [testrange8],
                       dict(ipabaseid=testrange8_base_id,
-                          ipaidrangesize=testrange8_size)),
+                          ipaidrangesize=testrange8_size,
+                          ipabaserid=testrange8_base_rid,
+                          ipasecondarybaserid=testrange8_secondary_base_rid)),
             expected=dict(
                 result=dict(
                     dn=DN(('cn',testrange8),('cn','ranges'),('cn','etc'),
@@ -518,18 +483,12 @@ class test_range(Declarative):
                     ipabaseid=[unicode(testrange8_base_id)],
                     ipaidrangesize=[unicode(testrange8_size)],
                     iparangetype=[u'local domain range'],
+                    ipabaserid=[unicode(testrange8_base_rid)],
+                    ipasecondarybaserid=[unicode(testrange8_secondary_base_rid)]
                 ),
                 value=testrange8,
                 summary=u'Added ID range "%s"' % (testrange8),
             ),
-        ),
-
-        dict(
-            desc='Try to modify ID range %r so it has only primary rid range set' % (testrange8),
-            command=('idrange_mod', [testrange8],
-                      dict(ipabaserid=testrange8_base_rid)),
-            expected=errors.ValidationError(
-                name='ID Range setup', error='Options secondary-rid-base and rid-base must be used together'),
         ),
 
         dict(

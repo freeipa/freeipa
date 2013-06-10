@@ -24,6 +24,9 @@ Common utility functions and classes for unit tests.
 import inspect
 import os
 from os import path
+import ldap
+import ldap.sasl
+import ldap.modlist
 import tempfile
 import shutil
 import re
@@ -31,6 +34,7 @@ import ipalib
 from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
+
 
 class TempDir(object):
     def __init__(self):
@@ -451,12 +455,6 @@ class ClassChecker(object):
         context.__dict__.clear()
 
 
-
-
-
-
-
-
 def check_TypeError(value, type_, name, callback, *args, **kw):
     """
     Tests a standard TypeError raised with `errors.raise_TypeError`.
@@ -635,3 +633,30 @@ class DummyClass(object):
 
     def _calledall(self):
         return self.__i == len(self.__calls)
+
+
+class MockLDAP(object):
+    def __init__(self):
+        self.connection = ldap.initialize(
+            'ldap://{host}'.format(host=ipalib.api.env.host)
+        )
+
+        auth = ldap.sasl.gssapi('')
+        self.connection.sasl_interactive_bind_s('', auth)
+
+    def add_entry(self, dn, mods):
+        try:
+            ldif = ldap.modlist.addModlist(mods)
+            self.connection.add_s(dn, ldif)
+        except ldap.ALREADY_EXISTS:
+            pass
+
+    def del_entry(self, dn):
+        try:
+            self.connection.delete_s(dn)
+        except ldap.NO_SUCH_OBJECT:
+            pass
+
+    def unbind(self):
+        if self.connection is not None:
+            self.connection.unbind_s()

@@ -101,6 +101,10 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
+command: adtrust_is_enabled
+args: 0,1,1
+option: Str('version?', exclude='webui')
+output: Output('result', None, None)
 command: automember_add
 args: 1,7,3
 arg: Str('cn', cli_name='automember_rule')

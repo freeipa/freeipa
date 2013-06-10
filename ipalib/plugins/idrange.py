@@ -356,7 +356,7 @@ class idrange_add(LDAPCreate):
 
     may be given for a new ID range for the local domain while
 
-        --rid-bas
+        --rid-base
         --dom-sid
 
     must be given to add a new range for a trusted AD domain.
@@ -381,6 +381,9 @@ class idrange_add(LDAPCreate):
 
         Also ensure that secondary-rid-base is prompted for when rid-base is
         specified and vice versa, in case that dom-sid was not specified.
+
+        Also ensure that rid-base and secondary-rid-base is prompted for
+        if ipa-adtrust-install has been run on the system.
         """
 
         # dom-sid can be specified using dom-sid or dom-name options
@@ -409,6 +412,22 @@ class idrange_add(LDAPCreate):
             if not rid_base_set and secondary_rid_base_set:
                 value = self.prompt_param(self.params['ipabaserid'])
                 kw.update(dict(ipabaserid=value))
+
+        # Prompt for rid-base and secondary-rid-base if ipa-adtrust-install
+        # has been run on the system
+        adtrust_is_enabled = api.Command['adtrust_is_enabled']()['result']
+
+        if adtrust_is_enabled:
+            rid_base = kw.get('ipabaserid', None)
+            secondary_rid_base = kw.get('ipasecondarybaserid', None)
+
+            if rid_base is None:
+                value = self.prompt_param(self.params['ipabaserid'])
+                kw.update(dict(ipabaserid=value))
+
+            if secondary_rid_base is None:
+                value = self.prompt_param(self.params['ipasecondarybaserid'])
+                kw.update(dict(ipasecondarybaserid=value))
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -495,6 +514,20 @@ class idrange_add(LDAPCreate):
                             error=_("Primary RID range and secondary RID range"
                                     " cannot overlap"))
 
+            # rid-base and secondary-rid-base must be set if
+            # ipa-adtrust-install has been run on the system
+            adtrust_is_enabled = api.Command['adtrust_is_enabled']()['result']
+
+            if adtrust_is_enabled and not (
+                    is_set('ipabaserid') and is_set('ipasecondarybaserid')):
+                raise errors.ValidationError(
+                    name='ID Range setup',
+                    error=_(
+                        'You must specify both rid-base and '
+                        'secondary-rid-base options, because '
+                        'ipa-adtrust-install has already been run.'
+                    )
+                )
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

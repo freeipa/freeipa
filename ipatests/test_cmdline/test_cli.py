@@ -325,3 +325,77 @@ class TestCLIParsing(object):
             force=False,
             version=API_VERSION
         )
+
+    def test_idrange_add(self):
+        """
+        Test idrange-add with interative prompt
+        """
+        def test_with_interactive_input():
+            with self.fake_stdin('5\n500000\n'):
+                self.check_command(
+                    'idrange_add range1 --base-id=1 --range-size=1',
+                    'idrange_add',
+                    cn=u'range1',
+                    ipabaseid=u'1',
+                    ipaidrangesize=u'1',
+                    ipabaserid=5,
+                    ipasecondarybaserid=500000,
+                    all=False,
+                    raw=False,
+                    version=API_VERSION
+                )
+
+        def test_with_command_line_options():
+            self.check_command(
+                'idrange_add range1 --base-id=1 --range-size=1 '
+                '--rid-base=5 --secondary-rid-base=500000',
+                'idrange_add',
+                cn=u'range1',
+                ipabaseid=u'1',
+                ipaidrangesize=u'1',
+                ipabaserid=u'5',
+                ipasecondarybaserid=u'500000',
+                all=False,
+                raw=False,
+                version=API_VERSION
+            )
+
+        def test_without_options():
+            self.check_command(
+                'idrange_add range1 --base-id=1 --range-size=1',
+                'idrange_add',
+                cn=u'range1',
+                ipabaseid=u'1',
+                ipaidrangesize=u'1',
+                all=False,
+                raw=False,
+                version=API_VERSION
+            )
+
+        adtrust_dn = 'cn=ADTRUST,cn=%s,cn=masters,cn=ipa,cn=etc,%s' % \
+                     (api.env.host, api.env.basedn)
+        adtrust_is_enabled = api.Command['adtrust_is_enabled']()['result']
+        mockldap = None
+
+        if not adtrust_is_enabled:
+            # ipa-adtrust-install not run - no need to pass rid-base
+            # and secondary-rid-base
+            test_without_options()
+
+            # Create a mock service object to test against
+            adtrust_add = dict(
+                ipaconfigstring='enabledService',
+                objectclass=['top', 'nsContainer', 'ipaConfigObject']
+            )
+
+            mockldap = util.MockLDAP()
+            mockldap.add_entry(adtrust_dn, adtrust_add)
+
+        # Pass rid-base and secondary-rid-base interactively
+        test_with_interactive_input()
+
+        # Pass rid-base and secondary-rid-base on the command-line
+        test_with_command_line_options()
+
+        if not adtrust_is_enabled:
+            mockldap.del_entry(adtrust_dn)
