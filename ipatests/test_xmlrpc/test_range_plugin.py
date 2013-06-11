@@ -29,62 +29,86 @@ from ipapython.dn import *
 
 import ldap, ldap.sasl, ldap.modlist
 
+id_shift = 0
+rid_shift = 0
+
+for idrange in api.Command['idrange_find']()['result']:
+    size = int(idrange['ipaidrangesize'][0])
+    base_id = int(idrange['ipabaseid'][0])
+
+    id_end = base_id + size
+    rid_end = 0
+
+    if 'ipabaserid' in idrange:
+        base_rid = int(idrange['ipabaserid'][0])
+        rid_end = base_rid + size
+
+    if 'ipasecondarybaserid' in idrange:
+        secondary_base_rid = int(idrange['ipasecondarybaserid'][0])
+        rid_end = max(base_rid, secondary_base_rid) + size
+
+    if id_shift < id_end:
+        id_shift = id_end + 1000000
+
+    if rid_shift < rid_end:
+        rid_shift = rid_end + 1000000
+
 testrange1 = u'testrange1'
-testrange1_base_id = 900000
+testrange1_base_id = id_shift + 900000
 testrange1_size = 99999
-testrange1_base_rid = 10000
-testrange1_secondary_base_rid = 200000
+testrange1_base_rid = rid_shift + 10000
+testrange1_secondary_base_rid = rid_shift + 200000
 
 testrange2 = u'testrange2'
-testrange2_base_id = 100
+testrange2_base_id = id_shift + 100
 testrange2_size = 50
-testrange2_base_rid = 100
-testrange2_secondary_base_rid = 1000
+testrange2_base_rid = rid_shift + 100
+testrange2_secondary_base_rid = rid_shift + 1000
 
 testrange3 = u'testrange3'
-testrange3_base_id = 200
+testrange3_base_id = id_shift + 200
 testrange3_size = 50
-testrange3_base_rid = 70
-testrange3_secondary_base_rid = 1100
+testrange3_base_rid = rid_shift + 70
+testrange3_secondary_base_rid = rid_shift + 1100
 
 testrange4 = u'testrange4'
-testrange4_base_id = 300
+testrange4_base_id = id_shift + 300
 testrange4_size = 50
-testrange4_base_rid = 200
-testrange4_secondary_base_rid = 1030
+testrange4_base_rid = rid_shift + 200
+testrange4_secondary_base_rid = rid_shift + 1030
 
 testrange5 = u'testrange5'
-testrange5_base_id = 400
+testrange5_base_id = id_shift + 400
 testrange5_size = 50
-testrange5_base_rid = 1020
-testrange5_secondary_base_rid = 1200
+testrange5_base_rid = rid_shift + 1020
+testrange5_secondary_base_rid = rid_shift + 1200
 
 testrange6 = u'testrange6'
-testrange6_base_id = 130
+testrange6_base_id = id_shift + 130
 testrange6_size = 50
-testrange6_base_rid = 500
-testrange6_secondary_base_rid = 1300
+testrange6_base_rid = rid_shift + 500
+testrange6_secondary_base_rid = rid_shift + 1300
 
 testrange7 = u'testrange7'
-testrange7_base_id = 600
+testrange7_base_id = id_shift + 600
 testrange7_size = 50
-testrange7_base_rid = 600
-testrange7_secondary_base_rid = 649
+testrange7_base_rid = rid_shift + 600
+testrange7_secondary_base_rid = rid_shift + 649
 
 testrange8 = u'testrange8'
-testrange8_base_id = 700
+testrange8_base_id = id_shift + 700
 testrange8_size = 50
-testrange8_base_rid = 700
+testrange8_base_rid = rid_shift + 700
 
 testrange9 = u'testrange9'
-testrange9_base_id = 800
+testrange9_base_id = id_shift + 800
 testrange9_size = 50
-testrange9_base_rid = 800
+testrange9_base_rid = rid_shift + 800
 
 testrange10 = u'testrange10'
-testrange10_base_id = 900
+testrange10_base_id = id_shift + 900
 testrange10_size = 50
-testrange10_base_rid = 900
+testrange10_base_rid = rid_shift + 900
 
 testrange9_dn = "cn={name},cn=ranges,cn=etc,{basedn}".format(name=testrange9,
                                                       basedn=api.env.basedn)
@@ -95,6 +119,7 @@ testrange9_add = dict(
     ipaBaseRID="{base_rid}".format(base_rid=testrange9_base_rid),
     ipaIDRangeSize="{size}".format(size=testrange9_size),
     ipaNTTrustedDomainSID="S-1-5-21-259319770-2312917334-591429603",
+    ipaRangeType="ipa-ad-trust",
     )
 
 testrange10_dn = "cn={name},cn=ranges,cn=etc,{basedn}".format(name=testrange10,
@@ -106,6 +131,7 @@ testrange10_add = dict(
     ipaBaseRID="{base_rid}".format(base_rid=testrange10_base_rid),
     ipaIDRangeSize="{size}".format(size=testrange10_size),
     ipaNTTrustedDomainSID="S-1-5-21-2997650941-1802118864-3094776726",
+    ipaRangeType="ipa-ad-trust",
     )
 
 testtrust = u'testtrust'
@@ -123,9 +149,9 @@ testtrust_add = dict(
     )
 
 user1 = u'tuser1'
-user1_uid = 900000
+user1_uid = id_shift + 900000
 group1 = u'group1'
-group1_gid = 900100
+group1_gid = id_shift + 900100
 
 
 class test_range(Declarative):
@@ -295,7 +321,9 @@ class test_range(Declarative):
 
         dict(
             desc='Try to modify ID range %r to get out bounds object #1' % (testrange1),
-            command=('idrange_mod', [testrange1], dict(ipabaseid=90001)),
+            command=(
+                'idrange_mod', [testrange1], dict(ipabaseid=user1_uid + 1)
+            ),
             expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
                 error=u'range modification leaving objects with ID out of the'
                       u' defined range is not allowed'),
@@ -406,7 +434,7 @@ class test_range(Declarative):
         dict(
             desc='Try to modify ID range %r so that its rid ranges are overlapping themselves' % (testrange2),
             command=('idrange_mod', [testrange2],
-                      dict(ipabaserid=(testrange2_base_rid*10))),
+                      dict(ipabaserid=(testrange2_secondary_base_rid))),
             expected=errors.ValidationError(
                 name='ID Range setup', error='Primary RID range and secondary RID range cannot overlap'),
         ),
