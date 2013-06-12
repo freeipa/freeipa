@@ -95,9 +95,11 @@ class RemoteCommand(object):
 
         self._done = True
 
-        self.log.info('Exit code: %s', self.returncode)
         if raiseonerr and self.returncode:
+            self.log.error('Exit code: %s', self.returncode)
             raise subprocess.CalledProcessError(self.returncode, self.argv)
+        else:
+            self.log.info('Exit code: %s', self.returncode)
         return self.returncode
 
     def _start_pipe_thread(self, result_list, stream, name, do_log=True):
@@ -187,7 +189,8 @@ class Host(object):
         return env
 
     def run_command(self, argv, set_env=True, stdin_text=None,
-                    log_stdout=True, raiseonerr=True):
+                    log_stdout=True, raiseonerr=True,
+                    cwd=None):
         """Run the given command on this host
 
         Returns a RemoteCommand instance. The command will have already run
@@ -208,8 +211,13 @@ class Host(object):
                                 log_stdout=log_stdout)
         self._command_index += 1
 
+        if cwd is None:
+            cwd = self.config.test_dir
+        command.stdin.write('cd %s\n' % ipautil.shell_quote(cwd))
+
         if set_env:
-            command.stdin.write('. %s\n' % self.env_sh_path)
+            command.stdin.write('. %s\n' %
+                                ipautil.shell_quote(self.env_sh_path))
         command.stdin.write('set -e\n')
 
         if isinstance(argv, basestring):
@@ -234,7 +242,8 @@ class Host(object):
         try:
             return self._transport
         except AttributeError:
-            sock = socket.create_connection((self.hostname, self.ssh_port))
+            sock = socket.create_connection((self.external_hostname,
+                                             self.ssh_port))
             self._transport = transport = paramiko.Transport(sock)
             transport.connect(hostkey=self.host_key)
             if self.root_ssh_key_filename:
@@ -249,6 +258,8 @@ class Host(object):
             else:
                 self.log.critical('No SSH credentials configured')
                 raise RuntimeError('No SSH credentials configured')
+            # Clean up the test directory
+            self.run_command(['rm', '-rvf', self.config.test_dir])
             return transport
 
     @property
@@ -264,8 +275,10 @@ class Host(object):
     def mkdir_recursive(self, path):
         """`mkdir -p` on the remote host"""
         try:
-            self.sftp.chdir(path)
-        except IOError:
+            self.sftp.chdir(path or '/')
+        except IOError as e:
+            if not path or path == '/':
+                raise
             self.mkdir_recursive(os.path.dirname(path))
             self.sftp.mkdir(path)
             self.sftp.chdir(path)
@@ -280,7 +293,7 @@ class Host(object):
         """Write the given string to the named remote file"""
         self.log.info('WRITE %s', filename)
         with self.sftp.open(filename, 'w') as f:
-            return f.write(contents)
+            f.write(contents)
 
     def file_exists(self, filename):
         """Return true if the named remote file exists"""
@@ -293,3 +306,11 @@ class Host(object):
             else:
                 raise
         return True
+
+    def get_file(self, remotepath, localpath):
+        self.log.info('GET %s', remotepath)
+        self.sftp.get(remotepath, localpath)
+
+    def put_file(self, localpath, remotepath):
+        self.log.info('PUT %s', remotepath)
+        self.sftp.put(localpath, remotepath)

@@ -148,6 +148,8 @@ def install_master(host, collect_log=None):
 
     enable_replication_debugging(host)
 
+    host.run_command(['kinit', 'admin'],
+                      stdin_text=host.config.admin_password)
 
 def install_replica(master, replica, collect_log=None):
     if collect_log:
@@ -172,6 +174,9 @@ def install_replica(master, replica, collect_log=None):
                          replica_filename])
 
     enable_replication_debugging(replica)
+
+    replica.run_command(['kinit', 'admin'],
+                        stdin_text=replica.config.admin_password)
 
 
 def connect_replica(master, replica=None):

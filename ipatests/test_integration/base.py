@@ -62,7 +62,6 @@ class IntegrationTest(object):
 
         try:
             cls.install()
-            cls.kinit_all()
         except:
             cls.uninstall()
             raise
@@ -92,12 +91,6 @@ class IntegrationTest(object):
             raise ValueError('Unknown topology %s' % cls.topology)
 
     @classmethod
-    def kinit_all(cls):
-        for host in cls.get_all_hosts():
-            host.run_command(['kinit', 'admin'],
-                             stdin_text=host.config.admin_password)
-
-    @classmethod
     def teardown_class(cls):
         try:
             cls.uninstall()
@@ -117,7 +110,7 @@ class IntegrationTest(object):
     @classmethod
     def collect_log(cls, host, filename):
         cls.log.info('Adding %s:%s to list of logs to collect' %
-                     (host.hostname, filename))
+                     (host.external_hostname, filename))
         cls.logs_to_collect.setdefault(host, []).append(filename)
 
 IntegrationTest.log = log_mgr.get_logger(IntegrationTest())
