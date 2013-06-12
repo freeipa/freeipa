@@ -1,0 +1,116 @@
+#!/bin/bash -e
+
+profile_ca=(-t CT,C,C -v 120)
+profile_server=(-t ,, -v 12)
+
+crl_path=${crl_path-$(readlink -f $dbdir)}
+
+gen_cert() {
+    local profile="$1" nick="$2" subject="$3" ca options pwfile noise csr crt
+    shift 3
+
+    echo "gen_cert(profile=$profile nick=$nick subject=$subject)"
+
+    ca="$(dirname $nick)"
+    if [ "$ca" = "." ]; then
+        ca="$nick"
+    fi
+
+    eval "options=(\"\${profile_$profile[@]}\")"
+    if [ "$ca" = "$nick" ]; then
+        options=("${options[@]}" -x -m 1)
+    else
+        options=("${options[@]}" -c "$ca")
+    fi
+
+    pwfile="$(mktemp)"
+    echo "$dbpassword" >"$pwfile"
+
+    noise="$(mktemp)"
+    head -c 20 /dev/urandom >"$noise"
+
+    if [ ! -d "$dbdir" ]; then
+        mkdir "$dbdir"
+        certutil -N -d "$dbdir" -f "$pwfile"
+    fi
+
+    csr="$(mktemp)"
+    crt="$(mktemp)"
+    certutil -R -d "$dbdir" -s "$subject" -f "$pwfile" -z "$noise" -o "$csr" -4 >/dev/null <<EOF
+1
+7
+file://$crl_path/$ca.crl
+-1
+-1
+-1
+n
+n
+EOF
+    certutil -C -d "$dbdir" -f "$pwfile" -m "$RANDOM" -i "$csr" -o "$crt" "${options[@]}" "$@"
+    certutil -A -d "$dbdir" -n "$nick" -f "$pwfile" -i "$crt" "${options[@]}"
+
+    rm -f "$pwfile" "$noise" "$csr" "$crt"
+}
+
+revoke_cert() {
+    local nick="$1" ca pwfile serial
+    shift 1
+
+    echo "revoke_cert(nick=$nick)"
+
+    ca="$(dirname $nick)"
+    if [ "$ca" = "." ]; then
+        ca="$nick"
+    fi
+
+    pwfile="$(mktemp)"
+    echo "$dbpassword" >"$pwfile"
+
+    if ! crlutil -L -d "$dbdir" -n "$ca" &>/dev/null; then
+        crlutil -G -d "$dbdir" -n "$ca" -c /dev/null -f "$pwfile"
+    fi
+
+    sleep 1
+
+    mkdir -p "$(dirname $dbdir/$ca.crl)"
+    serial=$(certutil -L -d "$dbdir" -n "$nick" | awk '/^\s+Serial Number: / { print $3 }')
+    crlutil -M -d "$dbdir" -n "$ca" -c /dev/stdin -f "$pwfile" -o "$dbdir/$ca.crl" <<EOF
+addcert $serial $(date -u +%Y%m%d%H%M%SZ)
+EOF
+
+    rm -f "$pwfile"
+}
+
+gen_server_certs() {
+    local nick="$1" hostname="$2" org="$3"
+    shift 3
+
+    echo "gen_server_certs(nick=$nick hostname=$hostname org=$org)"
+
+    gen_cert server "$nick" "CN=$hostname,O=$org" "$@"
+    gen_cert server "$nick-badname" "CN=not-$hostname,O=$org" "$@"
+    gen_cert server "$nick-altname" "CN=alt-$hostname,O=$org" -8 "$hostname" "$@"
+    gen_cert server "$nick-expired" "CN=$hostname,OU=Expired,O=$org" -w -24 "$@"
+    gen_cert server "$nick-badusage" "CN=$hostname,OU=Bad Usage,O=$org" --keyUsage dataEncipherment,keyAgreement "$@"
+    gen_cert server "$nick-revoked" "CN=$hostname,OU=Revoked,O=$org" "$@"
+    revoke_cert "$nick-revoked"
+}
+
+gen_subtree() {
+    local nick="$1" org="$2"
+    shift 2
+
+    echo "gen_subtree(nick=$nick org=$org)"
+
+    gen_cert ca "$nick" "CN=CA,O=$org" "$@"
+    gen_cert server "$nick/wildcard" "CN=*.$domain,O=$org"
+    gen_server_certs "$nick/server" "$server1" "$org"
+    gen_server_certs "$nick/replica" "$server2" "$org"
+    gen_server_certs "$nick/client" "$client" "$org"
+}
+
+gen_cert server server-selfsign "CN=$server1,O=Self-signed"
+gen_cert server replica-selfsign "CN=$server2,O=Self-signed"
+gen_subtree ca1 'Example Organization'
+gen_subtree ca1/subca 'Subsidiary Example Organization'
+gen_subtree ca2 'Other Example Organization'
