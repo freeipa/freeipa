@@ -149,6 +149,14 @@ IPA.rule_association_table_widget = function(spec) {
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', other_entity_label);
 
+        var exclude = that.values;
+        if (that.external) {
+            exclude = [];
+            for (var i=0; i<that.values.length; i++) {
+                exclude.push(that.values[i][that.name]);
+            }
+        }
+
         return IPA.rule_association_adder_dialog({
             title: title,
             pkey: pkey,
@@ -156,7 +164,7 @@ IPA.rule_association_table_widget = function(spec) {
             attribute_member: that.attribute_member,
             entity: that.entity,
             external: that.external,
-            exclude: that.values
+            exclude: exclude
         });
     };
 
