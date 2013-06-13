@@ -228,7 +228,6 @@ distclean: version-update
 
 maintainer-clean: clean
 	rm -fr $(RPMBUILD) dist build
-	cd selinux && $(MAKE) maintainer-clean
 	cd daemons && $(MAKE) maintainer-clean
 	cd install && $(MAKE) maintainer-clean
 	cd ipa-client && $(MAKE) maintainer-clean
