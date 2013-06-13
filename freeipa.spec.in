@@ -687,8 +687,6 @@ fi
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca/publish
-%dir %{_localstatedir}/cache/ipa
-%attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 %attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
 %{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
@@ -782,6 +780,7 @@ fi
 %changelog
 * Thu Jun 13 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-1
 - Drop freeipa-server-selinux subpackage
+- Drop redundant directory /var/cache/ipa/sessions
 
 * Fri May 10 2013 Martin Kosek <mkosek@redhat.com> - 3.1.99-13
 - Add requires for openldap-2.4.35-4 to pickup fixed SASL_NOCANON behavior for
