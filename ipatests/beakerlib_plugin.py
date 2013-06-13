@@ -20,10 +20,10 @@
 """A Nose plugin that integrates with BeakerLib"""
 
 import os
-import sys
 import subprocess
 import traceback
 import logging
+import tempfile
 
 import nose
 from nose.plugins import Plugin
@@ -56,6 +56,10 @@ class BeakerLibPlugin(Plugin):
     # See nose.plugins.base.IPluginInterface for Nose plugin interface docs
     name = 'beakerlib'
 
+    def __init__(self):
+        super(BeakerLibPlugin, self).__init__()
+        self.log = log_mgr.get_logger(self)
+
     def options(self, parser, env=os.environ):
         super(BeakerLibPlugin, self).options(parser, env=env)
         self.env = env
@@ -76,9 +80,9 @@ class BeakerLibPlugin(Plugin):
         source_path = os.path.join(self.env['BEAKERLIB'], 'beakerlib.sh')
         self.run_beakerlib_command(['.', source_path])
 
-        # _in_class is set when we are in setup_class, so its rlPhaseEnd can
-        # be called when the first test starts
-        self._in_class = False
+        # _in_class_setup is set when we are in setup_class, so logs can be
+        # collected just before the first test starts
+        self._in_class_setup = False
 
         # Redirect logging to our own handlers
         self.setup_log_handler(BeakerLibLogHandler(self.run_beakerlib_command))
@@ -113,24 +117,28 @@ class BeakerLibPlugin(Plugin):
         """
         if not isinstance(context, type):
             return
-        message = 'Class setup: %s' % context.__name__
+        message = 'Nose Test Class: %s' % context.__name__
         self.run_beakerlib_command(['rlPhaseStart', 'FAIL', message])
-        self._in_class = True
+        self._in_class_setup = True
 
     def stopContext(self, context):
         """End a test context"""
-        if self._in_class:
-            self.run_beakerlib_command(['rlPhaseEnd'])
+        if not isinstance(context, type):
+            return
+        self.collect_logs(context)
+        self.run_beakerlib_command(['rlPhaseEnd'])
 
     def startTest(self, test):
         """Start a test phase"""
-        if self._in_class:
-            self.run_beakerlib_command(['rlPhaseEnd'])
+        if self._in_class_setup:
+            self.collect_logs(test.context)
+        self.log.info('Running test: %s', test.id())
         self.run_beakerlib_command(['rlPhaseStart', 'FAIL',
-                                 'Nose test: %s' % test])
+                                    'Nose test: %s' % test])
 
     def stopTest(self, test):
         """End a test phase"""
+        self.collect_logs(test.context)
         self.run_beakerlib_command(['rlPhaseEnd'])
 
     def addSuccess(self, test):
@@ -158,3 +166,50 @@ class BeakerLibPlugin(Plugin):
     def addFailure(self, test, err):
         self.log_exception(err)
         self.run_beakerlib_command(['rlFail', 'Test failed'])
+
+    def collect_logs(self, test):
+        """Collect logs specified in test's logs_to_collect attribute
+        """
+        try:
+            logs_to_collect = test.logs_to_collect
+        except AttributeError:
+            self.log.debug('No logs to collect')
+        else:
+            for host, logs in logs_to_collect.items():
+                self.log.info('Collecting logs from: %s', host.hostname)
+
+                # Tar up the logs on the remote server
+                cmd = host.run_command(['tar', 'cJv'] + logs, log_stdout=False,
+                                       raiseonerr=False)
+                if cmd.returncode:
+                    self.run_beakerlib_command(
+                        ['rlFail', 'Could not collect all requested logs'])
+
+                # Copy and unpack on the local side
+                topdirname = tempfile.mkdtemp()
+                dirname = os.path.join(topdirname, host.hostname)
+                os.mkdir(dirname)
+                tarname = os.path.join(dirname, 'logs.tar.xz')
+                with open(tarname, 'w') as f:
+                    f.write(cmd.stdout_text)
+                self.log.info('%s', dirname)
+                ipautil.run(['tar', 'xJvf', 'logs.tar.xz'], cwd=dirname)
+                os.unlink(tarname)
+
+                # Use BeakerLib's rlFileSubmit on the indifidual files
+                # The resulting submitted filename will be
+                # $HOSTNAME-$FILENAME (with '/' replaced by '-')
+                self.run_beakerlib_command(['pushd', topdirname])
+                for dirpath, dirnames, filenames in os.walk(topdirname):
+                    for filename in filenames:
+                        fullname = os.path.relpath(
+                            os.path.join(dirpath, filename), topdirname)
+                        self.log.info('Submitting file: %s', fullname)
+                        self.run_beakerlib_command(['rlFileSubmit', fullname])
+                self.run_beakerlib_command(['popd'])
+
+                # The BeakerLib process runs asynchronously, let it clean up
+                # after it's done with the directory
+                self.run_beakerlib_command(['rm', '-rvf', topdirname])
+
+            test.logs_to_collect.clear()

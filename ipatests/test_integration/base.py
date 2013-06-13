@@ -98,17 +98,19 @@ class IntegrationTest(object):
         try:
             cls.uninstall()
         finally:
-            del cls.logs_to_collect
             del cls.master
             del cls.replicas
             del cls.clients
 
     @classmethod
     def uninstall(cls):
+        cls.collect_log(cls.master, '/var/log/ipaserver-uninstall.log')
         cls.master.run_command(['ipa-server-install', '--uninstall', '-U'])
         for replica in cls.replicas:
+            cls.collect_log(replica, '/var/log/ipaserver-uninstall.log')
             replica.run_command(['ipa-server-install', '--uninstall', '-U'])
         for client in cls.clients:
+            cls.collect_log(replica, '/var/log/ipaclient-uninstall.log')
             client.run_command(['ipa-client-install', '--uninstall', '-U'])
 
     @classmethod
