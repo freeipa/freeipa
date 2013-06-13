@@ -1949,6 +1949,21 @@ IPA.notify_success = function(message, timeout) {
     }, timeout || IPA.config.message_timeout);
 };
 
+IPA.get_succeeded = function(data) {
+    var succeeded = data.result.completed;
+
+    if (typeof succeeded !== 'number') {
+        succeeded = 0;
+        for (var i = 0; i< data.result.results.length; i++) {
+            if (data.result.results[i].completed === 1) {
+                succeeded++;
+            }
+        }
+    }
+
+    return succeeded;
+};
+
 IPA.config = {
     default_priority: 500,
     message_timeout: 3000, // [ms]
