@@ -609,10 +609,13 @@ IPA.association_table_widget = function (spec) {
         dialog.execute = function() {
             that.add(
                 dialog.get_selected_values(),
-                function() {
+                function(data) {
                     that.refresh();
                     dialog.close();
-                    IPA.notify_success('@i18n:association.added');
+
+                    var succeeded = IPA.get_succeeded(data);
+                    var msg = text.get('@i18n:association.added').replace('${count}', succeeded);
+                    IPA.notify_success(msg);
                 },
                 function() {
                     that.refresh();
@@ -671,9 +674,12 @@ IPA.association_table_widget = function (spec) {
         dialog.execute = function() {
             that.remove(
                 selected_values,
-                function() {
+                function(data) {
                     that.refresh();
-                    IPA.notify_success('@i18n:association.removed');
+
+                    var succeeded = IPA.get_succeeded(data);
+                    var msg = text.get('@i18n:association.removed').replace('${count}', succeeded);
+                    IPA.notify_success(msg);
                 },
                 function() {
                     that.refresh();
@@ -1084,17 +1090,8 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
                 on_success: function(data) {
                     that.refresh();
                     dialog.close();
-                    var succeeded = data.result.completed;
 
-                    if (!succeeded) {
-                        succeeded = 0;
-                        for (var i = 0; i< data.result.results.length; i++) {
-                            if (data.result.results[i].completed === 1) {
-                                succeeded++;
-                            }
-                        }
-                    }
-
+                    var succeeded = IPA.get_succeeded(data);
                     var msg = text.get('@i18n:association.added').replace('${count}', succeeded);
                     IPA.notify_success(msg);
                 },
@@ -1148,17 +1145,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
                 on_success: function(data) {
                     that.refresh();
 
-                    var succeeded = data.result.completed;
-
-                    if (!succeeded) {
-                        succeeded = 0;
-                        for (var i = 0; i< data.result.results.length; i++) {
-                            if (data.result.results[i].completed === 1) {
-                                succeeded++;
-                            }
-                        }
-                    }
-
+                    var succeeded = IPA.get_succeeded(data);
                     var msg = text.get('@i18n:association.removed').replace('${count}', succeeded);
                     IPA.notify_success(msg);
                 },
@@ -1417,7 +1404,10 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
                 function(data) {
                     that.load(data);
                     that.show_content();
-                    IPA.notify_success('@i18n:association.removed');
+
+                    var succeeded = IPA.get_succeeded(data);
+                    var msg = text.get('@i18n:association.removed').replace('${count}', succeeded);
+                    IPA.notify_success(msg);
                 },
                 function() {
                     that.refresh();
