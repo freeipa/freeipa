@@ -618,14 +618,13 @@ def run_script(main_function, operation_name, log_file_name=None,
                 root_logger.info('The %s command was successful',
                     operation_name)
             else:
-                # Log at the INFO level, which is not output to the console
+                # Log at the DEBUG level, which is not output to the console
                 # (unless in debug/verbose mode), but is written to a logfile
                 # if one is open.
                 tb = sys.exc_info()[2]
-                root_logger.info('\n'.join(traceback.format_tb(tb)))
-                root_logger.info('The %s command failed, exception: %s: %s',
-                    operation_name, type(e).__name__, e)
-                exception = e
+                root_logger.debug('\n'.join(traceback.format_tb(tb)))
+                root_logger.debug('The %s command failed, exception: %s: %s',
+                                  operation_name, type(e).__name__, e)
                 if fail_message and not isinstance(e, SystemExit):
                     print fail_message
                 raise
