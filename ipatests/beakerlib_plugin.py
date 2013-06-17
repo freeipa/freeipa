@@ -121,8 +121,15 @@ class BeakerLibPlugin(Plugin):
         """
         if not isinstance(context, type):
             return
-        message = 'Nose Test Class: %s' % context.__name__
-        self.run_beakerlib_command(['rlPhaseStart', 'FAIL', message])
+        try:
+            docstring = context.__doc__
+            caption = docstring.strip().partition('\n')[0]
+        except AttributeError:
+            docstring = ''
+            caption = 'Nose class (no docstring)'
+        phase_name = "%s-%s: %s" % (context.__module__.replace('.', '-'),
+                                    context.__name__, caption)
+        self.run_beakerlib_command(['rlPhaseStart', 'FAIL', phase_name])
         self._in_class_setup = True
 
     def stopContext(self, context):
@@ -137,8 +144,11 @@ class BeakerLibPlugin(Plugin):
         if self._in_class_setup:
             self.collect_logs(test.context)
         self.log.info('Running test: %s', test.id())
-        self.run_beakerlib_command(['rlPhaseStart', 'FAIL',
-                                    'Nose test: %s' % test])
+        caption = test.shortDescription()
+        if not caption:
+            caption = 'Nose method (no docstring)'
+        phase_name = "%s: %s" % (test.id().replace('.', '-'), caption)
+        self.run_beakerlib_command(['rlPhaseStart', 'FAIL', phase_name])
 
     def stopTest(self, test):
         """End a test phase"""

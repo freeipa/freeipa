@@ -23,10 +23,16 @@ from ipatests.test_integration.base import IntegrationTest
 
 
 class TestSimpleReplication(IntegrationTest):
+    """Simple replication test
+
+    Install a server and a replica, then add an user on one host and ensure
+    it is also present on the other one.
+    """
     num_replicas = 1
     topology = 'star'
 
     def test_user_replication_to_replica(self):
+        """Test user replication master -> replica"""
         login = 'testuser1'
         self.master.run_command(['ipa', 'user-add', login,
                                  '--first', 'test',
@@ -39,6 +45,7 @@ class TestSimpleReplication(IntegrationTest):
         assert 'User login: %s' % login in result.stdout_text
 
     def test_user_replication_to_master(self):
+        """Test user replication replica -> master"""
         login = 'testuser2'
         self.replicas[0].run_command(['ipa', 'user-add', login,
                                       '--first', 'test',
