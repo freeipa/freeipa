@@ -80,7 +80,7 @@ ipa-client/missing
 ipa-client/py-compile
 ipa-client/stamp-h1
 ipa-client/version.m4
-tests/test_xmlrpc/service.crt
+ipatests/test_xmlrpc/service.crt
 freeipa.spec
 ipapython/setup.py
 ipapython/version.py
