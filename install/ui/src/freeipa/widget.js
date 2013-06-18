@@ -666,6 +666,7 @@ IPA.option_widget_base = function(spec, that) {
     that.value_changed = that.value_changed || IPA.observer();
     that.updated = that.updated || IPA.observer();
     that.default_value = spec.default_value || null;
+    that.default_on_empty = spec.default_on_empty === undefined ? true : spec.default_on_empty;
 
     /**
      * Jquery reference to current node
@@ -959,9 +960,18 @@ IPA.option_widget_base = function(spec, that) {
 
             if (values && values.length > 0) {
 
+
+                if (that.default_on_empty && that.default_value !== null) {
+                    for (var i=0; i<values.length; i++) {
+                        if (values[i] === '') {
+                            values[i] = that.default_value;
+                        }
+                    }
+                }
+
                 // check the option when option or some of its child should be
                 // checked
-                for (var i=0; i<that.options.length; i++) {
+                for (i=0; i<that.options.length; i++) {
                     var option = that.options[i];
                     var opt_vals = that.get_values(option);
                     var has_opt = array.some(values, function(val) {
