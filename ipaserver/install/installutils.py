@@ -739,13 +739,20 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
         [(server_cert_name, server_cert_trust)] = server_certs
 
         # Check we have the whole cert chain & the CA is in it
-        for cert_name in nssdb.get_trust_chain(server_cert_name):
-            if cert_name == ca_cert_name:
+        trust_chain = nssdb.get_trust_chain(server_cert_name)
+        while trust_chain:
+            if trust_chain[0] == ca_cert_name:
                 break
+            trust_chain = trust_chain[1:]
         else:
             raise ScriptError(
                 '%s is not signed by %s, or the full certificate chain is not '
                 'present in the PKCS#12 file' % (pkcs12_filename, ca_file))
+        if len(trust_chain) != 2:
+            raise ScriptError(
+                'trust chain of the server certificate in %s contains %s '
+                'certificates, expected 2' %
+                (pkcs12_filename, len(trust_chain)))
 
         # Check server validity
         try:
