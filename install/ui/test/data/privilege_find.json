@@ -175,20 +175,6 @@
             },
             {
                 "cn": [
-                    "entitlementadmin"
-                ],
-                "description": [
-                    "Entitlement Administrators"
-                ],
-                "dn": "cn=entitlementadmin,cn=privileges,cn=accounts,dc=example,dc=com",
-                "memberof_permission": [
-                    "addentitlements",
-                    "removeentitlements",
-                    "modifyentitlements"
-                ]
-            },
-            {
-                "cn": [
                     "dnsadmin"
                 ],
                 "description": [

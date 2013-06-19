@@ -179,21 +179,6 @@ body {
     margin: -4px 0 0 1px;
 }
 
-.register-icon {
-    background: url(images/entitle-register.png);
-    margin: -4px 0 0 1px;
-}
-
-.import-icon {
-    background: url(images/entitle-import.png);
-    margin: -4px 0 0 1px;
-}
-
-.consume-icon {
-    background: url(images/entitle-consume.png);
-    margin: -4px 0 0 1px;
-}
-
 .ipa-icon {
     font-size: 0.7em;
     padding-right: 0.3em;

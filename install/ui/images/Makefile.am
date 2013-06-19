@@ -12,9 +12,6 @@ app_DATA =                              \
 	centered-background.png		\
 	check-icon.png			\
 	combobox-open.png		\
-	entitle-consume.png		\
-	entitle-import.png 		\
-	entitle-register.png		\
 	facet-tab-off.png		\
 	facet-tab-on.png		\
 	firefox-icon.png		\

@@ -72,12 +72,6 @@
             },
             {
                 "cn": [
-                    "entitlementadmin"
-                ],
-                "dn": "cn=entitlementadmin,cn=privileges,cn=accounts,dc=example,dc=com"
-            },
-            {
-                "cn": [
                     "dnsadmin"
                 ],
                 "dn": "cn=dnsadmin,cn=privileges,cn=accounts,dc=example,dc=com"

@@ -848,7 +848,6 @@
                     "ipadefaultloginshell",
                     "ipadefaultprimarygroup",
                     "ipaenabledflag",
-                    "ipaentitlementid",
                     "ipaexternalmember",
                     "ipagroupobjectclasses",
                     "ipagroupsearchfields",
@@ -4055,67 +4054,6 @@
                     }
                 ],
                 "uuid_attribute": ""
-            },
-            "entitle": {
-                "aciattrs": [
-                    "ipaentitlementid",
-                    "ipauniqueid",
-                    "usercertificate",
-                    "userpkcs12"
-                ],
-                "attribute_members": {},
-                "bindable": false,
-                "container_dn": "cn=entitlements,cn=etc",
-                "default_attributes": [
-                    "ipaentitlement"
-                ],
-                "hidden_attributes": [
-                    "objectclass",
-                    "aci"
-                ],
-                "label": "Entitlements",
-                "label_singular": "Entitlement",
-                "methods": [
-                    "consume",
-                    "find",
-                    "import",
-                    "register",
-                    "sync"
-                ],
-                "name": "entitle",
-                "object_class": [
-                    "ipaobject",
-                    "ipaentitlement"
-                ],
-                "object_class_config": null,
-                "object_name": "entitlement",
-                "object_name_plural": "entitlements",
-                "parent_object": "",
-                "rdn_attribute": "",
-                "relationships": {
-                    "member": [
-                        "Member",
-                        "",
-                        "no_"
-                    ],
-                    "memberindirect": [
-                        "Indirect Member",
-                        null,
-                        "no_indirect_"
-                    ],
-                    "memberof": [
-                        "Member Of",
-                        "in_",
-                        "not_in_"
-                    ],
-                    "memberofindirect": [
-                        "Indirect Member Of",
-                        null,
-                        "not_in_indirect_"
-                    ]
-                },
-                "takes_params": [],
-                "uuid_attribute": "ipaentitlementid"
             },
             "group": {
                 "aciattrs": [

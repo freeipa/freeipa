@@ -446,7 +446,6 @@ mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 install -pm 644 contrib/completion/ipa.bash_completion %{buildroot}%{_sysconfdir}/bash_completion.d/ipa
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
-install -pm 644 ipa-compliance.cron %{buildroot}%{_sysconfdir}/cron.d/ipa-compliance
 
 (cd %{buildroot}/%{python_sitelib}/ipaserver && find . -type f  | \
 	grep -v dcerpc | grep -v adtrustinstance | \
@@ -597,10 +596,8 @@ fi
 %{_sbindir}/ipa-managed-entries
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
-%{_sbindir}/ipa-compliance
 %{_libexecdir}/certmonger/dogtag-ipa-retrieve-agent-submit
 %{_libexecdir}/ipa-otpd
-%{_sysconfdir}/cron.d/ipa-compliance
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
@@ -727,7 +724,6 @@ fi
 %{_mandir}/man1/ipa-ldap-updater.1.gz
 %{_mandir}/man8/ipactl.8.gz
 %{_mandir}/man8/ipa-upgradeconfig.8.gz
-%{_mandir}/man1/ipa-compliance.1.gz
 %{_mandir}/man1/ipa-backup.1.gz
 %{_mandir}/man1/ipa-restore.1.gz
 

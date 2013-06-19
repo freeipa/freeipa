@@ -98,7 +98,6 @@ DEFAULT_CONFIG = (
     ('container_sudorule', DN(('cn', 'sudorules'), ('cn', 'sudo'))),
     ('container_sudocmd', DN(('cn', 'sudocmds'), ('cn', 'sudo'))),
     ('container_sudocmdgroup', DN(('cn', 'sudocmdgroups'), ('cn', 'sudo'))),
-    ('container_entitlements', DN(('cn', 'entitlements'), ('cn', 'etc'))),
     ('container_automember', DN(('cn', 'automember'), ('cn', 'etc'))),
     ('container_selinux', DN(('cn', 'usermap'), ('cn', 'selinux'))),
     ('container_s4u2proxy', DN(('cn', 's4u2proxy'), ('cn', 'etc'))),
