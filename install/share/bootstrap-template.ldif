@@ -125,12 +125,6 @@ objectClass: nsContainer
 objectClass: top
 cn: sysaccounts
 
-dn: cn=entitlements,cn=etc,$SUFFIX
-changetype: add
-objectClass: nsContainer
-objectClass: top
-cn: entitlements
-
 dn: cn=ipa,cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer

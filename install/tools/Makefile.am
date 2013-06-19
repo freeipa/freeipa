@@ -21,7 +21,6 @@ sbin_SCRIPTS =			\
 	ipa-managed-entries     \
 	ipa-ldap-updater	\
 	ipa-upgradeconfig	\
-	ipa-compliance		\
 	ipa-backup		\
 	ipa-restore		\
 	$(NULL)
