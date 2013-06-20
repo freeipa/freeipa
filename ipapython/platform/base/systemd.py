@@ -97,7 +97,17 @@ class SystemdService(base.PlatformService):
             ipautil.wait_for_open_ports('localhost', ports, api.env.startup_timeout)
 
     def stop(self, instance_name="", capture_output=True):
-        ipautil.run(["/bin/systemctl", "stop", self.service_instance(instance_name)], capture_output=capture_output)
+        instance = self.service_instance(instance_name)
+
+        # The --ignore-dependencies switch is used to avoid possible
+        # deadlock during the shutdown transaction. For more details, see
+        # https://fedorahosted.org/freeipa/ticket/3729#comment:1 and
+        # https://bugzilla.redhat.com/show_bug.cgi?id=973331#c11
+        ipautil.run(
+            ["/bin/systemctl", "stop", instance, "--ignore-dependencies"],
+            capture_output=capture_output
+        )
+
         if 'context' in api.env and api.env.context in ['ipactl', 'installer']:
             update_service_list = True
         else:
