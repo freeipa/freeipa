@@ -58,9 +58,10 @@ except ImportError:
         """This exception is raised when a process run by check_call() returns
         a non-zero exit status. The exit status will be stored in the
         returncode attribute."""
-        def __init__(self, returncode, cmd):
+        def __init__(self, returncode, cmd, output=None):
             self.returncode = returncode
             self.cmd = cmd
+            self.output = output
         def __str__(self):
             return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
 
@@ -319,7 +320,7 @@ def run(args, stdin=None, raiseonerr=True,
         root_logger.debug('stderr=%s' % stderr)
 
     if p.returncode != 0 and raiseonerr:
-        raise CalledProcessError(p.returncode, arg_string)
+        raise CalledProcessError(p.returncode, arg_string, stdout)
 
     return (stdout, stderr, p.returncode)
 

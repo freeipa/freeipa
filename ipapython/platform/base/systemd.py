@@ -18,8 +18,6 @@
 #
 
 import os
-import shutil
-import sys
 
 from ipapython import ipautil
 from ipapython.platform import base
@@ -36,11 +34,17 @@ class SystemdService(base.PlatformService):
         self.lib_path = os.path.join(self.SYSTEMD_LIB_PATH, self.systemd_name)
         self.lib_path_exists = None
 
-    def service_instance(self, instance_name):
+    def service_instance(self, instance_name, operation=None):
         if self.lib_path_exists is None:
             self.lib_path_exists = os.path.exists(self.lib_path)
 
         elements = self.systemd_name.split("@")
+
+        # Make sure the correct DS instance is returned
+        if (elements[0] == 'dirsrv' and
+                not instance_name and
+                operation == 'is-active'):
+            return 'dirsrv@%s.service' % str(api.env.realm.replace('.', '-'))
 
         # Short-cut: if there is already exact service name, return it
         if self.lib_path_exists and len(instance_name) == 0:
@@ -118,14 +122,27 @@ class SystemdService(base.PlatformService):
             self.__wait_for_open_ports(self.service_instance(instance_name))
 
     def is_running(self, instance_name=""):
-        ret = True
-        try:
-            (sout, serr, rcode) = ipautil.run(["/bin/systemctl", "is-active", self.service_instance(instance_name)],capture_output=True)
-            if rcode != 0:
-                ret = False
-        except ipautil.CalledProcessError:
-                ret = False
-        return ret
+        instance = self.service_instance(instance_name, 'is-active')
+
+        while True:
+            try:
+                (sout, serr, rcode) = ipautil.run(
+                    ["/bin/systemctl", "is-active", instance],
+                    capture_output=True
+                )
+            except ipautil.CalledProcessError as e:
+                if e.returncode == 3 and 'activating' in str(e.output):
+                    continue
+                return False
+            else:
+                # activating
+                if rcode == 3 and 'activating' in str(sout):
+                    continue
+                # active
+                if rcode == 0:
+                    return True
+                # not active
+                return False
 
     def is_installed(self):
         installed = True
