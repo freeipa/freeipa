@@ -535,9 +535,9 @@ class ADTRUSTInstance(service.Service):
             self.print_msg(err_msg)
             self.print_msg("Add the following service records to your DNS " \
                            "server for DNS zone %s: " % zone)
-            for (srv, rdata) in ipa_srv_rec:
+            for srv in ipa_srv_rec:
                 for suff in win_srv_suffix:
-                    self.print_msg(" - %s%s"  % (srv, suff))
+                    self.print_msg(" - %s%s"  % (srv[0], suff))
             return
 
         for (srv, rdata, port) in ipa_srv_rec:
