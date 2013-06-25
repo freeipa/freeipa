@@ -493,6 +493,11 @@ class LDAPObject(Object):
         assert isinstance(parent_dn, DN)
         return parent_dn
 
+    def get_dn_if_exists(self, *keys, **kwargs):
+        dn = self.get_dn(*keys, **kwargs)
+        entry = self.backend.get_entry(dn, [''])
+        return entry.dn
+
     def get_primary_key_from_dn(self, dn):
         assert isinstance(dn, DN)
         try:

@@ -213,7 +213,7 @@ class config_mod(LDAPUpdate):
         if 'ipadefaultprimarygroup' in entry_attrs:
             group=entry_attrs['ipadefaultprimarygroup']
             try:
-                api.Command['group_show'](group)
+                api.Object['group'].get_dn_if_exists(group)
             except errors.NotFound:
                 raise errors.NotFound(message=_("The group doesn't exist"))
         kw = {}

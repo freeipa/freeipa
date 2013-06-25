@@ -179,7 +179,7 @@ class netgroup_add(LDAPCreate):
             # when enabled, a managed netgroup is created for every hostgroup
             # make sure that we don't create a collision if the plugin is
             # (temporarily) disabled
-            netgroup = api.Command['hostgroup_show'](keys[-1])
+            api.Object['hostgroup'].get_dn_if_exists(keys[-1])
             raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
         except errors.NotFound:
             pass

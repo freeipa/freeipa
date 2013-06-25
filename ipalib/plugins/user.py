@@ -451,7 +451,7 @@ class user_add(LDAPCreate):
                 # The Managed Entries plugin will allow a user to be created
                 # even if a group has a duplicate name. This would leave a user
                 # without a private group. Check for both the group and the user.
-                self.api.Command['group_show'](keys[-1])
+                self.api.Object['group'].get_dn_if_exists(keys[-1])
                 try:
                     self.api.Command['user_show'](keys[-1])
                     self.obj.handle_duplicate_entry(*keys)
