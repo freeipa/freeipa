@@ -160,7 +160,7 @@ def main():
     config.dir = dir
     config.setup_ca = True
 
-    if ipautil.file_exists(config.dir + "/dscert.p12"):
+    if not ipautil.file_exists(config.dir + "/cacert.p12"):
         print 'CA cannot be installed in CA-less setup.'
         sys.exit(1)
 
