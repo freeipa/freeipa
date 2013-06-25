@@ -99,7 +99,7 @@ class RemoteCommand(object):
             self.log.error('Exit code: %s', self.returncode)
             raise subprocess.CalledProcessError(self.returncode, self.argv)
         else:
-            self.log.info('Exit code: %s', self.returncode)
+            self.log.debug('Exit code: %s', self.returncode)
         return self.returncode
 
     def _start_pipe_thread(self, result_list, stream, name, do_log=True):
@@ -108,7 +108,7 @@ class RemoteCommand(object):
         def read_stream():
             for line in stream:
                 if do_log:
-                    log.info(line.rstrip('\n'))
+                    log.debug(line.rstrip('\n'))
                 result_list.append(line)
 
         thread = threading.Thread(target=read_stream)
@@ -285,7 +285,7 @@ class Host(object):
 
     def get_file_contents(self, filename):
         """Read the named remote file and return the contents as a string"""
-        self.log.info('READ %s', filename)
+        self.log.debug('READ %s', filename)
         with self.sftp.open(filename) as f:
             return f.read()
 
@@ -297,7 +297,7 @@ class Host(object):
 
     def file_exists(self, filename):
         """Return true if the named remote file exists"""
-        self.log.info('STAT %s', filename)
+        self.log.debug('STAT %s', filename)
         try:
             self.sftp.stat(filename)
         except IOError, e:
@@ -308,7 +308,7 @@ class Host(object):
         return True
 
     def get_file(self, remotepath, localpath):
-        self.log.info('GET %s', remotepath)
+        self.log.debug('GET %s', remotepath)
         self.sftp.get(remotepath, localpath)
 
     def put_file(self, localpath, remotepath):

@@ -76,7 +76,9 @@ class BeakerLibPlugin(Plugin):
 
         # Set up the Bash process
         self.bash = subprocess.Popen(['bash'],
-                                     stdin=subprocess.PIPE)
+                                     stdin=subprocess.PIPE,
+                                     stdout=open('/dev/null', 'w'),
+                                     stderr=open('/dev/null', 'w'))
         source_path = os.path.join(self.env['BEAKERLIB'], 'beakerlib.sh')
         self.run_beakerlib_command(['.', source_path])
 
@@ -88,16 +90,12 @@ class BeakerLibPlugin(Plugin):
         self.setup_log_handler(BeakerLibLogHandler(self.run_beakerlib_command))
 
     def setup_log_handler(self, handler):
-        # Remove the console handler (BeakerLib will print to stderr)
-        if 'console' in log_mgr.handlers:
-            log_mgr.remove_handler('console')
-        # Configure our logger
         log_mgr.configure(
             {
                 'default_level': 'DEBUG',
                 'handlers': [{'log_handler': handler,
                               'format': '[%(name)s] %(message)s',
-                              'level': 'debug'}]},
+                              'level': 'info'}]},
             configure_state='beakerlib_plugin')
 
     def run_beakerlib_command(self, cmd):
@@ -207,7 +205,6 @@ class BeakerLibPlugin(Plugin):
                 tarname = os.path.join(dirname, 'logs.tar.xz')
                 with open(tarname, 'w') as f:
                     f.write(cmd.stdout_text)
-                self.log.info('%s', dirname)
                 ipautil.run(['tar', 'xJvf', 'logs.tar.xz'], cwd=dirname)
                 os.unlink(tarname)
 
@@ -219,7 +216,7 @@ class BeakerLibPlugin(Plugin):
                     for filename in filenames:
                         fullname = os.path.relpath(
                             os.path.join(dirpath, filename), topdirname)
-                        self.log.info('Submitting file: %s', fullname)
+                        self.log.debug('Submitting file: %s', fullname)
                         self.run_beakerlib_command(['rlFileSubmit', fullname])
                 self.run_beakerlib_command(['popd'])
 

@@ -40,11 +40,11 @@ from ipatests.order_plugin import OrderTests
 
 cmd = [
     sys.argv[0],
-    '-v',
     '--with-doctest',
     '--doctest-tests',
     '--with-ordered-tests',
     '--exclude=plugins',
+    '--nologcapture',
     '--logging-filter=-paramiko',
     '--where', os.path.dirname(ipatests.__file__),
 ]
@@ -72,7 +72,7 @@ log_mgr.configure(
         'handlers': [{'log_handler': LogHandler(),
                       'format': '[%(name)s] %(message)s',
                       'level': 'debug'},
-                     {'level': 'info',
+                     {'level': 'debug',
                       'name': 'console',
                       'stream': sys.stderr}]},
     configure_state='tests')

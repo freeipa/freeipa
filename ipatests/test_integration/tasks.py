@@ -64,7 +64,7 @@ def fix_etc_hosts(host):
                       flags=re.MULTILINE)
     # Add the host's info again
     contents += '\n%s %s %s\n' % (host.ip, host.hostname, host.shortname)
-    log.info('Writing the following to /etc/hosts:\n%s', contents)
+    log.debug('Writing the following to /etc/hosts:\n%s', contents)
     host.put_file_contents('/etc/hosts', contents)
 
 
@@ -85,7 +85,7 @@ def fix_resolv_conf(host):
         if other_host.role in ('master', 'replica'):
             lines.append('nameserver %s' % other_host.ip)
     contents = '\n'.join(lines)
-    log.info('Writing the following to /etc/resolv.conf:\n%s', contents)
+    log.debug('Writing the following to /etc/resolv.conf:\n%s', contents)
     host.put_file_contents('/etc/resolv.conf', contents)
 
 
@@ -109,7 +109,7 @@ def restore_hostname(host):
     try:
         hostname = host.get_file_contents(backupname)
     except IOError:
-        log.info('No hostname backed up on %s' % host.hostname)
+        log.debug('No hostname backed up on %s' % host.hostname)
     else:
         host.run_command(['hostname', hostname.strip()])
         host.run_command(['rm', backupname])
