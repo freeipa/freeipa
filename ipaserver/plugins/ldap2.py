@@ -346,27 +346,23 @@ class ldap2(LDAPClient, CrudBackend):
         self.log.debug(
             "add_entry_to_group: dn=%s group_dn=%s member_attr=%s",
             dn, group_dn, member_attr)
+
         # check if the entry exists
-        (dn, entry_attrs) = self.get_entry(dn, ['objectclass'])
+        entry = self.get_entry(dn, [''])
+        dn = entry.dn
 
-        # get group entry
-        (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
-
-        self.log.debug(
-            "add_entry_to_group: group_entry_attrs=%s", group_entry_attrs)
         # check if we're not trying to add group into itself
         if dn == group_dn and not allow_same:
             raise errors.SameGroupError()
 
         # add dn to group entry's `member_attr` attribute
-        members = group_entry_attrs.get(member_attr, [])
-        members.append(dn)
-        group_entry_attrs[member_attr] = members
+        modlist = [(_ldap.MOD_ADD, member_attr, [dn])]
 
         # update group entry
         try:
-            self.update_entry(group_dn, group_entry_attrs)
-        except errors.EmptyModlist:
+            with self.error_handler():
+                self.conn.modify_s(group_dn, modlist)
+        except errors.DatabaseError:
             raise errors.AlreadyGroupMember()
 
     def remove_entry_from_group(self, dn, group_dn, member_attr='member'):
@@ -378,22 +374,16 @@ class ldap2(LDAPClient, CrudBackend):
         self.log.debug(
             "remove_entry_from_group: dn=%s group_dn=%s member_attr=%s",
             dn, group_dn, member_attr)
-        # get group entry
-        (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
 
-        self.log.debug(
-            "remove_entry_from_group: group_entry_attrs=%s", group_entry_attrs)
         # remove dn from group entry's `member_attr` attribute
-        members = group_entry_attrs.get(member_attr, [])
-        assert all([isinstance(x, DN) for x in members])
-        try:
-            members.remove(dn)
-        except ValueError:
-            raise errors.NotGroupMember()
-        group_entry_attrs[member_attr] = members
+        modlist = [(_ldap.MOD_DELETE, member_attr, [dn])]
 
         # update group entry
-        self.update_entry(group_dn, group_entry_attrs)
+        try:
+            with self.error_handler():
+                self.conn.modify_s(group_dn, modlist)
+        except errors.MidairCollision:
+            raise errors.NotGroupMember()
 
     def set_entry_active(self, dn, active):
         """Mark entry active/inactive."""
