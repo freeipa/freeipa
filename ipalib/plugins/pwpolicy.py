@@ -121,7 +121,8 @@ class cosentry_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         # check for existence of the group
-        result = self.api.Command.group_show(keys[-1], all=True)['result']
+        group_dn = self.api.Object.group.get_dn(keys[-1])
+        result = ldap.get_entry(group_dn, ['objectclass'])
         oc = map(lambda x:x.lower(),result['objectclass'])
         if 'mepmanagedentry' in oc:
             raise errors.ManagedPolicyError()

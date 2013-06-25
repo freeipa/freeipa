@@ -364,22 +364,24 @@ class host(LDAPObject):
 
         return managed_hosts
 
-    def suppress_netgroup_memberof(self, entry_attrs):
+    def suppress_netgroup_memberof(self, ldap, entry_attrs):
         """
         We don't want to show managed netgroups so remove them from the
         memberofindirect list.
         """
         ng_container = DN(api.env.container_netgroup, api.env.basedn)
-        if 'memberofindirect' in entry_attrs:
-            for member in list(entry_attrs['memberofindirect']):
-                memberdn = DN(member)
-                if memberdn.endswith(ng_container):
-                    try:
-                        netgroup = api.Command['netgroup_show'](memberdn['cn'], all=True)['result']
-                        if self.has_objectclass(netgroup['objectclass'], 'mepmanagedentry'):
-                            entry_attrs['memberofindirect'].remove(member)
-                    except errors.NotFound:
-                        pass
+        for member in list(entry_attrs.get('memberofindirect', [])):
+            memberdn = DN(member)
+            if not memberdn.endswith(ng_container):
+                continue
+
+            filter = ldap.make_filter({'objectclass': 'mepmanagedentry'})
+            try:
+                ldap.get_entries(memberdn, ldap.SCOPE_BASE, filter, [''])
+            except errors.NotFound:
+                pass
+            else:
+                entry_attrs['memberofindirect'].remove(member)
 
 api.register(host)
 
@@ -753,7 +755,7 @@ class host_mod(LDAPUpdate):
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
 
-        self.obj.suppress_netgroup_memberof(entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
 
         convert_sshpubkey_post(ldap, dn, entry_attrs)
 
@@ -832,7 +834,7 @@ class host_find(LDAPSearch):
             set_certificate_attrs(entry_attrs)
             set_kerberos_attrs(entry_attrs, options)
             self.obj.get_password_attributes(ldap, dn, entry_attrs)
-            self.obj.suppress_netgroup_memberof(entry_attrs)
+            self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
             if entry_attrs['has_password']:
                 # If an OTP is set there is no keytab, at least not one
                 # fetched anywhere.
@@ -874,7 +876,7 @@ class host_show(LDAPRetrieve):
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
 
-        self.obj.suppress_netgroup_memberof(entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
 
         convert_sshpubkey_post(ldap, dn, entry_attrs)
 
@@ -987,7 +989,7 @@ class host_disable(LDAPQuery):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.suppress_netgroup_memberof(entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
         return dn
 
 api.register(host_disable)
@@ -1001,7 +1003,7 @@ class host_add_managedby(LDAPAddMember):
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.suppress_netgroup_memberof(entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
         return (completed, dn)
 
 api.register(host_add_managedby)
@@ -1015,7 +1017,7 @@ class host_remove_managedby(LDAPRemoveMember):
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.suppress_netgroup_memberof(entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
         return (completed, dn)
 
 api.register(host_remove_managedby)

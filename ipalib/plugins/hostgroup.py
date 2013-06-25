@@ -92,23 +92,24 @@ class hostgroup(LDAPObject):
         ),
     )
 
-    def suppress_netgroup_memberof(self, dn, entry_attrs):
+    def suppress_netgroup_memberof(self, ldap, dn, entry_attrs):
         """
         We don't want to show managed netgroups so remove them from the
         memberOf list.
         """
-        if 'memberof' in entry_attrs:
-            hgdn = DN(dn)
-            for member in list(entry_attrs['memberof']):
-                ngdn = DN(member)
-                if ngdn['cn'] == hgdn['cn']:
-                    try:
-                        netgroup = api.Command['netgroup_show'](ngdn['cn'], all=True)['result']
-                        if self.has_objectclass(netgroup['objectclass'], 'mepmanagedentry'):
-                            entry_attrs['memberof'].remove(member)
-                            return
-                    except errors.NotFound:
-                        pass
+        hgdn = DN(dn)
+        for member in list(entry_attrs.get('memberof', [])):
+            ngdn = DN(member)
+            if ngdn['cn'] != hgdn['cn']:
+                continue
+
+            filter = ldap.make_filter({'objectclass': 'mepmanagedentry'})
+            try:
+                ldap.get_entries(ngdn, ldap.SCOPE_BASE, filter, [''])
+            except errors.NotFound:
+                pass
+            else:
+                entry_attrs['memberof'].remove(member)
 
 api.register(hostgroup)
 
@@ -146,7 +147,7 @@ class hostgroup_add(LDAPCreate):
         # be sure to ignore it in memberOf
         newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
         entry_from_entry(entry_attrs, newentry)
-        self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
 
         return dn
 
@@ -169,7 +170,7 @@ class hostgroup_mod(LDAPUpdate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return dn
 
 api.register(hostgroup_mod)
@@ -188,7 +189,7 @@ class hostgroup_find(LDAPSearch):
             return truncated
         for entry in entries:
             (dn, entry_attrs) = entry
-            self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+            self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return truncated
 
 api.register(hostgroup_find)
@@ -199,7 +200,7 @@ class hostgroup_show(LDAPRetrieve):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.suppress_netgroup_memberof( dn, entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return dn
 
 api.register(hostgroup_show)
@@ -210,7 +211,7 @@ class hostgroup_add_member(LDAPAddMember):
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return (completed, dn)
 
 api.register(hostgroup_add_member)
@@ -221,7 +222,7 @@ class hostgroup_remove_member(LDAPRemoveMember):
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+        self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return (completed, dn)
 
 api.register(hostgroup_remove_member)
