@@ -252,7 +252,8 @@ def _make_aci(ldap, current, aciname, kw):
     elif group:
         # Not so friendly with groups. This will raise
         try:
-            entry_attrs = api.Command['group_show'](kw['group'])['result']
+            group_dn = api.Object['group'].get_dn_if_exists(kw['group'])
+            entry_attrs = {'dn': group_dn}
         except errors.NotFound:
             raise errors.NotFound(reason=_("Group '%s' does not exist") % kw['group'])
 
@@ -269,7 +270,7 @@ def _make_aci(ldap, current, aciname, kw):
             a.set_target_attr(kw['attrs'])
         if valid['memberof']:
             try:
-                api.Command['group_show'](kw['memberof'])
+                api.Object['group'].get_dn_if_exists(kw['memberof'])
             except errors.NotFound:
                 api.Object['group'].handle_not_found(kw['memberof'])
             groupdn = _group_from_memberof(kw['memberof'])
@@ -291,8 +292,8 @@ def _make_aci(ldap, current, aciname, kw):
             a.set_target(target)
         if valid['targetgroup']:
             # Purposely no try here so we'll raise a NotFound
-            entry_attrs = api.Command['group_show'](kw['targetgroup'])['result']
-            target = 'ldap:///%s' % entry_attrs['dn']
+            group_dn = api.Object['group'].get_dn_if_exists(kw['targetgroup'])
+            target = 'ldap:///%s' % group_dn
             a.set_target(target)
         if valid['subtree']:
             # See if the subtree is a full URI
