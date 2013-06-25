@@ -219,3 +219,11 @@ ObjectClass: top
 ObjectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
+
+dn: cn=ipauniqueid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipauniqueid
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
