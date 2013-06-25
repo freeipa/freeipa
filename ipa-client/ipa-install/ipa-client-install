@@ -1212,12 +1212,12 @@ def configure_ssh_config(fstore, options):
         'PubkeyAuthentication': 'yes',
     }
 
+    if options.sssd and file_exists(SSH_PROXYCOMMAND):
+        changes['ProxyCommand'] = '%s -p %%p %%h' % SSH_PROXYCOMMAND
+        changes['GlobalKnownHostsFile'] = SSH_KNOWNHOSTSFILE
     if options.trust_sshfp:
         changes['VerifyHostKeyDNS'] = 'yes'
         changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
-    elif options.sssd and file_exists(SSH_PROXYCOMMAND):
-        changes['ProxyCommand'] = '%s -p %%p %%h' % SSH_PROXYCOMMAND
-        changes['GlobalKnownHostsFile'] = SSH_KNOWNHOSTSFILE
 
     change_ssh_config(ssh_config, changes, ['Host'])
     root_logger.info('Configured %s', ssh_config)
