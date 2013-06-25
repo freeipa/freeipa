@@ -12,32 +12,44 @@ default:ObjectClass: nsIndex
 default:nsSystemIndex: false
 default:nsIndexType: eq,pres
 
-dn: cn=memberof,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: memberof
-default:ObjectClass: top
-default:ObjectClass: nsIndex
-default:nsSystemIndex: false
-default:nsIndexType: eq
-
 dn: cn=memberHost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: memberHost
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-
-dn: cn=memberHost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-add:nsIndexType: pres
+only:nsIndexType: eq,pres,sub
 
 dn: cn=memberUser,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: memberUser
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
+only:nsIndexType: eq,pres,sub
 
-dn: cn=memberUser,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only: nsIndexType: eq,pres
+dn: cn=member,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:nsIndexType: eq,sub
+
+dn: cn=uniquemember,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:nsIndexType: eq,sub
+
+dn: cn=owner,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:nsIndexType: eq,sub
+
+dn: cn=manager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:nsIndexType: eq,pres,sub
+
+dn: cn=secretary,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:nsIndexType: eq,pres,sub
+
+dn: cn=seealso,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only:nsIndexType: eq,sub
+
+dn: cn=memberof,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: memberof
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq
 
 dn: cn=fqdn,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: fqdn
@@ -55,67 +67,54 @@ default:nsSystemIndex: false
 default:nsIndexType: eq
 default:nsIndexType: pres
 
-dn: cn=manager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only: nsIndexType: eq,pres
-
-dn: cn=secretary,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only: nsIndexType: eq,pres
-
 dn: cn=sourcehost,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: sourcehost
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
+only:nsIndexType: eq,pres,sub
 
 dn: cn=memberservice,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: memberservice
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
+only:nsIndexType: eq,pres,sub
 
 dn: cn=managedby,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: managedby
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
+only:nsIndexType: eq,pres,sub
 
 dn: cn=memberallowcmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: memberallowcmd
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
+only:nsIndexType: eq,pres,sub
 
 dn: cn=memberdenycmd,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: memberdenycmd
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
+only:nsIndexType: eq,pres,sub
 
 dn: cn=ipasudorunas,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: ipasudorunas
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
+only:nsIndexType: eq,pres,sub
 
 dn: cn=ipasudorunasgroup,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: ipasudorunasgroup
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
+only:nsIndexType: eq,pres,sub
 
 dn: cn=automountkey,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: automountkey
