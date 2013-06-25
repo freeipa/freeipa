@@ -216,19 +216,21 @@ def install_http(config, auto_redirect):
         auto_redirect=auto_redirect, ca_file = config.dir + "/ca.crt")
 
     # Now copy the autoconfiguration files
-    if ipautil.file_exists(config.dir + "/preferences.html"):
-        try:
-            shutil.copy(config.dir + "/preferences.html", "/usr/share/ipa/html/preferences.html")
-            shutil.copy(config.dir + "/configure.jar", "/usr/share/ipa/html/configure.jar")
-            if ipautil.file_exists(config.dir + "/krb.js"):
-                shutil.copy(
-                    config.dir + "/krb.js", "/usr/share/ipa/html/krb.js")
-                shutil.copy(
-                    config.dir + "/kerberosauth.xpi",
-                    "/usr/share/ipa/html/kerberosauth.xpi")
-        except Exception, e:
-            print "error copying files: " + str(e)
-            sys.exit(1)
+    try:
+        if ipautil.file_exists(config.dir + "/preferences.html"):
+            shutil.copy(config.dir + "/preferences.html",
+                        "/usr/share/ipa/html/preferences.html")
+        if ipautil.file_exists(config.dir + "/configure.jar"):
+            shutil.copy(config.dir + "/configure.jar",
+                        "/usr/share/ipa/html/configure.jar")
+        if ipautil.file_exists(config.dir + "/krb.js"):
+            shutil.copy(config.dir + "/krb.js",
+                        "/usr/share/ipa/html/krb.js")
+            shutil.copy(config.dir + "/kerberosauth.xpi",
+                        "/usr/share/ipa/html/kerberosauth.xpi")
+    except Exception, e:
+        print "error copying files: " + str(e)
+        sys.exit(1)
 
     http.setup_firefox_extension(config.realm_name, config.domain_name)
 

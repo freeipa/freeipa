@@ -338,8 +338,9 @@ class ReplicaPrepare(admintool.AdminTool):
             self.copy_info_file("/usr/share/ipa/html/krb.js", "krb.js")
             self.copy_info_file(
                 "/usr/share/ipa/html/kerberosauth.xpi", "kerberosauth.xpi")
-            self.copy_info_file(
-                "/usr/share/ipa/html/configure.jar", "configure.jar")
+        jar_filename = "/usr/share/ipa/html/configure.jar"
+        if ipautil.file_exists(jar_filename):
+            self.copy_info_file(jar_filename, "configure.jar")
         cacert_filename = "/var/kerberos/krb5kdc/cacert.pem"
         if ipautil.file_exists(cacert_filename):
             self.copy_info_file(cacert_filename, "cacert.pem")

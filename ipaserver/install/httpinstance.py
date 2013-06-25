@@ -313,15 +313,19 @@ class HTTPInstance(service.Service):
             pwd = pwdfile.read()
 
         # Setup configure.jar
-        tmpdir = tempfile.mkdtemp(prefix="tmp-")
-        target_fname = '/usr/share/ipa/html/configure.jar'
-        shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
-        db.run_signtool(["-k", "Signing-Cert",
-                         "-Z", target_fname,
-                         "-e", ".html", "-p", pwd,
-                         tmpdir])
-        shutil.rmtree(tmpdir)
-        os.chmod(target_fname, 0644)
+        if db.has_nickname('Signing-Cert'):
+            tmpdir = tempfile.mkdtemp(prefix="tmp-")
+            target_fname = '/usr/share/ipa/html/configure.jar'
+            shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
+            db.run_signtool(["-k", "Signing-Cert",
+                            "-Z", target_fname,
+                            "-e", ".html", "-p", pwd,
+                            tmpdir])
+            shutil.rmtree(tmpdir)
+            os.chmod(target_fname, 0644)
+        else:
+            root_logger.warning('Object-signing certificate was not found; '
+                'therefore, configure.jar was not created.')
 
         self.setup_firefox_extension(self.realm, self.domain, force=True)
 
