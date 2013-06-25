@@ -259,6 +259,12 @@ this will cause change to trust relationship credentials on both
 sides.
     ''')
 
+    range_types = {
+        u'ipa-ad-trust': unicode(_('Active Directory domain range')),
+        u'ipa-ad-trust-posix': unicode(_('Active Directory trust range with '
+                                        'POSIX attributes')),
+                  }
+
     takes_options = LDAPCreate.takes_options + (
         _trust_type_option,
         Str('realm_admin?',
@@ -288,6 +294,13 @@ sides.
             label=_('Size of the ID range reserved for the trusted domain'),
             default=DEFAULT_RANGE_SIZE,
             autofill=True
+        ),
+        StrEnum('range_type?',
+            label=_('Range type'),
+            cli_name='range_type',
+            doc=(_('Type of trusted domain ID range, one of {vals}'
+                 .format(vals=', '.join(range_types.keys())))),
+            values=tuple(range_types.keys()),
         ),
     )
 
@@ -388,12 +401,26 @@ sides.
     def validate_range(self, *keys, **options):
         # If a range for this trusted domain already exists,
         # '--base-id' or '--range-size' options should not be specified
-        range_name = keys[-1].upper()+'_id_range'
+        range_name = keys[-1].upper() + '_id_range'
+        range_type = options.get('range_type')
 
         try:
-            old_range = api.Command['idrange_show'](range_name)
+            old_range = api.Command['idrange_show'](range_name, raw=True)
         except errors.NotFound:
             old_range = None
+
+        if options.get('type') == u'ad':
+            if range_type and range_type not in (u'ipa-ad-trust',
+                                                 u'ipa-ad-trust-posix'):
+                raise errors.ValidationError(
+                    name=_('id range type'),
+                    error=_(
+                        'Only the ipa-ad-trust and ipa-ad-trust-posix are '
+                        'allowed values for --range-type when adding an AD '
+                        'trust.'
+                    )
+
+)
 
         base_id = options.get('base_id')
         range_size = options.get('range_size') != DEFAULT_RANGE_SIZE
@@ -420,6 +447,7 @@ sides.
 
         if old_range:
             old_dom_sid = old_range['result']['ipanttrusteddomainsid'][0]
+            old_range_type = old_range['result']['iparangetype'][0]
 
             if old_dom_sid != dom_sid:
                 raise errors.ValidationError(
@@ -430,6 +458,13 @@ sides.
                         'domain must be created manually.'
                     )
                 )
+
+            if range_type and range_type != old_range_type:
+                raise errors.ValidationError(name=_('range type change'),
+                    error=_('ID range for the trusted domain already exists, '
+                            'but it has a different type. Please remove the '
+                            'old range manually, or do not enforce type '
+                            'via --range-type option.'))
 
         return old_range, range_name, dom_sid
 
@@ -448,6 +483,7 @@ sides.
                                    ipabaseid=base_id,
                                    ipaidrangesize=options['range_size'],
                                    ipabaserid=0,
+                                   iparangetype=options.get('range_type'),
                                    ipanttrusteddomainsid=dom_sid)
 
     def execute_ad(self, full_join, *keys, **options):

@@ -458,12 +458,12 @@ class idrange_add(LDAPCreate):
             entry_attrs['objectclass'].append('ipatrustedaddomainrange')
 
             # Default to ipa-ad-trust if no type set
-            if 'iparangetype' not in entry_attrs:
+            if not is_set('iparangetype'):
                 entry_attrs['iparangetype'] = u'ipa-ad-trust'
 
             if entry_attrs['iparangetype'] not in (u'ipa-ad-trust',
                                                    u'ipa-ad-trust-posix'):
-                raise errors.ValidationError('ID Range setup',
+                raise errors.ValidationError(name='ID Range setup',
                     error=_('IPA Range type must be one of ipa-ad-trust '
                             'or ipa-ad-trust-posix when SID of the trusted '
                             'domain is specified.'))
