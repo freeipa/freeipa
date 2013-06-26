@@ -231,16 +231,28 @@ class UI_driver(object):
         return result
 
     def files_loaded(self):
+        """
+        Test if dependencies were loaded. (Checks if UI has been rendered)
+        """
         indicator = self.find("span.network-activity-indicator", By.CSS_SELECTOR)
         return indicator is not None
 
     def has_ca(self):
+        """
+        FreeIPA server was installed with CA.
+        """
         return 'no_ca' not in self.config
 
     def has_dns(self):
+        """
+        FreeIPA server was installed with DNS.
+        """
         return 'no_dns' not in self.config
 
     def has_trusts(self):
+        """
+        FreeIPA server was installed with Trusts.
+        """
         return 'has_trusts' in self.config
 
     def has_active_request(self):
@@ -252,6 +264,9 @@ class UI_driver(object):
         return displayed
 
     def wait(self, seconds=0.2):
+        """
+        Wait specific amount of seconds
+        """
         time.sleep(seconds)
 
     def wait_for_request(self, implicit=0.2, n=1, d=0):
@@ -285,6 +300,9 @@ class UI_driver(object):
         self.wait_for_request(n=5)
 
     def load(self):
+        """
+        Navigate to Web UI first page and wait for loading of all dependencies.
+        """
         self.driver.get(self.get_base_url())
         runner = self
         WebDriverWait(self.driver, 10).until(lambda d: runner.files_loaded())
@@ -315,7 +333,7 @@ class UI_driver(object):
 
     def get_auth_dialog(self):
         """
-        Return reference to authentication dialog
+        Get reference to authentication dialog
         """
         return self.find('unauthorized_dialog', 'id')
 
@@ -381,6 +399,9 @@ class UI_driver(object):
         return '/'.join(url)
 
     def get_base_url(self):
+        """
+        Get FreeIPA Web UI url
+        """
         host = self.config.get('ipa_server')
         if not host:
             self.skip('FreeIPA server hostname not configured')
@@ -472,7 +493,6 @@ class UI_driver(object):
         """
         Click on link with given text and parent.
         """
-
         if not parent:
             parent = self.get_form()
 
@@ -500,6 +520,9 @@ class UI_driver(object):
         self._button_click(s, dialog, name)
 
     def action_button_click(self, name, parent):
+        """
+        Click on .action-button
+        """
         if not parent:
             parent = self.get_form()
 
@@ -507,6 +530,9 @@ class UI_driver(object):
         self._button_click(s, parent, name)
 
     def button_click(self, name, parent=None):
+        """
+        Click on .ui-button
+        """
         if not parent:
             parent = self.get_form()
 
@@ -531,6 +557,9 @@ class UI_driver(object):
         return form
 
     def select(self, selector, value, parent=None):
+        """
+        Select option with given value in select element
+        """
         if not parent:
             parent = self.get_form()
         el = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
@@ -541,7 +570,6 @@ class UI_driver(object):
         Clear and enter text into input defined by selector.
         Use for non-standard fields.
         """
-
         if not parent:
             parent = self.get_form()
         tb = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
@@ -549,7 +577,9 @@ class UI_driver(object):
         tb.send_keys(value)
 
     def fill_input(self, name, value, type="text", parent=None):
-
+        """
+        Type into input element specified by name and type.
+        """
         s = "div[name='%s'] input[type='%s'][name='%s']" % (name, type, name)
         self.fill_text(s, value, parent)
 
@@ -574,7 +604,7 @@ class UI_driver(object):
 
     def add_multivalued(self, name, value, parent=None):
         """
-        Adds new value to multivalued textbox
+        Add new value to multivalued textbox
         """
         if not parent:
             parent = self.get_form()
@@ -588,6 +618,9 @@ class UI_driver(object):
         last.send_keys(value)
 
     def del_multivalued(self, name, value, parent=None):
+        """
+        Mark value in multivalued textbox as deleted.
+        """
         if not parent:
             parent = self.get_form()
         s = "div[name='%s'].multivalued-widget" % name
@@ -624,7 +657,6 @@ class UI_driver(object):
         """
         Find checkbox or radio with name which matches ^NAME\d$
         """
-
         if not parent:
             parent = self.get_form()
         s =  "//input[@type='checkbox' or 'radio'][contains(@name, '%s')]" % name
@@ -678,7 +710,6 @@ class UI_driver(object):
         """
         Get field undo button
         """
-
         if not parent:
             parent = self.get_form()
         s = "div[name='%s'].field span.undo" % (field)
@@ -689,7 +720,6 @@ class UI_driver(object):
         """
         Return all rows of search table.
         """
-
         if not parent:
             parent = self.get_form()
 
@@ -699,6 +729,9 @@ class UI_driver(object):
         return rows
 
     def navigate_to_row_record(self, row, pkey_column=None):
+        """
+        Navigate to record by clicking on a link.
+        """
         s = 'a'
         if pkey_column:
             s = "div[name='%s'] a" % pkey_column
@@ -708,6 +741,9 @@ class UI_driver(object):
         self.wait_for_request()
 
     def get_table_selector(self, name=None):
+        """
+        Construct table selector
+        """
         s = "table"
         if name:
             s += "[name='%s']" % name
@@ -728,6 +764,9 @@ class UI_driver(object):
         self.wait()
 
     def has_record(self, pkey, parent=None, table_name=None):
+        """
+        Check if table contains specific record.
+        """
         if not parent:
             parent = self.get_form()
 
@@ -741,7 +780,6 @@ class UI_driver(object):
         Clicks on record with given pkey in search table and thus cause
         navigation to the record.
         """
-
         if entity:
             self.navigate_to_entity(entity, facet)
 
@@ -843,6 +881,13 @@ class UI_driver(object):
                 self.assert_undo_button(key, True, parent)
 
     def find_record(self, entity, data, facet='search', dummy='XXXXXXX'):
+        """
+        Test search functionality of search facet.
+
+        1. search for non-existent value and test if result set is empty.
+        2. search for specific pkey and test if it's present on the page
+        3. reset search page by not using search criteria
+        """
 
         self.assert_facet(entity, facet)
 
@@ -1045,7 +1090,6 @@ class UI_driver(object):
         """
         Add associations
         """
-
         if facet:
             self.switch_to_facet(facet)
 
@@ -1066,7 +1110,9 @@ class UI_driver(object):
                 self.assert_record(key, negative=True)
 
     def add_table_associations(self, table_name, pkeys, parent=False, delete=False):
-
+        """
+        Add value to table (association|rule|...)
+        """
         if not parent:
             parent = self.get_form()
 
@@ -1093,7 +1139,9 @@ class UI_driver(object):
                 self.assert_record(key, parent, table_name, negative=True)
 
     def action_list_action(self, name):
-
+        """
+        Execute action list action
+        """
         cont = self.find(".active-facet .facet-action-list", By.CSS_SELECTOR, strict=True)
         select = self.find("select[name=action]", By.CSS_SELECTOR, cont, strict=True)
         Select(select).select_by_value(name)
@@ -1101,6 +1149,9 @@ class UI_driver(object):
         self.wait()
 
     def action_panel_action(self, panel_name, action):
+        """
+        Execute action from action panel with given name.
+        """
         s = "div[data-name='%s'].action-panel" % panel_name
         s += " a[data-name='%s']" % action
         link = self.find(s, By.CSS_SELECTOR, strict=True)
@@ -1108,6 +1159,9 @@ class UI_driver(object):
         self.wait()
 
     def enable_action(self):
+        """
+        Execute and test 'enable' action panel action.
+        """
         title = self.find('.active-facet div.facet-title', By.CSS_SELECTOR, strict=True)
         self.action_list_action('enable')
         self.wait_for_request(n=2)
@@ -1115,6 +1169,9 @@ class UI_driver(object):
         self.assert_class(title, 'disabled', negative=True)
 
     def disable_action(self):
+        """
+        Execute and test 'disable' action panel action.
+        """
         title = self.find('.active-facet div.facet-title', By.CSS_SELECTOR, strict=True)
         self.action_list_action('disable')
         self.wait_for_request(n=2)
@@ -1122,6 +1179,9 @@ class UI_driver(object):
         self.assert_class(title, 'disabled')
 
     def delete_action(self, entity, pkey, facet='search'):
+        """
+        Execute and test 'delete' action panel action.
+        """
         self.action_list_action('delete')
         self.wait_for_request(n=4)
         self.assert_no_error_dialog()
@@ -1132,7 +1192,6 @@ class UI_driver(object):
         """
         Test functionality of rule table widgets in a facet
         """
-
         def get_t_vals(t):
             table = t[0]
             k = t[1]
@@ -1186,6 +1245,9 @@ class UI_driver(object):
 
 
     def skip(self, reason):
+        """
+        Skip tests
+        """
         raise nose.SkipTest(reason)
 
     def assert_text(self, selector, value, parent=None):
@@ -1343,5 +1405,8 @@ class UI_driver(object):
             assert valid, "Element doesn't contain required class: %s" % cls
 
     def assert_rule_tables_enabled(self, tables, enabled):
+        """
+        Assert that rule table is editable - values can be added and removed.
+        """
         for table in tables:
             self.assert_table_button_enabled('add', table, enabled)
