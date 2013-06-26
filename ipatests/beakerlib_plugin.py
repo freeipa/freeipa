@@ -24,12 +24,15 @@ import subprocess
 import traceback
 import logging
 import tempfile
+import re
 
 import nose
 from nose.plugins import Plugin
 
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
+
+LINK_RE = re.compile(r'https?://[^\s]+')
 
 
 class BeakerLibLogHandler(logging.Handler):
@@ -107,6 +110,10 @@ class BeakerLibPlugin(Plugin):
         self.bash.stdin.flush()
         assert self.bash.returncode is None, "BeakerLib Bash process exited"
 
+    def log_links(self, docstring):
+        for match in LINK_RE.finditer(docstring or ''):
+            self.log.info('Link: %s', match.group())
+
     def report(self, stream):
         """End the Bash process"""
         self.run_beakerlib_command(['exit'])
@@ -129,6 +136,7 @@ class BeakerLibPlugin(Plugin):
                                     context.__name__, caption)
         self.run_beakerlib_command(['rlPhaseStart', 'FAIL', phase_name])
         self._in_class_setup = True
+        self.log_links(docstring)
 
     def stopContext(self, context):
         """End a test context"""
@@ -147,6 +155,11 @@ class BeakerLibPlugin(Plugin):
             caption = 'Nose method (no docstring)'
         phase_name = "%s: %s" % (test.id().replace('.', '-'), caption)
         self.run_beakerlib_command(['rlPhaseStart', 'FAIL', phase_name])
+
+        while hasattr(test, 'test'):
+            # Un-wrap Nose test cases to get at the actual test method
+            test = test.test
+        self.log_links(getattr(test, '__doc__', ''))
 
     def stopTest(self, test):
         """End a test phase"""
