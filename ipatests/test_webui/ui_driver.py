@@ -86,6 +86,7 @@ class UI_driver(object):
             raise nose.SkipTest('Selenium not installed')
 
     def __init__(self, driver=None, config=None):
+        self.request_timeout = 30
         self.driver = driver
         self.config = config
         if not config:
@@ -261,7 +262,7 @@ class UI_driver(object):
 
         for i in range(n):
             self.wait(implicit)
-            WebDriverWait(self.driver, 10).until_not(lambda d: runner.has_active_request())
+            WebDriverWait(self.driver, self.request_timeout).until_not(lambda d: runner.has_active_request())
             self.wait()
         self.wait(d)
 
@@ -586,7 +587,7 @@ class UI_driver(object):
         last = inputs[-1]
         last.send_keys(value)
 
-    def delete_multivalued(self, name, value, parent=None):
+    def del_multivalued(self, name, value, parent=None):
         if not parent:
             parent = self.get_form()
         s = "div[name='%s'].multivalued-widget" % name
@@ -604,7 +605,19 @@ class UI_driver(object):
                 self.wait()
                 clicked = True
 
-        assert clicked, 'Value was not removed'
+        assert clicked, 'Value was not removed: %s' % value
+
+    def fill_multivalued(self, name, instructions, parent=None):
+        """
+        Add or delete a value from multivalued field
+        """
+        for instruction in instructions:
+            t = instruction[0]
+            value = instruction[1]
+            if t == 'add':
+                self.add_multivalued(name, value, parent)
+            else:
+                self.del_multivalued(name, value, parent)
 
 
     def check_option(self, name, value=None, parent=None):
@@ -661,7 +674,7 @@ class UI_driver(object):
         self.wait()
 
 
-    def get_undo_button(self, field, parent):
+    def get_undo_buttons(self, field, parent):
         """
         Get field undo button
         """
@@ -669,8 +682,8 @@ class UI_driver(object):
         if not parent:
             parent = self.get_form()
         s = "div[name='%s'].field span.undo" % (field)
-        undo = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-        return undo
+        undos = self.find(s, By.CSS_SELECTOR, parent, strict=True, all=True)
+        return undos
 
     def get_rows(self, parent=None):
         """
@@ -821,6 +834,8 @@ class UI_driver(object):
                 self.add_table_record(key, val, parent)
             elif type == 'add_table_association':
                 self.add_table_associations(key, val, parent)
+            elif type == 'multivalued':
+                self.fill_multivalued(key, val, parent)
             elif type == 'table':
                 self.select_record(val, parent, key)
             self.wait()
@@ -1266,9 +1281,16 @@ class UI_driver(object):
         """
         Assert that undo button is or is not visible
         """
-        undo = self.get_undo_button(field, parent)
-        state = undo.is_displayed()
-        assert state == visible, 'Undo button has invalid state. Field: %s' % field
+        undos = self.get_undo_buttons(field, parent)
+        state = False
+        for undo in undos:
+            if undo.is_displayed():
+                state = True
+                break
+        if visible:
+            assert state, "Undo button not visible. Field: %s" % field
+        else:
+            assert not state, "Undo button visible. Field: %s" % field
 
     def assert_visible(self, selector, parent=None, negative=False):
         """

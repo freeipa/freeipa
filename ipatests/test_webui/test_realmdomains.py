@@ -41,7 +41,7 @@ class test_realmdomains(UI_driver):
         self.wait_for_request()
 
         # delete
-        self.delete_multivalued('associateddomain', 'itest.bar')
+        self.del_multivalued('associateddomain', 'itest.bar')
         self.facet_button_click('update')
         self.dialog_button_click('force')
         self.wait_for_request()
