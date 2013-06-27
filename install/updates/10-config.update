@@ -47,3 +47,13 @@ only:nsslapd-minssf-exclude-rootdse:on
 # POSIX winsync plugin
 dn: cn=ipa-winsync,cn=plugins,cn=config
 only: nsslapd-pluginPrecedence: 60
+
+# Enable SASL mapping fallback
+dn: cn=config
+only:nsslapd-sasl-mapping-fallback: on
+
+dn: cn=Full Principal,cn=mapping,cn=sasl,cn=config
+addifnew:nsSaslMapPriority: 10
+
+dn: cn=Name Only,cn=mapping,cn=sasl,cn=config
+addifnew:nsSaslMapPriority: 10

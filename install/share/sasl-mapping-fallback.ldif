@@ -1,0 +1,4 @@
+dn: cn=config
+changetype: modify
+replace: nsslapd-sasl-mapping-fallback
+nsslapd-sasl-mapping-fallback: on

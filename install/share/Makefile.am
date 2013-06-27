@@ -63,6 +63,7 @@ app_DATA =				\
 	replica-s4u2proxy.ldif		\
 	copy-schema-to-ca.py		\
 	upload-cacert.ldif		\
+	sasl-mapping-fallback.ldif	\
 	$(NULL)
 
 EXTRA_DIST =				\
