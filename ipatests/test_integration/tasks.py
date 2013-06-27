@@ -22,6 +22,8 @@
 import os
 import textwrap
 import re
+import collections
+import itertools
 
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
@@ -234,3 +236,146 @@ def uninstall_client(host):
     host.run_command(['ipa-client-install', '--uninstall', '-U'],
                      raiseonerr=False)
     unapply_fixes(host)
+
+
+def get_topo(name_or_func):
+    """Get a topology function by name
+
+    A topology function receives a master and list of replicas, and yields
+    (parent, child) pairs, where "child" should be installed from "parent"
+    (or just connected if already installed)
+
+    If a callable is given instead of name, it is returned directly
+    """
+    if callable(name_or_func):
+        return name_or_func
+    return topologies[name_or_func]
+
+
+def _topo(name):
+    """Decorator that registers a function in topologies under a given name"""
+    def add_topo(func):
+        topologies[name] = func
+        return func
+    return add_topo
+topologies = collections.OrderedDict()
+
+
+@_topo('star')
+def star_topo(master, replicas):
+    r"""All replicas are connected to the master
+
+          Rn R1 R2
+           \ | /
+        R7-- M -- R3
+           / | \
+          R6 R5 R4
+    """
+    for replica in replicas:
+        yield master, replica
+
+
+@_topo('line')
+def line_topo(master, replicas):
+    r"""Line topology
+
+          M
+           \
+           R1
+            \
+            R2
+             \
+             R3
+              \
+              ...
+    """
+    for replica in replicas:
+        yield master, replica
+        master = replica
+
+
+@_topo('complete')
+def complete_topo(master, replicas):
+    r"""Each host connected to each other host
+
+          M--R1
+          |\/|
+          |/\|
+         R2-R3
+    """
+    for replica in replicas:
+        yield master, replica
+    for replica1, replica2 in itertools.combinations(replicas, 2):
+        yield replica1, replica2
+
+
+@_topo('tree')
+def tree_topo(master, replicas):
+    r"""Binary tree topology
+
+             M
+            / \
+           /   \
+          R1   R2
+         /  \  / \
+        R3 R4 R5 R6
+       /
+      R7 ...
+
+    """
+    replicas = list(replicas)
+
+    def _masters():
+        for host in [master] + replicas:
+            yield host
+            yield host
+
+    for parent, child in zip(_masters(), replicas):
+        yield parent, child
+
+
+@_topo('tree2')
+def tree2_topo(master, replicas):
+    r"""First replica connected directly to master, the rest in a line
+
+          M
+         / \
+        R1 R2
+            \
+            R3
+             \
+             R4
+              \
+              ...
+
+    """
+    if replicas:
+        yield master, replicas[0]
+    for replica in replicas[1:]:
+        yield master, replica
+        master = replica
+
+
+def install_topo(topo, master, replicas, clients,
+                 skip_master=False, setup_replica_cas=True):
+    """Install IPA servers and clients in the given topology"""
+    replicas = list(replicas)
+    installed = {master}
+    if not skip_master:
+        install_master(master)
+    for parent, child in get_topo(topo)(master, replicas):
+        if child in installed:
+            log.info('Connecting replica %s to %s' % (parent, child))
+            connect_replica(parent, child)
+        else:
+            log.info('Installing replica %s from %s' % (parent, child))
+            install_replica(parent, child, setup_ca=setup_replica_cas)
+        installed.add(child)
+    install_clients([master] + replicas, clients)
+
+
+def install_clients(servers, clients):
+    """Install IPA clients, distributing them among the given servers"""
+    for server, client in itertools.izip(itertools.cycle(servers), clients):
+        log.info('Installing client %s on %s' % (server, client))
+        install_client(server, client)

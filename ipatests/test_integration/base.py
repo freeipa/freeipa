@@ -35,7 +35,7 @@ log = log_mgr.get_logger(__name__)
 class IntegrationTest(object):
     num_replicas = 0
     num_clients = 0
-    topology = 'none'
+    topology = None
 
     @classmethod
     def setup_class(cls):
@@ -78,14 +78,11 @@ class IntegrationTest(object):
 
     @classmethod
     def install(cls):
-        if cls.topology == 'none':
+        if cls.topology is None:
             return
-        elif cls.topology == 'star':
-            tasks.install_master(cls.master)
-            for replica in cls.replicas:
-                tasks.install_replica(cls.master, replica)
         else:
-            raise ValueError('Unknown topology %s' % cls.topology)
+            tasks.install_topo(cls.topology,
+                               cls.master, cls.replicas, cls.clients)
 
     @classmethod
     def teardown_class(cls):

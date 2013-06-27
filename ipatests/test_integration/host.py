@@ -162,6 +162,10 @@ class Host(object):
 
         self.log_collectors = []
 
+    def __str__(self):
+        template = ('<{s.__class__.__name__} {s.hostname} ({s.role})>')
+        return template.format(s=self)
+
     def __repr__(self):
         template = ('<{s.__module__}.{s.__class__.__name__} '
                     '{s.hostname} ({s.role})>')
@@ -222,9 +226,11 @@ class Host(object):
         :param raiseonerr: If true, an exception will be raised if the command
                            does not exit with return code 0
         """
+        assert self.transport
+
+        self._command_index += 1
         command = RemoteCommand(self, argv, index=self._command_index,
                                 log_stdout=log_stdout)
-        self._command_index += 1
 
         if cwd is None:
             cwd = self.config.test_dir
