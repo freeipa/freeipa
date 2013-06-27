@@ -129,13 +129,12 @@ def enable_replication_debugging(host):
                      stdin_text=logging_ldif)
 
 
-def install_master(host, collect_log=None):
-    if collect_log:
-        collect_log(host, '/var/log/ipaserver-install.log')
-        collect_log(host, '/var/log/ipaclient-install.log')
-        inst = host.domain.realm.replace('.', '-')
-        collect_log(host, '/var/log/dirsrv/slapd-%s/errors' % inst)
-        collect_log(host, '/var/log/dirsrv/slapd-%s/access' % inst)
+def install_master(host):
+    host.collect_log('/var/log/ipaserver-install.log')
+    host.collect_log('/var/log/ipaclient-install.log')
+    inst = host.domain.realm.replace('.', '-')
+    host.collect_log('/var/log/dirsrv/slapd-%s/errors' % inst)
+    host.collect_log('/var/log/dirsrv/slapd-%s/access' % inst)
 
     apply_common_fixes(host)
 
@@ -151,10 +150,9 @@ def install_master(host, collect_log=None):
     host.run_command(['kinit', 'admin'],
                       stdin_text=host.config.admin_password)
 
-def install_replica(master, replica, collect_log=None):
-    if collect_log:
-        collect_log(replica, '/var/log/ipareplica-install.log')
-        collect_log(replica, '/var/log/ipareplica-conncheck.log')
+def install_replica(master, replica):
+    replica.collect_log('/var/log/ipareplica-install.log')
+    replica.collect_log('/var/log/ipareplica-conncheck.log')
 
     apply_common_fixes(replica)
 
@@ -187,18 +185,16 @@ def connect_replica(master, replica=None):
     replica.run_command(['ipa-replica-manage', 'connect'] + args)
 
 
-def uninstall_master(host, collect_log=None):
-    if collect_log:
-        collect_log(host, '/var/log/ipaserver-uninstall.log')
+def uninstall_master(host):
+    host.collect_log('/var/log/ipaserver-uninstall.log')
 
     host.run_command(['ipa-server-install', '--uninstall', '-U'],
                      raiseonerr=False)
     unapply_fixes(host)
 
 
-def uninstall_client(host, collect_log=None):
-    if collect_log:
-        collect_log(host, '/var/log/ipaclient-uninstall.log')
+def uninstall_client(host):
+    host.collect_log('/var/log/ipaclient-uninstall.log')
 
     host.run_command(['ipa-client-install', '--uninstall', '-U'],
                      raiseonerr=False)

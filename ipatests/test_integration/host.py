@@ -160,10 +160,20 @@ class Host(object):
 
         self._command_index = 0
 
+        self.log_collectors = []
+
     def __repr__(self):
         template = ('<{s.__module__}.{s.__class__.__name__} '
                     '{s.hostname} ({s.role})>')
         return template.format(s=self)
+
+    def add_log_collector(self, collector):
+        """Register a log collector for this host"""
+        self.log_collectors.append(collector)
+
+    def remove_log_collector(self, collector):
+        """Unregister a log collector"""
+        self.log_collectors.remove(collector)
 
     @classmethod
     def from_env(cls, env, domain, hostname, role, index):
@@ -319,3 +329,7 @@ class Host(object):
     def put_file(self, localpath, remotepath):
         self.log.info('PUT %s', remotepath)
         self.sftp.put(localpath, remotepath)
+
+    def collect_log(self, filename):
+        for collector in self.log_collectors:
+            collector(self, filename)

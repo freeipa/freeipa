@@ -58,6 +58,7 @@ class IntegrationTest(object):
         cls.replicas = domain.replicas[:cls.num_replicas]
         cls.clients = domain.clients[:cls.num_clients]
         for host in cls.get_all_hosts():
+            host.add_log_collector(cls.collect_log)
             cls.prepare_host(host)
 
         try:
@@ -83,15 +84,17 @@ class IntegrationTest(object):
         if cls.topology == 'none':
             return
         elif cls.topology == 'star':
-            tasks.install_master(cls.master, collect_log=cls.collect_log)
+            tasks.install_master(cls.master)
             for replica in cls.replicas:
-                tasks.install_replica(cls.master, replica,
-                                      collect_log=cls.collect_log)
+                tasks.install_replica(cls.master, replica)
         else:
             raise ValueError('Unknown topology %s' % cls.topology)
 
     @classmethod
     def teardown_class(cls):
+        for host in cls.get_all_hosts():
+            host.remove_log_collector(cls.collect_log)
+
         try:
             cls.uninstall()
         finally:
@@ -101,11 +104,11 @@ class IntegrationTest(object):
 
     @classmethod
     def uninstall(cls):
-        tasks.uninstall_master(cls.master, collect_log=cls.collect_log)
+        tasks.uninstall_master(cls.master)
         for replica in cls.replicas:
-            tasks.uninstall_master(replica, collect_log=cls.collect_log)
+            tasks.uninstall_master(replica)
         for client in cls.clients:
-            tasks.uninstall_client(client, collect_log=cls.collect_log)
+            tasks.uninstall_client(client)
 
     @classmethod
     def collect_log(cls, host, filename):
