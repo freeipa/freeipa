@@ -24,7 +24,7 @@ import os
 import nose
 
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration.config import get_global_config, env_to_script
+from ipatests.test_integration.config import get_global_config
 from ipatests.test_integration import tasks
 from ipatests.order_plugin import ordered
 
@@ -74,10 +74,7 @@ class IntegrationTest(object):
     @classmethod
     def prepare_host(cls, host):
         cls.log.info('Preparing host %s', host.hostname)
-        env_filename = os.path.join(host.config.test_dir, 'env.sh')
-        cls.collect_log(host, env_filename)
-        host.mkdir_recursive(host.config.test_dir)
-        host.put_file_contents(env_filename, env_to_script(host.to_env()))
+        tasks.prepare_host(host)
 
     @classmethod
     def install(cls):

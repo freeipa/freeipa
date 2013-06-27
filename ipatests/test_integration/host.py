@@ -273,8 +273,6 @@ class Host(object):
             else:
                 self.log.critical('No SSH credentials configured')
                 raise RuntimeError('No SSH credentials configured')
-            # Clean up the test directory
-            self.run_command(['rm', '-rvf', self.config.test_dir])
             return transport
 
     @property

@@ -25,8 +25,16 @@ import re
 
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
+from ipatests.test_integration.config import env_to_script
 
 log = log_mgr.get_logger(__name__)
+
+
+def prepare_host(host):
+    env_filename = os.path.join(host.config.test_dir, 'env.sh')
+    host.collect_log(env_filename)
+    host.mkdir_recursive(host.config.test_dir)
+    host.put_file_contents(env_filename, env_to_script(host.to_env()))
 
 
 def apply_common_fixes(host):
@@ -93,6 +101,9 @@ def unapply_fixes(host):
     restore_files(host)
     restore_hostname(host)
 
+    # Clean up the test directory
+    host.run_command(['rm', '-rvf', host.config.test_dir])
+
 
 def restore_files(host):
     backupname = os.path.join(host.config.test_dir, 'file_backup')
@@ -147,8 +158,7 @@ def install_master(host):
 
     enable_replication_debugging(host)
 
-    host.run_command(['kinit', 'admin'],
-                      stdin_text=host.config.admin_password)
+    kinit_admin(host)
 
 
 def install_replica(master, replica, setup_ca=True):
@@ -178,16 +188,36 @@ def install_replica(master, replica, setup_ca=True):
 
     enable_replication_debugging(replica)
 
-    replica.run_command(['kinit', 'admin'],
-                        stdin_text=replica.config.admin_password)
+    kinit_admin(replica)
+
+def install_client(master, client):
+    client.collect_log('/var/log/ipaclient-install.log')
+
+    apply_common_fixes(client)
+
+    client.run_command(['ipa-client-install', '-U',
+                        '--domain', client.domain.name,
+                        '--realm', client.domain.realm,
+                        '-p', client.config.admin_name,
+                        '-w', client.config.admin_password,
+                        '--server', master.hostname])
+
+    kinit_admin(client)
 
 
-def connect_replica(master, replica=None):
-    if replica is None:
-        args = [replica.hostname, master.hostname]
-    else:
-        args = [master.hostname]
-    replica.run_command(['ipa-replica-manage', 'connect'] + args)
+def connect_replica(master, replica):
+    kinit_admin(replica)
+    replica.run_command(['ipa-replica-manage', 'connect', master.hostname])
+
+
+def disconnect_replica(master, replica):
+    kinit_admin(replica)
+    replica.run_command(['ipa-replica-manage', 'disconnect', master.hostname])
+
+
+def kinit_admin(host):
+    host.run_command(['kinit', 'admin'],
+                      stdin_text=host.config.admin_password)
 
 
 def uninstall_master(host):
