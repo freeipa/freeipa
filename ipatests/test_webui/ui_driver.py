@@ -705,6 +705,60 @@ class UI_driver(object):
 
         self.wait()
 
+    def get_text(self, selector, parent=None):
+        if not parent:
+            parent = self.get_form()
+
+        el = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
+        return el.text
+
+    def get_value(self, selector, parent=None):
+        if not parent:
+            parent = self.get_form()
+        el = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
+        value = el.get_attribute('value')
+        return value
+
+    def get_field_text(self, name, parent=None, element='label'):
+
+        s = "div[name='%s'] %s[name='%s']" % (name, element, name)
+        return self.get_text(s, parent)
+
+    def get_field_value(self, name, parent=None, element='input'):
+        s = "div[name='%s'] %s[name='%s']" % (name, element, name)
+        return self.get_value(s, parent)
+
+    def get_multivalued_value(self, name, parent=None):
+
+        s = "div[name='%s'] div[name='value'] input[name^='%s']" % (name, name)
+        els = self.find(s, By.CSS_SELECTOR, parent, all=True)
+        values = []
+        for el in els:
+            values.append(el.get_attribute('value'))
+        return values
+
+    def get_field_checked(self, name, parent=None):
+        if not parent:
+            parent = self.get_form()
+        s = "div[name='%s'] input[name='%s']" % (name, name)
+        els = self.find(s, By.CSS_SELECTOR, parent, strict=True, all=True)
+        values = []
+        for el in els:
+            if el.is_selected():
+                values.append(el.get_attribute('value'))
+        return values
+
+    def get_field_selected(self, name, parent=None):
+        if not parent:
+            parent = self.get_form()
+        s = "div[name='%s'] select[name='%s']" % (name, name)
+        el = self.find(s, By.CSS_SELECTOR, parent, strict=True)
+        select = Select(el)
+        selected = select.all_selected_options
+        values = []
+        for opt in selected:
+            values.append(opt.get_attribute('value'))
+        return values
 
     def get_undo_buttons(self, field, parent):
         """
@@ -880,6 +934,47 @@ class UI_driver(object):
             if undo:
                 self.assert_undo_button(key, True, parent)
 
+    def validate_fields(self, fields, parent=None, undo=False):
+        """
+        Validate that fields on a page or dialog have desired values.
+        """
+        if not fields:
+            return
+        if not parent:
+            parent = self.get_form()
+
+        for field in fields:
+            ftype = field[0]
+            key = field[1]
+            expected = field[2]
+            actual = None
+
+            if ftype == 'label':
+                actual = self.get_field_text(key, parent)
+            elif ftype in ('textbox', 'password', 'combobox'):
+                actual = self.get_field_value(key, parent, 'input')
+            elif ftype == 'textarea':
+                actual = self.get_field_value(key, parent, 'textarea')
+            elif ftype == 'radio':
+                actual = self.get_field_checked(key, parent)
+            elif ftype == 'checkbox':
+                actual = self.get_field_checked(key, parent)
+            elif ftype == 'multivalued':
+                actual = self.get_multivalued_value(key, parent)
+            elif ftype == 'table_record':
+                if self.has_record(expected, parent, key):
+                    actual = expected
+
+            valid = False
+            if type(expected) == list:
+                valid = type(actual) == list and sorted(expected) == sorted(actual)
+            else:
+                # compare other values, usually strings:
+                valid = actual == expected
+
+            assert valid, "Values don't match. Expected: '%s', Got: '%s'" % (expected, actual)
+
+
     def find_record(self, entity, data, facet='search', dummy='XXXXXXX'):
         """
         Test search functionality of search facet.
@@ -1054,11 +1149,12 @@ class UI_driver(object):
             self.switch_to_facet(details_facet)
             self.assert_facet(entity, details_facet)
 
+        self.validate_fields(data.get('add_v'))
+
         # 4. Mod values
         if data.get('mod'):
-            # TODO: assert values
             self.mod_record(entity, data, details_facet, update_btn)
-            # TODO: assert modified values
+            self.validate_fields(data.get('mod_v'))
 
         if not breadcrumb:
             self.navigate_to_entity(entity, search_facet)
@@ -1254,11 +1350,8 @@ class UI_driver(object):
         """
         Assert read-only text value in details page or in a form
         """
-        if not parent:
-            parent = self.get_form()
-
-        el = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
-        text = el.text.strip()
+        text = self.get_text(selector, parent)
+        text = text.strip()
         value = value.strip()
         assert text == value, "Invalid value: '%s' Expected: %s" % (text, value)
 

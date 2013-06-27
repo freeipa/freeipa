@@ -28,9 +28,25 @@ DATA = {
         ('textbox', 'givenname', 'Name'),
         ('textbox', 'sn', 'Surname'),
     ],
+    'add_v': [
+        ('textbox', 'givenname', 'Name'),
+        ('textbox', 'sn', 'Surname'),
+        ('label', 'uid', PKEY),
+    ],
     'mod': [
         ('textbox', 'givenname','OtherName'),
         ('textbox', 'sn','OtherSurname'),
+        ('multivalued', 'telephonenumber', [
+            ('add', '123456789'),
+            ('add', '987654321'),
+        ]),
+        ('combobox', 'manager', 'admin'),
+    ],
+    'mod_v': [
+        ('textbox', 'givenname', 'OtherName'),
+        ('textbox', 'sn', 'OtherSurname'),
+        ('multivalued', 'telephonenumber', ['123456789', '987654321']),
+        ('combobox', 'manager', 'admin'),
     ],
 }
 
