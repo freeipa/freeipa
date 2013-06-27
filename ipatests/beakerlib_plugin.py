@@ -20,6 +20,7 @@
 """A Nose plugin that integrates with BeakerLib"""
 
 import os
+import sys
 import subprocess
 import traceback
 import logging
@@ -51,32 +52,14 @@ class BeakerLibLogHandler(logging.Handler):
         self.beakerlib_command([command, self.format(record)])
 
 
-class BeakerLibPlugin(Plugin):
-    """A Nose plugin that integrates with BeakerLib"""
-    # Since BeakerLib is a Bash library, we need to run it in Bash.
-    # The plugin maintains a Bash process and feeds it with commands
-    # on events like test start/end, logging, etc.
-    # See nose.plugins.base.IPluginInterface for Nose plugin interface docs
-    name = 'beakerlib'
-
-    def __init__(self):
-        super(BeakerLibPlugin, self).__init__()
+class BeakerLibProcess(object):
+    def __init__(self, env=os.environ):
         self.log = log_mgr.get_logger(self)
 
-    def options(self, parser, env=os.environ):
-        super(BeakerLibPlugin, self).options(parser, env=env)
+        if 'BEAKERLIB' not in env:
+            raise RuntimeError('$BEAKERLIB not set, cannot use BeakerLib')
+
         self.env = env
-        self.parser = parser
-
-    def configure(self, options, conf):
-        super(BeakerLibPlugin, self).configure(options, conf)
-        if not self.enabled:
-            return
-
-        if 'BEAKERLIB' not in self.env:
-            self.parser.error(
-                'BeakerLib not active, cannot use --with-beakerlib')
-
         # Set up the Bash process
         self.bash = subprocess.Popen(['bash'],
                                      stdin=subprocess.PIPE,
@@ -103,6 +86,8 @@ class BeakerLibPlugin(Plugin):
 
     def run_beakerlib_command(self, cmd):
         """Given a command as a Popen-style list, run it in the Bash process"""
+        if not self.bash:
+            return
         for word in cmd:
             self.bash.stdin.write(ipautil.shell_quote(word))
             self.bash.stdin.write(' ')
@@ -114,10 +99,106 @@ class BeakerLibPlugin(Plugin):
         for match in LINK_RE.finditer(docstring or ''):
             self.log.info('Link: %s', match.group())
 
-    def report(self, stream):
+    def end(self):
         """End the Bash process"""
         self.run_beakerlib_command(['exit'])
-        self.bash.communicate()
+        bash = self.bash
+        self.bash = None
+        bash.communicate()
+
+    def collect_logs(self, logs_to_collect):
+        """Collect specified logs"""
+        for host, logs in logs_to_collect.items():
+            self.log.info('Collecting logs from: %s', host.hostname)
+
+            # Tar up the logs on the remote server
+            cmd = host.run_command(['tar', 'cJv'] + logs, log_stdout=False,
+                                    raiseonerr=False)
+            if cmd.returncode:
+                self.run_beakerlib_command(
+                    ['rlFail', 'Could not collect all requested logs'])
+
+            # Copy and unpack on the local side
+            topdirname = tempfile.mkdtemp()
+            dirname = os.path.join(topdirname, host.hostname)
+            os.mkdir(dirname)
+            tarname = os.path.join(dirname, 'logs.tar.xz')
+            with open(tarname, 'w') as f:
+                f.write(cmd.stdout_text)
+            ipautil.run(['tar', 'xJvf', 'logs.tar.xz'], cwd=dirname)
+            os.unlink(tarname)
+
+            # Use BeakerLib's rlFileSubmit on the indifidual files
+            # The resulting submitted filename will be
+            # $HOSTNAME-$FILENAME (with '/' replaced by '-')
+            self.run_beakerlib_command(['pushd', topdirname])
+            for dirpath, dirnames, filenames in os.walk(topdirname):
+                for filename in filenames:
+                    fullname = os.path.relpath(
+                        os.path.join(dirpath, filename), topdirname)
+                    self.log.debug('Submitting file: %s', fullname)
+                    self.run_beakerlib_command(['rlFileSubmit', fullname])
+            self.run_beakerlib_command(['popd'])
+
+            # The BeakerLib process runs asynchronously, let it clean up
+            # after it's done with the directory
+            self.run_beakerlib_command(['rm', '-rvf', topdirname])
+
+        logs_to_collect.clear()
+
+    def log_exception(self, err=None):
+        """Log an exception
+
+        err is a 3-tuple as returned from sys.exc_info(); if not given,
+        sys.exc_info() is used.
+        """
+        if err is None:
+            err = sys.exc_info()
+        message = ''.join(traceback.format_exception(*err)).rstrip()
+        self.run_beakerlib_command(['rlLogError', message])
+
+
+class BeakerLibPlugin(Plugin):
+    """A Nose plugin that integrates with BeakerLib"""
+    # Since BeakerLib is a Bash library, we need to run it in Bash.
+    # The plugin maintains a Bash process and feeds it with commands
+    # on events like test start/end, logging, etc.
+    # See nose.plugins.base.IPluginInterface for Nose plugin interface docs
+    name = 'beakerlib'
+
+    def __init__(self):
+        super(BeakerLibPlugin, self).__init__()
+        self.log = log_mgr.get_logger(self)
+        self._in_class_setup = False
+
+    def options(self, parser, env=os.environ):
+        super(BeakerLibPlugin, self).options(parser, env=env)
+        self.env = env
+        self.parser = parser
+
+    def configure(self, options, conf):
+        super(BeakerLibPlugin, self).configure(options, conf)
+        if not self.enabled:
+            return
+
+        if 'BEAKERLIB' not in self.env:
+            self.parser.error(
+                '$BEAKERLIB not set, cannot use --with-beakerlib')
+
+        self.process = BeakerLibProcess(env=self.env)
+
+    def run_beakerlib_command(self, cmd):
+        """Given a command as a Popen-style list, run it in the Bash process"""
+        self.process.run_beakerlib_command(cmd)
+
+    def report(self, stream):
+        self.process.end()
+
+    def log_exception(self, err):
+        self.process.log_exception(err)
+
+    def log_links(self, docstring):
+        self.process.log_links(docstring)
 
     def startContext(self, context):
         """Start a test context (module, class)
@@ -169,14 +250,6 @@ class BeakerLibPlugin(Plugin):
     def addSuccess(self, test):
         self.run_beakerlib_command(['rlPass', 'Test succeeded'])
 
-    def log_exception(self, err):
-        """Log an exception
-
-        err is a 3-tuple as returned from sys.exc_info()
-        """
-        message = ''.join(traceback.format_exception(*err)).rstrip()
-        self.run_beakerlib_command(['rlLogError', message])
-
     def addError(self, test, err):
         if issubclass(err[0], nose.SkipTest):
             # Log skipped test.
@@ -201,40 +274,4 @@ class BeakerLibPlugin(Plugin):
         except AttributeError:
             self.log.debug('No logs to collect')
         else:
-            for host, logs in logs_to_collect.items():
-                self.log.info('Collecting logs from: %s', host.hostname)
-
-                # Tar up the logs on the remote server
-                cmd = host.run_command(['tar', 'cJv'] + logs, log_stdout=False,
-                                       raiseonerr=False)
-                if cmd.returncode:
-                    self.run_beakerlib_command(
-                        ['rlFail', 'Could not collect all requested logs'])
-
-                # Copy and unpack on the local side
-                topdirname = tempfile.mkdtemp()
-                dirname = os.path.join(topdirname, host.hostname)
-                os.mkdir(dirname)
-                tarname = os.path.join(dirname, 'logs.tar.xz')
-                with open(tarname, 'w') as f:
-                    f.write(cmd.stdout_text)
-                ipautil.run(['tar', 'xJvf', 'logs.tar.xz'], cwd=dirname)
-                os.unlink(tarname)
-
-                # Use BeakerLib's rlFileSubmit on the indifidual files
-                # The resulting submitted filename will be
-                # $HOSTNAME-$FILENAME (with '/' replaced by '-')
-                self.run_beakerlib_command(['pushd', topdirname])
-                for dirpath, dirnames, filenames in os.walk(topdirname):
-                    for filename in filenames:
-                        fullname = os.path.relpath(
-                            os.path.join(dirpath, filename), topdirname)
-                        self.log.debug('Submitting file: %s', fullname)
-                        self.run_beakerlib_command(['rlFileSubmit', fullname])
-                self.run_beakerlib_command(['popd'])
-
-                # The BeakerLib process runs asynchronously, let it clean up
-                # after it's done with the directory
-                self.run_beakerlib_command(['rm', '-rvf', topdirname])
-
-            test.logs_to_collect.clear()
+            self.process.collect_logs(logs_to_collect)
