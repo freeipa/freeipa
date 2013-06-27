@@ -822,6 +822,7 @@ fi
 %dir %{python_sitelib}/ipatests/test_xmlrpc
 %{_bindir}/ipa-run-tests
 %{_bindir}/ipa-test-config
+%{_bindir}/ipa-test-task
 %{python_sitelib}/ipatests-*.egg-info
 %endif  # ! %{ONLY_CLIENT}
 

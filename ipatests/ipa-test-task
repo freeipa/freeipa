@@ -1,0 +1,294 @@
+#! /usr/bin/python
+
+# Authors:
+#   Petr Viktorin <pviktori@redhat.com>
+#
+# Copyright (C) 2013  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import sys
+import os
+import argparse
+
+from ipapython.ipa_log_manager import log_mgr, standard_logging_setup
+from ipatests.test_integration import config
+from ipatests.test_integration import tasks
+from ipatests.beakerlib_plugin import BeakerLibProcess
+
+
+log = log_mgr.get_logger(__name__)
+
+
+class TaskRunner(object):
+    def __init__(self):
+        self._prepared_hosts = set()
+
+    def get_parser(self):
+        parser = argparse.ArgumentParser(
+            description="Perform an operation for integration testing."
+                        "All operations are performed on configured hosts, see"
+                        "http://www.freeipa.org/page/V3/Integration_testing"
+                        "see for configuration details")
+
+        parser.add_argument('--with-beakerlib', action='store_true',
+                            dest='with_beakerlib',
+                            help="""Issue BeakerLib commands for logging
+                                    and log collection""")
+
+        subparsers = parser.add_subparsers(
+            metavar='SUBCOMMAND',
+            help='The action to perform (* indicates an idempotent operation)')
+
+        subparser = subparsers.add_parser(
+            'install-topo',
+            help='Install IPA in a given topology')
+        subparser.add_argument('topo',
+                            metavar='TOPO',
+                            help='Desired topology '
+                                '(see `ipa-test-task list-topos` for details)',
+                            choices=tasks.topologies)
+        subparser.add_argument('--skip-master', action='store_true',
+                            help='Skip installing master')
+        subparser.add_argument('--skip-clients', action='store_true',
+                            help='Skip installing clients')
+        subparser.add_argument('--master', type=str,
+                            help='Master to use (Default: from config)')
+        subparser.add_argument('--replicas', type=str, nargs='*',
+                            help='Replicas to install (Default: from config)')
+        subparser.add_argument('--clients', type=str, nargs='*',
+                            help='Clients to install (Default: from config)')
+        subparser.set_defaults(func=self.install_topo)
+
+        subparser = subparsers.add_parser(
+            'list-topos',
+            help='List the available topologies')
+        subparser.set_defaults(func=self.list_topos)
+
+        subparser = subparsers.add_parser(
+            'install-master',
+            help='Install IPA on the master')
+        subparser.add_argument('--host', type=str,
+                            help='Host to use (Default: from config)')
+        subparser.set_defaults(func=self.install_master)
+
+        subparser = subparsers.add_parser(
+            'install-replica',
+            help='Install an IPA replica')
+        subparser.add_argument('replica', type=str,
+                            help='Replica to install')
+        subparser.add_argument('--master', type=str,
+                            help="""Master to replicate from
+                                    (Default: from config)""")
+        subparser.set_defaults(func=self.install_replica)
+
+        subparser = subparsers.add_parser(
+            'install-client',
+            help='Install an IPA client')
+        subparser.add_argument('client', type=str,
+                            help='Client to install')
+        subparser.add_argument('--master', type=str,
+                            help="""Master to replicate from
+                                    (Default: from config)""")
+        subparser.set_defaults(func=self.install_client)
+
+        subparser = subparsers.add_parser(
+            'connect-replica',
+            help='Connect two IPA masters')
+        subparser.add_argument('host1', type=str,
+                            help='First replica to connect')
+        subparser.add_argument('host2', type=str,
+                            help='Second replica to connect')
+        subparser.set_defaults(func=self.connect_replica)
+
+        subparser = subparsers.add_parser(
+            'disconnect-replica',
+            help='Disconnect two IPA masters')
+        subparser.add_argument('host1', type=str,
+                            help='First replica to disconnect')
+        subparser.add_argument('host2', type=str,
+                            help='Second replica to disconnect')
+        subparser.set_defaults(func=self.disconnect_replica)
+
+        subparser = subparsers.add_parser(
+            'uninstall-server',
+            help='Uninstall IPA server *')
+        subparser.add_argument('host', type=str, nargs='*',
+                            help="""Host to use
+                                    (Default: master and all replicas
+                                    from config)""")
+        subparser.set_defaults(func=self.uninstall_master)
+
+        subparser = subparsers.add_parser(
+            'uninstall-client',
+            help='Uninstall IPA client *')
+        subparser.add_argument('host', type=str, nargs='*',
+                            help="""Host to use
+                                    (Default: all clients from config)""")
+        subparser.set_defaults(func=self.uninstall_client)
+
+        subparser = subparsers.add_parser(
+            'uninstall-all',
+            help='Uninstall all hosts, according to config *')
+        subparser.set_defaults(func=self.uninstall_all, host=None)
+
+        subparser = subparsers.add_parser(
+            'cleanup',
+            help='Clean up a host *')
+        subparser.add_argument('host', type=str, nargs='*',
+                            help="""Host to clean up
+                                    (Default: all hosts from config)""")
+        subparser.set_defaults(func=self.cleanup)
+
+        return parser
+
+    def main(self, argv):
+
+        args = self.get_parser().parse_args(argv)
+        self.config = config.Config.from_env(os.environ)
+
+        logs_to_collect = {}
+
+        def collect_log(host, filename):
+            logs_to_collect.setdefault(host, []).append(filename)
+
+        self.collect_log = collect_log
+
+        if args.with_beakerlib:
+            beakerlib_process = BeakerLibProcess()
+            args.verbose = True
+
+        standard_logging_setup(
+            console_format='%(name)s: %(levelname)s: %(message)s',
+            debug=True)
+
+        if not self.config.domains:
+            raise SystemExit('No configuration available')
+
+        args.domain = self.config.domains[0]
+
+        import logging; logging.basicConfig()
+
+        try:
+            return args.func(args)
+        except Exception, e:
+            if args.with_beakerlib:
+                beakerlib_process.log_exception()
+                beakerlib_process.run_beakerlib_command(
+                    ['rlFail', 'Unhandled exception'])
+            raise
+        finally:
+            if args.with_beakerlib:
+                beakerlib_process.end()
+                beakerlib_process.collect_logs(logs_to_collect)
+            for host in self._prepared_hosts:
+                host.remove_log_collector(self.collect_log)
+
+    def get_host(self, host_name, default=None):
+        if host_name is None:
+            host = default
+        else:
+            host = self.config.host_by_name(host_name)
+        return self.prepare_host(host)
+
+    def get_hosts(self, host_names, default=()):
+        if host_names is None:
+            host_names = ()
+        hosts = [self.get_host(host_name) for host_name in host_names]
+        if hosts:
+            return hosts
+        else:
+            return [self.prepare_host(h) for h in default]
+
+    def prepare_host(self, host):
+        if host not in self._prepared_hosts:
+            host.add_log_collector(self.collect_log)
+            tasks.prepare_host(host)
+            self._prepared_hosts.add(host)
+        return host
+
+    def install_master(self, args):
+        master = self.get_host(args.host, default=args.domain.master)
+        log.info('Installing master %s', master.hostname)
+        tasks.install_master(master)
+
+    def install_replica(self, args):
+        replica = self.get_host(args.replica)
+        master = self.get_host(args.master, default=args.domain.master)
+        log.info('Installing replica %s from %s',
+                replica.hostname, master.hostname)
+        tasks.install_replica(master, replica)
+
+    def install_client(self, args):
+        client = self.get_host(args.client)
+        master = self.get_host(args.master, default=args.domain.master)
+        log.info('Installing client %s on %s', client.hostname, master.hostname)
+        tasks.install_client(master, client)
+
+    def uninstall_master(self, args):
+        default_hosts = [args.domain.master] + args.domain.replicas
+        hosts = self.get_hosts(args.host, default=default_hosts)
+        log.info('Uninstalling masters: %s', [h.hostname for h in hosts])
+        for master in hosts:
+            log.info('Uninstalling %s', master.hostname)
+            tasks.uninstall_master(master)
+
+    def uninstall_client(self, args):
+        default_hosts = args.domain.clients
+        hosts = self.get_hosts(args.host, default=default_hosts)
+        log.info('Uninstalling clients: %s', [h.hostname for h in hosts])
+        for client in hosts:
+            log.info('Uninstalling %s', client.hostname)
+            tasks.uninstall_client(client)
+
+    def uninstall_all(self, args):
+        self.uninstall_master(args)
+        self.uninstall_client(args)
+
+    def cleanup(self, args):
+        default_hosts = args.domain.hosts
+        hosts = self.get_hosts(args.host, default=default_hosts)
+        log.info('Cleaning up hosts: %s', [h.hostname for h in hosts])
+        for host in hosts:
+            log.info('Cleaning up %s', host.hostname)
+            tasks.unapply_fixes(host)
+
+    def connect_replica(self, args):
+        host1 = self.get_host(args.host1)
+        host2 = self.get_host(args.host2)
+        tasks.connect_replica(host1, host2)
+
+    def disconnect_replica(self, args):
+        host1 = self.get_host(args.host1)
+        host2 = self.get_host(args.host2)
+        tasks.disconnect_replica(host1, host2)
+
+    def list_topos(self, args):
+        for name, topo in tasks.topologies.items():
+            print '%s: %s' % (name, topo.__doc__)
+
+    def install_topo(self, args):
+        master = self.get_host(args.master, default=args.domain.master)
+        replicas = self.get_hosts(args.replicas, default=args.domain.replicas)
+        clients = self.get_hosts(args.clients, default=args.domain.clients)
+        if args.skip_clients:
+            clients = []
+        tasks.install_topo(args.topo, master, replicas, clients,
+                           skip_master=args.skip_master)
+
+
+if __name__ == '__main__':
+    exit(TaskRunner().main(sys.argv[1:]))
