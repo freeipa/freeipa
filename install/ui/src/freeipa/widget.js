@@ -914,7 +914,7 @@ IPA.option_widget_base = function(spec, that) {
 
                 if (option.nested) {
                     var selected = parents_selected.indexOf(option.value) > -1;
-                    option.widget.set_enabled(selected);
+                    option.widget.set_enabled(selected, true);
                 }
             }
         }
@@ -958,8 +958,12 @@ IPA.option_widget_base = function(spec, that) {
             // uncheck all inputs
             check(that._selector, true /*uncheck*/);
 
-            if (values && values.length > 0) {
+            var writable = !that.read_only && !!that.writable;
+            if (!that.nested) {
+                that.set_enabled(writable);
+            }
 
+            if (values && values.length > 0) {
 
                 if (that.default_on_empty && that.default_value !== null) {
                     for (var i=0; i<values.length; i++) {
@@ -982,7 +986,7 @@ IPA.option_widget_base = function(spec, that) {
                         check(that._selector+'[value="'+ option.value +'"]');
                     }
                     if (option.widget) {
-                        option.widget.set_enabled(has_opt);
+                        option.widget.set_enabled(writable && has_opt, false);
                     }
                 }
             } else {
@@ -996,19 +1000,22 @@ IPA.option_widget_base = function(spec, that) {
             }
 
             for (var j=0; j<that._child_widgets.length; j++) {
-                that._child_widgets[j].update(values);
+                var widget = that._child_widgets[j];
+                widget.writable = that.writable;
+                widget.read_only = that.read_only;
+                widget.update(values);
             }
         }
 
         that.updated.notify([], that);
     };
 
-    that.set_enabled = function(enabled) {
+    that.set_enabled = function(enabled, clear) {
 
         $(that._selector, that.container).prop('disabled', !enabled);
-        if (!enabled) that.clear();
-        for (var i=0; i<that._child_widgets.length;i++){
-            that._child_widgets[i].set_enabled(enabled);
+        if (!enabled && clear) that.clear();
+        for (var i=0; i<that._child_widgets.length;i++) {
+            that._child_widgets[i].set_enabled(enabled, clear);
         }
     };
 
