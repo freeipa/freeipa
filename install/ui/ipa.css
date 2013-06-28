@@ -53,6 +53,10 @@ body {
     height: 100%;
 }
 
+textarea[readonly] {
+    color: Gray;
+}
+
 .network-activity-indicator {
     visibility: hidden;
     width: 16px;

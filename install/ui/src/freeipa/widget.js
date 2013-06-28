@@ -3796,6 +3796,8 @@ IPA.sshkey_widget = function(spec) {
 
     that.create_edit_dialog = function() {
 
+        var writable = that.is_writable();
+
         var dialog = IPA.dialog({
             name: 'sshkey-edit-dialog',
             title: '@i18n:objects.sshkeystore.set_dialog_title',
@@ -3805,19 +3807,26 @@ IPA.sshkey_widget = function(spec) {
 
         dialog.message = text.get('@i18n:objects.sshkeystore.set_dialog_help');
 
-        dialog.create_button({
-            name: 'update',
-            label: '@i18n:buttons.set',
-            click: function() {
-                var value = dialog.textarea.val();
-                that.set_user_value(value);
-                dialog.close();
-            }
-        });
+        if (writable) {
+            dialog.create_button({
+                name: 'update',
+                label: '@i18n:buttons.set',
+                click: function() {
+                    var value = dialog.textarea.val();
+                    that.set_user_value(value);
+                    dialog.close();
+                }
+            });
+        }
+
+        var label = '@i18n:buttons.cancel';
+        if (!writable) {
+            label = '@i18n:buttons.close';
+        }
 
         dialog.create_button({
             name: 'cancel',
-            label: '@i18n:buttons.cancel',
+            label: label,
             click: function() {
                 dialog.close();
             }
@@ -3829,7 +3838,7 @@ IPA.sshkey_widget = function(spec) {
 
             dialog.textarea = $('<textarea/>', {
                 'class': 'certificate',
-                readonly: that.read_only,
+                readonly: !writable,
                 disabled: !that.enabled
             }).appendTo(dialog.container);
 
