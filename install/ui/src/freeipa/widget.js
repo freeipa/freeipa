@@ -219,6 +219,10 @@ IPA.input_widget = function(spec) {
         that.value_changed.notify([value], that);
     };
 
+    that.is_writable = function() {
+        return !that.read_only && !!that.writable;
+    };
+
     that.focus_input = function() {};
     that.set_deleted = function() {};
 
@@ -293,11 +297,10 @@ IPA.text_widget = function(spec) {
     that.update = function(values) {
         var value = values && values.length ? values[0] : '';
 
-        if (that.read_only || !that.writable) {
+        if (!that.is_writable()) {
             that.display_control.text(value);
             that.display_control.css('display', 'inline');
             that.input.css('display', 'none');
-
         } else {
             that.input.val(value);
             that.display_control.css('display', 'none');
@@ -308,9 +311,8 @@ IPA.text_widget = function(spec) {
     };
 
     that.save = function() {
-        if (that.read_only || !that.writable) {
+        if (!that.is_writable()) {
             return null;
-
         } else {
             var value = that.input.val();
             return value === '' ? [] : [value];
@@ -395,7 +397,9 @@ IPA.multivalued_widget = function(spec) {
         for(var i=0; i<that.rows.length; i++) {
             var row = that.rows[i];
             row.widget.hide_undo();
-            row.remove_link.show();
+            if (that.is_writable()) {
+                row.remove_link.show();
+            }
         }
     };
 
@@ -507,10 +511,13 @@ IPA.multivalued_widget = function(spec) {
             }
         }).appendTo(row.container);
 
-        if(row.is_new) {
+        if (row.is_new) {
             row.remove_link.hide();
             row.widget.show_undo();
             that.value_changed.notify([], that);
+        }
+        if (!that.is_writable()) {
+            row.remove_link.hide();
         }
 
         row.container.insertBefore(that.add_link);
@@ -618,7 +625,7 @@ IPA.multivalued_widget = function(spec) {
 
             that.initialized = true;
 
-            if (that.read_only || !that.writable) {
+            if (!that.is_writable()) {
                 that.add_link.css('display', 'none');
             } else {
                 that.add_link.css('display', 'inline');
@@ -1283,7 +1290,7 @@ IPA.textarea_widget = function (spec) {
     };
 
     that.save = function() {
-        if (that.read_only || !that.writable) {
+        if (!that.is_writable()) {
             return null;
         }
         var value = that.input.val();
@@ -1291,7 +1298,7 @@ IPA.textarea_widget = function (spec) {
     };
 
     that.update = function(values) {
-        var read_only = that.read_only || !that.writable;
+        var read_only = !that.is_writable();
         that.input.prop('readOnly', read_only);
 
         var value = values && values.length ? values[0] : '';
