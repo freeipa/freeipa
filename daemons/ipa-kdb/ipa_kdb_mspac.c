@@ -58,6 +58,7 @@ static char *user_pac_attrs[] = {
     "objectClass",
     "uid",
     "cn",
+    "fqdn",
     "gidNumber",
     "krbPrincipalName",
     "krbCanonicalName",
@@ -358,6 +359,29 @@ static int sid_split_rid(struct dom_sid *sid, uint32_t *rid)
     return 0;
 }
 
+static bool is_master_host(struct ipadb_context *ipactx, const char *fqdn)
+{
+    int ret;
+    char *master_host_base = NULL;
+    LDAPMessage *result = NULL;
+    krb5_error_code err;
+
+    ret = asprintf(&master_host_base, "cn=%s,cn=masters,cn=ipa,cn=etc,%s",
+                                      fqdn, ipactx->base);
+    if (ret == -1) {
+        return false;
+    }
+    err = ipadb_simple_search(ipactx, master_host_base, LDAP_SCOPE_BASE,
+                              NULL, NULL, &result);
+    free(master_host_base);
+    ldap_msgfree(result);
+    if (err == 0) {
+        return true;
+    }
+
+    return false;
+}
+
 static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
                                         LDAPMessage *lentry,
                                         TALLOC_CTX *memctx,
@@ -371,13 +395,65 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     char *strres;
     int intres;
     int ret;
+    char **objectclasses = NULL;
+    size_t c;
+    bool is_host = false;
+    bool is_user = false;
 
-    ret = ipadb_ldap_attr_to_int(lcontext, lentry, "gidNumber", &intres);
-    if (ret) {
-        /* gidNumber is mandatory */
-        return ret;
+    ret = ipadb_ldap_attr_to_strlist(lcontext, lentry, "objectClass",
+                                     &objectclasses);
+    if (ret == 0 && objectclasses != NULL) {
+        for (c = 0; objectclasses[c] != NULL; c++) {
+            if (strcasecmp(objectclasses[c], "ipaHost") == 0) {
+                is_host = true;
+            }
+            if (strcasecmp(objectclasses[c], "ipaNTUserAttrs") == 0) {
+                is_user = true;
+            }
+            free(objectclasses[c]);
+        }
     }
-    prigid = intres;
+    free(objectclasses);
+
+    if (!is_host && !is_user) {
+        /* We only handle users and hosts */
+        return ENOENT;
+    }
+
+    if (is_host) {
+        ret = ipadb_ldap_attr_to_str(lcontext, lentry, "fqdn", &strres);
+        if (ret) {
+            /* fqdn is mandatory for hosts */
+            return ret;
+        }
+
+        /* Currently we only add a PAC to TGTs for IPA servers to allow SSSD in
+         * ipa_server_mode to access the AD LDAP server */
+        if (!is_master_host(ipactx, strres)) {
+            free(strres);
+            return ENOENT;
+        }
+    } else {
+        ret = ipadb_ldap_attr_to_str(lcontext, lentry, "uid", &strres);
+        if (ret) {
+            /* uid is mandatory */
+            return ret;
+        }
+    }
+
+    info3->base.account_name.string = talloc_strdup(memctx, strres);
+    free(strres);
+
+    if (is_host) {
+        prigid = 515; /* Well known RID for domain computers group */
+    } else {
+        ret = ipadb_ldap_attr_to_int(lcontext, lentry, "gidNumber", &intres);
+        if (ret) {
+            /* gidNumber is mandatory */
+            return ret;
+        }
+        prigid = intres;
+    }
 
 
     info3->base.logon_time = 0; /* do not have this info yet */
@@ -418,15 +494,6 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     /* TODO: from pw policy (ied->pol) */
     info3->base.allow_password_change = 0;
     info3->base.force_password_change = -1;
-
-    /* FIXME: handle computer accounts they do not use 'uid' */
-    ret = ipadb_ldap_attr_to_str(lcontext, lentry, "uid", &strres);
-    if (ret) {
-        /* uid is mandatory */
-        return ret;
-    }
-    info3->base.account_name.string = talloc_strdup(memctx, strres);
-    free(strres);
 
     ret = ipadb_ldap_attr_to_str(lcontext, lentry, "cn", &strres);
     switch (ret) {
@@ -500,21 +567,25 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     info3->base.logon_count = 0; /* we do not have this info yet */
     info3->base.bad_password_count = 0; /* we do not have this info yet */
 
-    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
-                                 "ipaNTSecurityIdentifier", &strres);
-    if (ret) {
-        /* SID is mandatory */
-        return ret;
-    }
-    ret = string_to_sid(strres, &sid);
-    free(strres);
-    if (ret) {
-        return ret;
-    }
-
-    ret = sid_split_rid(&sid, &info3->base.rid);
-    if (ret) {
-        return ret;
+    if (is_host) {
+        /* Well know RID of domain controllers group */
+        info3->base.rid = 516;
+    } else {
+        ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+                                     "ipaNTSecurityIdentifier", &strres);
+        if (ret) {
+            /* SID is mandatory */
+            return ret;
+        }
+        ret = string_to_sid(strres, &sid);
+        free(strres);
+        if (ret) {
+            return ret;
+        }
+        ret = sid_split_rid(&sid, &info3->base.rid);
+        if (ret) {
+            return ret;
+        }
     }
 
     ret = ipadb_ldap_deref_results(lcontext, lentry, &deref_results);
@@ -587,11 +658,15 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     }
 
     if (info3->base.primary_gid == 0) {
-        if (ipactx->mspac->fallback_rid) {
-            info3->base.primary_gid = ipactx->mspac->fallback_rid;
+        if (is_host) {
+            info3->base.primary_gid = 515;  /* Well known RID for domain computers group */
         } else {
-            /* can't give a pack without a primary group rid */
-            return ENOENT;
+            if (ipactx->mspac->fallback_rid) {
+                info3->base.primary_gid = ipactx->mspac->fallback_rid;
+            } else {
+                /* can't give a pack without a primary group rid */
+                return ENOENT;
+            }
         }
     }
 
@@ -623,8 +698,13 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         return ENOENT;
     }
 
-    /* we got the domain SID for the user sid */
-    info3->base.domain_sid = talloc_memdup(memctx, &sid, sizeof(sid));
+    if (is_host) {
+        info3->base.domain_sid = talloc_memdup(memctx, &ipactx->mspac->domsid,
+                                               sizeof(ipactx->mspac->domsid));
+    } else {
+        /* we got the domain SID for the user sid */
+        info3->base.domain_sid = talloc_memdup(memctx, &sid, sizeof(sid));
+    }
 
     /* always zero out, not used for Krb, only NTLM */
     memset(&info3->base.LMSessKey, '\0', sizeof(info3->base.key));
@@ -664,10 +744,6 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     ied = (struct ipadb_e_data *)client->e_data;
     if (ied->magic != IPA_E_DATA_MAGIC) {
         return EINVAL;
-    }
-
-    if (!ied->ipa_user) {
-        return 0;
     }
 
     tmpctx = talloc_new(NULL);
