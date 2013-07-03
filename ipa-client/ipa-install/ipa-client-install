@@ -1411,6 +1411,9 @@ def client_dns(server, hostname, dns_updates=False):
         update_dns(server, hostname)
 
 def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
+    if not os.path.isdir(ssh_dir):
+        return
+
     pubkeys = []
     for basename in os.listdir(ssh_dir):
         if not basename.endswith('.pub'):
