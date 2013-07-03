@@ -61,9 +61,12 @@ def subject_base():
     return _subject_base
 
 def valid_issuer(issuer):
+    if not api.env.enable_ra:
+        return True
     # Handle all supported forms of issuer -- currently dogtag only.
     if api.env.ra_plugin == 'dogtag':
         return DN(issuer) == DN(('CN', 'Certificate Authority'), subject_base())
+    return True
 
 def strip_header(pem):
     """
