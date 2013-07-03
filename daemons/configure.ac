@@ -207,33 +207,20 @@ AM_CONDITIONAL([HAVE_CHECK], [test x$have_check != x])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for cmocka unit test framework http://cmocka.cryptomilk.org/
-dnl   This will be simplified when cmocka carries a .pc file.
 dnl ---------------------------------------------------------------------------
-AC_SUBST(CMOCKA_LIBS)
-AC_SUBST(CMOCKA_CFLAGS)
-
-AC_CHECK_HEADERS(
-    [setjmp.h cmocka.h],,,
-    [[ #include <stdarg.h>
-     # include <stddef.h>
-     #ifdef HAVE_SETJMP_H
-     # include <setjmp.h>
-     #endif
-    ]]
+PKG_CHECK_EXISTS(cmocka,
+    [AC_CHECK_HEADERS([stdarg.h stddef.h setjmp.h],
+        [], dnl We are only intrested in action-if-not-found
+        [AC_MSG_WARN([Header files stdarg.h stddef.h setjmp.h are required by cmocka])
+         cmocka_required_headers="no"
+        ]
+    )
+    AS_IF([test x"$cmocka_required_headers" != x"no"],
+          [PKG_CHECK_MODULES([CMOCKA], [cmocka], [have_cmocka="yes"])]
+    )],
+    dnl PKG_CHECK_EXISTS ACTION-IF-NOT-FOUND
+    [AC_MSG_WARN([No libcmocka library found, cmocka tests will not be built])]
 )
-
-if test "x$ac_cv_header_setjmp_h" = "xyes" && test "x$ac_cv_header_cmocka_h" = "xyes" ; then
-    AC_CHECK_LIB([cmocka], [_will_return],
-                 [ CMOCKA_LIBS="-lcmocka"
-                   AC_MSG_RESULT([libcmocka available, cmocka tests will be build])
-                   have_cmocka="yes" ],
-                 [AC_MSG_WARN([No libcmocka library found, cmocka tests will not be build])
-                   have_cmocka="no" ])
-else
-    AC_MSG_WARN([Required header files for libcmocka are missing, cmocka tests will not be build])
-    have_cmocka="no"
-fi
-
 AM_CONDITIONAL([HAVE_CMOCKA], [test x$have_cmocka = xyes])
 
 dnl -- dirsrv is needed for the extdom unit tests --
