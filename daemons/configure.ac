@@ -167,17 +167,6 @@ PKG_CHECK_MODULES([NDR], [ndr])
 PKG_CHECK_MODULES([SAMBAUTIL], [samba-util])
 SAMBA40EXTRA_LIBPATH="-L`$PKG_CONFIG --variable=libdir samba-util`/samba -Wl,-rpath=`$PKG_CONFIG --variable=libdir samba-util`/samba"
 AC_SUBST(SAMBA40EXTRA_LIBPATH)
-AC_CHECK_HEADERS([samba-4.0/wbclient.h],
-                 ,
-                 [AC_MSG_ERROR([samba-4.0/wbclient.h not found])],
-                 [#include <stdbool.h>
-                  #include <stdint.h>])
-AC_CHECK_LIB([wbclient],
-             [wbcLookupSid],
-             [WBCLIENT_LIBS="$SAMBA40EXTRA_LIBPATH -lwbclient"],
-             [AC_MSG_ERROR([libwbclient does not have wbcLookupSid])],
-             [$SAMBA40EXTRA_LIBPATH])
-AC_SUBST(WBCLIENT_LIBS)
 
 AC_CHECK_LIB([pdb],
              [make_pdb_method],
