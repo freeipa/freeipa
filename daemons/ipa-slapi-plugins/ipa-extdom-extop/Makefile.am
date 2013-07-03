@@ -15,9 +15,9 @@ AM_CPPFLAGS =							\
 	-DDATADIR=\""$(datadir)"\"				\
 	$(AM_CFLAGS)						\
 	$(LDAP_CFLAGS)						\
-	$(WBCLIENT_CFLAGS)					\
 	$(WARN_CFLAGS)						\
 	$(SSSIDMAP_CFLAGS)					\
+	$(SSSNSSIDMAP_CFLAGS)					\
 	$(NULL)
 
 plugindir = $(libdir)/dirsrv/plugins
@@ -34,8 +34,8 @@ libipa_extdom_extop_la_LDFLAGS = -avoid-version
 
 libipa_extdom_extop_la_LIBADD = 	\
 	$(LDAP_LIBS)			\
-	$(WBCLIENT_LIBS)		\
 	$(SSSIDMAP_LIBS)		\
+	$(SSSNSSIDMAP_LIBS)	\
 	$(NULL)
 
 if HAVE_CHECK
@@ -54,9 +54,9 @@ extdom_tests_LDFLAGS =	\
 extdom_tests_LDADD = 		\
 	$(CHECK_LIBS)		\
 	$(LDAP_LIBS)		\
-	$(WBCLIENT_LIBS)	\
 	$(DIRSRV_LIBS)		\
 	$(SSSIDMAP_LIBS)	\
+	$(SSSNSSIDMAP_LIBS)	\
 	$(NULL)
 
 appdir = $(IPA_DATA_DIR)

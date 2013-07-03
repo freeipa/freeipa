@@ -53,14 +53,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
-
-#include <samba-4.0/wbclient.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <dirsrv/slapi-plugin.h>
 #include <lber.h>
 #include <time.h>
 
 #include <sss_idmap.h>
+#include <sss_nss_idmap.h>
 
 #define EXOP_EXTDOM_OID "2.16.840.1.113730.3.8.10.4"
 
@@ -114,18 +115,18 @@ struct extdom_res {
     union {
         char *sid;
         struct {
-            const char *domain_name;
-            const char *object_name;
+            char *domain_name;
+            char *object_name;
         } name;
         struct {
-            const char *domain_name;
-            const char *user_name;
+            char *domain_name;
+            char *user_name;
             uid_t uid;
             gid_t gid;
         } user;
         struct {
-            const char *domain_name;
-            const char *group_name;
+            char *domain_name;
+            char *group_name;
             gid_t gid;
         } group;
     } data;
@@ -143,12 +144,21 @@ struct domain_info {
     struct sss_idmap_ctx *idmap_ctx;
 };
 
+struct pwd_grp {
+    enum sss_id_type id_type;
+    union {
+        struct passwd pwd;
+        struct group grp;
+    } data;
+};
+
 int parse_request_data(struct berval *req_val, struct extdom_req **_req);
+void free_req_data(struct extdom_req *req);
 int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
                    struct extdom_res **res);
-int create_response(struct extdom_req *req, struct domain_info *domain_info,
-                    const char *domain_name,
-                    const char *name, struct wbcDomainSid *sid,
-                    enum wbcSidType name_type, struct extdom_res **_res);
+int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
+                    const char *sid_str, enum sss_id_type id_type,
+                    const char *domain_name, struct extdom_res **_res);
+void free_resp_data(struct extdom_res *res);
 int pack_response(struct extdom_res *res, struct berval **ret_val);
 #endif /* _IPA_EXTDOM_H_ */

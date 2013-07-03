@@ -47,6 +47,8 @@
 #include "ipa_extdom.h"
 #include "util.h"
 
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
 int parse_request_data(struct berval *req_val, struct extdom_req **_req)
 {
     BerElement *ber = NULL;
@@ -151,291 +153,194 @@ int parse_request_data(struct berval *req_val, struct extdom_req **_req)
     return LDAP_SUCCESS;
 }
 
-static void free_domain_info(struct domain_info *domain_info)
+void free_req_data(struct extdom_req *req)
 {
-    if (domain_info == NULL) {
+    if (req == NULL) {
         return;
     }
 
-    sss_idmap_free(domain_info->idmap_ctx);
-    slapi_ch_free((void **) &domain_info->guid);
-    slapi_ch_free((void **) &domain_info->sid);
-    slapi_ch_free((void **) &domain_info->flat_name);
-    free(domain_info);
-}
-
-static int set_domain_range(struct ipa_extdom_ctx *ctx, const char *dom_sid_str,
-                            struct sss_idmap_range *range)
-{
-    Slapi_PBlock *pb = NULL;
-    Slapi_Entry **e = NULL;
-    char *filter = NULL;
-    int ret;
-    unsigned long ulong_val;
-
-    pb = slapi_pblock_new();
-    if (pb == NULL) {
-        return ENOMEM;
+    switch (req->input_type) {
+    case INP_NAME:
+        ber_memfree(req->data.name.domain_name);
+        ber_memfree(req->data.name.object_name);
+        break;
+    case INP_SID:
+        ber_memfree(req->data.sid);
+        break;
+    case INP_POSIX_UID:
+        ber_memfree(req->data.posix_uid.domain_name);
+        break;
+    case INP_POSIX_GID:
+        ber_memfree(req->data.posix_gid.domain_name);
+        break;
     }
 
-    ret = asprintf(&filter, "(&(ipaNTTrustedDomainSID=%s)" \
-                              "(objectclass=ipaTrustedADDomainRange))",
-                            dom_sid_str);
-    if (ret == -1) {
-        ret = ENOMEM;
-        goto done;
-    }
-
-    slapi_search_internal_set_pb(pb, ctx->base_dn,
-                                 LDAP_SCOPE_SUBTREE, filter,
-                                 NULL, 0, NULL, NULL, ctx->plugin_id, 0);
-
-    slapi_search_internal_pb(pb);
-    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
-
-    if (ret != EOK) {
-        ret = ENOENT;
-        goto done;
-    }
-
-    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &e);
-    if (!e || !e[0]) {
-        /* no matches */
-        ret = ENOENT;
-        goto done;
-    }
-
-    /* TODO: handle more than one range per domain */
-    ulong_val = slapi_entry_attr_get_ulong(e[0], "ipaBaseID");
-    if (ulong_val >= UINT32_MAX) {
-        ret = EINVAL;
-        goto done;
-    }
-    range->min = (uint32_t) ulong_val;
-
-    ulong_val = slapi_entry_attr_get_ulong(e[0], "ipaIDRangeSize");
-    if ((range->min + ulong_val -1) >= UINT32_MAX) {
-        ret = EINVAL;
-        goto done;
-    }
-    range->max = (range->min + ulong_val -1);
-
-    ret = 0;
-
-done:
-    slapi_free_search_results_internal(pb);
-    slapi_pblock_destroy(pb);
-    free(filter);
-
-    return ret;
-}
-
-/* TODO: A similar call is used in ipa_cldap_netlogon.c, maybe a candidate for
- * a common library */
-static int get_domain_info(struct ipa_extdom_ctx *ctx, const char *domain_name,
-                           struct domain_info **_domain_info)
-{
-    struct domain_info *domain_info = NULL;
-    Slapi_PBlock *pb = NULL;
-    Slapi_Entry **e = NULL;
-    char *filter = NULL;
-    int ret;
-    enum idmap_error_code err;
-    struct sss_idmap_range range;
-
-    pb = slapi_pblock_new();
-    if (pb == NULL) {
-        return ENOMEM;
-    }
-
-    ret = asprintf(&filter, "(&(|(cn=%s)(ipaNTTrustPartner=%s)(ipaNTFlatName=%s))(objectclass=ipaNTTrustedDomain))",
-                            domain_name, domain_name, domain_name);
-    if (ret == -1) {
-        ret = ENOMEM;
-        goto done;
-    }
-
-    slapi_search_internal_set_pb(pb, ctx->base_dn,
-                                 LDAP_SCOPE_SUBTREE, filter,
-                                 NULL, 0, NULL, NULL, ctx->plugin_id, 0);
-
-    slapi_search_internal_pb(pb);
-    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
-
-    if (ret != EOK) {
-        ret = ENOENT;
-        goto done;
-    }
-
-    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &e);
-    if (!e || !e[0] || e[1]) {
-        /* no matches or too many matches */
-        ret = ENOENT;
-        goto done;
-    }
-
-    domain_info = calloc(1, sizeof(struct domain_info));
-    if (domain_info == NULL) {
-        ret = ENOMEM;
-        goto done;
-    }
-
-    domain_info->guid = slapi_entry_attr_get_charptr(e[0], "ipaNTDomainGUID");
-    domain_info->sid = slapi_entry_attr_get_charptr(e[0],
-                                                    "ipaNTTrustedDomainSID");
-    domain_info->flat_name = slapi_entry_attr_get_charptr(e[0],
-                                                          "ipaNTFlatName");
-
-    ret = set_domain_range(ctx, domain_info->sid, &range);
-    if (ret != 0) {
-        goto done;
-    }
-
-    err = sss_idmap_init(NULL, NULL, NULL, &domain_info->idmap_ctx);
-    if (err == IDMAP_SUCCESS) {
-        err = sss_idmap_add_domain(domain_info->idmap_ctx, domain_name,
-                                   domain_info->sid, &range);
-    }
-    if (err != IDMAP_SUCCESS) {
-        ret = EFAULT;
-        goto done;
-    }
-
-    *_domain_info = domain_info;
-
-    ret = 0;
-
-done:
-    slapi_free_search_results_internal(pb);
-    slapi_pblock_destroy(pb);
-    free(filter);
-
-    if (ret != 0) {
-        free_domain_info(domain_info);
-    }
-
-    return ret;
-
+    free(req);
 }
 
 int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
                    struct extdom_res **res)
 {
-    wbcErr werr;
     int ret;
-    struct wbcDomainSid sid;
-    char *domain_name;
-    char *name;
-    enum wbcSidType name_type;
-    struct domain_info *domain_info = NULL;
-    uint32_t id;
-    enum idmap_error_code err;
-    char *sid_str;
+    char *domain_name = NULL;
+    char *sid_str = NULL;
+    size_t buf_len;
+    char *buf = NULL;
+    long pw_max;
+    long gr_max;
+    struct pwd_grp pg_data;
+    struct passwd *pwd_result = NULL;
+    struct group *grp_result = NULL;
+    enum sss_id_type id_type;
+    char *fq_name = NULL;
+    char *sep;
 
-    if (req->input_type != INP_SID) {
-        ret = get_domain_info(ctx, req->data.name.domain_name, &domain_info);
-        if (ret != 0) {
-            return LDAP_OPERATIONS_ERROR;
-        }
+
+    pw_max = sysconf(_SC_GETPW_R_SIZE_MAX);
+    gr_max = sysconf(_SC_GETGR_R_SIZE_MAX);
+
+    if (pw_max == -1 && gr_max == -1) {
+        buf_len = 16384;
+    } else {
+        buf_len = MAX(pw_max, gr_max);
     }
 
-    if (req->input_type == INP_POSIX_UID || req->input_type == INP_POSIX_GID) {
-        if (req->input_type == INP_POSIX_UID) {
-            id = req->data.posix_uid.uid;
-        } else {
-            id = req->data.posix_gid.gid;
-        }
-
-        err = sss_idmap_unix_to_sid(domain_info->idmap_ctx, id, &sid_str);
-        if (err != IDMAP_SUCCESS) {
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-
-        werr = wbcStringToSid(sid_str, &sid);
-        free(sid_str);
-        if (!WBC_ERROR_IS_OK(werr)) {
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-
-    } else if (req->input_type == INP_SID) {
-        werr = wbcStringToSid(req->data.sid, &sid);
-        if (!WBC_ERROR_IS_OK(werr)) {
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
+    buf = malloc(sizeof(char) * buf_len);
+    if (buf == NULL) {
+        return LDAP_OPERATIONS_ERROR;
     }
 
     switch (req->input_type) {
-        case INP_POSIX_UID:
-        case INP_POSIX_GID:
-        case INP_SID:
-            werr = wbcLookupSid(&sid, &domain_name, &name, &name_type);
-            if (!WBC_ERROR_IS_OK(werr)) {
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
+    case INP_POSIX_UID:
+        if (req->request_type == REQ_SIMPLE) {
+            ret = sss_nss_getsidbyid(req->data.posix_uid.uid, &sid_str,
+                                     &id_type);
+        } else {
+            id_type = SSS_ID_TYPE_UID;
+            ret = getpwuid_r(req->data.posix_uid.uid, &pg_data.data.pwd, buf,
+                             buf_len, &pwd_result);
+        }
 
-            if (req->input_type == INP_SID) {
-                ret = get_domain_info(ctx, domain_name, &domain_info);
-                if (ret != 0) {
-                    return LDAP_OPERATIONS_ERROR;
-                }
-            }
+        domain_name = strdup(req->data.posix_uid.domain_name);
+        break;
+    case INP_POSIX_GID:
+        if (req->request_type == REQ_SIMPLE) {
+            ret = sss_nss_getsidbyid(req->data.posix_uid.uid, &sid_str,
+                                     &id_type);
+        } else {
+            id_type = SSS_ID_TYPE_GID;
+            ret = getgrgid_r(req->data.posix_gid.gid, &pg_data.data.grp, buf,
+                             buf_len, &grp_result);
+        }
 
-            ret = create_response(req, domain_info, domain_name, name, &sid,
-                                  name_type, res);
-            if (ret != 0) {
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
+        domain_name = strdup(req->data.posix_gid.domain_name);
+        break;
+    case INP_SID:
+        ret = sss_nss_getnamebysid(req->data.sid, &fq_name, &id_type);
+        if (ret != 0) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
 
+        sep = strrchr(fq_name, '@');
+        if (sep == NULL) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        ret = asprintf(&domain_name, "%s", sep+1);
+        if (ret == -1) {
+            ret = LDAP_OPERATIONS_ERROR;
+            domain_name = NULL; /* content is undefined according to
+                                   asprintf(3) */
+            goto done;
+        }
+
+        switch(id_type) {
+        case SSS_ID_TYPE_UID:
+        case SSS_ID_TYPE_BOTH:
+            ret = getpwnam_r(fq_name, &pg_data.data.pwd, buf, buf_len,
+                             &pwd_result);
             break;
-        case INP_NAME:
-            werr = wbcLookupName(domain_info->flat_name,
-                                 req->data.name.object_name, &sid, &name_type);
-            if (!WBC_ERROR_IS_OK(werr)) {
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
-
-            ret = create_response(req, domain_info, req->data.name.domain_name,
-                                  req->data.name.object_name, &sid, name_type,
-                                  res);
-            if (ret != 0) {
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
-
+        case SSS_ID_TYPE_GID:
+            ret = getgrnam_r(fq_name, &pg_data.data.grp, buf, buf_len,
+                             &grp_result);
             break;
         default:
-            ret = LDAP_PROTOCOL_ERROR;
+            ret = LDAP_OPERATIONS_ERROR;
             goto done;
+        }
+
+        domain_name = strdup(req->data.name.domain_name);
+        break;
+    case INP_NAME:
+        ret = asprintf(&fq_name, "%s@%s", req->data.name.object_name,
+                                          req->data.name.domain_name);
+        if (ret == -1) {
+            ret = LDAP_OPERATIONS_ERROR;
+            fq_name = NULL; /* content is undefined according to
+                               asprintf(3) */
+            goto done;
+        }
+
+        if (req->request_type == REQ_SIMPLE) {
+            ret = sss_nss_getsidbyname(fq_name, &sid_str, &id_type);
+        } else {
+            id_type = SSS_ID_TYPE_UID;
+            ret = getpwnam_r(fq_name, &pg_data.data.pwd, buf, buf_len,
+                             &pwd_result);
+            if (ret == 0 && pwd_result == NULL) { /* no user entry found */
+                id_type = SSS_ID_TYPE_GID;
+                ret = getgrnam_r(fq_name, &pg_data.data.grp, buf, buf_len,
+                                 &grp_result);
+            }
+        }
+        break;
+    default:
+        ret = LDAP_PROTOCOL_ERROR;
+        goto done;
     }
+
+    if (ret != 0) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    } else if (ret == 0 && pwd_result == NULL && grp_result == NULL &&
+               sid_str == NULL) {
+        ret = LDAP_NO_SUCH_OBJECT;
+        goto done;
+    }
+
+    if (domain_name == NULL) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = create_response(req, &pg_data, sid_str, id_type, domain_name, res);
+    if (ret != 0) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
 
     ret = LDAP_SUCCESS;
 
 done:
-    free_domain_info(domain_info);
+    free(buf);
+    free(fq_name);
+    free(domain_name);
+    free(sid_str);
 
     return ret;
 }
 
-int create_response(struct extdom_req *req, struct domain_info *domain_info,
-                    const char *domain_name,
-                    const char *name, struct wbcDomainSid *sid,
-                    enum wbcSidType name_type, struct extdom_res **_res)
+int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
+                    const char *sid_str, enum sss_id_type id_type,
+                    const char *domain_name, struct extdom_res **_res)
 {
     int ret = EFAULT;
-    int len;
     struct extdom_res *res;
-    uint32_t id;
-    enum idmap_error_code err;
-    char *sid_str;
-    wbcErr werr;
 
-    res = malloc(sizeof(struct extdom_res));
+    res = calloc(1, sizeof(struct extdom_res));
     if (res == NULL) {
         return ENOMEM;
     }
@@ -445,21 +350,37 @@ int create_response(struct extdom_req *req, struct domain_info *domain_info,
             switch (req->input_type) {
                 case INP_SID:
                     res->response_type = RESP_NAME;
-                    res->data.name.domain_name = domain_name;
-                    res->data.name.object_name = name;
+                    res->data.name.domain_name = strdup(domain_name);
+                    switch(id_type) {
+                    case SSS_ID_TYPE_UID:
+                    case SSS_ID_TYPE_BOTH:
+                        res->data.name.object_name =
+                                              strdup(pg_data->data.pwd.pw_name);
+                        break;
+                    case SSS_ID_TYPE_GID:
+                        res->data.name.object_name =
+                                              strdup(pg_data->data.grp.gr_name);
+                        break;
+                    default:
+                        ret = EINVAL;
+                        goto done;
+                    }
+
+                    if (res->data.name.domain_name == NULL
+                            || res->data.name.object_name == NULL) {
+                        ret = ENOMEM;
+                        goto done;
+                    }
                     break;
                 case INP_NAME:
                 case INP_POSIX_UID:
                 case INP_POSIX_GID:
                     res->response_type = RESP_SID;
-
-                    werr = wbcSidToString(sid, &sid_str);
-                    if (!WBC_ERROR_IS_OK(werr)) {
-                        ret = EINVAL;
+                    res->data.sid = strdup(sid_str);
+                    if (res->data.sid == NULL) {
+                        ret = ENOMEM;
                         goto done;
                     }
-
-                    res->data.sid = sid_str;
                     break;
                 default:
                     ret = EINVAL;
@@ -467,35 +388,36 @@ int create_response(struct extdom_req *req, struct domain_info *domain_info,
             }
             break;
         case REQ_FULL:
-            len = wbcSidToString(sid, &sid_str);
-            if (!WBC_ERROR_IS_OK(werr)) {
-                ret = EINVAL;
-                goto done;
-            }
-
-            err = sss_idmap_sid_to_unix(domain_info->idmap_ctx, sid_str, &id);
-            wbcFreeMemory(sid_str);
-            if (err != IDMAP_SUCCESS) {
-                ret = EINVAL;
-                goto done;
-            }
-            switch (name_type) {
-                case WBC_SID_NAME_USER:
+            switch (id_type) {
+                case SSS_ID_TYPE_UID:
+                case SSS_ID_TYPE_BOTH:
                     res->response_type = RESP_USER;
-                    res->data.user.domain_name = domain_name;
-                    res->data.user.user_name = name;
+                    res->data.user.domain_name = strdup(domain_name);
+                    res->data.user.user_name =
+                                              strdup(pg_data->data.pwd.pw_name);
 
-                    res->data.user.uid = (uid_t) id;
+                    if (res->data.user.domain_name == NULL
+                            || res->data.user.user_name == NULL) {
+                        ret = ENOMEM;
+                        goto done;
+                    }
 
-                    /* We use MPGs for external users */
-                    res->data.user.gid = (gid_t) id;
+                    res->data.user.uid = pg_data->data.pwd.pw_uid;
+                    res->data.user.gid = pg_data->data.pwd.pw_gid;
                     break;
-                case WBC_SID_NAME_DOM_GRP:
+                case SSS_ID_TYPE_GID:
                     res->response_type = RESP_GROUP;
-                    res->data.group.domain_name = domain_name;
-                    res->data.group.group_name = name;
+                    res->data.group.domain_name = strdup(domain_name);
+                    res->data.group.group_name =
+                                              strdup(pg_data->data.grp.gr_name);
 
-                    res->data.group.gid = (gid_t) id;
+                    if (res->data.group.domain_name == NULL
+                            || res->data.group.group_name == NULL) {
+                        ret = ENOMEM;
+                        goto done;
+                    }
+
+                    res->data.group.gid = pg_data->data.grp.gr_gid;
                     break;
                 default:
                     ret = EINVAL;
@@ -513,11 +435,39 @@ done:
     if (ret == 0) {
         *_res = res;
     } else {
-        free(res);
+        free_resp_data(res);
     }
 
     return ret;
 }
+
+void free_resp_data(struct extdom_res *res)
+{
+    if (res == NULL) {
+        return;
+    }
+
+    switch (res->response_type) {
+    case RESP_SID:
+        free(res->data.sid);
+        break;
+    case RESP_NAME:
+        free(res->data.name.domain_name);
+        free(res->data.name.object_name);
+        break;
+    case RESP_USER:
+        free(res->data.user.domain_name);
+        free(res->data.user.user_name);
+        break;
+    case RESP_GROUP:
+        free(res->data.group.domain_name);
+        free(res->data.group.group_name);
+        break;
+    }
+
+    free(res);
+}
+
 
 int pack_response(struct extdom_res *res, struct berval **ret_val)
 {
@@ -569,7 +519,6 @@ int pack_response(struct extdom_res *res, struct berval **ret_val)
     switch (res->response_type) {
         case RESP_SID:
             ret = ber_printf(ber,"{es}", res->response_type, res->data.sid);
-            wbcFreeMemory(res->data.sid);
             break;
         case RESP_NAME:
             ret = ber_printf(ber,"{e{ss}}", res->response_type,

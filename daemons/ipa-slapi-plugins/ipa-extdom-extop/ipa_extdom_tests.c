@@ -85,7 +85,7 @@ START_TEST(test_encode)
     fail_unless(sizeof(res_sid) == resp_val->bv_len &&
                 memcmp(res_sid, resp_val->bv_val, resp_val->bv_len) == 0,
                 "Unexpected BER blob.");
-    ber_memfree(resp_val);
+    ber_bvfree(resp_val);
 
     res.response_type = RESP_NAME;
     res.data.name.domain_name = TEST_DOMAIN_NAME;
@@ -97,7 +97,7 @@ START_TEST(test_encode)
     fail_unless(sizeof(res_nam) == resp_val->bv_len &&
                 memcmp(res_nam, resp_val->bv_val, resp_val->bv_len) == 0,
                 "Unexpected BER blob.");
-    ber_memfree(resp_val);
+    ber_bvfree(resp_val);
 }
 END_TEST
 
@@ -119,7 +119,7 @@ START_TEST(test_decode)
                 "parse_request_data() returned unexpected request type");
     fail_unless(strcmp(req->data.sid, "S-1-2-3-4") == 0,
                 "parse_request_data() returned unexpected sid");
-    free(req);
+    free_req_data(req);
 
     req_val.bv_val = req_nam;
     req_val.bv_len = sizeof(req_nam);
@@ -136,7 +136,7 @@ START_TEST(test_decode)
                 "parse_request_data() returned unexpected domain name");
     fail_unless(strcmp(req->data.name.object_name, "test") == 0,
                 "parse_request_data() returned unexpected object name");
-    free(req);
+    free_req_data(req);
 
     req_val.bv_val = req_uid;
     req_val.bv_len = sizeof(req_uid);
@@ -154,7 +154,7 @@ START_TEST(test_decode)
     fail_unless(req->data.posix_uid.uid == 12345,
                 "parse_request_data() returned unexpected uid [%d]",
                 req->data.posix_uid.uid);
-    free(req);
+    free_req_data(req);
 
     req_val.bv_val = req_gid;
     req_val.bv_len = sizeof(req_gid);
@@ -172,7 +172,7 @@ START_TEST(test_decode)
     fail_unless(req->data.posix_gid.gid == 54321,
                 "parse_request_data() returned unexpected gid [%d]",
                 req->data.posix_gid.gid);
-    free(req);
+    free_req_data(req);
 }
 END_TEST
 
