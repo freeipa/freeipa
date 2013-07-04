@@ -31,9 +31,12 @@ from ipapython.ipautil import user_input
 
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
 from ipalib import api
+from ipapython import admintool
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
+
+CACERT = "/etc/ipa/ca.crt"
 
 def get_realm_name():
     c = krbV.default_context()
@@ -72,52 +75,33 @@ def set_ds_cert_name(cert_name, dm_password):
     conn.update_entry(DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')), mod)
     conn.disconnect()
 
-def choose_server_cert(server_certs):
-    print "Please select the certificate to use:"
-    num = 1
-    for cert in server_certs:
-        print "%d. %s" % (num, cert[0])
-        num += 1
-
-    while 1:
-        num = user_input("Certificate number", 1)
-        print ""
-        if num < 1 or num > len(server_certs):
-            print "number out of range"
-        else:
-            break
-
-    return server_certs[num - 1]
-
 def import_cert(dirname, pkcs12_fname, pkcs12_passwd, db_password):
-    cdb = certs.CertDB(api.env.realm, nssdir=dirname)
-    cdb.create_passwd_file(db_password)
-    cdb.create_certdbs()
     [pw_fd, pw_name] = tempfile.mkstemp()
     os.write(pw_fd, pkcs12_passwd)
     os.close(pw_fd)
 
     try:
+        server_cert = installutils.check_pkcs12(
+            pkcs12_info=(pkcs12_fname, pw_name),
+            ca_file=CACERT,
+            hostname=api.env.host)
+    except admintool.ScriptError, e:
+        print str(e)
+        sys.exit(1)
+
+    cdb = certs.CertDB(api.env.realm, nssdir=dirname)
+    cdb.create_passwd_file(db_password)
+    cdb.create_certdbs()
+
+    try:
         try:
+            cdb.nssdb.import_pem_cert('CA', 'CT,CT,', CACERT)
             cdb.import_pkcs12(pkcs12_fname, pw_name)
-            ca_names = cdb.find_root_cert_from_pkcs12(pkcs12_fname, pw_name)
         except RuntimeError, e:
             print str(e)
             sys.exit(1)
     finally:
         os.remove(pw_name)
-
-    server_certs = cdb.find_server_certs()
-    if len(server_certs) == 0:
-        print "could not find a suitable server cert in import"
-        sys.exit(1)
-    elif len(server_certs) == 1:
-        server_cert = server_certs[0]
-    else:
-        server_cert = choose_server_cert(server_certs)
-
-    for ca in ca_names:
-        cdb.trust_root_cert(ca)
 
     return server_cert
 
@@ -149,12 +133,12 @@ def main():
             fd.close()
 
             server_cert = import_cert(dirname, pkcs12_fname, options.dirsrv_pin, passwd)
-            set_ds_cert_name(server_cert[0], dm_password)
+            set_ds_cert_name(server_cert, dm_password)
 
         if options.http:
             dirname = certs.NSS_DIR
             server_cert = import_cert(dirname, pkcs12_fname, options.http_pin, "")
-            installutils.set_directive(httpinstance.NSS_CONF, 'NSSNickname', server_cert[0])
+            installutils.set_directive(httpinstance.NSS_CONF, 'NSSNickname', server_cert)
 
             # Fix the database permissions
             os.chmod(dirname + "/cert8.db", 0640)
