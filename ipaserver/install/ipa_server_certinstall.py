@@ -27,7 +27,7 @@ import pwd
 from ipapython import admintool
 from ipapython.dn import DN
 from ipapython.ipautil import user_input, write_tmp_file
-from ipalib import api
+from ipalib import api, errors
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
 
@@ -115,7 +115,10 @@ class ServerCertInstall(admintool.AdminTool):
         entry = conn.make_entry(DN(('cn', 'RSA'), ('cn', 'encryption'),
                                    ('cn', 'config')),
                                 nssslpersonalityssl=[server_cert])
-        conn.update_entry(entry)
+        try:
+            conn.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
 
         conn.disconnect()
 
