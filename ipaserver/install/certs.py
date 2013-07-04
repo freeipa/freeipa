@@ -194,46 +194,6 @@ class NSSDatabase(object):
                 raise RuntimeError("unknown error import pkcs#12 file %s" %
                     pkcs12_filename)
 
-    def find_root_cert_from_pkcs12(self, pkcs12_fname, passwd_fname=None):
-        """Given a PKCS#12 file, try to find any certificates that do
-           not have a key. The assumption is that these are the root CAs.
-        """
-        args = ["/usr/bin/pk12util", "-d", self.secdir,
-                "-l", pkcs12_fname,
-                "-k", passwd_fname]
-        if passwd_fname:
-            args = args + ["-w", passwd_fname]
-        try:
-            (stdout, stderr, returncode) = ipautil.run(args)
-        except ipautil.CalledProcessError, e:
-            if e.returncode == 17:
-                raise RuntimeError("incorrect password for pkcs#12 file")
-            elif e.returncode == 10:
-                raise RuntimeError("Failed to open %s" % pkcs12_fname)
-            else:
-                raise RuntimeError("unknown error using pkcs#12 file")
-
-        lines = stdout.split('\n')
-
-        # A simple state machine.
-        # 1 = looking for a line starting with 'Certificate'
-        # 2 = looking for the Friendly name (nickname)
-        nicknames = []
-        state = 1
-        for line in lines:
-            if state == 2:
-                m = re.match("\W+Friendly Name: (.*)", line)
-                if m:
-                    nicknames.append( m.groups(0)[0])
-                    state = 1
-            if line == "Certificate:":
-                state = 2
-            elif line and not line.startswith(' '):
-                # Top-level item that is not a certificate
-                state = 1
-
-        return nicknames
-
     def trust_root_cert(self, root_nickname):
         if root_nickname[:7] == "Builtin":
             root_logger.debug(
@@ -790,10 +750,6 @@ class CertDB(object):
         root_nicknames = self.nssdb.get_trust_chain(nickname)
 
         return root_nicknames
-
-    def find_root_cert_from_pkcs12(self, pkcs12_fname, passwd_fname=None):
-        return self.nssdb.find_root_cert_from_pkcs12(pkcs12_fname,
-                                                     passwd_fname=passwd_fname)
 
     def trust_root_cert(self, root_nickname):
         if root_nickname is None:
