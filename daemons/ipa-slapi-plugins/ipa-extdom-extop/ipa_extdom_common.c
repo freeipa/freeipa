@@ -295,6 +295,7 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
                                  &grp_result);
             }
         }
+        domain_name = strdup(req->data.name.domain_name);
         break;
     default:
         ret = LDAP_PROTOCOL_ERROR;
