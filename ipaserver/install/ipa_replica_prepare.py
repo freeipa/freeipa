@@ -103,17 +103,12 @@ class ReplicaPrepare(admintool.AdminTool):
         options.setup_pkinit = False
 
         # If any of the PKCS#12 options are selected, all are required.
-        pkcs12_opts = [options.dirsrv_pkcs12, options.dirsrv_pin,
-                    options.http_pkcs12, options.http_pin]
-        if options.setup_pkinit:
-            pkcs12_opts.extend([options.pkinit_pkcs12, options.pkinit_pin])
-        if pkcs12_opts[0]:
-            pkcs12_okay = all(opt for opt in pkcs12_opts)
-        else:
-            pkcs12_okay = all(opt is None for opt in pkcs12_opts)
-        if not pkcs12_okay:
+        pkcs12_req = (options.dirsrv_pkcs12, options.http_pkcs12)
+        pkcs12_opt = (options.pkinit_pkcs12,)
+        if any(pkcs12_req + pkcs12_opt) and not all(pkcs12_req):
             self.option_parser.error(
-                "All PKCS#12 options are required if any are used.")
+                "--dirsrv_pkcs12 and --http_pkcs12 are required if any "
+                "PKCS#12 options are used.")
 
         if len(self.args) < 1:
             self.option_parser.error(
@@ -135,11 +130,6 @@ class ReplicaPrepare(admintool.AdminTool):
                 "Cannot issue certificates: a CA is not installed. Use the "
                 "--http_pkcs12, --dirsrv_pkcs12 options to provide custom "
                 "certificates.")
-
-        if options.http_pkcs12:
-            # Check the given PKCS#12 files
-            self.check_pkcs12(options.http_pkcs12, options.http_pin)
-            self.check_pkcs12(options.dirsrv_pkcs12, options.dirsrv_pin)
 
         config_dir = dsinstance.config_dirname(
             dsinstance.realm_to_serverid(api.env.realm))
@@ -219,6 +209,35 @@ class ReplicaPrepare(admintool.AdminTool):
             if options.reverse_zone and not bindinstance.verify_reverse_zone(
                     options.reverse_zone, options.ip_address):
                 raise admintool.ScriptError("Invalid reverse zone")
+
+        if options.http_pkcs12:
+            if not options.http_pin:
+                options.http_pin = installutils.read_password(
+                    "Enter %s unlock" % options.http_pkcs12,
+                    confirm=False, validate=False)
+                if options.http_pin is None:
+                    raise admintool.ScriptError(
+                        "%s unlock password required" % options.http_pkcs12)
+            self.check_pkcs12(options.http_pkcs12, options.http_pin)
+
+        if options.dirsrv_pkcs12:
+            if not options.dirsrv_pin:
+                options.dirsrv_pin = installutils.read_password(
+                    "Enter %s unlock" % options.dirsrv_pkcs12,
+                    confirm=False, validate=False)
+                if options.dirsrv_pin is None:
+                    raise admintool.ScriptError(
+                        "%s unlock password required" % options.dirsrv_pkcs12)
+            self.check_pkcs12(options.dirsrv_pkcs12, options.dirsrv_pin)
+
+        if options.pkinit_pkcs12:
+            if not options.pkinit_pin:
+                options.pkinit_pin = installutils.read_password(
+                    "Enter %s unlock" % options.pkinit_pkcs12,
+                    confirm=False, validate=False)
+                if options.pkinit_pin is None:
+                    raise admintool.ScriptError(
+                        "%s unlock password required" % options.pkinit_pkcs12)
 
         if (not ipautil.file_exists(
                     dogtag.configured_constants().CS_CFG_PATH) and
