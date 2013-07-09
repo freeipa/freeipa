@@ -276,13 +276,20 @@ def parse_options():
             if not options.forwarders and not options.no_forwarders:
                 parser.error("You must specify at least one --forwarder option or --no-forwarders option")
 
-    # If any of the PKCS#12 options are selected, all are required. Create a
-    # list of the options and count it to enforce that all are required without
-    # having a huge set of it blocks.
-    pkcs12 = [options.dirsrv_pkcs12, options.http_pkcs12, options.dirsrv_pin, options.http_pin]
-    cnt = pkcs12.count(None)
-    if cnt > 0 and cnt < 4:
-        parser.error("All PKCS#12 options are required if any are used.")
+    # If any of the PKCS#12 options are selected, all are required.
+    pkcs12_req = (options.dirsrv_pkcs12, options.http_pkcs12)
+    pkcs12_opt = (options.pkinit_pkcs12,)
+    if any(pkcs12_req + pkcs12_opt) and not all(pkcs12_req):
+        parser.error("--dirsrv_pkcs12 and --http_pkcs12 are required if any "
+                     "PKCS#12 options are used.")
+
+    if options.unattended:
+        if options.dirsrv_pkcs12 and not options.dirsrv_pin:
+            parser.error("You must specify --dirsrv_pin with --dirsrv_pkcs12")
+        if options.http_pkcs12 and not options.http_pin:
+            parser.error("You must specify --http_pin with --http_pkcs12")
+        if options.pkinit_pkcs12 and not options.pkinit_pin:
+            parser.error("You must specify --pkinit_pin with --pkinit_pkcs12")
 
     if options.dirsrv_pkcs12 and not options.root_ca_file:
         parser.error(
@@ -704,18 +711,6 @@ def main():
                 sys.exit(1)
             cert = certdict[certissuer]
 
-    if options.http_pkcs12:
-        http_pin_file = ipautil.write_tmp_file(options.http_pin)
-        http_pkcs12_info = (options.http_pkcs12, http_pin_file.name)
-
-    if options.dirsrv_pkcs12:
-        dirsrv_pin_file = ipautil.write_tmp_file(options.dirsrv_pin)
-        dirsrv_pkcs12_info = (options.dirsrv_pkcs12, dirsrv_pin_file.name)
-
-    if options.pkinit_pkcs12:
-        pkinit_pin_file = ipautil.write_tmp_file(options.pkinit_pin)
-        pkinit_pkcs12_info = (options.pkinit_pkcs12, pkinit_pin_file.name)
-
     # We only set up the CA if the PKCS#12 options are not given.
     if options.dirsrv_pkcs12:
         setup_ca = False
@@ -834,13 +829,6 @@ def main():
     else:
         domain_name = options.domain_name
 
-    if options.http_pkcs12:
-        # Check the given PKCS#12 files
-        ca_file = options.root_ca_file
-        check_pkcs12 = installutils.check_pkcs12
-        http_cert_name = check_pkcs12(http_pkcs12_info, ca_file, host_name)
-        dirsrv_cert_name = check_pkcs12(dirsrv_pkcs12_info, ca_file, host_name)
-
     domain_name = domain_name.lower()
 
     ip = get_server_ip_address(host_name, fstore, options.unattended, options)
@@ -857,6 +845,42 @@ def main():
 
     if not options.subject:
         options.subject = DN(('O', realm_name))
+
+    ca_file = options.root_ca_file
+
+    if options.http_pkcs12:
+        if not options.http_pin:
+            options.http_pin = installutils.read_password(
+                "Enter %s unlock" % options.http_pkcs12,
+                confirm=False, validate=False)
+            if options.http_pin is None:
+                sys.exit("%s unlock password required" % options.http_pkcs12)
+        http_pin_file = ipautil.write_tmp_file(options.http_pin)
+        http_pkcs12_info = (options.http_pkcs12, http_pin_file.name)
+        http_cert_name = installutils.check_pkcs12(
+            http_pkcs12_info, ca_file, host_name)
+
+    if options.dirsrv_pkcs12:
+        if not options.dirsrv_pin:
+            options.dirsrv_pin = installutils.read_password(
+                "Enter %s unlock" % options.dirsrv_pkcs12,
+                confirm=False, validate=False)
+            if options.dirsrv_pin is None:
+                sys.exit("%s unlock password required" % options.dirsrv_pkcs12)
+        dirsrv_pin_file = ipautil.write_tmp_file(options.dirsrv_pin)
+        dirsrv_pkcs12_info = (options.dirsrv_pkcs12, dirsrv_pin_file.name)
+        dirsrv_cert_name = installutils.check_pkcs12(
+            dirsrv_pkcs12_info, ca_file, host_name)
+
+    if options.pkinit_pkcs12:
+        if not options.pkinit_pin:
+            options.pkinit_pin = installutils.read_password(
+                "Enter %s unlock" % options.pkinit_pkcs12,
+                confirm=False, validate=False)
+            if options.pkinit_pin is None:
+                sys.exit("%s unlock password required" % options.pkinit_pkcs12)
+        pkinit_pin_file = ipautil.write_tmp_file(options.pkinit_pin)
+        pkinit_pkcs12_info = (options.pkinit_pkcs12, pkinit_pin_file.name)
 
     if not options.dm_password:
         dm_password = read_dm_password()
