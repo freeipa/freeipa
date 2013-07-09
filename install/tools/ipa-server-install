@@ -666,7 +666,7 @@ def main():
         else:
             dm_password = read_password("Directory Manager", confirm=False)
         if dm_password is None:
-            sys.exit("\nDirectory Manager password required")
+            sys.exit("Directory Manager password required")
         try:
             options._update_loose(read_cache(dm_password))
         except Exception, e:
@@ -886,7 +886,7 @@ def main():
         dm_password = read_dm_password()
 
         if dm_password is None:
-            sys.exit("\nDirectory Manager password required")
+            sys.exit("Directory Manager password required")
     else:
         dm_password = options.dm_password
 
@@ -898,7 +898,7 @@ def main():
     if not options.admin_password:
         admin_password = read_admin_password()
         if admin_password is None:
-            sys.exit("\nIPA admin password required")
+            sys.exit("IPA admin password required")
     else:
         admin_password = options.admin_password
 

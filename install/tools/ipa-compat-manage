@@ -98,7 +98,7 @@ def main():
     else:
         dirman_password = get_dirman_password()
         if dirman_password is None:
-            sys.exit("\nDirectory Manager password required")
+            sys.exit("Directory Manager password required")
 
     api.bootstrap(context='cli', debug=options.debug)
     api.finalize()

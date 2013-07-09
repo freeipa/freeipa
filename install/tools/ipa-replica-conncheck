@@ -340,7 +340,7 @@ def main():
                 password = installutils.read_password(principal, confirm=False,
                            validate=False, retry=False)
                 if password is None:
-                    sys.exit("\nPrincipal password required")
+                    sys.exit("Principal password required")
 
 
             stderr=''
