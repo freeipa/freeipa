@@ -232,7 +232,6 @@ int ipalockout_getpolicy(Slapi_Entry *target_entry, Slapi_Entry **policy_entry,
                          char **errstr)
 {
     int ldrc = 0;
-    int flags = 0;
     int type_name_disposition = 0;
     Slapi_DN *pdn = NULL;
 
@@ -415,7 +414,6 @@ static int ipalockout_postop(Slapi_PBlock *pb)
     char *lastfail = NULL;
     int tries = 0;
     int failure = 1;
-    int type_name_disposition = 0;
     char *actual_type_name = NULL;
     int attr_free_flags = 0;
     Slapi_ValueSet *values = NULL;
@@ -665,7 +663,6 @@ static int ipalockout_preop(Slapi_PBlock *pb)
     Slapi_Entry *target_entry = NULL;
     Slapi_Entry *policy_entry = NULL;
     Slapi_DN *sdn = NULL;
-    Slapi_DN *pdn = NULL;
     Slapi_Value *objectclass = NULL;
     char *errstr = NULL;
     int ldrc = 0;
@@ -678,7 +675,6 @@ static int ipalockout_preop(Slapi_PBlock *pb)
     time_t last_failed = 0;
     char *lastfail = NULL;
     char *unlock_time = NULL;
-    int type_name_disposition = 0;
     char *actual_type_name = NULL;
     int attr_free_flags = 0;
     Slapi_ValueSet *values = NULL;

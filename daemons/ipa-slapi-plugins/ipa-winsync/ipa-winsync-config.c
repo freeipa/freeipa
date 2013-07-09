@@ -853,7 +853,6 @@ ipa_winsync_config_refresh_domain(
     int loopdone = 0;
     int search_scope = LDAP_SCOPE_SUBTREE;
     int ret = LDAP_SUCCESS;
-    Slapi_Value *sv = NULL;
     int acct_disable;
     char *inactivated_filter = NULL;
     char *activated_filter = NULL;
