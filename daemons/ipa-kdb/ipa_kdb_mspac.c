@@ -93,9 +93,21 @@ static char *memberof_pac_attrs[] = {
     NULL
 };
 
+
+static struct {
+    char *service;
+    int length;
+} supported_services[] = {
+    {"cifs", sizeof("cifs")},
+    {"HTTP", sizeof("HTTP")},
+    {NULL, 0}
+};
+
+
 #define SID_ID_AUTHS 6
 #define SID_SUB_AUTHS 15
 #define MAX(a,b) (((a)>(b))?(a):(b))
+#define MIN(a,b) (((a)<(b))?(a):(b))
 
 #define AUTHZ_DATA_TYPE_PAC "MS-PAC"
 #define AUTHZ_DATA_TYPE_PAD "PAD"
@@ -395,10 +407,14 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     char *strres;
     int intres;
     int ret;
+    int i;
     char **objectclasses = NULL;
     size_t c;
     bool is_host = false;
     bool is_user = false;
+    bool is_service = false;
+    krb5_principal princ;
+    krb5_data *data;
 
     ret = ipadb_ldap_attr_to_strlist(lcontext, lentry, "objectClass",
                                      &objectclasses);
@@ -406,6 +422,9 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         for (c = 0; objectclasses[c] != NULL; c++) {
             if (strcasecmp(objectclasses[c], "ipaHost") == 0) {
                 is_host = true;
+            }
+            if (strcasecmp(objectclasses[c], "ipaService") == 0) {
+                is_service = true;
             }
             if (strcasecmp(objectclasses[c], "ipaNTUserAttrs") == 0) {
                 is_user = true;
@@ -415,8 +434,8 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     }
     free(objectclasses);
 
-    if (!is_host && !is_user) {
-        /* We only handle users and hosts */
+    if (!is_host && !is_user && !is_service) {
+        /* We only handle users and hosts, and services */
         return ENOENT;
     }
 
@@ -433,6 +452,54 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
             free(strres);
             return ENOENT;
         }
+    } else if (is_service) {
+        ret = ipadb_ldap_attr_to_str(lcontext, lentry, "krbPrincipalName", &strres);
+        if (ret) {
+            /* krbPrincipalName is mandatory for services */
+            return ret;
+        }
+
+        ret = krb5_parse_name(ipactx->kcontext, strres, &princ);
+
+        free(strres);
+        if (ret) {
+            return ENOENT;
+        }
+
+        if (krb5_princ_size(ipactx->kcontext, princ) != 2) {
+            krb5_free_principal(ipactx->kcontext, princ);
+            return ENOENT;
+        }
+
+        data = krb5_princ_component(ipactx->context, princ, 0);
+        for (i = 0; supported_services[i].service; i++) {
+            if (0 == memcmp(data->data, supported_services[i].service,
+                            MIN(supported_services[i].length, data->length))) {
+                break;
+            }
+        }
+
+        if (supported_services[i].service == NULL) {
+            krb5_free_principal(ipactx->kcontext, princ);
+            return ENOENT;
+        }
+
+        data = krb5_princ_component(ipactx->context, princ, 1);
+        strres = malloc(data->length);
+        if (strres == NULL) {
+            krb5_free_principal(ipactx->kcontext, princ);
+            return ENOENT;
+        }
+
+        memcpy(strres, data->data, data->length);
+        krb5_free_principal(ipactx->kcontext, princ);
+
+        /* Only add PAC to TGT to services on IPA masters to allow querying
+         * AD LDAP server */
+        if (!is_master_host(ipactx, strres)) {
+            free(strres);
+            return ENOENT;
+        }
     } else {
         ret = ipadb_ldap_attr_to_str(lcontext, lentry, "uid", &strres);
         if (ret) {
@@ -444,7 +511,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     info3->base.account_name.string = talloc_strdup(memctx, strres);
     free(strres);
 
-    if (is_host) {
+    if (is_host || is_service) {
         prigid = 515; /* Well known RID for domain computers group */
     } else {
         ret = ipadb_ldap_attr_to_int(lcontext, lentry, "gidNumber", &intres);
@@ -567,7 +634,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     info3->base.logon_count = 0; /* we do not have this info yet */
     info3->base.bad_password_count = 0; /* we do not have this info yet */
 
-    if (is_host) {
+    if (is_host || is_service) {
         /* Well know RID of domain controllers group */
         info3->base.rid = 516;
     } else {
@@ -658,7 +725,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     }
 
     if (info3->base.primary_gid == 0) {
-        if (is_host) {
+        if (is_host || is_service) {
             info3->base.primary_gid = 515;  /* Well known RID for domain computers group */
         } else {
             if (ipactx->mspac->fallback_rid) {
@@ -698,7 +765,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         return ENOENT;
     }
 
-    if (is_host) {
+    if (is_host || is_service) {
         info3->base.domain_sid = talloc_memdup(memctx, &ipactx->mspac->domsid,
                                                sizeof(ipactx->mspac->domsid));
     } else {
