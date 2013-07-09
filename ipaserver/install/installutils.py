@@ -293,7 +293,8 @@ def read_password(user, confirm=True, validate=True, retry=True, validator=_read
                 correct = True
     except EOFError:
         return None
-    print ""
+    finally:
+        print ""
     return pwd
 
 def update_file(filename, orig, subst):

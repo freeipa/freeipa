@@ -95,7 +95,7 @@ def main():
     except errors.ACIError:
         dirman_password = get_dirman_password()
         if dirman_password is None:
-            sys.exit("\nDirectory Manager password required")
+            sys.exit("Directory Manager password required")
         try:
             conn.do_simple_bind(bindpw=dirman_password)
         except errors.ACIError:

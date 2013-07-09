@@ -141,7 +141,7 @@ def main():
             dm_password = installutils.read_password("Directory Manager",
                 confirm=False, validate=False, retry=False)
             if dm_password is None:
-                sys.exit("\nDirectory Manager password required")
+                sys.exit("Directory Manager password required")
             realm = get_realm_name()
             dirname = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm))
             fd = open(dirname + "/pwdfile.txt")

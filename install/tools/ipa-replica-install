@@ -480,7 +480,7 @@ def main():
         except KeyboardInterrupt:
             sys.exit(0)
         if dirman_password is None:
-            sys.exit("\nDirectory Manager password required")
+            sys.exit("Directory Manager password required")
 
     try:
         top_dir, dir = expand_replica_info(filename, dirman_password)

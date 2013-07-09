@@ -142,7 +142,7 @@ def main():
     dm_password = options.dm_password or read_password("Directory Manager",
                                              confirm=False, validate=False)
     if dm_password is None:
-        sys.exit("\nDirectory Manager password required")
+        sys.exit("Directory Manager password required")
     bind = bindinstance.BindInstance(fstore, dm_password)
 
     # try the connection
