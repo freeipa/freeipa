@@ -48,6 +48,7 @@
 #include "util.h"
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
+#define SSSD_DOMAIN_SEPARATOR '@'
 
 int parse_request_data(struct berval *req_val, struct extdom_req **_req)
 {
@@ -242,7 +243,7 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
             goto done;
         }
 
-        sep = strrchr(fq_name, '@');
+        sep = strrchr(fq_name, SSSD_DOMAIN_SEPARATOR);
         if (sep == NULL) {
             ret = LDAP_OPERATIONS_ERROR;
             goto done;
@@ -274,8 +275,9 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
         domain_name = strdup(req->data.name.domain_name);
         break;
     case INP_NAME:
-        ret = asprintf(&fq_name, "%s@%s", req->data.name.object_name,
-                                          req->data.name.domain_name);
+        ret = asprintf(&fq_name, "%s%c%s", req->data.name.object_name,
+                                           SSSD_DOMAIN_SEPARATOR,
+                                           req->data.name.domain_name);
         if (ret == -1) {
             ret = LDAP_OPERATIONS_ERROR;
             fq_name = NULL; /* content is undefined according to
@@ -339,6 +341,7 @@ int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
                     const char *domain_name, struct extdom_res **_res)
 {
     int ret = EFAULT;
+    char *locat = NULL;
     struct extdom_res *res;
 
     res = calloc(1, sizeof(struct extdom_res));
@@ -355,10 +358,20 @@ int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
                     switch(id_type) {
                     case SSS_ID_TYPE_UID:
                     case SSS_ID_TYPE_BOTH:
+                        if ((locat = strchr(pg_data->data.pwd.pw_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
+                            if (strcasecmp(locat+1, domain_name) == 0  ) {
+                                locat[0] = 0;
+                            }
+                        }
                         res->data.name.object_name =
                                               strdup(pg_data->data.pwd.pw_name);
                         break;
                     case SSS_ID_TYPE_GID:
+                        if ((locat = strchr(pg_data->data.grp.gr_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
+                            if (strcasecmp(locat+1, domain_name) == 0) {
+                                locat[0] = 0;
+                            }
+                        }
                         res->data.name.object_name =
                                               strdup(pg_data->data.grp.gr_name);
                         break;
@@ -394,6 +407,11 @@ int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
                 case SSS_ID_TYPE_BOTH:
                     res->response_type = RESP_USER;
                     res->data.user.domain_name = strdup(domain_name);
+                    if ((locat = strchr(pg_data->data.pwd.pw_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
+                        if (strcasecmp(locat+1, domain_name) == 0) {
+                            locat[0] = 0;
+                        }
+                    }
                     res->data.user.user_name =
                                               strdup(pg_data->data.pwd.pw_name);
 
@@ -409,6 +427,11 @@ int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
                 case SSS_ID_TYPE_GID:
                     res->response_type = RESP_GROUP;
                     res->data.group.domain_name = strdup(domain_name);
+                    if ((locat = strchr(pg_data->data.grp.gr_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
+                        if (strcasecmp(locat+1, domain_name) == 0) {
+                            locat[0] = 0;
+                        }
+                    }
                     res->data.group.group_name =
                                               strdup(pg_data->data.grp.gr_name);
 
@@ -437,6 +460,10 @@ done:
         *_res = res;
     } else {
         free_resp_data(res);
+    }
+
+    if (locat != NULL) {
+        locat[0] = SSSD_DOMAIN_SEPARATOR;
     }
 
     return ret;
