@@ -52,7 +52,8 @@ class CLITestContext(object):
         self.stdout_fileobj.close()
         self.stderr_fileobj.close()
         if self.exception:
-            assert isinstance(exc_value, self.exception), exc_value
+            if not isinstance(exc_value, self.exception):
+                return False
             self.exception = exc_value
             return True
 
