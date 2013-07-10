@@ -85,6 +85,8 @@ class Config(object):
         CLIENT_env1: space-separated FQDNs of the clients
         OTHER_env1: space-separated FQDNs of other hosts
         (same for _env2, _env3, etc)
+        BEAKERREPLICA1_IP_env1: IP address of replica 1 in env 1
+        (same for MASTER, CLIENT)
 
         Also see env_normalize() for alternate variable names
         """
@@ -165,9 +167,10 @@ class Config(object):
             # tests.  This means no _env<NUM> suffix.
             if self.domains:
                 default_domain = self.domains[0]
-                env['MASTER'] = default_domain.master.hostname
-                env['BEAKERMASTER'] = default_domain.master.external_hostname
-                env['MASTERIP'] = default_domain.master.ip
+                if default_domain.master:
+                    env['MASTER'] = default_domain.master.hostname
+                    env['BEAKERMASTER'] = default_domain.master.external_hostname
+                    env['MASTERIP'] = default_domain.master.ip
                 env['SLAVE'] = env['REPLICA'] = env['REPLICA_env1']
                 env['BEAKERSLAVE'] = env['BEAKERREPLICA_env1']
                 env['SLAVEIP'] = env['BEAKERREPLICA_IP_env1']
@@ -258,8 +261,8 @@ class Domain(object):
 
         for role in 'master', 'replica', 'client', 'other':
             value = env.get('%s%s' % (role.upper(), self._env), '')
-            for hostname in value.split():
-                host = Host.from_env(env, self, hostname, role, 1)
+            for index, hostname in enumerate(value.split(), start=1):
+                host = Host.from_env(env, self, hostname, role, index)
                 self.hosts.append(host)
 
         if not self.hosts:
@@ -300,7 +303,7 @@ class Domain(object):
 
     def host_by_name(self, name):
         for host in self.hosts:
-            if host.hostname == name or host.external_hostname == name:
+            if name in (host.hostname, host.external_hostname, host.shortname):
                 return host
         raise LookupError(name)
 

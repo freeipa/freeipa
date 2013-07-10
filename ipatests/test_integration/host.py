@@ -119,7 +119,7 @@ class RemoteCommand(object):
 
 class Host(object):
     """Representation of a remote IPA host"""
-    def __init__(self, domain, hostname, role, index):
+    def __init__(self, domain, hostname, role, index, ip=None):
         self.domain = domain
         self.role = role
         self.index = index
@@ -133,20 +133,23 @@ class Host(object):
             self.__module__, type(self).__name__, shortname)
         self.log = log_mgr.get_logger(self.logger_name)
 
-        if self.config.ipv6:
-            # $(dig +short $M $rrtype|tail -1)
-            stdout, stderr, returncode = ipautil.run(
-                ['dig', '+short', self.external_hostname, 'AAAA'])
-            self.ip = stdout.splitlines()[-1].strip()
+        if ip:
+            self.ip = ip
         else:
-            try:
-                self.ip = socket.gethostbyname(self.external_hostname)
-            except socket.gaierror:
-                self.ip = None
+            if self.config.ipv6:
+                # $(dig +short $M $rrtype|tail -1)
+                stdout, stderr, returncode = ipautil.run(
+                    ['dig', '+short', self.external_hostname, 'AAAA'])
+                self.ip = stdout.splitlines()[-1].strip()
+            else:
+                try:
+                    self.ip = socket.gethostbyname(self.external_hostname)
+                except socket.gaierror:
+                    self.ip = None
 
-        if not self.ip:
-            self.ip = ''
-            self.role = 'other'
+            if not self.ip:
+                raise RuntimeError('Could not determine IP address of %s' %
+                                   self.external_hostname)
 
         self.root_password = self.config.root_password
         self.root_ssh_key_filename = self.config.root_ssh_key_filename
@@ -164,7 +167,9 @@ class Host(object):
 
     @classmethod
     def from_env(cls, env, domain, hostname, role, index):
-        self = cls(domain, hostname, role, index)
+        ip = env.get('BEAKER%s%s_IP_env%s' %
+                        (role.upper(), index, domain.index), None)
+        self = cls(domain, hostname, role, index, ip)
         return self
 
     @property
