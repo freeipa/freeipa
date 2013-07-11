@@ -98,15 +98,16 @@ class SystemdService(base.PlatformService):
 
     def stop(self, instance_name="", capture_output=True):
         instance = self.service_instance(instance_name)
+        args = ["/bin/systemctl", "stop", instance]
 
         # The --ignore-dependencies switch is used to avoid possible
         # deadlock during the shutdown transaction. For more details, see
         # https://fedorahosted.org/freeipa/ticket/3729#comment:1 and
         # https://bugzilla.redhat.com/show_bug.cgi?id=973331#c11
-        ipautil.run(
-            ["/bin/systemctl", "stop", instance, "--ignore-dependencies"],
-            capture_output=capture_output
-        )
+        if instance == "ipa-otpd.socket":
+            args.append("--ignore-dependencies")
+
+        ipautil.run(args, capture_output=capture_output)
 
         if 'context' in api.env and api.env.context in ['ipactl', 'installer']:
             update_service_list = True
