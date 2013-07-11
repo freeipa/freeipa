@@ -699,6 +699,7 @@ class xmlserver(WSGIExecutioner, HTTP_Status, KerberosSession):
 
         self.debug('WSGI xmlserver.__call__:')
         user_ccache=environ.get('KRB5CCNAME')
+        headers = [('Content-Type', 'text/xml; charset=utf-8')]
         if user_ccache is None:
             self.internal_error(environ, start_response,
                                 'xmlserver.__call__: KRB5CCNAME not defined in HTTP request environment')
@@ -708,11 +709,10 @@ class xmlserver(WSGIExecutioner, HTTP_Status, KerberosSession):
             response = super(xmlserver, self).__call__(environ, start_response)
             if getattr(context, 'session_data', None) is None and \
               self.env.context != 'lite':
-                self.finalize_kerberos_acquisition('xmlserver', user_ccache, environ, start_response)
+                self.finalize_kerberos_acquisition('xmlserver', user_ccache, environ, start_response, headers)
         except PublicError, e:
             status = HTTP_STATUS_SUCCESS
             response = status
-            headers = [('Content-Type', 'text/plain; charset=utf-8')]
             start_response(status, headers)
             return self.marshal(None, e)
         finally:
