@@ -1,0 +1,5 @@
+dn: cn=$REALM,cn=kerberos,$SUFFIX
+add: krbSupportedEncSaltTypes: camellia128-cts-cmac:normal
+add: krbSupportedEncSaltTypes: camellia128-cts-cmac:special
+add: krbSupportedEncSaltTypes: camellia256-cts-cmac:normal
+add: krbSupportedEncSaltTypes: camellia256-cts-cmac:special
