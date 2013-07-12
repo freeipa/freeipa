@@ -22,6 +22,10 @@ krbSupportedEncSaltTypes: des3-hmac-sha1:normal
 krbSupportedEncSaltTypes: des3-hmac-sha1:special
 krbSupportedEncSaltTypes: arcfour-hmac:normal
 krbSupportedEncSaltTypes: arcfour-hmac:special
+krbSupportedEncSaltTypes: camellia128-cts-cmac:normal
+krbSupportedEncSaltTypes: camellia128-cts-cmac:special
+krbSupportedEncSaltTypes: camellia256-cts-cmac:normal
+krbSupportedEncSaltTypes: camellia256-cts-cmac:special
 krbMaxTicketLife: 86400
 krbMaxRenewableAge: 604800
 krbDefaultEncSaltTypes: aes256-cts:special
