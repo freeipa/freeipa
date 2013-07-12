@@ -58,6 +58,29 @@ class BadSyntax(installutils.ScriptError):
     def __str__(self):
         return repr(self.value)
 
+def safe_output(attr, values):
+    """
+    Sanitizes values we do not want logged, like passwords.
+
+    This should be called in all debug statements that output values.
+
+    This list does not necessarily need to be exhaustive given the limited
+    scope of types of values that the updater manages.
+
+    This only supports lists, tuples and strings. If you pass a dict you may
+    get a string back.
+    """
+    sensitive_attributes = ['krbmkey', 'userpassword', 'passwordhistory', 'krbprincipalkey', 'sambalmpassword', 'sambantpassword', 'ipanthash']
+
+    if attr.lower() in sensitive_attributes:
+        if type(values) in (tuple, list):
+            # try to still look a little like what is in LDAP
+            return ['XXXXXXX'] * len(values)
+        else:
+            return 'XXXXXXXX'
+    else:
+        return values
+
 class LDAPUpdate:
     action_keywords = ["default", "add", "remove", "only", "onlyifexist", "deleteentry", "replace", "addifnew", "addifexist"]
 
@@ -572,51 +595,51 @@ class LDAPUpdate:
 
             for update_value in update_values:
                 if action == 'remove':
-                    self.debug("remove: '%s' from %s, current value %s", update_value, attr, entry_values)
+                    self.debug("remove: '%s' from %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr,entry_values))
                     try:
                         entry_values.remove(update_value)
                     except ValueError:
                         self.warning("remove: '%s' not in %s", update_value, attr)
                         pass
                     entry[attr] = entry_values
-                    self.debug('remove: updated value %s', entry_values)
+                    self.debug('remove: updated value %s', safe_output(attr, entry_values))
                 elif action == 'add':
-                    self.debug("add: '%s' to %s, current value %s", update_value, attr, entry_values)
+                    self.debug("add: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
                     # Remove it, ignoring errors so we can blindly add it later
                     try:
                         entry_values.remove(update_value)
                     except ValueError:
                         pass
                     entry_values.append(update_value)
-                    self.debug('add: updated value %s', entry_values)
+                    self.debug('add: updated value %s', safe_output(attr, entry_values))
                     entry[attr] = entry_values
                 elif action == 'addifnew':
-                    self.debug("addifnew: '%s' to %s, current value %s", update_value, attr, entry_values)
+                    self.debug("addifnew: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
                     # Only add the attribute if it doesn't exist. Only works
                     # with single-value attributes.
                     if len(entry_values) == 0:
                         entry_values.append(update_value)
-                        self.debug('addifnew: set %s to %s', attr, entry_values)
+                        self.debug('addifnew: set %s to %s', attr, safe_output(attr, entry_values))
                         entry[attr] = entry_values
                 elif action == 'addifexist':
-                    self.debug("addifexist: '%s' to %s, current value %s", update_value, attr, entry_values)
+                    self.debug("addifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
                     # Only add the attribute if the entry doesn't exist. We
                     # determine this based on whether it has an objectclass
                     if entry.get('objectclass'):
                         entry_values.append(update_value)
-                        self.debug('addifexist: set %s to %s', attr, entry_values)
+                        self.debug('addifexist: set %s to %s', attr, safe_output(attr, entry_values))
                         entry[attr] = entry_values
                 elif action == 'only':
-                    self.debug("only: set %s to '%s', current value %s", attr, update_value, entry_values)
+                    self.debug("only: set %s to '%s', current value %s", attr, safe_output(attr, update_value), safe_output(attr, entry_values))
                     if only.get(attr):
                         entry_values.append(update_value)
                     else:
                         entry_values = [update_value]
                         only[attr] = True
                     entry[attr] = entry_values
-                    self.debug('only: updated value %s', entry_values)
+                    self.debug('only: updated value %s', safe_output(attr, entry_values))
                 elif action == 'onlyifexist':
-                    self.debug("onlyifexist: '%s' to %s, current value %s", update_value, attr, entry_values)
+                    self.debug("onlyifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
                     # Only set the attribute if the entry exist's. We
                     # determine this based on whether it has an objectclass
                     if entry.get('objectclass'):
@@ -625,7 +648,7 @@ class LDAPUpdate:
                         else:
                             entry_values = [update_value]
                             only[attr] = True
-                        self.debug('onlyifexist: set %s to %s', attr, entry_values)
+                        self.debug('onlyifexist: set %s to %s', attr, safe_output(attr, entry_values))
                         entry[attr] = entry_values
                 elif action == 'deleteentry':
                     # skip this update type, it occurs in  __delete_entries()
@@ -651,20 +674,22 @@ class LDAPUpdate:
                                     # compare normalized values
                                     replaced_values.append(schema_elem)
                                     self.debug('replace: replace %s "%s" with "%s"',
-                                            schema_elem_name, old, new)
+                                            schema_elem_name,
+                                            safe_output(attr, old),
+                                            safe_output(attr, new))
                             if not replaced_values:
                                 self.debug('replace: no match for replaced %s "%s"',
-                                        schema_elem_name, old)
+                                        schema_elem_name, safe_output(attr, old))
                                 continue
                             for value in replaced_values:
                                 entry_values.remove(value)
                         else:
                             entry_values.remove(old)
                         entry_values.append(new)
-                        self.debug('replace: updated value %s', entry_values)
+                        self.debug('replace: updated value %s', safe_output(attr, entry_values))
                         entry[attr] = entry_values
                     except ValueError:
-                        self.debug('replace: %s not found, skipping', old)
+                        self.debug('replace: %s not found, skipping', safe_output(attr, old))
 
         return entry
 
@@ -678,9 +703,9 @@ class LDAPUpdate:
             if isinstance(value, (list, tuple)):
                 self.debug('%s:', a)
                 for l in value:
-                    self.debug("\t%s", l)
+                    self.debug("\t%s", safe_output(a, l))
             else:
-                self.debug('%s: %s', a, value)
+                self.debug('%s: %s', a, safe_output(a, value))
 
     def is_schema_updated(self, s):
         """Compare the schema in 's' with the current schema in the DS to
@@ -794,7 +819,10 @@ class LDAPUpdate:
                 else:
                     if len(changes) >= 1:
                         updated = True
-                self.debug("%s" % changes)
+                safe_changes = []
+                for (type, attr, values) in changes:
+                    safe_changes.append((type, attr, safe_output(attr, values)))
+                self.debug("%s" % safe_changes)
                 self.debug("Live %d, updated %d" % (self.live_run, updated))
                 if self.live_run and updated:
                     self.conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
