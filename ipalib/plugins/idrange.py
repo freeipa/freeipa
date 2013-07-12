@@ -493,7 +493,7 @@ class idrange_add(LDAPCreate):
             # TODO: can also be ipa-ad-winsync here?
             if entry_attrs['iparangetype'] in (u'ipa-ad-trust',
                                                u'ipa-ad-trust-posix'):
-                raise errors.ValidationError('ID Range setup',
+                raise errors.ValidationError(name='ID Range setup',
                     error=_('IPA Range type must not be one of ipa-ad-trust '
                             'or ipa-ad-trust-posix when SID of the trusted '
                             'domain is not specified.'))
