@@ -112,7 +112,8 @@ class ServerCertInstall(admintool.AdminTool):
         old_cert = entry.single_value('nssslpersonalityssl')
 
         server_cert = self.import_cert(dirname, self.options.dirsrv_pin,
-                                       old_cert)
+                                       old_cert, 'ldap/%s' % api.env.host,
+                                       'restart_dirsrv %s' % serverid)
 
         entry['nssslpersonalityssl'] = [server_cert]
         try:
@@ -129,7 +130,8 @@ class ServerCertInstall(admintool.AdminTool):
                                               'NSSNickname')
 
         server_cert = self.import_cert(dirname, self.options.http_pin,
-                                       old_cert)
+                                       old_cert, 'HTTP/%s' % api.env.host,
+                                       'restart_httpd')
 
         installutils.set_directive(httpinstance.NSS_CONF,
                                    'NSSNickname', server_cert)
@@ -144,7 +146,7 @@ class ServerCertInstall(admintool.AdminTool):
         os.chown(os.path.join(dirname, 'key3.db'), 0, pent.pw_gid)
         os.chown(os.path.join(dirname, 'secmod.db'), 0, pent.pw_gid)
 
-    def import_cert(self, dirname, pkcs12_passwd, old_cert):
+    def import_cert(self, dirname, pkcs12_passwd, old_cert, principal, command):
         pw = write_tmp_file(pkcs12_passwd)
         server_cert = installutils.check_pkcs12(
             pkcs12_info=(self.pkcs12_fname, pw.name),
@@ -153,8 +155,15 @@ class ServerCertInstall(admintool.AdminTool):
 
         cdb = certs.CertDB(api.env.realm, nssdir=dirname)
         try:
+            if api.env.enable_ra:
+                cdb.untrack_server_cert(old_cert)
+
             cdb.delete_cert(old_cert)
             cdb.import_pkcs12(self.pkcs12_fname, pw.name)
+
+            if api.env.enable_ra:
+                cdb.track_server_cert(server_cert, principal, cdb.passwd_fname,
+                                      command)
         except RuntimeError, e:
             raise admintool.ScriptError(str(e))
 
