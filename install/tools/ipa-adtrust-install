@@ -62,6 +62,9 @@ def parse_options():
     parser.add_option("--add-sids", dest="add_sids", action="store_true",
                       default=False, help="Add SIDs for existing users and" \
                                           " groups as the final step")
+    parser.add_option("--enable-compat",
+                      dest="enable_compat", default=False, action="store_true",
+                      help="Enable support for trusted domains for old clients")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -194,6 +197,15 @@ def ensure_admin_kinit(admin_name, admin_password):
         return False
     return True
 
+def enable_compat_tree():
+    print "Do you want to enable support for trusted domains in Schema Compatibility plugin?"
+    print "This will allow clients older than SSSD 1.9 and non-Linux clients to work with trusted users."
+    print ""
+    enable_compat = ipautil.user_input("Enable trusted domains support in slapi-nis?", default = False, allow_empty = False)
+    print ""
+    return enable_compat
+
+
 def main():
     safe_options, options = parse_options()
 
@@ -243,6 +255,9 @@ def main():
                 if not ipautil.user_input("Overwrite smb.conf?", default = False, allow_empty = False):
                     sys.exit("Aborting installation.")
                 break
+
+    if not options.unattended and not options.enable_compat:
+        options.enable_compat = enable_compat_tree()
 
     # Check we have a public IP that is associated with the hostname
     ip = None
@@ -363,7 +378,8 @@ def main():
     smb.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
               netbios_name, reset_netbios_name,
               options.rid_base, options.secondary_rid_base,
-              options.no_msdcs, options.add_sids)
+              options.no_msdcs, options.add_sids,
+              enable_compat = options.enable_compat)
     smb.find_local_id_range()
     smb.create_instance()
 

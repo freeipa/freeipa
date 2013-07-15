@@ -664,6 +664,20 @@ class ADTRUSTInstance(service.Service):
         except Exception, e:
             root_logger.critical("Checking replicas for cifs principals failed with error '%s'" % e)
 
+    def __enable_compat_tree(self):
+        try:
+            compat_plugin_dn = DN("cn=Schema Compatibility,cn=plugins,cn=config")
+            lookup_sssd_name = "schema-compat-lookup-sssd"
+            for config in (("cn=users", "user"), ("cn=groups", "group")):
+                entry_dn = DN(config[0], compat_plugin_dn)
+                current = self.admin_conn.get_entry(entry_dn)
+                lookup_sssd = current.get(lookup_sssd_name, [])
+                if not(config[1] in lookup_sssd):
+                    current[lookup_sssd_name] = [config[1]]
+                    self.admin_conn.update_entry(entry_dn, current)
+        except Exception, e:
+            root_logger.critical("Enabling SSSD support in slapi-nis failed with error '%s'" % e)
+
     def __start(self):
         try:
             self.start()
@@ -713,7 +727,7 @@ class ADTRUSTInstance(service.Service):
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, netbios_name,
               reset_netbios_name, rid_base, secondary_rid_base,
-              no_msdcs=False, add_sids=False, smbd_user="samba"):
+              no_msdcs=False, add_sids=False, smbd_user="samba", enable_compat=False):
         self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm = realm_name
@@ -724,6 +738,7 @@ class ADTRUSTInstance(service.Service):
         self.secondary_rid_base = secondary_rid_base
         self.no_msdcs = no_msdcs
         self.add_sids = add_sids
+        self.enable_compat = enable_compat
         self.smbd_user = smbd_user
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
@@ -811,6 +826,11 @@ class ADTRUSTInstance(service.Service):
         self.step("configuring smbd to start on boot", self.__enable)
         self.step("adding special DNS service records", \
                   self.__add_dns_service_records)
+
+        if self.enable_compat:
+            self.step("enabling trusted domains support for older clients via Schema Compatibility plugin",
+                      self.__enable_compat_tree)
+
         self.step("restarting Directory Server to take MS PAC and LDAP plugins changes into account", \
                   self.__restart_dirsrv)
         self.step("adding fallback group", self.__add_fallback_group)
