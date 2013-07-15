@@ -32,6 +32,7 @@ import fileinput
 import ConfigParser
 
 from ipalib import api
+import SSSDConfig
 import ipalib.util
 import ipalib.errors
 from ipapython import ipautil, sysrestore, version, services
@@ -39,7 +40,6 @@ from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import *
 from ipapython import certmonger
 from ipapython import dogtag
-from ipapython.dn import DN
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import httpinstance
@@ -842,6 +842,15 @@ def fix_schema_file_syntax(ds):
     sysupgrade.set_upgrade_state('ds', 'fix_schema_syntax', True)
 
 
+def set_sssd_domain_option(option, value):
+    sssdconfig = SSSDConfig.SSSDConfig()
+    sssdconfig.import_config()
+    domain = sssdconfig.get_domain(str(api.env.domain))
+    domain.set_option(option, value)
+    sssdconfig.save_domain(domain)
+    sssdconfig.write("/etc/sssd/sssd.conf")
+
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -974,6 +983,8 @@ def main():
             ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
         except ipautil.CalledProcessError, e:
             root_logger.error("Failed to restart %s: %s", ca.service_name, e)
+
+    set_sssd_domain_option('ipa_server_mode', 'True')
 
 if __name__ == '__main__':
     installutils.run_script(main, operation_name='ipa-upgradeconfig')
