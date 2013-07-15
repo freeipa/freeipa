@@ -102,19 +102,19 @@ class ServerCertInstall(admintool.AdminTool):
         serverid = dsinstance.realm_to_serverid(api.env.realm)
         dirname = dsinstance.config_dirname(serverid)
 
-        pwdfile = os.path.join(dirname, 'pwdfile.txt')
-        with open(pwdfile) as fd:
-            passwd = fd.read()
-
-        server_cert = self.import_cert(dirname, self.options.dirsrv_pin, passwd)
-
         conn = ldap2(shared_instance=False, base_dn='')
         conn.connect(bind_dn=DN(('cn', 'directory manager')),
                      bind_pw=self.dm_password)
 
-        entry = conn.make_entry(DN(('cn', 'RSA'), ('cn', 'encryption'),
-                                   ('cn', 'config')),
-                                nssslpersonalityssl=[server_cert])
+        entry = conn.get_entry(DN(('cn', 'RSA'), ('cn', 'encryption'),
+                                  ('cn', 'config')),
+                               ['nssslpersonalityssl'])
+        old_cert = entry.single_value('nssslpersonalityssl')
+
+        server_cert = self.import_cert(dirname, self.options.dirsrv_pin,
+                                       old_cert)
+
+        entry['nssslpersonalityssl'] = [server_cert]
         try:
             conn.update_entry(entry)
         except errors.EmptyModlist:
@@ -125,7 +125,11 @@ class ServerCertInstall(admintool.AdminTool):
     def install_http_cert(self):
         dirname = certs.NSS_DIR
 
-        server_cert = self.import_cert(dirname, self.options.http_pin, "")
+        old_cert = installutils.get_directive(httpinstance.NSS_CONF,
+                                              'NSSNickname')
+
+        server_cert = self.import_cert(dirname, self.options.http_pin,
+                                       old_cert)
 
         installutils.set_directive(httpinstance.NSS_CONF,
                                    'NSSNickname', server_cert)
@@ -140,7 +144,7 @@ class ServerCertInstall(admintool.AdminTool):
         os.chown(os.path.join(dirname, 'key3.db'), 0, pent.pw_gid)
         os.chown(os.path.join(dirname, 'secmod.db'), 0, pent.pw_gid)
 
-    def import_cert(self, dirname, pkcs12_passwd, db_password):
+    def import_cert(self, dirname, pkcs12_passwd, old_cert):
         pw = write_tmp_file(pkcs12_passwd)
         server_cert = installutils.check_pkcs12(
             pkcs12_info=(self.pkcs12_fname, pw.name),
@@ -149,8 +153,8 @@ class ServerCertInstall(admintool.AdminTool):
 
         cdb = certs.CertDB(api.env.realm, nssdir=dirname)
         try:
-            cdb.create_from_pkcs12(self.pkcs12_fname, pw.name,
-                                   db_password, CACERT)
+            cdb.delete_cert(old_cert)
+            cdb.import_pkcs12(self.pkcs12_fname, pw.name)
         except RuntimeError, e:
             raise admintool.ScriptError(str(e))
 
