@@ -245,6 +245,9 @@ class NSSDatabase(object):
                             "-a"],
                             stdin=cert)
 
+    def delete_cert(self, nick):
+        self.run_certutil(["-D", "-n", nick])
+
     def verify_server_cert_validity(self, nickname, hostname):
         """Verify a certificate is valid for a SSL server with given hostname
 
@@ -714,6 +717,9 @@ class CertDB(object):
                 "-i", cert_fname,
                 "-f", self.passwd_fname]
         self.run_certutil(args)
+
+    def delete_cert(self, nickname):
+        self.nssdb.delete_cert(nickname)
 
     def create_pin_file(self):
         """
