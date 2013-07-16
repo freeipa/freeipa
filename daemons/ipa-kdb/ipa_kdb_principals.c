@@ -21,6 +21,7 @@
  */
 
 #include "ipa_kdb.h"
+#include <unicase.h>
 
 /*
  * During TGS request search by ipaKrbPrincipalName (case-insensitive)
@@ -614,7 +615,7 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
     bool found = false;
     LDAPMessage *le = NULL;
     struct berval **vals;
-    int i;
+    int i, result;
 
     ipactx = ipadb_get_context(kcontext);
     if (!ipactx) {
@@ -643,7 +644,11 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
             /* KDC will accept aliases when doing TGT lookup (ref_tgt_again in do_tgs_req.c */
             /* Use case-insensitive comparison in such cases */
             if ((flags & KRB5_KDB_FLAG_ALIAS_OK) != 0) {
-                found = (strcasecmp(vals[i]->bv_val, (*principal)) == 0);
+                if (ulc_casecmp(vals[i]->bv_val, vals[i]->bv_len,
+                                (*principal), strlen(*principal),
+                                NULL, NULL, &result) != 0)
+                    return KRB5_KDB_INTERNAL_ERROR;
+                found = (result == 0);
             } else {
                 found = (strcmp(vals[i]->bv_val, (*principal)) == 0);
             }
@@ -663,7 +668,11 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
 
         /* Again, if aliases are accepted by KDC, use case-insensitive comparison */
         if ((flags & KRB5_KDB_FLAG_ALIAS_OK) != 0) {
-            found = (strcasecmp(vals[0]->bv_val, (*principal)) == 0);
+            if (ulc_casecmp(vals[0]->bv_val, vals[0]->bv_len,
+                            (*principal), strlen(*principal),
+                            NULL, NULL, &result) != 0)
+                return KRB5_KDB_INTERNAL_ERROR;
+            found = (result == 0);
         } else {
             found = (strcmp(vals[0]->bv_val, (*principal)) == 0);
         }

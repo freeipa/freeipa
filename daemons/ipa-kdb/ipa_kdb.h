@@ -158,7 +158,7 @@ int ipadb_ldap_attr_to_krb5_timestamp(LDAP *lcontext, LDAPMessage *le,
                                       char *attrname, krb5_timestamp *result);
 
 int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
-                              char *attrname, char *value);
+                              char *attrname, const char *value);
 int ipadb_ldap_deref_results(LDAP *lcontext, LDAPMessage *le,
                              LDAPDerefRes **results);
 

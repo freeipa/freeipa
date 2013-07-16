@@ -179,6 +179,16 @@ AC_CHECK_LIB([pdb],[pdb_enum_upn_suffixes],
              [$SAMBA40EXTRA_LIBPATH])
 
 dnl ---------------------------------------------------------------------------
+dnl Check for libunistring
+dnl ---------------------------------------------------------------------------
+AC_CHECK_HEADERS([unicase.h],,AC_MSG_ERROR([Could not find unicase.h]))
+AC_CHECK_LIB([unistring],
+             [ulc_casecmp],
+             [UNISTRING_LIBS="-lunistring"],
+             [AC_MSG_ERROR([libunistring does not have ulc_casecmp])])
+AC_SUBST(UNISTRING_LIBS)
+
+dnl ---------------------------------------------------------------------------
 dnl Check for libverto
 dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([LIBVERTO], [libverto])

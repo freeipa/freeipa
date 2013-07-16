@@ -21,6 +21,7 @@
  */
 
 #include "ipa_kdb.h"
+#include <unicase.h>
 
 static struct timeval std_timeout = {300, 0};
 
@@ -518,20 +519,28 @@ int ipadb_ldap_attr_to_krb5_timestamp(LDAP *lcontext, LDAPMessage *le,
 }
 
 int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
-                              char *attrname, char *value)
+                              char *attrname, const char *value)
 {
     struct berval **vals;
     int ret = ENOENT;
-    int i;
+    int i, result;
 
     vals = ldap_get_values_len(lcontext, le, attrname);
     if (vals) {
         for (i = 0; vals[i]; i++) {
-            if (strcasecmp(vals[i]->bv_val, value) == 0) {
+            if (ulc_casecmp(vals[i]->bv_val, vals[i]->bv_len,
+                            value, strlen(value),
+                            NULL, NULL, &result) != 0) {
+                ret = errno;
+                break;
+            }
+
+            if (result == 0) {
                 ret = 0;
                 break;
             }
         }
+
         ldap_value_free_len(vals);
     }
 

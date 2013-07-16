@@ -50,6 +50,7 @@ ipadb_la_LIBADD = 		\
 	$(KRB5_LIBS)		\
 	$(LDAP_LIBS)		\
 	$(NDRPAC_LIBS)		\
+	$(UNISTRING_LIBS)	\
 	$(NULL)
 
 if HAVE_CHECK
