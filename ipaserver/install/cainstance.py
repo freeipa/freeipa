@@ -1107,6 +1107,10 @@ class CAInstance(service.Service):
         Returns a path to the CRL publishing directory
         """
         publishdir = self.dogtag_constants.CRL_PUBLISH_PATH
+
+        if not os.path.exists(publishdir):
+            os.mkdir(publishdir)
+
         os.chmod(publishdir, 0775)
         pent = pwd.getpwnam(PKI_USER)
         os.chown(publishdir, 0, pent.pw_gid)
@@ -1333,6 +1337,15 @@ class CAInstance(service.Service):
         for f in get_crl_files():
             root_logger.debug("Remove %s", f)
             installutils.remove_file(f)
+
+        # remove CRL directory
+        root_logger.info("Remove CRL directory")
+        if os.path.exists(self.dogtag_constants.CRL_PUBLISH_PATH):
+            try:
+                shutil.rmtree(self.dogtag_constants.CRL_PUBLISH_PATH)
+            except OSError, e:
+                root_logger.warning("Error while removing CRL publish "
+                                    "directory: %s" % e)
 
     def publish_ca_cert(self, location):
         args = ["-L", "-n", self.canickname, "-a"]

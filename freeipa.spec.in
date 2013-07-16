@@ -383,7 +383,6 @@ rm %{buildroot}/%{_libdir}/samba/pdb/ipasam.la
 mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
 mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysrestore
 mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysupgrade
-mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/pki-ca/publish
 mkdir %{buildroot}%{_usr}/share/ipa/html/
 ln -s ../../../..%{_sysconfdir}/ipa/html/ffconfig.js \
     %{buildroot}%{_usr}/share/ipa/html/ffconfig.js
@@ -712,7 +711,7 @@ fi
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
-%attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca/publish
+%ghost %{_localstatedir}/lib/ipa/pki-ca/publish
 %attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
 %{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
@@ -821,6 +820,9 @@ fi
 %endif  # ! %{ONLY_CLIENT}
 
 %changelog
+* Tue Jul 16 2013 Tomas Babej <tbabej@redhat.com> - 3.2.99-6
+- Do not create /var/lib/ipa/pki-ca/publish, retain reference as ghost
+
 * Thu Jul 11 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-5
 - Run ipa-upgradeconfig and server restart in posttrans to avoid inconsistency
   issues when there are still old parts of software (like entitlements plugin)
