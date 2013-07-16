@@ -690,14 +690,15 @@ def migrate_crl_publish_dir(ca):
                 caconfig.CS_CFG_PATH, e)
         return False
 
+    # Prepare target publish dir (creation, permissions, SELinux context)
+    # Run this every update to ensure proper values
+    publishdir = ca.prepare_crl_publish_dir()
+
     if old_publish_dir == caconfig.CRL_PUBLISH_PATH:
         # publish dir is already updated
         root_logger.info('Publish directory already set to new location')
         sysupgrade.set_upgrade_state('dogtag', 'moved_crl_publish_dir', True)
         return False
-
-    # Prepare target publish dir (permissions, SELinux context)
-    publishdir = ca.prepare_crl_publish_dir()
 
     # Copy all CRLs to new directory
     root_logger.info('Copy all CRLs to new publish directory')
