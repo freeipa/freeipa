@@ -516,7 +516,10 @@ class i18n_messages(Command):
                 "ipasecondarybaserid": _("Secondary RID base"),
                 "type": _("Range type"),
                 "type_ad": _("Active Directory domain"),
+                "type_ad_posix": _("Active Directory domain with POSIX attributes"),
                 "type_local": _("Local domain"),
+                "type_ipa": _("IPA trust"),
+                "type_winsync": _("Active Directory winsync"),
             },
             "realmdomains": {
                 "identity": _("Realm Domains"),
