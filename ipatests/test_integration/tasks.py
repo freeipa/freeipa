@@ -150,7 +150,8 @@ def install_master(host):
     host.run_command(['kinit', 'admin'],
                       stdin_text=host.config.admin_password)
 
-def install_replica(master, replica):
+
+def install_replica(master, replica, setup_ca=True):
     replica.collect_log('/var/log/ipareplica-install.log')
     replica.collect_log('/var/log/ipareplica-conncheck.log')
 
@@ -165,11 +166,15 @@ def install_replica(master, replica):
     replica_filename = os.path.join(replica.config.test_dir,
                                     'replica-info.gpg')
     replica.put_file_contents(replica_filename, replica_bundle)
-    replica.run_command(['ipa-replica-install', '-U',
-                         '-p', replica.config.dirman_password,
-                         '-w', replica.config.admin_password,
-                         '--ip-address', replica.ip,
-                         replica_filename])
+    args = ['ipa-replica-install', '-U',
+            '--setup-ca',
+            '-p', replica.config.dirman_password,
+            '-w', replica.config.admin_password,
+            '--ip-address', replica.ip,
+            replica_filename]
+    if setup_ca:
+        args.append('--setup-ca')
+    replica.run_command(args)
 
     enable_replication_debugging(replica)
 
