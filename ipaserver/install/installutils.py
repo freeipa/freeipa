@@ -766,10 +766,11 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
 
 
 @contextmanager
-def private_ccache():
+def private_ccache(path=None):
 
-    (desc, path) = tempfile.mkstemp(prefix='krbcc')
-    os.close(desc)
+    if path is None:
+        (desc, path) = tempfile.mkstemp(prefix='krbcc')
+        os.close(desc)
 
     original_value = os.environ.get('KRB5CCNAME', None)
 

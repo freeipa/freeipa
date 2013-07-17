@@ -20,9 +20,13 @@
 
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.dns import dns_container_exists
+from ipapython.ipautil import realm_to_suffix
 from ipalib import api, Str, StrEnum, Password, _, ngettext
 from ipalib import Command
 from ipalib import errors
+from ldap import SCOPE_SUBTREE
+from time import sleep
+
 try:
     import pysss_murmur #pylint: disable=F0401
     _murmur_installed = True
@@ -292,8 +296,6 @@ sides.
         Int('range_size?',
             cli_name='range_size',
             label=_('Size of the ID range reserved for the trusted domain'),
-            default=DEFAULT_RANGE_SIZE,
-            autofill=True
         ),
         StrEnum('range_type?',
             label=_('Range type'),
@@ -313,7 +315,7 @@ sides.
         result = self.execute_ad(full_join, *keys, **options)
 
         if not old_range:
-            self.add_range(range_name, dom_sid, **options)
+            self.add_range(range_name, dom_sid, *keys, **options)
 
         trust_filter = "cn=%s" % result['value']
         ldap = self.obj.backend
@@ -418,9 +420,7 @@ sides.
                         'Only the ipa-ad-trust and ipa-ad-trust-posix are '
                         'allowed values for --range-type when adding an AD '
                         'trust.'
-                    )
-
-)
+                    ))
 
         base_id = options.get('base_id')
         range_size = options.get('range_size') != DEFAULT_RANGE_SIZE
@@ -468,9 +468,96 @@ sides.
 
         return old_range, range_name, dom_sid
 
-    def add_range(self, range_name, dom_sid, **options):
-        base_id = options.get('base_id')
-        if not base_id:
+    def add_range(self, range_name, dom_sid, *keys, **options):
+        """
+        First, we try to derive the parameters of the ID range based on the
+        information contained in the Active Directory.
+
+        If that was not successful, we go for our usual defaults (random base,
+        range size 200 000, ipa-ad-trust range type).
+
+        Any of these can be overriden by passing appropriate CLI options
+        to the trust-add command.
+        """
+
+        range_size = None
+        range_type = None
+        base_id = None
+
+        # First, get information about ID space from AD
+        # However, we skip this step if other than ipa-ad-trust-posix
+        # range type is enforced
+
+        if options.get('range_type', None) in (None, u'ipa-ad-trust-posix'):
+
+            # Get the base dn
+            domain = keys[-1]
+            basedn = realm_to_suffix(domain)
+
+            # Search for information contained in
+            # CN=ypservers,CN=ypServ30,CN=RpcServices,CN=System
+            info_filter = '(objectClass=msSFU30DomainInfo)'
+            info_dn = DN('CN=ypservers,CN=ypServ30,CN=RpcServices,CN=System')\
+                      + basedn
+
+            # Get the domain validator
+            domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+            if not domain_validator.is_configured():
+                raise errors.NotFound(
+                    reason=_('Cannot search in trusted domains without own '
+                             'domain configured. Make sure you have run '
+                             'ipa-adtrust-install on the IPA server first'))
+
+            # KDC might not get refreshed data at the first time,
+            # retry several times
+            for retry in range(10):
+                info_list = domain_validator.search_in_dc(domain,
+                                                          info_filter,
+                                                          None,
+                                                          SCOPE_SUBTREE,
+                                                          basedn=info_dn,
+                                                          use_http=True,
+                                                          quiet=True)
+
+                if info_list:
+                    info = info_list[0]
+                    break
+                else:
+                    sleep(2)
+
+            required_msSFU_attrs = ['msSFU30MaxUidNumber', 'msSFU30OrderNumber']
+
+            if not info_list:
+                # We were unable to gain UNIX specific info from the AD
+                self.log.debug("Unable to gain POSIX info from the AD")
+            else:
+                if all(attr in info for attr in required_msSFU_attrs):
+                    self.log.debug("Able to gain POSIX info from the AD")
+                    range_type = u'ipa-ad-trust-posix'
+
+                    max_uid = info.get('msSFU30MaxUidNumber')
+                    max_gid = info.get('msSFU30MaxGidNumber', None)
+                    max_id = int(max(max_uid, max_gid)[0])
+
+                    base_id = int(info.get('msSFU30OrderNumber')[0])
+                    range_size = (1 + (max_id - base_id) / DEFAULT_RANGE_SIZE)\
+                                 * DEFAULT_RANGE_SIZE
+
+        # Second, options given via the CLI options take precedence to discovery
+        if options.get('range_type', None):
+            range_type = options.get('range_type', None)
+        elif not range_type:
+            range_type = u'ipa-ad-trust'
+
+        if options.get('range_size', None):
+            range_size = options.get('range_size', None)
+        elif not range_size:
+            range_size = DEFAULT_RANGE_SIZE
+
+        if options.get('base_id', None):
+            base_id = options.get('base_id', None)
+        elif not base_id:
+            # Generate random base_id if not discovered nor given via CLI
             base_id = DEFAULT_RANGE_SIZE + (
                 pysss_murmur.murmurhash3(
                     dom_sid,
@@ -478,12 +565,12 @@ sides.
                 ) % 10000
             ) * DEFAULT_RANGE_SIZE
 
-        # Add new ID range
+        # Finally, add new ID range
         api.Command['idrange_add'](range_name,
                                    ipabaseid=base_id,
-                                   ipaidrangesize=options['range_size'],
+                                   ipaidrangesize=range_size,
                                    ipabaserid=0,
-                                   iparangetype=options.get('range_type'),
+                                   iparangetype=range_type,
                                    ipanttrusteddomainsid=dom_sid)
 
     def execute_ad(self, full_join, *keys, **options):

@@ -3394,7 +3394,7 @@ arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=T
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Int('base_id?', cli_name='base_id')
-option: Int('range_size?', autofill=True, cli_name='range_size', default=200000)
+option: Int('range_size?', cli_name='range_size')
 option: StrEnum('range_type?', cli_name='range_type', values=(u'ipa-ad-trust-posix', u'ipa-ad-trust'))
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('realm_admin?', cli_name='admin')
