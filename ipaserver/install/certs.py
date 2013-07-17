@@ -188,6 +188,8 @@ class NSSDatabase(object):
             if e.returncode == 17:
                 raise RuntimeError("incorrect password for pkcs#12 file %s" %
                     pkcs12_filename)
+            elif e.returncode == 10:
+                raise RuntimeError("Failed to open %s" % pkcs12_filename)
             else:
                 raise RuntimeError("unknown error import pkcs#12 file %s" %
                     pkcs12_filename)
@@ -206,6 +208,8 @@ class NSSDatabase(object):
         except ipautil.CalledProcessError, e:
             if e.returncode == 17:
                 raise RuntimeError("incorrect password for pkcs#12 file")
+            elif e.returncode == 10:
+                raise RuntimeError("Failed to open %s" % pkcs12_fname)
             else:
                 raise RuntimeError("unknown error using pkcs#12 file")
 
@@ -255,8 +259,13 @@ class NSSDatabase(object):
 
         The file must contain exactly one certificate.
         """
-        with open(location) as fd:
-            certs = fd.read()
+        try:
+            with open(location) as fd:
+                certs = fd.read()
+        except IOError as e:
+            raise RuntimeError(
+                "Failed to open %s: %s" % (location, e.strerror)
+            )
 
         cert, st = find_cert_from_txt(certs)
         self.add_single_pem_cert(nickname, flags, cert)
