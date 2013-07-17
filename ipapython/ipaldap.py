@@ -1164,7 +1164,8 @@ class LDAPClient(object):
                     )
         return self.combine_filters(flts, rules)
 
-    def get_entries(self, base_dn, scope=None, filter=None, attrs_list=None):
+    def get_entries(self, base_dn, scope=ldap.SCOPE_SUBTREE, filter=None,
+                    attrs_list=None):
         """Return a list of matching entries.
 
         Raises an error if the list is truncated by the server
