@@ -723,7 +723,7 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
         ca_cert_name = 'The Root CA'
         try:
             nssdb.import_pem_cert(ca_cert_name, "CT,C,C", ca_file)
-        except ValueError, e:
+        except (ValueError, RuntimeError) as e:
             raise ScriptError(str(e))
 
         # Import everything in the PKCS#12
