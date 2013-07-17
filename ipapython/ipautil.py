@@ -246,7 +246,7 @@ def shell_quote(string):
     return "'" + string.replace("'", "'\\''") + "'"
 
 def run(args, stdin=None, raiseonerr=True,
-        nolog=(), env=None, capture_output=True, cwd=None):
+        nolog=(), env=None, capture_output=True, skip_output=False, cwd=None):
     """
     Execute a command and return stdin, stdout and the process return code.
 
@@ -288,7 +288,9 @@ def run(args, stdin=None, raiseonerr=True,
         env["PATH"] = "/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"
     if stdin:
         p_in = subprocess.PIPE
-    if capture_output:
+    if skip_output:
+        p_out = p_err = open('/dev/null', 'w')
+    elif capture_output:
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
 
@@ -308,12 +310,15 @@ def run(args, stdin=None, raiseonerr=True,
     except:
         root_logger.debug('Process execution failed')
         raise
+    finally:
+        if skip_output:
+            p_out.close()   # pylint: disable=E1103
 
     root_logger.debug('Process finished, return code=%s', p.returncode)
 
     # The command and its output may include passwords that we don't want
     # to log. Replace those.
-    if capture_output:
+    if capture_output and not skip_output:
         stdout = nolog_replace(stdout, nolog)
         stderr = nolog_replace(stderr, nolog)
         root_logger.debug('stdout=%s' % stdout)
@@ -389,8 +394,8 @@ def encrypt_file(source, dest, password, workdir = None):
             #give gpg a fake dir so that we can leater remove all
             #the cruft when we clean up the tempdir
             os.mkdir(gpgdir)
-            args = ['/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
-            run(args, password)
+            args = ['/usr/bin/gpg-agent', '--batch', '--homedir', gpgdir, '--daemon', '/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
+            run(args, password, skip_output=True)
         except:
             raise
     finally:
@@ -419,8 +424,8 @@ def decrypt_file(source, dest, password, workdir = None):
             #give gpg a fake dir so that we can leater remove all
             #the cruft when we clean up the tempdir
             os.mkdir(gpgdir)
-            args = ['/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
-            run(args, password)
+            args = ['/usr/bin/gpg-agent', '--batch', '--homedir', gpgdir, '--daemon', '/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
+            run(args, password, skip_output=True)
         except:
             raise
     finally:
