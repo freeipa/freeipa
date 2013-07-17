@@ -24,8 +24,13 @@ import textwrap
 import re
 import collections
 import itertools
+import time
+import StringIO
+
+from ldif import LDIFWriter
 
 from ipapython import ipautil
+from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration.config import env_to_script
 
@@ -379,3 +384,48 @@ def install_clients(servers, clients):
     for server, client in itertools.izip(itertools.cycle(servers), clients):
         log.info('Installing client %s on %s' % (server, client))
         install_client(server, client)
+
+
+def _entries_to_ldif(entries):
+    """Format LDAP entries as LDIF"""
+    lines = []
+    io = StringIO.StringIO()
+    writer = LDIFWriter(io)
+    for entry in entries:
+        writer.unparse(str(entry.dn), entry)
+    return io.getvalue()
+
+
+def wait_for_replication(ldap, timeout=30):
+    """Wait until updates on all replication agreements are done (or failed)
+
+    :param ldap: LDAP client
+        autenticated with necessary rights to read the mapping tree
+    :param timeout: Maximum time to wait, in seconds
+
+    Note that this waits for updates originating on this host, not those
+    coming from other hosts.
+    """
+    log.debug('Waiting for replication to finish')
+    for i in range(timeout):
+        time.sleep(1)
+        status_attr = 'nsds5replicaLastUpdateStatus'
+        progress_attr = 'nsds5replicaUpdateInProgress'
+        entries = ldap.get_entries(
+            DN(('cn', 'mapping tree'), ('cn', 'config')),
+            filter='(objectclass=nsds5replicationagreement)',
+            attrs_list=[status_attr, progress_attr])
+        log.debug('Replication agreements: \n%s', _entries_to_ldif(entries))
+        if any(not e.single_value(status_attr).startswith('0 ')
+               for e in entries):
+            log.error('Replication error')
+            break
+        in_progress = []
+        if any(e.single_value(progress_attr) == 'TRUE' for e in entries):
+            log.debug('Replication in progress (waited %s/%ss)',
+                      i, timeout)
+        else:
+            log.debug('Replication finished')
+            break
+    else:
+        log.error('Giving up wait for replication to finish')

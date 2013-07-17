@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import time
-
+from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration import tasks
 
 
 class TestSimpleReplication(IntegrationTest):
@@ -31,28 +31,31 @@ class TestSimpleReplication(IntegrationTest):
     num_replicas = 1
     topology = 'star'
 
-    def test_user_replication_to_replica(self):
-        """Test user replication master -> replica"""
-        login = 'testuser1'
-        self.master.run_command(['ipa', 'user-add', login,
+    def check_replication(self, source_host, dest_host, login):
+        source_host.run_command(['ipa', 'user-add', login,
                                  '--first', 'test',
                                  '--last', 'user'])
 
-        self.log.debug('Sleeping so replication has a chance to finish')
-        time.sleep(5)
+        ldap = dest_host.ldap_connect()
+        tasks.wait_for_replication(ldap)
 
-        result = self.replicas[0].run_command(['ipa', 'user-show', login])
+        # Check using LDAP
+        basedn = dest_host.domain.basedn
+        user_dn = DN(('uid', login), ('cn', 'users'), ('cn', 'accounts'),
+                     basedn)
+        entry = ldap.get_entry(user_dn)
+        print entry
+        assert entry.dn == user_dn
+        assert entry['uid'] == [login]
+
+        # Check using CLI
+        result = dest_host.run_command(['ipa', 'user-show', login])
         assert 'User login: %s' % login in result.stdout_text
+
+    def test_user_replication_to_replica(self):
+        """Test user replication master -> replica"""
+        self.check_replication(self.master, self.replicas[0], 'testuser1')
 
     def test_user_replication_to_master(self):
         """Test user replication replica -> master"""
-        login = 'testuser2'
-        self.replicas[0].run_command(['ipa', 'user-add', login,
-                                      '--first', 'test',
-                                      '--last', 'user'])
-
-        self.log.debug('Sleeping so replication has a chance to finish')
-        time.sleep(5)
-
-        result = self.master.run_command(['ipa', 'user-show', login])
-        assert 'User login: %s' % login in result.stdout_text
+        self.check_replication(self.replicas[0], self.master, 'testuser2')

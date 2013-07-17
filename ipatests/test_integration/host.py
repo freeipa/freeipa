@@ -27,6 +27,7 @@ import errno
 
 import paramiko
 
+from ipapython.ipaldap import IPAdmin
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
 
@@ -290,6 +291,14 @@ class Host(object):
             transport = self.transport
             self._sftp = paramiko.SFTPClient.from_transport(transport)
             return self._sftp
+
+    def ldap_connect(self):
+        """Return an LDAPClient authenticated to this host as directory manager
+        """
+        ldap = IPAdmin(self.external_hostname)
+        ldap.do_simple_bind(self.config.dirman_dn,
+                            self.config.dirman_password)
+        return ldap
 
     def mkdir_recursive(self, path):
         """`mkdir -p` on the remote host"""
