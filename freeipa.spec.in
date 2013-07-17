@@ -130,7 +130,7 @@ Requires: python-memcached
 Requires: systemd-units >= 38
 Requires(pre): systemd-units
 Requires(post): systemd-units
-Requires: selinux-policy >= 3.11.1-86
+Requires: selinux-policy >= 3.12.1-65
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.44
 Requires: pki-ca >= 10.0.2
@@ -825,6 +825,10 @@ fi
 %endif  # ! %{ONLY_CLIENT}
 
 %changelog
+* Wed Jul 17 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-7
+- Require selinux-policy 3.12.1-65 containing missing policy after removal of
+  freeipa-server-selinux subpackage
+
 * Tue Jul 16 2013 Tomas Babej <tbabej@redhat.com> - 3.2.99-6
 - Do not create /var/lib/ipa/pki-ca/publish, retain reference as ghost
 
