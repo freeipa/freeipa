@@ -489,6 +489,31 @@ class UI_driver(object):
             }
         return info
 
+    def execute_api_from_ui(self, method, args, options, timeout=30):
+        """
+        Executes FreeIPA API command/method from Web UI
+        """
+        script = """
+        var method = arguments[0];
+        var args = arguments[1];
+        var options = arguments[2];
+        var callback = arguments[arguments.length - 1];
+        var IPA = require('freeipa/ipa');
+
+        var cmd = IPA.command({
+            method: method,
+            args: args,
+            options: options,
+            on_success: callback,
+            on_error: callback
+        });
+
+        cmd.execute();
+        """
+        self.driver.set_script_timeout(timeout)
+        result = self.driver.execute_async_script(script, *[method, args, options])
+        return result
+
     def click_on_link(self, text, parent=None):
         """
         Click on link with given text and parent.
