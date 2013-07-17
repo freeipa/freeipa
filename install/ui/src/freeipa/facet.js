@@ -1940,7 +1940,7 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
     };
 
     that.set_enabled = function(enabled) {
-        that.enabled = enabled;
+        that.widget_set_enabled(enabled);
 
         if (that.button_element) {
             if (enabled) {

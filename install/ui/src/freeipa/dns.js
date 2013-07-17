@@ -603,7 +603,7 @@ IPA.dnszone_adder_dialog = function(spec) {
         var zone = zone_w.save()[0] || '';
         var ns = ns_w.save()[0] || '';
 
-        var zone_is_reverse = !zone_w.is_enabled() ||
+        var zone_is_reverse = !zone_w.enabled ||
                               ends_with(zone, '.in-addr.arpa.') ||
                               ends_with(zone, '.ip6.arpa.');
         var relative_ns = true;
@@ -1767,7 +1767,6 @@ IPA.dns.record_type_table_widget = function(spec) {
             $('.action-button', that.table).addClass('action-button-disabled');
             that.unselect_all();
         }
-        that.enabled = enabled;
     };
 
     that.select_changed = function() {

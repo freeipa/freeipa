@@ -112,8 +112,6 @@ IPA.rule_association_table_widget = function(spec) {
 
     that.external = spec.external;
 
-    that.enabled = spec.enabled !== undefined ? spec.enabled : true;
-
     that.setup_column = function(column, div, record) {
         var suppress_link = false;
         if (that.external) {

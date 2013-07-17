@@ -530,7 +530,6 @@ IPA.association_table_widget = function (spec) {
             $('.action-button', that.table).addClass('action-button-disabled');
             that.unselect_all();
         }
-        that.enabled = enabled;
     };
 
     that.select_changed = function() {

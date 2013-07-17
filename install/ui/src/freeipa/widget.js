@@ -51,6 +51,7 @@ IPA.widget = function(spec) {
     that.measurement_unit = spec.measurement_unit;
     that.entity = IPA.get_entity(spec.entity); //some old widgets still need it
     that.facet = spec.facet;
+    that.enabled = spec.enabled === undefined ? true : spec.enabled;
 
     that.create = function(container) {
         container.addClass('widget');
@@ -58,6 +59,10 @@ IPA.widget = function(spec) {
     };
 
     that.clear = function() {
+    };
+
+    that.set_enabled = function(value) {
+        that.enabled = value;
     };
 
     that.set_visible = function(visible) {
@@ -81,6 +86,7 @@ IPA.widget = function(spec) {
     };
 
     that.widget_create = that.create;
+    that.widget_set_enabled = that.set_enabled;
 
     return that;
 };
@@ -200,6 +206,14 @@ IPA.input_widget = function(spec) {
         }
     };
 
+    that.set_enabled = function(value) {
+        that.widget_set_enabled(value);
+
+        if (that.input) {
+            that.input.prop('disabled', !value);
+        }
+    };
+
     that.on_value_changed = function() {
         var value = that.save();
         that.value_changed.notify([value], that);
@@ -257,7 +271,6 @@ IPA.text_widget = function(spec) {
         that.input = $('<input/>', {
             type: that.input_type,
             name: that.name,
-            disabled: that.disabled,
             size: that.size,
             title: that.tooltip,
             keyup: function() {
@@ -274,6 +287,7 @@ IPA.text_widget = function(spec) {
         }
 
         that.create_error_link(container);
+        that.set_enabled(that.enabled);
     };
 
     that.update = function(values) {
@@ -301,15 +315,6 @@ IPA.text_widget = function(spec) {
             var value = that.input.val();
             return value === '' ? [] : [value];
         }
-    };
-
-    that.is_enabled = function(value) {
-        return !that.input.prop('disabled');
-    };
-
-    that.set_enabled = function(value) {
-
-        that.input.prop('disabled', !value);
     };
 
     that.clear = function() {
@@ -474,7 +479,8 @@ IPA.multivalued_widget = function(spec) {
             name: that.name+'-'+row_index,
             undo: that.undo || row.is_new,
             read_only: that.read_only,
-            writable: that.writable
+            writable: that.writable,
+            enabled: that.enabled
         });
 
         row.widget.create(row.container);
@@ -756,6 +762,8 @@ IPA.option_widget_base = function(spec, that) {
                 that._child_widgets.push(option.widget);
             }
         }
+
+        option.enabled = spec.enabled === undefined ? true : spec.enabled;
         option.label = text.get(option.label);
         option.combine_values = option.combine_values === undefined ? true :
                                     !!option.combine_values;
@@ -794,11 +802,13 @@ IPA.option_widget_base = function(spec, that) {
     that._create_option = function(option, container) {
         var input_name = that.get_input_name();
         var id = that._option_next_id + input_name;
+        var enabled = that.enabled && option.enabled;
 
         $('<input/>', {
             id: id,
             type: that.input_type,
             name: input_name,
+            disabled: !enabled,
             value: option.value,
             title: option.tooltip || that.tooltip,
             change: that.on_input_change
@@ -900,7 +910,7 @@ IPA.option_widget_base = function(spec, that) {
 
             var parents_selected = [];
 
-            $(that._selector+':checked', that.container).each(function() {
+            $(that._selector+':checked', that.$node).each(function() {
                 var value = $(this).val();
                 var option = that.get_option(value);
                 if (option && option.nested) {
@@ -914,7 +924,7 @@ IPA.option_widget_base = function(spec, that) {
 
                 if (option.nested) {
                     var selected = parents_selected.indexOf(option.value) > -1;
-                    option.widget.set_enabled(selected, true);
+                    option.widget.update_enabled(selected, true);
                 }
             }
         }
@@ -927,7 +937,7 @@ IPA.option_widget_base = function(spec, that) {
 
         if (that.$node) {
 
-            $(that._selector+':checked', that.container).each(function() {
+            $(that._selector+':checked', that.$node).each(function() {
                 var value = $(this).val();
                 var child_values = [];
                 var option = that.get_option(value);
@@ -958,9 +968,9 @@ IPA.option_widget_base = function(spec, that) {
             // uncheck all inputs
             check(that._selector, true /*uncheck*/);
 
-            var writable = !that.read_only && !!that.writable;
+            var writable = !that.read_only && !!that.writable && that.enabled;
             if (!that.nested) {
-                that.set_enabled(writable);
+                that.update_enabled(writable);
             }
 
             if (values && values.length > 0) {
@@ -986,7 +996,7 @@ IPA.option_widget_base = function(spec, that) {
                         check(that._selector+'[value="'+ option.value +'"]');
                     }
                     if (option.widget) {
-                        option.widget.set_enabled(writable && has_opt, false);
+                        option.widget.update_enabled(writable && has_opt, false);
                     }
                 }
             } else {
@@ -1003,6 +1013,7 @@ IPA.option_widget_base = function(spec, that) {
                 var widget = that._child_widgets[j];
                 widget.writable = that.writable;
                 widget.read_only = that.read_only;
+                widget.enabled = that.enabled;
                 widget.update(values);
             }
         }
@@ -1010,12 +1021,22 @@ IPA.option_widget_base = function(spec, that) {
         that.updated.notify([], that);
     };
 
-    that.set_enabled = function(enabled, clear) {
+    that.set_enabled = function(enabled) {
 
-        $(that._selector, that.container).prop('disabled', !enabled);
+        that.enabled = enabled;
+        that.update_enabled(enabled);
+    };
+
+    that.update_enabled = function(enabled, clear) {
+
+        if (!that.$node) return;
+
+        $(that._selector, that.$node).prop('disabled', !enabled);
+
         if (!enabled && clear) that.clear();
+
         for (var i=0; i<that._child_widgets.length;i++) {
-            that._child_widgets[i].set_enabled(enabled, clear);
+            that._child_widgets[i].update_enabled(enabled, clear);
         }
     };
 
@@ -1074,7 +1095,7 @@ IPA.checkbox_widget = function (spec) {
     spec.input_type = spec.input_type || 'checkbox';
 
     if (!spec.options) {
-        spec.options = [ { value: checked, label: '' } ];
+        spec.options = [ { value: checked, label: '', enabled: spec.enabled } ];
     }
 
     if (spec.checked) spec.default_value = spec.checked;
@@ -1137,6 +1158,15 @@ IPA.select_widget = function(spec) {
         }
 
         that.create_error_link(container);
+        that.set_enabled(that.enabled);
+    };
+
+    that.set_enabled = function(value) {
+        that.widget_set_enabled(value);
+
+        if (that.select) {
+            that.select.prop('disabled', !value);
+        }
     };
 
     that.create_options = function() {
@@ -1231,7 +1261,6 @@ IPA.textarea_widget = function (spec) {
             name: that.name,
             rows: that.rows,
             cols: that.cols,
-            disabled: that.disabled,
             readOnly: !!that.read_only,
             title: that.tooltip,
             keyup: function() {
@@ -1250,6 +1279,7 @@ IPA.textarea_widget = function (spec) {
         }
 
         that.create_error_link(container);
+        that.set_enabled(that.enabled);
     };
 
     that.save = function() {
@@ -1786,6 +1816,8 @@ IPA.table_widget = function (spec) {
                 name: 'total_pages'
             }).appendTo(that.pagination_control);
         }
+
+        that.set_enabled(that.enabled);
     };
 
     that.prev_page = function() {
@@ -1994,7 +2026,11 @@ IPA.table_widget = function (spec) {
     };
 
     that.set_enabled = function(enabled) {
-        $('input[name="'+that.name+'"]', that.table).prop('disabled', !enabled);
+        that.widget_set_enabled(enabled);
+
+        if (that.table) {
+            $('input[name="'+that.name+'"]', that.table).prop('disabled', !enabled);
+        }
     };
 
     that.clear = function() {
@@ -2122,7 +2158,6 @@ IPA.attribute_table_widget = function(spec) {
             $('.action-button', that.table).addClass('action-button-disabled');
             that.unselect_all();
         }
-        that.enabled = enabled;
     };
 
     that.select_changed = function() {
@@ -2489,6 +2524,7 @@ IPA.combobox_widget = function(spec) {
         }
 
         that.create_error_link(container);
+        that.set_enabled(that.enabled);
     };
 
     that.on_no_close = function() {
@@ -2633,7 +2669,7 @@ IPA.combobox_widget = function(spec) {
     };
 
     that.open = function() {
-        if (!that.read_only) {
+        if (!that.read_only && that.enabled) {
             that.list_container.css('visibility', 'visible');
         }
     };
@@ -2989,33 +3025,19 @@ IPA.button_widget = function(spec) {
             style: that.style,
             click: that.on_click
         }).appendTo(container);
-    };
 
-    that.get_enabled = function() {
-
-        var enabled = true;
-
-        if (that.button) {
-            enabled = that.button.hasClass(that.disabled_class);
-        }
-
-        return enabled;
+        that.set_enabled(that.enabled);
     };
 
     that.set_enabled = function(enabled) {
+        that.widget_set_enabled(enabled);
 
-        enabled ? that.enable() : that.disable();
-    };
-
-    that.enable = function() {
         if (that.button) {
-            that.button.removeClass(that.disabled_class);
-        }
-    };
-
-    that.disable = function() {
-        if (that.button) {
-            that.button.addClass(that.disabled_class);
+            if (enabled) {
+                that.button.removeClass(that.disabled_class);
+            } else {
+                that.button.addClass(that.disabled_class);
+            }
         }
     };
 
@@ -3313,6 +3335,8 @@ IPA.multiple_choice_section = function(spec) {
             choice = choices[i];
             that.create_choice(choice);
         }
+
+        that.set_enabled(that.enabled);
     };
 
     that.create_choice = function(choice) {
@@ -3353,6 +3377,7 @@ IPA.multiple_choice_section = function(spec) {
             id: radio_id,
             value: choice.name,
             checked: enabled,
+            disabled: !that.enabled,
             change: function() {
                 that.select_choice(this.value);
             }
@@ -3375,11 +3400,11 @@ IPA.multiple_choice_section = function(spec) {
         for (i=0; i<that.choices.values.length; i++) {
             choice = that.choices.values[i];
             enabled = choice.name === choice_name;
-            that.set_enabled(choice, enabled);
+            that.set_choice_enabled(choice, enabled);
         }
     };
 
-    that.set_enabled = function (choice, enabled) {
+    that.set_choice_enabled = function (choice, enabled) {
 
         var i, field_name, field, fields, required;
 
@@ -3395,7 +3420,21 @@ IPA.multiple_choice_section = function(spec) {
         }
     };
 
+    that.set_enabled = function(value) {
+        var i, choice;
+
+        that.widget_set_enabled(value);
+
+        for (i=0; i<that.choices.values.length; i++) {
+            choice = that.choices.values[i];
+            that.set_choice_enabled(choice, value);
+        }
+    };
+
     that.init_enabled = function() {
+        if (!that.enabled) {
+            return;
+        }
 
         var i, choice;
 
@@ -3790,7 +3829,8 @@ IPA.sshkey_widget = function(spec) {
 
             dialog.textarea = $('<textarea/>', {
                 'class': 'certificate',
-                readonly: that.read_only
+                readonly: that.read_only,
+                disabled: !that.enabled
             }).appendTo(dialog.container);
 
             var key = that.key.key || '';
@@ -3868,7 +3908,7 @@ IPA.action_panel = function(spec) {
         if (!action.visible) return;
 
         classes = ['action'];
-        state = action.enabled ? 'enabled' : 'disabled';
+        state = action.enabled && that.enabled ? 'enabled' : 'disabled';
         classes.push(state);
 
         li = $('<li/>');
@@ -3908,7 +3948,7 @@ IPA.action_panel = function(spec) {
 
     that.action_clicked = function(action) {
 
-        if (!action.enabled || !action.visible) return;
+        if (!that.enabled || !action.enabled || !action.visible) return;
 
         action.execute(that.facet);
     };
