@@ -77,7 +77,7 @@ def wait_for_sssd():
     time.sleep(1)
     while n < 10 and not found:
         try:
-            ipautil.run(["getent", "passwd", "admin"])
+            ipautil.run(["getent", "passwd", "admin@%s" % api.env.realm])
             found = True
         except Exception, e:
             time.sleep(1)
@@ -85,8 +85,10 @@ def wait_for_sssd():
 
     # This should never happen but if it does, may as well warn the user
     if not found:
-        root_logger.debug("Unable to find 'admin' user with 'getent passwd admin'!")
-        print "Unable to find 'admin' user with 'getent passwd admin'!"
+        err_msg = ("Unable to find 'admin' user with "
+                   "'getent passwd admin@%s'!" % api.env.realm)
+        root_logger.debug(err_msg)
+        print err_msg
         print "This may mean that sssd didn't re-start properly after the configuration changes."
 
 def configure_xml(fstore):

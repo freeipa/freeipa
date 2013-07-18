@@ -2476,7 +2476,7 @@ def install(options, env, fstore, statestore):
             # Particulary, SSSD might take longer than 6-8 seconds.
             while n < 10 and not found:
                 try:
-                    ipautil.run(["getent", "passwd", "admin"])
+                    ipautil.run(["getent", "passwd", "admin@%s" % cli_realm])
                     found = True
                 except Exception, e:
                     time.sleep(1)
@@ -2484,7 +2484,8 @@ def install(options, env, fstore, statestore):
 
             if not found:
                 root_logger.error(
-                    "Unable to find 'admin' user with 'getent passwd admin'!")
+                    "Unable to find 'admin' user with "
+                    "'getent passwd admin@%s'!" % cli_realm)
                 if conf:
                     root_logger.info("Recognized configuration: %s", conf)
                 else:
