@@ -42,7 +42,6 @@ var spec = {
         {
             $type: 'search',
             row_enabled_attribute: 'ipaenabledflag',
-            search_all_attributes: true,
             columns: [
                 'cn',
                 'ipaselinuxuser',

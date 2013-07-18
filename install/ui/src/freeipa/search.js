@@ -239,10 +239,7 @@ IPA.search_facet = function(spec, no_init) {
             name: that.get_search_command_name(),
             entity: that.managed_entity.name,
             method: 'find',
-            args: args,
-            options: {
-                all: that.search_all_attributes
-            }
+            args: args
         });
 
         if (that.pagination) {

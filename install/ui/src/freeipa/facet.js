@@ -1082,7 +1082,6 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
     that.pagination = spec.pagination === undefined ? true : spec.pagination;
     that.search_all_entries = spec.search_all_entries;
-    that.search_all_attributes = spec.search_all_attributes;
     that.sort_enabled = spec.sort_enabled === undefined ? true : spec.sort_enabled;
     that.selectable = spec.selectable === undefined ? true : spec.selectable;
     that.select_changed = IPA.observer();
@@ -1312,7 +1311,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
     that.create_get_records_command = function(pkeys, on_success, on_error) {
 
-         var batch = IPA.batch_command({
+        var batch = IPA.batch_command({
             name: that.get_records_command_name(),
             on_success: on_success,
             on_error: on_error
@@ -1324,9 +1323,12 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             var command = IPA.command({
                 entity: that.table.entity.name,
                 method: 'show',
-                args: [ pkey ],
-                options: { all: true }
+                args: [pkey]
             });
+
+            if (that.table.entity.has_members()) {
+                command.set_options({no_members: true});
+            }
 
             batch.add_command(command);
         }
@@ -1353,7 +1355,6 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             label: entity.metadata.label,
             entity: entity,
             pagination: true,
-            search_all_attributes: that.search_all_attributes,
             scrollable: true,
             selectable: that.selectable && !that.read_only
         });

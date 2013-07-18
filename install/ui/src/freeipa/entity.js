@@ -217,6 +217,20 @@ exp.entity = IPA.entity = function(spec) {
         return that;
     };
 
+    that.has_members = function() {
+        var members = that.metadata.attribute_members;
+        var has = false;
+        if (members) {
+            for (var member in members) {
+                if (members.hasOwnProperty(member)) {
+                    has = true;
+                    break;
+                }
+            }
+        }
+        return has;
+    };
+
     that.builder = spec.builder || IPA.entity_builder(that);
 
     that.entity_init = that.init;
