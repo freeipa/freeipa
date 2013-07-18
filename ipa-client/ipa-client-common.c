@@ -33,13 +33,13 @@ int init_gettext(void)
     }
 
     errno = 0;
-    c = bindtextdomain(PACKAGE, LOCALEDIR);
+    c = bindtextdomain("ipa", LOCALEDIR);
     if (c == NULL) {
         return errno;
     }
 
     errno = 0;
-    c = textdomain(PACKAGE);
+    c = textdomain("ipa");
     if (c == NULL) {
         return errno;
     }
