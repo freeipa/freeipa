@@ -24,6 +24,7 @@
 #include "ipa_mspac.h"
 #include <talloc.h>
 #include <syslog.h>
+#include <unicase.h>
 #include "util/time.h"
 #include "gen_ndr/ndr_krb5pac.h"
 
@@ -1282,7 +1283,8 @@ static struct ipadb_adtrusts *get_domain_from_realm_update(krb5_context context,
         return NULL;
     }
 
-    kerr = ipadb_reinit_mspac(ipactx);
+    /* re-init MS-PAC info using default update interval */
+    kerr = ipadb_reinit_mspac(ipactx, false);
     if (kerr != 0) {
         return NULL;
     }
@@ -1805,8 +1807,10 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     krb5_error_code kerr;
     krb5_pac pac = NULL;
     krb5_data pac_data;
+    struct ipadb_context *ipactx;
     bool with_pac;
     bool with_pad;
+    int result;
 
     /* When using s4u2proxy client_princ actually refers to the proxied user
      * while client->princ to the proxy service asking for the TGS on behalf
@@ -1831,6 +1835,22 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
 
     if (is_as_req && with_pac && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) {
+        /* Be aggressive here: special case for discovering range type
+         * immediately after establishing the trust by IPA framework */
+        if ((krb5_princ_size(context, ks_client_princ) == 2) &&
+            (strncmp(krb5_princ_component(context, ks_client_princ, 0)->data, "HTTP",
+                     krb5_princ_component(context, ks_client_princ, 0)->length) == 0)) {
+            ipactx = ipadb_get_context(context);
+            if (!ipactx) {
+                goto done;
+            }
+            if (ulc_casecmp(krb5_princ_component(context, ks_client_princ, 1)->data,
+                            krb5_princ_component(context, ks_client_princ, 1)->length,
+                            ipactx->kdc_hostname, strlen(ipactx->kdc_hostname),
+                            NULL, NULL, &result) == 0) {
+                kerr = ipadb_reinit_mspac(ipactx, true);
+            }
+        }
 
         kerr = ipadb_get_pac(context, client, &pac);
         if (kerr != 0 && kerr != ENOENT) {
@@ -2155,7 +2175,7 @@ done:
     return ret;
 }
 
-krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
+krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit)
 {
     char *dom_attrs[] = { "ipaNTFlatName",
                           "ipaNTFallbackPrimaryGroup",
@@ -2174,7 +2194,10 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
      * avoid heavy load on the directory server if there are lots of requests
      * from domains which we do not trust. */
     now = time(NULL);
-    if (ipactx->mspac != NULL && now > ipactx->mspac->last_update &&
+
+    if (ipactx->mspac != NULL &&
+        (force_reinit == false) &&
+        (now > ipactx->mspac->last_update) &&
         (now - ipactx->mspac->last_update) < 60) {
         return 0;
     }

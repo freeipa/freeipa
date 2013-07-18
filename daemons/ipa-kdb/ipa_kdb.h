@@ -250,7 +250,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     krb5_authdata **tgt_auth_data,
                                     krb5_authdata ***signed_auth_data);
 
-krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx);
+krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit);
 
 void ipadb_mspac_struct_free(struct ipadb_mspac **mspac);
 

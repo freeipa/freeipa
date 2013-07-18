@@ -393,8 +393,8 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
         goto done;
     }
 
-    /* get adtrust options */
-    ret = ipadb_reinit_mspac(ipactx);
+    /* get adtrust options using default refresh interval */
+    ret = ipadb_reinit_mspac(ipactx, false);
     if (ret && ret != ENOENT) {
         /* TODO: log that there is an issue with adtrust settings */
     }
