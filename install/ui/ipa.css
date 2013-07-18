@@ -262,6 +262,7 @@ body {
 
     font-weight: bold;
     text-align: center;
+    word-wrap: break-word;
 }
 
 /* ---- Navigation ---- */
