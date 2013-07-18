@@ -21,6 +21,7 @@
  */
 
 #include <talloc.h>
+#include <sys/utsname.h>
 
 #include "ipa_kdb.h"
 
@@ -46,6 +47,7 @@ static void ipadb_context_free(krb5_context kcontext,
         free((*ctx)->uri);
         free((*ctx)->base);
         free((*ctx)->realm_base);
+        free((*ctx)->kdc_hostname);
         /* ldap free lcontext */
         if ((*ctx)->lcontext) {
             ldap_unbind_ext_s((*ctx)->lcontext, NULL, NULL);
@@ -442,6 +444,7 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
     krb5_error_code kerr;
     int ret;
     int i;
+    struct utsname uname_data;
 
     /* make sure the context is freed to avoid leaking it */
     ipactx = ipadb_get_context(kcontext);
@@ -490,6 +493,18 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
     ret = asprintf(&ipactx->realm_base, "cn=%s,cn=kerberos,%s",
                                         ipactx->realm, ipactx->base);
     if (ret == -1) {
+        ret = ENOMEM;
+        goto fail;
+    }
+
+    ret = uname(&uname_data);
+    if (ret) {
+        ret = EINVAL;
+        goto fail;
+    }
+
+    ipactx->kdc_hostname = strdup(uname_data.nodename);
+    if (!ipactx->kdc_hostname) {
         ret = ENOMEM;
         goto fail;
     }

@@ -92,6 +92,7 @@ struct ipadb_context {
     char *base;
     char *realm;
     char *realm_base;
+    char *kdc_hostname;
     LDAP *lcontext;
     krb5_context kcontext;
     bool override_restrictions;

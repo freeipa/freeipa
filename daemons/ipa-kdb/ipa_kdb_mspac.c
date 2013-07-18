@@ -1905,16 +1905,13 @@ done:
     return kerr;
 }
 
-static char *get_server_netbios_name(void)
+static char *get_server_netbios_name(struct ipadb_context *ipactx)
 {
     char hostname[MAXHOSTNAMELEN + 1]; /* NOTE: this is 64, too little ? */
     char *p;
     int ret;
 
-    ret = gethostname(hostname, MAXHOSTNAMELEN);
-    if (ret) {
-        return NULL;
-    }
+    strncpy(hostname, ipactx->kdc_hostname, MAXHOSTNAMELEN);
     /* May miss termination */
     hostname[MAXHOSTNAMELEN] = '\0';
     for (p = hostname; *p; p++) {
@@ -2245,7 +2242,7 @@ krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
     free(resstr);
 
     free(ipactx->mspac->flat_server_name);
-    ipactx->mspac->flat_server_name = get_server_netbios_name();
+    ipactx->mspac->flat_server_name = get_server_netbios_name(ipactx);
     if (!ipactx->mspac->flat_server_name) {
         kerr = ENOMEM;
         goto done;
