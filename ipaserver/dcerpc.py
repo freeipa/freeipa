@@ -53,6 +53,8 @@ from ipapython.ipaldap import IPAdmin
 from ipalib.session import krbccache_dir, krbccache_prefix
 from dns import resolver, rdatatype
 from dns.exception import DNSException
+import pysss_nss_idmap
+import pysss
 
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls
@@ -312,6 +314,12 @@ class DomainValidator(object):
         return entries
 
     def get_trusted_domain_object_sid(self, object_name):
+        result = pysss_nss_idmap.getsidbyname(object_name)
+        if object_name in result and (pysss_nss_idmap.SID_KEY in result[object_name]):
+            object_sid = result[object_name][pysss_nss_idmap.SID_KEY]
+            return object_sid
+
+        # Else, we are going to contact AD DC LDAP
         components = normalize_name(object_name)
         if not ('domain' in components or 'flatname' in components):
             # No domain or realm specified, ambiguous search
@@ -337,7 +345,7 @@ class DomainValidator(object):
             raise errors.ValidationError(name=_('trusted domain object'),
                error= _('Trusted domain did not return a valid SID for the object'))
 
-    def get_trusted_domain_user_and_groups(self, object_name):
+    def __get_trusted_domain_user_and_groups(self, object_name):
         """
         Returns a tuple with user SID and a list of SIDs of all groups he is
         a member of.
@@ -392,6 +400,41 @@ class DomainValidator(object):
         object_sid = self.__sid_to_str(entries[0][1]['objectSid'][0])
         group_sids = [self.__sid_to_str(sid) for sid in entries[0][1]['tokenGroups']]
         return (object_sid, group_sids)
+
+    def get_trusted_domain_user_and_groups(self, object_name):
+        """
+        Returns a tuple with user SID and a list of SIDs of all groups he is
+        a member of.
+
+        First attempts to perform SID lookup via SSSD and in case of failure
+        resorts back to checking trusted domain's AD DC LDAP directly.
+
+        LIMITATIONS:
+            - only Trusted Admins group members can use this function as it
+              uses secret for IPA-Trusted domain link if SSSD lookup failed
+            - List of group SIDs does not contain group memberships outside
+              of the trusted domain
+        """
+        group_sids = None
+        group_list = None
+        object_sid = None
+        is_valid_sid = is_sid_valid(object_name)
+        if is_valid_sid:
+            object_sid = object_name
+            result = pysss_nss_idmap.getnamebysid(object_name)
+            if object_name in result and (pysss_nss_idmap.NAME_KEY in result[object_name]):
+                group_list = pysss.getgrouplist(result[object_name][pysss_nss_idmap.NAME_KEY])
+        else:
+            result = pysss_nss_idmap.getsidbyname(object_name)
+            if object_name in result and (pysss_nss_idmap.SID_KEY in result[object_name]):
+                object_sid = result[object_name][pysss_nss_idmap.SID_KEY]
+                group_list = pysss.getgrouplist(object_name)
+
+        if not group_list:
+            return self.__get_trusted_domain_user_and_groups(object_name)
+
+        group_sids = pysss_nss_idmap.getsidbyname(group_list)
+        return (object_sid, [el[1][pysss_nss_idmap.SID_KEY] for el in group_sids.items()])
 
     def __sid_to_str(self, sid):
         """
