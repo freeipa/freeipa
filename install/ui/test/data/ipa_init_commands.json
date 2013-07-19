@@ -16976,9 +16976,9 @@
                     {
                         "attribute": true,
                         "class": "Str",
-                        "doc": "GECOS field",
+                        "doc": "GECOS",
                         "flags": [],
-                        "label": "GECOS field",
+                        "label": "GECOS",
                         "name": "gecos",
                         "noextrawhitespace": true,
                         "type": "unicode"
@@ -17350,9 +17350,9 @@
                     {
                         "attribute": true,
                         "class": "Str",
-                        "doc": "GECOS field",
+                        "doc": "GECOS",
                         "flags": [],
-                        "label": "GECOS field",
+                        "label": "GECOS",
                         "name": "gecos",
                         "noextrawhitespace": true,
                         "query": true,
@@ -17807,9 +17807,9 @@
                     {
                         "attribute": true,
                         "class": "Str",
-                        "doc": "GECOS field",
+                        "doc": "GECOS",
                         "flags": [],
-                        "label": "GECOS field",
+                        "label": "GECOS",
                         "name": "gecos",
                         "noextrawhitespace": true,
                         "type": "unicode"

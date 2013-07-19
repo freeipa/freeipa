@@ -7671,9 +7671,9 @@
                     },
                     {
                         "class": "Str",
-                        "doc": "GECOS field",
+                        "doc": "GECOS",
                         "flags": [],
-                        "label": "GECOS field",
+                        "label": "GECOS",
                         "name": "gecos",
                         "noextrawhitespace": true,
                         "type": "unicode"

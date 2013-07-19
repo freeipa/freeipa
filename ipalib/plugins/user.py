@@ -264,7 +264,7 @@ class user(LDAPObject):
             label=_('Home directory'),
         ),
         Str('gecos?',
-            label=_('GECOS field'),
+            label=_('GECOS'),
             default_from=lambda givenname, sn: '%s %s' % (givenname, sn),
             autofill=True,
         ),
