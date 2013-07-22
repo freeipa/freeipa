@@ -393,7 +393,6 @@ static int ipalockout_postop(Slapi_PBlock *pb)
     Slapi_Entry *target_entry = NULL;
     Slapi_Entry *policy_entry = NULL;
     Slapi_DN *sdn = NULL;
-    Slapi_DN *pdn = NULL;
     Slapi_PBlock *pbtm = NULL;
     Slapi_Mods *smods = NULL;
     Slapi_Value *objectclass = NULL;
