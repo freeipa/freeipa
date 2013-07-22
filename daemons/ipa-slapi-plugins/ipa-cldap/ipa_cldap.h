@@ -98,7 +98,8 @@ struct ipa_cldap_req {
     struct kvp_list kvps;
 };
 
-void *ipa_cldap_worker(struct ipa_cldap_ctx *ctx);
+/*void *ipa_cldap_worker(struct ipa_cldap_ctx *ctx);*/
+void *ipa_cldap_worker(void *arg);
 
 int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
                        struct ipa_cldap_req *req,

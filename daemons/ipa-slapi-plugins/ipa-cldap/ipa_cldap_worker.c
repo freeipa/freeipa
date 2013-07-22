@@ -314,11 +314,12 @@ static struct ipa_cldap_req *ipa_cldap_recv_dgram(struct ipa_cldap_ctx *ctx)
     return req;
 }
 
-void *ipa_cldap_worker(struct ipa_cldap_ctx *ctx)
+void *ipa_cldap_worker(void *arg)
 {
     struct ipa_cldap_req *req;
     struct pollfd fds[2];
     bool stop = false;
+    struct ipa_cldap_ctx *ctx = (struct ipa_cldap_ctx *) arg;
     int ret;
 
     while (!stop) {
