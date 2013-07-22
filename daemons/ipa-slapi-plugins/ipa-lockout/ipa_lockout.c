@@ -668,7 +668,6 @@ static int ipalockout_preop(Slapi_PBlock *pb)
     int ret = LDAP_SUCCESS;
     unsigned long failedcount = 0;
     time_t time_now;
-    unsigned int failcnt_interval = 0;
     unsigned int max_fail = 0;
     unsigned int lockout_duration = 0;
     time_t last_failed = 0;
@@ -737,7 +736,6 @@ static int ipalockout_preop(Slapi_PBlock *pb)
 
     failedcount = slapi_entry_attr_get_ulong(target_entry, "krbLoginFailedCount");
     time_now = time(NULL);
-    failcnt_interval = slapi_entry_attr_get_uint(policy_entry, "krbPwdFailureCountInterval");
     lockout_duration = slapi_entry_attr_get_uint(policy_entry, "krbPwdLockoutDuration");
 
     lastfail = slapi_entry_attr_get_charptr(target_entry, "krbLastFailedAuth");
