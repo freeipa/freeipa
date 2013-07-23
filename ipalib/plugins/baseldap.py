@@ -971,6 +971,19 @@ last, after all sets and adds."""),
                     func = exc_func
         return wrapped
 
+    def get_options(self):
+        for param in super(BaseLDAPCommand, self).get_options():
+            yield param
+        if self.obj.attribute_members:
+            for o in self.has_output:
+                if isinstance(o, (output.Entry, output.ListOfEntries)):
+                    yield Flag('no_members',
+                        doc=_('Suppress processing of membership attributes.'),
+                        exclude='webui',
+                        flags=['no_option', 'no_output'],
+                    )
+                    break
+
 class LDAPCreate(BaseLDAPCommand, crud.Create):
     """
     Create a new entry in LDAP.
@@ -1024,9 +1037,11 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
         else:
-            attrs_list = list(
-                set(self.obj.default_attributes + entry_attrs.keys())
-            )
+            attrs_list = set(self.obj.default_attributes)
+            attrs_list.update(entry_attrs.keys())
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
 
         for callback in self.get_callbacks('pre'):
             dn = callback(
@@ -1186,7 +1201,10 @@ class LDAPRetrieve(LDAPQuery):
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
         else:
-            attrs_list = list(self.obj.default_attributes)
+            attrs_list = set(self.obj.default_attributes)
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
 
         for callback in self.get_callbacks('pre'):
             dn = callback(self, ldap, dn, attrs_list, *keys, **options)
@@ -1281,9 +1299,11 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
         else:
-            attrs_list = list(
-                set(self.obj.default_attributes + entry_attrs.keys())
-            )
+            attrs_list = set(self.obj.default_attributes)
+            attrs_list.update(entry_attrs.keys())
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
 
         _check_single_value_attrs(self.params, entry_attrs)
         _check_empty_attrs(self.obj.params, entry_attrs)
@@ -1552,9 +1572,11 @@ class LDAPAddMember(LDAPModMember):
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
         else:
-            attrs_list = list(
-                set(self.obj.default_attributes + member_dns.keys())
-            )
+            attrs_list = set(self.obj.default_attributes)
+            attrs_list.update(member_dns.keys())
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
 
         try:
             (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
@@ -1650,9 +1672,11 @@ class LDAPRemoveMember(LDAPModMember):
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
         else:
-            attrs_list = list(
-                set(self.obj.default_attributes + member_dns.keys())
-            )
+            attrs_list = set(self.obj.default_attributes)
+            attrs_list.update(member_dns.keys())
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
 
         # Give memberOf a chance to update entries
         time.sleep(.3)
@@ -1828,9 +1852,11 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         elif options.get('all', False):
             attrs_list = ['*'] + defattrs
         else:
-            attrs_list = list(
-                set(defattrs + search_kw.keys())
-            )
+            attrs_list = set(defattrs)
+            attrs_list.update(search_kw.keys())
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
 
         if self.obj.search_attributes:
             search_attrs = self.obj.search_attributes
@@ -1988,7 +2014,10 @@ class LDAPAddReverseMember(LDAPModReverseMember):
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
         else:
-            attrs_list = self.obj.default_attributes
+            attrs_list = set(self.obj.default_attributes)
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
 
         # Pull the record as it is now so we can know how many members
         # there are.
@@ -2090,7 +2119,10 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
         else:
-            attrs_list = self.obj.default_attributes
+            attrs_list = set(self.obj.default_attributes)
+            if options.get('no_members', False):
+                attrs_list.difference_update(self.obj.attribute_members)
+            attrs_list = list(attrs_list)
 
         # Pull the record as it is now so we can know how many members
         # there are.
