@@ -40,6 +40,7 @@ import ConfigParser
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
 from ipapython import certmonger
+from ipalib import api
 from ipalib import pkcs10, x509
 from ipalib import errors
 from ipapython.dn import DN
@@ -1730,58 +1731,81 @@ def update_cert_config(nickname, cert, dogtag_constants=None):
                                     base64.b64encode(cert),
                                     quotes=False, separator='=')
 
-def update_people_entry(uid, dercert):
+def update_people_entry(dercert):
     """
     Update the userCerticate for an entry in the dogtag ou=People. This
     is needed when a certificate is renewed.
 
-    uid: uid of user to update
     dercert: An X509.3 certificate in DER format
 
     Logging is done via syslog
 
     Returns True or False
     """
-    dn = DN(('uid',uid),('ou','People'),('o','ipaca'))
+    base_dn = DN(('ou','People'), ('o','ipaca'))
     serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
     subject = x509.get_subject(dercert, datatype=x509.DER)
     issuer = x509.get_issuer(dercert, datatype=x509.DER)
 
     attempts = 0
-    dogtag_uri='ldap://localhost:%d' % DEFAULT_DSPORT
+    configured_constants = dogtag.configured_constants(api)
+    dogtag_uri = 'ldap://localhost:%d' % configured_constants.DS_PORT
     updated = False
 
     try:
         dm_password = certmonger.get_pin('internaldb')
     except IOError, e:
-        syslog.syslog(syslog.LOG_ERR, 'Unable to determine PIN for CA instance: %s' % e)
+        syslog.syslog(
+            syslog.LOG_ERR, 'Unable to determine PIN for CA instance: %s' % e)
         return False
 
     while attempts < 10:
         conn = None
         try:
             conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
-            conn.connect(bind_dn=DN(('cn', 'directory manager')),
-                bind_pw=dm_password)
-            entry_attrs = conn.get_entry(dn, ['usercertificate'])
-            entry_attrs['usercertificate'].append(dercert)
-            entry_attrs['description'] = '2;%d;%s;%s' % (serial_number, issuer,
-                subject)
-            conn.update_entry(entry_attrs)
+            conn.connect(
+                bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
+
+            filter = conn.make_filter(
+                {'description': ';%s;%s' % (issuer, subject)},
+                exact=False, trailing_wildcard=False)
+            try:
+                entries = conn.get_entries(base_dn, conn.SCOPE_SUBTREE, filter)
+            except errors.NotFound:
+                entries = []
+
             updated = True
+
+            for entry in entries:
+                syslog.syslog(
+                    syslog.LOG_NOTICE, 'Updating entry %s' % str(entry.dn))
+
+                try:
+                    entry['usercertificate'].append(dercert)
+                    entry['description'] = '2;%d;%s;%s' % (
+                        serial_number, issuer, subject)
+
+                    conn.update_entry(entry)
+                except errors.EmptyModlist:
+                    pass
+                except Exception, e:
+                    syslog.syslog(
+                        syslog.LOG_ERR,
+                        'Updating entry %s failed: %s' % (str(entry.dn), e))
+                    updated = False
+
             break
         except errors.NetworkError:
-            syslog.syslog(syslog.LOG_ERR, 'Connection to %s failed, sleeping 30s' % dogtag_uri)
+            syslog.syslog(
+                syslog.LOG_ERR,
+                'Connection to %s failed, sleeping 30s' % dogtag_uri)
             time.sleep(30)
             attempts += 1
-        except errors.EmptyModlist:
-            updated = True
-            break
         except Exception, e:
-            syslog.syslog(syslog.LOG_ERR, 'Updating %s entry failed: %s' % (str(dn), e))
+            syslog.syslog(syslog.LOG_ERR, 'Caught unhandled exception: %s' % e)
             break
         finally:
-            if conn.isconnected():
+            if conn is not None and conn.isconnected():
                 conn.disconnect()
 
     if not updated:

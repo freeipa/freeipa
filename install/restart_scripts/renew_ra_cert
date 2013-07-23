@@ -43,7 +43,7 @@ def main():
     dercert = db.get_cert_from_db('ipaCert', pem=False)
 
     # Load it into dogtag
-    update_people_entry('ipara', dercert)
+    update_people_entry(dercert)
 
     attempts = 0
     updated = False
