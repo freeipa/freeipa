@@ -1930,7 +1930,6 @@ static char *get_server_netbios_name(struct ipadb_context *ipactx)
 {
     char hostname[MAXHOSTNAMELEN + 1]; /* NOTE: this is 64, too little ? */
     char *p;
-    int ret;
 
     strncpy(hostname, ipactx->kdc_hostname, MAXHOSTNAMELEN);
     /* May miss termination */
