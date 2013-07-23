@@ -1842,6 +1842,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                      krb5_princ_component(context, ks_client_princ, 0)->length) == 0)) {
             ipactx = ipadb_get_context(context);
             if (!ipactx) {
+                kerr = ENOMEM;
                 goto done;
             }
             if (ulc_casecmp(krb5_princ_component(context, ks_client_princ, 1)->data,
