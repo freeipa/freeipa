@@ -140,7 +140,6 @@ Requires: subscription-manager
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: python-dns
-Requires: keyutils
 Requires: zip
 Requires: policycoreutils >= %{POLICYCOREUTILSVER}
 Requires: tar
@@ -275,6 +274,7 @@ Group: System Environment/Libraries
 Requires: python-kerberos
 Requires: gnupg
 Requires: iproute
+Requires: keyutils
 Requires: pyOpenSSL
 Requires: python-nss
 Requires: python-lxml
@@ -776,6 +776,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Wed Jul 24 2013 Tomas Babej <tbabej@redhat.com> - 3.2.1-5
+- Move requirement for keyutils from freeipa-server to freeipa-python
+
 * Wed Jul 17 2013 Martin Kosek <mkosek@redhat.com> - 3.2.1-4
 - Require selinux-policy 3.12.1-65 containing missing policy after removal of
   freeipa-server-selinux subpackage
