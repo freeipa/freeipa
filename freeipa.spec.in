@@ -142,7 +142,6 @@ Requires: subscription-manager
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: python-dns
-Requires: keyutils
 Requires: zip
 Requires: policycoreutils >= %{POLICYCOREUTILSVER}
 Requires: tar
@@ -277,6 +276,7 @@ Group: System Environment/Libraries
 Requires: python-kerberos
 Requires: gnupg
 Requires: iproute
+Requires: keyutils
 Requires: pyOpenSSL
 Requires: python-nss
 Requires: python-lxml
@@ -826,6 +826,9 @@ fi
 %endif  # ! %{ONLY_CLIENT}
 
 %changelog
+* Wed Jul 24 2013 Tomas Babej <tbabej@redhat.com> - 3.2.99-10
+- Move requirement for keyutils from freeipa-server to freeipa-python
+
 * Wed Jul 24 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-9
 - Bump minimum version of sssd to 1.10.92 to pick up latest SSSD 1.11 Beta
   development
