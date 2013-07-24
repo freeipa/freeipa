@@ -297,6 +297,8 @@ package.
 Summary: IPA tests and test tools
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-python = %{version}-%{release}
+Requires: tar
+Requires: xz
 Requires: python-nose
 Requires: python-paste
 Requires: python-coverage
@@ -827,6 +829,9 @@ fi
 %endif  # ! %{ONLY_CLIENT}
 
 %changelog
+* Wed Jul 24 2013 Petr Viktorin <pviktori@redhat.com> - 3.2.99-11
+- Add tar and xz dependencies to freeipa-tests
+
 * Wed Jul 24 2013 Tomas Babej <tbabej@redhat.com> - 3.2.99-10
 - Move requirement for keyutils from freeipa-server to freeipa-python
 
