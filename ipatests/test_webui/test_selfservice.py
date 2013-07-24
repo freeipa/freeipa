@@ -37,8 +37,8 @@ DATA = {
     ],
 }
 
-class test_selfservice(UI_driver):
 
+class test_selfservice(UI_driver):
 
     def test_crud(self):
         """

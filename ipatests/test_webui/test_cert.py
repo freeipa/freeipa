@@ -25,6 +25,7 @@ from ipatests.test_webui.ui_driver import UI_driver
 
 ENTITY = 'cert'
 
+
 class test_cert(UI_driver):
 
     def __init__(self, *args, **kwargs):
@@ -32,7 +33,6 @@ class test_cert(UI_driver):
 
         if not self.has_ca():
             self.skip('CA not configured')
-
 
     def test_read(self):
         """

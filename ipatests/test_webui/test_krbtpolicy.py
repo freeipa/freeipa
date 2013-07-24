@@ -27,17 +27,18 @@ ENTITY = 'krbtpolicy'
 
 DATA = {
     'mod': [
-        ('textbox', 'krbmaxrenewableage','599000'),
-        ('textbox', 'krbmaxticketlife','79800'),
+        ('textbox', 'krbmaxrenewableage', '599000'),
+        ('textbox', 'krbmaxticketlife', '79800'),
     ],
 }
 
 DATA2 = {
     'mod': [
-        ('textbox', 'krbmaxrenewableage','604800'),
-        ('textbox', 'krbmaxticketlife','86400'),
+        ('textbox', 'krbmaxrenewableage', '604800'),
+        ('textbox', 'krbmaxticketlife', '86400'),
     ],
 }
+
 
 class test_krbtpolicy(UI_driver):
 

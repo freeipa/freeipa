@@ -59,10 +59,10 @@ class test_netgroup(UI_driver):
         self.navigate_to_record(netgroup.PKEY, entity=netgroup.ENTITY)
 
         tables = [
-            ['memberuser_user', [user.PKEY, user.PKEY2],],
-            ['memberuser_group', [group.PKEY, group.PKEY2],],
-            ['memberhost_host', [host.pkey, host.pkey2],],
-            ['memberhost_hostgroup', [hostgroup.PKEY, hostgroup.PKEY2],],
+            ['memberuser_user', [user.PKEY, user.PKEY2], ],
+            ['memberuser_group', [group.PKEY, group.PKEY2], ],
+            ['memberhost_host', [host.pkey, host.pkey2], ],
+            ['memberhost_hostgroup', [hostgroup.PKEY, hostgroup.PKEY2], ],
         ]
 
         categories = [

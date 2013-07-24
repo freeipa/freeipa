@@ -34,8 +34,8 @@ DATA = {
         ('label', 'uid', PKEY),
     ],
     'mod': [
-        ('textbox', 'givenname','OtherName'),
-        ('textbox', 'sn','OtherSurname'),
+        ('textbox', 'givenname', 'OtherName'),
+        ('textbox', 'sn', 'OtherSurname'),
         ('multivalued', 'telephonenumber', [
             ('add', '123456789'),
             ('add', '987654321'),
@@ -59,7 +59,7 @@ DATA2 = {
         ('textbox', 'sn', 'Surname2'),
     ],
     'mod': [
-        ('textbox', 'givenname','OtherName2'),
-        ('textbox', 'sn','OtherSurname2'),
+        ('textbox', 'givenname', 'OtherName2'),
+        ('textbox', 'sn', 'OtherSurname2'),
     ],
 }

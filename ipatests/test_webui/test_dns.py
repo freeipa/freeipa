@@ -40,7 +40,7 @@ ZONE_DATA = {
         ('checkbox', 'force', ''),
     ],
     'mod': [
-        ('checkbox', 'idnsallowsyncptr',''),
+        ('checkbox', 'idnsallowsyncptr', ''),
     ],
 }
 
@@ -62,9 +62,10 @@ RECORD_MOD_DATA = {
 
 CONFIG_MOD_DATA = {
     'mod': [
-        ('checkbox', 'idnsallowsyncptr',''),
+        ('checkbox', 'idnsallowsyncptr', ''),
     ],
 }
+
 
 class test_dns(UI_driver):
 
@@ -82,7 +83,7 @@ class test_dns(UI_driver):
 
         # add and mod zone
         self.basic_crud(ZONE_ENTITY, ZONE_DATA,
-            default_facet=ZONE_DEFAULT_FACET , delete=False)
+                        default_facet=ZONE_DEFAULT_FACET, delete=False)
 
         # add and mod record
         self.navigate_to_record(ZONE_PKEY)
@@ -96,7 +97,6 @@ class test_dns(UI_driver):
         self.delete_record(RECORD_PKEY)
         self.navigate_by_breadcrumb("DNS Zones")
         self.delete_record(ZONE_PKEY)
-
 
     def test_config_crud(self):
         """

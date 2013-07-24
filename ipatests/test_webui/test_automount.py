@@ -59,6 +59,7 @@ KEY_DATA = {
     ]
 }
 
+
 class test_automount(UI_driver):
 
     def test_crud(self):
@@ -69,32 +70,32 @@ class test_automount(UI_driver):
 
         # location
         self.basic_crud(LOC_ENTITY, LOC_DATA,
-            default_facet='maps',
-            delete=False,
-            breadcrumb='Automount Locations'
-        )
+                        default_facet='maps',
+                        delete=False,
+                        breadcrumb='Automount Locations'
+                        )
 
         # map
         self.navigate_to_record(LOC_PKEY)
 
         self.basic_crud(MAP_ENTITY, MAP_DATA,
-            parent_entity=LOC_ENTITY,
-            search_facet='maps',
-            default_facet='keys',
-            delete=False,
-            navigate=False,
-            breadcrumb=LOC_PKEY,
-        )
+                        parent_entity=LOC_ENTITY,
+                        search_facet='maps',
+                        default_facet='keys',
+                        delete=False,
+                        navigate=False,
+                        breadcrumb=LOC_PKEY,
+                        )
 
         # key
         self.navigate_to_record(MAP_PKEY)
 
         self.basic_crud(KEY_ENTITY, KEY_DATA,
-            parent_entity=MAP_ENTITY,
-            search_facet='keys',
-            navigate=False,
-            breadcrumb=MAP_PKEY,
-        )
+                        parent_entity=MAP_ENTITY,
+                        search_facet='keys',
+                        navigate=False,
+                        breadcrumb=MAP_PKEY,
+                        )
 
         # delete
         self.navigate_by_breadcrumb(LOC_PKEY)

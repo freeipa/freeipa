@@ -31,16 +31,17 @@ DATA = {
         ('textbox', 'cospriority', '364'),
     ],
     'mod': [
-        ('textbox', 'krbmaxpwdlife','3000'),
-        ('textbox', 'krbminpwdlife','1'),
-        ('textbox', 'krbpwdhistorylength','0'),
-        ('textbox', 'krbpwdmindiffchars','2'),
-        ('textbox', 'krbpwdminlength','2'),
-        ('textbox', 'krbpwdmaxfailure','15'),
-        ('textbox', 'krbpwdfailurecountinterval','5'),
-        ('textbox', 'krbpwdlockoutduration','3600'),
+        ('textbox', 'krbmaxpwdlife', '3000'),
+        ('textbox', 'krbminpwdlife', '1'),
+        ('textbox', 'krbpwdhistorylength', '0'),
+        ('textbox', 'krbpwdmindiffchars', '2'),
+        ('textbox', 'krbpwdminlength', '2'),
+        ('textbox', 'krbpwdmaxfailure', '15'),
+        ('textbox', 'krbpwdfailurecountinterval', '5'),
+        ('textbox', 'krbpwdlockoutduration', '3600'),
     ],
 }
+
 
 class test_pwpolicy(UI_driver):
 

@@ -30,6 +30,7 @@ import ipatests.test_webui.data_sudo as sudo
 
 ENTITY = 'host'
 
+
 class host_tasks(UI_driver):
 
     def __init__(self, *args, **kwargs):
@@ -39,7 +40,7 @@ class host_tasks(UI_driver):
 
     def prep_data(self):
         host = 'itest'
-        domain =  self.config.get('ipa_domain')
+        domain = self.config.get('ipa_domain')
         ip = self.get_ip()
         self.data = self.get_data(host, domain, ip)
         self.pkey = self.data['pkey']
@@ -47,7 +48,7 @@ class host_tasks(UI_driver):
 
     def prep_data2(self):
         host = 'itest2'
-        domain =  self.config.get('ipa_domain')
+        domain = self.config.get('ipa_domain')
         self.data2 = self.get_data(host, domain)
         self.pkey2 = self.data2['pkey']
         return self.data2
@@ -75,7 +76,7 @@ class host_tasks(UI_driver):
             'pkey': '%s.%s' % (host, domain),
             'add': add_data,
             'mod': [
-                ('textarea', 'description','Desc'),
+                ('textarea', 'description', 'Desc'),
             ],
             'del': del_data,
         }
@@ -91,7 +92,7 @@ class host_tasks(UI_driver):
             self.skip('FreeIPA Server IP address not configured')
         ip = ip.split('.')
         last = int(ip.pop())
-        ip.append(str(last+1))
+        ip.append(str(last + 1))
         return '.'.join(ip)
 
     def load_csr(self, path):
@@ -139,7 +140,7 @@ class test_host(host_tasks):
         self.action_panel_action(panel, 'request_cert')
         self.fill_text('textarea.certificate', csr)
         self.dialog_button_click('issue')
-        self.wait_for_request(n=2,d=0.5)
+        self.wait_for_request(n=2, d=0.5)
         self.assert_visible("div[name='certificate-valid']")
 
         # cert view

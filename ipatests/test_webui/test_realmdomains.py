@@ -25,6 +25,7 @@ from ipatests.test_webui.ui_driver import UI_driver
 
 ENTITY = 'realmdomains'
 
+
 class test_realmdomains(UI_driver):
 
     def test_read(self):

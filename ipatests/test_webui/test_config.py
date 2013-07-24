@@ -27,17 +27,18 @@ ENTITY = 'config'
 
 DATA = {
     'mod': [
-        ('textbox', 'ipasearchrecordslimit','200'),
-        ('textbox', 'ipasearchtimelimit','3'),
+        ('textbox', 'ipasearchrecordslimit', '200'),
+        ('textbox', 'ipasearchtimelimit', '3'),
     ],
 }
 
 DATA2 = {
     'mod': [
-        ('textbox', 'ipasearchrecordslimit','100'),
-        ('textbox', 'ipasearchtimelimit','2'),
+        ('textbox', 'ipasearchrecordslimit', '100'),
+        ('textbox', 'ipasearchtimelimit', '2'),
     ],
 }
+
 
 class test_config(UI_driver):
 

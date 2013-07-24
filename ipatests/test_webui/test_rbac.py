@@ -30,10 +30,10 @@ ROLE_DATA = {
     'pkey': ROLE_PKEY,
     'add': [
         ('textbox', 'cn', ROLE_PKEY),
-        ('textarea', 'description','role desc'),
+        ('textarea', 'description', 'role desc'),
     ],
     'mod': [
-        ('textarea', 'description','role desc mod'),
+        ('textarea', 'description', 'role desc mod'),
     ],
 }
 
@@ -44,10 +44,10 @@ PRIVILEGE_DATA = {
     'pkey': PRIVILEGE_PKEY,
     'add': [
         ('textbox', 'cn', PRIVILEGE_PKEY),
-        ('textarea', 'description','privilege desc'),
+        ('textarea', 'description', 'privilege desc'),
     ],
     'mod': [
-        ('textarea', 'description','privilege desc mod'),
+        ('textarea', 'description', 'privilege desc mod'),
     ],
 }
 
@@ -61,9 +61,10 @@ PERMISSION_DATA = {
         ('textbox', 'filter', 'cn=user'),
     ],
     'mod': [
-        ('textbox', 'filter','cn=user2'),
+        ('textbox', 'filter', 'cn=user2'),
     ],
 }
+
 
 class test_rbac(UI_driver):
 
@@ -73,11 +74,11 @@ class test_rbac(UI_driver):
         """
         self.init_app()
         self.basic_crud(ROLE_ENTITY, ROLE_DATA,
-            default_facet=ROLE_DEF_FACET
-        )
+                        default_facet=ROLE_DEF_FACET
+                        )
 
         self.basic_crud(PRIVILEGE_ENTITY, PRIVILEGE_DATA,
-            default_facet=PRIVILEGE_DEF_FACET
-        )
+                        default_facet=PRIVILEGE_DEF_FACET
+                        )
 
         self.basic_crud(PERMISSION_ENTITY, PERMISSION_DATA)

@@ -40,8 +40,8 @@ DATA = {
     ],
 }
 
-class test_delegation(UI_driver):
 
+class test_delegation(UI_driver):
 
     def test_crud(self):
         """

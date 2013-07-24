@@ -56,7 +56,7 @@ class test_group(UI_driver):
         self.add_record(group.ENTITY, group.DATA, navigate=False)
         self.navigate_to_record(group.PKEY)
         self.switch_to_facet('details')
-        self.facet_button_click('refresh')# workaround for BUG: #3702
+        self.facet_button_click('refresh')  # workaround for BUG: #3702
         self.make_external_action()
         self.delete_action()
 
@@ -152,7 +152,6 @@ class test_group(UI_driver):
         self.navigate_to_record(group.PKEY4)
         self.add_associations([group.PKEY], 'member_group')
         self.add_associations([group.PKEY5], 'memberof_group')
-
 
         self.add_record(netgroup.ENTITY, netgroup.DATA)
         self.navigate_to_record(netgroup.PKEY)

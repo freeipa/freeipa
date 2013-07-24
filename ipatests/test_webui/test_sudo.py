@@ -29,6 +29,7 @@ import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
 
+
 class test_sudo(UI_driver):
 
     def test_crud(self):
@@ -72,17 +73,17 @@ class test_sudo(UI_driver):
         self.navigate_to_record(sudo.RULE_PKEY, entity=sudo.RULE_ENTITY)
 
         tables = [
-            ['memberuser_user', [user.PKEY, user.PKEY2],],
-            ['memberuser_group', [group.PKEY, group.PKEY2],],
-            ['memberhost_host', [host.pkey, host.pkey2],],
-            ['memberhost_hostgroup', [hostgroup.PKEY, hostgroup.PKEY2],],
-            ['memberallowcmd_sudocmd', [sudo.CMD_PKEY, sudo.CMD_PKEY2],],
-            ['memberallowcmd_sudocmdgroup', [sudo.CMD_GROUP_PKEY, sudo.CMD_GROUP_PKEY2],],
-            ['memberdenycmd_sudocmd', [sudo.CMD_PKEY, sudo.CMD_PKEY2],],
-            ['memberdenycmd_sudocmdgroup', [sudo.CMD_GROUP_PKEY, sudo.CMD_GROUP_PKEY2],],
-            ['ipasudorunas_user', ['admin'],],
-            ['ipasudorunas_group', ['editors', 'admins'],],
-            ['ipasudorunasgroup_group', ['editors', 'admins'],],
+            ['memberuser_user', [user.PKEY, user.PKEY2], ],
+            ['memberuser_group', [group.PKEY, group.PKEY2], ],
+            ['memberhost_host', [host.pkey, host.pkey2], ],
+            ['memberhost_hostgroup', [hostgroup.PKEY, hostgroup.PKEY2], ],
+            ['memberallowcmd_sudocmd', [sudo.CMD_PKEY, sudo.CMD_PKEY2], ],
+            ['memberallowcmd_sudocmdgroup', [sudo.CMD_GROUP_PKEY, sudo.CMD_GROUP_PKEY2], ],
+            ['memberdenycmd_sudocmd', [sudo.CMD_PKEY, sudo.CMD_PKEY2], ],
+            ['memberdenycmd_sudocmdgroup', [sudo.CMD_GROUP_PKEY, sudo.CMD_GROUP_PKEY2], ],
+            ['ipasudorunas_user', ['admin'], ],
+            ['ipasudorunas_group', ['editors', 'admins'], ],
+            ['ipasudorunasgroup_group', ['editors', 'admins'], ],
         ]
 
         categories = [

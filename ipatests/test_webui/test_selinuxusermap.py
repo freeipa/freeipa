@@ -28,17 +28,18 @@ import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
 
 ENTITY = 'selinuxusermap'
-PKEY='itest-selinuxusermap'
+PKEY = 'itest-selinuxusermap'
 DATA = {
     'pkey': PKEY,
     'add': [
         ('textbox', 'cn', PKEY),
-        ('textbox', 'ipaselinuxuser','user_u:s0'),
+        ('textbox', 'ipaselinuxuser', 'user_u:s0'),
     ],
     'mod': [
-        ('textarea', 'description','itest-selinuxusermap desc'),
+        ('textarea', 'description', 'itest-selinuxusermap desc'),
     ],
 }
+
 
 class test_selinuxusermap(UI_driver):
 
@@ -69,10 +70,10 @@ class test_selinuxusermap(UI_driver):
         self.navigate_to_record(PKEY)
 
         tables = [
-            ['memberuser_user', [user.PKEY, user.PKEY2],],
-            ['memberuser_group', [group.PKEY, group.PKEY2],],
-            ['memberhost_host', [host.pkey, host.pkey2],],
-            ['memberhost_hostgroup', [hostgroup.PKEY, hostgroup.PKEY2],],
+            ['memberuser_user', [user.PKEY, user.PKEY2], ],
+            ['memberuser_group', [group.PKEY, group.PKEY2], ],
+            ['memberhost_host', [host.pkey, host.pkey2], ],
+            ['memberhost_hostgroup', [hostgroup.PKEY, hostgroup.PKEY2], ],
         ]
 
         categories = [

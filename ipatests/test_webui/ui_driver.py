@@ -75,6 +75,7 @@ DEFAULT_BROWSER = 'firefox'
 DEFAULT_PORT = 4444
 DEFAULT_TYPE = 'local'
 
+
 class UI_driver(object):
     """
     Base class for all UI integration tests
@@ -109,14 +110,14 @@ class UI_driver(object):
             except yaml.YAMLError, e:
                 raise nose.SkipTest("Invalid Web UI config.\n%s" % e)
             except IOError, e:
-                raise nose.SkipTest("Can't load Web UI test config: %s" %e)
+                raise nose.SkipTest("Can't load Web UI test config: %s" % e)
         else:
             self.config = {}
 
         c = self.config
 
         # override with environmental variables
-        for k,v in ENV_MAP.iteritems():
+        for k, v in ENV_MAP.iteritems():
             val = os.environ.get(k)
             if val is not None:
                 c[v] = val
@@ -128,7 +129,6 @@ class UI_driver(object):
             c['browser'] = DEFAULT_BROWSER
         if 'type' not in c:
             c['type'] = DEFAULT_TYPE
-
 
     def setUp(self):
         """
@@ -288,7 +288,6 @@ class UI_driver(object):
         """
         return "contains(concat(' ',normalize-space(@%s), ' '),' %s ')" % (attr, val)
 
-
     def init_app(self):
         """
         Load and login
@@ -346,7 +345,7 @@ class UI_driver(object):
 
     def navigate_to_entity(self, entity, facet=None):
         self.driver.get(self.get_url(entity, facet))
-        self.wait_for_request(n=3,d=0.4)
+        self.wait_for_request(n=3, d=0.4)
 
     def navigate_by_menu(self, item, complete=True):
         """
@@ -432,11 +431,13 @@ class UI_driver(object):
 
         # get facet title
         el = self.find(".facet-header h3 *:first-child", By.CSS_SELECTOR, facet)
-        if el: info["title"] = el.text
+        if el:
+            info["title"] = el.text
 
         # get facet pkey
         el = self.find(".facet-header h3 span.facet-pkey", By.CSS_SELECTOR, facet)
-        if el: info["pkey"] = el.text
+        if el:
+            info["pkey"] = el.text
 
         return info
 
@@ -466,7 +467,7 @@ class UI_driver(object):
         """
         Get last opened error dialog or None.
         """
-        s =  "div[role=dialog] div[data-name='%s']" % dialog_name
+        s = "div[role=dialog] div[data-name='%s']" % dialog_name
         dialogs = self.find(s, By.CSS_SELECTOR, all=True)
         dialog = None
         if dialogs:
@@ -656,7 +657,7 @@ class UI_driver(object):
         for i in inputs:
             val = i.get_attribute('value')
             n = i.get_attribute('name')
-            if  val == value:
+            if val == value:
                 s = "input[name='%s'] ~ a[name=remove]" % n
                 link = self.find(s, By.CSS_SELECTOR, w, strict=True)
                 link.click()
@@ -677,14 +678,13 @@ class UI_driver(object):
             else:
                 self.del_multivalued(name, value, parent)
 
-
     def check_option(self, name, value=None, parent=None):
         """
         Find checkbox or radio with name which matches ^NAME\d$
         """
         if not parent:
             parent = self.get_form()
-        s =  "//input[@type='checkbox' or 'radio'][contains(@name, '%s')]" % name
+        s = "//input[@type='checkbox' or 'radio'][contains(@name, '%s')]" % name
         if value is not None:
             s += "[@value='%s']" % value
         opts = self.find(s, "xpath", parent, all=True)
@@ -826,7 +826,7 @@ class UI_driver(object):
         s = "table"
         if name:
             s += "[name='%s']" % name
-        s +='.search-table'
+        s += '.search-table'
         return s
 
     def select_record(self, pkey, parent=None, table_name=None):
@@ -900,7 +900,6 @@ class UI_driver(object):
             self.dialog_button_click('ok')
             self.wait_for_request(n=2)
             self.wait()
-
 
     def delete(self, entity, data_list, facet='search', navigate=True):
         """
@@ -999,7 +998,6 @@ class UI_driver(object):
 
             assert valid, "Values don't match. Expected: '%s', Got: '%s'" % (expected, actual)
 
-
     def find_record(self, entity, data, facet='search', dummy='XXXXXXX'):
         """
         Test search functionality of search facet.
@@ -1010,7 +1008,6 @@ class UI_driver(object):
         """
 
         self.assert_facet(entity, facet)
-
 
         facet = self.get_facet()
         search_field_s = '.search-filter input[name=filter]'
@@ -1081,7 +1078,6 @@ class UI_driver(object):
             self.dialog_button_click('ok')
             self.wait_for_request()
 
-
         # check for error
         self.assert_no_error_dialog()
         self.wait_for_request()
@@ -1119,10 +1115,10 @@ class UI_driver(object):
         self.assert_facet_button_enabled(facet_btn, enabled=False)
 
     def basic_crud(self, entity, data,
-                   parent_entity = None,
-                   details_facet = 'details',
-                   search_facet = 'search',
-                   default_facet = 'details',
+                   parent_entity=None,
+                   details_facet='details',
+                   search_facet='search',
+                   default_facet='details',
                    add_facet_btn='add',
                    add_dialog_btn='add',
                    add_dialog_name='add',
@@ -1189,7 +1185,6 @@ class UI_driver(object):
         # 5. Delete record
         if delete:
             self.delete_record(pkey, data.get('del'))
-
 
     def add_table_record(self, name, data, parent=None):
         """
@@ -1364,7 +1359,6 @@ class UI_driver(object):
             # add multiple at once and test table delete button
             self.add_table_associations(table, keys, delete=True)
 
-
     def skip(self, reason):
         """
         Skip tests
@@ -1400,7 +1394,6 @@ class UI_driver(object):
         """
         dialogs = self.get_dialogs(name)
         assert len(dialogs) == 1, 'No or more than one dialog opened'
-
 
     def assert_no_error_dialog(self):
         """
@@ -1447,7 +1440,6 @@ class UI_driver(object):
         s = "table[name='%s'] " % table_name
         self.assert_button_enabled(name, s, enabled)
 
-
     def assert_facet(self, entity, facet=None):
         """
         Assert that current facet is correct
@@ -1484,7 +1476,6 @@ class UI_driver(object):
             assert not visible, "Element visible: %s" % selector
         else:
             assert visible, "Element not visible: %s" % selector
-
 
     def assert_record(self, pkey, parent=None, table_name=None, negative=False):
         """

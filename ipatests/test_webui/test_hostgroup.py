@@ -29,6 +29,7 @@ import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
 
+
 class test_hostgroup(UI_driver):
 
     def test_crud(self):
@@ -110,7 +111,6 @@ class test_hostgroup(UI_driver):
         self.navigate_to_record(hostgroup.PKEY4)
         self.add_associations([hostgroup.PKEY], 'member_hostgroup')
         self.add_associations([hostgroup.PKEY5], 'memberof_hostgroup')
-
 
         self.add_record(hbac.RULE_ENTITY, hbac.RULE_DATA)
         self.navigate_to_record(hbac.RULE_PKEY)

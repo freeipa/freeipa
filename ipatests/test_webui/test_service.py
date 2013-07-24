@@ -25,6 +25,7 @@ from ipatests.test_webui.ui_driver import UI_driver
 
 ENTITY = 'service'
 
+
 class sevice_tasks(UI_driver):
 
     def prep_data(self):
@@ -40,7 +41,7 @@ class sevice_tasks(UI_driver):
                 ('combobox', 'host', host)
             ],
             'mod': [
-                ('checkbox', 'ipakrbokasdelegate',''),
+                ('checkbox', 'ipakrbokasdelegate', ''),
             ],
         }
 
@@ -93,7 +94,7 @@ class test_service(sevice_tasks):
         self.action_panel_action(panel, 'request_cert')
         self.fill_text('textarea.certificate', csr)
         self.dialog_button_click('issue')
-        self.wait_for_request(n=2,d=0.5)
+        self.wait_for_request(n=2, d=0.5)
         self.assert_visible("div[name='certificate-valid']")
 
         # cert view

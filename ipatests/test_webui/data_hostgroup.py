@@ -25,10 +25,10 @@ DATA = {
     'pkey': PKEY,
     'add': [
         ('textbox', 'cn', PKEY),
-        ('textarea', 'description','test-hostgroup desc'),
+        ('textarea', 'description', 'test-hostgroup desc'),
     ],
     'mod': [
-        ('textarea', 'description','test-hostgroup desc modified'),
+        ('textarea', 'description', 'test-hostgroup desc modified'),
     ],
 }
 
@@ -37,10 +37,10 @@ DATA2 = {
     'pkey': PKEY2,
     'add': [
         ('textbox', 'cn', PKEY2),
-        ('textarea', 'description','test-hostgroup2 desc'),
+        ('textarea', 'description', 'test-hostgroup2 desc'),
     ],
     'mod': [
-        ('textarea', 'description','test-hostgroup2 desc modified'),
+        ('textarea', 'description', 'test-hostgroup2 desc modified'),
     ],
 }
 
@@ -49,10 +49,10 @@ DATA3 = {
     'pkey': PKEY3,
     'add': [
         ('textbox', 'cn', PKEY3),
-        ('textarea', 'description','test-hostgroup3 desc'),
+        ('textarea', 'description', 'test-hostgroup3 desc'),
     ],
     'mod': [
-        ('textarea', 'description','test-hostgroup3 desc modified'),
+        ('textarea', 'description', 'test-hostgroup3 desc modified'),
     ],
 }
 
@@ -61,10 +61,10 @@ DATA4 = {
     'pkey': PKEY4,
     'add': [
         ('textbox', 'cn', PKEY4),
-        ('textarea', 'description','test-hostgroup4 desc'),
+        ('textarea', 'description', 'test-hostgroup4 desc'),
     ],
     'mod': [
-        ('textarea', 'description','test-hostgroup4 desc modified'),
+        ('textarea', 'description', 'test-hostgroup4 desc modified'),
     ],
 }
 
@@ -73,9 +73,9 @@ DATA5 = {
     'pkey': PKEY5,
     'add': [
         ('textbox', 'cn', PKEY5),
-        ('textarea', 'description','test-hostgroup5 desc'),
+        ('textarea', 'description', 'test-hostgroup5 desc'),
     ],
     'mod': [
-        ('textarea', 'description','test-hostgroup5 desc modified'),
+        ('textarea', 'description', 'test-hostgroup5 desc modified'),
     ],
 }

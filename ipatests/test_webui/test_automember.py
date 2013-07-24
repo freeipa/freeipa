@@ -34,18 +34,6 @@ USER_GROUP_DATA = {
     ],
     'mod': [
         ('textarea', 'description', 'user group rule description'),
-        #(
-            #'add_table_record',
-            #'automemberinclusiveregex',
-            #(
-                #'table-widget',
-                #{
-                    #'fields': [
-                        #('textbox', 'automemberinclusiveregex', 'testregex')
-                    #]
-                #},
-            #)
-        #)
     ],
 }
 
@@ -59,6 +47,7 @@ HOST_GROUP_DATA = {
     ],
 }
 
+
 class test_automember(UI_driver):
 
     def test_crud(self):
@@ -69,10 +58,10 @@ class test_automember(UI_driver):
 
         # user group rule
         self.basic_crud(ENTITY, USER_GROUP_DATA,
-            search_facet='searchgroup',
-            default_facet='usergrouprule',
-            details_facet='usergrouprule',
-        )
+                        search_facet='searchgroup',
+                        default_facet='usergrouprule',
+                        details_facet='usergrouprule',
+                        )
 
         # prepare host group
         self.basic_crud(hostgroup.ENTITY, hostgroup.DATA,
@@ -83,12 +72,12 @@ class test_automember(UI_driver):
         self.navigate_by_menu('policy/automember/amhostgroup')
 
         self.basic_crud(ENTITY, HOST_GROUP_DATA,
-            search_facet='searchhostgroup',
-            default_facet='hostgrouprule',
-            details_facet='hostgrouprule',
-            navigate=False,
-            breadcrumb='Host group rules',
-        )
+                        search_facet='searchhostgroup',
+                        default_facet='hostgrouprule',
+                        details_facet='hostgrouprule',
+                        navigate=False,
+                        breadcrumb='Host group rules',
+                        )
 
         # cleanup
         self.delete(hostgroup.ENTITY, [hostgroup.DATA])

@@ -51,12 +51,12 @@ class test_hbac(UI_driver):
         self.navigate_to_record(hbac.RULE_PKEY)
 
         tables = [
-            ['memberuser_user', ['admin'],],
-            ['memberuser_group', ['editors'],],
-            ['memberhost_host', [host_key],],
-            ['memberhost_hostgroup', [hostgroup.PKEY],],
-            ['memberservice_hbacsvc', ['ftp'],],
-            ['memberservice_hbacsvcgroup', ['Sudo'],],
+            ['memberuser_user', ['admin'], ],
+            ['memberuser_group', ['editors'], ],
+            ['memberhost_host', [host_key], ],
+            ['memberhost_hostgroup', [hostgroup.PKEY], ],
+            ['memberservice_hbacsvc', ['ftp'], ],
+            ['memberservice_hbacsvcgroup', ['Sudo'], ],
         ]
 
         categories = [
@@ -100,7 +100,7 @@ class test_hbac(UI_driver):
         host_key = self.config.get('ipa_server').strip()
 
         self.navigate_to_entity('hbactest', 'user')
-        self.assert_facet('hbactest',  'user')
+        self.assert_facet('hbactest', 'user')
         self.select_record('admin')
         self.button_click('next')
 
@@ -108,52 +108,52 @@ class test_hbac(UI_driver):
         self.assert_facet('hbactest', 'targethost')
         self.select_record(host_key)
         self.button_click('prev')
-        self.assert_facet('hbactest',  'user')
+        self.assert_facet('hbactest', 'user')
         self.switch_to_facet('targethost')
         self.button_click('next')
 
         self.wait_for_request(n=2)
-        self.assert_facet('hbactest',  'service')
+        self.assert_facet('hbactest', 'service')
         self.select_record('ftp')
         self.button_click('prev')
-        self.assert_facet('hbactest',  'targethost')
+        self.assert_facet('hbactest', 'targethost')
         self.switch_to_facet('service')
         self.button_click('next')
 
         self.wait_for_request(n=2)
-        self.assert_facet('hbactest',  'rules')
+        self.assert_facet('hbactest', 'rules')
         self.select_record('allow_all')
         self.button_click('prev')
-        self.assert_facet('hbactest',  'service')
+        self.assert_facet('hbactest', 'service')
         self.switch_to_facet('rules')
         self.button_click('next')
 
         self.wait_for_request(n=2)
-        self.assert_facet('hbactest',  'run_test')
+        self.assert_facet('hbactest', 'run_test')
         self.button_click('run_test')
         self.wait_for_request(n=2)
         self.assert_text("div.hbac-test-result-panel p", 'Access Granted'.upper())
         self.button_click('prev')
-        self.assert_facet('hbactest',  'rules')
+        self.assert_facet('hbactest', 'rules')
         self.switch_to_facet('run_test')
         self.button_click('new_test')
-        self.assert_facet('hbactest',  'user')
+        self.assert_facet('hbactest', 'user')
 
         # test pre-run validation and navigation to related facet
         self.switch_to_facet('run_test')
         self.button_click('run_test')
         self.assert_dialog('message_dialog')
         self.click_on_link('User name')
-        self.assert_facet('hbactest',  'user')
+        self.assert_facet('hbactest', 'user')
 
         self.switch_to_facet('run_test')
         self.button_click('run_test')
         self.assert_dialog('message_dialog')
         self.click_on_link('Target host')
-        self.assert_facet('hbactest',  'targethost')
+        self.assert_facet('hbactest', 'targethost')
 
         self.switch_to_facet('run_test')
         self.button_click('run_test')
         self.assert_dialog('message_dialog')
         self.click_on_link('Service')
-        self.assert_facet('hbactest',  'service')
+        self.assert_facet('hbactest', 'service')

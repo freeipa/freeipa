@@ -29,6 +29,7 @@ import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
 
+
 class test_user(UI_driver):
 
     def test_crud(self):
@@ -90,7 +91,7 @@ class test_user(UI_driver):
 
         self.add_record(group.ENTITY, group.DATA2)
         self.navigate_to_record(group.PKEY2)
-        self.add_associations([group.PKEY],facet='member_group')
+        self.add_associations([group.PKEY], facet='member_group')
 
         self.add_record(netgroup.ENTITY, netgroup.DATA)
         self.navigate_to_record(netgroup.PKEY)
@@ -128,7 +129,6 @@ class test_user(UI_driver):
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
 
-
     def test_actions(self):
         """
         Test user actions
@@ -144,8 +144,8 @@ class test_user(UI_driver):
         # reset password
         pwd = self.config.get('ipa_password')
         fields = [
-            ('password' ,'password1', pwd),
-            ('password' ,'password2', pwd),
+            ('password', 'password1', pwd),
+            ('password', 'password2', pwd),
         ]
         self.action_panel_action('account_actions', 'reset_password')
         self.assert_dialog()

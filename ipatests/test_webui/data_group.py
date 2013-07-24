@@ -25,11 +25,11 @@ DATA = {
     'pkey': PKEY,
     'add': [
         ('textbox', 'cn', PKEY),
-        ('textarea', 'description','test-group desc'),
-        ('radio', 'type','normal'),
+        ('textarea', 'description', 'test-group desc'),
+        ('radio', 'type', 'normal'),
     ],
     'mod': [
-        ('textarea', 'description','test-group desc modified'),
+        ('textarea', 'description', 'test-group desc modified'),
     ],
 }
 
@@ -38,33 +38,33 @@ DATA2 = {
     'pkey': PKEY2,
     'add': [
         ('textbox', 'cn', PKEY2),
-        ('textarea', 'description','test-group2 desc'),
+        ('textarea', 'description', 'test-group2 desc'),
     ]
 }
 
 PKEY3 = 'itest-group3'
-DATA3= {
+DATA3 = {
     'pkey': PKEY3,
     'add': [
         ('textbox', 'cn', PKEY3),
-        ('textarea', 'description','test-group3 desc'),
+        ('textarea', 'description', 'test-group3 desc'),
     ]
 }
 
 PKEY4 = 'itest-group4'
-DATA4= {
+DATA4 = {
     'pkey': PKEY4,
     'add': [
         ('textbox', 'cn', PKEY4),
-        ('textarea', 'description','test-group4 desc'),
+        ('textarea', 'description', 'test-group4 desc'),
     ]
 }
 
 PKEY5 = 'itest-group5'
-DATA5= {
+DATA5 = {
     'pkey': PKEY5,
     'add': [
         ('textbox', 'cn', PKEY5),
-        ('textarea', 'description','test-group5 desc'),
+        ('textarea', 'description', 'test-group5 desc'),
     ]
 }

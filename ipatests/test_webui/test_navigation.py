@@ -60,6 +60,7 @@ ENTITIES = [
     # TODO: add conditional
 ]
 
+
 class test_navigation(UI_driver):
 
     def test_url_navigation(self):
@@ -72,9 +73,9 @@ class test_navigation(UI_driver):
         unsupported = []
         if not self.has_dns():
             unsupported.extend([
-                    'dnszone',
-                    'dnsconfig',
-            ])
+                               'dnszone',
+                               'dnsconfig',
+                               ])
         if not self.has_ca():
             unsupported.append('cert')
 
@@ -138,7 +139,6 @@ class test_navigation(UI_driver):
             self.navigate_by_menu('ipaserver/trusts/trust', False)
             self.navigate_by_menu('ipaserver/trusts/trustconfig', False)
         self.navigate_by_menu('ipaserver/config', False)
-
 
     def assert_e_url(self, url, e):
         """

@@ -26,6 +26,7 @@ from ipatests.test_webui.ui_driver import UI_driver
 ENTITY = 'idrange'
 PKEY = 'itest-range'
 
+
 class test_range(UI_driver):
 
     def get_shifts(self, idranges=None):
