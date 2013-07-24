@@ -149,7 +149,7 @@ class UI_driver(object):
         """
         browser = self.config["browser"]
         port = self.config["port"]
-        type = self.config["type"]
+        driver_type = self.config["type"]
 
         options = None
 
@@ -157,7 +157,7 @@ class UI_driver(object):
             options = ChromeOptions()
             options.binary_location = '/usr/bin/chromium-browser'
 
-        if type == 'remote':
+        if driver_type == 'remote':
             if not 'host' in self.config:
                 raise nose.SkipTest('Selenium server host not configured')
             host = self.config["host"]
@@ -196,14 +196,14 @@ class UI_driver(object):
 
         return driver
 
-    def find(self, expression, by='id', context=None, all=False, strict=False):
+    def find(self, expression, by='id', context=None, many=False, strict=False):
         """
         Helper which calls selenium find_element_by_xxx methods.
 
         expression: search expression
         by: selenium.webdriver.common.by
         context: element to search on. Default: driver
-        all: return first or array of all matching elements
+        many: all matching elements
         strict: error out when element is not found
 
         Returns None instead of raising exception when element is not found.
@@ -214,7 +214,7 @@ class UI_driver(object):
         if context is None:
             context = self.driver
 
-        if not all:
+        if not many:
             method_name = 'find_element'
         else:
             method_name = 'find_elements'
@@ -448,7 +448,7 @@ class UI_driver(object):
         s = 'div[role=dialog]'
         if name:
             s += " div[data-name='%s'" % name
-        dialogs = self.find(s, By.CSS_SELECTOR, all=True)
+        dialogs = self.find(s, By.CSS_SELECTOR, many=True)
         if strict:
             assert dialogs, "No dialogs found"
         return dialogs
@@ -468,7 +468,7 @@ class UI_driver(object):
         Get last opened error dialog or None.
         """
         s = "div[role=dialog] div[data-name='%s']" % dialog_name
-        dialogs = self.find(s, By.CSS_SELECTOR, all=True)
+        dialogs = self.find(s, By.CSS_SELECTOR, many=True)
         dialog = None
         if dialogs:
             dialog = dialogs[-1]
@@ -602,11 +602,11 @@ class UI_driver(object):
         tb.clear()
         tb.send_keys(value)
 
-    def fill_input(self, name, value, type="text", parent=None):
+    def fill_input(self, name, value, input_type="text", parent=None):
         """
         Type into input element specified by name and type.
         """
-        s = "div[name='%s'] input[type='%s'][name='%s']" % (name, type, name)
+        s = "div[name='%s'] input[type='%s'][name='%s']" % (name, input_type, name)
         self.fill_text(s, value, parent)
 
     def fill_textarea(self, name, value, parent=None):
@@ -639,7 +639,7 @@ class UI_driver(object):
         add_btn = self.find("Add", By.LINK_TEXT, w, strict=True)
         add_btn.click()
         s = "div[name=value] input"
-        inputs = self.find(s, By.CSS_SELECTOR, w, all=True)
+        inputs = self.find(s, By.CSS_SELECTOR, w, many=True)
         last = inputs[-1]
         last.send_keys(value)
 
@@ -652,7 +652,7 @@ class UI_driver(object):
         s = "div[name='%s'].multivalued-widget" % name
         w = self.find(s, By.CSS_SELECTOR, parent, strict=True)
         s = "div[name=value] input"
-        inputs = self.find(s, By.CSS_SELECTOR, w, all=True)
+        inputs = self.find(s, By.CSS_SELECTOR, w, many=True)
         clicked = False
         for i in inputs:
             val = i.get_attribute('value')
@@ -687,7 +687,7 @@ class UI_driver(object):
         s = "//input[@type='checkbox' or 'radio'][contains(@name, '%s')]" % name
         if value is not None:
             s += "[@value='%s']" % value
-        opts = self.find(s, "xpath", parent, all=True)
+        opts = self.find(s, "xpath", parent, many=True)
         opt = None
         # Select only the one which matches exactly the name
         for o in opts:
@@ -756,7 +756,7 @@ class UI_driver(object):
     def get_multivalued_value(self, name, parent=None):
 
         s = "div[name='%s'] div[name='value'] input[name^='%s']" % (name, name)
-        els = self.find(s, By.CSS_SELECTOR, parent, all=True)
+        els = self.find(s, By.CSS_SELECTOR, parent, many=True)
         values = []
         for el in els:
             values.append(el.get_attribute('value'))
@@ -766,7 +766,7 @@ class UI_driver(object):
         if not parent:
             parent = self.get_form()
         s = "div[name='%s'] input[name='%s']" % (name, name)
-        els = self.find(s, By.CSS_SELECTOR, parent, strict=True, all=True)
+        els = self.find(s, By.CSS_SELECTOR, parent, strict=True, many=True)
         values = []
         for el in els:
             if el.is_selected():
@@ -792,7 +792,7 @@ class UI_driver(object):
         if not parent:
             parent = self.get_form()
         s = "div[name='%s'].field span.undo" % (field)
-        undos = self.find(s, By.CSS_SELECTOR, parent, strict=True, all=True)
+        undos = self.find(s, By.CSS_SELECTOR, parent, strict=True, many=True)
         return undos
 
     def get_rows(self, parent=None):
@@ -804,7 +804,7 @@ class UI_driver(object):
 
         # select table rows
         s = 'table.search-table tbody tr'
-        rows = self.find(s, By.CSS_SELECTOR, parent, all=True)
+        rows = self.find(s, By.CSS_SELECTOR, parent, many=True)
         return rows
 
     def navigate_to_row_record(self, row, pkey_column=None):
@@ -927,38 +927,38 @@ class UI_driver(object):
             parent = self.get_form()
 
         for field in fields:
-            type = field[0]
+            widget_type = field[0]
             key = field[1]
             val = field[2]
 
             if undo:
                 self.assert_undo_button(key, False, parent)
 
-            if type == 'textbox':
+            if widget_type == 'textbox':
                 self.fill_textbox(key, val, parent)
-            elif type == 'textarea':
+            elif widget_type == 'textarea':
                 self.fill_textarea(key, val, parent)
-            elif type == 'password':
+            elif widget_type == 'password':
                 self.fill_password(key, val, parent)
-            elif type == 'radio':
+            elif widget_type == 'radio':
                 self.check_option(key, val, parent)
-            elif type == 'checkbox':
+            elif widget_type == 'checkbox':
                 self.check_option(key, parent=parent)
-            elif type == 'combobox':
+            elif widget_type == 'combobox':
                 self.select_combobox(key, val, parent)
-            elif type == 'add_table_record':
+            elif widget_type == 'add_table_record':
                 self.add_table_record(key, val, parent)
-            elif type == 'add_table_association':
+            elif widget_type == 'add_table_association':
                 self.add_table_associations(key, val, parent)
-            elif type == 'multivalued':
+            elif widget_type == 'multivalued':
                 self.fill_multivalued(key, val, parent)
-            elif type == 'table':
+            elif widget_type == 'table':
                 self.select_record(val, parent, key)
             self.wait()
             if undo:
                 self.assert_undo_button(key, True, parent)
 
-    def validate_fields(self, fields, parent=None, undo=False):
+    def validate_fields(self, fields, parent=None):
         """
         Validate that fields on a page or dialog have desired values.
         """
@@ -1156,7 +1156,10 @@ class UI_driver(object):
         self.wait_for_request()
 
         # 2. Add record
-        self.add_record(parent_entity, data, facet=search_facet, navigate=False)
+        self.add_record(parent_entity, data, facet=search_facet, navigate=False,
+                        facet_btn=add_facet_btn, dialog_name=add_dialog_name,
+                        dialog_btn=add_dialog_btn
+                        )
 
         # Find
 
@@ -1501,7 +1504,7 @@ class UI_driver(object):
         key = pkey
         if lower:
             key = key.lower()
-        self.assert_record(key)
+        self.assert_record(key, negative=negative)
 
     def assert_class(self, element, cls, negative=False):
         """
