@@ -425,6 +425,15 @@ class IPASimpleLDAPObject(object):
             original_dn = dn_tuple[0]
             original_attrs = dn_tuple[1]
 
+            # original_dn is None if referral instead of an entry was
+            # returned from the LDAP server, we need to skip this item
+            if original_dn is None:
+                log_msg = 'Referral entry ignored: {ref}'\
+                          .format(ref=str(original_attrs))
+                self.log.debug(log_msg)
+
+                continue
+
             ipa_entry = LDAPEntry(self, DN(original_dn))
 
             for attr, original_values in original_attrs.items():
