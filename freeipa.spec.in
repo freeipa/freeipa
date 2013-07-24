@@ -229,7 +229,7 @@ Requires: pam_krb5
 Requires: wget
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
-Requires: sssd >= 1.10.90
+Requires: sssd >= 1.10.92
 Requires: certmonger >= 0.65
 Requires: nss-tools
 Requires: bind-utils
@@ -826,6 +826,10 @@ fi
 %endif  # ! %{ONLY_CLIENT}
 
 %changelog
+* Wed Jul 24 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-9
+- Bump minimum version of sssd to 1.10.92 to pick up latest SSSD 1.11 Beta
+  development
+
 * Thu Jul 18 2013 Ana Krivokapic <akrivoka@redhat.com> - 3.2.99-8
 - Bump minimum version of sssd to 1.10.90 for the 'ipa_server_mode' option.
 
