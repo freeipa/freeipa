@@ -150,18 +150,29 @@ class DomainValidator(object):
         return True
 
     def get_trusted_domains(self):
-        """Returns dict of trusted domain tuples (flatname, sid, trust_auth_outgoing), keyed by domain name"""
-        cn_trust = DN(('cn', 'ad'), self.api.env.container_trusts, self.api.env.basedn)
+        """
+        Returns case-insensitive dict of trusted domain tuples
+        (flatname, sid, trust_auth_outgoing), keyed by domain name.
+        """
+        cn_trust = DN(('cn', 'ad'), self.api.env.container_trusts,
+                      self.api.env.basedn)
+
         try:
             search_kw = {'objectClass': 'ipaNTTrustedDomain'}
             filter = self.ldap.make_filter(search_kw, rules=self.ldap.MATCH_ALL)
-            (entries, truncated) = self.ldap.find_entries(filter=filter, base_dn=cn_trust,
-                                                          attrs_list=[self.ATTR_TRUSTED_SID,
-                                                                      self.ATTR_FLATNAME,
-                                                                      self.ATTR_TRUST_PARTNER,
-                                                                      self.ATTR_TRUST_AUTHOUT])
+            (entries, truncated) = self.ldap.find_entries(
+                filter=filter,
+                base_dn=cn_trust,
+                attrs_list=[self.ATTR_TRUSTED_SID,
+                            self.ATTR_FLATNAME,
+                            self.ATTR_TRUST_PARTNER,
+                            self.ATTR_TRUST_AUTHOUT]
+                )
 
-            result = dict()
+            # We need to use case-insensitive dictionary since we use
+            # domain names as keys and those are generally case-insensitive
+            result = ipautil.CIDict()
+
             for dn, entry in entries:
                 try:
                     trust_partner = entry[self.ATTR_TRUST_PARTNER][0]
@@ -170,13 +181,14 @@ class DomainValidator(object):
                 except KeyError, e:
                     # Some piece of trusted domain info in LDAP is missing
                     # Skip the domain, but leave log entry for investigation
-                    api.log.warn("Trusted domain '%s' entry misses an attribute: %s",
-                            dn, e)
+                    api.log.warn("Trusted domain '%s' entry misses an "
+                                 "attribute: %s", dn, e)
                     continue
+
                 trust_authout = entry.get(self.ATTR_TRUST_AUTHOUT, [None])[0]
 
-                # We were able to read all Trusted domain attributes but the secret
-                # User is not member of trust admins group
+                # We were able to read all Trusted domain attributes but the
+                # secret User is not member of trust admins group
                 if trust_authout is None:
                     raise errors.ACIError(
                         info=_('communication with trusted domains is allowed '
