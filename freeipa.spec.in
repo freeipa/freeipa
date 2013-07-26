@@ -134,7 +134,7 @@ Requires(post): systemd-units
 Requires: selinux-policy >= 3.12.1-65
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.44
-Requires: pki-ca >= 10.0.2
+Requires: pki-ca >= 10.0.4
 Requires: dogtag-pki-server-theme
 %if 0%{?rhel}
 Requires: subscription-manager
@@ -829,6 +829,9 @@ fi
 %endif  # ! %{ONLY_CLIENT}
 
 %changelog
+* Fri Jul 26 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-12
+- Require pki-ca 10.0.4 which fixes external CA installation (#986901)
+
 * Wed Jul 24 2013 Petr Viktorin <pviktori@redhat.com> - 3.2.99-11
 - Add tar and xz dependencies to freeipa-tests
 
