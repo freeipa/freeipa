@@ -132,7 +132,7 @@ Requires(post): systemd-units
 Requires: selinux-policy >= 3.12.1-65
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.44
-Requires: pki-ca >= 10.0.2
+Requires: pki-ca >= 10.0.4
 Requires: dogtag-pki-server-theme
 %if 0%{?rhel}
 Requires: subscription-manager
@@ -776,7 +776,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
-* Wed Jul 24 2013 Tomas Babej <tbabej@redhat.com> - 3.2.1-5
+* Fri Jul 26 2013 Martin Kosek <mkosek@redhat.com> - 3.2.2-2
+- Require pki-ca 10.0.4 which fixes external CA installation (#986901)
+
+* Wed Jul 24 2013 Tomas Babej <tbabej@redhat.com> - 3.2.2-1
 - Move requirement for keyutils from freeipa-server to freeipa-python
 
 * Wed Jul 17 2013 Martin Kosek <mkosek@redhat.com> - 3.2.1-4

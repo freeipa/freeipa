@@ -698,18 +698,23 @@ def main():
             sys.exit(1)
 
         certdict = dict((DN(str(cert.subject)), cert) for cert in extchain)
+        del extchain
         certissuer = DN(str(extcert.issuer))
         if certissuer not in certdict:
             print "The external certificate is not signed by the external CA (unknown issuer %s)." % certissuer
             sys.exit(1)
 
         cert = extcert
+        del extcert
         while cert.issuer != cert.subject:
             certissuer = DN(str(cert.issuer))
             if certissuer not in certdict:
                 print "The external CA chain is incomplete (%s is missing from the chain)." % certissuer
                 sys.exit(1)
+            del cert
             cert = certdict[certissuer]
+        del certdict
+        del cert
 
     # We only set up the CA if the PKCS#12 options are not given.
     if options.dirsrv_pkcs12:
