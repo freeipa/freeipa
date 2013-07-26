@@ -49,6 +49,7 @@ class TestCLIParsing(object):
         self.check_command('user-show admin', 'user_show',
             uid=u'admin',
             rights=False,
+            no_members=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -57,6 +58,7 @@ class TestCLIParsing(object):
         self.check_command('user_show admin', 'user_show',
             uid=u'admin',
             rights=False,
+            no_members=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -68,6 +70,7 @@ class TestCLIParsing(object):
             description=u'Test group',
             nonposix=False,
             external=False,
+            no_members=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -80,6 +83,7 @@ class TestCLIParsing(object):
             'sudocmdgroup_add_member',
             cn=u'tcmdgroup1',
             sudocmd=[u'ab,c', u'd'],
+            no_members=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -91,6 +95,7 @@ class TestCLIParsing(object):
             description=u'Test group',
             nonposix=True,
             external=False,
+            no_members=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -103,6 +108,7 @@ class TestCLIParsing(object):
             gidnumber=u'1234',
             nonposix=False,
             external=False,
+            no_members=False,
             raw=False,
             all=False,
             version=API_VERSION)
@@ -114,6 +120,7 @@ class TestCLIParsing(object):
                 description=u'Test group',
                 nonposix=False,
                 external=False,
+                no_members=False,
                 raw=False,
                 all=False,
                 version=API_VERSION)
