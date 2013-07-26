@@ -207,7 +207,8 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
     principal = u'%s@%s' % (pkey, api.env.realm)
     try:
         ldap.find_entry_by_attr(
-            'krbprincipalname', principal, 'krbprincipalaux', ['']
+            'krbprincipalname', principal, 'krbprincipalaux', [''],
+            DN(api.env.container_user, api.env.basedn)
         )
     except errors.NotFound:
         entry_attrs['krbprincipalname'] = principal
