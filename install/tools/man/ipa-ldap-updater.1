@@ -47,7 +47,7 @@ Values is a comma\-separated field so multi\-values may be added at one time. Do
 
 The difference between the default and add keywords is if the DN of the entry exists then default is ignored. So for updating something like schema, which will be under cn=schema, you must always use add (because cn=schema is guaranteed to exist). It will not re\-add the same information again and again.
 
-It alsos provide some things that can be templated such as architecture (for plugin paths), realm and domain name.
+It also provides some things that can be templated such as architecture (for plugin paths), realm and domain name.
 
 The available template variables are:
 
@@ -63,16 +63,22 @@ A few rules:
 
    1. Only one rule per line
    2. Each line stands alone (e.g. an only followed by an only results in the last only being used)
-   3. adding a value that exists is ok. The request is ignored, duplicate values are not added
-   4. removing a value that doesn't exist is ok. It is simply ignored.
+   3. Adding a value that exists is ok. The request is ignored, duplicate values are not added
+   4. Removing a value that doesn't exist is ok. It is simply ignored.
    5. If a DN doesn't exist it is created from the 'default' entry and all updates are applied
    6. If a DN does exist the default values are skipped
    7. Only the first rule on a line is respected
 
 Adds and updates are applied from shortest to longest length of DN. Deletes are done from longest to shortest.
+
+Additionally, ipa-ldap-updater can update the schema based on LDIF files.
+Any missing object classes and attribute types are added, and differing ones are updated to match the LDIF file.
+To enable this behavior, use the \-\-schema or \-\-schema-file options.
+Schema files should be in LDIF format, and may only specify attributeTypes and objectClasses attributes of cn=schema.
+
 .SH "OPTIONS"
 .TP
-\fB\-d\fR, \fB\-\-debug
+\fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
 .TP
 \fB\-t\fR, \fB\-\-test\fR
@@ -84,14 +90,20 @@ File containing the Directory Manager password
 \fB\-l\fR, \fB\-\-ldapi\fR
 Connect to the LDAP server using the ldapi socket
 .TP
-\fB\-p\fR, \fB\-\-\-plugins\fR
+\fB\-p\fR, \fB\-\-plugins\fR
 Execute update plugins as well as any update files. There is no way to execute only the plugins.
 .TP
-\fB\-u\fR, \fB\-\-\-upgrade\fR
-Upgrade an installed server in offline mode (implies \-\-ldapi and \-\-plugins)
+\fB\-u\fR, \fB\-\-upgrade\fR
+Upgrade an installed server in offline mode (implies \-\-ldapi, \-\-plugins, and \-\-schema)
 .TP
-\fB\-W\fR, \fB\-\-\-password\fR
+\fB\-W\fR, \fB\-\-password\fR
 Prompt for the Directory Manager password
+.TP
+\fB\-s\fR, \fB\-\-schema\fR
+Also update the LDAP schema. If no \-\-schema-file is specified, update to the built-in IPA schema.
+.TP
+\fB\-S\fR, \fB\-\-schema\-file\fR
+Specify a schema file. May be used multiple times. Implies \-\-schema.
 .SH "EXIT STATUS"
 0 if the command was successful
 
