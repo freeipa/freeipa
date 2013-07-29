@@ -37,6 +37,7 @@ import certs
 import ldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
+from ipaserver.install import sysupgrade
 from ipalib import errors
 from ipapython.dn import DN
 
@@ -653,7 +654,12 @@ class DsInstance(service.Service):
         shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",
                         config_dirname(self.serverid) + "certmap.conf")
         installutils.update_file(config_dirname(self.serverid) + "certmap.conf",
-                                 '$REALM', self.realm_name)
+                                 '$SUBJECT_BASE', str(self.subject_base))
+        sysupgrade.set_upgrade_state(
+            'certmap.conf',
+            'subject_base',
+            str(self.subject_base)
+        )
 
     def __enable_ldapi(self):
         self._ldap_mod("ldapi.ldif", self.sub_dict)
