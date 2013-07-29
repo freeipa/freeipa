@@ -296,8 +296,8 @@ pushd $DIR/../../ #freeipa/install
     fi
 
     if [[ $CSS ]] ; then
-        SOURCE=ui/css/*
-        TARGET=$TARGET_BASE/ui/css
+        SOURCE=ui/*.css
+        TARGET=$TARGET_BASE/ui
         RECURSIVE=1
         EXCEPTIONS="--exclude /Makefile*"
         sync-files
