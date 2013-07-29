@@ -1,4 +1,4 @@
-# VERSION 1 - DO NOT REMOVE THIS LINE
+# VERSION 2 - DO NOT REMOVE THIS LINE
 #
 # This file is managed by IPA and will be overwritten on upgrades.
 
@@ -84,6 +84,6 @@ certmap default         default
 #default:InitFn         <Init function's name>
 default:DNComps
 default:FilterComps     uid
-certmap ipaca           CN=Certificate Authority,O=$REALM
+certmap ipaca           CN=Certificate Authority,$SUBJECT_BASE
 ipaca:CmapLdapAttr      seeAlso
 ipaca:verifycert        on

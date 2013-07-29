@@ -760,6 +760,90 @@ def add_ca_dns_records():
 
     sysupgrade.set_upgrade_state('dns', 'ipa_ca_records', True)
 
+
+def find_subject_base():
+    """
+    Try to find the current value of certificate subject base.
+    1) Look in sysupgrade first
+    2) If no value is found there, look in DS (start DS if necessary)
+    3) Last resort, look in the certmap.conf itself
+    4) If all fails, log loudly and return None
+    """
+    root_logger.debug('Trying to find certificate subject base in sysupgrade')
+    subject_base = sysupgrade.get_upgrade_state('certmap.conf', 'subject_base')
+
+    if subject_base:
+        root_logger.debug(
+            'Found certificate subject base in sysupgrade: %s',
+            subject_base
+        )
+        return subject_base
+
+    root_logger.debug('Unable to find certificate subject base in sysupgrade')
+    root_logger.debug('Trying to find certificate subject base in DS')
+
+    ds_is_running = services.knownservices.dirsrv.is_running()
+    if not ds_is_running:
+        try:
+            services.knownservices.dirsrv.start()
+        except ipautil.CalledProcessError as e:
+            root_logger.error('Cannot start DS to find certificate '
+                              'subject base: %s', e)
+        else:
+            ds_is_running = True
+
+    if ds_is_running:
+        try:
+            api.Backend.ldap2.connect(autobind=True)
+        except ipalib.errors.PublicError, e:
+            root_logger.error('Cannot connect to DS to find certificate '
+                              'subject base: %s', e)
+        else:
+            ret = api.Command['config_show']()
+            api.Backend.ldap2.disconnect()
+            subject_base = str(ret['result']['ipacertificatesubjectbase'][0])
+            root_logger.debug(
+                'Found certificate subject base in DS: %s',
+                subject_base
+            )
+
+    if not subject_base:
+        root_logger.debug('Unable to find certificate subject base in DS')
+        root_logger.debug('Trying to find certificate subject base in '
+                          'certmap.conf')
+
+        certmap_dir = dsinstance.config_dirname(
+            dsinstance.realm_to_serverid(api.env.realm)
+        )
+        try:
+            with open(os.path.join(certmap_dir, 'certmap.conf')) as f:
+                for line in f:
+                    if line.startswith('certmap ipaca'):
+                        subject_base = line.strip().split(',')[-1]
+                        root_logger.debug(
+                            'Found certificate subject base in certmap.conf: '
+                            '%s',
+                            subject_base
+                        )
+
+        except IOError as e:
+            root_logger.error('Cannot open certmap.conf to find certificate '
+                              'subject base: %s', e.strerror)
+
+    if subject_base:
+        sysupgrade.set_upgrade_state(
+            'certmap.conf',
+            'subject_base',
+            subject_base
+        )
+        return subject_base
+
+    root_logger.debug('Unable to find certificate subject base in '
+                      'certmap.conf')
+    root_logger.error('Unable to determine certificate subject base. '
+                      'certmap.conf will not be updated.')
+
+
 def uninstall_selfsign(ds, http):
     root_logger.info('[Removing self-signed CA]')
     """Replace self-signed CA by a CA-less install"""
@@ -901,6 +985,10 @@ def main():
         CLONE='#'
     )
 
+    subject_base = find_subject_base()
+    if subject_base:
+        sub_dict['SUBJECT_BASE'] = subject_base
+
     ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
 
     # migrate CRL publish dir before the location in ipa.conf is updated
@@ -918,8 +1006,12 @@ def main():
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
-    upgrade(sub_dict, os.path.join(certmap_dir, "certmap.conf"),
-        os.path.join(ipautil.SHARE_DIR, "certmap.conf.template"))
+    if subject_base:
+        upgrade(
+            sub_dict,
+            os.path.join(certmap_dir, "certmap.conf"),
+            os.path.join(ipautil.SHARE_DIR, "certmap.conf.template")
+        )
     upgrade_pki(ca, fstore)
     update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()
