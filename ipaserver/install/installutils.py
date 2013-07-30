@@ -256,7 +256,13 @@ def get_password(prompt):
     if os.isatty(sys.stdin.fileno()):
         return getpass.getpass(prompt)
     else:
-        return sys.stdin.readline().rstrip()
+        sys.stdout.write(prompt)
+        sys.stdout.flush()
+        line = sys.stdin.readline()
+        if not line:
+            raise EOFError()
+        return line.rstrip()
+
 
 def _read_password_default_validator(password):
     if len(password) < 8:
