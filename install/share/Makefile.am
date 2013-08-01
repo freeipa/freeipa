@@ -1,5 +1,9 @@
 NULL =
 
+SUBDIRS =  				\
+	advise				\
+	$(NULL)
+
 appdir = $(IPA_DATA_DIR)
 app_DATA =				\
 	05rfc2247.ldif			\

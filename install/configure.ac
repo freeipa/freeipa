@@ -85,6 +85,8 @@ AC_CONFIG_FILES([
     html/Makefile
     migration/Makefile
     share/Makefile
+    share/advise/Makefile
+    share/advise/legacy/Makefile
     ui/Makefile
     ui/src/Makefile
     ui/src/libs/Makefile
