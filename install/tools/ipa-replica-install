@@ -675,8 +675,9 @@ def main():
     if CA and config.setup_ca:
         CA.ldap_enable('CA', config.host_name, config.dirman_password,
                        ipautil.realm_to_suffix(config.realm_name))
+
+        # This is done within stopped_service context, which restarts CA
         CA.enable_client_auth_to_db()
-        CA.restart()
 
     krb = install_krb(config, setup_pkinit=options.setup_pkinit)
     http = install_http(config, auto_redirect=options.ui_redirect)

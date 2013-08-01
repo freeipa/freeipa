@@ -1054,8 +1054,9 @@ def main():
         # We need to ldap_enable the CA now that DS is up and running
         ca.ldap_enable('CA', host_name, dm_password,
                        ipautil.realm_to_suffix(realm_name))
+
+        # This is done within stopped_service context, which restarts CA
         ca.enable_client_auth_to_db()
-        ca.restart()
 
         # Upload the CA cert to the directory
         ds.upload_ca_cert()

@@ -83,6 +83,7 @@ except Exception, e:
 finally:
     shutil.rmtree(tmpdir)
 
+# Done withing stopped_service context, CA restarted here
 update_cert_config(nickname, cert)
 
 if nickname == 'subsystemCert cert-pki-ca':

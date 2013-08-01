@@ -189,8 +189,8 @@ def main():
     CA.ldap_enable('CA', config.host_name, config.dirman_password,
                    ipautil.realm_to_suffix(config.realm_name))
 
+    # This is done within stopped_service context, which restarts CA
     CA.enable_client_auth_to_db()
-    CA.restart()
 
     # Install CA DNS records
     install_dns_records(config, options)

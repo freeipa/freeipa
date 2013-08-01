@@ -42,6 +42,7 @@ from ipapython import config
 from ipalib import errors
 from ipapython.dn import DN
 from ipaserver.install import certs
+from ipapython import services as ipaservices
 
 # Used to determine install status
 IPA_MODULES = [
@@ -792,3 +793,38 @@ def private_ccache(path=None):
 
     if os.path.exists(path):
         os.remove(path)
+
+
+@contextmanager
+def stopped_service(service, instance_name=""):
+    """
+    Ensure that the specified service is stopped while the commands within
+    this context are executed.
+
+    Service is started at the end of the execution.
+    """
+
+    if instance_name:
+        log_instance_name = "@{instance}".format(instance=instance_name)
+    else:
+        log_instance_name = ""
+
+    root_logger.debug('Ensuring that service %s%s is not running while '
+                      'the next set of commands is being executed.', service,
+                      log_instance_name)
+
+    # Figure out if the service is running, if not, yield
+    if not ipaservices.knownservices[service].is_running(instance_name):
+        root_logger.debug('Service %s%s is not running, continue.', service,
+                          log_instance_name)
+        yield
+        root_logger.debug('Starting %s%s.', service, log_instance_name)
+        ipaservices.knownservices[service].start(instance_name)
+        return
+    else:
+        # Stop the service, do the required stuff and start it again
+        root_logger.debug('Stopping %s%s.', service, log_instance_name)
+        ipaservices.knownservices[service].stop(instance_name)
+        yield
+        root_logger.debug('Starting %s%s.', service, log_instance_name)
+        ipaservices.knownservices[service].start(instance_name)
