@@ -15,8 +15,8 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-05-09 17:50+0200\n"
-"PO-Revision-Date: 2013-05-07 07:53+0000\n"
+"POT-Creation-Date: 2013-08-01 16:02+0200\n"
+"PO-Revision-Date: 2013-08-01 14:06+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Spanish <trans-es@lists.fedoraproject.org>\n"
 "Language: es\n"
@@ -1427,8 +1427,8 @@ msgstr "Meta"
 
 msgid ""
 "format must be specified as\n"
-"    \"d1 [m1 [s1]] {\"N\"|\"S\"}  d2 [m2 [s2]] {\"E\"|\"W\"} alt[\"m\"] [siz"
-"[\"m\"] [hp[\"m\"] [vp[\"m\"]]]]\"\n"
+"    \"d1 [m1 [s1]] {\"N\"|\"S\"}  d2 [m2 [s2]] {\"E\"|\"W\"} alt[\"m\"] "
+"[siz[\"m\"] [hp[\"m\"] [vp[\"m\"]]]]\"\n"
 "    where:\n"
 "       d1:     [0 .. 90]            (degrees latitude)\n"
 "       d2:     [0 .. 180]           (degrees longitude)\n"
@@ -1676,167 +1676,6 @@ msgstr "Ha sido encontrado '%(value)s'"
 #, python-format
 msgid "Host '%(host)s' not found"
 msgstr "No ha sido encontrado el equipo anfitrión '%(host)s' "
-
-msgid ""
-"\n"
-"Entitlements\n"
-"\n"
-"Manage entitlements for client machines\n"
-"\n"
-"Entitlements can be managed either by registering with an entitlement\n"
-"server with a username and password or by manually importing entitlement\n"
-"certificates. An entitlement certificate contains embedded information\n"
-"such as the product being entitled, the quantity and the validity dates.\n"
-"\n"
-"An entitlement server manages the number of client entitlements available.\n"
-"To mark these entitlements as used by the IPA server you provide a quantity\n"
-"and they are marked as consumed on the entitlement server.\n"
-"\n"
-" Register with an entitlement server:\n"
-"   ipa entitle-register consumer\n"
-"\n"
-" Import an entitlement certificate:\n"
-"   ipa entitle-import /home/user/ipaclient.pem\n"
-"\n"
-" Display current entitlements:\n"
-"   ipa entitle-status\n"
-"\n"
-" Retrieve details on entitlement certificates:\n"
-"   ipa entitle-get\n"
-"\n"
-" Consume some entitlements from the entitlement server:\n"
-"   ipa entitle-consume 50\n"
-"\n"
-"The registration ID is a Unique Identifier (UUID). This ID will be\n"
-"IMPORTED if you have used entitle-import.\n"
-"\n"
-"Changes to /etc/rhsm/rhsm.conf require a restart of the httpd service.\n"
-msgstr ""
-"\n"
-"\\n\n"
-"Derechos\\n\n"
-"\\n\n"
-"Administrar derechos para máquinas clientes\\n\n"
-"\\n\n"
-"Los derechos pueden ser administrados ya sea al registrar un servidor \\n\n"
-"de derecho server con un nombre de usuario y contraseña o al importar "
-"manualmente los certificados\\n\n"
-"\n"
-"Un certificado de derechos contiene información incorporada\\n\n"
-"tal como el producto que va a ser autorizado, la cantidad y fechas de "
-"validez.\\n\n"
-"\n"
-"\\n\n"
-"Un servidor de derechos administra el número de derechos de cliente "
-"disponibles.\\n\n"
-"Para marcar estos derechos como usados por el servidor de IPA, se "
-"proporciona una cantidad\\n\n"
-"y se marca como consumida en el servidor de derechos.\\n\n"
-"\n"
-"\\n\n"
-" Registrar con un servidor de derechos:\\n\n"
-"   ipa entitle-register consumer\\n\n"
-"\n"
-"\\n\n"
-" Importar un certificado de derechos:\\n\n"
-"   ipa entitle-import /home/user/ipaclient.pem\\n\n"
-"\n"
-"\\n\n"
-" Mostrar los derechos actuales:\\n\n"
-"   ipa entitle-status\\n\n"
-"\n"
-"\\n\n"
-" Recuperar detalles sobre certificados de derechos:\\n\n"
-"   ipa entitle-get\\n\n"
-"\n"
-"\\n\n"
-" Consumir algunos derechos del servidor de derechos:\\n\n"
-"   ipa entitle-consume 50\\n\n"
-"\\n\n"
-"La ID de registro es un identificador único (UUID). Esta ID será\\n\n"
-"IMPORTED if you have used entitle-import.\\n\n"
-"\\n\n"
-"\n"
-"Cambios a /etc/rhsm/rhsm.conf requieren un reinicio del servicio httpd.\\n\n"
-
-msgid "entitlement"
-msgstr "derecho"
-
-msgid "entitlements"
-msgstr "derechos"
-
-msgid "Entitlements"
-msgstr "Autorizaciones"
-
-msgid "Entitlement"
-msgstr "Derecho"
-
-msgid "Display current entitlements."
-msgstr "Mostrar derechos actuales."
-
-msgid "UUID"
-msgstr "UUID"
-
-msgid "Product"
-msgstr "Producto"
-
-msgid "Quantity"
-msgstr "Cantidad"
-
-msgid "Consumed"
-msgstr "Consumido"
-
-msgid "Consume an entitlement."
-msgstr "Consumir un derecho."
-
-#, python-format
-msgid "Consumed %(value)s entitlement(s)."
-msgstr "Derecho(s) consumido(s) %(value)s."
-
-msgid "Retrieve the entitlement certs."
-msgstr "Recuperar el derecho certs."
-
-msgid "Start"
-msgstr "Inicio"
-
-msgid "End"
-msgstr "Fin"
-
-msgid "Serial Number"
-msgstr "Número de serie"
-
-msgid "Not an entitlement certificate"
-msgstr "No es un certificado de derechos"
-
-msgid "Search for entitlement accounts."
-msgstr "Buscar cuentas de derecho."
-
-msgid "Register to the entitlement system."
-msgstr "Registro al sistema de derecho."
-
-msgid "Registered to entitlement server."
-msgstr "Registrado en el servidor de derechos."
-
-msgid "Username"
-msgstr "Nombre de usuario"
-
-msgid "Enrollment UUID (not implemented)"
-msgstr "Inscripción UUID (no implementado)"
-
-msgid "Registration password"
-msgstr "Contraseña de registro"
-
-msgid "Import an entitlement certificate."
-msgstr "Importar un certificado de derecho."
-
-msgid "Enrollment UUID"
-msgstr "Inscripción UUID"
-
-msgid "Re-sync the local entitlement cache with the entitlement server."
-msgstr "Resincronizar el cache de derecho local con el servidor de derecho."
-
-msgid "Entitlement(s) synchronized."
-msgstr "Derecho (s) sincronizado(s)."
 
 msgid "group"
 msgstr "grupo"
@@ -2260,6 +2099,9 @@ msgstr "Acceso obtenido: %s"
 
 msgid "Keytab"
 msgstr "Keytab"
+
+msgid "Serial Number"
+msgstr "Número de serie"
 
 msgid "Failed managedby"
 msgstr "Falló managedby"
@@ -2696,6 +2538,9 @@ msgstr "Falso"
 msgid "Logged In As"
 msgstr "Registrado como"
 
+msgid "Username"
+msgstr "Nombre de usuario"
+
 msgid "Attribute"
 msgstr "Atributo"
 
@@ -2856,42 +2701,6 @@ msgstr "Tipo de Registro"
 
 msgid "DNS Zone Settings"
 msgstr "Configuración de la Zona DNS"
-
-msgid "Account"
-msgstr "Cuenta"
-
-msgid "Consume"
-msgstr "Consumir"
-
-msgid "Consume Entitlement"
-msgstr "Consumir Derecho"
-
-msgid "Download"
-msgstr "Descarga"
-
-msgid "Download Certificate"
-msgstr "Certificado de Descarga"
-
-msgid "Import"
-msgstr "Importar"
-
-msgid "Import Certificate"
-msgstr "Importar Certificado"
-
-msgid "Enter the Base64-encoded entitlement certificate below:"
-msgstr "Introduzca el derecho codificado Base64 certificado abajo:"
-
-msgid "Loading..."
-msgstr "Cargando…"
-
-msgid "No Certificate."
-msgstr "Sin Certificado."
-
-msgid "Register"
-msgstr "Registrar"
-
-msgid "Registration"
-msgstr "Registro"
 
 msgid "Group Settings"
 msgstr "Configuración del grupo"
@@ -3093,6 +2902,9 @@ msgstr "Comandos especificados y grupos"
 
 msgid "Specified Groups"
 msgstr "Grupos especificados"
+
+msgid "Account"
+msgstr "Cuenta"
 
 msgid "Account Settings"
 msgstr "Configuración de la cuenta"
@@ -4638,9 +4450,6 @@ msgstr "Iniciales"
 
 msgid "Home directory"
 msgstr "Directorio principal"
-
-msgid "GECOS field"
-msgstr "Campo GECOS"
 
 msgid "Login shell"
 msgstr "Shell de ingreso"

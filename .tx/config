@@ -1,5 +1,5 @@
 [main]
-host = https://www.transifex.net
+host = https://www.transifex.com
 
 [freeipa.ipa]
 file_filter = install/po/<lang>.po

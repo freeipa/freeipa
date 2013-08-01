@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-05-09 17:50+0200\n"
-"PO-Revision-Date: 2013-05-07 07:53+0000\n"
+"POT-Creation-Date: 2013-08-01 16:02+0200\n"
+"PO-Revision-Date: 2013-08-01 14:06+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Catalan <fedora@llistes.softcatala.org>\n"
 "Language: ca\n"
@@ -160,24 +160,6 @@ msgstr "Força"
 msgid "Class"
 msgstr "Classe"
 
-msgid "UUID"
-msgstr "UUID"
-
-msgid "Product"
-msgstr "Producte"
-
-msgid "Start"
-msgstr "Inici"
-
-msgid "End"
-msgstr "Fi"
-
-msgid "Serial Number"
-msgstr "Número de sèrie"
-
-msgid "Username"
-msgstr "Nom d'usuari"
-
 msgid "group"
 msgstr "grup"
 
@@ -201,6 +183,9 @@ msgstr "Avís"
 
 msgid "User name"
 msgstr "Nom d'usuari"
+
+msgid "Serial Number"
+msgstr "Número de sèrie"
 
 msgid "Host"
 msgstr "Ordinador central"
@@ -316,6 +301,9 @@ msgstr "Entra"
 msgid "Logout"
 msgstr "Surt"
 
+msgid "Username"
+msgstr "Nom d'usuari"
+
 msgid "seconds"
 msgstr "segons"
 
@@ -400,24 +388,6 @@ msgstr "Dades"
 msgid "Record Type"
 msgstr "Tipus de registre"
 
-msgid "Account"
-msgstr "Compte"
-
-msgid "Download"
-msgstr "Baixada"
-
-msgid "Import"
-msgstr "Importa"
-
-msgid "Loading..."
-msgstr "S'està carregant…"
-
-msgid "Register"
-msgstr "Registre"
-
-msgid "Registration"
-msgstr "Registre"
-
 msgid "External"
 msgstr "Extern"
 
@@ -468,6 +438,9 @@ msgstr "Ordres"
 
 msgid "Allow"
 msgstr "Permet"
+
+msgid "Account"
+msgstr "Compte"
 
 msgid "Domain"
 msgstr "Domini"

@@ -11,8 +11,8 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-05-09 17:50+0200\n"
-"PO-Revision-Date: 2013-05-07 07:53+0000\n"
+"POT-Creation-Date: 2013-08-01 16:02+0200\n"
+"PO-Revision-Date: 2013-08-01 14:06+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
 "Language: pl\n"
@@ -622,12 +622,6 @@ msgstr "Odnaleziono \"%(value)s\""
 msgid "Host '%(host)s' not found"
 msgstr "Nie odnaleziono komputera \"%(host)s\""
 
-msgid "UUID"
-msgstr "UUID"
-
-msgid "Product"
-msgstr "Produkt"
-
 msgid "User Groups"
 msgstr "Grupy użytkowników"
 
@@ -1192,9 +1186,6 @@ msgstr "Pełna nazwa"
 
 msgid "Home directory"
 msgstr "Katalog domowy"
-
-msgid "GECOS field"
-msgstr "Pole GECOS"
 
 msgid "Login shell"
 msgstr "Powłoka logowania"

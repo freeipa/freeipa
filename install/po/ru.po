@@ -12,8 +12,8 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-05-09 17:50+0200\n"
-"PO-Revision-Date: 2013-05-07 07:53+0000\n"
+"POT-Creation-Date: 2013-08-01 16:02+0200\n"
+"PO-Revision-Date: 2013-08-01 14:06+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Russian <trans-ru@lists.fedoraproject.org>\n"
 "Language: ru\n"
@@ -581,12 +581,6 @@ msgstr "Удалить все?"
 msgid "Host '%(host)s' not found"
 msgstr "Узел \"%(host)s\" не найден"
 
-msgid "UUID"
-msgstr "UUID"
-
-msgid "Username"
-msgstr "Имя пользователя"
-
 msgid "group"
 msgstr "группа"
 
@@ -841,6 +835,9 @@ msgstr "Скрыть детали"
 
 msgid "URL"
 msgstr "URL"
+
+msgid "Username"
+msgstr "Имя пользователя"
 
 msgid "Organization"
 msgstr "Организация"

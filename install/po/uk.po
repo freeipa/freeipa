@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-05-09 17:50+0200\n"
-"PO-Revision-Date: 2013-05-07 08:09+0000\n"
+"POT-Creation-Date: 2013-08-01 16:02+0200\n"
+"PO-Revision-Date: 2013-08-01 16:10+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -1704,6 +1704,9 @@ msgstr "атрибут не можна налаштовувати"
 msgid "No such attribute on this entry"
 msgstr "У цього запису немає такого атрибута"
 
+msgid "Suppress processing of membership attributes."
+msgstr "Придушити обробку атрибутів участі."
+
 msgid "Continuous mode: Don't stop on errors."
 msgstr "Режим неперервної роботи: не зупинятися у разі помилок."
 
@@ -3126,8 +3129,8 @@ msgstr "Точність за вертикаллю"
 
 msgid ""
 "format must be specified as\n"
-"    \"d1 [m1 [s1]] {\"N\"|\"S\"}  d2 [m2 [s2]] {\"E\"|\"W\"} alt[\"m\"] [siz"
-"[\"m\"] [hp[\"m\"] [vp[\"m\"]]]]\"\n"
+"    \"d1 [m1 [s1]] {\"N\"|\"S\"}  d2 [m2 [s2]] {\"E\"|\"W\"} alt[\"m\"] "
+"[siz[\"m\"] [hp[\"m\"] [vp[\"m\"]]]]\"\n"
 "    where:\n"
 "       d1:     [0 .. 90]            (degrees latitude)\n"
 "       d2:     [0 .. 180]           (degrees longitude)\n"
@@ -3138,8 +3141,8 @@ msgid ""
 "    See RFC 1876 for details"
 msgstr ""
 "формат має бути таким:\n"
-"    \"d1 [m1 [s1]] {\"N\"|\"S\"}  d2 [m2 [s2]] {\"E\"|\"W\"} alt[\"m\"] [siz"
-"[\"m\"] [hp[\"m\"] [vp[\"m\"]]]]\"\n"
+"    \"d1 [m1 [s1]] {\"N\"|\"S\"}  d2 [m2 [s2]] {\"E\"|\"W\"} alt[\"m\"] "
+"[siz[\"m\"] [hp[\"m\"] [vp[\"m\"]]]]\"\n"
 "    where:\n"
 "       d1:     [0 .. 90]            (широта у градусах)\n"
 "       d2:     [0 .. 180]           (довгота у градусах)\n"
@@ -3406,6 +3409,9 @@ msgstr ""
 msgid "Add forward record for nameserver located in the created zone"
 msgstr ""
 "Додати запис переспрямування для сервера назв, розташованого у створеній зоні"
+
+msgid "Nameserver IP address"
+msgstr "IP-адреса сервера назв"
 
 msgid "DNS is not configured"
 msgstr "DNS не налаштовано"
@@ -3699,169 +3705,6 @@ msgstr "Змінити загальні налаштування DNS."
 
 msgid "Show the current global DNS configuration."
 msgstr "Показати поточні загальні налаштування DNS."
-
-msgid ""
-"\n"
-"Entitlements\n"
-"\n"
-"Manage entitlements for client machines\n"
-"\n"
-"Entitlements can be managed either by registering with an entitlement\n"
-"server with a username and password or by manually importing entitlement\n"
-"certificates. An entitlement certificate contains embedded information\n"
-"such as the product being entitled, the quantity and the validity dates.\n"
-"\n"
-"An entitlement server manages the number of client entitlements available.\n"
-"To mark these entitlements as used by the IPA server you provide a quantity\n"
-"and they are marked as consumed on the entitlement server.\n"
-"\n"
-" Register with an entitlement server:\n"
-"   ipa entitle-register consumer\n"
-"\n"
-" Import an entitlement certificate:\n"
-"   ipa entitle-import /home/user/ipaclient.pem\n"
-"\n"
-" Display current entitlements:\n"
-"   ipa entitle-status\n"
-"\n"
-" Retrieve details on entitlement certificates:\n"
-"   ipa entitle-get\n"
-"\n"
-" Consume some entitlements from the entitlement server:\n"
-"   ipa entitle-consume 50\n"
-"\n"
-"The registration ID is a Unique Identifier (UUID). This ID will be\n"
-"IMPORTED if you have used entitle-import.\n"
-"\n"
-"Changes to /etc/rhsm/rhsm.conf require a restart of the httpd service.\n"
-msgstr ""
-"\n"
-"Іменування\n"
-"\n"
-"Керування іменуванням клієнтських комп’ютерів\n"
-"\n"
-"Іменуваннями можна керувати реєстрацією за допомогою сервера іменувань\n"
-"на основі імені користувача і пароля або ручним імпортуванням іменування\n"
-"сертифікатів. Сертифікат іменування містить вбудовану інформацію,\n"
-"зокрема іменування продукту, кількість та дати чинності.\n"
-"\n"
-"Сервер іменування керує кількістю доступних іменувань.\n"
-"Для позначення іменувань використаними сервером IPA вам слід вказати\n"
-"кількість та позначити як використані сервером іменування.\n"
-"\n"
-" Реєстрація за допомогою сервера іменувань:\n"
-"   ipa entitle-register consumer\n"
-"\n"
-" Імпортування сертифіката іменування:\n"
-"   ipa entitle-import /home/user/ipaclient.pem\n"
-"\n"
-" Показ поточних іменувань:\n"
-"   ipa entitle-status\n"
-"\n"
-" Отримання подробиць щодо сертифікатів іменування:\n"
-"   ipa entitle-get\n"
-"\n"
-" Використати декілька іменувань з сервера іменування:\n"
-"   ipa entitle-consume 50\n"
-"\n"
-"Ідентифікатором реєстрації є унікальний ідентифікатор (UUID). Ідентифікатор\n"
-"буде ІМПОРТОВАНО, якщо ви скористаєтеся імпортуванням іменувань.\n"
-"\n"
-"Внесення змін до /etc/rhsm/rhsm.conf потребує перезапуску служби httpd.\n"
-
-msgid "not allowed to perform this command"
-msgstr "виконувати цю команду заборонено"
-
-msgid "entitlement"
-msgstr "іменування"
-
-msgid "entitlements"
-msgstr "іменування"
-
-msgid "Entitlements"
-msgstr "Іменування"
-
-msgid "Entitlement"
-msgstr "Іменування"
-
-msgid "Display current entitlements."
-msgstr "Показати поточні іменування."
-
-msgid "UUID"
-msgstr "UUID"
-
-msgid "Product"
-msgstr "Продукт"
-
-msgid "Quantity"
-msgstr "Кількість"
-
-msgid "Consumed"
-msgstr "Використано"
-
-msgid "Consume an entitlement."
-msgstr "Використати іменування."
-
-#, python-format
-msgid "Consumed %(value)s entitlement(s)."
-msgstr "Використано %(value)s іменувань."
-
-#, python-format
-msgid "There are only %d entitlements left"
-msgstr "Залишилося лише %d іменувань"
-
-msgid "Retrieve the entitlement certs."
-msgstr "Отримати сертифікати іменування."
-
-msgid "Start"
-msgstr "Початок"
-
-msgid "End"
-msgstr "Кінець"
-
-msgid "Serial Number"
-msgstr "Серійний номер"
-
-msgid "Not an entitlement certificate"
-msgstr "Не є сертифікатом іменування"
-
-msgid "Search for entitlement accounts."
-msgstr "Шукати облікові записи іменування."
-
-msgid "Register to the entitlement system."
-msgstr "Зареєструвати систему іменування."
-
-msgid "Registered to entitlement server."
-msgstr "Зареєстровано сервер іменування."
-
-msgid "Username"
-msgstr "Користувач"
-
-msgid "Enrollment UUID (not implemented)"
-msgstr "UUID реєстрації (не реалізовано)"
-
-msgid "Registration password"
-msgstr "Пароль реєстрації"
-
-msgid "No permission to register"
-msgstr "Немає доступу до реєстрації"
-
-msgid "Registering to specific UUID is not supported yet."
-msgstr "Реєстрації окремих UUID ще не передбачено."
-
-msgid "Import an entitlement certificate."
-msgstr "Імпортувати сертифікат іменування."
-
-msgid "Enrollment UUID"
-msgstr "UUID реєстрації"
-
-msgid "Re-sync the local entitlement cache with the entitlement server."
-msgstr ""
-"Виконати повторну синхронізацію локального кешу іменування з сервером "
-"іменування."
-
-msgid "Entitlement(s) synchronized."
-msgstr "Іменування синхронізовано."
 
 msgid ""
 "\n"
@@ -4803,13 +4646,13 @@ msgid ""
 "    4. Test if other user from a trusted domain specified by its SID matches "
 "any rule:\n"
 "\n"
-"    $ ipa hbactest --user S-1-5-21-3035198329-144811719-1378114514-500 \\\n"
+"    $ ipa hbactest --user S-1-5-21-3035198329-144811719-1378114514-1203 \\\n"
 "            --host `hostname` --service sshd\n"
 "    --------------------\n"
 "    Access granted: True\n"
 "    --------------------\n"
 "      Matched rules: allow_all\n"
-"      Matched rules: can_login\n"
+"      Not matched rules: can_login\n"
 "\n"
 "   5. Test if other user from a trusted domain specified by its shortname "
 "matches\n"
@@ -4976,7 +4819,7 @@ msgstr ""
 "    Надано доступ: Так\n"
 "    --------------------\n"
 "      Відповідні правила: allow_all\n"
-"      Відповідні правила: can_login\n"
+"      Невідповідні правила: can_login\n"
 "\n"
 "    3. Перевірити, чи відповідає користувач з довіреного домену\n"
 "       вказаний за SID, якомусь правилу:\n"
@@ -5192,6 +5035,9 @@ msgstr ""
 
 msgid "Keytab"
 msgstr "Таблиця ключів"
+
+msgid "Serial Number"
+msgstr "Серійний номер"
 
 msgid "Serial Number (hex)"
 msgstr "Серійний номер (шістнадцятковий)"
@@ -5781,6 +5627,21 @@ msgstr "Діапазони ідентифікаторів"
 msgid "ID Range"
 msgstr "Діапазон ідентифікаторів"
 
+msgid "local domain range"
+msgstr "локальний діапазон доменів"
+
+msgid "Active Directory winsync range"
+msgstr "Діапазон winsync Active Directory"
+
+msgid "Active Directory domain range"
+msgstr "Діапазон доменів Active Directory"
+
+msgid "Active Directory trust range with POSIX attributes"
+msgstr "Діапазон довіри Active Directory з атрибутами POSIX"
+
+msgid "IPA trust range"
+msgstr "Діапазон довіри IPA"
+
 msgid "Range name"
 msgstr "Назва діапазону"
 
@@ -5805,11 +5666,8 @@ msgstr "Назва довіреного домену"
 msgid "Range type"
 msgstr "Тип діапазону"
 
-msgid "Active Directory domain range"
-msgstr "Діапазон доменів Active Directory"
-
-msgid "local domain range"
-msgstr "локальний діапазон доменів"
+msgid "ID range type, one of {vals}"
+msgstr "Тип діапазону ідентифікаторів, одне з таких значень: {vals}"
 
 msgid ""
 "range modification leaving objects with ID out of the defined range is not "
@@ -5851,7 +5709,7 @@ msgid ""
 "\n"
 "    may be given for a new ID range for the local domain while\n"
 "\n"
-"        --rid-bas\n"
+"        --rid-base\n"
 "        --dom-sid\n"
 "\n"
 "    must be given to add a new range for a trusted AD domain.\n"
@@ -5889,7 +5747,7 @@ msgstr ""
 "\n"
 "    для додавання нового діапазону ідентифікаторів для локального домену і\n"
 "\n"
-"        --rid-bas\n"
+"        --rid-base\n"
 "        --dom-sid\n"
 "\n"
 "    для додавання нового діапазону для довіреного домену AD.\n"
@@ -5923,6 +5781,13 @@ msgstr ""
 "Не вдалося знайти SID для вказаного довіреного домену. Будь ласка, вкажіть "
 "SID безпосередньо за допомогою параметра dom-sid."
 
+msgid ""
+"IPA Range type must be one of ipa-ad-trust or ipa-ad-trust-posix when SID of "
+"the trusted domain is specified."
+msgstr ""
+"Якщо вказано SID довіреного домену, типом діапазону IPA має бути ipa-ad-"
+"trust або ipa-ad-trust-posix."
+
 msgid "Options dom-sid/dom-name and secondary-rid-base cannot be used together"
 msgstr ""
 "Параметри dom-sid/dom-name і secondary-rid-base не можна використовувати "
@@ -5931,12 +5796,26 @@ msgstr ""
 msgid "Options dom-sid/dom-name and rid-base must be used together"
 msgstr "Параметри dom-sid/dom-name і rid-base слід використовувати разом"
 
+msgid ""
+"IPA Range type must not be one of ipa-ad-trust or ipa-ad-trust-posix when "
+"SID of the trusted domain is not specified."
+msgstr ""
+"Якщо не вказано SID довіреного домену, типом діапазону IPA не може бути ipa-"
+"ad-trust або ipa-ad-trust-posix."
+
 msgid "Options secondary-rid-base and rid-base must be used together"
 msgstr "Параметри secondary-rid-base і rid-base слід використовувати разом"
 
 msgid "Primary RID range and secondary RID range cannot overlap"
 msgstr ""
 "Основний діапазон RID і вторинний діапазон RID не повинні перекриватися"
+
+msgid ""
+"You must specify both rid-base and secondary-rid-base options, because ipa-"
+"adtrust-install has already been run."
+msgstr ""
+"Вам слід вказати обидва параметри, rid-base і secondary-rid-base, оскільки "
+"вже запущено ipa-adtrust-install."
 
 msgid "Delete an ID range."
 msgstr "Вилучити діапазон ідентифікаторів."
@@ -6033,8 +5912,8 @@ msgstr "Додано заборону ${other_entity} до ${entity} ${primary_k
 msgid "Add ${entity} ${primary_key} into ${other_entity}"
 msgstr "Додати ${entity} ${primary_key} до ${other_entity}"
 
-msgid "Items added"
-msgstr "Записи додано"
+msgid "${count} item(s) added"
+msgstr "Додано ${count} записів"
 
 msgid "Direct Membership"
 msgstr "Безпосередня участь"
@@ -6069,8 +5948,8 @@ msgstr "Вилучити заборону ${other_entity} з ${entity} ${primary
 msgid "Remove ${entity} ${primary_key} from ${other_entity}"
 msgstr "Вилучити ${entity} ${primary_key} з ${other_entity}"
 
-msgid "Items removed"
-msgstr "Записи вилучено"
+msgid "${count} item(s) removed"
+msgstr "Вилучено ${count} записів"
 
 msgid "Show Results"
 msgstr "Показати результати"
@@ -6321,6 +6200,9 @@ msgstr "Вийти"
 
 msgid "Logout error"
 msgstr "Помилка під час виходу"
+
+msgid "Username"
+msgstr "Користувач"
 
 msgid "number of passwords"
 msgstr "кількість паролів"
@@ -6637,42 +6519,6 @@ msgstr "Додати права доступу"
 msgid "Remove Permission"
 msgstr "Вилучити права доступу"
 
-msgid "Account"
-msgstr "Обліковий запис"
-
-msgid "Consume"
-msgstr "Використання"
-
-msgid "Consume Entitlement"
-msgstr "Іменування використання"
-
-msgid "Download"
-msgstr "Звантажити"
-
-msgid "Download Certificate"
-msgstr "Звантажити сертифікат"
-
-msgid "Import"
-msgstr "Імпортувати"
-
-msgid "Import Certificate"
-msgstr "Імпортувати сертифікат"
-
-msgid "Enter the Base64-encoded entitlement certificate below:"
-msgstr "Нижче вкажіть закодований у Base64 сертифікат іменування:"
-
-msgid "Loading..."
-msgstr "Завантаження…"
-
-msgid "No Certificate."
-msgstr "Без сертифіката."
-
-msgid "Register"
-msgstr "Зареєструватися"
-
-msgid "Registration"
-msgstr "Реєстрація"
-
 msgid "Group Settings"
 msgstr "Параметри групи"
 
@@ -6871,8 +6717,17 @@ msgstr "Вторинна основа RID"
 msgid "Active Directory domain"
 msgstr "Домен Active Directory"
 
+msgid "Active Directory domain with POSIX attributes"
+msgstr "Домен Active Directory з атрибутами POSIX"
+
 msgid "Local domain"
 msgstr "Локальний домен"
+
+msgid "IPA trust"
+msgstr "Довіра IPA"
+
+msgid "Active Directory winsync"
+msgstr "winsync Active Directory"
 
 msgid "Realm Domains"
 msgstr "Домени області"
@@ -6958,8 +6813,8 @@ msgstr "Доступ до цього вузла"
 msgid "Option added"
 msgstr "Додано параметр"
 
-msgid "Option(s) removed"
-msgstr "Вилучено параметр"
+msgid "${count} option(s) removed"
+msgstr "Вилучено ${count} параметрів"
 
 msgid "As Whom"
 msgstr "Від імені"
@@ -6969,6 +6824,9 @@ msgstr "Вказані команди і групи"
 
 msgid "Specified Groups"
 msgstr "Вказані групи"
+
+msgid "Account"
+msgstr "Обліковий запис"
 
 msgid "Administrative account"
 msgstr "Адміністративний обліковий запис"
@@ -7076,20 +6934,20 @@ msgstr "Повторіть пароль"
 msgid "Are you sure you want to delete selected entries?"
 msgstr "Ви справді бажаєте вилучити позначені записи?"
 
-msgid "Selected entries were deleted."
-msgstr "Позначені записи було вилучено."
+msgid "${count} item(s) deleted"
+msgstr "Вилучено ${count} записів"
 
 msgid "Are you sure you want to disable selected entries?"
 msgstr "Ви справді хочете вимкнути позначені записи?"
 
-msgid "${count} items were disabled"
-msgstr "Було вимкнено ${count} записів"
+msgid "${count} item(s) disabled"
+msgstr "Вимкнено ${count} записів"
 
 msgid "Are you sure you want to enable selected entries?"
 msgstr "Ви справді бажаєте увімкнути позначені записи?"
 
-msgid "${count} items were enabled"
-msgstr "Було увімкнено ${count} записів"
+msgid "${count} item(s) enabled"
+msgstr "Увімкнено ${count} записів"
 
 msgid "Some entries were not deleted"
 msgstr "Деякі з записів не вилучено"
@@ -8139,8 +7997,7 @@ msgid ""
 " Ping an IPA server verbosely:\n"
 "   ipa -v ping\n"
 "   ipa: INFO: trying https://ipa.example.com/ipa/xml\n"
-"   ipa: INFO: Forwarding 'ping' to server u'https://ipa.example.com/ipa/"
-"xml'\n"
+"   ipa: INFO: Forwarding 'ping' to server 'https://ipa.example.com/ipa/xml'\n"
 "   -----------------------------------------------------\n"
 "   IPA server version 2.1.9. API version 2.20\n"
 "   -----------------------------------------------------\n"
@@ -8982,8 +8839,8 @@ msgstr ""
 msgid ""
 "Invalid MCS value, must match c[0-1023].c[0-1023] and/or c[0-1023]-c[0-c0123]"
 msgstr ""
-"Некоректне значення MCS. Значення має відповідати шаблону c[0-1023].c"
-"[0-1023] і/або шаблону c[0-1023]-c[0-c0123]"
+"Некоректне значення MCS. Значення має відповідати шаблону c[0-1023]."
+"c[0-1023] і/або шаблону c[0-1023]-c[0-c0123]"
 
 msgid "SELinux user map list not found in configuration"
 msgstr "Списку карт користувачів SELinux у налаштуваннях не виявлено"
@@ -10093,9 +9950,23 @@ msgid "Size of the ID range reserved for the trusted domain"
 msgstr ""
 "Розмір діапазону ідентифікаторів, зарезервованого для довіреного домену"
 
+msgid "Type of trusted domain ID range, one of {vals}"
+msgstr ""
+"Тип діапазону ідентифікаторів довіреного домену, одне з таких значень: {vals}"
+
 #, python-format
 msgid "Added Active Directory trust for realm \"%(value)s\""
 msgstr "Додано запис довіри Active Directory для області «%(value)s»"
+
+msgid "AD Trust setup"
+msgstr "Налаштування довіри AD"
+
+msgid ""
+"Cannot perform join operation without Samba 4 support installed. Make sure "
+"you have installed server-trust-ad sub-package of IPA"
+msgstr ""
+"Виконати дію з приєднання без встановленої підтримки Samba 4 неможливо. "
+"Переконайтеся, що вами встановлено підпакунок IPA server-trust-ad."
 
 msgid "missing base_id"
 msgstr "не вистачає base_id"
@@ -10109,6 +9980,35 @@ msgstr "тип довіри"
 msgid "only \"ad\" is supported"
 msgstr "передбачено підтримку лише «ad»"
 
+msgid "Trusted domain and administrator account use different realms"
+msgstr ""
+"Довіреним доменом і обліковим записом адміністратора використовуються різні "
+"області"
+
+msgid "Realm administrator password should be specified"
+msgstr "Має бути вказано пароль адміністратора області"
+
+msgid "id range type"
+msgstr "тип діапазону ідентифікаторів"
+
+msgid ""
+"Only the ipa-ad-trust and ipa-ad-trust-posix are allowed values for --range-"
+"type when adding an AD trust."
+msgstr ""
+"Якщо додається зв’язок довіри AD, значенням --range-type має бути лише ipa-"
+"ad-trust або ipa-ad-trust-posix."
+
+msgid "id range"
+msgstr "діапазон ідентифікаторів"
+
+msgid ""
+"An id range already exists for this trust. You should either delete the old "
+"range, or exclude --base-id/--range-size options from the command."
+msgstr ""
+"Для цього зв’язку довіри вже існує діапазон ідентифікаторів. Вам слід або "
+"вилучити попередній діапазон, або виключити з команди параметри --base-id/--"
+"range-size."
+
 msgid "range exists"
 msgstr "діапазон вже існує"
 
@@ -10120,36 +10020,21 @@ msgstr ""
 "SID. Діапазон ідентифікаторів для нового довіреного домену має бути створено "
 "вручну."
 
-msgid "AD Trust setup"
-msgstr "Налаштування довіри AD"
+msgid "range type change"
+msgstr "зміна типу діапазону"
 
 msgid ""
-"Cannot perform join operation without Samba 4 support installed.\n"
-"                              Make sure you have installed server-trust-ad "
-"sub-package of IPA"
+"ID range for the trusted domain already exists, but it has a different type. "
+"Please remove the old range manually, or do not enforce type via --range-"
+"type option."
 msgstr ""
-"Виконати дію з приєднання без встановленої підтримки Samba 4 неможливо.\n"
-"Переконайтеся, що вами встановлено підпакунок IPA server-trust-ad."
-
-msgid ""
-"Cannot perform join operation without own domain configured.\n"
-"                              Make sure you have run ipa-adtrust-install on "
-"the IPA server first"
-msgstr ""
-"Без налаштовування власного домену не можна виконувати дію з приєднання.\n"
-"Спочатку запустіть ipa-adtrust-install на сервері IPA."
+"Діапазон ідентифікаторів для довіреного домену вже існує, але належить до "
+"іншого типу. Будь ласка, вилучіть попередній діапазон вручну або не "
+"визначайте тип у примусовому порядку за допомогою параметра --range-type."
 
 #, python-format
 msgid "Re-established trust to domain \"%(value)s\""
 msgstr "Відновлено довіру до домену «%(value)s»"
-
-msgid "Trusted domain and administrator account use different realms"
-msgstr ""
-"Довіреним доменом і обліковим записом адміністратора використовуються різні "
-"області"
-
-msgid "Realm administrator password should be specified"
-msgstr "Має бути вказано пароль адміністратора області"
 
 #, python-format
 msgid "Unable to resolve domain controller for '%s' domain. "
@@ -10270,6 +10155,9 @@ msgstr "Назва"
 
 msgid "SID"
 msgstr "SID"
+
+msgid "Determine whether ipa-adtrust-install has been run on this system"
+msgstr "Визначити, чи було запущено ipa-adtrust-install для цієї системи"
 
 msgid ""
 "\n"
@@ -10407,8 +10295,8 @@ msgstr "Ініціали"
 msgid "Home directory"
 msgstr "Домашній каталог"
 
-msgid "GECOS field"
-msgstr "Поле GECOS"
+msgid "GECOS"
+msgstr "GECOS"
 
 msgid "Login shell"
 msgstr "Оболонка входу"
@@ -10648,6 +10536,9 @@ msgstr "Обліковий запис вимкнено: %(disabled)s"
 msgid "operation not defined"
 msgstr "дію не визначено"
 
+msgid "not allowed to perform this command"
+msgstr "виконувати цю команду заборонено"
+
 msgid "No such virtual command"
 msgstr "Такої віртуальної команди не передбачено"
 
@@ -10784,14 +10675,14 @@ msgstr ""
 "обмін даними з довіреним доменом дозволено лише учасникам групи "
 "адміністрування Trusts"
 
+msgid "no trusted domain is configured"
+msgstr "Не налаштовано жодного довіреного домену"
+
 msgid "domain is not configured"
 msgstr "домен не налаштовано"
 
 msgid "SID is not valid"
 msgstr "SID не є чинним"
-
-msgid "no trusted domain is configured"
-msgstr "Не налаштовано жодного довіреного домену"
 
 msgid "SID does not match exactlywith any trusted domain's SID"
 msgstr "SID не збігається точно з будь-яким з SID довірених доменів"

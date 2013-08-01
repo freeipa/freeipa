@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-05-09 17:50+0200\n"
-"PO-Revision-Date: 2013-05-07 07:53+0000\n"
+"POT-Creation-Date: 2013-08-01 16:02+0200\n"
+"PO-Revision-Date: 2013-08-01 14:06+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Basque (http://www.transifex.com/projects/p/fedora/language/"
 "eu/)\n"
@@ -202,27 +202,6 @@ msgstr "Behartu"
 msgid "Class"
 msgstr "Klasea"
 
-msgid "UUID"
-msgstr "UUID"
-
-msgid "Product"
-msgstr "Produktua"
-
-msgid "Quantity"
-msgstr "Kantitatea"
-
-msgid "Start"
-msgstr "Hasi"
-
-msgid "End"
-msgstr "Amaitu"
-
-msgid "Serial Number"
-msgstr "Serie-zenbakia"
-
-msgid "Username"
-msgstr "Erabiltzaile-izena"
-
 msgid "group"
 msgstr "taldea"
 
@@ -294,6 +273,9 @@ msgstr "Zerbitzu-taldearen izena"
 
 msgid "HBAC service group description"
 msgstr "HBAC zerbitzu-taldearen deskribapena"
+
+msgid "Serial Number"
+msgstr "Serie-zenbakia"
 
 msgid "Host name"
 msgstr "Ostalari-izena"
@@ -373,6 +355,9 @@ msgstr "Ezarpenak"
 
 msgid "Search"
 msgstr "Bilatu"
+
+msgid "Username"
+msgstr "Erabiltzaile-izena"
 
 msgid "Attribute"
 msgstr "Atributua"
