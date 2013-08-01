@@ -53,6 +53,7 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import certs
+from ipaserver.install.installutils import stopped_service
 from ipaserver.plugins import ldap2
 from ipapython.ipa_log_manager import *
 
@@ -443,7 +444,10 @@ class CAInstance(service.Service):
             if not ipautil.dir_exists("/var/lib/pki-ca"):
                 self.step("creating pki-ca instance", self.create_instance)
             self.step("configuring certificate server instance", self.__configure_instance)
+        self.step("stopping certificate server instance to update CS.cfg", self.__stop)
         self.step("disabling nonces", self.__disable_nonce)
+        self.step("set up CRL publishing", self.__enable_crl_publish)
+        self.step("starting certificate server instance", self.__start)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
@@ -454,7 +458,6 @@ class CAInstance(service.Service):
             self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
             self.step("fixing RA database permissions", self.fix_ra_perms)
             self.step("setting up signing cert profile", self.__setup_sign_profile)
-            self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("set certificate subject base", self.__set_subject_in_config)
             self.step("enabling Subject Key Identifier", self.enable_subject_key_identifier)
             self.step("enabling CRL and OCSP extensions for certificates", self.__set_crl_ocsp_extensions)
@@ -473,6 +476,13 @@ class CAInstance(service.Service):
             self.step("Configure HTTP to proxy connections", self.__http_proxy)
 
         self.start_creation(runtime=210)
+
+    def __stop(self):
+        self.stop()
+
+    def __start(self):
+        self.start()
+
 
     def __spawn_instance(self):
         """
@@ -781,7 +791,8 @@ class CAInstance(service.Service):
         if update_result != 0:
             raise RuntimeError("Disabling nonces failed")
         pent = pwd.getpwnam(PKI_USER)
-        os.chown(self.dogtag_constants.CS_CFG_PATH, pent.pw_uid, pent.pw_gid)
+        os.chown(self.dogtag_constants.CS_CFG_PATH,
+                 pent.pw_uid, pent.pw_gid)
 
     def __issue_ra_cert(self):
         # The CA certificate is in the agent DB but isn't trusted
@@ -1272,36 +1283,40 @@ class CAInstance(service.Service):
         """
         caconfig = dogtag.install_constants.CS_CFG_PATH
 
-        # Enable file publishing, disable LDAP
-        installutils.set_directive(caconfig,
-            'authz.instance.DirAclAuthz.ldap.ldapauth.authtype',
-            'SslClientAuth', quotes=False, separator='=')
-        installutils.set_directive(caconfig,
-            'authz.instance.DirAclAuthz.ldap.ldapauth.bindDN',
-            'uid=pkidbuser,ou=people,o=ipa-ca', quotes=False, separator='=')
-        installutils.set_directive(caconfig,
-            'authz.instance.DirAclAuthz.ldap.ldapauth.clientCertNickname',
-            'subsystemCert cert-pki-ca', quotes=False, separator='=')
-        installutils.set_directive(caconfig,
-            'authz.instance.DirAclAuthz.ldap.ldapconn.port',
-            str(dogtag.install_constants.DS_SECURE_PORT),
-            quotes=False, separator='=')
-        installutils.set_directive(caconfig,
-            'authz.instance.DirAclAuthz.ldap.ldapconn.secureConn',
-            'true', quotes=False, separator='=')
+        with stopped_service('pki_tomcatd',
+                        instance_name=self.dogtag_constants.PKI_INSTANCE_NAME):
 
-        installutils.set_directive(caconfig, 'internaldb.ldapauth.authtype',
-            'SslClientAuth', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'internaldb.ldapauth.bindDN',
-            'uid=pkidbuser,ou=people,o=ipa-ca', quotes=False, separator='=')
-        installutils.set_directive(caconfig,
-            'internaldb.ldapauth.clientCertNickname',
-            'subsystemCert cert-pki-ca', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'internaldb.ldapconn.port',
-            str(dogtag.install_constants.DS_SECURE_PORT),
-            quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'internaldb.ldapconn.secureConn',
-            'true', quotes=False, separator='=')
+            # Enable file publishing, disable LDAP
+            installutils.set_directive(caconfig,
+                'authz.instance.DirAclAuthz.ldap.ldapauth.authtype',
+                'SslClientAuth', quotes=False, separator='=')
+            installutils.set_directive(caconfig,
+                'authz.instance.DirAclAuthz.ldap.ldapauth.bindDN',
+                'uid=pkidbuser,ou=people,o=ipa-ca', quotes=False, separator='=')
+            installutils.set_directive(caconfig,
+                'authz.instance.DirAclAuthz.ldap.ldapauth.clientCertNickname',
+                'subsystemCert cert-pki-ca', quotes=False, separator='=')
+            installutils.set_directive(caconfig,
+                'authz.instance.DirAclAuthz.ldap.ldapconn.port',
+                str(dogtag.install_constants.DS_SECURE_PORT),
+                quotes=False, separator='=')
+            installutils.set_directive(caconfig,
+                'authz.instance.DirAclAuthz.ldap.ldapconn.secureConn',
+                'true', quotes=False, separator='=')
+
+            installutils.set_directive(caconfig, 'internaldb.ldapauth.authtype',
+                'SslClientAuth', quotes=False, separator='=')
+            installutils.set_directive(caconfig, 'internaldb.ldapauth.bindDN',
+                'uid=pkidbuser,ou=people,o=ipa-ca', quotes=False, separator='=')
+            installutils.set_directive(caconfig,
+                'internaldb.ldapauth.clientCertNickname',
+                'subsystemCert cert-pki-ca', quotes=False, separator='=')
+            installutils.set_directive(caconfig, 'internaldb.ldapconn.port',
+                str(dogtag.install_constants.DS_SECURE_PORT),
+                quotes=False, separator='=')
+            installutils.set_directive(caconfig,
+                 'internaldb.ldapconn.secureConn', 'true', quotes=False,
+                 separator='=')
 
     def uninstall(self):
         if self.is_configured():
@@ -1687,7 +1702,7 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
 
     return ca
 
-def update_cert_config(nickname, cert):
+def update_cert_config(nickname, cert, dogtag_constants=None):
     """
     When renewing a CA subsystem certificate the configuration file
     needs to get the new certificate as well.
@@ -1695,6 +1710,10 @@ def update_cert_config(nickname, cert):
     nickname is one of the known nicknames.
     cert is a DER-encoded certificate.
     """
+
+    if dogtag_constants is None:
+        dogtag_constants = dogtag.configured_constants()
+
     # The cert directive to update per nickname
     directives = {'auditSigningCert cert-pki-ca': 'ca.audit_signing.cert',
                   'ocspSigningCert cert-pki-ca': 'ca.ocsp_signing.cert',
@@ -1702,10 +1721,13 @@ def update_cert_config(nickname, cert):
                   'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
                   'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
 
-    installutils.set_directive(dogtag.configured_constants().CS_CFG_PATH,
-                                directives[nickname],
-                                base64.b64encode(cert),
-                                quotes=False, separator='=')
+    with stopped_service('pki_tomcatd',
+                         instance_name=dogtag_constants.PKI_INSTANCE_NAME):
+
+        installutils.set_directive(dogtag.configured_constants().CS_CFG_PATH,
+                                    directives[nickname],
+                                    base64.b64encode(cert),
+                                    quotes=False, separator='=')
 
 def update_people_entry(uid, dercert):
     """
