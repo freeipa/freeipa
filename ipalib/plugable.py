@@ -59,6 +59,33 @@ def is_production_mode(obj):
     return obj.env.mode == 'production'
 
 
+class Registry(object):
+    """A decorator that makes plugins available to the API
+
+    Usage::
+
+        register = Registry()
+
+        @register()
+        class obj_mod(...):
+            ...
+
+    For forward compatibility, make sure that the module-level instance of
+    this object is named "register".
+    """
+    # TODO: Instead of auto-loading when plugin modules are imported,
+    # plugins should be stored in this object.
+    # The API should examine it and load plugins explicitly.
+    def __call__(self):
+        from ipalib import api
+
+        def decorator(cls):
+            api.register(cls)
+            return cls
+
+        return decorator
+
+
 class SetProxy(ReadOnly):
     """
     A read-only container with set/sequence behaviour.

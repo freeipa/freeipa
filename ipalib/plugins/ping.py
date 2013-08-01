@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api
 from ipalib import Command
 from ipalib import output
 from ipalib import _, ngettext
+from ipalib.plugable import Registry
 from ipapython.version import VERSION, API_VERSION
 
 __doc__ = _("""
@@ -51,6 +51,10 @@ EXAMPLES:
    -----------------------------------------------------
 """)
 
+register = Registry()
+
+
+@register()
 class ping(Command):
     __doc__ = _('Ping a remote server.')
 
@@ -64,5 +68,3 @@ class ping(Command):
         back but a fixed value works for now.
         """
         return dict(summary=u'IPA server version %s. API version %s' % (VERSION, API_VERSION))
-
-api.register(ping)
