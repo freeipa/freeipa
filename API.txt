@@ -490,6 +490,10 @@ args: 1,1,1
 arg: Str('request_id')
 option: Str('version?', exclude='webui')
 output: Output('result', None, None)
+command: compat_is_enabled
+args: 0,1,1
+option: Str('version?', exclude='webui')
+output: Output('result', None, None)
 command: config_mod
 args: 0,24,3
 option: Str('addattr*', cli_name='addattr', exclude='webui')

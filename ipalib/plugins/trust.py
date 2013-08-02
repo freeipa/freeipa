@@ -990,3 +990,47 @@ class adtrust_is_enabled(Command):
         return dict(result=True)
 
 api.register(adtrust_is_enabled)
+
+
+class compat_is_enabled(Command):
+    NO_CLI = True
+
+    __doc__ = _('Determine whether Schema Compatibility plugin is configured '
+                'to serve trusted domain users and groups')
+
+    def execute(self, *keys, **options):
+        ldap = self.api.Backend.ldap2
+        users_dn = DN(
+            ('cn', 'users'),
+            ('cn', 'Schema Compatibility'),
+            ('cn', 'plugins'),
+            ('cn', 'config')
+        )
+        groups_dn = DN(
+            ('cn', 'groups'),
+            ('cn', 'Schema Compatibility'),
+            ('cn', 'plugins'),
+            ('cn', 'config')
+        )
+
+        try:
+            users_entry = ldap.get_entry(users_dn)
+        except errors.NotFound:
+            return dict(result=False)
+
+        attr = users_entry.get('schema-compat-lookup-nsswitch')
+        if not attr or 'user' not in attr:
+            return dict(result=False)
+
+        try:
+            groups_entry = ldap.get_entry(groups_dn)
+        except errors.NotFound:
+            return dict(result=False)
+
+        attr = groups_entry.get('schema-compat-lookup-nsswitch')
+        if not attr or 'group' not in attr:
+            return dict(result=False)
+
+        return dict(result=True)
+
+api.register(compat_is_enabled)
