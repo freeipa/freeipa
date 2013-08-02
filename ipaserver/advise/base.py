@@ -163,7 +163,9 @@ class IpaAdvise(admintool.AdminTool):
         advice.set_options(self.options)
 
         # Print out the actual advice
+        api.Backend.xmlclient.connect()
         advice.get_info()
+        api.Backend.xmlclient.disconnect()
         for line in advice.log.content:
             print line
 
