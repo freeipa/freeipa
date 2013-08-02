@@ -52,6 +52,31 @@ Other directory servers deployed in the network (e.g. Microsoft Active Directory
 
 In order to avoid the aforementioned DNS autodiscovery issues, the client machine hostname should be in a domain with properly defined DNS SRV records pointing to IPA servers, either manually with a custom DNS server or with IPA DNS integrated solution. A second approach would be to avoid autodiscovery and configure the installer to use a fixed list of IPA server hostnames using the \-\-server option and with a \-\-fixed\-primary option disabling DNS SRV record autodiscovery in SSSD.
 
+.SS "Re\-enrollment of the host"
+Requirements:
+
+1. Host has not been un\-enrolled (the ipa\-client\-install \-\-uninstall command has not been run).
+.br
+2. The host entry has not been disabled via the ipa host\-disable command.
+
+If this has been the case, host can be re\-enrolled using the usual methods.
+
+There are two method of authenticating a re\-enrollment:
+
+1. You can use \-\-force\-join option with ipa\-client\-install command. This authenticates the re\-enrollment using the admin's credetials provided via the \-w/\-\-password option.
+.br
+2. If providing the admin's password via the command line is not an option (e.g you want to create a script to re\-enroll a host and keep the admin's password secure), you can use backed up keytab from the previous enrollment of this host to authenticate. See \-\-keytab option.
+
+Consenquences of the re\-enrollment on the host entry:
+
+1. A new host certificate is issued
+.br
+2. The old host certificate is revoked
+.br
+3. New SSH keys are generated
+.br
+4. ipaUniqueID is preserved
+
 .SH "OPTIONS"
 .SS "BASIC OPTIONS"
 .TP

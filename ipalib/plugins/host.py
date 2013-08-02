@@ -66,11 +66,13 @@ There are three enrollment scenarios when enrolling a new client:
    Host Enrollment privilege.
 3. The host has been created with a one-time password.
 
-A host can only be enrolled once. If a client has enrolled and needs to
-be re-enrolled, the host entry must be removed and re-created. Note that
-re-creating the host entry will result in all services for the host being
-removed, and all SSL certificates associated with those services being
-revoked.
+
+RE-ENROLLMENT:
+
+Host that has been enrolled at some point, and lost its configuration (e.g. VM
+destroyed) can be re-enrolled.
+
+For more information, consult the manual pages for ipa-client-install.
 
 A host can optionally store information such as where it is located,
 the OS that it runs, etc.
