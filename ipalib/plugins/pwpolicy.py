@@ -235,6 +235,7 @@ class pwpolicy(LDAPObject):
             label=_('Max lifetime (days)'),
             doc=_('Maximum password lifetime (in days)'),
             minvalue=0,
+            maxvalue=20000,  # a little over 54 years
         ),
         Int('krbminpwdlife?',
             cli_name='minlife',
