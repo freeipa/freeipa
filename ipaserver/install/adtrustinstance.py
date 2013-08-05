@@ -667,16 +667,16 @@ class ADTRUSTInstance(service.Service):
     def __enable_compat_tree(self):
         try:
             compat_plugin_dn = DN("cn=Schema Compatibility,cn=plugins,cn=config")
-            lookup_sssd_name = "schema-compat-lookup-sssd"
+            lookup_nsswitch_name = "schema-compat-lookup-nsswitch"
             for config in (("cn=users", "user"), ("cn=groups", "group")):
                 entry_dn = DN(config[0], compat_plugin_dn)
                 current = self.admin_conn.get_entry(entry_dn)
-                lookup_sssd = current.get(lookup_sssd_name, [])
-                if not(config[1] in lookup_sssd):
-                    current[lookup_sssd_name] = [config[1]]
+                lookup_nsswitch = current.get(lookup_nsswitch_name, [])
+                if not(config[1] in lookup_nsswitch):
+                    current[lookup_nsswitch_name] = [config[1]]
                     self.admin_conn.update_entry(entry_dn, current)
         except Exception, e:
-            root_logger.critical("Enabling SSSD support in slapi-nis failed with error '%s'" % e)
+            root_logger.critical("Enabling nsswitch support in slapi-nis failed with error '%s'" % e)
 
     def __start(self):
         try:
