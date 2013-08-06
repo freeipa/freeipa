@@ -35,6 +35,7 @@ from errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
     VersionError, OptionError, InvocationError,
     ValidationError, ConversionError)
 from ipalib import messages
+from textwrap import wrap
 
 
 RULE_FLAG = 'validation_rule'
@@ -1454,8 +1455,12 @@ class _AdviceOutput(object):
         self.prefix = '# '
         self.options = None
 
-    def comment(self, line):
-        self.content.append(self.prefix + line)
+    def comment(self, line, wrapped=True):
+        if wrapped:
+            for wrapped_line in wrap(line, 70):
+                self.content.append(self.prefix + wrapped_line)
+        else:
+            self.content.append(self.prefix + line)
 
     def debug(self, line):
         if self.options.verbose:

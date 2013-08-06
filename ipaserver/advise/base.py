@@ -46,7 +46,7 @@ Optionally, you can require root privileges for your plugin:
 
 The following method should be implemented in your plugin:
 
->>>.....def get_info():
+>>>     def get_info():
 >>>         self.log.debug('Entering execute() method')
 >>>         self.log.comment('Providing useful advice just for you')
 >>>         self.log.command('yum update sssd -y')
@@ -54,6 +54,11 @@ The following method should be implemented in your plugin:
 As you can see, Advice's log has 3 different levels. Debug lines are printed
 out with '# DEBUG:' prefix if --verbose had been used. Comment lines utilize
 '# ' prefix and command lines are printed raw.
+
+Please note that comments are automatically wrapped after 70 characters.
+Use wrapped=False option to force the unwrapped line in the comment.
+
+>>>         self.log.comment("This line should not be wrapped", wrapped=False)
 
 As a result, you can redirect the advice's output directly to a script file.
 
