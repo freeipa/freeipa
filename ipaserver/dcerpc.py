@@ -790,9 +790,15 @@ class TrustDomainInstance(object):
             root_logger.error(
                 "LDAP error when connecting to %(host)s: %(error)s" %
                     dict(host=unicode(result.pdc_name), error=str(e)))
+        except KeyError, e:
+            root_logger.error("KeyError: {err}, LDAP entry from {host} "
+                              "returned malformed. Your DNS might be "
+                              "misconfigured."
+                              .format(host=unicode(result.pdc_name),
+                                      err=unicode(e)))
 
         if search_result:
-           self.info['sid'] = self.parse_naming_context(search_result)
+            self.info['sid'] = self.parse_naming_context(search_result)
         return True
 
     def parse_naming_context(self, context):
