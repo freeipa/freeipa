@@ -21,7 +21,7 @@ import os
 import time
 
 from ipapython import ipautil, dogtag
-from ipapython.platform import base, redhat
+from ipapython.platform import base
 from ipapython.platform.base import systemd
 from ipapython.platform.fedora16 import selinux
 from ipapython.ipa_log_manager import root_logger
@@ -78,20 +78,38 @@ class Fedora16Service(systemd.SystemdService):
 # If we wouldn't do this, our instances will not be started as systemd would
 # not have any clue about instances (PKI-IPA and the domain we serve) at all.
 # Thus, hook into dirsrv.restart().
+
+
 class Fedora16DirectoryService(Fedora16Service):
-    def enable(self, instance_name=""):
-        super(Fedora16DirectoryService, self).enable(instance_name)
+
+    def tune_nofile_platform(self, num=8192, fstore=None):
+        """
+        Increase the number of files descriptors available to directory server
+        from the default 1024 to 8192. This will allow to support a greater
+        number of clients out of the box.
+
+        This is a part of the implementation that is systemd-specific.
+
+        Returns False if the setting of the nofile limit needs to be skipped.
+        """
+
         dirsrv_systemd = "/etc/sysconfig/dirsrv.systemd"
+
         if os.path.exists(dirsrv_systemd):
             # We need to enable LimitNOFILE=8192 in the dirsrv@.service
             # Since 389-ds-base-1.2.10-0.8.a7 the configuration of the
             # service parameters is performed via
             # /etc/sysconfig/dirsrv.systemd file which is imported by systemd
             # into dirsrv@.service unit
-            replacevars = {'LimitNOFILE':'8192'}
-            ipautil.inifile_replace_variables(dirsrv_systemd, 'service', replacevars=replacevars)
+            replacevars = {'LimitNOFILE': str(num)}
+            ipautil.inifile_replace_variables(dirsrv_systemd,
+                                              'service',
+                                              replacevars=replacevars)
             selinux.restore_context(dirsrv_systemd)
-            ipautil.run(["/bin/systemctl", "--system", "daemon-reload"],raiseonerr=False)
+            ipautil.run(["/bin/systemctl", "--system", "daemon-reload"],
+                        raiseonerr=False)
+
+        return True
 
     def restart(self, instance_name="", capture_output=True, wait=True):
         if len(instance_name) > 0:
