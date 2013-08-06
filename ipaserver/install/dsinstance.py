@@ -29,7 +29,7 @@ import base64
 import stat
 
 from ipapython.ipa_log_manager import *
-from ipapython import ipautil, sysrestore, dogtag, ipaldap
+from ipapython import ipautil, sysrestore, ipaldap
 from ipapython import services as ipaservices
 import service
 import installutils
@@ -815,58 +815,19 @@ class DsInstance(service.Service):
         number of clients out of the box.
         """
 
-        # check limits.conf
-        need_limits = True
-        fd = open("/etc/security/limits.conf", "r")
-        lines = fd.readlines()
-        fd.close()
-        for line in lines:
-            sline = line.strip()
-            if not sline.startswith(DS_USER):
-                continue
-            if sline.find('nofile') == -1:
-                continue
-            # ok we already have an explicit entry for user/nofile
-            need_limits = False
+        # Do the platform-specific changes
+        proceed = ipaservices.knownservices.dirsrv.tune_nofile_platform(
+                    num=num, fstore=self.fstore)
 
-        # check sysconfig/dirsrv
-        need_sysconf = True
-        fd = open("/etc/sysconfig/dirsrv", "r")
-        lines = fd.readlines()
-        fd.close()
-        for line in lines:
-            sline = line.strip()
-            if not sline.startswith('ulimit'):
-                continue
-            if sline.find('-n') == -1:
-                continue
-            # ok we already have an explicit entry for file limits
-            need_sysconf = False
+        if proceed:
+            # finally change also DS configuration
+            # NOTE: dirsrv will not allow you to set max file descriptors unless
+            # the user limits allow it, so we have to restart dirsrv before
+            # attempting to change them in cn=config
+            self.__restart_instance()
 
-        #if sysconf or limits are set avoid messing up and defer to the admin
-        if need_sysconf and need_limits:
-            self.fstore.backup_file("/etc/security/limits.conf")
-            fd = open("/etc/security/limits.conf", "a+")
-            fd.write('%s\t\t-\tnofile\t\t%s\n' % (DS_USER, str(num)))
-            fd.close()
-
-            fd = open("/etc/sysconfig/dirsrv", "a+")
-            fd.write('ulimit -n %s\n' % str(num))
-            fd.close()
-
-        else:
-            root_logger.info("Custom file limits are already set! Skipping\n")
-            print "Custom file limits are already set! Skipping\n"
-            return
-
-        # finally change also DS configuration
-        # NOTE: dirsrv will not allow you to set max file descriptors unless
-        # the user limits allow it, so we have to restart dirsrv before
-        # attempting to change them in cn=config
-        self.__restart_instance()
-
-        nf_sub_dict = dict(NOFILES=str(num))
-        self._ldap_mod("ds-nfiles.ldif", nf_sub_dict)
+            nf_sub_dict = dict(NOFILES=str(num))
+            self._ldap_mod("ds-nfiles.ldif", nf_sub_dict)
 
     def __tuning(self):
         self.tune_nofile(8192)

@@ -25,6 +25,7 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython.platform import base
 from ipalib import api
 
+
 class RedHatService(base.PlatformService):
     def __wait_for_open_ports(self, instance_name=""):
         """
@@ -107,11 +108,74 @@ class RedHatHTTPDService(RedHatService):
             time.sleep(5)
             self.start(instance_name, capture_output, wait)
 
+
+class RedHatDirectoryService(RedHatService):
+
+    # This has been moved from dsinstance.py here to platform-level
+    # to continue support sysV services
+
+    def tune_nofile_platform(self, num=8192, fstore=None):
+        """
+        Increase the number of files descriptors available to directory server
+        from the default 1024 to 8192. This will allow to support a greater
+        number of clients out of the box.
+
+        This is a part of the implementation that is sysV-specific.
+
+        Returns False if the setting of the nofile limit needs to be skipped.
+        """
+
+        DS_USER = 'dirsrv'
+
+        # check limits.conf
+        need_limits = True
+
+        with open("/etc/security/limits.conf", "r") as f:
+            for line in f:
+                sline = line.strip()
+                if not sline.startswith(DS_USER) or sline.find('nofile') == -1:
+                    continue
+
+                # ok we already have an explicit entry for user/nofile
+                need_limits = False
+
+        # check sysconfig/dirsrv
+        need_sysconf = True
+
+        with open("/etc/sysconfig/dirsrv", "r") as f:
+            for line in f:
+                sline = line.strip()
+                if not sline.startswith('ulimit') or sline.find('-n') == -1:
+                    continue
+
+                # ok we already have an explicit entry for file limits
+                need_sysconf = False
+
+        #if sysconf or limits are set avoid messing up and defer to the admin
+        if need_sysconf and need_limits:
+            if fstore:
+                fstore.backup_file("/etc/security/limits.conf")
+
+            with open("/etc/security/limits.conf", "a+") as f:
+                f.write('%s\t\t-\tnofile\t\t%s\n' % (DS_USER, str(num)))
+
+            with open("/etc/sysconfig/dirsrv", "a+") as f:
+                f.write('ulimit -n %s\n' % str(num))
+
+        else:
+            root_logger.info("Custom file limits are already set! Skipping\n")
+            return False
+
+        return True
+
+
 def redhat_service(name):
     if name == 'sshd':
         return RedHatSSHService(name)
     elif name == 'httpd':
         return RedHatHTTPDService(name)
+    elif name == 'dirsrv':
+        return RedHatDirectoryService(name)
     return RedHatService(name)
 
 class RedHatServices(base.KnownServices):
