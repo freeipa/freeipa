@@ -22,6 +22,7 @@ import os
 from ipalib import api
 from ipalib.errors import ValidationError
 from ipapython import admintool
+from textwrap import wrap
 
 
 """
@@ -112,9 +113,15 @@ class IpaAdvise(admintool.AdminTool):
 
             # Compute the number of spaces needed for the table to be aligned
             offset = max_keyword_len - len(keyword)
-            print("    {key} {off}: {desc}".format(key=keyword,
-                                                   desc=description,
-                                                   off=' ' * offset))
+            prefix = "    {key} {off}: ".format(key=keyword, off=' ' * offset)
+            wrapped_description = wrap(description, 80 - len(prefix))
+
+            # Print the first line with the prefix (keyword)
+            print prefix + wrapped_description[0]
+
+            # Print the rest wrapped behind the colon
+            for line in wrapped_description[1:]:
+                print "{off}{line}".format(off=' ' * len(prefix), line=line)
 
     def print_header(self, header, print_shell=False):
         header_size = len(header)
@@ -126,9 +133,10 @@ class IpaAdvise(admintool.AdminTool):
 
         # Do not print out empty header
         if header_size > 0:
-            print(prefix + '-' * (header_size - len(prefix)))
-            print(prefix + header)
-            print(prefix + '-' * (header_size - len(prefix)))
+            print(prefix + '-' * 70)
+            for line in wrap(header, 70):
+                print(prefix + line)
+            print(prefix + '-' * 70)
 
     def print_advice(self, keyword):
         advice = getattr(api.Advice, keyword, None)
