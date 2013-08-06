@@ -781,18 +781,18 @@ class TrustDomainInstance(object):
         ldap_uri = 'ldap://%s' % (result.pdc_dns_name)
         conn = _ldap.initialize(ldap_uri)
         conn.set_option(_ldap.OPT_SERVER_CONTROLS, [ExtendedDNControl()])
-        result = None
+        search_result = None
         try:
             (objtype, res) = conn.search_s('', _ldap.SCOPE_BASE)[0]
-            result = res['defaultNamingContext'][0]
+            search_result = res['defaultNamingContext'][0]
             self.info['dns_hostname'] = res['dnsHostName'][0]
         except _ldap.LDAPError, e:
             root_logger.error(
                 "LDAP error when connecting to %(host)s: %(error)s" %
                     dict(host=unicode(result.pdc_name), error=str(e)))
 
-        if result:
-           self.info['sid'] = self.parse_naming_context(result)
+        if search_result:
+           self.info['sid'] = self.parse_naming_context(search_result)
         return True
 
     def parse_naming_context(self, context):
