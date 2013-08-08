@@ -133,7 +133,7 @@ Requires(pre): systemd-units
 Requires(post): systemd-units
 Requires: selinux-policy >= 3.12.1-65
 Requires(post): selinux-policy-base
-Requires: slapi-nis >= 0.44
+Requires: slapi-nis >= 0.47.7
 Requires: pki-ca >= 10.0.4
 Requires: dogtag-pki-server-theme
 %if 0%{?rhel}
@@ -228,7 +228,7 @@ Requires: pam_krb5
 Requires: wget
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
-Requires: sssd >= 1.10.92
+Requires: sssd >= 1.11.0-0.1.beta2
 Requires: certmonger >= 0.65
 Requires: nss-tools
 Requires: bind-utils
@@ -832,6 +832,10 @@ fi
 %endif  # ! %{ONLY_CLIENT}
 
 %changelog
+* Thu Aug 8 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-13
+- Require slapi-nis 0.47.7 and sssd 1.11.0-0.1.beta2 required for core
+  features of 3.3.0 release
+
 * Fri Jul 26 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-12
 - Require pki-ca 10.0.4 which fixes external CA installation (#986901)
 
