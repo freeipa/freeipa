@@ -325,58 +325,76 @@ def upgrade_ipa_profile(ca, domain, fqdn):
     return False
 
 
-def named_enable_psearch():
+def named_remove_deprecated_options():
     """
-    From IPA 3.0, persistent search is a preferred mechanism for new DNS zone
-    detection and is also needed for other features (DNSSEC, SOA serial
-    updates). Enable psearch and make sure connections attribute is right.
-    This step is done just once for a case when user switched the persistent
-    search back to disabled.
+    From IPA 3.3, persistent search is a default mechanism for new DNS zone
+    detection.
 
-    When some change in named.conf is done, this functions returns True
+    Remove psearch, zone_refresh and cache_ttl options, as they have been
+    deprecated in bind-dyndb-ldap configuration file.
+
+    When some change in named.conf is done, this functions returns True.
     """
-    changed = False
 
-    root_logger.info('[Enabling persistent search in DNS]')
+    root_logger.info('[Removing deprecated DNS configuration options]')
 
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
         root_logger.info('DNS is not configured')
-        return
+        return False
+
+    deprecated_options = ['zone_refresh', 'psearch', 'cache_ttl']
+    removed_options = []
 
     try:
-        psearch = bindinstance.named_conf_get_directive('psearch')
+        # Remove all the deprecated options
+        for option in deprecated_options:
+            value = bindinstance.named_conf_get_directive(option)
+
+            if value is not None:
+                bindinstance.named_conf_set_directive(option, None)
+                removed_options.append(option)
+
     except IOError, e:
-        root_logger.debug('Cannot retrieve psearch option from %s: %s',
-                bindinstance.NAMED_CONF, e)
-        return
-    else:
-        psearch = None if psearch is None else psearch.lower()
-    if not sysupgrade.get_upgrade_state('named.conf', 'psearch_enabled'):
-        if psearch != "yes":
-            try:
-                bindinstance.named_conf_set_directive('zone_refresh', 0)
-                bindinstance.named_conf_set_directive('psearch', 'yes')
-            except IOError, e:
-                root_logger.error('Cannot enable psearch in %s: %s',
-                        bindinstance.NAMED_CONF, e)
-            else:
-                changed = True
-                psearch = "yes"
-        sysupgrade.set_upgrade_state('named.conf', 'psearch_enabled', True)
-        root_logger.debug('Persistent search enabled')
+        root_logger.error('Cannot modify DNS configuration in %s: %s',
+                          bindinstance.NAMED_CONF, e)
+
+    # Log only the changed options
+    if not removed_options:
+        root_logger.debug('No changes made')
+        return False
+
+    root_logger.debug('The following configuration options have been removed: '
+                      '{options}'.format(options = ', '.join(removed_options)))
+    return True
+
+
+def named_set_minimum_connections():
+    """
+    Sets the minimal number of connections.
+
+    When some change in named.conf is done, this functions returns True.
+    """
+
+    changed = False
+
+    root_logger.info('[Ensuring minimal number of connections]')
+
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return changed
 
     # make sure number of connections is right
-    minimum_connections = 2
-    if psearch == 'yes':
-        # serial_autoincrement increased the minimal number of connections to 4
-        minimum_connections = 4
+    minimum_connections = 4
+
     try:
         connections = bindinstance.named_conf_get_directive('connections')
     except IOError, e:
         root_logger.debug('Cannot retrieve connections option from %s: %s',
                 bindinstance.NAMED_CONF, e)
-        return
+        return changed
+
     try:
         if connections is not None:
             connections = int(connections)
@@ -388,7 +406,7 @@ def named_enable_psearch():
         if connections is not None and connections < minimum_connections:
             try:
                 bindinstance.named_conf_set_directive('connections',
-                                                        minimum_connections)
+                                                       minimum_connections)
                 root_logger.debug('Connections set to %d', minimum_connections)
             except IOError, e:
                 root_logger.error('Cannot update connections in %s: %s',
@@ -398,7 +416,9 @@ def named_enable_psearch():
 
     if not changed:
         root_logger.debug('No changes made')
+
     return changed
+
 
 def named_enable_serial_autoincrement():
     """
@@ -417,7 +437,6 @@ def named_enable_serial_autoincrement():
         return changed
 
     try:
-        psearch = bindinstance.named_conf_get_directive('psearch')
         serial_autoincrement = bindinstance.named_conf_get_directive(
                                     'serial_autoincrement')
     except IOError, e:
@@ -425,28 +444,23 @@ def named_enable_serial_autoincrement():
                 bindinstance.NAMED_CONF, e)
         return changed
     else:
-        psearch = None if psearch is None else psearch.lower()
         serial_autoincrement = None if serial_autoincrement is None \
                 else serial_autoincrement.lower()
 
     # enable SOA serial autoincrement
     if not sysupgrade.get_upgrade_state('named.conf', 'autoincrement_enabled'):
-        if psearch != "yes":    # psearch is required
-            root_logger.error('Persistent search is disabled, '
-                    'serial autoincrement cannot be enabled')
-        else:
-            if serial_autoincrement != 'yes':
-                try:
-                    bindinstance.named_conf_set_directive('serial_autoincrement', 'yes')
-                except IOError, e:
-                    root_logger.error('Cannot enable serial_autoincrement in %s: %s',
-                            bindinstance.NAMED_CONF, e)
-                    return changed
-                else:
-                    root_logger.debug('Serial autoincrement enabled')
-                    changed = True
+        if serial_autoincrement != 'yes':
+            try:
+                bindinstance.named_conf_set_directive('serial_autoincrement', 'yes')
+            except IOError, e:
+                root_logger.error('Cannot enable serial_autoincrement in %s: %s',
+                        bindinstance.NAMED_CONF, e)
+                return changed
             else:
-                root_logger.debug('Serial autoincrement is alredy enabled')
+                root_logger.debug('Serial autoincrement enabled')
+                changed = True
+        else:
+            root_logger.debug('Serial autoincrement is alredy enabled')
         sysupgrade.set_upgrade_state('named.conf', 'autoincrement_enabled', True)
     else:
         root_logger.debug('Skip serial autoincrement check')
@@ -1049,12 +1063,18 @@ def main():
     cleanup_kdc(fstore)
     setup_firefox_extension(fstore)
     add_ca_dns_records()
-    changed_psearch = named_enable_psearch()
-    changed_autoincrement = named_enable_serial_autoincrement()
-    changed_gssapi_conf = named_update_gssapi_configuration()
-    changed_pid_file_conf = named_update_pid_file()
-    if (changed_psearch or changed_autoincrement or changed_gssapi_conf
-            or changed_pid_file_conf):
+
+    # Any of the following functions returns True iff the named.conf file
+    # has been altered
+    named_conf_changes = (
+                          named_remove_deprecated_options(),
+                          named_set_minimum_connections(),
+                          named_enable_serial_autoincrement(),
+                          named_update_gssapi_configuration(),
+                          named_update_pid_file(),
+                         )
+
+    if any(named_conf_changes):
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
         bind = bindinstance.BindInstance(fstore)
@@ -1062,6 +1082,7 @@ def main():
             bind.restart()
         except ipautil.CalledProcessError, e:
             root_logger.error("Failed to restart %s: %s", bind.service_name, e)
+
     ca_restart = any([
         ca_restart,
         enable_certificate_renewal(ca),

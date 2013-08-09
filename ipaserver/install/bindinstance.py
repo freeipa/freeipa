@@ -463,8 +463,7 @@ class BindInstance(service.Service):
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp,
               reverse_zone, named_user="named", zonemgr=None,
-              zone_refresh=0, persistent_search=True, serial_autoincrement=True,
-              ca_configured=None):
+              serial_autoincrement=True, ca_configured=None):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -475,8 +474,6 @@ class BindInstance(service.Service):
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ntp = ntp
         self.reverse_zone = reverse_zone
-        self.zone_refresh = zone_refresh
-        self.persistent_search = persistent_search
         self.serial_autoincrement = serial_autoincrement
         self.ca_configured = ca_configured
 
@@ -593,24 +590,23 @@ class BindInstance(service.Service):
         else:
             ipa_ca = ""
 
-        boolean_var = {}
-        for var in ('persistent_search', 'serial_autoincrement'):
-            boolean_var[var] = "yes" if getattr(self, var, False) else "no"
+        def bool_to_yesno(var):
+            return "yes" if var else "no"
 
-        self.sub_dict = dict(FQDN=self.fqdn,
-                             IP=self.ip_address,
-                             DOMAIN=self.domain,
-                             HOST=self.host,
-                             REALM=self.realm,
-                             SERVER_ID=realm_to_serverid(self.realm),
-                             FORWARDERS=fwds,
-                             SUFFIX=self.suffix,
-                             OPTIONAL_NTP=optional_ntp,
-                             ZONEMGR=self.zonemgr,
-                             ZONE_REFRESH=self.zone_refresh,
-                             IPA_CA_RECORD=ipa_ca,
-                             PERSISTENT_SEARCH=boolean_var['persistent_search'],
-                             SERIAL_AUTOINCREMENT=boolean_var['serial_autoincrement'],)
+        self.sub_dict = dict(
+            FQDN=self.fqdn,
+            IP=self.ip_address,
+            DOMAIN=self.domain,
+            HOST=self.host,
+            REALM=self.realm,
+            SERVER_ID=realm_to_serverid(self.realm),
+            FORWARDERS=fwds,
+            SUFFIX=self.suffix,
+            OPTIONAL_NTP=optional_ntp,
+            ZONEMGR=self.zonemgr,
+            IPA_CA_RECORD=ipa_ca,
+            SERIAL_AUTOINCREMENT=bool_to_yesno(self.serial_autoincrement),
+            )
 
     def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)

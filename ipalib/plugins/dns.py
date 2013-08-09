@@ -28,7 +28,8 @@ import dns.name
 from ipalib.request import context
 from ipalib import api, errors, output
 from ipalib import Command
-from ipalib.parameters import Flag, Bool, Int, Decimal, Str, StrEnum, Any
+from ipalib.parameters import (Flag, Bool, Int, Decimal, Str, StrEnum, Any,
+                               DeprecatedParam)
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import (validate_zonemgr, normalize_zonemgr, normalize_zone,
@@ -2978,8 +2979,7 @@ class dnsconfig(LDAPObject):
     """
     object_name = _('DNS configuration options')
     default_attributes = [
-        'idnsforwardpolicy', 'idnsforwarders', 'idnsallowsyncptr',
-        'idnszonerefresh'
+        'idnsforwardpolicy', 'idnsforwarders', 'idnsallowsyncptr'
     ]
 
     label = _('DNS Global Configuration')
@@ -3006,11 +3006,9 @@ class dnsconfig(LDAPObject):
             label=_('Allow PTR sync'),
             doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records'),
         ),
-        Int('idnszonerefresh?',
+        DeprecatedParam('idnszonerefresh?',
             cli_name='zone_refresh',
             label=_('Zone refresh interval'),
-            doc=_('An interval between regular polls of the name server for new DNS zones'),
-            minvalue=0,
         ),
     )
 

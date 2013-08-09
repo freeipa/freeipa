@@ -207,16 +207,6 @@ def parse_options():
     dns_group.add_option("--zonemgr", action="callback", callback=bindinstance.zonemgr_callback,
                       type="string",
                       help="DNS zone manager e-mail address. Defaults to hostmaster@DOMAIN")
-    # this option name has been deprecated, persistent search has been enabled by default
-    dns_group.add_option("--zone-notif", dest="zone_notif",
-                      action="store_true", default=False, help=SUPPRESS_HELP)
-    dns_group.add_option("--no-persistent-search", dest="persistent_search",
-                      default=True, action="store_false",
-                      help="Do not enable persistent search feature in the name server")
-    dns_group.add_option("--zone-refresh", dest="zone_refresh",
-                      default=0, type="int",
-                      help="When set to non-zero the name server will use DNS zone "
-                           "detection based on polling instead of a persistent search")
     dns_group.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
@@ -325,18 +315,6 @@ def parse_options():
 
     #Automatically disable pkinit w/ dogtag until that is supported
     options.setup_pkinit = False
-
-    if options.zone_refresh < 0:
-        parser.error("negative numbers not allowed for --zone-refresh")
-    elif options.zone_refresh > 0:
-        options.persistent_search = False   # mutually exclusive features
-
-    if options.serial_autoincrement and not options.persistent_search:
-        parser.error('persistent search feature is required for '
-                     'DNS SOA serial autoincrement')
-
-    if options.zone_notif:
-        print >>sys.stderr, "WARNING: --zone-notif option is deprecated and has no effect"
 
     return safe_options, options
 
@@ -1159,8 +1137,6 @@ def main():
     bind = bindinstance.BindInstance(fstore, dm_password)
     bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders,
                options.conf_ntp, reverse_zone, zonemgr=options.zonemgr,
-               zone_refresh=options.zone_refresh,
-               persistent_search=options.persistent_search,
                serial_autoincrement=options.serial_autoincrement,
                ca_configured=setup_ca)
     if options.setup_dns:

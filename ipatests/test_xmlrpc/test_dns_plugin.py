@@ -83,7 +83,6 @@ class test_dns(Declarative):
         ('dnsconfig_mod', [], {'idnsforwarders' : None,
                                'idnsforwardpolicy' : None,
                                'idnsallowsyncptr' : None,
-                               'idnszonerefresh' : None,
                                }),
         ('permission_del', [dnszone1_permission], {'force': True}),
     ]

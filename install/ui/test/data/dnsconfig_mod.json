@@ -9,8 +9,6 @@
                 "idnsallowsyncptr": "rscwo",
                 "idnsforwarders": "rscwo",
                 "idnsforwardpolicy": "rscwo",
-                "idnspersistentsearch": "rscwo",
-                "idnszonerefresh": "rscwo",
                 "nsaccountlock": "rscwo",
                 "objectclass": "rscwo"
             },
@@ -25,9 +23,6 @@
             ],
             "idnsforwardpolicy": [
                 "first"
-            ],
-            "idnszonerefresh": [
-                "20"
             ],
             "objectclass": [
                 "idnsConfigObject",
