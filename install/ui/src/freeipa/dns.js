@@ -82,8 +82,7 @@ return {
                                     label: '@i18n:objects.dnsconfig.forward_none'
                                 }
                             ]
-                        },
-                        'idnszonerefresh'
+                        }
                     ]
                 }
             ],

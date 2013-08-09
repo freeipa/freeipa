@@ -2843,17 +2843,6 @@
                         "type": "bool"
                     },
                     {
-                        "attribute": true,
-                        "class": "Int",
-                        "doc": "An interval between regular polls of the name server for new DNS zones",
-                        "flags": [],
-                        "label": "Zone refresh interval",
-                        "maxvalue": 2147483647,
-                        "minvalue": 0,
-                        "name": "idnszonerefresh",
-                        "type": "int"
-                    },
-                    {
                         "name": "setattr"
                     },
                     {

@@ -146,12 +146,6 @@ Do not create reverse DNS zone
 \fB\-\-zonemgr\fR
 The e\-mail address of the DNS zone manager. Defaults to hostmaster@DOMAIN
 .TP
-\fB\-\-no\-persistent\-search\fR
-Do not enable persistent search mechanism for updating the list of DNS zones in the name server. When persistent search is disabled and \fB\-\-zone\-refresh\fR option is not set to non-zero value, new zones won't be resolvable until the name server is reloaded.
-.TP
-\fB\-\-zone\-refresh=\fIZONE_REFRESH\fR
-When set to non-zero value, persistent search zone update mechanism will be disabled and the name server will use a polling mechanism to load new DNS zones every \fIZONE_REFRESH\fR seconds.
-.TP
 \fB\-\-no\-host\-dns\fR
 Do not use DNS for hostname lookup during installation
 .TP

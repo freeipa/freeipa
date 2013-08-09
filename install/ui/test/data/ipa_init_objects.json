@@ -812,7 +812,6 @@
                     "idnsforwarders",
                     "idnsforwardpolicy",
                     "idnsname",
-                    "idnspersistentsearch",
                     "idnssoaexpire",
                     "idnssoaminimum",
                     "idnssoamname",
@@ -822,7 +821,6 @@
                     "idnssoaserial",
                     "idnsupdatepolicy",
                     "idnszoneactive",
-                    "idnszonerefresh",
                     "inetdomainbasedn",
                     "inetdomainstatus",
                     "inetsubscriberaccountid",
@@ -1726,8 +1724,7 @@
                 "default_attributes": [
                     "idnsforwardpolicy",
                     "idnsforwarders",
-                    "idnsallowsyncptr",
-                    "idnszonerefresh"
+                    "idnsallowsyncptr"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -1798,16 +1795,6 @@
                         "label": "Allow PTR sync",
                         "name": "idnsallowsyncptr",
                         "type": "bool"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "An interval between regular polls of the name server for new DNS zones",
-                        "flags": [],
-                        "label": "Zone refresh interval",
-                        "maxvalue": 2147483647,
-                        "minvalue": 0,
-                        "name": "idnszonerefresh",
-                        "type": "int"
                     }
                 ],
                 "uuid_attribute": ""
