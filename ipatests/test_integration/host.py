@@ -23,6 +23,7 @@ import os
 import socket
 import threading
 import subprocess
+from contextlib import contextmanager
 import errno
 
 import paramiko
@@ -116,6 +117,21 @@ class RemoteCommand(object):
         self.running_threads.add(thread)
         thread.start()
         return thread
+
+
+@contextmanager
+def sftp_open(sftp, filename, mode='r'):
+    """Context manager that provides a file-like object over a SFTP channel
+
+    This provides compatibility with older Paramiko versions.
+    (In Paramiko 1.10+, file objects from `sftp.open` are directly usable as
+    context managers).
+    """
+    file = sftp.open(filename, mode)
+    try:
+        yield file
+    finally:
+        file.close()
 
 
 class Host(object):
@@ -314,13 +330,13 @@ class Host(object):
     def get_file_contents(self, filename):
         """Read the named remote file and return the contents as a string"""
         self.log.debug('READ %s', filename)
-        with self.sftp.open(filename) as f:
+        with sftp_open(self.sftp, filename) as f:
             return f.read()
 
     def put_file_contents(self, filename, contents):
         """Write the given string to the named remote file"""
         self.log.info('WRITE %s', filename)
-        with self.sftp.open(filename, 'w') as f:
+        with sftp_open(self.sftp, filename, 'w') as f:
             f.write(contents)
 
     def file_exists(self, filename):

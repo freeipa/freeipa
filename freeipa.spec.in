@@ -304,7 +304,7 @@ Requires: python-nose
 Requires: python-paste
 Requires: python-coverage
 Requires: python-polib
-Requires: python-paramiko >= 1.10.1
+Requires: python-paramiko >= 1.7.7
 
 %description tests
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -833,6 +833,9 @@ fi
 %endif # ONLY_CLIENT
 
 %changelog
+* Mon Aug 12 2013 Petr Viktorin <pviktori@redhat.com> - 3.3.0-1
+- Downgrade required version of python-paramiko for the tests subpackage
+
 * Thu Aug 8 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-13
 - Require slapi-nis 0.47.7 and sssd 1.11.0-0.1.beta2 required for core
   features of 3.3.0 release
