@@ -81,6 +81,11 @@ ipa-client/py-compile
 ipa-client/stamp-h1
 ipa-client/version.m4
 ipatests/test_xmlrpc/service.crt
+ipatests/man/aclocal.m4
+ipatests/man/autom4te.cache/
+ipatests/man/config.status
+ipatests/man/install-sh
+ipatests/man/missing
 freeipa.spec
 ipapython/setup.py
 ipapython/version.py

@@ -1,0 +1,63 @@
+.\" A man page for ipa-run-tests
+.\" Copyright (C) 2013 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Petr Viktorin <pviktori@redhat.com>
+.\"
+.TH "ipa-run-tests" "1" "Aug 29 2013" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-run\-tests \- Run the FreeIPA test suite
+.SH "SYNOPSIS"
+ipa\-run\-tests [options]
+.SH "DESCRIPTION"
+ipa\-run\-tests is a wrapper around nosetests that run the FreeIPA test suite.
+It is intended to be used for developer testing and in continuous
+integration systems.
+
+It loads IPA-internal Nose plugins ordered-tests and beakerlib.
+The ordered-tests plugin is enabled automatically.
+
+The FreeIPA test suite installed system\-wide is selected via Nose's \-\-where
+option.
+It is possible to select a subset of the entire test suite by specifying
+a test file relative to the ipatests package, for example:
+
+    ipa-run-tests test_integration/test_simple_replication.py
+
+.SH "OPTIONS"
+All command-line options are passed to the underlying Nose runner.
+See nosetests(1) for a complete list.
+
+The internal IPA plugins add an extra option:
+
+.TP
+\fB\-\-with-beakerlib\fR
+Enable BeakerLib integration.
+Test phases, failures and passes, and log messages are reported using
+beakerlib(1) commands.
+This option requires the beakerlib.sh script to be sourced.
+
+.SH "EXIT STATUS"
+0 if the command was successful
+
+nonzero if any error or failure occurred
+
+.SH "CONFIGURATION"
+Please see ipa-test-config(1) for a description of configuration environment
+variables.
+
+.SH "REFERENCES"
+A full description of the FreeIPA integration testing framework is available at
+http://www.freeipa.org/page/V3/Integration_testing

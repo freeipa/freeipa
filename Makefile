@@ -71,6 +71,9 @@ client-autogen: version-update
 	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
+tests-man-autogen: version-update
+	cd ipatests/man; if [ ! -e Makefile ]; then ../../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+
 install: all server-install tests-install
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
@@ -153,8 +156,9 @@ server-install: server
 		$(PYTHON) setup.py install --root $(DESTDIR); \
 	fi
 
-tests: version-update
+tests: version-update tests-man-autogen
 	cd ipatests; $(PYTHON) setup.py build
+	cd ipatests/man && $(MAKE) all
 
 tests-install: tests
 	if [ "$(DESTDIR)" = "" ]; then \
@@ -162,6 +166,7 @@ tests-install: tests
 	else \
 		cd ipatests; $(PYTHON) setup.py install --root $(DESTDIR); \
 	fi
+	cd ipatests/man && $(MAKE) install
 
 archive:
 	-mkdir -p dist
