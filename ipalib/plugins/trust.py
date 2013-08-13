@@ -561,7 +561,7 @@ sides.
             base_id = DEFAULT_RANGE_SIZE + (
                 pysss_murmur.murmurhash3(
                     dom_sid,
-                    len(dom_sid), 0xdeadbeef
+                    len(dom_sid), 0xdeadbeefL
                 ) % 10000
             ) * DEFAULT_RANGE_SIZE
 

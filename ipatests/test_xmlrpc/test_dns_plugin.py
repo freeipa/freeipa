@@ -1254,7 +1254,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Set SOA serial of zone %r to high number' % dnszone1,
-            command=('dnszone_mod', [dnszone1], {'idnssoaserial': 4294967295}),
+            command=('dnszone_mod', [dnszone1], {'idnssoaserial': 4294967295L}),
             expected={
                 'value': dnszone1,
                 'summary': None,

@@ -122,6 +122,7 @@ version-update: release-update
 		> ipatests/setup.py
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" ipapython/version.py
 	perl -pi -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" ipapython/version.py
+	touch -r ipapython/version.py.in ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ daemons/ipa-version.h.in \
 		> daemons/ipa-version.h
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" daemons/ipa-version.h
@@ -135,6 +136,7 @@ version-update: release-update
 	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
 		sed -e s/SUPPORTED_PLATFORM/$(SUPPORTED_PLATFORM)/ ipapython/services.py.in \
 			> ipapython/services.py; \
+		touch -r ipapython/services.py.in ipapython/services.py; \
 	fi
 
 	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
