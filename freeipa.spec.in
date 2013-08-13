@@ -31,7 +31,7 @@ BuildRequires:  samba4-python
 %endif
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
@@ -212,7 +212,7 @@ Requires(preun): %{_sbindir}/update-alternatives
 Cross-realm trusts with Active Directory in IPA require working Samba 4 installation.
 This package is provided for convenience to install all required dependencies at once.
 
-%endif # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 
 %package client
@@ -268,7 +268,7 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). This package provides command-line tools for
 IPA administrators.
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 %package python
 Summary: Python libraries used by IPA
@@ -312,7 +312,7 @@ user, virtual machines, groups, authentication credentials), Policy
 logs, analysis thereof).
 This package contains tests that verify IPA functionality.
 
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 
 %prep
@@ -335,13 +335,13 @@ cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --loca
 %if ! %{ONLY_CLIENT}
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir} --with-openldap; cd ..
 cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 %if ! %{ONLY_CLIENT}
 make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} all
 %else
 make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 %install
 rm -rf %{buildroot}
@@ -358,7 +358,7 @@ rm -f ipapython/services.py
 make install DESTDIR=%{buildroot}
 %else
 make client-install DESTDIR=%{buildroot}
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 %find_lang %{gettext_domain}
 
 
@@ -439,7 +439,7 @@ install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
 install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
 # END
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
@@ -452,14 +452,14 @@ install -pm 644 contrib/completion/ipa.bash_completion %{buildroot}%{_sysconfdir
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 
 (cd %{buildroot}/%{python_sitelib}/ipaserver && find . -type f  | \
-	grep -v dcerpc | grep -v adtrustinstance | \
-	sed -e 's,\.py.*$,.*,g' | sort -u | \
-	sed -e 's,\./,%%{python_sitelib}/ipaserver/,g' ) >server-python.list
+    grep -v dcerpc | grep -v adtrustinstance | \
+    sed -e 's,\.py.*$,.*,g' | sort -u | \
+    sed -e 's,\./,%%{python_sitelib}/ipaserver/,g' ) >server-python.list
 
 (cd %{buildroot}/%{python_sitelib}/ipatests && find . -type f  | \
     sed -e 's,\.py.*$,.*,g' | sort -u | \
     sed -e 's,\./,%%{python_sitelib}/ipatests/,g' ) >tests-python.list
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 %clean
 rm -rf %{buildroot}
@@ -507,14 +507,14 @@ fi
 
 %postun server-trust-ad
 if [ "$1" -ge "1" ]; then
-	if [ "`readlink %{_sysconfdir}/alternatives/winbind_krb5_locator.so`" == "/dev/null" ]; then
-		%{_sbindir}/alternatives --set winbind_krb5_locator.so /dev/null
-	fi
+    if [ "`readlink %{_sysconfdir}/alternatives/winbind_krb5_locator.so`" == "/dev/null" ]; then
+        %{_sbindir}/alternatives --set winbind_krb5_locator.so /dev/null
+    fi
 fi
 
 %post server-trust-ad
 %{_sbindir}/update-alternatives --install %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so \
-				winbind_krb5_locator.so /dev/null 90
+        winbind_krb5_locator.so /dev/null 90
 
 %posttrans server-trust-ad
 python -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
@@ -526,9 +526,9 @@ fi
 
 %preun server-trust-ad
 if [ $1 -eq 0 ]; then
-	%{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
+    %{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
 fi
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 %post client
 if [ $1 -gt 1 ] ; then
@@ -537,7 +537,7 @@ if [ $1 -gt 1 ] ; then
     test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
 
     if [ -f '/etc/sssd/sssd.conf' -a $restore -ge 2 ]; then
-        if ! egrep -q '/var/lib/sss/pubconf/krb5.include.d/' /etc/krb5.conf  2>/dev/null ; then
+        if ! grep -E -q '/var/lib/sss/pubconf/krb5.include.d/' /etc/krb5.conf  2>/dev/null ; then
             echo "includedir /var/lib/sss/pubconf/krb5.include.d/" > /etc/krb5.conf.ipanew
             cat /etc/krb5.conf >> /etc/krb5.conf.ipanew
             mv /etc/krb5.conf.ipanew /etc/krb5.conf
@@ -552,7 +552,7 @@ restore=0
 test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
 
 if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
-    if egrep -q '^(AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys|PubKeyAgent /usr/bin/sss_ssh_authorizedkeys %u)$' /etc/ssh/sshd_config 2>/dev/null; then
+    if grep -E -q '^(AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys|PubKeyAgent /usr/bin/sss_ssh_authorizedkeys %u)$' /etc/ssh/sshd_config 2>/dev/null; then
         sed -r '
             /^(AuthorizedKeysCommand(User|RunAs)|PubKeyAgentRunAs)[ \t]/ d
         ' /etc/ssh/sshd_config >/etc/ssh/sshd_config.ipanew
@@ -752,7 +752,7 @@ fi
 %{python_sitelib}/ipaserver/dcerpc*
 %{python_sitelib}/ipaserver/install/adtrustinstance*
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 %files client
 %defattr(-,root,root,-)
@@ -784,7 +784,7 @@ fi
 %{_bindir}/ipa
 %config %{_sysconfdir}/bash_completion.d
 %{_mandir}/man1/ipa.1.gz
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 %files python -f %{gettext_domain}.lang
 %defattr(-,root,root,-)
@@ -829,7 +829,7 @@ fi
 %{_bindir}/ipa-test-config
 %{_bindir}/ipa-test-task
 %{python_sitelib}/ipatests-*.egg-info
-%endif  # ! %{ONLY_CLIENT}
+%endif # ONLY_CLIENT
 
 %changelog
 * Thu Aug 8 2013 Martin Kosek <mkosek@redhat.com> - 3.2.99-13
