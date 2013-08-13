@@ -20,6 +20,7 @@ AC_HEADER_STDC
 AM_CONDITIONAL([HAVE_GCC], [test "$ac_cv_prog_gcc" = yes])
 
 AC_SUBST(VERSION)
+AC_SUBST([INSTALL_DATA], ['$(INSTALL) -m 644 -p'])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for NSPR/NSS

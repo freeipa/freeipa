@@ -561,7 +561,7 @@ class Backup(admintool.AdminTool):
         if instance != 'PKI-IPA':
             return os.path.join('/var/lib/dirsrv', 'scripts-%s' % instance)
         else:
-            if sys.maxsize > 2**32:
+            if sys.maxsize > 2**32L:
                 libpath = 'lib64'
             else:
                 libpath = 'lib'

@@ -540,7 +540,7 @@ class CertDB(object):
         /usr/lib[64]/ipa/certmonger.
         """
         if command is not None and not os.path.isabs(command):
-            if sys.maxsize > 2**32:
+            if sys.maxsize > 2**32L:
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
