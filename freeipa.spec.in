@@ -830,9 +830,15 @@ fi
 %{_bindir}/ipa-test-config
 %{_bindir}/ipa-test-task
 %{python_sitelib}/ipatests-*.egg-info
+%{_mandir}/man1/ipa-run-tests.1.gz
+%{_mandir}/man1/ipa-test-config.1.gz
+%{_mandir}/man1/ipa-test-task.1.gz
 %endif # ONLY_CLIENT
 
 %changelog
+* Wed Aug 14 2013 Petr Viktorin <pviktori@redhat.com> - 3.3.90-2
+- Add man pages to the tests subpackage
+
 * Mon Aug 12 2013 Petr Viktorin <pviktori@redhat.com> - 3.3.90-1
 - Downgrade required version of python-paramiko for the tests subpackage
 
