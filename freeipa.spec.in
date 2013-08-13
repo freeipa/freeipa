@@ -209,8 +209,9 @@ Requires(postun): %{_sbindir}/update-alternatives
 Requires(preun): %{_sbindir}/update-alternatives
 
 %description server-trust-ad
-Cross-realm trusts with Active Directory in IPA require working Samba 4 installation.
-This package is provided for convenience to install all required dependencies at once.
+Cross-realm trusts with Active Directory in IPA require working Samba 4
+installation. This package is provided for convenience to install all required
+dependencies at once.
 
 %endif # ONLY_CLIENT
 
@@ -610,7 +611,7 @@ fi
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
 # NOTE: systemd specific section
-%config %{_sysconfdir}/tmpfiles.d/ipa.conf
+%config(noreplace) %{_sysconfdir}/tmpfiles.d/ipa.conf
 %attr(644,root,root) %{_unitdir}/ipa.service
 %attr(644,root,root) %{_unitdir}/ipa_memcached.service
 %attr(644,root,root) %{_unitdir}/ipa-otpd.socket
@@ -803,7 +804,7 @@ fi
 %{python_sitelib}/ipapython/platform/redhat/*.py*
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
-%{python_sitearch}/default_encoding_utf8.so
+%attr(0644,root,root) %{python_sitearch}/default_encoding_utf8.so
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
 %{python_sitearch}/python_default_encoding-*.egg-info
