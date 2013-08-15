@@ -198,6 +198,27 @@ class test_host(host_tasks):
         self.navigate_by_breadcrumb('Hosts')
         self.delete_record(self.pkey, self.data.get('del'))
 
+    def test_kerberos_flags(self):
+        """
+        Test Kerberos flags
+        http://www.freeipa.org/page/V3/Kerberos_Flags
+        """
+        pkey = self.config.get('ipa_server')
+        name = 'ipakrbokasdelegate'
+        mod = {'mod': [('checkbox', name, '')]}
+        checked = ['checked']
+
+        self.init_app()
+        self.navigate_to_record(pkey, entity=ENTITY)
+
+        if self.get_field_checked(name) == checked:
+            self.mod_record(ENTITY, mod)  # uncheck
+
+        self.mod_record(ENTITY, mod)
+        self.validate_fields([('checkbox', name, checked)])
+        self.mod_record(ENTITY, mod)
+        self.validate_fields([('checkbox', name, [])])
+
     def test_associations(self):
         """
         Host direct associations
