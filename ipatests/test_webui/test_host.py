@@ -175,6 +175,29 @@ class test_host(host_tasks):
         self.navigate_to_entity(ENTITY, 'search')
         self.delete_record(self.pkey, self.data.get('del'))
 
+    def test_ca_less(self):
+        """
+        Test host certificate actions in CA-less install
+        http://www.freeipa.org/page/V3/CA-less_install
+        """
+        if self.has_ca():
+            self.skip('CA is installed')
+
+        self.init_app()
+        self.add_record(ENTITY, self.data)
+        self.navigate_to_record(self.pkey)
+
+        panel = 'cert_actions'
+        self.assert_action_panel_action(panel, 'request_cert', visible=False)
+        self.assert_action_panel_action(panel, 'revoke_cert', visible=False)
+        self.assert_action_panel_action(panel, 'restore_cert', visible=False)
+
+        self.assert_action_panel_action(panel, 'view_cert', enabled=False)
+        self.assert_action_panel_action(panel, 'get_cert', enabled=False)
+
+        self.navigate_by_breadcrumb('Hosts')
+        self.delete_record(self.pkey, self.data.get('del'))
+
     def test_associations(self):
         """
         Host direct associations
