@@ -41,7 +41,6 @@ H_FILES = $(shell cd ../..; git ls-files | grep "\.h$$" | tr '\n' ' '; cd instal
 
 # Please keep this list sorted!
 PY_EXPLICIT_FILES = \
-     init/systemd/freeipa-systemd-upgrade \
      install/tools/ipa-adtrust-install \
      install/tools/ipa-ca-install \
      install/tools/ipa-compat-manage \
