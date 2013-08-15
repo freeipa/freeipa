@@ -51,6 +51,12 @@ class sevice_tasks(UI_driver):
             csr = csr_file.read()
         return csr
 
+    def get_http_pkey(self):
+        host = self.config.get('ipa_server')
+        realm = self.config.get('ipa_realm')
+        pkey = 'HTTP/%s@%s' % (host, realm)
+        return pkey
+
 
 class test_service(sevice_tasks):
 
@@ -158,10 +164,29 @@ class test_service(sevice_tasks):
 
         # test HTTP, which should have cert set by default and so 'view' and 'get'
         # actions visible and enabled
-        host = self.config.get('ipa_server')
-        realm = self.config.get('ipa_realm')
-        pkey = 'HTTP/%s@%s' % (host, realm)
+        pkey = self.get_http_pkey()
 
         self.navigate_to_record(pkey)
         self.assert_action_panel_action(panel, 'view_cert')
         self.assert_action_panel_action(panel, 'get_cert')
+
+    def test_kerberos_flags(self):
+        """
+        Test Kerberos flags
+        http://www.freeipa.org/page/V3/Kerberos_Flags
+        """
+        pkey = self.get_http_pkey()
+        name = 'ipakrbokasdelegate'
+        mod = {'mod': [('checkbox', name, '')]}
+        checked = ['checked']
+
+        self.init_app()
+        self.navigate_to_record(pkey, entity=ENTITY)
+
+        if self.get_field_checked(name) == checked:
+            self.mod_record(ENTITY, mod)  # uncheck
+
+        self.mod_record(ENTITY, mod)
+        self.validate_fields([('checkbox', name, checked)])
+        self.mod_record(ENTITY, mod)
+        self.validate_fields([('checkbox', name, [])])
