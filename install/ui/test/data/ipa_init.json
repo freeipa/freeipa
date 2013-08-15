@@ -382,6 +382,7 @@
                             "type": "Range type",
                             "type_ad": "Active Directory domain",
                             "type_ad_posix": "Active Directory domain with POSIX attributes",
+                            "type_detect": "Detect",
                             "type_local": "Local domain",
                             "type_ipa": "IPA trust",
                             "type_winsync": "Active Directory winsync"
