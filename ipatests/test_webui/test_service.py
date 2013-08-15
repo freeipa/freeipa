@@ -128,3 +128,40 @@ class test_service(sevice_tasks):
         # cleanup
         self.navigate_to_entity(ENTITY, 'search')
         self.delete_record(pkey, data.get('del'))
+
+    def test_ca_less(self):
+        """
+        Test service certificate actions in CA-less install
+        http://www.freeipa.org/page/V3/CA-less_install
+        """
+        if self.has_ca():
+            self.skip('CA is installed')
+
+        self.init_app()
+
+        data = self.prep_data()
+        pkey = data.get('pkey')
+
+        self.add_record(ENTITY, data)
+        self.navigate_to_record(pkey)
+
+        panel = 'cert_actions'
+        self.assert_action_panel_action(panel, 'request_cert', visible=False)
+        self.assert_action_panel_action(panel, 'revoke_cert', visible=False)
+        self.assert_action_panel_action(panel, 'restore_cert', visible=False)
+
+        self.assert_action_panel_action(panel, 'view_cert', enabled=False)
+        self.assert_action_panel_action(panel, 'get_cert', enabled=False)
+
+        self.navigate_by_breadcrumb('Services')
+        self.delete_record(pkey, data.get('del'))
+
+        # test HTTP, which should have cert set by default and so 'view' and 'get'
+        # actions visible and enabled
+        host = self.config.get('ipa_server')
+        realm = self.config.get('ipa_realm')
+        pkey = 'HTTP/%s@%s' % (host, realm)
+
+        self.navigate_to_record(pkey)
+        self.assert_action_panel_action(panel, 'view_cert')
+        self.assert_action_panel_action(panel, 'get_cert')

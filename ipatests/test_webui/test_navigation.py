@@ -106,8 +106,12 @@ class test_navigation(UI_driver):
             self.navigate_by_menu('identity/dns', False)
             self.navigate_by_menu('identity/dns/dnsconfig', False)
             self.navigate_by_menu('identity/dns/dnszone', False)
+        else:
+            self.assert_menu_item('identity/dns', False)
         if self.has_ca():
             self.navigate_by_menu('identity/cert', False)
+        else:
+            self.assert_menu_item('identity/cert', False)
         self.navigate_by_menu('identity/realmdomains', False)
         self.navigate_by_menu('policy')
         self.navigate_by_menu('policy/hbac', False)
@@ -138,6 +142,8 @@ class test_navigation(UI_driver):
             self.navigate_by_menu('ipaserver/trusts', False)
             self.navigate_by_menu('ipaserver/trusts/trust', False)
             self.navigate_by_menu('ipaserver/trusts/trustconfig', False)
+        else:
+            self.assert_menu_item('ipaserver/trusts', False)
         self.navigate_by_menu('ipaserver/config', False)
 
     def assert_e_url(self, url, e):

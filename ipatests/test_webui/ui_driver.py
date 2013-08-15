@@ -567,7 +567,7 @@ class UI_driver(object):
 
     def _button_click(self, selector, parent, name=''):
         btn = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
-        disabled = 'ui-state-disabled' in btn.get_attribute("class").split(' ')
+        disabled = 'ui-state-disabled' in btn.get_attribute("class").split()
         assert btn.is_displayed(), 'Button is not displayed: %s' % name
         assert not disabled, 'Invalid button state: disabled. Button: %s' % name
         btn.click()
@@ -1425,7 +1425,7 @@ class UI_driver(object):
         facet = self.get_facet()
         btn = self.find(s, By.CSS_SELECTOR, facet, strict=True)
         cls = 'action-button-disabled'
-        has_cls = cls in btn.get_attribute("class").split(' ')
+        has_cls = cls in btn.get_attribute("class").split()
         valid = enabled ^ has_cls
         assert btn.is_displayed(), 'Button is not displayed'
         assert valid, 'Button has incorrect enabled state.'
@@ -1510,7 +1510,7 @@ class UI_driver(object):
         """
         Assert that element has certain class
         """
-        valid = cls in element.get_attribute('class').split(' ')
+        valid = cls in element.get_attribute('class').split()
         if negative:
             assert not valid, "Element contains unwanted class: %s" % cls
         else:
@@ -1522,3 +1522,35 @@ class UI_driver(object):
         """
         for table in tables:
             self.assert_table_button_enabled('add', table, enabled)
+
+    def assert_menu_item(self, path, present=True):
+        """
+        Assert that menu link is not rendered or visible
+        """
+        s = ".navigation a[href='#%s']" % path
+        link = self.find(s, By.CSS_SELECTOR)
+        is_present = link is not None and link.is_displayed()
+        assert present == is_present, ('Invalid state of navigation item: %s. '
+                                       'Presence expected: %s') % (path, str(present))
+
+    def assert_action_panel_action(self, panel_name, action, visible=True, enabled=True):
+        """
+        Assert that action panel action is visible/hidden, and enabled/disabled
+
+        Enabled is checked only if action is visible.
+        """
+        s = "div[data-name='%s'].action-panel" % panel_name
+        s += " a[data-name='%s']" % action
+        link = self.find(s, By.CSS_SELECTOR)
+
+        is_visible = link is not None and link.is_displayed()
+        is_enabled = False
+        if is_visible:
+            is_enabled = 'disabled' not in link.get_attribute("class").split()
+
+        assert is_visible == visible, ('Invalid visibility of action button: %s. '
+                                       'Expected: %s') % (action, str(visible))
+
+        if is_visible:
+            assert is_enabled == enabled, ('Invalid enabled state of action button %s. '
+                                           'Expected: %s') % (action, str(visible))
