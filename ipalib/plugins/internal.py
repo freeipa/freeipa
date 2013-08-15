@@ -517,6 +517,7 @@ class i18n_messages(Command):
                 "type": _("Range type"),
                 "type_ad": _("Active Directory domain"),
                 "type_ad_posix": _("Active Directory domain with POSIX attributes"),
+                "type_detect": _("Detect"),
                 "type_local": _("Local domain"),
                 "type_ipa": _("IPA trust"),
                 "type_winsync": _("Active Directory winsync"),

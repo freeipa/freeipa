@@ -130,7 +130,26 @@ return {
                     $type: 'same_password',
                     other_field: 'trust_secret'
                 }]
+            },
+            {
+                $type: 'radio',
+                name: 'range_type',
+                metadata: '@mc-opt:trust_add:range_type',
+                widget: 'range.range_type'
+            },
+            {
+                name: 'base_id',
+                label: '@i18n:objects.idrange.ipabaseid',
+                metadata: '@mc-opt:trust_add:base_id',
+                widget: 'range.base_id'
+            },
+            {
+                name: 'range_size',
+                label: '@i18n:objects.idrange.ipaidrangesize',
+                metadata: '@mc-opt:trust_add:range_size',
+                widget: 'range.range_size'
             }
+
         ],
         widgets: [
             {
@@ -175,6 +194,34 @@ return {
                         $type: 'password',
                         name: 'trust_secret_verify'
                     }
+                ]
+            },
+            {
+                $type: 'details_table_section_nc',
+                name: 'range',
+                widgets: [
+                    {
+                        $type: 'radio',
+                        name: 'range_type',
+                        layout: 'vertical',
+                        default_value: '',
+                        options: [
+                            {
+                                value: '',
+                                label: '@i18n:objects.idrange.type_detect'
+                            },
+                            {
+                                value: 'ipa-ad-trust',
+                                label: '@i18n:objects.idrange.type_ad'
+                            },
+                            {
+                                value: 'ipa-ad-trust-posix',
+                                label: '@i18n:objects.idrange.type_ad_posix'
+                            }
+                        ]
+                    },
+                    'base_id',
+                    'range_size'
                 ]
             }
         ],
