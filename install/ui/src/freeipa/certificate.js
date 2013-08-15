@@ -615,6 +615,7 @@ IPA.cert.request_action = function(spec) {
     spec.name = spec.name || 'request_cert';
     spec.label = spec.label || '@i18n:objects.cert.new_certificate';
     spec.enable_cond = spec.enable_cond || ['ra_enabled'];
+    spec.hide_cond = spec.hide_cond || ['ra_disabled'];
 
     var that = IPA.action(spec);
     that.entity_label = spec.entity_label;
