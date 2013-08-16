@@ -795,7 +795,7 @@ class UI_driver(object):
         undos = self.find(s, By.CSS_SELECTOR, parent, strict=True, many=True)
         return undos
 
-    def get_rows(self, parent=None):
+    def get_rows(self, parent=None, name=None):
         """
         Return all rows of search table.
         """
@@ -803,9 +803,22 @@ class UI_driver(object):
             parent = self.get_form()
 
         # select table rows
-        s = 'table.search-table tbody tr'
+        s = self.get_table_selector(name)
+        s += ' tbody tr'
         rows = self.find(s, By.CSS_SELECTOR, parent, many=True)
         return rows
+
+    def get_row(self, pkey, parent=None, name=None):
+        """
+        Get row element of search table with given pkey. None if not found.
+        """
+        rows = self.get_rows(parent, name)
+        s = "input[value='%s']" % pkey
+        for row in rows:
+            has = self.find(s, By.CSS_SELECTOR, row)
+            if has:
+                return row
+        return None
 
     def navigate_to_row_record(self, row, pkey_column=None):
         """
@@ -841,6 +854,18 @@ class UI_driver(object):
         checkbox = self.find(s, By.CSS_SELECTOR, parent, strict=True)
         checkbox.click()
         self.wait()
+
+    def get_record_value(self, pkey, column, parent=None, table_name=None):
+        """
+        Get table column's text value
+        """
+        row = self.get_row(pkey, parent, table_name)
+        s = "div[name=%s]" % column
+        val = None
+        if row:
+            el = self.find(s, By.CSS_SELECTOR, row)
+            val = el.text
+        return val
 
     def has_record(self, pkey, parent=None, table_name=None):
         """
@@ -1505,6 +1530,13 @@ class UI_driver(object):
         if lower:
             key = key.lower()
         self.assert_record(key, negative=negative)
+
+    def assert_record_value(self, expected, pkey, column, parent=None, table_name=None):
+        """
+        Assert that column's value of record defined by pkey equals expected value.
+        """
+        val = self.get_record_value(pkey, column, parent, table_name)
+        assert expected == val, "Invalid value: '%s'. Expected: '%s'." % (val, expected)
 
     def assert_class(self, element, cls, negative=False):
         """
