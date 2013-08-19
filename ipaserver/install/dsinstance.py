@@ -274,8 +274,8 @@ class DsInstance(service.Service):
         self.start_creation(runtime=60)
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
-                       domain_name, dm_password, pkcs12_info=None,
-                       ca_file=None):
+                       domain_name, dm_password, subject_base,
+                       pkcs12_info=None, ca_file=None):
         # idstart and idmax are configured so that the range is seen as
         # depleted by the DNA plugin and the replica will go and get a
         # new range from the master.
@@ -284,8 +284,16 @@ class DsInstance(service.Service):
         idmax = 1100
 
         self.init_info(
-            realm_name, fqdn, domain_name, dm_password, None,
-            idstart, idmax, pkcs12_info, ca_file=ca_file)
+            realm_name=realm_name,
+            fqdn=fqdn,
+            domain_name=domain_name,
+            dm_password=dm_password,
+            subject_base=subject_base,
+            idstart=idstart,
+            idmax=idmax,
+            pkcs12_info=pkcs12_info,
+            ca_file=ca_file
+        )
         self.master_fqdn = master_fqdn
 
         self.__common_setup(True)
