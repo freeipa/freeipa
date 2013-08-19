@@ -162,10 +162,16 @@ def install_replica_ds(config):
                        config.dir + "/dirsrv_pin.txt")
 
     ds = dsinstance.DsInstance()
-    ds.create_replica(config.realm_name,
-                      config.master_host_name, config.host_name,
-                      config.domain_name, config.dirman_password,
-                      pkcs12_info, ca_file = config.dir + "/ca.crt")
+    ds.create_replica(
+        realm_name=config.realm_name,
+        master_fqdn=config.master_host_name,
+        fqdn=config.host_name,
+        domain_name=config.domain_name,
+        dm_password=config.dirman_password,
+        subject_base=config.subject_base,
+        pkcs12_info=pkcs12_info,
+        ca_file=config.dir + "/ca.crt",
+    )
 
     return ds
 
