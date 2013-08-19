@@ -28,9 +28,17 @@ from fnmatch import fnmatch, fnmatchcase
 try:
     from pylint import checkers
     from pylint.lint import PyLinter
-    from pylint.reporters.text import ParseableTextReporter
     from pylint.checkers.typecheck import TypeChecker
-    from logilab.astng import Class, Instance, InferenceError
+    try:
+        # Pylint 1.0
+        from astroid import Class, Instance, InferenceError
+        from pylint.reporters.text import TextReporter
+        have_pylint_1_0 = True
+    except ImportError:
+        # Older Pylint
+        from logilab.astng import Class, Instance, InferenceError
+        from pylint.reporters.text import ParseableTextReporter
+        have_pylint_1_0 = False
 except ImportError:
     print >> sys.stderr, "To use {0}, please install pylint.".format(sys.argv[0])
     sys.exit(32)
@@ -222,8 +230,13 @@ def main():
     if options.errors_only:
         linter.disable_noerror_messages()
         linter.enable('F')
-    linter.set_reporter(ParseableTextReporter())
-    linter.set_option('include-ids', True)
+    if have_pylint_1_0:
+        linter.set_reporter(TextReporter())
+        linter.set_option('msg-template',
+                          '{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})')
+    else:
+        linter.set_reporter(ParseableTextReporter())
+        linter.set_option('include-ids', True)
     linter.set_option('reports', False)
     linter.set_option('persistent', False)
 
