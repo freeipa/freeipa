@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Authors: Rob Crittenden <rcritten@redhat.com>
 #          Petr Viktorin <pviktori@redhat.com>
 #

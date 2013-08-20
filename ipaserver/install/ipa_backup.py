@@ -1,5 +1,4 @@
-#!/usr/bin/python
-# Authors: Rob Crittenden <rcritten@redhat.com
+# Authors: Rob Crittenden <rcritten@redhat.com>
 #
 # Copyright (C) 2013  Red Hat
 # see file 'COPYING' for use and warranty information

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Authors: Tomas Babej <tbabej@redhat.com>
 #
 # Copyright (C) 2013  Red Hat
