@@ -69,9 +69,6 @@ class ServerCertInstall(admintool.AdminTool):
 
         if not self.options.dirsrv and not self.options.http:
             self.option_parser.error("you must specify dirsrv and/or http")
-        if not self.options.pin:
-            self.option_parser.error("you must provide the password for the "
-                                     "PKCS#12 file")
 
         if len(self.args) != 1:
             self.option_parser.error("you must provide a pkcs12 filename")
@@ -85,6 +82,13 @@ class ServerCertInstall(admintool.AdminTool):
             if self.dm_password is None:
                 raise admintool.ScriptError(
                     "Directory Manager password required")
+
+        if not self.options.pin:
+            self.options.pin = installutils.read_password(
+                "Enter %s unlock" % self.args[0], confirm=False, validate=False)
+            if self.options.pin is None:
+                raise admintool.ScriptError(
+                    "%s unlock password required" % self.args[0])
 
     def run(self):
         api.bootstrap(in_server=True)
