@@ -132,8 +132,6 @@ class test_trust(trust_tasks):
         data = self.get_data(add_data=add)
         self.add_record(ENTITY, data, delete=True)
         self.navigate_to_entity('idrange')
-        self.facet_button_click('refresh')
-        self.wait_for_request(n=2)
         self.assert_record_value('Active Directory domain range', range_pkey, column)
         self.delete_record(range_pkey)
 
@@ -141,8 +139,6 @@ class test_trust(trust_tasks):
         data = self.get_data(add_data=add)
         self.add_record(ENTITY, data, delete=True)
         self.navigate_to_entity('idrange')
-        self.facet_button_click('refresh')
-        self.wait_for_request(n=2)
         self.assert_record_value('Active Directory trust range with POSIX attributes', range_pkey, column)
         self.delete_record(range_pkey)
 

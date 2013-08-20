@@ -38,6 +38,16 @@ return {
     enable_test: function() {
         return IPA.trust_enabled;
     },
+    policies: [
+        IPA.search_facet_update_policy,
+        IPA.details_facet_update_policy,
+        {
+            $factory: IPA.adder_facet_update_policy,
+            source_facet: 'search',
+            dest_entity: 'idrange',
+            dest_facet: 'search'
+        }
+    ],
     facets: [
         {
             $type: 'search',

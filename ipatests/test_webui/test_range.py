@@ -67,8 +67,6 @@ class test_range(range_tasks):
             sid = self.get_sid()
 
             self.navigate_to_entity(ENTITY)
-            self.facet_button_click('refresh')
-            self.wait_for_request(n=2)
 
             add = self.get_add_data(pkey_ad, range_type='ipa-ad-trust', sid=sid)
             data = self.get_data(pkey_ad, add_data=add)
