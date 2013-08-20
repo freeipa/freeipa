@@ -26,8 +26,8 @@ import krbV
 from ipalib import api
 from ipalib import errors
 from ipaserver.plugins.ldap2 import ldap2
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
-                                              fuzzy_uuid, fuzzy_netgroupdn)
+from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid,
+                         fuzzy_netgroupdn, add_sid, add_oc)
 from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
 
@@ -272,13 +272,13 @@ class test_netgroup(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/%s' % user1],
                     krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -297,7 +297,7 @@ class test_netgroup(Declarative):
                     has_password=False,
                     dn=DN(('uid',user1),('cn','users'),('cn','accounts'),
                           api.env.basedn),
-                ),
+                )),
             ),
         ),
 
@@ -309,13 +309,13 @@ class test_netgroup(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "%s"' % user2,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/%s' % user2],
                     krbprincipalname=[u'%s@%s' % (user2, api.env.realm)],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -334,7 +334,7 @@ class test_netgroup(Declarative):
                     has_password=False,
                     dn=DN(('uid',user2),('cn','users'),('cn','accounts'),
                           api.env.basedn),
-                ),
+                )),
             ),
         ),
 

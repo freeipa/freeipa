@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test group nexting an indirect members
+Test group nesting and indirect members
 """
 
-from ipalib import api, errors
+from ipalib import api
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, add_sid, add_oc
 from ipapython.dn import DN
 
 group1 = u'testgroup1'
@@ -160,13 +160,13 @@ class test_nesting(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -185,7 +185,7 @@ class test_nesting(Declarative):
                     has_password=False,
                     dn=DN(('uid',user1),('cn','users'),('cn','accounts'),
                           api.env.basedn)
-                ),
+                )),
             ),
         ),
 
@@ -198,13 +198,13 @@ class test_nesting(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "%s"' % user2,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -223,7 +223,7 @@ class test_nesting(Declarative):
                     has_password=False,
                     dn=DN(('uid',user2),('cn','users'),('cn','accounts'),
                           api.env.basedn)
-                ),
+                )),
             ),
         ),
 
@@ -236,13 +236,13 @@ class test_nesting(Declarative):
             expected=dict(
                 value=user3,
                 summary=u'Added user "%s"' % user3,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User3'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser3'],
                     krbprincipalname=[u'tuser3@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User3'],
                     uid=[user3],
                     uidnumber=[fuzzy_digits],
@@ -261,7 +261,7 @@ class test_nesting(Declarative):
                     has_password=False,
                     dn=DN(('uid',user3),('cn','users'),('cn','accounts'),
                           api.env.basedn)
-                ),
+                )),
             ),
         ),
 
@@ -274,13 +274,13 @@ class test_nesting(Declarative):
             expected=dict(
                 value=user4,
                 summary=u'Added user "%s"' % user4,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User4'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser4'],
                     krbprincipalname=[u'tuser4@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User4'],
                     uid=[user4],
                     uidnumber=[fuzzy_digits],
@@ -299,7 +299,7 @@ class test_nesting(Declarative):
                     has_password=False,
                     dn=DN(('uid',user4),('cn','users'),('cn','accounts'),
                           api.env.basedn)
-                ),
+                )),
             ),
         ),
 

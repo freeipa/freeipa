@@ -1034,3 +1034,47 @@ class compat_is_enabled(Command):
         return dict(result=True)
 
 api.register(compat_is_enabled)
+
+
+class sidgen_was_run(Command):
+    """
+    This command tries to determine whether the sidgen task was run during
+    ipa-adtrust-install. It does that by simply checking the "editors" group
+    for the presence of the ipaNTSecurityIdentifier attribute - if the
+    attribute is present, the sidgen task was run.
+
+    Since this command relies on the existence of the "editors" group, it will
+    fail loudly in case this group does not exist.
+    """
+    NO_CLI = True
+
+    __doc__ = _('Determine whether ipa-adtrust-install has been run with '
+                'sidgen task')
+
+    def execute(self, *keys, **options):
+        ldap = self.api.Backend.ldap2
+        editors_dn = DN(
+            ('cn', 'editors'),
+            ('cn', 'groups'),
+            ('cn', 'accounts'),
+            api.env.basedn
+        )
+
+        try:
+            editors_entry = ldap.get_entry(editors_dn)
+        except errors.NotFound:
+            raise errors.NotFound(
+                name=_('sidgen_was_run'),
+                reason=_(
+                    'This command relies on the existence of the "editors" '
+                    'group, but this group was not found.'
+                )
+            )
+
+        attr = editors_entry.get('ipaNTSecurityIdentifier')
+        if not attr:
+            return dict(result=False)
+
+        return dict(result=True)
+
+api.register(sidgen_was_run)
