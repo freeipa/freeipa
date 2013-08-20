@@ -2974,6 +2974,10 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
+command: sidgen_was_run
+args: 0,1,1
+option: Str('version?', exclude='webui')
+output: Output('result', None, None)
 command: sudocmd_add
 args: 1,7,3
 arg: Str('sudocmd', attribute=True, cli_name='command', multivalue=False, primary_key=True, required=True)

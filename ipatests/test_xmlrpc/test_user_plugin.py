@@ -23,12 +23,13 @@
 Test the `ipalib/plugins/user.py` module.
 """
 
-from ipalib import api, errors, messages
+from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_equal, assert_not_equal
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password, fuzzy_string, fuzzy_dergeneralizedtime
+from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password,
+                         fuzzy_string, fuzzy_dergeneralizedtime, add_sid,
+                         add_oc)
 from ipapython.dn import DN
-from ipapython.version import API_VERSION
 
 user1=u'tuser1'
 user2=u'tuser2'
@@ -108,13 +109,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -131,7 +132,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
             extra_check = upg_check,
         ),
@@ -181,7 +182,7 @@ class test_user(Declarative):
             ),
             expected=dict(
                 result=[
-                    {
+                    add_sid({
                         'dn': get_user_dn(user1),
                         'cn': [u'Test User1'],
                         'gecos': [u'Test User1'],
@@ -190,7 +191,8 @@ class test_user(Declarative):
                         'krbprincipalname': [u'tuser1@' + api.env.realm],
                         'loginshell': [u'/bin/sh'],
                         'memberof_group': [u'ipausers'],
-                        'objectclass': objectclasses.user,
+                        'objectclass': add_oc(objectclasses.user,
+                                              u'ipantuserattrs'),
                         'sn': [u'User1'],
                         'uid': [user1],
                         'uidnumber': [fuzzy_digits],
@@ -203,10 +205,9 @@ class test_user(Declarative):
                         'has_keytab': False,
                         'has_password': False,
                         'displayname': [u'Test User1'],
-                        'cn': [u'Test User1'],
                         'initials': [u'TU'],
                         'mail': [u'%s@%s' % (user1, api.env.domain)],
-                    },
+                    }),
                 ],
                 summary=u'1 user matched',
                 count=1, truncated=False,
@@ -575,13 +576,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -600,7 +601,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
             extra_check = upg_check,
         ),
@@ -633,13 +634,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -656,7 +657,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
             extra_check = upg_check,
         ),
@@ -670,13 +671,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "%s"' % user2,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -693,7 +694,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user2),
-                ),
+                )),
             ),
             extra_check = upg_check,
         ),
@@ -886,13 +887,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -914,7 +915,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
         ),
 
@@ -937,13 +938,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -964,7 +965,7 @@ class test_user(Declarative):
                     krbpasswordexpiration=[fuzzy_dergeneralizedtime],
                     krblastpwdchange=[fuzzy_dergeneralizedtime],
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
         ),
 
@@ -986,13 +987,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "%s"' % user2,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -1009,7 +1010,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user2),
-                ),
+                )),
             ),
         ),
 
@@ -1058,13 +1059,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -1081,7 +1082,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
         ),
 
@@ -1131,13 +1132,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/other-home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -1154,7 +1155,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
         ),
 
@@ -1193,13 +1194,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/usr/bin/ipython'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -1216,7 +1217,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
         ),
 
@@ -1254,14 +1255,15 @@ class test_user(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "%s"' % user2,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     description=[],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user_base,
+                    objectclass=add_oc(objectclasses.user_base,
+                                       u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -1277,7 +1279,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user2),
-                ),
+                )),
             ),
         ),
 
@@ -1307,14 +1309,15 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     description=[],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user_base,
+                    objectclass=add_oc(objectclasses.user_base,
+                                       u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -1330,7 +1333,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
             extra_check = not_upg_check,
         ),
@@ -1343,14 +1346,15 @@ class test_user(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "%s"' % user2,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     description=[],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user_base,
+                    objectclass=add_oc(objectclasses.user_base,
+                                       u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -1366,7 +1370,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user2),
-                ),
+                )),
             ),
         ),
 
@@ -1425,13 +1429,14 @@ class test_user(Declarative):
                 'user_show', [user2], {'all': True}
             ),
             expected=dict(
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user_base,
+                    objectclass=add_oc(objectclasses.user_base,
+                                       u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -1449,7 +1454,7 @@ class test_user(Declarative):
                     has_password=False,
                     dn=get_user_dn(user2),
                     manager=[renameduser1],
-                ),
+                )),
                 value=user2,
                 summary=None,
             ),
@@ -1471,13 +1476,14 @@ class test_user(Declarative):
                 'user_show', [user2], {'all': True}
             ),
             expected=dict(
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user_base,
+                    objectclass=add_oc(objectclasses.user_base,
+                                       u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -1494,7 +1500,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user2),
-                ),
+                )),
                 value=user2,
                 summary=None,
             ),
@@ -1531,13 +1537,13 @@ class test_user(Declarative):
             expected=dict(
                 value=admin2,
                 summary=u'Added user "%s"' % admin2,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Second Admin'],
                     givenname=[u'Second'],
                     homedirectory=[u'/home/admin2'],
                     krbprincipalname=[u'admin2@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'Admin'],
                     uid=[admin2],
                     uidnumber=[fuzzy_digits],
@@ -1554,7 +1560,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(admin2),
-                ),
+                )),
             ),
         ),
 
@@ -1720,7 +1726,7 @@ class test_user(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "tuser2"',
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser2'],
@@ -1728,7 +1734,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
@@ -1745,7 +1751,7 @@ class test_user(Declarative):
                     memberof_group=[u'ipausers'],
                     dn=DN(('uid', 'tuser2'), ('cn', 'users'), ('cn', 'accounts'),
                           api.env.basedn),
-                ),
+                )),
             ),
         ),
 
@@ -1806,13 +1812,13 @@ class test_user(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[lambda v: int(v) != 999],
@@ -1829,7 +1835,7 @@ class test_user(Declarative):
                     has_keytab=False,
                     has_password=False,
                     dn=get_user_dn(user1),
-                ),
+                )),
             ),
             extra_check = upg_check,
         ),

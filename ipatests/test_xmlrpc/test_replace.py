@@ -25,9 +25,9 @@ Note that member management in other tests also exercises the
 gen_modlist code.
 """
 
-from ipalib import api, errors
+from ipalib import api
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, add_sid, add_oc
 from ipapython.dn import DN
 
 user1=u'tuser1'
@@ -50,13 +50,13 @@ class test_replace(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "tuser1"',
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -75,7 +75,7 @@ class test_replace(Declarative):
                     has_password=False,
                     dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
                           api.env.basedn),
-                ),
+                )),
             ),
         ),
 

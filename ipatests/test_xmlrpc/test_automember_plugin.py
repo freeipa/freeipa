@@ -24,7 +24,7 @@ Test the `ipalib/plugins/automember.py` module.
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, add_sid, add_oc
 
 
 user1=u'tuser1'
@@ -794,7 +794,7 @@ class test_automember(Declarative):
             expected=dict(
                 value=manager1,
                 summary=u'Added user "mscott"',
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Michael Scott'],
                     givenname=[u'Michael'],
                     homedirectory=[u'/home/mscott'],
@@ -802,7 +802,7 @@ class test_automember(Declarative):
                     has_keytab=False,
                     has_password=False,
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'Scott'],
                     uid=[manager1],
                     uidnumber=[fuzzy_digits],
@@ -819,7 +819,7 @@ class test_automember(Declarative):
                     memberof_group=[u'defaultgroup1', u'ipausers'],
                     dn=DN(('uid', 'mscott'), ('cn', 'users'), ('cn', 'accounts'),
                           api.env.basedn),
-                ),
+                )),
             ),
         ),
 
@@ -832,7 +832,7 @@ class test_automember(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "tuser1"',
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
@@ -840,7 +840,7 @@ class test_automember(Declarative):
                     has_keytab=False,
                     has_password=False,
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -858,7 +858,7 @@ class test_automember(Declarative):
                     memberof_group=[u'group1', u'ipausers'],
                     dn=DN(('uid', 'tuser1'), ('cn', 'users'), ('cn', 'accounts'),
                           api.env.basedn),
-                ),
+                )),
             ),
         ),
 

@@ -22,7 +22,7 @@ Test the `ipalib/plugins/selinuxusermap.py` module.
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, add_sid, add_oc
 from ipapython.dn import DN
 from ipatests.util import Fuzzy
 
@@ -200,13 +200,13 @@ class test_selinuxusermap(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/%s' % user1],
                     krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -228,7 +228,7 @@ class test_selinuxusermap(Declarative):
                           api.env.basedn),
                     has_keytab=False,
                     has_password=False,
-                ),
+                )),
             ),
         ),
 

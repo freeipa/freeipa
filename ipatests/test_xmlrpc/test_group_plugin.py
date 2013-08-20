@@ -23,8 +23,8 @@ Test the `ipalib/plugins/group.py` module.
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from ipatests.util import Fuzzy
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_set_ci
+from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_set_ci,
+                         add_sid, add_oc)
 from ipapython.dn import DN
 
 group1 = u'testgroup1'
@@ -437,23 +437,27 @@ class test_group(Declarative):
                 count=4,
                 truncated=False,
                 result=[
-                    {
+                    add_sid({
                         'dn': get_group_dn('admins'),
                         'member_user': [u'admin'],
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],
                         'description': [u'Account administrators group'],
-                        'objectclass': fuzzy_set_ci(objectclasses.posixgroup),
+                        'objectclass': fuzzy_set_ci(add_oc(
+                            objectclasses.posixgroup, u'ipantgroupattrs')),
                         'ipauniqueid': [fuzzy_uuid],
-                    },
-                    {
+                    }),
+                    add_sid({
                         'dn': get_group_dn('editors'),
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'editors'],
                         'description': [u'Limited admins who can edit other users'],
-                        'objectclass': fuzzy_set_ci(objectclasses.posixgroup),
+                        'objectclass': fuzzy_set_ci(add_oc(
+                            objectclasses.posixgroup,
+                            u'ipantgroupattrs',
+                            check_sidgen=True)),
                         'ipauniqueid': [fuzzy_uuid],
-                    },
+                    }, check_sidgen=True),
                     dict(
                         dn=get_group_dn(group1),
                         cn=[group1],
@@ -462,14 +466,15 @@ class test_group(Declarative):
                         objectclass=fuzzy_set_ci(objectclasses.posixgroup),
                         ipauniqueid=[fuzzy_uuid],
                     ),
-                    dict(
+                    add_sid(dict(
                         dn=get_group_dn(group2),
                         cn=[group2],
                         description=[u'New desc 2'],
                         gidnumber=[fuzzy_digits],
-                        objectclass=fuzzy_set_ci(objectclasses.posixgroup),
+                        objectclass=fuzzy_set_ci(add_oc(
+                            objectclasses.posixgroup, u'ipantgroupattrs')),
                         ipauniqueid=[fuzzy_uuid],
-                    ),
+                    )),
                 ],
             ),
         ),
@@ -538,7 +543,9 @@ class test_group(Declarative):
             command=(
                 'group_add_member', [group3], dict(ipaexternalmember=external_sid1)
             ),
-            expected=lambda x, output: type(x) == errors.ValidationError or type(x) == errors.NotFound,
+            expected=lambda x, output: (type(x) == errors.ValidationError
+                                        or type(x) == errors.NotFound
+                                        or 'failed' in output),
         ),
 
 
@@ -789,13 +796,13 @@ class test_group(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/%s' % user1],
                     krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
+                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -813,7 +820,7 @@ class test_group(Declarative):
                           api.env.basedn),
                     has_keytab=False,
                     has_password=False,
-                ),
+                )),
             ),
         ),
 
@@ -905,14 +912,15 @@ class test_group(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "tuser1"',
-                result=dict(
+                result=add_sid(dict(
                     gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     description=[],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
                     loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user_base,
+                    objectclass=add_oc(objectclasses.user_base,
+                                       u'ipantuserattrs'),
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
@@ -929,7 +937,7 @@ class test_group(Declarative):
                     memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
-                ),
+                )),
             ),
         ),
 

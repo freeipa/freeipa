@@ -21,8 +21,6 @@
 Base class for all XML-RPC tests
 """
 
-import sys
-import socket
 import nose
 from ipatests.util import assert_deepequal, Fuzzy
 from ipalib import api, request, errors
@@ -98,6 +96,20 @@ except IOError:
 except errors.NotFound:
     server_available = True
 
+adtrust_is_enabled = api.Command['adtrust_is_enabled']()['result']
+sidgen_was_run = api.Command['sidgen_was_run']()['result']
+
+
+def add_sid(d, check_sidgen=False):
+    if adtrust_is_enabled and (not check_sidgen or sidgen_was_run):
+        d['ipantsecurityidentifier'] = (fuzzy_user_or_group_sid,)
+    return d
+
+
+def add_oc(l, oc, check_sidgen=False):
+    if adtrust_is_enabled and (not check_sidgen or sidgen_was_run):
+        return l + [oc]
+    return l
 
 
 def assert_attr_equal(entry, key, value):
@@ -311,15 +323,17 @@ class Declarative(XMLRPC_test):
         assert_deepequal(expected.strerror, e.strerror)
 
     def check_callable(self, nice, cmd, args, options, expected):
+        name = expected.__class__.__name__
         output = dict()
         e = None
         try:
             output = api.Command[cmd](*args, **options)
         except StandardError, e:
-           pass
+            pass
         if not expected(e, output):
             raise AssertionError(
-                UNEXPECTED % (cmd, args, options, e.__class__.__name__, e)
+                UNEXPECTED % (cmd, name, args, options,
+                              e.__class__.__name__, e)
             )
 
     def check_output(self, nice, cmd, args, options, expected, extra_check):
