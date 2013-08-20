@@ -23,6 +23,7 @@ import sys
 import os
 import os.path
 import pwd
+import optparse
 
 from ipapython import admintool
 from ipapython.dn import DN
@@ -53,13 +54,13 @@ class ServerCertInstall(admintool.AdminTool):
             dest="http", action="store_true", default=False,
             help="install certificate for the http server")
         parser.add_option(
-            "--dirsrv_pin",
-            dest="dirsrv_pin",
-            help="The password of the Directory Server PKCS#12 file")
+            "--pin",
+            dest="pin",
+            help="The password of the PKCS#12 file")
         parser.add_option(
-            "--http_pin",
-            dest="http_pin",
-            help="The password of the Apache Server PKCS#12 file")
+            "--dirsrv_pin", "--http_pin",
+            dest="pin",
+            help=optparse.SUPPRESS_HELP)
 
     def validate_options(self):
         super(ServerCertInstall, self).validate_options(needs_root=True)
@@ -68,8 +69,7 @@ class ServerCertInstall(admintool.AdminTool):
 
         if not self.options.dirsrv and not self.options.http:
             self.option_parser.error("you must specify dirsrv and/or http")
-        if ((self.options.dirsrv and not self.options.dirsrv_pin) or
-                (self.options.http and not self.options.http_pin)):
+        if not self.options.pin:
             self.option_parser.error("you must provide the password for the "
                                      "PKCS#12 file")
 
@@ -111,7 +111,7 @@ class ServerCertInstall(admintool.AdminTool):
                                ['nssslpersonalityssl'])
         old_cert = entry.single_value('nssslpersonalityssl')
 
-        server_cert = self.import_cert(dirname, self.options.dirsrv_pin,
+        server_cert = self.import_cert(dirname, self.options.pin,
                                        old_cert, 'ldap/%s' % api.env.host,
                                        'restart_dirsrv %s' % serverid)
 
@@ -129,7 +129,7 @@ class ServerCertInstall(admintool.AdminTool):
         old_cert = installutils.get_directive(httpinstance.NSS_CONF,
                                               'NSSNickname')
 
-        server_cert = self.import_cert(dirname, self.options.http_pin,
+        server_cert = self.import_cert(dirname, self.options.pin,
                                        old_cert, 'HTTP/%s' % api.env.host,
                                        'restart_httpd')
 
