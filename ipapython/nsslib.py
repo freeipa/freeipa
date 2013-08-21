@@ -142,9 +142,10 @@ class NSSAddressFamilyFallback(object):
         try:
             addr_info = io.AddrInfo(host, family=self.family)
         except Exception:
-             raise NSPRError(error.PR_ADDRESS_NOT_SUPPORTED_ERROR,
-                             "Cannot resolve %s using family %s" % (host,
-                                 io.addr_family_name(self.family)))
+            raise NSPRError(
+                error_code=error.PR_ADDRESS_NOT_SUPPORTED_ERROR,
+                error_message="Cannot resolve %s using family %s" % (host,
+                    io.addr_family_name(self.family)))
 
         for net_addr in addr_info:
             root_logger.debug("Connecting: %s", net_addr)
@@ -160,8 +161,9 @@ class NSSAddressFamilyFallback(object):
                 root_logger.debug("Try to continue with next family...")
                 continue
 
-        raise NSPRError(error.PR_ADDRESS_NOT_SUPPORTED_ERROR,
-                "Could not connect to %s using any address" % host)
+        raise NSPRError(
+            error_code=error.PR_ADDRESS_NOT_SUPPORTED_ERROR,
+            error_message="Could not connect to %s using any address" % host)
 
 
 class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
