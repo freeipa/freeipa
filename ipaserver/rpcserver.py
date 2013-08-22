@@ -516,7 +516,7 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
             error = dict(
                 code=error.errno,
                 message=error.strerror,
-                name=error.__class__.__name__,
+                name=unicode(error.__class__.__name__),
             )
         principal = getattr(context, 'principal', 'UNKNOWN')
         response = dict(

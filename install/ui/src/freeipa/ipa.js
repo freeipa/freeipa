@@ -733,7 +733,8 @@ IPA.command = function(spec) {
             } else if (data.error) {
                 // error_handler() calls IPA.hide_activity_icon()
                 error_handler.call(this, xhr, text_status,  /* error_thrown */ {
-                    name: text.get('@i18n:errors.ipa_error', 'IPA Error')+' '+data.error.code,
+                    name: text.get('@i18n:errors.ipa_error', 'IPA Error') + ' ' +
+                          data.error.code + ': ' + data.error.name,
                     code: data.error.code,
                     message: data.error.message,
                     data: data
