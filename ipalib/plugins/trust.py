@@ -423,7 +423,7 @@ sides.
                     ))
 
         base_id = options.get('base_id')
-        range_size = options.get('range_size') != DEFAULT_RANGE_SIZE
+        range_size = options.get('range_size')
 
         if old_range and (base_id or range_size):
             raise errors.ValidationError(
