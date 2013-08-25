@@ -271,8 +271,6 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
             ret = LDAP_OPERATIONS_ERROR;
             goto done;
         }
-
-        domain_name = strdup(req->data.name.domain_name);
         break;
     case INP_NAME:
         ret = asprintf(&fq_name, "%s%c%s", req->data.name.object_name,
