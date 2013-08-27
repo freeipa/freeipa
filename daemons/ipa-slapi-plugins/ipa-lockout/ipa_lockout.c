@@ -244,9 +244,8 @@ int ipalockout_getpolicy(Slapi_Entry *target_entry, Slapi_Entry **policy_entry,
     if (ldrc == 0) {
         Slapi_Value *sv = NULL;
 
-        slapi_valueset_first_value(*values, &sv);
-
         if (values != NULL) {
+            slapi_valueset_first_value(*values, &sv);
             *policy_dn = slapi_value_get_string(sv);
         }
     }
