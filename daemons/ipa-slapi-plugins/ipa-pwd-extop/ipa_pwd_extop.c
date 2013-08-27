@@ -1220,11 +1220,12 @@ Slapi_Filter *ipapwd_string2filter(char *strfilter)
 }
 
 /* Loads the OTP config entry, parses it, and applies it. */
-static inline bool ipapwd_load_otp_config(void)
+static bool ipapwd_load_otp_config(void)
 {
     char *config_attrs[] = { IPA_USER_AUTH_TYPE, NULL };
     Slapi_Entry *config_entry = NULL;
     Slapi_DN *config_sdn = NULL;
+    int ret;
 
     /* If we are using an alternate config area, check it for our
      * configuration, otherwise we just use our main plug-in config
@@ -1238,8 +1239,12 @@ static inline bool ipapwd_load_otp_config(void)
                     config_sdn ? slapi_sdn_get_ndn(config_sdn) : "null");
 
     /* Fetch the config entry. */
-    slapi_search_internal_get_entry(config_sdn, config_attrs, &config_entry,
-                                    ipapwd_plugin_id);
+    ret = slapi_search_internal_get_entry(config_sdn, config_attrs,
+                                          &config_entry, ipapwd_plugin_id);
+    if (ret != LDAP_SUCCESS) {
+        LOG_TRACE("Search for OTP config failed, err (%d)\n", ret);
+        /* fall through, defaults will be set */
+    }
 
     /* Parse and apply the config. */
     ipapwd_parse_otp_config_entry(config_entry, true);
