@@ -775,7 +775,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
     }
 
     /* always zero out, not used for Krb, only NTLM */
-    memset(&info3->base.LMSessKey, '\0', sizeof(info3->base.key));
+    memset(&info3->base.LMSessKey, '\0', sizeof(info3->base.LMSessKey));
 
     /* TODO: fill based on objectclass, user vs computer, etc... */
     info3->base.acct_flags = ACB_NORMAL; /* samr_AcctFlags */
