@@ -37,7 +37,7 @@ CACERT = "/etc/ipa/ca.crt"
 class ServerCertInstall(admintool.AdminTool):
     command_name = 'ipa-server-certinstall'
 
-    usage = "%prog [options]"
+    usage = "%prog <-d|-w> [options] <PKCS#12 file>"
 
     description = "Install new SSL server certificates."
 
