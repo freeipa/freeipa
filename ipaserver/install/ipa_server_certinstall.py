@@ -61,6 +61,10 @@ class ServerCertInstall(admintool.AdminTool):
             "--dirsrv_pin", "--http_pin",
             dest="pin",
             help=optparse.SUPPRESS_HELP)
+        parser.add_option(
+            "-p", "--dirman-password",
+            dest="dirman_password",
+            help="Directory Manager password")
 
     def validate_options(self):
         super(ServerCertInstall, self).validate_options(needs_root=True)
@@ -76,10 +80,10 @@ class ServerCertInstall(admintool.AdminTool):
     def ask_for_options(self):
         super(ServerCertInstall, self).ask_for_options()
 
-        if self.options.dirsrv:
-            self.dm_password = installutils.read_password(
+        if self.options.dirsrv and not self.options.dirman_password:
+            self.options.dirman_password = installutils.read_password(
                 "Directory Manager", confirm=False, validate=False, retry=False)
-            if self.dm_password is None:
+            if self.options.dirman_password is None:
                 raise admintool.ScriptError(
                     "Directory Manager password required")
 
@@ -108,7 +112,7 @@ class ServerCertInstall(admintool.AdminTool):
 
         conn = ldap2(shared_instance=False, base_dn='')
         conn.connect(bind_dn=DN(('cn', 'directory manager')),
-                     bind_pw=self.dm_password)
+                     bind_pw=self.options.dirman_password)
 
         entry = conn.get_entry(DN(('cn', 'RSA'), ('cn', 'encryption'),
                                   ('cn', 'config')),
