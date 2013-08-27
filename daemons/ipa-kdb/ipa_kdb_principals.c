@@ -413,6 +413,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         if ((*active_ua & ~IPADB_USER_AUTH_DISABLED) != IPADB_USER_AUTH_EMPTY
             && !(*active_ua & IPADB_USER_AUTH_PASSWORD)) {
             /* This is the same behavior as ENOENT below. */
+            ipa_krb5_free_key_data(res_key_data, result);
             break;
         }
 
