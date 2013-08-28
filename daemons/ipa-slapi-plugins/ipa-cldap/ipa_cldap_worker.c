@@ -276,13 +276,14 @@ static void ipa_cldap_process(struct ipa_cldap_ctx *ctx,
     LOG_TRACE("CLDAP Request received");
 
     ret = ipa_cldap_netlogon(ctx, req, &reply);
+
+done:
     if (ret != 0) {
         /* bad request, or internal error, return empty reply */
         /* as Windows does per MS-ADTS 6.3.3.3 */
         memset(&reply, 0, sizeof(struct berval));
     }
 
-done:
     ipa_cldap_respond(ctx, req, &reply);
 
     ipa_cldap_free_kvps(&req->kvps);
