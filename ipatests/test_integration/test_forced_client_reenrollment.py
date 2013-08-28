@@ -1,0 +1,278 @@
+# Authors:
+#   Ana Krivokapic <akrivoka@redhat.com>
+#
+# Copyright (C) 2013  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
+import subprocess
+
+from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration import tasks
+
+CLIENT_KEYTAB = '/etc/krb5.keytab'
+
+
+class TestForcedClientReenrollment(IntegrationTest):
+    """
+    Forced client re-enrollment
+    http://www.freeipa.org/page/V3/Forced_client_re-enrollment#Test_Plan
+    """
+    num_replicas = 1
+    num_clients = 1
+
+    @classmethod
+    def install(cls):
+        super(TestForcedClientReenrollment, cls).install()
+        tasks.install_master(cls.master)
+        tasks.install_replica(cls.master, cls.replicas[0], setup_ca=False)
+        cls.BACKUP_KEYTAB = os.path.join(
+            cls.master.config.test_dir,
+            'krb5.keytab'
+        )
+
+    def setUp(self):
+        tasks.prepare_host(self.clients[0])
+        tasks.install_client(self.master, self.clients[0])
+
+    def tearDown(self):
+        tasks.uninstall_client(self.clients[0])
+        self.delete_client_host_entry()
+
+    def test_reenroll_with_force_join(self):
+        """
+        Client re-enrollment using admin credentials (--force-join)
+        """
+        sshfp_record_pre = self.get_sshfp_record()
+        self.restore_client()
+        self.check_client_host_entry()
+        self.reenroll_client(force_join=True)
+        sshfp_record_post = self.get_sshfp_record()
+        assert sshfp_record_pre == sshfp_record_post
+
+    def test_reenroll_with_keytab(self):
+        """
+        Client re-enrollment using keytab
+        """
+        self.backup_keytab()
+        sshfp_record_pre = self.get_sshfp_record()
+        self.restore_client()
+        self.check_client_host_entry()
+        self.restore_keytab()
+        self.reenroll_client(keytab=self.BACKUP_KEYTAB)
+        sshfp_record_post = self.get_sshfp_record()
+        assert sshfp_record_pre == sshfp_record_post
+
+    def test_reenroll_with_both_force_join_and_keytab(self):
+        """
+        Client re-enrollment using both --force-join and --keytab options
+        """
+        self.backup_keytab()
+        sshfp_record_pre = self.get_sshfp_record()
+        self.restore_client()
+        self.check_client_host_entry()
+        self.restore_keytab()
+        self.reenroll_client(force_join=True, keytab=self.BACKUP_KEYTAB)
+        sshfp_record_post = self.get_sshfp_record()
+        assert sshfp_record_pre == sshfp_record_post
+
+    def test_reenroll_to_replica(self):
+        """
+        Client re-enrollment using keytab, to a replica
+        """
+        self.backup_keytab()
+        sshfp_record_pre = self.get_sshfp_record()
+        self.restore_client()
+        self.check_client_host_entry()
+        self.restore_keytab()
+        self.reenroll_client(keytab=self.BACKUP_KEYTAB, to_replica=True)
+        sshfp_record_post = self.get_sshfp_record()
+        assert sshfp_record_pre == sshfp_record_post
+
+    def test_try_to_reenroll_with_disabled_host(self):
+        """
+        Client re-enrollment using keytab, with disabled host
+        """
+        self.backup_keytab()
+        self.disable_client_host_entry()
+        self.restore_client()
+        self.check_client_host_entry(enabled=False)
+        self.restore_keytab()
+        self.reenroll_client(keytab=self.BACKUP_KEYTAB, expect_fail=True)
+
+    def test_try_to_reenroll_with_uninstalled_host(self):
+        """
+        Client re-enrollment using keytab, with uninstalled host
+        """
+        self.backup_keytab()
+        self.uninstall_client()
+        self.restore_client()
+        self.check_client_host_entry(enabled=False)
+        self.restore_keytab()
+        self.reenroll_client(keytab=self.BACKUP_KEYTAB, expect_fail=True)
+
+    def test_try_to_reenroll_with_deleted_host(self):
+        """
+        Client re-enrollment using keytab, with deleted host
+        """
+        self.backup_keytab()
+        self.delete_client_host_entry()
+        self.restore_client()
+        self.check_client_host_entry(not_found=True)
+        self.restore_keytab()
+        self.reenroll_client(keytab=self.BACKUP_KEYTAB, expect_fail=True)
+
+    def test_try_to_reenroll_with_incorrect_keytab(self):
+        """
+        Client re-enrollment using keytab, with incorrect keytab file
+        """
+        EMPTY_KEYTAB = os.path.join(
+            self.clients[0].config.test_dir,
+            'empty.keytab'
+        )
+        self.restore_client()
+        self.check_client_host_entry()
+        self.clients[0].run_command(['touch', EMPTY_KEYTAB])
+        self.reenroll_client(keytab=EMPTY_KEYTAB, expect_fail=True)
+
+    def uninstall_client(self):
+        self.clients[0].run_command(
+            ['ipa-client-install', '--uninstall', '-U'],
+            set_env=False,
+            raiseonerr=False
+        )
+
+    def restore_client(self):
+        client = self.clients[0]
+
+        client.run_command([
+            'iptables',
+            '-A', 'INPUT',
+            '-j', 'ACCEPT',
+            '-p', 'tcp',
+            '--dport', '22'
+        ])
+        client.run_command([
+            'iptables',
+            '-A', 'INPUT',
+            '-j', 'REJECT',
+            '-p', 'all',
+            '--source', self.master.ip
+        ])
+        self.uninstall_client()
+        client.run_command(['iptables', '-F'])
+
+    def reenroll_client(self, keytab=None, to_replica=False, force_join=False,
+                        expect_fail=False):
+        server = self.replicas[0] if to_replica else self.master
+        client = self.clients[0]
+
+        self.fix_resolv_conf(client, server)
+
+        args = [
+            'ipa-client-install', '-U',
+            '--server', server.hostname,
+            '--domain', server.domain.name
+        ]
+        if force_join:
+            args.append('--force-join')
+        if keytab:
+            args.extend(['--keytab', keytab])
+        else:
+            args.extend([
+                '-p', client.config.admin_name,
+                '-w', client.config.admin_password
+            ])
+
+        result = client.run_command(
+            args,
+            set_env=False,
+            raiseonerr=not expect_fail
+        )
+        assert 'IPA Server: %s' % server.hostname in result.stderr_text
+
+        if expect_fail:
+            err_msg = 'Kerberos authentication failed using keytab'
+            assert result.returncode == 1
+            assert err_msg in result.stderr_text
+        elif force_join and keytab:
+            warn_msg = ("Option 'force-join' has no additional effect "
+                        "when used with together with option 'keytab'.")
+            assert warn_msg in result.stderr_text
+
+    def check_client_host_entry(self, enabled=True, not_found=False):
+        result = self.master.run_command(
+            ['ipa', 'host-show', self.clients[0].hostname],
+            raiseonerr=not not_found
+        )
+
+        if not_found:
+            assert result.returncode == 2
+            assert 'host not found' in result.stderr_text
+        elif enabled:
+            assert 'Certificate:' in result.stdout_text
+            assert 'Keytab: True' in result.stdout_text
+        else:
+            assert 'Certificate:' not in result.stdout_text
+            assert 'Keytab: False' in result.stdout_text
+
+    def disable_client_host_entry(self):
+        self.master.run_command(
+            ['ipa', 'host-disable', self.clients[0].hostname]
+        )
+
+    def delete_client_host_entry(self):
+        try:
+            self.master.run_command(
+                ['ipa', 'host-del', self.clients[0].hostname]
+            )
+        except subprocess.CalledProcessError as e:
+            if e.returncode != 2:
+                raise
+
+    def get_sshfp_record(self):
+        sshfp_record = ''
+        client_host = self.clients[0].hostname.split('.')[0]
+
+        result = self.master.run_command(
+            ['ipa', 'dnsrecord-show', self.master.domain.name, client_host]
+        )
+
+        lines = result.stdout_text.splitlines()
+        for line in lines:
+            if 'SSHFP record:' in line:
+                sshfp_record = line.replace('SSHFP record:', '').strip()
+
+        assert sshfp_record, 'SSHFP record not found'
+        return sshfp_record
+
+    def backup_keytab(self):
+        contents = self.clients[0].get_file_contents(CLIENT_KEYTAB)
+        self.master.put_file_contents(self.BACKUP_KEYTAB, contents)
+
+    def restore_keytab(self):
+        contents = self.master.get_file_contents(self.BACKUP_KEYTAB)
+        self.clients[0].put_file_contents(self.BACKUP_KEYTAB, contents)
+
+    def fix_resolv_conf(self, client, server):
+        """
+        Put server's ip address at the top of resolv.conf
+        """
+        contents = client.get_file_contents('/etc/resolv.conf')
+        nameserver = 'nameserver %s\n' % server.ip
+
+        if not contents.startswith(nameserver):
+            contents = nameserver + contents.replace(nameserver, '')
+            client.put_file_contents('/etc/resolv.conf', contents)
