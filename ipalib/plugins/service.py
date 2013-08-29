@@ -624,27 +624,28 @@ class service_disable(LDAPQuery):
         done_work = False
 
         if 'usercertificate' in entry_attrs:
-            cert = x509.normalize_certificate(entry_attrs.get('usercertificate')[0])
-            try:
-                serial = unicode(x509.get_serial_number(cert, x509.DER))
+            if self.api.env.enable_ra:
+                cert = x509.normalize_certificate(entry_attrs.get('usercertificate')[0])
                 try:
-                    result = api.Command['cert_show'](unicode(serial))['result']
-                    if 'revocation_reason' not in result:
-                        try:
-                            api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
-                        except errors.NotImplementedError:
-                            # some CA's might not implement revoke
-                            pass
-                except errors.NotImplementedError:
-                    # some CA's might not implement revoke
-                    pass
-            except NSPRError, nsprerr:
-                if nsprerr.errno == -8183:
-                    # If we can't decode the cert them proceed with
-                    # disabling the service
-                    self.log.info("Problem decoding certificate %s" % nsprerr.args[1])
-                else:
-                    raise nsprerr
+                    serial = unicode(x509.get_serial_number(cert, x509.DER))
+                    try:
+                        result = api.Command['cert_show'](unicode(serial))['result']
+                        if 'revocation_reason' not in result:
+                            try:
+                                api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                            except errors.NotImplementedError:
+                                # some CA's might not implement revoke
+                                pass
+                    except errors.NotImplementedError:
+                        # some CA's might not implement revoke
+                        pass
+                except NSPRError, nsprerr:
+                    if nsprerr.errno == -8183:
+                        # If we can't decode the cert them proceed with
+                        # disabling the service
+                        self.log.info("Problem decoding certificate %s" % nsprerr.args[1])
+                    else:
+                        raise nsprerr
 
             # Remove the usercertificate altogether
             ldap.update_entry(dn, {'usercertificate': None})
