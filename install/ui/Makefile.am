@@ -10,7 +10,6 @@ SUBDIRS =  				\
 
 appdir = $(IPA_DATA_DIR)/ui
 app_DATA =				\
-	config.js			\
 	favicon.ico			\
 	index.html 			\
 	jquery-ui.css			\

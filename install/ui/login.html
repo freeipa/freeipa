@@ -3,11 +3,16 @@
 <head>
     <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
-
-    <link rel="stylesheet" type="text/css" href="ipa.css" />
-
-    <script type="text/javascript" src="js/libs/jquery.js"></script>
-    <script type="text/javascript" src="login.js"></script>
+    <script type="text/javascript" src="js/libs/loader.js"></script>
+    <script type="text/javascript">
+        (function() {
+            ipa_loader.styles(['ipa.css']);
+            ipa_loader.scripts([
+                'js/libs/jquery.js',
+                'login.js'
+            ]);
+        })();
+    </script>
 </head>
 
 <body class="info-page login-page">

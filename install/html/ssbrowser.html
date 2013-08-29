@@ -3,30 +3,41 @@
 <head>
 <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
-
-    <link rel="stylesheet" type="text/css" href="../ui/jquery-ui.css" />
-    <link rel="stylesheet" type="text/css" href="../ui/ipa.css" />
-    <link rel="stylesheet" type="text/css" href="ipa_error.css" />
-
-    <script type="text/javascript" src="../ui/js/libs/jquery.js"></script>
-    <script type="text/javascript" src="krb.js"></script>
+    <script type="text/javascript" src="../ui/js/libs/loader.js"></script>
     <script type="text/javascript">
-        $(document).ready(function() {
-            var domain = '.' + (IPA_DOMAIN || 'example.com');
-            $('.example-domain').text(domain);
+        (function() {
+            function loaded() {
+                $(document).ready(function() {
+                    var domain = '.' + (IPA_DOMAIN || 'example.com');
+                    $('.example-domain').text(domain);
 
-            if ($.browser.mozilla) {
-                var ff_config = $("#configurefirefox");
-                var obj = $('<object/>', {
-                    type: 'text/html',
-                    'class': 'browser-config'
+                    if ($.browser.mozilla) {
+                        var ff_config = $("#configurefirefox");
+                        var obj = $('<object/>', {
+                            type: 'text/html',
+                            'class': 'browser-config'
+                        });
+                        obj.prop('data', 'jar:/ipa/errors/configure.jar!/preferences.html');
+                        obj.appendTo(ff_config);
+                        ff_config.show();
+                    }
                 });
-                obj.prop('data', 'jar:/ipa/errors/configure.jar!/preferences.html');
-                obj.appendTo(ff_config);
-                ff_config.show();
             }
-        });
+
+            var styles = [
+                '../ui/jquery-ui.css',
+                '../ui/ipa.css',
+                'ipa_error.css'
+            ];
+            var scripts = [
+                '../ui/js/libs/jquery.js',
+                'krb.js'
+            ];
+            ipa_loader.scripts(scripts, loaded);
+            ipa_loader.styles(styles);
+        })();
     </script>
+
 </head>
 
 <body class="info-page">

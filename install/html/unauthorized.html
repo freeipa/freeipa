@@ -3,12 +3,16 @@
 <head>
     <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
-
-    <script type="text/javascript" src="../ui/js/libs/jquery.js"></script>
-
-    <link rel="stylesheet" type="text/css" href="../ui/jquery-ui.css" />
-    <link rel="stylesheet" type="text/css" href="../ui/ipa.css" />
-    <link rel="stylesheet" type="text/css" href="ipa_error.css" />
+    <script type="text/javascript" src="../ui/js/libs/loader.js"></script>
+    <script type="text/javascript">
+        (function() {
+            var styles = [
+                '../ui/ipa.css',
+                'ipa_error.css'
+            ];
+            ipa_loader.styles(styles);
+        })();
+    </script>
 </head>
 
 <body class="info-page">

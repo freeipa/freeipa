@@ -1,32 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
+    <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
 
-
-    <link rel="stylesheet" type="text/css" href="jquery-ui.css" />
-    <link rel="stylesheet" type="text/css" href="ipa.css" />
-    <!--ie only stylesheet -->
     <!--[if IE]>
-    <link rel="stylesheet" type="text/css" href="ie.css" />
+    <meta id="ie-detector">
     <![endif]-->
-    <link rel="icon" type="image/ico" href="favicon.ico">
 
-    <script type="text/javascript" src="js/libs/json2.js"></script>
-    <script type="text/javascript" src="js/libs/jquery.js"></script>
-    <script type="text/javascript" src="js/libs/jquery-ui.js"></script>
-    <script type="text/javascript" src="js/libs/jquery.ordered-map.js"></script>
-    <script type="text/javascript" src="js/libs/browser.js"></script>
-
-
-    <script type="text/javascript" src="config.js"></script>
-    <script type="text/javascript" src="js/dojo/dojo.js"></script>
+    <script type="text/javascript" src="js/libs/loader.js"></script>
     <script type="text/javascript">
-        require(['freeipa/app'], function(app){ app.run(); });
+
+        var dojoConfig = {
+            baseUrl: "js",
+            has: {
+                'dojo-firebug': false,
+                'dojo-debug-messages': true
+            },
+            parseOnLoad: false,
+            async: true,
+            packages: [
+                {
+                    name:'dojo',
+                    location:'dojo'
+                },
+                {
+                    name: 'freeipa',
+                    location: 'freeipa'
+                }
+            ],
+            cacheBust: ipa_loader.num_version || ""
+        };
+
+        (function() {
+            var ie = !!document.getElementById('ie-detector');
+            var styles = ['jquery-ui.css', 'ipa.css'];
+            if (ie) styles.push('ie.css');
+            var icons = ['favicon.ico'];
+            var scripts = [
+                'js/libs/json2.js',
+                'js/libs/jquery.js',
+                'js/libs/jquery-ui.js',
+                'js/libs/jquery.ordered-map.js',
+                'js/libs/browser.js',
+                'js/dojo/dojo.js'
+            ];
+            ipa_loader.scripts(scripts, function() {
+                require(['freeipa/app'], function(app){ app.run(); });
+            });
+            ipa_loader.styles(styles);
+            ipa_loader.icons(icons);
+
+        })();
     </script>
 </head>
 
-<body></body>
+<body>
+    <noscript>This application requires JavaScript enabled.</noscript>
+</body>
 
 </html>

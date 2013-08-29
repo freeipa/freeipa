@@ -54,10 +54,10 @@ install/missing
 install/stamp-h1
 install/po/test.po
 install/po/test_locale/xh_ZA/LC_MESSAGES/ipa.mo
-install/ui/test/results
 install/ui/release
 install/ui/src/dojo
 install/ui/src/build
+install/ui/src/libs/loader.js
 install/ui/src/plugins
 ipa-client/COPYING
 ipa-client/ChangeLog

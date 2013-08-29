@@ -116,13 +116,14 @@ version-update: release-update
 		freeipa.spec.in > freeipa.spec
 	sed -e s/__VERSION__/$(IPA_VERSION)/ version.m4.in \
 		> version.m4
-
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/setup.py.in \
 		> ipapython/setup.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/version.py.in \
 		> ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipatests/setup.py.in \
 		> ipatests/setup.py
+	sed -e s/__NUM_VERSION__/$(IPA_NUM_VERSION)/ install/ui/src/libs/loader.js.in \
+		> install/ui/src/libs/loader.js
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" ipapython/version.py
 	perl -pi -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" ipapython/version.py
 	touch -r ipapython/version.py.in ipapython/version.py

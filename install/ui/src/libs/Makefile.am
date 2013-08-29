@@ -7,6 +7,7 @@ app_DATA =				\
 	jquery.ordered-map.js 		\
 	jquery-ui.js 			\
 	json2.js 			\
+	loader.js 			\
 	$(NULL)
 
 EXTRA_DIST =                            \

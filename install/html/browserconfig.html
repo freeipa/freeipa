@@ -3,16 +3,25 @@
 <head>
     <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
-
-    <link rel="stylesheet" type="text/css" href="../ui/jquery-ui.css" />
-    <link rel="stylesheet" type="text/css" href="../ui/ipa.css" />
-    <link rel="stylesheet" type="text/css" href="ipa_error.css" />
-
-    <script type="text/javascript" src="../ui/js/libs/jquery.js"></script>
-    <script type="text/javascript" src="../ui/js/libs/jquery-ui.js"></script>
-    <script type="text/javascript" src="krb.js"></script>
-    <script type="text/javascript" src="ffconfig.js"></script>
-    <script type="text/javascript"  src="ffconfig_page.js"></script>
+    <script type="text/javascript" src="../ui/js/libs/loader.js"></script>
+    <script type="text/javascript">
+        (function() {
+            var styles = [
+                '../ui/jquery-ui.css',
+                '../ui/ipa.css',
+                'ipa_error.css'
+            ];
+            var scripts = [
+                '../ui/js/libs/jquery.js',
+                '../ui/js/libs/jquery-ui.js',
+                'krb.js',
+                'ffconfig.js',
+                'ffconfig_page.js'
+            ];
+            ipa_loader.scripts(scripts);
+            ipa_loader.styles(styles);
+        })();
+    </script>
 </head>
 
 <body class="info-page">
