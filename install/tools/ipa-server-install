@@ -28,18 +28,17 @@
 
 import sys
 import os
-import errno
 import grp
-import subprocess
 import signal
 import shutil
-import glob
 import pickle
 import random
 import tempfile
 import nss.error
 import base64
-from optparse import OptionGroup, OptionValueError, SUPPRESS_HELP
+import pwd
+import textwrap
+from optparse import OptionGroup, OptionValueError
 
 from ipaserver.install import dsinstance
 from ipaserver.install import krbinstance
@@ -51,10 +50,11 @@ from ipaserver.install import cainstance
 from ipaserver.install import memcacheinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install import sysupgrade
-
+from ipaserver.install import replication
 from ipaserver.install import service, installutils
 from ipapython import version
 from ipapython import certmonger
+from ipapython import ipaldap
 from ipaserver.install.installutils import *
 from ipaserver.plugins.ldap2 import ldap2
 
@@ -620,6 +620,32 @@ def main():
         if not options.unattended:
             print "\nThis is a NON REVERSIBLE operation and will delete all data and configuration!\n"
             if not user_input("Are you sure you want to continue with the uninstall procedure?", False):
+                print ""
+                print "Aborting uninstall operation."
+                sys.exit(1)
+
+        conn = ipaldap.IPAdmin(api.env.host, ldapi=True, realm=api.env.realm)
+        conn.do_external_bind(pwd.getpwuid(os.geteuid()).pw_name)
+        rm = replication.ReplicationManager(api.env.realm, api.env.host, None,
+                                            conn=conn)
+        agreements = rm.find_ipa_replication_agreements()
+
+        if agreements:
+            other_masters = [a.get('cn')[0][4:] for a in agreements]
+            msg = (
+                "\nReplication agreements with the following IPA masters "
+                "found: %s. Removing any replication agreements before "
+                "uninstalling the server is strongly recommended. You can "
+                "remove replication agreements by running the following "
+                "command on any other IPA master:\n" % ", ".join(other_masters)
+            )
+            cmd = "$ ipa-replica-manage del %s\n" % api.env.host
+            print textwrap.fill(msg, width=80, replace_whitespace=False)
+            print cmd
+            if not (options.unattended or user_input("Are you sure you want "
+                                                     "to continue with the "
+                                                     "uninstall procedure?",
+                                                     False)):
                 print ""
                 print "Aborting uninstall operation."
                 sys.exit(1)
