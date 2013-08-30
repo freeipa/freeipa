@@ -148,6 +148,8 @@ def parse_options():
     # only, it isn't meant to be used on clients.
     basic_group.add_option("--on-master", dest="on_master", action="store_true",
                       help=SUPPRESS_HELP, default=False)
+    basic_group.add_option("--automount-location", dest="location",
+                           help="Automount location")
     parser.add_option_group(basic_group)
 
     sssd_group = OptionGroup(parser, "SSSD options")
@@ -1287,6 +1289,28 @@ def configure_sshd_config(fstore, options):
             sshd.restart()
         except Exception, e:
             log_service_error(sshd.service_name, 'restart', e)
+
+
+def configure_automount(options):
+    root_logger.info('\nConfiguring automount:')
+
+    args = [
+        'ipa-client-automount', '--debug', '-U',
+        '--location', options.location
+    ]
+
+    if options.server:
+        args.extend(['--server', options.server[0]])
+    if not options.sssd:
+        args.append('--no-sssd')
+
+    try:
+        stdout, _, _ = run(args)
+    except Exception, e:
+        root_logger.error('Automount configuration failed: %s', str(e))
+    else:
+        root_logger.info(stdout)
+
 
 def resolve_ipaddress(server):
     """ Connect to the server's LDAP port in order to determine what ip
@@ -2514,6 +2538,9 @@ def install(options, env, fstore, statestore):
 
     if options.conf_sshd:
         configure_sshd_config(fstore, options)
+
+    if options.location:
+        configure_automount(options)
 
     root_logger.info('Client configuration complete.')
 
