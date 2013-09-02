@@ -22,7 +22,6 @@ import sys
 import socket
 
 import os, pwd, shutil
-import grp
 from optparse import OptionGroup
 from contextlib import contextmanager
 
@@ -33,13 +32,13 @@ import dns.exception
 from ipapython import ipautil
 
 from ipaserver.install import dsinstance, installutils, krbinstance, service
-from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
+from ipaserver.install import bindinstance, httpinstance, ntpinstance
 from ipaserver.install import memcacheinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install.replication import replica_conn_check, ReplicationManager
-from ipaserver.install.installutils import (HostnameLocalhost, resolve_host,
-        ReplicaConfig, expand_replica_info, read_replica_info ,get_host_name,
-        BadHostError, private_ccache)
+from ipaserver.install.installutils import (ReplicaConfig, expand_replica_info,
+                                            read_replica_info ,get_host_name,
+                                            BadHostError, private_ccache)
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
 from ipalib import api, errors, util
@@ -574,18 +573,7 @@ def main():
     api.finalize()
 
     # Create DS group if it doesn't exist yet
-    try:
-        grp.getgrnam(dsinstance.DS_GROUP)
-        root_logger.debug("ds group %s exists" % dsinstance.DS_GROUP)
-        group_exists = True
-    except KeyError:
-        group_exists = False
-        args = ["/usr/sbin/groupadd", "-r", dsinstance.DS_GROUP]
-        try:
-            ipautil.run(args)
-            root_logger.debug("done adding DS group")
-        except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to add DS group: %s" % e)
+    group_exists = dsinstance.create_ds_group()
     sstore.backup_state("install", "group_exists", group_exists)
 
     #Automatically disable pkinit w/ dogtag until that is supported

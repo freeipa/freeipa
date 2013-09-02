@@ -20,28 +20,24 @@
 import os
 import sys
 import shutil
-import glob
 import tempfile
 import time
 import pwd
-from optparse import OptionGroup
 from ConfigParser import SafeConfigParser
 
 from ipalib import api, errors
 from ipapython import version
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
-from ipapython.config import IPAOptionParser
 from ipapython.dn import DN
-from ipaserver.install.dsinstance import realm_to_serverid, DS_USER
+from ipaserver.install.dsinstance import (realm_to_serverid, create_ds_group,
+                                          create_ds_user, DS_USER)
 from ipaserver.install.cainstance import PKI_USER
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
-    CSReplicationManager, get_cs_replication_manager)
+                                           get_cs_replication_manager)
 from ipaserver.install import installutils
 from ipapython import services as ipaservices
 from ipapython import ipaldap
-from ipapython import version
-from ipalib.session import ISO8601_DATETIME_FMT
 from ipaserver.install.ipa_backup import BACKUP_DIR
 
 
@@ -190,6 +186,8 @@ class Restore(admintool.AdminTool):
         if options.data_only and not instances:
             raise admintool.ScriptError('No instances to restore to')
 
+        create_ds_group()
+        create_ds_user()
         pent = pwd.getpwnam(DS_USER)
 
         # Temporary directory for decrypting files before restoring

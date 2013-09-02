@@ -27,6 +27,7 @@ import time
 import tempfile
 import base64
 import stat
+import grp
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, sysrestore, ipaldap
@@ -130,6 +131,52 @@ def check_ports():
 def is_ds_running(server_id=''):
     return ipaservices.knownservices.dirsrv.is_running(instance_name=server_id)
 
+
+def create_ds_user():
+    """
+    Create DS user if it doesn't exist yet.
+    """
+    try:
+        pwd.getpwnam(DS_USER)
+        root_logger.debug('DS user %s exists', DS_USER)
+    except KeyError:
+        root_logger.debug('Adding DS user %s', DS_USER)
+        args = [
+            '/usr/sbin/useradd',
+            '-g', DS_GROUP,
+            '-c', 'DS System User',
+            '-d', '/var/lib/dirsrv',
+            '-s', '/sbin/nologin',
+            '-M', '-r', DS_USER
+        ]
+        try:
+            ipautil.run(args)
+            root_logger.debug('Done adding DS user')
+        except ipautil.CalledProcessError, e:
+            root_logger.critical('Failed to add DS user: %s', e)
+
+
+def create_ds_group():
+    """
+    Create DS group if it doesn't exist yet.
+    Returns True if the group already exists.
+    """
+    try:
+        grp.getgrnam(DS_GROUP)
+        root_logger.debug('DS group %s exists', DS_GROUP)
+        group_exists = True
+    except KeyError:
+        group_exists = False
+        root_logger.debug('Adding DS group %s', DS_GROUP)
+        args = ['/usr/sbin/groupadd', '-r', DS_GROUP]
+        try:
+            ipautil.run(args)
+            root_logger.debug('Done adding DS group')
+        except ipautil.CalledProcessError, e:
+            root_logger.critical('Failed to add DS group: %s', e)
+
+    return group_exists
+
 INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQDN
@@ -194,7 +241,7 @@ class DsInstance(service.Service):
 
     def __common_setup(self, enable_ssl=False):
 
-        self.step("creating directory server user", self.__create_ds_user)
+        self.step("creating directory server user", create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
         self.step("adding default schema", self.__add_default_schemas)
         self.step("enabling memberof plugin", self.__add_memberof_module)
@@ -345,23 +392,6 @@ class DsInstance(service.Service):
                              GROUP=DS_GROUP,
                              IDRANGE_SIZE=idrange_size
                          )
-
-    def __create_ds_user(self):
-        try:
-            pwd.getpwnam(DS_USER)
-            root_logger.debug("ds user %s exists" % DS_USER)
-        except KeyError:
-            root_logger.debug("adding ds user %s" % DS_USER)
-            args = ["/usr/sbin/useradd", "-g", DS_GROUP,
-                                         "-c", "DS System User",
-                                         "-d", "/var/lib/dirsrv",
-                                         "-s", "/sbin/nologin",
-                                         "-M", "-r", DS_USER]
-            try:
-                ipautil.run(args)
-                root_logger.debug("done adding user")
-            except ipautil.CalledProcessError, e:
-                root_logger.critical("failed to add user %s" % e)
 
     def __create_instance(self):
         pent = pwd.getpwnam(DS_USER)

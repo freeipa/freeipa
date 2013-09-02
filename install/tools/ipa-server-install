@@ -971,16 +971,7 @@ def main():
         ipaservices.backup_and_replace_hostname(fstore, sstore, host_name)
 
     # Create DS group if it doesn't exist yet
-    try:
-        grp.getgrnam(dsinstance.DS_GROUP)
-        root_logger.debug("ds group %s exists" % dsinstance.DS_GROUP)
-    except KeyError:
-        args = ["/usr/sbin/groupadd", "-r", dsinstance.DS_GROUP]
-        try:
-            ipautil.run(args)
-            root_logger.debug("done adding DS group")
-        except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to add DS group: %s" % e)
+    dsinstance.create_ds_group()
 
     # Create a directory server instance
     if external != 2:
