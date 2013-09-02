@@ -21,7 +21,6 @@ from ipapython import ipautil
 from ipapython import services as ipaservices
 import shutil
 import os
-import sys
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
 # permit the source to query or modify the service on this system.
@@ -137,24 +136,23 @@ def config_ntp(server_fqdn, fstore = None, sysstore = None):
 
 def synconce_ntp(server_fqdn):
     """
-    Syncs time with specified server using ntpdate.
+    Syncs time with specified server using ntpd.
     Primarily designed to be used before Kerberos setup
     to get time following the KDC time
 
     Returns True if sync was successful
     """
-    ntpdate="/usr/sbin/ntpdate"
-    if os.path.exists(ntpdate):
-        # retry several times -- logic follows /etc/init.d/ntpdate
-        # implementation
-        cmd = [ntpdate, "-U", "ntp", "-s", "-b", "-v", server_fqdn]
-        for retry in range(0, 3):
-            try:
-                ipautil.run(cmd)
-                return True
-            except:
-                pass
-    return False
+    ntpd = '/usr/sbin/ntpd'
+    if not os.path.exists(ntpd):
+        return False
+
+    tmp_ntp_conf = ipautil.write_tmp_file('server %s' % server_fqdn)
+    try:
+        ipautil.run([ntpd, '-qgc', tmp_ntp_conf.name])
+        return True
+    except ipautil.CalledProcessError:
+        return False
+
 
 class NTPConfigurationError(Exception):
     pass
