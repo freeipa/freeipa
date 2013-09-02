@@ -50,7 +50,7 @@ ifneq ($(DEVELOPER_MODE),0)
 LINT_OPTIONS=--no-fail
 endif
 
-PYTHON ?= $(shell rpm -E %__python)
+PYTHON ?= $(shell rpm -E %__python || echo /usr/bin/python)
 
 all: bootstrap-autogen server tests
 	@for subdir in $(SUBDIRS); do \
