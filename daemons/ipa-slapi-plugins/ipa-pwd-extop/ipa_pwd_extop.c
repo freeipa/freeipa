@@ -573,7 +573,7 @@ free_and_return:
 	if (targetEntry) slapi_entry_free(targetEntry);
 	if (ber) ber_free(ber, 1);
 
-	LOG(errMesg ? errMesg : "success");
+	LOG("%s", errMesg ? errMesg : "success");
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
@@ -1146,7 +1146,7 @@ free_and_return:
 
         if (rc == LDAP_SUCCESS)
             errMesg = NULL;
-	LOG(errMesg ? errMesg : "success");
+	LOG("%s", errMesg ? errMesg : "success");
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
@@ -1173,7 +1173,7 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 	if (slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_OID, &oid) != 0) {
 		errMesg = "Could not get OID value from request.\n";
 		rc = LDAP_OPERATIONS_ERROR;
-		LOG(errMesg);
+		LOG("%s", errMesg);
 		goto free_and_return;
 	} else {
 	        LOG("Received extended operation request with OID %s\n", oid);
@@ -1196,7 +1196,7 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 free_and_return:
 	if (krbcfg) free_ipapwd_krbcfg(&krbcfg);
 
-	LOG(errMesg);
+	LOG("%s", errMesg);
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;

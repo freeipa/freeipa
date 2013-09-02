@@ -320,7 +320,7 @@ free_and_return:
 
     if (krbLastPwdChange) slapi_ch_free_string(&krbLastPwdChange);
 
-    LOG(errMesg ? errMesg : "success\n");
+    LOG("%s", errMesg ? errMesg : "success\n");
     slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
     free(principal);
@@ -347,7 +347,7 @@ ipaenrollment_extop(Slapi_PBlock *pb)
     if (slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_OID, &oid ) != 0) {
         errMesg = "Could not get OID and value from request.\n";
         rc = LDAP_OPERATIONS_ERROR;
-        LOG(errMesg);
+        LOG("%s", errMesg);
         goto free_and_return;
     }
 
@@ -360,7 +360,7 @@ ipaenrollment_extop(Slapi_PBlock *pb)
     rc = LDAP_OPERATIONS_ERROR;
 
 free_and_return:
-    LOG(errMesg);
+    LOG("%s", errMesg);
     slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
     return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
