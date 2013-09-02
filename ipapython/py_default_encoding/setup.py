@@ -22,7 +22,7 @@ from distutils.sysconfig import get_python_inc
 import sys
 import os
 
-python_header = os.path.join(get_python_inc(plat_specific=1), 'Python.h')
+python_header = os.path.join(get_python_inc(plat_specific=0), 'Python.h')
 if not os.path.exists(python_header):
     sys.exit("Cannot find Python development packages that provide Python.h")
 
