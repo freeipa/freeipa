@@ -81,7 +81,7 @@ def find_modules_in_dir(src_dir):
         if not name.endswith(suffix):
             continue
         pyfile = os.path.join(src_dir, name)
-        if os.path.islink(pyfile) or not os.path.isfile(pyfile):
+        if not os.path.isfile(pyfile):
             continue
         module = name[:-len(suffix)]
         if module == '__init__':
