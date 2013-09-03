@@ -673,6 +673,8 @@ def handle_error(error, log_file_name=None):
     if isinstance(error, socket.error):
         return error, 1
 
+    if isinstance(error, errors.ACIError):
+        return error.message, 1
     if isinstance(error, ldap.INVALID_CREDENTIALS):
         return "Invalid password", 1
     if isinstance(error, ldap.INSUFFICIENT_ACCESS):
