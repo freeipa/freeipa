@@ -59,3 +59,13 @@ class TestSimpleReplication(IntegrationTest):
     def test_user_replication_to_master(self):
         """Test user replication replica -> master"""
         self.check_replication(self.replicas[0], self.master, 'testuser2')
+
+    def test_replica_removal(self):
+        """Test replica removal"""
+        result = self.master.run_command(['ipa-replica-manage', 'list'])
+        assert self.replicas[0].hostname in result.stdout_text
+        # has to be run with --force, there is no --unattended
+        self.master.run_command(['ipa-replica-manage', 'del',
+                                 self.replicas[0].hostname, '--force'])
+        result = self.master.run_command(['ipa-replica-manage', 'list'])
+        assert self.replicas[0].hostname not in result.stdout_text

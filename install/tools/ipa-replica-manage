@@ -348,7 +348,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False):
     search_filter = '(&(nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff)(objectclass=nstombstone))'
     try:
         entries = thisrepl.conn.get_entries(
-            api.env.basedn, thisrepl.conn.SCOPE_ONELEVEL, search_filter,
+            api.env.basedn, thisrepl.conn.SCOPE_SUBTREE, search_filter,
             ['nsds50ruv'])
     except errors.NotFound:
         print "No RUV records found."
