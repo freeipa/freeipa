@@ -42,6 +42,8 @@ class BaseHost(object):
         self.hostname = shortname + '.' + self.domain.name
         self.external_hostname = hostname
 
+        self.netbios = self.domain.name.split('.')[0].upper()
+
         self.logger_name = '%s.%s.%s' % (
             self.__module__, type(self).__name__, shortname)
         self.log = log_mgr.get_logger(self.logger_name)
@@ -94,6 +96,12 @@ class BaseHost(object):
     def from_env(cls, env, domain, hostname, role, index):
         ip = env.get('BEAKER%s%s_IP_env%s' %
                         (role.upper(), index, domain.index), None)
+
+        if role == 'ad':
+            cls = WinHost
+        else:
+            cls = Host
+
         self = cls(domain, hostname, role, index, ip)
         return self
 
@@ -217,3 +225,14 @@ class Host(BaseHost):
 
         command.wait(raiseonerr=raiseonerr)
         return command
+
+
+class WinHost(BaseHost):
+    """
+    Representation of a remote Windows host.
+
+    This serves as a sketch class once we move from manual preparation of
+    Active Directory to the automated setup.
+    """
+
+    pass
