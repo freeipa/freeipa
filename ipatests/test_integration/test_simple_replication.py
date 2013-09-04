@@ -36,6 +36,9 @@ class TestSimpleReplication(IntegrationTest):
                                  '--first', 'test',
                                  '--last', 'user'])
 
+        source_ldap = source_host.ldap_connect()
+        tasks.wait_for_replication(source_ldap)
+
         ldap = dest_host.ldap_connect()
         tasks.wait_for_replication(ldap)
 
