@@ -69,6 +69,11 @@ These are normally included for backwards compatibility.
 .SH "ENVIRONMENT VARIABLES"
 
 .TP
+Domain configuration:
+    Domain is implicitly defined by _envX suffix of the environment variables,
+    if either AD_envX or MASTER_envX is defined.
+
+.TP
 Host configuration:
 
 .TP
@@ -81,8 +86,13 @@ Host configuration:
 \fB$CLIENT\fR
     FQDNs of IPA clients (space-separated)
 .TP
-\fB$MASTER_env2\fR, \fB$REPLICA_env2\fR, \fB$CLIENT_env2\fR, \fB$MASTER_env3\fR, ...
+\fB$MASTER_env2\fR, \fB$REPLICA_env2\fR, \fB$CLIENT_env2\fR, \fB$MASTER_env3\fR, \fB$AD_env4\fR,...
     can be used for additional domains when needed
+.TP
+\fB$AD_env1\fR, \fB$AD_env2\fR, \fB$AD_env3\fR, \fB$AD_env4\fR, ...
+    can be used to define Active Directory domains. Please note that these
+    domains are not separate from the IPA domains, so please use an unique
+    environment suffix for each of your Active Directory domains.
 .TP
 \fB$BEAKER\fR<role><num>\fB_IP_env\fR<e>, e.g. \fB$BEAKERREPLICA1_IP_env1\fR
     the IP address of the given host
@@ -137,6 +147,14 @@ Test customization:
 .TP
 \fB$ADMINPW\fR
     Admin user password
+    Default: Secret123
+.TP
+\fB$ADADMINID\fR
+    Active Directory Administrator username
+    Default: Administrator
+.TP
+\fB$ADADMINPW\fR
+    Active Directory Administrator password
     Default: Secret123
 .TP
 \fB$ROOTDN\fR
