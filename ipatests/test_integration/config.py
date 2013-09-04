@@ -27,7 +27,7 @@ import random
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration.host import Host
+from ipatests.test_integration.host import BaseHost
 
 
 class Config(object):
@@ -253,9 +253,10 @@ def env_normalize(env):
 
 
 class Domain(object):
-    """Configuration for an IPA domain"""
-    def __init__(self, config, name, index):
+    """Configuration for an IPA / AD domain"""
+    def __init__(self, config, name, index, domain_type):
         self.log = log_mgr.get_logger(self)
+        self.type = domain_type
 
         self.config = config
         self.name = name
@@ -268,27 +269,27 @@ class Domain(object):
         self.basedn = DN(*(('dc', p) for p in name.split('.')))
 
     @classmethod
-    def from_env(cls, env, config, index):
-        try:
-            default_domain = env['DOMAIN']
-        except KeyError:
-            hostname, dot, default_domain = env['MASTER_env1'].partition('.')
-        parts = default_domain.split('.')
+    def from_env(cls, env, config, index, domain_type):
 
-        if index == 1:
-            name = default_domain
+        # Roles available in the domain depend on the type of the domain
+        # Unix machines are added only to the IPA domains, Windows machines
+        # only to the AD domains
+        if domain_type == 'IPA':
+            master_role = 'MASTER'
+            domain_roles = 'master', 'replica', 'client', 'other'
         else:
-            # For $DOMAIN = dom.example.com, additional domains are
-            # dom1.example.com, dom2.example.com, etc.
-            parts[0] += str(index)
-            name = '.'.join(parts)
+            master_role = 'AD'
+            domain_roles = 'ad',
 
-        self = cls(config, name, index)
+        master_env = '%s_env%s' % (master_role, index)
+        hostname, dot, domain_name = env[master_env].partition('.')
+        self = cls(config, domain_name, index, domain_type)
 
-        for role in 'master', 'replica', 'client', 'other':
+        for role in domain_roles:
             value = env.get('%s%s' % (role.upper(), self._env), '')
+
             for index, hostname in enumerate(value.split(), start=1):
-                host = Host.from_env(env, self, hostname, role, index)
+                host = BaseHost.from_env(env, self, hostname, role, index)
                 self.hosts.append(host)
 
         if not self.hosts:
@@ -323,9 +324,13 @@ class Domain(object):
         return [h for h in self.hosts if h.role == 'client']
 
     @property
+    def ads(self):
+        return [h for h in self.hosts if h.role == 'ad']
+
+    @property
     def other_hosts(self):
         return [h for h in self.hosts
-                if h.role not in ('master', 'client', 'replica')]
+                if h.role not in ('master', 'client', 'replica', 'ad')]
 
     def host_by_name(self, name):
         for host in self.hosts:
