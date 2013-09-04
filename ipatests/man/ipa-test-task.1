@@ -116,6 +116,38 @@ Servers used for client installation are selected in a round-robin fashion.
 \fBipa\-test\-task list-topos\fR
 List the topologies available for the install-topo subcommand.
 
+.TP
+\fBipa\-test\-task install\-adtrust HOST\fR
+Run ipa-adtrust-install on the IPA and generate SIDs for the entries in IPA.
+
+.TP
+\fBipa\-test\-task configure\-dns\-for\-trust HOST AD\fR
+Based on the relationship of the domains configures the IPA DNS for trust.
+AD DNS needs to be setup manually.
+
+.TP
+\fBipa\-test\-task estabilish\-trust\-with\-ad HOST AD\fR
+Estabilishes trust with Active Directory. Trust type is detected depending on
+the presence of SfU (Services for Unix) support on the AD.
+
+.TP
+\fBipa\-test\-task remove\-trust\-with\-ad HOST AD\fR
+Removes trust with Active Directory. Also removes the associated ID range.
+
+.TP
+\fBipa\-test\-task configure\-auth\-to\-local\-rule HOST AD\fR
+Configures auth_to_local rule in /etc/krb5.conf
+
+.TP
+\fBipa\-test\-task clear\-sssd\-cache HOST\fR
+Clears SSSD cache by removing the cache files. Restarts SSSD.
+
+.TP
+\fBipa\-test\-task sync\-time HOST SERVER\fR
+Syncs the time with the remote server. Please note that this function leaves
+ntpd stopped.
+
+
 .SH "EXIT STATUS"
 0 if the command was successful
 
