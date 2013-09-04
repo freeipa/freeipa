@@ -27,6 +27,7 @@ import argparse
 from ipapython.ipa_log_manager import log_mgr, standard_logging_setup
 from ipatests.test_integration import config
 from ipatests.test_integration import tasks
+from ipatests.test_integration.host import Host
 from ipatests.beakerlib_plugin import BeakerLibProcess
 
 
@@ -39,10 +40,10 @@ class TaskRunner(object):
 
     def get_parser(self):
         parser = argparse.ArgumentParser(
-            description="Perform an operation for integration testing."
-                        "All operations are performed on configured hosts, see"
-                        "http://www.freeipa.org/page/V3/Integration_testing"
-                        "see for configuration details")
+            description="Perform an operation for integration testing. "
+                        "All operations are performed on configured hosts, see "
+                        "http://www.freeipa.org/page/V3/Integration_testing "
+                        "for configuration details")
 
         parser.add_argument('--with-beakerlib', action='store_true',
                             dest='with_beakerlib',
@@ -153,6 +154,65 @@ class TaskRunner(object):
                                     (Default: all hosts from config)""")
         subparser.set_defaults(func=self.cleanup)
 
+        subparser = subparsers.add_parser(
+            'install-adtrust',
+            help='Runs ipa-adtrust-install on the host')
+        subparser.add_argument('host', type=str,
+                            help='Host to run ipa-adtrust-install on')
+        subparser.set_defaults(func=self.install_adtrust)
+
+        subparser = subparsers.add_parser(
+            'configure-dns-for-trust',
+            help='Sets DNS on the given host for trust with the given AD')
+        subparser.add_argument('host', type=str,
+                            help='Host to change DNS configuration on')
+        subparser.add_argument('ad', type=str,
+                            help='AD that trust will be established with')
+        subparser.set_defaults(func=self.configure_dns_for_trust)
+
+        subparser = subparsers.add_parser(
+            'establish-trust-with-ad',
+            help='Establishes trust between IPA host and AD')
+        subparser.add_argument('host', type=str,
+                            help='IPA Host to establish AD trust on')
+        subparser.add_argument('ad', type=str,
+                            help='AD to establish trust with')
+        subparser.set_defaults(func=self.establish_trust_with_ad)
+
+        subparser = subparsers.add_parser(
+            'remove-trust-with-ad',
+            help='Removes trust between IPA host and AD')
+        subparser.add_argument('host', type=str,
+                            help='IPA Host to remove AD trust on')
+        subparser.add_argument('ad', type=str,
+                            help='AD to remove trust with')
+        subparser.set_defaults(func=self.remove_trust_with_ad)
+
+        subparser = subparsers.add_parser(
+            'configure-auth-to-local-rule',
+            help='Configures auth_to_local rule on IPA host with respect to AD')
+        subparser.add_argument('host', type=str,
+                            help='IPA Host to configure auth_to_local rule on')
+        subparser.add_argument('ad', type=str,
+                            help='AD to configure the rule with')
+        subparser.set_defaults(func=self.configure_auth_to_local_rule)
+
+        subparser = subparsers.add_parser(
+            'clear-sssd-cache',
+            help='Clears SSSD cache on the IPA host.')
+        subparser.add_argument('host', type=str,
+                            help='IPA Host to clear SSSD cache on')
+        subparser.set_defaults(func=self.clear_sssd_cache)
+
+        subparser = subparsers.add_parser(
+            'sync-time',
+            help='Synchronize time on host with respect to server')
+        subparser.add_argument('host', type=str,
+                            help='IPA Host to set the time on')
+        subparser.add_argument('server', type=str,
+                            help='Server that serves as a time source')
+        subparser.set_defaults(func=self.sync_time)
+
         return parser
 
     def main(self, argv):
@@ -179,6 +239,11 @@ class TaskRunner(object):
             raise SystemExit('No configuration available')
 
         args.domain = self.config.domains[0]
+
+        if self.config.ad_domains:
+            args.ad_domain = self.config.ad_domains[0]
+        else:
+            args.ad_domain = None
 
         import logging; logging.basicConfig()
 
@@ -214,11 +279,16 @@ class TaskRunner(object):
             return [self.prepare_host(h) for h in default]
 
     def prepare_host(self, host):
-        if host not in self._prepared_hosts:
+        # Prepare only UNIX hosts
+        if host not in self._prepared_hosts and isinstance(host, Host):
             host.add_log_collector(self.collect_log)
             tasks.prepare_host(host)
             self._prepared_hosts.add(host)
         return host
+
+    def require_ad_domain(self, args):
+        if not args.ad_domain:
+            SystemExit("At least one AD domain is required for this task")
 
     def install_master(self, args):
         master = self.get_host(args.host, default=args.domain.master)
@@ -289,6 +359,43 @@ class TaskRunner(object):
         tasks.install_topo(args.topo, master, replicas, clients,
                            skip_master=args.skip_master)
 
+    def install_adtrust(self, args):
+        master = self.get_host(args.host, default=args.domain.master)
+        log.info('Configuring AD trust support on %s', master.hostname)
+        tasks.install_adtrust(master)
+
+    def configure_dns_for_trust(self, args):
+        self.require_ad_domain(args)
+        host = self.get_host(args.host, default=args.domain.master)
+        ad = self.get_host(args.ad, default=args.ad_domain.ads[0])
+        tasks.configure_dns_for_trust(host, ad)
+
+    def establish_trust_with_ad(self, args):
+        self.require_ad_domain(args)
+        host = self.get_host(args.host, default=args.domain.master)
+        ad = self.get_host(args.ad, default=args.ad_domain.ads[0])
+        tasks.establish_trust_with_ad(host, ad)
+
+    def remove_trust_with_ad(self, args):
+        self.require_ad_domain(args)
+        host = self.get_host(args.host, default=args.domain.master)
+        ad = self.get_host(args.ad, default=args.ad_domain.ads[0])
+        tasks.remove_trust_with_ad(host, ad)
+
+    def configure_auth_to_local_rule(self, args):
+        self.require_ad_domain(args)
+        host = self.get_host(args.host, default=args.domain.master)
+        ad = self.get_host(args.ad, default=args.ad_domain.ads[0])
+        tasks.configure_auth_to_local_rule(host, ad)
+
+    def clear_sssd_cache(self, args):
+        host = self.get_host(args.host, default=args.domain.master)
+        tasks.clear_sssd_cache(host)
+
+    def sync_time(self, args):
+        host = self.get_host(args.host, default=args.domain.master)
+        server = self.get_host(args.server)
+        tasks.sync_time(host, server)
 
 if __name__ == '__main__':
     exit(TaskRunner().main(sys.argv[1:]))
