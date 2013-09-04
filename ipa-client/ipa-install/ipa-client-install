@@ -1517,33 +1517,34 @@ def get_ca_cert_from_file(url):
 
     try:
         parsed = urlparse.urlparse(url, 'file')
-    except Exception, e:
-        raise errors.FileError("unable to parse file url '%s'" % (url))
+    except Exception:
+        raise errors.FileError(reason="unable to parse file url '%s'" % url)
 
     if parsed.scheme != 'file':
-        raise errors.FileError("url is not a file scheme '%s'" % (url))
+        raise errors.FileError(reason="url is not a file scheme '%s'" % url)
 
     filename = parsed.path
 
     if not os.path.exists(filename):
-        raise errors.FileError("file '%s' does not exist" % (filename))
+        raise errors.FileError(reason="file '%s' does not exist" % filename)
 
     if not os.path.isfile(filename):
-        raise errors.FileError("file '%s' is not a file" % (filename))
+        raise errors.FileError(reason="file '%s' is not a file" % filename)
 
     root_logger.debug("trying to retrieve CA cert from file %s", filename)
     try:
         cert = x509.load_certificate_from_file(filename)
-    except Exception, e:
+    except Exception:
         raise errors.NoCertificateError(entry=filename)
 
     try:
         x509.write_certificate(cert.der_data, CACERT)
     except Exception, e:
-        raise errors.FileError(reason =
-            u"cannot write certificate file '%s': %s" % (CACERT, e))
+        raise errors.FileError(
+            reason=u"cannot write certificate file '%s': %s" % (CACERT, e)
+        )
     else:
-        del(cert)
+        del cert
 
 def get_ca_cert_from_http(url, ca_file, warn=True):
     '''
@@ -1624,7 +1625,8 @@ def validate_new_ca_cert(existing_ca_cert, ca_file, ask, override=False):
         new_ca_cert = x509.load_certificate_from_file(ca_file)
     except Exception, e:
         raise errors.FileError(
-            "Unable to read new ca cert '%s': %s" % (ca_file, e))
+            reason="Unable to read new ca cert '%s': %s" % (ca_file, e)
+        )
 
     if existing_ca_cert is None:
         root_logger.info(
