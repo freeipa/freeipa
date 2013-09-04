@@ -419,8 +419,7 @@ def wait_for_replication(ldap, timeout=30):
         if any(not e.single_value(status_attr).startswith('0 ')
                for e in entries):
             log.error('Replication error')
-            break
-        in_progress = []
+            continue
         if any(e.single_value(progress_attr) == 'TRUE' for e in entries):
             log.debug('Replication in progress (waited %s/%ss)',
                       i, timeout)
