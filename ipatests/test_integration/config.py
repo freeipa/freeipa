@@ -1,5 +1,6 @@
 # Authors:
 #   Petr Viktorin <pviktori@redhat.com>
+#   Tomas Babej <tbabej@redhat.com>
 #
 # Copyright (C) 2013  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -50,11 +51,17 @@ class Config(object):
         self.nis_domain = kwargs.get('nis_domain') or 'ipatest'
         self.ntp_server = kwargs.get('ntp_server') or (
             '%s.pool.ntp.org' % random.randint(0, 3))
+        self.ad_admin_name = kwargs.get('ad_admin_name') or 'Administrator'
+        self.ad_admin_password = kwargs.get('ad_admin_password') or 'Secret123'
 
         if not self.root_password and not self.root_ssh_key_filename:
             self.root_ssh_key_filename = '~/.ssh/id_rsa'
 
         self.domains = []
+
+    @property
+    def ad_domains(self):
+        return filter(lambda d: d.type == 'AD', self.domains)
 
     @classmethod
     def from_env(cls, env):
@@ -76,6 +83,8 @@ class Config(object):
         ADMINPW: Administrator password
         ROOTDN: Directory Manager DN
         ROOTDNPWD: Directory Manager password
+        ADADMINID: Active Directory Administrator username
+        ADADMINPW: Active Directory Administrator password
         DNSFORWARD: DNS forwarder
         NISDOMAIN
         NTPSERVER
@@ -83,6 +92,7 @@ class Config(object):
         MASTER_env1: FQDN of the master
         REPLICA_env1: space-separated FQDNs of the replicas
         CLIENT_env1: space-separated FQDNs of the clients
+        AD_env1: space-separated FQDNs of the Active Directories
         OTHER_env1: space-separated FQDNs of other hosts
         (same for _env2, _env3, etc)
         BEAKERREPLICA1_IP_env1: IP address of replica 1 in env 1
@@ -104,11 +114,23 @@ class Config(object):
                    dns_forwarder=env.get('DNSFORWARD'),
                    nis_domain=env.get('NISDOMAIN'),
                    ntp_server=env.get('NTPSERVER'),
+                   ad_admin_name=env.get('ADADMINID'),
+                   ad_admin_password=env.get('ADADMINPW'),
                    )
 
+        # Either IPA master or AD can define a domain
+
         domain_index = 1
-        while env.get('MASTER_env%s' % domain_index):
-            self.domains.append(Domain.from_env(env, self, domain_index))
+        while (env.get('MASTER_env%s' % domain_index) or
+               env.get('AD_env%s' % domain_index)):
+
+            if env.get('MASTER_env%s' % domain_index):
+                # IPA domain takes precedence to AD domain in case of conflict
+                self.domains.append(Domain.from_env(env, self, domain_index,
+                                                    domain_type='IPA'))
+            else:
+                self.domains.append(Domain.from_env(env, self, domain_index,
+                                                    domain_type='AD'))
             domain_index += 1
 
         return self
@@ -133,6 +155,9 @@ class Config(object):
         env['ROOTDN'] = str(self.dirman_dn)
         env['ROOTDNPWD'] = self.dirman_password
 
+        env['ADADMINID'] = self.ad_admin_name
+        env['ADADMINPW'] = self.ad_admin_password
+
         env['DNSFORWARD'] = self.dns_forwarder
         env['NISDOMAIN'] = self.nis_domain
         env['NTPSERVER'] = self.ntp_server
@@ -145,6 +170,7 @@ class Config(object):
             for role, hosts in [('MASTER', domain.masters),
                                 ('REPLICA', domain.replicas),
                                 ('CLIENT', domain.clients),
+                                ('AD', domain.ads),
                                 ('OTHER', domain.other_hosts)]:
                 hostnames = ' '.join(h.hostname for h in hosts)
                 env['%s%s' % (role, domain._env)] = hostnames
