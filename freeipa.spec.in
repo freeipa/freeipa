@@ -423,8 +423,8 @@ install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 
 # NOTE: systemd specific section
-mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d/
-install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_sysconfdir}/tmpfiles.d/ipa.conf
+mkdir -p %{buildroot}%{_prefix}/lib/tmpfiles.d
+install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_prefix}/lib/tmpfiles.d/%{name}.conf
 # END
 
 mkdir -p %{buildroot}%{_localstatedir}/run/
@@ -611,7 +611,7 @@ fi
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
 # NOTE: systemd specific section
-%config(noreplace) %{_sysconfdir}/tmpfiles.d/ipa.conf
+%{_prefix}/lib/tmpfiles.d/%{name}.conf
 %attr(644,root,root) %{_unitdir}/ipa.service
 %attr(644,root,root) %{_unitdir}/ipa_memcached.service
 %attr(644,root,root) %{_unitdir}/ipa-otpd.socket
@@ -836,6 +836,9 @@ fi
 %endif # ONLY_CLIENT
 
 %changelog
+* Wed Sep 4 2013 Ana Krivokapic <akrivoka@redhat.com> - 3.3.90-3
+- Conform to tmpfiles.d packaging guidelines
+
 * Wed Aug 14 2013 Petr Viktorin <pviktori@redhat.com> - 3.3.90-2
 - Add man pages to the tests subpackage
 
