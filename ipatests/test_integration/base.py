@@ -35,10 +35,19 @@ log = log_mgr.get_logger(__name__)
 class IntegrationTest(object):
     num_replicas = 0
     num_clients = 0
+    num_ad_domains = 0
     topology = None
 
     @classmethod
     def setup_class(cls):
+
+        def get_resources(resource_container, resource_str, num_needed):
+            if len(resource_container) < num_needed:
+                raise nose.SkipTest(
+                    'Not enough %s available (have %s, need %s)' %
+                    (resource_str, len(resource_container), num_needed))
+            return resource_container[:num_needed]
+
         config = get_global_config()
         if not config.domains:
             raise nose.SkipTest('Integration testing not configured')
@@ -46,17 +55,15 @@ class IntegrationTest(object):
         cls.logs_to_collect = {}
 
         domain = config.domains[0]
+
         cls.master = domain.master
-        if len(domain.replicas) < cls.num_replicas:
-            raise nose.SkipTest(
-                'Not enough replicas available (have %s, need %s)' %
-                (len(domain.replicas), cls.num_replicas))
-        if len(domain.clients) < cls.num_clients:
-            raise nose.SkipTest(
-                'Not enough clients available (have %s, need %s)' %
-                (len(domain.clients), cls.num_clients))
-        cls.replicas = domain.replicas[:cls.num_replicas]
-        cls.clients = domain.clients[:cls.num_clients]
+        cls.replicas = get_resources(domain.replicas, 'replicas',
+                                     cls.num_replicas)
+        cls.clients = get_resources(domain.clients, 'clients',
+                                    cls.num_clients)
+        cls.ad_domains = get_resources(config.ad_domains, 'AD domains',
+                                       cls.num_ad_domains)
+
         for host in cls.get_all_hosts():
             host.add_log_collector(cls.collect_log)
             cls.prepare_host(host)
@@ -95,6 +102,7 @@ class IntegrationTest(object):
             del cls.master
             del cls.replicas
             del cls.clients
+            del cls.ad_domains
 
     @classmethod
     def uninstall(cls):
