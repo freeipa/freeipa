@@ -912,12 +912,21 @@ class TrustDomainInstance(object):
             raise assess_dcerpc_exception(num=num, message=message)
 
         try:
+            # We should use proper trustdom handle in order to modify the
+            # trust settings. Samba insists this has to be done with LSA
+            # OpenTrustedDomain* calls, it is not enough to have a handle
+            # returned by the CreateTrustedDomainEx2 call.
+            trustdom_handle = self._pipe.OpenTrustedDomainByName(self._policy_handle, dname, security.SEC_FLAG_MAXIMUM_ALLOWED)
             infoclass = lsa.TrustDomainInfoSupportedEncTypes()
             infoclass.enc_types = security.KERB_ENCTYPE_RC4_HMAC_MD5
             infoclass.enc_types |= security.KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96
             infoclass.enc_types |= security.KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96
             self._pipe.SetInformationTrustedDomain(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_SUPPORTED_ENCRYPTION_TYPES, infoclass)
         except RuntimeError, e:
+            # We can ignore the error here -- changing enctypes is for
+            # improved security but the trust will work with default values as
+            # well. In particular, the call may fail against Windows 2003
+            # server as that one doesn't support AES encryption types
             pass
 
     def verify_trust(self, another_domain):

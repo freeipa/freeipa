@@ -2229,11 +2229,14 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	LDAPMod **mods;
 	bool res;
 	char *trusted_dn = NULL;
-	int ret, i;
+	int ret, i, count;
 	NTSTATUS status;
 	TALLOC_CTX *tmp_ctx;
 	char *trustpw;
 	char *sid;
+	char **in_blacklist = NULL;
+	char **out_blacklist = NULL;
+	uint32_t enctypes, trust_offset;
 
 	DEBUG(10, ("ipasam_set_trusted_domain called for domain %s\n", domain));
 
@@ -2250,10 +2253,12 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	}
 
 	mods = NULL;
-	smbldap_make_mod(priv2ld(ldap_state), entry, &mods, "objectClass",
-			 LDAP_OBJ_TRUSTED_DOMAIN);
-	smbldap_make_mod(priv2ld(ldap_state), entry, &mods, "objectClass",
-			 LDAP_OBJ_ID_OBJECT);
+	if (entry == NULL) {
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods, "objectClass",
+				 LDAP_OBJ_TRUSTED_DOMAIN);
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods, "objectClass",
+				 LDAP_OBJ_ID_OBJECT);
+	}
 
 	if (entry != NULL) {
 		sid = get_single_attribute(tmp_ctx, priv2ld(ldap_state), entry,
@@ -2314,26 +2319,37 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		}
 	}
 
+	trust_offset = 0;
 	if (td->trust_posix_offset != NULL) {
-		res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
-						&mods,
-						LDAP_ATTRIBUTE_TRUST_POSIX_OFFSET,
-						*td->trust_posix_offset);
-		if (!res) {
-			status = NT_STATUS_UNSUCCESSFUL;
-			goto done;
-		}
+		trust_offset = *td->trust_posix_offset;
 	}
 
+	res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
+					&mods,
+					LDAP_ATTRIBUTE_TRUST_POSIX_OFFSET,
+					trust_offset);
+	if (!res) {
+		status = NT_STATUS_UNSUCCESSFUL;
+		goto done;
+	}
+
+	enctypes = KERB_ENCTYPE_DES_CBC_CRC |
+		   KERB_ENCTYPE_DES_CBC_MD5 |
+		   KERB_ENCTYPE_RC4_HMAC_MD5 |
+		   KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96 |
+		   KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96;
+
 	if (td->supported_enc_type != NULL) {
-		res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
-						&mods,
-						LDAP_ATTRIBUTE_SUPPORTED_ENC_TYPE,
-						*td->supported_enc_type);
-		if (!res) {
-			status = NT_STATUS_UNSUCCESSFUL;
-			goto done;
-		}
+		enctypes = *td->supported_enc_type;
+	}
+
+	res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
+					&mods,
+					LDAP_ATTRIBUTE_SUPPORTED_ENC_TYPE,
+					enctypes);
+	if (!res) {
+		status = NT_STATUS_UNSUCCESSFUL;
+		goto done;
 	}
 
 	if (td->trust_auth_outgoing.data != NULL) {
@@ -2354,31 +2370,45 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 				      &td->trust_forest_trust_info);
 	}
 
+
+	/* Only add default blacklists for incoming and outgoing SIDs but don't modify existing ones */
+	in_blacklist = get_attribute_values(tmp_ctx, ldap_state->smbldap_state->ldap_struct, entry,
+						LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING, &count);
+	out_blacklist = get_attribute_values(tmp_ctx, ldap_state->smbldap_state->ldap_struct, entry,
+						LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING, &count);
+
 	for (i = 0; ipa_mspac_well_known_sids[i]; i++) {
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
-				      LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING,
-				      ipa_mspac_well_known_sids[i]);
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
-				      LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING,
-				      ipa_mspac_well_known_sids[i]);
+		if (in_blacklist == NULL) {
+			smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+					      LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING,
+					      ipa_mspac_well_known_sids[i]);
+		}
+		if (out_blacklist == NULL) {
+			smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+					      LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING,
+					      ipa_mspac_well_known_sids[i]);
+		}
 	}
 
 	smbldap_talloc_autofree_ldapmod(tmp_ctx, mods);
 
-	trusted_dn = trusted_domain_dn(tmp_ctx, ldap_state, domain);
-	if (trusted_dn == NULL) {
-		status = NT_STATUS_NO_MEMORY;
-		goto done;
-	}
-	if (entry == NULL) {
-		ret = smbldap_add(ldap_state->smbldap_state, trusted_dn, mods);
-	} else {
-		ret = smbldap_modify(ldap_state->smbldap_state, trusted_dn, mods);
-	}
-	if (ret != LDAP_SUCCESS) {
-		DEBUG(1, ("error writing trusted domain data!\n"));
-		status = NT_STATUS_UNSUCCESSFUL;
-		goto done;
+	if (mods != NULL) {
+		trusted_dn = trusted_domain_dn(tmp_ctx, ldap_state, domain);
+		if (trusted_dn == NULL) {
+			status = NT_STATUS_NO_MEMORY;
+			goto done;
+		}
+
+		if (entry == NULL) {
+			ret = smbldap_add(ldap_state->smbldap_state, trusted_dn, mods);
+		} else {
+			ret = smbldap_modify(ldap_state->smbldap_state, trusted_dn, mods);
+		}
+		if (ret != LDAP_SUCCESS) {
+			DEBUG(1, ("error writing trusted domain data!\n"));
+			status = NT_STATUS_UNSUCCESSFUL;
+			goto done;
+		}
 	}
 
 	if (entry == NULL) { /* FIXME: allow password updates here */
