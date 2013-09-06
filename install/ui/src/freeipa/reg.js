@@ -45,20 +45,6 @@ define(['dojo/_base/declare',
         './_base/Singleton_registry'
         ], function(declare, array, lang, Singleton_registry) {
 
-    var Registries_registry = declare([Singleton_registry], {
-
-        get: function(object_type, type) {
-
-            var registry = this.inherited([object_type]);
-            return registry.get(type);
-        },
-
-        register: function(object_type, type, func, default_spec) {
-            var registry = this.inherited([object_type]);
-            return registry.get(type, func, default_spec);
-        }
-    });
-
     var reg = new Singleton_registry();
     reg.builder.ctor = Singleton_registry;
 
