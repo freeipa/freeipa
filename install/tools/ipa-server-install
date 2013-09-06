@@ -624,31 +624,49 @@ def main():
                 print "Aborting uninstall operation."
                 sys.exit(1)
 
-        conn = ipaldap.IPAdmin(api.env.host, ldapi=True, realm=api.env.realm)
-        conn.do_external_bind(pwd.getpwuid(os.geteuid()).pw_name)
-        rm = replication.ReplicationManager(api.env.realm, api.env.host, None,
-                                            conn=conn)
-        agreements = rm.find_ipa_replication_agreements()
-
-        if agreements:
-            other_masters = [a.get('cn')[0][4:] for a in agreements]
-            msg = (
-                "\nReplication agreements with the following IPA masters "
-                "found: %s. Removing any replication agreements before "
-                "uninstalling the server is strongly recommended. You can "
-                "remove replication agreements by running the following "
-                "command on any other IPA master:\n" % ", ".join(other_masters)
+        try:
+            conn = ipaldap.IPAdmin(
+                api.env.host,
+                ldapi=True,
+                realm=api.env.realm
             )
-            cmd = "$ ipa-replica-manage del %s\n" % api.env.host
+            conn.do_external_bind(pwd.getpwuid(os.geteuid()).pw_name)
+        except Exception:
+            msg = ("\nWARNING: Failed to connect to Directory Server to find "
+                   "information about replication agreements. Uninstallation "
+                   "will continue despite the possible existing replication "
+                   "agreements.\n\n")
             print textwrap.fill(msg, width=80, replace_whitespace=False)
-            print cmd
-            if not (options.unattended or user_input("Are you sure you want "
-                                                     "to continue with the "
-                                                     "uninstall procedure?",
-                                                     False)):
-                print ""
-                print "Aborting uninstall operation."
-                sys.exit(1)
+        else:
+            rm = replication.ReplicationManager(
+                realm=api.env.realm,
+                hostname=api.env.host,
+                dirman_passwd=None,
+                conn=conn
+            )
+            agreements = rm.find_ipa_replication_agreements()
+
+            if agreements:
+                other_masters = [a.get('cn')[0][4:] for a in agreements]
+                msg = (
+                    "\nReplication agreements with the following IPA masters "
+                    "found: %s. Removing any replication agreements before "
+                    "uninstalling the server is strongly recommended. You can "
+                    "remove replication agreements by running the following "
+                    "command on any other IPA master:\n" % ", ".join(
+                        other_masters)
+                )
+                cmd = "$ ipa-replica-manage del %s\n" % api.env.host
+                print textwrap.fill(msg, width=80, replace_whitespace=False)
+                print cmd
+                if not (options.unattended or user_input("Are you sure you "
+                                                         "want to continue "
+                                                         "with the uninstall "
+                                                         "procedure?",
+                                                         False)):
+                    print ""
+                    print "Aborting uninstall operation."
+                    sys.exit(1)
 
         return uninstall()
 
