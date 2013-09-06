@@ -1,0 +1,223 @@
+[
+    {
+        "name": "Application Core",
+        "groups": [
+            {
+                "name": "General",
+                "classes": [
+                    "IPA.object",
+                    "IPA.observer",
+                    "IPA.command",
+                    "IPA.batch_command",
+                    "IPA.concurrent_command",
+                    "entity.entity"
+                ]
+            },
+            {
+                "name": "Application controller and Phases",
+                "classes": [
+                    "phases",
+                    "_base.Phase_controller*",
+                    "Application_controller",
+                    "app",
+                    "plugin_loader",
+                    "menu",
+                    "navigation",
+                    "config"
+                ]
+            },
+            {
+                "name": "Navigation",
+                "classes": [
+                    "navigation.*"
+                ]
+            },
+            {
+                "name": "Facets",
+                "classes": [
+                    "facet.facet",
+                    "*_facet"
+                ]
+            },
+            {
+                "name": "Dialogs",
+                "classes": [
+                    "IPA.dialog",
+                    "IPA.opened_dialogs",
+                    "IPA.dialog_button",
+                    "IPA.confirm_mixin",
+                    "*_dialog"
+                ]
+            },
+            {
+                "name": "Entity policies",
+                "classes": [
+                    "entity.*_policy"
+                ]
+            },
+            {
+                "name": "Entity internals",
+                "classes": [
+                    "entity.entity_builder",
+                    "entity.entity_policies"
+                ]
+            },
+            {
+                "name": "Build",
+                "classes": [
+                    "_base.Builder",
+                    "_base.Construct_registry",
+                    "_base.Singleton_registry",
+                    "_base.construct",
+                    "builder",
+                    "reg",
+                    "details.details_builder",
+                    "details.section_builder",
+                    "IPA.field_builder",
+                    "IPA.widget_builder"
+                ]
+            },
+            {
+                "name": "Metadata & Text providers",
+                "classes": [
+                    "_base.Provider",
+                    "_base.Search_provider",
+                    "_base.i18n",
+                    "metadata",
+                    "text"
+                ]
+            },
+            {
+                "name": "Utils",
+                "classes": [
+                    "IPA.associator",
+                    "IPA.serial_associator",
+                    "IPA.bulk_associator",
+                    "IPA.association_config",
+                    "spec_util",
+                    "_base.Spec_mod"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Facet and Dialog Components",
+        "groups": [
+            {
+                "name": "Facet internals",
+                "classes": [
+                    "facet.facet_header",
+                    "facet.facet_title",
+                    "facet.facet_group",
+                    "facet.state",
+                    "facet.FacetState",
+                    "facet.action_holder",
+                    "details.facet_policies",
+                    "IPA.field_container",
+                    "IPA.widget_container",
+                    "details.update_info",
+                    "details.command_info",
+                    "details.field_info",
+                    "details.update_info_builder",
+                    "details.command_builder"
+                ]
+            },
+            {
+                "name": "Facet actions",
+                "classes": [
+                    "facet.action",
+                    "*_action"
+                ]
+            },
+            {
+                "name": "Facet policies",
+                "classes": [
+                    "*facet_policy",
+                    "IPA.hide_empty_row_policy",
+                    "IPA.permission_target_policy"
+                ]
+            },
+            {
+                "name": "Evaluators & Summaries",
+                "classes": [
+                    "*_evaluator",
+                    "details.enabled_summary_cond",
+                    "details.disabled_summary_cond"
+                ]
+            },
+
+            {
+                "name": "Widgets",
+                "classes": [
+                    "IPA.widget",
+                    "*_widget",
+                    "widgets.*",
+                    "IPA.action_panel"
+                ]
+            },
+            {
+                "name": "Sections and layout widgets",
+                "classes": [
+                    "IPA.layout",
+                    "*_section",
+                    "*_layout",
+                    "IPA.details_table_section_nc"
+                ]
+            },
+            {
+                "name": "Widget mixins, utils and related",
+                "classes": [
+                    "IPA.option_widget_base",
+                    "IPA.column",
+                    "IPA.html_util"
+                ]
+            },
+            {
+                "name": "Fields",
+                "classes": [
+                    "IPA.field",
+                    "*_field"
+                ]
+            },
+            {
+                "name": "Formatters",
+                "classes": [
+                    "IPA.formatter",
+                    "*_formatter"
+                ]
+            },
+            {
+                "name": "Validators",
+                "classes": [
+                    "IPA.validator",
+                    "*_validator"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Modules",
+        "groups": [
+            {
+                "name": "Core",
+                "classes": [
+                    "IPA",
+                    "association",
+                    "details",
+                    "entity",
+                    "facet",
+                    "field",
+                    "ordered_map",
+                    "widget"
+                ]
+            },
+            {
+                "name": "Plugins",
+                "classes": [
+                    "aci",
+                    "user"
+                ]
+            }
+        ]
+    }
+]
