@@ -46,11 +46,12 @@ ZONE_DATA = {
 
 
 RECORD_PKEY = 'itest'
+A_IP = '192.168.1.10'
 RECORD_ADD_DATA = {
     'pkey': RECORD_PKEY,
     'add': [
         ('textbox', 'idnsname', RECORD_PKEY),
-        ('textbox', 'a_part_ip_address', '192.168.1.10'),
+        ('textbox', 'a_part_ip_address', A_IP),
     ]
 }
 
@@ -95,6 +96,24 @@ class test_dns(UI_driver):
         # del record, del zone
         self.navigate_by_breadcrumb(ZONE_PKEY)
         self.delete_record(RECORD_PKEY)
+        self.navigate_by_breadcrumb("DNS Zones")
+        self.delete_record(ZONE_PKEY)
+
+    def test_last_entry_deletion(self):
+        """
+        Test last entry deletion
+        """
+        self.init_app()
+        self.add_record(ZONE_ENTITY, ZONE_DATA)
+        self.navigate_to_record(ZONE_PKEY)
+        self.add_record(ZONE_ENTITY, RECORD_ADD_DATA,
+                        facet=ZONE_DEFAULT_FACET)
+        self.navigate_to_record(RECORD_PKEY)
+        self.delete_record(A_IP, parent=self.get_facet(), table_name='arecord')
+        self.assert_dialog('message_dialog')
+        self.dialog_button_click('ok')
+        self.wait_for_request(n=2)
+        self.assert_facet(ZONE_ENTITY, ZONE_DEFAULT_FACET)
         self.navigate_by_breadcrumb("DNS Zones")
         self.delete_record(ZONE_PKEY)
 
