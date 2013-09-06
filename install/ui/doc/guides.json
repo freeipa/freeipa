@@ -2,6 +2,12 @@
     {
         "title": "FreeIPA Web UI Guides",
         "items": [
+            {
+                "name": "Phases",
+                "url": "guides/phases",
+                "title": "Appliaciton phases",
+                "description": "Introduction to application phases"
+            }
         ]
     }
 ]
