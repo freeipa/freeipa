@@ -24,6 +24,7 @@ define([
 ], function($) {
     /**
      * Wrapper for jquery.ordered_map
+     * @class ordered_map
      */
     return $.ordered_map;
 });

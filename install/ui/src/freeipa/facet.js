@@ -44,51 +44,65 @@ define([
                    Singleton_registry, builder, IPA, $, navigation, phases, reg, su, text) {
 
 /**
+ * Facet module
+ *
+ * @class facet
+ * @singleton
+ */
+var exp = {};
+exp.facet_spec = {};
+
+/**
  * Facet represents the content of currently displayed page.
  *
- * = Show, Clear, Refresh mechanism =
+ * ## Show, Clear, Refresh mechanism
  *
  * Use cases:
- *   a) Display facet with defined arguments.
- *   b) Switch to facet
- *   c) Update facet state
  *
- * == Display facet by route ==
- * 1) somebody sets route
- * 2) Route is evaluated, arguments extracted.
- * 3) Facet state is updated `set_state(args, pkeys)`.(saves previous state)
- * 4) Facet show() is called
+ * - Display facet with defined arguments.
+ * - Switch to facet
+ * - Update facet state
  *
- * == Display facet with defined arguments ==
- * 1) Somebody calls navigation.show(xxx);
- * 2) Facet state is updated `set_state(args, pkeys)`.(saves previous state)
- * 3) Route is updated, but the hash change is ignored
- * 4) Facet show() is called.
- *      5.1) First time show
- *          a) creates DOM
- *          b) display DOM
- *          c) refresh();
- *      5.2) Next time
- *          a) display DOM
- *          b) needs_update()? (compares previous state with current)
- *               true:
- *                  1) clear() - each facet can override to supress clear or
- *                               control the behaviour
- *                  2) refresh()
+ * ## Display facet by route
  *
- * == Swith to facet ==
+ * 1. somebody sets route
+ * 2. Route is evaluated, arguments extracted.
+ * 3. Facet state is updated `set_state(args, pkeys)`.(saves previous state)
+ * 4. Facet show() is called
+ *
+ * ## Display facet with defined arguments
+ *
+ * 1. Somebody calls navigation.show(xxx);
+ * 2. Facet state is updated `set_state(args, pkeys)`.(saves previous state)
+ * 3. Route is updated, but the hash change is ignored
+ * 4. Facet show() is called.
+ *      - First time show
+ *          a. creates DOM
+ *          b. display DOM
+ *          c. refresh();
+ *      - Next time
+ *          a. display DOM
+ *          b. `needs_update()` (compares previous state with current)
+ *              - true:
+ *                1. clear() - each facet can override to supress clear or
+ *                           control the behaviour
+ *                2. refresh()
+ *
+ * ## Swith to facet
+ *
  * Same as display facet but only without arguments. Arguments are extracted at
  * step 2.
  *
- * ==  Update facet state ==
- * 1) set_state(args, pkeys?)
- * 2) needs_update()?
- *      true:
- *        a) clear()
- *        b) refresh()
- * 2) Update route, ignore hash change event
+ * ## Update facet state
  *
- * == Updating hash ==
+ * 1. set_state(args, pkeys?)
+ * 2. needs_update()?
+ *    - true:
+ *       1. clear()
+ *       2. refresh()
+ * 3. Update route, ignore hash change event
+ *
+ * ## Updating hash
  * Hash updates are responsibility of navigation component and application
  * controller. Application controller should listen to facet's `state_change`
  * event. And call something like navigation.update_hash(facet).
@@ -96,77 +110,185 @@ define([
  * navigation.update_hash should find all the necessary state properties (args,
  * pkeys).
  *
- * == needs_update method ==
+ * ## needs_update method
+ * todo
  *
- *
+ * @class facet.facet
+ * @alternateClassName IPA.facet
  */
-
-var exp = {};
-exp.facet_spec = {};
-
 exp.facet = IPA.facet = function(spec, no_init) {
 
     spec = spec || {};
 
     var that = new Evented();
 
+    /**
+     * Entity this facet belongs to
+     * @property {entity.entity}
+     */
     that.entity = IPA.get_entity(spec.entity);
 
+    /**
+     * Facet name
+     * @property {string}
+     */
     that.name = spec.name;
+
+    /**
+     * Facet label
+     * @property {string}
+     */
     that.label = text.get(spec.label);
+
+    /**
+     * Facet title
+     * @property {string}
+     */
     that.title = text.get(spec.title || that.label);
+
+    /**
+     * Facet tab label
+     * @property {string}
+     */
     that.tab_label = text.get(spec.tab_label || that.label);
+
+    /**
+     * Facet element's CSS class
+     * @property {string}
+     */
     that.display_class = spec.display_class;
+
+    /**
+     * Flag. Marks the facet as read-only - doesn't support modify&update
+     * operation.
+     * @property {boolean}
+     */
     that.no_update = spec.no_update;
 
+    /**
+     * Breadcrumb navigation is not displayed when set.
+     * @property {boolean}
+     */
     that.disable_breadcrumb = spec.disable_breadcrumb;
+
+    /**
+     * Facet tabs are not displayed when set.
+     * @property {boolean}
+     */
     that.disable_facet_tabs = spec.disable_facet_tabs;
 
+    /**
+     * State object for actions
+     * @property {facet.state}
+     */
     that.action_state = builder.build('', spec.state || {}, {}, { $factory: exp.state });
+
+    /**
+     * Collection of facet actions
+     * @property {facet.action_holder}
+     */
     that.actions = builder.build('', { actions: spec.actions }, {}, { $factory: exp.action_holder } );
 
+    /**
+     * Array of actions which are displayed in facet header
+     * @property {Array.<string>}
+     */
     that.header_actions = spec.header_actions;
+
+    /**
+     * Facet header
+     * @property {facet.facet_header}
+     */
     that.header = spec.header || IPA.facet_header({ facet: that });
 
+    /**
+     * Hard override for `needs_update()` logic. When set, `needs_update`
+     * should always return this value.
+     * @property {boolean}
+     */
     that._needs_update = spec.needs_update;
+
+    /**
+     * Marks facet as expired - needs update
+     *
+     * Difference between `_needs_update` is that `expired_flag` should be
+     * cleared after update.
+     *
+     * @property {boolean}
+     */
     that.expired_flag = true;
+
+    /**
+     * Last time when facet was updated.
+     * @property {Date}
+     */
     that.last_updated = null;
+
+    /**
+     * Timeout[s] from `last_modified` after which facet should be expired
+     * @property {number} expire_timeout=600
+     */
     that.expire_timeout = spec.expire_timeout || 600; //[seconds]
+
+    /**
+     * Raised when facet gets updated
+     * @event
+     */
     that.on_update = IPA.observer();
+
+    /**
+     * Raised after `load()`
+     * @event
+     */
     that.post_load = IPA.observer();
 
+    /**
+     * Dialogs
+     * @property {ordered_map}
+     */
     that.dialogs = $.ordered_map();
 
     /**
      * domNode of container
      * Suppose to contain domNode of this and other facets.
+     * @property {jQuery}
      */
     that.container_node = spec.container_node;
-
-    /**
-     * FIXME: that.container should be eliminated
-     * now it's the same as domNode
-     */
-    //that.container
 
     /**
      * domNode which contains all content of a facet.
      * Should contain error content and content. When error is moved to
      * standalone facet it will replace functionality of content.
+     * @property {jQuery}
      */
     that.domNode = null;
 
-    // facet group name
+    /**
+     * Facet group name
+     * @property {string}
+     */
     that.facet_group = spec.facet_group;
 
+    /**
+     * Redirection target information.
+     *
+     * Can be facet and/or entity name.
+     * @property {Object}
+     * @param {string} entity entity name
+     * @param {string} facet facet name
+     */
     that.redirect_info = spec.redirect_info;
 
     /**
      * Public state
-     *
+     * @property {facet.FacetState}
      */
     that.state = new FacetState();
 
+    /**
+     * Set and normalize pkeys. Merges with existing if present. If keys length
+     * differs, the alignment is from the last one to the first one.
+     */
     that.set_pkeys = function(pkeys) {
 
         pkeys = that.get_pkeys(pkeys);
@@ -176,7 +298,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
     /**
      * Return THE pkey of this facet. Basically the last one of pkeys list.
      *
-     * @type String
+     * @return {string} pkey
      */
     that.get_pkey = function() {
         var pkeys = that.get_pkeys();
@@ -194,7 +316,8 @@ exp.facet = IPA.facet = function(spec, no_init) {
      * One can get merge current pkeys with supplied if `pkeys` param is
      * specified.
      *
-     * @param String[] new pkeys to merge
+     * @param {string[]} pkeys new pkeys to merge
+     * @return {string[]} pkeys
      */
     that.get_pkeys = function(pkeys) {
         var new_keys = [];
@@ -228,6 +351,12 @@ exp.facet = IPA.facet = function(spec, no_init) {
         return new_keys;
     };
 
+    /**
+     * Get pkey prefix.
+     *
+     * Opposite method to `get_pkey` - get's all pkeys except the last one.
+     * @return {Array.<string>}
+     */
     that.get_pkey_prefix = function() {
         var pkeys = that.get_pkeys();
         if (pkeys.length > 0) pkeys.pop();
@@ -235,6 +364,14 @@ exp.facet = IPA.facet = function(spec, no_init) {
         return pkeys;
     };
 
+    /**
+     * Checks if two objects has the same properties with equal values.
+     *
+     * @param {Object} a
+     * @param {Object} b
+     * @return {boolean} `a` and `b` are value-equal
+     * @protected
+     */
     that.state_diff = function(a, b) {
         var diff = false;
         var checked = {};
@@ -271,6 +408,11 @@ exp.facet = IPA.facet = function(spec, no_init) {
         return diff;
     };
 
+    /**
+     * Reset facet state to supplied
+     *
+     * @param {Object} state state to set
+     */
     that.reset_state = function(state) {
 
         if (state.pkeys) {
@@ -279,12 +421,19 @@ exp.facet = IPA.facet = function(spec, no_init) {
         that.state.reset(state);
     };
 
+    /**
+     * Get copy of current state
+     *
+     * @return {Object} state
+     */
     that.get_state = function() {
         return that.state.clone();
     };
 
     /**
      * Merges state into current and notifies it.
+     *
+     * @param {Object} state object to merge into current state
      */
     that.set_state = function(state) {
 
@@ -294,11 +443,20 @@ exp.facet = IPA.facet = function(spec, no_init) {
         that.state.set(state);
     };
 
+    /**
+     * Handle state set
+     * @param {Object} old_state
+     * @param {Object} state
+     */
     that.on_state_set = function(old_state, state) {
         that._on_state_change(state);
     };
 
 
+    /**
+     * Handle state change
+     * @protected
+     */
     that._on_state_change = function(state) {
 
         // basically a show method without displaying the facet
@@ -327,6 +485,13 @@ exp.facet = IPA.facet = function(spec, no_init) {
         }
     };
 
+    /**
+     * Fires `facet-state-change` event with given state as event parameter.
+     *
+     * @fires facet-state-change
+     * @protected
+     * @param {Object} state
+     */
     that._notify_state_change =  function(state) {
         that.emit('facet-state-change', {
             facet: that,
@@ -334,15 +499,29 @@ exp.facet = IPA.facet = function(spec, no_init) {
         });
     };
 
+    /**
+     * Get dialog with given name from facet dialog collection
+     *
+     * @param {string} name
+     * @return {IPA.dialog} dialog
+     */
     that.get_dialog = function(name) {
         return that.dialogs.get(name);
     };
 
+    /**
+     * Add dialog to facet dialog collection
+     *
+     * @param {IPA.dialog} dialog
+     */
     that.dialog = function(dialog) {
         that.dialogs.put(dialog.name, dialog);
         return that;
     };
 
+    /**
+     * Create facet's HTML representation
+     */
     that.create = function() {
 
         var entity_name = !!that.entity ? that.entity.name : '';
@@ -389,6 +568,12 @@ exp.facet = IPA.facet = function(spec, no_init) {
         domNode.removeClass('active-facet');
     };
 
+    /**
+     * Create facet header
+     *
+     * @param {jQuery} container
+     * @protected
+     */
     that.create_header = function(container) {
 
         that.header.create(container);
@@ -398,9 +583,22 @@ exp.facet = IPA.facet = function(spec, no_init) {
         }).appendTo(container);
     };
 
+    /**
+     * Create content
+     *
+     * @param {jQuery} container
+     * @protected
+     * @abstract
+     */
     that.create_content = function(container) {
     };
 
+    /**
+     * Create control buttons
+     *
+     * @param {jQuery} container
+     * @protected
+     */
     that.create_control_buttons = function(container) {
 
         if (that.control_buttons) {
@@ -408,11 +606,22 @@ exp.facet = IPA.facet = function(spec, no_init) {
         }
     };
 
+    /**
+     * Update h1 element in title container
+     *
+     * @deprecated Please update title in facet header or it's widget instead.
+     */
     that.set_title = function(container, title) {
         var element = $('h1', that.title_container);
         element.html(title);
     };
 
+    /**
+     * Show facet
+     *
+     * - clear & refresh if needs update
+     * - mark itself as active facet
+     */
     that.show = function() {
 
         that.entity.facet = that; // FIXME: remove
@@ -442,36 +651,87 @@ exp.facet = IPA.facet = function(spec, no_init) {
         }
     };
 
+    /**
+     * Show content container and hide error container.
+     *
+     * Opposite to `show_error`.
+     * @protected
+     */
     that.show_content = function() {
         that.content.css('display', 'block');
         that.error_container.css('display', 'none');
     };
 
+    /**
+     * Show error container and hide content container.
+     *
+     * Opposite to `show_content`
+     * @protected
+     */
     that.show_error = function() {
         that.content.css('display', 'none');
         that.error_container.css('display', 'block');
     };
 
+    /**
+     * Check if error is displayed (instead of content)
+     *
+     * @return {boolean} error visible
+     */
     that.error_displayed = function() {
         return that.error_container &&
                     that.error_container.css('display') === 'block';
     };
 
+    /**
+     * Un-mark itself as active facet
+     */
     that.hide = function() {
         that.domNode.removeClass('active-facet');
     };
 
+    /**
+     * Update widget content with supplied data
+     * @param {Object} data
+     */
     that.load = function(data) {
         that.data = data;
         that.header.load(data);
     };
 
+    /**
+     * Start refresh
+     *
+     * - get up-to-date data
+     * - load the data
+     * @abstract
+     */
     that.refresh = function() {
     };
 
+    /**
+     * Clear all widgets
+     * @abstract
+     */
     that.clear = function() {
     };
 
+    /**
+     * Check if facet needs update
+     *
+     * That means if:
+     *
+     * - new state (`state` or supplied state) is different that old_state
+     *   (`old_state`)
+     * - facet is expired
+     *   - `expired_flag` is set or
+     *   - expire_timeout takes effect
+     * - error is displayed
+     *
+     *
+     * @param {Object} [new_state] supplied state
+     * @return {boolean} needs update
+     */
     that.needs_update = function(new_state) {
 
         if (that._needs_update !== undefined) return that._needs_update;
@@ -497,32 +757,48 @@ exp.facet = IPA.facet = function(spec, no_init) {
         return needs_update;
     };
 
+    /**
+     * Sets expire flag
+     */
     that.set_expired_flag = function() {
         that.expired_flag = true;
     };
 
+    /**
+     * Clears `expired_flag` and resets `last_updated`
+     */
     that.clear_expired_flag = function() {
         that.expired_flag = false;
         that.last_updated = Date.now();
     };
 
+    /**
+     * Check whether the facet is dirty
+     *
+     * Dirty can mean that value of displayed object was modified but the change
+     * was not reflected to data source
+     *
+     * @returns {boolean}
+     */
     that.is_dirty = function() {
         return false;
     };
 
     /**
-     * Wheater we can switch to different facet.
-     * @returns Boolean
+     * Whether we can switch to different facet.
+     * @returns {boolean}
      */
     that.can_leave = function() {
         return !that.is_dirty();
     };
 
     /**
-     * Show dialog displaying a message explaining why we can't switch facet.
+     * Get dialog displaying a message explaining why we can't switch facet.
      * User can supply callback which is called when a leave is permitted.
      *
-     * Listeneres should set 'callback' property to listen state evaluation.
+     * TODO: rename to get_leave_dialog
+     *
+     * @param {Function} permit_callback
      */
     that.show_leave_dialog = function(permit_callback) {
 
@@ -535,6 +811,15 @@ exp.facet = IPA.facet = function(spec, no_init) {
         return dialog;
     };
 
+    /**
+     * Display error page instead of facet content
+     *
+     * Use this call when unrecoverable error occurs.
+     *
+     * @param {Object} error_thrown - error to be displayed
+     * @param {string} error_thrown.name
+     * @param {string} error_thrown.message
+     */
     that.report_error = function(error_thrown) {
 
         var add_option = function(ul, text, handler) {
@@ -596,6 +881,11 @@ exp.facet = IPA.facet = function(spec, no_init) {
         that.show_error();
     };
 
+    /**
+     * Get facet based on `redirect_info` and {@link
+     * entity.entity.redirect_facet}
+     * @return {facet.facet} facet to be redirected to
+     */
     that.get_redirect_facet = function() {
 
         var entity = that.entity;
@@ -619,6 +909,9 @@ exp.facet = IPA.facet = function(spec, no_init) {
         return facet;
     };
 
+    /**
+     * Redirect to redirection target
+     */
     that.redirect = function() {
 
         var facet = that.get_redirect_facet();
@@ -628,6 +921,10 @@ exp.facet = IPA.facet = function(spec, no_init) {
 
     var redirect_error_codes = [4001];
 
+    /**
+     * Redirect if error thrown is
+     * @protected
+     */
     that.redirect_error = function(error_thrown) {
 
         /*If the error is in talking to the server, don't attempt to redirect,
@@ -640,6 +937,10 @@ exp.facet = IPA.facet = function(spec, no_init) {
         }
     };
 
+    /**
+     * Initialize facet
+     * @protected
+     */
     that.init_facet = function() {
 
         that.action_state.init(that);
@@ -672,14 +973,47 @@ exp.facet = IPA.facet = function(spec, no_init) {
     return that;
 };
 
+/**
+ * Facet header
+ *
+ * Widget-like object which purpose is to render facet's header.
+ *
+ * By default, facet header consists of:
+ *
+ * - breadcrumb navigation
+ * - title
+ * - action list
+ * - facet tabs
+ *
+ * @class facet.facet_header
+ * @alternateClassName IPA.facet_header
+ */
 exp.facet_header = IPA.facet_header = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Facet this header belongs to
+     * @property {facet.facet}
+     */
     that.facet = spec.facet;
 
+    /**
+     * Action list with facet's header actions
+     * @property {facet.action_list_widget} action_list
+     */
+
+    /**
+     * Facet title widget
+     * @property {facet.facet_title} title_widget
+     */
+
+    /**
+     * Initialize facet header
+     * @protected
+     */
     that.init = function() {
 
         if (that.facet.header_actions) {
@@ -705,6 +1039,9 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.title_widget = IPA.facet_title();
     };
 
+    /**
+     * Select tab with the same name as related facet or default
+     */
     that.select_tab = function() {
         if (that.facet.disable_facet_tabs) return;
 
@@ -718,6 +1055,13 @@ exp.facet_header = IPA.facet_header = function(spec) {
         }
     };
 
+    /**
+     * Set new pkey in title and breadcrumb navigation
+     *
+     * Limits the pkey if it's too long.
+     *
+     * @param {string} value pkey
+     */
     that.set_pkey = function(value) {
 
         if (!value) return;
@@ -804,6 +1148,12 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.adjust_elements();
     };
 
+    /**
+     * Create link for facet tab
+     * @protected
+     * @param {jQuery} container
+     * @param {facet.facet} other_facet
+     */
     that.create_facet_link = function(container, other_facet) {
 
         var li = $('<li/>', {
@@ -827,6 +1177,12 @@ exp.facet_header = IPA.facet_header = function(spec) {
         }).appendTo(li);
     };
 
+    /**
+     * Create facet tab group
+     * @protected
+     * @param {jQuery} container
+     * @param {Object} facet_group
+     */
     that.create_facet_group = function(container, facet_group) {
 
         var section = $('<div/>', {
@@ -849,6 +1205,10 @@ exp.facet_header = IPA.facet_header = function(spec) {
         }
     };
 
+    /**
+     * Create header's HTML
+     * @param {jQuery} container
+     */
     that.create = function(container) {
 
         that.container = container;
@@ -904,6 +1264,18 @@ exp.facet_header = IPA.facet_header = function(spec) {
         }
     };
 
+    /**
+     * Update displayed information with new data
+     *
+     * Data is result of FreeIPA RPC command.
+     *
+     * Updates (if present in data):
+     *
+     * - facet group links with number of records
+     * - facet group labels with facet's pkey
+     *
+     * @param {Object} data
+     */
     that.load = function(data) {
         if (!data) return;
         var result = data.result.result;
@@ -945,6 +1317,10 @@ exp.facet_header = IPA.facet_header = function(spec) {
         }
     };
 
+    /**
+     * Reflect facet's action state summary into title widget class and icon
+     * tooltip.
+     */
     that.update_summary = function() {
         var summary = that.facet.action_state.summary();
 
@@ -957,6 +1333,10 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.adjust_elements();
     };
 
+    /**
+     * Compute maximum pkey length to be displayed in header
+     * @return {number} length
+     */
     that.get_max_pkey_length = function() {
 
         var label_w, max_pkey_w, max_pkey_l, al, al_w, icon_w, char_w, container_w;
@@ -980,6 +1360,10 @@ exp.facet_header = IPA.facet_header = function(spec) {
         return max_pkey_l;
     };
 
+    /**
+     * Adjust position of header widgets, mainly action list, according to
+     * title length.
+     */
     that.adjust_elements = function() {
 
         if (that.action_list) {
@@ -995,6 +1379,9 @@ exp.facet_header = IPA.facet_header = function(spec) {
         }
     };
 
+    /**
+     * Clear displayed information
+     */
     that.clear = function() {
         that.load();
         if (that.action_list) that.action_list.clear();
@@ -1003,12 +1390,30 @@ exp.facet_header = IPA.facet_header = function(spec) {
     return that;
 };
 
+/**
+ * Facet title widget
+ *
+ * A widget-like object for title representation in a facet header.
+ *
+ * @class facet.facet_title
+ * @alternateClassName IPA.facet_title
+ */
 exp.facet_title = IPA.facet_title = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Update displayed information with supplied data
+     *
+     * @param {Object} data
+     * @param {string} data.pkey
+     * @param {string} data.title
+     * @param {string} data.tooltip
+     * @param {string} data.icon_tooltip
+     * @param {string} data.css_class css class for title container
+     */
     that.update = function(data) {
 
         var tooltip = data.tooltip || data.title;
@@ -1029,6 +1434,9 @@ exp.facet_title = IPA.facet_title = function(spec) {
         that.set_icon_tooltip(icon_tooltip);
     };
 
+    /**
+     * Create HTML elements
+     */
     that.create = function(container) {
 
         that.title_container = $('<div/>', {
@@ -1048,10 +1456,22 @@ exp.facet_title = IPA.facet_title = function(spec) {
         }).appendTo(h3);
     };
 
+    /**
+     * Set maximum width of the widget
+     *
+     * @param {number|string} width
+     */
     that.set_max_width = function(width) {
         that.title_container.css('max-width', width+'px');
     };
 
+    /**
+     * Set CSS class
+     *
+     * Can be used for various purposes like icon change.
+     *
+     * @param {string} css_class
+     */
     that.set_class = function(css_class) {
 
         if (that.css_class) {
@@ -1065,6 +1485,11 @@ exp.facet_title = IPA.facet_title = function(spec) {
         that.css_class = css_class;
     };
 
+    /**
+     * Set icon tooltip
+     *
+     * @param {string} tooltip
+     */
     that.set_icon_tooltip = function(tooltip) {
         that.icon.attr('title', tooltip);
     };
@@ -1072,42 +1497,114 @@ exp.facet_title = IPA.facet_title = function(spec) {
     return that;
 };
 
+/**
+ * Facet which displays information in a table
+ *
+ * @class facet.table_facet
+ * @extends facet.facet
+ * @alternateClassName IPA.table_facet
+ */
 exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
     spec = spec || {};
 
     var that = IPA.facet(spec, no_init);
 
+    /**
+     * Entity of data displayed in the table
+     * @property {entity.entity}
+     */
     that.managed_entity = spec.managed_entity ? IPA.get_entity(spec.managed_entity) : that.entity;
 
+    /**
+     * Show pagination control
+     * @property {boolean}
+     */
     that.pagination = spec.pagination === undefined ? true : spec.pagination;
+
+    /**
+     * Get complete records on search, otherwise pkeys only.
+     */
     that.search_all_entries = spec.search_all_entries;
+
+    /**
+     * Sort records
+     */
     that.sort_enabled = spec.sort_enabled === undefined ? true : spec.sort_enabled;
+
+    /**
+     * Records are selectable
+     *
+     * Ie. by checkboxes
+     */
     that.selectable = spec.selectable === undefined ? true : spec.selectable;
+
+    /**
+     * Raised when selection changes
+     * @event
+     */
     that.select_changed = IPA.observer();
 
+    /**
+     * Record's attribute name which controls whether row will be displayed
+     * as enabled or disabled.
+     *
+     * Mutually exclusive with `row_disabled_attribute`
+     * @property {string}
+     */
     that.row_enabled_attribute = spec.row_enabled_attribute;
+
+    /**
+     * Same as `row_enabled_attribute`
+     * @property {string}
+     */
     that.row_disabled_attribute = spec.row_disabled_attribute;
+
+    /**
+     * Name of record's details facet
+     * @property {string}
+     */
     that.details_facet_name = spec.details_facet || 'default';
 
+    /**
+     * Name of facet's table
+     */
     that.table_name = spec.table_name;
 
+    /**
+     * Facet's table columns
+     */
     that.columns = $.ordered_map();
 
+    /**
+     * Get all columns
+     */
     that.get_columns = function() {
         return that.columns.values;
     };
 
+    /**
+     * Get column with given name
+     * @param {string} name column name
+     */
     that.get_column = function(name) {
         return that.columns.get(name);
     };
 
+    /**
+     * Add column
+     * @param {IPA.column} column
+     */
     that.add_column = function(column) {
         column.entity = that.managed_entity;
         column.facet = that;
         that.columns.put(column.name, column);
     };
 
+    /**
+     * Create column according to spec and add it to column collection
+     * @param {Object} spec  column spec
+     */
     that.create_column = function(spec) {
         var column;
         if (spec instanceof Object) {
@@ -1124,15 +1621,31 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         return column;
     };
 
+    /**
+     * Same as `create_column`
+     * @deprecated
+     */
     that.column = function(spec){
         that.create_column(spec);
         return that;
     };
 
+    /**
+     * @inheritDoc
+     */
     that.create_content = function(container) {
         that.table.create(container);
     };
 
+    /**
+     * Transforms data into records and displays them in the end.
+     *
+     * 1. table is loaded with supplied data
+     * 2. expire flag is cleared
+     *
+     * @fires post_load
+     * @param {Object} data
+     */
     that.load = function(data) {
         that.facet_load(data);
 
@@ -1162,6 +1675,14 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     };
 
 
+    /**
+     * Transforms data into records and displays them in the end.
+     *
+     * It's expected that `data` contain complete records.
+     *
+     * @protected
+     * @param {Object} data
+     */
     that.load_all = function(data) {
 
         var result = data.result.result;
@@ -1181,6 +1702,15 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         }
     };
 
+    /**
+     * Create a map with records as values and pkeys as keys
+     *
+     * Extracts records from data, where data originates from RPC command.
+     *
+     * @protected
+     * @param {Object} data RPC command data
+     * @return {ordered_map} record map
+     */
     that.get_records_map = function(data) {
 
         var records_map = $.ordered_map();
@@ -1198,6 +1728,17 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         return records_map;
     };
 
+    /**
+     * Transforms data into records and displays them in the end.
+     *
+     * - subset is selected if data contains more than page-size results
+     * - page is selected based on `state.page`
+     * - get complete records by `get_records()` method when data contains only
+     *   pkeys (skipped if table has only one column - pkey)
+     *
+     * @protected
+     * @param {Object} data
+     */
     that.load_page = function(data) {
 
         // get primary keys (and the complete records if search_all_entries is true)
@@ -1277,6 +1818,13 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         );
     };
 
+    /**
+     * Clear table and add new rows with supplied records.
+     *
+     * Select previously selected rows.
+     *
+     * @param {Array.<Object>} records
+     */
     that.load_records = function(records) {
         that.table.empty();
         for (var i=0; i<records.length; i++) {
@@ -1285,6 +1833,15 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         that.table.set_values(that.selected_values);
     };
 
+    /**
+     * Add new row to table
+     *
+     * Enables/disables row according to `row_enabled_attribute` or
+     * `row_disabled_attribute` and optional column formatter for that attr.
+     *
+     * @protected
+     * @param {Object} record
+     */
     that.add_record = function(record) {
 
         var tr = that.table.add_record(record);
@@ -1305,10 +1862,24 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         that.table.set_row_enabled(tr, value);
     };
 
+    /**
+     * Get command name used in get_records
+     * @protected
+     * @return {string} command name
+     */
     that.get_records_command_name = function() {
         return that.managed_entity.name+'_get_records';
     };
 
+    /**
+     * Create batch RPC command for obtaining complete records for each supplied
+     * primary key.
+     *
+     * @protected
+     * @param {Array.<string>} pkeys primary keys
+     * @param {Function} on_success command success handler
+     * @param {Function} on_failure command error handler
+     */
     that.create_get_records_command = function(pkeys, on_success, on_error) {
 
         var batch = IPA.batch_command({
@@ -1336,6 +1907,14 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         return batch;
     };
 
+    /**
+     * Execute command for obtaining complete records
+     *
+     * @protected
+     * @param {Array.<string>} pkeys primary keys
+     * @param {Function} on_success command success handler
+     * @param {Function} on_failure command error handler
+     */
     that.get_records = function(pkeys, on_success, on_error) {
 
         var batch = that.create_get_records_command(pkeys, on_success, on_error);
@@ -1343,10 +1922,24 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         batch.execute();
     };
 
+    /**
+     * Get values selected in a table (checked rows)
+     * @return {Array.<string>} values
+     */
     that.get_selected_values = function() {
         return that.table.get_selected_values();
     };
 
+    /**
+     * Create table
+     *
+     * - reflect facet settings (pagination, scrollable, ...)
+     * - create columns
+     * - override handler for pagination
+     *
+     * @protected
+     * @param {entity.entity} entity table entity
+     */
     that.init_table = function(entity) {
 
         that.table = IPA.table_widget({
@@ -1418,6 +2011,9 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         };
     };
 
+    /**
+     * Create and add columns based on spec
+     */
     that.init_table_columns = function() {
         var columns = spec.columns || [];
         for (var i=0; i<columns.length; i++) {
@@ -1432,69 +2028,208 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     return that;
 };
 
+/**
+ * Facet group
+ *
+ * Collection of facets with similar purpose.
+ *
+ * @class facet.facet_group
+ * @alternateClassName IPA.facet_group
+ */
 exp.facet_group = IPA.facet_group = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Name
+     * @property {string}
+     */
     that.name = spec.name;
+
+    /**
+     * Label
+     * @property {string}
+     */
     that.label = text.get(spec.label);
 
+    /**
+     * Facet collection
+     * @property {ordered_map}
+     */
     that.facets = $.ordered_map();
 
+    /**
+     * Add facet to the map
+     * @param {facet.facet} facet
+     */
     that.add_facet = function(facet) {
         that.facets.put(facet.name, facet);
     };
 
+    /**
+     * Get facet with given name
+     * @param {string} name
+     * @return {facet.facet/null}
+     */
     that.get_facet = function(name) {
         return that.facets.get(name);
     };
 
+    /**
+     * Get index of facet with given name
+     * @param {string} name
+     * @return {facet.facet/null}
+     */
     that.get_facet_index = function(name) {
         return that.facets.get_key_index(name);
     };
 
+    /**
+     * Get facet by position in collection
+     * @param {number} index
+     * @return {facet.facet/null}
+     */
     that.get_facet_by_index = function(index) {
         return that.facets.get_value_by_index(index);
     };
 
-    that.get_facet_count = function(index) {
+    /**
+     * Get number of facet in collection
+     * @return {number} count
+     */
+    that.get_facet_count = function() {
         return that.facets.length;
     };
 
     return that;
 };
 
+/**
+ * Action
+ *
+ * @class facet.action
+ * @alternateClassName IPA.action
+ */
 exp.action = IPA.action = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Name
+     *
+     * Action identifier within facet
+     * @property {string}
+     */
     that.name = spec.name;
+
+    /**
+     * Label
+     * @property {string}
+     */
     that.label = text.get(spec.label);
 
+    /**
+     * Enabled
+     *
+     * Action can't be executed when not enabled.
+     * @property {boolean}
+     * @readonly
+     */
     that.enabled = spec.enabled !== undefined ? spec.enabled : true;
+
+    /**
+     * List of states required by action to be enabled
+     * @property {Array.<string>}
+     */
     that.enable_cond = spec.enable_cond || [];
+
+    /**
+     * List of states which makes action disabled
+     * @property {Array.<string>}
+     */
     that.disable_cond = spec.disable_cond || [];
+
+    /**
+     * Value of `enabled` property changed
+     * @event
+     */
     that.enabled_changed = IPA.observer();
 
+    /**
+     * Controls whether action or representing widget should be visible.
+     *
+     * Action can't be executed when not visible.
+     * @property {boolean}
+     * @readonly
+     */
     that.visible = spec.visible !== undefined ? spec.visible : true;
+
+    /**
+     * List of states required by action to be visible
+     * @property {Array.<string>}
+     */
     that.show_cond = spec.show_cond || [];
+
+    /**
+     * List of states which makes action not visible
+     * @property {Array.<string>}
+     */
     that.hide_cond = spec.hide_cond || [];
+
+    /**
+     * Value of `visible` property changed
+     * @event
+     */
     that.visible_changed = IPA.observer();
 
+    /**
+     * Action execution logic
+     *
+     * One has to set `handler` or override `execute_action` method.
+     *
+     * @property {Function} handler
+     * @property {facet.facet} handler.facet
+     * @property {Function} handler.on_success
+     * @property {Function} handler.on_error
+     */
     that.handler = spec.handler;
 
+    /**
+     * Controls whether action must be confirmed.
+     *
+     * If so, confirm dialog is displayed before actual execution.
+     * @property {boolean}
+     */
     that.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
+
+    /**
+     * Message to be displayed in confirm dialog
+     * @property {string}
+     */
     that.confirm_msg = text.get(spec.confirm_msg || '@i18n:actions.confirm');
 
+    /**
+     * Spec of confirm dialog
+     *
+     * Defaults to: {@link IPA.confirm_dialog}
+     */
     that.confirm_dialog = spec.confirm_dialog !== undefined ? spec.confirm_dialog :
                                                               IPA.confirm_dialog;
 
-
-
+    /**
+     * Performs actual action execution
+     *
+     * - override point
+     *
+     * @protected
+     * @param {facet.facet} facet
+     * @param {Function} on_success
+     * @param {Function} on_error
+     */
     that.execute_action = function(facet, on_success, on_error) {
 
         if (that.handler) {
@@ -1502,6 +2237,16 @@ exp.action = IPA.action = function(spec) {
         }
     };
 
+    /**
+     * Execute action
+     *
+     * - only if enabled and visible
+     * - confirm dialog is display if configured
+     *
+     * @param {facet.facet} facet
+     * @param {Function} on_success
+     * @param {Function} on_error
+     */
     that.execute = function(facet, on_success, on_error) {
 
         if (!that.enabled || !that.visible) return;
@@ -1529,14 +2274,33 @@ exp.action = IPA.action = function(spec) {
         that.execute_action(facet, on_success, on_error);
     };
 
+    /**
+     * Set confirm message to confirm dialog
+     * @protected
+     * @param {facet.facet} facet
+     */
     that.update_confirm_dialog = function(facet) {
         that.dialog.message = that.get_confirm_message(facet);
     };
 
+    /**
+     * Get confirm message
+     *
+     * - override point for message modifications
+     *
+     * @protected
+     * @param {facet.facet} facet
+     */
     that.get_confirm_message = function(facet) {
         return that.confirm_msg;
     };
 
+    /**
+     * Setter for `enabled`
+     *
+     * @fires enabled_changed
+     * @param {boolean} enabled
+     */
     that.set_enabled = function(enabled) {
 
         var old = that.enabled;
@@ -1548,6 +2312,12 @@ exp.action = IPA.action = function(spec) {
         }
     };
 
+    /**
+     * Setter for `visible`
+     *
+     * @fires enabled_changed
+     * @param {boolean} visible
+     */
     that.set_visible = function(visible) {
 
         var old = that.visible;
@@ -1562,14 +2332,33 @@ exp.action = IPA.action = function(spec) {
     return that;
 };
 
+/**
+ * Action collection and state reflector
+ *
+ * - sets `enabled` and `visible` action properties at action state change
+ *   and facet load
+ *
+ * @class facet.action_holder
+ * @alternateClassName IPA.action_holder
+ */
 exp.action_holder = IPA.action_holder = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Collection of actions
+     * @property {ordered_map}
+     * @protected
+     */
     that.actions = $.ordered_map();
 
+    /**
+     * Build actions defined in spec.
+     * Register handlers for facet events(`action_state.changed`, `post_load`)
+     * @param {facet.facet} facet
+     */
     that.init = function(facet) {
 
         var i, action, actions;
@@ -1586,6 +2375,12 @@ exp.action_holder = IPA.action_holder = function(spec) {
         that.facet.post_load.attach(that.on_load);
     };
 
+    /**
+     * Evaluate actions `visibility` and `enable` according to action conditions
+     * and supplied state
+     *
+     * @param {Array.<string>} state
+     */
     that.state_changed = function(state) {
 
         var actions, action, i, enabled, visible;
@@ -1603,14 +2398,29 @@ exp.action_holder = IPA.action_holder = function(spec) {
         }
     };
 
+    /**
+     * Get action with given named
+     * @param {string} name
+     * @return {facet.action}
+     */
     that.get = function(name) {
         return that.actions.get(name);
     };
 
+    /**
+     * Add action to collection
+     * @param {facet.action} action
+     */
     that.add = function(action) {
         that.actions.put(action.name, action);
     };
 
+    /**
+     * Facet load event handler
+     *
+     * - gets action state and evaluates action conditions
+     * @protected
+     */
     that.on_load = function() {
         var state = that.facet.action_state.get();
         that.state_changed(state);
@@ -1619,22 +2429,60 @@ exp.action_holder = IPA.action_holder = function(spec) {
     return that;
 };
 
+/**
+ * Facet action state
+ *
+ * @class facet.state
+ * @alternateClassName IPA.state
+ */
 exp.state = IPA.state = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * State map
+     *
+     * - key: evaluator's name
+     * - value: evaluator's value
+     * @property {ordered_map}
+     * @protected
+     */
     that.state = $.ordered_map();
 
-    //when state changes. Params: state, Context: this
+    /**
+     * Raised when state changes.
+     *
+     * - params: state
+     * - context: this
+     * @event
+     */
     that.changed = IPA.observer();
 
+    /**
+     * State evaluators
+     * @property {Array.<facet.state_evaluator>}
+     */
     that.evaluators = builder.build('state_evaluator', spec.evaluators) || [];
+
+    /**
+     * Summary evaluators
+     * @property {facet.summary_evaluator}
+     */
     that.summary_evaluator = builder.build('', spec.summary_evaluator || IPA.summary_evaluator);
 
+    /**
+     * Summary conditions
+     * @property {Array.<Object>}
+     */
     that.summary_conditions = builder.build('', spec.summary_conditions) || [];
 
+    /**
+     * Initializes evaluators
+     *
+     * @param {facet.facet} facet
+     */
     that.init = function(facet) {
 
         var i, evaluator;
@@ -1648,6 +2496,10 @@ exp.state = IPA.state = function(spec) {
         }
     };
 
+    /**
+     * Event handler for evaluator's 'changed' event
+     * @protected
+     */
     that.on_eval_changed = function() {
 
         var evaluator = this;
@@ -1657,6 +2509,11 @@ exp.state = IPA.state = function(spec) {
         that.notify();
     };
 
+    /**
+     * Get unified state
+     *
+     * @return {Array.<string>}
+     */
     that.get = function() {
 
         var state, i;
@@ -1672,12 +2529,21 @@ exp.state = IPA.state = function(spec) {
         return state;
     };
 
+    /**
+     * Evaluate and get summary
+     * @return {Object} summary
+     */
     that.summary = function() {
 
         var summary = that.summary_evaluator.evaluate(that);
         return summary;
     };
 
+    /**
+     * Raise change event with state as parameter
+     * @protected
+     * @fires changed
+     */
     that.notify = function(state) {
 
         state = state || that.get();
@@ -1688,6 +2554,11 @@ exp.state = IPA.state = function(spec) {
     return that;
 };
 
+/**
+ * Summary evaluator for {@link facet.state}
+ * @class facet.summary_evaluator
+ * @alternateClassName IPA.summary_evaluator
+ */
 exp.summary_evaluator = IPA.summary_evaluator = function(spec) {
 
     spec = spec || {};
@@ -1723,20 +2594,66 @@ exp.summary_evaluator = IPA.summary_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * State evaluator for {@link facet.state}.
+ *
+ * - Base class for specific evaluators.
+ * - Evaluator observes facet and reflect its state by a list of string tags
+ *   (evaluated state).
+ * - Default behavior is that evaluator listens to event, specified by
+ *   `event_name` property. The event is handled by `on_event` method.
+ *   Descendant classes should override this method. Methods like `on_event`
+ *   should notify state change using `notify_on_change` method.
+ *
+ * @class facet.state_evaluator
+ * @alternateClassName IPA.state_evaluator
+ */
 exp.state_evaluator = IPA.state_evaluator = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Name
+     * @property {string}
+     */
     that.name = spec.name || 'state_evaluator';
+
+    /**
+     * Event name
+     * @property {string}
+     */
     that.event_name = spec.event;
 
-    //when state changes. Params: state, Context: this
+    /**
+     * State changes
+     *
+     * - Params: state
+     * - Context: this
+     * @event
+     * @property {IPA.observer}
+     */
     that.changed = IPA.observer();
+
+    /**
+     * Evaluated state
+     * @property {Array.<string>}
+     */
     that.state = [];
+
+    /**
+     * State is changed for the first time
+     * @property {boolean}
+     */
     that.first_pass = true;
 
+    /**
+     * Init the evaluator
+     *
+     * - register event listener
+     * @param {facet.facet} facet
+     */
     that.init = function(facet) {
 
         if (that.event_name && facet[that.event_name]) {
@@ -1744,9 +2661,20 @@ exp.state_evaluator = IPA.state_evaluator = function(spec) {
         }
     };
 
+    /**
+     * Event handler
+     *
+     * @localdoc - intended to be overridden
+     */
     that.on_event = function() {
     };
 
+    /**
+     * Notify state change
+     * @fires changed
+     * @protected
+     * @param {Array.<string>} old_state
+     */
     that.notify_on_change = function(old_state) {
 
         if (that.first_pass || IPA.array_diff(that.state, old_state)) {
@@ -1758,6 +2686,12 @@ exp.state_evaluator = IPA.state_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Sets 'dirty' state when facet is dirty
+ * @class facet.dirty_state_evaluator
+ * @extends facet.state_evaluator
+ * @alternateClassName IPA.dirty_state_evaluator
+ */
 exp.dirty_state_evaluator = IPA.dirty_state_evaluator = function(spec) {
 
     spec = spec || {};
@@ -1767,6 +2701,10 @@ exp.dirty_state_evaluator = IPA.dirty_state_evaluator = function(spec) {
     var that = IPA.state_evaluator(spec);
     that.name = spec.name || 'dirty_state_evaluator';
 
+    /**
+     * Handles 'dirty_changed' event
+     * @param {boolean} dirty
+     */
     that.on_event = function(dirty) {
 
         var old_state = that.state;
@@ -1782,6 +2720,13 @@ exp.dirty_state_evaluator = IPA.dirty_state_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Sets 'item-selected' state when table facets selection changes and some
+ * record is selected.
+ * @class facet.selected_state_evaluator
+ * @extends facet.state_evaluator
+ * @alternateClassName IPA.selected_state_evaluator
+ */
 exp.selected_state_evaluator = IPA.selected_state_evaluator = function(spec) {
 
     spec = spec || {};
@@ -1791,6 +2736,10 @@ exp.selected_state_evaluator = IPA.selected_state_evaluator = function(spec) {
     var that = IPA.state_evaluator(spec);
     that.name = spec.name || 'selected_state_evaluator';
 
+    /**
+     * Handles 'select_changed' event
+     * @param {Array} selected
+     */
     that.on_event = function(selected) {
 
         var old_state = that.state;
@@ -1806,6 +2755,12 @@ exp.selected_state_evaluator = IPA.selected_state_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Sets 'self-service' state when in self-service mode
+ * @class facet.self_service_state_evaluator
+ * @extends facet.state_evaluator
+ * @alternateClassName IPA.self_service_state_evaluator
+ */
 exp.self_service_state_evaluator = IPA.self_service_state_evaluator = function(spec) {
 
     spec = spec || {};
@@ -1815,6 +2770,9 @@ exp.self_service_state_evaluator = IPA.self_service_state_evaluator = function(s
     var that = IPA.state_evaluator(spec);
     that.name = spec.name || 'self_service_state_evaluator';
 
+    /**
+     * Evaluates self-service
+     */
     that.on_event = function() {
 
         var old_state = that.state;
@@ -1830,6 +2788,14 @@ exp.self_service_state_evaluator = IPA.self_service_state_evaluator = function(s
     return that;
 };
 
+/**
+ * Set desired state when facet parameter is equal to desired value after
+ * facet event(`post_load` by default).
+ *
+ * @class facet.facet_attr_state_evaluator
+ * @extends facet.state_evaluator
+ * @alternateClassName IPA.facet_attr_state_evaluator
+ */
 exp.facet_attr_state_evaluator = IPA.facet_attr_state_evaluator = function(spec) {
 
     spec = spec || {};
@@ -1838,10 +2804,27 @@ exp.facet_attr_state_evaluator = IPA.facet_attr_state_evaluator = function(spec)
 
     var that = IPA.state_evaluator(spec);
     that.name = spec.name || 'facet_attr_se';
+
+    /**
+     * Facet attribute name
+     * @property {string}
+     */
     that.attribute = spec.attribute;
+
+    /**
+     * Value to compare
+     */
     that.value = spec.value;
+
+    /**
+     * State to add when value is equal
+     * @property {string}
+     */
     that.state_value = spec.state_value;
 
+    /**
+     * Compare facet's value with desired and set state if equal.
+     */
     that.on_event = function() {
 
         var old_state = that.state;
@@ -1859,6 +2842,13 @@ exp.facet_attr_state_evaluator = IPA.facet_attr_state_evaluator = function(spec)
     return that;
 };
 
+/**
+ * Set `read_only` state when facet is `read_only`
+ *
+ * @class facet.read_only_state_evaluator
+ * @extends facet.facet_attr_state_evaluator
+ * @alternateClassName IPA.read_only_state_evaluator
+ */
 exp.read_only_state_evaluator = IPA.read_only_state_evaluator = function(spec) {
 
     spec = spec || {};
@@ -1872,6 +2862,13 @@ exp.read_only_state_evaluator = IPA.read_only_state_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Set `direct` state when facet's association_type property is `direct`
+ *
+ * @class facet.association_type_state_evaluator
+ * @extends facet.facet_attr_state_evaluator
+ * @alternateClassName IPA.association_type_state_evaluator
+ */
 exp.association_type_state_evaluator = IPA.association_type_state_evaluator = function(spec) {
 
     spec = spec || {};
@@ -1885,26 +2882,92 @@ exp.association_type_state_evaluator = IPA.association_type_state_evaluator = fu
     return that;
 };
 
+/**
+ * Button for executing facet action
+ *
+ * Usable as facet control button in {@link facet.control_buttons_widget}.
+ *
+ * @class facet.action_button_widget
+ * @extends IPA.widget
+ * @alternateClassName IPA.action_button_widget
+ */
 exp.action_button_widget = IPA.action_button_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.widget(spec);
 
+    /**
+     * Name
+     * @property {string}
+     */
     that.name = spec.name;
+
+    /**
+     * Label
+     * @property {string}
+     */
     that.label = text.get(spec.label);
+
+    /**
+     * Tooltip
+     * @property {string}
+     */
     that.tooltip = text.get(spec.tooltip);
+
+    /**
+     * Button href
+     *
+     * - purely visual thing, the click itself is handled internally.
+     * @property {string}
+     */
     that.href = spec.href || that.name;
+
+    /**
+     * Icon name
+     * @property {string}
+     */
     that.icon = spec.icon;
 
+    /**
+     * Name of action this button should execute
+     * @property {string}
+     */
     that.action_name = spec.action || that.name;
 
+    /**
+     * Enabled
+     * @property {boolean}
+     * @readonly
+     */
     that.enabled = spec.enabled !== undefined ? spec.enabled : true;
+
+    /**
+     * Visible
+     * @property {boolean}
+     * @readonly
+     */
     that.visible = spec.visible !== undefined ? spec.visible : true;
 
+    /**
+     * Subject to removal
+     * @deprecated
+     */
     that.show_cond = spec.show_cond || [];
+
+    /**
+     * Subject to removal
+     * @deprecated
+     */
     that.hide_cond = spec.hide_cond || [];
 
+    /**
+     * Init button
+     *
+     * - set facet, action
+     * - register event listeners
+     * @param {facet.facet} facet
+     */
     that.init = function(facet) {
 
         that.facet = facet;
@@ -1913,6 +2976,9 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
         that.action.visible_changed.attach(that.set_visible);
     };
 
+    /**
+     * @inheritDoc
+     */
     that.create = function(container) {
 
         that.widget_create(container);
@@ -1932,6 +2998,11 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
         that.set_visible(that.action.visible);
     };
 
+    /**
+     * Button click handler
+     *
+     * Executes action by default.
+     */
     that.on_click = function() {
 
         if (!that.enabled) return;
@@ -1939,6 +3010,10 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
         that.action.execute(that.facet);
     };
 
+    /**
+     * Enabled setter
+     * @param {boolean} enabled
+     */
     that.set_enabled = function(enabled) {
         that.widget_set_enabled(enabled);
 
@@ -1951,6 +3026,10 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
         }
     };
 
+    /**
+     * Visible setter
+     * @param {boolean} visible
+     */
     that.set_visible = function(visible) {
 
         that.visible = visible;
@@ -1967,15 +3046,30 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
     return that;
 };
 
+/**
+ * Facet button bar
+ *
+ * @class facet.control_buttons_widget
+ * @extends IPA.widget
+ * @alternateClassName IPA.control_buttons_widget
+ */
 exp.control_buttons_widget = IPA.control_buttons_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.widget(spec);
 
+    /**
+     * Buttons
+     * @property {Array.<facet.action_button_widget>}
+     */
     that.buttons = builder.build('widget', spec.buttons, {},
                                  { $factory: exp.action_button_widget} ) || [];
 
+    /**
+     * Initializes buttons
+     * @param {facet.facet} facet
+     */
     that.init = function(facet) {
 
         var i;
@@ -1987,6 +3081,9 @@ exp.control_buttons_widget = IPA.control_buttons_widget = function(spec) {
         }
     };
 
+    /**
+     * @inheritDoc
+     */
     that.create = function(container) {
 
         that.container = $('<div/>', {
@@ -2003,6 +3100,13 @@ exp.control_buttons_widget = IPA.control_buttons_widget = function(spec) {
     return that;
 };
 
+/**
+ * Evaluate state by enable and disable condition
+ *
+ * @member facet
+ * @return {boolean} true - all enable condition are met and none disable condition
+ *                          is met
+ */
 exp.eval_cond = IPA.eval_cond = function(enable_cond, disable_cond, state) {
 
     var i, cond;
@@ -2028,6 +3132,13 @@ exp.eval_cond = IPA.eval_cond = function(enable_cond, disable_cond, state) {
     return true;
 };
 
+/**
+ * Action list widget to be displayed in facet header
+ *
+ * @class facet.action_list_widget
+ * @extends IPA.composite_widget
+ * @alternateClassName IPA.action_list_widget
+ */
 exp.action_list_widget = IPA.action_list_widget = function(spec) {
 
     spec = spec || {};
@@ -2051,9 +3162,27 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
 
     var that = IPA.composite_widget(spec);
 
+    /**
+     * Names of actions, which should be later obtained from facet
+     * @property {Array.<string>}
+     */
     that.action_names = spec.actions || [];
+
+    /**
+     * Actions
+     * @property {ordered_map}
+     */
     that.actions = $.ordered_map();
 
+    /**
+     * Initializes action list
+     *
+     * - set facet
+     * - get actions from facet
+     * - init child widgets
+     *
+     * @param {facet.facet} facet
+     */
     that.init = function(facet) {
 
         var options, actions, action, name, i;
@@ -2075,6 +3204,14 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
         that.init_options();
     };
 
+    /**
+     * Add action
+     * @param {facet.action} action
+     * @param {boolean} [batch] Set to `true` when adding multiple actions to
+     *                          prevent unnecessary option initialization and
+     *                          recreation. Set it back to `false` when adding
+     *                          last option.
+     */
     that.add_action = function(action, batch) {
         that.actions.put(action.name, action);
         action.enabled_changed.attach(that.action_enabled_changed);
@@ -2087,6 +3224,9 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
         }
     };
 
+    /**
+     * Create and set select options from actions
+     */
     that.init_options = function() {
 
         var options, actions, action, i;
@@ -2105,17 +3245,30 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
         that.action_select.options = options;
     };
 
+    /**
+     * Force select to recreate options
+     */
     that.recreate_options = function() {
 
         that.action_select.create_options();
     };
 
+    /**
+     * Handler for action selection in select
+     * @protected
+     */
     that.on_action_change = function() {
 
         var action = that.get_selected();
         that.apply_button.set_enabled(action.enabled);
     };
 
+    /**
+     * Handler for click on apply button.
+     *
+     * - executes selected action if enabled
+     * @protected
+     */
     that.on_apply = function() {
 
         var action = that.get_selected();
@@ -2127,12 +3280,31 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
         }
     };
 
+    /**
+     * Global action success handler
+     *
+     * @localdoc - override point
+     * @protected
+     * @abstract
+     */
     that.on_action_success = function() {
     };
 
+    /**
+     * Global action error handler
+     *
+     * @localdoc - override point
+     * @protected
+     * @abstract
+     */
     that.on_action_error = function() {
     };
 
+    /**
+     * Handle action's `enabled_changed` event.
+     * @protected
+     * @param {boolean} enabled
+     */
     that.action_enabled_changed = function(enabled) {
         var action = this;
         var selected_action = that.get_selected();
@@ -2143,12 +3315,23 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
         }
     };
 
+    /**
+     * Get selected action
+     * @return {facet.action}
+     */
     that.get_selected = function() {
         var selected = that.action_select.save()[0];
         var action = that.actions.get(selected);
         return action;
     };
 
+    /**
+     * Subject to removal
+     *
+     * This method is full of bugs.
+     *
+     * @deprecated
+     */
     that.get_disabled = function() {
 
         var disabled = [];
@@ -2164,6 +3347,9 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
         return disabled;
     };
 
+    /**
+     * Select first enabled action
+     */
     that.select_first_enabled = function() {
 
         var actions = that.actions.values;
@@ -2181,6 +3367,9 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
         that.action_select.update([first]);
     };
 
+    /**
+     * @inheritDoc
+     */
     that.clear = function() {
 
         that.select_first_enabled();
@@ -2189,6 +3378,12 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
     return that;
 };
 
+/**
+ * Facet state
+ * @extends Stateful
+ * @mixins Evented
+ * @class facet.FacetState
+ */
 var FacetState = exp.FacetState = declare([Stateful, Evented], {
 
     /**
@@ -2230,7 +3425,7 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
      *
      * Can be called with hash of name/value pairs.
      *
-     * Raises 'set' event.
+     * @fires set
      */
     set: function(name, value) {
 
@@ -2251,7 +3446,7 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
     /**
      * Set completely new state. Old state is cleared.
      *
-     * Raises 'reset' event.
+     * @fires reset
      */
     reset: function(object) {
         var old_state = this.clone();
@@ -2270,16 +3465,26 @@ var registry = new Singleton_registry();
 reg.set('facet', registry);
 builder.set('facet', registry.builder);
 
-// Action builder and registry
+/**
+ * Action builder with registry
+ * @member facet
+ */
 exp.action_builder = builder.get('action');
 exp.action_builder.factory = exp.action;
 reg.set('action', exp.action_builder.registry);
 
-// State Evaluator builder and registry
+/**
+ * State Evaluator builder and registry
+ * @member facet
+ */
 exp.state_evaluator_builder = builder.get('state_evaluator');
 exp.state_evaluator.factory = exp.action;
 reg.set('state_evaluator', exp.state_evaluator.registry);
 
+/**
+ * Register widgets to global registry
+ * @member facet
+ */
 exp.register = function() {
     var w = reg.widget;
 

@@ -23,14 +23,17 @@ define(['dojo/_base/declare',
         'dojo/_base/lang'
         ], function(declare, array, lang) {
 
+    /**
+     * Helper module
+     * @class _base.construct
+     * @singleton
+     */
     var construct = {
-        /**
-         * Helper modules
-         */
 
         /**
-         * Checks if supplied object is a construtor function.
-         * It can recognize only classes declared by ''dojo/_base/declare''.
+         * Checks if supplied object is a constructor function.
+         * It can recognize only classes declared by `dojo/_base/declare`.
+         * @param {Object} obj
          */
         is_ctor: function(obj) {
 
@@ -38,13 +41,14 @@ define(['dojo/_base/declare',
         },
 
         /**
-         *  Finds out if object is a spec object.
+         * Finds out if object is a spec object.
          *
-         *  Object is not a spec object when any of following applies:
-         *   * has __fw_obj === true
-         *   * has isInstanceOf function - basically tells if it's a instance of
-         *                                 dojo-based class
+         * Object is not a spec object when any of following applies:
          *
+         * - has `__fw_obj === true`
+         * - has `isInstanceOf` function - basically tells if it's a instance of
+         *                                   dojo-based class
+         * @param {Object} obj
          */
         is_spec: function(obj) {
             var ret = false;
@@ -56,13 +60,14 @@ define(['dojo/_base/declare',
         },
 
         /**
-         * Deep clone.
-         *  - does not clone framework objects
-         *  - fails on cyclic non-framework objects
+         * Deep clone
          *
-         * based on dojo/_base/lang.clone
+         * - does not clone framework objects
+         * - fails on cyclic non-framework objects
          *
-         * @param {anything} object to clone
+         * based on `dojo/_base/lang.clone`
+         *
+         * @param {Mixed} src object to clone
          */
         clone: function(src) {
 

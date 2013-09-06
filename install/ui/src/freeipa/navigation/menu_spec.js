@@ -20,7 +20,15 @@
 
 define([], function() {
 
+/**
+ * Specification of menu
+ * @singleton
+ * @class navigation.menu_spec
+ */
 var nav = {};
+    /**
+     * Admin menu
+     */
     nav.admin = {
     name: 'admin',
     items: [
@@ -131,6 +139,9 @@ var nav = {};
     ]
 };
 
+/**
+ * Self-service menu
+ */
 nav.self_service = {
     name: 'self-service',
     items: [

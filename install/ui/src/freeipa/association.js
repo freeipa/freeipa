@@ -38,8 +38,17 @@ define([
         function(Deferred, metadata_provider, IPA, $, navigation,
                  phases, reg, su, text) {
 
+/**
+ * Association module
+ * @class association
+ * @singleton
+ */
 var exp = {};
 
+/**
+ * Associator base class
+ * @class
+ */
 IPA.associator = function (spec) {
 
     spec = spec || {};
@@ -65,7 +74,10 @@ IPA.associator = function (spec) {
 
 
 /**
+ * Serial associator
  * This associator is built for the case where each association requires a separate rpc
+ * @class
+ * @extends IPA.associator
  */
 IPA.serial_associator = function(spec) {
 
@@ -112,6 +124,7 @@ IPA.serial_associator = function(spec) {
 /**
  * This associator is for the common case where all the asociations can be sent
  * in a single rpc
+ * @class
  */
 IPA.bulk_associator = function(spec) {
 
@@ -148,6 +161,8 @@ IPA.bulk_associator = function(spec) {
 /**
  * This dialog is for adding value of multivalued attribute which behaves like
  * association attribute.
+ * @class
+ * @extends IPA.entity_adder_dialog
  */
 IPA.attribute_adder_dialog = function(spec) {
 
@@ -206,6 +221,8 @@ IPA.attribute_adder_dialog = function(spec) {
 
 /**
  * This dialog is used for adding associations between two entities.
+ * @class
+ * @extends IPA.adder_dialog
  */
 IPA.association_adder_dialog = function(spec) {
 
@@ -310,6 +327,8 @@ IPA.association_adder_dialog = function(spec) {
 
 /**
  * This dialog is used for removing associations between two entities.
+ * @class
+ * @extends IPA.deleter_dialog
  */
 IPA.association_deleter_dialog = function (spec) {
 
@@ -347,7 +366,10 @@ IPA.association_deleter_dialog = function (spec) {
     return that;
 };
 
-
+/**
+ * Association config
+ * @class
+ */
 IPA.association_config = function (spec) {
 
     spec = spec || {};
@@ -362,6 +384,11 @@ IPA.association_config = function (spec) {
     return that;
 };
 
+/**
+ * Association table widget
+ * @class
+ * @extends IPA.table_widget
+ */
 IPA.association_table_widget = function (spec) {
 
     spec = spec || {};
@@ -735,6 +762,11 @@ IPA.association_table_widget = function (spec) {
     return that;
 };
 
+/**
+ * Association table field
+ * @class
+ * @extends IPA.field
+ */
 IPA.association_table_field = function (spec) {
 
     spec = spec || {};
@@ -771,6 +803,10 @@ IPA.association_table_field = function (spec) {
     return that;
 };
 
+/**
+ * Association facet pre-op
+ * @member association
+ */
 exp.association_facet_pre_op = function(spec, context) {
 
     var has_indirect_attribute_member = function(spec) {
@@ -880,6 +916,12 @@ exp.association_facet_pre_op = function(spec, context) {
     return spec;
 };
 
+/**
+ * Association facet
+ * @class association.association_facet
+ * @alternateClassName IPA.association_facet
+ * @extends facet.table_facet
+ */
 exp.association_facet = IPA.association_facet = function (spec, no_init) {
 
     spec = spec || {};
@@ -1223,6 +1265,10 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
     return that;
 };
 
+/**
+ * Attribute facet pre-op
+ * @member association
+ */
 exp.attribute_facet_pre_op = function(spec, context) {
 
     var entity = context.entity;
@@ -1295,6 +1341,12 @@ exp.attribute_facet_pre_op = function(spec, context) {
     return spec;
 };
 
+/**
+ * Association facet
+ * @class association.attribute_facet
+ * @alternateClassName IPA.attribute_facet
+ * @extends facet.table_facet
+ */
 exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
 
     spec = spec || {};
@@ -1455,7 +1507,13 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
     return that;
 };
 
-IPA.sid_facet = function(spec, no_init) {
+/**
+ * SID facet
+ * @class association.sid_facet
+ * @alternateClassName IPA.sid_facet
+ * @extends association.attribute_facet
+ */
+exp.sid_facet = IPA.sid_facet = function(spec, no_init) {
 
     spec.name = spec.name || 'sid_facet';
 
@@ -1501,7 +1559,11 @@ IPA.sid_facet = function(spec, no_init) {
     return that;
 };
 
-
+/**
+ * Attriute read-only evaluator
+ * @class IPA.attr_read_only_evaluator
+ * @extends IPA.state_evaluator
+ */
 IPA.attr_read_only_evaluator = function(spec) {
 
     spec.name = spec.name || 'attr_read_only_evaluator';

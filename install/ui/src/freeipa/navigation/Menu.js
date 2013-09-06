@@ -18,7 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 define(['dojo/_base/declare',
        'dojo/store/Memory',
        'dojo/_base/array',
@@ -29,67 +28,45 @@ define(['dojo/_base/declare',
        '../text'
        ], function(declare, Memory_store, array, lang, Observable, Evented, reg, text) {
 
-/**
- * Menu store
- *
- * Maintains menu hierarchy and selection state.
- */
-return declare([Evented], {
 
+return declare([Evented],
     /**
-     * Following properties can be specified in menu item spec:
-     * @property {String} name
-     * @property {String} label
-     * @property {String} title
-     * @property {Number} position: position among siblings
-     * @property {menu_item_spec_array} children
-     * @property {String} entity: entity name
-     * @property {String} facet: facet name
-     * @property {Boolean} hidden: menu item is no visible, but can serve for
-     *                             other evaluations (nested entities)
+     * Menu store
      *
-     * Following properties are not in created menu item:
-     *   - children
+     * Maintains menu hierarchy and selection state.
      *
-     *
-     * Following properties can be stored in menu item at runtime:
-     *
-     * @property {Boolean} selected
-     * @property {String} parent: name of parent menu item
-     * @property {String} selected_child: last selected child. Can be set even
-     *                                    if the child is not selected
+     * @class navigation.Menu
      *
      */
-
+    {
     /**
      * Menu name
-     * @type String
+     * @property {String}
      */
     name: null,
 
     /**
      * Dojo Store of menu items
-     * @type: Store
+     * @property {Store}
      */
     items: null,
 
     /**
     * Delimiter used in name creation
     * To avoid having multiple menu items with the same name.
-    * @type String
+    * @property {String}
     */
     path_delimiter: '/',
 
     /**
      * Selected menu items
-     * @type Array of menu items
+     * @property {Array}
      */
     selected: [],
 
     /**
      * Default search options: sort by position
-     *
-     * @type Object
+     * @property {Object}
      */
     search_options: { sort: [{attribute:'position'}]},
 
@@ -97,8 +74,8 @@ return declare([Evented], {
      * Takes a spec of menu item.
      * Normalizes item's name, parent, adds children if specified
      *
-     * @param {menu_item} items
-     * @param {String|menu_item} parent
+     * @param {Object} item - spec
+     * @param {string/Object} parent - name or menu item
      * @param {Object} options
      */
     add_item: function(item, parent, options) {
@@ -168,6 +145,10 @@ return declare([Evented], {
         return true;
     },
 
+    /**
+     * Add multiple items
+     * @param {Array} items - spec of items
+     */
     add_items: function(/* Array */ items) {
         array.forEach(items, function(item) {
             this.add_item(item);
@@ -177,8 +158,8 @@ return declare([Evented], {
     /**
      * Query internal data store by using default search options.
      *
-     * @param Object Query filter
-     * @return QueryResult
+     * @param {Object} Query filter
+     * @return {QueryResult}
      */
     query: function(query) {
         return this.items.query(query, this.search_options);
@@ -186,6 +167,7 @@ return declare([Evented], {
 
     /**
      * Marks item and all its parents as selected.
+     * @private
      */
     _select: function(item) {
 
@@ -202,7 +184,7 @@ return declare([Evented], {
 
     /**
      * Selects a menu item and all it's ancestors.
-     * @param {string|menu_item} Menu item to select
+     * @param {string/navigation.MenuItem} item menu item to select
      */
     select: function(item) {
 
@@ -234,6 +216,11 @@ return declare([Evented], {
         return select_state;
     },
 
+    /**
+     * @param {Object} spec - Specification object
+     * @param {Array} spec.items - Menu items
+     * @param {string} spec.name - Name
+     */
     constructor: function(spec) {
         spec = spec || {};
         this.items = new Observable( new Memory_store({

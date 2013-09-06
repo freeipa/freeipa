@@ -35,38 +35,39 @@ define(['dojo/_base/declare',
 
     return declare([Evented], {
         /**
-         * @name freeipa.widget.menu
-         * @class
-         *
          * Creates UI for freeipa.navigation.menu. Provides an event when
          * a menu items is selected.
          *
-         * event: item-select(menu_item)
+         * @class widgets.Menu
+         */
+
+        /**
+         * @event item-select(menu_item)
          */
 
 
         /**
          * Object store of menu items
          * @protected
-         * @type freeipa.navigation.menu
+         * @property {navigation.Menu}
          */
         menu: null,
 
         /**
          * domNode of this widget. FIXME: move to superclass (none yet)
-         * @type Node
+         * @property {HTMLElement}
          */
         domNode: null,
 
         /**
          * Turns off update on data change
-         * @type Boolen
+         * @property {boolean}
          */
         ignore_changes: false,
 
         /**
          * Css class for nodes containing a submenu of certain level_class
-         * @type String
+         * @property {string}
          */
         level_class: 'menu-level',
 
@@ -92,9 +93,9 @@ define(['dojo/_base/declare',
          * Top level items are rendered if menu_items is null
          *
          * @protected
-         * @param {menu_item|null} menu_item
-         * @param {Node} node
-         * @param {Number} level
+         * @param {navigation.MenuItem|null} menu_item
+         * @param {HTMLElement} node
+         * @param {number} level
          */
         _render_children: function (menu_item, node, level) {
 
@@ -150,8 +151,8 @@ define(['dojo/_base/declare',
          * menu_item's state.
          *
          * @protected
-         * @param {menu_item|string} menu_item
-         * @param {Node} [li_node]
+         * @param {navigation.MenuItem|string} menu_item
+         * @param {HTMLElement} [li_node]
          */
         _update_item: function(menu_item, li_node) {
 
@@ -182,7 +183,7 @@ define(['dojo/_base/declare',
 
         /**
          * Displays only supplied menu items.
-         * @param {menu_item[]} menu_items Items to show
+         * @param {navigation.MenuItem[]} menu_items Items to show
          */
         select: function(menu_items) {
 
@@ -215,9 +216,9 @@ define(['dojo/_base/declare',
          * Handles changes in this.menu object.
          *
          * @protected
-         * @param {menu_item} object
-         * @param {Number} removedFrom
-         * @param {Number} insertedInto
+         * @param {navigation.MenuItem} object
+         * @param {number} removedFrom
+         * @param {number} insertedInto
          */
         _items_changed: function(object, removedFrom, insertedInto) {
 
@@ -234,7 +235,7 @@ define(['dojo/_base/declare',
 
         /**
          * Sets this.menu and starts to watch its changes
-         * @param {freeipa.navigation.menu} menu
+         * @param {navigation.Menu} menu
          */
         set_menu: function(menu) {
             this.menu = menu;
@@ -249,6 +250,8 @@ define(['dojo/_base/declare',
         /**
          * Internal handler for clicking on menu item.
          * Raises item-select event.
+         * @protected
+         * @param {navigation.MenuItem} menu_items
          */
         _item_clicked: function(menu_item) {
             this.emit('item-select', menu_item);
@@ -259,7 +262,7 @@ define(['dojo/_base/declare',
          *
          * Intended for overriding.
          *
-         * @param {menu_item} menu_item
+         * @param {navigation.MenuItem} menu_item
          * @param {Event} event
          */
         item_clicked: function(menu_item/*, event*/) {

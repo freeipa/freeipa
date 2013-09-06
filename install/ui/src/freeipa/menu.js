@@ -18,11 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Menu proxy.
- *
- * Exports public interface for dealing with menu items.
- */
+
 define([
         'dojo/_base/lang',
         './app', // creates circular dependency
@@ -37,12 +33,20 @@ define([
         },
 
         /**
+        * Menu proxy.
+        *
+        * Exports public interface for dealing with menu items.
+        * @class menu
+        */
+
+        /**
          * Adds menu item.
          * Takes a spec of menu item.
          * Normalizes item's name, parent, adds children if specified
          *
-         * @param {menu_item} items
-         * @param {String|menu_item} parent
+         * @method add_item
+         * @param {navigation.MenuItem} item
+         * @param {string|navigation.MenuItem} parent
          * @param {Object} options
          */
         add_item = function(item, parent, options) {
@@ -53,8 +57,8 @@ define([
         /**
          * Removes menu item
          *
-         * @param {String|menu_item} name or menu item to remove
-         *
+         * @method remove_item
+         * @param {string|navigation.MenuItem} name or menu item to remove
          */
         remove_item = function(item) {
 
@@ -66,9 +70,10 @@ define([
          * Query internal data store by using default search options or supplied
          * search options.
          *
-         * @param Object Query filter
-         * @param ?Object Search options, overrides default
-         * @return QueryResult
+         * @method query
+         * @param {Object} query
+         * @param {Object} [search_options] Search options, overrides default
+         * @return {QueryResult}
          */
         query = function(query, search_options) {
 
@@ -83,6 +88,8 @@ define([
 
         /**
          * Get current instance of menu
+         * @method get
+         * @return {navigation.Menu}
          */
         get = function() {
             return get_menu();

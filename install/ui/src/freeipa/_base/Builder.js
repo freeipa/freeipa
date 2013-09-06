@@ -28,35 +28,51 @@ define(['dojo/_base/declare',
 
     var undefined;
 
+    /**
+     * Builder
+     *
+     * Builds objects based on their specification.
+     * @class _base.Builder
+     */
     var Builder = declare(null, {
         /**
-         * Builds objects based on specication.
-         *
-         * @class
-         * @name Builder
-         */
-
-        /**
          * Construct registry
-         * @property ./Construct_registry
+         * @property {_base.Construct_registry}
          */
         registry: null,
 
         /**
          * Specification modifier
+         * @property {_base.Spec_mod}
          */
         spec_mod: null,
 
+        /**
+         * Default factory
+         * @property {Function|null}
+         */
         factory: null,
 
+        /**
+         * Default constructor
+         * @property {Function|null}
+         */
         ctor: null,
 
         /**
          * Array of spec modifiers.
          *
-         * Spec modifier is a function which is called before build.
-         *      takes params: spec, context
-         *      returns spec
+         * Are applied before build on spec object.
+         *
+         * Spec modifier can be:
+         *
+         * - a function which is called before build
+         *      - takes params: spec, context
+         *      - returns spec
+         * - an object which is mixed in into spec
+         * - an object with properties for Spec_mod
+         *
+         * @property {Array|null}
          */
         pre_ops: null,
 
@@ -64,55 +80,59 @@ define(['dojo/_base/declare',
          * Array of object modifiers.
          *
          * Object modifier is a function which is after build.
-         *      takes params: built object, spec, context
-         *      returns object
+         *
+         * - takes params: built object, spec, context
+         * - returns object
+         * @property {Array|null}
          */
         post_ops: null,
 
         /**
          * Controls what builder do when spec is a string. Possible values:
-         *      * 'type'
-         *      * 'property'
-         * Type:
-         *   Spec is type. Queries registry for obtaining construction spec.
          *
-         * Property:
-         *   Spec is a property of spec, name of property is set in
-         *   `string_property`. This mode should be combined with default
-         *   factory or ctor otherwise the build will fail.
+         * - 'type'
+         * - 'property'
          *
-         * @type {String}
+         * ##Type
+         * Spec is type. Queries registry for obtaining construction spec.
+         *
+         * ##Property
+         * Spec is a property of spec, name of property is set in
+         * `string_property`. This mode should be combined with default
+         * factory or ctor otherwise the build will fail.
+         *
+         * @property {string}
          */
         string_mode: 'type',
 
         /**
          * Property name for `string_mode` == `property`
-         * @type {String}
+         * @property {string}
          */
         string_property: '',
 
         /**
          * Build object based on spec.
          *
-         * @param {String|Function|Object|Array} Build spec
-         * @param {Object} build context
-         * @param {Object} overrides
+         * @param {string|Function|Object|Array} spec Build spec
          *
-         * String: type name, queries registry
-         * Function: factory or ctor
-         * Object: spec object
-         * Array: array of spec objects
+         * - **String**: type name, queries registry
+         * - **Function**: factory or ctor
+         * - **Object**: spec object
+         * - **Array**: array of spec objects
          *
-         * Build control properies of spec object:
-         *      $ctor: Function
-         *      $factory: Function
-         *      $mixim_spec: Boolean
-         *      $type: String
-         *      $pre_ops: []
-         *      $post_ops: []
+         * Build control properties of spec object:
+         *
+         * - $ctor: Function
+         * - $factory: Function
+         * - $mixim_spec: boolean
+         * - $type: string
+         * - $pre_ops: []
+         * - $post_ops: []
          *
          * All other properties will be passed to object construction method.
-         *
+         * @param {Object} context build context
+         * @param {Object} overrides
          * Builder default factory and ctor is overridden by those specified
          * in overrides when overrides are set.
          */
@@ -167,12 +187,20 @@ define(['dojo/_base/declare',
             return objects;
         },
 
+        /**
+         * Build single object
+         * @protected
+         */
         _build: function(spec, context) {
             var cs = this._get_construction_spec(spec);
             var obj = this._build_core(cs, context);
             return obj;
         },
 
+        /**
+         * Normalizes construction specification
+         * @protected
+         */
         _get_construction_spec: function(spec) {
 
             var cs = {};
@@ -235,6 +263,7 @@ define(['dojo/_base/declare',
 
         /**
          * Queries registry and returns copy of construction specification
+         * @protected
          */
         _query_registry: function(type) {
 
@@ -253,6 +282,7 @@ define(['dojo/_base/declare',
 
         /**
          * Get cs from string according to string mode
+         * @protected
          */
         _get_cs_string: function(spec) {
 
@@ -267,6 +297,10 @@ define(['dojo/_base/declare',
             return cs;
         },
 
+        /**
+         * Core build method
+         * @protected
+         */
         _build_core: function(construction_spec, context) {
 
             var cs = construction_spec,
@@ -318,6 +352,10 @@ define(['dojo/_base/declare',
             return obj;
         },
 
+        /**
+         * Apply pre_ops
+         * @protected
+         */
         _run_preops: function(pre_ops, spec, context) {
             for (var i=0; i<pre_ops.length; i++) {
                 var preop = pre_ops[i];
@@ -334,6 +372,10 @@ define(['dojo/_base/declare',
             return spec;
         },
 
+        /**
+         * Apply post_ops
+         * @protected
+         */
         _run_post_ops: function(post_ops, obj, spec, context) {
             for (var i=0; i<post_ops.length; i++) {
                 var postop = post_ops[i];

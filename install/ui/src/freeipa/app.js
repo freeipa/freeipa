@@ -18,9 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Application wrapper
- */
 define([
     //core
     'dojo/_base/lang',
@@ -56,6 +53,14 @@ define([
     'dojo/domReady!'
 ],function(lang, Deferred, when, plugin_loader, phases, Application_controller, exports) {
 
+    /**
+     * Application wrapper
+     *
+     * Prepares application controller and registers phases.
+     *
+     * @class app
+     * @singleton
+     */
     var app = {
 
         /**

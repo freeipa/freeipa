@@ -34,6 +34,12 @@ define([
         './certificate'],
     function(IPA, $, phases, reg, text) {
 
+/**
+ * User module
+ * @class user
+ * @alternateClassName IPA.user
+ * @singleton
+ */
 var exp = IPA.user = {};
 
 var make_spec = function() {
@@ -409,6 +415,7 @@ IPA.user.details_facet = function(spec) {
 };
 
 /**
+ * @member user
  * Makes user association facets read-only in self service
  */
 IPA.user.association_facet_ss_pre_op = function(spec, context) {

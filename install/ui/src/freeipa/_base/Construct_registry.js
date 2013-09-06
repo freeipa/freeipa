@@ -24,12 +24,12 @@ define(['dojo/_base/declare',
         './construct'
         ], function(declare, array, lang, construct) {
 
+    /**
+     * Registry for storing construction specification.
+     * @class _base.Construct_registry
+     */
     var Construct_registry = declare(null, {
-        /**
-         * Registry for storing construction specification.
-         * @class
-         * @name Construct_registry
-         */
+
 
         /**
          * Internal map for construction specifications.
@@ -40,27 +40,25 @@ define(['dojo/_base/declare',
         /**
          * Registers construction specification
          *
-         * @param type {String|Object} type or construction spec
-         * @param func {Function} ctor or factory function
-         * @param [default_spec] {Object} default spec object for given type
+         *      // May be defined by single construction spec object:
+         *      var construction_spec = {
+         *          type: String,
+         *          factory: Function,
+         *          ctor: Function,
+         *          spec: Object,
+         *          pre_ops: [],
+         *          post_ops: []
+         *      };
+         *      register(construction_spec);
          *
-         * @returns Object
+         *      // or by defining them separately as params:
+         *      register(type, factory|ctor, spec);
          *
-         * Examples:
+         * @param {string|Object} type type or construction spec
+         * @param {Function} func ctor or factory function
+         * @param {Object} [default_spec] default spec object for given type
          *
-         * May be defined by single construction spec object:
-         *   var construction_spec = {
-         *       type: String,
-         *       factory: Function,
-         *       ctor: Function,
-         *       spec: Object,
-         *       pre_ops: [],
-         *       post_ops: []
-         *   };
-         *   register(construction_spec);
-         *
-         * or by defining them separately as params:
-         *   register(type, factory|ctor, spec);
+         * @returns {Object}
          */
         register: function(type, func, default_spec) {
 
@@ -91,9 +89,9 @@ define(['dojo/_base/declare',
          * Makes a copy of construct specification of original type. Extends
          * it with values in supplied construct specification.
          *
-         * @param {String} Original type
-         * @param {String} New type
-         * @param {Object} Construction specification
+         * @param {string} org_type Original type
+         * @param {string} new_type New type
+         * @param {Object} construct_spec Construction specification
          */
         copy: function(org_type, new_type, construct_spec) {
 
@@ -128,9 +126,9 @@ define(['dojo/_base/declare',
          *
          * When op is Object, the object gets mixed in into spec.
          *
-         * @param {type} type
+         * @param {string} type
          * @param {Function|Object} op
-         * @param {Boolean} move op to first position
+         * @param {boolean} move op to first position
          */
         register_pre_op: function(type, op, first) {
 
@@ -150,9 +148,9 @@ define(['dojo/_base/declare',
          * When op is Object, the object gets mixed in into built object. Use
          * with caution.
          *
-         * @param {type} type
+         * @param {string} type
          * @param {Function|Object} op
-         * @param {Boolean} move op to first position
+         * @param {boolean} first move op to first position
          */
         register_post_op: function(type, op, first) {
 
@@ -164,8 +162,8 @@ define(['dojo/_base/declare',
         /**
          * Gets construction specification for given type.
          *
-         * @param type {String} Type name
-         * @returns Object|null
+         * @param {string} string Type name
+         * @returns {Object|null}
          */
         get: function(type) {
             return this._map[type] || null;

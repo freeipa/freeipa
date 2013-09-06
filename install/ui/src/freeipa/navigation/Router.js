@@ -30,31 +30,34 @@ define(['dojo/_base/declare',
        function(declare, lang, array, Evented, ioquery, router, IPA, reg) {
 
     /**
-    * Class navigation
+     * Router
+     *
     * This component keeps menu and routes in sync. It signalizes
     * other components to display facet by sending 'show-facet' event.
     * Other components can use navigate_to_* methods to change currently
     * displayed facet. This change can be canceled in 'facet-change'
     * event handler.
+    * @class navigation.Router
     */
     var navigation = declare([Evented], {
 
         /**
          * Holds references to register route handlers.
          * Can be used for unregistering routes.
-         * @type Array
+         * @property {Array.<Function>}
          */
         route_handlers: [],
 
         /**
          *  Prefix of all routes for this navigation. Useful for multiple
          *  navigation objects in one application.
-         *  @type String
+         *  @property {string}
          */
         route_prefix: '',
 
         /**
          * Variations of entity routes
+         * @property {Array.<string>}
          */
         entity_routes: [
             '/e/:entity/:facet/:pkeys/*args',
@@ -66,6 +69,7 @@ define(['dojo/_base/declare',
 
         /**
          * Variations of simple page routes
+         * @property {Array.<string>}
          */
         page_routes: [
             '/p/:page/*args',
@@ -75,7 +79,7 @@ define(['dojo/_base/declare',
         /**
          * Used during facet changing. Set it to true in 'facet-change'
          * event handler to stop the change.
-         * @type Boolean
+         * @property {boolean}
          */
         canceled: false,
 
@@ -83,7 +87,7 @@ define(['dojo/_base/declare',
          * Flag to indicate that next hash change should not invoke showing a
          * facet.
          * Main purpose: updating hash.
-         * @type Boolen
+         * @property {boolean}
          */
         ignore_next: false,
 
@@ -92,8 +96,8 @@ define(['dojo/_base/declare',
          * Register a route-handler pair to a dojo.router
          * Handler will be run in context of this object
          *
-         * @param {string|array} route or routes to register
-         * @param {function} handler to be associated with the route(s)
+         * @param {string|Array.<string>} route or routes to register
+         * @param {Function} handler to be associated with the route(s)
          */
         register_route: function(route, handler) {
             // TODO: add multiple routes for one handler
@@ -121,6 +125,7 @@ define(['dojo/_base/declare',
         /**
          * Handler for entity routes
          * Shouldn't be invoked directly.
+         * @param {Object} event route event args
          */
         entity_route_handler: function(event) {
 
@@ -157,6 +162,7 @@ define(['dojo/_base/declare',
         /**
          * General facet route handler
          * Shouldn't be invoked directly.
+         * @param {Object} event route event args
          */
         page_route_handler: function(event) {
 
@@ -249,8 +255,8 @@ define(['dojo/_base/declare',
         /**
          * Changes hash to supplied
          *
-         * @param {String} Hash to set
-         * @param {Boolean} Whether to suppress following hash change handler
+         * @param {string} Hash to set
+         * @param {boolean} Whether to suppress following hash change handler
          */
         update_hash: function(hash, ignore_change) {
             this.ignore_next = !!ignore_change;
@@ -299,7 +305,7 @@ define(['dojo/_base/declare',
         /**
          * Creates hash from supplied facet and state.
          *
-         * @param {facet} facet
+         * @param {facet.facet} facet
          * @param {Object} state
          */
         create_hash: function(facet, state) {
@@ -346,6 +352,11 @@ define(['dojo/_base/declare',
             return keys;
         },
 
+        /**
+         * Raise 'error'
+         * @protected
+         * @fires error
+         */
         _error: function(msg, type, context) {
 
             this.emit('error', {

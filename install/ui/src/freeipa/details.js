@@ -21,8 +21,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* IPA Object Details - populating definiton lists from entry data */
-
 define([
         'dojo/_base/lang',
         './builder',
@@ -36,22 +34,75 @@ define([
         './add'],
     function(lang, builder, IPA, $, phases, reg, su, text) {
 
+/**
+ * Details module
+ *
+ * @class details
+ * @singleton
+ */
 var exp = {};
 
+/**
+ * Name of expanded icon
+ * @member details
+ */
 exp.expanded_icon = IPA.expanded_icon = 'expanded-icon';
+
+/**
+ * Name of collapsed icon
+ * @member details
+ */
 exp.collapsed_icon = IPA.collapsed_icon = 'collapsed-icon';
 
+/**
+ * Details builder
+ *
+ * Processes containers spec and builds sections, widget and fields according
+ * to that spec. Container is usually a details facet or a dialog. For its task
+ * it uses `section_builder`, `widget_builder` and  `field_builder` each
+ * builder can be configured. Otherwise it uses default builders.
+ *
+ * @class details.details_builder
+ * @alternateClassName IPA.details_builder
+ */
 exp.details_builder = IPA.details_builder = function(spec) {
 
     var that = IPA.object();
 
+    /**
+     * Container's widget collection
+     * @protected
+     */
     that.widgets = spec.container.widgets;
+
+    /**
+     * Container's field collection
+     * @protected
+     */
     that.fields = spec.container.fields;
 
+    /**
+     * Widget builder
+     * @property {IPA.widget_builder}
+     */
     that.widget_builder = spec.widget_builder || IPA.widget_builder();
+
+    /**
+     * Fields builder
+     * @property {IPA.field_builder}
+     */
     that.field_builder = spec.field_builder || IPA.field_builder();
+
+    /**
+     * Section builder
+     * @property {details.section_builder}
+     */
     that.section_builder = spec.section_builder || IPA.section_builder();
 
+    /**
+     * Build single widget  according to its spec and add it to widget collection.
+     * @param {Object} spec widget spec
+     */
     that.build_widget = function(spec) {
 
         if (!spec) return;
@@ -59,6 +110,10 @@ exp.details_builder = IPA.details_builder = function(spec) {
         that.widget_builder.build_widget(spec, that.widgets);
     };
 
+    /**
+     * Build multiple widgets and add them to widget collection.
+     * @param {Array.<Object>} specs widget specs
+     */
     that.build_widgets = function(specs) {
 
         if (!specs) return;
@@ -66,6 +121,10 @@ exp.details_builder = IPA.details_builder = function(spec) {
         that.widget_builder.build_widgets(specs, that.widgets);
     };
 
+    /**
+     * Build single field and add it to field collection.
+     * @param {Object} spec field spec
+     */
     that.build_field = function(spec) {
 
         if (!spec) return;
@@ -73,6 +132,10 @@ exp.details_builder = IPA.details_builder = function(spec) {
         that.field_builder.build_field(spec, that.fields);
     };
 
+    /**
+     * Build multiple fields and add them to field collection.
+     * @param {Array.<Object>} specs field spec
+     */
     that.build_fields = function(specs) {
 
         if (!specs) return;
@@ -80,6 +143,10 @@ exp.details_builder = IPA.details_builder = function(spec) {
         that.field_builder.build_fields(specs, that.fields);
     };
 
+    /**
+     * Build sections
+     * @param {Array.<Object>} specs section specs
+     */
     that.build_sections = function(specs) {
 
         if (!specs) return;
@@ -87,6 +154,10 @@ exp.details_builder = IPA.details_builder = function(spec) {
         that.section_builder.build_sections(specs);
     };
 
+    /**
+     * Build section, fields and widgets.
+     * @param {Object} spec facet or dialog spec
+     */
     that.build = function(spec) {
 
         if (spec.sections) {
@@ -111,18 +182,50 @@ exp.details_builder = IPA.details_builder = function(spec) {
     return that;
 };
 
+/**
+ * Section builder
+ *
+ * Section is a layout unit of details facet or a dialog.
+ *
+ * @class details.section_builder
+ * @alternateClassName IPA.section_builder
+ */
 exp.section_builder = IPA.section_builder = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Container
+     * @property {IPA.facet|IPA.dialog}
+     */
     that.container = spec.container;
+
+    /**
+     * Default section factory
+     *
+     * TODO: should be modified so it can be a class too
+     * @property {IPA.composite_widget}
+     */
     that.section_factory = spec.section_factory || IPA.details_table_section;
 
+    /**
+     * Field builder
+     * @property {IPA.field_builder}
+     */
     that.field_builder = spec.field_builder;
+
+    /**
+     * Widget builder
+     * @property {IPA.widget_builder}
+     */
     that.widget_builder = spec.widget_builder;
 
+    /**
+     * Build multiple sections
+     * @param {Array.<Object>} sections section specs
+     */
     that.build_sections = function(sections) {
 
         if(!sections) return;
@@ -132,6 +235,12 @@ exp.section_builder = IPA.section_builder = function(spec) {
         }
     };
 
+    /**
+     * Build single section
+     * @param {Object} section_spec
+     * @param {number|string} index value which is used in section name if name
+     *                        is not specified in spec
+     */
     that.build_section = function(section_spec, index) {
         section_spec.entity = that.container.entity;
         section_spec.facet = that.container;
@@ -152,13 +261,23 @@ exp.section_builder = IPA.section_builder = function(spec) {
         that.create_fields(section, section_spec.fields);
     };
 
-    that.create_fields = function(section, fields_spec) {
+    /**
+     * Create fields and associated widgets
+     * @param {IPA.composite_widget} section
+     * @param {Array.<Object>} field_specs
+     */
+    that.create_fields = function(section, fields_specs) {
 
-        for (var i=0; i < fields_spec.length; i++) {
-            that.create_field(section, fields_spec[i]);
+        for (var i=0; i < fields_specs.length; i++) {
+            that.create_field(section, fields_specs[i]);
         }
     };
 
+    /**
+     * Create field and associated widget
+     * @param {IPA.composite_widget} section
+     * @param {Object} field_spec
+     */
     that.create_field = function(section, field_spec) {
 
         var widget = that.widget_builder.build_widget(field_spec, section.widgets);
@@ -176,35 +295,89 @@ exp.section_builder = IPA.section_builder = function(spec) {
     return that;
 };
 
+/**
+ * Facet policy
+ *
+ * Object which extends container's (facet or dialog) logic.
+ *
+ * @class details.facet_policy
+ * @alternateClassName IPA.facet_policy
+ */
 exp.facet_policy = IPA.facet_policy = function() {
 
     var that = IPA.object();
 
+    /**
+     * Container
+     * @property {IPA.facet|IPA.dialog}
+     */
+    that.container = null;
+
+    /**
+     * Init handler.
+     *
+     * Should be executed in container's init.
+     */
     that.init = function() {
     };
 
+    /**
+     * Post Create Handler
+     *
+     * Should be executed at the end of container's create
+     */
     that.post_create = function() {
     };
 
+    /**
+     * Post Load Handler
+     *
+     * Should be executed at the end of container's load
+     * @param {Object} data
+     */
     that.post_load = function(data) {
     };
 
     return that;
 };
 
+/**
+ * Facet policy collection
+ *
+ * @class details.facet_policies
+ * @alternateClassName IPA.facet_policies
+ */
 exp.facet_policies = IPA.facet_policies = function(spec) {
 
     var that = IPA.object();
 
+    /**
+     * Container
+     * @property {IPA.facet|IPA.dialog}
+     */
     that.container = spec.container;
+
+    /**
+     * Facet Policies
+     * @readonly
+     * @property {Array.<details.facet_policy>}
+     */
     that.policies = [];
 
+    /**
+     * Add policy
+     * @param {details.facet_policy} policy
+     */
     that.add_policy = function(policy) {
 
         policy.container = that.container;
         that.policies.push(policy);
     };
 
+    /**
+     * Add multiple policies
+     * @param {Array.<details.facet_policy>} policies
+     */
     that.add_policies = function(policies) {
 
         if (!policies) return;
@@ -214,6 +387,11 @@ exp.facet_policies = IPA.facet_policies = function(spec) {
         }
     };
 
+    /**
+     * Init handler
+     *
+     * Calls init handlers of all policies
+     */
     that.init = function() {
 
         for (var i=0; i<that.policies.length; i++) {
@@ -221,6 +399,11 @@ exp.facet_policies = IPA.facet_policies = function(spec) {
         }
     };
 
+    /**
+     * Post Create handler
+     *
+     * Calls post create handlers of all policies
+     */
     that.post_create = function() {
 
          for (var i=0; i<that.policies.length; i++) {
@@ -228,6 +411,11 @@ exp.facet_policies = IPA.facet_policies = function(spec) {
         }
     };
 
+    /**
+     * Post Load handler
+     *
+     * Calls post load handlers of all policies
+     */
     that.post_load = function(data) {
 
          for (var i=0; i<that.policies.length; i++) {
@@ -242,6 +430,19 @@ exp.facet_policies = IPA.facet_policies = function(spec) {
     return that;
 };
 
+/**
+ * Details facet build pre_op
+ *
+ * It
+ * - sets name, title, label if not present
+ * - adds default actions and related buttons
+ *   - refresh
+ *   - reset
+ *   - update
+ * - adds dirty state evaluator
+ *
+ * @member details
+ */
 exp.details_facet_pre_op = function(spec, context) {
 
     var entity = context.entity;
@@ -286,22 +487,81 @@ exp.details_facet_pre_op = function(spec, context) {
     return spec;
 };
 
+/**
+ * Details facet
+ * @class details.details_facet
+ * @alternateClassName IPA.details_facet
+ * @extends facet.facet
+ */
 exp.details_facet = IPA.details_facet = function(spec, no_init) {
 
     spec = spec || {};
 
     var that = IPA.facet(spec, true);
 
+    /**
+     * Entity
+     * @property {IPA.entity}
+     */
     that.entity = IPA.get_entity(spec.entity);
+
+    /**
+     * Name of update command
+     *
+     * - defaults to 'mod'
+     * @property {string}
+     */
     that.update_command_name = spec.update_command_name || 'mod';
+
+    /**
+     * Command mode
+     * Command mode determines how update information on update is collected.
+     * There are two modes:
+     *
+     * - `save` this uses field's `save()` method
+     * - `info` works with `details.update_info`. Update info is collected by
+     *    `get_update_info()` method.
+     * @property {string}
+     */
     that.command_mode = spec.command_mode || 'save'; // [save, info]
+
+    /**
+     * Check rights
+     *
+     * Controls obtaining of attribute level rights on refresh and update
+     *
+     * @property {boolean}
+     */
     that.check_rights = spec.check_rights !== undefined ? spec.check_rights : true;
 
+    /**
+     * Facet label
+     * @property {string}
+     */
     that.label = text.get(spec.label) || text.get('facets.details');
+
+    /**
+     * Facet group
+     * @property {string}
+     */
     that.facet_group = spec.facet_group || 'settings';
 
+    /**
+     * Widgets
+     * @property {IPA.widget_container}
+     */
     that.widgets = IPA.widget_container();
+
+    /**
+     * Fields
+     * @property {IPA.field_container}
+     */
     that.fields = IPA.field_container({ container: that });
+
+    /**
+     * Policies
+     * @property {IPA.facet_policies}
+     */
     that.policies = IPA.facet_policies({
         container: that,
         policies: spec.policies
@@ -315,9 +575,23 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         that.fields.container_add_field(field);
     };
 
+    /**
+     * Dirty
+     *
+     * - true if any field is dirty
+     * @property {boolean}
+     */
     that.dirty = false;
+
+    /**
+     * Dirty changed
+     * @event
+     */
     that.dirty_changed = IPA.observer();
 
+    /**
+     * @inheritDoc
+     */
     that.create = function(container) {
         if (that.entity.facets.length == 1) {
             if (that.disable_breadcrumb === undefined) {
@@ -332,11 +606,19 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         that.policies.post_create();
     };
 
+    /**
+     * Create header controls
+     *
+     * - ie control buttons
+     */
     that.create_controls = function() {
 
         that.create_control_buttons(that.controls);
     };
 
+    /**
+     * @inheritDoc
+     */
     that.create_header = function(container) {
 
         that.facet_create_header(container);
@@ -389,6 +671,9 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         container.append('<hr/>');
     };
 
+    /**
+     * @inheritDoc
+     */
     that.create_content = function(container) {
 
         that.content = $('<div/>', {
@@ -403,12 +688,23 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         }).appendTo(container);
     };
 
+    /**
+     * @inheritDoc
+     */
     that.show = function() {
         that.facet_show();
         var pkey = that.get_pkey();
         that.header.set_pkey(pkey);
     };
 
+    /**
+     * Field's dirty event handler
+     *
+     * Sets this dirty state
+     *
+     * @protected
+     * @param {boolean} dirty
+     */
     that.field_dirty_changed = function(dirty) {
 
         var old_dirty = that.dirty;
@@ -424,6 +720,12 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         }
     };
 
+    /**
+     * Evaluates if facet is dirty.
+     *
+     * Facet is dirty if any child widget is dirty.
+     * @return {boolean} dirty
+     */
     that.is_dirty = function() {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
@@ -434,6 +736,9 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         return false;
     };
 
+    /**
+     * @inheritDoc
+     */
     that.load = function(data) {
         that.facet_load(data);
 
@@ -447,6 +752,10 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         that.clear_expired_flag();
     };
 
+    /**
+     * Save fields' values into record
+     * @param {Object} record
+     */
     that.save = function(record) {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
@@ -455,6 +764,19 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         }
     };
 
+    /**
+     * Creates update info
+     *
+     * - used when in 'save' command mode
+     *
+     * This update info consists of fields' update information
+     *
+     * @param {boolean} [only_dirty=false] collect update information only from
+     *                                     dirty fields
+     * @param {boolean} [require_value=false] collect update information from
+     *                                        fields which has value
+     * @return {details.update_info}
+     */
     that.save_as_update_info = function(only_dirty, require_value) {
 
         var record = {};
@@ -477,6 +799,9 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         return update_info;
     };
 
+    /**
+     * Reset facet
+     */
     that.reset = function() {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
@@ -485,7 +810,10 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         }
     };
 
-
+    /**
+     * Validate all fields
+     * @return {boolean} all fields are valid
+     */
     that.validate = function() {
         var valid = true;
         var fields = that.fields.get_fields();
@@ -496,6 +824,10 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         return valid;
     };
 
+    /**
+     * Notifies successful update
+     * @protected
+     */
     that.nofify_update_success = function() {
         var msg = text.get('@i18n:details.updated');
         var key = that.get_pkey();
@@ -504,16 +836,45 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         IPA.notify_success(msg);
     };
 
-
+    /**
+     * Update success handler
+     *
+     * Invokes Load by default.
+     *
+     * This is the method to override if different actions need to be taken
+     * on update success.
+     *
+     * @protected
+     * @param {Object} data
+     * @param {string} text_status
+     * @param {XMLHttpRequest} xhr
+     */
     that.update_on_success = function(data, text_status, xhr) {
         that.load(data);
         that.on_update.notify();
         that.nofify_update_success();
     };
 
+    /**
+     * Update error handler
+     *
+     * This is the method to override if different actions need to be taken
+     * on update error.
+     *
+     * @protected
+     * @param {XMLHttpRequest} xhr
+     * @param {string} text_status
+     * @param {Object} error_thrown
+     */
     that.update_on_error = function(xhr, text_status, error_thrown) {
     };
 
+    /**
+     * Adds update info as command options
+     * @protected
+     * @param {details.update_info} update_info
+     * @param {IPA.command} command
+     */
     that.add_fields_to_command = function(update_info, command) {
 
         for (var i=0; i < update_info.fields.length; i++) {
@@ -527,6 +888,12 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         }
     };
 
+    /**
+     * Create update command based on field part of update info
+     * @protected
+     * @param {details.update_info} update_info
+     * @return {IPA.command}
+     */
     that.create_fields_update_command = function(update_info) {
 
         var args = that.get_pkeys();
@@ -547,6 +914,15 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         return command;
     };
 
+    /**
+     * Create batch command from update info
+     *
+     * Created batch command consists of update info's commands and a mod command
+     * to reflect field part of update info (if present).
+     * @protected
+     * @param {details.update_info} update_info
+     * @return {IPA.batch_command}
+     */
     that.create_batch_update_command = function(update_info) {
 
         var batch = IPA.batch_command({
@@ -571,6 +947,10 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         return batch;
     };
 
+    /**
+     * Show validation error
+     * @protected
+     */
     that.show_validation_error = function() {
         var dialog = IPA.message_dialog({
             name: 'validation_error',
@@ -580,6 +960,11 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         dialog.open();
     };
 
+    /**
+     * Create update command
+     * @protected
+     * @return {IPA.command/IPA.batch_command}
+     */
     that.create_update_command = function() {
 
         var command, update_info;
@@ -601,6 +986,14 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         return command;
     };
 
+    /**
+     * Perform update operation
+     *
+     * Update reflects current state into data store.
+     *
+     * @param {Function} on_success success handler
+     * @param {Function} on_error error handler
+     */
     that.update = function(on_success, on_error) {
 
         var command = that.create_update_command();
@@ -618,10 +1011,20 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         command.execute();
     };
 
+    /**
+     * Get refresh command name
+     * @protected
+     * @return {string}
+     */
     that.get_refresh_command_name = function() {
         return that.entity.name+'_show';
     };
 
+    /**
+     * Create refresh command
+     * @protected
+     * @return {IPA.command}
+     */
     that.create_refresh_command = function() {
 
         var options = { all: true };
@@ -641,16 +1044,33 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         return command;
     };
 
+    /**
+     * Refresh success handler
+     * @protected
+     * @param {Object} data
+     * @param {string} text_status
+     * @param {XMLHttpRequest} xhr
+     */
     that.refresh_on_success = function(data, text_status, xhr) {
         that.load(data);
         that.show_content();
     };
 
+    /**
+     * Refresh error handler
+     * @protected
+     * @param {XMLHttpRequest} xhr
+     * @param {string} text_status
+     * @param {Object} error_thrown
+     */
     that.refresh_on_error = function(xhr, text_status, error_thrown) {
         that.redirect_error(error_thrown);
         that.report_error(error_thrown);
     };
 
+    /**
+     * @inheritDoc
+     */
     that.refresh = function(on_success, on_error) {
 
         if (!that.get_pkey() && that.entity.redirect_facet) {
@@ -673,12 +1093,22 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         command.execute();
     };
 
+    /**
+     * @inheritDoc
+     */
     that.clear = function() {
         that.header.clear();
 
         that.widgets.clear();
     };
 
+    /**
+     * Create update info
+     *
+     * - used in `update_info` command mode
+     * @protected
+     * @return {details.update_info}
+     */
     that.get_update_info = function() {
 
         var update_info = IPA.update_info_builder.new_update_info();
@@ -695,6 +1125,10 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         return update_info;
     };
 
+    /**
+     * Create builders needed for initialization
+     * @protected
+     */
     that.create_builder = function() {
 
         var widget_builder = IPA.widget_builder({
@@ -723,6 +1157,13 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         });
     };
 
+    /**
+     * Initialize details facet
+     *
+     * - called automatically if `no_init==true` is not present
+     *
+     * @protected
+     */
     that.init_details_facet = function() {
 
         that.init_facet();
@@ -743,18 +1184,42 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     return that;
 };
 
+/**
+ * Update info
+ * @class details.update_info
+ * @alternateClassName IPA.update_info
+ */
 exp.update_info = IPA.update_info = function(spec) {
 
     var that = IPA.object();
 
+    /**
+     * Fields update info
+     * @property {Array.<details.field_info>}
+     */
     that.fields = spec.fields || [];
+
+    /**
+     * Update commands info
+     * @property {Array.<details.command_info>}
+     */
     that.commands = spec.commands || [];
 
+    /**
+     * Create new field info and add it to collection
+     * @param {IPA.field} field
+     * @param {Object} value field's value
+     */
     that.append_field = function(field, value) {
         var field_info = IPA.update_info_builder.new_field_info(field, value);
         that.fields.push(field_info);
     };
 
+    /**
+     * Create new command info and add it to collection
+     * @param {IPA.command} command
+     * @param {number} priority
+     */
     that.append_command = function (command, priority) {
         var command_info = IPA.update_info_builder.new_command_info(command, priority);
         that.commands.push(command_info);
@@ -763,30 +1228,72 @@ exp.update_info = IPA.update_info = function(spec) {
     return that;
 };
 
+/**
+ * Command info
+ * @class details.command_info
+ * @alternateClassName IPA.command_info
+ */
 exp.command_info = IPA.command_info = function(spec) {
 
     var that = IPA.object();
 
+    /**
+     * Command
+     * @property {IPA.command}
+     */
     that.command = spec.command;
+
+    /**
+     * Priority
+     *
+     * - controls command execution order
+     * @property {number}
+     */
     that.priority = spec.priority || IPA.config.default_priority;
 
     return that;
 };
 
+/**
+ * Field update info
+ * @class details.field_info
+ * @alternateClassName IPA.field_info
+ */
 exp.field_info = IPA.field_info = function(spec) {
 
     var that = IPA.object();
 
+    /**
+     * Field
+     * @property {IPA.field}
+     */
     that.field = spec.field;
+
+    /**
+     * Value
+     * @property {Object}
+     */
     that.value = spec.value;
 
     return that;
 };
 
+/**
+ * Update info builder
+ * @class details.update_info_builder
+ * @alternateClassName IPA.update_info_builder
+ * @singleton
+ */
 exp.update_info_builder = IPA.update_info_builder = function() {
 
     var that = IPA.object();
 
+    /**
+     * Create update info from field and command infos
+     * @param {Array.<details.field_info>} fields
+     * @param {Array.<details.command_info>} commands
+     * @return {details.update_info}
+     */
     that.new_update_info = function (fields, commands) {
         return IPA.update_info({
             fields: fields,
@@ -794,6 +1301,12 @@ exp.update_info_builder = IPA.update_info_builder = function() {
         });
     };
 
+    /**
+     * Create field info
+     * @param {details.field_info} field
+     * @param {Object} value
+     * @return {details.field_info}
+     */
     that.new_field_info = function(field, value) {
         return IPA.field_info({
             field: field,
@@ -801,6 +1314,12 @@ exp.update_info_builder = IPA.update_info_builder = function() {
         });
     };
 
+    /**
+     * Create new command info
+     * @param {IPA.command} command
+     * @param {number} priority
+     * @return {details.command_info}
+     */
     that.new_command_info = function(command, priority) {
         return IPA.command_info({
             command: command,
@@ -808,12 +1327,23 @@ exp.update_info_builder = IPA.update_info_builder = function() {
         });
     };
 
+    /**
+     * Merge two commands info into new one
+     * @param {details.command_info} a
+     * @param {details.command_info} b
+     * @return {details.command_info}
+     */
     that.merge = function(a, b) {
         return that.new_update_info(
             a.fields.concat(b.fields),
             a.commands.concat(b.commands));
     };
 
+    /**
+     * Create copy of command info
+     * @param {details.command_info} original
+     * @return {details.command_info} copy
+     */
     that.copy = function(original) {
         return that.new_update_info(
             original.fields.concat([]),
@@ -823,10 +1353,23 @@ exp.update_info_builder = IPA.update_info_builder = function() {
     return that;
 }();
 
+/**
+ * Field add/mod command builder
+ *
+ * @class details.command_builder
+ * @alternateClassName IPA.command_builder
+ * @singleton
+ */
 exp.command_builder = IPA.command_builder = function() {
 
     var that = IPA.object();
 
+    /**
+     * Add option to command with field values
+     * @param {IPA.command} command
+     * @param {IPA.field} field
+     * @param {Array} values
+     */
     that.add_field_option = function(command, field, values) {
         if (!field || !values) return;
 
@@ -854,6 +1397,12 @@ exp.command_builder = IPA.command_builder = function() {
     return that;
 }();
 
+/**
+ * No-op action which serves only for displaying label
+ * @class details.select_action
+ * @alternateClassName IPA.select_action
+ * @extends facet.action
+ */
 exp.select_action = IPA.select_action = function(spec) {
 
     spec = spec || {};
@@ -868,6 +1417,12 @@ exp.select_action = IPA.select_action = function(spec) {
     return that;
 };
 
+/**
+ * Invokes `facet.refresh`
+ * @class details.refresh_action
+ * @alternateClassName IPA.refresh_action
+ * @extends facet.action
+ */
 exp.refresh_action = IPA.refresh_action = function(spec) {
 
     spec = spec || {};
@@ -883,6 +1438,12 @@ exp.refresh_action = IPA.refresh_action = function(spec) {
     return that;
 };
 
+/**
+ * Invokes `facet.reset`
+ * @class details.reset_action
+ * @alternateClassName IPA.reset_action
+ * @extends facet.action
+ */
 exp.reset_action = IPA.reset_action = function(spec) {
 
     spec = spec || {};
@@ -899,6 +1460,12 @@ exp.reset_action = IPA.reset_action = function(spec) {
     return that;
 };
 
+/**
+ * Invokes validation and then `facet.update`
+ * @class details.update_action
+ * @alternateClassName IPA.update_action
+ * @extends facet.action
+ */
 exp.update_action = IPA.update_action = function(spec) {
 
     spec = spec || {};
@@ -922,6 +1489,14 @@ exp.update_action = IPA.update_action = function(spec) {
     return that;
 };
 
+/**
+ * Sets state based on value of loaded boolean attribute.
+ * - evaluated on post load by default
+ *
+ * @class details.boolean_state_evaluator
+ * @alternateClassName IPA.boolean_state_evaluator
+ * @extends facet.state_evaluator
+ */
 exp.boolean_state_evaluator = IPA.boolean_state_evaluator = function(spec) {
 
     spec = spec || {};
@@ -930,23 +1505,56 @@ exp.boolean_state_evaluator = IPA.boolean_state_evaluator = function(spec) {
 
     var that = IPA.state_evaluator(spec);
 
+    /**
+     * @inheritDoc
+     */
     that.name = spec.name || 'boolean_state_evaluator';
-    that.field = spec.field;
+
+    /**
+     * Attribute's name
+     *
+     * - spec name: `field`
+     * @property {string}
+     */
+    that.field_name = spec.field;
+
+    /**
+     * State to set when value is `true`
+     * @property {string}
+     */
     that.true_state = spec.true_state || that.field_name + '-true';
+
+    /**
+     * State to set when value is `false`
+     * @property {string}
+     */
     that.false_state = spec.false_state || that.field_name + '-false';
+
+    /**
+     * Inverted logic
+     * @property {boolean}
+     */
     that.invert_value = spec.invert_value;
+
+    /**
+     * Value parser
+     * @property {IPA.boolean_formatter}
+     */
     that.parser = IPA.build({
         $factory: spec.parser || IPA.boolean_formatter,
         invert_value: that.invert_value
     });
 
+    /**
+     * @inheritDoc
+     */
     that.on_event = function(data) {
 
         var old_state = that.state;
         var record = data.result.result;
         that.state = [];
 
-        var value = that.parser.parse(record[that.field]);
+        var value = that.parser.parse(record[that.field_name]);
 
         if (value === true) {
             that.state.push(that.true_state);
@@ -960,6 +1568,21 @@ exp.boolean_state_evaluator = IPA.boolean_state_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Evaluates enabled/disabled state
+ *
+ *      // in facet spec
+ *      evaluators: [
+ *          {
+ *              $factory: IPA.enable_state_evaluator,
+ *              field: 'ipaenabledflag'
+ *          }
+ *      ],
+ *
+ * @class details.enable_state_evaluator
+ * @alternateClassName IPA.enable_state_evaluator
+ * @extends details.boolean_state_evaluator
+ */
 exp.enable_state_evaluator = IPA.enable_state_evaluator = function(spec) {
 
     spec = spec || {};
@@ -972,14 +1595,31 @@ exp.enable_state_evaluator = IPA.enable_state_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Create state for each attribute level right user has for specific attribute
+ *
+ * - on post load
+ * - state value is $(ATTR_NAME)_$(RIGHT) where right is a letter (one of 'rscwo')
+ *
+ * @class details.acl_state_evaluator
+ * @alternateClassName IPA.acl_state_evaluator
+ * @extends facet.state_evaluator
+ */
 exp.acl_state_evaluator = IPA.acl_state_evaluator = function(spec) {
 
     spec.name = spec.name || 'acl_state_evaluator';
     spec.event = spec.event || 'post_load';
 
     var that = IPA.state_evaluator(spec);
+    /**
+     * Attribute name
+     * @property {string}
+     */
     that.attribute = spec.attribute;
 
+    /**
+     * @inheritDoc
+     */
     that.on_event = function(data) {
 
         var old_state, record, rights, i, state;
@@ -1008,16 +1648,45 @@ exp.acl_state_evaluator = IPA.acl_state_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Evaluator which sets state when loaded value of specific attribute is equal
+ * to desired value.
+ *
+ * @class details.value_state_evaluator
+ * @alternateClassName IPA.value_state_evaluator
+ * @extends facet.state_evaluator
+ */
 exp.value_state_evaluator = IPA.value_state_evaluator = function(spec) {
 
     spec.name = spec.name || 'value_state_evaluator';
     spec.event = spec.event || 'post_load';
 
     var that = IPA.state_evaluator(spec);
+
+    /**
+     * Attribute name
+     * @property {string}
+     */
     that.attribute = spec.attribute;
+
+    /**
+     * Desired value
+     * @property {Mixed}
+     */
     that.value = spec.value;
+
+    /**
+     * State to set
+     *
+     * If not set, state is created from attribute name and value:
+     *      `$(ATTR_NAME)_$(VALUE)`
+     * @property {string}
+     */
     that.representation = spec.representation;
 
+    /**
+     * @inheritDoc
+     */
     that.on_event = function(data) {
 
         var old_state, record, state, value, loaded_value;
@@ -1037,6 +1706,15 @@ exp.value_state_evaluator = IPA.value_state_evaluator = function(spec) {
         that.notify_on_change(old_state);
     };
 
+    /**
+     * Normalize value
+     *
+     * - it's expected that value will be in array (to work with multivalued
+     *   attributes)
+     * - override point
+     * @protected
+     * @return {Mixed} value
+     */
     that.normalize_value = function(original) {
 
         var value = original;
@@ -1047,6 +1725,16 @@ exp.value_state_evaluator = IPA.value_state_evaluator = function(spec) {
         return value;
     };
 
+    /**
+     * Create state
+     *
+     * If `representation` is not set, state is created from attribute name
+     * and value:
+     *      `$(ATTR_NAME)_$(VALUE)`
+     *
+     * @protected
+     * @return {string} state
+     */
     that.get_state_text = function() {
 
         var representation, value;
@@ -1064,6 +1752,17 @@ exp.value_state_evaluator = IPA.value_state_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Object class evaluator
+ *
+ * Set state for each object class which loaded record has.
+ *
+ * State name is `oc_$(class)`
+ *
+ * @class details.object_class_evaluator
+ * @alternateClassName IPA.object_class_evaluator
+ * @extends facet.state_evaluator
+ */
 exp.object_class_evaluator = IPA.object_class_evaluator = function(spec) {
 
     spec.name = spec.name || 'object_class_evaluator';
@@ -1072,6 +1771,9 @@ exp.object_class_evaluator = IPA.object_class_evaluator = function(spec) {
     var that = IPA.state_evaluator(spec);
 
 
+    /**
+     * @inheritDoc
+     */
     that.on_event = function(data) {
 
         var old_state, classes, i;
@@ -1091,16 +1793,42 @@ exp.object_class_evaluator = IPA.object_class_evaluator = function(spec) {
     return that;
 };
 
+/**
+ * Base class for executing specific entity methods
+ * - command options can be set
+ * - facet pkeys are set as command arguments
+ * - entity is fetched from facet
+ * @class details.object_action
+ * @alternateClassName IPA.object_action
+ * @extends facet.action
+ */
 exp.object_action = IPA.object_action = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.action(spec);
 
+    /**
+     * Method name
+     * @property {string}
+     */
     that.method = spec.method;
+
+    /**
+     * @inheritDoc
+     */
     that.confirm_msg = text.get(spec.confirm_msg || '@i18n:actions.confirm');
+
+    /**
+     * Command options
+     * @property {Object}
+     */
     that.options = spec.options || {};
 
+    /**
+     * @protected
+     * @inheritDoc
+     */
     that.execute_action = function(facet, on_success, on_error) {
 
         var entity_name = facet.entity.name;
@@ -1116,6 +1844,14 @@ exp.object_action = IPA.object_action = function(spec) {
         }).execute();
     };
 
+    /**
+     * Command success handler
+     * @protected
+     * @param {facet.facet} facet
+     * @param {Object} data
+     * @param {string} text_status
+     * @param {XMLHttpRequest} xhr
+     */
     that.on_success = function(facet, data, text_status, xhr) {
 
         IPA.notify_success(data.result.summary);
@@ -1123,10 +1859,25 @@ exp.object_action = IPA.object_action = function(spec) {
         facet.refresh();
     };
 
+    /**
+     * Command error handler
+     * @protected
+     * @param {facet.facet} facet
+     * @param {XMLHttpRequest} xhr
+     * @param {string} text_status
+     * @param {Object} error_thrown
+     */
     that.on_error = function(facet, xhr, text_status, error_thrown) {
         facet.refresh();
     };
 
+    /**
+     * Combines given success handler with action success handler so both
+     * can be called.
+     * @protected
+     * @param {facet.facet} facet
+     * @param {Function} on_success success handler
+     */
     that.get_on_success = function(facet, on_success) {
         return function(data, text_status, xhr) {
             that.on_success(facet, data, text_status, xhr);
@@ -1134,6 +1885,13 @@ exp.object_action = IPA.object_action = function(spec) {
         };
     };
 
+    /**
+     * Combines given error handler with action error handler so both
+     * can be called.
+     * @protected
+     * @param {facet.facet} facet
+     * @param {Function} on_error error handler
+     */
     that.get_on_error = function(facet, on_error) {
         return function(xhr, text_status, error_thrown) {
             that.on_error(facet, xhr, text_status, error_thrown);
@@ -1141,6 +1899,10 @@ exp.object_action = IPA.object_action = function(spec) {
         };
     };
 
+    /**
+     * @protected
+     * @inheritDoc
+     */
     that.get_confirm_message = function(facet) {
         var pkey = that.get_pkey();
         var msg = that.confirm_msg.replace('${object}', pkey);
@@ -1152,6 +1914,12 @@ exp.object_action = IPA.object_action = function(spec) {
     return that;
 };
 
+/**
+ * Call 'enable' method of current entity
+ * @class details.enable_action
+ * @alternateClassName IPA.enable_action
+ * @extends details.object_action
+ */
 exp.enable_action = IPA.enable_action = function(spec) {
 
     spec = spec || {};
@@ -1166,6 +1934,12 @@ exp.enable_action = IPA.enable_action = function(spec) {
     return that;
 };
 
+/**
+ * Call 'disable' method of current entity
+ * @class details.disable_action
+ * @alternateClassName IPA.disable_action
+ * @extends details.object_action
+ */
 exp.disable_action = IPA.disable_action = function(spec) {
 
     spec = spec || {};
@@ -1180,6 +1954,15 @@ exp.disable_action = IPA.disable_action = function(spec) {
     return that;
 };
 
+/**
+ * Call 'delete' method of current entity
+ *
+ * Redirects to facet's redirect target on success by default.
+ *
+ * @class details.delete_action
+ * @alternateClassName IPA.delete_action
+ * @extends details.object_action
+ */
 exp.delete_action = IPA.delete_action = function(spec) {
 
     spec = spec || {};
@@ -1207,7 +1990,12 @@ exp.delete_action = IPA.delete_action = function(spec) {
     return that;
 };
 
-
+/**
+ * Summary condition for 'enabled' state
+ *
+ * @class details.enabled_summary_cond
+ * @alternateClassName IPA.enabled_summary_cond
+ */
 exp.enabled_summary_cond = IPA.enabled_summary_cond = function() {
 
     var that = IPA.object();
@@ -1220,6 +2008,12 @@ exp.enabled_summary_cond = IPA.enabled_summary_cond = function() {
     return that;
 };
 
+/**
+ * Summary condition for 'disabled' state
+ *
+ * @class details.disabled_summary_cond
+ * @alternateClassName IPA.disabled_summary_cond
+ */
 exp.disabled_summary_cond = IPA.disabled_summary_cond = function() {
     var that = IPA.object();
     lang.mixin(that, {
@@ -1231,6 +2025,11 @@ exp.disabled_summary_cond = IPA.disabled_summary_cond = function() {
     return that;
 };
 
+/**
+ * Register facet and actions.
+ *
+ * @member details
+ */
 exp.register = function() {
     var a = reg.action;
     var f = reg.facet;

@@ -18,12 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Application controller
- *
- * Controls interaction between navigation, menu and facets.
- */
-
 define([
         'dojo/_base/declare',
         'dojo/_base/lang',
@@ -44,10 +38,11 @@ define([
             JSON, App_widget, IPA, Menu, Router, menu_spec) {
 
     /**
-     * Main application
+     * Application controller
      *
-     * This class serves as top level widget. It creates basic UI: controls
-     * rendering of header, footer and placeholder for facets.
+     * Controls interaction between navigation, menu and facets.
+     *
+     * @class Application_controller
      */
     var App = declare(null, {
 

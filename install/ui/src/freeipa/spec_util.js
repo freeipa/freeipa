@@ -25,13 +25,18 @@ define(['dojo/_base/declare',
 
     var undefined;
 
+    /**
+     * Utility for working with specification objects
+     * @class spec_util
+     * @singleton
+     */
     var exp = {
 
         /**
          * Set default value of spec's attribute when not already
          *
          * @param {Object} spec
-         * @param {String} attribute name
+         * @param {string} attribute name
          * @param {*} default value
          * @param {Object} object
          */

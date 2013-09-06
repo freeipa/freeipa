@@ -22,16 +22,23 @@ define(['dojo/_base/declare',
         'dojo/_base/lang'
         ], function(declare, lang) {
 
+    /**
+     * Utility for common modification of specification objects
+     *
+     * @class _base.Spec_mod
+     */
     var Spec_mod = declare(null, {
 
         /**
          * Modifies spec according to rules defined in diff object.
          *
-         * Diff should have following structure: {
-         *      $add: array of add rules
-         *      $del: array of del rules
-         *      $set: array of set rules
-         * }
+         * Diff should have structure as follows:
+         *
+         *      {
+         *          $add: array of add rules
+         *          $del: array of del rules
+         *          $set: array of set rules
+         *      }
          *
          * The order of modification is del, add, set.
          *
@@ -54,8 +61,10 @@ define(['dojo/_base/declare',
          * Adds objects according to rules to array.
          *
          * A rule is a triple of path and a object and position to add:
-         *      ['path.to.spec.array', {}, position]
          *
+         *      ['path.to.spec.array', {}, position]
+         * @param {Object} spec
+         * @param {Array} rules
          */
         add: function(spec, rules) {
 
@@ -66,9 +75,11 @@ define(['dojo/_base/declare',
          * Deletes objects according to rules from an array.
          *
          * A rule is a pair of path and delete conditions:
-         *      ['path.to.spec.array', [ { name: 'foo'}, { name: 'baz'} ]]
          *
-         *      Deletes all objects with name 'baz' or 'foo'.
+         *      ['path.to.spec.array', [ { name: 'foo'}, { name: 'baz'} ]]
+         *      // Deletes all objects with name 'baz' or 'foo'.
+         * @param {Object} spec
+         * @param {Array} rules
          */
         del: function(spec, rules) {
 
@@ -77,7 +88,10 @@ define(['dojo/_base/declare',
 
         /**
          * A rule is a pair of path and a object to set.
+         *
          *      ['path.to.spec.property', {}]
+         * @param {Object} spec
+         * @param {Array} rules
          */
         set: function(spec, rules) {
 
@@ -86,6 +100,7 @@ define(['dojo/_base/declare',
 
         /**
          * Removes all rule props
+         * @param {Object} diff
          */
         del_rules: function(diff) {
             delete diff.$add;

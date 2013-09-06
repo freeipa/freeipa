@@ -18,12 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Global builder interface.
- *
- * Contains a map of builders for a specific object type.
- *
- */
 define(['dojo/_base/declare',
         'dojo/_base/array',
         'dojo/_base/lang',
@@ -34,13 +28,25 @@ define(['dojo/_base/declare',
     var builder_registry = new Singleton_registry();
     builder_registry.builder.ctor = Builder;
 
+    /**
+     * Global builder interface.
+     *
+     * Contains a map of builders for a specific object type.
+     *
+     * @class builder
+     * @singleton
+     */
     var exp = {
+        /**
+         * Registry of builders
+         * @property {_base.Singleton_registry}
+         */
         builders: builder_registry,
 
         /**
          * Get builder for object type
          *
-         * @param {String} object type
+         * @param {string} object type
          */
         get: function(obj_type) {
             return this.builders.get(obj_type);
@@ -49,8 +55,8 @@ define(['dojo/_base/declare',
         /**
          * Set builder for object type.
          *
-         * @param {String} object type
-         * @param {Builder} builder
+         * @param {string} object type
+         * @param {_base.Builder} builder
          */
         set: function(obj_type, builder) {
             this.builders.set(obj_type, builder);
@@ -59,8 +65,8 @@ define(['dojo/_base/declare',
         /**
          * Build object by builder for given object type.
          *
-         * @param {String} object type. Uses generic builder if empty string.
-         * @param {String|Object|Function} spec
+         * @param {string} object type. Uses generic builder if empty string.
+         * @param {string|Object|Function} spec
          * @param {Object|null} context
          * @param {Object|null} build overrides
          */

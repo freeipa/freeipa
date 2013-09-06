@@ -18,12 +18,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Application configuration
- */
+
 
 define([], function() {
 
+    /**
+     * Application configuration
+     * @class config
+     * @singleton
+     */
     var config = {
 
         /**

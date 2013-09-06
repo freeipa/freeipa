@@ -33,38 +33,122 @@ define(['dojo/_base/array',
        ],
        function(array, lang, builder, IPA, $, phases, reg, text) {
 
+/**
+ * Widget module
+ * =============
+ *
+ * External usage:
+ *
+ *      var widget = require('freeipa/widget')
+ * @class widget
+ * @singleton
+ */
 var exp = {};
 
+/**
+ * Width of column which contains only checkbox
+ * @member IPA
+ * @property {number}
+ */
 IPA.checkbox_column_width = 22;
+
+/**
+ * String to show next to required fields to indicate that the field is required.
+ * @member IPA
+ * @property {string}
+ */
 IPA.required_indicator = '*';
 
+/**
+ * Base widget
+ * @class
+ * @param {Object} spec
+ * @abstract
+ */
 IPA.widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Widget name. Should be container unique.
+     */
     that.name = spec.name;
+
+    /**
+     * Widget element ID.
+     * @deprecated
+     */
     that.id = spec.id;
+
+    /**
+     * Label
+     * @property {string}
+     */
     that.label = text.get(spec.label);
+
+    /**
+     * Helper text
+     * @property {string}
+     */
     that.tooltip = text.get(spec.tooltip);
+
+    /**
+     * Measurement unit
+     * @property {string}
+     */
     that.measurement_unit = spec.measurement_unit;
+
+    /**
+     * Parent entity
+     * @deprecated
+     * @property {IPA.entity}
+     */
     that.entity = IPA.get_entity(spec.entity); //some old widgets still need it
+
+    /**
+     * Parent facet
+     * @property {IPA.facet}
+     */
     that.facet = spec.facet;
+
+    /**
+     * Widget is enabled - can be focus and edited (depends also on writable
+     * and read_only)
+     * @property {boolean}
+     */
     that.enabled = spec.enabled === undefined ? true : spec.enabled;
 
+    /**
+     * Create HTML representation of a widget.
+     * @method
+     * @param {HTMLElement} container - Container node
+     */
     that.create = function(container) {
         container.addClass('widget');
         that.container = container;
     };
 
+    /**
+     * Reset widget content. All user-modifiable information have to be
+     * changed back to widgets defaults.
+     */
     that.clear = function() {
     };
 
+    /**
+     * Set enabled state.
+     * @param {boolean} value - True - enabled; False - disabled
+     */
     that.set_enabled = function(value) {
         that.enabled = value;
     };
 
+    /**
+     * Whether widget should be displayed.
+     * @param {boolean} value - True - visible; False - hidden
+     */
     that.set_visible = function(visible) {
 
         if (visible) {
@@ -74,6 +158,12 @@ IPA.widget = function(spec) {
         }
     };
 
+    /**
+     * Utility method. Build widget based on spec with this widget's context.
+     * @param {boolean} spec - Widget specification object
+     * @param {Object} context - Context object. Gets mixed with this widget context.
+     * @param {Object} overrides - Build overrides
+     */
     that.build_child = function(spec, context, overrides) {
 
         var def_c = {
@@ -91,27 +181,90 @@ IPA.widget = function(spec) {
     return that;
 };
 
+/**
+ * Base class for input gathering widgets.
+ * @class
+ * @extends IPA.widget
+ * @abstract
+ */
 IPA.input_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.widget(spec);
 
+    /**
+     * Widget's width.
+     * @deprecated
+     * @property {number}
+     */
     that.width = spec.width;
+
+    /**
+     * Widget's height.
+     * @deprecated
+     * @property {number}
+     */
     that.height = spec.height;
 
+    /**
+     * Enable undo button showing. Undo button is displayed when user
+     * modifies data.
+     * @property {boolean} undo=true
+     */
     that.undo = spec.undo === undefined ? true : spec.undo;
+
+    /**
+     * User has rights to modify widgets content. Ie. based on LDAP ACL.
+     * @property {boolean} writable=true
+     */
     that.writable = spec.writable === undefined ? true : spec.writable;
+
+    /**
+     * This widget content is read-only.
+     * @property {boolean}
+     */
     that.read_only = spec.read_only;
+
+    /**
+     * Mark the widget to be hidden (form or dialog may not display it).
+     * @property {boolean}
+     */
     that.hidden = spec.hidden;
 
     //events
     //each widget can contain several events
+    /**
+     * Value changed event.
+     *
+     * Raised when user modifies data by hand.
+     *
+     * @event
+     */
     that.value_changed = IPA.observer();
+
+    /**
+     * Undo clicked event.
+     *
+     * @event
+     */
     that.undo_clicked = IPA.observer();
+
+    /**
+     * Updated event.
+     *
+     * Raised when widget content gets updated - raised by
+     * {@link IPA.input_widget#update} method.
+     *
+     * @event
+     */
     that.updated = IPA.observer();
 
 
+    /**
+     * Creates HTML representation of error link
+     * @param {HTMLElement} container - node to place the error link
+     */
     that.create_error_link = function(container) {
         container.append(' ');
 
@@ -122,6 +275,10 @@ IPA.input_widget = function(spec) {
         }).appendTo(container);
     };
 
+    /**
+     * Creates HTML representation of required indicator.
+     * @param {HTMLElement} container - node to place the indicator
+     */
     that.create_required = function(container) {
         that.required_indicator = $('<span/>', {
             'class': 'required-indicator',
@@ -130,6 +287,11 @@ IPA.input_widget = function(spec) {
         }).appendTo(container);
     };
 
+    /**
+     * Update displayed information by supplied values.
+     * @param {Object|Array|null} values - values to be edited/displayed by
+     *                                     widget.
+     */
     that.update = function() {
     };
 
@@ -137,6 +299,7 @@ IPA.input_widget = function(spec) {
      * This function saves the values entered in the UI.
      * It returns the values in an array, or null if
      * the field should not be saved.
+     * @returns {Array|null} entered values
      */
     that.save = function() {
         return [];
@@ -147,6 +310,8 @@ IPA.input_widget = function(spec) {
      * On_undo is a link click callback. It can be specified to custom
      * callback. If a callback isn't set, default callback is used. If
      * spefified to value other than a function, no callback is registered.
+     * @param {HTMLElement} container
+     * @param {Function} link clicked callback
      */
     that.create_undo = function(container, on_undo) {
         container.append(' ');
@@ -170,33 +335,60 @@ IPA.input_widget = function(spec) {
         }
     };
 
+    /**
+     * Get reference to undo element
+     * @return {jQuery} undo button jQuery reference
+     */
     that.get_undo = function() {
         return $(that.undo_span);
     };
 
+    /**
+     * Display undo button
+     */
     that.show_undo = function() {
         that.get_undo().css('display', 'inline');
     };
 
+    /**
+     * Hide undo button
+     */
     that.hide_undo = function() {
         $(that.undo_span).css('display', 'none');
     };
 
+    /**
+     * Get error link reference
+     * @return {jQuery} error link jQuery reference
+     */
     that.get_error_link = function() {
         return $('span[name="error_link"]', that.container);
     };
 
+    /**
+     * Show error message
+     * @protected
+     * @param {string} message
+     */
     that.show_error = function(message) {
         var error_link = that.get_error_link();
         error_link.html(message);
         error_link.css('display', 'block');
     };
 
+    /**
+     * Hide error message
+     * @protected
+     */
     that.hide_error = function() {
         var error_link = that.get_error_link();
         error_link.css('display', 'none');
     };
 
+    /**
+     * Set required
+     * @param {boolean} required
+     */
     that.set_required = function(required) {
 
         that.required = required;
@@ -206,6 +398,10 @@ IPA.input_widget = function(spec) {
         }
     };
 
+    /**
+     * Set enabled
+     * @param {boolean} value - enabled
+     */
     that.set_enabled = function(value) {
         that.widget_set_enabled(value);
 
@@ -214,16 +410,35 @@ IPA.input_widget = function(spec) {
         }
     };
 
+    /**
+     * Raise value change event
+     * @protected
+     */
     that.on_value_changed = function() {
         var value = that.save();
         that.value_changed.notify([value], that);
     };
 
+    /**
+     * Widget is writable
+     * @return {boolean}
+     */
     that.is_writable = function() {
         return !that.read_only && !!that.writable;
     };
 
+    /**
+     * Focus input element
+     * @abstract
+     */
     that.focus_input = function() {};
+
+    /**
+     * Mark element as deleted.
+     *
+     * Ie. textbox with strike-through
+     * @abstract
+     */
     that.set_deleted = function() {};
 
     // methods that should be invoked by subclasses
@@ -233,7 +448,14 @@ IPA.input_widget = function(spec) {
     return that;
 };
 
-/*uses a browser specific technique to select a range.*/
+/**
+ * Select text in input.
+ * Uses a browser specific technique to select a range.
+ * @member IPA
+ * @param {jQuery} input jQuery reference
+ * @param {number} start
+ * @param {number} end
+ */
 IPA.select_range = function(input,start, end) {
     input.focus();
     if (input[0].setSelectionRange) {
@@ -247,20 +469,40 @@ IPA.select_range = function(input,start, end) {
     }
 };
 
-
+/**
+ * A textbox widget. Displayed as label when not modifiable.
+ * @class
+ * @extends IPA.input_widget
+ */
 IPA.text_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.input_widget(spec);
 
+    /**
+     * Size of the input.
+     * @property {number}
+     */
     that.size = spec.size || 30;
+
+    /**
+     * Input type
+     * @property {string} input_type='text'
+     */
     that.input_type = spec.input_type || 'text';
 
+
+    /**
+     * Select range of text
+     */
     that.select_range = function(start, end){
         IPA.select_range(that.input, start, end);
     };
 
+    /**
+     * @inheritDoc
+     */
     that.create = function(container) {
 
         that.widget_create(container);
@@ -294,6 +536,9 @@ IPA.text_widget = function(spec) {
         that.set_enabled(that.enabled);
     };
 
+    /**
+     * @inheritDoc
+     */
     that.update = function(values) {
         var value = values && values.length ? values[0] : '';
 
@@ -310,6 +555,9 @@ IPA.text_widget = function(spec) {
         that.updated.notify([], that);
     };
 
+    /**
+     * @inheritDoc
+     */
     that.save = function() {
         if (!that.is_writable()) {
             return null;
@@ -319,15 +567,24 @@ IPA.text_widget = function(spec) {
         }
     };
 
+    /**
+     * @inheritDoc
+     */
     that.clear = function() {
         that.input.val('');
         that.display_control.text('');
     };
 
+    /**
+     * @inheritDoc
+     */
     that.focus_input = function() {
         that.input.focus();
     };
 
+    /**
+     * @inheritDoc
+     */
     that.set_deleted = function(deleted) {
         if(deleted) {
             that.input.addClass('strikethrough');
@@ -342,6 +599,11 @@ IPA.text_widget = function(spec) {
     return that;
 };
 
+/**
+ * @class
+ * @extends IPA.text_widget
+ *  A textbox widget where input type is 'password'.
+ */
 IPA.password_widget = function(spec) {
 
     spec = spec || {};
@@ -351,6 +613,12 @@ IPA.password_widget = function(spec) {
     return that;
 };
 
+/**
+ * Widget which allows to edit multiple values. It display one
+ * editor (text widget by default) for each value.
+ * @class
+ * @extends IPA.input_widget
+ */
 IPA.multivalued_widget = function(spec) {
 
     spec = spec || {};
@@ -644,26 +912,35 @@ IPA.multivalued_widget = function(spec) {
 };
 
 /**
- * Widget base for checkboxes and radios. Doesn't handle dirty state's but
- * its supposed to be nestable.
+ * Option widget base
+ *
+ * @class IPA.option_widget_base
+ * @mixin
+ *
+ * Widget base for checkboxes and radios. Doesn't handle dirty states but
+ * it's nestable.
  *
  * Nesting rules:
- *  1. parent should be checked when one of its child is checked
+ *
+ * 1. parent should be checked when one of its child is checked
+ *
  *     Consequences:
- *        * childs get unchecked when parent gets unchecked
- *        * parent will be checked when child is checked even when input
+ *     - childs get unchecked when parent gets unchecked
+ *     - parent will be checked when child is checked even when input
  *          values don't contain parent's value.
- *  2. parent can be configured not to include it's value when children are
+ * 2. parent can be configured not to include it's value when children are
  *     checked
- *  3. each subtree containing a checked input has to return at least one value
+ * 3. each subtree containing a checked input has to return at least one value
  *     on save()
- *  4. each option has to have unique value
+ * 4. each option has to have unique value
  *
  * Has subset of widget interface - overrides the values in widget
- *   * save(): get values
- *   * update(values): set values
- *   * value_changed: event when change happens
- *   * create: creates HTML
+ *
+ * - save(): get values
+ * - update(values): set values
+ * - value_changed: event when change happens
+ * - create: creates HTML
+ *
  */
 IPA.option_widget_base = function(spec, that) {
 
@@ -717,6 +994,7 @@ IPA.option_widget_base = function(spec, that) {
 
     /**
      * Normalizes options spec
+     * @protected
      */
     that.prepare_options = function(options) {
 
@@ -732,14 +1010,17 @@ IPA.option_widget_base = function(spec, that) {
     };
 
     /**
-     * Option has following interface: {
-     *      label: String
-     *      value: String
-     *      nested: Boolean
-     *      widget: Widget
-     *      combine_values: Boolean, default true. Whether to include this value
-     *                      if some of its children is specified
-     * }
+     * Prepare option
+     *
+     * Transform option spec to option.
+     * @protected
+     * @param {Object} spec
+     * @param {string} spec.label
+     * @param {string} spec.value
+     * @param {boolean} spec.nested
+     * @param {IPA.widget} spec.widget
+     * @param {boolean} spec.combine_values - default true. Whether to
+     *                  include this value if some of its children is specified
      */
     that.prepare_option = function(spec) {
 
@@ -1071,15 +1352,27 @@ IPA.option_widget_base = function(spec, that) {
     return that;
 };
 
+
+/**
+ * Radio widget
+ *
+ * - default layout: inline
+ *
+ * @class IPA.radio_widget
+ * @extends IPA.input_widget
+ * @mixins IPA.option_widget_base
+ */
 IPA.radio_widget = function(spec) {
 
     spec = spec || {};
+
     spec.input_type = spec.input_type || 'radio';
     spec.layout = spec.layout || 'inline';
 
     var that = IPA.input_widget(spec);
     IPA.option_widget_base(spec, that);
 
+    /** @inheritDoc */
     that.create = function(container) {
         that.widget_create(container);
         that.owb_create(container);
@@ -1094,6 +1387,13 @@ IPA.radio_widget = function(spec) {
     return that;
 };
 
+/**
+ * Single checkbox widget
+ *
+ * @class
+ * @extends IPA.input_widget
+ * @mixins IPA.option_widget_base
+ */
 IPA.checkbox_widget = function (spec) {
 
     var checked = 'checked';
@@ -1128,6 +1428,15 @@ IPA.checkbox_widget = function (spec) {
     return that;
 };
 
+/**
+ * Multiple checkbox widget
+ *
+ * - default layout: vertical
+ *
+ * @class
+ * @extends IPA.input_widget
+ * @mixins IPA.option_widget_base
+ */
 IPA.checkboxes_widget = function (spec) {
     spec = spec || {};
     spec.input_type = spec.input_type || 'checkbox';
@@ -1136,6 +1445,12 @@ IPA.checkboxes_widget = function (spec) {
     return that;
 };
 
+/**
+ * Select widget
+ *
+ * @class
+ * @extends IPA.input_widget
+ */
 IPA.select_widget = function(spec) {
 
     spec = spec || {};
@@ -1248,6 +1563,12 @@ IPA.select_widget = function(spec) {
     return that;
 };
 
+/**
+ * Textarea widget
+ *
+ * @class
+ * @extends IPA.input_widget
+ */
 IPA.textarea_widget = function (spec) {
 
     spec = spec || {};
@@ -1313,20 +1634,40 @@ IPA.textarea_widget = function (spec) {
     return that;
 };
 
+/**
+ * Base class for formatters
+ *
+ * Formatter can be used in various widgets such as column to perform value
+ * parsing, normalization and output formatting.
+ *
+ * @class
+ */
 IPA.formatter = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
-    that.type = spec.type; // default is text
+    /**
+     * Type of output format
+     *
+     * - default: plain text
+     * @property {string}
+     */
+    that.type = spec.type;
 
-    // parse attribute value into a normalized value
+    /**
+     * Parse attribute value into a normalized value
+     * @return parsed value
+     */
     that.parse = function(value) {
         return value;
     };
 
-    // format normalized value
+    /**
+     * Format normalized value
+     * @return formatted value
+     */
     that.format = function(value) {
         return value;
     };
@@ -1334,18 +1675,30 @@ IPA.formatter = function(spec) {
     return that;
 };
 
+/**
+ * Formatter for boolean values
+ * @class
+ * @extends IPA.formatter
+ */
 IPA.boolean_formatter = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.formatter(spec);
 
+    /** Formatted value for true */
     that.true_value = text.get(spec.true_value || '@i18n:true');
+    /** Formatted value for false */
     that.false_value = text.get(spec.false_value || '@i18n:false');
+    /** Show formatted value if parsed value is false */
     that.show_false = spec.show_false;
+    /** Parse return inverted value  */
     that.invert_value = spec.invert_value;
 
-    // convert string boolean value into real boolean value, or keep the original value
+    /**
+     * Convert string boolean value into real boolean value, or keep
+     * the original value
+     */
     that.parse = function(value) {
 
         if (value === undefined || value === null) return '';
@@ -1371,7 +1724,9 @@ IPA.boolean_formatter = function(spec) {
         return value;
     };
 
-    // convert boolean value into formatted string, or keep the original value
+    /**
+     * Convert boolean value into formatted string, or keep the original value
+     */
     that.format = function(value) {
 
         if (typeof value === 'boolean') {
@@ -1396,6 +1751,11 @@ IPA.boolean_formatter = function(spec) {
     return that;
 };
 
+/**
+ * Format as HTML disabled/enabled status icon
+ * @class
+ * @extends IPA.boolean_formatter
+ */
 IPA.boolean_status_formatter = function(spec) {
 
     spec = spec || {};
@@ -1418,7 +1778,11 @@ IPA.boolean_status_formatter = function(spec) {
     return that;
 };
 
-/* Take an LDAP format date in UTC and format it */
+/**
+ * Take an LDAP format date in UTC and format it
+ * @class
+ * @extends IPA.formatter
+ */
 IPA.utc_date_formatter = function(spec) {
 
     spec = spec || {};
@@ -1436,9 +1800,23 @@ IPA.utc_date_formatter = function(spec) {
     return that;
 };
 
-/*
-  The entity name must be set in the spec either directly or via entity.name
-*/
+/**
+ * Column for {@link IPA.table_widget}
+ *
+ * Handles value rendering.
+ *
+ * @class
+ * @param {Object} spec
+ * @param {string|IPA.entity} spec.entity Entity or its name
+ * @param {string} spec.name
+ * @param {string} [spec.label]
+ * @param {number} [spec.width]
+ * @param {string} [spec.primary_key]
+ * @param {boolean} spec.link
+ *                  render as link
+ * @param {IPA.formatter|Object} spec.formatter
+ *                               formatter or its spec
+ */
 IPA.column = function (spec) {
 
     spec = spec || {};
@@ -1461,6 +1839,24 @@ IPA.column = function (spec) {
         };
     }
 
+    /**
+     * Extract value from record and set formatted value to a container
+     *
+     * - parses and formats value if formatter is set
+     * - also works with promises. Value can be a promise or promise can be
+     *   encapsulated in a object along with temporal value.
+     *
+     *        {
+     *            promise: deffered.promise,
+     *            temp: 'temporal value to be shown until promise is resolve'
+     *        }
+     *
+     *
+     *
+     * @param {jQuery} container
+     * @param {Object} record - value is located using 'name' property
+     * @param {boolean} suppress_link
+     */
     that.setup = function(container, record, suppress_link) {
         var value = record[that.name];
         var type;
@@ -1493,6 +1889,10 @@ IPA.column = function (spec) {
         that.set_value(container, value, type, suppress_link);
     };
 
+    /**
+     * Set value to the container
+     * @protected
+     */
     that.set_value = function(container, value, type, suppress_link) {
 
         value = value ? value.toString() : '';
@@ -1518,6 +1918,11 @@ IPA.column = function (spec) {
         }
     };
 
+    /**
+     * Handle clicks on link.
+     *
+     * Intended to be overridden.
+     */
     that.link_handler = function(value) {
         return false;
     };
@@ -1535,6 +1940,25 @@ IPA.column = function (spec) {
     return that;
 };
 
+/**
+ * Table
+ *
+ * TODO: document properties and methods
+ *
+ * @class
+ * @extends IPA.input_widget
+ *
+ * @param {Object} spec
+ * @param {boolean} [spec.scrollable]
+ * @param {boolean} [spec.selectable=true]
+ * @param {boolean} [spec.save_values=true]
+ * @param {string} [spec.class] css class
+ * @param {boolean} [spec.pagination] render pagination
+ * @param {number} [spec.page_length=20]
+ * @param {boolean} [spec.multivalued=true]
+ * @param {Array} columns columns or columns specs
+ * @param {string} [value_attr_name=name]
+ */
 IPA.table_widget = function (spec) {
 
     spec = spec || {};
@@ -1937,6 +2361,13 @@ IPA.table_widget = function (spec) {
         return $('input[name="'+that.name+'"]:checked', that.tbody).closest('tr');
     };
 
+    /**
+     * Create record from supplied result.
+     *
+     * @param {Object} result
+     * @param {number} index Used when record information for each individual
+     * column is located in an array at given index
+     */
     that.get_record = function(result, index) {
 
         var record = {};
@@ -2066,7 +2497,29 @@ IPA.table_widget = function (spec) {
     return that;
 };
 
-
+/**
+ * Attribute table
+ *
+ * A table which acks as `IPA.association_table` but serves only for one
+ * multivalued attribute.
+ *
+ * TODO: document properties and methods
+ *
+ * @class
+ * @extends IPA.table_widget
+ *
+ * @param {Object} spec
+ * @param {string} [spec.attribute_nam] name of attribute if different
+ *                                            than widget name
+ * @param {boolean} [spec.adder_dialog] adder dialog spec
+ * @param {boolean} [spec.css_class]
+ * @param {string} [spec.add_command] add command/method name
+ * @param {string} [spec.remove_command] remove command/method name
+ * @param {Function} [spec.on_add]
+ * @param {Function} [spec.on_add_error]
+ * @param {Function} [spec.on_remove]
+ * @param {Function} [spec.on_remove_error]
+ */
 IPA.attribute_table_widget = function(spec) {
 
 
@@ -2408,6 +2861,27 @@ IPA.attribute_table_widget = function(spec) {
     return that;
 };
 
+/**
+ * Combobox widget
+ *
+ * Widget which allows to select a value from a predefined set or write custom
+ * value.
+ *
+ * TODO: document properties and methods
+ *
+ * @class
+ * @extends IPA.input_widget
+ *
+ * @param {Object} spec
+ * @param {string} [spec.attribute_nam] name of attribute if different
+ *                                            than widget name
+ * @param {boolean} [spec.editable] user can write his own values
+ * @param {boolean} [spec.searchable]
+ * @param {number} [spec.size] number of rows in dropdown select
+ * @param {boolean} [spec.empty_option] has empty option
+ * @param {Array} [spec.options] - options to pick from
+ * @param {number} [spec.z_index]
+ */
 IPA.combobox_widget = function(spec) {
 
     spec = spec || {};
@@ -2830,6 +3304,23 @@ IPA.combobox_widget = function(spec) {
     return that;
 };
 
+/**
+ * Entity select widget
+ *
+ * Specialized combobox which allows to select an entity. Widget performs
+ * search - an RPC call - to get a list of entities.
+ *
+ * TODO: document properties and methods
+ *
+ * @class
+ * @extends IPA.combobox_widget
+ *
+ * @param {Object} spec
+ * @param {string} [spec.other_entity]
+ * @param {string} [spec.other_field]
+ * @param {Array} [spec.options]
+ * @param {Object} [spec.filter_options] RPC command options
+ */
 IPA.entity_select_widget = function(spec) {
 
     spec = spec || {};
@@ -2887,13 +3378,27 @@ IPA.entity_select_widget = function(spec) {
     return that;
 };
 
-
+/**
+ * Display value as a link or text
+ *
+ * @class
+ * @extends IPA.input_widget
+ *
+ * @param {Object} spec
+ * @param {boolean} [spec.is_link=false]
+ */
 IPA.link_widget = function(spec) {
     var that = IPA.input_widget(spec);
 
     that.is_link = spec.is_link || false;
+
+    /**
+     * Raised when link is clicked
+     * @event
+     */
     that.link_clicked = IPA.observer();
 
+    /** @inheritDoc */
     that.create = function(container) {
         that.widget_create(container);
         that.link =
@@ -2911,6 +3416,7 @@ IPA.link_widget = function(spec) {
             appendTo(container);
     };
 
+    /** @inheritDoc */
     that.update = function (values){
 
         if (values || values.length > 0) {
@@ -2932,6 +3438,7 @@ IPA.link_widget = function(spec) {
         that.updated.notify([], that);
     };
 
+    /** @inheritDoc */
     that.clear = function() {
         that.nonlink.text('');
         that.link.text('');
@@ -2941,6 +3448,25 @@ IPA.link_widget = function(spec) {
     return that;
 };
 
+/**
+ * Create link which behaves as button
+ *
+ * @method
+ * @member IPA
+ *
+ * @param {Object} spec
+ * @param {string} [spec.name]
+ * @param {string} [spec.label] button text
+ * @param {string} [spec.title=label] button title
+ * @param {string} [spec.icon] icon name (class)
+ * @param {string} [spec.id]
+ * @param {string} [spec.href]
+ * @param {string} [spec.style] css style
+ * @param {string} [spec.class]
+ * @param {Function} [spec.click] click handler
+ * @param {boolean} [spec.focusable] button is focusable
+ *
+ */
 IPA.action_button = function(spec) {
 
     spec = spec || {};
@@ -2978,6 +3504,25 @@ IPA.action_button = function(spec) {
     return button;
 };
 
+/**
+ * Create button
+ *
+ * Has different styling than action button.
+ *
+ * @method
+ * @member IPA
+ *
+ * @param {Object} spec
+ * @param {string} [spec.name]
+ * @param {string} [spec.label] button text
+ * @param {string} [spec.title=label] button title
+ * @param {string} [spec.icon] icon name (class)
+ * @param {string} [spec.id]
+ * @param {string} [spec.href]
+ * @param {string} [spec.style] css style
+ * @param {string} [spec.class]
+ * @param {Function} [spec.click] click handler
+ */
 IPA.button = function(spec) {
 
     spec = spec || {};
@@ -3001,18 +3546,34 @@ IPA.button = function(spec) {
     return button;
 };
 
+/**
+ * Widget encapsulating an `IPA.button`
+ *
+ * @class
+ * @extends IPA.widget
+ */
 IPA.button_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.widget(spec);
 
+    /** Displayed link */
     that.href = spec.href;
+    /** CSS style */
     that.style = spec.style;
+    /** Click handler */
     that.click = spec.click;
+    /** CSS class */
     that['class'] = spec['class'];
+    /** CSS class for disabled button */
     that.disabled_class = 'button-disabled';
 
+    /**
+     * Widget click handler.
+     *
+     * Calls provided click handler.
+     */
     that.on_click = function() {
 
         if (that.click) {
@@ -3021,6 +3582,7 @@ IPA.button_widget = function(spec) {
         return false;
     };
 
+    /** @inheritDoc */
     that.create = function(container) {
         that.button = IPA.button({
             id: that.id,
@@ -3036,6 +3598,7 @@ IPA.button_widget = function(spec) {
         that.set_enabled(that.enabled);
     };
 
+    /** @inheritDoc */
     that.set_enabled = function(enabled) {
         that.widget_set_enabled(enabled);
 
@@ -3051,13 +3614,21 @@ IPA.button_widget = function(spec) {
     return that;
 };
 
+/**
+ * Widget just for rendering provided HTML code
+ *
+ * @class
+ * @extends IPA.widget
+ */
 IPA.html_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.widget(spec);
 
+    /** Code to render */
     that.html = spec.html;
+    /** Container CSS class */
     that.css_class = spec.css_class;
 
     that.create = function(container) {
@@ -3076,6 +3647,12 @@ IPA.html_widget = function(spec) {
     return that;
 };
 
+/**
+ * Widget just for rendering provided HTML code
+ *
+ * @class
+ * @extends IPA.widget
+ */
 IPA.composite_widget = function(spec) {
 
     spec = spec || {};
@@ -3105,6 +3682,11 @@ IPA.composite_widget = function(spec) {
     return that;
 };
 
+/**
+ * Section which can be collapsed
+ * @class
+ * @extends IPA.composite_widget
+ */
 IPA.collapsible_section = function(spec) {
 
     spec = spec || {};
@@ -3155,13 +3737,27 @@ IPA.collapsible_section = function(spec) {
     return that;
 };
 
+/**
+ * Section which can be collapsed
+ * @class
+ * @extends IPA.collapsible_section
+ */
 IPA.details_section = IPA.collapsible_section;
 
+/**
+ * Base layout
+ * @class
+ */
 IPA.layout = function(spec) {
     return {};
 };
 
-// Creates list of widgets into table with two columns: label and widget
+/**
+ * Table layout
+ * Creates list of widgets into table with two columns: label and widget
+ * @class
+ * @extends IPA.layout
+ */
 IPA.table_layout = function(spec) {
 
     spec = spec || {};
@@ -3237,6 +3833,11 @@ IPA.table_layout = function(spec) {
     return that;
 };
 
+/**
+ * Collapsible section with table layout
+ * @class
+ * @extends IPA.details_section
+ */
 IPA.details_table_section = function(spec) {
 
     spec = spec || {};
@@ -3280,6 +3881,11 @@ IPA.details_table_section = function(spec) {
     return that;
 };
 
+/**
+ * Policy which hides specific widget if it doesn't have any value
+ * @class
+ * @extends IPA.facet_policy
+ */
 IPA.hide_empty_row_policy = function (spec) {
 
     spec = spec || {};
@@ -3301,7 +3907,12 @@ IPA.hide_empty_row_policy = function (spec) {
     return that;
 };
 
-//non-collabsible section
+/**
+ * Not collabsible details section with table layout
+ *
+ * @class
+ * @extends IPA.details_table_section
+ */
 IPA.details_table_section_nc = function(spec) {
 
     spec = spec || {};
@@ -3313,6 +3924,19 @@ IPA.details_table_section_nc = function(spec) {
     return that;
 };
 
+/**
+ * Section which can contain multiple subsections
+ *
+ * Only one subsection can be active. Widgets in non-active subsections are
+ * disabled.
+ *
+ * Selection of active section is based on radio button selection.
+ *
+ * Presence of `multiple_choice_section_policy` is required.
+ *
+ * @class
+ * @extends IPA.composite_widget
+ */
 IPA.multiple_choice_section = function(spec) {
 
     spec = spec || {};
@@ -3457,6 +4081,9 @@ IPA.multiple_choice_section = function(spec) {
     return that;
 };
 
+/**
+ * Policy which makes `multiple_choice_section` work properly.
+ */
 IPA.multiple_choice_section_policy = function(spec) {
 
     spec = spec || {};
@@ -3475,6 +4102,13 @@ IPA.multiple_choice_section_policy = function(spec) {
     return that;
 };
 
+/**
+ * Enable widget
+ * Basically a radio button
+ *
+ * @class
+ * @extends IPA.radio_widget
+ */
 IPA.enable_widget = function(spec) {
 
     spec = spec  || {};
@@ -3484,7 +4118,13 @@ IPA.enable_widget = function(spec) {
     return that;
 };
 
-
+/**
+ * Header widget
+ *
+ * Can be used as subsection header.
+ * @class
+ * @extends IPA.widget
+ */
 IPA.header_widget = function(spec) {
 
     spec = spec || {};
@@ -3505,16 +4145,32 @@ IPA.header_widget = function(spec) {
     return that;
 };
 
+/**
+ * Event
+ *
+ * @class IPA.observer
+ */
 IPA.observer = function(spec) {
 
     var that = IPA.object();
 
+    /**
+     * Listeners
+     */
     that.listeners = [];
 
+    /**
+     * Register new listener
+     * @param {Function} callback
+     */
     that.attach = function(callback) {
         that.listeners.push(callback);
     };
 
+    /**
+     * Remove registered listener
+     * @param {Function} callback
+     */
     that.detach = function(callback) {
         for(var i=0; i < that.listeners.length; i++) {
             if(callback === that.listeners[i]) {
@@ -3524,6 +4180,13 @@ IPA.observer = function(spec) {
         }
     };
 
+    /**
+     * Call all listeners in order of registration with given context and
+     * arguments.
+     *
+     * @param {Array} arguments
+     * @param {Object} context
+     */
     that.notify = function(args, context) {
         args = args || [];
         context = context || this;
@@ -3536,11 +4199,26 @@ IPA.observer = function(spec) {
     return that;
 };
 
+/**
+ * Utility class for HMTL generation
+ * @class
+ */
 IPA.html_util = function() {
 
     var that = IPA.object();
+
+    /**
+     * Last used ID
+     * @property {number}
+     */
     that.id_count = 0;
 
+    /**
+     * Creates unique ID
+     * Usable for controls where same id/name would cause unintended
+     * interactions. IE. radios with same name influence each other.
+     * @param {string} prefix is concatenated with current `id_count`
+     */
     that.get_next_id = function(prefix) {
         that.id_count++;
         return prefix ? prefix + that.id_count : that.id_count;
@@ -3549,6 +4227,14 @@ IPA.html_util = function() {
     return that;
 }();
 
+/**
+ * Widget container
+ *
+ * - provides means for nesting widgets
+ * - used ie in facets, dialogs or composite widgets
+ *
+ * @class
+ */
 IPA.widget_container = function(spec) {
 
     spec = spec || {};
@@ -3626,6 +4312,10 @@ IPA.widget_container = function(spec) {
     return that;
 };
 
+/**
+ * Widget builder
+ * @class
+ */
 IPA.widget_builder = function(spec) {
 
     spec = spec || {};
@@ -3651,6 +4341,14 @@ IPA.widget_builder = function(spec) {
     return that;
 };
 
+/**
+ * SSH keys widget
+ *
+ * Multivalued widget with SSH key widget instead of text widget.
+ *
+ * @class
+ * @extends IPA.multivalued_widget
+ */
 IPA.sshkeys_widget = function(spec) {
 
     spec = spec || {};
@@ -3677,6 +4375,12 @@ IPA.sshkeys_widget = function(spec) {
     return that;
 };
 
+/**
+ * SSH key widget
+ *
+ * @class
+ * @extends IPA.input_widget
+ */
 IPA.sshkey_widget = function(spec) {
 
     spec = spec || {};
@@ -3859,6 +4563,14 @@ IPA.sshkey_widget = function(spec) {
     return that;
 };
 
+/**
+ * Action panel
+ *
+ * - usable in sections
+ *
+ * @class
+ * @extends IPA.widget
+ */
 IPA.action_panel = function(spec) {
 
     spec = spec || {};
@@ -3983,6 +4695,16 @@ IPA.action_panel = function(spec) {
     return that;
 };
 
+/**
+ * Value map widget
+ *
+ * Read-only widget which shows different string based on current value.
+ *
+ * Basically there is a map between values(keys) and strings (displayed values).
+ *
+ * @class
+ * @extends IPA.input_widget
+ */
 IPA.value_map_widget = function(spec) {
 
     spec = spec  || {};
@@ -4034,6 +4756,11 @@ IPA.value_map_widget = function(spec) {
     return that;
 };
 
+/**
+ * pre_op operations for widgets
+ * - sets facet and entity if present in context
+ * @member widget
+ */
 exp.pre_op = function(spec, context) {
 
     if (context.facet) spec.facet = context.facet;
@@ -4043,6 +4770,7 @@ exp.pre_op = function(spec, context) {
 
 /**
  * Enables widget nesting
+ * @member widget
  */
 exp.post_op = function(obj, spec, context) {
 
@@ -4056,7 +4784,11 @@ exp.post_op = function(obj, spec, context) {
     return obj;
 };
 
-// Widget builder and registry
+/**
+ * Widget builder
+ * - instantiated in global builder registry for type: 'widget'
+ * @member widget
+ */
 exp.builder = builder.get('widget');
 exp.builder.factory = IPA.text_widget;
 exp.builder.string_mode = 'property';
@@ -4066,12 +4798,19 @@ exp.builder.post_ops.push(exp.post_op);
 
 reg.set('widget', exp.builder.registry);
 
-// Formatter builder and registry
+/**
+ * Formatter builder
+ * - added as builder for 'formatter' registry
+ * @member widget
+ */
 exp.formatter_builder = builder.get('formatter');
 exp.formatter_builder.factory = IPA.formatter;
 reg.set('formatter', exp.formatter_builder.registry);
 
-
+/**
+ * Register widgets and formatters to registries
+ * @member widget
+ */
 exp.register = function() {
     var w = reg.widget;
     var f = reg.formatter;

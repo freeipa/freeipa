@@ -224,6 +224,7 @@ return {
 };};
 
 /**
+ * @ignore
  * @param {Object} facet spec
  */
 var add_hbacrule_details_facet_widgets = function (spec) {

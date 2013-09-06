@@ -26,26 +26,25 @@ define(['dojo/_base/declare',
         './Construct_registry'
         ], function(declare, array, lang, construct, Builder, Construct_registry) {
 
+    /**
+     * Registry for storing singleton instances of various items based
+     * on their type.
+     *
+     * @class _base.Singleton_registry
+     */
     var Singleton_registry = declare(null, {
-        /**
-         * Registry for storing singleton instances of various items based
-         * on their type.
-         *
-         * @class
-         * @name Singleton_registry
-         */
 
         /**
          * Internal map for instances
          * @protected
-         * @type Object
+         * @property {Object}
          */
         _map: {},
 
         /**
          * Builder used for building new instances. Builder has to have a
          * Constructor registry set.
-         * @type Builder
+         * @property {_base.Builder}
          */
         builder: null,
 
@@ -55,8 +54,8 @@ define(['dojo/_base/declare',
          *
          * When an object is passed in, the function returns it.
          *
-         * @param type {String|Object} Type's name. Or the the object itself.
-         * @returns Object|null
+         * @param {string|Object} type Type's name. Or the the object itself.
+         * @return {Object|null}
          */
         get: function(type) {
 
@@ -79,8 +78,8 @@ define(['dojo/_base/declare',
         /**
          * Set object of given type - overwrites existing
          *
-         * @param {String} type
-         * @param {anything} object
+         * @param {string} type
+         * @param {Mixed} object
          */
         set: function (type, obj) {
             this._map[type] = obj;
@@ -89,7 +88,7 @@ define(['dojo/_base/declare',
         /**
          * Removes object of given type from registry
          *
-         * @param {String} type
+         * @param {string} type
          */
         remove: function(type) {
 
@@ -100,11 +99,11 @@ define(['dojo/_base/declare',
         /**
          * Registers construction specification
          *
-         * @param type {String|Object} type or construction spec
-         * @param func {Function} ctor or factory function
-         * @param [default_spec] {Object} default spec object for given type
+         * @param {string|Object} type type or construction spec
+         * @param {Function} func ctor or factory function
+         * @param {Object} [default_spec] default spec object for given type
          *
-         * @returns Object
+         * @return {Object}
          */
         register: function(type, func, default_spec) {
             if (!lang.exists('builder.registry', this)) {

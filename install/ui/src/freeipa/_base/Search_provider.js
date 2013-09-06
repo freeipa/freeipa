@@ -19,24 +19,30 @@
 */
 
 /**
- * Search value providers.
+ * Search value provider
  *
- * Serves for searching for values within a array in a source.
+ * Serves for searching for values within an array in a source object.
  *
- * Path has following formats:
+ * Path has input formats as follows:
+ *
  *    * key1:key2:key3
  *    * key1:key2
  *    * key2
  *
- * base_query: '%1.takes_params'
- * array_attr: 'name'
+ * With:
  *
- * It translates into following query:
- * %key1.takes_params[name=%key2].$key3
+ *    * base_query: `%1.takes_params`
+ *    * array_attr: `name`
+ *
+ * Such path is translates into query:
+ *
+ *    * `%key1.takes_params[name=%key2].$key3`
  *
  * In a future we should support defining generic queries and thus not be
  * limited to simple search.
  *
+ * @class _base.Search_provider
+ * @extends _base.Provider
  */
 define(['dojo/_base/declare','dojo/_base/lang', './Provider'],
        function(declare, lang, Provider) {
@@ -46,6 +52,10 @@ define(['dojo/_base/declare','dojo/_base/lang', './Provider'],
         base_query: null,
         array_attr: null,
 
+        /**
+         * @inheritDoc
+         * @protected
+         */
         _get: function(key) {
             var search_keys = key.substring(this._code_length);
             search_keys = search_keys.split(':');
@@ -80,6 +90,7 @@ define(['dojo/_base/declare','dojo/_base/lang', './Provider'],
 
         /**
          * Finds object with attr_name === value in array defined by key.
+         * @protected
          */
         _find: function(array, attr, value, all) {
 

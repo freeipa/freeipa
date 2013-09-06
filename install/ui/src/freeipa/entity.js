@@ -34,8 +34,22 @@ define([
     function(lang, metadata_provider, Singleton_registry, builder,
              IPA, $, reg, text) {
 
+/**
+ * Entity module
+ *
+ * @class entity
+ * @singleton
+ */
 var exp = {};
 
+/**
+ * Entity
+ *
+ * Represents a business logic object type, ie. user. Maintains
+ * information related to that object.
+ * @class entity.entity
+ * @alternateClassName IPA.entity
+ */
 exp.entity = IPA.entity = function(spec) {
 
     spec = spec || {};
@@ -47,34 +61,113 @@ exp.entity = IPA.entity = function(spec) {
 
     var that = IPA.object();
 
+    /**
+     * Name
+     * @property {string}
+     */
     that.name = spec.name;
+
+    /**
+     * Label
+     * @property {string}
+     */
     that.label = text.get(spec.label);
 
+    /**
+     * Entity has primary key(s)
+     * @property {boolean} defines_key=true
+     */
     that.defines_key = spec.defines_key !== undefined ? spec.defines_key : true;
 
+    /**
+     * Metadata
+     * @property {Object}
+     */
     that.metadata = spec.metadata;
 
+    /**
+     * Dialogs
+     * @protected
+     * @property {ordered_map}
+     */
     that.dialogs = $.ordered_map();
+
+    /**
+     * Dialog specifications
+     * @property {Array.<Object>}
+     */
     that.dialog_specs = spec.dialogs || [];
+
+    /**
+     * Dialogs defined in `dialog_specs` were created -> `dialogs` is populated.
+     * @property {boolean}
+     */
     that.dialogs_created = false;
 
+    /**
+     * Entity policies
+     * @property {IPA.entity_policies}
+     */
     that.policies = IPA.entity_policies({
         entity: that,
         policies: spec.policies
     });
 
+
+    /**
+     * Facets
+     * @protected
+     * @property {ordered_map}
+     */
     that.facets = $.ordered_map();
+
+    /**
+     * Facet groups
+     * @property {ordered_map}
+     */
     that.facet_groups = $.ordered_map();
+
+    /**
+     * Facet group object specifications
+     * @property {Array.<Object>}
+     */
     that.facet_group_specs = spec.facet_groups;
+
+    /**
+     * Facet object specifications
+     * @property {Array.<Object>}
+     */
     that.facet_specs = spec.facets || [];
+
+    /**
+     * Facets and facet groups were created
+     * @property {boolean}
+     */
     that.facets_created = false;
 
-    // current facet
+    /**
+     * Current facet
+     * @property {IPA.facet}
+     */
     that.facet = null;
 
+    /**
+     * Name of facet to which other facets should redirect in case of unexpected
+     * event.
+     * @property {string}
+     */
     that.redirect_facet = spec.redirect_facet;
+
+    /**
+     * Containing entity in case if this is a nested entity
+     * @property {entity.entity}
+     */
     that.containing_entity = null;
 
+    /**
+     * Initialize entity.
+     * Should be called by builder if used.
+     */
     that.init = function() {
         if (!that.metadata) {
             that.metadata = that.get_default_metadata();
@@ -88,14 +181,28 @@ exp.entity = IPA.entity = function(spec) {
         that.label = text.get(that.label) || that.metadata.label || that.name;
     };
 
+    /**
+     * Initialize entity.
+     * Should be called by builder if used.
+     * @return Metadata
+     */
     that.get_default_metadata = function() {
         return metadata_provider.get('@mo:'+that.name);
     };
 
+    /**
+     * Getter for `containing_entity`
+     * @return {entity.entity}
+     */
     that.get_containing_entity = function() {
         return that.containing_entity;
     };
 
+    /**
+     * Builder overrides for dialogs belonging to this entity
+     *
+     * It's purpose is to set valid context and add the dialogs.
+     */
     that.dialog_build_overrides = {
         $pre_ops: [
             function (spec, context) {
@@ -112,6 +219,14 @@ exp.entity = IPA.entity = function(spec) {
         $factory: IPA.dialog
     };
 
+    /**
+     * Get dialog with given name
+     *
+     * Uses lazy creation - creates dialogs from spec if not done yet.
+     *
+     * @param {string} name
+     * @return Dialog
+     */
     that.get_dialog = function(name) {
 
         //build all dialogs on the first time
@@ -123,6 +238,12 @@ exp.entity = IPA.entity = function(spec) {
         return that.dialogs.get(name);
     };
 
+    /**
+     * Add one or multiple dialog(s) to entity
+     *
+     * New dialogs are built if specs are supplied.
+     * @param {IPA.dialog|Array.<IPA.dialog>} dialog - dialog(s) or spec(s) to add
+     */
     that.add_dialog = function(dialog) {
 
         var add = function (dialog) {
@@ -143,24 +264,55 @@ exp.entity = IPA.entity = function(spec) {
         return that;
     };
 
+    /**
+     * Add facet group
+     * @deprecated
+     */
     that.add_facet_group = function(facet_group) {
         that.facet_groups.put(facet_group.name, facet_group);
     };
 
+    /**
+     * Get facet group
+     * @deprecated
+     */
     that.get_facet_group = function(name) {
         return that.facet_groups.get(name);
     };
 
+    /**
+     * Remove facet group
+     * @deprecated
+     */
     that.remove_facet_groups = function() {
         that.facet_groups.empty();
     };
 
+    /**
+     * This method is used only in get_facet method and there is no sense to
+     * use it alone. Will be removed.
+     * @deprecated
+     */
     that.add_redirect_info = function(facet_name) {
         if (!that.redirect_facet && facet_name){
              that.redirect_facet = facet_name;
         }
     };
 
+    /**
+     * Get facet with given name.
+     *
+     * Uses lazy creation. All facets are created from facet specs upon first
+     * get_facet call.
+     *
+     *  - returns current or first facet if name is *undefined*.
+     *  - returns default facet if name == 'default' - first facet of non-empty
+     *    facet group
+     *
+     * @param {string|undefined|"default"} name - facet name
+     * @return {IPA.facet}
+     *
+     */
     that.get_facet = function(name) {
 
         var i, facets;
@@ -202,6 +354,12 @@ exp.entity = IPA.entity = function(spec) {
         return that.facets.get(name);
     };
 
+    /**
+     * Add facet to entity
+     *
+     * @param {IPA.facet} facet - facet to add
+     * @param {string} facet.facet_group - facet group to add the facet
+     */
     that.add_facet = function(facet) {
         facet.entity = that;
 
@@ -217,6 +375,11 @@ exp.entity = IPA.entity = function(spec) {
         return that;
     };
 
+    /**
+     * Helper function - evaluates if entity as any attribute members.
+     * Useful for knowing when to add 'no_members' option to RPC call.
+     * @return {boolean}
+     */
     that.has_members = function() {
         var members = that.metadata.attribute_members;
         var has = false;
@@ -231,6 +394,9 @@ exp.entity = IPA.entity = function(spec) {
         return has;
     };
 
+    /**
+     * Builder used for building this entity.
+     */
     that.builder = spec.builder || IPA.entity_builder(that);
 
     that.entity_init = that.init;
@@ -238,7 +404,19 @@ exp.entity = IPA.entity = function(spec) {
     return that;
 };
 
-exp.entity_builder =IPA.entity_builder = function(entity) {
+/**
+ * Entity post builder
+ *
+ * - contains methods for entity post creation operations.
+ * - has chained API.
+ * - direct usage is not recommended. It's usable only when overriding standard
+ *   behavior. By default, calls of most methods are registered as post operations
+ *   for {@link _base.builder}.
+ *
+ * @class entity.entity_builder
+ * @alternateClassName IPA.entity_builder
+ */
+exp.entity_builder = IPA.entity_builder = function(entity) {
 
     var that = IPA.object();
 
@@ -246,6 +424,7 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
     var facet = null;
     var section = null;
 
+    /** Default facet groups **/
     that.default_facet_groups = [
         'member',
         'settings',
@@ -253,6 +432,10 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         'managedby'
     ];
 
+    /**
+     * Build and add facet group
+     * @param {Object} spec - facet group specification
+     */
     that.facet_group = function(spec) {
 
         if (typeof spec === 'string') {
@@ -276,6 +459,11 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Replace facet groups
+     *
+     * @param {Array.<Object>} specs - specifications of new facet groups
+     */
     that.facet_groups = function(specs) {
 
         entity.remove_facet_groups();
@@ -288,6 +476,10 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Add facet spec
+     * @param {Object} spec
+     */
     that.facet = function(spec) {
 
         entity.facet_specs.push(spec);
@@ -295,6 +487,11 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Add search facet
+     * @deprecated
+     * @param {Object} spec
+     */
     that.search_facet = function(spec) {
 
         spec.$type = spec.$type || 'search';
@@ -306,6 +503,11 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Add nested search facet
+     * @deprecated
+     * @param {Object} spec
+     */
     that.nested_search_facet = function(spec) {
 
         spec.$type = spec.$type || 'nested_search';
@@ -315,6 +517,11 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Add details facet
+     * @deprecated
+     * @param {Object} spec
+     */
     that.details_facet = function(spec) {
 
         spec.$type = spec.$type || 'details';
@@ -324,6 +531,11 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Add association facet
+     * @deprecated
+     * @param {Object} spec
+     */
     that.association_facet = function(spec) {
 
         spec.$type = spec.$type || 'association';
@@ -333,6 +545,11 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Add attribute_facet facet
+     * @deprecated
+     * @param {Object} spec
+     */
     that.attribute_facet = function(spec) {
 
         spec.$type = spec.$type || 'attribute';
@@ -342,6 +559,18 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Add missing association facets
+     *
+     * Facets are based on entity attribute_members. Doesn't add duplicates so
+     * facet defined in entity spec are ignored and only the missing are added.
+     *
+     * Direct usage is deprecated. Use `standard_association_facets: true`
+     * in entity spec instead.
+     *
+     * @deprecated
+     * @param {Object} spec - object to be mixed-in in each new facet spec
+     */
     that.standard_association_facets = function(spec) {
 
         spec = spec || {};
@@ -403,7 +632,7 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return null;
     }
 
-    /*
+    /**
      * If it's an indirect attribute member, return its direct facets spec
      * if it exists.
      */
@@ -426,6 +655,13 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         }
     }
 
+    /**
+     * Set containing(parent) entity
+     *
+     * Direct usage is deprecated. Set `containing_entity: 'entity_name'` in
+     * entity spec instead.
+     * @deprecated
+     */
     that.containing_entity = function(entity_name) {
         add_redirect_info();
         entity.containing_entity = IPA.get_entity(entity_name);
@@ -450,6 +686,12 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that;
     };
 
+    /**
+     * Add adder dialog spec
+     *
+     * Set `adder_dialog: { ... }` in entity instead.
+     * @deprecated
+     */
     that.adder_dialog = function(spec) {
         spec.$factory = spec.$factory || IPA.entity_adder_dialog;
         spec.name = spec.name || 'add';
@@ -463,6 +705,12 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
         return that.dialog(spec);
     };
 
+    /**
+     * Add deleter_dialog spec
+     *
+     * Set `deleter_dialog: { ... }` in entity instead.
+     * @deprecated
+     */
     that.deleter_dialog = function(spec) {
         spec.$factory = spec.$factory || IPA.search_deleter_dialog;
         spec.name = spec.name || 'remove';
@@ -472,11 +720,28 @@ exp.entity_builder =IPA.entity_builder = function(entity) {
 
     that.facet_groups(entity.facet_group_specs || that.default_facet_groups);
 
-
-
     return that;
 };
 
+/**
+ * Entity post build operations
+ *
+ * they:
+ *
+ * - invokes `enable_test()`, `init()`
+ * - sets containing entity
+ * - creates standard association facets
+ * - add adder dialog
+ * - adds deleter dialog
+ *
+ * @member entity
+ * @property {Object} entity_post_ops
+ * @property  {Function} entity_post_ops.init
+ * @property  {Function} entity_post_ops.containing_entity
+ * @property  {Function} entity_post_ops.standard_association_facets
+ * @property  {Function} entity_post_ops.adder_dialog
+ * @property  {Function} entity_post_ops.deleter_dialog
+ */
 exp.entity_post_ops = {
 
     init: function(entity, spec, context) {
@@ -526,33 +791,75 @@ exp.entity_post_ops = {
     }
 };
 
+/**
+ * Entity policy base class
+ *
+ * Policy is a mediator object. Usually it handles inter-facet communication.
+ *
+ * Specific policy should override `facet_created` method.
+ *
+ * @class entity.entity_policy
+ * @alternateClassName IPA.entity_policy
+ * @abstract
+ */
 exp.entity_policy = IPA.entity_policy = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
 
+    /**
+     * Entity this policy is associated with
+     * @property {entity.entity}
+     */
     that.entity = spec.entity;
 
+    /**
+     * Facet created
+     *
+     * Functional entry point. This method is called after facets are created.
+     * It allows the policy to registered various event handlers to facets or
+     * do other work.
+     */
     that.facets_created = function() {
     };
 
     return that;
 };
 
+/**
+ * Collection of entity policies.
+ * @class entity.entity_policies
+ * @alternateClassName IPA.entity_policies
+ */
 exp.entity_policies = IPA.entity_policies = function(spec) {
 
     var that = IPA.object();
 
+    /**
+     * Entity to be set to all policies
+     */
     that.entity = spec.entity;
+
+    /**
+     * Policies
+     */
     that.policies = [];
 
+    /**
+     * Add policy
+     * @param {entity.entity_policy} policy
+     */
     that.add_policy = function(policy) {
 
         policy.entity = that.entity;
         that.policies.push(policy);
     };
 
+    /**
+     * Add policies
+     * @param {Array.<entity.entity_policy>} policies
+     */
     that.add_policies = function(policies) {
 
         if (!policies) return;
@@ -562,6 +869,9 @@ exp.entity_policies = IPA.entity_policies = function(spec) {
         }
     };
 
+    /**
+     * Call each policy's `facet_policy` method
+     */
     that.facets_created = function() {
 
         for (var i=0; i<that.policies.length; i++) {
@@ -576,17 +886,53 @@ exp.entity_policies = IPA.entity_policies = function(spec) {
     return that;
 };
 
+/**
+ * Facet update policy
+ *
+ * This policy sets destination facet of destination entity as expired
+ * when specific event of source facet of this entity is raised.
+ *
+ * @class entity.facet_update_policy
+ * @extends entity.entity_policy
+ * @alternateClassName IPA.facet_update_policy
+ *
+ * @param {Object} spec
+ * @param {string} spec.event - event name
+ * @param {string} spec.source_facet - source facet name
+ * @param {string} spec.dest_facet - destination facet name
+ * @param {string} spec.dest_entity_name - destination entity name
+ *
+ */
 exp.facet_update_policy = IPA.facet_update_policy = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.entity_policy();
 
+    /**
+     * Source event name
+     * @property {string} event=on_update
+     */
     that.event = spec.event || 'on_update';
+
+    /**
+     * Source facet name
+     */
     that.source_facet_name = spec.source_facet;
+
+    /**
+     * Destination facet name
+     */
     that.dest_facet_name = spec.dest_facet;
+
+    /**
+     * Destination entity name
+     */
     that.dest_entity_name = spec.dest_entity;
 
+    /**
+     * @inheritDoc
+     */
     that.facets_created = function() {
 
         that.source_facet = that.entity.get_facet(that.source_facet_name);
@@ -605,6 +951,9 @@ exp.facet_update_policy = IPA.facet_update_policy = function(spec) {
         event.attach(that.set_expired_flag);
     };
 
+    /**
+     * Set facet as expired
+     */
     that.set_expired_flag = function() {
 
         that.dest_facet.set_expired_flag();
@@ -613,17 +962,36 @@ exp.facet_update_policy = IPA.facet_update_policy = function(spec) {
     return that;
 };
 
+/**
+ * Adder facet update policy
+ *
+ * Update destination details facet when new object is added (adder dialog
+ * 'added' event).
+ *
+ * @class entity.adder_facet_update_policy
+ * @extends entity.entity_policy
+ * @alternateClassName IPA.adder_facet_update_policy
+ *
+ */
 exp.adder_facet_update_policy = IPA.adder_facet_update_policy = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.entity_policy();
 
+    /**
+     * Source event name
+     * @property {string} event='added'
+     */
     that.event = spec.event || 'added';
+    /** Adder dialog name */
     that.dialog_name = spec.dialog_name || 'add';
+    /** Destination facet name */
     that.dest_facet_name = spec.dest_facet || 'details';
+    /** Destination entity name */
     that.dest_entity_name = spec.dest_entity;
 
+    /** @inheritDoc */
     that.facets_created = function() {
 
         that.dialog = that.entity.get_dialog(that.dialog_name);
@@ -642,6 +1010,7 @@ exp.adder_facet_update_policy = IPA.adder_facet_update_policy = function(spec) {
         event.attach(that.set_expired_flag);
     };
 
+    /** Set facet as expired */
     that.set_expired_flag = function() {
 
         that.dest_facet.set_expired_flag();
@@ -650,6 +1019,16 @@ exp.adder_facet_update_policy = IPA.adder_facet_update_policy = function(spec) {
     return that;
 };
 
+
+/**
+ * Search facet update policy
+ *
+ * Expires details facet when search facet is updated.
+ *
+ * @class entity.search_facet_update_policy
+ * @extends entity.facet_update_policy
+ * @alternateClassName IPA.search_facet_update_policy
+ */
 exp.search_facet_update_policy = IPA.search_facet_update_policy = function(spec) {
 
     spec = spec || {};
@@ -659,6 +1038,15 @@ exp.search_facet_update_policy = IPA.search_facet_update_policy = function(spec)
     return IPA.facet_update_policy(spec);
 };
 
+/**
+ * Details facet update policy
+ *
+ * Expires search facet when details facet is updated.
+ *
+ * @class entity.details_facet_update_policy
+ * @extends entity.facet_update_policy
+ * @alternateClassName IPA.details_facet_update_policy
+ */
 exp.details_facet_update_policy =IPA.details_facet_update_policy = function(spec) {
 
     spec = spec || {};

@@ -108,6 +108,7 @@ var spec = {
 
 
 /**
+ * @ignore
  * @param {Object} facet spec
  */
 var add_selinux_details_facet_widgets = function (spec) {

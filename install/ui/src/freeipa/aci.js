@@ -32,6 +32,16 @@ define([
     './entity'],
         function(metadata_provider, IPA, $, phases, reg, text) {
 
+/**
+ * Widgets, entities and fields related to Access Control that means
+ * Permissions, Privilege, Role, Delegation and Self-service.
+ *
+ * When loaded, this module is also accessible as `IPA.aci`.
+ *
+ * @class aci
+ * @alternateClassName IPA.aci
+ * @singleton
+ */
 var exp = IPA.aci = {};
 
 var make_permission_spec = function() {
@@ -231,6 +241,10 @@ return {
     }
 };};
 
+/**
+ * @class aci.permission_details_facet
+ * @extends details.details_facet
+ */
 IPA.aci.permission_details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
@@ -463,7 +477,10 @@ return {
     }
 };};
 
-
+/**
+ * @class IPA.attributes_widget
+ * @extends IPA.checkboxes_widget
+ */
 IPA.attributes_widget = function(spec) {
 
     spec = spec || {};
@@ -609,6 +626,10 @@ IPA.attributes_widget = function(spec) {
     return that;
 };
 
+/**
+ * @class IPA.rights_widget
+ * @extends IPA.checkboxes_widget
+ */
 IPA.rights_widget = function(spec) {
 
     var that = IPA.checkboxes_widget(spec);
@@ -622,6 +643,10 @@ IPA.rights_widget = function(spec) {
     return that;
 };
 
+/**
+ * @class IPA.permission_target_widget
+ * @extends IPA.details_table_section_nc
+ */
 IPA.permission_target_widget = function(spec) {
 
     spec = spec || {};
@@ -737,6 +762,11 @@ IPA.permission_target_widget = function(spec) {
     return that;
 };
 
+/**
+ * Permission target policy
+ * @class IPA.permission_target_policy
+ * @extends IPA.facet_policy
+ */
 IPA.permission_target_policy = function (spec) {
 
     var that = IPA.facet_policy();
@@ -894,12 +924,40 @@ IPA.permission_target_policy = function (spec) {
     return that;
 };
 
+/**
+ * Permission entity spec
+ * @member aci
+ */
 exp.permission_entity_spec = make_permission_spec();
+
+/**
+ * Privilege entity spec
+ * @member aci
+ */
 exp.privilege_entity_spec = make_privilege_spec();
+
+/**
+ * Role entity spec
+ * @member aci
+ */
 exp.role_entity_spec = make_role_spec();
+
+/**
+ * Self-service entity spec
+ * @member aci
+ */
 exp.selfservice_entity_spec = make_selfservice_spec();
+
+/**
+ * Delegation entity spec
+ * @member aci
+ */
 exp.delegation_entity_spec = make_delegation_spec();
 
+/**
+ * Register entities, widgets and fields to global registers.
+ * @member aci
+ */
 exp.register = function() {
     var e = reg.entity;
     var w = reg.widget;

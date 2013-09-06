@@ -21,11 +21,14 @@
 /**
 * Gets translated message.
 *
-* If a message starts with @i18n: it tries to get the message from
+* If a message starts with `@i18n`: it tries to get the message from
 * message object. If it doesn't contain a string with
 * the key it returns alternate string.
 *
 * It all other cases the message itself or empty string is returned.
+* @class _base.i18n
+* @extends _base.Provider
+* @singleton
 */
 define(['dojo/_base/lang', './Provider'], function(lang, Provider) {
 

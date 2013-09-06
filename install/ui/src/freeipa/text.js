@@ -18,15 +18,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Text provider
- *
- * Serves for returning labels, titles, messages from various providers.
- * Other providers can extends functionality.
- */
 define(['./_base/Provider', './_base/i18n', './metadata'],
        function(Provider, i18n, metadata) {
 
+    /**
+     * Text provider
+     *
+     * Serves for returning labels, titles, messages from:
+     *
+     * - {@link _base.i18n} provider
+     * - and {@link metadata} provider
+     *
+     * Other providers can extends its functionality.
+     *
+     * @class text
+     * @singleton
+     * @extends _base.Provider
+     */
     var text = new Provider({
         providers: [
             i18n,

@@ -25,19 +25,22 @@
  * Construct registry do. It's expected that there will be different types of
  * registries for various object types.
  *
- * Existing registries can be access directly by properties.
+ * Existing registries can be accessed directly by properties.
  *
  * Use set method for setting new registry.
- * Use get/registry method for getting/registering of object in a registry.
+ * Use get/registry method for getting/registering object in a registry.
  *
- * Registries should be named by their object type in singular form.
- * I.e.:
+ * Registries should be named by their object type in singular form:
+ *
  *   * entity
  *   * widget
  *   * action
  *   * formatter
  *   * facet
  *   * dialog
+ *
+ * @class reg
+ * @singleton
  */
 define(['dojo/_base/declare',
         'dojo/_base/array',
@@ -49,17 +52,36 @@ define(['dojo/_base/declare',
     reg.builder.ctor = Singleton_registry;
 
     var exp = reg._map;
+
+    /**
+     * Get registry
+     * @param {string} object_type
+     * @param {string} type
+     * @return {_base.Construct_registry/_base.Singleton_registry}
+     */
     exp.get = function(object_type, type) {
 
         var registry = reg.get(object_type);
         return registry.get(type);
     };
 
+    /**
+     * Create and register new registry
+     * @param {string} object_type
+     * @param {string} type
+     * @param {Function} func
+     * @param {Object} default_spec
+     */
     exp.register =  function(object_type, type, func, default_spec) {
         var registry = reg.get(object_type);
         registry.register(type, func, default_spec);
     };
 
+    /**
+     * Set new registry
+     * @param {string} object_type
+     * @param {_base.Construct_registry|_base.Singleton_registry} registry
+     */
     exp.set = function(object_type, registry) {
         reg.set(object_type, registry);
     };

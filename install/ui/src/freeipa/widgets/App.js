@@ -42,8 +42,7 @@ define(['dojo/_base/declare',
      * This class serves as top level widget. It creates basic UI: controls
      * rendering of header, footer and placeholder for facets.
      *
-     * @name freeipa.widgets.app
-     * @class
+     * @class widgets.App
      */
     var app = declare([Stateful, Evented], {
 

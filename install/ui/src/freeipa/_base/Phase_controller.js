@@ -28,17 +28,66 @@ define([
     '../ordered-map'
 ], function(lang, array, declare, Deferred, all, topic, ordered_map) {
 
+
+    /**
+     * Phase
+     *
+     * This class does not exist, it's only for documentation purposes.
+     *
+     * @class _base.Phase_controller.phase
+     * @abstract
+     */
+    /**
+     * Name
+     * @property {string} name
+     */
+    /**
+     * Tasks
+     * @property {Array.<_base.Phase_controller.task>} tasks
+     */
+
+    /**
+     * Phase task
+     *
+     * This class does not exist, it's only for documentation purposes.
+     *
+     * @class _base.Phase_controller.task
+     * @abstract
+     */
+    /**
+     * Name
+     * @property {number} priority
+     */
+    /**
+     * Tasks
+     * @property {Function} handler
+     */
+
+    /**
+     * Phase Controller
+     *
+     * Creates synchronization points - phases - in application life cycle.
+     *
+     * Phases:
+     *
+     * - are ordered
+     * - consist of task
+     * - phase finishes when all task finishes
+     * - new phases can be added at runtime
+     *
+     * @class _base.Phase_controller
+     */
     var Phase_controller = declare(null, {
 
         /**
          * Phases
-         * @type ordered_map[name, phase]
+         * @property {ordered_map.<string, _base.Phase_controller.phase>}
          */
         phases: null,
 
         /**
          * Current phase name
-         * @type String
+         * @property {string}
          */
         current: null,
 
@@ -57,13 +106,14 @@ define([
 
         /**
          * Runs phase
-         * 1) Sorts tasks of the phase based on their priority.
-         * 2) Runs all task sequentially.
-         * 3) Waits for all tasks to complete (in case of asynchronous ones)
-         * 4) Optionally runs next phase
          *
-         * @param {phase} Phase to runs
-         * @param {Boolean} Whether to run next phase when current finishes
+         * 1. Sorts tasks of the phase based on their priority.
+         * 2. Runs all task sequentially.
+         * 3. Waits for all tasks to complete (in case of asynchronous ones)
+         * 4. Optionally runs next phase
+         *
+         * @param {_base.Phase_controller.phase} phase Phase to run
+         * @param {boolean} next_phase Whether to run next phase when current finishes
          */
         _run_phase: function(phase, next_phase) {
 
@@ -104,7 +154,7 @@ define([
         /**
          * Selects next phase and then runs it.
          *
-         * @param {Boolen} Whether to run phases continuously
+         * @param {boolean} continuous Whether to run phases continuously
          */
         next_phase: function(continuous) {
             var phase;
@@ -125,9 +175,9 @@ define([
          * At phase execution, tasks are sorted by priority and executed in
          * that order.
          *
-         * @param {String} Name of associated phase
-         * @param {Function} Task handler. Should return promise if async.
-         * @param {Number} Priority of task. Default 10.
+         * @param {string} phase_name Name of associated phase
+         * @param {Function} handler Task handler. Should return promise if async.
+         * @param {number} [priority=10] Priority of task.
          */
         add_task: function(phase_name, handler, priority) {
 
@@ -150,12 +200,13 @@ define([
          * Adds a phase
          *
          * Possible options:
-         *   before: 'name-of-phase'
-         *   after: 'name-of-phase'
-         *   position: 'position for new phase'
          *
-         * @param {String} phase name
-         * @param {Array} tasks
+         * - before: 'name-of-phase'
+         * - after: 'name-of-phase'
+         * - position: 'position for new phase'
+         *
+         * @param {string} phase name
+         * @param {Array.<_base.Phase_controller.task>} tasks
          * @param {Object} options
          */
         add_phase: function(name, tasks, options) {
@@ -184,8 +235,8 @@ define([
         /**
          * Checks if phases with given name exists
          *
-         * @param {String} name
-         * @return {Boolean}
+         * @param {string} name
+         * @return {boolean}
          */
         exists: function(name) {
             return !!this.phases.get(name);

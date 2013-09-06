@@ -22,6 +22,12 @@
 define(['./ipa', './jquery', './navigation', './text', './field', './widget', './dialog'],
        function(IPA, $, navigation, text) {
 
+/**
+ * Entity adder dialog
+ * @class
+ * @extends IPA.dialog
+ * @mixins IPA.confirm_mixin
+ */
 IPA.entity_adder_dialog = function(spec) {
 
     spec = spec || {};
@@ -32,14 +38,34 @@ IPA.entity_adder_dialog = function(spec) {
 
     IPA.confirm_mixin().apply(that);
 
+    /** @property {string} method="add" API method for add command */
     that.method = spec.method || 'add';
+    /** @property {Function} on_error Custom add error handler */
     that.on_error = spec.on_error ;
+    /** @property {boolean} retry=true Allow retry on error (same as in IPA.command)*/
     that.retry = typeof spec.retry !== 'undefined' ? spec.retry : true;
+    /**
+     * Add command
+     * @property {IPA.command}
+     * @protected
+     */
     that.command = null;
+    /** @property {IPA.observer} added Added event */
     that.added = IPA.observer();
+    /** @property {string} subject Name of added subject (usually entity label) */
     that.subject = spec.subject || that.entity.metadata.label_singular;
+    /**
+     * Pkeys of containing entities to use in add command when adding nested entity
+     * @property {string[]}
+     */
     that.pkey_prefix = spec.pkey_prefix || [];
 
+    /**
+     * Custom logic for navigation to edit page in case of 'Add and Edit'
+     * @property {Function}
+     * @param {entity.entity} entity
+     * @param {Object} result
+     */
     that.show_edit_page = spec.show_edit_page || show_edit_page;
 
     var init = function() {
@@ -94,6 +120,10 @@ IPA.entity_adder_dialog = function(spec) {
         });
     };
 
+    /**
+     * Invokes simple add
+     * @protected
+     */
     that.on_add = function() {
 
         that.hide_message();
@@ -106,15 +136,29 @@ IPA.entity_adder_dialog = function(spec) {
             that.on_error);
     };
 
+    /**
+     * Confirm handler
+     * @protected
+     */
     that.on_confirm = function() {
         that.on_add();
     };
 
+    /**
+     * Get success notification message text
+     * @protected
+     * @param {Object} data Add command result
+     */
     that.get_success_message = function(data) {
         var message = text.get('@i18n:dialogs.add_confirmation');
         return  message.replace('${entity}', that.subject);
     };
 
+    /**
+     * Show success notification
+     * @protected
+     * @param {Object} data Add command result
+     */
     that.notify_success = function(data) {
         IPA.notify_success(that.get_success_message(data));
     };
@@ -131,6 +175,11 @@ IPA.entity_adder_dialog = function(spec) {
         navigation.show_entity(that.entity.name, 'default', pkeys);
     }
 
+    /**
+     * Create add command
+     * @protected
+     * @param {Object} record Saved data
+     */
     that.create_add_command = function(record) {
 
         var pkey_name = that.entity.metadata.primary_key;
@@ -163,6 +212,11 @@ IPA.entity_adder_dialog = function(spec) {
         return command;
     };
 
+    /**
+     * Execute add command
+     * @param {Function} on_success
+     * @param {Function} on_error
+     */
     that.add = function(on_success, on_error) {
 
         if (!that.validate()) return;
@@ -177,6 +231,7 @@ IPA.entity_adder_dialog = function(spec) {
         that.command.execute();
     };
 
+    /** @inheritDoc */
     that.create = function() {
         that.dialog_create();
 

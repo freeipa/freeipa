@@ -226,6 +226,7 @@ return {
 };};
 
 /**
+ * @ignore
  * @param {Object} facet spec
  */
 var add_sudorule_details_facet_widgets = function (spec) {

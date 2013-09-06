@@ -24,6 +24,22 @@ define([
         './_base/Search_provider'
     ], function(lang, Provider, Search_provider) {
 
+    /**
+     * Metadata provider
+     *
+     * Contains multiple providers for specific metadata searches:
+     *
+     * - `@m:`: provider for whole metadata
+     * - `@mo:`: provider for objects (entities)
+     * - `@mc:`: provider for commands
+     * - `@mo-param:`: search provider for object params
+     * - `@mc-arg:`: search provider for command arguments
+     * - `@mc-opt:`: search provider for command options
+     *
+     * @class metadata
+     * @singleton
+     * @extends _base.Provider
+     */
     var metadata = new Provider({
         code: '@m:'
     });

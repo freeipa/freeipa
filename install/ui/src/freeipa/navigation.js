@@ -18,15 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Navigation tells application to show certain facet.
- *
- * It's proxy for navigation/Router instance in current running
- * application.
- *
- * Modules just use the interface, they don't have to care about the logic in
- * the background.
- */
+
 define([
         'dojo/_base/lang',
         './app', // creates circular dependency
@@ -41,14 +33,25 @@ define([
         },
 
         /**
+         * Navigation tells application to show certain facet.
+         *
+         * It's proxy for navigation/Router instance in current running
+         * application.
+         *
+         * Modules just use the interface, they don't have to care about the logic in
+         * the background.
+         * @class navigation
+         */
+
+        /**
          * Sets property of params depending on arg type following way:
          *   for String sets params.facet
          *   for Facet sets params.facet  (based on show function)
          *   for Object sets params.args
          *   for Array sets params.pkeys
-         *
+         *  @ignore
          *  @param Object params
-         *  @param {Object|Facet|String|Function} arg
+         *  @param {Object|facet.facet|string|Function} arg
          */
         set_params = function(params, arg) {
             if (lang.isArray(arg)) {
@@ -78,7 +81,10 @@ define([
          *
          * When it's an object (Facet) and has an entity set it will be
          * dealt as entity facet.
-         *
+         * @method show
+         * @param {Object|facet.facet|string|Function} arg1
+         * @param {Object|facet.facet|string|Function} arg2
+         * @param {Object|facet.facet|string|Function} arg3
          */
         show = function(arg1, arg2, arg3) {
 
@@ -111,17 +117,17 @@ define([
         },
 
         /**
-         * Show entity facet.
-         *
-         * @param String Enity name
-         * @param {Object|Facet|String|Function} arg1
-         * @param {Object|Facet|String|Function} arg2
-         * @param {Object|Facet|String|Function} arg3
+         * Show entity facet
          *
          * arg1,arg2,arg3 are:
          *      facet name as String
          *      pkeys as Array
          *      args as Object
+         * @method show_entity
+         * @param String Enity name
+         * @param {Object|facet.facet|string|Function} arg1
+         * @param {Object|facet.facet|string|Function} arg2
+         * @param {Object|facet.facet|string|Function} arg3
          */
         show_entity = function(entity_name, arg1, arg2, arg3) {
             var nav = get_router();
@@ -134,6 +140,10 @@ define([
                                                 params.pkeys, params.args);
         },
 
+        /**
+         * Show default facet
+         * @method show_default
+         */
         show_default = function() {
             // TODO: make configurable
             return show_entity('user', 'search');

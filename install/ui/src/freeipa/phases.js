@@ -18,18 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Phases module provides access mainly serves as an registration point for
- * phase tasks. It also provides access to Phase controller.
- */
 define([
     './_base/Phase_controller'
 ], function(Phase_controller) {
 
     /**
      * Phases specification object.
-     *
-     * @type String[]
+     * @ignore
+     * @property {string[]}
      */
     var spec = {
         phases: [
@@ -47,6 +43,12 @@ define([
 
     /**
      * Phases module
+     *
+     * Provides access mainly serves as an registration point for
+     * phase tasks. It also provides access to Phase controller.
+     *
+     * @class phases
+     * @singleton
      */
     var phases = {
         /**
@@ -57,9 +59,9 @@ define([
         /**
          * Registers a phase task
          *
-         * @param {String} Phase name
-         * @param {Function} Task handler. Should return promise if async.
-         * @param {Number} Priority of task. Default 10.
+         * @param {string} phase_name
+         * @param {Function} handler Task handler. Should return promise if async.
+         * @param {number} [priority=10]
          */
         on: function(phase_name, handler, priority) {
             this.controller.add_task(phase_name, handler, priority);
@@ -73,8 +75,8 @@ define([
          *   after: 'name-of-phase'
          *   position: 'position for new phase'
          *
-         * @param {String} Phase name
-         * @param {Object} Options
+         * @param {string} phase_name
+         * @param {Object} options
          */
         add: function(phase_name, options) {
             this.controller.add_phase(phase_name, null, options);
@@ -83,8 +85,8 @@ define([
         /**
          * Checks if phases with given name exists
          *
-         * @param {String} Name
-         * @return {Boolean}
+         * @param {string} name
+         * @return {boolean}
          */
         exists: function(name) {
             return this.controller.exists(name);

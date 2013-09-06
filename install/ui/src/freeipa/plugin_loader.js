@@ -18,9 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Plugin loader
- */
 define([
     'dojo/_base/array',
     'dojo/_base/lang',
@@ -28,8 +25,17 @@ define([
     'dojo/promise/all'
 ],function(array, lang, Deferred, all) {
 
+    /**
+     * Plugin loader
+     * @class
+     * @singleton
+     */
     var plugin_loader = {
 
+        /**
+         * Register plugins
+         * @param {Array.<string>} plugins
+         */
         register_plugins: function(plugins) {
 
             var packages = [];
@@ -44,6 +50,11 @@ define([
             require({ packages: packages});
         },
 
+        /**
+         * Load plugin
+         * @param {string} name
+         * @return {Promise}
+         */
         load_plugin: function(name) {
             var plugin_loaded = new Deferred();
 
@@ -56,6 +67,12 @@ define([
             return plugin_loaded.promise;
         },
 
+        /**
+         * Load plugins
+         *
+         * - loads plugin list from `freeipa/plugins` module.
+         * @return {Promise}
+         */
         load_plugins: function() {
 
             var plugins_loaded = new Deferred();

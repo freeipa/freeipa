@@ -30,15 +30,18 @@
  *
  * Path is a plain object path within a source.
  *
- * Ie. if source is {
- *  foo: {
- *    bar: {
- *       a: 'val'
- *    }
- *  }
- * }
+ *      // if source is
+ *      {
+ *          foo: {
+ *              bar: {
+ *                  a: 'val'
+ *              }
+ *          }
+ *      }
  *
- * path: 'foo.bar.a' would return 'val'
+ *      // path: `foo.bar.a` would return `val`
+ *
+ * @class _base.Provider
  *
  */
 define(['dojo/_base/declare','dojo/_base/lang'], function(declare, lang) {
@@ -48,13 +51,13 @@ define(['dojo/_base/declare','dojo/_base/lang'], function(declare, lang) {
 
         /**
          * Array of other providers
-         * @type Provider[]
+         * @property {_base.Provider[]}
          */
         providers: null,
 
         /**
          * Source object or a function which returns source object.
-         * @type {Function|Object|Provider}
+         * @property {Function|Object|_base.Provider}
          */
         source: null,
 
@@ -63,19 +66,20 @@ define(['dojo/_base/declare','dojo/_base/lang'], function(declare, lang) {
          *
          * When defined, all lookups in source are based on the object
          * defined by this path within a source.
-         * @type String
+         * @property {string}
          */
         path: null,
 
         /**
          * Value which is returned if no value nor alternative is found
+         * @property {Mixed}
          */
         null_value: null,
 
         /**
          * Specifies which type should be returned. Limited to output of
          * typeof operator.
-         * @type String
+         * @property {string}
          */
         required_type: null,
 
@@ -153,7 +157,7 @@ define(['dojo/_base/declare','dojo/_base/lang'], function(declare, lang) {
         /**
          * Gets value.
          *
-         * @param {String|Object} Key or value
+         * @param {string|Object} Key or value
          * @param {Object} Alternate value
          */
         get: function(key, alternate) {

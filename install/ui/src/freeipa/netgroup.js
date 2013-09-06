@@ -77,6 +77,7 @@ var spec = {
 
 
 /**
+ * @ignore
  * @param {Object} facet spec
  */
 var add_netgroup_details_facet_widgets = function (spec) {
