@@ -1313,7 +1313,7 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
     };
 
     that.on_ok = function() {
-        navigation.show_entity_page('dnszone','default');
+        navigation.show_entity('dnszone','default');
     };
 
     return that;
