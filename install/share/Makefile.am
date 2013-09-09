@@ -68,6 +68,7 @@ app_DATA =				\
 	copy-schema-to-ca.py		\
 	upload-cacert.ldif		\
 	sasl-mapping-fallback.ldif	\
+	schema-update.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\
