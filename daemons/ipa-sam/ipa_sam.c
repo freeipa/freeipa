@@ -4273,6 +4273,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	if (ldap_state->ipasam_privates->flat_name == NULL) {
 		DEBUG(0, ("Missing mandatory attribute %s.\n",
 			  LDAP_ATTRIBUTE_FLAT_NAME));
+		ldap_msgfree(result);
 		return NT_STATUS_INVALID_PARAMETER;
 	}
 
@@ -4280,8 +4281,9 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 			     idmap_talloc_free,
 			     &ldap_state->ipasam_privates->idmap_ctx);
 	if (err != IDMAP_SUCCESS) {
-	    DEBUG(1, ("Failed to setup idmap context.\n"));
-	    return NT_STATUS_UNSUCCESSFUL;
+		DEBUG(1, ("Failed to setup idmap context.\n"));
+		ldap_msgfree(result);
+		return NT_STATUS_UNSUCCESSFUL;
 	}
 
 	fallback_group_sid = get_fallback_group_sid(ldap_state,
@@ -4290,6 +4292,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 					result);
 	if (fallback_group_sid == NULL) {
 		DEBUG(0, ("Cannot find SID of fallback group.\n"));
+		ldap_msgfree(result);
 		return NT_STATUS_INVALID_PARAMETER;
 	}
 	sid_copy(&ldap_state->ipasam_privates->fallback_primary_group,
@@ -4319,10 +4322,12 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 
 		status = save_sid_to_secret(ldap_state);
 		if (!NT_STATUS_IS_OK(status)) {
+			ldap_msgfree(result);
 			return status;
 		}
 	}
 
+	ldap_msgfree(result);
 	(*pdb_method)->getsampwnam = ldapsam_getsampwnam;
 	(*pdb_method)->search_users = ldapsam_search_users;
 	(*pdb_method)->search_groups = ldapsam_search_groups;
