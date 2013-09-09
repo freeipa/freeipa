@@ -252,17 +252,6 @@ class KrbInstance(service.Service):
         # we need to remove any existing SASL mappings in the directory as otherwise they
         # they may conflict.
 
-        # FIXME: https://fedorahosted.org/389/ticket/47490
-        entry = self.admin_conn.get_entry(
-            DN(('cn', 'schema')), ['objectClasses'])
-        entry['objectClasses'].append(
-            "( 2.16.840.1.113730.3.2.317 NAME 'nsSaslMapping' "
-            "DESC 'Netscape defined objectclass' SUP top "
-            "MUST ( cn $ nsSaslMapRegexString $ nsSaslMapBaseDNTemplate $ "
-            "nsSaslMapFilterTemplate ) MAY ( nsSaslMapPriority ) "
-            "X-ORIGIN 'Netscape Directory Server' )")
-        self.admin_conn.update_entry(entry)
-
         try:
             res = self.admin_conn.get_entries(
                 DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),

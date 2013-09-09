@@ -346,6 +346,7 @@ class DsInstance(service.Service):
         self.__common_setup(True)
 
         self.step("setting up initial replication", self.__setup_replica)
+        self.step("updating schema", self.__update_schema)
         # See LDIFs for automember configuration during replica install
         self.step("setting Auto Member configuration", self.__add_replica_automember_config)
         self.step("enabling S4U2Proxy delegation", self.__setup_s4u2proxy)
@@ -367,6 +368,10 @@ class DsInstance(service.Service):
                                r_binddn=DN(('cn', 'Directory Manager')),
                                r_bindpw=self.dm_password)
         self.run_init_memberof = repl.needs_memberof_fixup()
+
+    def __update_schema(self):
+        # FIXME: https://fedorahosted.org/389/ticket/47490
+        self._ldap_mod("schema-update.ldif")
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
