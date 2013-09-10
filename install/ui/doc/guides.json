@@ -3,6 +3,12 @@
         "title": "FreeIPA Web UI Guides",
         "items": [
             {
+                "name": "Debugging",
+                "url": "guides/debugging_web_ui",
+                "title": "Web UI debugging",
+                "description": "With built JavaScript layer debugging can be quite tricky."
+            },
+            {
                 "name": "Phases",
                 "url": "guides/phases",
                 "title": "Appliaciton phases",
