@@ -9,6 +9,12 @@
                 "description": "With built JavaScript layer debugging can be quite tricky."
             },
             {
+                "name": "Navigation",
+                "url": "guides/navigation",
+                "title": "Navigation",
+                "description": "Navigation was refactored. This guide describes previous flaws and new implementation"
+            },
+            {
                 "name": "Plugins",
                 "url": "guides/plugins",
                 "title": "Plugin support",
