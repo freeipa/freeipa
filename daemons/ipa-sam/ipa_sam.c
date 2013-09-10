@@ -170,6 +170,7 @@ struct ipasam_privates {
 	char *server_princ;
 	char *client_princ;
 	struct sss_idmap_ctx *idmap_ctx;
+	uint32_t supported_enctypes;
 };
 
 
@@ -2062,11 +2063,7 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 		return false;
 	}
 	if (*td->supported_enc_type == 0) {
-		*td->supported_enc_type = KERB_ENCTYPE_DES_CBC_CRC |
-					  KERB_ENCTYPE_DES_CBC_MD5 |
-					  KERB_ENCTYPE_RC4_HMAC_MD5 |
-					  KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96 |
-					  KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96;
+		*td->supported_enc_type = ldap_state->ipasam_privates->supported_enctypes;
 	}
 
 	if (!smbldap_talloc_single_blob(td, priv2ld(ldap_state), entry,
@@ -2333,12 +2330,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		goto done;
 	}
 
-	enctypes = KERB_ENCTYPE_DES_CBC_CRC |
-		   KERB_ENCTYPE_DES_CBC_MD5 |
-		   KERB_ENCTYPE_RC4_HMAC_MD5 |
-		   KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96 |
-		   KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96;
-
+	enctypes = ldap_state->ipasam_privates->supported_enctypes;
 	if (td->supported_enc_type != NULL) {
 		enctypes = *td->supported_enc_type;
 	}
@@ -3606,6 +3598,106 @@ static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 	return NT_STATUS_OK;
 }
 
+static NTSTATUS ipasam_get_enctypes(struct ldapsam_privates *ldap_state,
+				    TALLOC_CTX *mem_ctx,
+				    uint32_t *enctypes)
+{
+	int ret;
+	LDAPMessage *result;
+	LDAPMessage *entry = NULL;
+	int count, i;
+	char **enctype_list, *dn;
+	krb5_enctype enctype;
+	krb5_error_code err;
+	struct smbldap_state *smbldap_state = ldap_state->smbldap_state;
+	const char *attr_list[] = {
+					"krbDefaultEncSaltTypes",
+					NULL
+				  };
+
+	dn = talloc_asprintf(mem_ctx, "cn=%s,cn=kerberos,%s",
+			     ldap_state->ipasam_privates->realm,
+			     ldap_state->ipasam_privates->base_dn);
+
+	if (dn == NULL) {
+		DEBUG(1, ("Failed to construct DN to the realm's kerberos container\n"));
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	ret = smbldap_search(smbldap_state, dn, LDAP_SCOPE_BASE,
+			     "objectclass=krbrealmcontainer", attr_list, 0,
+			     &result);
+	if (ret != LDAP_SUCCESS) {
+		DEBUG(1, ("Failed to get kerberos realm encryption types: %s\n",
+			  ldap_err2string (ret)));
+		talloc_free(dn);
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+
+	if (count != 1) {
+		DEBUG(1, ("Unexpected number of results [%d] for realm "
+			  "search.\n", count));
+		ldap_msgfree(result);
+		talloc_free(dn);
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	entry = ldap_first_entry(smbldap_state->ldap_struct, result);
+	if (entry == NULL) {
+		DEBUG(0, ("Could not get krbrealmcontainer entry\n"));
+		ldap_msgfree(result);
+		talloc_free(dn);
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	enctype_list = get_attribute_values(dn, smbldap_state->ldap_struct, entry,
+					    "krbDefaultEncSaltTypes", &count);
+	ldap_msgfree(result);
+	if (enctype_list == NULL) {
+		talloc_free(dn);
+		return NT_STATUS_UNSUCCESSFUL;
+	}
+
+	*enctypes = 0;
+	for (i = 0; i < count ; i++) {
+		char *enc = strchr(enctype_list[i], ':');
+		if (enc != NULL) {
+			*enc = '\0';
+		}
+		err = krb5_string_to_enctype(enctype_list[i], &enctype);
+		if (enc != NULL) {
+			*enc = ':';
+		}
+		if (err) {
+			continue;
+		}
+		switch (enctype) {
+			case ENCTYPE_DES_CBC_CRC:
+				*enctypes |= KERB_ENCTYPE_DES_CBC_CRC;
+				break;
+			case ENCTYPE_DES_CBC_MD5:
+				*enctypes |= KERB_ENCTYPE_DES_CBC_MD5;
+				break;
+			case ENCTYPE_ARCFOUR_HMAC:
+				*enctypes |= KERB_ENCTYPE_RC4_HMAC_MD5;
+				break;
+			case ENCTYPE_AES128_CTS_HMAC_SHA1_96:
+				*enctypes |= KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96;
+				break;
+			case ENCTYPE_AES256_CTS_HMAC_SHA1_96:
+				*enctypes |= KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96;
+				break;
+			default:
+				break;
+		}
+	}
+
+	talloc_free(dn);
+	return NT_STATUS_OK;
+}
+
 static NTSTATUS ipasam_get_realm(struct ldapsam_privates *ldap_state,
 				 TALLOC_CTX *mem_ctx,
 				 char **realm)
@@ -4135,7 +4227,6 @@ done:
 	return status;
 }
 
-
 static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				const char *location)
 {
@@ -4151,6 +4242,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
 	enum idmap_error_code err;
+	uint32_t enctypes = 0;
 
 	status = make_pdb_method(pdb_method);
 	if (!NT_STATUS_IS_OK(status)) {
@@ -4328,6 +4420,19 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	}
 
 	ldap_msgfree(result);
+
+	status = ipasam_get_enctypes(ldap_state,
+				     ldap_state->ipasam_privates,
+				     &enctypes);
+
+	if (!NT_STATUS_IS_OK(status)) {
+		enctypes = KERB_ENCTYPE_RC4_HMAC_MD5 |
+			   KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96 |
+			   KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96;
+	}
+
+	ldap_state->ipasam_privates->supported_enctypes = enctypes;
+
 	(*pdb_method)->getsampwnam = ldapsam_getsampwnam;
 	(*pdb_method)->search_users = ldapsam_search_users;
 	(*pdb_method)->search_groups = ldapsam_search_groups;
