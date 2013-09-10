@@ -253,10 +253,10 @@ class test_LDAPEntry(object):
 
     def test_single_value(self):
         e = self.entry
-        assert e.single_value('cn') == self.cn1[0]
-        assert e.single_value('commonname') == self.cn1[0]
-        assert e.single_value('COMMONNAME', 'default') == self.cn1[0]
-        assert e.single_value('bad key', 'default') == 'default'
+        assert e.single_value['cn'] == self.cn1[0]
+        assert e.single_value['commonname'] == self.cn1[0]
+        assert e.single_value.get('COMMONNAME', 'default') == self.cn1[0]
+        assert e.single_value.get('bad key', 'default') == 'default'
 
     def test_sync(self):
         e = self.entry

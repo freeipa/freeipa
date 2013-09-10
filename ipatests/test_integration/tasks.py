@@ -620,11 +620,11 @@ def wait_for_replication(ldap, timeout=30):
             filter='(objectclass=nsds5replicationagreement)',
             attrs_list=[status_attr, progress_attr])
         log.debug('Replication agreements: \n%s', _entries_to_ldif(entries))
-        if any(not e.single_value(status_attr).startswith('0 ')
+        if any(not e.single_value[status_attr].startswith('0 ')
                for e in entries):
             log.error('Replication error')
             continue
-        if any(e.single_value(progress_attr) == 'TRUE' for e in entries):
+        if any(e.single_value[progress_attr] == 'TRUE' for e in entries):
             log.debug('Replication in progress (waited %s/%ss)',
                       i, timeout)
         else:

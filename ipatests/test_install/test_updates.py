@@ -112,7 +112,7 @@ class test_update(unittest.TestCase):
         for item in ('top', 'nsContainer'):
             self.assertTrue(item in objectclasses)
 
-        self.assertEqual(entry.single_value('cn'), 'test')
+        self.assertEqual(entry.single_value['cn'], 'test')
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
@@ -123,10 +123,10 @@ class test_update(unittest.TestCase):
         for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
             self.assertTrue(item in objectclasses)
 
-        self.assertEqual(entry.single_value('loginshell'), '/bin/bash')
-        self.assertEqual(entry.single_value('sn'), 'User')
-        self.assertEqual(entry.single_value('uid'), 'tuser')
-        self.assertEqual(entry.single_value('cn'), 'Test User')
+        self.assertEqual(entry.single_value['loginshell'], '/bin/bash')
+        self.assertEqual(entry.single_value['sn'], 'User')
+        self.assertEqual(entry.single_value['uid'], 'tuser')
+        self.assertEqual(entry.single_value['cn'], 'Test User')
 
 
     def test_2_update(self):
@@ -140,7 +140,7 @@ class test_update(unittest.TestCase):
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
-        self.assertEqual(entry.single_value('gecos'), 'Test User')
+        self.assertEqual(entry.single_value['gecos'], 'Test User')
 
     def test_3_update(self):
         """
@@ -153,7 +153,7 @@ class test_update(unittest.TestCase):
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
-        self.assertEqual(entry.single_value('gecos'), 'Test User New')
+        self.assertEqual(entry.single_value['gecos'], 'Test User New')
 
     def test_4_update(self):
         """
@@ -166,7 +166,7 @@ class test_update(unittest.TestCase):
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
         self.assertEqual(len(entries), 1)
         entry = entries[0]
-        self.assertEqual(entry.single_value('gecos'), 'Test User New2')
+        self.assertEqual(entry.single_value['gecos'], 'Test User New2')
 
     def test_5_update(self):
         """
@@ -296,7 +296,7 @@ class test_update(unittest.TestCase):
         for item in ('top', 'nsContainer'):
             self.assertTrue(item in objectclasses)
 
-        self.assertEqual(entry.single_value('cn'), 'test')
+        self.assertEqual(entry.single_value['cn'], 'test')
 
         entries = self.ld.get_entries(
             self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
@@ -307,10 +307,10 @@ class test_update(unittest.TestCase):
         for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
             self.assertTrue(item in objectclasses)
 
-        self.assertEqual(entry.single_value('loginshell'), '/bin/bash')
-        self.assertEqual(entry.single_value('sn'), 'User')
-        self.assertEqual(entry.single_value('uid'), 'tuser')
-        self.assertEqual(entry.single_value('cn'), 'Test User')
+        self.assertEqual(entry.single_value['loginshell'], '/bin/bash')
+        self.assertEqual(entry.single_value['sn'], 'User')
+        self.assertEqual(entry.single_value['uid'], 'tuser')
+        self.assertEqual(entry.single_value['cn'], 'Test User')
 
         # Now delete
 

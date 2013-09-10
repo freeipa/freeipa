@@ -100,9 +100,9 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
             try:
                 cadn = DN(('cn', 'CA'), DN(ent.dn))
                 entry = conn.get_entry(cadn)
-                peers[ent.single_value('cn')] = ['master', '']
+                peers[ent.single_value['cn']] = ['master', '']
             except errors.NotFound:
-                peers[ent.single_value('cn')] = ['CA not configured', '']
+                peers[ent.single_value['cn']] = ['CA not configured', '']
 
     except Exception, e:
         sys.exit(
@@ -124,19 +124,19 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
     entries = repl.find_replication_agreements()
 
     for entry in entries:
-        print '%s' % entry.single_value('nsds5replicahost', None)
+        print '%s' % entry.single_value.get('nsds5replicahost')
 
         if verbose:
-            print "  last init status: %s" % entry.single_value(
-                'nsds5replicalastinitstatus', None)
+            print "  last init status: %s" % entry.single_value.get(
+                'nsds5replicalastinitstatus')
             print "  last init ended: %s" % str(
                 ipautil.parse_generalized_time(
-                    entry.single_value('nsds5replicalastinitend')))
-            print "  last update status: %s" % entry.single_value(
-                'nsds5replicalastupdatestatus', None)
+                    entry.single_value['nsds5replicalastinitend']))
+            print "  last update status: %s" % entry.single_value.get(
+                'nsds5replicalastupdatestatus')
             print "  last update ended: %s" % str(
                 ipautil.parse_generalized_time(
-                    entry.single_value('nsds5replicalastupdateend')))
+                    entry.single_value['nsds5replicalastupdateend']))
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
@@ -152,7 +152,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         # Find the DN of the replication agreement to remove
         replica1_dn = None
         for e in repl_list1:
-            if e.single_value('nsDS5ReplicaHost', None) == replica2:
+            if e.single_value.get('nsDS5ReplicaHost') == replica2:
                 replica1_dn = e.dn
                 break
 
@@ -188,7 +188,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         # Find the DN of the replication agreement to remove
         replica2_dn = None
         for e in repl_list:
-            if e.single_value('nsDS5ReplicaHost', None) == replica1:
+            if e.single_value.get('nsDS5ReplicaHost') == replica1:
                 replica2_dn = e.dn
                 break
 
@@ -263,7 +263,7 @@ def del_master(realm, hostname, options):
         replica_names = [options.host]
     else:
         replica_entries = delrepl.find_ipa_replication_agreements()
-        replica_names = [rep.single_value('nsds5replicahost', None)
+        replica_names = [rep.single_value.get('nsds5replicahost')
                          for rep in replica_entries]
 
     # 5. Remove each agreement
@@ -311,7 +311,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
                                                        dirman_passwd)
         entries = repl1.find_replication_agreements()
         for e in entries:
-            if e.single_value('nsDS5ReplicaHost', None) == replica2:
+            if e.single_value.get('nsDS5ReplicaHost') == replica2:
                 sys.exit('This replication agreement already exists.')
         repl1.hostnames = [replica1, replica2]
 

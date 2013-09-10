@@ -259,7 +259,7 @@ def update_krbticketflags(ldap, entry_attrs, attrs_list, options, existing):
         old_entry_attrs = entry_attrs
 
     try:
-        ticket_flags = old_entry_attrs.single_value('krbticketflags')
+        ticket_flags = old_entry_attrs.single_value['krbticketflags']
         ticket_flags = int(ticket_flags)
     except (KeyError, ValueError):
         ticket_flags = _ticket_flags_default
@@ -275,8 +275,8 @@ def set_kerberos_attrs(entry_attrs, options):
         return
 
     try:
-        ticket_flags = entry_attrs.single_value('krbticketflags',
-                                                _ticket_flags_default)
+        ticket_flags = entry_attrs.single_value.get('krbticketflags',
+                                                    _ticket_flags_default)
         ticket_flags = int(ticket_flags)
     except ValueError:
         return

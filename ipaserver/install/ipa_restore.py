@@ -349,7 +349,7 @@ class Restore(admintool.AdminTool):
             raise admintool.ScriptError(
                 "Failed to read master data: %s" % e)
         else:
-            masters = [ent.single_value('cn') for ent in entries]
+            masters = [ent.single_value['cn'] for ent in entries]
 
         for master in masters:
             if master == api.env.host:
@@ -368,10 +368,10 @@ class Restore(admintool.AdminTool):
             except errors.NotFound:
                 continue
 
-            services_cns = [s.single_value('cn') for s in services]
+            services_cns = [s.single_value['cn'] for s in services]
 
             host_entries = repl.find_ipa_replication_agreements()
-            hosts = [rep.single_value('nsds5replicahost', None)
+            hosts = [rep.single_value.get('nsds5replicahost')
                      for rep in host_entries]
 
             for host in hosts:
@@ -386,7 +386,7 @@ class Restore(admintool.AdminTool):
                     self.log.critical("Unable to disable agreement on %s: %s" % (master, e))
 
                 host_entries = repl.find_ipa_replication_agreements()
-                hosts = [rep.single_value('nsds5replicahost', None)
+                hosts = [rep.single_value.get('nsds5replicahost')
                          for rep in host_entries]
                 for host in hosts:
                     self.log.info('Disabling CA replication agreement on %s to %s' % (master, host))

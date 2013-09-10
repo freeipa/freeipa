@@ -52,7 +52,7 @@ class update_replica_attribute_lists(PreUpdate):
         self.log.debug("Found %d agreement(s)", len(ipa_replicas))
 
         for replica in ipa_replicas:
-            self.log.debug(replica.single_value('description', None))
+            self.log.debug(replica.single_value.get('description'))
 
             self._update_attr(repl, replica,
                 'nsDS5ReplicatedAttributeList',
@@ -81,7 +81,7 @@ class update_replica_attribute_lists(PreUpdate):
         :param values: List of values the attribute should hold
         :param template: Template to use when adding attribute
         """
-        attrlist = replica.single_value(attribute, None)
+        attrlist = replica.single_value.get(attribute)
         if attrlist is None:
             self.log.debug("Adding %s", attribute)
 

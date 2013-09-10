@@ -620,7 +620,7 @@ class IPASimpleLDAPObject(object):
 # r[1] == r.data
 class LDAPEntry(collections.MutableMapping):
     __slots__ = ('_conn', '_dn', '_names', '_nice', '_raw', '_sync',
-                 '_not_list', '_orig', '_raw_view')
+                 '_not_list', '_orig', '_raw_view', '_single_value_view')
 
     def __init__(self, _conn, _dn=None, _obj=None, **kwargs):
         """
@@ -638,6 +638,8 @@ class LDAPEntry(collections.MutableMapping):
 
         Keyword arguments can be used to override values of specific attributes.
         """
+        super(LDAPEntry, self).__init__()
+
         if isinstance(_conn, LDAPEntry):
             assert _dn is None
             _dn = _conn
@@ -662,6 +664,7 @@ class LDAPEntry(collections.MutableMapping):
         self._not_list = set()
         self._orig = self
         self._raw_view = None
+        self._single_value_view = None
 
         if isinstance(_obj, LDAPEntry):
             #pylint: disable=E1103
@@ -698,6 +701,12 @@ class LDAPEntry(collections.MutableMapping):
         if self._raw_view is None:
             self._raw_view = RawLDAPEntryView(self)
         return self._raw_view
+
+    @property
+    def single_value(self):
+        if self._single_value_view is None:
+            self._single_value_view = SingleValueLDAPEntryView(self)
+        return self._single_value_view
 
     @property
     def data(self):
@@ -911,27 +920,6 @@ class LDAPEntry(collections.MutableMapping):
 
         return self._get_nice(name)
 
-    def single_value(self, name, default=_missing):
-        """Return a single attribute value
-
-        Checks that the attribute really has one and only one value
-
-        If the entry is missing and default is given, return the default.
-        If the entry is missing and default is not given, raise KeyError.
-        """
-        try:
-            values = self[name]
-        except KeyError:
-            if default is _missing:
-                raise
-            return default
-        if not isinstance(values, list):  # TODO: remove when we enforce lists
-            return values
-        if len(values) != 1:
-            raise ValueError(
-                '%s has %s values, one expected' % (name, len(values)))
-        return values[0]
-
     def __delitem__(self, name):
         name = self._get_attr_name(name)
 
@@ -1046,6 +1034,26 @@ class RawLDAPEntryView(LDAPEntryView):
 
     def __setitem__(self, name, value):
         self._entry._set_raw(name, value)
+
+class SingleValueLDAPEntryView(LDAPEntryView):
+    def __getitem__(self, name):
+        value = self._entry[name]
+        if not isinstance(value, list):
+            # FIXME: remove when we enforce lists
+            return value
+        elif not value:
+            return None
+        elif len(value) == 1:
+            return value[0]
+        else:
+            raise ValueError(
+                '%s has %s values, one expected' % (name, len(value)))
+
+    def __setitem__(self, name, value):
+        if value is None:
+            self._entry[name] = None
+        else:
+            self._entry[name] = [value]
 
 
 class LDAPClient(object):

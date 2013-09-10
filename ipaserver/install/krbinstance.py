@@ -365,7 +365,7 @@ class KrbInstance(service.Service):
             raise e
 
         krbMKey = pyasn1.codec.ber.decoder.decode(
-            entry.single_value('krbmkey', None))
+            entry.single_value.get('krbmkey'))
         keytype = int(krbMKey[0][1][0])
         keydata = str(krbMKey[0][1][1])
 

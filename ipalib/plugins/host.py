@@ -585,7 +585,7 @@ class host_del(LDAPDelete):
                 (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
-            cert = entry_attrs.single_value('usercertificate', None)
+            cert = entry_attrs.single_value.get('usercertificate')
             if cert:
                 cert = x509.normalize_certificate(cert)
                 try:
@@ -667,7 +667,7 @@ class host_mod(LDAPUpdate):
             if self.api.env.enable_ra:
                 x509.verify_cert_subject(ldap, keys[-1], cert)
                 (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
-                oldcert = entry_attrs_old.single_value('usercertificate', None)
+                oldcert = entry_attrs_old.single_value.get('usercertificate')
                 if oldcert:
                     oldcert = x509.normalize_certificate(oldcert)
                     try:
@@ -945,7 +945,7 @@ class host_disable(LDAPQuery):
             (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
-        cert = entry_attrs.single_value('usercertificate', None)
+        cert = entry_attrs.single_value.get('usercertificate')
         if cert:
             if self.api.env.enable_ra:
                 cert = x509.normalize_certificate(cert)

@@ -104,7 +104,7 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
     entry = conn.get_entry(DN(('cn', 'IPA Version Replication'),
                               ('cn', 'plugins'),
                               ('cn', 'config')))
-    if entry.single_value('nsslapd-pluginenabled', None) == 'off':
+    if entry.single_value.get('nsslapd-pluginenabled') == 'off':
         conn.modify_s(entry.dn, [(ldap.MOD_REPLACE, 'nsslapd-pluginenabled', 'on')])
         conn.unbind()
         serverid = "-".join(realm.split("."))
@@ -126,8 +126,8 @@ def wait_for_task(conn, dn):
         'nsTaskTotalItems']
     while True:
         entry = conn.get_entry(dn, attrlist)
-        if entry.single_value('nsTaskExitCode', None):
-            exit_code = int(entry.single_value('nsTaskExitCode'))
+        if entry.single_value.get('nsTaskExitCode'):
+            exit_code = int(entry.single_value['nsTaskExitCode'])
             break
         time.sleep(1)
     return exit_code
@@ -224,8 +224,8 @@ class ReplicationManager(object):
         except errors.NotFound:
             pass
         else:
-            if replica.single_value('nsDS5ReplicaId', None):
-                return int(replica.single_value('nsDS5ReplicaId'))
+            if replica.single_value.get('nsDS5ReplicaId'):
+                return int(replica.single_value['nsDS5ReplicaId'])
 
         # Ok, either the entry doesn't exist or the attribute isn't set
         # so get it from the other master
@@ -237,12 +237,12 @@ class ReplicationManager(object):
             root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
             raise
         else:
-            if replica.single_value('nsDS5ReplicaId', None) is None:
+            if replica.single_value.get('nsDS5ReplicaId') is None:
                 root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
                 raise RuntimeError("Unable to retrieve nsDS5ReplicaId from remote server")
 
         # Now update the value on the master
-        retval = int(replica.single_value('nsDS5ReplicaId'))
+        retval = int(replica.single_value['nsDS5ReplicaId'])
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaId', str(retval + 1))]
 
         try:
@@ -421,7 +421,7 @@ class ReplicationManager(object):
                 ('cn', 'config'), ('cn', 'ldbm database'),
                 ('cn', 'plugins'), ('cn', 'config')),
             ['nsslapd-directory'])
-        dbdir = os.path.dirname(ent.single_value('nsslapd-directory', None))
+        dbdir = os.path.dirname(ent.single_value.get('nsslapd-directory'))
 
         entry = conn.make_entry(
             DN(('cn', 'changelog5'), ('cn', 'config')),
@@ -501,7 +501,7 @@ class ReplicationManager(object):
             DN(('cn', 'Multimaster Replication Plugin'), ('cn', 'plugins'),
                ('cn', 'config')),
             ['nsslapd-pluginPath'])
-        path = plgent.single_value('nsslapd-pluginPath', None)
+        path = plgent.single_value.get('nsslapd-pluginPath')
 
         mod = [(ldap.MOD_REPLACE, 'nsslapd-state', 'backend'),
                (ldap.MOD_ADD, 'nsslapd-backend', bename),
@@ -802,10 +802,9 @@ class ReplicationManager(object):
             print "Error reading status from agreement", agmtdn
             hasError = 1
         else:
-            refresh = entry.single_value('nsds5BeginReplicaRefresh', None)
-            inprogress = entry.single_value('nsds5replicaUpdateInProgress',
-                                            None)
-            status = entry.single_value('nsds5ReplicaLastInitStatus', None)
+            refresh = entry.single_value.get('nsds5BeginReplicaRefresh')
+            inprogress = entry.single_value.get('nsds5replicaUpdateInProgress')
+            status = entry.single_value.get('nsds5ReplicaLastInitStatus')
             if not refresh: # done - check status
                 if not status:
                     print "No status yet"
@@ -843,15 +842,14 @@ class ReplicationManager(object):
             print "Error reading status from agreement", agmtdn
             hasError = 1
         else:
-            inprogress = entry.single_value('nsds5replicaUpdateInProgress',
-                                            None)
-            status = entry.single_value('nsds5ReplicaLastUpdateStatus', None)
+            inprogress = entry.single_value.get('nsds5replicaUpdateInProgress')
+            status = entry.single_value.get('nsds5ReplicaLastUpdateStatus')
             try:
-                start = int(entry.single_value('nsds5ReplicaLastUpdateStart'))
+                start = int(entry.single_value['nsds5ReplicaLastUpdateStart'])
             except (ValueError, TypeError, KeyError):
                 start = 0
             try:
-                end = int(entry.single_value('nsds5ReplicaLastUpdateEnd'))
+                end = int(entry.single_value['nsds5ReplicaLastUpdateEnd'])
             except (ValueError, TypeError, KeyError):
                 end = 0
             # incremental update is done if inprogress is false and end >= start
@@ -1095,7 +1093,7 @@ class ReplicationManager(object):
             root_logger.error("Using the first one only (%s)" % entries[0].dn)
 
         dn = entries[0].dn
-        schedule = entries[0].single_value('nsds5replicaupdateschedule', None)
+        schedule = entries[0].single_value.get('nsds5replicaupdateschedule')
 
         # On the remote chance of a match. We force a synch to happen right
         # now by setting the schedule to something and quickly removing it.
@@ -1215,7 +1213,7 @@ class ReplicationManager(object):
         try:
             dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
             ret = self.conn.get_entry(dn)
-            srvlist = ret.single_value('defaultServerList', '')
+            srvlist = ret.single_value.get('defaultServerList', '')
             srvlist = srvlist[0].split()
             if replica in srvlist:
                 srvlist.remove(replica)
@@ -1321,15 +1319,15 @@ class ReplicationManager(object):
         """
         entry = self.conn.get_entry(DNA_DN)
 
-        nextvalue = int(entry.single_value("dnaNextValue", 0))
-        maxvalue = int(entry.single_value("dnaMaxValue", 0))
+        nextvalue = int(entry.single_value.get("dnaNextValue", 0))
+        maxvalue = int(entry.single_value.get("dnaMaxValue", 0))
 
-        sharedcfgdn = entry.single_value("dnaSharedCfgDN", None)
+        sharedcfgdn = entry.single_value.get("dnaSharedCfgDN")
         if sharedcfgdn is not None:
             sharedcfgdn = DN(sharedcfgdn)
 
             shared_entry = self.conn.get_entry(sharedcfgdn)
-            remaining = int(shared_entry.single_value("dnaRemainingValues", 0))
+            remaining = int(shared_entry.single_value.get("dnaRemainingValues", 0))
         else:
             remaining = 0
 
@@ -1352,7 +1350,7 @@ class ReplicationManager(object):
         """
         entry = self.conn.get_entry(DNA_DN)
 
-        range = entry.single_value("dnaNextRange", None)
+        range = entry.single_value.get("dnaNextRange")
 
         if range is None:
             return (None, None)
@@ -1378,7 +1376,7 @@ class ReplicationManager(object):
         """
         entry = self.conn.get_entry(DNA_DN)
 
-        range = entry.single_value("dnaNextRange", None)
+        range = entry.single_value.get("dnaNextRange")
 
         if range is not None and next_start != 0 and next_max != 0:
             return False

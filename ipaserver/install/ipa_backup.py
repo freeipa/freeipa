@@ -504,7 +504,7 @@ class Backup(admintool.AdminTool):
             self.log.error("Failed to read services from '%s': %s" %
                 (conn.host, e))
         else:
-            services_cns = [s.single_value('cn') for s in services]
+            services_cns = [s.single_value['cn'] for s in services]
 
         config.set('ipa', 'services', ','.join(services_cns))
         with open(self.header, 'w') as fd:

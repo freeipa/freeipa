@@ -895,7 +895,7 @@ def get_ipa_basedn(conn):
     contexts = entry['namingcontexts']
     if 'defaultnamingcontext' in entry:
         # If there is a defaultNamingContext examine that one first
-        default = entry.single_value('defaultnamingcontext')
+        default = entry.single_value['defaultnamingcontext']
         if default in contexts:
             contexts.remove(default)
         contexts.insert(0, default)
@@ -908,7 +908,7 @@ def get_ipa_basedn(conn):
             root_logger.debug("LDAP server did not return info attribute to "
                               "check for IPA version")
             continue
-        info = entry.single_value('info').lower()
+        info = entry.single_value['info'].lower()
         if info != IPA_BASEDN_INFO:
             root_logger.debug("Detected IPA server version (%s) did not match the client (%s)" \
                 % (info, IPA_BASEDN_INFO))

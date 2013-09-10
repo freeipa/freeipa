@@ -894,7 +894,7 @@ class DsInstance(service.Service):
         dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
         try:
             entry = self.admin_conn.get_entry(dn)
-            srvlist = entry.single_value('defaultServerList', '')
+            srvlist = entry.single_value.get('defaultServerList', '')
             srvlist = srvlist.split()
             if not self.fqdn in srvlist:
                 srvlist.append(self.fqdn)

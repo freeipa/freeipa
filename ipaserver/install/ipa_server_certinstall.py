@@ -117,7 +117,7 @@ class ServerCertInstall(admintool.AdminTool):
         entry = conn.get_entry(DN(('cn', 'RSA'), ('cn', 'encryption'),
                                   ('cn', 'config')),
                                ['nssslpersonalityssl'])
-        old_cert = entry.single_value('nssslpersonalityssl')
+        old_cert = entry.single_value['nssslpersonalityssl']
 
         server_cert = self.import_cert(dirname, self.options.pin,
                                        old_cert, 'ldap/%s' % api.env.host,

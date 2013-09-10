@@ -201,7 +201,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Samba domain object not found")
             return
 
-        dom_sid = dom_entry.single_value(self.ATTR_SID, None)
+        dom_sid = dom_entry.single_value.get(self.ATTR_SID)
         if not dom_sid:
             self.print_msg("Samba domain object does not have a SID")
             return
@@ -218,7 +218,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("IPA admin group object not found")
             return
 
-        if admin_entry.single_value(self.ATTR_SID, None):
+        if admin_entry.single_value.get(self.ATTR_SID):
             self.print_msg("Admin SID already set, nothing to do")
         else:
             try:
@@ -228,7 +228,7 @@ class ADTRUSTInstance(service.Service):
             except:
                 self.print_msg("Failed to modify IPA admin object")
 
-        if admin_group_entry.single_value(self.ATTR_SID, None):
+        if admin_group_entry.single_value.get(self.ATTR_SID):
             self.print_msg("Admin group SID already set, nothing to do")
         else:
             try:
@@ -259,7 +259,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Samba domain object not found")
             return
 
-        if dom_entry.single_value(self.ATTR_FALLBACK_GROUP, None):
+        if dom_entry.single_value.get(self.ATTR_FALLBACK_GROUP):
             self.print_msg("Fallback group already set, nothing to do")
             return
 
@@ -303,8 +303,8 @@ class ADTRUSTInstance(service.Service):
 
             # Filter out ranges where RID base is already set
             no_rid_base_set = lambda r: not any((
-                                  r.single_value('ipaBaseRID', None),
-                                  r.single_value('ipaSecondaryBaseRID', None)))
+                                  r.single_value.get('ipaBaseRID'),
+                                  r.single_value.get('ipaSecondaryBaseRID')))
 
             ranges_with_no_rid_base = filter(no_rid_base_set, ranges)
 
@@ -321,7 +321,7 @@ class ADTRUSTInstance(service.Service):
 
             # Abort if RID bases are too close
             local_range = ranges_with_no_rid_base[0]
-            size = local_range.single_value('ipaIDRangeSize', None)
+            size = local_range.single_value.get('ipaIDRangeSize')
 
             if abs(self.rid_base - self.secondary_rid_base) > size:
                 self.print_msg("Primary and secondary RID base are too close. "
@@ -699,7 +699,7 @@ class ADTRUSTInstance(service.Service):
             if len(res) > 1:
                 # there are other CIFS services defined, we are not alone
                 for entry in res:
-                    managedBy = entry.single_value('managedBy', None)
+                    managedBy = entry.single_value.get('managedBy')
                     if managedBy:
                         fqdn = DN(managedBy)['fqdn']
                         if fqdn != unicode(self.fqdn):
@@ -810,7 +810,7 @@ class ADTRUSTInstance(service.Service):
             raise ValueError("No local ID range and no admins group found.\n" \
                              "Add local ID range manually and try again!")
 
-        base_id = int(entry.single_value('gidNumber'))
+        base_id = int(entry.single_value['gidNumber'])
         id_range_size = 200000
 
         id_filter = "(&" \

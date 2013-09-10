@@ -168,7 +168,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
         return
     else:
         for ent in entries:
-            peers[ent.single_value('cn')] = ['master', '']
+            peers[ent.single_value['cn']] = ['master', '']
 
     dn = DN(('cn', 'replicas'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
     try:
@@ -177,8 +177,8 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
         pass
     else:
         for ent in entries:
-            config_string = ent.single_value('ipaConfigString')
-            peers[ent.single_value('cn')] = config_string.split(':')
+            config_string = ent.single_value['ipaConfigString']
+            peers[ent.single_value['cn']] = config_string.split(':')
 
     if not replica:
         for k, p in peers.iteritems():
@@ -215,18 +215,18 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
         return
 
     for entry in entries:
-        print '%s: %s' % (entry.single_value('nsds5replicahost', None), ent_type)
+        print '%s: %s' % (entry.single_value.get('nsds5replicahost'), ent_type)
 
         if verbose:
-            print "  last init status: %s" % entry.single_value(
-                'nsds5replicalastinitstatus', None)
+            print "  last init status: %s" % entry.single_value.get(
+                'nsds5replicalastinitstatus')
             print "  last init ended: %s" % str(ipautil.parse_generalized_time(
-                entry.single_value('nsds5replicalastinitend')))
-            print "  last update status: %s" % entry.single_value(
-                'nsds5replicalastupdatestatus', None)
+                entry.single_value['nsds5replicalastinitend']))
+            print "  last update status: %s" % entry.single_value.get(
+                'nsds5replicalastupdatestatus')
             print "  last update ended: %s" % str(
                 ipautil.parse_generalized_time(
-                    entry.single_value('nsds5replicalastupdateend')))
+                    entry.single_value['nsds5replicalastupdateend']))
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     """
@@ -480,12 +480,12 @@ def list_clean_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     else:
         print "CLEANALLRUV tasks"
         for entry in entries:
-            name = entry.single_value('cn').replace('clean ', '')
-            status = entry.single_value('nsTaskStatus', None)
+            name = entry.single_value['cn'].replace('clean ', '')
+            status = entry.single_value.get('nsTaskStatus')
             print "RID %s: %s" % (name, status)
             if verbose:
                 print str(dn)
-                print entry.single_value('nstasklog', None)
+                print entry.single_value.get('nstasklog')
 
     print
 
@@ -497,12 +497,12 @@ def list_clean_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     else:
         print "Abort CLEANALLRUV tasks"
         for entry in entries:
-            name = entry.single_value('cn').replace('abort ', '')
-            status = entry.single_value('nsTaskStatus', None)
+            name = entry.single_value['cn'].replace('abort ', '')
+            status = entry.single_value.get('nsTaskStatus')
             print "RID %s: %s" % (name, status)
             if verbose:
                 print str(dn)
-                print entry.single_value('nstasklog', None)
+                print entry.single_value.get('nstasklog')
 
 def check_last_link(delrepl, realm, dirman_passwd, force):
     """
@@ -527,7 +527,7 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
     """
     replica_entries = delrepl.find_ipa_replication_agreements()
 
-    replica_names = [rep.single_value('nsds5replicahost', None)
+    replica_names = [rep.single_value.get('nsds5replicahost')
                      for rep in replica_entries]
 
     orphaned = []
@@ -543,7 +543,7 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
             continue
 
         entries = repl.find_ipa_replication_agreements()
-        names = [rep.single_value('nsds5replicahost', None)
+        names = [rep.single_value.get('nsds5replicahost')
                  for rep in entries]
 
         if len(names) == 1 and names[0] == delrepl.hostname:
@@ -614,7 +614,7 @@ def del_master(realm, hostname, options):
                 dn, thisrepl.conn.SCOPE_ONELEVEL)
             replica_names = []
             for entry in entries:
-                replica_names.append(entry.single_value('cn'))
+                replica_names.append(entry.single_value['cn'])
             # The host we're removing gets included in this list, remove it.
             # Otherwise we try to delete an agreement from the host to itself.
             try:
@@ -624,7 +624,7 @@ def del_master(realm, hostname, options):
         else:
             # Get list of agreements.
             replica_entries = delrepl.find_ipa_replication_agreements()
-            replica_names = [rep.single_value('nsds5replicahost', None)
+            replica_names = [rep.single_value.get('nsds5replicahost')
                              for rep in replica_entries]
     else:
         # WINSYNC replica, delete agreement from current host
@@ -666,14 +666,14 @@ def del_master(realm, hostname, options):
         this_services = []
         other_services = []
 
-        for master_cn in [m.single_value('cn') for m in masters]:
+        for master_cn in [m.single_value['cn'] for m in masters]:
             master_dn = DN(('cn', master_cn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
             try:
                 services = delrepl.conn.get_entries(master_dn,
                                                     delrepl.conn.SCOPE_ONELEVEL)
             except errors.NotFound:
                 continue
-            services_cns = [s.single_value('cn') for s in services]
+            services_cns = [s.single_value['cn'] for s in services]
 
             if master_cn == hostname:
                 this_services = services_cns
@@ -766,7 +766,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         if repl.get_agreement_type(replica2) == replication.WINSYNC:
             agreement = repl.get_replication_agreement(replica2)
             sys.exit("winsync agreement already exists on subtree %s" %
-                agreement.single_value('nsds7WindowsReplicaSubtree', None))
+                agreement.single_value.get('nsds7WindowsReplicaSubtree'))
         else:
             sys.exit("A replication agreement to %s already exists" % replica2)
     except errors.NotFound:
@@ -864,7 +864,7 @@ def re_initialize(realm, thishost, fromhost, dirman_passwd, nolookup=False):
 
         # If the agreement doesn't have nsDS5ReplicatedAttributeListTotal it means
         # we did not replicate memberOf, do so now.
-        if not agreement.single_value('nsDS5ReplicatedAttributeListTotal', None):
+        if not agreement.single_value.get('nsDS5ReplicatedAttributeListTotal'):
             ds = dsinstance.DsInstance(realm_name = realm, dm_password = dirman_passwd)
             ds.ldapi = os.getegid() == 0
             ds.init_memberof()
@@ -918,7 +918,7 @@ def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False,
         return False
 
     for ent in entries:
-        remote = ent.single_value('cn')
+        remote = ent.single_value['cn']
         if master is not None and remote != master:
             continue
         try:
@@ -974,7 +974,7 @@ def store_DNA_range(repl, range_start, range_max, deleted_master, realm,
         return False
 
     for ent in entries:
-        candidate = ent.single_value('cn')
+        candidate = ent.single_value['cn']
         if candidate == deleted_master:
             continue
         try:
@@ -1066,7 +1066,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
             sys.exit("Failed to read master data from '%s': %s" % (repl.conn.host, str(e)))
         else:
             for ent in entries:
-                master = ent.single_value('cn')
+                master = ent.single_value['cn']
                 if master == hostname and not next_range:
                     continue
                 try:
@@ -1100,8 +1100,8 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
             sys.exit('Unable to load IPA ranges: %s' % e.message)
 
         for ent in entries:
-            entry_start = int(ent.single_value('ipabaseid'))
-            entry_max = entry_start + int(ent.single_value('ipaidrangesize'))
+            entry_start = int(ent.single_value['ipabaseid'])
+            entry_max = entry_start + int(ent.single_value['ipaidrangesize'])
             if dna_next >= entry_start and dna_max <= entry_max:
                 break
         else:
@@ -1115,8 +1115,8 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
             entries = []
 
         for ent in entries:
-            entry_start = int(ent.single_value('ipabaseid'))
-            entry_max = entry_start + int(ent.single_value('ipaidrangesize'))
+            entry_start = int(ent.single_value['ipabaseid'])
+            entry_max = entry_start + int(ent.single_value['ipaidrangesize'])
             if range_intersection(dna_next, dna_max, entry_start, entry_max):
                 sys.exit("New range overlaps with a Trust range. See ipa help idrange command")
 

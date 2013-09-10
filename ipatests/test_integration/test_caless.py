@@ -313,7 +313,7 @@ class CALessBase(IntegrationTest):
             ldap = host.ldap_connect()
             entry = ldap.get_entry(DN(('cn', 'CACert'), ('cn', 'ipa'),
                                       ('cn', 'etc'), host.domain.basedn))
-            cert_from_ldap = entry.single_value('cACertificate')
+            cert_from_ldap = entry.single_value['cACertificate']
             self.log.debug('CA cert from LDAP on %s:\n%r',
                            host, cert_from_ldap)
             assert cert_from_ldap == expected_binary_cacrt

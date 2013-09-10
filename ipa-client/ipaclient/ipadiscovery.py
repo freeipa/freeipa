@@ -376,7 +376,7 @@ class IPADiscovery(object):
 
             for lres in lret:
                 root_logger.debug("Found: %s", lres.dn)
-                lrealms.append(lres.single_value('cn'))
+                lrealms.append(lres.single_value['cn'])
 
             if trealm:
                 for r in lrealms:
