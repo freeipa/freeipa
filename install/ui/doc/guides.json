@@ -9,6 +9,12 @@
                 "description": "With built JavaScript layer debugging can be quite tricky."
             },
             {
+                "name": "Plugins",
+                "url": "guides/plugins",
+                "title": "Plugin support",
+                "description": "Introduction into plugin infrastructure."
+            },
+            {
                 "name": "Phases",
                 "url": "guides/phases",
                 "title": "Appliaciton phases",
