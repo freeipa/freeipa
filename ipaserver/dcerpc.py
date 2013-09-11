@@ -39,7 +39,7 @@ import uuid
 from samba import param
 from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon
-from samba.ndr import ndr_pack
+from samba.ndr import ndr_pack, ndr_print
 from samba import net
 import samba
 import random
@@ -684,6 +684,12 @@ class DomainValidator(object):
         self._info[domain] = info
         return info
 
+def string_to_array(what):
+    blob = [0] * len(what)
+
+    for i in range(len(what)):
+        blob[i] = ord(what[i])
+    return blob
 
 class TrustDomainInstance(object):
 
@@ -698,6 +704,7 @@ class TrustDomainInstance(object):
         self._pipe = None
         self._policy_handle = None
         self.read_only = False
+        self.ftinfo_records = None
 
     def __gen_lsa_connection(self, binding):
        if self.creds is None:
@@ -827,12 +834,6 @@ class TrustDomainInstance(object):
         def arcfour_encrypt(key, data):
             c = RC4.RC4(key)
             return c.update(data)
-        def string_to_array(what):
-            blob = [0] * len(what)
-
-            for i in range(len(what)):
-                blob[i] = ord(what[i])
-            return blob
 
         password_blob = string_to_array(trustdom_secret.encode('utf-16-le'))
 
@@ -876,6 +877,53 @@ class TrustDomainInstance(object):
         self.auth_info = auth_info
 
 
+    def generate_ftinfo(self, another_domain):
+        """
+        Generates TrustDomainInfoFullInfo2Internal structure
+        This structure allows to pass information about all domains associated
+        with the another domain's realm.
+
+        Only top level name and top level name exclusions are handled here.
+        """
+        if not another_domain.ftinfo_records:
+            return
+
+        ftinfo_records = []
+        info = lsa.ForestTrustInformation()
+
+        for rec in another_domain.ftinfo_records:
+            record = lsa.ForestTrustRecord()
+            record.flags = 0
+            record.time = rec['rec_time']
+            record.type = rec['rec_type']
+            record.forest_trust_data.string = rec['rec_name']
+            ftinfo_records.append(record)
+
+        info.count = len(ftinfo_records)
+        info.entries = ftinfo_records
+        return info
+
+    def update_ftinfo(self, another_domain):
+        """
+        Updates forest trust information in this forest corresponding
+        to the another domain's information.
+        """
+        try:
+            if another_domain.ftinfo_records:
+                ftinfo = self.generate_ftinfo(another_domain)
+                # Set forest trust information -- we do it only against AD DC as
+                # smbd already has the information about itself
+                ldname = lsa.StringLarge()
+                ldname.string = another_domain.info['dns_domain']
+                collision_info = self._pipe.lsaRSetForestTrustInformation(self._policy_handle,
+                                                                          ldname,
+                                                                          lsa.LSA_FOREST_TRUST_DOMAIN_INFO,
+                                                                          ftinfo, 0)
+                if collision_info:
+                    root_logger.error("When setting forest trust information, got collision info back:\n%s" % (ndr_print(collision_info)))
+        except RuntimeError, e:
+            # We can ignore the error here -- setting up name suffix routes may fail
+            pass
 
     def establish_trust(self, another_domain, trustdom_secret):
         """
@@ -883,6 +931,12 @@ class TrustDomainInstance(object):
         Input: another_domain -- instance of TrustDomainInstance, initialized with #retrieve call
                trustdom_secret -- shared secred used for the trust
         """
+        if self.info['name'] == another_domain.info['name']:
+            # Check that NetBIOS names do not clash
+            raise errors.ValidationError(name=u'AD Trust Setup',
+                    error=_('the IPA server and the remote domain cannot share the same '
+                            'NetBIOS name: %s') % self.info['name'])
+
         self.generate_auth(trustdom_secret)
 
         info = lsa.TrustDomainInfoInfoEx()
@@ -892,12 +946,6 @@ class TrustDomainInstance(object):
         info.trust_direction = lsa.LSA_TRUST_DIRECTION_INBOUND | lsa.LSA_TRUST_DIRECTION_OUTBOUND
         info.trust_type = lsa.LSA_TRUST_TYPE_UPLEVEL
         info.trust_attributes = lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
-
-        if self.info['name'] == info.netbios_name.string:
-            # Check that NetBIOS names do not clash
-            raise errors.ValidationError(name=u'AD Trust Setup',
-                    error=_('the IPA server and the remote domain cannot share the same '
-                            'NetBIOS name: %s') % self.info['name'])
 
         try:
             dname = lsa.String()
@@ -911,12 +959,14 @@ class TrustDomainInstance(object):
         except RuntimeError, (num, message):
             raise assess_dcerpc_exception(num=num, message=message)
 
+        self.update_ftinfo(another_domain)
+
+        # We should use proper trustdom handle in order to modify the
+        # trust settings. Samba insists this has to be done with LSA
+        # OpenTrustedDomain* calls, it is not enough to have a handle
+        # returned by the CreateTrustedDomainEx2 call.
+        trustdom_handle = self._pipe.OpenTrustedDomainByName(self._policy_handle, dname, security.SEC_FLAG_MAXIMUM_ALLOWED)
         try:
-            # We should use proper trustdom handle in order to modify the
-            # trust settings. Samba insists this has to be done with LSA
-            # OpenTrustedDomain* calls, it is not enough to have a handle
-            # returned by the CreateTrustedDomainEx2 call.
-            trustdom_handle = self._pipe.OpenTrustedDomainByName(self._policy_handle, dname, security.SEC_FLAG_MAXIMUM_ALLOWED)
             infoclass = lsa.TrustDomainInfoSupportedEncTypes()
             infoclass.enc_types = security.KERB_ENCTYPE_RC4_HMAC_MD5
             infoclass.enc_types |= security.KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96
@@ -1016,6 +1066,32 @@ class TrustDomainJoins(object):
         # Otherwise, use anonymously obtained data
         self.remote_domain = rd
 
+    def get_realmdomains(self):
+        """
+        Generate list of records for forest trust information about
+        our realm domains. Note that the list generated currently
+        includes only top level domains, no exclusion domains, and no TDO objects
+        as we handle the latter in a separte way
+        """
+        if self.local_domain.read_only:
+            return
+
+	self.local_domain.ftinfo_records = []
+
+        realm_domains = self.api.Command.realmdomains_show()['result']
+        trustconfig = self.api.Command.trustconfig_show()['result']
+        # Use realmdomains' modification timestamp to judge records last update time
+        (dn, entry_attrs) = self.api.Backend.ldap2.get_entry(realm_domains['dn'], ['modifyTimestamp'])
+        # Convert the timestamp to Windows 64-bit timestamp format
+        trust_timestamp = long(time.mktime(time.strptime(entry_attrs['modifytimestamp'][0][:14], "%Y%m%d%H%M%S"))*1e7+116444736000000000)
+
+        for dom in realm_domains['associateddomain']:
+            ftinfo = dict()
+            ftinfo['rec_name'] = dom
+            ftinfo['rec_time'] = trust_timestamp
+            ftinfo['rec_type'] = lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME
+            self.local_domain.ftinfo_records.append(ftinfo)
+
     def join_ad_full_credentials(self, realm, realm_server, realm_admin, realm_passwd):
         if not self.configured:
             return None
@@ -1030,6 +1106,7 @@ class TrustDomainJoins(object):
 
         if not self.remote_domain.read_only:
             trustdom_pass = samba.generate_random_password(128, 128)
+            self.get_realmdomains()
             self.remote_domain.establish_trust(self.local_domain, trustdom_pass)
             self.local_domain.establish_trust(self.remote_domain, trustdom_pass)
             result = self.remote_domain.verify_trust(self.local_domain)
