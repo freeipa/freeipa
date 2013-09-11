@@ -25,6 +25,12 @@
                 "url": "guides/phases",
                 "title": "Appliaciton phases",
                 "description": "Introduction to application phases"
+            },
+            {
+                "name": "Registries",
+                "url": "guides/registries",
+                "title": "Registries and Build system",
+                "description": "This document contains design of component build system."
             }
         ]
     }
