@@ -25,12 +25,12 @@ import os
 import ldap
 
 from ipalib import api, errors
+from ipalib.constants import CACERT
 from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, dogtag, ipaldap
 from ipapython.dn import DN
 
-CACERT = "/etc/ipa/ca.crt"
 # the default container used by AD for user entries
 WIN_USER_CONTAINER = DN(('cn', 'Users'))
 # the default container used by IPA for user entries

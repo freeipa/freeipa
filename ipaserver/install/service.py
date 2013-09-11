@@ -30,8 +30,6 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipalib import errors
 
-CACERT = "/etc/ipa/ca.crt"
-
 # Autobind modes
 AUTO = 1
 ENABLED = 2

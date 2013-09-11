@@ -72,6 +72,7 @@ from ipalib import api, errors, util, x509
 from ipapython.config import IPAOptionParser
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 from ipalib.util import validate_domain_name
+from ipalib.constants import CACERT
 from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
@@ -1101,7 +1102,7 @@ def main():
                                   subject_base=options.subject)
 
         # Now put the CA cert where other instances exepct it
-        ca.publish_ca_cert("/etc/ipa/ca.crt")
+        ca.publish_ca_cert(CACERT)
 
     # we now need to enable ssl on the ds
     ds.enable_ssl()
@@ -1129,7 +1130,7 @@ def main():
             'External CA cert', 'CT,,', options.root_ca_file)
 
         # Put a CA cert where other instances expect it
-        with open('/etc/ipa/ca.crt', 'wb') as f:
+        with open(CACERT, 'wb') as f:
             f.write(pem_cert)
 
         # Install the CA cert for the HTTP server

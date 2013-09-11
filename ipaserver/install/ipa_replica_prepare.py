@@ -34,6 +34,7 @@ from ipapython.dn import DN
 from ipapython import version
 from ipalib import api
 from ipalib import errors
+from ipalib.constants import CACERT
 
 
 class ReplicaPrepare(admintool.AdminTool):
@@ -139,7 +140,7 @@ class ReplicaPrepare(admintool.AdminTool):
     def check_pkcs12(self, pkcs12_file, pkcs12_pin):
         installutils.check_pkcs12(
             pkcs12_info=(pkcs12_file, pkcs12_pin),
-            ca_file='/etc/ipa/ca.crt',
+            ca_file=CACERT,
             hostname=self.replica_fqdn)
 
     def ask_for_options(self):
@@ -356,7 +357,7 @@ class ReplicaPrepare(admintool.AdminTool):
     def copy_misc_files(self):
         self.log.info("Copying additional files")
 
-        self.copy_info_file("/etc/ipa/ca.crt", "ca.crt")
+        self.copy_info_file(CACERT, "ca.crt")
         preferences_filename = "/usr/share/ipa/html/preferences.html"
         if ipautil.file_exists(preferences_filename):
             self.copy_info_file(preferences_filename, "preferences.html")

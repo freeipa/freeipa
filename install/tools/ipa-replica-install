@@ -42,6 +42,7 @@ from ipaserver.install.installutils import (ReplicaConfig, expand_replica_info,
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
 from ipalib import api, errors, util
+from ipalib.constants import CACERT
 from ipapython import version
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
@@ -52,7 +53,6 @@ from ipapython.dn import DN
 import ipaclient.ntpconf
 
 log_file_name = "/var/log/ipareplica-install.log"
-CACERT = "/etc/ipa/ca.crt"
 REPLICA_INFO_TOP_DIR = None
 DIRMAN_DN = DN(('cn', 'directory manager'))
 

@@ -28,10 +28,9 @@ from ipapython import admintool
 from ipapython.dn import DN
 from ipapython.ipautil import user_input, write_tmp_file
 from ipalib import api, errors
+from ipalib.constants import CACERT
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
-
-CACERT = "/etc/ipa/ca.crt"
 
 class ServerCertInstall(admintool.AdminTool):
     command_name = 'ipa-server-certinstall'

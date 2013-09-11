@@ -38,6 +38,7 @@ from ipalib import api, errors
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
         normalize_zone, get_reverse_zone_default, zone_is_reverse)
+from ipalib.constants import CACERT
 
 NAMED_CONF = '/etc/named.conf'
 RESOLV_CONF = '/etc/resolv.conf'
@@ -206,7 +207,7 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
         if ldapi:
             conn = ipaldap.IPAdmin(host=fqdn, ldapi=True, realm=realm)
         else:
-            conn = ipaldap.IPAdmin(host=fqdn, port=636, cacert=service.CACERT)
+            conn = ipaldap.IPAdmin(host=fqdn, port=636, cacert=CACERT)
 
         if dm_password:
             conn.do_simple_bind(bindpw=dm_password)

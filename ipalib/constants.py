@@ -32,6 +32,9 @@ except:
     except:
         FQDN = None
 
+# Path to CA certificate bundle
+CACERT = '/etc/ipa/ca.crt'
+
 # regular expression NameSpace member names must match:
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
 

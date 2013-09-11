@@ -40,11 +40,11 @@ from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipalib import errors
+from ipalib.constants import CACERT
 from ipapython.dn import DN
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
-CACERT="/etc/ipa/ca.crt"
 
 DS_USER = 'dirsrv'
 DS_GROUP = 'dirsrv'

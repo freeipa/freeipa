@@ -36,7 +36,6 @@ try:
 
     from ipapython.ipa_log_manager import standard_logging_setup, root_logger
     from ipaclient import ipadiscovery
-    from ipaclient.ipadiscovery import CACERT
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
     from ipapython.ipautil import (
@@ -48,6 +47,7 @@ try:
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
     from ipalib import x509
+    from ipalib.constants import CACERT
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
     from ipalib.rpc import delete_persistent_client_session_data

@@ -32,13 +32,12 @@ from ipaserver.install import bindinstance
 from ipaserver.plugins import ldap2
 from ipapython import version, ipaldap
 from ipalib import api, errors, util
+from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipaclient import ipadiscovery
 from xmlrpclib import MAXINT
-
-CACERT = "/etc/ipa/ca.crt"
 
 # dict of command name and tuples of min/max num of args needed
 commands = {

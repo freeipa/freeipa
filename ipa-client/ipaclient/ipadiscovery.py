@@ -29,8 +29,6 @@ from ipapython import ipaldap
 from ipapython.ipautil import valid_ip, get_ipa_basedn, realm_to_suffix
 from ipapython.dn import DN
 
-CACERT = '/etc/ipa/ca.crt'
-
 NOT_FQDN = -1
 NO_LDAP_SERVER = -2
 REALM_NOT_FOUND = -3

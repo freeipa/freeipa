@@ -38,6 +38,7 @@ from ipaserver.install import installutils
 from ipapython import services as ipaservices
 from ipapython import ipaldap
 from ipalib.session import ISO8601_DATETIME_FMT
+from ipalib.constants import CACERT
 from ConfigParser import SafeConfigParser
 
 """
@@ -149,7 +150,7 @@ class Backup(admintool.AdminTool):
         '/etc/krb5.conf',
         '/etc/group',
         '/etc/passwd',
-        '/etc/ipa/ca.crt',
+        CACERT,
         '/etc/ipa/default.conf',
         '/etc/dirsrv/ds.keytab',
         '/etc/ntp.conf',

@@ -33,6 +33,7 @@ from ipapython import ipautil
 from ipapython import services as ipaservices
 from ipapython import kernel_keyring
 from ipalib import errors
+from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 
@@ -435,7 +436,7 @@ class KrbInstance(service.Service):
 
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context
-        shutil.copyfile("/etc/ipa/ca.crt", "/var/kerberos/krb5kdc/cacert.pem")
+        shutil.copyfile(CACERT, "/var/kerberos/krb5kdc/cacert.pem")
 
     def __add_anonymous_pkinit_principal(self):
         princ = "WELLKNOWN/ANONYMOUS"

@@ -25,10 +25,9 @@ from optparse import OptionParser
 from ipapython import ipautil, config, ipaldap
 from ipaserver.install import installutils
 from ipalib import api, errors
+from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
-
-CACERT = "/etc/ipa/ca.crt"
 
 def parse_options():
     usage = "%prog [options] <status|enable|disable>\n"

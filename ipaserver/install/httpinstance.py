@@ -35,6 +35,7 @@ from ipapython import dogtag
 from ipapython.ipa_log_manager import *
 from ipaserver.install import sysupgrade
 from ipalib import api
+from ipalib.constants import CACERT
 
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
