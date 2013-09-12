@@ -29,11 +29,11 @@ Documentation:
 	Ella Deon Lackey
 
 Testing:
-	Jenny Galipeau
 	Michael Gregg
 	Suzanne Hillman
 	Chandrasekar Kannan
 	Gowrishankar Rajaiyan
+	Jenny Severance
 	Yi Zhang
 
 Translators:
