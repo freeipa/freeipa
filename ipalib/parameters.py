@@ -459,7 +459,7 @@ class Param(ReadOnly):
             value = kw.get(key, default)
             if value is not None:
                 if kind is frozenset:
-                    if type(value) in (list, tuple):
+                    if type(value) in (list, tuple, set):
                         value = frozenset(value)
                     elif type(value) is str:
                         value = frozenset([value])
