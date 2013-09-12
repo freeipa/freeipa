@@ -303,7 +303,9 @@ class SSLTransport(LanguageAwareTransport):
         for value in context.__dict__.values():
             if not isinstance(value, Connection):
                 continue
-            if not isinstance(value.conn._ServerProxy__transport, SSLTransport):
+            if not isinstance(
+                    getattr(value.conn, '_ServerProxy__transport', None),
+                    SSLTransport):
                 continue
             if hasattr(value.conn._ServerProxy__transport, 'dbdir') and \
               value.conn._ServerProxy__transport.dbdir == dbdir:
