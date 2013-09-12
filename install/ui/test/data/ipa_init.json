@@ -365,6 +365,11 @@
                             "usergroups": "User Groups",
                             "users": "Users"
                         },
+                        "otptoken": {
+                            "details": "OTP Token Settings",
+                            "disable": "Disable token",
+                            "enable": "Enable token"
+                        },
                         "permission": {
                             "identity": "Identity",
                             "invalid_target": "Permission with invalid target specification",

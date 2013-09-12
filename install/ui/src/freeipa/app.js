@@ -41,6 +41,7 @@ define([
     './host',
     './idrange',
     './netgroup',
+    './otptoken',
     './policy',
     './realmdomains',
     './rule',

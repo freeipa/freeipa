@@ -466,6 +466,7 @@ IPA.batch_items_action = function(spec) {
 
     that.method = spec.method || 'disable';
     that.success_msg = text.get(spec.success_msg);
+    that.options = spec.options || {};
 
     that.execute_action = function(facet, on_success, on_error) {
 
@@ -483,16 +484,21 @@ IPA.batch_items_action = function(spec) {
             var item_keys = pkeys.splice(0);
             item_keys.push(selected_keys[i]);
 
-            var command = IPA.command({
-                entity: entity.name,
-                method: that.method,
-                args: item_keys
-            });
-
+            var command = that.create_action_command(facet, item_keys);
             that.batch.add_command(command);
         }
 
         that.batch.execute();
+    };
+
+    that.create_action_command = function(facet, keys) {
+        var command = IPA.command({
+            entity: facet.managed_entity.name,
+            method: that.method,
+            args: keys,
+            options: that.options
+        });
+        return command;
     };
 
     that.on_success = function(facet, data, text_status, xhr) {

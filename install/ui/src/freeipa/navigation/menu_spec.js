@@ -56,7 +56,8 @@ var nav = {};
                     ]
                 },
                 { entity: 'cert', label: '@i18n:tabs.cert' },
-                { entity: 'realmdomains' }
+                { entity: 'realmdomains' },
+                { entity: 'otptoken' }
             ]
         },
         {name: 'policy', label: '@i18n:tabs.policy', children: [
@@ -148,7 +149,10 @@ nav.self_service = {
         {
             name: 'identity',
             label: '@i18n:tabs.identity',
-            children: [{entity: 'user'}]
+            children: [
+                { entity: 'user' },
+                { entity: 'otptoken' }
+            ]
         }
     ]
 };

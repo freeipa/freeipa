@@ -218,6 +218,7 @@
                 "name": "Plugins",
                 "classes": [
                     "aci",
+                    "otptoken",
                     "user"
                 ]
             }

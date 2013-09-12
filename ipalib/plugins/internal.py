@@ -485,7 +485,7 @@ class i18n_messages(Command):
             },
             "krbtpolicy": {
                 "identity": _("Kerberos Ticket Policy"),
-                },
+            },
             "netgroup": {
                 "any_host": _("Any Host"),
                 "anyone": _("Anyone"),
@@ -499,7 +499,12 @@ class i18n_messages(Command):
                 "user": _("User"),
                 "usergroups": _("User Groups"),
                 "users": _("Users"),
-                },
+            },
+            "otptoken": {
+                "details": "OTP Token Settings",
+                "disable": "Disable token",
+                "enable": "Enable token",
+            },
             "permission": {
                 "identity": _("Identity"),
                 "invalid_target": _("Permission with invalid target specification"),
