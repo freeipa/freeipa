@@ -125,9 +125,12 @@ from ipalib import Flag, Int, Str, StrEnum
 from ipalib.aci import ACI
 from ipalib import output
 from ipalib import _, ngettext
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import gen_pkey_only_option
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
+
+register = Registry()
 
 ACI_NAME_PREFIX_SEP = ":"
 
@@ -419,6 +422,8 @@ _prefix_option = StrEnum('aciprefix',
                 values=_valid_prefix_values,
                 )
 
+
+@register()
 class aci(Object):
     """
     ACI object.
@@ -501,8 +506,8 @@ class aci(Object):
         ),
     )
 
-api.register(aci)
 
+@register()
 class aci_add(crud.Create):
     """
     Create new ACI.
@@ -555,9 +560,8 @@ class aci_add(crud.Create):
             value=aciname,
         )
 
-api.register(aci_add)
 
-
+@register()
 class aci_del(crud.Delete):
     """
     Delete ACI.
@@ -597,9 +601,8 @@ class aci_del(crud.Delete):
             value=aciname,
         )
 
-api.register(aci_del)
 
-
+@register()
 class aci_mod(crud.Update):
     """
     Modify ACI.
@@ -666,9 +669,8 @@ class aci_mod(crud.Update):
             value=aciname,
         )
 
-api.register(aci_mod)
 
-
+@register()
 class aci_find(crud.Search):
     """
     Search for ACIs.
@@ -872,9 +874,8 @@ class aci_find(crud.Search):
             truncated=False,
         )
 
-api.register(aci_find)
 
-
+@register()
 class aci_show(crud.Retrieve):
     """
     Display a single ACI given an ACI name.
@@ -914,9 +915,8 @@ class aci_show(crud.Retrieve):
             value=aciname,
         )
 
-api.register(aci_show)
 
-
+@register()
 class aci_rename(crud.Update):
     """
     Rename an ACI.
@@ -976,5 +976,3 @@ class aci_rename(crud.Update):
             result=result,
             value=kw['newname'],
         )
-
-api.register(aci_rename)

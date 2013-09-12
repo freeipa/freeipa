@@ -20,6 +20,7 @@
 from ipalib.plugins.baseldap import *
 from ipalib import api, _, ngettext
 from ipalib import Flag, Str, StrEnum
+from ipalib.plugable import Registry
 from ipalib.request import context
 from ipalib import errors
 from ipapython.dn import DN, EditableDN
@@ -80,6 +81,8 @@ EXAMPLES:
 
 ACI_PREFIX=u"permission"
 
+register = Registry()
+
 output_params = (
     Str('ipapermissiontype',
         label=_('Permission Type'),
@@ -99,6 +102,8 @@ def filter_options(options, keys):
     """
     return dict((k, options[k]) for k in keys if k in options)
 
+
+@register()
 class permission(LDAPObject):
     """
     Permission object.
@@ -194,9 +199,8 @@ class permission(LDAPObject):
         return dict((k, v) for k, v in options.items() if
             k in self.aci_attributes)
 
-api.register(permission)
 
-
+@register()
 class permission_add(LDAPCreate):
     __doc__ = _('Add a new permission.')
 
@@ -251,8 +255,8 @@ class permission_add(LDAPCreate):
             raise e
         return dn
 
-api.register(permission_add)
 
+@register()
 class permission_add_noaci(LDAPCreate):
     __doc__ = _('Add a system permission without an ACI')
 
@@ -285,9 +289,8 @@ class permission_add_noaci(LDAPCreate):
             entry_attrs['ipapermissiontype'] = [ permission_type ]
         return dn
 
-api.register(permission_add_noaci)
 
-
+@register()
 class permission_del(LDAPDelete):
     __doc__ = _('Delete a permission.')
 
@@ -313,9 +316,8 @@ class permission_del(LDAPDelete):
             pass
         return dn
 
-api.register(permission_del)
 
-
+@register()
 class permission_mod(LDAPUpdate):
     __doc__ = _('Modify a permission.')
 
@@ -403,9 +405,8 @@ class permission_mod(LDAPUpdate):
                 entry_attrs[r] = result[r]
         return dn
 
-api.register(permission_mod)
 
-
+@register()
 class permission_find(LDAPSearch):
     __doc__ = _('Search for permissions.')
 
@@ -485,9 +486,8 @@ class permission_find(LDAPSearch):
                            break
         return truncated
 
-api.register(permission_find)
 
-
+@register()
 class permission_show(LDAPRetrieve):
     __doc__ = _('Display information about a permission.')
 
@@ -510,22 +510,18 @@ class permission_show(LDAPRetrieve):
                 entry_attrs['attributelevelrights'][attr] = entry_attrs['attributelevelrights']['aci']
         return dn
 
-api.register(permission_show)
 
-
+@register()
 class permission_add_member(LDAPAddMember):
     """
     Add members to a permission.
     """
     NO_CLI = True
 
-api.register(permission_add_member)
 
-
+@register()
 class permission_remove_member(LDAPRemoveMember):
     """
     Remove members from a permission.
     """
     NO_CLI = True
-
-api.register(permission_remove_member)
