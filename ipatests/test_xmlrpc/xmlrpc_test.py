@@ -278,11 +278,18 @@ class Declarative(XMLRPC_test):
         # Iterate through the tests:
         name = self.__class__.__name__
         for (i, test) in enumerate(self.tests):
-            nice = '%s[%d]: %s: %s' % (
-                name, i, test['command'][0], test.get('desc', '')
-            )
-            func = lambda: self.check(nice, **test)
-            func.description = nice
+            if callable(test):
+                func = lambda: test(self)
+                nice = '%s[%d]: call %s: %s' % (
+                    name, i, test.__name__, test.__doc__
+                )
+                func.description = nice
+            else:
+                nice = '%s[%d]: %s: %s' % (
+                    name, i, test['command'][0], test.get('desc', '')
+                )
+                func = lambda: self.check(nice, **test)
+                func.description = nice
             yield (func,)
 
         # Iterate through post-cleanup:
