@@ -219,6 +219,7 @@
                 "classes": [
                     "aci",
                     "otptoken",
+                    "radiusproxy",
                     "user"
                 ]
             }

@@ -43,6 +43,7 @@ define([
     './netgroup',
     './otptoken',
     './policy',
+    './radiusproxy',
     './realmdomains',
     './rule',
     './selinux',

@@ -532,6 +532,9 @@ class i18n_messages(Command):
                 "type_ipa": _("IPA trust"),
                 "type_winsync": _("Active Directory winsync"),
             },
+            "radiusproxy": {
+                "details": _("RADIUS Proxy Server Settings"),
+            },
             "realmdomains": {
                 "identity": _("Realm Domains"),
                 "check_dns": _("Check DNS"),

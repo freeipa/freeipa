@@ -134,7 +134,7 @@ var nav = {};
                     {entity: 'trustconfig'}
                 ]
             },
-
+            {entity: 'radiusproxy'},
             {entity: 'config'}
         ]}
     ]

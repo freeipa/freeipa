@@ -397,6 +397,9 @@
                             "type_ipa": "IPA trust",
                             "type_winsync": "Active Directory winsync"
                         },
+                        "radiusproxy": {
+                            "details": "RADIUS Proxy Server Settings"
+                        },
                         "realmdomains": {
                             "identity": "Realm Domains",
                             "check_dns": "Check DNS",
