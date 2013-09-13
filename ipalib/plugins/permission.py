@@ -79,6 +79,15 @@ Setting one of these options will set the corresponding attribute(s).
 3. targetgroup: grant access to modify a specific group (such as granting
    the rights to manage group membership); sets target.
 """) + _("""
+Managed permissions
+""") + _("""
+Permissions that come with IPA by default can be so-called "managed"
+permissions. These have a default set of attributes they apply to,
+but the administrator can add/remove individual attributes to/from the set.
+""") + _("""
+Deleting or renaming a managed permission, as well as changing its target,
+is not allowed.
+""") + _("""
 EXAMPLES:
 """) + _("""
  Add a permission that grants the creation of users:
@@ -95,12 +104,11 @@ VALID_OBJECT_TYPES = (u'user', u'group', u'host', u'service', u'hostgroup',
 
 _DEPRECATED_OPTION_ALIASES = {
     'permissions': 'ipapermright',
-    'attrs': 'ipapermallowedattr',
     'filter': 'ipapermtargetfilter',
     'subtree': 'ipapermlocation',
 }
 
-KNOWN_FLAGS = {'SYSTEM', 'V2'}
+KNOWN_FLAGS = {'SYSTEM', 'V2', 'MANAGED'}
 
 output_params = (
     Str('aci',
@@ -139,7 +147,7 @@ class permission(baseldap.LDAPObject):
     object_class = ['groupofnames', 'ipapermission', 'ipapermissionv2']
     default_attributes = ['cn', 'member', 'memberof',
         'memberindirect', 'ipapermissiontype', 'objectclass',
-        'ipapermdefaultattr', 'ipapermallowedattr', 'ipapermexcludedattr',
+        'ipapermdefaultattr', 'ipapermincludedattr', 'ipapermexcludedattr',
         'ipapermbindruletype', 'ipapermlocation', 'ipapermright',
         'ipapermtargetfilter', 'ipapermtarget'
     ]
@@ -169,10 +177,29 @@ class permission(baseldap.LDAPObject):
             values=(u'read', u'search', u'compare',
                     u'write', u'add', u'delete', u'all'),
         ),
-        Str('ipapermallowedattr*',
-            cli_name='attrs',
-            label=_('Attributes'),
-            doc=_('Attributes to which the permission applies'),
+        Str('attrs*',
+            label=_('Effective attributes'),
+            doc=_('All attributes to which the permission applies'),
+            flags={'virtual_attribute', 'allow_mod_for_managed_permission'},
+        ),
+        Str('ipapermincludedattr*',
+            cli_name='includedattrs',
+            label=_('Included attributes'),
+            doc=_('User-specified attributes to which the permission applies'),
+            flags={'no_create', 'allow_mod_for_managed_permission'},
+        ),
+        Str('ipapermexcludedattr*',
+            cli_name='excludedattrs',
+            label=_('Excluded attributes'),
+            doc=_('User-specified attributes to which the permission '
+                  'explicitly does not apply'),
+            flags={'no_create', 'allow_mod_for_managed_permission'},
+        ),
+        Str('ipapermdefaultattr*',
+            cli_name='defaultattrs',
+            label=_('Default attributes'),
+            doc=_('Attributes to which the permission applies by default'),
+            flags={'no_create', 'no_update'},
         ),
         StrEnum(
             'ipapermbindruletype',
@@ -182,6 +209,7 @@ class permission(baseldap.LDAPObject):
             autofill=True,
             values=(u'permission', u'all', u'anonymous'),
             default=u'permission',
+            flags={'allow_mod_for_managed_permission'},
         ),
         DNOrURL(
             'ipapermlocation?',
@@ -301,6 +329,12 @@ class permission(baseldap.LDAPObject):
             rights['type'] = ''.join(sorted(type_rights,
                                             key=rights['ipapermtarget'].index))
 
+            if 'ipapermincludedattr' in rights:
+                rights['attrs'] = ''.join(sorted(
+                    set(rights['ipapermincludedattr']) &
+                    set(rights.get('ipapermexcludedattr', '')),
+                    key=rights['ipapermincludedattr'].index))
+
             if not client_has_capability(options['version'], 'permissions2'):
                 for old_name, new_name in _DEPRECATED_OPTION_ALIASES.items():
                     if new_name in entry:
@@ -319,6 +353,14 @@ class permission(baseldap.LDAPObject):
                     raise
             else:
                 entry.single_value['aci'] = acistring
+        else:
+            effective_attrs = self.get_effective_attrs(entry)
+            if effective_attrs:
+                entry['attrs'] = effective_attrs
+            if (not options.get('all') and
+                    not entry.get('ipapermexcludedattr') and
+                    not entry.get('ipapermdefaultattr')):
+                entry.pop('ipapermincludedattr', None)
 
         if not client_has_capability(options['version'], 'permissions2'):
             # Legacy clients expect some attributes as a single value
@@ -337,6 +379,12 @@ class permission(baseldap.LDAPObject):
                     new_filter.append(flt[1:-1])
                 entry['filter'] = new_filter
 
+    def get_effective_attrs(self, entry):
+        attrs = set(entry.get('ipapermdefaultattr', ()))
+        attrs.update(entry.get('ipapermincludedattr', ()))
+        attrs.difference_update(entry.get('ipapermexcludedattr', ()))
+        return sorted(attrs)
+
     def make_aci(self, entry):
         """Make an ACI string from the given permission entry"""
 
@@ -344,7 +392,7 @@ class permission(baseldap.LDAPObject):
         name = entry.single_value['cn']
 
         # targetattr
-        attrs = entry.get('ipapermallowedattr', [])
+        attrs = self.get_effective_attrs(entry)
         if attrs:
             aci_parts.append("(targetattr = \"%s\")" % ' || '.join(attrs))
 
@@ -502,9 +550,6 @@ class permission(baseldap.LDAPObject):
 
         aci = ACI(acistring)
 
-        if 'targetattr' in aci.target:
-            target_entry['ipapermallowedattr'] = (
-                aci.target['targetattr']['expression'])
         if 'target' in aci.target:
             target_entry.single_value['ipapermtarget'] = DN(strip_ldap_prefix(
                 aci.target['target']['expression']))
@@ -519,7 +564,7 @@ class permission(baseldap.LDAPObject):
             target_entry.single_value['ipapermbindruletype'] = u'permission'
         target_entry['ipapermright'] = aci.permissions
         if 'targetattr' in aci.target:
-            target_entry['ipapermallowedattr'] = [
+            target_entry['ipapermincludedattr'] = [
                 unicode(a) for a in aci.target['targetattr']['expression']]
 
         if not output_only:
@@ -655,7 +700,8 @@ class permission(baseldap.LDAPObject):
 
         # Ensure there's something in the ACI's filter
         needed_attrs = (
-            'ipapermtarget', 'ipapermtargetfilter', 'ipapermallowedattr')
+            'ipapermtarget', 'ipapermtargetfilter',
+            'ipapermincludedattr', 'ipapermexcludedattr', 'ipapermdefaultattr')
         if not any(entry.single_value.get(a) for a in needed_attrs):
             raise errors.ValidationError(
                 name='target',
@@ -717,6 +763,14 @@ class permission_add(baseldap.LDAPCreate):
         if not entry.get('ipapermlocation'):
             entry.setdefault('ipapermlocation', [api.env.basedn])
 
+        if 'attrs' in options:
+            if 'ipapermincludedattr' in options:
+                raise errors.ValidationError(
+                    name='attrs',
+                    error=_('attrs and included attributes are '
+                            'mutually exclusive'))
+            entry['ipapermincludedattr'] = list(options.pop('attrs') or ())
+
         self.obj.validate_permission(entry)
         return dn
 
@@ -748,6 +802,9 @@ class permission_del(baseldap.LDAPDelete):
 
         if not options.get('force'):
             self.obj.reject_system(entry)
+            if entry.get('ipapermdefaultattr'):
+                raise errors.ACIError(
+                    info=_('cannot delete managed permissions'))
 
         try:
             self.obj.remove_aci(entry)
@@ -782,6 +839,38 @@ class permission_mod(baseldap.LDAPUpdate):
 
         self.obj.reject_system(old_entry)
         self.obj.upgrade_permission(old_entry)
+
+        if 'MANAGED' in old_entry.get('ipapermissiontype', ()):
+            for option_name in sorted(options):
+                if option_name == 'rename':
+                    raise errors.ValidationError(
+                        name=option_name,
+                        error=_('cannot rename managed permissions'))
+                option = self.options[option_name]
+                allow_mod = 'allow_mod_for_managed_permission' in option.flags
+                if option.attribute and not allow_mod:
+                    raise errors.ValidationError(
+                        name=option_name,
+                        error=_('not modifiable on managed permissions'))
+        else:
+            if options.get('ipapermexcludedattr'):
+                # prevent setting excluded attributes on normal permissions
+                # (but do allow deleting them all)
+                raise errors.ValidationError(
+                    name='ipapermexcludedattr',
+                    error=_('only available on managed permissions'))
+
+        if 'attrs' in options:
+            if any(a in options for a in ('ipapermincludedattr',
+                                          'ipapermexcludedattr')):
+                raise errors.ValidationError(
+                    name='attrs',
+                    error=_('attrs and included/excluded attributes are '
+                            'mutually exclusive'))
+            attrs = set(options.pop('attrs') or ())
+            defaults = set(old_entry.get('ipapermdefaultattr', ()))
+            entry['ipapermincludedattr'] = list(attrs - defaults)
+            entry['ipapermexcludedattr'] = list(defaults - attrs)
 
         # Check setting bindtype for an assigned permission
         if options.get('ipapermbindruletype') and old_entry.get('member'):
@@ -866,7 +955,36 @@ class permission_find(baseldap.LDAPSearch):
         self.obj.preprocess_options(options)
         return super(permission_find, self).execute(*keys, **options)
 
+    def pre_callback(self, ldap, filters, attrs_list, base_dn, scope,
+                     *args, **options):
+        if 'attrs' in options and 'ipapermincludedattr' in options:
+            raise errors.ValidationError(
+                name='attrs',
+                error=_('attrs and included/excluded attributes are '
+                        'mutually exclusive'))
+
+        if options.get('attrs'):
+            # Effective attributes:
+            # each attr must be in either default or included,
+            # but not in excluded
+            filters = ldap.combine_filters(
+                [filters] + [
+                    '(&'
+                        '(|'
+                            '(ipapermdefaultattr=%(attr)s)'
+                            '(ipapermincludedattr=%(attr)s))'
+                        '(!(ipapermexcludedattr=%(attr)s)))' % {'attr': attr}
+                    for attr in options['attrs']
+                ],
+                ldap.MATCH_ALL,
+            )
+
+        return filters, base_dn, scope
+
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        if 'attrs' in options:
+            options['ipapermincludedattr'] = options['attrs']
+
         attribute_options = [o for o in options
                              if (o in self.options and
                                  self.options[o].attribute)]
