@@ -178,7 +178,7 @@ class BaseHost(object):
 
 class Host(BaseHost):
     """A Unix host"""
-    transport_class = transport.ParamikoTransport
+    transport_class = transport.SSHTransport
 
     def run_command(self, argv, set_env=True, stdin_text=None,
                     log_stdout=True, raiseonerr=True,
