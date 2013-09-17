@@ -212,9 +212,15 @@ krb5_error_code ipa_krb5_generate_key_data(krb5_context krbctx,
 
         /* need to build the key now to manage the AFS salt.length
          * special case */
-        kerr = krb5_c_string_to_key(krbctx,
-                                    encsalts[i].ks_enctype,
-                                    &pwd, &salt, &key);
+        if (pwd.data == NULL) {
+            kerr = krb5_c_make_random_key(krbctx,
+                                          encsalts[i].ks_enctype,
+                                          &key);
+        } else {
+            kerr = krb5_c_string_to_key(krbctx,
+                                        encsalts[i].ks_enctype,
+                                        &pwd, &salt, &key);
+        }
         if (kerr) {
             krb5_free_data_contents(krbctx, &salt);
             goto done;

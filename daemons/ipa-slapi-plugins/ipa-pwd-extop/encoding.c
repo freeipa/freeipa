@@ -102,8 +102,10 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
     *pkset = NULL;
 }
 
-static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
+Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                         struct ipapwd_data *data,
+                                        int num_encsalts,
+                                        krb5_key_salt_tuple *encsalts,
                                         char **errMesg)
 {
     krb5_context krbctx;
@@ -113,7 +115,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
     Slapi_Value **svals = NULL;
     krb5_principal princ = NULL;
     krb5_error_code krberr;
-    krb5_data pwd;
+    krb5_data pwd = { 0 };
     struct ipapwd_keyset *kset = NULL;
 
     krbctx = krbcfg->krbctx;
@@ -141,8 +143,10 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
         goto enc_error;
     }
 
-    pwd.data = (char *)data->password;
-    pwd.length = strlen(data->password);
+    if (data->password) {
+        pwd.data = (char *)data->password;
+        pwd.length = strlen(data->password);
+    }
 
     kset = malloc(sizeof(struct ipapwd_keyset));
     if (!kset) {
@@ -160,8 +164,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
     krberr = ipa_krb5_generate_key_data(krbctx, princ,
                                         pwd, kvno, krbcfg->kmkey,
-                                        krbcfg->num_pref_encsalts,
-                                        krbcfg->pref_encsalts,
+                                        num_encsalts, encsalts,
                                         &kset->num_keys, &kset->keys);
     if (krberr != 0) {
         LOG_FATAL("generating kerberos keys failed [%s]\n",
@@ -212,7 +215,10 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
     if (is_krb) {
 
-        *svals = encrypt_encode_key(krbcfg, data, errMesg);
+        *svals = ipapwd_encrypt_encode_key(krbcfg, data,
+                                           krbcfg->num_pref_encsalts,
+                                           krbcfg->pref_encsalts,
+                                           errMesg);
 
         if (!*svals) {
             /* errMesg should have been set in encrypt_encode_key() */
