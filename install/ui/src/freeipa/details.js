@@ -1490,17 +1490,21 @@ exp.boolean_state_evaluator = IPA.boolean_state_evaluator = function(spec) {
     that.false_state = spec.false_state || that.field_name + '-false';
 
     /**
-     * Inverted logic
+     * Inverts evaluation logic
+     *
+     * NOTE: is ignored when custom parser is set
+     *
      * @property {boolean}
      */
     that.invert_value = spec.invert_value;
 
     /**
      * Value parser
+     *
      * @property {IPA.boolean_formatter}
      */
-    that.parser = IPA.build({
-        $factory: spec.parser || IPA.boolean_formatter,
+    that.parser = IPA.build(spec.parser || {
+        $factory: IPA.boolean_formatter,
         invert_value: that.invert_value
     });
 

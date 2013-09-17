@@ -1838,14 +1838,26 @@ IPA.boolean_formatter = function(spec) {
     that.show_false = spec.show_false;
     /** Parse return inverted value  */
     that.invert_value = spec.invert_value;
+    /**
+     * Result of parse of `undefined` or `null` value will be `empty_value`
+     * if set.
+     * @property {boolean|undefined}
+     */
+    that.empty_value = spec.empty_value;
 
     /**
      * Convert string boolean value into real boolean value, or keep
      * the original value
+     *
+     * @param {Mixed} value Value to parse
+     * @return {boolean|""}
      */
     that.parse = function(value) {
 
-        if (value === undefined || value === null) return '';
+        if (value === undefined || value === null) {
+            if (that.empty_value !== undefined) value = that.empty_value;
+            else return '';
+        }
 
         if (value instanceof Array) {
             value = value[0];
