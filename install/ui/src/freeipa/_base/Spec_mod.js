@@ -38,9 +38,10 @@ define(['dojo/_base/declare',
          *          $add: array of add rules
          *          $del: array of del rules
          *          $set: array of set rules
+         *          $replace: array of replace rules
          *      }
          *
-         * The order of modification is del, add, set.
+         * The order of modification is del, add, set, replace.
          *
          * @param {Object} spec
          * @param {Object} diff
@@ -52,6 +53,7 @@ define(['dojo/_base/declare',
             this.del(spec, diff.$del);
             this.add(spec, diff.$add);
             this.set(spec, diff.$set);
+            this.replace(spec, diff.$replace);
 
             return spec;
         },
@@ -99,6 +101,29 @@ define(['dojo/_base/declare',
         },
 
         /**
+         * Replace objects in an arrays
+         *
+         * A rule is a pair of path to an array and a objects to replace in that array
+         *      [
+         *          'path.to.spec.array',
+         *          [
+         *              [match, new_obj_spec],
+         *              [match2, new_obj_spec_2],
+         *              ...
+         *          ]
+         *      ]
+         * Example of replacement specs:
+         *      ['add', { name: 'add', hide_cond: [] }]
+         *      ['{ name: 'add' }', { name: 'add', hide_cond: [] }]
+         * @param {Object} spec
+         * @param {Array} rules
+         */
+        replace: function(spec, rules) {
+
+            return this._apply_rules(spec, rules, this._replace);
+        },
+
+        /**
          * Removes all rule props
          * @param {Object} diff
          */
@@ -106,6 +131,7 @@ define(['dojo/_base/declare',
             delete diff.$add;
             delete diff.$del;
             delete diff.$set;
+            delete diff.$replace;
         },
 
         _apply_rules: function(spec, rules, method) {
@@ -162,6 +188,28 @@ define(['dojo/_base/declare',
             for (i=0; i<del.length;i++) {
                 arr.splice(del[i], 1);
             }
+            return spec;
+        },
+
+        _replace: function(spec, rule) {
+
+            var path = rule[0];
+            var replace_rules = rule[1];
+            var arr = lang.getObject(path, false, spec);
+            if (!arr) return spec;
+
+            for (var i=0; i<replace_rules.length; i++) {
+                var conds = replace_rules[i][0];
+                var new_spec = replace_rules[i][1];
+
+                for (var j=0; j<arr.length; j++) {
+                    if (this._match(arr[j], conds)) {
+                        arr[j] = new_spec;
+                        break;
+                    }
+                }
+            }
+
             return spec;
         },
 
