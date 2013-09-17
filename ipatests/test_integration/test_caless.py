@@ -103,7 +103,7 @@ class CALessBase(IntegrationTest):
             host.mkdir_recursive(cls.crl_path)
             for source in glob.glob(os.path.join(base, '*.crl')):
                 dest = os.path.join(cls.crl_path, os.path.basename(source))
-                host.put_file(source, dest)
+                host.transport.put_file(source, dest)
 
     @classmethod
     def uninstall(cls):
@@ -174,8 +174,8 @@ class CALessBase(IntegrationTest):
 
     @classmethod
     def copy_cert(cls, host, filename):
-        host.put_file(os.path.join(cls.cert_dir, filename),
-                      os.path.join(host.config.test_dir, filename))
+        host.transport.put_file(os.path.join(cls.cert_dir, filename),
+                                os.path.join(host.config.test_dir, filename))
 
     @classmethod
     def uninstall_server(self, host=None):
@@ -211,8 +211,9 @@ class CALessBase(IntegrationTest):
         if dirsrv_pkcs12_exists:
             files_to_copy.append(dirsrv_pkcs12)
         for filename in set(files_to_copy):
-            master.put_file(os.path.join(self.cert_dir, filename),
-                            os.path.join(master.config.test_dir, filename))
+            master.transport.put_file(
+                os.path.join(self.cert_dir, filename),
+                os.path.join(master.config.test_dir, filename))
 
         self.collect_log(replica, '/var/log/ipareplica-install.log')
         self.collect_log(replica, '/var/log/ipaclient-install.log')
