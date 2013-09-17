@@ -104,6 +104,7 @@ define(['dojo/_base/declare',
          * Replace objects in an arrays
          *
          * A rule is a pair of path to an array and a objects to replace in that array
+         *
          *      [
          *          'path.to.spec.array',
          *          [
@@ -113,8 +114,9 @@ define(['dojo/_base/declare',
          *          ]
          *      ]
          * Example of replacement specs:
+         *
          *      ['add', { name: 'add', hide_cond: [] }]
-         *      ['{ name: 'add' }', { name: 'add', hide_cond: [] }]
+         *      [{ name: 'add' }, { name: 'add', hide_cond: [] }]
          * @param {Object} spec
          * @param {Array} rules
          */
