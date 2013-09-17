@@ -40,7 +40,7 @@ log = log_mgr.get_logger(__name__)
 def prepare_host(host):
     env_filename = os.path.join(host.config.test_dir, 'env.sh')
     host.collect_log(env_filename)
-    host.mkdir_recursive(host.config.test_dir)
+    host.transport.mkdir_recursive(host.config.test_dir)
     host.put_file_contents(env_filename, env_to_script(host.to_env()))
 
 
@@ -51,10 +51,10 @@ def apply_common_fixes(host):
 
 
 def backup_file(host, filename):
-    if host.file_exists(filename):
+    if host.transport.file_exists(filename):
         backupname = os.path.join(host.config.test_dir, 'file_backup',
                                   filename.lstrip('/'))
-        host.mkdir_recursive(os.path.dirname(backupname))
+        host.transport.mkdir_recursive(os.path.dirname(backupname))
         host.run_command(['cp', '-af', filename, backupname])
         return True
     else:
@@ -63,7 +63,7 @@ def backup_file(host, filename):
             ipautil.shell_quote(filename),
             ipautil.shell_quote(rmname)))
         contents = host.get_file_contents(rmname)
-        host.mkdir_recursive(os.path.dirname(rmname))
+        host.transport.mkdir_recursive(os.path.dirname(rmname))
         return False
 
 
