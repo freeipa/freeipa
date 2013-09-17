@@ -26,6 +26,13 @@ changetype: modify
 add: aci
 aci: (targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policy"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "aci")(version 3.0;acl "Admins can manage delegations"; allow (write, delete) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+aci: (targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Users allowed to retrieve keytab keys"; allow(read) userattr="ipaAllowedToPerform;read_keys#USERDN";)
+aci: (targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Groups allowed to retrieve keytab keys"; allow(read) userattr="ipaAllowedToPerform;read_keys#GROUPDN";)
+aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Users allowed to create keytab keys"; allow(write) userattr="ipaAllowedToPerform;write_keys#USERDN";)
+aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Groups allowed to create keytab keys"; allow(write) userattr="ipaAllowedToPerform;write_keys#GROUPDN";)
+aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Entities are allowed to rekey themselves"; allow(write) userdn="ldap:///self";)
+aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Admins are allowed to rekey any entity"; allow(write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+aci: (targetfilter="(|(objectclass=ipaHost)(objectclass=ipaService))")(targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Entities are allowed to rekey managed entries"; allow(write) userattr="managedby#USERDN";)
 
 dn: cn=services,cn=accounts,$SUFFIX
 changetype: modify
