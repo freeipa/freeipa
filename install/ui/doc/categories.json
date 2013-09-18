@@ -46,6 +46,7 @@
                     "IPA.opened_dialogs",
                     "IPA.dialog_button",
                     "IPA.confirm_mixin",
+                    "dialogs.password.dialog",
                     "*_dialog"
                 ]
             },
@@ -126,6 +127,7 @@
                 "name": "Facet actions",
                 "classes": [
                     "facet.action",
+                    "dialogs.password.action",
                     "*_action"
                 ]
             },
@@ -204,6 +206,7 @@
                     "IPA",
                     "association",
                     "details",
+                    "dialogs.password",
                     "entity",
                     "facet",
                     "field",

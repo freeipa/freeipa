@@ -22,12 +22,15 @@
 
 define([
        'dojo/keys',
+       './builder',
        './ipa',
        './jquery',
+       './phases',
+       './reg',
        './text',
        './field',
        './widget'],
-       function(keys, IPA, $, text) {
+       function(keys, builder, IPA, $, phases, reg, text) {
 
 /**
  * Opened dialogs
@@ -1334,6 +1337,15 @@ IPA.confirm_mixin = function() {
         }
     };
 };
+
+/**
+ * Dialog builder
+ * - added as builder for 'dialog' registry
+ * @ignore
+ */
+var dialog_builder = builder.get('dialog');
+dialog_builder.factory = IPA.dialog;
+reg.set('dialog', dialog_builder.registry);
 
 return {};
 });
