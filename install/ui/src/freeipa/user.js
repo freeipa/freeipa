@@ -145,6 +145,12 @@ return {
                             $type: 'sshkeys',
                             name: 'ipasshpubkey',
                             label: '@i18n:objects.sshkeystore.keys'
+                        },
+                        {
+                            $type: 'checkboxes',
+                            name: 'ipauserauthtype',
+                            flags: ['w_if_no_aci'],
+                            options: ['password', 'radius', 'otp']
                         }
                     ]
                 },

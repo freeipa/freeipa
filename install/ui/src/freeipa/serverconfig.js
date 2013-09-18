@@ -74,6 +74,12 @@ return {
                             ])
                         },
                         {
+                            $type: 'checkboxes',
+                            name: 'ipauserauthtype',
+                            flags: ['w_if_no_aci'],
+                            options: ['password', 'radius', 'otp']
+                        },
+                        {
                             $type: 'checkbox',
                             name: 'ipamigrationenabled'
                         },
