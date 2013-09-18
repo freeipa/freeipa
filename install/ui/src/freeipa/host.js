@@ -162,17 +162,29 @@ return {
                 },
                 'host_unprovision',
                 {
-                    $type: 'set_otp',
+                    $type: 'password',
                     name: 'set_otp',
                     label: '@i18n:objects.host.password_set_title',
-                    status: 'missing',
+                    dialog: {
+                        title: '@i18n:objects.host.password_set_title',
+                        confirm_button_label: '@i18n:objects.host.password_set_button',
+                        password_name: 'userpassword',
+                        success_message: '@i18n:objects.host.password_set_success'
+                    },
+                    enable_cond: ['userpassword_w'],
                     hide_cond: ['has_password']
                 },
                 {
-                    $type: 'set_otp',
+                    $type: 'password',
                     name: 'reset_otp',
                     label: '@i18n:objects.host.password_reset_title',
-                    status: 'present',
+                    dialog: {
+                        title: '@i18n:objects.host.password_reset_title',
+                        confirm_button_label: '@i18n:objects.host.password_reset_button',
+                        password_name: 'userpassword',
+                        success_message: '@i18n:objects.host.password_set_success'
+                    },
+                    enable_cond: ['userpassword_w'],
                     show_cond: ['has_password']
                 },
                 'cert_view',
@@ -781,136 +793,6 @@ IPA.host_password_widget = function(spec) {
     return that;
 };
 
-IPA.host.set_otp_dialog = function(spec) {
-
-    spec = spec || {};
-    spec.width = spec.width || 400;
-    spec.sections = spec.sections || [
-        {
-            fields: [
-                {
-                    name: 'password1',
-                    label: '@i18n:password.new_password',
-                    $type: 'password',
-                    required: true
-                },
-                {
-                    name: 'password2',
-                    label: '@i18n:password.verify_password',
-                    $type: 'password',
-                    required: true,
-                    validators: [{
-                        $type: 'same_password',
-                        other_field: 'password1'
-                    }]
-                }
-            ]
-        }
-    ];
-
-    var that = IPA.dialog(spec);
-
-    IPA.confirm_mixin().apply(that);
-
-    that.facet = spec.facet;
-
-    that.set_status = function(status) {
-
-        var button = that.get_button('set_password');
-
-        if (status == 'missing') {
-            that.title = text.get('@i18n:objects.host.password_set_title');
-            button.label = text.get('@i18n:objects.host.password_set_button');
-        } else {
-            that.title = text.get('@i18n:objects.host.password_reset_title');
-            button.label = text.get('@i18n:objects.host.password_reset_button');
-        }
-    };
-
-    that.on_confirm = function() {
-
-        if (!that.validate()) return;
-
-        var new_password = that.fields.get_field('password1').save()[0];
-        that.set_otp(new_password);
-
-        that.close();
-    };
-
-    that.create_buttons = function() {
-
-        that.create_button({
-            name: 'set_password',
-            label: '@i18n:objects.host.password_set_button',
-            click: function() {
-                that.on_confirm();
-            }
-        });
-
-        that.create_button({
-            name: 'cancel',
-            label: '@i18n:buttons.cancel',
-            click: function() {
-                that.close();
-            }
-        });
-    };
-
-    that.set_otp = function(password) {
-        var pkey = that.facet.get_pkeys();
-
-        var command = IPA.command({
-            entity: that.entity.name,
-            method: 'mod',
-            args: pkey,
-            options: {
-                all: true,
-                rights: true,
-                userpassword: password
-            },
-            on_success: function(data) {
-                that.facet.load(data);
-                that.close();
-                IPA.notify_success('@i18n:objects.host.password_set_success');
-            },
-            on_error: function() {
-                that.close();
-            }
-        });
-
-        command.execute();
-    };
-
-    that.create_buttons();
-
-    return that;
-};
-
-IPA.host.set_otp_action = function(spec) {
-
-    spec = spec || {};
-    spec.name = spec.name || 'set_otp';
-    spec.label = spec.label || '@i18n:objects.host.password_set_title';
-    spec.enable_cond = spec.enable_cond || ['userpassword_w'];
-
-    var that = IPA.action(spec);
-    that.status = spec.status || 'missing';
-
-    that.execute_action = function(facet) {
-
-        var dialog = IPA.host.set_otp_dialog({
-            entity: facet.entity,
-            facet: facet
-        });
-
-        dialog.set_status(that.status);
-
-        dialog.open();
-    };
-
-    return that;
-};
-
 IPA.host.userpassword_acl_evaluator = function(spec) {
 
     spec.name = spec.name || 'userpassword_acl_evaluator';
@@ -956,7 +838,6 @@ IPA.host.certificate_policy = function(spec) {
     return that;
 };
 
-
 exp.entity_spec = make_spec();
 exp.register = function() {
     var e = reg.entity;
@@ -977,7 +858,6 @@ exp.register = function() {
     w.register('host_password', IPA.host_password_widget);
 
     a.register('host_unprovision', exp.unprovision_action);
-    a.register('set_otp', exp.set_otp_action);
 };
 phases.on('registration', exp.register);
 
