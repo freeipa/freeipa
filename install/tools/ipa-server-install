@@ -968,6 +968,17 @@ def main():
                 or reverse_zone is None else reverse_zone)
         print
 
+    # If domain name and realm does not match, IPA server will not be able
+    # to estabilish trust with Active Directory. Print big fat warning.
+
+    realm_not_matching_domain = (domain_name.upper() != realm_name)
+
+    if realm_not_matching_domain:
+        print("WARNING: Realm name does not match the domain name.\n"
+              "You will not be able to estabilish trusts with Active "
+              "Directory unless\nythe realm name of the IPA server matches "
+              "its domain name.\n\n")
+
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
         sys.exit("Installation aborted")
 

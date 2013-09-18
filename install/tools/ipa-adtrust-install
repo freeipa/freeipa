@@ -248,6 +248,22 @@ def main():
     api.bootstrap(**cfg)
     api.finalize()
 
+    # If domain name and realm does not match, IPA server will not be able
+    # to estabilish trust with Active Directory. Print big fat warning.
+
+    realm_not_matching_domain = (api.env.domain.upper() != api.env.realm)
+
+    if realm_not_matching_domain:
+        print("WARNING: Realm name does not match the domain name.\n"
+              "You will not be able to estabilish trusts with Active "
+              "Directory unless\nthe realm name of the IPA server matches its "
+              "domain name.\n\n")
+        if not options.unattended:
+            if not ipautil.user_input("Do you wish to continue?",
+                                      default = False,
+                                      allow_empty = False):
+                sys.exit("Aborting installation.")
+
     if adtrustinstance.ipa_smb_conf_exists():
         if not options.unattended:
             while True:
