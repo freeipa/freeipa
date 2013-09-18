@@ -24,7 +24,7 @@ import posixpath
 import os
 
 from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str, Bool
+from ipalib import Flag, Int, Password, Str, Bool, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib.plugins import baseldap
 from ipalib.request import context
@@ -198,14 +198,14 @@ class user(LDAPObject):
     object_name_plural = _('users')
     object_class = ['posixaccount']
     object_class_config = 'ipauserobjectclasses'
-    possible_objectclasses = ['meporiginentry']
+    possible_objectclasses = ['meporiginentry', 'ipauserauthtypeclass']
     disallow_object_classes = ['krbticketpolicyaux']
     search_attributes_config = 'ipausersearchfields'
     default_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
         'uidnumber', 'gidnumber', 'mail', 'ou',
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
-        'memberofindirect',
+        'memberofindirect', 'ipauserauthtype'
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
@@ -364,6 +364,13 @@ class user(LDAPObject):
             normalizer=normalize_sshpubkey,
             csv=True,
             flags=['no_search'],
+        ),
+        StrEnum('ipauserauthtype*',
+            cli_name='user_auth_type',
+            label=_('User authentication types'),
+            doc=_('Types of supported user authentication'),
+            values=(u'password',),
+            csv=True,
         ),
     )
 
@@ -633,14 +640,16 @@ class user_mod(LDAPUpdate):
             entry_attrs['userpassword'] = ipa_generate_password(user_pwdchars)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
-        if 'ipasshpubkey' in entry_attrs:
+        if 'ipasshpubkey' in entry_attrs or 'ipauserauthtype' in entry_attrs:
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
             else:
                 (_dn, _entry_attrs) = ldap.get_entry(dn, ['objectclass'])
                 obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
-            if 'ipasshuser' not in obj_classes:
+            if 'ipasshpubkey' in entry_attrs and 'ipasshuser' not in obj_classes:
                 obj_classes.append('ipasshuser')
+            if 'ipauserauthtype' in entry_attrs and 'ipauserauthtype' not in obj_classes:
+                obj_classes.append('ipauserauthtypeclass')
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

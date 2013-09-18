@@ -92,6 +92,7 @@ class config(LDAPObject):
         'ipamigrationenabled', 'ipacertificatesubjectbase',
         'ipapwdexpadvnotify', 'ipaselinuxusermaporder',
         'ipaselinuxusermapdefault', 'ipaconfigstring', 'ipakrbauthzdata',
+        'ipauserauthtype'
     ]
 
     label = _('Configuration')
@@ -195,6 +196,13 @@ class config(LDAPObject):
             label=_('Default PAC types'),
             doc=_('Default types of PAC supported for services'),
             values=(u'MS-PAC', u'PAD', u'nfs:NONE'),
+            csv=True,
+        ),
+        StrEnum('ipauserauthtype*',
+            cli_name='user_auth_type',
+            label=_('Default user authentication types'),
+            doc=_('Default types of supported user authentication'),
+            values=(u'password',),
             csv=True,
         ),
     )
