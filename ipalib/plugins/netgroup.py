@@ -105,6 +105,25 @@ class netgroup(LDAPObject):
         'memberuser': ('Member', '', 'no_'),
         'memberhost': ('Member', '', 'no_'),
     }
+    managed_permissions = {
+        'System: Read Netgroups': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'description', 'hostcategory', 'ipaenabledflag',
+                'ipauniqueid', 'nisdomainname', 'usercategory'
+            },
+        },
+        'System: Read Netgroup Membership': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'externalhost', 'member', 'memberof', 'memberuser'
+            },
+        },
+    }
 
     label = _('Netgroups')
     label_singular = _('Netgroup')
