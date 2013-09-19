@@ -373,3 +373,22 @@ add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
 
 dn: cn=Revoke Certificate,cn=permissions,cn=pbac,$SUFFIX
 add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
+
+# Automember tasks
+dn: cn=Automember Task Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: Automember Task Administrator
+default:description: Automember Task Administrator
+
+dn: cn=Add Automember Rebuild Membership Task,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add Automember Rebuild Membership Task
+default:member: cn=Automember Task Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:ipapermissiontype: SYSTEM
+
+dn: cn=config
+add:aci: '(target = "ldap:///cn=automember rebuild membership,cn=tasks,cn=config")(targetattr=*)(version 3.0;acl "permission:Add Automember Rebuild Membership Task";allow (add) groupdn = "ldap:///cn=Add Automember Rebuild Membership Task,cn=permissions,cn=pbac,$SUFFIX";)'
