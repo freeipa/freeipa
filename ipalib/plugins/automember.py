@@ -16,13 +16,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from ipalib import api, errors
-from ipalib import Str, StrEnum
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
-from ipalib.request import context
+import uuid
 import ldap as _ldap
+from ipalib import api, errors, Str, StrEnum, _, ngettext
+from ipalib.plugins.baseldap import *
+from ipalib.request import context
 from ipapython.dn import DN
 
 __doc__ = _("""
@@ -43,6 +41,8 @@ A default group or hostgroup could be specified for entries that do not
 match any rule. In case of user entries this group will be a fallback group
 because all users are by default members of group specified in IPA config.
 
+The automember-rebuild command can be used to retroactively run automember rules
+against existing entries, thus rebuilding their membership.
 
 EXAMPLES:
 
@@ -107,6 +107,18 @@ EXAMPLES:
  Delete an automember rule:
     ipa automember-del --type=hostgroup webservers
     ipa automember-del --type=group devel
+
+ Rebuild membership for all users:
+    ipa automember-rebuild --type=group
+
+ Rebuild membership for all hosts:
+    ipa automember-rebuild --type=hostgroup
+
+ Rebuild membership for specified users:
+    ipa automember-rebuild --users=tuser1 --users=tuser2
+
+ Rebuild membership for specified hosts:
+    ipa automember-rebuild --hosts=web1.example.com --hosts=web2.example.com
 """)
 
 # Options used by Condition Add and Remove.
@@ -184,14 +196,17 @@ class automember(LDAPObject):
         ),
     )
 
-    def dn_exists(self, grouptype, groupname, *keys):
+    def dn_exists(self, otype, oname):
         ldap = self.api.Backend.ldap2
-        dn = self.api.Object[grouptype].get_dn(groupname)
+        dn = self.api.Object[otype].get_dn(oname)
         try:
-            (gdn, entry_attrs) = ldap.get_entry(dn, [])
+            entry = ldap.get_entry(dn, [])
         except errors.NotFound:
-            raise errors.NotFound(reason=_(u'Group: %s not found!') % groupname)
-        return gdn
+            raise errors.NotFound(
+                reason=_(u'%(otype)s "%(oname)s" not found') %
+                dict(otype=otype, oname=oname)
+            )
+        return entry.dn
 
     def get_dn(self, *keys, **options):
         if self.parent_object:
@@ -587,3 +602,111 @@ class automember_default_group_show(LDAPRetrieve):
         return result
 
 api.register(automember_default_group_show)
+
+
+class automember_rebuild(Command):
+    __doc__ = _('Rebuild auto membership.')
+    # TODO: Add a --dry-run option:
+    # https://fedorahosted.org/freeipa/ticket/3936
+    takes_options = (
+        group_type[0].clone(
+            required=False,
+            label=_('Rebuild membership for all members of a grouping')
+        ),
+        Str(
+            'users*',
+            label=_('Users'),
+            doc=_('Rebuild membership for specified users'),
+        ),
+        Str(
+            'hosts*',
+            label=_('Hosts'),
+            doc=_('Rebuild membership for specified hosts'),
+        ),
+    )
+    has_output = output.standard_value
+    msg_summary = _('Automember rebuild membership task completed')
+
+    def validate(self, **kw):
+        """
+        Validation rules:
+        - at least one of 'type', 'users', 'hosts' is required
+        - 'users' and 'hosts' cannot be combined together
+        - if 'users' and 'type' are specified, 'type' must be 'group'
+        - if 'hosts' and 'type' are specified, 'type' must be 'hostgroup'
+        """
+        super(automember_rebuild, self).validate(**kw)
+        users, hosts, gtype = kw.get('users'), kw.get('hosts'), kw.get('type')
+
+        if not (gtype or users or hosts):
+            raise errors.MutuallyExclusiveError(
+                reason=_('at least one of options: type, users, hosts must be '
+                         'specified')
+            )
+
+        if users and hosts:
+            raise errors.MutuallyExclusiveError(
+                reason=_("users and hosts cannot both be set")
+            )
+        if gtype == 'group' and hosts:
+            raise errors.MutuallyExclusiveError(
+                reason=_("hosts cannot be set when type is 'group'")
+            )
+        if gtype == 'hostgroup' and users:
+            raise errors.MutuallyExclusiveError(
+                reason=_("users cannot be set when type is 'hostgroup'")
+            )
+
+    def execute(self, *keys, **options):
+        ldap = self.api.Backend.ldap2
+        cn = str(uuid.uuid4())
+
+        gtype = options.get('type')
+        if not gtype:
+            gtype = 'group' if options.get('users') else 'hostgroup'
+
+        types = {
+            'group': (
+                'user',
+                'users',
+                DN(api.env.container_user, api.env.basedn)
+            ),
+            'hostgroup': (
+                'host',
+                'hosts',
+                DN(api.env.container_host, api.env.basedn)
+            ),
+        }
+
+        obj_name, opt_name, basedn = types[gtype]
+        obj = self.api.Object[obj_name]
+
+        names = options.get(opt_name)
+        if names:
+            for name in names:
+                obj.get_dn_if_exists(name)
+            search_filter = ldap.make_filter_from_attr(
+                obj.primary_key.name,
+                names,
+                rules=ldap.MATCH_ANY
+            )
+        else:
+            search_filter = '(%s=*)' % obj.primary_key.name
+
+        entry = ldap.make_entry(
+            DN(
+                ('cn', cn),
+                ('cn', 'automember rebuild membership'),
+                ('cn', 'tasks'),
+                ('cn', 'config'),
+            ),
+            objectclass=['top', 'extensibleObject'],
+            cn=[cn],
+            basedn=[basedn],
+            filter=[search_filter],
+            scope=['sub']
+        )
+        ldap.add_entry(entry)
+        return dict(result=True, value=u'')
+
+api.register(automember_rebuild)

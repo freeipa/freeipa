@@ -199,6 +199,15 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
+command: automember_rebuild
+args: 0,4,3
+option: Str('hosts*')
+option: StrEnum('type', cli_name='type', multivalue=False, required=False, values=(u'group', u'hostgroup'))
+option: Str('users*')
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'bool'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('value', <type 'unicode'>, None)
 command: automember_remove_condition
 args: 1,8,5
 arg: Str('cn', cli_name='automember_rule')
