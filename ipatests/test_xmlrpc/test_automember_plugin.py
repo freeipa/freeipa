@@ -28,8 +28,8 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 
-user1=u'tuser1'
-manager1=u'mscott'
+user1 = u'tuser1'
+manager1 = u'mscott'
 fqdn1 = u'web1.%s' % api.env.domain
 short1 = u'web1'
 fqdn2 = u'dev1.%s' % api.env.domain
@@ -41,13 +41,17 @@ short4 = u'www5'
 fqdn5 = u'webserver5.%s' % api.env.domain
 short5 = u'webserver5'
 
-group1=u'group1'
-defaultgroup1=u'defaultgroup1'
-hostgroup1=u'hostgroup1'
-hostgroup2=u'hostgroup2'
-hostgroup3=u'hostgroup3'
-hostgroup4=u'hostgroup4'
-defaulthostgroup1=u'defaulthostgroup1'
+group1 = u'group1'
+group1_dn = DN(('cn', group1), ('cn', 'groups'),
+               ('cn', 'accounts'), api.env.basedn)
+defaultgroup1 = u'defaultgroup1'
+hostgroup1 = u'hostgroup1'
+hostgroup1_dn = DN(('cn', hostgroup1), ('cn', 'hostgroups'),
+                  ('cn', 'accounts'), api.env.basedn)
+hostgroup2 = u'hostgroup2'
+hostgroup3 = u'hostgroup3'
+hostgroup4 = u'hostgroup4'
+defaulthostgroup1 = u'defaulthostgroup1'
 
 group_include_regex = u'mscott'
 hostgroup_include_regex = u'^web[1-9]'
@@ -81,13 +85,13 @@ class test_automember(Declarative):
             desc='Try to retrieve non-existent group rule %r' % group1,
             command=('automember_add', [group1],
                 dict(description=u'Test desc', type=u'group')),
-            expected=errors.NotFound(reason=u'Group: %s not found!' % group1),
+            expected=errors.NotFound(reason=u'group "%s" not found' % group1),
         ),
 
         dict(
             desc='Try to update non-existent group rule %r' % group1,
             command=('automember_add', [group1], dict(type=u'group')),
-            expected=errors.NotFound(reason=u'Group: %s not found!' % group1),
+            expected=errors.NotFound(reason=u'group "%s" not found' % group1),
         ),
 
         dict(
@@ -102,14 +106,14 @@ class test_automember(Declarative):
             command=('automember_add', [hostgroup1],
                 dict(description=u'Test desc', type=u'hostgroup')),
             expected=errors.NotFound(
-                reason=u'Group: %s not found!' % hostgroup1),
+                reason=u'hostgroup "%s" not found' % hostgroup1),
         ),
 
         dict(
             desc='Try to update non-existent hostgroup rule %r' % hostgroup1,
             command=('automember_add', [hostgroup1], dict(type=u'hostgroup')),
             expected=errors.NotFound(
-                reason=u'Group: %s not found!' % hostgroup1),
+                reason=u'hostgroup "%s" not found' % hostgroup1),
         ),
 
         dict(
@@ -118,7 +122,530 @@ class test_automember(Declarative):
             expected=errors.NotFound(reason=u': auto_member_rule not found'),
         ),
 
+        # Automember rebuild membership tests
+        dict(
+            desc='Create hostgroup: %r' % hostgroup1,
+            command=(
+                'hostgroup_add', [hostgroup1], dict(description=u'Test desc')
+            ),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Added hostgroup "%s"' % hostgroup1,
+                result=dict(
+                    cn=[hostgroup1],
+                    description=[u'Test desc'],
+                    objectclass=objectclasses.hostgroup,
+                    ipauniqueid=[fuzzy_uuid],
+                    mepmanagedentry=[DN(('cn', hostgroup1), ('cn', 'ng'),
+                                        ('cn', 'alt'), api.env.basedn)],
+                    dn=hostgroup1_dn
+                ),
+            ),
+        ),
 
+        dict(
+            desc='Create host: %r' % fqdn1,
+            command=(
+                'host_add',
+                [fqdn1],
+                dict(
+                    description=u'Test host 1',
+                    l=u'Undisclosed location 1',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Added host "%s"' % fqdn1,
+                result=dict(
+                    dn=DN(('fqdn', fqdn1), ('cn', 'computers'),
+                          ('cn', 'accounts'), api.env.basedn),
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    has_keytab=False,
+                    has_password=False,
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create automember rule: %r' % hostgroup1,
+            command=(
+                'automember_add', [hostgroup1], dict(
+                    description=u'Test desc', type=u'hostgroup',
+                )
+            ),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Added automember rule "%s"' % hostgroup1,
+                result=dict(
+                    cn=[hostgroup1],
+                    description=[u'Test desc'],
+                    automembertargetgroup=[hostgroup1_dn],
+                    objectclass=objectclasses.automember,
+                    dn=DN(('cn', hostgroup1), ('cn', 'hostgroup'),
+                          ('cn', 'automember'), ('cn', 'etc'), api.env.basedn),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create automember condition: %r' % hostgroup1,
+            command=(
+                'automember_add_condition', [hostgroup1], dict(
+                    key=u'fqdn', type=u'hostgroup',
+                    automemberinclusiveregex=[hostgroup_include_regex],
+                )
+            ),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Added condition(s) to "%s"' % hostgroup1,
+                completed=1,
+                failed=dict(
+                    failed=dict(
+                        automemberinclusiveregex=tuple(),
+                        automemberexclusiveregex=tuple(),
+                    )
+                ),
+                result=dict(
+                    cn=[hostgroup1],
+                    description=[u'Test desc'],
+                    automemberinclusiveregex=[
+                        u'fqdn=%s' % hostgroup_include_regex
+                    ],
+                    automembertargetgroup=[hostgroup1_dn],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Retrieve hostgroup: %r' % hostgroup1,
+            command=('hostgroup_show', [hostgroup1], dict()),
+            expected=dict(
+                value=hostgroup1,
+                summary=None,
+                result=dict(
+                    dn=hostgroup1_dn,
+                    cn=[hostgroup1],
+                    description=[u'Test desc'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Rebuild membership for hostgroups',
+            command=('automember_rebuild', [], dict(type=u'hostgroup')),
+            expected=dict(
+                value=u'',
+                summary=u'Automember rebuild membership task completed',
+                result=True
+            ),
+        ),
+
+        dict(
+            desc='Retrieve hostgroup: %r' % hostgroup1,
+            command=('hostgroup_show', [hostgroup1], dict()),
+            expected=dict(
+                value=hostgroup1,
+                summary=None,
+                result=dict(
+                    dn=hostgroup1_dn,
+                    member_host=[u'%s' % fqdn1],
+                    cn=[hostgroup1],
+                    description=[u'Test desc'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Remove host %r from hostgroup %r' % (fqdn1, hostgroup1),
+            command=(
+                'hostgroup_remove_member',
+                [hostgroup1],
+                dict(host=fqdn1)
+            ),
+            expected=dict(
+                failed=dict(
+                    member=dict(
+                        host=tuple(),
+                        hostgroup=tuple(),
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=hostgroup1_dn,
+                    cn=[hostgroup1],
+                    description=[u'Test desc'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Retrieve hostgroup: %r' % hostgroup1,
+            command=('hostgroup_show', [hostgroup1], dict()),
+            expected=dict(
+                value=hostgroup1,
+                summary=None,
+                result=dict(
+                    dn=hostgroup1_dn,
+                    cn=[hostgroup1],
+                    description=[u'Test desc'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Try to rebuild membership (no options)',
+            command=('automember_rebuild', [], dict()),
+            expected=errors.MutuallyExclusiveError(
+                reason=(u'at least one of options: type, users, hosts must be '
+                        'specified')
+            )
+        ),
+
+        dict(
+            desc='Try to rebuild membership (--users and --hosts together)',
+            command=(
+                'automember_rebuild',
+                [],
+                dict(users=user1, hosts=fqdn1)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u'users and hosts cannot both be set'
+            )
+        ),
+
+        dict(
+            desc='Try to rebuild membership (--users and --type=hostgroup)',
+            command=(
+                'automember_rebuild',
+                [],
+                dict(users=user1, type=u'hostgroup')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="users cannot be set when type is 'hostgroup'"
+            )
+        ),
+
+        dict(
+            desc='Try to rebuild membership (--hosts and --type=group)',
+            command=(
+                'automember_rebuild',
+                [],
+                dict(hosts=fqdn1, type=u'group')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason=u"hosts cannot be set when type is 'group'"
+            )
+        ),
+
+        dict(
+            desc='Rebuild membership for host: %s' % fqdn1,
+            command=('automember_rebuild', [], dict(hosts=fqdn1)),
+            expected=dict(
+                value=u'',
+                summary=u'Automember rebuild membership task completed',
+                result=True
+            ),
+        ),
+
+        dict(
+            desc='Retrieve hostgroup: %r' % hostgroup1,
+            command=('hostgroup_show', [hostgroup1], dict()),
+            expected=dict(
+                value=hostgroup1,
+                summary=None,
+                result=dict(
+                    dn=hostgroup1_dn,
+                    member_host=[u'%s' % fqdn1],
+                    cn=[hostgroup1],
+                    description=[u'Test desc'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete host: %r' % fqdn1,
+            command=('host_del', [fqdn1], dict()),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Deleted host "%s"' % fqdn1,
+                result=dict(failed=u''),
+            ),
+        ),
+
+        dict(
+            desc='Delete hostgroup: %r' % hostgroup1,
+            command=('hostgroup_del', [hostgroup1], dict()),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Deleted hostgroup "%s"' % hostgroup1,
+                result=dict(failed=u''),
+            ),
+        ),
+
+        dict(
+            desc='Delete automember rule: %r' % hostgroup1,
+            command=('automember_del', [hostgroup1], dict(type=u'hostgroup')),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Deleted automember rule "%s"' % hostgroup1,
+                result=dict(failed=u''),
+            ),
+        ),
+
+        dict(
+            desc='Create group: %r' % group1,
+            command=(
+                'group_add', [group1], dict(description=u'Test desc')
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "%s"' % group1,
+                result=dict(
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    gidnumber=[fuzzy_digits],
+                    dn=group1_dn
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create user: %r' % manager1,
+            command=(
+                'user_add', [manager1], dict(givenname=u'Michael', sn=u'Scott')
+            ),
+            expected=dict(
+                value=manager1,
+                summary=u'Added user "mscott"',
+                result=get_user_result(manager1, u'Michael', u'Scott', 'add'),
+            ),
+        ),
+
+        dict(
+            desc='Create user: %r' % user1,
+            command=(
+                'user_add',
+                [user1],
+                dict(givenname=u'Test', sn=u'User1', manager=manager1)
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=get_user_result(
+                    user1, u'Test', u'User1', 'add',
+                    manager=[DN(('uid', 'mscott'), ('cn', 'users'),
+                                ('cn', 'accounts'), api.env.basedn)]
+                )
+            ),
+        ),
+
+
+        dict(
+            desc='Create automember rule: %r' % group1,
+            command=(
+                'automember_add', [group1], dict(
+                    description=u'Test desc', type=u'group',
+                )
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added automember rule "%s"' % group1,
+                result=dict(
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    automembertargetgroup=[group1_dn],
+                    objectclass=objectclasses.automember,
+                    dn=DN(('cn', group1), ('cn', 'group'),
+                          ('cn', 'automember'), ('cn', 'etc'), api.env.basedn),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create automember condition: %r' % group1,
+            command=(
+                'automember_add_condition', [group1], dict(
+                    key=u'manager', type=u'group',
+                    automemberinclusiveregex=[group_include_regex],
+                )
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added condition(s) to "%s"' % group1,
+                completed=1,
+                failed=dict(
+                    failed=dict(
+                        automemberinclusiveregex=tuple(),
+                        automemberexclusiveregex=tuple(),
+                    )
+                ),
+                result=dict(
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    automemberinclusiveregex=[
+                        u'manager=%s' % group_include_regex
+                    ],
+                    automembertargetgroup=[group1_dn],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Retrieve group: %r' % group1,
+            command=('group_show', [group1], dict()),
+            expected=dict(
+                value=group1,
+                summary=None,
+                result=dict(
+                    dn=group1_dn,
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    gidnumber=[fuzzy_digits],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Rebuild membership for groups',
+            command=('automember_rebuild', [], dict(type=u'group')),
+            expected=dict(
+                value=u'',
+                summary=u'Automember rebuild membership task completed',
+                result=True
+            ),
+        ),
+
+        dict(
+            desc='Retrieve group: %r' % group1,
+            command=('group_show', [group1], dict()),
+            expected=dict(
+                value=group1,
+                summary=None,
+                result=dict(
+                    dn=group1_dn,
+                    member_user=[u'%s' % user1],
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    gidnumber=[fuzzy_digits],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Remove user %r from group %r' % (fqdn1, hostgroup1),
+            command=(
+                'group_remove_member',
+                [group1],
+                dict(user=user1)
+            ),
+            expected=dict(
+                failed=dict(
+                    member=dict(
+                        user=tuple(),
+                        group=tuple(),
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=group1_dn,
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    gidnumber=[fuzzy_digits],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Retrieve group: %r' % group1,
+            command=('group_show', [group1], dict()),
+            expected=dict(
+                value=group1,
+                summary=None,
+                result=dict(
+                    dn=group1_dn,
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    gidnumber=[fuzzy_digits],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Rebuild membership for user: %s' % user1,
+            command=('automember_rebuild', [], dict(users=user1)),
+            expected=dict(
+                value=u'',
+                summary=u'Automember rebuild membership task completed',
+                result=True
+            ),
+        ),
+
+        dict(
+            desc='Retrieve group: %r' % group1,
+            command=('group_show', [group1], dict()),
+            expected=dict(
+                value=group1,
+                summary=None,
+                result=dict(
+                    dn=group1_dn,
+                    member_user=[u'%s' % user1],
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    gidnumber=[fuzzy_digits],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete user: %r' % user1,
+            command=('user_del', [user1], dict()),
+            expected=dict(
+                value=user1,
+                summary=u'Deleted user "%s"' % user1,
+                result=dict(failed=u''),
+            ),
+        ),
+
+        dict(
+            desc='Delete user: %r' % manager1,
+            command=('user_del', [manager1], dict()),
+            expected=dict(
+                value=manager1,
+                summary=u'Deleted user "%s"' % manager1,
+                result=dict(failed=u''),
+            ),
+        ),
+
+        dict(
+            desc='Delete group: %r' % group1,
+            command=('group_del', [group1], dict()),
+            expected=dict(
+                value=group1,
+                summary=u'Deleted group "%s"' % group1,
+                result=dict(failed=u''),
+            ),
+        ),
+
+        dict(
+            desc='Delete automember rule: %r' % group1,
+            command=('automember_del', [group1], dict(type=u'group')),
+            expected=dict(
+                value=group1,
+                summary=u'Deleted automember rule "%s"' % group1,
+                result=dict(failed=u''),
+            ),
+        ),
+
+        # End of automember rebuild membership tests
 
         dict(
             desc='Create %r' % group1,
