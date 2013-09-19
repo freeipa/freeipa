@@ -779,6 +779,79 @@ void free_keys_contents(krb5_context krbctx, struct keys_container *keys)
     keys->nkeys = 0;
 }
 
+int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
+                           int *num_encsalts, char **err_msg)
+{
+    struct krb_key_salt *ksdata;
+    krb5_error_code krberr;
+    char *tmp, *t;
+    int count;
+    int num;
+
+    *err_msg = NULL;
+
+    tmp = strdup(str);
+    if (!tmp) {
+        *err_msg = _("Out of memory\n");
+        return ENOMEM;
+    }
+
+    /* count */
+    count = 0;
+    for (t = tmp; t; t = strchr(t, ',')) {
+        count++;
+        t++;
+    }
+    count++; /* count the last one that is 0 terminated instead */
+
+    /* at the end we will have at most count entries + 1 terminating */
+    ksdata = calloc(count + 1, sizeof(struct krb_key_salt));
+    if (!ksdata) {
+        *err_msg = _("Out of memory\n");
+        free(tmp);
+        return ENOMEM;
+    }
+
+    num = 0;
+    t = tmp;
+    for (int i = 0; i < count; i++) {
+        char *p, *q;
+
+        p = strchr(t, ',');
+        if (p) *p = '\0';
+
+        q = strchr(t, ':');
+        if (q) *q++ = '\0';
+
+        krberr = krb5_string_to_enctype(t, &ksdata[num].enctype);
+        if (krberr) {
+            *err_msg = _("Warning unrecognized encryption type.\n");
+            if (p) t = p + 1;
+            continue;
+        }
+        if (p) t = p + 1;
+
+        if (!q) {
+            ksdata[num].salttype = KRB5_KDB_SALTTYPE_NORMAL;
+            num++;
+            continue;
+        }
+
+        krberr = krb5_string_to_salttype(q, &ksdata[num].salttype);
+        if (krberr) {
+            *err_msg = _("Warning unrecognized salt type.\n");
+            continue;
+        }
+
+        num++;
+    }
+
+    *num_encsalts = num;
+    *encsalts = ksdata;
+    free(tmp);
+    return 0;
+}
+
 /* Determines Encryption and Salt types,
  * allocates key_salt data storage,
  * filters out equivalent encodings,
@@ -820,63 +893,10 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
         nkeys = i;
 
     } else {
-        char *tmp, *t, *p, *q;
-
-        t = tmp = strdup(str);
-        if (!tmp) {
-            *err_msg = _("Out of memory\n");
+        krberr = ipa_string_to_enctypes(str, &ksdata, &nkeys, err_msg);
+        if (krberr) {
             return 0;
         }
-
-        /* count */
-        n = 0;
-        while ((p = strchr(t, ','))) {
-            t = p+1;
-            n++;
-        }
-        n++; /* count the last one that is 0 terminated instead */
-
-        /* at the end we will have at most n entries + 1 terminating */
-        ksdata = calloc(n + 1, sizeof(struct krb_key_salt));
-        if (!ksdata) {
-            *err_msg = _("Out of memory\n");
-            return 0;
-        }
-
-        for (i = 0, j = 0, t = tmp; i < n; i++) {
-
-            p = strchr(t, ',');
-            if (p) *p = '\0';
-
-            q = strchr(t, ':');
-            if (q) *q++ = '\0';
-
-            krberr = krb5_string_to_enctype(t, &ksdata[j].enctype);
-            if (krberr != 0) {
-                *err_msg = _("Warning unrecognized encryption type.\n");
-                if (p) t = p + 1;
-                continue;
-            }
-            if (p) t = p + 1;
-
-            if (!q) {
-                ksdata[j].salttype = KRB5_KDB_SALTTYPE_NORMAL;
-                j++;
-                continue;
-            }
-
-            krberr = krb5_string_to_salttype(q, &ksdata[j].salttype);
-            if (krberr != 0) {
-                *err_msg = _("Warning unrecognized salt type.\n");
-                continue;
-            }
-
-            j++;
-        }
-
-        nkeys = j;
-
-        free(tmp);
     }
 
     /* Check we don't already have a key with a similar encoding,

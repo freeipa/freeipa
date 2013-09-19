@@ -28,6 +28,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
@@ -431,7 +432,282 @@ error_out:
 	if (ld) ldap_unbind_ext(ld, NULL, NULL);
 	if (control) ber_bvfree(control);
 	free(encs);
-	return 0;
+	return -1;
+}
+
+/* Format of getkeytab control
+ *
+ * KeytabGetRequest ::= CHOICE {
+ *     newkeys      [0] Newkeys,
+ *     curkeys      [1] CurrentKeys,
+ *     reply        [2] Reply
+ * }
+ *
+ * NewKeys ::= SEQUENCE {
+ *     serviceIdentity [0] OCTET STRING,
+ *     enctypes        [1] SEQUENCE OF Int16
+ *     password        [2] OCTET STRING OPTIONAL,
+ * }
+ *
+ * CurrentKeys ::= SEQUENCE {
+ *     serviceIdentity [0] OCTET STRING,
+ * }
+ *
+ * Reply ::= SEQUENCE {
+ *     new_kvno        Int32
+ *     keys            SEQUENCE OF KrbKey,
+ * }
+ *
+ * KrbKey ::= SEQUENCE {
+ *     key       [0] EncryptionKey,
+ *     salt      [1] KrbSalt OPTIONAL,
+ *     s2kparams [2] OCTET STRING OPTIONAL,
+ * }
+ *
+ * EncryptionKey ::= SEQUENCE {
+ *     keytype   [0] Int32,
+ *     keyvalue  [1] OCTET STRING
+ * }
+ *
+ * KrbSalt ::= SEQUENCE {
+ *     type      [0] Int32,
+ *     salt      [1] OCTET STRING
+ * }
+ */
+
+#define GK_REQUEST_NEWKEYS (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 0)
+#define GK_REQUEST_CURKEYS (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
+#define GKREQ_SVCNAME_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
+#define GKREQ_ENCTYPES_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
+#define GKREQ_PASSWORD_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 2)
+
+static struct berval *create_getkeytab_control(const char *svc_princ, bool gen,
+                                               const char *password,
+                                               struct krb_key_salt *encsalts,
+                                               int num_encsalts)
+{
+    struct berval *bval = NULL;
+    BerElement *be;
+    ber_tag_t ctag;
+    ber_int_t e;
+    int ret, i;
+
+    be = ber_alloc_t(LBER_USE_DER);
+    if (!be) {
+        return NULL;
+    }
+
+    if (gen) {
+        ctag = GK_REQUEST_NEWKEYS;
+    } else {
+        ctag = GK_REQUEST_CURKEYS;
+    }
+
+    ret = ber_printf(be, "t{t[s]", ctag, GKREQ_SVCNAME_TAG, svc_princ);
+    if (ret == -1) {
+        ber_free(be, 1);
+        goto done;
+    }
+
+    if (gen) {
+        ret = ber_printf(be, "t{", GKREQ_ENCTYPES_TAG);
+        if (ret == -1) {
+            ber_free(be, 1);
+            goto done;
+        }
+        for (i = 0; i < num_encsalts; i++) {
+            e = encsalts[i].enctype;
+            ret = ber_printf(be, "i", e);
+            if (ret == -1) {
+                ber_free(be, 1);
+                goto done;
+            }
+        }
+        ret = ber_printf(be, "}");
+        if (ret == -1) {
+            ber_free(be, 1);
+            goto done;
+        }
+
+        if (password) {
+            ret = ber_printf(be, "t[s]", GKREQ_PASSWORD_TAG, password);
+            if (ret == -1) {
+                ber_free(be, 1);
+                goto done;
+            }
+        }
+    }
+
+    ret = ber_printf(be, "}");
+    if (ret == -1) {
+        ber_free(be, 1);
+        goto done;
+    }
+
+    ret = ber_flatten(be, &bval);
+    if (ret == -1) {
+        ber_free(be, 1);
+        goto done;
+    }
+
+done:
+    ber_free(be, 1);
+    return bval;
+}
+
+#define GK_REPLY_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 2)
+#define GKREP_KEY_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 0)
+#define GKREP_SALT_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
+
+static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
+                           const char *enctypes, const char *bind_server,
+                           const char *svc_princ, krb5_principal bind_princ,
+                           const char *bind_dn, const char *bind_pw,
+                           struct keys_container *keys, int *kvno,
+                           char **err_msg)
+{
+    struct krb_key_salt *es = NULL;
+    int num_es = 0;
+    struct berval *control = NULL;
+    LDAP *ld;
+    LDAPControl **srvctrl = NULL;
+    BerElement *ber = NULL;
+    ber_tag_t rtag;
+    ber_tag_t ctag;
+    ber_len_t tlen;
+    ber_int_t vno;
+    ber_int_t tint;
+    struct berval tbval;
+    int ret;
+
+    *err_msg = NULL;
+
+    if (enctypes) {
+        ret = ipa_string_to_enctypes(enctypes, &es, &num_es, err_msg);
+        if (ret || num_es == 0) {
+            return LDAP_OPERATIONS_ERROR;
+        }
+    }
+
+    control = create_getkeytab_control(svc_princ, generate,
+                                       password, es, num_es);
+    if (!control) {
+        *err_msg = _("Failed to create control!\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = ipa_ldap_bind(bind_server, bind_princ, bind_dn, bind_pw, &ld);
+    if (ret != LDAP_SUCCESS) {
+        *err_msg = _("Failed to bind to server!\n");
+        goto done;
+    }
+
+    /* perform extedned opt to get keytab */
+    ret = ipa_ldap_extended_op(ld, KEYTAB_GET_OID, control, &srvctrl);
+    if (ret != LDAP_SUCCESS) {
+        goto done;
+    }
+
+    ber = get_control_data(srvctrl, KEYTAB_GET_OID);
+    if (!ber) {
+        *err_msg = _("Failed to find or parse reply control!\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    rtag = ber_scanf(ber, "t{i{", &ctag, &vno);
+    if (rtag == LBER_ERROR || ctag != GK_REPLY_TAG) {
+        *err_msg = _("Failed to parse control head!\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    keys->nkeys = 0;
+    keys->ksdata = NULL;
+
+    rtag = ber_peek_tag(ber, &tlen);
+    for (int i = 0; rtag == LBER_SEQUENCE; i++) {
+        if ((i % 5) == 0) {
+            struct krb_key_salt *ksdata;
+            ksdata = realloc(keys->ksdata,
+                             (i + 5) * sizeof(struct krb_key_salt));
+            if (!ksdata) {
+                *err_msg = _("Out of memory!\n");
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+            keys->ksdata = ksdata;
+        }
+        memset(&keys->ksdata[i], 0, sizeof(struct krb_key_salt));
+        keys->nkeys = i + 1;
+
+        rtag = ber_scanf(ber, "{t{[i][o]}]", &ctag, &tint, &tbval);
+        if (rtag == LBER_ERROR || ctag != GKREP_KEY_TAG) {
+            *err_msg = _("Failed to parse enctype in key data!\n");
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+        keys->ksdata[i].enctype = tint;
+        keys->ksdata[i].key.enctype = tint;
+        keys->ksdata[i].key.length = tbval.bv_len;
+        keys->ksdata[i].key.contents = malloc(tbval.bv_len);
+        if (!keys->ksdata[i].key.contents) {
+            *err_msg = _("Out of memory!\n");
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+        memcpy(keys->ksdata[i].key.contents, tbval.bv_val, tbval.bv_len);
+        ber_memfree(tbval.bv_val);
+
+        rtag = ber_peek_tag(ber, &tlen);
+        if (rtag == GKREP_SALT_TAG) {
+            rtag = ber_scanf(ber, "t{[i][o]}", &ctag, &tint, &tbval);
+            if (rtag == LBER_ERROR) {
+                *err_msg = _("Failed to parse salt in key data!\n");
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+            keys->ksdata[i].salttype = tint;
+            keys->ksdata[i].salt.length = tbval.bv_len;
+            keys->ksdata[i].salt.data = malloc(tbval.bv_len);
+            if (!keys->ksdata[i].salt.data) {
+                *err_msg = _("Out of memory!\n");
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+            memcpy(keys->ksdata[i].salt.data, tbval.bv_val, tbval.bv_len);
+            ber_memfree(tbval.bv_val);
+        }
+        rtag = ber_scanf(ber, "}");
+        if (rtag == LBER_ERROR) {
+            *err_msg = _("Failed to parse ending of key data!\n");
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        rtag = ber_peek_tag(ber, &tlen);
+    }
+
+    rtag = ber_scanf(ber, "}}");
+    if (rtag == LBER_ERROR) {
+        *err_msg = _("Failed to parse ending of control!\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    *kvno = vno;
+    ret = LDAP_SUCCESS;
+
+done:
+    if (ber) ber_free(ber, 1);
+    if (ld) ldap_unbind_ext(ld, NULL, NULL);
+    if (control) ber_bvfree(control);
+    free(es);
+    if (ret) {
+        free_keys_contents(krbctx, keys);
+    }
+    return ret;
 }
 
 static char *ask_password(krb5_context krbctx)
@@ -483,6 +759,7 @@ int main(int argc, const char *argv[])
 	int quiet = 0;
 	int askpass = 0;
 	int permitted_enctypes = 0;
+	int retrieve = 0;
         struct poptOption options[] = {
             { "quiet", 'q', POPT_ARG_NONE, &quiet, 0,
               _("Print as little as possible"), _("Output only on errors")},
@@ -507,6 +784,8 @@ int main(int argc, const char *argv[])
               _("LDAP DN"), _("DN to bind as if not using kerberos") },
 	    { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0,
               _("LDAP password"), _("password to use if not using kerberos") },
+	    { "retrieve", 'r', POPT_ARG_NONE, &retrieve, 0,
+              _("Retrieve current keys without changing them"), NULL },
             POPT_AUTOHELP
             POPT_TABLEEND
 	};
@@ -518,7 +797,7 @@ int main(int argc, const char *argv[])
 	krb5_principal uprinc;
 	krb5_principal sprinc;
 	krb5_error_code krberr;
-	struct keys_container keys;
+	struct keys_container keys = { 0 };
 	krb5_keytab kt;
 	int kvno;
 	int i, ret;
@@ -576,6 +855,11 @@ int main(int argc, const char *argv[])
 		exit(10);
 	}
 
+    if (askpass && retrieve) {
+        fprintf(stderr, _("Incompatible options provided (-r and -P)\n"));
+        exit(2);
+    }
+
         if (askpass) {
 		password = ask_password(krbctx);
 		if (!password) {
@@ -623,6 +907,19 @@ int main(int argc, const char *argv[])
 		exit(7);
 	}
 
+    kvno = -1;
+    ret = ldap_get_keytab(krbctx, (retrieve == 0), password, enctypes_string,
+                          server, principal, uprinc, binddn, bindpw,
+                          &keys, &kvno, &err_msg);
+    if (ret) {
+        if (!quiet && err_msg != NULL) {
+            fprintf(stderr, "%s", err_msg);
+        }
+    }
+
+    if (password && (retrieve == 0) && (kvno == -1)) {
+        if (!quiet) fprintf(stderr, _("Retrying with old method\n"));
+
 	/* create key material */
 	ret = create_keys(krbctx, sprinc, password, enctypes_string, &keys, &err_msg);
 	if (!ret) {
@@ -634,9 +931,12 @@ int main(int argc, const char *argv[])
 	}
 
 	kvno = ldap_set_keytab(krbctx, server, principal, uprinc, binddn, bindpw, &keys);
-	if (!kvno) {
-		exit(9);
-	}
+    }
+
+    if (kvno == -1) {
+        fprintf(stderr, _("Failed to get keytab\n"));
+        exit(9);
+    }
 
 	for (i = 0; i < keys.nkeys; i++) {
 		krb5_keytab_entry kt_entry;
