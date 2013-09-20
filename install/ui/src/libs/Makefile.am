@@ -9,6 +9,7 @@ app_DATA =				\
 	jquery-ui.js 			\
 	json2.js 			\
 	loader.js 			\
+	qrcode.js 			\
 	$(NULL)
 
 EXTRA_DIST =                            \
