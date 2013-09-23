@@ -118,4 +118,34 @@ class test_config(Declarative):
                 error='SELinux user map default user not in order list'),
         ),
 
+        dict(
+            desc='Set user auth type',
+            command=('config_mod', [], dict(ipauserauthtype=u'password')),
+            expected=dict(
+                    result=lambda d: d['ipauserauthtype'] == (u'password',),
+                    value=u'',
+                    summary=None,
+                ),
+        ),
+
+        dict(
+            desc='Check user auth type',
+            command=('config_show', [], {}),
+            expected=dict(
+                    result=lambda d: d['ipauserauthtype'] == (u'password',),
+                    value=u'',
+                    summary=None,
+                ),
+        ),
+
+        dict(
+            desc='Unset user auth type',
+            command=('config_mod', [], dict(ipauserauthtype=None)),
+            expected=dict(
+                    result=lambda d: 'ipauserauthtype' not in d,
+                    value=u'',
+                    summary=None,
+                ),
+        ),
+
     ]

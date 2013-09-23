@@ -1337,4 +1337,76 @@ class test_user(Declarative):
             extra_check = upg_check,
         ),
 
+        dict(
+            desc='Set ipauserauthtype for "%s"' % user1,
+            command=('user_mod', [user1], dict(ipauserauthtype=u'password')),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    memberof_group=[u'ipausers'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                    ipauserauthtype=[u'password'],
+                ),
+                value=user1,
+                summary='Modified user "%s"' % user1,
+            ),
+        ),
+
+        dict(
+            desc='Retrieve "%s" to verify ipauserauthtype' % user1,
+            command=('user_show', [user1], {}),
+            expected=dict(
+                result=dict(
+                    dn=get_user_dn(user1),
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    memberof_group=[u'ipausers'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                    ipauserauthtype=[u'password'],
+                ),
+                value=user1,
+                summary=None,
+            ),
+        ),
+
+        dict(
+            desc='Unset ipauserauthtype for "%s"' % user1,
+            command=('user_mod', [user1], dict(ipauserauthtype=None)),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    memberof_group=[u'ipausers'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+                value=user1,
+                summary='Modified user "%s"' % user1,
+            ),
+        ),
+
     ]
