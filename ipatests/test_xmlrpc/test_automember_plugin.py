@@ -97,7 +97,7 @@ class test_automember(Declarative):
         dict(
             desc='Try to delete non-existent group rule %r' % group1,
             command=('automember_del', [group1], dict(type=u'group')),
-            expected=errors.NotFound(reason=u': auto_member_rule not found'),
+            expected=errors.NotFound(reason=u': Automember rule not found'),
         ),
 
 
@@ -119,7 +119,7 @@ class test_automember(Declarative):
         dict(
             desc='Try to delete non-existent hostgroup rule %r' % hostgroup1,
             command=('automember_del', [hostgroup1], dict(type=u'hostgroup')),
-            expected=errors.NotFound(reason=u': auto_member_rule not found'),
+            expected=errors.NotFound(reason=u': Automember rule not found'),
         ),
 
         # Automember rebuild membership tests

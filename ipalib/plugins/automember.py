@@ -172,8 +172,8 @@ class automember(LDAPObject):
 
     container_dn = api.env.container_automember
 
-    object_name = 'auto_member_rule'
-    object_name_plural = 'auto_member_rules'
+    object_name = 'Automember rule'
+    object_name_plural = 'Automember rules'
     object_class = ['top', 'automemberregexrule']
     default_attributes = [
         'automemberinclusiveregex', 'automemberexclusiveregex',

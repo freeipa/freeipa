@@ -52,8 +52,8 @@
                     "automemberregexrule"
                 ],
                 "object_class_config": null,
-                "object_name": "auto_member_rule",
-                "object_name_plural": "auto_member_rules",
+                "object_name": "Automember rule",
+                "object_name_plural": "Automember rules",
                 "parent_object": "",
                 "rdn_attribute": "",
                 "relationships": {
