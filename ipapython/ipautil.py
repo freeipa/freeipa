@@ -455,8 +455,18 @@ class CIDict(dict):
     def __getitem__(self, key):
         return super(CIDict, self).__getitem__(key.lower())
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value, seen_keys=None):
+        """cidict[key] = value
+
+        The ``seen_keys`` argument is used by ``update()`` to keep track of
+        duplicate keys. It should be an initially empty set that is
+        passed to all calls to __setitem__ that should not set duplicate keys.
+        """
         lower_key = key.lower()
+        if seen_keys is not None:
+            if lower_key in seen_keys:
+                raise ValueError('Duplicate key in update: %s' % key)
+            seen_keys.add(lower_key)
         self._keys[lower_key] = key
         return super(CIDict, self).__setitem__(lower_key, value)
 
@@ -466,6 +476,14 @@ class CIDict(dict):
         return super(CIDict, self).__delitem__(lower_key)
 
     def update(self, new=None, **kwargs):
+        """Update self from dict/iterable new and kwargs
+
+        Functions like ``dict.update()``.
+
+        Neither ``new`` nor ``kwargs`` may contain two keys that only differ in
+        case, as this situation would result in loss of data.
+        """
+        seen = set()
         if new:
             try:
                 keys = new.keys
@@ -473,9 +491,10 @@ class CIDict(dict):
                 self.update(dict(new))
             else:
                 for key in keys():
-                    self[key] = new[key]
+                    self.__setitem__(key, new[key], seen)
+        seen = set()
         for key, value in kwargs.iteritems():
-            self[key] = value
+            self.__setitem__(key, value, seen)
 
     def __contains__(self, key):
         return super(CIDict, self).__contains__(key.lower())

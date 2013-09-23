@@ -243,6 +243,18 @@ class TestCIDict(object):
             'a': 'va', 'b': 'vb',
             'Key1': 'val1', 'key2': 'val2', 'KEY3': 'VAL3'}
 
+    def test_update_duplicate_values_dict(self):
+        with nose.tools.assert_raises(ValueError):
+            self.cidict.update({'a': 'va', 'A': None, 'b': 3})
+
+    def test_update_duplicate_values_list(self):
+        with nose.tools.assert_raises(ValueError):
+            self.cidict.update([('a', 'va'), ('A', None), ('b', 3)])
+
+    def test_update_duplicate_values_kwargs(self):
+        with nose.tools.assert_raises(ValueError):
+            self.cidict.update(a='va', A=None, b=3)
+
     def test_update_kwargs(self):
         self.cidict.update(b='vb', key2='val2')
         assert dict(self.cidict.items()) == {
