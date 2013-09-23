@@ -115,8 +115,7 @@ class BeakerLibProcess(object):
             cmd = host.run_command(['tar', 'cJv'] + logs, log_stdout=False,
                                     raiseonerr=False)
             if cmd.returncode:
-                self.run_beakerlib_command(
-                    ['rlFail', 'Could not collect all requested logs'])
+                self.log.warn('Could not collect all requested logs')
 
             # Copy and unpack on the local side
             topdirname = tempfile.mkdtemp()
