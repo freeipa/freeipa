@@ -233,7 +233,14 @@ class BeakerLibPlugin(Plugin):
         caption = test.shortDescription()
         if not caption:
             caption = 'Nose method (no docstring)'
-        phase_name = "%s: %s" % (test.id().replace('.', '-'), caption)
+        phase_name = test.id().replace('.', '-')
+        method = test
+        while hasattr(method, 'test'):
+            method = method.test
+        argument = getattr(method, 'test_argument', None)
+        if argument:
+            phase_name += '-%s' % re.sub('[^-a-zA-Z0-9]+', '_', str(argument))
+        phase_name += ": %s" % caption
         self.run_beakerlib_command(['rlPhaseStart', 'FAIL', phase_name])
 
         while hasattr(test, 'test'):
