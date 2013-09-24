@@ -1092,6 +1092,7 @@ class TestIPACommands(CALessBase):
                 'cert-status'):
             func = lambda: self.check_ipa_command_not_available(cmd)
             func.description = 'Verify that %s command is not available' % cmd
+            func.test_argument = cmd
             yield (func, )
 
     def test_cert_help_unavailable(self):
