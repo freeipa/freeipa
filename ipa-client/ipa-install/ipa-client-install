@@ -673,6 +673,9 @@ def uninstall(options, env):
         root_logger.warning('Please remove /etc/ipa/default.conf manually, '
                             'as it can cause subsequent installation to fail.')
 
+    # Remove the CA cert from the systemwide certificate store
+    ipaservices.remove_ca_cert_from_systemwide_ca_store(CACERT)
+
     # Remove the CA cert
     try:
         os.remove(CACERT)
@@ -2403,12 +2406,20 @@ def install(options, env, fstore, statestore):
             return CLIENT_INSTALL_ERROR
         root_logger.info("Configured /etc/sssd/sssd.conf")
 
+    # Add the CA to the platform-dependant systemwide CA store
+    ipaservices.insert_ca_cert_into_systemwide_ca_store(CACERT)
+
     # Add the CA to the default NSS database and trust it
     try:
-        run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", CACERT])
+        root_logger.debug("Attempting to add CA directly to the "
+                          "default NSS database.")
+        run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb",
+             "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", CACERT])
     except CalledProcessError, e:
         root_logger.info("Failed to add CA to the default NSS database.")
         return CLIENT_INSTALL_ERROR
+    else:
+        root_logger.info('Added the CA to the default NSS database.')
 
     host_principal = 'host/%s@%s' % (hostname, cli_realm)
     if options.on_master:

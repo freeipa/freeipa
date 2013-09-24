@@ -21,7 +21,7 @@
 authconfig = None
 
 # knownservices is an entry point to known platform services
-# (instance of ipapython.platform.base.KnownServices) 
+# (instance of ipapython.platform.base.KnownServices)
 knownservices = None
 
 # service is a class to instantiate ipapython.platform.base.PlatformService
@@ -54,5 +54,14 @@ def check_selinux_status():
 from ipapython.platform.base import SVC_LIST_FILE
 def get_svc_list_file():
     return SVC_LIST_FILE
+
+def insert_ca_cert_into_systemwide_ca_store_default(path):
+    return True
+
+def remove_ca_cert_from_systemwide_ca_store_default(path):
+    return True
+
+insert_ca_cert_into_systemwide_ca_store = insert_ca_cert_into_systemwide_ca_store_default
+remove_ca_cert_from_systemwide_ca_store = remove_ca_cert_from_systemwide_ca_store_default
 
 from ipapython.platform.SUPPORTED_PLATFORM import *
