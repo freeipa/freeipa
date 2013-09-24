@@ -203,13 +203,13 @@ class test_host(host_tasks):
         Test Kerberos flags
         http://www.freeipa.org/page/V3/Kerberos_Flags
         """
-        pkey = self.config.get('ipa_server')
         name = 'ipakrbokasdelegate'
         mod = {'mod': [('checkbox', name, '')]}
         checked = ['checked']
 
         self.init_app()
-        self.navigate_to_record(pkey, entity=ENTITY)
+        self.add_record(ENTITY, self.data)
+        self.navigate_to_record(self.pkey)
 
         if self.get_field_checked(name) == checked:
             self.mod_record(ENTITY, mod)  # uncheck
@@ -218,6 +218,7 @@ class test_host(host_tasks):
         self.validate_fields([('checkbox', name, checked)])
         self.mod_record(ENTITY, mod)
         self.validate_fields([('checkbox', name, [])])
+        self.delete_record(self.pkey, self.data.get('del'))
 
     def test_associations(self):
         """

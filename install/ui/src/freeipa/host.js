@@ -99,7 +99,8 @@ return {
                         {
                             name: 'ipakrbokasdelegate',
                             $type: 'checkbox',
-                            acl_param: 'krbticketflags'
+                            acl_param: 'krbticketflags',
+                            flags: ['w_if_no_aci']
                         }
                     ]
                 },
