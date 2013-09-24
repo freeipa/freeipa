@@ -25,10 +25,19 @@ import inspect
 
 from nose.plugins import Plugin
 import nose.loader
+import nose.util
 
 
 def ordered(cls):
-    """Decorator that marks a test class as ordered"""
+    """Decorator that marks a test class as ordered
+
+    Methods within the marked class will be executed in definition order
+    (or more strictly, in ordered by the line number where they're defined).
+
+    Subclasses of unittest.TestCase can not be ordered.
+
+    Generator methods will not be ordered by this plugin.
+    """
     cls._order_plugin__ordered = True
     assert not isinstance(cls, unittest.TestCase), (
         "A unittest.TestCase may not be ordered.")
@@ -56,6 +65,8 @@ class OrderTests(Plugin):
             item = getattr(cls, attr, None)
             if not inspect.ismethod(item):
                 return False
+            if nose.util.isgenerator(item.im_func):
+                return False
             return loader.selector.wantMethod(item)
 
         methods = [getattr(cls, case) for case in dir(cls) if wanted(case)]
@@ -67,4 +78,6 @@ class OrderTests(Plugin):
         """Hide non-TestCase methods from the normal loader"""
         im_class = getattr(method, 'im_class', None)
         if im_class and getattr(im_class, '_order_plugin__ordered', False):
+            if nose.util.isgenerator(method.im_func):
+                return True
             return False
