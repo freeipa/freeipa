@@ -76,23 +76,17 @@ static int string_to_guid(char *str, struct GUID *guid)
 }
 
 static int ipa_cldap_get_domain_entry(struct ipa_cldap_ctx *ctx,
-                                      char *domain,
+                                      char **domain,
                                       char **guid, char **sid, char **name)
 {
     Slapi_PBlock *pb;
     Slapi_Entry **e = NULL;
-    char *filter;
+    const char *filter = "objectclass=ipaNTDomainAttrs";
     int ret;
 
     pb = slapi_pblock_new();
     if (!pb) {
         return ENOMEM;
-    }
-
-    ret = asprintf(&filter, "(&(cn=%s)(objectclass=ipaNTDomainAttrs))", domain);
-    if (ret == -1) {
-        ret = ENOMEM;
-        goto done;
     }
 
     slapi_search_internal_set_pb(pb, ctx->base_dn,
@@ -117,20 +111,20 @@ static int ipa_cldap_get_domain_entry(struct ipa_cldap_ctx *ctx,
     *guid = slapi_entry_attr_get_charptr(e[0], "ipaNTDomainGUID");
     *sid = slapi_entry_attr_get_charptr(e[0], "ipaNTSecurityIdentifier");
     *name = slapi_entry_attr_get_charptr(e[0], "ipaNTFlatName");
+    *domain = slapi_entry_attr_get_charptr(e[0], "cn");
 
     ret = 0;
 
 done:
     slapi_free_search_results_internal(pb);
     slapi_pblock_destroy(pb);
-    free(filter);
     return ret;
 }
 
 #define NETLOGON_SAM_LOGON_RESPONSE_EX_pusher \
             (ndr_push_flags_fn_t)ndr_push_NETLOGON_SAM_LOGON_RESPONSE_EX
 
-static int ipa_cldap_encode_netlogon(char *hostname, char *domain,
+static int ipa_cldap_encode_netlogon(char *fq_hostname, char *domain,
                                      char *guid, char *sid, char *name,
                                      uint32_t ntver, struct berval *reply)
 {
@@ -165,14 +159,14 @@ static int ipa_cldap_encode_netlogon(char *hostname, char *domain,
     string_to_guid(guid, &nlr->domain_uuid);
     nlr->forest = domain;
     nlr->dns_domain = domain;
-    nlr->pdc_dns_name = talloc_asprintf(nlr, "%s.%s", hostname, domain);
-    if (!nlr->pdc_dns_name) {
-        ret = ENOMEM;
-        goto done;
-    }
+    nlr->pdc_dns_name = fq_hostname;
     nlr->domain_name = name;
-    pdc_name = talloc_asprintf(nlr, "\\\\%s", hostname);
+    pdc_name = talloc_asprintf(nlr, "\\\\%s", fq_hostname);
     for (p = pdc_name; *p; p++) {
+        if (*p == '.') {
+            *p = '\0';
+            break;
+        }
         *p = toupper(*p);
     }
     nlr->pdc_name = pdc_name;
@@ -215,8 +209,8 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
                        struct berval *reply)
 {
     char hostname[MAXHOSTNAMELEN + 1]; /* NOTE: lenght hardcoded in kernel */
-    char *host = NULL;
     char *domain = NULL;
+    char *our_domain = NULL;
     char *guid = NULL;
     char *sid = NULL;
     char *name = NULL;
@@ -295,8 +289,6 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
         goto done;
     }
 
-    /* TODO: get our own domain at plugin initialization, and avoid
-     * gethostname() */
     ret = gethostname(hostname, MAXHOSTNAMELEN);
     if (ret == -1) {
         ret = errno;
@@ -310,30 +302,6 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
         ret = EINVAL;
         goto done;
     }
-    *dot = '\0';
-
-    /* this is the unqualified host name */
-    host = strdup(hostname);
-    if (!host) {
-        ret = ENOMEM;
-        goto done;
-    }
-
-    /* If a domain is provided, check it is our own.
-     * If no domain is provided the client is asking for our own domain. */
-    if (domain) {
-        ret = strcasecmp(domain, dot + 1);
-        if (ret != 0) {
-            ret = EINVAL;
-            goto done;
-        }
-    } else {
-        domain = strdup(dot + 1);
-        if (!domain) {
-            ret = ENOMEM;
-            goto done;
-        }
-    }
 
     /* FIXME: we support only NETLOGON_NT_VERSION_5EX for now */
     if (!(ntver & NETLOGON_NT_VERSION_5EX)) {
@@ -341,20 +309,30 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
         goto done;
     }
 
-    ret = ipa_cldap_get_domain_entry(ctx, domain, &guid, &sid, &name);
+    ret = ipa_cldap_get_domain_entry(ctx, &our_domain, &guid, &sid, &name);
     if (ret) {
         goto done;
     }
 
-    ret = ipa_cldap_encode_netlogon(host, domain,
+    /* If a domain is provided, check it is our own.
+     * If no domain is provided the client is asking for our own domain. */
+    if (domain) {
+        ret = strcasecmp(domain, our_domain);
+        if (ret != 0) {
+            ret = EINVAL;
+            goto done;
+        }
+    }
+
+    ret = ipa_cldap_encode_netlogon(hostname, our_domain,
                                     guid, sid, name,
                                     ntver, reply);
 
 done:
-    free(host);
     free(domain);
-    free(guid);
-    free(sid);
-    free(name);
+    slapi_ch_free_string(&our_domain);
+    slapi_ch_free_string(&guid);
+    slapi_ch_free_string(&sid);
+    slapi_ch_free_string(&name);
     return ret;
 }
