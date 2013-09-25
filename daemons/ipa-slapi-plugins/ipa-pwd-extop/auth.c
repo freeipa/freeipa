@@ -352,7 +352,7 @@ bool ipapwd_do_otp_auth(Slapi_Entry *bind_entry, struct berval *creds)
 
     /* Loop through each token and attempt to authenticate. */
     for (i = 0; tokens && tokens[i]; i++) {
-        struct credentials credentials;
+        struct credentials credentials = {};
 
         /* Parse the token entry and the credentials. */
         if (!credentials_parse(tokens[i], creds, &credentials))
