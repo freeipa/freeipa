@@ -49,26 +49,26 @@ permission3 = u'testperm3'
 permission3_dn = DN(('cn',permission3),
                     api.env.container_permission,api.env.basedn)
 permission3_attributelevelrights = {
-                                     'member': u'rscwo',
-                                     'seealso': u'rscwo',
-                                     'ipapermissiontype': u'rscwo',
-                                     'cn': u'rscwo',
-                                     'businesscategory': u'rscwo',
-                                     'objectclass': u'rscwo',
-                                     'memberof': u'rscwo',
-                                     'aci': u'rscwo',
-                                     'subtree': u'rscwo',
-                                     'o': u'rscwo',
-                                     'filter': u'rscwo',
-                                     'attrs': u'rscwo',
-                                     'owner': u'rscwo',
-                                     'group': u'rscwo',
-                                     'ou': u'rscwo',
-                                     'targetgroup': u'rscwo',
-                                     'type': u'rscwo',
-                                     'permissions': u'rscwo',
-                                     'nsaccountlock': u'rscwo',
-                                     'description': u'rscwo',
+                                    'member': u'rscwo',
+                                    'seealso': u'rscwo',
+                                    'ipapermissiontype': u'rscwo',
+                                    'cn': u'rscwo',
+                                    'businesscategory': u'rscwo',
+                                    'objectclass': u'rscwo',
+                                    'memberof': u'rscwo',
+                                    'aci': u'rscwo',
+                                    'subtree': u'rscwo',
+                                    'o': u'rscwo',
+                                    'filter': u'rscwo',
+                                    'attrs': u'rscwo',
+                                    'owner': u'rscwo',
+                                    'group': u'rscwo',
+                                    'ou': u'rscwo',
+                                    'targetgroup': u'rscwo',
+                                    'type': u'rscwo',
+                                    'permissions': u'rscwo',
+                                    'nsaccountlock': u'rscwo',
+                                    'description': u'rscwo',
                                    }
 
 privilege1 = u'testpriv1'
@@ -129,8 +129,8 @@ class test_permission(Declarative):
             desc='Create %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     type=u'user',
-                     permissions=u'write',
+                    type=u'user',
+                    permissions=u'write',
                 )
             ),
             expected=dict(
@@ -151,8 +151,8 @@ class test_permission(Declarative):
             desc='Try to create duplicate %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     type=u'user',
-                     permissions=u'write',
+                    type=u'user',
+                    permissions=u'write',
                 ),
             ),
             expected=errors.DuplicateEntry(),
@@ -332,10 +332,10 @@ class test_permission(Declarative):
             desc='Create %r' % permission2,
             command=(
                 'permission_add', [permission2], dict(
-                     type=u'user',
-                     permissions=u'write',
-                     setattr=u'owner=cn=test',
-                     addattr=u'owner=cn=test2',
+                    type=u'user',
+                    permissions=u'write',
+                    setattr=u'owner=cn=test',
+                    addattr=u'owner=cn=test2',
                 )
             ),
             expected=dict(
@@ -792,8 +792,8 @@ class test_permission(Declarative):
             desc='Try to create permission %r with non-existing memberof' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     memberof=u'nonexisting',
-                     permissions=u'write',
+                    memberof=u'nonexisting',
+                    permissions=u'write',
                 )
             ),
             expected=errors.NotFound(reason=u'nonexisting: group not found'),
@@ -803,9 +803,9 @@ class test_permission(Declarative):
             desc='Create memberof permission %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     memberof=u'editors',
-                     permissions=u'write',
-                     type=u'user',
+                    memberof=u'editors',
+                    permissions=u'write',
+                    type=u'user',
                 )
             ),
             expected=dict(
@@ -833,7 +833,7 @@ class test_permission(Declarative):
             desc='Update memberof permission %r' % permission1,
             command=(
                 'permission_mod', [permission1], dict(
-                     memberof=u'admins',
+                    memberof=u'admins',
                 )
             ),
             expected=dict(
@@ -853,7 +853,7 @@ class test_permission(Declarative):
             desc='Unset memberof of permission %r' % permission1,
             command=(
                 'permission_mod', [permission1], dict(
-                     memberof=None,
+                    memberof=None,
                 )
             ),
             expected=dict(
@@ -884,8 +884,8 @@ class test_permission(Declarative):
             desc='Create targetgroup permission %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     targetgroup=u'editors',
-                     permissions=u'write',
+                    targetgroup=u'editors',
+                    permissions=u'write',
                 )
             ),
             expected=dict(
@@ -904,8 +904,8 @@ class test_permission(Declarative):
         dict(
             desc='Try to create invalid %r' % invalid_permission1,
             command=('permission_add', [invalid_permission1], dict(
-                     type=u'user',
-                     permissions=u'write',
+                    type=u'user',
+                    permissions=u'write',
                 )),
             expected=errors.ValidationError(name='name',
                 error='May only contain letters, numbers, -, _, and space'),
@@ -915,9 +915,9 @@ class test_permission(Declarative):
             desc='Create %r' % permission3,
             command=(
                 'permission_add', [permission3], dict(
-                     type=u'user',
-                     permissions=u'write',
-		     attrs=[u'cn']
+                    type=u'user',
+                    permissions=u'write',
+                    attrs=[u'cn']
                 )
             ),
             expected=dict(
@@ -941,7 +941,7 @@ class test_permission(Declarative):
                 value=permission3,
                 summary=None,
                 result=dict(
-		    dn=permission3_dn,
+                    dn=permission3_dn,
                     cn=[permission3],
                     objectclass=objectclasses.permission,
                     type=u'user',
@@ -959,7 +959,7 @@ class test_permission(Declarative):
                 value=permission3,
                 summary=u'Modified permission "%s"' % permission3,
                 result=dict(
-		    dn=permission3_dn,
+                    dn=permission3_dn,
                     cn=[permission3],
                     objectclass=objectclasses.permission,
                     type=u'user',
