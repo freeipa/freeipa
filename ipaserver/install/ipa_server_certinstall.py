@@ -155,9 +155,8 @@ class ServerCertInstall(admintool.AdminTool):
         os.chown(os.path.join(dirname, 'secmod.db'), 0, pent.pw_gid)
 
     def import_cert(self, dirname, pkcs12_passwd, old_cert, principal, command):
-        pw = write_tmp_file(pkcs12_passwd)
         server_cert = installutils.check_pkcs12(
-            pkcs12_info=(self.pkcs12_fname, pw.name),
+            pkcs12_info=(self.pkcs12_fname, pkcs12_passwd),
             ca_file=CACERT,
             hostname=api.env.host)
 
@@ -167,7 +166,7 @@ class ServerCertInstall(admintool.AdminTool):
                 cdb.untrack_server_cert(old_cert)
 
             cdb.delete_cert(old_cert)
-            cdb.import_pkcs12(self.pkcs12_fname, pw.name)
+            cdb.import_pkcs12(self.pkcs12_fname, pkcs12_passwd)
 
             if api.env.enable_ra:
                 cdb.track_server_cert(server_cert, principal, cdb.passwd_fname,
