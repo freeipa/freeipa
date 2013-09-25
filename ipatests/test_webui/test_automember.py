@@ -81,3 +81,200 @@ class test_automember(UI_driver):
 
         # cleanup
         self.delete(hostgroup.ENTITY, [hostgroup.DATA])
+
+    def test_rebuild_membership_hosts(self):
+        """
+        Test automember rebuild membership feature for hosts
+        """
+        self.init_app()
+
+        domain = self.config.get('ipa_domain')
+        host1 = 'web1.%s' % domain
+        host2 = 'web2.%s' % domain
+
+        # Add a hostgroup
+        self.add_record('hostgroup', {
+            'pkey': 'webservers',
+            'add': [
+                ('textbox', 'cn', 'webservers'),
+                ('textarea', 'description', 'webservers'),
+            ]
+        })
+
+        # Add a host
+        self.add_record('host', {
+            'pkey': host1,
+            'add': [
+                ('textbox', 'hostname', 'web1'),
+                ('combobox', 'dnszone', domain),
+                ('checkbox', 'force', 'checked'),
+            ]
+        })
+
+        # Add another host
+        self.add_record('host', {
+            'pkey': host2,
+            'add': [
+                ('textbox', 'hostname', 'web2'),
+                ('combobox', 'dnszone', domain),
+                ('checkbox', 'force', 'checked'),
+            ]
+        })
+
+        # Add an automember rule
+        self.add_record(
+            'automember',
+            {'pkey': 'webservers', 'add': [('combobox', 'cn', 'webservers')]},
+            facet='searchhostgroup'
+        )
+
+        # Add a condition for automember rule
+        self.navigate_to_record('webservers')
+        self.add_table_record(
+            'automemberinclusiveregex',
+            {'fields': [
+                ('selectbox', 'key', 'fqdn'),
+                ('textbox', 'automemberinclusiveregex', '^web[1-9]+')
+            ]}
+        )
+
+        # Assert that hosts are not members of hostgroup
+        self.navigate_to_record('webservers', entity='hostgroup')
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_record(host1, negative=True)
+        self.assert_record(host2, negative=True)
+
+        # Rebuild membership for first host, using action on host details facet
+        self.navigate_to_record(host1, entity='host')
+        self.action_list_action('automember_rebuild')
+
+        # Assert that host is now a member of hostgroup
+        self.navigate_to_record('webservers', entity='hostgroup')
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_record(host1)
+        self.assert_record(host2, negative=True)
+
+        # Remove host from hostgroup
+        self.delete_record(host1)
+
+        # Assert that host is not a member of hostgroup
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_record(host1, negative=True)
+        self.assert_record(host2, negative=True)
+
+        # Rebuild membership for all hosts, using action on hosts search facet
+        self.navigate_by_menu('identity/host')
+        self.navigate_by_breadcrumb('Hosts')
+        self.action_list_action('automember_rebuild')
+
+        # Assert that hosts are now members of hostgroup
+        self.navigate_to_record('webservers', entity='hostgroup')
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_record(host1)
+        self.assert_record(host2)
+
+        # Delete hostgroup, hosts and automember rule
+        self.delete('hostgroup', [{'pkey': 'webservers'}])
+        self.delete('host', [{'pkey': host1}, {'pkey': host2}])
+        self.delete('automember', [{'pkey': 'webservers'}],
+                    facet='searchhostgroup')
+
+    def test_rebuild_membership_users(self):
+        """
+        Test automember rebuild membership feature for users
+        """
+        self.init_app()
+
+        # Add a group
+        self.add_record('group', {
+            'pkey': 'devel',
+            'add': [
+                ('textbox', 'cn', 'devel'),
+                ('textarea', 'description', 'devel'),
+            ]
+        })
+
+        # Add a user
+        self.add_record('user', {
+            'pkey': 'dev1',
+            'add': [
+                ('textbox', 'uid', 'dev1'),
+                ('textbox', 'givenname', 'Dev'),
+                ('textbox', 'sn', 'One'),
+            ]
+        })
+
+        # Add another user
+        self.add_record('user', {
+            'pkey': 'dev2',
+            'add': [
+                ('textbox', 'uid', 'dev2'),
+                ('textbox', 'givenname', 'Dev'),
+                ('textbox', 'sn', 'Two'),
+            ]
+        })
+
+        # Add an automember rule
+        self.add_record(
+            'automember',
+            {'pkey': 'devel', 'add': [('combobox', 'cn', 'devel')]},
+            facet='searchgroup'
+        )
+
+        # Add a condition for automember rule
+        self.navigate_to_record('devel')
+        self.add_table_record(
+            'automemberinclusiveregex',
+            {'fields': [
+                ('selectbox', 'key', 'uid'),
+                ('textbox', 'automemberinclusiveregex', '^dev[1-9]+')
+            ]}
+        )
+
+        # Assert that users are not members of group
+        self.navigate_to_record('devel', entity='group')
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_record('dev1', negative=True)
+        self.assert_record('dev2', negative=True)
+
+        # Rebuild membership for first user, using action on user details facet
+        self.navigate_to_record('dev1', entity='user')
+        self.action_list_action('automember_rebuild')
+
+        # Assert that user is now a member of group
+        self.navigate_to_record('devel', entity='group')
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_record('dev1')
+        self.assert_record('dev2', negative=True)
+
+        # Remove user from group
+        self.delete_record('dev1')
+
+        # Assert that user is not a member of group
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_record('dev1', negative=True)
+        self.assert_record('dev2', negative=True)
+
+        # Rebuild membership for all users, using action on users search facet
+        self.navigate_by_menu('identity/user')
+        self.navigate_by_breadcrumb('Users')
+        self.action_list_action('automember_rebuild')
+
+        # Assert that users are now members of group
+        self.navigate_to_record('devel', entity='group')
+        self.facet_button_click('refresh')
+        self.wait_for_request()
+        self.assert_record('dev1')
+        self.assert_record('dev2')
+
+        # Delete group, users and automember rule
+        self.delete('group', [{'pkey': 'devel'}])
+        self.delete('user', [{'pkey': 'dev1'}, {'pkey': 'dev2'}])
+        self.delete('automember', [{'pkey': 'devel'}], facet='searchgroup')
