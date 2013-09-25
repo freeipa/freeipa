@@ -718,7 +718,7 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
 
     Return a (server cert name, CA cert names) tuple
     """
-    pkcs12_filename, pin_filename = pkcs12_info
+    pkcs12_filename, pkcs12_passwd = pkcs12_info
     root_logger.debug('Checking PKCS#12 certificate %s', pkcs12_filename)
     db_pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
     with certs.NSSDatabase() as nssdb:
@@ -733,7 +733,7 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
             raise ScriptError(str(e))
 
         # Import everything in the PKCS#12
-        nssdb.import_pkcs12(pkcs12_filename, db_pwd_file.name, pin_filename)
+        nssdb.import_pkcs12(pkcs12_filename, db_pwd_file.name, pkcs12_passwd)
 
         # Check we have exactly one server cert (one with a private key)
         server_certs = nssdb.find_server_certs()

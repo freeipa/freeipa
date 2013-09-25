@@ -137,9 +137,8 @@ class ReplicaPrepare(admintool.AdminTool):
                 "could not find directory instance: %s" % config_dir)
 
     def check_pkcs12(self, pkcs12_file, pkcs12_pin):
-        pin_file = ipautil.write_tmp_file(pkcs12_pin)
         installutils.check_pkcs12(
-            pkcs12_info=(pkcs12_file, pin_file.name),
+            pkcs12_info=(pkcs12_file, pkcs12_pin),
             ca_file='/etc/ipa/ca.crt',
             hostname=self.replica_fqdn)
 

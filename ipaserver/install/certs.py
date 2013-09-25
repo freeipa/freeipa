@@ -176,14 +176,15 @@ class NSSDatabase(object):
         return root_nicknames
 
     def import_pkcs12(self, pkcs12_filename, db_password_filename,
-                      pkcs_password_filename=None):
+                      pkcs12_passwd=None):
         args = ["/usr/bin/pk12util", "-d", self.secdir,
                 "-i", pkcs12_filename,
                 "-k", db_password_filename, '-v']
-        if pkcs_password_filename:
-            args = args + ["-w", pkcs_password_filename]
+        if pkcs12_passwd is not None:
+            pkcs12_passwd = pkcs12_passwd + '\n'
+            args = args + ["-w", "/dev/stdin"]
         try:
-            ipautil.run(args)
+            ipautil.run(args, stdin=pkcs12_passwd)
         except ipautil.CalledProcessError, e:
             if e.returncode == 17:
                 raise RuntimeError("incorrect password for pkcs#12 file %s" %
@@ -770,9 +771,9 @@ class CertDB(object):
     def find_server_certs(self):
         return self.nssdb.find_server_certs()
 
-    def import_pkcs12(self, pkcs12_fname, passwd_fname=None):
+    def import_pkcs12(self, pkcs12_fname, pkcs12_passwd=None):
         return self.nssdb.import_pkcs12(pkcs12_fname, self.passwd_fname,
-                                        pkcs_password_filename=passwd_fname)
+                                        pkcs12_passwd=pkcs12_passwd)
 
     def export_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname=None):
         if nickname is None:
@@ -814,7 +815,7 @@ class CertDB(object):
         self.create_certdbs()
         self.load_cacert(cacert_fname)
 
-    def create_from_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, passwd=None,
+    def create_from_pkcs12(self, pkcs12_fname, pkcs12_passwd, passwd=None,
                            ca_file=None):
         """Create a new NSS database using the certificates in a PKCS#12 file.
 
@@ -831,7 +832,7 @@ class CertDB(object):
         self.create_noise_file()
         self.create_passwd_file(passwd)
         self.create_certdbs()
-        self.import_pkcs12(pkcs12_fname, pkcs12_pwd_fname)
+        self.import_pkcs12(pkcs12_fname, pkcs12_passwd)
         server_certs = self.find_server_certs()
         if len(server_certs) == 0:
             raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_fname)
@@ -854,10 +855,11 @@ class CertDB(object):
         self.create_pin_file()
         self.export_ca_cert(nickname, False)
 
-    def install_pem_from_p12(self, p12_fname, p12_pwd_fname, pem_fname):
+    def install_pem_from_p12(self, p12_fname, p12_passwd, pem_fname):
+        pwd = ipautil.write_tmp_file(p12_passwd)
         ipautil.run(["/usr/bin/openssl", "pkcs12", "-nodes",
                      "-in", p12_fname, "-out", pem_fname,
-                     "-passin", "file:" + p12_pwd_fname])
+                     "-passin", "file:" + pwd.name])
 
     def publish_ca_cert(self, location):
         shutil.copy(self.cacert_fname, location)

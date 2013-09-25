@@ -882,8 +882,7 @@ def main():
                 confirm=False, validate=False)
             if options.http_pin is None:
                 sys.exit("%s unlock password required" % options.http_pkcs12)
-        http_pin_file = ipautil.write_tmp_file(options.http_pin)
-        http_pkcs12_info = (options.http_pkcs12, http_pin_file.name)
+        http_pkcs12_info = (options.http_pkcs12, options.http_pin)
         http_cert_name = installutils.check_pkcs12(
             http_pkcs12_info, ca_file, host_name)
 
@@ -894,8 +893,7 @@ def main():
                 confirm=False, validate=False)
             if options.dirsrv_pin is None:
                 sys.exit("%s unlock password required" % options.dirsrv_pkcs12)
-        dirsrv_pin_file = ipautil.write_tmp_file(options.dirsrv_pin)
-        dirsrv_pkcs12_info = (options.dirsrv_pkcs12, dirsrv_pin_file.name)
+        dirsrv_pkcs12_info = (options.dirsrv_pkcs12, options.dirsrv_pin)
         dirsrv_cert_name = installutils.check_pkcs12(
             dirsrv_pkcs12_info, ca_file, host_name)
 
@@ -906,8 +904,7 @@ def main():
                 confirm=False, validate=False)
             if options.pkinit_pin is None:
                 sys.exit("%s unlock password required" % options.pkinit_pkcs12)
-        pkinit_pin_file = ipautil.write_tmp_file(options.pkinit_pin)
-        pkinit_pkcs12_info = (options.pkinit_pkcs12, pkinit_pin_file.name)
+        pkinit_pkcs12_info = (options.pkinit_pkcs12, options.pkinit_pin)
 
     if not options.dm_password:
         dm_password = read_dm_password()

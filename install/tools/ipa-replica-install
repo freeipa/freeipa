@@ -149,16 +149,31 @@ def set_owner(config, dir):
     pw = pwd.getpwnam(dsinstance.DS_USER)
     os.chown(dir, pw.pw_uid, pw.pw_gid)
 
+
+def make_pkcs12_info(directory, cert_name, password_name):
+    """Make pkcs12_info
+
+    :param directory: Base directory (config.dir)
+    :param cert_name: Cert filename (e.g. "dscert.p12")
+    :param password_name: Cert filename (e.g. "dirsrv_pin.txt")
+    :return: a (full cert path, password) tuple, or None if cert is not found
+    """
+    cert_path = os.path.join(directory, cert_name)
+    if ipautil.file_exists(cert_path):
+        password_file = os.path.join(directory, password_name)
+        password = open(password_file).read().strip()
+        return cert_path, password
+    else:
+        return None
+
+
 def install_replica_ds(config):
     dsinstance.check_ports()
 
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
     # cert
-    pkcs12_info = None
-    if ipautil.file_exists(config.dir + "/dscert.p12"):
-        pkcs12_info = (config.dir + "/dscert.p12",
-                       config.dir + "/dirsrv_pin.txt")
+    pkcs12_info = make_pkcs12_info(config.dir, "dscert.p12", "dirsrv_pin.txt")
 
     ds = dsinstance.DsInstance()
     ds.create_replica(
@@ -178,10 +193,8 @@ def install_krb(config, setup_pkinit=False):
     krb = krbinstance.KrbInstance()
 
     #pkinit files
-    pkcs12_info = None
-    if ipautil.file_exists(config.dir + "/pkinitcert.p12"):
-        pkcs12_info = (config.dir + "/pkinitcert.p12",
-                       config.dir + "/pkinit_pin.txt")
+    pkcs12_info = make_pkcs12_info(config.dir, "pkinitcert.p12",
+                                   "pkinit_pin.txt")
 
     krb.create_replica(config.realm_name,
                        config.master_host_name, config.host_name,
@@ -206,10 +219,7 @@ def install_http(config, auto_redirect):
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
     # cert
-    pkcs12_info = None
-    if ipautil.file_exists(config.dir + "/httpcert.p12"):
-        pkcs12_info = (config.dir + "/httpcert.p12",
-                       config.dir + "/http_pin.txt")
+    pkcs12_info = make_pkcs12_info(config.dir, "httpcert.p12", "http_pin.txt")
 
     memcache = memcacheinstance.MemcacheInstance()
     memcache.create_instance('MEMCACHE', config.host_name, config.dirman_password, ipautil.realm_to_suffix(config.realm_name))
