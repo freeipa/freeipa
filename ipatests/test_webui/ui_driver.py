@@ -991,6 +991,8 @@ class UI_driver(object):
                 self.check_option(key, val, parent)
             elif widget_type == 'checkbox':
                 self.check_option(key, parent=parent)
+            elif widget_type == 'selectbox':
+                self.select('select[name=%s]' % key, val, parent)
             elif widget_type == 'combobox':
                 self.select_combobox(key, val, parent)
             elif widget_type == 'add_table_record':
