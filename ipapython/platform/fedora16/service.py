@@ -54,6 +54,8 @@ system_units['pki_cad'] = system_units['pki-cad']
 system_units['pki-tomcatd'] = 'pki-tomcatd@pki-tomcat.service'
 system_units['pki_tomcatd'] = system_units['pki-tomcatd']
 system_units['ipa-otpd'] = 'ipa-otpd.socket'
+# Service that sets domainname on Fedora is called fedora-domainname.service
+system_units['domainname'] = 'fedora-domainname.service'
 
 class Fedora16Service(systemd.SystemdService):
     def __init__(self, service_name):

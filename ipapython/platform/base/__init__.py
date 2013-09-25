@@ -27,7 +27,8 @@ import os
 wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc',
                      'messagebus', 'nslcd', 'nscd', 'ntpd', 'portmap',
                      'rpcbind', 'kadmin', 'sshd', 'autofs', 'rpcgssd',
-                     'rpcidmapd', 'pki_tomcatd', 'pki_cad', 'chronyd']
+                     'rpcidmapd', 'pki_tomcatd', 'pki_cad', 'chronyd',
+                     'domainname']
 
 # System may support more time&date services. FreeIPA supports ntpd only, other
 # services will be disabled during IPA installation

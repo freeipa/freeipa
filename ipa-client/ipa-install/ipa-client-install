@@ -126,6 +126,11 @@ def parse_options():
     basic_group.add_option("", "--force-ntpd", dest="force_ntpd",
                       action="store_true", default=False,
                       help="Stop and disable any time&date synchronization services besides ntpd")
+    basic_group.add_option("--nisdomain", dest="nisdomain",
+                           help="NIS domain name")
+    basic_group.add_option("--no-nisdomain", action="store_true", default=False,
+                      help="do not configure NIS domain name",
+                      dest="no_nisdomain")
     basic_group.add_option("--ssh-trust-dns", dest="trust_sshfp", default=False, action="store_true",
                       help="configure OpenSSH client to trust DNS SSHFP records")
     basic_group.add_option("--no-ssh", dest="conf_ssh", default=True, action="store_false",
@@ -194,6 +199,9 @@ def parse_options():
 
     if options.firefox_dir and not options.configure_firefox:
         parser.error("--firefox-dir cannot be used without --configure-firefox option")
+
+    if options.no_nisdomain and options.nisdomain:
+        parser.error("--no-nisdomain cannot be used together with --nisdomain")
 
     return safe_opts, options
 
@@ -595,6 +603,7 @@ def uninstall(options, env):
         fstore.restore_all_files()
 
     ipautil.restore_hostname(statestore)
+    unconfigure_nisdomain()
 
     nscd = ipaservices.knownservices.nscd
     nslcd = ipaservices.knownservices.nslcd
@@ -1349,6 +1358,59 @@ def configure_automount(options):
         root_logger.error('Automount configuration failed: %s', str(e))
     else:
         root_logger.info(stdout)
+
+
+def configure_nisdomain(options, domain):
+    domain = options.nisdomain or domain
+    root_logger.info('Configuring %s as NIS domain.' % domain)
+
+    nis_domain_name = ''
+
+    # First backup the old NIS domain name
+    if os.path.exists('/usr/bin/nisdomainname'):
+        try:
+            nis_domain_name, _, _ = ipautil.run(['/usr/bin/nisdomainname'])
+        except CalledProcessError, e:
+            pass
+
+    statestore.backup_state('network', 'nisdomain', nis_domain_name)
+
+    # Backup the state of the domainname service
+    statestore.backup_state("domainname", "enabled",
+                            ipaservices.knownservices.domainname.is_enabled())
+
+    # Set the new NIS domain name
+    set_nisdomain(domain)
+
+    # Enable and start the domainname service
+    ipaservices.knownservices.domainname.enable()
+    ipaservices.knownservices.domainname.start()
+
+
+def unconfigure_nisdomain():
+    # Set the nisdomain permanent and current nisdomain configuration as it was
+    if statestore.has_state('network'):
+        old_nisdomain = statestore.restore_state('network','nisdomain') or ''
+
+        if old_nisdomain:
+            root_logger.info('Restoring %s as NIS domain.' % old_nisdomain)
+        else:
+            root_logger.info('Unconfiguring the NIS domain.')
+
+        set_nisdomain(old_nisdomain)
+
+    # Restore the configuration of the domainname service
+    enabled = statestore.restore_state('domainname', 'enabled')
+    if not enabled:
+        ipaservices.knownservices.domainname.disable()
+
+
+def set_nisdomain(nisdomain):
+    # Let authconfig setup the permanent configuration
+    auth_config = ipaservices.authconfig()
+    auth_config.add_parameter("nisdomain", nisdomain)
+    auth_config.add_option("update")
+    auth_config.execute()
 
 
 def resolve_ipaddress(server):
@@ -2694,6 +2756,9 @@ def install(options, env, fstore, statestore):
 
     if options.configure_firefox:
         configure_firefox(options, statestore, cli_domain)
+
+    if not options.no_nisdomain:
+        configure_nisdomain(options=options, domain=cli_domain)
 
     root_logger.info('Client configuration complete.')
 
