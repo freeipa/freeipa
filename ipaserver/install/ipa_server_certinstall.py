@@ -87,7 +87,7 @@ class ServerCertInstall(admintool.AdminTool):
                 raise admintool.ScriptError(
                     "Directory Manager password required")
 
-        if not self.options.pin:
+        if self.options.pin is None:
             self.options.pin = installutils.read_password(
                 "Enter %s unlock" % self.args[0], confirm=False, validate=False)
             if self.options.pin is None:
