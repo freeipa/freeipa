@@ -149,10 +149,12 @@ class i18n_messages(Command):
         },
         "actions": {
             "apply": _("Apply"),
-            "confirm": _("Are you sure you want to proceed with the action."),
-            "delete_confirm": _("Are you sure you want to delete ${object}"),
-            "disable_confirm": _("Are you sure you want to disable ${object}"),
-            "enable_confirm": _("Are you sure you want to enable ${object}"),
+            "automember_rebuild": _("Rebuild auto membership"),
+            "automember_rebuild_success": _("Automember rebuild membership task completed"),
+            "confirm": _("Are you sure you want to proceed with the action?"),
+            "delete_confirm": _("Are you sure you want to delete ${object}?"),
+            "disable_confirm": _("Are you sure you want to disable ${object}?"),
+            "enable_confirm": _("Are you sure you want to enable ${object}?"),
             "title": _("Actions"),
         },
         "association": {

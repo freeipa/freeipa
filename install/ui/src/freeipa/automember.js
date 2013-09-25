@@ -699,12 +699,55 @@ IPA.automember.default_group_widget = function(spec) {
     return that;
 };
 
+IPA.automember.rebuild_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'automember_rebuild';
+    spec.label = spec.label || '@i18n:actions.automember_rebuild';
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+        var entity = facet.entity.name;
+        if (facet.name == 'search') {
+            var entries = facet.get_selected_values();
+        } else {
+            entries = facet.get_pkeys();
+        }
+
+        var options = {};
+        if (entries.length > 0) {
+            options[entity + 's'] = entries;
+        } else if (entity == 'user') {
+            options['type'] = 'group';
+        } else {
+            options['type'] = 'hostgroup';
+        }
+
+        var command = IPA.command({
+            entity: 'automember',
+            method: 'rebuild',
+            options: options,
+            on_success: function() {
+                IPA.notify_success('@i18n:actions.automember_rebuild_success');
+            },
+            on_error: function() {
+            }
+        });
+
+        command.execute();
+    };
+
+    return that;
+};
+
 exp.entity_spec = make_spec();
 
 exp.register = function() {
     var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
+    var a = reg.action;
 
     e.register({
         type: 'automember',
@@ -713,6 +756,7 @@ exp.register = function() {
     });
     w.register('automember_condition', IPA.automember.condition_widget);
     f.register('automember_condition', IPA.automember.condition_field);
+    a.register('automember_rebuild', exp.rebuild_action);
 };
 
 phases.on('registration', exp.register);

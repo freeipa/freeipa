@@ -63,7 +63,16 @@ return {
                     label: '@i18n:objects.host.enrolled',
                     formatter: 'boolean'
                 }
-            ]
+            ],
+            actions: [
+                'select',
+                {
+                    $type: 'automember_rebuild',
+                    name: 'automember_rebuild',
+                    label: '@i18n:actions.automember_rebuild'
+                }
+            ],
+            header_actions: ['select_action', 'automember_rebuild']
         },
         {
             $type: 'details',
@@ -144,6 +153,12 @@ return {
                 }
             ],
             actions: [
+                'select',
+                {
+                    $type: 'automember_rebuild',
+                    name: 'automember_rebuild',
+                    label: '@i18n:actions.automember_rebuild'
+                },
                 'host_unprovision',
                 {
                     $type: 'set_otp',
@@ -165,6 +180,7 @@ return {
                 'cert_revoke',
                 'cert_restore'
             ],
+            header_actions: ['select_action', 'automember_rebuild'],
             state: {
                 evaluators: [
                     IPA.host.has_password_evaluator,

@@ -14,10 +14,12 @@
                     },
                     "actions": {
                         "apply": "Apply",
-                        "confirm": "Are you sure you want to proceed with the action.",
-                        "delete_confirm": "Are you sure you want to delete ${object}",
-                        "disable_confirm": "Are you sure you want to disable ${object}",
-                        "enable_confirm": "Are you sure you want to enable ${object}",
+                        "automember_rebuild": "Rebuild auto membership",
+                        "automember_rebuild_success": "Automember rebuild membership task completed",
+                        "confirm": "Are you sure you want to proceed with the action?",
+                        "delete_confirm": "Are you sure you want to delete ${object}?",
+                        "disable_confirm": "Are you sure you want to disable ${object}?",
+                        "enable_confirm": "Are you sure you want to enable ${object}?",
                         "title": "Actions"
                     },
                     "association": {

@@ -67,6 +67,12 @@ return {
                 'title'
             ],
             actions: [
+                'select',
+                {
+                    $type: 'automember_rebuild',
+                    name: 'automember_rebuild',
+                    label: '@i18n:actions.automember_rebuild'
+                },
                 {
                     $type: 'batch_disable',
                     hide_cond: ['self-service']
@@ -76,6 +82,7 @@ return {
                     hide_cond: ['self-service']
                 }
             ],
+            header_actions: ['select_action', 'automember_rebuild'],
             control_buttons: [
                 {
                     name: 'disable',
@@ -240,9 +247,14 @@ return {
                 'enable',
                 'disable',
                 'delete',
-                'reset_password'
+                'reset_password',
+                {
+                    $type: 'automember_rebuild',
+                    name: 'automember_rebuild',
+                    label: '@i18n:actions.automember_rebuild'
+                }
             ],
-            header_actions: ['select_action', 'enable', 'disable', 'delete'],
+            header_actions: ['select_action', 'enable', 'disable', 'delete', 'automember_rebuild'],
             state: {
                 evaluators: [
                     {
