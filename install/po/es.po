@@ -3,6 +3,7 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
+# Adolfo Jayme Barrientos <fitoschido@ubuntu.com>, 2013
 # Eduardo Villagrán M <gotencool@gmail.com>, 2012
 # vareli <ehespinosa@ya.com>, 2013
 # Gladys Guerrero <gguerrer@redhat.com>, 2011
@@ -13,16 +14,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
+"product=freeIPA\n"
 "POT-Creation-Date: 2013-08-01 16:02+0200\n"
-"PO-Revision-Date: 2013-08-01 14:06+0000\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"PO-Revision-Date: 2013-09-20 06:46+0000\n"
+"Last-Translator: Adolfo Jayme Barrientos <fitoschido@ubuntu.com>\n"
 "Language-Team: Spanish <trans-es@lists.fedoraproject.org>\n"
-"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #, python-format
@@ -101,6 +102,10 @@ msgstr "El comando no se ha implementado"
 
 msgid "Client is not configured. Run ipa-client-install."
 msgstr "El cliente no está configurado. Ejecutar la API de cliente a instalar."
+
+#, python-format
+msgid "Could not get %(name)s interactively"
+msgstr "No se pudo obtener %(name)s interactivamente"
 
 #, python-format
 msgid "%(reason)s"
@@ -275,6 +280,15 @@ msgstr "Una lista de entradas LDAP"
 
 msgid "All commands should at least have a result"
 msgstr "Todos los comandos deberían por lo menos tener un resultado"
+
+msgid "Number of entries returned"
+msgstr "Cantidad de entradas devueltas"
+
+msgid "List of deletions that failed"
+msgstr "Lista de eliminaciones fallidas"
+
+msgid "True means the operation was successful"
+msgstr "«Verdadero» significa que la operación fue exitosa"
 
 msgid "incorrect type"
 msgstr "tipo incorrecto"
@@ -1409,6 +1423,10 @@ msgid "invalid IP network format"
 msgstr "formato no válido de red IP"
 
 #, python-format
+msgid "invalid domain-name: %s"
+msgstr "nombre de dominio no válido: %s"
+
+#, python-format
 msgid "DNS reverse zone for IP address %(addr)s not found"
 msgstr "Zona invertida DNS para dirección IP %(addr)s no encontrada"
 
@@ -1416,14 +1434,38 @@ msgstr "Zona invertida DNS para dirección IP %(addr)s no encontrada"
 msgid "DNS zone %(zone)s not found"
 msgstr "Zona DNS %(zone)s no encontrado"
 
+msgid "Invalid number of parts!"
+msgstr "El número de partes no es válido."
+
 msgid "IP Address"
 msgstr "Dirección IP"
+
+msgid "Subtype"
+msgstr "Subtipo"
 
 msgid "Hostname"
 msgstr "Nombre del equipo anfitrión"
 
+msgid "Certificate Type"
+msgstr "Tipo de certificado"
+
+msgid "Algorithm"
+msgstr "Algoritmo"
+
+msgid "Certificate/CRL"
+msgstr "Certificado/CRL"
+
 msgid "Target"
 msgstr "Meta"
+
+msgid "Protocol"
+msgstr "Protocolo"
+
+msgid "Public Key"
+msgstr "Clave pública"
+
+msgid "Preference"
+msgstr "Preferencia"
 
 msgid ""
 "format must be specified as\n"
@@ -1452,8 +1494,44 @@ msgstr ""
 msgid "Service"
 msgstr "Servicio"
 
+msgid "Regular Expression"
+msgstr "Expresión regular"
+
 msgid "Priority"
 msgstr "Prioridad"
+
+msgid "Port"
+msgstr "Puerto"
+
+msgid "Labels"
+msgstr "Etiquetas"
+
+msgid "Original TTL"
+msgstr "TTL original"
+
+msgid "Signature Expiration"
+msgstr "Caducidad de la firma"
+
+msgid "Signer's Name"
+msgstr "Nombre del firmante"
+
+msgid "Signature"
+msgstr "Firma"
+
+msgid "Fingerprint Type"
+msgstr "Tipo de huella digital"
+
+msgid "Fingerprint"
+msgstr "Huella digital"
+
+msgid "Text Data"
+msgstr "Datos de texto"
+
+msgid "Records"
+msgstr "Registros"
+
+msgid "Record type"
+msgstr "Tipo de registro"
 
 #, python-format
 msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
@@ -1615,6 +1693,9 @@ msgstr "Clase"
 msgid "DNS class"
 msgstr "Clase DNS"
 
+msgid "Structured"
+msgstr "Estructurado"
+
 #, python-format
 msgid ""
 "Reverse zone for PTR record should be a sub-zone of one the following fully "
@@ -1653,6 +1734,10 @@ msgstr ""
 
 msgid "Delete all associated records"
 msgstr "Eliminar todos los registros asociados"
+
+#, python-format
+msgid "Zone record '%s' cannot be deleted"
+msgstr "No se puede eliminar el registro de zona «%s»"
 
 msgid "No option to delete specific record provided."
 msgstr "Ninguna opción para  borrar un registro en concreto especificado."
@@ -2059,6 +2144,9 @@ msgstr "Borrar miembros de un grupo de servicio HBAC."
 msgid "Simulate use of Host-based access controls"
 msgstr "Simular el uso de controles de acceso basados en Host"
 
+msgid "Warning"
+msgstr "Aviso"
+
 msgid "Matched rules"
 msgstr "Reglas coincidentes"
 
@@ -2161,6 +2249,9 @@ msgstr "Certificado del servidor codificado con base-64"
 msgid "Principal name"
 msgstr "Nombre principal"
 
+msgid "MAC address"
+msgstr "Dirección MAC"
+
 msgid "Add a new host."
 msgstr "Añadir un n uevo host."
 
@@ -2201,6 +2292,9 @@ msgstr "Ha sido modificado el equipo \"%(value)s\""
 
 msgid "Kerberos principal name for this host"
 msgstr "Nombre del prinicpal de Kerberos para este equipo"
+
+msgid "Update DNS entries"
+msgstr "Actualizar las entradas DNS"
 
 msgid "Password cannot be set on enrolled host."
 msgstr "La contraseña no puede ser fijada en el host matriculado."
@@ -2400,6 +2494,15 @@ msgstr "Cancelar"
 msgid "Close"
 msgstr "Cerrar"
 
+msgid "Disable"
+msgstr "Desactivar"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Enable"
+msgstr "Activar"
+
 msgid "Find"
 msgstr "Buscar"
 
@@ -2411,6 +2514,9 @@ msgstr "Tema"
 
 msgid "OK"
 msgstr "Aceptar"
+
+msgid "Refresh"
+msgstr "Actualizar"
 
 msgid "Delete"
 msgstr "Eliminar"
@@ -2426,6 +2532,9 @@ msgstr "Reintentar"
 
 msgid "Revoke"
 msgstr "Revocar"
+
+msgid "Set"
+msgstr "Definir"
 
 msgid "Update"
 msgstr "Actualizar"
@@ -2474,6 +2583,9 @@ msgstr "Esta página tiene cambios sin guardar. Por favor, guardar o deshacer."
 
 msgid "Unsaved Changes"
 msgstr "Cambios No Guardados"
+
+msgid "Edit ${entity}"
+msgstr "Editar ${entity}"
 
 msgid "Hide details"
 msgstr "Esconder detalles"
@@ -2543,6 +2655,9 @@ msgstr "Nombre de usuario"
 
 msgid "Attribute"
 msgstr "Atributo"
+
+msgid "Add Rule"
+msgstr "Añadir una regla"
 
 msgid "Automount Location Settings"
 msgstr "Configuración de ubicación de automount"
@@ -2921,6 +3036,9 @@ msgstr "Información del Empleado"
 msgid "Error changing account status"
 msgstr "Error al cambiar el estado de cuenta"
 
+msgid "Password expiration"
+msgstr "Caducidad de la contraseña"
+
 msgid "Mailing Address"
 msgstr "Dirección de correo"
 
@@ -2980,6 +3098,9 @@ msgstr ""
 msgid "Unselect All"
 msgstr "Anular selección"
 
+msgid "Disabled"
+msgstr "Desactivado"
+
 msgid "Audit"
 msgstr "Auditoría"
 
@@ -3027,6 +3148,15 @@ msgstr "El texto no coincide con el patrón de campo"
 
 msgid "Must be an integer"
 msgstr "Debe ser un entero"
+
+msgid "Not a valid IP address"
+msgstr "No es una dirección IP válida"
+
+msgid "Not a valid IPv4 address"
+msgstr "No es una dirección IPv4 válida"
+
+msgid "Not a valid IPv6 address"
+msgstr "No es una dirección IPv6 válida"
 
 msgid "Maximum value is ${value}"
 msgstr "Valor máximo es ${value}"

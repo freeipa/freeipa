@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-08-01 16:02+0200\n"
+"POT-Creation-Date: 2013-09-26 10:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -438,29 +438,29 @@ msgstr ""
 msgid "%(name)s certificate is not valid"
 msgstr ""
 
-#: ipalib/frontend.py:411
+#: ipalib/frontend.py:412
 msgid "Results are truncated, try a more specific search"
 msgstr ""
 
-#: ipalib/frontend.py:530
+#: ipalib/frontend.py:531
 #, python-format
 msgid "Unknown option: %(option)s"
 msgstr ""
 
-#: ipalib/frontend.py:902
+#: ipalib/frontend.py:903
 msgid ""
 "Retrieve and print all attributes from the server. Affects command output."
 msgstr ""
 
-#: ipalib/frontend.py:908
+#: ipalib/frontend.py:909
 msgid "Print entries as stored on the server. Only affects output format."
 msgstr ""
 
-#: ipalib/frontend.py:914 ipalib/plugins/batch.py:69
+#: ipalib/frontend.py:915 ipalib/plugins/batch.py:69
 msgid "Client version. Used to determine if server will accept request."
 msgstr ""
 
-#: ipalib/frontend.py:1087
+#: ipalib/frontend.py:1088
 msgid "Forward to server instead of running locally"
 msgstr ""
 
@@ -953,7 +953,7 @@ msgstr ""
 #: ipalib/plugins/automember.py:176 ipalib/plugins/automount.py:579
 #: ipalib/plugins/group.py:155 ipalib/plugins/hbacrule.py:179
 #: ipalib/plugins/hbacsvc.py:79 ipalib/plugins/hbacsvcgroup.py:73
-#: ipalib/plugins/host.py:266 ipalib/plugins/hostgroup.py:90
+#: ipalib/plugins/host.py:268 ipalib/plugins/hostgroup.py:90
 #: ipalib/plugins/netgroup.py:122 ipalib/plugins/privilege.py:73
 #: ipalib/plugins/role.py:92 ipalib/plugins/selinuxusermap.py:184
 #: ipalib/plugins/sudocmd.py:77 ipalib/plugins/sudocmdgroup.py:78
@@ -1272,7 +1272,7 @@ msgstr ""
 msgid "Automount Location"
 msgstr ""
 
-#: ipalib/plugins/automount.py:215 ipalib/plugins/host.py:276
+#: ipalib/plugins/automount.py:215 ipalib/plugins/host.py:278
 msgid "Location"
 msgstr ""
 
@@ -1554,7 +1554,7 @@ msgid "Display an automount key."
 msgstr ""
 
 #: ipalib/plugins/baseldap.py:41 ipalib/plugins/internal.py:280
-#: ipalib/plugins/internal.py:632 ipalib/plugins/migration.py:491
+#: ipalib/plugins/internal.py:633 ipalib/plugins/migration.py:491
 #: ipalib/plugins/user.py:289
 msgid "Password"
 msgstr ""
@@ -1999,40 +1999,40 @@ msgid "automatically add the principal if it doesn't exist"
 msgstr ""
 
 #: ipalib/plugins/cert.py:269 ipalib/plugins/cert.py:481
-#: ipalib/plugins/host.py:305 ipalib/plugins/internal.py:319
+#: ipalib/plugins/host.py:307 ipalib/plugins/internal.py:319
 #: ipalib/plugins/service.py:328
 msgid "Certificate"
 msgstr ""
 
 #: ipalib/plugins/cert.py:272 ipalib/plugins/cert.py:484
 #: ipalib/plugins/cert.py:638 ipalib/plugins/cert.py:639
-#: ipalib/plugins/host.py:165 ipalib/plugins/internal.py:332
+#: ipalib/plugins/host.py:167 ipalib/plugins/internal.py:332
 #: ipalib/plugins/service.py:102
 msgid "Subject"
 msgstr ""
 
 #: ipalib/plugins/cert.py:275 ipalib/plugins/cert.py:487
-#: ipalib/plugins/host.py:174 ipalib/plugins/service.py:111
+#: ipalib/plugins/host.py:176 ipalib/plugins/service.py:111
 msgid "Issuer"
 msgstr ""
 
 #: ipalib/plugins/cert.py:278 ipalib/plugins/cert.py:490
-#: ipalib/plugins/host.py:177 ipalib/plugins/service.py:114
+#: ipalib/plugins/host.py:179 ipalib/plugins/service.py:114
 msgid "Not Before"
 msgstr ""
 
 #: ipalib/plugins/cert.py:281 ipalib/plugins/cert.py:493
-#: ipalib/plugins/host.py:180 ipalib/plugins/service.py:117
+#: ipalib/plugins/host.py:182 ipalib/plugins/service.py:117
 msgid "Not After"
 msgstr ""
 
 #: ipalib/plugins/cert.py:284 ipalib/plugins/cert.py:496
-#: ipalib/plugins/host.py:183 ipalib/plugins/service.py:120
+#: ipalib/plugins/host.py:185 ipalib/plugins/service.py:120
 msgid "Fingerprint (MD5)"
 msgstr ""
 
 #: ipalib/plugins/cert.py:287 ipalib/plugins/cert.py:499
-#: ipalib/plugins/host.py:186 ipalib/plugins/service.py:123
+#: ipalib/plugins/host.py:188 ipalib/plugins/service.py:123
 msgid "Fingerprint (SHA1)"
 msgstr ""
 
@@ -2107,7 +2107,7 @@ msgstr ""
 msgid "Retrieve an existing certificate."
 msgstr ""
 
-#: ipalib/plugins/cert.py:502 ipalib/plugins/host.py:189
+#: ipalib/plugins/cert.py:502 ipalib/plugins/host.py:191
 #: ipalib/plugins/internal.py:329 ipalib/plugins/internal.py:358
 #: ipalib/plugins/service.py:126
 msgid "Revocation reason"
@@ -2206,8 +2206,8 @@ msgid "Maximum number of certs returned"
 msgstr ""
 
 #: ipalib/plugins/cert.py:713 ipalib/plugins/internal.py:366
-#: ipalib/plugins/internal.py:472 ipalib/plugins/internal.py:551
-#: ipalib/plugins/internal.py:658
+#: ipalib/plugins/internal.py:472 ipalib/plugins/internal.py:552
+#: ipalib/plugins/internal.py:659
 msgid "Status"
 msgstr ""
 
@@ -2556,7 +2556,7 @@ msgstr[1] ""
 msgid "Display information about a delegation."
 msgstr ""
 
-#: ipalib/plugins/dns.py:40
+#: ipalib/plugins/dns.py:41
 msgid ""
 "\n"
 "Domain Name System (DNS)\n"
@@ -2767,243 +2767,243 @@ msgid ""
 "   ipa dnsconfig-mod --forwarder=10.0.0.1\n"
 msgstr ""
 
-#: ipalib/plugins/dns.py:292
+#: ipalib/plugins/dns.py:293
 #, python-format
 msgid "invalid IP address version (is %(value)d, must be %(required_value)d)!"
 msgstr ""
 
-#: ipalib/plugins/dns.py:295
+#: ipalib/plugins/dns.py:296
 msgid "invalid IP address format"
 msgstr ""
 
-#: ipalib/plugins/dns.py:308
+#: ipalib/plugins/dns.py:309
 msgid "invalid IP network format"
 msgstr ""
 
-#: ipalib/plugins/dns.py:317
+#: ipalib/plugins/dns.py:318
 msgid "each ACL element must be terminated with a semicolon"
 msgstr ""
 
-#: ipalib/plugins/dns.py:334
+#: ipalib/plugins/dns.py:335
 msgid "invalid address format"
 msgstr ""
 
-#: ipalib/plugins/dns.py:378 ipalib/plugins/dns.py:421
+#: ipalib/plugins/dns.py:379 ipalib/plugins/dns.py:422
 #, python-format
 msgid "invalid domain-name: %s"
 msgstr ""
 
-#: ipalib/plugins/dns.py:407
+#: ipalib/plugins/dns.py:408
 #, python-format
 msgid "%(port)s is not a valid port"
 msgstr ""
 
-#: ipalib/plugins/dns.py:483
+#: ipalib/plugins/dns.py:484
 #, python-format
 msgid "DNS reverse zone for IP address %(addr)s not found"
 msgstr ""
 
-#: ipalib/plugins/dns.py:495
+#: ipalib/plugins/dns.py:496
 #, python-format
 msgid "DNS zone %(zone)s not found"
 msgstr ""
 
-#: ipalib/plugins/dns.py:509
+#: ipalib/plugins/dns.py:510
 #, python-format
 msgid "IP address %(ip)s is already assigned in domain %(domain)s."
 msgstr ""
 
-#: ipalib/plugins/dns.py:522
+#: ipalib/plugins/dns.py:523
 #, python-format
 msgid ""
 "Reverse record for IP address %(ip)s already exists in reverse zone %(zone)s."
 msgstr ""
 
-#: ipalib/plugins/dns.py:558
+#: ipalib/plugins/dns.py:559
 #, python-format
 msgid "%s record"
 msgstr ""
 
-#: ipalib/plugins/dns.py:560
+#: ipalib/plugins/dns.py:561
 #, python-format
 msgid "Raw %s records"
 msgstr ""
 
-#: ipalib/plugins/dns.py:561
+#: ipalib/plugins/dns.py:562
 #, python-format
 msgid "%s Record"
 msgstr ""
 
-#: ipalib/plugins/dns.py:562
+#: ipalib/plugins/dns.py:563
 #, python-format
 msgid "(see RFC %s for details)"
 msgstr ""
 
-#: ipalib/plugins/dns.py:618
+#: ipalib/plugins/dns.py:619
 #, python-format
 msgid "'%s' is a required part of DNS record"
 msgstr ""
 
-#: ipalib/plugins/dns.py:625
+#: ipalib/plugins/dns.py:626
 msgid "Invalid number of parts!"
 msgstr ""
 
-#: ipalib/plugins/dns.py:680
+#: ipalib/plugins/dns.py:681
 #, python-format
 msgid "DNS RR type \"%s\" is not supported by bind-dyndb-ldap plugin"
 msgstr ""
 
-#: ipalib/plugins/dns.py:696
+#: ipalib/plugins/dns.py:697
 #, python-format
 msgid "format must be specified as \"%(format)s\" %(rfcs)s"
 msgstr ""
 
-#: ipalib/plugins/dns.py:820
+#: ipalib/plugins/dns.py:821
 msgid "Create reverse"
 msgstr ""
 
-#: ipalib/plugins/dns.py:821
+#: ipalib/plugins/dns.py:822
 msgid "Create reverse record for this IP Address"
 msgstr ""
 
-#: ipalib/plugins/dns.py:856
+#: ipalib/plugins/dns.py:857
 #, python-format
 msgid "Cannot create reverse record for \"%(value)s\": %(exc)s"
 msgstr ""
 
-#: ipalib/plugins/dns.py:865 ipalib/plugins/dns.py:888
-#: ipalib/plugins/host.py:405
+#: ipalib/plugins/dns.py:866 ipalib/plugins/dns.py:889
+#: ipalib/plugins/host.py:407
 msgid "IP Address"
 msgstr ""
 
-#: ipalib/plugins/dns.py:874 ipalib/plugins/dns.py:1485
+#: ipalib/plugins/dns.py:875 ipalib/plugins/dns.py:1486
 msgid "Record data"
 msgstr ""
 
-#: ipalib/plugins/dns.py:897
+#: ipalib/plugins/dns.py:898
 msgid "Subtype"
 msgstr ""
 
-#: ipalib/plugins/dns.py:903 ipalib/plugins/dns.py:942
-#: ipalib/plugins/dns.py:1195 ipalib/plugins/dns.py:1292
-#: ipalib/plugins/dns.py:2929
+#: ipalib/plugins/dns.py:904 ipalib/plugins/dns.py:943
+#: ipalib/plugins/dns.py:1196 ipalib/plugins/dns.py:1293
+#: ipalib/plugins/dns.py:2930
 msgid "Hostname"
 msgstr ""
 
-#: ipalib/plugins/dns.py:917
+#: ipalib/plugins/dns.py:918
 msgid "Certificate Type"
 msgstr ""
 
-#: ipalib/plugins/dns.py:922 ipalib/plugins/dns.py:977
-#: ipalib/plugins/dns.py:1375
+#: ipalib/plugins/dns.py:923 ipalib/plugins/dns.py:978
+#: ipalib/plugins/dns.py:1376
 msgid "Key Tag"
 msgstr ""
 
-#: ipalib/plugins/dns.py:927 ipalib/plugins/dns.py:982
-#: ipalib/plugins/dns.py:1016 ipalib/plugins/dns.py:1353
-#: ipalib/plugins/dns.py:1401
+#: ipalib/plugins/dns.py:928 ipalib/plugins/dns.py:983
+#: ipalib/plugins/dns.py:1017 ipalib/plugins/dns.py:1354
+#: ipalib/plugins/dns.py:1402
 msgid "Algorithm"
 msgstr ""
 
-#: ipalib/plugins/dns.py:932
+#: ipalib/plugins/dns.py:933
 msgid "Certificate/CRL"
 msgstr ""
 
-#: ipalib/plugins/dns.py:943
+#: ipalib/plugins/dns.py:944
 msgid "A hostname which this alias hostname points to"
 msgstr ""
 
-#: ipalib/plugins/dns.py:963 ipalib/plugins/dns.py:1329
+#: ipalib/plugins/dns.py:964 ipalib/plugins/dns.py:1330
 #: ipalib/plugins/internal.py:502
 msgid "Target"
 msgstr ""
 
-#: ipalib/plugins/dns.py:987
+#: ipalib/plugins/dns.py:988
 msgid "Digest Type"
 msgstr ""
 
-#: ipalib/plugins/dns.py:992
+#: ipalib/plugins/dns.py:993
 msgid "Digest"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1006 ipalib/plugins/dns.py:1271
+#: ipalib/plugins/dns.py:1007 ipalib/plugins/dns.py:1272
 msgid "Flags"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1011
+#: ipalib/plugins/dns.py:1012
 msgid "Protocol"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1021
+#: ipalib/plugins/dns.py:1022
 msgid "Public Key"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1035 ipalib/plugins/dns.py:1176
-#: ipalib/plugins/dns.py:1265
+#: ipalib/plugins/dns.py:1036 ipalib/plugins/dns.py:1177
+#: ipalib/plugins/dns.py:1266
 msgid "Preference"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1036 ipalib/plugins/dns.py:1177
+#: ipalib/plugins/dns.py:1037 ipalib/plugins/dns.py:1178
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1042 ipalib/plugins/dns.py:1183
+#: ipalib/plugins/dns.py:1043 ipalib/plugins/dns.py:1184
 msgid "Exchanger"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1043
+#: ipalib/plugins/dns.py:1044
 msgid "A host willing to act as a key exchanger"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1052
+#: ipalib/plugins/dns.py:1053
 msgid "Degrees Latitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1057
+#: ipalib/plugins/dns.py:1058
 msgid "Minutes Latitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1062
+#: ipalib/plugins/dns.py:1063
 msgid "Seconds Latitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1068
+#: ipalib/plugins/dns.py:1069
 msgid "Direction Latitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1072
+#: ipalib/plugins/dns.py:1073
 msgid "Degrees Longitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1077
+#: ipalib/plugins/dns.py:1078
 msgid "Minutes Longitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1082
+#: ipalib/plugins/dns.py:1083
 msgid "Seconds Longitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1088
+#: ipalib/plugins/dns.py:1089
 msgid "Direction Longitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1092
+#: ipalib/plugins/dns.py:1093
 msgid "Altitude"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1098
+#: ipalib/plugins/dns.py:1099
 msgid "Size"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1104
+#: ipalib/plugins/dns.py:1105
 msgid "Horizontal Precision"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1110
+#: ipalib/plugins/dns.py:1111
 msgid "Vertical Precision"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1117
+#: ipalib/plugins/dns.py:1118
 msgid ""
 "format must be specified as\n"
 "    \"d1 [m1 [s1]] {\"N\"|\"S\"}  d2 [m2 [s2]] {\"E\"|\"W\"} alt[\"m\"] "
@@ -3018,547 +3018,547 @@ msgid ""
 "    See RFC 1876 for details"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1166
+#: ipalib/plugins/dns.py:1167
 #, python-format
 msgid "'%(required)s' must not be empty when '%(name)s' is set"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1184
+#: ipalib/plugins/dns.py:1185
 msgid "A host willing to act as a mail exchanger"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1202
+#: ipalib/plugins/dns.py:1203
 msgid ""
 "format must be specified as \"NEXT TYPE1 [TYPE2 [TYPE3 [...]]]\" (see RFC "
 "4034 for details)"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1209
+#: ipalib/plugins/dns.py:1210
 msgid "Next Domain Name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1212
+#: ipalib/plugins/dns.py:1213
 msgid "Type Map"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1252
+#: ipalib/plugins/dns.py:1253
 msgid "flags must be one of \"S\", \"A\", \"U\", or \"P\""
 msgstr ""
 
-#: ipalib/plugins/dns.py:1260
+#: ipalib/plugins/dns.py:1261
 msgid "Order"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1275 ipalib/plugins/hbactest.py:265
-#: ipalib/plugins/internal.py:550 ipalib/plugins/service.py:316
+#: ipalib/plugins/dns.py:1276 ipalib/plugins/hbactest.py:265
+#: ipalib/plugins/internal.py:551 ipalib/plugins/service.py:316
 msgid "Service"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1278
+#: ipalib/plugins/dns.py:1279
 msgid "Regular Expression"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1281
+#: ipalib/plugins/dns.py:1282
 msgid "Replacement"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1293
+#: ipalib/plugins/dns.py:1294
 msgid "The hostname this reverse record points to"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1313 ipalib/plugins/pwpolicy.py:266
+#: ipalib/plugins/dns.py:1314 ipalib/plugins/pwpolicy.py:267
 msgid "Priority"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1318
+#: ipalib/plugins/dns.py:1319
 msgid "Weight"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1323
+#: ipalib/plugins/dns.py:1324
 msgid "Port"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1330
+#: ipalib/plugins/dns.py:1331
 msgid ""
 "The domain name of the target host or '.' if the service is decidedly not "
 "available at this domain"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1339
+#: ipalib/plugins/dns.py:1340
 msgid "the value does not follow \"YYYYMMDDHHMMSS\" time format"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1349
+#: ipalib/plugins/dns.py:1350
 msgid "Type Covered"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1358
+#: ipalib/plugins/dns.py:1359
 msgid "Labels"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1363
+#: ipalib/plugins/dns.py:1364
 msgid "Original TTL"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1368
+#: ipalib/plugins/dns.py:1369
 msgid "Signature Expiration"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1372
+#: ipalib/plugins/dns.py:1373
 msgid "Signature Inception"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1380
+#: ipalib/plugins/dns.py:1381
 msgid "Signer's Name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1383
+#: ipalib/plugins/dns.py:1384
 msgid "Signature"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1406
+#: ipalib/plugins/dns.py:1407
 msgid "Fingerprint Type"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1411
+#: ipalib/plugins/dns.py:1412
 msgid "Fingerprint"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1432
+#: ipalib/plugins/dns.py:1433
 msgid "Text Data"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1479
+#: ipalib/plugins/dns.py:1480
 msgid "Records"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1482
+#: ipalib/plugins/dns.py:1483
 msgid "Record type"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1515
+#: ipalib/plugins/dns.py:1516
 #, python-format
 msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1533
+#: ipalib/plugins/dns.py:1534
 msgid "Managedby permission"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1542
+#: ipalib/plugins/dns.py:1543
 msgid "DNS zone"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1543
+#: ipalib/plugins/dns.py:1544
 msgid "DNS zones"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1552
+#: ipalib/plugins/dns.py:1553
 msgid "DNS Zones"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1553
+#: ipalib/plugins/dns.py:1554
 msgid "DNS Zone"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1559
+#: ipalib/plugins/dns.py:1560
 msgid "Zone name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1560
+#: ipalib/plugins/dns.py:1561
 msgid "Zone name (FQDN)"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1566
+#: ipalib/plugins/dns.py:1567
 msgid "Reverse zone IP network"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1567
+#: ipalib/plugins/dns.py:1568
 msgid "IP network to create reverse zone name from"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1572
+#: ipalib/plugins/dns.py:1573
 msgid "Authoritative nameserver"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1573
+#: ipalib/plugins/dns.py:1574
 msgid "Authoritative nameserver domain name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1579 ipalib/plugins/dns.py:1580
+#: ipalib/plugins/dns.py:1580 ipalib/plugins/dns.py:1581
 msgid "Administrator e-mail address"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1586
+#: ipalib/plugins/dns.py:1587
 msgid "SOA serial"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1587
+#: ipalib/plugins/dns.py:1588
 msgid "SOA record serial number"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1595
+#: ipalib/plugins/dns.py:1596
 msgid "SOA refresh"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1596
+#: ipalib/plugins/dns.py:1597
 msgid "SOA record refresh time"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1604
+#: ipalib/plugins/dns.py:1605
 msgid "SOA retry"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1605
+#: ipalib/plugins/dns.py:1606
 msgid "SOA record retry time"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1613
+#: ipalib/plugins/dns.py:1614
 msgid "SOA expire"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1614
+#: ipalib/plugins/dns.py:1615
 msgid "SOA record expire time"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1622
+#: ipalib/plugins/dns.py:1623
 msgid "SOA minimum"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1623
+#: ipalib/plugins/dns.py:1624
 msgid "How long should negative responses be cached"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1631
+#: ipalib/plugins/dns.py:1632
 msgid "SOA time to live"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1632
+#: ipalib/plugins/dns.py:1633
 msgid "SOA record time to live"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1638
+#: ipalib/plugins/dns.py:1639
 msgid "SOA class"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1639
+#: ipalib/plugins/dns.py:1640
 msgid "SOA record class"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1644 ipalib/plugins/dns.py:1645
+#: ipalib/plugins/dns.py:1645 ipalib/plugins/dns.py:1646
 msgid "BIND update policy"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1651
+#: ipalib/plugins/dns.py:1652
 msgid "Active zone"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1652
+#: ipalib/plugins/dns.py:1653
 msgid "Is zone active?"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1658
+#: ipalib/plugins/dns.py:1659
 msgid "Dynamic update"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1659
+#: ipalib/plugins/dns.py:1660
 msgid "Allow dynamic updates."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1668
+#: ipalib/plugins/dns.py:1669
 msgid "Allow query"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1669
+#: ipalib/plugins/dns.py:1670
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
 "issue queries"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1677
+#: ipalib/plugins/dns.py:1678
 msgid "Allow transfer"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1678
+#: ipalib/plugins/dns.py:1679
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
 "transfer the zone"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1685
+#: ipalib/plugins/dns.py:1686
 msgid "Zone forwarders"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1686
+#: ipalib/plugins/dns.py:1687
 msgid ""
 "Per-zone forwarders. A custom port can be specified for each forwarder using "
 "a standard format \"IP_ADDRESS port PORT\""
 msgstr ""
 
-#: ipalib/plugins/dns.py:1692 ipalib/plugins/dns.py:2999
+#: ipalib/plugins/dns.py:1693 ipalib/plugins/dns.py:2999
 msgid "Forward policy"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1693
+#: ipalib/plugins/dns.py:1694
 msgid ""
 "Per-zone conditional forwarding policy. Set to \"none\" to disable "
 "forwarding to global forwarder for this zone. In that case, conditional zone "
 "forwarders are disregarded."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1700 ipalib/plugins/dns.py:3006
+#: ipalib/plugins/dns.py:1701 ipalib/plugins/dns.py:3006
 msgid "Allow PTR sync"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1701
+#: ipalib/plugins/dns.py:1702
 msgid ""
 "Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the "
 "zone"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1763
+#: ipalib/plugins/dns.py:1764
 msgid "Create new DNS zone (SOA record)."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1768 ipalib/plugins/dns.py:1903
-#: ipalib/plugins/dns.py:2364 ipalib/plugins/host.py:397
+#: ipalib/plugins/dns.py:1769 ipalib/plugins/dns.py:1904
+#: ipalib/plugins/dns.py:2365 ipalib/plugins/host.py:399
 #: ipalib/plugins/permission.py:298 ipalib/plugins/realmdomains.py:97
 #: ipalib/plugins/service.py:369
 msgid "Force"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1769
+#: ipalib/plugins/dns.py:1770
 msgid "Force DNS zone creation even if nameserver is not resolvable."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1772
+#: ipalib/plugins/dns.py:1773
 msgid "Add forward record for nameserver located in the created zone"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1773 ipalib/plugins/dns.py:1794
+#: ipalib/plugins/dns.py:1774 ipalib/plugins/dns.py:1795
 msgid "Nameserver IP address"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1800
+#: ipalib/plugins/dns.py:1801
 msgid "DNS is not configured"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1810
+#: ipalib/plugins/dns.py:1811
 msgid "Nameserver address is not a domain name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1823
+#: ipalib/plugins/dns.py:1824
 msgid "Nameserver for reverse zone cannot be a relative DNS name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1827
+#: ipalib/plugins/dns.py:1828
 msgid "Nameserver DNS record is created for for forward zones only"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1831
+#: ipalib/plugins/dns.py:1832
 msgid "Nameserver DNS record is created only for nameservers in current zone"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1872
+#: ipalib/plugins/dns.py:1873
 msgid "Delete DNS zone (SOA record)."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1874
+#: ipalib/plugins/dns.py:1875
 #, python-format
 msgid "Deleted DNS zone \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/dns.py:1899
+#: ipalib/plugins/dns.py:1900
 msgid "Modify DNS zone (SOA record)."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1904
+#: ipalib/plugins/dns.py:1905
 msgid "Force nameserver change even if nameserver not in DNS"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1921
+#: ipalib/plugins/dns.py:1922
 msgid "Search for DNS zones (SOA records)."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1945
+#: ipalib/plugins/dns.py:1946
 msgid "Forward zones only"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1947
+#: ipalib/plugins/dns.py:1948
 msgid "Search for forward zones only"
 msgstr ""
 
-#: ipalib/plugins/dns.py:1967
+#: ipalib/plugins/dns.py:1968
 msgid "Display information about a DNS zone (SOA record)."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1975
+#: ipalib/plugins/dns.py:1976
 msgid "Disable DNS Zone."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1978
+#: ipalib/plugins/dns.py:1979
 #, python-format
 msgid "Disabled DNS zone \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/dns.py:1996
+#: ipalib/plugins/dns.py:1997
 msgid "Enable DNS Zone."
 msgstr ""
 
-#: ipalib/plugins/dns.py:1999
+#: ipalib/plugins/dns.py:2000
 #, python-format
 msgid "Enabled DNS zone \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/dns.py:2016
+#: ipalib/plugins/dns.py:2017
 msgid "Add a permission for per-zone access delegation."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2019
+#: ipalib/plugins/dns.py:2020
 #, python-format
 msgid "Added system permission \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/dns.py:2052
+#: ipalib/plugins/dns.py:2053
 msgid "Remove a permission for per-zone access delegation."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2055
+#: ipalib/plugins/dns.py:2056
 #, python-format
 msgid "Removed system permission \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/dns.py:2086
+#: ipalib/plugins/dns.py:2087
 msgid "DNS resource record"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2087
+#: ipalib/plugins/dns.py:2088
 msgid "DNS resource records"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2092
+#: ipalib/plugins/dns.py:2093
 msgid "DNS Resource Records"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2093
+#: ipalib/plugins/dns.py:2094
 msgid "DNS Resource Record"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2099 ipalib/plugins/dns.py:2100
+#: ipalib/plugins/dns.py:2100 ipalib/plugins/dns.py:2101
 msgid "Record name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2105 ipalib/plugins/dns.py:2106
+#: ipalib/plugins/dns.py:2106 ipalib/plugins/dns.py:2107
 msgid "Time to live"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2110 ipalib/plugins/host.py:329
+#: ipalib/plugins/dns.py:2111 ipalib/plugins/host.py:331
 msgid "Class"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2111
+#: ipalib/plugins/dns.py:2112
 msgid "DNS class"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2117
+#: ipalib/plugins/dns.py:2118
 msgid "Structured"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2118
+#: ipalib/plugins/dns.py:2119
 msgid "Parse all raw DNS records and return them in a structured way"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2149
+#: ipalib/plugins/dns.py:2150
 #, python-format
 msgid ""
 "Reverse zone for PTR record should be a sub-zone of one the following fully "
 "qualified domains: %s"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2155
+#: ipalib/plugins/dns.py:2156
 #, python-format
 msgid ""
 "Reverse zone %(name)s requires exactly %(count)d IP address components, "
 "%(user_count)d given"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2327
+#: ipalib/plugins/dns.py:2328
 msgid "only one CNAME record is allowed per name (RFC 2136, section 1.1.5)"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2333
+#: ipalib/plugins/dns.py:2334
 msgid ""
 "CNAME record is not allowed to coexist with any other record (RFC 1034, "
 "section 3.6.2)"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2345
+#: ipalib/plugins/dns.py:2346
 msgid "only one DNAME record is allowed per name (RFC 6672, section 2.4)"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2350
+#: ipalib/plugins/dns.py:2351
 msgid ""
 "DNAME record is not allowed to coexist with an NS record except when located "
 "in a zone root record (RFC 6672, section 2.3)"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2358
+#: ipalib/plugins/dns.py:2359
 msgid "Add new DNS resource record."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2366
+#: ipalib/plugins/dns.py:2367
 msgid "force NS record creation even if its hostname is not in DNS"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2403
+#: ipalib/plugins/dns.py:2404
 msgid "Please choose a type of DNS resource record to be added"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2404
+#: ipalib/plugins/dns.py:2405
 #, python-format
 msgid "The most common types for this type of zone are: %s\n"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2409
+#: ipalib/plugins/dns.py:2410
 msgid "DNS resource record type"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2425
+#: ipalib/plugins/dns.py:2426
 #, python-format
 msgid "Invalid or unsupported type. Allowed values are: %s"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2453
+#: ipalib/plugins/dns.py:2454
 #, python-format
 msgid "Raw value of a DNS record was already set by \"%(name)s\" option"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2548
+#: ipalib/plugins/dns.py:2549
 msgid "Modify a DNS resource record."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2565
+#: ipalib/plugins/dns.py:2566
 msgid "DNS zone root record cannot be renamed"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2583
+#: ipalib/plugins/dns.py:2584
 msgid "DNS records can be only updated one at a time"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2663
+#: ipalib/plugins/dns.py:2664
 msgid "No option to modify specific record provided."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2666 ipalib/plugins/dns.py:2838
+#: ipalib/plugins/dns.py:2667 ipalib/plugins/dns.py:2839
 msgid "Current DNS record contents:\n"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2688
+#: ipalib/plugins/dns.py:2689
 #, python-format
 msgid "Modify %(name)s '%(value)s'?"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2696
+#: ipalib/plugins/dns.py:2697
 #, python-format
 msgid ""
 "%(count)d %(type)s record skipped. Only one value per DNS record type can be "
@@ -3569,66 +3569,66 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: ipalib/plugins/dns.py:2708
+#: ipalib/plugins/dns.py:2709
 #, python-format
 msgid "Deleted record \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/dns.py:2715
+#: ipalib/plugins/dns.py:2716
 msgid "Delete DNS resource record."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2719
+#: ipalib/plugins/dns.py:2720
 msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
 "Command help may be consulted for all supported record types."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2725
+#: ipalib/plugins/dns.py:2726
 msgid "Delete all associated records"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2791
+#: ipalib/plugins/dns.py:2792
 #, python-format
 msgid "Zone record '%s' cannot be deleted"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2830
+#: ipalib/plugins/dns.py:2831
 msgid "No option to delete specific record provided."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2831
+#: ipalib/plugins/dns.py:2832
 msgid "Delete all?"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2859
+#: ipalib/plugins/dns.py:2860
 #, python-format
 msgid "Delete %(name)s '%(value)s'?"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2870
+#: ipalib/plugins/dns.py:2871
 msgid "Display DNS resource."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2887
+#: ipalib/plugins/dns.py:2888
 msgid "Search for DNS resources."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2922
+#: ipalib/plugins/dns.py:2923
 msgid "Resolve a host name in DNS."
 msgstr ""
 
-#: ipalib/plugins/dns.py:2925
+#: ipalib/plugins/dns.py:2926
 #, python-format
 msgid "Found '%(value)s'"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2942
+#: ipalib/plugins/dns.py:2943
 #, python-format
 msgid "Host '%(host)s' not found"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2979
+#: ipalib/plugins/dns.py:2980
 msgid "DNS configuration options"
 msgstr ""
 
@@ -3660,19 +3660,15 @@ msgstr ""
 msgid "Zone refresh interval"
 msgstr ""
 
-#: ipalib/plugins/dns.py:3012
-msgid "An interval between regular polls of the name server for new DNS zones"
-msgstr ""
-
-#: ipalib/plugins/dns.py:3027
+#: ipalib/plugins/dns.py:3025
 msgid "Global DNS configuration is empty"
 msgstr ""
 
-#: ipalib/plugins/dns.py:3033
+#: ipalib/plugins/dns.py:3031
 msgid "Modify global DNS configuration."
 msgstr ""
 
-#: ipalib/plugins/dns.py:3044
+#: ipalib/plugins/dns.py:3042
 msgid "Show the current global DNS configuration."
 msgstr ""
 
@@ -4050,7 +4046,7 @@ msgstr ""
 msgid "Service category the rule applies to"
 msgstr ""
 
-#: ipalib/plugins/hbacrule.py:182 ipalib/plugins/internal.py:657
+#: ipalib/plugins/hbacrule.py:182 ipalib/plugins/internal.py:658
 #: ipalib/plugins/selinuxusermap.py:187 ipalib/plugins/sudorule.py:114
 msgid "Enabled"
 msgstr ""
@@ -4061,7 +4057,7 @@ msgstr ""
 msgid "Users"
 msgstr ""
 
-#: ipalib/plugins/hbacrule.py:194 ipalib/plugins/host.py:254
+#: ipalib/plugins/hbacrule.py:194 ipalib/plugins/host.py:256
 #: ipalib/plugins/internal.py:490 ipalib/plugins/selinuxusermap.py:199
 #: ipalib/plugins/sudorule.py:163
 msgid "Hosts"
@@ -4680,11 +4676,14 @@ msgid ""
 "   Host Enrollment privilege.\n"
 "3. The host has been created with a one-time password.\n"
 "\n"
-"A host can only be enrolled once. If a client has enrolled and needs to\n"
-"be re-enrolled, the host entry must be removed and re-created. Note that\n"
-"re-creating the host entry will result in all services for the host being\n"
-"removed, and all SSL certificates associated with those services being\n"
-"revoked.\n"
+"\n"
+"RE-ENROLLMENT:\n"
+"\n"
+"Host that has been enrolled at some point, and lost its configuration (e.g. "
+"VM\n"
+"destroyed) can be re-enrolled.\n"
+"\n"
+"For more information, consult the manual pages for ipa-client-install.\n"
 "\n"
 "A host can optionally store information such as where it is located,\n"
 "the OS that it runs, etc.\n"
@@ -4717,221 +4716,221 @@ msgid ""
 "   ipa host-add-managedby --hosts=test2 test\n"
 msgstr ""
 
-#: ipalib/plugins/host.py:156 ipalib/plugins/service.py:96
+#: ipalib/plugins/host.py:158 ipalib/plugins/service.py:96
 msgid "Keytab"
 msgstr ""
 
-#: ipalib/plugins/host.py:168 ipalib/plugins/internal.py:363
+#: ipalib/plugins/host.py:170 ipalib/plugins/internal.py:363
 #: ipalib/plugins/service.py:105
 msgid "Serial Number"
 msgstr ""
 
-#: ipalib/plugins/host.py:171 ipalib/plugins/internal.py:364
+#: ipalib/plugins/host.py:173 ipalib/plugins/internal.py:364
 #: ipalib/plugins/service.py:108
 msgid "Serial Number (hex)"
 msgstr ""
 
-#: ipalib/plugins/host.py:192
+#: ipalib/plugins/host.py:194
 msgid "Failed managedby"
 msgstr ""
 
-#: ipalib/plugins/host.py:195 ipalib/plugins/user.py:92
+#: ipalib/plugins/host.py:197 ipalib/plugins/user.py:92
 msgid "SSH public key fingerprint"
 msgstr ""
 
-#: ipalib/plugins/host.py:221
+#: ipalib/plugins/host.py:223
 msgid "host"
 msgstr ""
 
-#: ipalib/plugins/host.py:222
+#: ipalib/plugins/host.py:224
 msgid "hosts"
 msgstr ""
 
-#: ipalib/plugins/host.py:255 ipalib/plugins/internal.py:488
-#: ipalib/plugins/internal.py:538
+#: ipalib/plugins/host.py:257 ipalib/plugins/internal.py:488
+#: ipalib/plugins/internal.py:539
 msgid "Host"
 msgstr ""
 
-#: ipalib/plugins/host.py:260
+#: ipalib/plugins/host.py:262
 msgid "Host name"
 msgstr ""
 
-#: ipalib/plugins/host.py:267
+#: ipalib/plugins/host.py:269
 msgid "A description of this host"
 msgstr ""
 
-#: ipalib/plugins/host.py:271
+#: ipalib/plugins/host.py:273
 msgid "Locality"
 msgstr ""
 
-#: ipalib/plugins/host.py:272
+#: ipalib/plugins/host.py:274
 msgid "Host locality (e.g. \"Baltimore, MD\")"
 msgstr ""
 
-#: ipalib/plugins/host.py:277
+#: ipalib/plugins/host.py:279
 msgid "Host location (e.g. \"Lab 2\")"
 msgstr ""
 
-#: ipalib/plugins/host.py:281
+#: ipalib/plugins/host.py:283
 msgid "Platform"
 msgstr ""
 
-#: ipalib/plugins/host.py:282
+#: ipalib/plugins/host.py:284
 msgid "Host hardware platform (e.g. \"Lenovo T61\")"
 msgstr ""
 
-#: ipalib/plugins/host.py:286
+#: ipalib/plugins/host.py:288
 msgid "Operating system"
 msgstr ""
 
-#: ipalib/plugins/host.py:287
+#: ipalib/plugins/host.py:289
 msgid "Host operating system and version (e.g. \"Fedora 9\")"
 msgstr ""
 
-#: ipalib/plugins/host.py:291
+#: ipalib/plugins/host.py:293
 msgid "User password"
 msgstr ""
 
-#: ipalib/plugins/host.py:292
+#: ipalib/plugins/host.py:294
 msgid "Password used in bulk enrollment"
 msgstr ""
 
-#: ipalib/plugins/host.py:295
+#: ipalib/plugins/host.py:297
 msgid "Generate a random password to be used in bulk enrollment"
 msgstr ""
 
-#: ipalib/plugins/host.py:300 ipalib/plugins/user.py:301
+#: ipalib/plugins/host.py:302 ipalib/plugins/user.py:301
 msgid "Random password"
 msgstr ""
 
-#: ipalib/plugins/host.py:306 ipalib/plugins/service.py:329
+#: ipalib/plugins/host.py:308 ipalib/plugins/service.py:329
 msgid "Base-64 encoded server certificate"
 msgstr ""
 
-#: ipalib/plugins/host.py:309 ipalib/plugins/host.py:627
+#: ipalib/plugins/host.py:311 ipalib/plugins/host.py:629
 msgid "Principal name"
 msgstr ""
 
-#: ipalib/plugins/host.py:317
+#: ipalib/plugins/host.py:319
 msgid "MAC address"
 msgstr ""
 
-#: ipalib/plugins/host.py:318
+#: ipalib/plugins/host.py:320
 msgid "Hardware MAC address(es) on this host"
 msgstr ""
 
-#: ipalib/plugins/host.py:322 ipalib/plugins/user.py:363
+#: ipalib/plugins/host.py:324 ipalib/plugins/user.py:363
 msgid "SSH public key"
 msgstr ""
 
-#: ipalib/plugins/host.py:330
+#: ipalib/plugins/host.py:332
 msgid ""
 "Host category (semantics placed on this attribute are for local "
 "interpretation)"
 msgstr ""
 
-#: ipalib/plugins/host.py:390
+#: ipalib/plugins/host.py:392
 msgid "Add a new host."
 msgstr ""
 
-#: ipalib/plugins/host.py:393
+#: ipalib/plugins/host.py:395
 #, python-format
 msgid "Added host \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/host.py:398
+#: ipalib/plugins/host.py:400
 msgid "force host name even if not in DNS"
 msgstr ""
 
-#: ipalib/plugins/host.py:401
+#: ipalib/plugins/host.py:403
 msgid "skip reverse DNS detection"
 msgstr ""
 
-#: ipalib/plugins/host.py:404
+#: ipalib/plugins/host.py:406
 msgid "Add the host to DNS with this IP address"
 msgstr ""
 
-#: ipalib/plugins/host.py:485
+#: ipalib/plugins/host.py:487
 #, python-format
 msgid "The host was added but the DNS update failed with: %(exc)s"
 msgstr ""
 
-#: ipalib/plugins/host.py:506
+#: ipalib/plugins/host.py:508
 msgid "Delete a host."
 msgstr ""
 
-#: ipalib/plugins/host.py:508
+#: ipalib/plugins/host.py:510
 #, python-format
 msgid "Deleted host \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/host.py:513
+#: ipalib/plugins/host.py:515
 msgid "Remove entries from DNS"
 msgstr ""
 
-#: ipalib/plugins/host.py:618
+#: ipalib/plugins/host.py:620
 msgid "Modify information about a host."
 msgstr ""
 
-#: ipalib/plugins/host.py:621
+#: ipalib/plugins/host.py:623
 #, python-format
 msgid "Modified host \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/host.py:628
+#: ipalib/plugins/host.py:630
 msgid "Kerberos principal name for this host"
 msgstr ""
 
-#: ipalib/plugins/host.py:632
+#: ipalib/plugins/host.py:634
 msgid "Update DNS entries"
 msgstr ""
 
-#: ipalib/plugins/host.py:645
+#: ipalib/plugins/host.py:647
 msgid "Password cannot be set on enrolled host."
 msgstr ""
 
-#: ipalib/plugins/host.py:649
+#: ipalib/plugins/host.py:651
 msgid "cn is immutable"
 msgstr ""
 
-#: ipalib/plugins/host.py:768
+#: ipalib/plugins/host.py:770
 msgid "Search for hosts."
 msgstr ""
 
-#: ipalib/plugins/host.py:772
+#: ipalib/plugins/host.py:774
 #, python-format
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ipalib/plugins/host.py:854
+#: ipalib/plugins/host.py:856
 msgid "Display information about a host."
 msgstr ""
 
-#: ipalib/plugins/host.py:859 ipalib/plugins/service.py:560
+#: ipalib/plugins/host.py:861 ipalib/plugins/service.py:560
 msgid "file to store certificate in"
 msgstr ""
 
-#: ipalib/plugins/host.py:891 ipalib/plugins/service.py:580
+#: ipalib/plugins/host.py:893 ipalib/plugins/service.py:580
 #, python-format
 msgid "Certificate stored in file '%(file)s'"
 msgstr ""
 
-#: ipalib/plugins/host.py:902
+#: ipalib/plugins/host.py:904
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
 msgstr ""
 
-#: ipalib/plugins/host.py:905
+#: ipalib/plugins/host.py:907
 #, python-format
 msgid "Disabled host \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/host.py:998
+#: ipalib/plugins/host.py:1000
 msgid "Add hosts that can manage this host."
 msgstr ""
 
-#: ipalib/plugins/host.py:1013
+#: ipalib/plugins/host.py:1015
 msgid "Remove hosts that can manage this host."
 msgstr ""
 
@@ -5581,7 +5580,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: ipalib/plugins/internal.py:194 ipalib/plugins/internal.py:654
+#: ipalib/plugins/internal.py:194 ipalib/plugins/internal.py:655
 msgid "Disable"
 msgstr ""
 
@@ -5589,7 +5588,7 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
-#: ipalib/plugins/internal.py:196 ipalib/plugins/internal.py:656
+#: ipalib/plugins/internal.py:196 ipalib/plugins/internal.py:657
 msgid "Enable"
 msgstr ""
 
@@ -5950,7 +5949,7 @@ msgstr ""
 msgid "CA Compromise"
 msgstr ""
 
-#: ipalib/plugins/internal.py:320 ipalib/plugins/internal.py:664
+#: ipalib/plugins/internal.py:320 ipalib/plugins/internal.py:665
 msgid "Certificates"
 msgstr ""
 
@@ -6177,8 +6176,8 @@ msgstr ""
 msgid "Forward only"
 msgstr ""
 
-#: ipalib/plugins/internal.py:386 ipalib/plugins/internal.py:587
-#: ipalib/plugins/internal.py:610
+#: ipalib/plugins/internal.py:386 ipalib/plugins/internal.py:588
+#: ipalib/plugins/internal.py:611
 msgid "Options"
 msgstr ""
 
@@ -6271,7 +6270,7 @@ msgid "Group Settings"
 msgstr ""
 
 #: ipalib/plugins/internal.py:415 ipalib/plugins/internal.py:487
-#: ipalib/plugins/internal.py:582
+#: ipalib/plugins/internal.py:583
 msgid "External"
 msgstr ""
 
@@ -6296,7 +6295,7 @@ msgid "Group Type"
 msgstr ""
 
 #: ipalib/plugins/internal.py:423 ipalib/plugins/internal.py:485
-#: ipalib/plugins/internal.py:536 ipalib/plugins/internal.py:578
+#: ipalib/plugins/internal.py:537 ipalib/plugins/internal.py:579
 msgid "Any Host"
 msgstr ""
 
@@ -6305,7 +6304,7 @@ msgid "Any Service"
 msgstr ""
 
 #: ipalib/plugins/internal.py:425 ipalib/plugins/internal.py:486
-#: ipalib/plugins/internal.py:537 ipalib/plugins/internal.py:579
+#: ipalib/plugins/internal.py:538 ipalib/plugins/internal.py:580
 msgid "Anyone"
 msgstr ""
 
@@ -6313,7 +6312,7 @@ msgstr ""
 msgid "Accessing"
 msgstr ""
 
-#: ipalib/plugins/internal.py:427 ipalib/plugins/internal.py:584
+#: ipalib/plugins/internal.py:427 ipalib/plugins/internal.py:585
 msgid "Rule status"
 msgstr ""
 
@@ -6322,7 +6321,7 @@ msgid "Via Service"
 msgstr ""
 
 #: ipalib/plugins/internal.py:429 ipalib/plugins/internal.py:492
-#: ipalib/plugins/internal.py:539 ipalib/plugins/internal.py:591
+#: ipalib/plugins/internal.py:540 ipalib/plugins/internal.py:592
 msgid "Specified Hosts and Groups"
 msgstr ""
 
@@ -6331,11 +6330,11 @@ msgid "Specified Services and Groups"
 msgstr ""
 
 #: ipalib/plugins/internal.py:431 ipalib/plugins/internal.py:493
-#: ipalib/plugins/internal.py:540 ipalib/plugins/internal.py:592
+#: ipalib/plugins/internal.py:541 ipalib/plugins/internal.py:593
 msgid "Specified Users and Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:432 ipalib/plugins/internal.py:593
+#: ipalib/plugins/internal.py:432 ipalib/plugins/internal.py:594
 msgid "Who"
 msgstr ""
 
@@ -6391,11 +6390,11 @@ msgstr ""
 msgid "Host Certificate"
 msgstr ""
 
-#: ipalib/plugins/internal.py:455 ipalib/plugins/internal.py:547
+#: ipalib/plugins/internal.py:455 ipalib/plugins/internal.py:548
 msgid "Host Name"
 msgstr ""
 
-#: ipalib/plugins/internal.py:456 ipalib/plugins/internal.py:545
+#: ipalib/plugins/internal.py:456 ipalib/plugins/internal.py:546
 msgid "Delete Key, Unprovision"
 msgstr ""
 
@@ -6419,7 +6418,7 @@ msgstr ""
 msgid "Kerberos Key"
 msgstr ""
 
-#: ipalib/plugins/internal.py:462 ipalib/plugins/internal.py:548
+#: ipalib/plugins/internal.py:462 ipalib/plugins/internal.py:549
 msgid "Kerberos Key Not Present"
 msgstr ""
 
@@ -6459,7 +6458,7 @@ msgstr ""
 msgid "Set One-Time-Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:473 ipalib/plugins/internal.py:552
+#: ipalib/plugins/internal.py:473 ipalib/plugins/internal.py:553
 msgid "Unprovision"
 msgstr ""
 
@@ -6467,7 +6466,7 @@ msgstr ""
 msgid "Are you sure you want to unprovision this host?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:475 ipalib/plugins/internal.py:554
+#: ipalib/plugins/internal.py:475 ipalib/plugins/internal.py:555
 msgid "Unprovisioning ${entity}"
 msgstr ""
 
@@ -6488,12 +6487,12 @@ msgstr ""
 msgid "Netgroup Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:494 ipalib/plugins/internal.py:541
-#: ipalib/plugins/pwpolicy.py:443 ipalib/plugins/user.py:226
+#: ipalib/plugins/internal.py:494 ipalib/plugins/internal.py:542
+#: ipalib/plugins/pwpolicy.py:444 ipalib/plugins/user.py:226
 msgid "User"
 msgstr ""
 
-#: ipalib/plugins/internal.py:499 ipalib/plugins/internal.py:667
+#: ipalib/plugins/internal.py:499 ipalib/plugins/internal.py:668
 msgid "Identity"
 msgstr ""
 
@@ -6542,448 +6541,452 @@ msgid "Active Directory domain with POSIX attributes"
 msgstr ""
 
 #: ipalib/plugins/internal.py:520
-msgid "Local domain"
+msgid "Detect"
 msgstr ""
 
 #: ipalib/plugins/internal.py:521
-msgid "IPA trust"
+msgid "Local domain"
 msgstr ""
 
 #: ipalib/plugins/internal.py:522
+msgid "IPA trust"
+msgstr ""
+
+#: ipalib/plugins/internal.py:523
 msgid "Active Directory winsync"
 msgstr ""
 
-#: ipalib/plugins/internal.py:525 ipalib/plugins/realmdomains.py:65
+#: ipalib/plugins/internal.py:526 ipalib/plugins/realmdomains.py:65
 #: ipalib/plugins/realmdomains.py:66
 msgid "Realm Domains"
 msgstr ""
 
-#: ipalib/plugins/internal.py:526
+#: ipalib/plugins/internal.py:527
 msgid "Check DNS"
 msgstr ""
 
-#: ipalib/plugins/internal.py:527
+#: ipalib/plugins/internal.py:528
 msgid "Do you also want to perform DNS check?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:528
+#: ipalib/plugins/internal.py:529
 msgid "Force Update"
 msgstr ""
 
-#: ipalib/plugins/internal.py:531
+#: ipalib/plugins/internal.py:532
 msgid "Role Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:544
+#: ipalib/plugins/internal.py:545
 msgid "Service Certificate"
 msgstr ""
 
-#: ipalib/plugins/internal.py:546
+#: ipalib/plugins/internal.py:547
 msgid "Service Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:549
+#: ipalib/plugins/internal.py:550
 msgid "Provisioning"
 msgstr ""
 
-#: ipalib/plugins/internal.py:553
+#: ipalib/plugins/internal.py:554
 msgid "Are you sure you want to unprovision this service?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:555
+#: ipalib/plugins/internal.py:556
 msgid "Service unprovisioned"
 msgstr ""
 
-#: ipalib/plugins/internal.py:556
+#: ipalib/plugins/internal.py:557
 msgid "Kerberos Key Present, Service Provisioned"
 msgstr ""
 
-#: ipalib/plugins/internal.py:559
+#: ipalib/plugins/internal.py:560
 msgid "SSH public keys"
 msgstr ""
 
-#: ipalib/plugins/internal.py:560
+#: ipalib/plugins/internal.py:561
 msgid "SSH public key:"
 msgstr ""
 
-#: ipalib/plugins/internal.py:561
+#: ipalib/plugins/internal.py:562
 msgid "Set SSH key"
 msgstr ""
 
-#: ipalib/plugins/internal.py:562
+#: ipalib/plugins/internal.py:563
 msgid "Show/Set key"
 msgstr ""
 
-#: ipalib/plugins/internal.py:563
+#: ipalib/plugins/internal.py:564
 msgid "Modified: key not set"
 msgstr ""
 
-#: ipalib/plugins/internal.py:564
+#: ipalib/plugins/internal.py:565
 msgid "Modified"
 msgstr ""
 
-#: ipalib/plugins/internal.py:565
+#: ipalib/plugins/internal.py:566
 msgid "New: key not set"
 msgstr ""
 
-#: ipalib/plugins/internal.py:566
+#: ipalib/plugins/internal.py:567
 msgid "New: key set"
 msgstr ""
 
-#: ipalib/plugins/internal.py:569
+#: ipalib/plugins/internal.py:570
 msgid "Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:572 ipalib/plugins/sudocmdgroup.py:82
+#: ipalib/plugins/internal.py:573 ipalib/plugins/sudocmdgroup.py:82
 msgid "Commands"
 msgstr ""
 
-#: ipalib/plugins/internal.py:575
+#: ipalib/plugins/internal.py:576
 msgid "Allow"
 msgstr ""
 
-#: ipalib/plugins/internal.py:576
+#: ipalib/plugins/internal.py:577
 msgid "Any Command"
 msgstr ""
 
-#: ipalib/plugins/internal.py:577
+#: ipalib/plugins/internal.py:578
 msgid "Any Group"
 msgstr ""
 
-#: ipalib/plugins/internal.py:580
+#: ipalib/plugins/internal.py:581
 msgid "Run Commands"
 msgstr ""
 
-#: ipalib/plugins/internal.py:581
+#: ipalib/plugins/internal.py:582
 msgid "Deny"
 msgstr ""
 
-#: ipalib/plugins/internal.py:583
+#: ipalib/plugins/internal.py:584
 msgid "Access this host"
 msgstr ""
 
-#: ipalib/plugins/internal.py:585
+#: ipalib/plugins/internal.py:586
 msgid "Option added"
 msgstr ""
 
-#: ipalib/plugins/internal.py:586
+#: ipalib/plugins/internal.py:587
 msgid "${count} option(s) removed"
 msgstr ""
 
-#: ipalib/plugins/internal.py:588
+#: ipalib/plugins/internal.py:589
 msgid "As Whom"
 msgstr ""
 
-#: ipalib/plugins/internal.py:589
+#: ipalib/plugins/internal.py:590
 msgid "Specified Commands and Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:590
+#: ipalib/plugins/internal.py:591
 msgid "Specified Groups"
 msgstr ""
 
-#: ipalib/plugins/internal.py:596
+#: ipalib/plugins/internal.py:597
 msgid "Account"
 msgstr ""
 
-#: ipalib/plugins/internal.py:597
+#: ipalib/plugins/internal.py:598
 msgid "Administrative account"
 msgstr ""
 
-#: ipalib/plugins/internal.py:598
+#: ipalib/plugins/internal.py:599
 msgid "SID blacklists"
 msgstr ""
 
-#: ipalib/plugins/internal.py:599
+#: ipalib/plugins/internal.py:600
 msgid "Trust Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:600 ipalib/plugins/realmdomains.py:73
+#: ipalib/plugins/internal.py:601 ipalib/plugins/realmdomains.py:73
 #: ipalib/plugins/trust.py:789
 msgid "Domain"
 msgstr ""
 
-#: ipalib/plugins/internal.py:601
+#: ipalib/plugins/internal.py:602
 msgid "Establish using"
 msgstr ""
 
-#: ipalib/plugins/internal.py:602 ipalib/plugins/trust.py:211
+#: ipalib/plugins/internal.py:603 ipalib/plugins/trust.py:211
 msgid "Domain NetBIOS name"
 msgstr ""
 
-#: ipalib/plugins/internal.py:603 ipalib/plugins/trust.py:215
+#: ipalib/plugins/internal.py:604 ipalib/plugins/trust.py:215
 msgid "Domain Security Identifier"
 msgstr ""
 
-#: ipalib/plugins/internal.py:604
+#: ipalib/plugins/internal.py:605
 msgid "Pre-shared password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:605 ipalib/plugins/trust.py:134
+#: ipalib/plugins/internal.py:606 ipalib/plugins/trust.py:134
 msgid "Trust direction"
 msgstr ""
 
-#: ipalib/plugins/internal.py:606 ipalib/plugins/trust.py:138
+#: ipalib/plugins/internal.py:607 ipalib/plugins/trust.py:138
 msgid "Trust status"
 msgstr ""
 
-#: ipalib/plugins/internal.py:607 ipalib/plugins/trust.py:136
+#: ipalib/plugins/internal.py:608 ipalib/plugins/trust.py:136
 msgid "Trust type"
 msgstr ""
 
-#: ipalib/plugins/internal.py:613
+#: ipalib/plugins/internal.py:614
 msgid "Account Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:614
+#: ipalib/plugins/internal.py:615
 msgid "Account Status"
 msgstr ""
 
-#: ipalib/plugins/internal.py:615
+#: ipalib/plugins/internal.py:616
 msgid "Contact Settings"
 msgstr ""
 
-#: ipalib/plugins/internal.py:616
+#: ipalib/plugins/internal.py:617
 msgid "Employee Information"
 msgstr ""
 
-#: ipalib/plugins/internal.py:617
+#: ipalib/plugins/internal.py:618
 msgid "Error changing account status"
 msgstr ""
 
-#: ipalib/plugins/internal.py:618
+#: ipalib/plugins/internal.py:619
 msgid "Password expiration"
 msgstr ""
 
-#: ipalib/plugins/internal.py:619
+#: ipalib/plugins/internal.py:620
 msgid "Mailing Address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:620
+#: ipalib/plugins/internal.py:621
 msgid "Misc. Information"
 msgstr ""
 
-#: ipalib/plugins/internal.py:621
+#: ipalib/plugins/internal.py:622
 msgid ""
 "Are you sure you want to ${action} the user?<br/>The change will take effect "
 "immediately."
 msgstr ""
 
-#: ipalib/plugins/internal.py:622
+#: ipalib/plugins/internal.py:623
 msgid "Click to ${action}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:626 ipalib/plugins/passwd.py:80
+#: ipalib/plugins/internal.py:627 ipalib/plugins/passwd.py:80
 msgid "Current Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:627
+#: ipalib/plugins/internal.py:628
 msgid "Current password is required"
 msgstr ""
 
-#: ipalib/plugins/internal.py:628
+#: ipalib/plugins/internal.py:629
 msgid "Your password expires in ${days} days."
 msgstr ""
 
-#: ipalib/plugins/internal.py:629
+#: ipalib/plugins/internal.py:630
 msgid "The password or username you entered is incorrect."
 msgstr ""
 
-#: ipalib/plugins/internal.py:630 ipalib/plugins/passwd.py:77
+#: ipalib/plugins/internal.py:631 ipalib/plugins/passwd.py:77
 msgid "New Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:631
+#: ipalib/plugins/internal.py:632
 msgid "New password is required"
 msgstr ""
 
-#: ipalib/plugins/internal.py:633
+#: ipalib/plugins/internal.py:634
 msgid "Password change complete"
 msgstr ""
 
-#: ipalib/plugins/internal.py:634
+#: ipalib/plugins/internal.py:635
 msgid "Passwords must match"
 msgstr ""
 
-#: ipalib/plugins/internal.py:635
+#: ipalib/plugins/internal.py:636
 msgid "Password reset was not successful."
 msgstr ""
 
-#: ipalib/plugins/internal.py:636
+#: ipalib/plugins/internal.py:637
 msgid "Reset Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:637
+#: ipalib/plugins/internal.py:638
 msgid "Reset your password."
 msgstr ""
 
-#: ipalib/plugins/internal.py:638
+#: ipalib/plugins/internal.py:639
 msgid "Verify Password"
 msgstr ""
 
-#: ipalib/plugins/internal.py:641
+#: ipalib/plugins/internal.py:642
 msgid "Are you sure you want to delete selected entries?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:642
+#: ipalib/plugins/internal.py:643
 msgid "${count} item(s) deleted"
 msgstr ""
 
-#: ipalib/plugins/internal.py:643
+#: ipalib/plugins/internal.py:644
 msgid "Are you sure you want to disable selected entries?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:644
+#: ipalib/plugins/internal.py:645
 msgid "${count} item(s) disabled"
 msgstr ""
 
-#: ipalib/plugins/internal.py:645
+#: ipalib/plugins/internal.py:646
 msgid "Are you sure you want to enable selected entries?"
 msgstr ""
 
-#: ipalib/plugins/internal.py:646
+#: ipalib/plugins/internal.py:647
 msgid "${count} item(s) enabled"
 msgstr ""
 
-#: ipalib/plugins/internal.py:647
+#: ipalib/plugins/internal.py:648
 msgid "Some entries were not deleted"
 msgstr ""
 
-#: ipalib/plugins/internal.py:648
+#: ipalib/plugins/internal.py:649
 msgid "Quick Links"
 msgstr ""
 
-#: ipalib/plugins/internal.py:649
+#: ipalib/plugins/internal.py:650
 msgid "Select All"
 msgstr ""
 
-#: ipalib/plugins/internal.py:650
+#: ipalib/plugins/internal.py:651
 msgid ""
 "Query returned more results than the configured size limit. Displaying the "
 "first ${counter} results."
 msgstr ""
 
-#: ipalib/plugins/internal.py:651
+#: ipalib/plugins/internal.py:652
 msgid "Unselect All"
 msgstr ""
 
-#: ipalib/plugins/internal.py:655
+#: ipalib/plugins/internal.py:656
 msgid "Disabled"
 msgstr ""
 
-#: ipalib/plugins/internal.py:661
+#: ipalib/plugins/internal.py:662
 msgid "Audit"
 msgstr ""
 
-#: ipalib/plugins/internal.py:662
+#: ipalib/plugins/internal.py:663
 msgid "Automember"
 msgstr ""
 
-#: ipalib/plugins/internal.py:663
+#: ipalib/plugins/internal.py:664
 msgid "Automount"
 msgstr ""
 
-#: ipalib/plugins/internal.py:665
+#: ipalib/plugins/internal.py:666
 msgid "DNS"
 msgstr ""
 
-#: ipalib/plugins/internal.py:666
+#: ipalib/plugins/internal.py:667
 msgid "Host Based Access Control"
 msgstr ""
 
-#: ipalib/plugins/internal.py:668
+#: ipalib/plugins/internal.py:669
 msgid "IPA Server"
 msgstr ""
 
-#: ipalib/plugins/internal.py:669
+#: ipalib/plugins/internal.py:670
 msgid "Policy"
 msgstr ""
 
-#: ipalib/plugins/internal.py:670
+#: ipalib/plugins/internal.py:671
 msgid "Role Based Access Control"
 msgstr ""
 
-#: ipalib/plugins/internal.py:671
+#: ipalib/plugins/internal.py:672
 msgid "Sudo"
 msgstr ""
 
-#: ipalib/plugins/internal.py:672 ipalib/plugins/trust.py:200
+#: ipalib/plugins/internal.py:673 ipalib/plugins/trust.py:200
 msgid "Trusts"
 msgstr ""
 
-#: ipalib/plugins/internal.py:674
+#: ipalib/plugins/internal.py:675
 msgid "True"
 msgstr ""
 
-#: ipalib/plugins/internal.py:676
+#: ipalib/plugins/internal.py:677
 msgid "Next"
 msgstr ""
 
-#: ipalib/plugins/internal.py:677
+#: ipalib/plugins/internal.py:678
 msgid "Page"
 msgstr ""
 
-#: ipalib/plugins/internal.py:678
+#: ipalib/plugins/internal.py:679
 msgid "Prev"
 msgstr ""
 
-#: ipalib/plugins/internal.py:679
+#: ipalib/plugins/internal.py:680
 msgid "undo"
 msgstr ""
 
-#: ipalib/plugins/internal.py:680
+#: ipalib/plugins/internal.py:681
 msgid "undo all"
 msgstr ""
 
-#: ipalib/plugins/internal.py:682
+#: ipalib/plugins/internal.py:683
 msgid "Text does not match field pattern"
 msgstr ""
 
-#: ipalib/plugins/internal.py:683
+#: ipalib/plugins/internal.py:684
 msgid "Must be a decimal number"
 msgstr ""
 
-#: ipalib/plugins/internal.py:684
+#: ipalib/plugins/internal.py:685
 msgid "Must be an integer"
 msgstr ""
 
-#: ipalib/plugins/internal.py:685
+#: ipalib/plugins/internal.py:686
 msgid "Not a valid IP address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:686
+#: ipalib/plugins/internal.py:687
 msgid "Not a valid IPv4 address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:687
+#: ipalib/plugins/internal.py:688
 msgid "Not a valid IPv6 address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:688
+#: ipalib/plugins/internal.py:689
 msgid "Maximum value is ${value}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:689
+#: ipalib/plugins/internal.py:690
 msgid "Minimum value is ${value}"
 msgstr ""
 
-#: ipalib/plugins/internal.py:690
+#: ipalib/plugins/internal.py:691
 msgid "Not a valid network address"
 msgstr ""
 
-#: ipalib/plugins/internal.py:691
+#: ipalib/plugins/internal.py:692
 msgid "'${port}' is not a valid port"
 msgstr ""
 
-#: ipalib/plugins/internal.py:692
+#: ipalib/plugins/internal.py:693
 msgid "Required field"
 msgstr ""
 
-#: ipalib/plugins/internal.py:693
+#: ipalib/plugins/internal.py:694
 msgid "Unsupported value"
 msgstr ""
 
-#: ipalib/plugins/internal.py:698
+#: ipalib/plugins/internal.py:699
 msgid "Dict of I18N messages"
 msgstr ""
 
@@ -8034,75 +8037,75 @@ msgstr ""
 msgid "Maximum password lifetime (in days)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:241
+#: ipalib/plugins/pwpolicy.py:242
 msgid "Min lifetime (hours)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:242
+#: ipalib/plugins/pwpolicy.py:243
 msgid "Minimum password lifetime (in hours)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:247
+#: ipalib/plugins/pwpolicy.py:248
 msgid "History size"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:248
+#: ipalib/plugins/pwpolicy.py:249
 msgid "Password history size"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:253
+#: ipalib/plugins/pwpolicy.py:254
 msgid "Character classes"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:254
+#: ipalib/plugins/pwpolicy.py:255
 msgid "Minimum number of character classes"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:260
+#: ipalib/plugins/pwpolicy.py:261
 msgid "Min length"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:261
+#: ipalib/plugins/pwpolicy.py:262
 msgid "Minimum length of password"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:267
+#: ipalib/plugins/pwpolicy.py:268
 msgid "Priority of the policy (higher number means lower priority"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:321
+#: ipalib/plugins/pwpolicy.py:322
 msgid "Maximum password life must be greater than minimum."
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:340
+#: ipalib/plugins/pwpolicy.py:341
 msgid "Add a new group password policy."
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:367
+#: ipalib/plugins/pwpolicy.py:368
 msgid "Delete a group password policy."
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:379
+#: ipalib/plugins/pwpolicy.py:380
 msgid "cannot delete global password policy"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:395
+#: ipalib/plugins/pwpolicy.py:396
 msgid "Modify a group password policy."
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:406
+#: ipalib/plugins/pwpolicy.py:407
 msgid "priority cannot be set on global policy"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:439
+#: ipalib/plugins/pwpolicy.py:440
 msgid "Display information about password policy."
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:444
+#: ipalib/plugins/pwpolicy.py:445
 msgid "Display effective policy for a specific user"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:469
+#: ipalib/plugins/pwpolicy.py:470
 msgid "Search for group password policies."
 msgstr ""
 
@@ -9693,6 +9696,26 @@ msgstr ""
 msgid "Determine whether ipa-adtrust-install has been run on this system"
 msgstr ""
 
+#: ipalib/plugins/trust.py:998
+msgid ""
+"Determine whether Schema Compatibility plugin is configured to serve trusted "
+"domain users and groups"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1051
+msgid "Determine whether ipa-adtrust-install has been run with sidgen task"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1067
+msgid "sidgen_was_run"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1069
+msgid ""
+"This command relies on the existence of the \"editors\" group, but this "
+"group was not found."
+msgstr ""
+
 #: ipalib/plugins/user.py:41
 msgid ""
 "\n"
@@ -10195,109 +10218,109 @@ msgid ""
 "                  message \"%(message)s\" (both may be \"None\")"
 msgstr ""
 
-#: ipaserver/dcerpc.py:182
+#: ipaserver/dcerpc.py:194
 msgid ""
 "communication with trusted domains is allowed for Trusts administrator group "
 "members only"
 msgstr ""
 
-#: ipaserver/dcerpc.py:202
+#: ipaserver/dcerpc.py:214
 msgid "no trusted domain is configured"
 msgstr ""
 
-#: ipaserver/dcerpc.py:209
+#: ipaserver/dcerpc.py:221
 msgid "domain is not configured"
 msgstr ""
 
-#: ipaserver/dcerpc.py:216
+#: ipaserver/dcerpc.py:228
 msgid "SID is not valid"
 msgstr ""
 
-#: ipaserver/dcerpc.py:231
+#: ipaserver/dcerpc.py:243
 msgid "SID does not match exactlywith any trusted domain's SID"
 msgstr ""
 
-#: ipaserver/dcerpc.py:242
+#: ipaserver/dcerpc.py:254
 msgid "SID does not match any trusted domain"
 msgstr ""
 
-#: ipaserver/dcerpc.py:282 ipaserver/dcerpc.py:288 ipaserver/dcerpc.py:550
+#: ipaserver/dcerpc.py:294 ipaserver/dcerpc.py:300 ipaserver/dcerpc.py:562
 msgid "Trust setup"
 msgstr ""
 
-#: ipaserver/dcerpc.py:283
+#: ipaserver/dcerpc.py:295
 msgid "Our domain is not configured"
 msgstr ""
 
-#: ipaserver/dcerpc.py:289
+#: ipaserver/dcerpc.py:301
 msgid "No trusted domain is not configured"
 msgstr ""
 
-#: ipaserver/dcerpc.py:294 ipaserver/dcerpc.py:309 ipaserver/dcerpc.py:326
-#: ipaserver/dcerpc.py:338 ipaserver/dcerpc.py:345 ipaserver/dcerpc.py:390
+#: ipaserver/dcerpc.py:306 ipaserver/dcerpc.py:321 ipaserver/dcerpc.py:338
+#: ipaserver/dcerpc.py:350 ipaserver/dcerpc.py:357 ipaserver/dcerpc.py:402
 msgid "trusted domain object"
 msgstr ""
 
-#: ipaserver/dcerpc.py:295
+#: ipaserver/dcerpc.py:307
 msgid "domain is not trusted"
 msgstr ""
 
-#: ipaserver/dcerpc.py:310
+#: ipaserver/dcerpc.py:322
 msgid "no trusted domain matched the specified flat name"
 msgstr ""
 
-#: ipaserver/dcerpc.py:312
+#: ipaserver/dcerpc.py:324
 msgid "trusted domain object not found"
 msgstr ""
 
-#: ipaserver/dcerpc.py:327 ipaserver/dcerpc.py:391
+#: ipaserver/dcerpc.py:339 ipaserver/dcerpc.py:403
 msgid "Ambiguous search, user domain was not specified"
 msgstr ""
 
-#: ipaserver/dcerpc.py:339
+#: ipaserver/dcerpc.py:351
 msgid "Trusted domain did not return a unique object"
 msgstr ""
 
-#: ipaserver/dcerpc.py:346
+#: ipaserver/dcerpc.py:358
 msgid "Trusted domain did not return a valid SID for the object"
 msgstr ""
 
-#: ipaserver/dcerpc.py:376 ipaserver/dcerpc.py:386
+#: ipaserver/dcerpc.py:388 ipaserver/dcerpc.py:398
 msgid "trusted domain user not found"
 msgstr ""
 
-#: ipaserver/dcerpc.py:486
+#: ipaserver/dcerpc.py:498
 #, python-format
 msgid ""
 "KDC for %(domain)s denied trust account for IPA domain with a message "
 "'%(message)s'"
 msgstr ""
 
-#: ipaserver/dcerpc.py:551
+#: ipaserver/dcerpc.py:563
 msgid "Cannot retrieve trusted domain GC list"
 msgstr ""
 
-#: ipaserver/dcerpc.py:692
+#: ipaserver/dcerpc.py:704
 msgid "CIFS credentials object"
 msgstr ""
 
-#: ipaserver/dcerpc.py:725
+#: ipaserver/dcerpc.py:737
 #, python-format
 msgid "CIFS server %(host)s denied your credentials"
 msgstr ""
 
-#: ipaserver/dcerpc.py:729
+#: ipaserver/dcerpc.py:741
 #, python-format
 msgid "Cannot establish LSA connection to %(host)s. Is CIFS server running?"
 msgstr ""
 
-#: ipaserver/dcerpc.py:881
+#: ipaserver/dcerpc.py:899
 #, python-format
 msgid ""
 "the IPA server and the remote domain cannot share the same NetBIOS name: %s"
 msgstr ""
 
-#: ipaserver/install/certs.py:676
+#: ipaserver/install/certs.py:639
 #, python-format
 msgid "Unable to communicate with CMS (%s)"
 msgstr ""
