@@ -280,7 +280,7 @@ class test_Command(ClassChecker):
 
         # Test ValueError, required after optional:
         e = raises(ValueError, self.get_instance, args=('arg1?', 'arg2'))
-        assert str(e) == 'arg2: required argument after optional'
+        assert str(e) == "arg2: required argument after optional in %s arguments ['arg1?', 'arg2']" % (self.get_instance().name)
 
          # Test ValueError, scalar after multivalue:
         e = raises(ValueError, self.get_instance, args=('arg1+', 'arg2'))
