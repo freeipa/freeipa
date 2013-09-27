@@ -345,7 +345,20 @@ sides.
                          base_dn = DN(api.env.container_trusts, api.env.basedn),
                          filter = trust_filter)
 
+
         result['result'] = entry_to_dict(trusts[0][1], **options)
+        if options.get('trust_type') == u'ad':
+            domains = fetch_domains_from_trust(self, self.trustinstance, result['result'], **options)
+            if domains and len(domains) > 0:
+                for dom in domains:
+                    range_name = dom['cn'][0].upper() + '_id_range'
+                    range_type=options.get('range_type', u'ipa-ad-trust')
+                    dom_sid = dom['ipanttrusteddomainsid'][0]
+                    try:
+                        self.add_range(range_name, dom_sid, range_type=range_type)
+                    except errors.DuplicateEntry:
+                        pass
+
         result['result']['trusttype'] = [trust_type_string(result['result']['ipanttrusttype'][0])]
         result['result']['trustdirection'] = [trust_direction_string(result['result']['ipanttrustdirection'][0])]
         result['result']['truststatus'] = [trust_status_string(result['verified'])]
@@ -446,7 +459,7 @@ sides.
         except errors.NotFound:
             old_range = None
 
-        if options.get('type') == u'ad':
+        if options.get('trust_type') == u'ad':
             if range_type and range_type not in (u'ipa-ad-trust',
                                                  u'ipa-ad-trust-posix'):
                 raise errors.ValidationError(
@@ -1179,9 +1192,13 @@ class trustdomain_del(LDAPDelete):
 api.register(trustdomain_del)
 
 
-def fetch_domains_from_trust(self, trustinstance, trust_entry):
+def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
     trust_name = trust_entry['cn'][0]
-    domains = ipaserver.dcerpc.fetch_domains(self.api, trustinstance.local_flatname, trust_name)
+    creds = None
+    password = options.get('realm_password', None)
+    if password:
+        creds = u"%s%%%s" % (options.get('realm_admin'), password)
+    domains = ipaserver.dcerpc.fetch_domains(self.api, trustinstance.local_flatname, trust_name, creds=creds)
     result = []
     if not domains:
         return None
