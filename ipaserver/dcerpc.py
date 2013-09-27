@@ -165,8 +165,7 @@ class DomainValidator(object):
                 base_dn=cn_trust,
                 attrs_list=[self.ATTR_TRUSTED_SID,
                             self.ATTR_FLATNAME,
-                            self.ATTR_TRUST_PARTNER,
-                            self.ATTR_TRUST_AUTHOUT]
+                            self.ATTR_TRUST_PARTNER]
                 )
 
             # We need to use case-insensitive dictionary since we use
@@ -185,18 +184,8 @@ class DomainValidator(object):
                                  "attribute: %s", dn, e)
                     continue
 
-                trust_authout = entry.get(self.ATTR_TRUST_AUTHOUT, [None])[0]
-
-                # We were able to read all Trusted domain attributes but the
-                # secret User is not member of trust admins group
-                if trust_authout is None:
-                    raise errors.ACIError(
-                        info=_('communication with trusted domains is allowed '
-                               'for Trusts administrator group members only'))
-
                 result[trust_partner] = (flatname_normalized,
-                                         security.dom_sid(trusted_sid),
-                                         trust_authout)
+                                         security.dom_sid(trusted_sid))
             return result
         except errors.NotFound, e:
             return []
@@ -462,43 +451,6 @@ class DomainValidator(object):
         ]
         return u'S-%d-%d-%s' % ( sid_rev_num, ia, '-'.join([str(s) for s in subs]),)
 
-    def __extract_trusted_auth(self, info):
-        """
-        Returns in clear trusted domain account credentials
-        """
-        clear = None
-        auth = drsblobs.trustAuthInOutBlob()
-        auth.__ndr_unpack__(info['auth'])
-        auth_array = auth.current.array[0]
-        if auth_array.AuthType == lsa.TRUST_AUTH_TYPE_CLEAR:
-            clear = ''.join(map(chr, auth_array.AuthInfo.password)).decode('utf-16-le')
-        return clear
-
-    def __kinit_as_trusted_account(self, info, password):
-        """
-        Initializes ccache with trusted domain account credentials.
-
-        Applies session code defaults for ccache directory and naming prefix.
-        Session code uses krbccache_prefix+<pid>, we use
-        krbccache_prefix+<TD>+<domain netbios name> so there is no clash
-
-        Returns tuple (ccache name, principal) where (None, None) signifes an error
-        on ccache initialization
-        """
-        ccache_name = os.path.join(krbccache_dir, "%sTD%s" % (krbccache_prefix, info['name'][0]))
-        principal = '%s$@%s' % (self.flatname, info['dns_domain'].upper())
-        (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kinit', principal],
-                                                   env={'KRB5CCNAME':ccache_name},
-                                                   stdin=password, raiseonerr=False)
-        if returncode == 0:
-            return (ccache_name, principal)
-        else:
-            if returncode == 1:
-                raise errors.ACIError(
-                   info=_("KDC for %(domain)s denied trust account for IPA domain with a message '%(message)s'") %
-                        dict(domain=info['dns_domain'],message=stderr.strip()))
-            return (None, None)
-
     def kinit_as_http(self, domain):
         """
         Initializes ccache with http service credentials.
@@ -544,13 +496,10 @@ class DomainValidator(object):
             return (None, None)
 
     def search_in_dc(self, domain, filter, attrs, scope, basedn=None,
-                     use_http=False, quiet=False):
+                     quiet=False):
         """
         Perform LDAP search in a trusted domain `domain' Domain Controller.
         Returns resulting entries or None.
-
-        If use_http is set to True, the search is conducted using
-        HTTP service credentials.
         """
 
         entries = None
@@ -565,7 +514,6 @@ class DomainValidator(object):
         for (host, port) in info['gc']:
             entries = self.__search_in_dc(info, host, port, filter, attrs,
                                           scope, basedn=basedn,
-                                          use_http=use_http,
                                           quiet=quiet)
             if entries:
                 break
@@ -573,22 +521,13 @@ class DomainValidator(object):
         return entries
 
     def __search_in_dc(self, info, host, port, filter, attrs, scope,
-                       basedn=None, use_http=False, quiet=False):
+                       basedn=None, quiet=False):
         """
         Actual search in AD LDAP server, using SASL GSSAPI authentication
         Returns LDAP result or None.
         """
 
-        if use_http:
-            (ccache_name, principal) = self.kinit_as_http(info['dns_domain'])
-        else:
-            auth = self.__extract_trusted_auth(info)
-
-            if not auth:
-                return None
-
-            (ccache_name, principal) = self.__kinit_as_trusted_account(info,
-                                                                       auth)
+        (ccache_name, principal) = self.kinit_as_http(info['dns_domain'])
 
         if ccache_name:
             with installutils.private_ccache(path=ccache_name):
@@ -626,7 +565,6 @@ class DomainValidator(object):
         Returns dictionary with following keys
              name       -- NetBIOS name of the trusted domain
              dns_domain -- DNS name of the trusted domain
-             auth       -- encrypted credentials for trusted domain account
              gc         -- array of tuples (server, port) for Global Catalog
         """
         if domain in self._info:
@@ -653,7 +591,6 @@ class DomainValidator(object):
             self._domains = self.get_trusted_domains()
 
         info = dict()
-        info['auth'] = self._domains[domain][2]
         servers = []
 
         if result:
@@ -1125,7 +1062,7 @@ class TrustDomainJoins(object):
         Generate list of records for forest trust information about
         our realm domains. Note that the list generated currently
         includes only top level domains, no exclusion domains, and no TDO objects
-        as we handle the latter in a separte way
+        as we handle the latter in a separate way
         """
         if self.local_domain.read_only:
             return
@@ -1133,7 +1070,6 @@ class TrustDomainJoins(object):
 	self.local_domain.ftinfo_records = []
 
         realm_domains = self.api.Command.realmdomains_show()['result']
-        trustconfig = self.api.Command.trustconfig_show()['result']
         # Use realmdomains' modification timestamp to judge records last update time
         (dn, entry_attrs) = self.api.Backend.ldap2.get_entry(realm_domains['dn'], ['modifyTimestamp'])
         # Convert the timestamp to Windows 64-bit timestamp format

@@ -551,7 +551,6 @@ sides.
                                                           None,
                                                           SCOPE_SUBTREE,
                                                           basedn=info_dn,
-                                                          use_http=True,
                                                           quiet=True)
 
                 if info_list:
