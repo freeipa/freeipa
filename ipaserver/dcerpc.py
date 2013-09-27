@@ -939,7 +939,8 @@ class TrustDomainInstance(object):
             return True
         return False
 
-def fetch_domains(api, mydomain, trustdomain):
+
+def fetch_domains(api, mydomain, trustdomain, creds=None):
     trust_flags = dict(
                 NETR_TRUST_FLAG_IN_FOREST = 0x00000001,
                 NETR_TRUST_FLAG_OUTBOUND  = 0x00000002,
@@ -959,38 +960,51 @@ def fetch_domains(api, mydomain, trustdomain):
                 NETR_TRUST_ATTRIBUTE_WITHIN_FOREST      = 0x00000020,
                 NETR_TRUST_ATTRIBUTE_TREAT_AS_EXTERNAL  = 0x00000040)
 
-    domval = DomainValidator(api)
-    (ccache_name, principal) = domval.kinit_as_http(trustdomain)
-    if ccache_name:
-        with installutils.private_ccache(path=ccache_name):
-            td = TrustDomainInstance('')
-            td.parm.set('workgroup', mydomain)
-            td.creds = credentials.Credentials()
-            td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
-            td.creds.guess(td.parm)
-            netrc = net.Net(creds=td.creds, lp=td.parm)
-            try:
-                result = netrc.finddc(domain=trustdomain, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
-            except RuntimeError, e:
-                raise assess_dcerpc_exception(message=str(e))
-            if not result:
-                return None
-            td.retrieve(unicode(result.pdc_dns_name))
+    def communicate(td):
+        td.creds.guess(td.parm)
+        netrc = net.Net(creds=td.creds, lp=td.parm)
+        try:
+            result = netrc.finddc(domain=trustdomain, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+        except RuntimeError, e:
+            raise assess_dcerpc_exception(message=str(e))
+        if not result:
+            return None
+        td.retrieve(unicode(result.pdc_dns_name))
 
-            netr_pipe = netlogon.netlogon(td.binding, td.parm, td.creds)
-            domains = netr_pipe.netr_DsrEnumerateDomainTrusts(td.binding, 1)
+        netr_pipe = netlogon.netlogon(td.binding, td.parm, td.creds)
+        domains = netr_pipe.netr_DsrEnumerateDomainTrusts(td.binding, 1)
+        return domains
 
-            result = []
-            for t in domains.array:
-                if ((t.trust_attributes & trust_attributes['NETR_TRUST_ATTRIBUTE_WITHIN_FOREST']) and
-                    (t.trust_flags & trust_flags['NETR_TRUST_FLAG_IN_FOREST'])):
-                    res = dict()
-                    res['cn'] = unicode(t.dns_name)
-                    res['ipantflatname'] = unicode(t.netbios_name)
-                    res['ipanttrusteddomainsid'] = unicode(t.sid)
-                    res['ipanttrustpartner'] = res['cn']
-                    result.append(res)
-            return result
+    domains = None
+    td = TrustDomainInstance('')
+    td.parm.set('workgroup', mydomain)
+    td.creds = credentials.Credentials()
+    if creds is None:
+        domval = DomainValidator(api)
+        (ccache_name, principal) = domval.kinit_as_http(trustdomain)
+        td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+        if ccache_name:
+            with installutils.private_ccache(path=ccache_name):
+                domains = communicate(td)
+    else:
+        td.creds.set_kerberos_state(credentials.DONT_USE_KERBEROS)
+        td.creds.parse_string(creds)
+        domains = communicate(td)
+
+    if domains is None:
+        return None
+
+    result = []
+    for t in domains.array:
+        if ((t.trust_attributes & trust_attributes['NETR_TRUST_ATTRIBUTE_WITHIN_FOREST']) and
+            (t.trust_flags & trust_flags['NETR_TRUST_FLAG_IN_FOREST'])):
+            res = dict()
+            res['cn'] = unicode(t.dns_name)
+            res['ipantflatname'] = unicode(t.netbios_name)
+            res['ipanttrusteddomainsid'] = unicode(t.sid)
+            res['ipanttrustpartner'] = res['cn']
+            result.append(res)
+    return result
 
 
 class TrustDomainJoins(object):
