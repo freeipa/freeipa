@@ -2026,6 +2026,10 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 	if (!res) {
 		return false;
 	}
+	if (td->trust_direction == 0) {
+		/* attribute wasn't present, set default value */
+		td->trust_direction = LSA_TRUST_DIRECTION_INBOUND | LSA_TRUST_DIRECTION_OUTBOUND;
+	}
 
 	res = get_uint32_t_from_ldap_msg(ldap_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_ATTRIBUTES,
@@ -2033,12 +2037,20 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 	if (!res) {
 		return false;
 	}
+	if (td->trust_attributes == 0) {
+		/* attribute wasn't present, set default value */
+		td->trust_attributes = LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE;
+	}
 
 	res = get_uint32_t_from_ldap_msg(ldap_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_TYPE,
 					 &td->trust_type);
 	if (!res) {
 		return false;
+	}
+	if (td->trust_type == 0) {
+		/* attribute wasn't present, set default value */
+		td->trust_type = LSA_TRUST_TYPE_UPLEVEL;
 	}
 
 	td->trust_posix_offset = talloc_zero(td, uint32_t);
