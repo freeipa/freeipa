@@ -602,7 +602,7 @@ kdb_vftabl kdb_function_table = {
     NULL,                               /* decrypt_key_data */
     NULL,                               /* encrypt_key_data */
     ipadb_sign_authdata,                /* sign_authdata */
-    NULL,                               /* check_transited_realms */
+    ipadb_check_transited_realms,       /* check_transited_realms */
     ipadb_check_policy_as,              /* check_policy_as */
     NULL,                               /* check_policy_tgs */
     ipadb_audit_as_req,                 /* audit_as_req */
