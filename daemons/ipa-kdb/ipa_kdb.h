@@ -253,7 +253,10 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
 krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit);
 
 void ipadb_mspac_struct_free(struct ipadb_mspac **mspac);
-
+krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
+					     const krb5_data *tr_contents,
+					     const krb5_data *client_realm,
+					     const krb5_data *server_realm);
 /* DELEGATION CHECKS */
 
 krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,

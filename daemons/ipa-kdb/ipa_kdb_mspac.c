@@ -2490,3 +2490,66 @@ done:
     ldap_msgfree(result);
     return kerr;
 }
+
+krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
+					     const krb5_data *tr_contents,
+					     const krb5_data *client_realm,
+					     const krb5_data *server_realm)
+{
+	struct ipadb_context *ipactx;
+	bool has_transited_contents, has_client_realm, has_server_realm;
+        int i;
+        krb5_error_code ret;
+
+        ipactx = ipadb_get_context(kcontext);
+        if (!ipactx || !ipactx->mspac) {
+            return KRB5_KDB_DBNOTINITED;
+        }
+
+	has_transited_contents = false;
+	has_client_realm = false;
+	has_server_realm = false;
+
+	/* First, compare client or server realm with ours */
+	if (strncasecmp(client_realm->data, ipactx->realm, client_realm->length) == 0) {
+		has_client_realm = true;
+	}
+	if (strncasecmp(server_realm->data, ipactx->realm, server_realm->length) == 0) {
+		has_server_realm = true;
+	}
+
+	if ((tr_contents->length == 0) || (tr_contents->data[0] == '\0')) {
+		/* For in-realm case allow transition */
+		if (has_client_realm && has_server_realm) {
+			return 0;
+		}
+		/* Since transited realm is empty, we don't need to check for it, it is a direct trust case */
+		has_transited_contents = true;
+	}
+
+	if (!ipactx->mspac || !ipactx->mspac->trusts) {
+		return KRB5_PLUGIN_NO_HANDLE;
+	}
+
+	/* Iterate through list of trusts and check if any of input belongs to any of the trust */
+	for(i=0; i < ipactx->mspac->num_trusts ; i++) {
+		if (!has_transited_contents &&
+		    (strncasecmp(tr_contents->data, ipactx->mspac->trusts[i].domain_name, tr_contents->length) == 0)) {
+			has_transited_contents = true;
+		}
+		if (!has_client_realm &&
+		    (strncasecmp(client_realm->data, ipactx->mspac->trusts[i].domain_name, client_realm->length) == 0)) {
+			has_client_realm = true;
+		}
+		if (!has_server_realm &&
+		    (strncasecmp(server_realm->data, ipactx->mspac->trusts[i].domain_name, server_realm->length) == 0)) {
+			has_server_realm = true;
+		}
+	}
+
+	ret = KRB5KRB_AP_ERR_ILL_CR_TKT;
+	if (has_client_realm && has_transited_contents && has_server_realm) {
+		ret = 0;
+	}
+	return ret;
+}
