@@ -117,7 +117,7 @@ return {
                     {
                         $type: 'radio',
                         name: 'method',
-                        enabled: false, //don't use value in add command
+                        flags: ['no_command'],
                         label: '@i18n:objects.automountmap.map_type',
                         options: [
                             {

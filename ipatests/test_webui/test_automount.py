@@ -101,5 +101,41 @@ class test_automount(UI_driver):
         self.navigate_by_breadcrumb(LOC_PKEY)
         self.delete_record(MAP_PKEY)
 
+        ## test indirect maps
+        direct_pkey = 'itest-direct'
+        indirect_pkey = 'itest-indirect'
+
+        self.add_record(LOC_ENTITY,
+                        {
+                            'pkey': direct_pkey,
+                            'add': [
+                                ('radio', 'method', 'add'),
+                                ('textbox', 'automountmapname', direct_pkey),
+                                ('textarea', 'description', 'foobar'),
+                            ],
+                        },
+                        facet='maps',
+                        navigate=False)
+
+        self.add_record(LOC_ENTITY,
+                        {
+                            'pkey': indirect_pkey,
+                            'add': [
+                                ('radio', 'method', 'add_indirect'),
+                                ('textbox', 'automountmapname', indirect_pkey),
+                                ('textarea', 'description', 'foobar'),
+                                ('textbox', 'key', 'baz'),
+                                ('textbox', 'parentmap', direct_pkey),
+                            ],
+                        },
+                        facet='maps',
+                        navigate=False)
+
+        self.assert_record(direct_pkey)
+        self.assert_record(indirect_pkey)
+
+        # delete
+        self.delete_record(direct_pkey)
+        self.delete_record(indirect_pkey)
         self.navigate_by_breadcrumb('Automount Locations')
         self.delete_record(LOC_PKEY)
