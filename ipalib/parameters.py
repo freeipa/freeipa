@@ -370,6 +370,8 @@ class Param(ReadOnly):
     # _convert_scalar operates only on scalar values
     scalar_error = _('Only one value is allowed')
 
+    password = False
+
     kwargs = (
         ('cli_name', str, None),
         ('cli_short_name', str, None),
@@ -400,11 +402,6 @@ class Param(ReadOnly):
         # We keep these values to use in __repr__():
         self.param_spec = name
         self.__kw = dict(kw)
-
-        if isinstance(self, Password):
-            self.password = True
-        else:
-            self.password = False
 
         # Merge in kw from parse_param_spec():
         (name, kw_from_spec) = parse_param_spec(name)
@@ -635,18 +632,14 @@ class Param(ReadOnly):
         """
         Return a value safe for logging.
 
-        This is used so that passwords don't get logged.  If this is a
-        `Password` instance and ``value`` is not ``None``, a constant
-        ``u'********'`` is returned.  For example:
+        This is used so that sensitive values like passwords don't get logged.
+        For example:
 
         >>> p = Password('my_password')
         >>> p.safe_value(u'This is my password')
         u'********'
         >>> p.safe_value(None) is None
         True
-
-        If this is not a `Password` instance, ``value`` is returned unchanged.
-        For example:
 
         >>> s = Str('my_str')
         >>> s.safe_value(u'Some arbitrary value')
@@ -1499,6 +1492,8 @@ class Password(Str):
     """
     A parameter for passwords (stored in the ``unicode`` type).
     """
+
+    password = True
 
     kwargs = Str.kwargs + (
         ('confirm', bool, True),
