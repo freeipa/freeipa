@@ -22,9 +22,10 @@ Test the `ipalib/plugins/selinuxusermap.py` module.
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, add_sid, add_oc
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 from ipapython.dn import DN
 from ipatests.util import Fuzzy
+from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 rule1 = u'selinuxrule1'
 selinuxuser1 = u'guest_u:s0'
@@ -200,35 +201,7 @@ class test_selinuxusermap(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=add_sid(dict(
-                    gecos=[u'Test User1'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/%s' % user1],
-                    krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    displayname=[u'Test User1'],
-                    cn=[u'Test User1'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn', 'global_policy'),
-                                              ('cn', api.env.realm),
-                                              ('cn', 'kerberos'),
-                                              api.env.basedn)
-                                        ],
-                    mepmanagedentry=[DN(('cn', user1), ('cn', 'groups'),
-                        ('cn', 'accounts'), api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    dn=DN(('uid', user1), ('cn', 'users'), ('cn', 'accounts'),
-                          api.env.basedn),
-                    has_keytab=False,
-                    has_password=False,
-                )),
+                result=get_user_result(user1, u'Test', u'User1', 'add'),
             ),
         ),
 

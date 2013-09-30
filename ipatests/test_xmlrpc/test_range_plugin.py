@@ -26,6 +26,7 @@ from xmlrpc_test import Declarative, fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import MockLDAP
 from ipapython.dn import DN
+from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 id_shift = 0
 rid_shift = 0
@@ -232,30 +233,10 @@ class test_range(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=dict(
-                    gecos=[u'Test User1'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    krbprincipalname=[u'tuser1@' + api.env.realm],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=objectclasses.user,
-                    sn=[u'User1'],
-                    uid=[user1],
+                result=get_user_result(
+                    user1, u'Test', u'User1', 'add',
                     uidnumber=[unicode(user1_uid)],
                     gidnumber=[unicode(user1_uid)],
-                    displayname=[u'Test User1'],
-                    cn=[u'Test User1'],
-                    initials=[u'TU'],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    has_keytab=False,
-                    has_password=False,
-                    dn=DN(('uid',user1),('cn','users'),('cn','accounts'), api.env.basedn)
                 ),
             ),
         ),

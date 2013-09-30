@@ -22,8 +22,9 @@ Test group nesting and indirect members
 
 from ipalib import api
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, add_sid, add_oc
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 from ipapython.dn import DN
+from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 group1 = u'testgroup1'
 group2 = u'testgroup2'
@@ -160,32 +161,7 @@ class test_nesting(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=add_sid(dict(
-                    gecos=[u'Test User1'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    krbprincipalname=[u'tuser1@' + api.env.realm],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    displayname=[u'Test User1'],
-                    cn=[u'Test User1'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    has_keytab=False,
-                    has_password=False,
-                    dn=DN(('uid',user1),('cn','users'),('cn','accounts'),
-                          api.env.basedn)
-                )),
+                result=get_user_result(user1, u'Test', u'User1', 'add'),
             ),
         ),
 
@@ -198,32 +174,7 @@ class test_nesting(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "%s"' % user2,
-                result=add_sid(dict(
-                    gecos=[u'Test User2'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser2'],
-                    krbprincipalname=[u'tuser2@' + api.env.realm],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User2'],
-                    uid=[user2],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user2, api.env.domain)],
-                    displayname=[u'Test User2'],
-                    cn=[u'Test User2'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user2),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    has_keytab=False,
-                    has_password=False,
-                    dn=DN(('uid',user2),('cn','users'),('cn','accounts'),
-                          api.env.basedn)
-                )),
+                result=get_user_result(user2, u'Test', u'User2', 'add'),
             ),
         ),
 
@@ -236,32 +187,7 @@ class test_nesting(Declarative):
             expected=dict(
                 value=user3,
                 summary=u'Added user "%s"' % user3,
-                result=add_sid(dict(
-                    gecos=[u'Test User3'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser3'],
-                    krbprincipalname=[u'tuser3@' + api.env.realm],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User3'],
-                    uid=[user3],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user3, api.env.domain)],
-                    displayname=[u'Test User3'],
-                    cn=[u'Test User3'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user3),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    has_keytab=False,
-                    has_password=False,
-                    dn=DN(('uid',user3),('cn','users'),('cn','accounts'),
-                          api.env.basedn)
-                )),
+                result=get_user_result(user3, u'Test', u'User3', 'add'),
             ),
         ),
 
@@ -274,32 +200,7 @@ class test_nesting(Declarative):
             expected=dict(
                 value=user4,
                 summary=u'Added user "%s"' % user4,
-                result=add_sid(dict(
-                    gecos=[u'Test User4'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser4'],
-                    krbprincipalname=[u'tuser4@' + api.env.realm],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User4'],
-                    uid=[user4],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user4, api.env.domain)],
-                    displayname=[u'Test User4'],
-                    cn=[u'Test User4'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user4),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    has_keytab=False,
-                    has_password=False,
-                    dn=DN(('uid',user4),('cn','users'),('cn','accounts'),
-                          api.env.basedn)
-                )),
+                result=get_user_result(user4, u'Test', u'User4', 'add'),
             ),
         ),
 

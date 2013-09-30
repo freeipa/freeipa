@@ -23,13 +23,15 @@ Test the `ipalib/plugins/netgroup.py` module.
 
 import nose
 import krbV
+
 from ipalib import api
 from ipalib import errors
 from ipaserver.plugins.ldap2 import ldap2
 from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid,
-                         fuzzy_netgroupdn, add_sid, add_oc)
+                         fuzzy_netgroupdn)
 from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
+from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 # Global so we can save the value between tests
 netgroup_dn = None
@@ -272,32 +274,7 @@ class test_netgroup(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=add_sid(dict(
-                    gecos=[u'Test User1'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/%s' % user1],
-                    krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    displayname=[u'Test User1'],
-                    cn=[u'Test User1'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    has_keytab=False,
-                    has_password=False,
-                    dn=DN(('uid',user1),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
-                )),
+                result=get_user_result(user1, u'Test', u'User1', 'add'),
             ),
         ),
 
@@ -309,32 +286,7 @@ class test_netgroup(Declarative):
             expected=dict(
                 value=user2,
                 summary=u'Added user "%s"' % user2,
-                result=add_sid(dict(
-                    gecos=[u'Test User2'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/%s' % user2],
-                    krbprincipalname=[u'%s@%s' % (user2, api.env.realm)],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User2'],
-                    uid=[user2],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user2, api.env.domain)],
-                    displayname=[u'Test User2'],
-                    cn=[u'Test User2'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user2),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    has_keytab=False,
-                    has_password=False,
-                    dn=DN(('uid',user2),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
-                )),
+                result=get_user_result(user2, u'Test', u'User2', 'add'),
             ),
         ),
 

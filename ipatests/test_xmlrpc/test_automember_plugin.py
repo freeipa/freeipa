@@ -24,7 +24,8 @@ Test the `ipalib/plugins/automember.py` module.
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, add_sid, add_oc
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 
 user1=u'tuser1'
@@ -794,32 +795,9 @@ class test_automember(Declarative):
             expected=dict(
                 value=manager1,
                 summary=u'Added user "mscott"',
-                result=add_sid(dict(
-                    gecos=[u'Michael Scott'],
-                    givenname=[u'Michael'],
-                    homedirectory=[u'/home/mscott'],
-                    krbprincipalname=[u'mscott@' + api.env.realm],
-                    has_keytab=False,
-                    has_password=False,
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'Scott'],
-                    uid=[manager1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (manager1, api.env.domain)],
-                    displayname=[u'Michael Scott'],
-                    cn=[u'Michael Scott'],
-                    initials=[u'MS'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn', 'global_policy'), ('cn', api.env.realm), ('cn', 'kerberos'),
-                                              api.env.basedn)],
-                    mepmanagedentry=[DN(('cn', manager1), ('cn', 'groups'), ('cn', 'accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'defaultgroup1', u'ipausers'],
-                    dn=DN(('uid', 'mscott'), ('cn', 'users'), ('cn', 'accounts'),
-                          api.env.basedn),
-                )),
+                result=get_user_result(
+                    manager1, u'Michael', u'Scott', 'add',
+                    memberof_group=[defaultgroup1, u'ipausers']),
             ),
         ),
 
@@ -832,33 +810,12 @@ class test_automember(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "tuser1"',
-                result=add_sid(dict(
-                    gecos=[u'Test User1'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    krbprincipalname=[u'tuser1@' + api.env.realm],
-                    has_keytab=False,
-                    has_password=False,
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    manager=[DN(('uid', 'mscott'), ('cn', 'users'), ('cn', 'accounts'), api.env.basedn)],
-                    displayname=[u'Test User1'],
-                    cn=[u'Test User1'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn', 'global_policy'), ('cn', api.env.realm), ('cn', 'kerberos'),
-                                              api.env.basedn)],
-                    mepmanagedentry=[DN(('cn', user1), ('cn', 'groups'), ('cn', 'accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'group1', u'ipausers'],
-                    dn=DN(('uid', 'tuser1'), ('cn', 'users'), ('cn', 'accounts'),
-                          api.env.basedn),
-                )),
+                result=get_user_result(
+                    user1, u'Test', u'User1', 'add',
+                    memberof_group=[group1, u'ipausers'],
+                    manager=[DN(('uid', 'mscott'), ('cn', 'users'),
+                                ('cn', 'accounts'), api.env.basedn)]
+                ),
             ),
         ),
 

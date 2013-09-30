@@ -26,6 +26,7 @@ from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_set_ci,
                          add_sid, add_oc)
 from ipapython.dn import DN
+from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 group1 = u'testgroup1'
 group2 = u'testgroup2'
@@ -796,31 +797,7 @@ class test_group(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=add_sid(dict(
-                    gecos=[u'Test User1'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/%s' % user1],
-                    krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    displayname=[u'Test User1'],
-                    cn=[u'Test User1'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[get_group_dn(user1)],
-                    memberof_group=[u'ipausers'],
-                    dn=DN(('uid',user1),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
-                    has_keytab=False,
-                    has_password=False,
-                )),
+                result=get_user_result(user1, u'Test', u'User1', 'add'),
             ),
         ),
 
@@ -912,32 +889,14 @@ class test_group(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "tuser1"',
-                result=add_sid(dict(
-                    gecos=[u'Test User1'],
-                    givenname=[u'Test'],
+                result=get_user_result(
+                    user1, u'Test', u'User1', 'add',
                     description=[],
-                    homedirectory=[u'/home/tuser1'],
-                    krbprincipalname=[u'tuser1@' + api.env.realm],
-                    loginshell=[u'/bin/sh'],
                     objectclass=add_oc(objectclasses.user_base,
                                        u'ipantuserattrs'),
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
                     gidnumber=[u'1000'],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    displayname=[u'Test User1'],
-                    cn=[u'Test User1'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    has_keytab=False,
-                    has_password=False,
-                )),
+                    omit=['mepmanagedentry'],
+                ),
             ),
         ),
 

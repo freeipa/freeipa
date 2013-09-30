@@ -21,10 +21,9 @@
 Test --setattr and --addattr and other attribute-specific issues
 """
 
-from ipalib import api, errors
-from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, add_sid, add_oc
-from ipapython.dn import DN
+from ipalib import errors
+from xmlrpc_test import Declarative
+from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 user1=u'tuser1'
 
@@ -55,32 +54,7 @@ class test_attr(Declarative):
             expected=dict(
                 value=user1,
                 summary=u'Added user "tuser1"',
-                result=add_sid(dict(
-                    gecos=[u'Test User1'],
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    krbprincipalname=[u'tuser1@' + api.env.realm],
-                    loginshell=[u'/bin/sh'],
-                    objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    displayname=[u'Test User1'],
-                    cn=[u'Test User1'],
-                    initials=[u'TU'],
-                    ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
-                    mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
-                                        api.env.basedn)],
-                    memberof_group=[u'ipausers'],
-                    dn=DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
-                          api.env.basedn),
-                    has_keytab=False,
-                    has_password=False,
-                )),
+                result=get_user_result(user1, u'Test', u'User1', 'add'),
             ),
         ),
 
@@ -91,19 +65,9 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(setattr=(u'givenname=Finkle', u'mail=test@example.com'))
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com'],
-                    memberof_group=[u'ipausers'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -117,19 +81,9 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(addattr=u'mail=test2@example.com')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -143,20 +97,10 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(setattr=u'telephoneNumber=410-555-1212', addattr=u'telephoneNumber=301-555-1212')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
                     telephonenumber=[u'410-555-1212', u'301-555-1212'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -170,20 +114,10 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(setattr=u'telephoneNumber=301-555-1212')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
                     telephonenumber=[u'301-555-1212'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -197,20 +131,11 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(addattr=(u'telephoneNumber=703-555-1212', u'telephoneNumber=202-888-9833'))
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
-                    telephonenumber=[u'301-555-1212', u'202-888-9833', u'703-555-1212'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
+                    telephonenumber=[u'301-555-1212', u'703-555-1212',
+                                     u'202-888-9833'],
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -224,20 +149,10 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(delattr=u'telephoneNumber=301-555-1212')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
-                    telephonenumber=[u'202-888-9833', u'703-555-1212'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
+                    telephonenumber=[u'703-555-1212', u'202-888-9833'],
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -262,20 +177,10 @@ class test_attr(Declarative):
                                           delattr=u'telephoneNumber=202-888-9833')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
-                    telephonenumber=[u'301-555-1212', u'703-555-1212'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
+                    telephonenumber=[u'703-555-1212', u'301-555-1212'],
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -291,20 +196,11 @@ class test_attr(Declarative):
                                           delattr=u'telephoneNumber=301-555-1212')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
-                    telephonenumber=[u'703-555-1212', u'301-555-1212', u'202-888-9833'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
+                    telephonenumber=[u'703-555-1212', u'301-555-1212',
+                                     u'202-888-9833'],
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -320,20 +216,10 @@ class test_attr(Declarative):
                                           delattr=u'telephoneNumber=301-555-1212')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
                     telephonenumber=[u'202-888-9833'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -365,20 +251,10 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(givenname=u'Fred')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Fred'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Fred', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
                     telephonenumber=[u'202-888-9833'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -392,20 +268,10 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(setattr=u'givenname=Finkle')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
                     telephonenumber=[u'202-888-9833'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -418,20 +284,11 @@ class test_attr(Declarative):
                 'user_mod', [user1], dict(setattr=u'nsaccountlock=TrUe')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
                     telephonenumber=[u'202-888-9833'],
                     nsaccountlock=True,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -446,20 +303,10 @@ class test_attr(Declarative):
                     delattr=u'nsaccountlock=TRUE')
             ),
             expected=dict(
-                result=dict(
-                    givenname=[u'Finkle'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
+                result=get_user_result(
+                    user1, u'Finkle', u'User1', 'mod',
                     mail=[u'test@example.com', u'test2@example.com'],
-                    memberof_group=[u'ipausers'],
                     telephonenumber=[u'202-888-9833'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
