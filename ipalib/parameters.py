@@ -351,6 +351,8 @@ class Param(ReadOnly):
               not be given at all. All crud.Update commands automatically
               convert required parameters to `nonempty` ones, so the value
               can be unspecified (unchanged) but cannot be deleted.
+            * optional_create: do not require the parameter for crud.Create
+              based commands
       - hint: this attribute is currently not used
       - alwaysask: when enabled, CLI asks for parameter value even when the
         parameter is not `required`

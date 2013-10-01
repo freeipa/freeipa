@@ -133,16 +133,21 @@ class Create(Method):
 
     has_output = output.standard_entry
 
+    def __clone(self, param, **kw):
+        if 'optional_create' in param.flags:
+            kw['required'] = False
+        return param.clone(**kw) if kw else param
+
     def get_args(self):
         if self.obj.primary_key:
-            yield self.obj.primary_key.clone(attribute=True)
+            yield self.__clone(self.obj.primary_key, attribute=True)
         for arg in super(Create, self).get_args():
-            yield arg
+            yield self.__clone(arg)
 
     def get_options(self):
         if self.extra_options_first:
             for option in super(Create, self).get_options():
-                yield option
+                yield self.__clone(option)
         for option in self.obj.params_minus(self.args):
             attribute = 'virtual_attribute' not in option.flags
             if 'no_create' in option.flags:
@@ -153,10 +158,10 @@ class Create(Method):
                     autofill=False, alwaysask=True
                 )
             else:
-                yield option.clone(attribute=attribute)
+                yield self.__clone(option, attribute=attribute)
         if not self.extra_options_first:
             for option in super(Create, self).get_options():
-                yield option
+                yield self.__clone(option)
 
 
 class PKQuery(Method):
