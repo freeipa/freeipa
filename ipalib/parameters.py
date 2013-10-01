@@ -328,7 +328,9 @@ class Param(ReadOnly):
             * no_display (Output parameters only): do not display the parameter
             * no_create: do not include the parameter for crud.Create based
               commands
-            * no_update: do not include the parameter for crud.update based
+            * no_update: do not include the parameter for crud.Update based
+              commands
+            * no_search: do not include the parameter for crud.Search based
               commands
             * no_option: this attribute is not displayed in the CLI, usually
               because there's a better way of setting it (for example, a
