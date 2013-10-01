@@ -379,7 +379,7 @@ class user(LDAPObject):
             cli_name='user_auth_type',
             label=_('User authentication types'),
             doc=_('Types of supported user authentication'),
-            values=(u'password', u'radius'),
+            values=(u'password', u'radius', u'otp'),
             csv=True,
         ),
         Str('userclass*',
@@ -648,6 +648,14 @@ class user_del(LDAPDelete):
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
         check_protected_member(keys[-1])
+
+        # Delete all tokens owned by this user
+        owner = self.api.Object.user.get_primary_key_from_dn(dn)
+        results = self.api.Command.otptoken_find(ipatokenowner=owner)['result']
+        for token in results:
+            token = self.api.Object.otptoken.get_primary_key_from_dn(token['dn'])
+            self.api.Command.otptoken_del(token)
+
         return dn
 
 api.register(user_del)

@@ -202,7 +202,7 @@ class config(LDAPObject):
             cli_name='user_auth_type',
             label=_('Default user authentication types'),
             doc=_('Default types of supported user authentication'),
-            values=(u'password', u'radius'),
+            values=(u'password', u'radius', u'otp'),
             csv=True,
         ),
     )

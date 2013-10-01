@@ -67,6 +67,7 @@ BuildRequires:  python-memcached
 BuildRequires:  sssd >= 1.9.2
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
+BuildRequires:  python-qrcode
 BuildRequires:  python-dns
 BuildRequires:  m2crypto
 BuildRequires:  check
@@ -130,6 +131,7 @@ Requires: python-ldap
 Requires: python-krbV
 Requires: acl
 Requires: python-pyasn1
+Requires: python-qrcode
 Requires: memcached
 Requires: python-memcached
 Requires: systemd-units >= 38
