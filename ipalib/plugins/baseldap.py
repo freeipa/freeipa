@@ -991,12 +991,9 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
     takes_options = (BaseLDAPCommand.setattr_option, BaseLDAPCommand.addattr_option)
 
     def get_args(self):
-        #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
-        if self.obj.primary_key:
-            yield self.obj.primary_key.clone(attribute=True)
-        for arg in super(crud.Create, self).get_args():
+        for arg in super(LDAPCreate, self).get_args():
             yield arg
 
     has_output_params = global_output_params
@@ -1135,12 +1132,9 @@ class LDAPQuery(BaseLDAPCommand, crud.PKQuery):
     Base class for commands that need to retrieve an existing entry.
     """
     def get_args(self):
-        #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
-        if self.obj.primary_key:
-            yield self.obj.primary_key.clone(attribute=True, query=True)
-        for arg in super(crud.PKQuery, self).get_args():
+        for arg in super(LDAPQuery, self).get_args():
             yield arg
 
     # list of attributes we want exported to JSON
@@ -1167,15 +1161,11 @@ class LDAPMultiQuery(LDAPQuery):
     )
 
     def get_args(self):
-        #pylint: disable=E1003
-        for key in self.obj.get_ancestor_primary_keys():
-            yield key
-        if self.obj.primary_key:
-            yield self.obj.primary_key.clone(
-                attribute=True, query=True, multivalue=True
-            )
-        for arg in super(crud.PKQuery, self).get_args():
-            yield arg
+        for arg in super(LDAPMultiQuery, self).get_args():
+            if self.obj.primary_key and arg.name == self.obj.primary_key.name:
+                yield arg.clone(multivalue=True)
+            else:
+                yield arg
 
 
 class LDAPRetrieve(LDAPQuery):
@@ -1758,13 +1748,9 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
     )
 
     def get_args(self):
-        #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
-        yield Str('criteria?',
-                  noextrawhitespace=False,
-                  doc=_('A string searched in all relevant object attributes'))
-        for arg in super(crud.Search, self).get_args():
+        for arg in super(LDAPSearch, self).get_args():
             yield arg
 
     def get_member_options(self, attr):
