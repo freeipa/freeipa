@@ -120,7 +120,10 @@ Note that the above are all equal.
 """
 
 from frontend import Method, Object
-import backend, frontend, parameters, output
+import backend
+import parameters
+import output
+from ipalib.text import _
 
 
 class Create(Method):
@@ -133,6 +136,8 @@ class Create(Method):
     def get_args(self):
         if self.obj.primary_key:
             yield self.obj.primary_key.clone(attribute=True)
+        for arg in super(Create, self).get_args():
+            yield arg
 
     def get_options(self):
         if self.extra_options_first:
@@ -164,6 +169,8 @@ class PKQuery(Method):
             # Don't enforce rules on the primary key so we can reference
             # any stored entry, legal or not
             yield self.obj.primary_key.clone(attribute=True, query=True)
+        for arg in super(PKQuery, self).get_args():
+            yield arg
 
 
 class Retrieve(PKQuery):
@@ -230,7 +237,11 @@ class Search(Method):
     has_output = output.standard_list_of_entries
 
     def get_args(self):
-        yield parameters.Str('criteria?', noextrawhitespace=False)
+        yield parameters.Str(
+            'criteria?', noextrawhitespace=False,
+            doc=_('A string searched in all relevant object attributes'))
+        for arg in super(Search, self).get_args():
+            yield arg
 
     def get_options(self):
         if self.extra_options_first:
