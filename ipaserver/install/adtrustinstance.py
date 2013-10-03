@@ -31,6 +31,7 @@ from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
                                            dns_zone_exists
 from ipalib import errors, api
+from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython import sysrestore
 from ipapython import ipautil
@@ -506,13 +507,19 @@ class ADTRUSTInstance(service.Service):
         """
 
         zone = self.domain_name
-        host = self.fqdn.split(".")[0]
+        host, host_domain = self.fqdn.split(".", 1)
+
+        if normalize_zone(zone) == normalize_zone(host_domain):
+            host_in_rr = host
+        else:
+            host_in_rr = normalize_zone(self.fqdn)
+
         priority = 0
 
         ipa_srv_rec = (
-            ("_ldap._tcp", [self.srv_rec(host, 389, priority)], 389),
-            ("_kerberos._tcp", [self.srv_rec(host, 88, priority)], 88),
-            ("_kerberos._udp", [self.srv_rec(host, 88, priority)], 88),
+            ("_ldap._tcp", [self.srv_rec(host_in_rr, 389, priority)], 389),
+            ("_kerberos._tcp", [self.srv_rec(host_in_rr, 88, priority)], 88),
+            ("_kerberos._udp", [self.srv_rec(host_in_rr, 88, priority)], 88),
         )
         win_srv_suffix = (".Default-First-Site-Name._sites.dc._msdcs",
                           ".dc._msdcs")
