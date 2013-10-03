@@ -1286,6 +1286,9 @@ class trustdomain_enable(LDAPQuery):
             if sid in trust_entry['ipantsidblacklistincoming']:
                 trust_entry['ipantsidblacklistincoming'].remove(sid)
                 ldap.update_entry(trust_entry)
+                # Force MS-PAC cache re-initialization on KDC side
+                domval = ipaserver.dcerpc.DomainValidator(api)
+                (ccache_name, principal) = domval.kinit_as_http(keys[0])
             else:
                 raise errors.AlreadyActive()
         except errors.NotFound:
@@ -1323,6 +1326,9 @@ class trustdomain_disable(LDAPQuery):
             if not (sid in trust_entry['ipantsidblacklistincoming']):
                 trust_entry['ipantsidblacklistincoming'].append(sid)
                 ldap.update_entry(trust_entry)
+                # Force MS-PAC cache re-initialization on KDC side
+                domval = ipaserver.dcerpc.DomainValidator(api)
+                (ccache_name, principal) = domval.kinit_as_http(keys[0])
             else:
                 raise errors.AlreadyInactive()
         except errors.NotFound:
