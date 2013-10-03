@@ -37,6 +37,8 @@ struct ipadb_adtrusts {
     int len_sid_blacklist_incoming;
     struct dom_sid *sid_blacklist_outgoing;
     int len_sid_blacklist_outgoing;
+    struct ipadb_adtrusts *parent;
+    char *parent_name;
 };
 
 struct ipadb_mspac {
@@ -1359,6 +1361,18 @@ static krb5_error_code filter_logon_info(krb5_context context,
         return EINVAL;
     }
 
+    /* Check if this domain has been filtered out by the trust itself*/
+    if (domain->parent != NULL) {
+        for(k = 0; k < domain->parent->len_sid_blacklist_incoming; k++) {
+            result = dom_sid_check(info->info->info3.base.domain_sid,
+                                   &domain->parent->sid_blacklist_incoming[k], true);
+            if (result) {
+                filter_logon_info_log_message(info->info->info3.base.domain_sid);
+                return EINVAL;
+            }
+        }
+    }
+
     /* According to MS-KILE 25.0, info->info->info3.sids may be non zero, so check
      * should include different possibilities into account
      * */
@@ -2121,6 +2135,8 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
             free((*mspac)->trusts[i].domain_sid);
             free((*mspac)->trusts[i].sid_blacklist_incoming);
             free((*mspac)->trusts[i].sid_blacklist_outgoing);
+            free((*mspac)->trusts[i].parent_name);
+            (*mspac)->trusts[i].parent = NULL;
         }
         free((*mspac)->trusts);
     }
@@ -2209,18 +2225,42 @@ done:
     return ret;
 }
 
+static void ipadb_free_sid_blacklists(char ***sid_blacklist_incoming, char ***sid_blacklist_outgoing)
+{
+    int i;
+
+    if (sid_blacklist_incoming && *sid_blacklist_incoming) {
+        for (i = 0; *sid_blacklist_incoming && (*sid_blacklist_incoming)[i]; i++) {
+            free((*sid_blacklist_incoming)[i]);
+        }
+        free(*sid_blacklist_incoming);
+        *sid_blacklist_incoming = NULL;
+    }
+
+    if (sid_blacklist_outgoing && *sid_blacklist_outgoing) {
+        for (i = 0; *sid_blacklist_outgoing && (*sid_blacklist_outgoing)[i]; i++) {
+            free((*sid_blacklist_outgoing)[i]);
+        }
+        free(*sid_blacklist_outgoing);
+        *sid_blacklist_outgoing = NULL;
+    }
+}
+
 krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
 {
     struct ipadb_adtrusts *t;
     LDAP *lc = ipactx->lcontext;
-    char *attrs[] = { "ipaNTTrustPartner", "ipaNTFlatName",
+    char *attrs[] = { "cn", "ipaNTTrustPartner", "ipaNTFlatName",
                       "ipaNTTrustedDomainSID", "ipaNTSIDBlacklistIncoming",
                       "ipaNTSIDBlacklistOutgoing", NULL };
     char *filter = "(objectclass=ipaNTTrustedDomain)";
     krb5_error_code kerr;
     LDAPMessage *res = NULL;
     LDAPMessage *le;
+    LDAPRDN rdn;
     char *base = NULL;
+    char *dnstr = NULL;
+    char *dnl = NULL;
     char **sid_blacklist_incoming = NULL;
     char **sid_blacklist_outgoing = NULL;
     int ret, n, i;
@@ -2243,6 +2283,13 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
     }
 
     for (le = ldap_first_entry(lc, res); le; le = ldap_next_entry(lc, le)) {
+        dnstr = ldap_get_dn(lc, le);
+
+        if (dnstr == NULL) {
+            ret = ENOMEM;
+            goto done;
+        }
+
         n = ipactx->mspac->num_trusts;
         ipactx->mspac->num_trusts++;
         t = realloc(ipactx->mspac->trusts,
@@ -2253,7 +2300,9 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
         }
         ipactx->mspac->trusts = t;
 
-        ret = ipadb_ldap_attr_to_str(lc, le, "ipaNTTrustPartner",
+        memset(&t[n], 0, sizeof(t[n]));
+
+        ret = ipadb_ldap_attr_to_str(lc, le, "cn",
                                      &t[n].domain_name);
         if (ret) {
             ret = EINVAL;
@@ -2287,6 +2336,7 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             if (ret == ENOENT) {
                 /* This attribute is optional */
                 ret = 0;
+                sid_blacklist_incoming = NULL;
             } else {
                 ret = EINVAL;
                 goto done;
@@ -2300,6 +2350,7 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             if (ret == ENOENT) {
                 /* This attribute is optional */
                 ret = 0;
+                sid_blacklist_outgoing = NULL;
             } else {
                 ret = EINVAL;
                 goto done;
@@ -2312,6 +2363,49 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
         if (ret) {
             goto done;
         }
+        ipadb_free_sid_blacklists(&sid_blacklist_incoming,
+                                  &sid_blacklist_outgoing);
+
+        /* Parse first two RDNs of the entry to find its parent */
+        dnl = strcasestr(dnstr, base);
+        if (dnl == NULL) {
+            goto done;
+        }
+
+        /* Note that after ldap_str2rdn() call dnl will point to end of one RDN
+         * which would be '\0' for trust root domain and ',' for subdomain */
+        dnl--; dnl[0] = '\0';
+        ret = ldap_str2rdn(dnstr, &rdn, &dnl, LDAP_DN_FORMAT_LDAPV3);
+        if (ret) {
+            goto done;
+        }
+
+        ldap_rdnfree(rdn);
+
+        if (dnl[0] != '\0') {
+            dnl++;
+            ret = ldap_str2rdn(dnl, &rdn, &dnl, LDAP_DN_FORMAT_LDAPV3);
+            if (ret) {
+                goto done;
+            }
+            t[n].parent_name = strndup(rdn[0]->la_value.bv_val, rdn[0]->la_value.bv_len);
+            ldap_rdnfree(rdn);
+        }
+
+        free(dnstr);
+        dnstr = NULL;
+    }
+
+    /* Traverse through all trusts and resolve parents */
+    t = ipactx->mspac->trusts;
+    for (i = 0; i < ipactx->mspac->num_trusts; i++) {
+        if (t[i].parent_name != NULL) {
+            for (n = 0; n < ipactx->mspac->num_trusts; n++) {
+                if (strcasecmp(t[i].parent_name, t[n].domain_name) == 0) {
+                    t[i].parent = &t[n];
+                }
+            }
+        }
     }
 
     ret = 0;
@@ -2320,15 +2414,10 @@ done:
     if (ret != 0) {
         krb5_klog_syslog(LOG_ERR, "Failed to read list of trusted domains");
     }
+    free(dnstr);
     free(base);
-    for (i = 0; sid_blacklist_incoming && sid_blacklist_incoming[i]; i++) {
-        free(sid_blacklist_incoming[i]);
-    }
-    free(sid_blacklist_incoming);
-    for (i = 0; sid_blacklist_outgoing && sid_blacklist_outgoing[i]; i++) {
-        free(sid_blacklist_outgoing[i]);
-    }
-    free(sid_blacklist_outgoing);
+    ipadb_free_sid_blacklists(&sid_blacklist_incoming,
+                              &sid_blacklist_outgoing);
     ldap_msgfree(res);
     return ret;
 }
