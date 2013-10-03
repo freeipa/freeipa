@@ -2350,13 +2350,22 @@ def install(options, env, fstore, statestore):
         pass
 
     # Now, let's try to connect to the server's XML-RPC interface
+    connected = False
     try:
         api.Backend.xmlclient.connect()
+        connected = True
+        root_logger.debug('Try RPC connection')
+        api.Backend.xmlclient.forward('ping')
     except errors.KerberosError, e:
+        if connected:
+            api.Backend.xmlclient.disconnect()
         root_logger.info('Cannot connect to the server due to ' +
             'Kerberos error: %s. Trying with delegate=True', str(e))
         try:
             api.Backend.xmlclient.connect(delegate=True)
+            root_logger.debug('Try RPC connection')
+            api.Backend.xmlclient.forward('ping')
+
             root_logger.info('Connection with delegate=True successful')
 
             # The remote server is not capable of Kerberos S4U2Proxy delegation
