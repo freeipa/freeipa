@@ -1097,7 +1097,8 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
     domain.add_provider('ipa', 'id')
 
     #add discovery domain if client domain different from server domain
-    if cli_domain != client_domain:
+    #do not set this config in server mode (#3947)
+    if not options.on_master and cli_domain != client_domain:
         domain.set_option('dns_discovery_domain', cli_domain)
 
     if not options.on_master:
