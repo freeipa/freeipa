@@ -100,7 +100,7 @@ class CALessBase(IntegrationTest):
 
             # Copy CRLs over
             base = os.path.join(cls.cert_dir, 'nssdb')
-            host.mkdir_recursive(cls.crl_path)
+            host.transport.mkdir_recursive(cls.crl_path)
             for source in glob.glob(os.path.join(base, '*.crl')):
                 dest = os.path.join(cls.crl_path, os.path.basename(source))
                 host.transport.put_file(source, dest)
