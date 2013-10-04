@@ -3236,6 +3236,7 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
 
         for (i=0; i< actions.length; i++) {
             action = actions[i];
+            if (!action.visible) continue;
             options.push({
                 label: action.label,
                 value: action.name
@@ -3311,6 +3312,23 @@ exp.action_list_widget = IPA.action_list_widget = function(spec) {
         that.action_select.set_options_enabled(action.enabled, [action.name]);
 
         if (!action.enabled && action === selected_action) {
+            that.select_first_enabled();
+        }
+    };
+
+    /**
+     * Handle action's `visible_changed` event.
+     * @protected
+     * @param {boolean} visible
+     */
+    that.action_visible_changed = function(visible) {
+        var action = this;
+        var selected_action = that.get_selected();
+
+        that.init_options();
+        that.recreate_options();
+
+        if (!action.visible && action === selected_action) {
             that.select_first_enabled();
         }
     };
