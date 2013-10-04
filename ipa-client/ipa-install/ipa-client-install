@@ -1467,9 +1467,13 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
         f.close()
 
     try:
-        result = api.Command['host_mod'](unicode(hostname),
+        # Use the RPC directly so older servers are supported
+        api.Backend.xmlclient.forward(
+            'host_mod',
+            unicode(hostname),
             ipasshpubkey=[pk.openssh() for pk in pubkeys],
-            updatedns=False
+            updatedns=False,
+            version=u'2.26',  # this version adds support for SSH public keys
         )
     except errors.EmptyModlist:
         pass
@@ -2373,7 +2377,13 @@ def install(options, env, fstore, statestore):
             'Cannot connect to the server due to generic error: %s', str(e))
         return CLIENT_INSTALL_ERROR
 
-    remote_env = api.Command['env'](server=True)['result']
+    # Use the RPC directly so older servers are supported
+    result = api.Backend.xmlclient.forward(
+        'env',
+        server=True,
+        version=u'2.0',
+    )
+    remote_env = result['result']
     if not remote_env['enable_ra']:
         disable_ra()
 
