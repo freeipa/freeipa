@@ -1,5 +1,6 @@
 # Add missing member values to attach permissions to their respective
-# privileges and run a memberOf task.
+# privileges
+# Memberof task is already being run in 55-pbacmemberof.update
 dn: cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX
 addifexist:objectclass: ipapermission
 addifexist:member: 'cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX'
@@ -17,14 +18,6 @@ addifexist:member: 'cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX'
 
 dn: cn=Write DNS Configuration,cn=permissions,cn=pbac,$SUFFIX
 addifexist:objectclass: ipapermission
-
-dn: cn=Update PBAC memberOf $TIME, cn=memberof task, cn=tasks, cn=config
-add: objectClass: top
-add: objectClass: extensibleObject
-add: cn: IPA PBAC memberOf $TIME
-add: basedn: 'cn=privileges,cn=pbac,$SUFFIX'
-add: filter: (objectclass=*)
-add: ttl: 10
 
 # update DNS container
 dn: cn=dns, $SUFFIX
