@@ -110,7 +110,7 @@ def validate_dm_password(password):
         raise ValueError("Password must only contain ASCII characters")
 
     # Disallow characters that pkisilent doesn't process properly:
-    bad_characters = ' &\\<'
+    bad_characters = ' &\\<%'
     if any(c in bad_characters for c in password):
         raise ValueError('Password must not contain these characters: %s' %
             ', '.join('"%s"' % c for c in bad_characters))
