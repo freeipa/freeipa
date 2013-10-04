@@ -20,7 +20,7 @@
 from copy import deepcopy
 from ipaserver.install.plugins import FIRST, LAST
 from ipaserver.install.plugins.baseupdate import PostUpdate
-from ipalib import api
+from ipalib import api, errors
 from ipalib.aci import ACI
 from ipalib.plugins import aci
 from ipapython.ipa_log_manager import *
@@ -42,7 +42,11 @@ class update_anonymous_aci(PostUpdate):
 
         acistrs = entry_attrs.get('aci', [])
         acilist = aci._convert_strings_to_acis(entry_attrs.get('aci', []))
-        rawaci = aci._find_aci_by_name(acilist, aciprefix, aciname)
+        try:
+            rawaci = aci._find_aci_by_name(acilist, aciprefix, aciname)
+        except errors.NotFound:
+            root_logger.error('Anonymous ACI not found, cannot update it')
+            return False, False, []
 
         attrs = rawaci.target['targetattr']['expression']
         rawfilter = rawaci.target.get('targetfilter', None)
