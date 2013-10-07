@@ -554,7 +554,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
     rc = ipapwd_entry_checks(pb, e,
                              &is_root, &is_krb, &is_smb, &is_ipant,
-                             SLAPI_USERPWD_ATTR, SLAPI_ACL_WRITE);
+                             is_pwd_op ? SLAPI_USERPWD_ATTR : "ipaNTHash",
+                             SLAPI_ACL_WRITE);
     if (rc) {
         goto done;
     }
