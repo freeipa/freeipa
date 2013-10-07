@@ -776,6 +776,9 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
             } else {
                 found = (strcmp(vals[i]->bv_val, (*principal)) == 0);
             }
+            if (found) {
+                break;
+            }
         }
 
         ldap_value_free_len(vals);
