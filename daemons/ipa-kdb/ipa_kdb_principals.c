@@ -795,11 +795,7 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
 
         /* Again, if aliases are accepted by KDC, use case-insensitive comparison */
         if ((flags & KRB5_KDB_FLAG_ALIAS_OK) != 0) {
-            if (ulc_casecmp(vals[0]->bv_val, vals[0]->bv_len,
-                            (*principal), strlen(*principal),
-                            NULL, NULL, &result) != 0)
-                return KRB5_KDB_INTERNAL_ERROR;
-            found = (result == 0);
+            found = true;
         } else {
             found = (strcmp(vals[0]->bv_val, (*principal)) == 0);
         }
