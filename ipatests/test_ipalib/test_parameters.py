@@ -1072,74 +1072,138 @@ class test_Password(ClassChecker):
         assert o._convert_scalar(u'one') == u'one'
 
 
-class test_StrEnum(ClassChecker):
+class EnumChecker(ClassChecker):
     """
-    Test the `ipalib.parameters.StrEnum` class.
+    Test *Enum classes.
     """
     _cls = parameters.StrEnum
 
     def test_init(self):
-        """
-        Test the `ipalib.parameters.StrEnum.__init__` method.
-        """
-        values = (u'Hello', u'naughty', u'nurse!')
-        o = self.cls('my_strenum', values=values)
-        assert o.type is unicode
+        """Test the `__init__` method"""
+        values = self._test_values
+        o = self.cls(self._name, values=values)
+        assert o.type is self._datatype
         assert o.values is values
         assert o.class_rules == (o._rule_values,)
         assert o.rules == tuple()
         assert o.all_rules == (o._rule_values,)
 
-        badvalues = (u'Hello', 'naughty', u'nurse!')
+    def test_bad_types(self):
+        """Test failure with incorrect types"""
+        badvalues = self._bad_type_values
         e = raises(TypeError, self.cls, 'my_enum', values=badvalues)
         assert str(e) == TYPE_ERROR % (
-            "StrEnum('my_enum') values[1]", unicode, 'naughty', str
-        )
+            "%s('my_enum') values[1]" % self._cls.__name__,
+            self._datatype, badvalues[1], self._bad_type)
 
-        # Test that ValueError is raised when list of values is empty
+    def test_empty(self):
+        """Test that ValueError is raised when list of values is empty"""
         badvalues = tuple()
         e = raises(ValueError, self.cls, 'empty_enum', values=badvalues)
-        assert_equal(str(e), "StrEnum('empty_enum'): list of values must not "
-                "be empty")
+        assert_equal(str(e), "%s('empty_enum'): list of values must not "
+                     "be empty" % self._cls.__name__)
 
     def test_rules_values(self):
-        """
-        Test the `ipalib.parameters.StrEnum._rule_values` method.
-        """
-        values = (u'Hello', u'naughty', u'nurse!')
-        o = self.cls('my_enum', values=values)
-        rule = o._rule_values
-        translation = u"values='Hello', 'naughty', 'nurse!'"
-        dummy = dummy_ugettext(translation)
+        """Test the `_rule_values` method"""
 
-        # Test with passing values:
-        for v in values:
+    def test_rules_with_passing_rules(self):
+        """Test with passing values"""
+        o = self.cls('my_enum', values=self._test_values)
+        rule = o._rule_values
+        dummy = dummy_ugettext(self._translation)
+        for v in self._test_values:
             assert rule(dummy, v) is None
             assert dummy.called() is False
 
-        # Test with failing values:
-        for val in (u'Howdy', u'quiet', u'library!'):
+    def test_rules_with_failing_rules(self):
+        """Test with failing values"""
+        o = self.cls('my_enum', values=self._test_values)
+        rule = o._rule_values
+        dummy = dummy_ugettext(self._translation)
+        for val in self._bad_values:
             assert_equal(
                 rule(dummy, val),
-                translation % dict(values=values),
+                self._translation % dict(values=self._test_values),
             )
             assert_equal(dummy.message, "must be one of %(values)s")
             dummy.reset()
 
-        # test a special case when we have just one allowed value
-        values = (u'Hello', )
+    def test_one_value(self):
+        """test a special case when we have just one allowed value"""
+        values = (self._test_values[0], )
         o = self.cls('my_enum', values=values)
         rule = o._rule_values
-        translation = u"value='Hello'"
-        dummy = dummy_ugettext(translation)
+        dummy = dummy_ugettext(self._single_value_translation)
 
-        for val in (u'Howdy', u'quiet', u'library!'):
+        for val in self._bad_values:
             assert_equal(
                 rule(dummy, val),
-                translation % dict(values=values),
+                self._single_value_translation % dict(values=values),
             )
             assert_equal(dummy.message, "must be '%(value)s'")
             dummy.reset()
+
+
+class test_StrEnum(EnumChecker):
+    """
+    Test the `ipalib.parameters.StrEnum` class.
+    """
+    _cls = parameters.StrEnum
+    _name = 'my_strenum'
+    _datatype = unicode
+    _test_values = u'Hello', u'naughty', u'nurse!'
+    _bad_type_values = u'Hello', 'naughty', u'nurse!'
+    _bad_type = str
+    _translation = u"values='Hello', 'naughty', 'nurse!'"
+    _bad_values = u'Howdy', u'quiet', u'library!'
+    _single_value_translation = u"value='Hello'"
+
+
+def check_int_scalar_conversions(o):
+    """
+    Assure radix prefixes work, str objects fail,
+    floats (native & string) are truncated,
+    large magnitude values are promoted to long,
+    empty strings & invalid numerical representations fail
+    """
+    # Assure invalid inputs raise error
+    for bad in ['hello', u'hello', True, None, u'', u'.', 8j, ()]:
+        e = raises(errors.ConversionError, o._convert_scalar, bad)
+        assert e.name == 'my_number'
+        assert e.index is None
+    # Assure large magnitude values are handled correctly
+    assert type(o._convert_scalar(sys.maxint * 2)) == long
+    assert o._convert_scalar(sys.maxint * 2) == sys.maxint * 2
+    assert o._convert_scalar(unicode(sys.maxint * 2)) == sys.maxint * 2
+    assert o._convert_scalar(long(16)) == 16
+    # Assure normal conversions produce expected result
+    assert o._convert_scalar(u'16.99') == 16
+    assert o._convert_scalar(16.99) == 16
+    assert o._convert_scalar(u'16') == 16
+    assert o._convert_scalar(u'0x10') == 16
+    assert o._convert_scalar(u'020') == 16
+
+
+class test_IntEnum(EnumChecker):
+    """
+    Test the `ipalib.parameters.IntEnum` class.
+    """
+    _cls = parameters.IntEnum
+    _name = 'my_intenum'
+    _datatype = int
+    _test_values = 1, 2, -3
+    _bad_type_values = 1, 2.0, -3
+    _bad_type = float
+    _translation = u"values=1, 2, 3"
+    _bad_values = 4, 5, -6
+    _single_value_translation = u"value=1"
+
+    def test_convert_scalar(self):
+        """
+        Test the `ipalib.parameters.IntEnum._convert_scalar` method.
+        """
+        param = self.cls('my_number', values=(1, 2, 3, 4, 5))
+        check_int_scalar_conversions(param)
 
 
 class test_Number(ClassChecker):
@@ -1239,28 +1303,10 @@ class test_Int(ClassChecker):
     def test_convert_scalar(self):
         """
         Test the `ipalib.parameters.Int._convert_scalar` method.
-        Assure radix prefixes work, str objects fail,
-        floats (native & string) are truncated,
-        large magnitude values are promoted to long,
-        empty strings & invalid numerical representations fail
         """
-        o = self.cls('my_number')
-        # Assure invalid inputs raise error
-        for bad in ['hello', u'hello', True, None, u'', u'.']:
-            e = raises(errors.ConversionError, o._convert_scalar, bad)
-            assert e.name == 'my_number'
-            assert e.index is None
-        # Assure large magnatude values are handled correctly
-        assert type(o._convert_scalar(sys.maxint*2)) == long
-        assert o._convert_scalar(sys.maxint*2) == sys.maxint*2
-        assert o._convert_scalar(unicode(sys.maxint*2)) == sys.maxint*2
-        assert o._convert_scalar(long(16)) == 16
-        # Assure normal conversions produce expected result
-        assert o._convert_scalar(u'16.99') == 16
-        assert o._convert_scalar(16.99)    == 16
-        assert o._convert_scalar(u'16')    == 16
-        assert o._convert_scalar(u'0x10')  == 16
-        assert o._convert_scalar(u'020')   == 16
+        param = self.cls('my_number')
+        check_int_scalar_conversions(param)
+
 
 class test_Decimal(ClassChecker):
     """
