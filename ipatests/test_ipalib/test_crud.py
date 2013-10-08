@@ -78,7 +78,7 @@ class test_Create(CrudChecker):
         for param in api.Method.user_verb.options():
             if param.name != 'version':
                 assert param.required is True
-        api = self.get_api(options=('extra?',))
+        api = self.get_api(options=(Str('extra?'),))
         assert list(api.Method.user_verb.options) == \
             ['givenname', 'sn', 'initials', 'extra', 'all', 'raw', 'version']
         assert api.Method.user_verb.options.extra.required is False
