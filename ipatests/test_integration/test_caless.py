@@ -1235,24 +1235,21 @@ class TestCertinstall(CALessBase):
 
     def certinstall(self, mode, cert_nick=None, cert_exists=True,
                     filename='server.p12', pin=_DEFAULT, stdin_text=None,
-                    p12_pin=None):
+                    p12_pin=None, args=None):
         if cert_nick:
             self.export_pkcs12(cert_nick, password=p12_pin)
         if pin is _DEFAULT:
             pin = self.cert_password
         if cert_exists:
             self.copy_cert(self.master, filename)
-        args = ['ipa-server-certinstall',
-                '-%s' % mode, filename]
-        if pin is not None:
-            option = {'w': '--http_pin', 'd': '--dirsrv_pin'}[mode]
-            args += [option, pin]
-        if mode == 'd':
-            if stdin_text:
-                stdin_text = '%s\n%s' % (self.master.config.dirman_password,
-                                         stdin_text)
-            else:
-                stdin_text = self.master.config.dirman_password + '\n'
+        if not args:
+            args = ['ipa-server-certinstall',
+                    '-%s' % mode, filename]
+            if pin is not None:
+                args += ['--pin', pin]
+            if mode == 'd':
+                args += ['--dirman-password',
+                         self.master.config.dirman_password]
         return self.master.run_command(args,
                                        raiseonerr=False,
                                        stdin_text=stdin_text)
@@ -1436,4 +1433,28 @@ class TestCertinstall(CALessBase):
         "Install new DS certificate with no PKCS#12 password"
 
         result = self.certinstall('d', 'ca1/server', pin='', p12_pin='')
+        assert result.returncode == 0
+
+    def test_http_old_options(self):
+        "Install new valid DS certificate using pre-v3.3 CLI options"
+        # http://www.freeipa.org/page/V3/ipa-server-certinstall_CLI_cleanup
+
+        args = ['ipa-server-certinstall',
+                '-w', 'server.p12',
+                '--http_pin', self.cert_password]
+
+        result = self.certinstall('w', 'ca1/server', args=args)
+        assert result.returncode == 0
+
+    def test_ds_old_options(self):
+        "Install new valid DS certificate using pre-v3.3 CLI options"
+        # http://www.freeipa.org/page/V3/ipa-server-certinstall_CLI_cleanup
+
+        args = ['ipa-server-certinstall',
+                '-d', 'server.p12',
+                '--dirsrv_pin', self.cert_password]
+        stdin_text = self.master.config.dirman_password + '\n'
+
+        result = self.certinstall('d', 'ca1/server',
+                                  args=args, stdin_text=stdin_text)
         assert result.returncode == 0
