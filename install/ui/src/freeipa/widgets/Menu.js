@@ -168,7 +168,7 @@ define(['dojo/_base/declare',
                 if (!li_node) return;
             }
 
-            dom_class.toggle(li_node, 'disabled', !menu_item.disabled);
+            dom_class.toggle(li_node, 'disabled', !!menu_item.disabled);
             dom_class.toggle(li_node, 'selected', menu_item.selected);
             dom_style.set(li_node, {
                 display: menu_item.hidden ? 'none': 'default'
