@@ -291,6 +291,19 @@ def cleanup_kdc(fstore):
             fstore.untrack_file(filename)
             root_logger.debug('Uninstalling %s', filename)
 
+def cleanup_adtrust(fstore):
+    """
+    Clean up any old Samba backup files that were deprecated.
+    """
+
+    root_logger.info('[Checking for deprecated backups of Samba '
+                     'configuration files]')
+
+    for backed_up_file in ['/etc/samba/smb.conf']:
+        if fstore.has_file(backed_up_file):
+            fstore.untrack_file(backed_up_file)
+            root_logger.debug('Removing %s from backup', backed_up_file)
+
 
 def setup_firefox_extension(fstore):
     """Set up the Firefox configuration extension, if it's not set up yet
@@ -1061,6 +1074,7 @@ def main():
             pass
 
     cleanup_kdc(fstore)
+    cleanup_adtrust(fstore)
     setup_firefox_extension(fstore)
     add_ca_dns_records()
 

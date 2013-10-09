@@ -365,8 +365,6 @@ class ADTRUSTInstance(service.Service):
         self.admin_conn.add_entry(entry)
 
     def __write_smb_conf(self):
-        self.fstore.backup_file(self.smb_conf)
-
         conf_fd = open(self.smb_conf, "w")
         conf_fd.write('### Added by IPA Installer ###\n')
         conf_fd.write('[global]\n')
@@ -863,18 +861,17 @@ class ADTRUSTInstance(service.Service):
         except:
             pass
 
-        for r_file in [self.smb_conf]:
-            try:
-                self.fstore.restore_file(r_file)
-            except ValueError, error:
-                root_logger.debug(error)
-                pass
+        # Since we do not guarantee restoring back to working samba state,
+        # we should not restore smb.conf
+
+        # Restore the state of affected selinux booleans
 
         for var in self.selinux_booleans:
             sebool_state = self.restore_state(var)
             if not sebool_state is None:
                 try:
-                    ipautil.run(["/usr/sbin/setsebool", "-P", var, sebool_state])
+                    ipautil.run(["/usr/sbin/setsebool",
+                                 "-P", var, sebool_state])
                 except:
                     self.print_msg(SELINUX_WARNING % dict(var=var))
 
