@@ -53,7 +53,7 @@ A host represents a machine. It can be used in a number of contexts:
 - a host stores the host/ service principal
 - a host can be used in Host-based Access Control (HBAC) rules
 - every enrolled client generates a host entry
-
+""") + _("""
 ENROLLMENT:
 
 There are three enrollment scenarios when enrolling a new client:
@@ -65,8 +65,7 @@ There are three enrollment scenarios when enrolling a new client:
    exist. A limited administrator is a member a role with the
    Host Enrollment privilege.
 3. The host has been created with a one-time password.
-
-
+""") + _("""
 RE-ENROLLMENT:
 
 Host that has been enrolled at some point, and lost its configuration (e.g. VM
@@ -76,30 +75,30 @@ For more information, consult the manual pages for ipa-client-install.
 
 A host can optionally store information such as where it is located,
 the OS that it runs, etc.
-
+""") + _("""
 EXAMPLES:
-
+""") + _("""
  Add a new host:
    ipa host-add --location="3rd floor lab" --locality=Dallas test.example.com
-
+""") + _("""
  Delete a host:
    ipa host-del test.example.com
-
+""") + _("""
  Add a new host with a one-time password:
    ipa host-add --os='Fedora 12' --password=Secret123 test.example.com
-
+""") + _("""
  Add a new host with a random one-time password:
    ipa host-add --os='Fedora 12' --random test.example.com
-
+""") + _("""
  Modify information about a host:
    ipa host-mod --os='Fedora 12' test.example.com
-
+""") + _("""
  Remove SSH public keys of a host and update DNS to reflect this change:
    ipa host-mod --sshpubkey= --updatedns test.example.com
-
+""") + _("""
  Disable the host Kerberos key, SSL certificate and all of its services:
    ipa host-disable test.example.com
-
+""") + _("""
  Add a host that can manage this host's keytab and certificate:
    ipa host-add-managedby --hosts=test2 test
 """)

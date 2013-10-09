@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
+"POT-Creation-Date: 2013-09-12 15:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -957,7 +957,7 @@ msgstr ""
 #: ipalib/plugins/automember.py:176 ipalib/plugins/automount.py:579
 #: ipalib/plugins/group.py:155 ipalib/plugins/hbacrule.py:179
 #: ipalib/plugins/hbacsvc.py:79 ipalib/plugins/hbacsvcgroup.py:73
-#: ipalib/plugins/host.py:268 ipalib/plugins/hostgroup.py:90
+#: ipalib/plugins/host.py:267 ipalib/plugins/hostgroup.py:90
 #: ipalib/plugins/netgroup.py:122 ipalib/plugins/privilege.py:73
 #: ipalib/plugins/role.py:92 ipalib/plugins/selinuxusermap.py:184
 #: ipalib/plugins/sudocmd.py:77 ipalib/plugins/sudocmdgroup.py:78
@@ -1276,7 +1276,7 @@ msgstr ""
 msgid "Automount Location"
 msgstr ""
 
-#: ipalib/plugins/automount.py:215 ipalib/plugins/host.py:278
+#: ipalib/plugins/automount.py:215 ipalib/plugins/host.py:277
 msgid "Location"
 msgstr ""
 
@@ -1999,40 +1999,40 @@ msgid "automatically add the principal if it doesn't exist"
 msgstr ""
 
 #: ipalib/plugins/cert.py:269 ipalib/plugins/cert.py:481
-#: ipalib/plugins/host.py:307 ipalib/plugins/internal.py:319
+#: ipalib/plugins/host.py:306 ipalib/plugins/internal.py:319
 #: ipalib/plugins/service.py:328
 msgid "Certificate"
 msgstr ""
 
 #: ipalib/plugins/cert.py:272 ipalib/plugins/cert.py:484
 #: ipalib/plugins/cert.py:638 ipalib/plugins/cert.py:639
-#: ipalib/plugins/host.py:167 ipalib/plugins/internal.py:332
+#: ipalib/plugins/host.py:166 ipalib/plugins/internal.py:332
 #: ipalib/plugins/service.py:102
 msgid "Subject"
 msgstr ""
 
 #: ipalib/plugins/cert.py:275 ipalib/plugins/cert.py:487
-#: ipalib/plugins/host.py:176 ipalib/plugins/service.py:111
+#: ipalib/plugins/host.py:175 ipalib/plugins/service.py:111
 msgid "Issuer"
 msgstr ""
 
 #: ipalib/plugins/cert.py:278 ipalib/plugins/cert.py:490
-#: ipalib/plugins/host.py:179 ipalib/plugins/service.py:114
+#: ipalib/plugins/host.py:178 ipalib/plugins/service.py:114
 msgid "Not Before"
 msgstr ""
 
 #: ipalib/plugins/cert.py:281 ipalib/plugins/cert.py:493
-#: ipalib/plugins/host.py:182 ipalib/plugins/service.py:117
+#: ipalib/plugins/host.py:181 ipalib/plugins/service.py:117
 msgid "Not After"
 msgstr ""
 
 #: ipalib/plugins/cert.py:284 ipalib/plugins/cert.py:496
-#: ipalib/plugins/host.py:185 ipalib/plugins/service.py:120
+#: ipalib/plugins/host.py:184 ipalib/plugins/service.py:120
 msgid "Fingerprint (MD5)"
 msgstr ""
 
 #: ipalib/plugins/cert.py:287 ipalib/plugins/cert.py:499
-#: ipalib/plugins/host.py:188 ipalib/plugins/service.py:123
+#: ipalib/plugins/host.py:187 ipalib/plugins/service.py:123
 msgid "Fingerprint (SHA1)"
 msgstr ""
 
@@ -2107,7 +2107,7 @@ msgstr ""
 msgid "Retrieve an existing certificate."
 msgstr ""
 
-#: ipalib/plugins/cert.py:502 ipalib/plugins/host.py:191
+#: ipalib/plugins/cert.py:502 ipalib/plugins/host.py:190
 #: ipalib/plugins/internal.py:329 ipalib/plugins/internal.py:358
 #: ipalib/plugins/service.py:126
 msgid "Revocation reason"
@@ -2872,7 +2872,7 @@ msgid "Cannot create reverse record for \"%(value)s\": %(exc)s"
 msgstr ""
 
 #: ipalib/plugins/dns.py:866 ipalib/plugins/dns.py:889
-#: ipalib/plugins/host.py:407
+#: ipalib/plugins/host.py:406
 msgid "IP Address"
 msgstr ""
 
@@ -3321,7 +3321,7 @@ msgid "Create new DNS zone (SOA record)."
 msgstr ""
 
 #: ipalib/plugins/dns.py:1769 ipalib/plugins/dns.py:1904
-#: ipalib/plugins/dns.py:2365 ipalib/plugins/host.py:399
+#: ipalib/plugins/dns.py:2365 ipalib/plugins/host.py:398
 #: ipalib/plugins/permission.py:298 ipalib/plugins/realmdomains.py:97
 #: ipalib/plugins/service.py:369
 msgid "Force"
@@ -3452,7 +3452,7 @@ msgstr ""
 msgid "Time to live"
 msgstr ""
 
-#: ipalib/plugins/dns.py:2111 ipalib/plugins/host.py:331
+#: ipalib/plugins/dns.py:2111 ipalib/plugins/host.py:330
 msgid "Class"
 msgstr ""
 
@@ -4057,7 +4057,7 @@ msgstr ""
 msgid "Users"
 msgstr ""
 
-#: ipalib/plugins/hbacrule.py:194 ipalib/plugins/host.py:256
+#: ipalib/plugins/hbacrule.py:194 ipalib/plugins/host.py:255
 #: ipalib/plugins/internal.py:490 ipalib/plugins/selinuxusermap.py:199
 #: ipalib/plugins/sudorule.py:163
 msgid "Hosts"
@@ -4663,6 +4663,10 @@ msgid ""
 "- a host stores the host/ service principal\n"
 "- a host can be used in Host-based Access Control (HBAC) rules\n"
 "- every enrolled client generates a host entry\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:56
+msgid ""
 "\n"
 "ENROLLMENT:\n"
 "\n"
@@ -4675,7 +4679,10 @@ msgid ""
 "   exist. A limited administrator is a member a role with the\n"
 "   Host Enrollment privilege.\n"
 "3. The host has been created with a one-time password.\n"
-"\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:68
+msgid ""
 "\n"
 "RE-ENROLLMENT:\n"
 "\n"
@@ -4687,250 +4694,286 @@ msgid ""
 "\n"
 "A host can optionally store information such as where it is located,\n"
 "the OS that it runs, etc.\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:78
+msgid ""
 "\n"
 "EXAMPLES:\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:80
+msgid ""
 "\n"
 " Add a new host:\n"
 "   ipa host-add --location=\"3rd floor lab\" --locality=Dallas test.example."
 "com\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:83
+msgid ""
 "\n"
 " Delete a host:\n"
 "   ipa host-del test.example.com\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:86
+msgid ""
 "\n"
 " Add a new host with a one-time password:\n"
 "   ipa host-add --os='Fedora 12' --password=Secret123 test.example.com\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:89
+msgid ""
 "\n"
 " Add a new host with a random one-time password:\n"
 "   ipa host-add --os='Fedora 12' --random test.example.com\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:92
+msgid ""
 "\n"
 " Modify information about a host:\n"
 "   ipa host-mod --os='Fedora 12' test.example.com\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:95
+msgid ""
 "\n"
 " Remove SSH public keys of a host and update DNS to reflect this change:\n"
 "   ipa host-mod --sshpubkey= --updatedns test.example.com\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:98
+msgid ""
 "\n"
 " Disable the host Kerberos key, SSL certificate and all of its services:\n"
 "   ipa host-disable test.example.com\n"
+msgstr ""
+
+#: ipalib/plugins/host.py:101
+msgid ""
 "\n"
 " Add a host that can manage this host's keytab and certificate:\n"
 "   ipa host-add-managedby --hosts=test2 test\n"
 msgstr ""
 
-#: ipalib/plugins/host.py:158 ipalib/plugins/service.py:96
+#: ipalib/plugins/host.py:157 ipalib/plugins/service.py:96
 msgid "Keytab"
 msgstr ""
 
-#: ipalib/plugins/host.py:170 ipalib/plugins/internal.py:363
+#: ipalib/plugins/host.py:169 ipalib/plugins/internal.py:363
 #: ipalib/plugins/service.py:105
 msgid "Serial Number"
 msgstr ""
 
-#: ipalib/plugins/host.py:173 ipalib/plugins/internal.py:364
+#: ipalib/plugins/host.py:172 ipalib/plugins/internal.py:364
 #: ipalib/plugins/service.py:108
 msgid "Serial Number (hex)"
 msgstr ""
 
-#: ipalib/plugins/host.py:194
+#: ipalib/plugins/host.py:193
 msgid "Failed managedby"
 msgstr ""
 
-#: ipalib/plugins/host.py:197 ipalib/plugins/user.py:92
+#: ipalib/plugins/host.py:196 ipalib/plugins/user.py:92
 msgid "SSH public key fingerprint"
 msgstr ""
 
-#: ipalib/plugins/host.py:223
+#: ipalib/plugins/host.py:222
 msgid "host"
 msgstr ""
 
-#: ipalib/plugins/host.py:224
+#: ipalib/plugins/host.py:223
 msgid "hosts"
 msgstr ""
 
-#: ipalib/plugins/host.py:257 ipalib/plugins/internal.py:488
+#: ipalib/plugins/host.py:256 ipalib/plugins/internal.py:488
 #: ipalib/plugins/internal.py:539
 msgid "Host"
 msgstr ""
 
-#: ipalib/plugins/host.py:262
+#: ipalib/plugins/host.py:261
 msgid "Host name"
 msgstr ""
 
-#: ipalib/plugins/host.py:269
+#: ipalib/plugins/host.py:268
 msgid "A description of this host"
 msgstr ""
 
-#: ipalib/plugins/host.py:273
+#: ipalib/plugins/host.py:272
 msgid "Locality"
 msgstr ""
 
-#: ipalib/plugins/host.py:274
+#: ipalib/plugins/host.py:273
 msgid "Host locality (e.g. \"Baltimore, MD\")"
 msgstr ""
 
-#: ipalib/plugins/host.py:279
+#: ipalib/plugins/host.py:278
 msgid "Host location (e.g. \"Lab 2\")"
 msgstr ""
 
-#: ipalib/plugins/host.py:283
+#: ipalib/plugins/host.py:282
 msgid "Platform"
 msgstr ""
 
-#: ipalib/plugins/host.py:284
+#: ipalib/plugins/host.py:283
 msgid "Host hardware platform (e.g. \"Lenovo T61\")"
 msgstr ""
 
-#: ipalib/plugins/host.py:288
+#: ipalib/plugins/host.py:287
 msgid "Operating system"
 msgstr ""
 
-#: ipalib/plugins/host.py:289
+#: ipalib/plugins/host.py:288
 msgid "Host operating system and version (e.g. \"Fedora 9\")"
 msgstr ""
 
-#: ipalib/plugins/host.py:293
+#: ipalib/plugins/host.py:292
 msgid "User password"
 msgstr ""
 
-#: ipalib/plugins/host.py:294
+#: ipalib/plugins/host.py:293
 msgid "Password used in bulk enrollment"
 msgstr ""
 
-#: ipalib/plugins/host.py:297
+#: ipalib/plugins/host.py:296
 msgid "Generate a random password to be used in bulk enrollment"
 msgstr ""
 
-#: ipalib/plugins/host.py:302 ipalib/plugins/user.py:301
+#: ipalib/plugins/host.py:301 ipalib/plugins/user.py:301
 msgid "Random password"
 msgstr ""
 
-#: ipalib/plugins/host.py:308 ipalib/plugins/service.py:329
+#: ipalib/plugins/host.py:307 ipalib/plugins/service.py:329
 msgid "Base-64 encoded server certificate"
 msgstr ""
 
-#: ipalib/plugins/host.py:311 ipalib/plugins/host.py:629
+#: ipalib/plugins/host.py:310 ipalib/plugins/host.py:628
 msgid "Principal name"
 msgstr ""
 
-#: ipalib/plugins/host.py:319
+#: ipalib/plugins/host.py:318
 msgid "MAC address"
 msgstr ""
 
-#: ipalib/plugins/host.py:320
+#: ipalib/plugins/host.py:319
 msgid "Hardware MAC address(es) on this host"
 msgstr ""
 
-#: ipalib/plugins/host.py:324 ipalib/plugins/user.py:363
+#: ipalib/plugins/host.py:323 ipalib/plugins/user.py:363
 msgid "SSH public key"
 msgstr ""
 
-#: ipalib/plugins/host.py:332
+#: ipalib/plugins/host.py:331
 msgid ""
 "Host category (semantics placed on this attribute are for local "
 "interpretation)"
 msgstr ""
 
-#: ipalib/plugins/host.py:392
+#: ipalib/plugins/host.py:391
 msgid "Add a new host."
 msgstr ""
 
-#: ipalib/plugins/host.py:395
+#: ipalib/plugins/host.py:394
 #, python-format
 msgid "Added host \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/host.py:400
+#: ipalib/plugins/host.py:399
 msgid "force host name even if not in DNS"
 msgstr ""
 
-#: ipalib/plugins/host.py:403
+#: ipalib/plugins/host.py:402
 msgid "skip reverse DNS detection"
 msgstr ""
 
-#: ipalib/plugins/host.py:406
+#: ipalib/plugins/host.py:405
 msgid "Add the host to DNS with this IP address"
 msgstr ""
 
-#: ipalib/plugins/host.py:487
+#: ipalib/plugins/host.py:486
 #, python-format
 msgid "The host was added but the DNS update failed with: %(exc)s"
 msgstr ""
 
-#: ipalib/plugins/host.py:508
+#: ipalib/plugins/host.py:507
 msgid "Delete a host."
 msgstr ""
 
-#: ipalib/plugins/host.py:510
+#: ipalib/plugins/host.py:509
 #, python-format
 msgid "Deleted host \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/host.py:515
+#: ipalib/plugins/host.py:514
 msgid "Remove entries from DNS"
 msgstr ""
 
-#: ipalib/plugins/host.py:620
+#: ipalib/plugins/host.py:619
 msgid "Modify information about a host."
 msgstr ""
 
-#: ipalib/plugins/host.py:623
+#: ipalib/plugins/host.py:622
 #, python-format
 msgid "Modified host \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/host.py:630
+#: ipalib/plugins/host.py:629
 msgid "Kerberos principal name for this host"
 msgstr ""
 
-#: ipalib/plugins/host.py:634
+#: ipalib/plugins/host.py:633
 msgid "Update DNS entries"
 msgstr ""
 
-#: ipalib/plugins/host.py:647
+#: ipalib/plugins/host.py:646
 msgid "Password cannot be set on enrolled host."
 msgstr ""
 
-#: ipalib/plugins/host.py:651
+#: ipalib/plugins/host.py:650
 msgid "cn is immutable"
 msgstr ""
 
-#: ipalib/plugins/host.py:770
+#: ipalib/plugins/host.py:769
 msgid "Search for hosts."
 msgstr ""
 
-#: ipalib/plugins/host.py:774
+#: ipalib/plugins/host.py:773
 #, python-format
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ipalib/plugins/host.py:856
+#: ipalib/plugins/host.py:855
 msgid "Display information about a host."
 msgstr ""
 
-#: ipalib/plugins/host.py:861 ipalib/plugins/service.py:560
+#: ipalib/plugins/host.py:860 ipalib/plugins/service.py:560
 msgid "file to store certificate in"
 msgstr ""
 
-#: ipalib/plugins/host.py:893 ipalib/plugins/service.py:580
+#: ipalib/plugins/host.py:892 ipalib/plugins/service.py:580
 #, python-format
 msgid "Certificate stored in file '%(file)s'"
 msgstr ""
 
-#: ipalib/plugins/host.py:904
+#: ipalib/plugins/host.py:903
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
 msgstr ""
 
-#: ipalib/plugins/host.py:907
+#: ipalib/plugins/host.py:906
 #, python-format
 msgid "Disabled host \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/host.py:1000
+#: ipalib/plugins/host.py:999
 msgid "Add hosts that can manage this host."
 msgstr ""
 
-#: ipalib/plugins/host.py:1015
+#: ipalib/plugins/host.py:1014
 msgid "Remove hosts that can manage this host."
 msgstr ""
 
