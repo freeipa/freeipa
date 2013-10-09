@@ -1435,5 +1435,5 @@ class TestCertinstall(CALessBase):
     def test_no_ds_password(self):
         "Install new DS certificate with no PKCS#12 password"
 
-        result = self.certinstall('w', 'ca1/server', pin='', p12_pin='')
+        result = self.certinstall('d', 'ca1/server', pin='', p12_pin='')
         assert result.returncode == 0
