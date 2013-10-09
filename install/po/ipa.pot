@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-09-26 10:57+0200\n"
+"POT-Creation-Date: 2013-10-09 14:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -63,6 +63,10 @@ msgstr ""
 
 #: ipalib/cli.py:1254
 msgid "No file to read"
+msgstr ""
+
+#: ipalib/crud.py:247
+msgid "A string searched in all relevant object attributes"
 msgstr ""
 
 #: ipalib/errors.py:269
@@ -447,20 +451,20 @@ msgstr ""
 msgid "Unknown option: %(option)s"
 msgstr ""
 
-#: ipalib/frontend.py:903
+#: ipalib/frontend.py:904
 msgid ""
 "Retrieve and print all attributes from the server. Affects command output."
 msgstr ""
 
-#: ipalib/frontend.py:909
+#: ipalib/frontend.py:910
 msgid "Print entries as stored on the server. Only affects output format."
 msgstr ""
 
-#: ipalib/frontend.py:915 ipalib/plugins/batch.py:69
+#: ipalib/frontend.py:916 ipalib/plugins/batch.py:69
 msgid "Client version. Used to determine if server will accept request."
 msgstr ""
 
-#: ipalib/frontend.py:1088
+#: ipalib/frontend.py:1089
 msgid "Forward to server instead of running locally"
 msgstr ""
 
@@ -511,120 +515,120 @@ msgstr ""
 msgid "True means the operation was successful"
 msgstr ""
 
-#: ipalib/parameters.py:366
+#: ipalib/parameters.py:370
 msgid "incorrect type"
 msgstr ""
 
-#: ipalib/parameters.py:369
+#: ipalib/parameters.py:373
 msgid "Only one value is allowed"
 msgstr ""
 
-#: ipalib/parameters.py:935
+#: ipalib/parameters.py:932
 msgid "must be True or False"
 msgstr ""
 
-#: ipalib/parameters.py:1036
+#: ipalib/parameters.py:1033
 msgid "must be an integer"
 msgstr ""
 
-#: ipalib/parameters.py:1087
+#: ipalib/parameters.py:1084
 #, python-format
 msgid "must be at least %(minvalue)d"
 msgstr ""
 
-#: ipalib/parameters.py:1097
+#: ipalib/parameters.py:1094
 #, python-format
 msgid "can be at most %(maxvalue)d"
 msgstr ""
 
-#: ipalib/parameters.py:1138
+#: ipalib/parameters.py:1135
 msgid "must be a decimal number"
 msgstr ""
 
-#: ipalib/parameters.py:1184
+#: ipalib/parameters.py:1181
 #, python-format
 msgid "must be at least %(minvalue)s"
 msgstr ""
 
-#: ipalib/parameters.py:1194
+#: ipalib/parameters.py:1191
 #, python-format
 msgid "can be at most %(maxvalue)s"
 msgstr ""
 
-#: ipalib/parameters.py:1202
+#: ipalib/parameters.py:1199
 #, python-format
 msgid ""
 "number class '%(cls)s' is not included in a list of allowed number classes: "
 "%(allowed)s"
 msgstr ""
 
-#: ipalib/parameters.py:1326
+#: ipalib/parameters.py:1323
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
 msgstr ""
 
-#: ipalib/parameters.py:1344
+#: ipalib/parameters.py:1341
 msgid "must be binary data"
 msgstr ""
 
-#: ipalib/parameters.py:1360
+#: ipalib/parameters.py:1357
 #, python-format
 msgid "must be at least %(minlength)d bytes"
 msgstr ""
 
-#: ipalib/parameters.py:1370
+#: ipalib/parameters.py:1367
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
 msgstr ""
 
-#: ipalib/parameters.py:1380
+#: ipalib/parameters.py:1377
 #, python-format
 msgid "must be exactly %(length)d bytes"
 msgstr ""
 
-#: ipalib/parameters.py:1410
+#: ipalib/parameters.py:1407
 msgid "must be Unicode text"
 msgstr ""
 
-#: ipalib/parameters.py:1443
+#: ipalib/parameters.py:1440
 msgid "Leading and trailing spaces are not allowed"
 msgstr ""
 
-#: ipalib/parameters.py:1451
+#: ipalib/parameters.py:1448
 #, python-format
 msgid "must be at least %(minlength)d characters"
 msgstr ""
 
-#: ipalib/parameters.py:1461
+#: ipalib/parameters.py:1458
 #, python-format
 msgid "can be at most %(maxlength)d characters"
 msgstr ""
 
-#: ipalib/parameters.py:1471
+#: ipalib/parameters.py:1468
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr ""
 
-#: ipalib/parameters.py:1490
+#: ipalib/parameters.py:1487
 #, python-format
 msgid "The character %(char)r is not allowed."
 msgstr ""
 
-#: ipalib/parameters.py:1539
+#: ipalib/parameters.py:1538
 #, python-format
 msgid "must be '%(value)s'"
 msgstr ""
 
-#: ipalib/parameters.py:1542
+#: ipalib/parameters.py:1541
 #, python-format
 msgid "must be one of %(values)s"
 msgstr ""
 
-#: ipalib/parameters.py:1781
+#: ipalib/parameters.py:1780
 msgid "incomplete time value"
 msgstr ""
 
-#: ipalib/parameters.py:1818
+#: ipalib/parameters.py:1817
 msgid "this option is deprecated"
 msgstr ""
 
@@ -1768,113 +1772,109 @@ msgstr ""
 msgid "Suppress processing of membership attributes."
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1165
+#: ipalib/plugins/baseldap.py:1159
 msgid "Continuous mode: Don't stop on errors."
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1190 ipalib/plugins/baseldap.py:1263
+#: ipalib/plugins/baseldap.py:1180 ipalib/plugins/baseldap.py:1253
 #: ipalib/plugins/internal.py:501
 msgid "Rights"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1191 ipalib/plugins/baseldap.py:1264
+#: ipalib/plugins/baseldap.py:1181 ipalib/plugins/baseldap.py:1254
 msgid ""
 "Display the access rights of this entry (requires --all). See ipa man page "
 "for details."
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1273
+#: ipalib/plugins/baseldap.py:1263
 msgid "Rename"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1274
+#: ipalib/plugins/baseldap.py:1264
 #, python-format
 msgid "Rename the %(ldap_obj_name)s object"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1355
+#: ipalib/plugins/baseldap.py:1345
 msgid "the entry was deleted while being modified"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1482 ipalib/plugins/baseldap.py:1955
+#: ipalib/plugins/baseldap.py:1472 ipalib/plugins/baseldap.py:1941
 #, python-format
 msgid "%s"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1494
+#: ipalib/plugins/baseldap.py:1484
 #, python-format
 msgid "member %s"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1524 ipalib/plugins/baseldap.py:1980
+#: ipalib/plugins/baseldap.py:1514 ipalib/plugins/baseldap.py:1966
 #, python-format
 msgid "%s to add"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1532 ipalib/plugins/baseldap.py:1992
+#: ipalib/plugins/baseldap.py:1522 ipalib/plugins/baseldap.py:1978
 #: ipalib/plugins/privilege.py:150 ipalib/plugins/privilege.py:175
 #: ipalib/plugins/role.py:164 ipalib/plugins/role.py:187
 msgid "Members that could not be added"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1536 ipalib/plugins/baseldap.py:1996
+#: ipalib/plugins/baseldap.py:1526 ipalib/plugins/baseldap.py:1982
 msgid "Number of members added"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1625 ipalib/plugins/baseldap.py:2085
+#: ipalib/plugins/baseldap.py:1615 ipalib/plugins/baseldap.py:2071
 #, python-format
 msgid "%s to remove"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1632 ipalib/plugins/baseldap.py:2097
+#: ipalib/plugins/baseldap.py:1622 ipalib/plugins/baseldap.py:2083
 msgid "Members that could not be removed"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1636 ipalib/plugins/baseldap.py:2101
+#: ipalib/plugins/baseldap.py:1626 ipalib/plugins/baseldap.py:2087
 msgid "Number of members removed"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1726
+#: ipalib/plugins/baseldap.py:1716
 msgid "Primary key only"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1727
+#: ipalib/plugins/baseldap.py:1717
 #, python-format
 msgid "Results should contain primary key attribute only (\"%s\")"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1735
+#: ipalib/plugins/baseldap.py:1725
 #, python-format
 msgid ""
 "Search for %(searched_object)s with these %(relationship)s %(ldap_object)s."
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1736
+#: ipalib/plugins/baseldap.py:1726
 #, python-format
 msgid ""
 "Search for %(searched_object)s without these %(relationship)s "
 "%(ldap_object)s."
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1745
+#: ipalib/plugins/baseldap.py:1735
 msgid "Time Limit"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1746
+#: ipalib/plugins/baseldap.py:1736
 msgid "Time limit of search in seconds"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1752 ipalib/plugins/cert.py:696
+#: ipalib/plugins/baseldap.py:1742 ipalib/plugins/cert.py:696
 #: ipalib/plugins/hbactest.py:285
 msgid "Size Limit"
 msgstr ""
 
-#: ipalib/plugins/baseldap.py:1753
+#: ipalib/plugins/baseldap.py:1743
 msgid "Maximum number of entries returned"
-msgstr ""
-
-#: ipalib/plugins/baseldap.py:1766
-msgid "A string searched in all relevant object attributes"
 msgstr ""
 
 #: ipalib/plugins/batch.py:62
@@ -3899,7 +3899,7 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/group.py:408 ipalib/plugins/group.py:462
-#: ipalib/plugins/trust.py:368
+#: ipalib/plugins/trust.py:416 ipalib/plugins/trust.py:1244
 msgid ""
 "Cannot perform join operation without own domain configured. Make sure you "
 "have run ipa-adtrust-install on the IPA server first"
@@ -4642,7 +4642,7 @@ msgstr ""
 msgid "Unresolved rules in --rules"
 msgstr ""
 
-#: ipalib/plugins/hbactest.py:388 ipalib/plugins/trust.py:507
+#: ipalib/plugins/hbactest.py:388 ipalib/plugins/trust.py:555
 msgid ""
 "Cannot search in trusted domains without own domain configured. Make sure "
 "you have run ipa-adtrust-install on the IPA server first"
@@ -5211,11 +5211,11 @@ msgstr ""
 msgid "Active Directory winsync range"
 msgstr ""
 
-#: ipalib/plugins/idrange.py:175 ipalib/plugins/trust.py:267
+#: ipalib/plugins/idrange.py:175 ipalib/plugins/trust.py:289
 msgid "Active Directory domain range"
 msgstr ""
 
-#: ipalib/plugins/idrange.py:176 ipalib/plugins/trust.py:268
+#: ipalib/plugins/idrange.py:176 ipalib/plugins/trust.py:290
 msgid "Active Directory trust range with POSIX attributes"
 msgstr ""
 
@@ -5252,7 +5252,7 @@ msgid "Name of the trusted domain"
 msgstr ""
 
 #: ipalib/plugins/idrange.py:214 ipalib/plugins/internal.py:517
-#: ipalib/plugins/trust.py:301
+#: ipalib/plugins/trust.py:323
 msgid "Range type"
 msgstr ""
 
@@ -6702,7 +6702,7 @@ msgid "Trust Settings"
 msgstr ""
 
 #: ipalib/plugins/internal.py:601 ipalib/plugins/realmdomains.py:73
-#: ipalib/plugins/trust.py:789
+#: ipalib/plugins/trust.py:803
 msgid "Domain"
 msgstr ""
 
@@ -6710,11 +6710,13 @@ msgstr ""
 msgid "Establish using"
 msgstr ""
 
-#: ipalib/plugins/internal.py:603 ipalib/plugins/trust.py:211
+#: ipalib/plugins/internal.py:603 ipalib/plugins/trust.py:219
+#: ipalib/plugins/trust.py:1119
 msgid "Domain NetBIOS name"
 msgstr ""
 
-#: ipalib/plugins/internal.py:604 ipalib/plugins/trust.py:215
+#: ipalib/plugins/internal.py:604 ipalib/plugins/trust.py:223
+#: ipalib/plugins/trust.py:1123
 msgid "Domain Security Identifier"
 msgstr ""
 
@@ -6910,7 +6912,7 @@ msgstr ""
 msgid "Sudo"
 msgstr ""
 
-#: ipalib/plugins/internal.py:673 ipalib/plugins/trust.py:200
+#: ipalib/plugins/internal.py:673 ipalib/plugins/trust.py:208
 msgid "Trusts"
 msgstr ""
 
@@ -7782,7 +7784,7 @@ msgid ""
 "   -----------------------------------------------------\n"
 msgstr ""
 
-#: ipalib/plugins/ping.py:55
+#: ipalib/plugins/ping.py:59
 msgid "Ping a remote server."
 msgstr ""
 
@@ -9400,36 +9402,36 @@ msgstr ""
 msgid "Trust type (ad for Active Directory, default)"
 msgstr ""
 
-#: ipalib/plugins/trust.py:190
+#: ipalib/plugins/trust.py:197
 msgid "trust"
 msgstr ""
 
-#: ipalib/plugins/trust.py:191
+#: ipalib/plugins/trust.py:198
 msgid "trusts"
 msgstr ""
 
-#: ipalib/plugins/trust.py:201
+#: ipalib/plugins/trust.py:209
 msgid "Trust"
 msgstr ""
 
-#: ipalib/plugins/trust.py:206 ipa-client/ipa-rmkeytab.c:176
+#: ipalib/plugins/trust.py:214 ipa-client/ipa-rmkeytab.c:176
 msgid "Realm name"
 msgstr ""
 
-#: ipalib/plugins/trust.py:220
+#: ipalib/plugins/trust.py:228
 msgid "SID blacklist incoming"
 msgstr ""
 
-#: ipalib/plugins/trust.py:225
+#: ipalib/plugins/trust.py:233
 msgid "SID blacklist outgoing"
 msgstr ""
 
-#: ipalib/plugins/trust.py:242
+#: ipalib/plugins/trust.py:250
 #, python-format
 msgid "invalid SID: %(value)s"
 msgstr ""
 
-#: ipalib/plugins/trust.py:252
+#: ipalib/plugins/trust.py:274
 msgid ""
 "\n"
 "Add new trust to use.\n"
@@ -9446,133 +9448,144 @@ msgid ""
 "    "
 msgstr ""
 
-#: ipalib/plugins/trust.py:276
+#: ipalib/plugins/trust.py:298
 msgid "Active Directory domain administrator"
 msgstr ""
 
-#: ipalib/plugins/trust.py:280
+#: ipalib/plugins/trust.py:302
 msgid "Active directory domain administrator's password"
 msgstr ""
 
-#: ipalib/plugins/trust.py:285
+#: ipalib/plugins/trust.py:307
 msgid "Domain controller for the Active Directory domain (optional)"
 msgstr ""
 
-#: ipalib/plugins/trust.py:289
+#: ipalib/plugins/trust.py:311
 msgid "Shared secret for the trust"
 msgstr ""
 
-#: ipalib/plugins/trust.py:294
+#: ipalib/plugins/trust.py:316
 msgid "First Posix ID of the range reserved for the trusted domain"
 msgstr ""
 
-#: ipalib/plugins/trust.py:298
+#: ipalib/plugins/trust.py:320
 msgid "Size of the ID range reserved for the trusted domain"
 msgstr ""
 
-#: ipalib/plugins/trust.py:303
+#: ipalib/plugins/trust.py:325
 msgid "Type of trusted domain ID range, one of {vals}"
 msgstr ""
 
-#: ipalib/plugins/trust.py:309
+#: ipalib/plugins/trust.py:331
 #, python-format
 msgid "Added Active Directory trust for realm \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/trust.py:337 ipalib/plugins/trust.py:366
-#: ipalib/plugins/trust.py:386 ipalib/plugins/trust.py:396
-#: ipalib/plugins/trust.py:621 ipalib/plugins/trust.py:647
+#: ipalib/plugins/trust.py:372 ipalib/plugins/trust.py:414
+#: ipalib/plugins/trust.py:434 ipalib/plugins/trust.py:444
+#: ipalib/plugins/trust.py:671 ipalib/plugins/trust.py:697
+#: ipalib/plugins/trust.py:1230 ipalib/plugins/trust.py:1242
 msgid "AD Trust setup"
 msgstr ""
 
-#: ipalib/plugins/trust.py:339
+#: ipalib/plugins/trust.py:374 ipalib/plugins/trust.py:1232
 msgid ""
 "Cannot perform join operation without Samba 4 support installed. Make sure "
 "you have installed server-trust-ad sub-package of IPA"
 msgstr ""
 
-#: ipalib/plugins/trust.py:347
+#: ipalib/plugins/trust.py:382
 msgid "missing base_id"
 msgstr ""
 
-#: ipalib/plugins/trust.py:349
+#: ipalib/plugins/trust.py:384
 msgid "pysss_murmur is not available on the server and no base-id is given."
 msgstr ""
 
-#: ipalib/plugins/trust.py:355 ipalib/plugins/trust.py:359
+#: ipalib/plugins/trust.py:390 ipalib/plugins/trust.py:394
 msgid "trust type"
 msgstr ""
 
-#: ipalib/plugins/trust.py:360
+#: ipalib/plugins/trust.py:395
 msgid "only \"ad\" is supported"
 msgstr ""
 
-#: ipalib/plugins/trust.py:388
+#: ipalib/plugins/trust.py:405
+msgid "Realm-domain mismatch"
+msgstr ""
+
+#: ipalib/plugins/trust.py:406
+msgid ""
+"To estabilish trust with Active Directory, the domain name and the realm "
+"name of the IPA server must match"
+msgstr ""
+
+#: ipalib/plugins/trust.py:436
 msgid "Trusted domain and administrator account use different realms"
 msgstr ""
 
-#: ipalib/plugins/trust.py:397
+#: ipalib/plugins/trust.py:445
 msgid "Realm administrator password should be specified"
 msgstr ""
 
-#: ipalib/plugins/trust.py:418
+#: ipalib/plugins/trust.py:466
 msgid "id range type"
 msgstr ""
 
-#: ipalib/plugins/trust.py:420
+#: ipalib/plugins/trust.py:468
 msgid ""
 "Only the ipa-ad-trust and ipa-ad-trust-posix are allowed values for --range-"
 "type when adding an AD trust."
 msgstr ""
 
-#: ipalib/plugins/trust.py:430
+#: ipalib/plugins/trust.py:478
 msgid "id range"
 msgstr ""
 
-#: ipalib/plugins/trust.py:432
+#: ipalib/plugins/trust.py:480
 msgid ""
 "An id range already exists for this trust. You should either delete the old "
 "range, or exclude --base-id/--range-size options from the command."
 msgstr ""
 
-#: ipalib/plugins/trust.py:454
+#: ipalib/plugins/trust.py:502
 msgid "range exists"
 msgstr ""
 
-#: ipalib/plugins/trust.py:456
+#: ipalib/plugins/trust.py:504
 msgid ""
 "ID range with the same name but different domain SID already exists. The ID "
 "range for the new trusted domain must be created manually."
 msgstr ""
 
-#: ipalib/plugins/trust.py:463
+#: ipalib/plugins/trust.py:511
 msgid "range type change"
 msgstr ""
 
-#: ipalib/plugins/trust.py:464
+#: ipalib/plugins/trust.py:512
 msgid ""
 "ID range for the trusted domain already exists, but it has a different type. "
 "Please remove the old range manually, or do not enforce type via --range-"
 "type option."
 msgstr ""
 
-#: ipalib/plugins/trust.py:581
+#: ipalib/plugins/trust.py:631
 #, python-format
 msgid "Re-established trust to domain \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/trust.py:596
+#: ipalib/plugins/trust.py:646
 #, python-format
 msgid "Unable to resolve domain controller for '%s' domain. "
 msgstr ""
 
-#: ipalib/plugins/trust.py:602
+#: ipalib/plugins/trust.py:652
 msgid ""
 "Forward policy is defined for it in IPA DNS, perhaps forwarder points to "
 "incorrect host?"
 msgstr ""
 
-#: ipalib/plugins/trust.py:605
+#: ipalib/plugins/trust.py:655
 #, python-format
 msgid ""
 "IPA manages DNS, please verify your DNS configuration and make sure that "
@@ -9581,31 +9594,31 @@ msgid ""
 "documentation. "
 msgstr ""
 
-#: ipalib/plugins/trust.py:615
+#: ipalib/plugins/trust.py:665
 #, python-format
 msgid ""
 "Since IPA does not manage DNS records, ensure DNS is configured to resolve "
 "'%(domain)s' domain from IPA hosts and back."
 msgstr ""
 
-#: ipalib/plugins/trust.py:622
+#: ipalib/plugins/trust.py:672
 msgid "Unable to verify write permissions to the AD"
 msgstr ""
 
-#: ipalib/plugins/trust.py:648
+#: ipalib/plugins/trust.py:698
 msgid "Not enough arguments specified to perform trust setup"
 msgstr ""
 
-#: ipalib/plugins/trust.py:651
+#: ipalib/plugins/trust.py:701
 msgid "Delete a trust."
 msgstr ""
 
-#: ipalib/plugins/trust.py:653
+#: ipalib/plugins/trust.py:703
 #, python-format
 msgid "Deleted trust \"%(value)s\""
 msgstr ""
 
-#: ipalib/plugins/trust.py:664
+#: ipalib/plugins/trust.py:706
 msgid ""
 "\n"
 "    Modify a trust (for future use).\n"
@@ -9615,105 +9628,196 @@ msgid ""
 "    "
 msgstr ""
 
-#: ipalib/plugins/trust.py:671
+#: ipalib/plugins/trust.py:713
 #, python-format
 msgid "Modified trust \"%(value)s\" (change will be effective in 60 seconds)"
 msgstr ""
 
-#: ipalib/plugins/trust.py:688
+#: ipalib/plugins/trust.py:724
 msgid "Search for trusts."
 msgstr ""
 
-#: ipalib/plugins/trust.py:693
+#: ipalib/plugins/trust.py:729
 #, python-format
 msgid "%(count)d trust matched"
 msgid_plural "%(count)d trusts matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ipalib/plugins/trust.py:717
+#: ipalib/plugins/trust.py:755
 msgid "Display information about a trust."
 msgstr ""
 
-#: ipalib/plugins/trust.py:778
+#: ipalib/plugins/trust.py:792
 msgid "trust configuration"
 msgstr ""
 
-#: ipalib/plugins/trust.py:784 ipalib/plugins/trust.py:785
+#: ipalib/plugins/trust.py:798 ipalib/plugins/trust.py:799
 msgid "Global Trust Configuration"
 msgstr ""
 
-#: ipalib/plugins/trust.py:793
+#: ipalib/plugins/trust.py:807
 msgid "Security Identifier"
 msgstr ""
 
-#: ipalib/plugins/trust.py:797
+#: ipalib/plugins/trust.py:811
 msgid "NetBIOS name"
 msgstr ""
 
-#: ipalib/plugins/trust.py:801
+#: ipalib/plugins/trust.py:815
 msgid "Domain GUID"
 msgstr ""
 
-#: ipalib/plugins/trust.py:806
+#: ipalib/plugins/trust.py:820
 msgid "Fallback primary group"
 msgstr ""
 
-#: ipalib/plugins/trust.py:818
+#: ipalib/plugins/trust.py:832
 msgid "unsupported trust type"
 msgstr ""
 
-#: ipalib/plugins/trust.py:881
+#: ipalib/plugins/trust.py:895
 msgid "Modify global trust configuration."
 msgstr ""
 
-#: ipalib/plugins/trust.py:884
+#: ipalib/plugins/trust.py:898
 #, python-format
 msgid "Modified \"%(value)s\" trust configuration"
 msgstr ""
 
-#: ipalib/plugins/trust.py:903
+#: ipalib/plugins/trust.py:917
 msgid "Show global trust configuration."
 msgstr ""
 
-#: ipalib/plugins/trust.py:929
+#: ipalib/plugins/trust.py:943
 msgid "Resolve security identifiers of users and groups in trusted domains"
 msgstr ""
 
-#: ipalib/plugins/trust.py:933
+#: ipalib/plugins/trust.py:947
 msgid "Security Identifiers (SIDs)"
 msgstr ""
 
-#: ipalib/plugins/trust.py:939
+#: ipalib/plugins/trust.py:953
 msgid "Name"
 msgstr ""
 
-#: ipalib/plugins/trust.py:940
+#: ipalib/plugins/trust.py:954
 msgid "SID"
 msgstr ""
 
-#: ipalib/plugins/trust.py:971
+#: ipalib/plugins/trust.py:985
 msgid "Determine whether ipa-adtrust-install has been run on this system"
 msgstr ""
 
-#: ipalib/plugins/trust.py:998
+#: ipalib/plugins/trust.py:1012
 msgid ""
 "Determine whether Schema Compatibility plugin is configured to serve trusted "
 "domain users and groups"
 msgstr ""
 
-#: ipalib/plugins/trust.py:1051
+#: ipalib/plugins/trust.py:1065
 msgid "Determine whether ipa-adtrust-install has been run with sidgen task"
 msgstr ""
 
-#: ipalib/plugins/trust.py:1067
+#: ipalib/plugins/trust.py:1081
 msgid "sidgen_was_run"
 msgstr ""
 
-#: ipalib/plugins/trust.py:1069
+#: ipalib/plugins/trust.py:1083
 msgid ""
 "This command relies on the existence of the \"editors\" group, but this "
 "group was not found."
+msgstr ""
+
+#: ipalib/plugins/trust.py:1102
+msgid "trust domain"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1103
+msgid "trust domains"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1108
+msgid "Trusted domains"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1109
+msgid "Trusted domain"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1113
+msgid "Domain name"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1126
+msgid "Trusted domain partner"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1146
+msgid "Search domains of the trust"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1153
+msgid "Modify trustdomain of the trust"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1160
+msgid "Allow access from the trusted domain"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1171
+msgid "Remove infromation about the domain associated with the trust."
+msgstr ""
+
+#: ipalib/plugins/trust.py:1173
+#, python-format
+msgid "Removed information about the trusted domain \"%(value)s\""
+msgstr ""
+
+#: ipalib/plugins/trust.py:1182
+msgid ""
+"cannot delete root domain of the trust, use trust-del to delete the trust "
+"itself"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1223
+msgid "Refresh list of the domains associated with the trust"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1253
+msgid "List of trust domains successfully refreshed"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1255
+msgid "No new trust domains were found"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1265
+msgid "Allow use of IPA resources by the domain of the trust"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1268
+#, python-format
+msgid "Enabled trust domain \"%(value)s\""
+msgstr ""
+
+#: ipalib/plugins/trust.py:1275
+msgid "Root domain of the trust is always enabled for the existing trust"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1305
+msgid "Disable use of IPA resources by the domain of the trust"
+msgstr ""
+
+#: ipalib/plugins/trust.py:1308
+#, python-format
+msgid "Disabled trust domain \"%(value)s\""
+msgstr ""
+
+#: ipalib/plugins/trust.py:1315
+msgid ""
+"cannot disable root domain of the trust, use trust-del to delete the trust "
+"itself"
 msgstr ""
 
 #: ipalib/plugins/user.py:41
@@ -10218,109 +10322,96 @@ msgid ""
 "                  message \"%(message)s\" (both may be \"None\")"
 msgstr ""
 
-#: ipaserver/dcerpc.py:194
-msgid ""
-"communication with trusted domains is allowed for Trusts administrator group "
-"members only"
-msgstr ""
-
-#: ipaserver/dcerpc.py:214
+#: ipaserver/dcerpc.py:203
 msgid "no trusted domain is configured"
 msgstr ""
 
-#: ipaserver/dcerpc.py:221
+#: ipaserver/dcerpc.py:210
 msgid "domain is not configured"
 msgstr ""
 
-#: ipaserver/dcerpc.py:228
+#: ipaserver/dcerpc.py:217
 msgid "SID is not valid"
 msgstr ""
 
-#: ipaserver/dcerpc.py:243
+#: ipaserver/dcerpc.py:232
 msgid "SID does not match exactlywith any trusted domain's SID"
 msgstr ""
 
-#: ipaserver/dcerpc.py:254
+#: ipaserver/dcerpc.py:243
 msgid "SID does not match any trusted domain"
 msgstr ""
 
-#: ipaserver/dcerpc.py:294 ipaserver/dcerpc.py:300 ipaserver/dcerpc.py:562
+#: ipaserver/dcerpc.py:283 ipaserver/dcerpc.py:289 ipaserver/dcerpc.py:511
 msgid "Trust setup"
 msgstr ""
 
-#: ipaserver/dcerpc.py:295
+#: ipaserver/dcerpc.py:284
 msgid "Our domain is not configured"
 msgstr ""
 
-#: ipaserver/dcerpc.py:301
+#: ipaserver/dcerpc.py:290
 msgid "No trusted domain is not configured"
 msgstr ""
 
-#: ipaserver/dcerpc.py:306 ipaserver/dcerpc.py:321 ipaserver/dcerpc.py:338
-#: ipaserver/dcerpc.py:350 ipaserver/dcerpc.py:357 ipaserver/dcerpc.py:402
+#: ipaserver/dcerpc.py:295 ipaserver/dcerpc.py:310 ipaserver/dcerpc.py:327
+#: ipaserver/dcerpc.py:339 ipaserver/dcerpc.py:346 ipaserver/dcerpc.py:391
 msgid "trusted domain object"
 msgstr ""
 
-#: ipaserver/dcerpc.py:307
+#: ipaserver/dcerpc.py:296
 msgid "domain is not trusted"
 msgstr ""
 
-#: ipaserver/dcerpc.py:322
+#: ipaserver/dcerpc.py:311
 msgid "no trusted domain matched the specified flat name"
 msgstr ""
 
-#: ipaserver/dcerpc.py:324
+#: ipaserver/dcerpc.py:313
 msgid "trusted domain object not found"
 msgstr ""
 
-#: ipaserver/dcerpc.py:339 ipaserver/dcerpc.py:403
+#: ipaserver/dcerpc.py:328 ipaserver/dcerpc.py:392
 msgid "Ambiguous search, user domain was not specified"
 msgstr ""
 
-#: ipaserver/dcerpc.py:351
+#: ipaserver/dcerpc.py:340
 msgid "Trusted domain did not return a unique object"
 msgstr ""
 
-#: ipaserver/dcerpc.py:358
+#: ipaserver/dcerpc.py:347
 msgid "Trusted domain did not return a valid SID for the object"
 msgstr ""
 
-#: ipaserver/dcerpc.py:388 ipaserver/dcerpc.py:398
+#: ipaserver/dcerpc.py:377 ipaserver/dcerpc.py:387
 msgid "trusted domain user not found"
 msgstr ""
 
-#: ipaserver/dcerpc.py:498
-#, python-format
-msgid ""
-"KDC for %(domain)s denied trust account for IPA domain with a message "
-"'%(message)s'"
-msgstr ""
-
-#: ipaserver/dcerpc.py:563
+#: ipaserver/dcerpc.py:512
 msgid "Cannot retrieve trusted domain GC list"
 msgstr ""
 
-#: ipaserver/dcerpc.py:704
+#: ipaserver/dcerpc.py:648
 msgid "CIFS credentials object"
 msgstr ""
 
-#: ipaserver/dcerpc.py:737
+#: ipaserver/dcerpc.py:681
 #, python-format
 msgid "CIFS server %(host)s denied your credentials"
 msgstr ""
 
-#: ipaserver/dcerpc.py:741
+#: ipaserver/dcerpc.py:685
 #, python-format
 msgid "Cannot establish LSA connection to %(host)s. Is CIFS server running?"
 msgstr ""
 
-#: ipaserver/dcerpc.py:899
+#: ipaserver/dcerpc.py:874
 #, python-format
 msgid ""
 "the IPA server and the remote domain cannot share the same NetBIOS name: %s"
 msgstr ""
 
-#: ipaserver/install/certs.py:639
+#: ipaserver/install/certs.py:640
 #, python-format
 msgid "Unable to communicate with CMS (%s)"
 msgstr ""

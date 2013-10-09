@@ -13,16 +13,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
-"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?"
-"product=freeIPA\n"
-"POT-Creation-Date: 2013-08-01 16:02+0200\n"
-"PO-Revision-Date: 2013-08-16 17:26+0000\n"
-"Last-Translator: Dralyab <geodebay@gmail.com>\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
+"newticket\n"
+"POT-Creation-Date: 2013-10-09 14:39+0200\n"
+"PO-Revision-Date: 2013-10-05 15:28+0000\n"
+"Last-Translator: Jérôme Fenal <jfenal@gmail.com>\n"
 "Language-Team: French <trans-fr@lists.fedoraproject.org>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #, python-format
@@ -59,6 +59,11 @@ msgstr "Arguments positionnels"
 
 msgid "No file to read"
 msgstr "Pas de fichier à lire"
+
+msgid "A string searched in all relevant object attributes"
+msgstr ""
+"Une chaîne de caractère recherchées dans tous les attributs d'objets "
+"pertinents"
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
@@ -187,7 +192,7 @@ msgid "This entry already exists"
 msgstr "Cette entrée existe déjà"
 
 msgid "You must enroll a host in order to create a host service"
-msgstr "Vous devez enregistrer un système afin de créer un service"
+msgstr "Vous devez enregistrer un hôte afin de créer un service"
 
 #, python-format
 msgid ""
@@ -470,7 +475,7 @@ msgstr ""
 
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
-msgstr "doit correspondre au motif \"%(pattern)s\""
+msgstr "doit correspondre au motif « %(pattern)s »"
 
 msgid "must be binary data"
 msgstr "doit être des données binaires"
@@ -565,7 +570,7 @@ msgstr "DN invalide (%s)"
 
 #, python-format
 msgid "ACI with name \"%s\" not found"
-msgstr "ACI nommée \"%s\" introuvable"
+msgstr "ACI nommée « %s » introuvable"
 
 msgid "ACI prefix"
 msgstr "Préfixe ACI"
@@ -645,21 +650,21 @@ msgstr "Appliquer l'ACI à votre propre entrée (self)"
 
 #, python-format
 msgid "Created ACI \"%(value)s\""
-msgstr "ACI créée \"%(value)s\""
+msgstr "ACI créée « %(value)s »"
 
 msgid "Test the ACI syntax but don't write anything"
 msgstr "Tester la syntaxe de l'ACI, sans rien écrire"
 
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
-msgstr "Deleted ACI \"%(value)s\""
+msgstr "Deleted ACI « %(value)s »"
 
 msgid "ACI"
 msgstr "ACI"
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
-msgstr "ACI modifiée \"%(value)s\""
+msgstr "ACI modifiée « %(value)s »"
 
 #, python-format
 msgid "%(count)d ACI matched"
@@ -672,7 +677,7 @@ msgstr "Nouveau nom de l'ACI"
 
 #, python-format
 msgid "Renamed ACI to \"%(value)s\""
-msgstr "ACI renommée en \"%(value)s\""
+msgstr "ACI renommée en « %(value)s »"
 
 msgid ""
 "\n"
@@ -916,7 +921,7 @@ msgstr ""
 
 #, python-format
 msgid "Added automember rule \"%(value)s\""
-msgstr "Règle d'auto-adhésion \"%(value)s\" ajoutée"
+msgstr "Règle d'auto-adhésion « %(value)s » ajoutée"
 
 msgid "Auto Membership is not configured"
 msgstr "L'auto-adhésion n'est pas configurée"
@@ -935,7 +940,7 @@ msgstr "Échec lors de l'ajout"
 
 #, python-format
 msgid "Added condition(s) to \"%(value)s\""
-msgstr "Condition(s) ajoutées à \"%(value)s\""
+msgstr "Condition(s) ajoutées à « %(value)s »"
 
 msgid "Conditions that could not be added"
 msgstr "Conditions n'ayant pu être ajoutées"
@@ -969,7 +974,7 @@ msgstr ""
 
 #, python-format
 msgid "Removed condition(s) from \"%(value)s\""
-msgstr "Conditions supprimées de \"%(value)s\""
+msgstr "Conditions supprimées de « %(value)s »"
 
 msgid "Conditions that could not be removed"
 msgstr "Conditions n'ayant pu être supprimées"
@@ -997,7 +1002,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified automember rule \"%(value)s\""
-msgstr "Règle d'auto-adhésion \"%(value)s\" modifiée"
+msgstr "Règle d'auto-adhésion « %(value)s » modifiée"
 
 msgid ""
 "\n"
@@ -1010,7 +1015,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted automember rule \"%(value)s\""
-msgstr "Règle d'auto-adhésion \"%(value)s\" supprimée"
+msgstr "Règle d'auto-adhésion « %(value)s » supprimée"
 
 msgid ""
 "\n"
@@ -1327,14 +1332,14 @@ msgstr "Créer un nouveau lieu d'automontage"
 
 #, python-format
 msgid "Added automount location \"%(value)s\""
-msgstr "Lieu d'automontage \"%(value)s\" ajouté"
+msgstr "Lieu d'automontage « %(value)s » ajouté"
 
 msgid "Delete an automount location."
 msgstr "Supprimer un lieu d'automontage."
 
 #, python-format
 msgid "Deleted automount location \"%(value)s\""
-msgstr "Lieu d'automontage \"%(value)s\" supprimé"
+msgstr "Lieu d'automontage « %(value)s » supprimé"
 
 msgid "Display an automount location."
 msgstr "Afficher un lieu d'automontage."
@@ -1404,21 +1409,21 @@ msgstr "Créer une nouvelle carte d'automontage."
 
 #, python-format
 msgid "Added automount map \"%(value)s\""
-msgstr "Carte d'automontage \"%(value)s\" ajoutée"
+msgstr "Carte d'automontage « %(value)s » ajoutée"
 
 msgid "Delete an automount map."
 msgstr "Supprimer une carte d'automontage."
 
 #, python-format
 msgid "Deleted automount map \"%(value)s\""
-msgstr "Carte d'automontage \"%(value)s\" supprimée"
+msgstr "Carte d'automontage « %(value)s » supprimée"
 
 msgid "Modify an automount map."
 msgstr "Modifier une carte d'automontage."
 
 #, python-format
 msgid "Modified automount map \"%(value)s\""
-msgstr "Carte d'automontage \"%(value)s\" modifiée"
+msgstr "Carte d'automontage « %(value)s » modifiée"
 
 msgid "Search for an automount map."
 msgstr "Rechercher des cartes d'automontage."
@@ -1488,14 +1493,14 @@ msgstr "Créer une nouvelle clé d'automontage."
 
 #, python-format
 msgid "Added automount key \"%(value)s\""
-msgstr "Clé d'automontage \"%(value)s\" créée"
+msgstr "Clé d'automontage « %(value)s » créée"
 
 msgid "Create a new indirect mount point."
 msgstr "Créer un nouveau point de montage indirect."
 
 #, python-format
 msgid "Added automount indirect map \"%(value)s\""
-msgstr "Carte d'automontage indirect \"%(value)s\" créée"
+msgstr "Carte d'automontage indirect « %(value)s » créée"
 
 msgid "Mount point"
 msgstr "Point de montage"
@@ -1514,14 +1519,14 @@ msgstr "Supprimer une clé d'automontage."
 
 #, python-format
 msgid "Deleted automount key \"%(value)s\""
-msgstr "Clé d'automontage \"%(value)s\" supprimée"
+msgstr "Clé d'automontage « %(value)s » supprimée"
 
 msgid "Modify an automount key."
 msgstr "Modifier une clé d'automontage."
 
 #, python-format
 msgid "Modified automount key \"%(value)s\""
-msgstr "Clé d'automontage \"%(value)s\" modifiée"
+msgstr "Clé d'automontage « %(value)s » modifiée"
 
 msgid "New mount information"
 msgstr "Nouvelle information de montage"
@@ -1554,13 +1559,13 @@ msgid "Member of groups"
 msgstr "Membre des groupes"
 
 msgid "Member hosts"
-msgstr "Systèmes membres"
+msgstr "Hôtes membres"
 
 msgid "Member host-groups"
-msgstr "Groupes de systèmes membres"
+msgstr "Groupes d'hôtes membres"
 
 msgid "Member of host-groups"
-msgstr "Membre du groupe de systèmes"
+msgstr "Membre du groupe d'hôtes"
 
 msgid "Roles"
 msgstr "Rôles"
@@ -1596,10 +1601,10 @@ msgid "Indirect Member groups"
 msgstr "Groupes membres indirects"
 
 msgid "Indirect Member hosts"
-msgstr "Systèmes membres indirects"
+msgstr "Hôtes membres indirects"
 
 msgid "Indirect Member host-groups"
-msgstr "Groupes de systèmes membres indirect"
+msgstr "Groupes d'hôtes membres indirects"
 
 msgid "Indirect Member of roles"
 msgstr "Membres indirect des rôles"
@@ -1617,10 +1622,10 @@ msgid "Indirect Member netgroups"
 msgstr "Netgroups membres indirects"
 
 msgid "Failed source hosts/hostgroups"
-msgstr "Systèmes/groupes de systèmes sources en échec"
+msgstr "Hôtes/groupes d'hôtes sources en échec"
 
 msgid "Failed hosts/hostgroups"
-msgstr "Systèmes et groupes de système en échec"
+msgstr "Hôtes et groupes d'hôtes en échec"
 
 msgid "Failed users/groups"
 msgstr "Utilisateurs et groupes en échec"
@@ -1669,7 +1674,7 @@ msgstr "%(pkey)s: %(oname)s introuvable"
 
 #, python-format
 msgid "%(oname)s with name \"%(pkey)s\" already exists"
-msgstr "%(oname)s avec le nom \"%(pkey)s\" existe déjà"
+msgstr "L'objet %(oname)s avec le nom « %(pkey)s » existe déjà"
 
 #, python-format
 msgid "attribute \"%(attribute)s\" not allowed"
@@ -1764,7 +1769,7 @@ msgstr "Clé primaire uniquement"
 msgid "Results should contain primary key attribute only (\"%s\")"
 msgstr ""
 "Les résultats devraient contenir uniquement des attributs clé primaire "
-"uniquement (\"%s\")"
+"uniquement (« %s »)"
 
 #, python-format
 msgid ""
@@ -1790,11 +1795,6 @@ msgstr "Limite de taille"
 
 msgid "Maximum number of entries returned"
 msgstr "Nombre maximal d'entrées renvoyées"
-
-msgid "A string searched in all relevant object attributes"
-msgstr ""
-"Une chaîne de caractère recherchées dans tous les attributs d'objets "
-"pertinents"
 
 msgid "Nested Methods to execute"
 msgstr "Commandes imbriquées à exécuter"
@@ -2387,7 +2387,7 @@ msgstr "Le groupe n'existe pas"
 
 #, python-format
 msgid "attribute \"%s\" not allowed"
-msgstr "attribut \"%s\" interdit"
+msgstr "attribut « %s » interdit"
 
 msgid "May not be empty"
 msgstr "Ne peut être vide"
@@ -2501,21 +2501,21 @@ msgstr "Ajouter une nouvelle délégation."
 
 #, python-format
 msgid "Added delegation \"%(value)s\""
-msgstr "Délégation \"%(value)s\" ajoutée"
+msgstr "Délégation « %(value)s » ajoutée"
 
 msgid "Delete a delegation."
 msgstr "Supprimer une délégation."
 
 #, python-format
 msgid "Deleted delegation \"%(value)s\""
-msgstr "Délégation \"%(value)s\" supprimée"
+msgstr "Délégation « %(value)s » supprimée"
 
 msgid "Modify a delegation."
 msgstr "Modifier une délégation."
 
 #, python-format
 msgid "Modified delegation \"%(value)s\""
-msgstr "Délégation \"%(value)s\" modifiée"
+msgstr "Délégation « %(value)s » modifiée"
 
 msgid "Search for delegations."
 msgstr "Rechercher des délégations."
@@ -3037,11 +3037,11 @@ msgstr "Nombre de parties invalide !"
 #, python-format
 msgid "DNS RR type \"%s\" is not supported by bind-dyndb-ldap plugin"
 msgstr ""
-"Le type DNS RR \"%s\" n'est pas pris en compte par le greffon bind-dyndb-ldap"
+"Le type DNS RR « %s » n'est pas pris en compte par le greffon bind-dyndb-ldap"
 
 #, python-format
 msgid "format must be specified as \"%(format)s\" %(rfcs)s"
-msgstr "le format doit être spécificié comme \"%(format)s\" %(rfcs)s"
+msgstr "le format doit être spécificié comme « %(format)s » %(rfcs)s"
 
 msgid "Create reverse"
 msgstr "Créer enregistrement inverse"
@@ -3185,7 +3185,7 @@ msgid ""
 "format must be specified as \"NEXT TYPE1 [TYPE2 [TYPE3 [...]]]\" (see RFC "
 "4034 for details)"
 msgstr ""
-"le format doit être spécifié comme \"NEXT TYPE1 [TYPE2 [TYPE3 [...]]]\" (cf. "
+"le format doit être spécifié comme « NEXT TYPE1 [TYPE2 [TYPE3 [...]]] » (cf. "
 "RFC 4034 pour les détails)"
 
 msgid "Next Domain Name"
@@ -3196,7 +3196,7 @@ msgstr "Type de carte"
 
 msgid "flags must be one of \"S\", \"A\", \"U\", or \"P\""
 msgstr ""
-"les drapeaux doivent avoir une valeur parmi \"S\", \"A\", \"U\", ou \"P\""
+"les drapeaux doivent être une valeur parmi « S », « A », « U », ou « P »"
 
 msgid "Order"
 msgstr "Ordre"
@@ -3230,7 +3230,7 @@ msgstr ""
 "disponible dans ce domaine"
 
 msgid "the value does not follow \"YYYYMMDDHHMMSS\" time format"
-msgstr "la valeur n'est pas au format temporel \"YYYYMMDDHHMMSS\""
+msgstr "la valeur n'est pas au format temporel « YYYYMMDDHHMMSS »"
 
 msgid "Type Covered"
 msgstr "Type couvert"
@@ -3489,14 +3489,14 @@ msgstr "Désactiver la zone DNS."
 
 #, python-format
 msgid "Disabled DNS zone \"%(value)s\""
-msgstr "Zone DNS \"%(value)s\" désactivée"
+msgstr "Zone DNS « %(value)s » désactivée"
 
 msgid "Enable DNS Zone."
 msgstr "Activer la zone DNS."
 
 #, python-format
 msgid "Enabled DNS zone \"%(value)s\""
-msgstr "Zone DNS \"%(value)s\" activée"
+msgstr "Zone DNS « %(value)s » activée"
 
 msgid "Add a permission for per-zone access delegation."
 msgstr "Ajouter une permission pour la délégation par zone."
@@ -3647,7 +3647,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Deleted record \"%(value)s\""
-msgstr "Enregistrement \"%(value)s\" supprimé"
+msgstr "Enregistrement « %(value)s » supprimé"
 
 msgid "Delete DNS resource record."
 msgstr "Supprimer un enregistrement de ressources DNS."
@@ -3725,11 +3725,6 @@ msgstr ""
 
 msgid "Zone refresh interval"
 msgstr "Intervalle de rafraichissement de zone"
-
-msgid "An interval between regular polls of the name server for new DNS zones"
-msgstr ""
-"Intervalle entre deux sondages réguliers du serveur de noms pour les "
-"nouvelles zones"
 
 msgid "Global DNS configuration is empty"
 msgstr "La configuration globale DNS est vide"
@@ -3964,7 +3959,7 @@ msgstr "Créer un nouveau groupe."
 
 #, python-format
 msgid "Added group \"%(value)s\""
-msgstr "Groupe \"%(value)s\" créé"
+msgstr "Groupe « %(value)s » créé"
 
 msgid "Create as a non-POSIX group"
 msgstr "Créer en tant que groupe non-POSIX"
@@ -3978,7 +3973,7 @@ msgstr "Supprimer un groupe."
 
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr "Groupe \"%(value)s\" supprimé"
+msgstr "Groupe « %(value)s » supprimé"
 
 msgid "privileged group"
 msgstr "groupe avec privilèges"
@@ -3988,7 +3983,7 @@ msgstr "Modifier un groupe."
 
 #, python-format
 msgid "Modified group \"%(value)s\""
-msgstr "Groupe \"%(value)s\" modifié"
+msgstr "Groupe « %(value)s » modifié"
 
 msgid "change to a POSIX group"
 msgstr "Transformer en groupe POSIX"
@@ -4053,7 +4048,7 @@ msgstr "Détacher un groupe administré d'un utilisateur."
 
 #, python-format
 msgid "Detached group \"%(value)s\" from user \"%(value)s\""
-msgstr "Groupe \"%(value)s\" détaché de l'utilisateur \"%(value)s\""
+msgstr "Groupe « %(value)s » détaché de l'utilisateur « %(value)s »"
 
 msgid "not allowed to modify user entries"
 msgstr "interdit de modifier les entrées d'utilisateurs"
@@ -4167,7 +4162,7 @@ msgstr ""
 "\n"
 
 msgid "Host-based access control commands"
-msgstr "Commandes de contrôle d'accès des systèmes"
+msgstr "Commandes de contrôle d'accès basé sur les hôtes"
 
 msgid "The deny type has been deprecated."
 msgstr "Le type deny est obsolète."
@@ -4218,10 +4213,10 @@ msgid "Users"
 msgstr "Utilisateurs"
 
 msgid "Hosts"
-msgstr "Systèmes"
+msgstr "Hôtes"
 
 msgid "Host Groups"
-msgstr "Groupes de systèmes"
+msgstr "Groupes d'hôtes"
 
 msgid "Services"
 msgstr "Services"
@@ -4234,21 +4229,21 @@ msgstr "Créer une nouvelle règle HBAC."
 
 #, python-format
 msgid "Added HBAC rule \"%(value)s\""
-msgstr "Règle HBAC \"%(value)s\" ajoutée"
+msgstr "Règle HBAC « %(value)s » ajoutée"
 
 msgid "Delete an HBAC rule."
 msgstr "Supprimer une règle HBAC."
 
 #, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
-msgstr "Règle HBAC \"%(value)s\" supprimée"
+msgstr "Règle HBAC « %(value)s » supprimée"
 
 msgid "Modify an HBAC rule."
 msgstr "Modifier une règle HBAC."
 
 #, python-format
 msgid "Modified HBAC rule \"%(value)s\""
-msgstr "Règle HBAC \"%(value)s\" modifiée"
+msgstr "Règle HBAC « %(value)s » modifiée"
 
 msgid "user category cannot be set to 'all' while there are allowed users"
 msgstr ""
@@ -4257,14 +4252,14 @@ msgstr ""
 
 msgid "host category cannot be set to 'all' while there are allowed hosts"
 msgstr ""
-"la catégorie système ne peut être définie à 'all' alors qu'il reste des "
-"systèmes autorisés"
+"la catégorie d'hôte ne peut être définie à « all » alors qu'il reste des "
+"hôtes autorisés"
 
 msgid ""
 "service category cannot be set to 'all' while there are allowed services"
 msgstr ""
-"la catégorie service ne peut être définie à 'all' alors qu'il reste des "
-"systèmes autorisés"
+"la catégorie service ne peut être définie à « all » alors qu'il reste des "
+"hôtes autorisés"
 
 msgid "Search for HBAC rules."
 msgstr "Rechercher des règles HBAC."
@@ -4283,14 +4278,14 @@ msgstr "Activer une règle HBAC."
 
 #, python-format
 msgid "Enabled HBAC rule \"%(value)s\""
-msgstr "Règle HBAC \"%(value)s\" activée"
+msgstr "Règle HBAC « %(value)s » activée"
 
 msgid "Disable an HBAC rule."
 msgstr "Désactiver une règle HBAC."
 
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""
-msgstr "Règle HBAC \"%(value)s\" désactivée"
+msgstr "Règle HBAC « %(value)s » désactivée"
 
 msgid "Access time"
 msgstr "Horaire d'accès"
@@ -4307,7 +4302,7 @@ msgid "Remove users and groups from an HBAC rule."
 msgstr "Retirer des utilisateurs et groupes d'une règle HBAC."
 
 msgid "Add target hosts and hostgroups to an HBAC rule."
-msgstr "Ajouter des systèmes et groupes de systèmes cibles à une règle HBAC."
+msgstr "Ajouter des hôtes et groupes d'hôtes cibles à une règle HBAC."
 
 msgid "hosts cannot be added when host category='all'"
 msgstr ""
@@ -4315,7 +4310,7 @@ msgstr ""
 "à 'all'"
 
 msgid "Remove target hosts and hostgroups from an HBAC rule."
-msgstr "Retirer des systèmes et groupes de systèmes cibles d'une règle HBAC."
+msgstr "Retirer des hôtes et des groupes d'hôtes cibles d'une règle HBAC."
 
 msgid "Add services to an HBAC rule."
 msgstr "Ajouter des services à une règle HBAC."
@@ -4398,21 +4393,21 @@ msgstr "Ajouter un nouveau service HBAC."
 
 #, python-format
 msgid "Added HBAC service \"%(value)s\""
-msgstr "Service HBAC \"%(value)s\" ajouté"
+msgstr "Service HBAC « %(value)s » ajouté"
 
 msgid "Delete an existing HBAC service."
 msgstr "Supprimer un service HBAC existant."
 
 #, python-format
 msgid "Deleted HBAC service \"%(value)s\""
-msgstr "Service HBAC \"%(value)s\" supprimé"
+msgstr "Service HBAC « %(value)s » supprimé"
 
 msgid "Modify an HBAC service."
 msgstr "Modifier un service HBAC."
 
 #, python-format
 msgid "Modified HBAC service \"%(value)s\""
-msgstr "Service HBAC \"%(value)s\" modifié"
+msgstr "Service HBAC « %(value)s » modifié"
 
 msgid "Search for HBAC services."
 msgstr "Rechercher des services HBAC."
@@ -4491,21 +4486,21 @@ msgstr "Ajouter un nouveau groupe de services HBAC."
 
 #, python-format
 msgid "Added HBAC service group \"%(value)s\""
-msgstr "Groupe de services HBAC \"%(value)s\" ajouté"
+msgstr "Groupe de services HBAC « %(value)s » ajouté"
 
 msgid "Delete an HBAC service group."
 msgstr "Supprimer un groupe de services HBAC."
 
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
-msgstr "Groupe de services HBAC \"%(value)s\" supprimé"
+msgstr "Groupe de services HBAC « %(value)s » supprimé"
 
 msgid "Modify an HBAC service group."
 msgstr "Supprimer un groupe de services HBAC."
 
 #, python-format
 msgid "Modified HBAC service group \"%(value)s\""
-msgstr "Groupe de services HBAC \"%(value)s\" modifié"
+msgstr "Groupe de services HBAC « %(value)s » modifié"
 
 msgid "Search for an HBAC service group."
 msgstr "Rechercher des groupes de services HBAC."
@@ -4934,7 +4929,7 @@ msgstr ""
 "      Not matched rules: can_login\n"
 
 msgid "Simulate use of Host-based access controls"
-msgstr "Simulation de règles de contrôle d'accès basé sur les systèmes"
+msgstr "Simulation de règles de contrôle d'accès basées sur les hôtes"
 
 msgid "Warning"
 msgstr "Attention"
@@ -4989,125 +4984,6 @@ msgstr ""
 msgid "Access granted: %s"
 msgstr "Accès autorisé : %s"
 
-msgid ""
-"\n"
-"Hosts/Machines\n"
-"\n"
-"A host represents a machine. It can be used in a number of contexts:\n"
-"- service entries are associated with a host\n"
-"- a host stores the host/ service principal\n"
-"- a host can be used in Host-based Access Control (HBAC) rules\n"
-"- every enrolled client generates a host entry\n"
-"\n"
-"ENROLLMENT:\n"
-"\n"
-"There are three enrollment scenarios when enrolling a new client:\n"
-"\n"
-"1. You are enrolling as a full administrator. The host entry may exist\n"
-"   or not. A full administrator is a member of the hostadmin role\n"
-"   or the admins group.\n"
-"2. You are enrolling as a limited administrator. The host must already\n"
-"   exist. A limited administrator is a member a role with the\n"
-"   Host Enrollment privilege.\n"
-"3. The host has been created with a one-time password.\n"
-"\n"
-"A host can only be enrolled once. If a client has enrolled and needs to\n"
-"be re-enrolled, the host entry must be removed and re-created. Note that\n"
-"re-creating the host entry will result in all services for the host being\n"
-"removed, and all SSL certificates associated with those services being\n"
-"revoked.\n"
-"\n"
-"A host can optionally store information such as where it is located,\n"
-"the OS that it runs, etc.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a new host:\n"
-"   ipa host-add --location=\"3rd floor lab\" --locality=Dallas test.example."
-"com\n"
-"\n"
-" Delete a host:\n"
-"   ipa host-del test.example.com\n"
-"\n"
-" Add a new host with a one-time password:\n"
-"   ipa host-add --os='Fedora 12' --password=Secret123 test.example.com\n"
-"\n"
-" Add a new host with a random one-time password:\n"
-"   ipa host-add --os='Fedora 12' --random test.example.com\n"
-"\n"
-" Modify information about a host:\n"
-"   ipa host-mod --os='Fedora 12' test.example.com\n"
-"\n"
-" Remove SSH public keys of a host and update DNS to reflect this change:\n"
-"   ipa host-mod --sshpubkey= --updatedns test.example.com\n"
-"\n"
-" Disable the host Kerberos key, SSL certificate and all of its services:\n"
-"   ipa host-disable test.example.com\n"
-"\n"
-" Add a host that can manage this host's keytab and certificate:\n"
-"   ipa host-add-managedby --hosts=test2 test\n"
-msgstr ""
-"\n"
-"Systèmes/Machines\n"
-"\n"
-"Un système représente une machine, et peut être utilisé dans plusieurs\n"
-"contextes :\n"
-"- les entrées de services sont associés à un système\n"
-"- un système stocke les entrées des principaux de services host/\n"
-"- un système peut être utilisé dans les règles de contrôles d'accès HBAC\n"
-"- chaque client enregistré crée une entrée système\n"
-"\n"
-"INSCRIPTION :\n"
-"\n"
-"Trois scenarii d'inscriptions d'un nouveau client sont possibles :\n"
-"\n"
-"1. La machine est enregistrée par un administrateur de plein droit.\n"
-"   L'entrée système peut pré-exister ou non. Un administrateur de\n"
-"   plein droit est membre du rôle hostadmin ou du groupe admins\n"
-"2. L'inscription est faite par un administrateur limité. Le système\n"
-"   doit avoir été préalablement créé. Un administrateur limité\n"
-"   possède le privilège Host Enrollment.\n"
-"3. Le système a été créé avec un mot de passe à usage unique.\n"
-"\n"
-"Un système peut être inscrit une seule fois. Si un client est déjà\n"
-"inscrit et nécessite d'être ré-inscrit, il faut d'abord le supprimer\n"
-"puis re-créé. La re-création du système provoquera la perte de tous\n"
-"les services du système à supprimer, ainsi que la révocation de tous\n"
-"les certificats SSL associés aux services supprimés.\n"
-"\n"
-"Un système peut de façon optionnelle stocker des informations\n"
-"complémentaires comme sa localisation, son système d'exploitation, etc.\n"
-"\n"
-"EXEMPLES :\n"
-"\n"
-" Ajouter un nouveau système :\n"
-"   ipa host-add --location=\"labo 3e étage\" --locality=Dallas test.example."
-"com\n"
-"\n"
-" Supprimer un système :\n"
-"   ipa host-del test.example.com\n"
-"\n"
-" Ajouter un système avec un mot de passe à usage unique :\n"
-"   ipa host-add --os='Fedora 12' --password=Secret123 test.example.com\n"
-"\n"
-" Ajouter un nouveau système avec un mot de passe à usage unique aléatoire :\n"
-"   ipa host-add --os='Fedora 12' --random test.example.com\n"
-"\n"
-" Modifier les informations d'un système :\n"
-"   ipa host-mod --os='Fedora 12' test.example.com\n"
-"\n"
-" Supprimer les clés publiques SSH du système et modifie les DNS pour "
-"refléter ce changement :\n"
-"   ipa host-mod --sshpubkey= --updatedns test.example.com\n"
-"\n"
-" Désactiver la clé Kerberos du système, ses certificats SSL et tous\n"
-" ses services :\n"
-"   ipa host-disable test.example.com\n"
-"\n"
-" Ajouter un système pouvant administrer le keytab et les certificats\n"
-" du système sur lequel la commande est lancée :\n"
-"   ipa host-add-managedby --hosts=test2 test\n"
-
 msgid "Keytab"
 msgstr "Keytab"
 
@@ -5127,7 +5003,7 @@ msgid "host"
 msgstr "système"
 
 msgid "hosts"
-msgstr "systèmes"
+msgstr "hôtes"
 
 msgid "Host"
 msgstr "Système"
@@ -5145,19 +5021,19 @@ msgid "Host locality (e.g. \"Baltimore, MD\")"
 msgstr "Ville du système (par ex. \"Paris, IDF\")"
 
 msgid "Host location (e.g. \"Lab 2\")"
-msgstr "Localisation du système (par ex. \"Lab 2\")"
+msgstr "Emplacement de l'hôte (par ex. \"Lab 2\")"
 
 msgid "Platform"
 msgstr "Plate-forme"
 
 msgid "Host hardware platform (e.g. \"Lenovo T61\")"
-msgstr "Plate-forme matérielle du système (par ex. \"Lenovo T61\")"
+msgstr "Plate-forme matérielle du système (par ex. « Lenovo T61 »)"
 
 msgid "Operating system"
 msgstr "Système d'exploitation"
 
 msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "Système d'exploitation et version (par ex. \"Fedora 9\")"
+msgstr "Système d'exploitation et version (par ex. « Fedora 9 »)"
 
 msgid "User password"
 msgstr "Mot de passe utilisateur"
@@ -5193,11 +5069,11 @@ msgstr ""
 "Catégorie d'hôte (les sémantiques associées à cet attribut vous sont propres)"
 
 msgid "Add a new host."
-msgstr "Ajouter un nouveau système."
+msgstr "Ajouter un nouvel hôte."
 
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr "Système \"%(value)s\" ajouté"
+msgstr "Hôte « %(value)s » ajouté"
 
 msgid "force host name even if not in DNS"
 msgstr "forcer le nom même si absent des DNS"
@@ -5206,52 +5082,52 @@ msgid "skip reverse DNS detection"
 msgstr "passer outre la détection de DNS inverse"
 
 msgid "Add the host to DNS with this IP address"
-msgstr "Ajouter le système aux DNS avec cette adresse IP"
+msgstr "Ajouter l'hôte aux DNS avec cette adresse IP"
 
 #, python-format
 msgid "The host was added but the DNS update failed with: %(exc)s"
-msgstr "Le système a été ajouté mais la mise à jour DNS a échoué : %(exc)s"
+msgstr "L'hôte a été ajouté mais la mise à jour DNS a échoué : %(exc)s"
 
 msgid "Delete a host."
-msgstr "Supprimer un système."
+msgstr "Supprimer un hôte."
 
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr "Système \"%(value)s\" supprimé"
+msgstr "Hôte « %(value)s » supprimé"
 
 msgid "Remove entries from DNS"
 msgstr "Supprimer les entrées DNS"
 
 msgid "Modify information about a host."
-msgstr "Modifier les informations d'un système."
+msgstr "Modifier les informations d'un hôte."
 
 #, python-format
 msgid "Modified host \"%(value)s\""
-msgstr "Système \"%(value)s\" modifié"
+msgstr "Hôte « %(value)s » modifié"
 
 msgid "Kerberos principal name for this host"
-msgstr "Nom de principal Kerberos pour ce système"
+msgstr "Nom de principal Kerberos pour cet hôte"
 
 msgid "Update DNS entries"
 msgstr "Mettre à jour les entrées DNS"
 
 msgid "Password cannot be set on enrolled host."
-msgstr "Le mot de passe ne peut être défini pour le système enregistré."
+msgstr "Le mot de passe ne peut être défini pour l'hôte enregistré."
 
 msgid "cn is immutable"
 msgstr "cn est immuable"
 
 msgid "Search for hosts."
-msgstr "Rechercher des systèmes."
+msgstr "Rechercher des hôtes."
 
 #, python-format
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
-msgstr[0] "%(count)d système correspondant"
-msgstr[1] "%(count)d systèmes correspondants"
+msgstr[0] "%(count)d hôte correspondant"
+msgstr[1] "%(count)d hôtes correspondants"
 
 msgid "Display information about a host."
-msgstr "Afficher les informations sur un système."
+msgstr "Afficher les informations sur un hôte."
 
 msgid "file to store certificate in"
 msgstr "fichier où stocker le certificat"
@@ -5263,17 +5139,17 @@ msgstr "Certificat enregistré dans le fichier '%(file)s'"
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
 msgstr ""
 "Désactiver la clé Kerberos, les certificats SSL et tous les services d'un "
-"système."
+"hôte."
 
 #, python-format
 msgid "Disabled host \"%(value)s\""
-msgstr "Système \"%(value)s\" désactivé"
+msgstr "Hôte « %(value)s » désactivé"
 
 msgid "Add hosts that can manage this host."
-msgstr "Ajouter les systèmes qui peuvent gérer ce système."
+msgstr "Ajouter les hôtes qui peuvent gérer cet hôte."
 
 msgid "Remove hosts that can manage this host."
-msgstr "Supprimer les systèmes qui peuvent gérer ce système."
+msgstr "Supprimer les hôtes qui peuvent gérer cet hôte."
 
 msgid ""
 "\n"
@@ -5306,9 +5182,9 @@ msgid ""
 "   ipa hostgroup-del baltimore\n"
 msgstr ""
 "\n"
-"Groupes de systèmes.\n"
+"Groupes d'hôtes.\n"
 "\n"
-"Gestion des groupes de systèmes. Permet d'appliquer des contrôles d'accès\n"
+"Gestion des groupes d'hôtes. Permet d'appliquer des contrôles d'accès\n"
 "à plusieurs systèmes en utilisant les contrôles HBAC.\n"
 "\n"
 "EXEMPLES :\n"
@@ -5335,69 +5211,69 @@ msgstr ""
 "   ipa hostgroup-del baltimore\n"
 
 msgid "host group"
-msgstr "groupe de systèmes"
+msgstr "groupe d'hôtes"
 
 msgid "host groups"
-msgstr "groupes de systèmes"
+msgstr "groupes d'hôtes"
 
 msgid "Host Group"
-msgstr "Groupe de systèmes"
+msgstr "Groupe d'hôtes"
 
 msgid "Host-group"
-msgstr "Groupe de systèmes"
+msgstr "Groupe d'hôtes"
 
 msgid "Name of host-group"
-msgstr "Nom du groupe de systèmes"
+msgstr "Nom du groupe d'hôtes"
 
 msgid "A description of this host-group"
-msgstr "Description de ce groupe de systèmes"
+msgstr "Description de ce groupe d'hôtes"
 
 msgid "Add a new hostgroup."
-msgstr "Ajouter un nouveau groupe de systèmes."
+msgstr "Ajouter un nouveau groupe d'hôtes."
 
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
-msgstr "Groupe de systèmes \"%(value)s\" ajouté"
+msgstr "Groupe d'hôtes « %(value)s » ajouté"
 
 #, python-format
 msgid ""
 "netgroup with name \"%s\" already exists. Hostgroups and netgroups share a "
 "common namespace"
 msgstr ""
-"Un netgroup nommé \"%s\" existe déjà. Les groupes de systèmes et les "
-"netgroups partagent un même espace de nommage."
+"Un netgroup nommé « %s » existe déjà. Les groupes d'hôtes et les netgroups "
+"partagent un même espace de nommage."
 
 msgid "Delete a hostgroup."
-msgstr "Supprimer un groupe de systèmes."
+msgstr "Supprimer un groupe d'hôtes."
 
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
-msgstr "Groupe de systèmes \"%(value)s\" supprimé"
+msgstr "Groupe d'hôtes « %(value)s » supprimé"
 
 msgid "Modify a hostgroup."
-msgstr "Modifier un groupe de systèmes."
+msgstr "Modifier un groupe d'hôtes."
 
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
-msgstr "Groupe de systèmes \"%(value)s\" modifié"
+msgstr "Groupe d'hôtes « %(value)s » modifié"
 
 msgid "Search for hostgroups."
-msgstr "Rechercher un groupe de systèmes."
+msgstr "Rechercher un groupe d'hôtes."
 
 #, python-format
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
-msgstr[0] "%(count)d groupe de systèmes correspondant"
-msgstr[1] "%(count)d groupes de systèmes correspondants"
+msgstr[0] "%(count)d groupe d'hôtes correspondant"
+msgstr[1] "%(count)d groupes d'hôtes correspondants"
 
 msgid "Display information about a hostgroup."
-msgstr "Afficher les informations sur un groupe de systèmes."
+msgstr "Afficher les informations sur un groupe d'hôtes."
 
 msgid "Add members to a hostgroup."
-msgstr "Ajouter des membres à un groupe de systèmes."
+msgstr "Ajouter des membres à un groupe d'hôtes."
 
 msgid "Remove members from a hostgroup."
-msgstr "Supprimer des membres d'un groupe de systèmes."
+msgstr "Supprimer des membres d'un groupe d'hôtes."
 
 msgid ""
 "\n"
@@ -6311,7 +6187,7 @@ msgid "Add Rule"
 msgstr "Ajouter une règle"
 
 msgid "Default host group"
-msgstr "Groupe de système par défaut"
+msgstr "Groupe d'hôte par défaut"
 
 msgid "Default user group"
 msgstr "Groupe d'utilisateur par défaut"
@@ -6323,10 +6199,10 @@ msgid "Expression"
 msgstr "Expression"
 
 msgid "Host group rule"
-msgstr "Règle de groupes de systèmes"
+msgstr "Règle de groupes d'hôtes"
 
 msgid "Host group rules"
-msgstr "Règles de groupes de systèmes"
+msgstr "Règles de groupes d'hôtes"
 
 msgid "Inclusive"
 msgstr "Inclus"
@@ -6631,7 +6507,7 @@ msgid "Group Type"
 msgstr "Type de groupe"
 
 msgid "Any Host"
-msgstr "N'importe quel système"
+msgstr "N'importe quel hôte"
 
 msgid "Any Service"
 msgstr "N'importe quel service"
@@ -6649,7 +6525,7 @@ msgid "Via Service"
 msgstr "Via le service"
 
 msgid "Specified Hosts and Groups"
-msgstr "Systèmes et groupes spécifiques"
+msgstr "Hôtes et groupes indiqués"
 
 msgid "Specified Services and Groups"
 msgstr "Services et groupes spécifiques"
@@ -6697,16 +6573,16 @@ msgid "Unmatched"
 msgstr "Pas de correspondance"
 
 msgid "Host Certificate"
-msgstr "Certificat de système"
+msgstr "Certificat de l'hôte"
 
 msgid "Host Name"
-msgstr "Nom de système"
+msgstr "Nom d'hôte"
 
 msgid "Delete Key, Unprovision"
 msgstr "Supprimer la clé, décommissionner"
 
 msgid "Host Settings"
-msgstr "Paramètres de système"
+msgstr "Paramètres d'hôte"
 
 msgid "Enrolled"
 msgstr "Enregistré"
@@ -6715,7 +6591,7 @@ msgid "Enrollment"
 msgstr "Inscription"
 
 msgid "Fully Qualified Host Name"
-msgstr "Nom de système pleinement qualifié"
+msgstr "Nom d'hôte pleinement qualifié"
 
 msgid "Kerberos Key"
 msgstr "Clé Kerberos"
@@ -6724,7 +6600,7 @@ msgid "Kerberos Key Not Present"
 msgstr "Clé Kerberos absente"
 
 msgid "Kerberos Key Present, Host Provisioned"
-msgstr "Clé Kerberos présente, système provisionné"
+msgstr "Clé Kerberos présente, hôte provisionné"
 
 msgid "One-Time-Password"
 msgstr "Mot de passe à usage unique"
@@ -6760,10 +6636,10 @@ msgid "Unprovisioning ${entity}"
 msgstr "Décommissionnement de l'objet ${entity}"
 
 msgid "Host unprovisioned"
-msgstr "Système déprovisionné"
+msgstr "Hôte déprovisionné"
 
 msgid "Host Group Settings"
-msgstr "Paramètres du groupe de systèmes"
+msgstr "Paramètres des groupe d'hôtes"
 
 msgid "Kerberos Ticket Policy"
 msgstr "Politique de ticket Kerberos"
@@ -6898,7 +6774,7 @@ msgid "Deny"
 msgstr "Interdire"
 
 msgid "Access this host"
-msgstr "Accède ce système"
+msgstr "Accède cet hôte"
 
 msgid "Option added"
 msgstr "Option ajoutée"
@@ -7074,7 +6950,7 @@ msgid "DNS"
 msgstr "DNS"
 
 msgid "Host Based Access Control"
-msgstr "Contrôlé d'accès basé sur les systèmes (HBAC)"
+msgstr "Contrôlé d'accès basé sur les hôtes (HBAC)"
 
 msgid "IPA Server"
 msgstr "Serveur IPA"
@@ -7748,7 +7624,7 @@ msgstr ""
 "Netgroups\n"
 "\n"
 "Un netgroup est un groupe utilisé pour la vérification de permissions. Il\n"
-"peut contenir à la fois des utilisateurs et des noms de systèmes.\n"
+"peut contenir à la fois des utilisateurs et des noms d'hôtes.\n"
 "\n"
 "EXEMPLES :\n"
 "\n"
@@ -7768,7 +7644,7 @@ msgstr ""
 "   ipa netgroup-del admins\n"
 
 msgid "Member Host"
-msgstr "Système membre"
+msgstr "Hôte membre"
 
 msgid "netgroup"
 msgstr "netgroup"
@@ -7799,14 +7675,14 @@ msgstr "Ajouter un nouveau netgroup."
 
 #, python-format
 msgid "Added netgroup \"%(value)s\""
-msgstr "Netgroup \"%(value)s\" ajouté"
+msgstr "Netgroup « %(value)s » ajouté"
 
 #, python-format
 msgid ""
 "hostgroup with name \"%s\" already exists. Hostgroups and netgroups share a "
 "common namespace"
 msgstr ""
-"Un groupe de systèmes nommé « %s » existe déjà. Les groupes de systèmes et "
+"Un groupe d'hôtes nommé « %s » existe déjà. Les groupes d'hôtes et les "
 "netgroups partagent le même espace de nommage"
 
 msgid "Delete a netgroup."
@@ -7814,14 +7690,14 @@ msgstr "Supprimer un netgroup."
 
 #, python-format
 msgid "Deleted netgroup \"%(value)s\""
-msgstr "Netgroup \"%(value)s\" supprimé"
+msgstr "Netgroup « %(value)s » supprimé"
 
 msgid "Modify a netgroup."
 msgstr "Modifier un netgroup."
 
 #, python-format
 msgid "Modified netgroup \"%(value)s\""
-msgstr "Netgroup \"%(value)s\" supprimé"
+msgstr "Netgroup « %(value)s » supprimé"
 
 msgid "Search for a netgroup."
 msgstr "Rechercher un netgroup."
@@ -7889,7 +7765,7 @@ msgstr "Définir le mot de passe d'un utilisateur."
 
 #, python-format
 msgid "Changed password for \"%(value)s\""
-msgstr "Mot de passe modifié for \"%(value)s\""
+msgstr "Mot de passe modifié for « %(value)s »"
 
 msgid "Invalid credentials"
 msgstr "Données d'authentification invalides"
@@ -7966,9 +7842,9 @@ msgstr ""
 "* Un privilège combine des permissions similaires (par exemple toutes les\n"
 "  permissions requises pour la création d'un utilisateur).\n"
 "* Un rôle accorde un jeu de privilèges à des utilisateurs, des groupes, des\n"
-"  systèmes, ou à des groupes de systèmes.\n"
+"  hôtes, ou à des groupes d'hôtes.\n"
 "\n"
-"Une permission est constitués des éléments suivants :\n"
+"Une permission est constituée des éléments suivants :\n"
 "\n"
 "1. Le nom de la permission.\n"
 "2. La cible de la permission.\n"
@@ -7985,13 +7861,13 @@ msgstr ""
 "La permission read est accordée par défaut sur la plupart des\n"
 "attributs, elle ne sera donc utilisée que peu souvent.\n"
 "\n"
-"Notez la distinction entre attributs and entrées. Les permissions sont\n"
+"Noter la distinction entre attributs et entrées. Les permissions sont\n"
 "indépendantes, donc la capacité de créer un utilisateur ne signifie pas\n"
 "que l'utilisateur sera modifiable.\n"
 "\n"
 "Il existe plusieurs sortes de cibles autorisées dans une permission :\n"
 "1. type: un type d'objet (user, group, etc.).\n"
-"2. memberof: un membre d'un groupe ou d'un groupe de systèmes\n"
+"2. memberof: un membre d'un groupe ou d'un groupe d'hôtes\n"
 "3. filter: un filtre LDAP\n"
 "4. subtree: un filtre LDAP spécifiant une branche du DIT LDAP. Ceci est un\n"
 "   sur-ensemble de la cible 'type'.\n"
@@ -8046,7 +7922,7 @@ msgstr "Ajouter une nouvelle permission."
 
 #, python-format
 msgid "Added permission \"%(value)s\""
-msgstr "Permission \"%(value)s\" ajoutée"
+msgstr "Permission « %(value)s » ajoutée"
 
 msgid "Add a system permission without an ACI"
 msgstr "Ajouter une permission système sans ACI"
@@ -8059,7 +7935,7 @@ msgstr "Supprimer une permission."
 
 #, python-format
 msgid "Deleted permission \"%(value)s\""
-msgstr "Permission \"%(value)s\" supprimée"
+msgstr "Permission « %(value)s » supprimée"
 
 msgid "force delete of SYSTEM permissions"
 msgstr "forcer la suppression des permissions SYSTEM"
@@ -8072,7 +7948,7 @@ msgstr "Modifier une permission."
 
 #, python-format
 msgid "Modified permission \"%(value)s\""
-msgstr "Permission \"%(value)s\" modifiée"
+msgstr "Permission « %(value)s » modifiée"
 
 msgid "A SYSTEM permission may not be modified"
 msgstr "Une permission SYSTEM ne peut être modifiée"
@@ -8274,21 +8150,21 @@ msgstr "Ajouter un nouveau privilège."
 
 #, python-format
 msgid "Added privilege \"%(value)s\""
-msgstr "Privilège \"%(value)s\" ajouté"
+msgstr "Privilège « %(value)s » ajouté"
 
 msgid "Delete a privilege."
 msgstr "Supprimer un privilège"
 
 #, python-format
 msgid "Deleted privilege \"%(value)s\""
-msgstr "Privilège \"%(value)s\" supprimé"
+msgstr "Privilège « %(value)s » supprimé"
 
 msgid "Modify a privilege."
 msgstr "Modifier un privilège."
 
 #, python-format
 msgid "Modified privilege \"%(value)s\""
-msgstr "Privilège \"%(value)s\" supprimé"
+msgstr "Privilège « %(value)s » supprimé"
 
 msgid "Search for privileges."
 msgstr "Rechercher des privilèges."
@@ -8684,21 +8560,21 @@ msgstr "Ajouter un nouveau rôle."
 
 #, python-format
 msgid "Added role \"%(value)s\""
-msgstr "Rôle \"%(value)s\" ajouté"
+msgstr "Rôle « %(value)s » ajouté"
 
 msgid "Delete a role."
 msgstr "Supprimer un rôle"
 
 #, python-format
 msgid "Deleted role \"%(value)s\""
-msgstr "Rôle \"%(value)s\" supprimé"
+msgstr "Rôle « %(value)s » supprimé"
 
 msgid "Modify a role."
 msgstr "Modifier un rôle."
 
 #, python-format
 msgid "Modified role \"%(value)s\""
-msgstr "Rôle \"%(value)s\" modifié"
+msgstr "Rôle « %(value)s » modifié"
 
 msgid "Search for roles."
 msgstr "Rechercher des rôles."
@@ -8818,21 +8694,21 @@ msgstr "Ajouter une nouvelle permission self-service."
 
 #, python-format
 msgid "Added selfservice \"%(value)s\""
-msgstr "Permission self-service \"%(value)s\" ajoutée"
+msgstr "Permission self-service « %(value)s » ajoutée"
 
 msgid "Delete a self-service permission."
 msgstr "Supprimer une permission self-service."
 
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
-msgstr "Permission selfservice \"%(value)s\" supprimée"
+msgstr "Permission selfservice « %(value)s » supprimée"
 
 msgid "Modify a self-service permission."
 msgstr "Modifier une permission self-service."
 
 #, python-format
 msgid "Modified selfservice \"%(value)s\""
-msgstr "Permission selfservice \"%(value)s\" modifiée"
+msgstr "Permission selfservice « %(value)s » modifiée"
 
 msgid "Search for a self-service permission."
 msgstr "Rechercher des permissions self-service."
@@ -8914,7 +8790,7 @@ msgstr ""
 "\n"
 " Créer une règle « test1 » qui attribue tous les utilisateurs à xguest_u:s0 "
 "sur\n"
-" le système « server » :\n"
+" l'hôte « server » :\n"
 "   ipa selinuxusermap-add --usercat=all --selinuxuser=xguest_u:s0 test1\n"
 "   ipa selinuxusermap-add-host --hosts=server.example.com test1\n"
 "\n"
@@ -8996,8 +8872,7 @@ msgstr "Utilisateur SELinux"
 
 msgid "HBAC Rule that defines the users, groups and hostgroups"
 msgstr ""
-"Règles HBAC définissant les utilisateurs, les groupes et les groupes de "
-"systèmes"
+"Règle HBAC définissant les utilisateurs, les groupes et les groupes d'hôtes"
 
 #, python-format
 msgid "HBAC rule %(rule)s not found"
@@ -9008,7 +8883,7 @@ msgstr "Créer une nouvelle liste de correspondance d'utilisateurs SELinux"
 
 #, python-format
 msgid "Added SELinux User Map \"%(value)s\""
-msgstr "Liste de correspondance d'utilisateurs SELinux \"%(value)s\" ajoutée"
+msgstr "Liste de correspondance d'utilisateurs SELinux « %(value)s » ajoutée"
 
 msgid "Delete a SELinux User Map."
 msgstr "Supprimer une liste de correspondance d'utilisateurs SELinux"
@@ -9016,14 +8891,14 @@ msgstr "Supprimer une liste de correspondance d'utilisateurs SELinux"
 #, python-format
 msgid "Deleted SELinux User Map \"%(value)s\""
 msgstr ""
-"Liste de correspondance d'utilisateurs SELinux \"%(value)s\" supprimée."
+"Liste de correspondance d'utilisateurs SELinux « %(value)s » supprimée."
 
 msgid "Modify a SELinux User Map."
 msgstr "Modifier une liste de correspondance d'utilisateurs SELinux"
 
 #, python-format
 msgid "Modified SELinux User Map \"%(value)s\""
-msgstr "Liste de correspondance d'utilisateurs SELinux \"%(value)s\" modifiée"
+msgstr "Liste de correspondance d'utilisateurs SELinux « %(value)s » modifiée"
 
 msgid "Search for SELinux User Maps."
 msgstr "Rechercher des listes de correspondance d'utilisateurs SELinux"
@@ -9045,7 +8920,7 @@ msgstr "Activer une règle de correspondance d'utilisateurs SELinux"
 
 #, python-format
 msgid "Enabled SELinux User Map \"%(value)s\""
-msgstr "Règle de correspondance d'utilisateurs SELinux \"%(value)s\" activée"
+msgstr "Règle de correspondance d'utilisateurs SELinux « %(value)s » activée"
 
 msgid "Disable an SELinux User Map rule."
 msgstr "Désactiver une règle de correspondance d'utilisateurs SELinux"
@@ -9053,7 +8928,7 @@ msgstr "Désactiver une règle de correspondance d'utilisateurs SELinux"
 #, python-format
 msgid "Disabled SELinux User Map \"%(value)s\""
 msgstr ""
-"Règle de correspondance d'utilisateurs SELinux \"%(value)s\" désactivée"
+"Règle de correspondance d'utilisateurs SELinux « %(value)s » désactivée"
 
 msgid "Add users and groups to an SELinux User Map rule."
 msgstr ""
@@ -9067,13 +8942,13 @@ msgstr ""
 
 msgid "Add target hosts and hostgroups to an SELinux User Map rule."
 msgstr ""
-"Ajouter des systèmes et groupes de systèmes cibles à une règle de "
-"correspondance d'utilisateurs SELinux"
+"Ajouter des hôtes et groupes d'hôtes cibles à une règle de correspondance "
+"d'utilisateurs SELinux"
 
 msgid "Remove target hosts and hostgroups from an SELinux User Map rule."
 msgstr ""
-"Supprimer des systèmes et groupes de systèmes cibles d'une règle de "
-"correspondance d'utilisateurs SELinux"
+"Supprimer des hôtes et groupes d'hôtes cibles d'une règle de correspondance "
+"d'utilisateurs SELinux"
 
 msgid ""
 "\n"
@@ -9261,28 +9136,28 @@ msgstr "Ajouter un nouveau service IPA."
 
 #, python-format
 msgid "Added service \"%(value)s\""
-msgstr "Service \"%(value)s\" ajouté"
+msgstr "Service « %(value)s » ajouté"
 
 msgid "force principal name even if not in DNS"
 msgstr "forcer le nom du principal même si absent du DNS"
 
 #, python-format
 msgid "The host '%s' does not exist to add a service to."
-msgstr "Le système « %s » auquel ajouter un service n'existe pas."
+msgstr "L'hôte « %s » auquel ajouter un service n'existe pas."
 
 msgid "Delete an IPA service."
 msgstr "Supprimer un service IPA."
 
 #, python-format
 msgid "Deleted service \"%(value)s\""
-msgstr "Service \"%(value)s\" supprimé"
+msgstr "Service « %(value)s » supprimé"
 
 msgid "Modify an existing IPA service."
 msgstr "Modifier un service IPA."
 
 #, python-format
 msgid "Modified service \"%(value)s\""
-msgstr "Service \"%(value)s\" modifié"
+msgstr "Service « %(value)s » modifié"
 
 msgid "Search for IPA services."
 msgstr "Rechercher des services IPA."
@@ -9307,7 +9182,7 @@ msgstr "Désactiver la clé Kerberos et le certificat SSL d'un service."
 
 #, python-format
 msgid "Disabled service \"%(value)s\""
-msgstr "Service \"%(value)s\" désactivé"
+msgstr "Service « %(value)s » désactivé"
 
 msgid ""
 "\n"
@@ -9361,21 +9236,21 @@ msgstr "Créer une nouvelle commande Sudo."
 
 #, python-format
 msgid "Added Sudo Command \"%(value)s\""
-msgstr "Commande Sudo \"%(value)s\" ajoutée"
+msgstr "Commande Sudo « %(value)s » ajoutée"
 
 msgid "Delete Sudo Command."
 msgstr "Supprimer une commande Sudo."
 
 #, python-format
 msgid "Deleted Sudo Command \"%(value)s\""
-msgstr "Commande Sudo \"%(value)s\" supprimée"
+msgstr "Commande Sudo « %(value)s » supprimée"
 
 msgid "Modify Sudo Command."
 msgstr "Modifier une commande Sudo."
 
 #, python-format
 msgid "Modified Sudo Command \"%(value)s\""
-msgstr "Commande Sudo \"%(value)s\" modifiée"
+msgstr "Commande Sudo « %(value)s » modifiée"
 
 msgid "Search for Sudo Commands."
 msgstr "Rechercher des commandes Sudo."
@@ -9452,21 +9327,21 @@ msgstr "Créer un nouveau groupe de commandes Sudo."
 
 #, python-format
 msgid "Added Sudo Command Group \"%(value)s\""
-msgstr "Groupe de commandes Sudo \"%(value)s\" ajouté"
+msgstr "Groupe de commandes Sudo « %(value)s » ajouté"
 
 msgid "Delete Sudo Command Group."
 msgstr "Supprimer un groupe de commandes Sudo."
 
 #, python-format
 msgid "Deleted Sudo Command Group \"%(value)s\""
-msgstr "Groupe de commandes Sudo \"%(value)s\" supprimé"
+msgstr "Groupe de commandes Sudo « %(value)s » supprimé"
 
 msgid "Modify Sudo Command Group."
 msgstr "Modifier un groupe de commandes Sudo."
 
 #, python-format
 msgid "Modified Sudo Command Group \"%(value)s\""
-msgstr "Groupe de commandes Sudo \"%(value)s\" modifié."
+msgstr "Groupe de commandes Sudo « %(value)s » modifié."
 
 msgid "Search for Sudo Command Groups."
 msgstr "Rechercher des groupes de commandes Sudo."
@@ -9670,21 +9545,21 @@ msgstr "Créer une nouvelle règle Sudo."
 
 #, python-format
 msgid "Added Sudo Rule \"%(value)s\""
-msgstr "Règle Sudo \"%(value)s\" ajoutée"
+msgstr "Règle Sudo « %(value)s » ajoutée"
 
 msgid "Delete Sudo Rule."
 msgstr "Règle Sudo supprimée."
 
 #, python-format
 msgid "Deleted Sudo Rule \"%(value)s\""
-msgstr "Règle Sudo \"%(value)s\" supprimée"
+msgstr "Règle Sudo « %(value)s » supprimée"
 
 msgid "Modify Sudo Rule."
 msgstr "Modifier une règle Sudo."
 
 #, python-format
 msgid "Modified Sudo Rule \"%(value)s\""
-msgstr "Règle Sudo \"%(value)s\" modifiée"
+msgstr "Règle Sudo « %(value)s » modifiée"
 
 msgid ""
 "command category cannot be set to 'all' while there are allow or deny "
@@ -9720,14 +9595,14 @@ msgstr "Activer une règle Sudo."
 
 #, python-format
 msgid "Enabled Sudo Rule \"%s\""
-msgstr "Règle Sudo \"%s\" activée"
+msgstr "Règle Sudo « %s » activée"
 
 msgid "Disable a Sudo Rule."
 msgstr "Désactiver une règle Sudo."
 
 #, python-format
 msgid "Disabled Sudo Rule \"%s\""
-msgstr "Règle Sudo \"%s\" désactivée"
+msgstr "Règle Sudo « %s » désactivée"
 
 msgid "Add commands and sudo command groups affected by Sudo Rule."
 msgstr ""
@@ -9751,12 +9626,10 @@ msgid "Remove users and groups affected by Sudo Rule."
 msgstr "Retirer des utilisateurs et groupes affectés par la règle Sudo."
 
 msgid "Add hosts and hostgroups affected by Sudo Rule."
-msgstr ""
-"Ajouter des systèmes et groupes de systèmes affectés par la règle Sudo."
+msgstr "Ajouter des hôtes et groupes d'hôtes affectés par la règle Sudo."
 
 msgid "Remove hosts and hostgroups affected by Sudo Rule."
-msgstr ""
-"Retirer des systèmes et groupes de systèmes affectés par la règle Sudo."
+msgstr "Retirer des hôtes et groupes d'hôtes affectés par la règle Sudo."
 
 msgid "Add users and groups for Sudo to execute as."
 msgstr "Ajouter des utilisateurs et groupes pour que sudo exécute en tant que."
@@ -9792,14 +9665,14 @@ msgstr "Ajouter une option à la règle Sudo."
 
 #, python-format
 msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
-msgstr "Option \"%(option)s\" ajoutée à la règle Sudo \"%(rule)s\""
+msgstr "Option « %(option)s » ajoutée à la règle Sudo « %(rule)s »"
 
 msgid "Remove an option from Sudo Rule."
 msgstr "Retirer une option d'une règle Sudo."
 
 #, python-format
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
-msgstr "Option \"%(option)s\" supprimée de la règle Sudo \"%(rule)s\""
+msgstr "Option « %(option)s » supprimée de la règle Sudo « %(rule)s »"
 
 msgid ""
 "\n"
@@ -10139,7 +10012,7 @@ msgid "trust type"
 msgstr "type d'approbation"
 
 msgid "only \"ad\" is supported"
-msgstr "seul « ad » est pris en compte"
+msgstr "seul « ad » est pris en charge"
 
 msgid "Trusted domain and administrator account use different realms"
 msgstr ""
@@ -10206,7 +10079,7 @@ msgid ""
 "incorrect host?"
 msgstr ""
 "La politique de transmission est déjà définie dans le DNS IPA, peut-être le "
-"transmetteur pointe-t'il vers un système incorrect ?"
+"transmetteur pointe-t'il vers un hôte incorrect ?"
 
 #, python-format
 msgid ""
@@ -10488,7 +10361,8 @@ msgstr "UID"
 
 msgid "User ID Number (system will assign one if not provided)"
 msgstr ""
-"Numéro d'identifiant utilisateur (le système en assignera un si non spécifié)"
+"Numéro d'identifiant de l'utilisateur (le système en assignera un si non "
+"spécifié)"
 
 msgid "Group ID Number"
 msgstr "Numéro d'identifiant de groupe"
@@ -10545,7 +10419,7 @@ msgstr "Ajouter un nouvel utilisateur."
 
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr "Utilisateur \"%(value)s\" ajouté"
+msgstr "Utilisateur « %(value)s » ajouté"
 
 msgid "Don't create user private group"
 msgstr "Ne pas créer de groupe privé"
@@ -10562,14 +10436,14 @@ msgstr "Supprimer un utilisateur."
 
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr "Utilisateur \"%(value)s\" supprimé"
+msgstr "Utilisateur « %(value)s » supprimé"
 
 msgid "Modify a user."
 msgstr "Modifier un utilisateur."
 
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr "Utilisateur \"%(value)s\" modifié"
+msgstr "Utilisateur « %(value)s » modifié"
 
 msgid "Search for users."
 msgstr "Rechercher des utilisateurs."
@@ -10595,14 +10469,14 @@ msgstr "Désactiver un compte utilisateur."
 
 #, python-format
 msgid "Disabled user account \"%(value)s\""
-msgstr "Compte utilisateur \"%(value)s\" désactivé"
+msgstr "Compte utilisateur « %(value)s » désactivé"
 
 msgid "Enable a user account."
 msgstr "Activer un compte utilisateur."
 
 #, python-format
 msgid "Enabled user account \"%(value)s\""
-msgstr "Compte utilisateur \"%(value)s\" activé"
+msgstr "Compte utilisateur « %(value)s » activé"
 
 msgid ""
 "\n"
@@ -10625,7 +10499,7 @@ msgstr ""
 
 #, python-format
 msgid "Unlocked account \"%(value)s\""
-msgstr "Compte utilisateur \"%(value)s\" déverrouillé"
+msgstr "Compte utilisateur « %(value)s » déverrouillé"
 
 msgid ""
 "\n"
@@ -10755,8 +10629,7 @@ msgid "missing mail account"
 msgstr "compte de messagerie manquant"
 
 msgid "hostname contains empty label (consecutive dots)"
-msgstr ""
-"le nom du système contient un libellé vide (plusieurs points consécutifs)"
+msgstr "le nom d'hôte contient un libellé vide (plusieurs points consécutifs)"
 
 msgid "not fully qualified"
 msgstr "pas pleinement qualifié"
@@ -10772,7 +10645,7 @@ msgstr "formatage incorrect du certificat encodé DER"
 
 #, python-format
 msgid "Issuer \"%(issuer)s\" does not match the expected issuer"
-msgstr "L'Émetteur \"%(issuer)s\" ne correspond pas à l'émetteur attendu"
+msgstr "L'Émetteur « %(issuer)s » ne correspond pas à l'émetteur attendu"
 
 #, python-format
 msgid "Retrieving CA cert chain failed: %s"
@@ -10828,15 +10701,8 @@ msgid ""
 "CIFS server communication error: code \"%(num)s\",\n"
 "                  message \"%(message)s\" (both may be \"None\")"
 msgstr ""
-"Erreur de communication avec le serveur CIFS : code \"%(num)s\",\n"
-"                  message \"%(message)s\" (les deux pouvant être vides)"
-
-msgid ""
-"communication with trusted domains is allowed for Trusts administrator group "
-"members only"
-msgstr ""
-"la communication avec les domaines approuvé n'est autorisée que pour les "
-"membres du groupe d'administration des relations d'approbation."
+"Erreur de communication avec le serveur CIFS : code  «%(num)s »,\n"
+"                  message « %(message)s » (les deux pouvant être vides)"
 
 msgid "no trusted domain is configured"
 msgstr "pas de relation d'approbation configurée"
@@ -10886,14 +10752,6 @@ msgstr "Le domaine approuvé n'a pas renvoyé un SID valide pour l'objet"
 msgid "trusted domain user not found"
 msgstr "utilisateur de domaine approuvé introuvable"
 
-#, python-format
-msgid ""
-"KDC for %(domain)s denied trust account for IPA domain with a message "
-"'%(message)s'"
-msgstr ""
-"Le KDC pour %(domain)s a refusé le compte approuvé pour le domaine  IPA avec "
-"le message « %(message)s »"
-
 msgid "Cannot retrieve trusted domain GC list"
 msgstr "Impossible de récupérer la liste de GC pour le domaine approuvé"
 
@@ -10930,13 +10788,13 @@ msgstr ""
 "9 à la version 10"
 
 msgid "The hostname to register as"
-msgstr "Le nom de système sous lequel s'enregistrer"
+msgstr "Le nom d'hôte sous lequel s'enregistrer"
 
 msgid "The IPA realm"
 msgstr "Le domaine IPA"
 
 msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "Plate-forme matérielle du système (par ex. Lenovo T61)"
+msgstr "Plate-forme matérielle de l'hôte (par ex. Lenovo T61)"
 
 msgid "Operating System and version of the host (e.g. Fedora 9)"
 msgstr "Système d'exploitation et version du système (par ex. Fedora 9)"
@@ -11181,7 +11039,7 @@ msgstr "Récupération du keytab et stockage avec succès dans : %s\n"
 
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
-msgstr "Inscription de ce système au domaine IPA interdite.\n"
+msgstr "Inscription de cet hôte au domaine IPA interdite.\n"
 
 #, c-format
 msgid "No write permissions on keytab file '%s'\n"
@@ -11257,7 +11115,7 @@ msgstr "principal introuvable dans la réponse XML-RPC\n"
 
 #, c-format
 msgid "Host is already joined.\n"
-msgstr "Système déjà inscrit.\n"
+msgstr "Hôte déjà inscrit.\n"
 
 #, c-format
 msgid "Unable to determine IPA server from %s\n"
@@ -11265,12 +11123,12 @@ msgstr "Impossible de déterminer le serveur IPA depuis %s\n"
 
 #, c-format
 msgid "The hostname must be fully-qualified: %s\n"
-msgstr "Le nom du système doit être pleinement qualifié : %s\n"
+msgstr "Le nom d'hôte doit être pleinement qualifié : %s\n"
 
 #, c-format
 msgid "Unable to join host: Kerberos context initialization failed\n"
 msgstr ""
-"Impossible d'inscrire le système : échec à l'initialisation du contexte "
+"Impossible d'inscrire l'hôte : échec à l'initialisation du contexte "
 "Kerberos\n"
 
 #, c-format
@@ -11311,20 +11169,19 @@ msgstr "résultat de la réponse XML-RPC introuvable\n"
 
 #, c-format
 msgid "The hostname must not be: %s\n"
-msgstr "Le nom de système ne peut être : %s\n"
+msgstr "Le nom d'hôte ne peut être : %s\n"
 
 #, c-format
 msgid "Unable to join host: Kerberos Credential Cache not found\n"
-msgstr ""
-"Impossible d'inscrire le système : cache de crédit Kerberos introuvable\n"
+msgstr "Impossible d'inscrire l'hôte : cache de crédit Kerberos introuvable\n"
 
 #, c-format
 msgid ""
 "Unable to join host: Kerberos User Principal not found and host password not "
 "provided.\n"
 msgstr ""
-"Impossible d'inscrire le système : Principal d'utilisateur Kerberos  "
-"introuvable et mot de passe non fourni.\n"
+"Impossible d'inscrire l'hôte : Principal d'utilisateur Kerberos  introuvable "
+"et mot de passe non fourni.\n"
 
 #, c-format
 msgid "fork() failed\n"
@@ -11357,13 +11214,13 @@ msgid "Quiet mode. Only errors are displayed."
 msgstr "Mode silencieux. Seules les erreurs sont affichées."
 
 msgid "Unenroll this host from IPA server"
-msgstr "Désinscrire ce système du serveur IPA"
+msgstr "Désinscrire cet hôte du serveur IPA"
 
 msgid "Hostname of this server"
-msgstr "Nom de système de ce serveur"
+msgstr "Nom d'hôte de ce serveur"
 
 msgid "hostname"
-msgstr "nom de système"
+msgstr "nom d'hôte"
 
 msgid "IPA Server to use"
 msgstr "Serveur IPA à utiliser"
