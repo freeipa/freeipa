@@ -52,9 +52,6 @@ def parse_options():
     parser.add_option("--zonemgr", action="callback", callback=bindinstance.zonemgr_callback,
                       type="string",
                       help="DNS zone manager e-mail address. Defaults to hostmaster@DOMAIN")
-    parser.add_option("--no-serial-autoincrement", dest="serial_autoincrement",
-                      default=True, action="store_false",
-                      help="Do not enable SOA serial autoincrement")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
 
@@ -209,8 +206,7 @@ def main():
         print ""
 
     bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
-               dns_forwarders, conf_ntp, reverse_zone, zonemgr=options.zonemgr,
-               serial_autoincrement=options.serial_autoincrement)
+               dns_forwarders, conf_ntp, reverse_zone, zonemgr=options.zonemgr)
     bind.create_instance()
 
     # Restart http instance to make sure that python-dns has the right resolver
