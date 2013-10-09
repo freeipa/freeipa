@@ -27,6 +27,7 @@ import struct
 import re
 
 from ipaserver.install import service
+from ipaserver.install import installutils
 from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
                                            dns_zone_exists
@@ -473,26 +474,31 @@ class ADTRUSTInstance(service.Service):
                     member=[self.cifs_agent],
                 )
                 self.admin_conn.add_entry(entry)
-        except Exception, e:
-            # CIFS principal already exists, it is not the first time adtrustinstance is managed
+        except Exception:
+            # CIFS principal already exists, it is not the first time
+            # adtrustinstance is managed
             # That's fine, we we'll re-extract the key again.
             pass
 
-        samba_keytab = "/etc/samba/samba.keytab"
-        if os.path.exists(samba_keytab):
-            try:
-                ipautil.run(["ipa-rmkeytab", "--principal", self.cifs_principal,
-                                         "-k", samba_keytab])
-            except ipautil.CalledProcessError, e:
-                if e.returncode != 5:
-                    root_logger.critical("Failed to remove old key for %s" % self.cifs_principal)
+        self.clean_samba_keytab()
 
         try:
             ipautil.run(["ipa-getkeytab", "--server", self.fqdn,
                                           "--principal", self.cifs_principal,
-                                          "-k", samba_keytab])
-        except ipautil.CalledProcessError, e:
-            root_logger.critical("Failed to add key for %s" % self.cifs_principal)
+                                          "-k", self.samba_keytab])
+        except ipautil.CalledProcessError:
+            root_logger.critical("Failed to add key for %s"
+                                 % self.cifs_principal)
+
+    def clean_samba_keytab(self):
+        if os.path.exists(self.samba_keytab):
+            try:
+                ipautil.run(["ipa-rmkeytab", "--principal", self.cifs_principal,
+                                         "-k", self.samba_keytab])
+            except ipautil.CalledProcessError, e:
+                if e.returncode != 5:
+                    root_logger.critical("Failed to remove old key for %s"
+                                         % self.cifs_principal)
 
     def srv_rec(self, host, port, prio):
         return "%(prio)d 100 %(port)d %(host)s" % dict(host=host,prio=prio,port=port)
@@ -693,6 +699,7 @@ class ADTRUSTInstance(service.Service):
     def __stop(self):
         self.backup_state("running", self.is_running())
         try:
+            ipaservices.service('winbind').stop()
             self.stop()
         except:
             pass
@@ -750,6 +757,7 @@ class ADTRUSTInstance(service.Service):
                             realm_to_serverid(self.realm)
 
         self.smb_conf = "/etc/samba/smb.conf"
+        self.samba_keytab = "/etc/samba/samba.keytab"
 
         self.smb_dn = DN(('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
                          ('cn', 'etc'), self.suffix)
@@ -865,7 +873,6 @@ class ADTRUSTInstance(service.Service):
         # we should not restore smb.conf
 
         # Restore the state of affected selinux booleans
-
         for var in self.selinux_booleans:
             sebool_state = self.restore_state(var)
             if not sebool_state is None:
@@ -874,6 +881,22 @@ class ADTRUSTInstance(service.Service):
                                  "-P", var, sebool_state])
                 except:
                     self.print_msg(SELINUX_WARNING % dict(var=var))
+
+        # Remove samba's credentials cache
+        krb5cc_samba = '/var/run/samba/krb5cc_samba'
+        installutils.remove_file(krb5cc_samba)
+
+        # Remove samba's configuration file
+        installutils.remove_file(self.smb_conf)
+
+        # Remove samba's persistent and temporary tdb files
+        tdb_files = [tdb_file for tdb_file in os.listdir("/var/lib/samba/")
+                                           if tdb_file.endswith(".tdb")]
+        for tdb_file in tdb_files:
+            installutils.remove_file(tdb_file)
+
+        # Remove our keys from samba's keytab
+        self.clean_samba_keytab()
 
         if not enabled is None and not enabled:
             self.disable()
