@@ -45,5 +45,5 @@ dynamic-db "ipa" {
 	arg "auth_method sasl";
 	arg "sasl_mech GSSAPI";
 	arg "sasl_user DNS/$FQDN";
-	arg "serial_autoincrement $SERIAL_AUTOINCREMENT";
+	arg "serial_autoincrement yes";
 };

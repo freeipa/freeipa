@@ -463,7 +463,7 @@ class BindInstance(service.Service):
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp,
               reverse_zone, named_user="named", zonemgr=None,
-              serial_autoincrement=True, ca_configured=None):
+              ca_configured=None):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -474,7 +474,6 @@ class BindInstance(service.Service):
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ntp = ntp
         self.reverse_zone = reverse_zone
-        self.serial_autoincrement = serial_autoincrement
         self.ca_configured = ca_configured
 
         if not zonemgr:
@@ -590,9 +589,6 @@ class BindInstance(service.Service):
         else:
             ipa_ca = ""
 
-        def bool_to_yesno(var):
-            return "yes" if var else "no"
-
         self.sub_dict = dict(
             FQDN=self.fqdn,
             IP=self.ip_address,
@@ -605,7 +601,6 @@ class BindInstance(service.Service):
             OPTIONAL_NTP=optional_ntp,
             ZONEMGR=self.zonemgr,
             IPA_CA_RECORD=ipa_ca,
-            SERIAL_AUTOINCREMENT=bool_to_yesno(self.serial_autoincrement),
             )
 
     def __setup_dns_container(self):
