@@ -1679,8 +1679,10 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
                           master_replication_port=master_ds_port,
                           subject_base=config.subject_base)
 
+    # Restart httpd since we changed it's config and added ipa-pki-proxy.conf
+    # Without the restart, CA service status check would fail due to missing
+    # proxy
     if postinstall:
-        # Restart httpd since we changed its config
         ipaservices.knownservices.httpd.restart()
 
 
