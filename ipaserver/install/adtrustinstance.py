@@ -110,35 +110,71 @@ class ADTRUSTInstance(service.Service):
     FALLBACK_GROUP_NAME = u'Default SMB Group'
 
     def __init__(self, fstore=None):
-        self.fqdn = None
         self.ip_address = None
-        self.realm = None
-        self.domain_name = None
         self.netbios_name = None
         self.reset_netbios_name = None
         self.no_msdcs = None
         self.add_sids = None
         self.smbd_user = None
-        self.suffix = DN()
-        self.ldapi_socket = None
-        self.smb_conf = None
-        self.smb_dn = None
         self.smb_dn_pwd = None
         self.trust_dn = None
         self.smb_dom_dn = None
         self.sub_dict = None
-        self.cifs_principal = None
-        self.cifs_agent = None
-        self.selinux_booleans = None
         self.rid_base = None
         self.secondary_rid_base = None
 
-        service.Service.__init__(self, "smb", service_desc="CIFS", dm_password=None, ldapi=True)
+        self.fqdn = None
+        self.realm = None
+        self.domain_name = None
+
+        service.Service.__init__(self, "smb", service_desc="CIFS",
+                                 dm_password=None, ldapi=True)
 
         if fstore:
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+        self.__setup_default_attributes()
+
+    def __setup_default_attributes(self):
+        """
+        This method setups default attributes that are either constants, or
+        based on api.env attributes, such as realm, hostname or domain name.
+        """
+
+        # Constants
+        self.smb_conf = "/etc/samba/smb.conf"
+        self.samba_keytab = "/etc/samba/samba.keytab"
+        self.selinux_booleans = ["samba_portmapper"]
+        self.cifs_hosts = []
+
+        # Values obtained from API.env
+        self.fqdn = self.fqdn or api.env.host
+        self.realm = self.realm or api.env.realm
+        self.domain_name = self.domain_name or api.env.domain
+
+        self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm
+        self.suffix = ipautil.realm_to_suffix(self.realm)
+        self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
+                            realm_to_serverid(self.realm)
+
+        # DN definitions
+        self.trust_dn = DN(api.env.container_trusts, self.suffix)
+
+        self.smb_dn = DN(('cn', 'adtrust agents'),
+                         ('cn', 'sysaccounts'),
+                         ('cn', 'etc'),
+                         self.suffix)
+
+        self.smb_dom_dn = DN(('cn', self.domain_name),
+                             api.env.container_cifsdomains,
+                             self.suffix)
+
+        self.cifs_agent = DN(('krbprincipalname', self.cifs_principal.lower()),
+                             api.env.container_service,
+                             self.suffix)
+
 
     def __gen_sid_string(self):
         sub_ids = struct.unpack("<LLL", os.urandom(12))
@@ -752,25 +788,9 @@ class ADTRUSTInstance(service.Service):
         self.add_sids = add_sids
         self.enable_compat = enable_compat
         self.smbd_user = smbd_user
-        self.suffix = ipautil.realm_to_suffix(self.realm)
-        self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
-                            realm_to_serverid(self.realm)
 
-        self.smb_conf = "/etc/samba/smb.conf"
-        self.samba_keytab = "/etc/samba/samba.keytab"
-
-        self.smb_dn = DN(('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
-                         ('cn', 'etc'), self.suffix)
-
-        self.trust_dn = DN(api.env.container_trusts, self.suffix)
-        self.smb_dom_dn = DN(('cn', self.domain_name),
-                             api.env.container_cifsdomains, self.suffix)
-        self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm
-        self.cifs_agent = DN(('krbprincipalname', self.cifs_principal.lower()),
-                             api.env.container_service,
-                             self.suffix)
-        self.selinux_booleans = ["samba_portmapper"]
-        self.cifs_hosts = list()
+        # Setup constants and attributes derived from the values above
+        self.__setup_default_attributes()
 
         self.__setup_sub_dict()
 
