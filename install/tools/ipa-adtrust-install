@@ -264,13 +264,25 @@ def main():
                                       allow_empty = False):
                 sys.exit("Aborting installation.")
 
+    # Check if /etc/samba/smb.conf already exists. In case it was not generated
+    # by IPA, print a warning that we will break existing configuration.
+
     if adtrustinstance.ipa_smb_conf_exists():
         if not options.unattended:
-            while True:
                 print "IPA generated smb.conf detected."
-                if not ipautil.user_input("Overwrite smb.conf?", default = False, allow_empty = False):
+                if not ipautil.user_input("Overwrite smb.conf?",
+                                          default = False,
+                                          allow_empty = False):
                     sys.exit("Aborting installation.")
-                break
+
+    elif os.path.exists('/etc/samba/smb.conf'):
+        print("WARNING: The smb.conf already exists. Running ipa-adtrust-install
+              "will break your existing samba configuration.\n\n")
+        if not options.unattended:
+            if not ipautil.user_input("Do you wish to continue?",
+                                      default = False,
+                                      allow_empty = False):
+                sys.exit("Aborting installation.")
 
     if not options.unattended and not options.enable_compat:
         options.enable_compat = enable_compat_tree()
