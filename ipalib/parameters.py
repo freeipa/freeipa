@@ -1045,6 +1045,21 @@ class Int(Number):
         ('maxvalue', (int, long), int(MAXINT)),
     )
 
+    @staticmethod
+    def convert_int(value):
+        if type(value) in Int.allowed_types:
+            return value
+
+        if type(value) is float:
+            return int(value)
+
+        if type(value) is unicode:
+            if u'.' in value:
+                return int(float(value))
+            return int(value, 0)
+
+        raise ValueError(value)
+
     def __init__(self, name, *rules, **kw):
         super(Int, self).__init__(name, *rules, **kw)
 
@@ -1058,30 +1073,12 @@ class Int(Number):
         """
         Convert a single scalar value.
         """
-        if type(value) in (int, long):
-            return value
-        if type(value) is unicode:
-            # permit floating point strings
-            if value.find(u'.') >= 0:
-                try:
-                    return int(float(value))
-                except ValueError:
-                    pass
-            else:
-                try:
-                    # 2nd arg is radix base, 2nd arg only accepted for strings.
-                    # Zero means determine radix base from prefix (e.g. 0x for hex)
-                    return int(value, 0)
-                except ValueError:
-                    pass
-        if type(value) is float:
-            try:
-                return int(value)
-            except ValueError:
-                pass
-        raise ConversionError(name=self.get_param_name(), index=index,
-            error=ugettext(self.type_error),
-        )
+        try:
+            return Int.convert_int(value)
+        except ValueError:
+            raise ConversionError(name=self.get_param_name(),
+                                  index=index,
+                                  error=ugettext(self.type_error))
 
     def _rule_minvalue(self, _, value):
         """
@@ -1547,6 +1544,27 @@ class StrEnum(Enum):
     """
 
     type = unicode
+
+
+class IntEnum(Enum):
+    """
+    Enumerable for integer data (stored in the ``int`` type).
+    """
+
+    type = int
+    allowed_types = int, long
+    type_error = Int.type_error
+
+    def _convert_scalar(self, value, index=None):
+        """
+        Convert a single scalar value.
+        """
+        try:
+            return Int.convert_int(value)
+        except ValueError:
+            raise ConversionError(name=self.get_param_name(),
+                                  index=index,
+                                  error=ugettext(self.type_error))
 
 
 class Any(Param):
