@@ -77,6 +77,7 @@ BuildRequires:  java-1.7.0-openjdk
 BuildRequires:  libverto-devel
 BuildRequires:  systemd
 BuildRequires:  libunistring-devel
+BuildRequires:  python-lesscpy
 
 # Find out Kerberos middle version to infer ABI changes in DAL driver
 # We cannot load DAL driver into KDC with wrong ABI.
@@ -683,6 +684,7 @@ fi
 %{_usr}/share/ipa/ui/*.svg
 %{_usr}/share/ipa/ui/*.ttf
 %{_usr}/share/ipa/ui/*.woff
+%{_usr}/share/ipa/ui/css/*.css
 %dir %{_usr}/share/ipa/ui/js
 %dir %{_usr}/share/ipa/ui/js/dojo
 %{_usr}/share/ipa/ui/js/dojo/dojo.js

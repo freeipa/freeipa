@@ -1,0 +1,139 @@
+input,
+select,
+textarea {
+  font-family: OpenSansRegular, Helvetica, Arial, sans-serif;
+}
+
+label {
+  font-family: OpenSansSemiBold, Helvetica, Arial, sans-serif;
+}
+
+.help-block, 
+.help-inline,
+input,
+input[type="text"],
+input[type="password"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="date"],
+input[type="month"],
+input[type="time"],
+input[type="week"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="color"],
+label,
+select,
+textarea,
+.uneditable-input, 
+.uneditable-textarea {
+  font-size: 11px;
+}
+
+select,
+textarea,
+input[type="text"],
+input[type="password"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="date"],
+input[type="month"],
+input[type="time"],
+input[type="week"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="color"],
+.uneditable-input,
+.uneditable-textarea {
+  border-color: #bababa;
+  -moz-border-radius: 1px;
+  -webkit-border-radius: 1px;
+  border-radius: 1px;
+  color: #333;
+  padding-bottom: 2px;
+  padding-top: 2px;
+  &:focus, &:hover {
+    border-color: #62afdb;
+  }
+}
+
+select, input[type="file"] {
+  height: 26px;
+  line-height: 26px;
+}
+
+input[disabled],
+select[disabled],
+textarea[disabled],
+input[readonly],
+select[readonly],
+textarea[readonly],
+.uneditable-input, 
+.uneditable-textarea {
+  background-color: #f8f8f8;
+  border-color: #d4d4d4;
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  color: #969696;
+  &:focus, &:hover {
+    border-color: #d4d4d4;
+  }
+}
+
+.controls>.radio:first-child, .controls>.checkbox:first-child {
+  padding-top: 2px;
+}
+
+.control-group.error input,
+.control-group.error select,
+.control-group.error textarea,
+input:focus:invalid:focus,
+textarea:focus:invalid:focus,
+select:focus:invalid:focus {
+  border-color: #ba1212 !important;
+  color: inherit;
+}
+
+.form-horizontal .control-label {
+  padding-top: 3px;
+  margin-bottom: 3px;
+}
+
+.input-append .add-on, .input-prepend .add-on {
+  font-size: 11px;
+  padding-bottom: 2px;
+  padding-top: 2px;
+}
+
+.input-append .add-on,
+.input-prepend .add-on,
+.input-append .btn,
+.input-prepend .btn,
+.input-append .btn-group>.dropdown-toggle,
+.input-prepend .btn-group>.dropdown-toggle {
+  box-shadow: none;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+  color: #a1a1a1;
+  font-style: italic;
+}
+::-moz-placeholder { /* Firefox 19+ */
+  color: #a1a1a1;
+  font-style: italic;
+}
+::-ms-input-placeholder {
+  color: #a1a1a1;
+  font-style: italic;
+}
+::-webkit-input-placeholder {
+  color: #a1a1a1;
+  font-style: italic;
+}

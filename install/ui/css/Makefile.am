@@ -1,14 +1,9 @@
 NULL =
 
-appdir = $(IPA_DATA_DIR)/ui/js/libs
+appdir = $(IPA_DATA_DIR)/ui/css
 app_DATA =				\
-	bootstrap.js 			\
-	browser.js 			\
-	jquery.js 			\
-	jquery.ordered-map.js 		\
-	jquery-ui.js 			\
-	json2.js 			\
-	loader.js 			\
+	bootstrap.css 			\
+	rcue.css 			\
 	$(NULL)
 
 EXTRA_DIST =                            \
@@ -18,3 +13,8 @@ EXTRA_DIST =                            \
 MAINTAINERCLEANFILES =                  \
         *~                              \
         Makefile.in
+
+rcue := $(wildcard ../less/*.less)
+
+rcue.css: $(rcue)
+	../util/make-css.sh

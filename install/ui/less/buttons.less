@@ -1,0 +1,160 @@
+.btn {
+  background-color: #f3f3f3;
+  background-image: -moz-linear-gradient(top, #fafafa, #ededed);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fafafa), to(#ededed));
+  background-image: -webkit-linear-gradient(top, #fafafa, #ededed);
+  background-image: -o-linear-gradient(top, #fafafa, #ededed);
+  background-image: linear-gradient(to bottom, #fafafa, #ededed);
+  border-color: #bbb;
+  border-color: rgba(0,0,0,.25);
+  -moz-border-radius: 1px !important;
+  -webkit-border-radius: 1px !important;
+  border-radius: 1px !important;
+  -moz-box-shadow: 0 2px 3px rgba(0,0,0,.1);
+  -webkit-box-shadow: 0 2px 3px rgba(0,0,0,.1);
+  box-shadow: 0 2px 3px rgba(0,0,0,.1);
+  color: #4d5258;
+  font-family: OpenSansSemiBold, Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  padding: 2px 15px;
+  text-shadow: none;
+  &:active {
+    -moz-box-shadow: inset 0 2px 8px rgba(0,0,0,.2);
+    -webkit-box-shadow: inset 0 2px 8px rgba(0,0,0,.2);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.2);
+  }
+  &:hover,
+  &:focus,
+  &:active,
+  &.active,
+  &.disabled,
+  &[disabled] {
+    background-color: #eee;
+    background-image: none;
+    color: #4d5258;
+  }
+}
+
+.btn.disabled {
+  background-color: #f8f8f8 !important;
+  border-color: #d1d1d1;
+  color: #969696 !important;
+  opacity: 1;
+  &:active {
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+}
+
+.btn-large {
+  font-size: 12px;
+  padding: 6px 15px;
+}
+
+.btn-mini {
+  font-family: OpenSansRegular, Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  line-height: 18px;
+  padding: 0 11px;
+}
+
+.btn-danger, .btn-primary {
+  color: #fff;
+  &:hover, &:active, &:focus {
+    color: #fff;
+  }
+}
+
+.btn-danger {
+  background-color: #c10813;
+  background-image: -moz-linear-gradient(top, #d60915, #ac0710);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#d60915), to(#ac0710));
+  background-image: -webkit-linear-gradient(top, #d60915, #ac0710);
+  background-image: -o-linear-gradient(top, #d60915, #ac0710);
+  background-image: linear-gradient(to bottom, #d60915, #ac0710);
+  border-color: #3f0102;
+  border-color: rgba(0,0,0,.5);
+  &:active {
+    -moz-box-shadow: inset 0 2px 8px rgba(0,0,0,.35);
+    -webkit-box-shadow: inset 0 2px 8px rgba(0,0,0,.35);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.35);
+  }
+  &:hover,
+  &:focus,
+  &:active,
+  &.active,
+  &.disabled,
+  &[disabled] {
+    background-color: #ab070f;
+  }
+}
+
+.btn-link,
+.btn-link:active,
+.btn-link[disabled],
+.btn-link.disabled {
+  background-color: transparent !important;
+  background-image: none !important;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+
+.btn-link {
+  border-color: transparent !important;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  cursor: pointer;
+  color: #0099d3;
+}
+
+.btn-link:hover,
+.btn-link:active,
+.btn-link:focus {
+  background-color: transparent !important;
+  color: #0099d3;
+  text-decoration: underline;
+}
+
+.btn-link[disabled]:hover,
+.btn-link[disabled]:active,
+.btn-link[disabled]:focus,
+.btn-link.disabled:hover,
+.btn-link.disabled:active,
+.btn-link.disabled:focus {
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: #1aa3dc;
+  background-image: -moz-linear-gradient(top, #1cace8, #1998cc);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#1cace8), to(#1998cc));
+  background-image: -webkit-linear-gradient(top, #1cace8, #1998cc);
+  background-image: -o-linear-gradient(top, #1cace8, #1998cc);
+  background-image: linear-gradient(to bottom, #1cace8, #1998cc);
+  border-color: #267da1;
+  border-color: rgba(0,0,0,.3);
+  &:active {
+    -moz-box-shadow: inset 0 2px 8px rgba(0,0,0,.3);
+    -webkit-box-shadow: inset 0 2px 8px rgba(0,0,0,.3);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.3);
+  }
+  &:hover,
+  &:focus,
+  &:active,
+  &.active,
+  &.disabled,
+  &[disabled] {
+    background-color: #189ad1;
+  }
+}
+
+.btn-small [class^="icon-"], .btn-small [class*=" icon-"], .btn-mini [class^="icon-"], .btn-mini [class*=" icon-"] {
+  margin-top: 1px;
+}
+
+.btn-group>.btn, .btn-group>.dropdown-menu, .btn-group>.popover {
+  font-size: 11px;
+}
