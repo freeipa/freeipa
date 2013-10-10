@@ -264,7 +264,7 @@ pushd $DIR/../../ #freeipa/install
         SOURCE=ui/src/libs/*
         TARGET=$TARGET_BASE/ui/js/libs
         RECURSIVE=1
-        EXCEPTIONS=
+        EXCEPTIONS="--exclude /Makefile* --exclude .in"
         sync-files
     fi
 
@@ -285,6 +285,12 @@ pushd $DIR/../../ #freeipa/install
         RECURSIVE=0
         EXCEPTIONS="--exclude /Makefile*"
         sync-files
+
+        SOURCE=ui/font/*
+        TARGET=$TARGET_BASE/ui/font
+        RECURSIVE=0
+        EXCEPTIONS="--exclude /Makefile*"
+        sync-files
     fi
 
     if [[ $IMAGES ]] ; then
@@ -293,12 +299,24 @@ pushd $DIR/../../ #freeipa/install
         RECURSIVE=1
         EXCEPTIONS="--exclude /Makefile*"
         sync-files
+
+        SOURCE=ui/img/*
+        TARGET=$TARGET_BASE/ui/img
+        RECURSIVE=1
+        EXCEPTIONS="--exclude /Makefile*"
+        sync-files
     fi
 
     if [[ $CSS ]] ; then
         SOURCE=ui/*.css
         TARGET=$TARGET_BASE/ui
-        RECURSIVE=1
+        RECURSIVE=0
+        EXCEPTIONS="--exclude /Makefile*"
+        sync-files
+
+        SOURCE=ui/css/*.css
+        TARGET=$TARGET_BASE/ui/css
+        RECURSIVE=0
         EXCEPTIONS="--exclude /Makefile*"
         sync-files
     fi
