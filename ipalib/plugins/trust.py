@@ -337,31 +337,56 @@ sides.
         result = self.execute_ad(full_join, *keys, **options)
 
         if not old_range:
-            self.add_range(range_name, dom_sid, *keys, **options)
+            # Store the created range type, since for POSIX trusts no
+            # ranges for the subdomains should be added, POSIX attributes
+            # provide a global mapping across all subdomains
+            (created_range_type, _, _) = self.add_range(range_name, dom_sid,
+                                                        *keys, **options)
 
         trust_filter = "cn=%s" % result['value']
         ldap = self.obj.backend
         (trusts, truncated) = ldap.find_entries(
-                         base_dn = DN(api.env.container_trusts, api.env.basedn),
-                         filter = trust_filter)
-
+                         base_dn=DN(api.env.container_trusts, api.env.basedn),
+                         filter=trust_filter)
 
         result['result'] = entry_to_dict(trusts[0][1], **options)
-        if options.get('trust_type') == u'ad':
-            domains = fetch_domains_from_trust(self, self.trustinstance, result['result'], **options)
+
+        # For AD trusts with algorithmic mapping, we need to add a separate
+        # range for each subdomain.
+        if (options.get('trust_type') == u'ad' and
+            created_range_type != u'ipa-ad-trust-posix'):
+
+            domains = fetch_domains_from_trust(self, self.trustinstance,
+                                               result['result'], **options)
             if domains and len(domains) > 0:
                 for dom in domains:
                     range_name = dom['cn'][0].upper() + '_id_range'
-                    range_type=options.get('range_type', u'ipa-ad-trust')
                     dom_sid = dom['ipanttrusteddomainsid'][0]
+
+                    # Enforce the same range type as the range for the root
+                    # level domain.
+
+                    # This will skip the detection of the POSIX attributes if
+                    # they are not available, since it has been already
+                    # detected when creating the range for the root level domain
+                    passed_options = options
+                    passed_options.update(range_type=created_range_type)
+
+                    # Try to add the range for each subdomain
                     try:
-                        self.add_range(range_name, dom_sid, range_type=range_type)
+                        self.add_range(range_name, dom_sid, *keys,
+                                       **passed_options)
                     except errors.DuplicateEntry:
                         pass
 
-        result['result']['trusttype'] = [trust_type_string(result['result']['ipanttrusttype'][0])]
-        result['result']['trustdirection'] = [trust_direction_string(result['result']['ipanttrustdirection'][0])]
-        result['result']['truststatus'] = [trust_status_string(result['verified'])]
+        # Format the output into human-readable values
+        result['result']['trusttype'] = [trust_type_string(
+            result['result']['ipanttrusttype'][0])]
+        result['result']['trustdirection'] = [trust_direction_string(
+            result['result']['ipanttrustdirection'][0])]
+        result['result']['truststatus'] = [trust_status_string(
+            result['verified'])]
+
         del result['verified']
 
         return result
@@ -619,6 +644,9 @@ sides.
                                    ipabaserid=0,
                                    iparangetype=range_type,
                                    ipanttrusteddomainsid=dom_sid)
+
+        # Return the values that were generated inside this function
+        return range_type, range_size, base_id
 
     def execute_ad(self, full_join, *keys, **options):
         # Join domain using full credentials and with random trustdom
