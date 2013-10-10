@@ -755,6 +755,7 @@ done:
 int ipapwd_CheckPolicy(struct ipapwd_data *data)
 {
     struct ipapwd_policy pol = {0};
+    struct ipapwd_policy tmppol = {0};
     time_t acct_expiration;
     time_t pwd_expiration;
     time_t last_pwd_change;
@@ -765,11 +766,8 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
     pol.max_pwd_life = IPAPWD_DEFAULT_PWDLIFE;
     pol.min_pwd_length = IPAPWD_DEFAULT_MINLEN;
 
-    if (data->changetype != IPA_CHANGETYPE_NORMAL) {
-        /* We must skip policy checks (Admin change) but
-         * force a password change on the next login.
-         * But not if Directory Manager */
-        if (data->changetype == IPA_CHANGETYPE_ADMIN) {
+    switch(data->changetype) {
+        case IPA_CHANGETYPE_ADMIN:
             /* The expiration date needs to be older than the current time
              * otherwise the KDC may not immediately register the password
              * as expired. The last password change needs to match the
@@ -777,16 +775,32 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
              */
             data->timeNow -= 1;
             data->expireTime = data->timeNow;
-        }
-
-        /* do not load policies */
-    } else {
-
-        /* find the entry with the password policy */
-        ret = ipapwd_getPolicy(data->dn, data->target, &pol);
-        if (ret) {
-            LOG_TRACE("No password policy, use defaults");
-        }
+            break;
+        case IPA_CHANGETYPE_NORMAL:
+            /* Find the entry with the password policy */
+            ret = ipapwd_getPolicy(data->dn, data->target, &pol);
+            if (ret) {
+                LOG_TRACE("No password policy, use defaults");
+            }
+            break;
+        case IPA_CHANGETYPE_DSMGR:
+            /* PassSync agents and Directory Manager can administratively
+             * change the password without expiring it.
+             *
+             * Find password policy for the entry to properly set expiration.
+             * Do not store it in resulting policy to avoid aplying password
+             * quality checks on administratively set passwords
+             */
+            ret = ipapwd_getPolicy(data->dn, data->target, &tmppol);
+            if (ret) {
+                LOG_TRACE("No password policy, use defaults");
+            } else {
+                pol.max_pwd_life = tmppol.max_pwd_life;
+            }
+            break;
+        default:
+            LOG_TRACE("Unknown password change type, use defaults");
+            break;
     }
 
     tmpstr = slapi_entry_attr_get_charptr(data->target,
