@@ -213,11 +213,10 @@ class DsInstance(service.Service):
             )
         self.nickname = cert_nickname
         self.dm_password = dm_password
-        self.realm_name = realm_name
+        self.realm = realm_name
         self.sub_dict = None
         self.domain = domain_name
         self.serverid = None
-        self.fqdn = None
         self.pkcs12_info = None
         self.dercert = None
         self.idstart = None
@@ -226,7 +225,7 @@ class DsInstance(service.Service):
         self.open_ports = []
         self.run_init_memberof = True
         if realm_name:
-            self.suffix = ipautil.realm_to_suffix(self.realm_name)
+            self.suffix = ipautil.realm_to_suffix(self.realm)
             self.__setup_sub_dict()
         else:
             self.suffix = DN()
@@ -280,13 +279,13 @@ class DsInstance(service.Service):
 
     def init_info(self, realm_name, fqdn, domain_name, dm_password,
                   subject_base, idstart, idmax, pkcs12_info, ca_file=None):
-        self.realm_name = realm_name.upper()
-        self.serverid = realm_to_serverid(self.realm_name)
-        self.suffix = ipautil.realm_to_suffix(self.realm_name)
+        self.realm = realm_name.upper()
+        self.serverid = realm_to_serverid(self.realm)
+        self.suffix = ipautil.realm_to_suffix(self.realm)
         self.fqdn = fqdn
         self.dm_password = dm_password
         self.domain = domain_name
-        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
+        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm)
         self.subject_base = subject_base
         self.idstart = idstart
         self.idmax = idmax
@@ -358,10 +357,10 @@ class DsInstance(service.Service):
 
     def __setup_replica(self):
         replication.enable_replication_version_checking(self.fqdn,
-            self.realm_name,
+            self.realm,
             self.dm_password)
 
-        repl = replication.ReplicationManager(self.realm_name,
+        repl = replication.ReplicationManager(self.realm,
                                               self.fqdn,
                                               self.dm_password)
         repl.setup_replication(self.master_fqdn,
@@ -389,7 +388,7 @@ class DsInstance(service.Service):
                              PASSWORD=self.dm_password,
                              RANDOM_PASSWORD=self.generate_random(),
                              SUFFIX=self.suffix,
-                             REALM=self.realm_name, USER=DS_USER,
+                             REALM=self.realm, USER=DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), IDSTART=self.idstart,
                              IDMAX=self.idmax, HOST=self.fqdn,
@@ -404,7 +403,7 @@ class DsInstance(service.Service):
         self.backup_state("serverid", self.serverid)
         self.fstore.backup_file("/etc/sysconfig/dirsrv")
 
-        self.sub_dict['BASEDC'] = self.realm_name.split('.')[0].lower()
+        self.sub_dict['BASEDC'] = self.realm.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
         root_logger.debug(base_txt)
 
@@ -596,7 +595,7 @@ class DsInstance(service.Service):
 
     def enable_ssl(self):
         dirname = config_dirname(self.serverid)
-        dsdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
+        dsdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
         if self.pkcs12_info:
             dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
                                     ca_file=self.ca_file)
@@ -609,7 +608,7 @@ class DsInstance(service.Service):
             self.dercert = dsdb.get_cert_from_db(nickname, pem=False)
         else:
             nickname = self.nickname
-            cadb = certs.CertDB(self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
+            cadb = certs.CertDB(self.realm, host_name=self.fqdn, subject_base=self.subject_base)
 
             # FIXME, need to set this nickname in the RA plugin
             cadb.export_ca_cert('ipaCert', False)
@@ -661,7 +660,7 @@ class DsInstance(service.Service):
         """
 
         dirname = config_dirname(self.serverid)
-        certdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
+        certdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
 
         if cacert_name is None:
             cacert_name = certdb.cacert_name
@@ -797,7 +796,7 @@ class DsInstance(service.Service):
             # drop the trailing / off the config_dirname so the directory
             # will match what is in certmonger
             dirname = config_dirname(serverid)[:-1]
-            dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
+            dsdb = certs.CertDB(self.realm, nssdir=dirname)
             dsdb.untrack_server_cert(self.nickname)
 
     # we could probably move this function into the service.Service
@@ -825,8 +824,8 @@ class DsInstance(service.Service):
         # shutdown the server
         self.stop()
 
-        dirname = config_dirname(realm_to_serverid(self.realm_name))
-        certdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
+        dirname = config_dirname(realm_to_serverid(self.realm))
+        certdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
         if not cacert_name or len(cacert_name) == 0:
             cacert_name = "Imported CA"
         # we can't pass in the nickname, so we set the instance variable

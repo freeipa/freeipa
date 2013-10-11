@@ -261,7 +261,7 @@ class CADSInstance(service.Service):
             autobind=service.DISABLED)
 
         self.serverid = "PKI-IPA"
-        self.realm_name = realm_name
+        self.realm = realm_name
         self.sub_dict = None
         self.domain = domain_name
         self.fqdn = host_name
@@ -289,7 +289,7 @@ class CADSInstance(service.Service):
             # drop the trailing / off the config_dirname so the directory
             # will match what is in certmonger
             dirname = dsinstance.config_dirname(serverid)[:-1]
-            dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
+            dsdb = certs.CertDB(self.realm, nssdir=dirname)
             dsdb.untrack_server_cert("Server-Cert")
             dsinstance.erase_ds_instance_data(serverid)
 
