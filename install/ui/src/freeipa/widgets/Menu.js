@@ -79,68 +79,137 @@ define(['dojo/_base/declare',
                 construct.empty(this.domNode);
             } else {
                 this.domNode = construct.create('div', {
-                    'class': 'navigation'
+                    'class': 'navbar primary persistent-secondary'
                 });
             }
+            this.innerNode = construct.create('div', {
+                'class': 'navbar-inner'
+            }, this.domNode);
             if (this.menu) {
-                this._render_children(null, this.domNode, 1);
+                this._render_children(null, this.innerNode, 1);
             }
             return this.domNode;
         },
 
         /**
-         * Render children of menu_item
-         * Top level items are rendered if menu_items is null
+         * Render submenu container of given level
+         *
+         * @protected
+         * @param {HTMLElement} node Node to add the container to.
+         * @param {Number} level submenu level
+         */
+        _render_level_container: function(node, level) {
+
+            var lvl_class = this._get_lvl_class(level);
+
+            var cont = construct.create('ul', {
+                'class': 'nav ' + lvl_class
+            }, node);
+            return cont;
+        },
+
+        /**
+         * Render item and submenu to container
+         */
+        _render_item: function(menu_item, container, level) {
+
+            var self = this;
+            var click_handler = function(event) {
+                self.item_clicked(menu_item, event);
+                event.preventDefault();
+            };
+
+            var li_node = construct.create('li', {
+                'data-name': menu_item.name,
+                click: click_handler
+            }, container);
+
+            var a_node = construct.create('a', {}, li_node);
+            this._update_item(menu_item, li_node);
+
+             // create submenu
+            this._render_children(menu_item, container, level + 1);
+        },
+
+        /**
+         * Render children of menu_item or top level items if menu_item is
+         * null.
          *
          * @protected
          * @param {navigation.MenuItem|null} menu_item
-         * @param {HTMLElement} node
+         * @param {HTMLElement} container
          * @param {number} level
          */
-        _render_children: function (menu_item, node, level) {
+        _render_children: function(menu_item, container, level) {
 
-            var self = this;
             var name = menu_item ? menu_item.name : null;
             var children = this.menu.items.query({ parent: name },
                                  { sort: [{attribute:'position'}]});
 
-            var lvl_class = this._get_lvl_class(level);
-
             if (children.total > 0) {
-                var menu_node = construct.create('div', {
-                    'class': 'submenu ' + lvl_class
-                    //style: { display: 'none' }
-                });
-
-                if (menu_item) {
-                    attr.set(menu_node, 'data-item', menu_item.name);
-                }
-
-                var ul_node = construct.create('ul', null, menu_node);
+                var item_container = this._render_level_container(container, level);
 
                 array.forEach(children, function(menu_item) {
-
-                    var click_handler = function(event) {
-                        self.item_clicked(menu_item, event);
-                        event.preventDefault();
-                    };
-
-                    var li_node = construct.create('li', {
-                        'data-name': menu_item.name,
-                        click: click_handler
-                    }, ul_node);
-
-                    var a_node = construct.create('a', {}, li_node);
-
-                    this._update_item(menu_item, li_node);
-
-                    // create submenu
-                    this._render_children(menu_item, menu_node, level + 1);
+                    this._render_item(menu_item, item_container, level);
                 }, this);
 
-                construct.place(menu_node, node);
+                construct.place(item_container, container);
             }
         },
+
+//         /**
+//          * Render children of menu_item
+//          * Top level items are rendered if menu_items is null
+//          *
+//          * @protected
+//          * @param {navigation.MenuItem|null} menu_item
+//          * @param {HTMLElement} node
+//          * @param {number} level
+//          */
+//         _render_children2: function (menu_item, node, level) {
+//
+//             var self = this;
+//             var name = menu_item ? menu_item.name : null;
+//             var children = this.menu.items.query({ parent: name },
+//                                  { sort: [{attribute:'position'}]});
+//
+//             var lvl_class = this._get_lvl_class(level);
+//
+//             if (children.total > 0) {
+//                 var menu_node = construct.create('div', {
+//                     'class': 'submenu ' + lvl_class
+//                     //style: { display: 'none' }
+//                 });
+//
+//                 if (menu_item) {
+//                     attr.set(menu_node, 'data-item', menu_item.name);
+//                 }
+//
+//                 var ul_node = construct.create('ul', null, menu_node);
+//
+//                 array.forEach(children, function(menu_item) {
+//
+//                     var click_handler = function(event) {
+//                         self.item_clicked(menu_item, event);
+//                         event.preventDefault();
+//                     };
+//
+//                     var li_node = construct.create('li', {
+//                         'data-name': menu_item.name,
+//                         click: click_handler
+//                     }, ul_node);
+//
+//                     var a_node = construct.create('a', {}, li_node);
+//
+//                     this._update_item(menu_item, li_node);
+//
+//                     // create submenu
+//                     this._render_children(menu_item, menu_node, level + 1);
+//                 }, this);
+//
+//                 construct.place(menu_node, node);
+//             }
+//         },
 
         _get_lvl_class: function(level) {
             return this.level_class + '-' + level;
