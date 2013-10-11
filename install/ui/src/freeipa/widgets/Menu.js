@@ -30,8 +30,9 @@ define(['dojo/_base/declare',
         'dojo/query',
         'dojo/Evented',
         'dojo/on',
+        '../jquery',
         '../ipa'], function(declare, array, lang, dom, construct, prop, dom_class,
-                            dom_style, attr, query, Evented, on, IPA) {
+                            dom_style, attr, query, Evented, on, $, IPA) {
 
     return declare([Evented], {
         /**
@@ -86,7 +87,7 @@ define(['dojo/_base/declare',
                 'class': 'navbar-inner'
             }, this.domNode);
             if (this.menu) {
-                this._render_children(null, this.innerNode, 1);
+                this._render_children(null, null, this.innerNode, 1);
             }
             return this.domNode;
         },
@@ -101,9 +102,12 @@ define(['dojo/_base/declare',
         _render_level_container: function(node, level) {
 
             var lvl_class = this._get_lvl_class(level);
+            var type_cls = 'nav';
+            if (level === 2) type_cls = 'persistent';
+            if (level > 2) type_cls = 'dropdown-menu';
 
             var cont = construct.create('ul', {
-                'class': 'nav ' + lvl_class
+                'class': type_cls + ' ' + lvl_class
             }, node);
             return cont;
         },
@@ -115,20 +119,33 @@ define(['dojo/_base/declare',
 
             var self = this;
             var click_handler = function(event) {
+                if (event.defaultPrevented) return;
                 self.item_clicked(menu_item, event);
                 event.preventDefault();
             };
 
-            var li_node = construct.create('li', {
+            var item_node = construct.create('li', {
                 'data-name': menu_item.name,
                 click: click_handler
-            }, container);
+            });
+            var a_node = construct.create('a', {}, item_node);
 
-            var a_node = construct.create('a', {}, li_node);
-            this._update_item(menu_item, li_node);
+            var children = this._get_children(menu_item);
+            if (level > 1 && children.total > 0) {
+                dom_class.add(item_node, 'dropdown-submenu');
+                dom_class.add(a_node, 'dropdown-toggle');
+                prop.set(item_node, 'onclick', undefined);
+                attr.set(a_node, 'data-toggle', 'dropdown');
+                attr.set(a_node, 'data-target', '#');
+                $(a_node).dropdown();
+            }
+
+            this._update_item(menu_item, item_node);
 
              // create submenu
-            this._render_children(menu_item, container, level + 1);
+            this._render_children(menu_item, children, item_node, level + 1);
+
+            construct.place(item_node, container);
         },
 
         /**
@@ -140,11 +157,11 @@ define(['dojo/_base/declare',
          * @param {HTMLElement} container
          * @param {number} level
          */
-        _render_children: function(menu_item, container, level) {
+        _render_children: function(menu_item, children, container, level) {
 
-            var name = menu_item ? menu_item.name : null;
-            var children = this.menu.items.query({ parent: name },
-                                 { sort: [{attribute:'position'}]});
+            if (children === null) {
+                children = this._get_children(menu_item);
+            }
 
             if (children.total > 0) {
                 var item_container = this._render_level_container(container, level);
@@ -157,59 +174,12 @@ define(['dojo/_base/declare',
             }
         },
 
-//         /**
-//          * Render children of menu_item
-//          * Top level items are rendered if menu_items is null
-//          *
-//          * @protected
-//          * @param {navigation.MenuItem|null} menu_item
-//          * @param {HTMLElement} node
-//          * @param {number} level
-//          */
-//         _render_children2: function (menu_item, node, level) {
-//
-//             var self = this;
-//             var name = menu_item ? menu_item.name : null;
-//             var children = this.menu.items.query({ parent: name },
-//                                  { sort: [{attribute:'position'}]});
-//
-//             var lvl_class = this._get_lvl_class(level);
-//
-//             if (children.total > 0) {
-//                 var menu_node = construct.create('div', {
-//                     'class': 'submenu ' + lvl_class
-//                     //style: { display: 'none' }
-//                 });
-//
-//                 if (menu_item) {
-//                     attr.set(menu_node, 'data-item', menu_item.name);
-//                 }
-//
-//                 var ul_node = construct.create('ul', null, menu_node);
-//
-//                 array.forEach(children, function(menu_item) {
-//
-//                     var click_handler = function(event) {
-//                         self.item_clicked(menu_item, event);
-//                         event.preventDefault();
-//                     };
-//
-//                     var li_node = construct.create('li', {
-//                         'data-name': menu_item.name,
-//                         click: click_handler
-//                     }, ul_node);
-//
-//                     var a_node = construct.create('a', {}, li_node);
-//
-//                     this._update_item(menu_item, li_node);
-//
-//                     // create submenu
-//                     this._render_children(menu_item, menu_node, level + 1);
-//                 }, this);
-//
-//                 construct.place(menu_node, node);
-//             }
-//         },
+        _get_children: function(menu_item) {
+            var name = menu_item ? menu_item.name : null;
+            var children = this.menu.items.query({ parent: name, hidden: false },
+                                 { sort: [{attribute:'position'}]});
+            return children;
+        },
 
         _get_lvl_class: function(level) {
             return this.level_class + '-' + level;
@@ -238,7 +208,7 @@ define(['dojo/_base/declare',
             }
 
             dom_class.toggle(li_node, 'disabled', !!menu_item.disabled);
-            dom_class.toggle(li_node, 'selected', menu_item.selected);
+            dom_class.toggle(li_node, 'active', menu_item.selected);
             dom_style.set(li_node, {
                 display: menu_item.hidden ? 'none': 'default'
             });

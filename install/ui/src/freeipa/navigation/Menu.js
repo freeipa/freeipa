@@ -106,6 +106,7 @@ return declare([Evented],
             if (!item.title) item.title = facet.title;
         }
 
+        item.hidden = !!item.hidden;
         item.selected = false;
 
         // check parent

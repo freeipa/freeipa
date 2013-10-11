@@ -107,7 +107,7 @@ define(['dojo/_base/declare',
             this._render_header();
 
             this.menu_node = this.menu_widget.render();
-            construct.place(this.menu_node, this.domNode);
+            construct.place(this.menu_node, this.header_node);
 
             this.content_node = construct.create('div', {
                 'class': 'content'
@@ -116,7 +116,7 @@ define(['dojo/_base/declare',
 
         _render_header: function() {
             this.header_node = construct.create('div', {
-                'class': 'header'
+                'class': 'header rcue'
             }, this.domNode);
 
             // logo
