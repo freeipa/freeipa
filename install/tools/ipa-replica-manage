@@ -862,11 +862,12 @@ def re_initialize(realm, thishost, fromhost, dirman_passwd, nolookup=False):
         repl.initialize_replication(agreement.dn, repl.conn)
         repl.wait_for_repl_init(repl.conn, agreement.dn)
 
-    # If the agreement doesn't have nsDS5ReplicatedAttributeListTotal it means
-    # we did not replicate memberOf, do so now.
-    if not agreement.single_value('nsDS5ReplicatedAttributeListTotal', None):
-        ds = dsinstance.DsInstance(realm_name = realm, dm_password = dirman_passwd)
-        ds.init_memberof()
+        # If the agreement doesn't have nsDS5ReplicatedAttributeListTotal it means
+        # we did not replicate memberOf, do so now.
+        if not agreement.single_value('nsDS5ReplicatedAttributeListTotal', None):
+            ds = dsinstance.DsInstance(realm_name = realm, dm_password = dirman_passwd)
+            ds.ldapi = os.getegid() == 0
+            ds.init_memberof()
 
 def force_sync(realm, thishost, fromhost, dirman_passwd, nolookup=False):
 
