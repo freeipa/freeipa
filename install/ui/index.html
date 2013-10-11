@@ -8,6 +8,7 @@
     <meta id="ie-detector">
     <![endif]-->
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="js/libs/loader.js"></script>
     <script type="text/javascript">
 
@@ -34,13 +35,14 @@
 
         (function() {
             var ie = !!document.getElementById('ie-detector');
-            var styles = ['jquery-ui.css', 'ipa.css'];
+            var styles = ['jquery-ui.css','css/bootstrap.css', 'css/rcue.css',  'ipa.css'];
             if (ie) styles.push('ie.css');
             var icons = ['favicon.ico'];
             var scripts = [
                 'js/libs/json2.js',
                 'js/libs/jquery.js',
                 'js/libs/jquery-ui.js',
+                'js/libs/bootstrap.js',
                 'js/libs/jquery.ordered-map.js',
                 'js/libs/browser.js',
                 'js/dojo/dojo.js'
