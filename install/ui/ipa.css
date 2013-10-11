@@ -17,7 +17,6 @@ html {
 body {
     overflow: auto;
     position: relative;
-    background: url(images/outer-background.png);
     background-repeat: repeat-x;
     background-position: left top;
     background-color: #FFFFFF;
@@ -53,55 +52,7 @@ textarea[readonly] {
     margin: 0 auto 0;
 }
 
-/* ---- Background ---- */
-
-.background-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 34px;
-    background: url(images/top-background.png) #0C3B00;
-}
-
-.background-navigation {
-    position: absolute;
-    top: 34px;
-    left: 0;
-    right: 0;
-    height: 72px;
-    background: url(images/mainnav-background.png);
-}
-
-.background-left {
-    position: absolute;
-    top: 106px;
-    left: 0;
-    width: 10px;
-    bottom: 0;
-    background: url(images/background-left.png);
-    background-repeat: no-repeat;
-}
-
-.background-center {
-    position: absolute;
-    top: 106px;
-    left: 10px;
-    right: 10px;
-    bottom: 0;
-    background: url(images/background-center.png);
-    background-repeat: repeat-x;
-}
-
-.background-right {
-    position: absolute;
-    top: 106px;
-    right: 0;
-    width: 10px;
-    bottom: 0;
-    background: url(images/background-right.png);
-    background-repeat: no-repeat;
-}
+/** Icons **/
 
 .icon {
     display: inline-block;

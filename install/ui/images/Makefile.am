@@ -5,9 +5,6 @@ app_DATA =                              \
 	add-icon.png			\
 	arrow-collapsed.png		\
 	arrow-expanded.png		\
-	background-center.png		\
-	background-left.png		\
-	background-right.png		\
 	caution-icon.png		\
 	centered-background.png		\
 	check-icon.png			\
@@ -19,7 +16,6 @@ app_DATA =                              \
 	ie-icon.png 			\
 	ipa-banner.png			\
 	ipa-logo.png			\
-	mainnav-background.png		\
 	mainnav-tab-off.png  		\
 	mainnav-tab-on.png  		\
 	modal-background.png  		\
@@ -34,7 +30,6 @@ app_DATA =                              \
 	spinner-small.gif		\
 	static-background.png		\
 	subnav-background.png		\
-	top-background.png		\
 	ui-bg_flat_65_ffffff_40x100.png \
 	ui-bg_flat_8_225314_40x100.png \
 	ui-bg_glass_40_5e5e5e_1x400.png \

@@ -55,8 +55,6 @@ define(['dojo/_base/declare',
 
         container_node: null,
 
-        background_node: null,
-
         header_node: null,
 
         password_expires_node: null,
@@ -106,7 +104,6 @@ define(['dojo/_base/declare',
                 construct.place(this.domNode, this.container_node);
             }
 
-            this._render_background();
             this._render_header();
 
             this.menu_node = this.menu_widget.render();
@@ -114,20 +111,6 @@ define(['dojo/_base/declare',
 
             this.content_node = construct.create('div', {
                 'class': 'content'
-            }, this.domNode);
-        },
-
-        _render_background: function() {
-            var inner_html = ''+
-                '<div class="background-header"></div>'+
-                '<div class="background-navigation"></div>'+
-                '<div class="background-left"></div>'+
-                '<div class="background-center"></div>'+
-                '<div class="background-right"></div>';
-
-            this.background_node = construct.create('div', {
-                'class': 'background',
-                innerHTML: inner_html
             }, this.domNode);
         },
 
