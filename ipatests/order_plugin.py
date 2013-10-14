@@ -69,8 +69,31 @@ class OrderTests(Plugin):
                 return False
             return loader.selector.wantMethod(item)
 
+        def sort_with_respect_to_overriding(func):
+            """
+            Sorts the methods in respect with the parent classes.
+
+            The methods are sorted with respect to the inheritance chain,
+            methods that were defined in the same class are sorted by the line
+            number on which they were defined.
+            """
+
+            # Check each *ordered* class in MRO for definition of func method
+            for i, parent_class in enumerate(reversed(cls.mro())):
+                if getattr(parent_class, '_order_plugin__ordered', False):
+                    method = getattr(parent_class, func.__name__, None)
+                    if method:
+                        # This sorts methods as tuples  (position of the class
+                        # in the inheritance chain, position of the method
+                        # within that class)
+                        return 0, i, method.func_code.co_firstlineno
+
+            # Weird case fallback
+            # Method name not in any of the classes in MRO, run it last
+            return 1, func.func_code.co_firstlineno
+
         methods = [getattr(cls, case) for case in dir(cls) if wanted(case)]
-        methods.sort(key=lambda m: m.func_code.co_firstlineno)
+        methods.sort(key=sort_with_respect_to_overriding)
         cases = [loader.makeTest(m, cls) for m in methods]
         return cases
 
