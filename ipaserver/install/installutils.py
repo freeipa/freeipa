@@ -819,9 +819,6 @@ def stopped_service(service, instance_name=""):
         root_logger.debug('Service %s%s is not running, continue.', service,
                           log_instance_name)
         yield
-        root_logger.debug('Starting %s%s.', service, log_instance_name)
-        ipaservices.knownservices[service].start(instance_name)
-        return
     else:
         # Stop the service, do the required stuff and start it again
         root_logger.debug('Stopping %s%s.', service, log_instance_name)
