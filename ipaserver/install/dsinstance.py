@@ -672,22 +672,17 @@ class DsInstance(service.Service):
         dsdb = certs.NSSDatabase(nssdir=dirname)
         dsdb.export_pem_cert(nickname, location)
 
-    def upload_ca_cert(self, cacert_name=None):
+    def upload_ca_cert(self):
         """
         Upload the CA certificate from the NSS database to the LDAP directory.
         """
 
         dirname = config_dirname(self.serverid)
-        certdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
+        certdb = certs.CertDB(self.realm, nssdir=dirname,
+                              subject_base=self.subject_base)
 
-        if cacert_name is None:
-            cacert_name = certdb.cacert_name
-        dercert = certdb.get_cert_from_db(cacert_name, pem=False)
-        self.upload_ca_dercert(dercert)
+        dercert = certdb.get_cert_from_db(certdb.cacert_name, pem=False)
 
-    def upload_ca_dercert(self, dercert):
-        """Upload the CA DER certificate to the LDAP directory
-        """
         conn = ipaldap.IPAdmin(self.fqdn)
         conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
 

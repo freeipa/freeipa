@@ -68,7 +68,7 @@ from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipapython import ipautil
 from ipapython import dogtag
-from ipalib import api, errors, util, x509
+from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 from ipalib.util import validate_domain_name
@@ -1120,14 +1120,8 @@ def main():
         # This is done within stopped_service context, which restarts CA
         ca.enable_client_auth_to_db()
 
-        # Upload the CA cert to the directory
-        ds.upload_ca_cert()
-    else:
-        with open(options.root_ca_file) as f:
-            pem_cert = f.read()
-
-        # Upload the CA cert to the directory
-        ds.upload_ca_dercert(base64.b64decode(x509.strip_header(pem_cert)))
+    # Upload the CA cert to the directory
+    ds.upload_ca_cert()
 
     krb = krbinstance.KrbInstance(fstore)
     if options.pkinit_pkcs12:
