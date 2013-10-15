@@ -667,11 +667,6 @@ class DsInstance(service.Service):
         # check for open secure port 636 from now on
         self.open_ports.append(636)
 
-    def export_ca_cert(self, nickname, location):
-        dirname = config_dirname(self.serverid)
-        dsdb = certs.NSSDatabase(nssdir=dirname)
-        dsdb.export_pem_cert(nickname, location)
-
     def upload_ca_cert(self):
         """
         Upload the CA certificate from the NSS database to the LDAP directory.
