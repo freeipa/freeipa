@@ -136,6 +136,7 @@ Requires: python-pyasn1
 Requires: python-qrcode
 Requires: memcached
 Requires: python-memcached
+Requires: dbus-python
 Requires: systemd-units >= 38
 Requires(pre): systemd-units
 Requires(post): systemd-units
@@ -720,7 +721,6 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
-%{_usr}/share/ipa/ca_renewal
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
 %{_usr}/share/ipa/ipa-pki-proxy.conf

@@ -36,6 +36,7 @@ import xml.dom.minidom
 import stat
 import syslog
 import ConfigParser
+import dbus
 
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
@@ -1347,7 +1348,19 @@ class CAInstance(service.Service):
         # cause files to have a new owner.
         user_exists = self.restore_state("user_exists")
 
-        installutils.remove_file("/var/lib/certmonger/cas/ca_renewal")
+        ipaservices.knownservices.messagebus.start()
+        cmonger = ipaservices.knownservices.certmonger
+        cmonger.start()
+
+        bus = dbus.SystemBus()
+        obj = bus.get_object('org.fedorahosted.certmonger',
+                             '/org/fedorahosted/certmonger')
+        iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
+        path = iface.find_ca_by_nickname('dogtag-ipa-retrieve-agent-submit')
+        if path:
+            iface.remove_known_ca(path)
+
+        cmonger.stop()
 
         # remove CRL files
         root_logger.info("Remove old CRL files")
@@ -1438,23 +1451,20 @@ class CAInstance(service.Service):
         Create a new CA type for certmonger that will retrieve updated
         certificates from the dogtag master server.
         """
-        target_fname = '/var/lib/certmonger/cas/ca_renewal'
-        if ipautil.file_exists(target_fname):
-            # This CA can be configured either during initial CA installation
-            # if the replica is created with --setup-ca or when Apache is
-            # being configured if not.
-            return
-        txt = ipautil.template_file(ipautil.SHARE_DIR + "ca_renewal", dict())
-        fd = open(target_fname, "w")
-        fd.write(txt)
-        fd.close()
-        os.chmod(target_fname, 0600)
-        ipaservices.restore_context(target_fname)
-
         cmonger = ipaservices.knownservices.certmonger
         cmonger.enable()
         ipaservices.knownservices.messagebus.start()
         cmonger.restart()
+
+        bus = dbus.SystemBus()
+        obj = bus.get_object('org.fedorahosted.certmonger',
+                             '/org/fedorahosted/certmonger')
+        iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
+        path = iface.find_ca_by_nickname('dogtag-ipa-retrieve-agent-submit')
+        if not path:
+            iface.add_known_ca(
+                'dogtag-ipa-retrieve-agent-submit',
+                '/usr/libexec/certmonger/dogtag-ipa-retrieve-agent-submit', [])
 
     def configure_clone_renewal(self):
         """
