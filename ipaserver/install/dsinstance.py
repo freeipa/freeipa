@@ -274,7 +274,7 @@ class DsInstance(service.Service):
         self.step("creating indices", self.__create_indices)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         if enable_ssl:
-            self.step("configuring ssl for ds instance", self.enable_ssl)
+            self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("configure autobind for root", self.__root_autobind)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
@@ -337,6 +337,15 @@ class DsInstance(service.Service):
         self.__common_post_setup()
 
         self.start_creation(runtime=60)
+
+    def enable_ssl(self):
+        self.steps = []
+
+        self.step("configuring ssl for ds instance", self.__enable_ssl)
+        self.step("restarting directory server", self.__restart_instance)
+        self.step("adding CA certificate entry", self.__upload_ca_cert)
+
+        self.start_creation(runtime=10)
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
                        domain_name, dm_password, subject_base,
@@ -609,7 +618,7 @@ class DsInstance(service.Service):
     def generate_random(self):
         return ipautil.ipa_generate_password()
 
-    def enable_ssl(self):
+    def __enable_ssl(self):
         dirname = config_dirname(self.serverid)
         dsdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
         if self.pkcs12_info:
@@ -667,7 +676,7 @@ class DsInstance(service.Service):
         # check for open secure port 636 from now on
         self.open_ports.append(636)
 
-    def upload_ca_cert(self):
+    def __upload_ca_cert(self):
         """
         Upload the CA certificate from the NSS database to the LDAP directory.
         """

@@ -1110,7 +1110,6 @@ def main():
 
     # we now need to enable ssl on the ds
     ds.enable_ssl()
-    ds.restart()
 
     if setup_ca:
         # We need to ldap_enable the CA now that DS is up and running
@@ -1119,9 +1118,6 @@ def main():
 
         # This is done within stopped_service context, which restarts CA
         ca.enable_client_auth_to_db()
-
-    # Upload the CA cert to the directory
-    ds.upload_ca_cert()
 
     krb = krbinstance.KrbInstance(fstore)
     if options.pkinit_pkcs12:
