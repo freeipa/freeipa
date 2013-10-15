@@ -62,6 +62,8 @@ class Dogtag10Constants(object):
     SERVICE_PROFILE_DIR = '%s/ca/profiles/ca' % PKI_ROOT
     ALIAS_DIR = '/etc/pki/pki-tomcat/alias'
 
+    SERVICE_NAME = 'pki_tomcatd'
+
     RACERT_LINE_SEP = '\n'
 
     IPA_SERVICE_PROFILE = '%s/caIPAserviceCert.cfg' % SERVICE_PROFILE_DIR
@@ -91,6 +93,8 @@ class Dogtag9Constants(object):
     PASSWORD_CONF_PATH = '%s/conf/password.conf' % PKI_ROOT
     SERVICE_PROFILE_DIR = '%s/profiles/ca' % PKI_ROOT
     ALIAS_DIR = '%s/alias' % PKI_ROOT
+
+    SERVICE_NAME = 'pki-cad'
 
     RACERT_LINE_SEP = '\r\n'
 

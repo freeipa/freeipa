@@ -49,6 +49,7 @@ api.finalize()
 
 configured_constants = dogtag.configured_constants(api)
 alias_dir = configured_constants.ALIAS_DIR
+dogtag_service = ipaservices.knownservices[configured_constants.SERVICE_NAME]
 dogtag_instance = configured_constants.PKI_INSTANCE_NAME
 
 # Fetch the new certificate
@@ -106,12 +107,13 @@ if nickname == 'auditSigningCert cert-pki-ca':
 # off the servlet to verify that the CA is actually up and responding so
 # when this returns it should be good-to-go. The CA was stopped in the
 # pre-save state.
-syslog.syslog(syslog.LOG_NOTICE, 'Starting %sd' % dogtag_instance)
+syslog.syslog(syslog.LOG_NOTICE, 'Starting %s' % dogtag_service.service_name)
 try:
-    if configured_constants.DOGTAG_VERSION == 9:
-        ipaservices.knownservices.pki_cad.start(dogtag_instance)
-    else:
-        ipaservices.knownservices.pki_tomcatd.start(dogtag_instance)
+    dogtag_service.start(dogtag_instance)
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot start %sd: %s" %
-                  (dogtag_instance, str(e)))
+    syslog.syslog(
+        syslog.LOG_ERR,
+        "Cannot start %s: %s" % (dogtag_service.service_name, e))
+else:
+    syslog.syslog(
+        syslog.LOG_NOTICE, "Started %s" % dogtag_service.service_name)

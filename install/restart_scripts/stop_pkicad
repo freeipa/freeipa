@@ -29,15 +29,15 @@ api.bootstrap(context='restart')
 api.finalize()
 
 configured_constants = dogtag.configured_constants(api)
+dogtag_service = ipaservices.knownservices[configured_constants.SERVICE_NAME]
 dogtag_instance = configured_constants.PKI_INSTANCE_NAME
 
-syslog.syslog(syslog.LOG_NOTICE, "certmonger stopping %sd" % dogtag_instance)
-
+syslog.syslog(syslog.LOG_NOTICE, "Stopping %s" % dogtag_service.service_name)
 try:
-    if configured_constants.DOGTAG_VERSION == 9:
-        ipaservices.knownservices.pki_cad.stop(dogtag_instance)
-    else:
-        ipaservices.knownservices.pki_tomcatd.stop(dogtag_instance)
+    dogtag_service.stop(dogtag_instance)
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot stop %sd: %s" %
-                  (dogtag_instance, str(e)))
+    syslog.syslog(
+        syslog.LOG_ERR, "Cannot stop %s: %s" % (dogtag_service.service_name, e))
+else:
+    syslog.syslog(
+        syslog.LOG_NOTICE, "Stopped %s" % dogtag_service.service_name)
