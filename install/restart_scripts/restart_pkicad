@@ -33,18 +33,25 @@ api.finalize()
 
 configured_constants = dogtag.configured_constants(api)
 alias_dir = configured_constants.ALIAS_DIR
+dogtag_service = ipaservices.knownservices[configured_constants.SERVICE_NAME]
 dogtag_instance = configured_constants.PKI_INSTANCE_NAME
 
 # dogtag opens its NSS database in read/write mode so we need it
 # shut down so certmonger can open it read/write mode. This avoids
 # database corruption. It should already be stopped by the pre-command
 # but lets be sure.
-if ipaservices.knownservices.pki_cad.is_running(dogtag_instance):
+if dogtag_service.is_running(dogtag_instance):
+    syslog.syslog(
+        syslog.LOG_NOTICE, "Stopping %s" % dogtag_service.service_name)
     try:
-        ipaservices.knownservices.pki_cad.stop(dogtag_instance)
+        dogtag_service.stop(dogtag_instance)
     except Exception, e:
-        syslog.syslog(syslog.LOG_ERR, "Cannot stop %sd: %s" %
-                      (dogtag_instance, str(e)))
+        syslog.syslog(
+            syslog.LOG_ERR,
+            "Cannot stop %s: %s" % (dogtag_service.service_name, e))
+    else:
+        syslog.syslog(
+            syslog.LOG_NOTICE, "Stopped %s" % dogtag_service.service_name)
 
 # Fix permissions on the audit cert if we're updating it
 if nickname == 'auditSigningCert cert-pki-ca':
@@ -55,14 +62,13 @@ if nickname == 'auditSigningCert cert-pki-ca':
            ]
     db.run_certutil(args)
 
+syslog.syslog(syslog.LOG_NOTICE, 'Starting %s' % dogtag_service.service_name)
 try:
-    if configured_constants.DOGTAG_VERSION == 9:
-        ipaservices.knownservices.pki_cad.start(dogtag_instance)
-    else:
-        ipaservices.knownservices.pki_tomcatd.start(dogtag_instance)
+    dogtag_service.start(dogtag_instance)
 except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot start %sd: %s" %
-                  (dogtag_instance, str(e)))
+    syslog.syslog(
+        syslog.LOG_ERR,
+        "Cannot start %s: %s" % (dogtag_service.service_name, e))
 else:
-    syslog.syslog(syslog.LOG_NOTICE, "certmonger started %sd, nickname '%s'" %
-                  (dogtag_instance, nickname))
+    syslog.syslog(
+        syslog.LOG_NOTICE, "Started %s" % dogtag_service.service_name)

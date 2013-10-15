@@ -1283,7 +1283,7 @@ class CAInstance(service.Service):
         """
         caconfig = dogtag.install_constants.CS_CFG_PATH
 
-        with stopped_service('pki_tomcatd',
+        with stopped_service(self.dogtag_constants.SERVICE_NAME,
                         instance_name=self.dogtag_constants.PKI_INSTANCE_NAME):
 
             # Enable file publishing, disable LDAP
@@ -1723,7 +1723,7 @@ def update_cert_config(nickname, cert, dogtag_constants=None):
                   'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
                   'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
 
-    with stopped_service('pki_tomcatd',
+    with stopped_service(dogtag_constants.SERVICE_NAME,
                          instance_name=dogtag_constants.PKI_INSTANCE_NAME):
 
         installutils.set_directive(dogtag.configured_constants().CS_CFG_PATH,
