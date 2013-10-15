@@ -1103,6 +1103,10 @@ def main():
 
         # Now put the CA cert where other instances exepct it
         ca.publish_ca_cert(CACERT)
+    else:
+        # Put the CA cert where other instances expect it
+        shutil.copy(options.root_ca_file, CACERT)
+        os.chmod(CACERT, 0444)
 
     # we now need to enable ssl on the ds
     ds.enable_ssl()
@@ -1121,21 +1125,6 @@ def main():
     else:
         with open(options.root_ca_file) as f:
             pem_cert = f.read()
-
-        # Trust the CA cert
-        root_logger.info(
-            'Trusting certificate authority from %s' % options.root_ca_file)
-
-        certs.NSSDatabase('/etc/pki/nssdb').import_pem_cert(
-            'External CA cert', 'CT,,', options.root_ca_file)
-
-        # Put a CA cert where other instances expect it
-        with open(CACERT, 'wb') as f:
-            f.write(pem_cert)
-
-        # Install the CA cert for the HTTP server
-        with open('/usr/share/ipa/html/ca.crt', 'wb') as f:
-            f.write(pem_cert)
 
         # Upload the CA cert to the directory
         ds.upload_ca_dercert(base64.b64decode(x509.strip_header(pem_cert)))
