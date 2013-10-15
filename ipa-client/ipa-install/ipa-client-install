@@ -1870,6 +1870,10 @@ def install(options, env, fstore, statestore):
         root_logger.warning("Option 'force-join' has no additional effect "
                             "when used with together with option 'keytab'.")
 
+    # Check if old certificate exist and show warning
+    if not options.ca_cert_file and get_cert_path(options.ca_cert_file) == CACERT:
+        root_logger.warning("Using existing certificate '%s'.", CACERT)
+
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
 
