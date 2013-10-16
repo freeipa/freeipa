@@ -27,24 +27,32 @@ from ipalib import api
 PEM = 0
 DER = 1
 
-def get_subjectaltname(request):
-    """
-    Given a CSR return the subjectaltname value, if any.
-
-    The return value is a tuple of strings or None
-    """
-    for extension in request.extensions:
-        if extension.oid_tag  == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
-            return nss.x509_alt_name(extension.value)
-    return None
-
-def get_subject(request):
+def get_subject(csr, datatype=PEM):
     """
     Given a CSR return the subject value.
 
     This returns an nss.DN object.
     """
-    return request.subject
+    request = load_certificate_request(csr, datatype)
+    try:
+        return request.subject
+    finally:
+        del request
+
+def get_subjectaltname(csr, datatype=PEM):
+    """
+    Given a CSR return the subjectaltname value, if any.
+
+    The return value is a tuple of strings or None
+    """
+    request = load_certificate_request(csr, datatype)
+    try:
+        for extension in request.extensions:
+            if extension.oid_tag  == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
+                return nss.x509_alt_name(extension.value)
+    finally:
+        del request
+    return None
 
 def strip_header(csr):
     """
@@ -61,21 +69,21 @@ def strip_header(csr):
 
     return csr
 
-def load_certificate_request(csr):
+def load_certificate_request(csr, datatype=PEM):
     """
     Given a base64-encoded certificate request, with or without the
     header/footer, return a request object.
     """
-    csr = strip_header(csr)
-
-    substrate = base64.b64decode(csr)
+    if datatype == PEM:
+        csr = strip_header(csr)
+        csr = base64.b64decode(csr)
 
     # A fail-safe so we can always read a CSR. python-nss/NSS will segfault
     # otherwise
     if not nss.nss_is_initialized():
         nss.nss_init_nodb()
 
-    return nss.CertificateRequest(substrate)
+    return nss.CertificateRequest(csr)
 
 if __name__ == '__main__':
     nss.nss_init_nodb()
@@ -85,9 +93,6 @@ if __name__ == '__main__':
     csrlines = sys.stdin.readlines()
     csr = ''.join(csrlines)
 
-    csr = load_certificate_request(csr)
-
-    print csr
-
+    print load_certificate_request(csr)
     print get_subject(csr)
     print get_subjectaltname(csr)

@@ -138,9 +138,8 @@ def get_csr_hostname(csr):
     Return the value of CN in the subject of the request or None
     """
     try:
-        request = pkcs10.load_certificate_request(csr)
-        subject = pkcs10.get_subject(request)
-        return subject.common_name
+        subject = pkcs10.get_subject(csr)
+        return subject.common_name  #pylint: disable=E1101
     except NSPRError, nsprerr:
         raise errors.CertificateOperationError(
             error=_('Failure decoding Certificate Signing Request: %s') % nsprerr)
@@ -368,8 +367,7 @@ class cert_request(VirtualCommand):
                 "to the 'userCertificate' attribute of entry '%s'.") % dn)
 
         # Validate the subject alt name, if any
-        request = pkcs10.load_certificate_request(csr)
-        subjectaltname = pkcs10.get_subjectaltname(request)
+        subjectaltname = pkcs10.get_subjectaltname(csr)
         if subjectaltname is not None:
             for name in subjectaltname:
                 name = unicode(name)

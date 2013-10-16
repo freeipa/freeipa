@@ -54,9 +54,8 @@ class test_update(object):
         Test simple CSR with no attributes
         """
         csr = self.read_file("test0.csr")
-        request = pkcs10.load_certificate_request(csr)
 
-        subject = pkcs10.get_subject(request)
+        subject = pkcs10.get_subject(csr)
 
         assert(subject.common_name == 'test.example.com')
         assert(subject.state_name == 'California')
@@ -69,7 +68,7 @@ class test_update(object):
         csr = self.read_file("test1.csr")
         request = pkcs10.load_certificate_request(csr)
 
-        subject = pkcs10.get_subject(request)
+        subject = request.subject
 
         assert(subject.common_name == 'test.example.com')
         assert(subject.state_name == 'California')
@@ -86,7 +85,7 @@ class test_update(object):
         csr = self.read_file("test2.csr")
         request = pkcs10.load_certificate_request(csr)
 
-        subject = pkcs10.get_subject(request)
+        subject = request.subject
 
         assert(subject.common_name == 'test.example.com')
         assert(subject.state_name == 'California')
