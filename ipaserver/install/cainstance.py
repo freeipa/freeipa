@@ -925,8 +925,7 @@ class CAInstance(service.Service):
                 pinfile='/etc/httpd/alias/pwdfile.txt',
                 secdir='/etc/httpd/alias',
                 pre_command=None,
-                post_command='restart_httpd',
-                profile='ipaRetrieval')
+                post_command='restart_httpd')
         except (ipautil.CalledProcessError, RuntimeError), e:
             root_logger.error(
                 "certmonger failed to start tracking certificate: %s" % str(e))
@@ -1504,8 +1503,7 @@ class CAInstance(service.Service):
                     pinfile=None,
                     secdir=self.dogtag_constants.ALIAS_DIR,
                     pre_command='stop_pkicad',
-                    post_command='restart_pkicad "%s"' % nickname,
-                    profile='ipaRetrieval')
+                    post_command='restart_pkicad "%s"' % nickname)
             except (ipautil.CalledProcessError, RuntimeError), e:
                 root_logger.error(
                     "certmonger failed to start tracking certificate: "

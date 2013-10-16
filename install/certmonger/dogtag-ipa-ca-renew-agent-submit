@@ -36,6 +36,7 @@ from ipapython import ipautil
 from ipapython.dn import DN
 from ipalib import api, errors, pkcs10, x509
 from ipaserver.plugins.ldap2 import ldap2
+from ipaserver.install import cainstance, certs
 
 # This is a certmonger CA helper script for IPA CA subsystem cert renewal. See
 # https://git.fedorahosted.org/cgit/certmonger.git/tree/doc/submit.txt for more
@@ -256,7 +257,11 @@ def main():
     if profile:
         handler = handlers.get(profile, request_and_store_cert)
     else:
-        handler = request_and_store_cert
+        ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+        if ca.is_renewal_master():
+            handler = request_and_store_cert
+        else:
+            handler = retrieve_cert
 
     res = handler()
     for item in res[1:]:
