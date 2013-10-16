@@ -587,78 +587,112 @@ def named_update_pid_file():
     return True
 
 
-def enable_certificate_renewal(ca):
+def certificate_renewal_update(ca):
     """
-    If the CA subsystem certificates are not being tracked for renewal then
-    tell certmonger to start tracking them.
+    Update certmonger certificate renewal configuration.
+    """
+    dogtag_constants = dogtag.configured_constants()
 
-    Returns True when CA needs to be restarted
-    """
-    root_logger.info('[Enable certificate renewal]')
+    # bump version when requests is changed
+    version = 1
+    requests = (
+        (
+            dogtag_constants.ALIAS_DIR,
+            'auditSigningCert cert-pki-ca',
+            'dogtag-ipa-ca-renew-agent',
+            'stop_pkicad',
+            'renew_ca_cert',
+        ),
+        (
+            dogtag_constants.ALIAS_DIR,
+            'ocspSigningCert cert-pki-ca',
+            'dogtag-ipa-ca-renew-agent',
+            'stop_pkicad',
+            'renew_ca_cert',
+        ),
+        (
+            dogtag_constants.ALIAS_DIR,
+            'subsystemCert cert-pki-ca',
+            'dogtag-ipa-ca-renew-agent',
+            'stop_pkicad',
+            'renew_ca_cert',
+        ),
+        (
+            '/etc/httpd/alias',
+            'ipaCert',
+            'dogtag-ipa-ca-renew-agent',
+            None,
+            'renew_ra_cert',
+        ),
+        (
+            dogtag_constants.ALIAS_DIR,
+            'Server-Cert cert-pki-ca',
+            'dogtag-ipa-renew-agent',
+            None,
+            None,
+        ),
+    )
+
+    root_logger.info("[Update certmonger certificate renewal configuration to "
+                     "version %d]" % version)
     if not ca.is_configured():
         root_logger.info('CA is not configured')
         return False
 
-    # Using the nickname find the certmonger request_id
-    criteria = (('cert_storage_location', '/etc/httpd/alias', certmonger.NPATH),('cert_nickname', 'ipaCert', None))
-    request_id = certmonger.get_request_id(criteria)
-    if request_id is not None:
-        root_logger.debug('Certificate renewal already configured')
-        return False
-
-    if not sysupgrade.get_upgrade_state('dogtag', 'renewal_configured'):
-        ca.configure_certmonger_renewal()
-        ca.configure_renewal()
-        ca.configure_agent_renewal()
-        ca.track_servercert()
-        sysupgrade.set_upgrade_state('dogtag', 'renewal_configured', True)
-        root_logger.debug('CA subsystem certificate renewal enabled')
-        return True
-
-    return False
-
-def certificate_renewal_stop_ca(ca):
-    """
-    Validate the certmonger configuration on certificates that already
-    have renewal configured.
-
-    As of certmonger 0.65 it now does locking from the point where it
-    generates the CSR to the end of the post-command. This is to ensure
-    that only one certmonger renewal, and hopefully, one process at a
-    time holds the NSS database open in read/write.
-    """
-    root_logger.info('[Certificate renewal should stop the CA]')
-    if not ca.is_configured():
-        root_logger.info('CA is not configured')
-        return False
-
-    nss_dir = dogtag.configured_constants().ALIAS_DIR
-    # Using the nickname find the certmonger request_id
-    criteria = (('cert_storage_location', nss_dir, certmonger.NPATH),('cert_nickname', 'auditSigningCert cert-pki-ca', None))
-    id = certmonger.get_request_id(criteria)
-    if id is None:
-        root_logger.error('Unable to find certmonger request ID for auditSigning Cert')
-        return False
-
-    if sysupgrade.get_upgrade_state('dogtag', 'stop_ca_during_renewal'):
+    state = 'certificate_renewal_update_%d' % version
+    if sysupgrade.get_upgrade_state('dogtag', state):
         return False
 
     # State not set, lets see if we are already configured
-    pre_command = certmonger.get_request_value(id, 'pre_certsave_command')
-    if pre_command is not None:
-        if pre_command.strip().endswith('stop_pkicad'):
-            root_logger.info('Already configured to stop CA')
-            return False
+    for nss_dir, nickname, ca_name, pre_command, post_command in requests:
+        criteria = (
+            ('cert_storage_location', nss_dir, certmonger.NPATH),
+            ('cert_nickname', nickname, None),
+            ('ca_name', ca_name, None),
+        )
+        request_id = certmonger.get_request_id(criteria)
+        if request_id is None:
+            break
+
+        val = certmonger.get_request_value(request_id, 'pre_certsave_command')
+        if val is not None:
+            val = val.split(' ', 1)[0]
+            val = os.path.basename(val)
+        if pre_command != val:
+            break
+
+        val = certmonger.get_request_value(request_id, 'post_certsave_command')
+        if val is not None:
+            val = val.split(' ', 1)[0]
+            val = os.path.basename(val)
+        if post_command != val:
+            break
+    else:
+        sysupgrade.set_upgrade_state('dogtag', state, True)
+        root_logger.info("Certmonger certificate renewal configuration is "
+                         "already at version %d" % version)
+        return False
 
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
-    cainstance.stop_tracking_certificates(dogtag.configured_constants())
+    cainstance.stop_tracking_certificates(dogtag_constants)
+
+    if not sysupgrade.get_upgrade_state('dogtag',
+                                        'certificate_renewal_update_1'):
+        filename = '/var/lib/certmonger/cas/ca_renewal'
+        if os.path.exists(filename):
+            with installutils.stopped_service('certmonger'):
+                root_logger.info("Removing %s" % filename)
+                installutils.remove_file(filename)
+
     ca.configure_certmonger_renewal()
     ca.configure_renewal()
     ca.configure_agent_renewal()
     ca.track_servercert()
-    sysupgrade.set_upgrade_state('dogtag', 'stop_ca_during_renewal', True)
-    root_logger.debug('CA subsystem certificate renewal configured to stop the CA')
+
+    sysupgrade.set_upgrade_state('dogtag', state, True)
+    root_logger.info("Certmonger certificate renewal configuration updated to "
+                     "version %d" % version)
     return True
 
 def copy_crl_file(old_path, new_path=None):
@@ -1099,9 +1133,8 @@ def main():
 
     ca_restart = any([
         ca_restart,
-        enable_certificate_renewal(ca),
         upgrade_ipa_profile(ca, api.env.domain, fqdn),
-        certificate_renewal_stop_ca(ca),
+        certificate_renewal_update(ca),
     ])
 
     if ca_restart:
