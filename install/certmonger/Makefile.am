@@ -2,7 +2,6 @@ NULL =
 
 appdir = $(libexecdir)/certmonger/
 app_SCRIPTS =					\
-	dogtag-ipa-retrieve-agent-submit	\
 	dogtag-ipa-ca-renew-agent-submit	\
 	$(NULL)
 

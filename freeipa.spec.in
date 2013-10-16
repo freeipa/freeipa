@@ -635,7 +635,6 @@ fi
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-advise
-%{_libexecdir}/certmonger/dogtag-ipa-retrieve-agent-submit
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/ipa-otpd
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
