@@ -917,7 +917,15 @@ class CAInstance(service.Service):
         On upgrades this needs to be called from ipa-upgradeconfig.
         """
         try:
-            certmonger.dogtag_start_tracking('dogtag-ipa-retrieve-agent-submit', 'ipaCert', None, '/etc/httpd/alias/pwdfile.txt', '/etc/httpd/alias', None, 'restart_httpd')
+            certmonger.dogtag_start_tracking(
+                ca='dogtag-ipa-ca-renew-agent',
+                nickname='ipaCert',
+                pin=None,
+                pinfile='/etc/httpd/alias/pwdfile.txt',
+                secdir='/etc/httpd/alias',
+                pre_command=None,
+                post_command='restart_httpd',
+                profile='ipaRetrieval')
         except (ipautil.CalledProcessError, RuntimeError), e:
             root_logger.error(
                 "certmonger failed to start tracking certificate: %s" % str(e))
@@ -1356,7 +1364,7 @@ class CAInstance(service.Service):
         obj = bus.get_object('org.fedorahosted.certmonger',
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
-        path = iface.find_ca_by_nickname('dogtag-ipa-retrieve-agent-submit')
+        path = iface.find_ca_by_nickname('dogtag-ipa-ca-renew-agent')
         if path:
             iface.remove_known_ca(path)
 
@@ -1460,11 +1468,11 @@ class CAInstance(service.Service):
         obj = bus.get_object('org.fedorahosted.certmonger',
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
-        path = iface.find_ca_by_nickname('dogtag-ipa-retrieve-agent-submit')
+        path = iface.find_ca_by_nickname('dogtag-ipa-ca-renew-agent')
         if not path:
             iface.add_known_ca(
-                'dogtag-ipa-retrieve-agent-submit',
-                '/usr/libexec/certmonger/dogtag-ipa-retrieve-agent-submit', [])
+                'dogtag-ipa-ca-renew-agent',
+                '/usr/libexec/certmonger/dogtag-ipa-ca-renew-agent-submit', [])
 
     def configure_clone_renewal(self):
         """
@@ -1481,12 +1489,18 @@ class CAInstance(service.Service):
                          'subsystemCert cert-pki-ca']:
             try:
                 certmonger.dogtag_start_tracking(
-                    'dogtag-ipa-retrieve-agent-submit', nickname, pin, None,
-                    self.dogtag_constants.ALIAS_DIR, 'stop_pkicad',
-                    'restart_pkicad "%s"' % nickname)
+                    ca='dogtag-ipa-ca-renew-agent',
+                    nickname=nickname,
+                    pin=pin,
+                    pinfile=None,
+                    secdir=self.dogtag_constants.ALIAS_DIR,
+                    pre_command='stop_pkicad',
+                    post_command='restart_pkicad "%s"' % nickname,
+                    profile='ipaRetrieval')
             except (ipautil.CalledProcessError, RuntimeError), e:
-                    root_logger.error(
-                        "certmonger failed to start tracking certificate: %s" % str(e))
+                root_logger.error(
+                    "certmonger failed to start tracking certificate: "
+                    "%s" % e)
 
         # The agent renewal is configured in import_ra_cert which is called
         # after the HTTP instance is created.

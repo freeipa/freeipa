@@ -369,7 +369,7 @@ def get_pin(token, dogtag_constants=None):
     return None
 
 def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
-                          post_command):
+                          post_command, profile=None):
     """
     Tell certmonger to start tracking a dogtag CA certificate. These
     are handled differently because their renewal must be done directly
@@ -423,12 +423,9 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
         args.append("-P")
         args.append(pin)
 
-    if ca == 'dogtag-ipa-retrieve-agent-submit':
-        # We cheat and pass in the nickname as the profile when
-        # renewing on a clone. The submit otherwise doesn't pass in the
-        # nickname and we need some way to find the right entry in LDAP.
+    if profile:
         args.append("-T")
-        args.append(nickname)
+        args.append(profile)
 
     (stdout, stderr, returncode) = ipautil.run(args, nolog=[pin])
 
