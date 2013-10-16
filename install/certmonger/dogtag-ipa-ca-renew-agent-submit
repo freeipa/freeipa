@@ -87,7 +87,128 @@ def request_cert():
     if stdout.endswith('\n'):
         stdout = stdout[:-1]
 
-    return (rc, stdout)
+    if rc == WAIT_WITH_DELAY:
+        delay, sep, cookie = stdout.partition('\n')
+        return (rc, delay, cookie)
+    else:
+        return (rc, stdout)
+
+def store_cert():
+    """
+    Store certificate in LDAP.
+    """
+    operation = os.environ.get('CERTMONGER_OPERATION')
+    if operation == 'SUBMIT':
+        attempts = 0
+    elif operation == 'POLL':
+        cookie = os.environ.get('CERTMONGER_CA_COOKIE')
+        if not cookie:
+            return (UNCONFIGURED, "Cookie not provided")
+
+        try:
+            attempts = int(cookie)
+        except ValueError:
+            return (UNCONFIGURED, "Invalid cookie")
+    else:
+        return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
+
+    csr = os.environ.get('CERTMONGER_CSR')
+    if not csr:
+        return (UNCONFIGURED, "Certificate request not provided")
+
+    nickname = pkcs10.get_friendlyname(csr)
+    if not nickname:
+        return (REJECTED, "No friendly name in the certificate request")
+
+    cert = os.environ.get('CERTMONGER_CERTIFICATE')
+    if not cert:
+        return (REJECTED, "New certificate requests not supported")
+
+    dercert = x509.normalize_certificate(cert)
+
+    dn = DN(('cn', nickname), ('cn', 'ca_renewal'),
+            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    try:
+        with ldap_connect() as conn:
+            try:
+                entry = conn.get_entry(dn, ['usercertificate'])
+                entry['usercertificate'] = [dercert]
+                conn.update_entry(entry)
+            except errors.NotFound:
+                entry = conn.make_entry(
+                    dn,
+                    objectclass=['top', 'pkiuser', 'nscontainer'],
+                    cn=[nickname],
+                    usercertificate=[dercert])
+                conn.add_entry(entry)
+            except errors.EmptyModlist:
+                pass
+    except Exception, e:
+        attempts += 1
+        if attempts < 10:
+            syslog.syslog(
+                syslog.LOG_ERR,
+                "Updating renewal certificate failed: %s. Sleeping 30s" % e)
+            return (WAIT_WITH_DELAY, 30, attempts)
+        else:
+            syslog.syslog(
+                syslog.LOG_ERR,
+                "Giving up. To retry storing the certificate, resubmit the "
+                "request with profile \"ipaStorage\"")
+
+    return (ISSUED, cert)
+
+def request_and_store_cert():
+    """
+    Request certificate from IPA CA and store it in LDAP.
+    """
+    operation = os.environ.get('CERTMONGER_OPERATION')
+    if operation == 'SUBMIT':
+        state = 'request'
+        cookie = None
+    elif operation == 'POLL':
+        cookie = os.environ.get('CERTMONGER_CA_COOKIE')
+        if not cookie:
+            return (UNCONFIGURED, "Cookie not provided")
+
+        state, sep, cookie = cookie.partition(':')
+        if state not in ('request', 'store'):
+            return (UNCONFIGURED, "Invalid cookie")
+    else:
+        return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
+
+    if state == 'request':
+        if cookie is None:
+            os.environ['CERTMONGER_OPERATION'] = 'SUBMIT'
+        else:
+            os.environ['CERTMONGER_CA_COOKIE'] = cookie
+
+        result = request_cert()
+        if result[0] == WAIT:
+            return (result[0], 'request:%s' % result[1])
+        elif result[0] == WAIT_WITH_DELAY:
+            return (result[0], result[1], 'request:%s' % result[2])
+        elif result[0] != ISSUED:
+            return result
+        else:
+            cert = result[1]
+            cookie = None
+    else:
+        cert, sep, cookie = cookie.partition(':')
+
+    if cookie is None:
+        os.environ['CERTMONGER_OPERATION'] = 'SUBMIT'
+    else:
+        os.environ['CERTMONGER_CA_COOKIE'] = cookie
+    os.environ['CERTMONGER_CERTIFICATE'] = cert
+
+    result = store_cert()
+    if result[0] == WAIT:
+        return (result[0], 'store:%s:%s' % (cert, result[1]))
+    elif result[0] == WAIT_WITH_DELAY:
+        return (result[0], result[1], 'store:%s:%s' % (cert, result[2]))
+    else:
+        return result
 
 def retrieve_cert():
     """
@@ -124,6 +245,7 @@ def retrieve_cert():
 
 def main():
     handlers = {
+        'ipaStorage':       store_cert,
         'ipaRetrieval':     retrieve_cert,
     }
 
@@ -132,12 +254,13 @@ def main():
 
     profile = os.environ.get('CERTMONGER_CA_PROFILE')
     if profile:
-        handler = handlers.get(profile, request_cert)
+        handler = handlers.get(profile, request_and_store_cert)
     else:
-        handler = request_cert
+        handler = request_and_store_cert
 
     res = handler()
-    print res[1]
+    for item in res[1:]:
+        print item
     return res[0]
 
 try:
