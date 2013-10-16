@@ -1,0 +1,81 @@
+#!/usr/bin/python2 -E
+#
+# Authors:
+#   Jan Cholasta <jcholast@redhat.com>
+#
+# Copyright (C) 2013  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import os
+# Prevent garbage from readline on standard output
+# (see https://fedorahosted.org/freeipa/ticket/4064)
+if not os.isatty(1):
+    os.environ['TERM'] = 'dumb'
+import sys
+import syslog
+import traceback
+
+from ipapython import ipautil
+from ipalib import api
+
+# This is a certmonger CA helper script for IPA CA subsystem cert renewal. See
+# https://git.fedorahosted.org/cgit/certmonger.git/tree/doc/submit.txt for more
+# info on certmonger CA helper scripts.
+
+# Return codes. Names of the constants are taken from
+# https://git.fedorahosted.org/cgit/certmonger.git/tree/src/submit-e.h
+ISSUED = 0
+WAIT = 1
+REJECTED = 2
+UNREACHABLE = 3
+UNCONFIGURED = 4
+WAIT_WITH_DELAY = 5
+OPERATION_NOT_SUPPORTED_BY_HELPER = 6
+
+def request_cert():
+    """
+    Request certificate from IPA CA.
+    """
+    syslog.syslog(syslog.LOG_NOTICE,
+                  "Forwarding request to dogtag-ipa-renew-agent")
+
+    path = '/usr/libexec/certmonger/dogtag-ipa-renew-agent-submit'
+    args = [path] + sys.argv[1:]
+    stdout, stderr, rc = ipautil.run(args, raiseonerr=False, env=os.environ)
+    sys.stderr.write(stderr)
+    sys.stderr.flush()
+
+    syslog.syslog(syslog.LOG_NOTICE, "dogtag-ipa-renew-agent returned %d" % rc)
+
+    if stdout.endswith('\n'):
+        stdout = stdout[:-1]
+
+    return (rc, stdout)
+
+def main():
+    api.bootstrap(context='renew')
+    api.finalize()
+
+    res = request_cert()
+    print res[1]
+    return res[0]
+
+try:
+    sys.exit(main())
+except Exception, e:
+    syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
+    print "Internal error"
+    sys.exit(UNREACHABLE)
