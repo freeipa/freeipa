@@ -52,6 +52,9 @@ def main(argv):
     parser.add_argument('--client', type=int,
                         help='Print config for the client with this number')
 
+    parser.add_argument('--role', type=str,
+                        help='Print config for machine with this role')
+
     parser.add_argument('--no-simple', dest='simple', action='store_false',
                         help='Do not print Simple Vars '
                              '(normally included backwards-compatibility)')
@@ -106,18 +109,30 @@ def get_object(conf, args):
                 exit('No domains are configured.')
         if args.master:
             return domain.master
+
         elif args.replica:
             num = int(args.replica) - 1
             try:
                 return domain.replicas[args.replica]
             except LookupError:
-                exit('Domain %s not found in domain %s' % (args.replica, domain.name))
+                exit('Domain %s not found in domain %s' % (args.replica,
+                                                           domain.name))
+
         elif args.client:
             num = int(args.client) - 1
             try:
                 return domain.replicas[args.client]
             except LookupError:
-                exit('Client %s not found in domain %s' % (args.client, domain.name))
+                exit('Client %s not found in domain %s' % (args.client,
+                                                           domain.name))
+
+        elif args.role:
+            try:
+                return domain.get_host_by_role(args.role)
+            except LookupError:
+                exit('No host with role %s not found in domain %s'
+                     % (args.role, domain.name))
+
         else:
             return domain
 

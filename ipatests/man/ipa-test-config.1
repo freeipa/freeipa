@@ -62,6 +62,9 @@ Output configuration for the replica with the given number
 \fB\-\-replica\fR
 Output configuration for the client with the given number
 .TP
+\fB\-\-role\fR
+Output configuration for the host with the given role.
+.TP
 \fB\-\-no\-simple\fR
 Do not output Simple Vars.
 These are normally included for backwards compatibility.
@@ -91,8 +94,11 @@ Host configuration:
 .TP
 \fB$AD_env1\fR, \fB$AD_env2\fR, \fB$AD_env3\fR, \fB$AD_env4\fR, ...
     can be used to define Active Directory domains. Please note that these
-    domains are not separate from the IPA domains, so please use an unique
-    environment suffix for each of your Active Directory domains.
+    domains are not treated as separate from the IPA domains, so please use an
+    unique environment suffix for each of your Active Directory domains.
+.TP
+\fB$TESTHOST_\fR<keyword>\fB_env\fR<e>, e.g. \fB$TESTHOST_LEGACY_env1
+    Defines a host with extra role identified as lowercased <keyword>, e.g. 'legacy'.
 .TP
 \fB$BEAKER\fR<role><num>\fB_IP_env\fR<e>, e.g. \fB$BEAKERREPLICA1_IP_env1\fR
     the IP address of the given host

@@ -34,15 +34,17 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration import util
 from ipatests.test_integration.config import env_to_script
+from ipatests.test_integration.host import Host
 
 log = log_mgr.get_logger(__name__)
 
 
 def prepare_host(host):
-    env_filename = os.path.join(host.config.test_dir, 'env.sh')
-    host.collect_log(env_filename)
-    host.transport.mkdir_recursive(host.config.test_dir)
-    host.put_file_contents(env_filename, env_to_script(host.to_env()))
+    if isinstance(host, Host):
+        env_filename = os.path.join(host.config.test_dir, 'env.sh')
+        host.collect_log(env_filename)
+        host.transport.mkdir_recursive(host.config.test_dir)
+        host.put_file_contents(env_filename, env_to_script(host.to_env()))
 
 
 def apply_common_fixes(host):
