@@ -27,7 +27,7 @@ import random
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration.host import BaseHost
+from ipatests.test_integration.host import BaseHost, Host
 
 
 class Config(object):
@@ -96,7 +96,18 @@ class Config(object):
         OTHER_env1: space-separated FQDNs of other hosts
         (same for _env2, _env3, etc)
         BEAKERREPLICA1_IP_env1: IP address of replica 1 in env 1
-        (same for MASTER, CLIENT)
+        (same for MASTER, CLIENT, or any extra defined ROLE)
+
+        For each machine that should be accessible to tests via extra roles,
+        the following environment variable is necessary:
+
+            TESTHOST_<role>_env1: FQDN of the machine with the extra role <role>
+
+        You can also optionally specify the IP address of the host:
+            BEAKER<role>_IP_env1: IP address of the machine of the extra role
+
+        The framework will try to resolve the hostname to its IP address
+        if not passed via this environment variable.
 
         Also see env_normalize() for alternate variable names
         """
@@ -167,24 +178,25 @@ class Config(object):
             env['RELM%s' % domain._env] = domain.realm
             env['BASEDN%s' % domain._env] = str(domain.basedn)
 
-            for role, hosts in [('MASTER', domain.masters),
-                                ('REPLICA', domain.replicas),
-                                ('CLIENT', domain.clients),
-                                ('AD', domain.ads),
-                                ('OTHER', domain.other_hosts)]:
+            for role in domain.roles:
+                hosts = domain.hosts_by_role(role)
+
                 hostnames = ' '.join(h.hostname for h in hosts)
-                env['%s%s' % (role, domain._env)] = hostnames
+                env['%s%s' % (role.upper(), domain._env)] = hostnames
 
                 ext_hostnames = ' '.join(h.external_hostname for h in hosts)
-                env['BEAKER%s%s' % (role, domain._env)] = ext_hostnames
+                env['BEAKER%s%s' % (role.upper(), domain._env)] = ext_hostnames
 
                 ips = ' '.join(h.ip for h in hosts)
-                env['BEAKER%s_IP%s' % (role, domain._env)] = ips
+                env['BEAKER%s_IP%s' % (role.upper(), domain._env)] = ips
 
                 for i, host in enumerate(hosts, start=1):
-                    suffix = '%s%s' % (role, i)
+                    suffix = '%s%s' % (role.upper(), i)
+                    prefix = 'TESTHOST_' if role in domain.extra_roles else ''
+
                     ext_hostname = host.external_hostname
-                    env['%s%s' % (suffix, domain._env)] = host.hostname
+                    env['%s%s%s' % (prefix, suffix,
+                                    domain._env)] = host.hostname
                     env['BEAKER%s%s' % (suffix, domain._env)] = ext_hostname
                     env['BEAKER%s_IP%s' % (suffix, domain._env)] = host.ip
 
@@ -268,6 +280,49 @@ class Domain(object):
         self.realm = self.name.upper()
         self.basedn = DN(*(('dc', p) for p in name.split('.')))
 
+        self._extra_roles = tuple()  # Serves as a cache for the domain roles
+        self._session_env = None
+
+    @property
+    def roles(self):
+        return self.static_roles + self.extra_roles
+
+    @property
+    def static_roles(self):
+        # Specific roles for each domain type are hardcoded
+        if self.type == 'IPA':
+            return ('master', 'client', 'replica', 'other')
+        else:
+            return ('ad',)
+
+    @property
+    def extra_roles(self):
+        if self._extra_roles:
+            return self._extra_roles
+
+        roles = ()
+
+        # Extra roles can be defined via env variables of form TESTHOST_key_envX
+        for variable in self._session_env:
+            if variable.startswith('TESTHOST'):
+
+                variable_split = variable.split('_')
+
+                defines_extra_role = (
+                    variable.endswith(self._env) and
+                    # at least 3 parts, as in TESTHOST_key_env1
+                    len(variable_split) > 2 and
+                    # prohibit redefining roles
+                    variable_split[-2].lower() not in roles
+                    )
+
+                if defines_extra_role:
+                    key = '_'.join(variable_split[1:-1])
+                    roles += (key.lower(),)
+
+        self._extra_roles = roles
+        return roles
+
     @classmethod
     def from_env(cls, env, config, index, domain_type):
 
@@ -276,17 +331,17 @@ class Domain(object):
         # only to the AD domains
         if domain_type == 'IPA':
             master_role = 'MASTER'
-            domain_roles = 'master', 'replica', 'client', 'other'
         else:
             master_role = 'AD'
-            domain_roles = 'ad',
 
         master_env = '%s_env%s' % (master_role, index)
         hostname, dot, domain_name = env[master_env].partition('.')
         self = cls(config, domain_name, index, domain_type)
+        self._session_env = env
 
-        for role in domain_roles:
-            value = env.get('%s%s' % (role.upper(), self._env), '')
+        for role in self.roles:
+            prefix = 'TESTHOST_' if role in self.extra_roles else ''
+            value = env.get('%s%s%s' % (prefix, role.upper(), self._env), '')
 
             for index, hostname in enumerate(value.split(), start=1):
                 host = BaseHost.from_env(env, self, hostname, role, index)
@@ -307,30 +362,38 @@ class Domain(object):
 
         return env
 
+    def host_by_role(self, role):
+        if self.hosts_by_role(role):
+            return self.hosts_by_role(role)[0]
+        else:
+            raise LookupError(role)
+
+    def hosts_by_role(self, role):
+        return [h for h in self.hosts if h.role == role]
+
     @property
     def master(self):
-        return self.masters[0]
+        return self.host_by_role('master')
 
     @property
     def masters(self):
-        return [h for h in self.hosts if h.role == 'master']
+        return self.hosts_by_role('master')
 
     @property
     def replicas(self):
-        return [h for h in self.hosts if h.role == 'replica']
+        return self.hosts_by_role('replica')
 
     @property
     def clients(self):
-        return [h for h in self.hosts if h.role == 'client']
+        return self.hosts_by_role('client')
 
     @property
     def ads(self):
-        return [h for h in self.hosts if h.role == 'ad']
+        return self.hosts_by_role('ad')
 
     @property
     def other_hosts(self):
-        return [h for h in self.hosts
-                if h.role not in ('master', 'client', 'replica', 'ad')]
+        return self.hosts_by_role('other')
 
     def host_by_name(self, name):
         for host in self.hosts:

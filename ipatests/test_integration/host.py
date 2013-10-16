@@ -97,7 +97,11 @@ class BaseHost(object):
         ip = env.get('BEAKER%s%s_IP_env%s' %
                         (role.upper(), index, domain.index), None)
 
-        if role == 'ad':
+        # We need to determine the type of the host, this depends on the domain
+        # type, as we assume all Unix machines are in the Unix domain and
+        # all Windows machine in a AD domain
+
+        if domain.type == 'AD':
             cls = WinHost
         else:
             cls = Host
@@ -121,7 +125,8 @@ class BaseHost(object):
         env['MYBEAKERHOSTNAME'] = self.external_hostname
         env['MYIP'] = self.ip
 
-        env['MYROLE'] = '%s%s' % (role, self.domain._env)
+        prefix = 'TESTHOST_' if self.role in self.domain.extra_roles else ''
+        env['MYROLE'] = '%s%s%s' % (prefix, role, self.domain._env)
         env['MYENV'] = str(self.domain.index)
 
         return env
