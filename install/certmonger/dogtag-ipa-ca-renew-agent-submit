@@ -244,10 +244,37 @@ def retrieve_cert():
 
     return (ISSUED, cert)
 
+def export_csr():
+    """
+    This does not actually renew the cert, it just writes the CSR provided
+    by certmonger to /var/lib/ipa/ca.csr and returns the existing cert.
+    """
+    operation = os.environ.get('CERTMONGER_OPERATION')
+    if operation != 'SUBMIT':
+        return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
+
+    csr = os.environ.get('CERTMONGER_CSR')
+    if not csr:
+        return (UNCONFIGURED, "Certificate request not provided")
+
+    cert = os.environ.get('CERTMONGER_CERTIFICATE')
+    if not cert:
+        return (REJECTED, "New certificate requests not supported")
+
+    csr_file = '/var/lib/ipa/ca.csr'
+    try:
+        with open(csr_file, 'wb') as f:
+            f.write(csr)
+    except Exception, e:
+        return (UNREACHABLE, "Failed to write %s: %s" % (csr_file, e))
+
+    return (ISSUED, cert)
+
 def main():
     handlers = {
         'ipaStorage':       store_cert,
         'ipaRetrieval':     retrieve_cert,
+        'ipaCSRExport':     export_csr,
     }
 
     api.bootstrap(context='renew')
