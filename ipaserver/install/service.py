@@ -373,7 +373,7 @@ class Service(object):
 
         self.steps = []
 
-    def ldap_enable(self, name, fqdn, dm_password, ldap_suffix):
+    def ldap_enable(self, name, fqdn, dm_password, ldap_suffix, config=[]):
         assert isinstance(ldap_suffix, DN)
         self.disable()
         if not self.admin_conn:
@@ -386,7 +386,7 @@ class Service(object):
             objectclass=["nsContainer", "ipaConfigObject"],
             cn=[name],
             ipaconfigstring=[
-                "enabledService", "startOrder " + str(order)],
+                "enabledService", "startOrder " + str(order)] + config,
         )
 
         try:

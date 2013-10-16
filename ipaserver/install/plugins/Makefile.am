@@ -11,6 +11,7 @@ app_PYTHON = 			\
 	update_services.py	\
 	update_anonymous_aci.py	\
 	update_pacs.py		\
+	ca_renewal_master.py	\
 	$(NULL)
 
 EXTRA_DIST =			\

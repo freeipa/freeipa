@@ -1114,7 +1114,7 @@ def main():
     if setup_ca:
         # We need to ldap_enable the CA now that DS is up and running
         ca.ldap_enable('CA', host_name, dm_password,
-                       ipautil.realm_to_suffix(realm_name))
+                       ipautil.realm_to_suffix(realm_name), ['caRenewalMaster'])
 
         # This is done within stopped_service context, which restarts CA
         ca.enable_client_auth_to_db()

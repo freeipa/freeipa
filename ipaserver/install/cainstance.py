@@ -1608,6 +1608,21 @@ class CAInstance(service.Service):
 
         return master == 'New'
 
+    def is_renewal_master(self):
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        dn = DN(('cn', 'CA'), ('cn', api.env.host), ('cn', 'masters'),
+                ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+        filter = '(ipaConfigString=caRenewalMaster)'
+        try:
+            self.admin_conn.get_entries(base_dn=dn, filter=filter,
+                                        attrs_list=[])
+        except errors.NotFound:
+            return False
+
+        return True
+
 
 def replica_ca_install_check(config):
     if not config.setup_ca:
