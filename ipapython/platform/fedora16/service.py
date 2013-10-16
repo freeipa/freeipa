@@ -143,17 +143,18 @@ class Fedora16CAService(Fedora16Service):
         # Unfortunately, knownservices.httpd.is_installed() can return
         # false positives, so check for existence of our configuration file.
         # TODO: Use a cleaner solution
+        use_proxy = True
         if not (os.path.exists('/etc/httpd/conf.d/ipa.conf') and
                 os.path.exists('/etc/httpd/conf.d/ipa-pki-proxy.conf')):
             root_logger.debug(
-                'The httpd proxy is not installed, skipping wait for CA')
-            return
+                'The httpd proxy is not installed, wait on local port')
+            use_proxy = False
         root_logger.debug('Waiting until the CA is running')
         timeout = api.env.startup_timeout
         op_timeout = time.time() + timeout
         while time.time() < op_timeout:
             try:
-                status = dogtag.ca_status()
+                status = dogtag.ca_status(use_proxy=use_proxy)
             except Exception:
                 status = 'check interrupted'
             root_logger.debug('The CA status is: %s' % status)

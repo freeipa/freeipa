@@ -184,7 +184,7 @@ def get_ca_certchain(ca_host=None, dogtag_constants=None):
     return chain
 
 
-def ca_status(ca_host=None):
+def ca_status(ca_host=None, use_proxy=True):
     """Return the status of the CA, and the httpd proxy in front of it
 
     The returned status can be:
@@ -194,9 +194,13 @@ def ca_status(ca_host=None):
     """
     if ca_host is None:
         ca_host = api.env.ca_host
-    # Use port 443 to test the proxy as well
+    if use_proxy:
+        # Use port 443 to test the proxy as well
+        ca_port = 443
+    else:
+        ca_port = 8443
     status, reason, headers, body = unauthenticated_https_request(
-        ca_host, 443, '/ca/admin/ca/getStatus')
+        ca_host, ca_port, '/ca/admin/ca/getStatus')
     if status == 503:
         # Service temporarily unavailable
         return reason
