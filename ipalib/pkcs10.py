@@ -21,6 +21,8 @@ import os
 import sys
 import base64
 import nss.nss as nss
+from pyasn1.type import univ, namedtype, tag
+from pyasn1.codec.der import decoder
 from ipapython import ipautil
 from ipalib import api
 
@@ -52,6 +54,53 @@ def get_subjectaltname(csr, datatype=PEM):
                 return nss.x509_alt_name(extension.value)
     finally:
         del request
+    return None
+
+# Unfortunately, NSS can only parse the extension request attribute, so
+# we have to parse friendly name ourselves (see RFC 2986)
+class _Attribute(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('type', univ.ObjectIdentifier()),
+        namedtype.NamedType('values', univ.Set()),
+        )
+
+class _Attributes(univ.SetOf):
+    componentType = _Attribute()
+
+class _CertificationRequestInfo(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('version', univ.Integer()),
+        namedtype.NamedType('subject', univ.Sequence()),
+        namedtype.NamedType('subjectPublicKeyInfo', univ.Sequence()),
+        namedtype.OptionalNamedType('attributes', _Attributes().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0)))
+        )
+
+class _CertificationRequest(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('certificationRequestInfo',
+                            _CertificationRequestInfo()),
+        namedtype.NamedType('signatureAlgorithm', univ.Sequence()),
+        namedtype.NamedType('signatureValue', univ.BitString()),
+        )
+
+_FRIENDLYNAME = univ.ObjectIdentifier('1.2.840.113549.1.9.20')
+
+def get_friendlyname(csr, datatype=PEM):
+    """
+    Given a CSR return the value of the friendlyname attribute, if any.
+
+    The return value is a string.
+    """
+    if datatype == PEM:
+        csr = strip_header(csr)
+        csr = base64.b64decode(csr)
+
+    csr = decoder.decode(csr, asn1Spec=_CertificationRequest())[0]
+    for attribute in csr['certificationRequestInfo']['attributes']:
+        if attribute['type'] == _FRIENDLYNAME:
+            return unicode(attribute['values'][0])
+
     return None
 
 def strip_header(csr):
@@ -96,3 +145,4 @@ if __name__ == '__main__':
     print load_certificate_request(csr)
     print get_subject(csr)
     print get_subjectaltname(csr)
+    print get_friendlyname(csr)
