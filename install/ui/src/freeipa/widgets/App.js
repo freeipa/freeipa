@@ -191,6 +191,8 @@ define(['dojo/_base/declare',
                 this.emit('profile-click');
             } else if (item.name === 'logout') {
                 this.emit('logout-click');
+            } else if (item.name == 'password_reset') {
+                this.emit('password-reset-click');
             }
         },
 
@@ -204,6 +206,10 @@ define(['dojo/_base/declare',
                     {
                         name: 'profile',
                         label: 'Profile'
+                    },
+                    {
+                        name: 'password_reset',
+                        label: 'Change password'
                     },
                     {
                         'class': 'divider'

@@ -66,6 +66,7 @@ define([
             on(this.app_widget.menu_widget, 'item-select', lang.hitch(this, this.on_menu_click));
             on(this.app_widget, 'profile-click', lang.hitch(this, this.on_profile));
             on(this.app_widget, 'logout-click', lang.hitch(this, this.on_logout));
+            on(this.app_widget, 'password-reset-click', lang.hitch(this, this.on_password_reset));
             on(this.menu, 'selected', lang.hitch(this, this.on_menu_select));
 
             on(this.router, 'facet-show', lang.hitch(this, this.on_facet_show));
@@ -177,6 +178,10 @@ define([
 
         on_logout: function(event) {
             this.run_time.resolve();
+        },
+
+        on_password_reset: function() {
+            IPA.password_selfservice();
         },
 
         on_phase_error: function(error) {

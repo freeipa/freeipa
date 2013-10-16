@@ -198,12 +198,11 @@ class test_user(UI_driver):
         header = self.find('.header', By.CSS_SELECTOR)
         self.assert_text(
             '.header-passwordexpires',
-            'Your password expires in 6 days. Reset your password.',
+            'Your password expires in 6 days.',
             header)
 
         # test password reset
-        link = self.find('.header-passwordexpires a', By.CSS_SELECTOR, strict=True)
-        link.click()
+        self.profile_menu_action('password_reset')
         self.fill_password_dialog(pwd, pwd)
 
         # cleanup

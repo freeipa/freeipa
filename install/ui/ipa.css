@@ -123,13 +123,10 @@ textarea[readonly] {
 /* ---- Password expiration */
 
 .header-passwordexpires {
-    margin-right: 30px;
     color: red;
     font-weight: bold;
-}
-
-.header-passwordexpires a {
-    font-weight: bold;
+    padding: 7px 10px;
+    line-height: 1;
 }
 
 /* ---- Notification area ---- */

@@ -589,16 +589,7 @@ IPA.update_password_expiration = function() {
         if (diff <= notify_days) {
             message = text.get('@i18n:password.expires_in');
             message = message.replace('${days}', diff);
-            container.append(message + ' ');
-            $('<a/>', {
-                href: '#reset-password',
-                click: function() {
-                    IPA.password_selfservice();
-                    return false;
-                },
-                text: text.get('@i18n:password.reset_password_sentence'),
-                title: text.get('@i18n:password.reset_password')
-            }).appendTo(container);
+            container.append(message);
         }
     }
 };
