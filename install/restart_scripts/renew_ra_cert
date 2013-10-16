@@ -34,15 +34,17 @@ def main():
     api.bootstrap(context='restart')
     api.finalize()
 
-    # Fetch the new certificate
-    db = certs.CertDB(api.env.realm)
-    dercert = db.get_cert_from_db(nickname, pem=False)
-    if not dercert:
-        syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
-        sys.exit(1)
+    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    if ca.is_renewal_master():
+        # Fetch the new certificate
+        db = certs.CertDB(api.env.realm)
+        dercert = db.get_cert_from_db(nickname, pem=False)
+        if not dercert:
+            syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
+            sys.exit(1)
 
-    # Load it into dogtag
-    cainstance.update_people_entry(dercert)
+        # Load it into dogtag
+        cainstance.update_people_entry(dercert)
 
     # Now restart Apache so the new certificate is available
     syslog.syslog(syslog.LOG_NOTICE, "Restarting httpd")

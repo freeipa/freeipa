@@ -925,7 +925,7 @@ class CAInstance(service.Service):
                 pinfile='/etc/httpd/alias/pwdfile.txt',
                 secdir='/etc/httpd/alias',
                 pre_command=None,
-                post_command='restart_httpd')
+                post_command='renew_ra_cert')
         except (ipautil.CalledProcessError, RuntimeError), e:
             root_logger.error(
                 "certmonger failed to start tracking certificate: %s" % str(e))
