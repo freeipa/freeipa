@@ -470,9 +470,10 @@ class CAInstance(service.Service):
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
+            self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
+            if not self.clone:
                 self.step("configure certificate renewals", self.configure_renewal)
             else:
-                self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
                 self.step("configure clone certificate renewals", self.configure_clone_renewal)
             self.step("configure Server-Cert certificate renewal", self.track_servercert)
             self.step("Configure HTTP to proxy connections", self.__http_proxy)
@@ -1428,11 +1429,6 @@ class CAInstance(service.Service):
                 "certmonger failed to start tracking certificate: %s" % str(e))
 
     def configure_renewal(self):
-        cmonger = ipaservices.knownservices.certmonger
-        cmonger.enable()
-        ipaservices.knownservices.messagebus.start()
-        cmonger.start()
-
         pin = self.__get_ca_pin()
 
         # Server-Cert cert-pki-ca is renewed per-server
@@ -1441,28 +1437,41 @@ class CAInstance(service.Service):
                          'subsystemCert cert-pki-ca']:
             try:
                 certmonger.dogtag_start_tracking(
-                    'dogtag-ipa-renew-agent', nickname, pin, None,
-                    self.dogtag_constants.ALIAS_DIR, 'stop_pkicad', 'renew_ca_cert "%s"' % nickname)
+                    ca='dogtag-ipa-ca-renew-agent',
+                    nickname=nickname,
+                    pin=pin,
+                    pinfile=None,
+                    secdir=self.dogtag_constants.ALIAS_DIR,
+                    pre_command='stop_pkicad',
+                    post_command='renew_ca_cert "%s"' % nickname)
             except (ipautil.CalledProcessError, RuntimeError), e:
                 root_logger.error(
-                    "certmonger failed to start tracking certificate: %s" % str(e))
+                    "certmonger failed to start tracking certificate: "
+                    "%s" % e)
 
         # Set up the agent cert for renewal
         try:
-            certmonger.dogtag_start_tracking('dogtag-ipa-renew-agent', 'ipaCert', None, '/etc/httpd/alias/pwdfile.txt', '/etc/httpd/alias', None, 'renew_ra_cert')
+            certmonger.dogtag_start_tracking(
+                ca='dogtag-ipa-ca-renew-agent',
+                nickname='ipaCert',
+                pin=None,
+                pinfile='/etc/httpd/alias/pwdfile.txt',
+                secdir='/etc/httpd/alias',
+                pre_command=None,
+                post_command='renew_ra_cert')
         except (ipautil.CalledProcessError, RuntimeError), e:
-                root_logger.error(
-                    "certmonger failed to start tracking certificate: %s" % str(e))
+            root_logger.error(
+                "certmonger failed to start tracking certificate: %s" % e)
 
     def configure_certmonger_renewal(self):
         """
         Create a new CA type for certmonger that will retrieve updated
         certificates from the dogtag master server.
         """
+        ipaservices.knownservices.messagebus.start()
         cmonger = ipaservices.knownservices.certmonger
         cmonger.enable()
-        ipaservices.knownservices.messagebus.start()
-        cmonger.restart()
+        cmonger.start()
 
         bus = dbus.SystemBus()
         obj = bus.get_object('org.fedorahosted.certmonger',

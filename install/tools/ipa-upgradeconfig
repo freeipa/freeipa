@@ -607,10 +607,10 @@ def enable_certificate_renewal(ca):
         return False
 
     if not sysupgrade.get_upgrade_state('dogtag', 'renewal_configured'):
+        ca.configure_certmonger_renewal()
         if ca.is_master():
             ca.configure_renewal()
         else:
-            ca.configure_certmonger_renewal()
             ca.configure_clone_renewal()
             ca.configure_agent_renewal()
         ca.track_servercert()
@@ -656,10 +656,10 @@ def certificate_renewal_stop_ca(ca):
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
     cainstance.stop_tracking_certificates(dogtag.configured_constants())
+    ca.configure_certmonger_renewal()
     if ca.is_master():
         ca.configure_renewal()
     else:
-        ca.configure_certmonger_renewal()
         ca.configure_clone_renewal()
         ca.configure_agent_renewal()
     ca.track_servercert()

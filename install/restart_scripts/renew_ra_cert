@@ -2,8 +2,9 @@
 #
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
+#   Jan Cholasta <jcholast@redhat.com>
 #
-# Copyright (C) 2012  Red Hat
+# Copyright (C) 2013  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -20,19 +21,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import shutil
-import tempfile
 import syslog
-import time
 import traceback
+
 from ipapython import services as ipaservices
-from ipapython import ipautil
-from ipaserver.install import certs
-from ipaserver.install.cainstance import update_people_entry
 from ipalib import api
-from ipapython.dn import DN
-from ipalib import errors
-from ipaserver.plugins.ldap2 import ldap2
+from ipaserver.install import certs, cainstance
+
+nickname = 'ipaCert'
 
 def main():
     api.bootstrap(context='restart')
@@ -40,58 +36,22 @@ def main():
 
     # Fetch the new certificate
     db = certs.CertDB(api.env.realm)
-    dercert = db.get_cert_from_db('ipaCert', pem=False)
-
-    # Load it into dogtag
-    update_people_entry(dercert)
-
-    attempts = 0
-    updated = False
-
-    # Store it in the IPA LDAP server
-    while attempts < 10:
-        conn = None
-        tmpdir = None
-        try:
-            tmpdir = tempfile.mkdtemp(prefix="tmp-")
-            dn = DN(('cn','ipaCert'), ('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-            principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-            ccache = ipautil.kinit_hostprincipal('/etc/krb5.keytab', tmpdir, principal)
-            conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
-            conn.connect(ccache=ccache)
-            try:
-                entry_attrs = conn.get_entry(dn, ['usercertificate'])
-                entry_attrs['usercertificate'] = dercert
-                conn.update_entry(entry_attrs)
-            except errors.NotFound:
-                entry_attrs = conn.make_entry(
-                    dn,
-                    objectclass=['top', 'pkiuser', 'nscontainer'],
-                    usercertificate=[dercert])
-                conn.add_entry(entry_attrs)
-            except errors.EmptyModlist:
-                pass
-            updated = True
-            break
-        except Exception, e:
-            syslog.syslog(syslog.LOG_ERR, 'Updating renewal certificate failed: %s. Sleeping 30s' % e)
-            time.sleep(30)
-            attempts += 1
-        finally:
-            if conn is not None and conn.isconnected():
-                conn.disconnect()
-            if tmpdir is not None:
-                shutil.rmtree(tmpdir)
-
-    if not updated:
-        syslog.syslog(syslog.LOG_ERR, '%s: Giving up. This script may be safely re-executed.' % sys.argv[0])
+    dercert = db.get_cert_from_db(nickname, pem=False)
+    if not dercert:
+        syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
         sys.exit(1)
 
+    # Load it into dogtag
+    cainstance.update_people_entry(dercert)
+
     # Now restart Apache so the new certificate is available
+    syslog.syslog(syslog.LOG_NOTICE, "Restarting httpd")
     try:
         ipaservices.knownservices.httpd.restart()
     except Exception, e:
-        syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % str(e))
+        syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % e)
+    else:
+        syslog.syslog(syslog.LOG_NOTICE, "Restarted httpd")
 
 try:
     main()

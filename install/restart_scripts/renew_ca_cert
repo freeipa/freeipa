@@ -2,8 +2,9 @@
 #
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
+#   Jan Cholasta <jcholast@redhat.com>
 #
-# Copyright (C) 2012  Red Hat
+# Copyright (C) 2013  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -19,29 +20,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import sys
-import shutil
-import tempfile
+import os
 import syslog
-import random
-import time
+import tempfile
+import shutil
 import traceback
-from ipalib import api
-from ipapython.dn import DN
-from ipalib import errors
-from ipapython import services as ipaservices
-from ipapython import ipautil
-from ipapython import dogtag
-from ipaserver.install import certs
-from ipaserver.install.cainstance import update_people_entry
-from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.install.cainstance import update_cert_config
-from ipapython import certmonger
 
-# This script a post-cert-install command for certmonger. When certmonger
-# has renewed a CA subsystem certificate a copy is put into the replicated
-# tree so it can be shared with the other IPA servers.
+from ipapython import dogtag, certmonger, ipautil
+from ipapython import services as ipaservices
+from ipalib import api, errors, x509, util
+from ipaserver.install import certs, cainstance, installutils
+from ipaserver.plugins.ldap2 import ldap2
 
 def main():
     nickname = sys.argv[1]
@@ -57,40 +47,13 @@ def main():
     # Fetch the new certificate
     db = certs.CertDB(api.env.realm, nssdir=alias_dir)
     cert = db.get_cert_from_db(nickname, pem=False)
-
     if not cert:
         syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
         sys.exit(1)
 
-    # Update or add it
-    tmpdir = tempfile.mkdtemp(prefix = "tmp-")
-    try:
-        dn = DN(('cn',nickname), ('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-        ccache = ipautil.kinit_hostprincipal('/etc/krb5.keytab', tmpdir, principal)
-        conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
-        conn.connect(ccache=ccache)
-        try:
-            entry_attrs = conn.get_entry(dn, ['usercertificate'])
-            entry_attrs['usercertificate'] = cert
-            conn.update_entry(entry_attrs)
-        except errors.NotFound:
-            entry_attrs = conn.make_entry(
-                dn,
-                objectclass=['top', 'pkiuser', 'nscontainer'],
-                usercertificate=[cert])
-            conn.add_entry(entry_attrs)
-        except errors.EmptyModlist:
-            pass
-        conn.disconnect()
-    except Exception, e:
-        syslog.syslog(syslog.LOG_ERR, 'Updating renewal certificate failed: %s' % e)
-    finally:
-        shutil.rmtree(tmpdir)
-
     # Done withing stopped_service context, CA restarted here
-    update_cert_config(nickname, cert)
-    update_people_entry(cert)
+    cainstance.update_cert_config(nickname, cert, configured_constants)
+    cainstance.update_people_entry(cert)
 
     if nickname == 'auditSigningCert cert-pki-ca':
         # Fix trust on the audit cert
