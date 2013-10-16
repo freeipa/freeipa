@@ -1475,14 +1475,16 @@ form#login {
 }
 
 .action-panel-list {
+    margin: 0 0 10px 0;
     list-style: none;
-    padding-left: 15px;
+    padding: 0 0 0 15px;
 }
 
 .action-title {
     font-size: 1em;
     font-weight: bold;
-    margin-left: 15px;
+    margin: 15px 0 5px 15px;
+    line-height: 1em;
 }
 
 .disabled {
