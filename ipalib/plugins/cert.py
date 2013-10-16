@@ -144,20 +144,6 @@ def get_csr_hostname(csr):
         raise errors.CertificateOperationError(
             error=_('Failure decoding Certificate Signing Request: %s') % nsprerr)
 
-def get_subjectaltname(csr):
-    """
-    Return the first value of the subject alt name, if any
-    """
-    try:
-        request = pkcs10.load_certificate_request(csr)
-        for extension in request.extensions:
-            if extension.oid_tag == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
-                return nss.x509_alt_name(extension.value)[0]
-        return None
-    except NSPRError, nsprerr:
-        raise errors.CertificateOperationError(
-            error=_('Failure decoding Certificate Signing Request: %s') % nsprerr)
-
 def validate_csr(ugettext, csr):
     """
     Ensure the CSR is base64-encoded and can be decoded by our PKCS#10
