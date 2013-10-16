@@ -27,9 +27,15 @@ if not os.isatty(1):
 import sys
 import syslog
 import traceback
+import tempfile
+import shutil
+import base64
+import contextlib
 
 from ipapython import ipautil
-from ipalib import api
+from ipapython.dn import DN
+from ipalib import api, errors, pkcs10, x509
+from ipaserver.plugins.ldap2 import ldap2
 
 # This is a certmonger CA helper script for IPA CA subsystem cert renewal. See
 # https://git.fedorahosted.org/cgit/certmonger.git/tree/doc/submit.txt for more
@@ -44,6 +50,24 @@ UNREACHABLE = 3
 UNCONFIGURED = 4
 WAIT_WITH_DELAY = 5
 OPERATION_NOT_SUPPORTED_BY_HELPER = 6
+
+@contextlib.contextmanager
+def ldap_connect():
+    conn = None
+    tmpdir = tempfile.mkdtemp(prefix="tmp-")
+    try:
+        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
+        ccache = ipautil.kinit_hostprincipal('/etc/krb5.keytab', tmpdir,
+                                             principal)
+
+        conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
+        conn.connect(ccache=ccache)
+
+        yield conn
+    finally:
+        if conn is not None and conn.isconnected():
+            conn.disconnect()
+        shutil.rmtree(tmpdir)
 
 def request_cert():
     """
@@ -65,11 +89,54 @@ def request_cert():
 
     return (rc, stdout)
 
+def retrieve_cert():
+    """
+    Retrieve new certificate from LDAP.
+    """
+    csr = os.environ.get('CERTMONGER_CSR')
+    if not csr:
+        return (UNCONFIGURED, "Certificate request not provided")
+
+    nickname = pkcs10.get_friendlyname(csr)
+    if not nickname:
+        return (REJECTED, "No friendly name in the certificate request")
+
+    syslog.syslog(syslog.LOG_NOTICE, "Updating certificate for %s" % nickname)
+
+    with ldap_connect() as conn:
+        try:
+            entry = conn.get_entry(
+                DN(('cn', nickname), ('cn', 'ca_renewal'),
+                   ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn),
+                ['usercertificate'])
+        except errors.NotFound:
+            syslog.syslog(
+                syslog.LOG_INFO,
+                "Updated certificate for %s not available" % nickname)
+            # No cert available yet, tell certmonger to wait another 8 hours
+            return (WAIT_WITH_DELAY, 8 * 60 * 60)
+
+        cert = entry.single_value['usercertificate']
+        cert = base64.b64encode(cert)
+        cert = x509.make_pem(cert)
+
+    return (ISSUED, cert)
+
 def main():
+    handlers = {
+        'ipaRetrieval':     retrieve_cert,
+    }
+
     api.bootstrap(context='renew')
     api.finalize()
 
-    res = request_cert()
+    profile = os.environ.get('CERTMONGER_CA_PROFILE')
+    if profile:
+        handler = handlers.get(profile, request_cert)
+    else:
+        handler = request_cert
+
+    res = handler()
     print res[1]
     return res[0]
 
