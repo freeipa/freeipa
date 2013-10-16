@@ -1503,7 +1503,7 @@ class CAInstance(service.Service):
                     pinfile=None,
                     secdir=self.dogtag_constants.ALIAS_DIR,
                     pre_command='stop_pkicad',
-                    post_command='restart_pkicad "%s"' % nickname)
+                    post_command='renew_ca_cert "%s"' % nickname)
             except (ipautil.CalledProcessError, RuntimeError), e:
                 root_logger.error(
                     "certmonger failed to start tracking certificate: "

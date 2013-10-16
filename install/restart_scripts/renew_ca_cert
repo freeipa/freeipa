@@ -44,6 +44,23 @@ def main():
     dogtag_service = ipaservices.knownservices[configured_constants.SERVICE_NAME]
     dogtag_instance = configured_constants.PKI_INSTANCE_NAME
 
+    # dogtag opens its NSS database in read/write mode so we need it
+    # shut down so certmonger can open it read/write mode. This avoids
+    # database corruption. It should already be stopped by the pre-command
+    # but lets be sure.
+    if dogtag_service.is_running(dogtag_instance):
+        syslog.syslog(
+            syslog.LOG_NOTICE, "Stopping %s" % dogtag_service.service_name)
+        try:
+            dogtag_service.stop(dogtag_instance)
+        except Exception, e:
+            syslog.syslog(
+                syslog.LOG_ERR,
+                "Cannot stop %s: %s" % (dogtag_service.service_name, e))
+        else:
+            syslog.syslog(
+                syslog.LOG_NOTICE, "Stopped %s" % dogtag_service.service_name)
+
     # Fetch the new certificate
     db = certs.CertDB(api.env.realm, nssdir=alias_dir)
     cert = db.get_cert_from_db(nickname, pem=False)
@@ -51,22 +68,26 @@ def main():
         syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
         sys.exit(1)
 
-    # Done withing stopped_service context, CA restarted here
     cainstance.update_cert_config(nickname, cert, configured_constants)
-    cainstance.update_people_entry(cert)
+
+    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    if ca.is_renewal_master():
+        cainstance.update_people_entry(cert)
 
     if nickname == 'auditSigningCert cert-pki-ca':
         # Fix trust on the audit cert
-        db = certs.CertDB(api.env.realm, nssdir=alias_dir)
-        args = ['-M',
-                '-n', nickname,
-                '-t', 'u,u,Pu',
-               ]
         try:
-            db.run_certutil(args)
-            syslog.syslog(syslog.LOG_NOTICE, 'Updated trust on certificate %s in %s' % (nickname, db.secdir))
+            db.run_certutil(['-M',
+                             '-n', nickname,
+                             '-t', 'u,u,Pu'])
+            syslog.syslog(
+                syslog.LOG_NOTICE,
+                "Updated trust on certificate %s in %s" % (nickname, db.secdir))
         except ipautil.CalledProcessError:
-             syslog.syslog(syslog.LOG_ERR, 'Updating trust on certificate %s failed in %s' % (nickname, db.secdir))
+            syslog.syslog(
+                syslog.LOG_ERR,
+                "Updating trust on certificate %s failed in %s" %
+                (nickname, db.secdir))
 
     # Now we can start the CA. Using the ipaservices start should fire
     # off the servlet to verify that the CA is actually up and responding so
