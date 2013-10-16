@@ -608,11 +608,8 @@ def enable_certificate_renewal(ca):
 
     if not sysupgrade.get_upgrade_state('dogtag', 'renewal_configured'):
         ca.configure_certmonger_renewal()
-        if ca.is_master():
-            ca.configure_renewal()
-        else:
-            ca.configure_clone_renewal()
-            ca.configure_agent_renewal()
+        ca.configure_renewal()
+        ca.configure_agent_renewal()
         ca.track_servercert()
         sysupgrade.set_upgrade_state('dogtag', 'renewal_configured', True)
         root_logger.debug('CA subsystem certificate renewal enabled')
@@ -657,11 +654,8 @@ def certificate_renewal_stop_ca(ca):
     # again with new configuration:
     cainstance.stop_tracking_certificates(dogtag.configured_constants())
     ca.configure_certmonger_renewal()
-    if ca.is_master():
-        ca.configure_renewal()
-    else:
-        ca.configure_clone_renewal()
-        ca.configure_agent_renewal()
+    ca.configure_renewal()
+    ca.configure_agent_renewal()
     ca.track_servercert()
     sysupgrade.set_upgrade_state('dogtag', 'stop_ca_during_renewal', True)
     root_logger.debug('CA subsystem certificate renewal configured to stop the CA')
