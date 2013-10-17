@@ -510,16 +510,17 @@ IPA.attributes_widget = function(spec) {
 
         var tr = $('<tr></tr>').appendTo($('thead', that.table));
 
+        var th = $('<th/>').appendTo(tr);
+        IPA.standalone_option({
+            type: "checkbox",
+            click: function() {
+                $('.aci-attribute', that.table).
+                    prop('checked', $(this).prop('checked'));
+                that.value_changed.notify([], that);
+            }
+        }, th);
+
         tr.append($('<th/>', {
-            html: $('<input/>', {
-                type: "checkbox",
-                click: function() {
-                    $('.aci-attribute', that.table).
-                        prop('checked', $(this).prop('checked'));
-                    that.value_changed.notify([], that);
-                }
-            })
-        })).append($('<th/>', {
             'class': 'aci-attribute-column',
             html: text.get('@i18n:objects.aci.attribute')
         }));
@@ -545,7 +546,7 @@ IPA.attributes_widget = function(spec) {
             var td =  $('<td/>').appendTo(tr);
             var name = that.get_input_name();
             var id = that._option_next_id + name;
-            td.append($('<input/>',{
+            IPA.standalone_option({
                 id: id,
                 type: 'checkbox',
                 name: name,
@@ -554,7 +555,7 @@ IPA.attributes_widget = function(spec) {
                 change: function() {
                     that.value_changed.notify([], that);
                 }
-            }));
+            }, td);
             td = $('<td/>').appendTo(tr);
             td.append($('<label/>',{
                 text: value,

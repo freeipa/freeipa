@@ -428,13 +428,15 @@ IPA.dnszone_name_section = function(spec) {
             title: idnsname.label
         }).appendTo(tr);
 
+        idnsname.create_radio(td);
+
         var label = $('<label/>', {
             name: 'idnsname',
             'class': 'field-label',
             'for': idnsname.radio_id
         }).appendTo(td);
 
-        idnsname.create_radio(label);
+
 
         label.append(idnsname.label+':');
 
@@ -463,13 +465,13 @@ IPA.dnszone_name_section = function(spec) {
             title: name_from_ip.label
         }).appendTo(tr);
 
+        name_from_ip.create_radio(td);
+
         label = $('<label/>', {
             name: 'name_from_ip',
             'class': 'field-label',
             'for': name_from_ip.radio_id
         }).appendTo(td);
-
-        name_from_ip.create_radio(label);
 
         label.append(name_from_ip.label+':');
 

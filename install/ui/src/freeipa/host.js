@@ -486,15 +486,13 @@ IPA.host_deleter_dialog = function(spec) {
 
         var metadata = IPA.get_command_option('host_del', 'updatedns');
 
-        that.updatedns = $('<input/>', {
+        var updatedns = IPA.standalone_option({
             type: 'checkbox',
             name: 'updatedns',
             title: metadata.doc
-        }).appendTo(that.container);
+        }, that.container, metadata.doc);
 
-        that.container.append(' ');
-
-        that.container.append(metadata.doc);
+        that.updatedns = updatedns[0];
     };
 
     that.create_command = function() {

@@ -37,6 +37,12 @@ input[type="radio"] + label {
   background-position: center left;
 }
 
+input[type="checkbox"].standalone + label,
+input[type="radio"].standalone + label {
+  padding: 0;
+  width: 13px;
+}
+
 input[type="checkbox"] + label {
   background-image: url('../img/checkbutton-background.png');
 }

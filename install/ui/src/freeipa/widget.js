@@ -1102,7 +1102,7 @@ IPA.option_widget_base = function(spec, that) {
         }).appendTo(container);
 
         $('<label/>', {
-            text: option.label,
+            html: option.label || '&nbsp;',
             title: option.tooltip || that.tooltip,
             'for': id
         }).appendTo(container);
@@ -1442,6 +1442,51 @@ IPA.checkboxes_widget = function (spec) {
     spec.layout = spec.layout || 'vertical';
     var that = IPA.radio_widget(spec);
     return that;
+};
+
+/**
+ * Creates input with properties defined by `spec` and an empty label which
+ * targets the input.
+ *
+ * Main purpose is to always create label tight with input[radio] or
+ * input[checkbox].
+ *
+ * - Creates checkbox if not type specified.
+ * - Adds them to container node if specified.
+ *
+ * @param {Object} spec
+ * @param {HTMLElement} [container]
+ * @param {string} [label] Label text
+ * @return {jQuery[]} [input, label]
+ */
+IPA.standalone_option = function(spec, container, label) {
+
+    spec = $.extend({}, spec);
+
+    var id = spec.id || IPA.html_util.get_next_id(spec.name);
+    spec.id = id;
+
+    spec.type = spec.type || 'checkbox';
+
+    var input = $('<input/>', spec);
+
+    if (!label) {
+        input.addClass('standalone');
+        label = '&nbsp;';
+    }
+
+    var label_el = $('<label/>', {
+        type: 'checkbox',
+        'for': id,
+        html: label
+    });
+
+    if (container) {
+        input.appendTo(container);
+        label_el.appendTo(container);
+    }
+
+    return [input, label_el];
 };
 
 /**
@@ -2043,11 +2088,11 @@ IPA.table_widget = function (spec) {
             }).appendTo(tr);
 
             if (that.multivalued) {
-                var select_all_checkbox = $('<input/>', {
+                var select_all_checkbox = IPA.standalone_option({
                     type: 'checkbox',
                     name: that.name,
                     title: text.get('@i18n:search.select_all')
-                }).appendTo(th);
+                }, th)[0];
 
                 select_all_checkbox.change(function() {
                     if(select_all_checkbox.is(':checked')) {
@@ -2141,55 +2186,11 @@ IPA.table_widget = function (spec) {
             that.tbody.css('height', that.height);
         }
 
-        that.row = $('<tr/>');
-
-        var td;
-
-        if (that.selectable) {
-            td = $('<td/>', {
-                'style': 'width: '+ (IPA.checkbox_column_width + 7) +'px;'
-            }).appendTo(that.row);
-
-            if (that.multivalued) {
-                $('<input/>', {
-                    type: 'checkbox',
-                    name: that.name,
-                    value: ''
-                }).appendTo(td);
-            } else {
-                $('<input/>', {
-                    type: 'radio',
-                    name: that.name,
-                    value: ''
-                }).appendTo(td);
-            }
-        }
-
-        var width;
-
-        for (/* var */ i=0; i<columns.length; i++) {
-            /* var */ column = columns[i];
-
-            td = $('<td/>').appendTo(that.row);
-            if (column.width) {
-                width = parseInt(
-                        column.width.substring(0, column.width.length-2),10);
-                width += 7; //data cells lack right padding
-                width += 'px';
-                td.css('width', width);
-                td.css('max-width', width);
-            }
-
-            $('<div/>', {
-                'name': column.name
-            }).appendTo(td);
-        }
-
         that.tfoot = $('<tfoot/>').appendTo(that.table);
 
         tr = $('<tr/>').appendTo(that.tfoot);
 
-        td = $('<td/>', {
+        var td = $('<td/>', {
             colspan: columns.length + (that.selectable ? 1 : 0)
         }).appendTo(tr);
 
@@ -2248,6 +2249,52 @@ IPA.table_widget = function (spec) {
         }
 
         that.set_enabled(that.enabled);
+    };
+
+    /**
+     * Create empty row
+     */
+    that.create_row = function() {
+
+        var columns = that.columns.values;
+        var row = $('<tr/>');
+        var td;
+
+        if (that.selectable) {
+            td = $('<td/>', {
+                'style': 'width: '+ (IPA.checkbox_column_width + 7) +'px;'
+            }).appendTo(row);
+
+            var selectable_type = that.multivalued ? 'checkbox' : 'radio';
+            IPA.standalone_option({
+                type: selectable_type,
+                name: that.name,
+                value: ''
+            }, td);
+        }
+
+        var width;
+
+        for ( var  i=0; i<columns.length; i++) {
+
+            var column = columns[i];
+
+            td = $('<td/>').appendTo(row);
+            if (column.width) {
+                width = parseInt(
+                        column.width.substring(0, column.width.length-2),10);
+                width += 7; //data cells lack right padding
+                width += 'px';
+                td.css('width', width);
+                td.css('max-width', width);
+            }
+
+            $('<div/>', {
+                'name': column.name
+            }).appendTo(td);
+        }
+
+        return row;
     };
 
     that.prev_page = function() {
@@ -2389,7 +2436,7 @@ IPA.table_widget = function (spec) {
 
     that.add_record = function(record) {
 
-        var tr = that.row.clone();
+        var tr = that.create_row();
         tr.appendTo(that.tbody);
 
         $('input[name="'+that.name+'"]', tr).click(function(){
