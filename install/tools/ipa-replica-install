@@ -184,6 +184,7 @@ def install_replica_ds(config):
         dm_password=config.dirman_password,
         subject_base=config.subject_base,
         pkcs12_info=pkcs12_info,
+        ca_is_configured=ipautil.file_exists(config.dir + "/cacert.p12"),
         ca_file=config.dir + "/ca.crt",
     )
 

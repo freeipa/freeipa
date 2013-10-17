@@ -218,6 +218,7 @@ class DsInstance(service.Service):
         self.domain = domain_name
         self.serverid = None
         self.pkcs12_info = None
+        self.ca_is_configured = True
         self.dercert = None
         self.idstart = None
         self.idmax = None
@@ -290,6 +291,8 @@ class DsInstance(service.Service):
         self.idstart = idstart
         self.idmax = idmax
         self.pkcs12_info = pkcs12_info
+        if pkcs12_info:
+            self.ca_is_configured = False
         self.ca_file = ca_file
 
         self.__setup_sub_dict()
@@ -321,7 +324,7 @@ class DsInstance(service.Service):
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
                        domain_name, dm_password, subject_base,
-                       pkcs12_info=None, ca_file=None):
+                       pkcs12_info=None, ca_file=None, ca_is_configured=None):
         # idstart and idmax are configured so that the range is seen as
         # depleted by the DNA plugin and the replica will go and get a
         # new range from the master.
@@ -341,6 +344,8 @@ class DsInstance(service.Service):
             ca_file=ca_file
         )
         self.master_fqdn = master_fqdn
+        if ca_is_configured is not None:
+            self.ca_is_configured = ca_is_configured
 
         self.__common_setup(True)
 
@@ -615,10 +620,12 @@ class DsInstance(service.Service):
             dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
             self.dercert = dsdb.create_server_cert(
                 nickname, self.fqdn, cadb)
+            dsdb.create_pin_file()
+
+        if self.ca_is_configured:
             dsdb.track_server_cert(
                 nickname, self.principal, dsdb.passwd_fname,
                 'restart_dirsrv %s' % self.serverid)
-            dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin(self.fqdn)
         conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
