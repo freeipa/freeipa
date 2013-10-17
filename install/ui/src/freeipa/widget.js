@@ -4428,7 +4428,6 @@ IPA.widget_container = function(spec) {
             if(that.new_container_for_child) {
                 child_container = $('<div/>', {
                     name: widget.name,
-                    title: widget.label,
                     'class': widget['class']
                 }).appendTo(container);
             }
