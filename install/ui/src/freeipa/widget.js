@@ -3449,7 +3449,7 @@ IPA.link_widget = function(spec) {
 };
 
 /**
- * Create link which behaves as button
+ * Create button
  *
  * @method
  * @member IPA
@@ -3469,16 +3469,54 @@ IPA.link_widget = function(spec) {
  */
 IPA.action_button = function(spec) {
 
+    spec = $.extend({}, spec);
+
+    spec.element = spec.element || '<a/>';
+    spec.button_class = spec.button_class || 'button action-button';
+
+    var button = IPA.button(spec);
+    button.prop('href', spec.href || '#');
+    return button;
+};
+
+/**
+ * Create button
+ *
+ * Has different styling than action button.
+ *
+ * @method
+ * @member IPA
+ *
+ * @param {Object} spec
+ * @param {string} [spec.name]
+ * @param {string} [spec.label] button text
+ * @param {string} [spec.title=label] button title
+ * @param {string} [spec.icon] icon name (class)
+ * @param {string} [spec.id]
+ * @param {string} [spec.style] css style
+ * @param {string} [spec.class]
+ * @param {string} [spec.button_class]
+ * @param {string} [spec.element]
+ * @param {string} [spec.type]
+ * @param {Function} [spec.click] click handler
+ * @param {boolean} [spec.focusable] button is focusable
+ * @param {Function} [spec.blur] blur handler
+ */
+IPA.button = function(spec) {
+
     spec = spec || {};
 
-    var button = $('<a/>', {
+    var el = spec.element || '<button/>';
+    var button_class = spec.button_class || 'btn';
+
+    var button = $(el, {
         id: spec.id,
         name: spec.name,
-        href: spec.href || '#' + (spec.name || 'button'),
         title: text.get(spec.title || spec.label),
-        'class': 'button action-button',
+        'class': button_class,
         style: spec.style,
         click: spec.click,
+        type: spec.type || 'button',
         blur: spec.blur
     });
 
@@ -3487,6 +3525,8 @@ IPA.action_button = function(spec) {
     }
 
     if (spec['class']) button.addClass(spec['class']);
+
+    if (spec.type) button.addClass(spec.type);
 
     if (spec.icon) {
         $('<span/>', {
@@ -3505,48 +3545,6 @@ IPA.action_button = function(spec) {
 };
 
 /**
- * Create button
- *
- * Has different styling than action button.
- *
- * @method
- * @member IPA
- *
- * @param {Object} spec
- * @param {string} [spec.name]
- * @param {string} [spec.label] button text
- * @param {string} [spec.title=label] button title
- * @param {string} [spec.icon] icon name (class)
- * @param {string} [spec.id]
- * @param {string} [spec.href]
- * @param {string} [spec.style] css style
- * @param {string} [spec.class]
- * @param {Function} [spec.click] click handler
- */
-IPA.button = function(spec) {
-
-    spec = spec || {};
-
-    var button = $('<a/>', {
-        id: spec.id,
-        name: spec.name,
-        href: spec.href || '#' + (spec.name || 'button')
-    });
-
-    var icons = { primary: spec.icon };
-    var label = text.get(spec.label);
-
-    button.button({
-        icons: icons,
-        label: label
-    });
-
-    button.click(spec.click);
-
-    return button;
-};
-
-/**
  * Widget encapsulating an `IPA.button`
  *
  * @class
@@ -3558,16 +3556,22 @@ IPA.button_widget = function(spec) {
 
     var that = IPA.widget(spec);
 
-    /** Displayed link */
-    that.href = spec.href;
-    /** CSS style */
+    /**
+     * Additional CSS style
+     * @property
+     */
     that.style = spec.style;
-    /** Click handler */
+    /**
+     * Click handler
+     * @property {Function}
+     */
     that.click = spec.click;
-    /** CSS class */
+
+    /**
+     * Additional CSS class(es)
+     * @property {String}
+     */
     that['class'] = spec['class'];
-    /** CSS class for disabled button */
-    that.disabled_class = 'button-disabled';
 
     /**
      * Widget click handler.
@@ -3587,7 +3591,6 @@ IPA.button_widget = function(spec) {
         that.button = IPA.button({
             id: that.id,
             name: that.name,
-            href: that.href,
             title: that.tooltip,
             label: that.label,
             'class': that['class'],
@@ -3603,11 +3606,7 @@ IPA.button_widget = function(spec) {
         that.widget_set_enabled(enabled);
 
         if (that.button) {
-            if (enabled) {
-                that.button.removeClass(that.disabled_class);
-            } else {
-                that.button.addClass(that.disabled_class);
-            }
+            that.button.prop('disabled', !enabled);
         }
     };
 

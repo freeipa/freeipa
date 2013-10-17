@@ -583,12 +583,15 @@ class UI_driver(object):
         if not parent:
             parent = self.get_form()
 
-        s = "a[name='%s'].ui-button" % name
+        s = "[name='%s'].btn" % name
         self._button_click(s, parent, name)
 
     def _button_click(self, selector, parent, name=''):
         btn = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
-        disabled = 'ui-state-disabled' in btn.get_attribute("class").split()
+
+        disabled = 'ui-state-disabled' in btn.get_attribute("class").split() or \
+                   btn.get_attribute("disabled")
+
         assert btn.is_displayed(), 'Button is not displayed: %s' % name
         assert not disabled, 'Invalid button state: disabled. Button: %s' % name
         btn.click()
