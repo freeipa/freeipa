@@ -104,7 +104,7 @@ var add_netgroup_details_facet_widgets = function (spec) {
 
     spec.widgets = [
         {
-            $type: 'details_table_section',
+            $type: 'details_section',
             name: 'identity',
             label: '@i18n:details.general',
             widgets: [

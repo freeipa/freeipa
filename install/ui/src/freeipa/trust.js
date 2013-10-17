@@ -163,7 +163,7 @@ return {
         ],
         widgets: [
             {
-                $type: 'details_table_section_nc',
+                $type: 'details_section',
                 name: 'realm',
                 widgets: [
                     'realm_server'
@@ -207,7 +207,7 @@ return {
                 ]
             },
             {
-                $type: 'details_table_section_nc',
+                $type: 'details_section',
                 name: 'range',
                 widgets: [
                     {

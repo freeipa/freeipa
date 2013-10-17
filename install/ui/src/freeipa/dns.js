@@ -1207,7 +1207,7 @@ return {
                 {
                     name: 'identity',
                     label: '@i18n:details.identity',
-                    $type: 'details_table_section',
+                    $type: 'details_section',
                     widgets: [
                         {
                             $type: 'dnsrecord_host_link',
@@ -1237,7 +1237,7 @@ return {
         widgets: [
             {
                 name: 'general',
-                $type: 'details_table_section_nc',
+                $type: 'details_section',
                 widgets: [
                     'idnsname',
                     {
@@ -1375,7 +1375,7 @@ IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets, update)
 
     var section = {
         name: type.name,
-        $type: 'details_table_section_nc',
+        $type: 'details_section',
         widgets: []
     };
     widgets.push(section);
@@ -1430,14 +1430,14 @@ IPA.dns.record_prepare_details_spec = function(spec, type_prepare_method) {
 
     var standard_record_section = {
         name: 'standard_types',
-        $type: 'details_table_section',
+        $type: 'details_section',
         label: '@i18n:objects.dnsrecord.standard',
         widgets: []
     };
 
     var other_record_section = {
         name: 'other_types',
-        $type: 'details_table_section',
+        $type: 'details_section',
         label: '@i18n:objects.dnsrecord.other',
         widgets: []
     };

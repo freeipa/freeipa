@@ -208,7 +208,7 @@ exp.section_builder = IPA.section_builder = function(spec) {
      * TODO: should be modified so it can be a class too
      * @property {IPA.composite_widget}
      */
-    that.section_factory = spec.section_factory || IPA.details_table_section;
+    that.section_factory = spec.section_factory || IPA.details_section;
 
     /**
      * Field builder
@@ -624,47 +624,6 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         that.facet_create_header(container);
 
         that.create_controls();
-
-        that.expand_button = IPA.action_button({
-            name: 'expand_all',
-            href: 'expand_all',
-            label: '@i18n:details.expand_all',
-            'class': 'right-aligned-facet-controls',
-            style: 'display: none;',
-            click: function() {
-                that.expand_button.css('display', 'none');
-                that.collapse_button.css('display', 'inline-block');
-
-                var widgets = that.widgets.get_widgets();
-                for (var i=0; i<widgets.length; i++) {
-                    var widget = widgets[i];
-                    if(widget.toggle) {
-                        widget.toggle(true);
-                    }
-                }
-                return false;
-            }
-        }).appendTo(that.controls);
-
-        that.collapse_button = IPA.action_button({
-            name: 'collapse_all',
-            href: 'collapse_all',
-            label: '@i18n:details.collapse_all',
-            'class': 'right-aligned-facet-controls',
-            click: function() {
-                that.expand_button.css('display', 'inline-block');
-                that.collapse_button.css('display', 'none');
-
-                var widgets = that.widgets.get_widgets();
-                for (var i=0; i<widgets.length; i++) {
-                    var widget = widgets[i];
-                    if(widget.toggle) {
-                        widget.toggle(false);
-                    }
-                }
-                return false;
-            }
-        }).appendTo(that.controls);
     };
 
     that.widgets.create_widget_delimiter = function(container) {

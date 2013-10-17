@@ -116,7 +116,7 @@ return {
             ],
             widgets: [
                 {
-                    $type: 'details_table_section',
+                    $type: 'details_section',
                     name: 'identity',
                     label: '@i18n:objects.permission.identity',
                     widgets: [
@@ -124,7 +124,7 @@ return {
                     ]
                 },
                 {
-                    $type: 'details_table_section',
+                    $type: 'details_section',
                     name: 'rights',
                     label: '@i18n:objects.permission.rights',
                     widgets: [
@@ -136,7 +136,7 @@ return {
                 },
                 {
                     $type: 'permission_target',
-                    container_factory: IPA.details_table_section,
+                    container_factory: IPA.details_section,
                     label: '@i18n:objects.permission.target',
                     name: 'target',
                     show_target: false
@@ -216,7 +216,7 @@ return {
         ],
         widgets: [
             {
-                $type: 'details_table_section_nc',
+                $type: 'details_section',
                 name: 'general',
                 widgets: [
                     'cn',
@@ -646,13 +646,13 @@ IPA.rights_widget = function(spec) {
 
 /**
  * @class IPA.permission_target_widget
- * @extends IPA.details_table_section_nc
+ * @extends IPA.details_section
  */
 IPA.permission_target_widget = function(spec) {
 
     spec = spec || {};
 
-    var factory = spec.container_factory || IPA.details_table_section_nc;
+    var factory = spec.container_factory || IPA.details_section;
 
     var that = factory(spec);
 

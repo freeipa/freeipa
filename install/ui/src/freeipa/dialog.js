@@ -423,7 +423,7 @@ IPA.dialog = function(spec) {
         });
         var section_builder = IPA.section_builder({
             container: that,
-            section_factory: IPA.details_table_section_nc,
+            section_factory: IPA.details_section,
             widget_builder: widget_builder,
             field_builder: field_builder
         });

@@ -250,7 +250,7 @@ IPA.automember.rule_details_facet = function(spec) {
 
     spec.widgets = [
             {
-            $type: 'details_table_section',
+            $type: 'details_section',
             name: 'general',
             label: '@i18n:details.general',
             widgets: [

@@ -4088,7 +4088,7 @@ IPA.multiple_choice_section = function(spec) {
 
     var that = IPA.composite_widget(spec);
     that.choices = $.ordered_map().put_array(spec.choices, 'name');
-    that.layout = IPA.build(spec.layout || IPA.table_layout);
+    that.layout = IPA.build(spec.layout || IPA.fluid_layout);
 
     that.create = function(container) {
 
