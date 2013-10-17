@@ -8,6 +8,6 @@ re_expression = (?P<name>.+)
 cache_credentials = True
 id_provider = ldap
 auth_provider = ldap
-ldap_uri = ldap://$IPA_SERVER_HOSTNAME
-ldap_search_base = cn=compat,$BASE_DN
+ldap_uri = $URI
+ldap_search_base = $BASE
 ldap_tls_cacert = /etc/openldap/cacerts/ipa.crt
