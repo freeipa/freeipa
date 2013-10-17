@@ -1,0 +1,91 @@
+/*  Authors:
+ *    UXD team
+ *    Petr Vobornik <pvoborni@redhat.com>
+ *
+ * Copyright (C) 2013 Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// This file contains overrides of reference RCUE implementation to comply
+// with IPA design
+
+/* Checkboxes and Radios */
+input[type="checkbox"],
+input[type="radio"] {
+  display: none;
+}
+
+input[type="checkbox"] + label,
+input[type="radio"] + label {
+  display: inline-block;
+  margin: 4px;
+  padding: 0 24px;
+  background-repeat: no-repeat;
+  background-position: center left;
+}
+
+input[type="checkbox"] + label {
+  background-image: url('../img/checkbutton-background.png');
+}
+
+input[type="checkbox"]:hover + label {
+  background-image: url('../img/checkbutton-background-hover.png');
+}
+
+input[type="checkbox"]:checked + label {
+  background-image: url('../img/checkbutton-background-selected.png');
+}
+
+input[type="checkbox"]:disabled + label {
+  background-image: url('../img/checkbutton-background-disabled.png');
+}
+
+input[type="checkbox"]:checked:disabled + label {
+  background-image: url('../img/checkbutton-background-selected-disabled.png');
+}
+
+input[type="radio"] + label {
+  background-image: url('../img/radiobutton-background.png');
+}
+
+input[type="radio"]:hover + label {
+  background-image: url('../img/radiobutton-background-hover.png');
+}
+
+input[type="radio"]:checked + label {
+  background-image: url('../img/radiobutton-background-selected.png');
+}
+
+input[type="radio"]:disabled + label {
+  background-image: url('../img/radiobutton-background-disabled.png');
+}
+
+input[type="radio"]:checked:disabled + label {
+  background-image: url('../img/radiobutton-background-selected-disabled.png');
+}
+
+.form-horizontal {
+
+    // lower radio's label width to keep it aligned with other labels when
+    // radio is part of form label
+
+    input[type="radio"] + .control-label,
+    input[type="radio"] + .control-label {
+        width: 144px;
+        padding: 3px 0 0 16px;
+        margin: 0 0 3px 0;
+    }
+}

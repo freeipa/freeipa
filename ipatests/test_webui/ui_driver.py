@@ -714,7 +714,8 @@ class UI_driver(object):
 
     def check_option(self, name, value=None, parent=None):
         """
-        Find checkbox or radio with name which matches ^NAME\d$
+        Find checkbox or radio with name which matches ^NAME\d$ and
+        check it by clicking on a label.
         """
         if not parent:
             parent = self.get_form()
@@ -722,15 +723,16 @@ class UI_driver(object):
         if value is not None:
             s += "[@value='%s']" % value
         opts = self.find(s, "xpath", parent, many=True)
-        opt = None
+        label = None
         # Select only the one which matches exactly the name
         for o in opts:
             n = o.get_attribute("name")
-            if n == name or re.match("^%s\d$" % name, n):
-                opt = o
+            if n == name or re.match("^%s\d+$" % name, n):
+                s = "label[for='%s']" % o.get_attribute("id")
+                label = self.find(s, By.CSS_SELECTOR, parent, strict=True)
                 break
-        assert opt is not None, "Option not found: %s" % name
-        opt.click()
+        assert label is not None, "Option not found: %s" % name
+        label.click()
 
     def select_combobox(self, name, value, parent=None):
         """
@@ -884,9 +886,9 @@ class UI_driver(object):
             parent = self.get_form()
 
         s = self.get_table_selector(table_name)
-        s += " tbody td input[value='%s']" % pkey
-        checkbox = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-        checkbox.click()
+        s += " tbody td input[value='%s']+label" % pkey
+        label = self.find(s, By.CSS_SELECTOR, parent, strict=True)
+        label.click()
         self.wait()
 
     def get_record_value(self, pkey, column, parent=None, table_name=None):
