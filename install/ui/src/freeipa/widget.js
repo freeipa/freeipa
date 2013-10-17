@@ -3738,34 +3738,49 @@ IPA.collapsible_section = function(spec) {
 
     var that = IPA.composite_widget(spec);
 
+    that.collabsible = !!spec.collabsible;
+    that.show_header = spec.show_header === undefined ? true : spec.show_header;
+
     that.create = function(container) {
 
         that.widget_create(container);
 
-        that.header = $('<h2/>', {
-            name: that.name,
-            title: that.label
-        }).appendTo(container);
-
-        that.icon = $('<span/>', {
-            name: 'icon',
-            'class': 'icon section-expand '+IPA.expanded_icon
-        }).appendTo(that.header);
-
-        that.header.append(' ');
-
-        that.header.append(that.label);
+        if (that.show_header) {
+            that.create_header(container);
+        }
 
         that.content_container = $('<div/>', {
             name: that.name,
             'class': 'details-section'
         }).appendTo(container);
 
-        that.header.click(function() {
-            var visible = that.content_container.is(":visible");
-            that.toggle(!visible);
-        });
+        that.create_content();
+    };
 
+    that.create_header = function(container) {
+
+        that.header = $('<h2/>', {
+            name: that.name
+        }).appendTo(container);
+
+        if (that.collabsible) {
+            that.icon = $('<span/>', {
+                name: 'icon',
+                'class': 'icon section-expand '+IPA.expanded_icon
+            }).appendTo(that.header);
+
+            that.header.click(function() {
+                var visible = that.content_container.is(":visible");
+                that.toggle(!visible);
+            });
+        }
+
+        that.header.append(' ');
+
+        that.header.append(that.label);
+    };
+
+    that.create_content = function() {
         that.composite_widget_create(that.content_container);
     };
 
@@ -3783,18 +3798,24 @@ IPA.collapsible_section = function(spec) {
 };
 
 /**
- * Section which can be collapsed
- * @class
- * @extends IPA.collapsible_section
- */
-IPA.details_section = IPA.collapsible_section;
-
-/**
  * Base layout
  * @class
  */
+
 IPA.layout = function(spec) {
-    return {};
+
+    var that = {};
+
+    that.get_measurement_unit_text = function(widget) {
+
+        if (widget.measurement_unit) {
+            var unit = text.get('@i18n:measurement_units.'+widget.measurement_unit);
+            return ' (' + unit + ')';
+        }
+        return '';
+    };
+
+    return that;
 };
 
 /**
@@ -3878,32 +3899,100 @@ IPA.table_layout = function(spec) {
     return that;
 };
 
+IPA.fluid_layout = function(spec) {
+
+    var that = IPA.layout(spec);
+
+    that.cont_cls = spec.cont_cls || 'form-horizontal';
+
+    that.create = function(widgets) {
+
+        that.rows = $.ordered_map();
+
+        var container = $('<div/>', { 'class': that.cont_cls });
+
+        for (var i=0; i<widgets.length; i++) {
+            var widget = widgets[i];
+            var group = that.create_control_group(container, widget);
+            var control = that.create_control(widget);
+            var label = that.create_label(widget);
+
+            label.appendTo(group);
+            control.appendTo(group);
+        }
+
+        return container;
+    };
+
+    that.create_control_group = function(container, widget) {
+        var group = $('<div/>', { 'class': 'control-group' });
+        that.rows.put(widget.name, group);
+
+        if (widget.hidden) {
+            group.css('display', 'none');
+        }
+
+        group.appendTo(container);
+        return group;
+    };
+
+    that.create_label = function(widget) {
+        var label_text = widget.label + that.get_measurement_unit_text(widget);
+
+        var label_cont = $('<div/>', { 'class': 'control-label' });
+
+        $('<label/>', {
+            name: widget.name,
+            'class': '',
+            text: label_text
+        }).appendTo(label_cont);
+
+        // TODO: set `for` in label
+        // TODO: maintain errors and required
+        return label_cont;
+    };
+
+    that.create_control = function(widget) {
+        var controls = $('<div/>', {
+            'class': 'controls'
+        });
+
+        var widget_container = $('<div/>', {
+            name: widget.name,
+            'class': that.field_class
+        }).appendTo(controls);
+
+        widget.create(widget_container);
+        return controls;
+    };
+
+    return that;
+};
+
 /**
  * Collapsible section with table layout
  * @class
- * @extends IPA.details_section
+ * @extends IPA.collapsible_section
  */
-IPA.details_table_section = function(spec) {
+IPA.details_section = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.details_section(spec);
-    that.layout = IPA.build(spec.layout || IPA.table_layout);
+    var that = IPA.collapsible_section(spec);
+    that.layout = IPA.build(spec.layout || IPA.fluid_layout);
     that.action_panel = that.build_child(spec.action_panel, {},
                                          { $factory: IPA.action_panel });
 
     that.rows = $.ordered_map();
 
-    that.composite_widget_create = function(container) {
-
-        that.widget_create(container);
+    that.create_content = function() {
 
         if (that.action_panel) {
-            that.action_panel.create(container);
+            that.action_panel.create(that.content_container);
         }
         var widgets = that.widgets.get_widgets();
-        var table = that.layout.create(widgets);
-        table.appendTo(container);
+        var layout = that.layout.create(widgets);
+        layout.appendTo(that.content_container);
         that.rows = that.layout.rows;
     };
 
@@ -3921,8 +4010,20 @@ IPA.details_table_section = function(spec) {
         row.css('display', visible ? '' : 'none');
     };
 
-    that.table_section_create = that.composite_widget_create;
+    return that;
+};
 
+/**
+ * Collapsible section with table layout
+ * @class
+ * @extends IPA.details_section
+ */
+IPA.details_table_section = function(spec) {
+
+    spec.collabsible = spec.collabsible === undefined ? true : spec.collabsible;
+    spec.layout = spec.layout || IPA.table_layout;
+
+    var that = IPA.details_section(spec);
     return that;
 };
 
@@ -3961,10 +4062,9 @@ IPA.hide_empty_row_policy = function (spec) {
 IPA.details_table_section_nc = function(spec) {
 
     spec = spec || {};
+    spec.show_header = spec.show_header === undefined ? false : spec.show_header;
 
-    var that = IPA.details_table_section(spec);
-
-    that.create = that.table_section_create;
+    var that = IPA.details_section(spec);
 
     return that;
 };
@@ -4867,8 +4967,9 @@ exp.register = function() {
     w.register('checkboxes', IPA.checkboxes_widget);
     w.register('combobox', IPA.combobox_widget);
     w.register('composite_widget', IPA.composite_widget);
+    w.register('details_section', IPA.details_section);
     w.register('details_table_section', IPA.details_table_section);
-    w.register('details_table_section_nc', IPA.details_table_section_nc);
+    w.register('details_table_section_nc', IPA.details_section);
     w.register('multiple_choice_section', IPA.multiple_choice_section);
     w.register('enable', IPA.enable_widget);
     w.register('entity_select', IPA.entity_select_widget);

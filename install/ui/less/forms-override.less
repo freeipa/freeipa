@@ -87,11 +87,20 @@ input[type="radio"]:checked:disabled + label {
 
     // lower radio's label width to keep it aligned with other labels when
     // radio is part of form label
+    .control-label {
+        input[type="checkbox"] + label,
+        input[type="radio"] + label {
+            width: 144px;
+            padding: 0 0 0 16px;
+            margin: 0;
+        }
+    }
+}
 
-    input[type="radio"] + .control-label,
-    input[type="radio"] + .control-label {
-        width: 144px;
-        padding: 3px 0 0 16px;
-        margin: 0 0 3px 0;
+.control-group .control-label {
+    position: relative;
+
+    label {
+        margin-bottom: 0;
     }
 }
