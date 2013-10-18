@@ -44,7 +44,6 @@ IPA.opened_dialogs = {
     focus_top: function() {
         var top = this.top_dialog();
         if (top) {
-            top.container.dialog('moveToTop'); //make sure the last dialog is top dialog
             top.focus_first_element();
         }
     },
@@ -79,6 +78,10 @@ IPA.dialog_button = function(spec) {
     that.click = spec.click || click;
     /** @property {boolean} visible=true Button should be visible */
     that.visible = spec.visible !== undefined ? spec.visible : true;
+    /** @property {boolean} enabled=true Button is enabled */
+    that.enabled = spec.enabled !== undefined ? spec.enabled : true;
+    /** @property {jQuery} element Button element */
+    that.element = null;
 
     function click() {
     }
@@ -88,10 +91,11 @@ IPA.dialog_button = function(spec) {
      * @param {boolean} enabled
      */
     that.set_enabled = function(enabled) {
-        if (enabled) {
-            that.element.removeClass('ui-state-disabled');
-        } else {
-            that.element.addClass('ui-state-disabled');
+
+        that.enabled = enabled;
+
+        if (that.element) {
+            that.element.prop('disabled', !enabled);
         }
     };
 
@@ -100,7 +104,7 @@ IPA.dialog_button = function(spec) {
      * @return {boolean}
      */
     that.is_enabled = function() {
-        return !that.element.hasClass('ui-state-disabled');
+        return that.enabled;
     };
 
     return that;
@@ -208,16 +212,92 @@ IPA.dialog = function(spec) {
         return null;
     };
 
+    /**
+     * Create
+     * @protected
+     * @return {jQuery} dom_node
+     */
+    that.create_dialog = function() {
+
+        if (that.dom_node) {
+            that.dom_node.empty();
+        }
+
+        that.dom_node = $('<div/>', {
+            'class': 'rcue-dialog-background'
+        });
+
+        var container_node = $('<div/>', {
+            'class': 'rcue-dialog-container'
+        }).appendTo(that.dom_node);
+
+        that.dialog_node = $('<div/>', {
+            'class': 'rcue-dialog',
+            id: that.get_id(),
+            'data-name' : that.name,
+            role: 'dialog',
+            tabIndex: -1 // make the div focusable
+        }).appendTo(container_node);
+
+        that.header_node = $('<header/>');
+        that.create_header();
+        that.header_node.appendTo(that.dialog_node);
+
+        that.body_node = $('<div/>', {
+            'class': 'rcue-dialog-body'
+        });
+        // for backwards compatibility
+        that.container = that.body_node;
+        that.create_content();
+        that.body_node.appendTo(that.dialog_node);
+
+        that.footer_node = $('<footer/>');
+        that.create_footer();
+        that.footer_node.appendTo(that.dialog_node);
+
+        that.policies.post_create();
+        return that.dom_node;
+    };
 
     /**
-     * Create content layout
+     * Create header
+     * @protected
+     * @return {jQuery} header_node
      */
-    that.create = function() {
+    that.create_header = function() {
+
+        that.header_node.empty();
+        that.title_node = $('<h1/>', {
+            text: that.title
+        }).appendTo(that.header_node);
+        that.title_close_button = $('<a/>', {
+            href: '#',
+            'class': 'rcue-button-close',
+            click: function() {
+                that.close();
+            }
+        }).appendTo(that.header_node);
+
+        return that.header_node;
+    };
+
+    /**
+     * Create content
+     *
+     * - custom dialogs should override this method
+     *
+     * @protected
+     * @deprecated
+     * @return {jQuery} footer_node
+     */
+    that.create_content = function() {
+
+        that.body_node.empty();
 
         that.message_container = $('<div/>', {
             style: 'display: none',
             'class': 'dialog-message ui-state-highlight ui-corner-all'
-        }).appendTo(that.container);
+        }).appendTo(that.body_node);
 
         var widgets = that.widgets.get_widgets();
         for (var i=0; i<widgets.length; i++) {
@@ -226,12 +306,59 @@ IPA.dialog = function(spec) {
             var div = $('<div/>', {
                 name: widget.name,
                 'class': 'dialog-section'
-            }).appendTo(that.container);
+            }).appendTo(that.body_node);
 
             widget.create(div);
         }
 
-        that.policies.post_create();
+        return that.body_node;
+    };
+
+    /**
+     * Create footer
+     * @protected
+     * @return {jQuery} footer_node
+     */
+    that.create_footer = function() {
+
+        that.footer_node.empty();
+
+        that.buttons_node = $('<div/>', {
+            'class': 'rcue-dialog-buttons'
+        }).appendTo(that.footer_node);
+
+        $("<div/>", { 'class': 'clear'}).appendTo(that.footer_node);
+
+        that.create_button_nodes();
+
+        return that.footer_node;
+    };
+
+    /**
+     * Create buttons HTML inside `buttons_node`
+     * @protected
+     * @return {jQuery} buttons_node
+     */
+    that.create_button_nodes = function() {
+
+        if (!that.buttons_node) return null;
+
+        that.buttons_node.empty();
+
+        for (var i=0; i<that.buttons.values.length; i++) {
+
+            var button = that.buttons.values[i];
+            if (!button.visible) continue;
+            var ui_button = IPA.button({
+                name: button.name,
+                label: button.label,
+                disabled: !button.enabled,
+                click: button.click
+            });
+            ui_button.appendTo(that.buttons_node);
+            button.element = ui_button;
+        }
+        return that.buttons_node;
     };
 
     /**
@@ -254,32 +381,12 @@ IPA.dialog = function(spec) {
      */
     that.open = function(container) {
 
-        that.container = $('<div/>', {
-            id : that.get_id(),
-            'data-name': that.name
-        });
-
-        if (container) {
-            container.append(that.container);
-        }
-
-        that.create();
+        that.create_dialog();
         that.reset();
 
-        that.container.dialog({
-            title: that.title,
-            modal: true,
-            closeOnEscape: that.close_on_escape,
-            width: that.width,
-            minWidth: that.width,
-            height: that.height,
-            minHeight: that.height,
-            close: function(event, ui) {
-                that.close();
-            }
-        });
+        container = container || document.body;
+        that.dom_node.appendTo(container);
 
-        that.set_buttons();
         that.register_listeners();
         IPA.opened_dialogs.add_dialog(that);
         that.focus_first_element();
@@ -291,18 +398,15 @@ IPA.dialog = function(spec) {
      */
     that.focus_first_element = function() {
 
-        var element = that.container;
-        var ui_dialog = that.container.parent('.ui-dialog'); // jq dialog div
-
-        // code taken from jquery dialog source code
-        $(element.find(':tabbable').get().concat(
-            ui_dialog.find('.ui-dialog-buttonpane :tabbable').get().concat(
-                ui_dialog.get()))).eq(0).focus();
+        $(that.body_node.find(':tabbable').get().concat(
+            that.buttons_node.find(':tabbable').get().concat(
+                that.dom_node.get()))).eq(0).focus();
     };
 
     /**
      * Set jQuery dialog option
      * @protected
+     * @deprecated
      * @param {string} name
      * @param {Mixed} value
      */
@@ -311,31 +415,12 @@ IPA.dialog = function(spec) {
     };
 
     /**
-     * Set dialog buttons as jQuery dialog buttons
+     * Update UI of buttons
      * @protected
      */
     that.set_buttons = function() {
 
-        // create a map of button labels and handlers
-        var dialog_buttons = {};
-        for (var i=0; i<that.buttons.values.length; i++) {
-            var button = that.buttons.values[i];
-            if (!button.visible) continue;
-            dialog_buttons[button.label] = button.click;
-        }
-
-        //set buttons to dialog
-        that.option('buttons', dialog_buttons);
-
-        // find button elements
-        var parent = that.container.parent();
-        var buttons = $('.ui-dialog-buttonpane .ui-dialog-buttonset button', parent);
-
-        buttons.each(function(index, ui_button) {
-            var button = that.buttons.values[index];
-            $(ui_button).prop('name', button.name);
-            button.element = $(this);
-        });
+        that.create_button_nodes();
     };
 
     /**
@@ -368,9 +453,12 @@ IPA.dialog = function(spec) {
      * Close dialog
      */
     that.close = function() {
-        that.container.dialog('destroy');
-        that.container.remove();
+
         that.remove_listeners();
+
+        that.dom_node.remove();
+        that.dom_node = null;
+
         IPA.opened_dialogs.remove_dialog(that);
         IPA.opened_dialogs.focus_top();
     };
@@ -450,7 +538,7 @@ IPA.dialog = function(spec) {
 
     that.init();
 
-    that.dialog_create = that.create;
+    that.dialog_create_content = that.create_content;
     that.dialog_open = that.open;
     that.dialog_close = that.close;
     that.dialog_save = that.save;
@@ -581,9 +669,9 @@ IPA.adder_dialog = function(spec) {
     /**
      * @inheritDoc
      */
-    that.create = function() {
+    that.create_content = function() {
 
-        // do not call that.dialog_create();
+        // do not call that.dialog_create_content();
 
         var container = $('<div/>', {
             'class': 'adder-dialog'
@@ -826,7 +914,7 @@ IPA.adder_dialog = function(spec) {
 
     init();
 
-    that.adder_dialog_create = that.create;
+    that.adder_dialog_create_content = that.create_content;
 
     return that;
 };
@@ -878,7 +966,7 @@ IPA.deleter_dialog =  function (spec) {
     };
 
     /** @inheritDoc */
-    that.create = function() {
+    that.create_content = function() {
 
         $('<p/>', {
             'text': that.message
@@ -914,7 +1002,7 @@ IPA.deleter_dialog =  function (spec) {
         }
     };
 
-    that.deleter_dialog_create = that.create;
+    that.deleter_dialog_create_content = that.create_content;
 
     return that;
 };
@@ -943,7 +1031,7 @@ IPA.message_dialog = function(spec) {
 
     that.buttons.remove('cancel');
 
-    that.message_dialog_create = that.create;
+    that.message_dialog_create_content = that.create_content;
 
     return that;
 };
@@ -999,7 +1087,7 @@ IPA.confirm_dialog = function(spec) {
     that.confirm_on_enter = spec.confirm_on_enter !== undefined ? spec.confirm_on_enter : true;
 
     /** @inheritDoc */
-    that.create = function() {
+    that.create_content = function() {
         $('<p/>', {
             'text': that.message
         }).appendTo(that.container);
@@ -1117,7 +1205,7 @@ IPA.confirm_mixin = function() {
             register_listeners: function() {
                 var self = this;
                 this._on_key_up_listener = function(e) { self.on_key_up(e); };
-                var dialog_container = this.container.parent('.ui-dialog');
+                var dialog_container = this.dom_node;
                 dialog_container.bind('keyup', this._on_key_up_listener);
             },
 
@@ -1125,7 +1213,7 @@ IPA.confirm_mixin = function() {
              * Removal of registered event handlers
              */
             remove_listeners: function() {
-                var dialog_container = this.container.parent('.ui-dialog');
+                var dialog_container = this.dom_node;
                 dialog_container.unbind('keyup', this._on_key_up_listener);
             },
 

@@ -773,10 +773,10 @@ IPA.hbac.validation_dialog = function(spec)  {
 
     that.validation_results = spec.validation_results;
 
-    that.create = function() {
+    that.create_content = function() {
 
         if (that.message) {
-            that.message_dialog_create();
+            that.message_dialog_create_content();
         }
 
         if (that.validation_results && that.validation_results.invalid_facets) {

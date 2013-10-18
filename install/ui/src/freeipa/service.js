@@ -385,7 +385,7 @@ IPA.service.unprovision_dialog = function(spec) {
     var entity_singular = that.entity.metadata.label_singular;
     that.title = that.title.replace('${entity}', entity_singular);
 
-    that.create = function() {
+    that.create_content = function() {
         that.container.append(text.get('@i18n:objects.service.unprovision_confirmation'));
     };
 

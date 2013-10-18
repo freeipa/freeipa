@@ -283,8 +283,8 @@ IPA.automountmap_adder_dialog = function(spec) {
 
     var that = IPA.entity_adder_dialog(spec);
 
-    that.create = function() {
-        that.entity_adder_dialog_create();
+    that.create_content = function() {
+        that.entity_adder_dialog_create_content();
 
         var method_widget = that.widgets.get_widget('general.method');
         var indirect_section = that.widgets.get_widget('indirect');

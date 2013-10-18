@@ -197,7 +197,7 @@ IPA.cert.download_dialog = function(spec) {
         }
     });
 
-    that.create = function() {
+    that.create_content = function() {
         var textarea = $('<textarea/>', {
             'class': 'certificate',
             readonly: 'yes'
@@ -227,7 +227,7 @@ IPA.cert.revoke_dialog = function(spec) {
         return that.select.val();
     };
 
-    that.create = function() {
+    that.create_content = function() {
 
         var table = $('<table/>').appendTo(that.container);
 
@@ -286,7 +286,7 @@ IPA.cert.view_dialog = function(spec) {
         }
     });
 
-    that.create = function() {
+    that.create_content = function() {
 
         var table = $('<table/>').appendTo(that.container);
 
@@ -424,7 +424,7 @@ IPA.cert.request_dialog = function(spec) {
         }
     });
 
-    that.create = function() {
+    that.create_content = function() {
         that.container.append(that.message);
 
         that.textarea = $('<textarea/>', {

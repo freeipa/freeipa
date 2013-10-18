@@ -504,10 +504,10 @@ class UI_driver(object):
 
         info = None
         if dialog:
-            content = self.find('div.ui-dialog-content', By.CSS_SELECTOR, dialog, strict=True)
+            body = self.find('.rcue-dialog-body', By.CSS_SELECTOR, dialog, strict=True)
             info = {
-                'name': content.get_attribute('data-name'),
-                'text': content.text,
+                'name': dialog.get_attribute('data-name'),
+                'text': body.text,
             }
         return info
 
@@ -563,7 +563,7 @@ class UI_driver(object):
         if not dialog:
             dialog = self.get_dialog(strict=True)
 
-        s = "div.ui-dialog-buttonset button[name=%s]" % name
+        s = ".rcue-dialog-buttons button[name=%s]" % name
         self._button_click(s, dialog, name)
 
     def action_button_click(self, name, parent):

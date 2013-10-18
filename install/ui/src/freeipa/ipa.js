@@ -1576,7 +1576,7 @@ IPA.dirty_dialog = function(spec) {
     that.message = text.get(spec.message || '@i18n:dialogs.dirty_message');
 
     /** @inheritDoc */
-    that.create = function() {
+    that.create_content = function() {
         that.container.append(that.message);
     };
 
@@ -1680,7 +1680,7 @@ IPA.error_dialog = function(spec) {
     };
 
     /** @inheritDoc */
-    that.create = function() {
+    that.create_content = function() {
         if (that.error_thrown.url) {
             $('<p/>', {
                 text: text.get('@i18n:errors.url', 'URL')+': '+that.error_thrown.url
@@ -2013,7 +2013,7 @@ IPA.unauthorized_dialog = function(spec) {
     that.denied = "Sorry you are not allowed to access this service.";
 
     /** @inheritDoc */
-    that.create = function() {
+    that.create_content = function() {
 
         that.session_expired_form();
         that.create_reset_form();

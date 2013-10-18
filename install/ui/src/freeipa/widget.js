@@ -4687,7 +4687,7 @@ IPA.sshkey_widget = function(spec) {
             }
         });
 
-        dialog.create = function() {
+        dialog.create_content = function() {
 
             dialog.container.append(dialog.message);
 

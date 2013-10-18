@@ -232,8 +232,8 @@ IPA.entity_adder_dialog = function(spec) {
     };
 
     /** @inheritDoc */
-    that.create = function() {
-        that.dialog_create();
+    that.create_content = function() {
+        that.dialog_create_content();
 
         var div = $('<div/>', {
         }).appendTo(that.container);
@@ -251,7 +251,7 @@ IPA.entity_adder_dialog = function(spec) {
     };
 
     // methods that should be invoked by subclasses
-    that.entity_adder_dialog_create = that.create;
+    that.entity_adder_dialog_create_content = that.create_content;
     that.entity_adder_dialog_create_add_command = that.create_add_command;
     that.entity_adder_dialog_get_success_message = that.get_success_message;
 

@@ -464,8 +464,8 @@ IPA.host_adder_dialog = function(spec) {
 
     var that = IPA.entity_adder_dialog(spec);
 
-    that.create = function() {
-        that.entity_adder_dialog_create();
+    that.create_content = function() {
+        that.entity_adder_dialog_create_content();
         that.container.addClass('host-adder-dialog');
     };
 
@@ -480,9 +480,9 @@ IPA.host_deleter_dialog = function(spec) {
 
     var that = IPA.search_deleter_dialog(spec);
 
-    that.create = function() {
+    that.create_content = function() {
 
-        that.deleter_dialog_create();
+        that.deleter_dialog_create_content();
 
         var metadata = IPA.get_command_option('host_del', 'updatedns');
 
@@ -647,7 +647,7 @@ IPA.host_unprovision_dialog = function(spec) {
 
     that.title = that.title.replace('${entity}', that.entity.metadata.label_singular);
 
-    that.create = function() {
+    that.create_content = function() {
         that.container.append(text.get('@i18n:objects.host.unprovision_confirmation'));
     };
 

@@ -633,8 +633,8 @@ IPA.dnszone_adder_dialog = function(spec) {
         }
     };
 
-    that.create = function() {
-        that.entity_adder_dialog_create();
+    that.create_content = function() {
+        that.entity_adder_dialog_create_content();
         that.container.addClass('dnszone-adder-dialog');
     };
 
@@ -1305,7 +1305,7 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
 
     var that = IPA.message_dialog(spec);
 
-    that.create = function() {
+    that.create_content = function() {
         $('<p/>', {
             'text': text.get('@i18n:objects.dnsrecord.deleted_no_data')
         }).appendTo(that.container);
@@ -2231,7 +2231,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
 
     that.address = spec.address;
 
-    that.create = function() {
+    that.create_content = function() {
 
         that.status_div = $('<div />', {
             'class': 'redirection-status'
