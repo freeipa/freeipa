@@ -825,8 +825,7 @@ table.scrollable tbody {
 
 .adder-dialog {
     position: relative;
-    width: 100%;
-    height: 100%;
+    height: 350px;
 }
 
 .adder-dialog-top {
@@ -840,6 +839,11 @@ table.scrollable tbody {
 
 .adder-dialog-top input[name=filter] {
     width: 244px;
+}
+
+.adder-dialog-top .network-activity-indicator img,
+.adder-dialog-top button {
+    margin-top: -10px;
 }
 
 .adder-dialog-left {
@@ -863,6 +867,10 @@ table.scrollable tbody {
     height: 100%;
 }
 
+.adder-dialog table.scrollable thead {
+    display: table-header-group;
+}
+
 .adder-dialog tbody {
     position: absolute;
     bottom: 32px;
@@ -879,6 +887,7 @@ table.scrollable tbody {
     height: 1.5em;
     line-height: 1.5em;
     padding: 0.2em 1em;
+    font-weight: 700;
 }
 
 .adder-dialog-content {
@@ -900,7 +909,7 @@ table.scrollable tbody {
 }
 
 .adder-dialog-with-external .adder-dialog-available {
-    bottom: 4em;
+    bottom: 5em;
 }
 
 .adder-dialog-selected {
@@ -914,10 +923,15 @@ table.scrollable tbody {
 }
 
 .adder-dialog-buttons {
-    padding-top: 10em;
-    width: 100%;
+    width: 60px;
     text-align: center;
+    margin: 0 auto;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 10em;
 }
+
 
 .adder-dialog-buttons .button {
     position: relative;
@@ -939,7 +953,7 @@ table.scrollable tbody {
     border: none;
     position: absolute;
     left: 0;
-    bottom: 0;
+    bottom: 3em;
     right: 3em;
     height: 4em;
 }
