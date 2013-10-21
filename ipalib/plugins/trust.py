@@ -342,6 +342,8 @@ sides.
             # provide a global mapping across all subdomains
             (created_range_type, _, _) = self.add_range(range_name, dom_sid,
                                                         *keys, **options)
+        else:
+            created_range_type = old_range['result']['iparangetype'][0]
 
         trust_filter = "cn=%s" % result['value']
         ldap = self.obj.backend
