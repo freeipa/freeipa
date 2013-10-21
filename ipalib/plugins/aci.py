@@ -367,20 +367,21 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
         groupdn = DN(groupdn)
         if len(groupdn) and groupdn[0].attr == 'cn':
             dn = DN()
-            entry_attrs = {}
+            entry = {}
             try:
-                (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
+                entry = ldap.get_entry(groupdn, ['cn'])
+                dn = entry.dn
             except errors.NotFound, e:
                 # FIXME, use real name here
                 if test:
                     dn = DN(('cn', 'test'), api.env.container_permission,
                             api.env.basedn)
-                    entry_attrs = {'cn': [u'test']}
+                    entry = {'cn': [u'test']}
             if api.env.container_permission in dn:
-                kw['permission'] = entry_attrs['cn'][0]
+                kw['permission'] = entry['cn'][0]
             else:
-                if 'cn' in entry_attrs:
-                    kw['group'] = entry_attrs['cn'][0]
+                if 'cn' in entry:
+                    kw['group'] = entry['cn'][0]
 
     return kw
 
@@ -537,19 +538,20 @@ class aci_add(crud.Create):
 
         newaci = _make_aci(ldap, None, aciname, kw)
 
-        (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
+        entry = ldap.get_entry(self.api.env.basedn, ['aci'])
+        dn = entry.dn
 
-        acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
+        acis = _convert_strings_to_acis(entry.get('aci', []))
         for a in acis:
             # FIXME: add check for permission_group = permission_group
             if a.isequal(newaci) or newaci.name == a.name:
                 raise errors.DuplicateEntry()
 
         newaci_str = unicode(newaci)
-        entry_attrs['aci'].append(newaci_str)
+        entry['aci'].append(newaci_str)
 
         if not kw.get('test', False):
-            ldap.update_entry(dn, entry_attrs)
+            ldap.update_entry(entry)
 
         if kw.get('raw', False):
             result = dict(aci=unicode(newaci_str))
@@ -581,9 +583,10 @@ class aci_del(crud.Delete):
         """
         ldap = self.api.Backend.ldap2
 
-        (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
+        entry = ldap.get_entry(self.api.env.basedn, ['aci'])
+        dn = entry.dn
 
-        acistrs = entry_attrs.get('aci', [])
+        acistrs = entry.get('aci', [])
         acis = _convert_strings_to_acis(acistrs)
         aci = _find_aci_by_name(acis, aciprefix, aciname)
         for a in acistrs:
@@ -592,9 +595,9 @@ class aci_del(crud.Delete):
                 acistrs.remove(a)
                 break
 
-        entry_attrs['aci'] = acistrs
+        entry['aci'] = acistrs
 
-        ldap.update_entry(dn, entry_attrs)
+        ldap.update_entry(entry)
 
         return dict(
             result=True,
@@ -624,9 +627,9 @@ class aci_mod(crud.Update):
         aciprefix = kw['aciprefix']
         ldap = self.api.Backend.ldap2
 
-        (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
+        entry = ldap.get_entry(self.api.env.basedn, ['aci'])
 
-        acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
+        acis = _convert_strings_to_acis(entry.get('aci', []))
         aci = _find_aci_by_name(acis, aciprefix, aciname)
 
         # The strategy here is to convert the ACI we're updating back into
@@ -700,9 +703,10 @@ class aci_find(crud.Search):
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap2
 
-        (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
+        entry = ldap.get_entry(self.api.env.basedn, ['aci'])
+        dn = entry.dn
 
-        acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
+        acis = _convert_strings_to_acis(entry.get('aci', []))
         results = []
 
         if term:
@@ -901,9 +905,9 @@ class aci_show(crud.Retrieve):
         """
         ldap = self.api.Backend.ldap2
 
-        (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
+        entry = ldap.get_entry(self.api.env.basedn, ['aci'])
 
-        acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
+        acis = _convert_strings_to_acis(entry.get('aci', []))
 
         aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
         if kw.get('raw', False):
@@ -940,9 +944,9 @@ class aci_rename(crud.Update):
     def execute(self, aciname, **kw):
         ldap = self.api.Backend.ldap2
 
-        (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
+        entry = ldap.get_entry(self.api.env.basedn, ['aci'])
 
-        acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
+        acis = _convert_strings_to_acis(entry.get('aci', []))
         aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
 
         for a in acis:

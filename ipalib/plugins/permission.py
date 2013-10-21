@@ -347,7 +347,7 @@ class permission_mod(LDAPUpdate):
                     except (IndexError, KeyError), e:
                         raise ValueError("expected dn starting with 'cn=' but got '%s'" % dn)
                     new_dn[0].value = options['rename']
-                    (new_dn, attrs) = ldap.get_entry(new_dn, attrs_list)
+                    entry = ldap.get_entry(new_dn, attrs_list)
                     raise errors.DuplicateEntry()
                 except errors.NotFound:
                     pass    # permission may be renamed, continue
