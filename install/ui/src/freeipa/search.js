@@ -165,7 +165,7 @@ IPA.search_facet = function(spec, no_init) {
             });
         }
         dialog.pkey_prefix = that.managed_entity_pkey_prefix();
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.create_remove_dialog = function() {
@@ -201,7 +201,7 @@ IPA.search_facet = function(spec, no_init) {
     that.show_remove_dialog = function() {
 
         var dialog = that.create_remove_dialog();
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.find = function() {

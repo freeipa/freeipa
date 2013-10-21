@@ -520,7 +520,7 @@ IPA.association_table_widget = function (spec) {
                 that.show_add_dialog();
             };
 
-            dialog.open(that.container);
+            dialog.open();
 
         } else {
             that.show_add_dialog();
@@ -540,7 +540,7 @@ IPA.association_table_widget = function (spec) {
                 that.show_remove_dialog();
             };
 
-            dialog.open(that.container);
+            dialog.open();
 
         } else {
             that.show_remove_dialog();
@@ -650,7 +650,7 @@ IPA.association_table_widget = function (spec) {
             );
         };
 
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.add = function(values, on_success, on_error) {
@@ -714,7 +714,7 @@ IPA.association_table_widget = function (spec) {
         };
 
 
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.remove = function(values, on_success, on_error) {
@@ -1145,7 +1145,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
             associator.execute();
         };
 
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.show_remove_dialog = function() {
@@ -1198,7 +1198,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
             associator.execute();
         };
 
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.get_records_map = function(data) {
@@ -1431,7 +1431,7 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
         dialog.added.attach(function() {
             that.refresh();
         });
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.show_remove_dialog = function() {
@@ -1467,7 +1467,7 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
         };
 
 
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.remove = function(values, on_success, on_error) {

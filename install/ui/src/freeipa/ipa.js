@@ -1911,7 +1911,7 @@ IPA.create_4304_error_handler = function(adder_dialog) {
             });
         }
 
-        dialog.open(adder_dialog.container);
+        dialog.open();
     };
 };
 

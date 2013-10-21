@@ -768,7 +768,7 @@ IPA.sudo.options_section = function(spec) {
             dialog.callback = function() {
                 that.show_add_dialog();
             };
-            dialog.open(that.container);
+            dialog.open();
 
         } else {
             that.show_add_dialog();
@@ -784,7 +784,7 @@ IPA.sudo.options_section = function(spec) {
             dialog.callback = function() {
                 that.show_remove_dialog();
             };
-            dialog.open(that.container);
+            dialog.open();
 
         } else {
             that.show_remove_dialog();
@@ -852,7 +852,7 @@ IPA.sudo.options_section = function(spec) {
             }
         });
 
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.show_remove_dialog = function() {
@@ -919,7 +919,7 @@ IPA.sudo.options_section = function(spec) {
             batch.execute();
         };
 
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.reload = function() {

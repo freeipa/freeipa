@@ -208,7 +208,7 @@ IPA.automember.rule_search_facet = function(spec) {
         }
         dialog.pkey_prefix = that.managed_entity_pkey_prefix();
         dialog.group_type = that.group_type;
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.create_remove_dialog = function() {

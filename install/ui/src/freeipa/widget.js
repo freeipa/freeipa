@@ -2692,7 +2692,7 @@ IPA.attribute_table_widget = function(spec) {
                 that.show_add_dialog();
             };
 
-            dialog.open(that.container);
+            dialog.open();
 
         } else {
             that.show_add_dialog();
@@ -2712,7 +2712,7 @@ IPA.attribute_table_widget = function(spec) {
                 that.show_remove_dialog();
             };
 
-            dialog.open(that.container);
+            dialog.open();
 
         } else {
             that.show_remove_dialog();
@@ -2722,7 +2722,7 @@ IPA.attribute_table_widget = function(spec) {
     that.show_remove_dialog = function() {
 
         var dialog = that.create_remove_dialog();
-        if (dialog) dialog.open(that.container);
+        if (dialog) dialog.open();
     };
 
     that.create_remove_dialog = function() {
@@ -2882,7 +2882,7 @@ IPA.attribute_table_widget = function(spec) {
     that.show_add_dialog = function() {
 
         var dialog = that.create_add_dialog();
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.update = function(values) {

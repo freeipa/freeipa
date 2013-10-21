@@ -1220,7 +1220,7 @@ IPA.dns.record_details_facet = function(spec) {
         if (!data.result.result.idnsname) {
             that.reset();
             var dialog = IPA.dnsrecord_redirection_dialog();
-            dialog.open(that.container);
+            dialog.open();
             return;
         }
 
@@ -1734,7 +1734,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                 that.show_add_dialog();
             };
 
-            dialog.open(that.container);
+            dialog.open();
 
         } else {
             that.show_add_dialog();
@@ -1754,7 +1754,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                 that.show_remove_dialog();
             };
 
-            dialog.open(that.container);
+            dialog.open();
 
         } else {
             that.show_remove_dialog();
@@ -1792,7 +1792,7 @@ IPA.dns.record_type_table_widget = function(spec) {
         };
 
 
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.remove = function(values, pkey, on_success, on_error) {
@@ -1907,7 +1907,7 @@ IPA.dns.record_type_table_widget = function(spec) {
     that.show_add_dialog = function() {
 
         var dialog = that.create_add_dialog();
-        dialog.open(that.container);
+        dialog.open();
     };
 
     that.create_mod_dialog = function() {

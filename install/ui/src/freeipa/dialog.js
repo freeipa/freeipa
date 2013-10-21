@@ -413,13 +413,12 @@ IPA.dialog = function(spec) {
      * Open dialog
      * @param {jQuery} container
      */
-    that.open = function(container) {
+    that.open = function() {
 
         that.create_dialog();
         that.reset();
 
-        container = container || document.body;
-        that.dom_node.appendTo(container);
+        that.dom_node.appendTo(document.body);
 
         that.register_listeners();
         IPA.opened_dialogs.add_dialog(that);
