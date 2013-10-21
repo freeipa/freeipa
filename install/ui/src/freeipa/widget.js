@@ -316,13 +316,12 @@ IPA.input_widget = function(spec) {
     that.create_undo = function(container, on_undo) {
         container.append(' ');
 
-        that.undo_span =
-            $('<span/>', {
-                name: 'undo',
-                style: 'display: none;',
-                'class': 'ui-state-highlight ui-corner-all undo',
-                html: text.get('@i18n:widget.undo')
-            }).appendTo(container);
+        that.undo_span = IPA.button({
+            name: 'undo',
+            style: 'display: none;',
+            'class': 'undo',
+            label: text.get('@i18n:widget.undo')
+        }).appendTo(container);
 
         if(on_undo === undefined) {
             on_undo = function() {

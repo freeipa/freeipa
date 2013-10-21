@@ -825,7 +825,7 @@ class UI_driver(object):
         """
         if not parent:
             parent = self.get_form()
-        s = "div[name='%s'].field span.undo" % (field)
+        s = ".controls div[name='%s'] .btn.undo" % (field)
         undos = self.find(s, By.CSS_SELECTOR, parent, strict=True, many=True)
         return undos
 
