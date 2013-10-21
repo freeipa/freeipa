@@ -224,7 +224,8 @@ IPA.dialog = function(spec) {
         }
 
         that.dom_node = $('<div/>', {
-            'class': 'rcue-dialog-background'
+            'class': 'rcue-dialog-background',
+            keydown: that.on_key_down
         });
 
         var container_node = $('<div/>', {
@@ -359,6 +360,39 @@ IPA.dialog = function(spec) {
             button.element = ui_button;
         }
         return that.buttons_node;
+    };
+
+    /**
+     * Default keyboard behavior
+     *
+     * - close on escape if enabled by `close_on_escape`
+     * - makes sure that tabbing doesn't leave the dialog
+     */
+    that.on_key_down = function(event) {
+
+        if ( that.close_on_escape && !event.isDefaultPrevented() && event.keyCode &&
+            event.keyCode === $.ui.keyCode.ESCAPE ) {
+            event.preventDefault();
+            that.close();
+            return;
+        }
+
+        // prevent tabbing out of dialogs
+        if ( event.keyCode !== $.ui.keyCode.TAB ) {
+            return;
+        }
+
+        var tabbables = that.dom_node.find(":tabbable"),
+        first = tabbables.filter(":first"),
+        last = tabbables.filter(":last");
+
+        if ( ( event.target === last[0] || event.target === that.dialog_node[0] ) && !event.shiftKey ) {
+            first.focus( 1 );
+            event.preventDefault();
+        } else if ( ( event.target === first[0] || event.target === that.dialog_node[0] ) && event.shiftKey ) {
+            last.focus( 1 );
+            event.preventDefault();
+        }
     };
 
     /**
