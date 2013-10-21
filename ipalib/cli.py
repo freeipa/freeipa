@@ -1254,11 +1254,13 @@ class cli(backend.Executioner):
                         raise ValidationError(
                             name=to_cli(p.cli_name), error=e[1]
                         )
-                if not raw:
-                        raise ValidationError(
-                            name=to_cli(p.cli_name), error=_('No file to read')
-                        )
-                kw[p.name] = self.Backend.textui.decode(raw)
+
+                if raw:
+                    kw[p.name] = self.Backend.textui.decode(raw)
+                elif p.required:
+                    raise ValidationError(
+                        name=to_cli(p.cli_name), error=_('No file to read')
+                    )
 
 
 class IPAHelpFormatter(optparse.IndentedHelpFormatter):
