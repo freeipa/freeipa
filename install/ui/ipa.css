@@ -517,6 +517,8 @@ div[name=settings].facet-group li a {
 
 .search-table .pagination-control input[name=current_page] {
     width: 22px;
+    padding: 0 6px;
+    margin: 0;
 }
 
 ul#viewtype {
