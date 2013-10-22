@@ -345,6 +345,10 @@ div[name=settings].facet-group li a {
     margin: 0 6px 0 0;
 }
 
+.facet-controls .network-activity-indicator img {
+    margin-top: -15px;
+}
+
 /* ---- Facet Content ---- */
 
 .facet-content {
