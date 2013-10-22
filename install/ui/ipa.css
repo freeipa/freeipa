@@ -108,6 +108,18 @@ textarea[readonly] {
     margin: -4px 0 0 1px;
 }
 
+.prev-icon {
+    background-image: url(images/ui-icons_bbbbbb_256x240.png);
+    background-position: -96px -16px;
+    margin: -4px 0 0 1px;
+}
+
+.next-icon {
+    background-image: url(images/ui-icons_bbbbbb_256x240.png);
+    background-position: -32px -16px;
+    margin: -4px 0 0 1px;
+}
+
 .ipa-icon {
     font-size: 0.7em;
     padding-right: 0.3em;
@@ -1173,6 +1185,11 @@ body.info-page  {
     left: 0;
     right: 0;
     height: 30px;
+    line-height: normal;
+}
+
+.hbac-test-header .search-filter {
+    float: right;
 }
 
 .hbac-test-content {
@@ -1185,7 +1202,7 @@ body.info-page  {
 
 .hbac-test-footer {
     position: absolute;
-    height: 25px;
+    height: 29px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -1198,6 +1215,11 @@ body.info-page  {
     text-transform: uppercase;
     text-shadow: 1px 1px 0 #FFFFFF;
     margin:  0;
+}
+
+.hbac-test-title,
+.hbac-test-title ~ label {
+    margin-right: 5px !important;
 }
 
 div.facet[data-entity=hbactest] .content-table tbody {

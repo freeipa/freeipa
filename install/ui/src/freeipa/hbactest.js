@@ -182,7 +182,7 @@ IPA.hbac.test_facet = function(spec) {
             that.prev_button = IPA.button({
                 name: 'prev',
                 label: '@i18n:widget.prev',
-                icon: 'ui-icon ui-icon-triangle-1-w',
+                icon: 'prev-icon',
                 click: function() {
                     if (!that.prev_button.hasClass('action-button-disabled')) {
                         that.prev();
@@ -197,7 +197,7 @@ IPA.hbac.test_facet = function(spec) {
         that.next_button = IPA.button({
             name: 'next',
             label: '@i18n:widget.next',
-            icon: 'ui-icon ui-icon-triangle-1-e',
+            icon: 'next-icon',
             click: function() {
                 if (!that.next_button.hasClass('action-button-disabled')) {
                     that.next();
@@ -605,7 +605,7 @@ IPA.hbac.test_run_facet = function(spec) {
         that.prev_button = IPA.button({
             name: 'prev',
             label: '@i18n:widget.prev',
-            icon: 'ui-icon ui-icon-triangle-1-w',
+            icon: 'prev-icon',
             click: function() {
                 if (!that.prev_button.hasClass('action-button-disabled')) {
                     that.prev();
