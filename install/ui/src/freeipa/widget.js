@@ -813,11 +813,11 @@ IPA.multivalued_widget = function(spec) {
 
         container.append(' ');
 
-        that.undo_span = $('<span/>', {
+        that.undo_span = IPA.button({
             name: 'undo_all',
             style: 'display: none;',
-            'class': 'ui-state-highlight ui-corner-all undo',
-            html: text.get('@i18n:widget.undo_all'),
+            'class': 'undo',
+            label: text.get('@i18n:widget.undo_all'),
             click: function() {
                 that.undo_clicked.notify([], that);
             }

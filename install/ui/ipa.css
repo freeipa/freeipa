@@ -970,6 +970,10 @@ table.scrollable tbody {
     width: 250px;
 }
 
+.multivalued-widget a[name=add] {
+    margin-right: 5px;
+}
+
 .textarea-widget textarea {
     width: 250px;
 }
