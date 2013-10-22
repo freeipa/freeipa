@@ -428,38 +428,24 @@ div[name=settings].facet-group li a {
 }
 
 .search-option {
-    border: 1px solid #9f9e9e;
-    background: url(images/search-background.png);
-    border-radius: 15px !important;
-    height: 22px;
-    line-height: 22px;
-    padding: 0 8px 0;
+    margin-right: 8px;
+    width: 206px;
 }
 
 .search-filter {
     width: 215px;
-    -moz-border-radius: 15px !important;
-    -webkit-border-radius: 15px !important;
-    border-radius: 15px !important;
-    border: 1px solid #9f9e9e;
-    background: url(images/search-background.png);
-    height: 20px;
-    line-height: 20px;
-    padding: 0 8px 0;
-    margin: 5px;
     display: inline-block;
 }
 
 .search-filter input {
-    width: 193px;
-    border: none;
-    background: transparent;
-    height: 18px;
+    padding-right: 20px;
+    width: 178px;
 }
 
 .search-filter a {
-    float: right;
-    margin: 0;
+    position: relative;
+    margin: 0 0 0 -20px;
+    top: -5px;
 }
 
 .search-controls {
