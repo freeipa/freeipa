@@ -81,9 +81,11 @@ invalid_permission1 = u'bad;perm'
 class test_permission(Declarative):
 
     cleanup_commands = [
-        ('permission_del', [permission1], {}),
-        ('permission_del', [permission2], {}),
-        ('permission_del', [permission3], {}),
+        ('permission_del', [permission1], {'force': True}),
+        ('permission_del', [permission2], {'force': True}),
+        ('permission_del', [permission3], {'force': True}),
+        ('permission_del', [permission1_renamed], {'force': True}),
+        ('permission_del', [permission1_renamed_ucase], {'force': True}),
         ('privilege_del', [privilege1], {}),
     ]
 
