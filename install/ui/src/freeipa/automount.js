@@ -313,7 +313,8 @@ IPA.automountmap_adder_dialog = function(spec) {
             indirect_section.set_visible(true);
         });
 
-        direct_input.click();
+        direct_input.prop('checked', true);
+        direct_input.trigger('change');
     };
 
     that.reset = function() {
@@ -322,7 +323,8 @@ IPA.automountmap_adder_dialog = function(spec) {
         var method_widget = that.widgets.get_widget('general.method');
 
         var direct_input = $('input[value="add"]', method_widget.container);
-        direct_input.click();
+        direct_input.prop('checked', true);
+        direct_input.trigger('change');
     };
 
     return that;
