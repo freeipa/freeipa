@@ -346,7 +346,7 @@ IPA.input_widget = function(spec) {
      * Display undo button
      */
     that.show_undo = function() {
-        that.get_undo().css('display', 'inline');
+        that.get_undo().css('display', '');
     };
 
     /**
@@ -393,7 +393,7 @@ IPA.input_widget = function(spec) {
         that.required = required;
 
         if (that.required_indicator) {
-            that.required_indicator.css('display', that.required ? 'inline' : 'none');
+            that.required_indicator.css('display', that.required ? '' : 'none');
         }
     };
 
@@ -543,12 +543,12 @@ IPA.text_widget = function(spec) {
 
         if (!that.is_writable()) {
             that.display_control.text(value);
-            that.display_control.css('display', 'inline');
+            that.display_control.css('display', '');
             that.input.css('display', 'none');
         } else {
             that.input.val(value);
             that.display_control.css('display', 'none');
-            that.input.css('display', 'inline');
+            that.input.css('display', '');
         }
 
         that.updated.notify([], that);
@@ -768,7 +768,8 @@ IPA.multivalued_widget = function(spec) {
 
         row.remove_link = $('<a/>', {
             name: 'remove',
-            href: 'jslink',
+            href: '#',
+            'class': 'link-btn',
             title: text.get('@i18n:buttons.remove'),
             html: text.get('@i18n:buttons.remove'),
             click: function () {
@@ -800,7 +801,8 @@ IPA.multivalued_widget = function(spec) {
 
         that.add_link = $('<a/>', {
             name: 'add',
-            href: 'jslink',
+            href: '#',
+            'class': 'link-btn',
             title: text.get('@i18n:buttons.add'),
             html: text.get('@i18n:buttons.add'),
             click: function() {
@@ -895,7 +897,7 @@ IPA.multivalued_widget = function(spec) {
             if (!that.is_writable()) {
                 that.add_link.css('display', 'none');
             } else {
-                that.add_link.css('display', 'inline');
+                that.add_link.css('display', '');
             }
 
         } else {
@@ -2506,7 +2508,7 @@ IPA.table_widget = function (spec) {
     that.show_error = function(message) {
         var error_link = that.get_error_link();
         error_link.html(message);
-        error_link.css('display', 'inline');
+        error_link.css('display', '');
     };
 
     that.set_enabled = function(enabled) {
@@ -3449,9 +3451,10 @@ IPA.link_widget = function(spec) {
         that.widget_create(container);
         that.link =
         $('<a/>', {
-            href: 'jslink',
+            href: '#',
             title: '',
             html: '',
+            'class': 'link-btn',
             click: function() {
                 that.link_clicked.notify([], that);
                 return false;
@@ -3469,11 +3472,11 @@ IPA.link_widget = function(spec) {
             that.nonlink.text(values[0]);
             that.link.text(values[0]);
             if(that.is_link) {
-                that.link.css('display','inline');
+                that.link.css('display','');
                 that.nonlink.css('display','none');
             } else {
                 that.link.css('display','none');
-                that.nonlink.css('display','inline');
+                that.nonlink.css('display','');
             }
         } else {
             that.link.html('');
@@ -4547,7 +4550,7 @@ IPA.sshkey_widget = function(spec) {
 
         that.link = $('<a/>', {
             type: that.type,
-            'class': 'sshkey-set',
+            'class': 'sshkey-set link-btn',
             name: that.name,
             href: '#show-certificate',
             title: that.tooltip,
