@@ -1029,7 +1029,7 @@ table.scrollable tbody {
     top: 0;
     bottom: 0;
     right: 0;
-    margin-top: 2px;
+    margin-top: 4px;
     margin-right: 4px;
 }
 
@@ -1045,6 +1045,11 @@ table.scrollable tbody {
 
 .combobox-widget-list input {
     width: 238px;
+}
+
+.combobox-widget-list a {
+    padding: 0;
+    margin: 0;
 }
 
 .combobox-widget-list .search-icon {

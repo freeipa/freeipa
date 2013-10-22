@@ -96,14 +96,22 @@ input[type="radio"]:checked:disabled + label {
         }
     }
 
-    .controls .link-btn {
-        display: inline-block;
-    }
+    .controls {
 
-    .controls a,
-    .controls label {
-        padding-top: 3px;
-        margin-bottom: 3px;
+        .link-btn {
+            display: inline-block;
+        }
+
+        a, label {
+            padding-top: 3px;
+            margin-bottom: 3px;
+        }
+
+        // disable previous in combobox
+        .combobox-widget a {
+            padding: 0px;
+            margin: 0px;
+        }
     }
 }
 
