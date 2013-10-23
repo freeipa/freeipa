@@ -499,6 +499,7 @@ IPA.dnszone_name_widget = function(spec) {
             value: that.name,
             click: function() {
                 that.radio_clicked.notify([], that);
+                that.emit('radio-click', { source: that });
             }
         }).appendTo(container);
     };

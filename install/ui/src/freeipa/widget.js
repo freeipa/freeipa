@@ -24,6 +24,7 @@
 
 define(['dojo/_base/array',
        'dojo/_base/lang',
+       'dojo/Evented',
        './builder',
        './ipa',
        './jquery',
@@ -31,7 +32,7 @@ define(['dojo/_base/array',
        './reg',
        './text'
        ],
-       function(array, lang, builder, IPA, $, phases, reg, text) {
+       function(array, lang, Evented, builder, IPA, $, phases, reg, text) {
 
 /**
  * Widget module
@@ -69,7 +70,7 @@ IPA.widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.object();
+    var that = new Evented();
 
     /**
      * Widget name. Should be container unique.
@@ -142,7 +143,11 @@ IPA.widget = function(spec) {
      * @param {boolean} value - True - enabled; False - disabled
      */
     that.set_enabled = function(value) {
+        var changed = that.enabled !== value;
         that.enabled = value;
+        if (changed) {
+            that.emit('enabled-change', { source: that, enabled: value });
+        }
     };
 
     /**
@@ -150,11 +155,15 @@ IPA.widget = function(spec) {
      * @param {boolean} value - True - visible; False - hidden
      */
     that.set_visible = function(visible) {
+        var changed = visible !== that.container.is(':visible');
 
         if (visible) {
             that.container.show();
         } else {
             that.container.hide();
+        }
+        if (changed) {
+            that.emit('visible-change', { source: that, visible: visible });
         }
     };
 
@@ -326,6 +335,7 @@ IPA.input_widget = function(spec) {
         if(on_undo === undefined) {
             on_undo = function() {
                 that.undo_clicked.notify([], that);
+                that.emit('undo-click', { source: that });
             };
         }
 
@@ -373,6 +383,7 @@ IPA.input_widget = function(spec) {
         var error_link = that.get_error_link();
         error_link.html(message);
         error_link.css('display', 'block');
+        that.emit('error-show', { source: that, error: message });
     };
 
     /**
@@ -382,6 +393,7 @@ IPA.input_widget = function(spec) {
     that.hide_error = function() {
         var error_link = that.get_error_link();
         error_link.css('display', 'none');
+        that.emit('error-hide', { source: that });
     };
 
     /**
@@ -390,10 +402,15 @@ IPA.input_widget = function(spec) {
      */
     that.set_required = function(required) {
 
+        var changed = required !== that.required;
+
         that.required = required;
 
         if (that.required_indicator) {
             that.required_indicator.css('display', that.required ? '' : 'none');
+        }
+        if (changed) {
+            that.emit('require-change', { source: that, required: required });
         }
     };
 
@@ -402,6 +419,7 @@ IPA.input_widget = function(spec) {
      * @param {boolean} value - enabled
      */
     that.set_enabled = function(value) {
+
         that.widget_set_enabled(value);
 
         if (that.input) {
@@ -416,6 +434,7 @@ IPA.input_widget = function(spec) {
     that.on_value_changed = function() {
         var value = that.save();
         that.value_changed.notify([value], that);
+        that.emit('value-change', { source: that, value: value });
     };
 
     /**
@@ -552,6 +571,7 @@ IPA.text_widget = function(spec) {
         }
 
         that.updated.notify([], that);
+        that.emit('update', { source: that, value: value });
     };
 
     /**
@@ -641,6 +661,8 @@ IPA.multivalued_widget = function(spec) {
         }
 
         that.value_changed.notify([], that);
+        that.emit('child-value-change', { source: that, row: row });
+        that.emit('value-change', { source: that });
     };
 
     that.on_child_undo_clicked = function(row) {
@@ -656,6 +678,7 @@ IPA.multivalued_widget = function(spec) {
 
         row.widget.hide_undo();
         that.value_changed.notify([], that);
+        that.emit('child-undo-click', { source: that, row: row });
     };
 
     that.hide_undo = function() {
@@ -775,6 +798,7 @@ IPA.multivalued_widget = function(spec) {
             click: function () {
                 that.remove_row(row);
                 that.value_changed.notify([], that);
+                that.emit('value-change', { source: that });
                 return false;
             }
         }).appendTo(row.container);
@@ -783,6 +807,7 @@ IPA.multivalued_widget = function(spec) {
             row.remove_link.hide();
             row.widget.show_undo();
             that.value_changed.notify([], that);
+            that.emit('value-change', { source: that });
         }
         if (!that.is_writable()) {
             row.remove_link.hide();
@@ -822,6 +847,7 @@ IPA.multivalued_widget = function(spec) {
             label: text.get('@i18n:widget.undo_all'),
             click: function() {
                 that.undo_clicked.notify([], that);
+                that.emit('undo-click', { source: that });
             }
         }).appendTo(container);
     };
@@ -907,6 +933,8 @@ IPA.multivalued_widget = function(spec) {
         }
 
         that.updated.notify([], that);
+        that.emit('update', { source: that });
+
     };
 
     return that;
@@ -948,7 +976,7 @@ IPA.option_widget_base = function(spec, that) {
     spec = spec || {};
 
     // when that is specified, this constructor behaves like a mixin
-    that = that || {};
+    that = that || new Evented();
 
     // classic properties
     that.name = spec.name;
@@ -1218,6 +1246,7 @@ IPA.option_widget_base = function(spec, that) {
             }
         }
         that.value_changed.notify([], that);
+        that.emit('value-change', { source: that });
     };
 
     that.save = function() {
@@ -1308,6 +1337,7 @@ IPA.option_widget_base = function(spec, that) {
         }
 
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.set_enabled = function(enabled) {
@@ -1515,6 +1545,7 @@ IPA.select_widget = function(spec) {
             name: that.name,
             change: function() {
                 that.value_changed.notify([], that);
+                that.emit('value-change', { source: that });
                 return false;
             }
         }).appendTo(container);
@@ -1569,6 +1600,7 @@ IPA.select_widget = function(spec) {
         if (!option.length) return;
         option.prop('selected', true);
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.empty = function() {
@@ -1671,6 +1703,7 @@ IPA.textarea_widget = function (spec) {
         var value = values && values.length ? values[0] : '';
         that.input.val(value);
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.clear = function() {
@@ -2378,6 +2411,7 @@ IPA.table_widget = function (spec) {
             that.add_record(record);
         }
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.save = function() {
@@ -3106,6 +3140,7 @@ IPA.combobox_widget = function(spec) {
             e.preventDefault();
         } else {
             that.value_changed.notify([], that);
+            that.emit('value-change', { source: that });
         }
     };
 
@@ -3171,6 +3206,7 @@ IPA.combobox_widget = function(spec) {
         var value = that.list.val();
         that.input.val(value);
         that.value_changed.notify([[value]], that);
+        that.emit('value-change', { source: that, value: value });
     };
 
     that.list_child_on_blur = function(e) {
@@ -3283,6 +3319,7 @@ IPA.combobox_widget = function(spec) {
             }
         );
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.set_value = function(value) {
@@ -3309,6 +3346,7 @@ IPA.combobox_widget = function(spec) {
 
         that.set_value(option.val());
         that.value_changed.notify([], that);
+        that.emit('value-change', { source: that });
     };
 
     that.select_next = function() {
@@ -3457,6 +3495,7 @@ IPA.link_widget = function(spec) {
             'class': 'link-btn',
             click: function() {
                 that.link_clicked.notify([], that);
+                that.emit('link-click', { source: that });
                 return false;
             }
         }).appendTo(container);
@@ -3485,6 +3524,7 @@ IPA.link_widget = function(spec) {
             that.nonlink.css('display','none');
         }
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     /** @inheritDoc */
@@ -4585,6 +4625,7 @@ IPA.sshkey_widget = function(spec) {
         }
         that.update_link();
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.set_deleted = function(deleted) {
@@ -4643,6 +4684,7 @@ IPA.sshkey_widget = function(spec) {
 
         if (value !== previous) {
             that.value_changed.notify([], that);
+            that.emit('value-change', { source: that });
         }
     };
 
@@ -4894,6 +4936,7 @@ IPA.value_map_widget = function(spec) {
 
         that.display_control.text(label);
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.clear = function() {

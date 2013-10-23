@@ -501,6 +501,7 @@ IPA.user_password_widget = function(spec) {
             that.display_control.text(that.unset_value);
         }
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.clear = function() {

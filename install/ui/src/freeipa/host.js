@@ -621,6 +621,7 @@ IPA.host_keytab_widget = function(spec) {
     that.update = function(values) {
         set_status(values[0] ? 'present' : 'missing');
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.clear = function() {
@@ -783,6 +784,7 @@ IPA.host_password_widget = function(spec) {
     that.update = function(values) {
         set_status(values[0] ? 'present' : 'missing');
         that.updated.notify([], that);
+        that.emit('update', { source: that });
     };
 
     that.clear = function() {
