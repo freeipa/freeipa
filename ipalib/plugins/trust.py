@@ -255,7 +255,8 @@ class trust(LDAPObject):
         trust_type = kwargs.get('trust_type')
         if trust_type is None:
             ldap = self.backend
-            filter = ldap.make_filter({'objectclass': ['ipaNTTrustedDomain'], 'cn': [keys[-1]]})
+            filter = ldap.make_filter({'objectclass': ['ipaNTTrustedDomain'], 'cn': [keys[-1]] },
+                                      rules=ldap.MATCH_ALL)
             filter = ldap.combine_filters((filter, "ipaNTSIDBlacklistIncoming=*"), rules=ldap.MATCH_ALL)
             try:
                 result = ldap.get_entries(DN(self.container_dn, self.env.basedn),
