@@ -116,6 +116,7 @@ class BeakerLibProcess(object):
                                     raiseonerr=False)
             if cmd.returncode:
                 self.log.warn('Could not collect all requested logs')
+                return
 
             # Copy and unpack on the local side
             topdirname = tempfile.mkdtemp()
