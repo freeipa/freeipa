@@ -2205,7 +2205,7 @@ IPA.unauthorized_dialog = function(spec) {
     that.show_reset_form = function() {
 
         that.current_view = 'reset';
-        that.enable_fields(['new_password', 'verify_password']);
+        that.enable_fields(['username_r', 'new_password', 'verify_password']);
         that.session_form.css('display', 'none');
         that.reset_form.css('display', 'block');
         that.display_buttons(['reset', 'cancel']);
