@@ -1933,6 +1933,7 @@ IPA.unauthorized_dialog = function(spec) {
         {
             name: 'login',
             label: 'Login',
+            show_header: false,
             fields: [
                 {
                     name: 'username',
@@ -1948,6 +1949,7 @@ IPA.unauthorized_dialog = function(spec) {
         {
             name: 'reset',
             label: 'Reset',
+            show_header: false,
             fields: [
                 {
                     name: 'username_r',
