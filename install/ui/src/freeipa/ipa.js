@@ -2515,6 +2515,20 @@ IPA.confirm = function(msg) {
  *                 message to be displayed [ms]
  */
 IPA.notify_success = function(message, timeout) {
+    IPA.notify(message, 'success', timeout);
+};
+
+/**
+ * Display positive message
+ * @member IPA
+ * @param {string} message
+ * @param {string} type
+ *                      message type ('success', 'warning', 'info', 'error')
+ *                      Default: 'warning'
+ * @param {number} [timeout=IPA.config.message_timeout] - duration for the
+ *                 message to be displayed [ms]
+ */
+IPA.notify = function(message, type, timeout) {
 
     if (!message) return; // don't show undefined, null and such
 
@@ -2525,20 +2539,35 @@ IPA.notify_success = function(message, timeout) {
     }
 
     var notification_area = $('.notification-area');
+    var message_el = $('.notification-area div');
 
     if (notification_area.length === 0) {
         notification_area =  $('<div/>', {
-            'class': 'notification-area ui-corner-all ui-state-highlight',
+            'class': 'notification-area',
             click: function() {
                 destroy_timeout();
                 notification_area.fadeOut(100);
             }
         });
+        message_el = $('<div/>', {
+            'class': 'alert'
+        }).appendTo(notification_area);
 
         notification_area.appendTo('#container');
     }
 
-    notification_area.text(message);
+    if (IPA.notify_success.current_cls) {
+        message_el.removeClass(IPA.notify_success.current_cls);
+        IPA.notify_success.current_cls = null;
+    }
+
+    if (type && type !== 'warning') {
+        var type_cls = 'alert-'+type;
+        message_el.addClass(type_cls);
+        IPA.notify_success.current_cls = type_cls;
+    }
+
+    message_el.text(message);
 
     destroy_timeout();
     notification_area.fadeIn(IPA.config.message_fadein_time);

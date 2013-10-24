@@ -145,16 +145,21 @@ textarea[readonly] {
 
 .notification-area {
     position: absolute;
-    top: 40px;
-    left: 380px;
-    right: 380px;
+    left: 50%;
+    top: 15px;
+}
+
+.notification-area div {
+    position: relative;
+    left: -50%;
+
     line-height: 1.5em;
     z-index: 20;
     padding: 4px;
-
     font-weight: bold;
     text-align: center;
     word-wrap: break-word;
+    max-width: 500px;
 }
 
 /* ---- Entity ---- */
