@@ -2606,6 +2606,11 @@ def main():
         if options.force:
             root_logger.warning(
                 "Installation failed. Force set so not rolling back changes.")
+        elif options.on_master:
+            root_logger.warning(
+                "Installation failed. As this is IPA server, changes will not "
+                "be rolled back."
+            )
         else:
             root_logger.error("Installation failed. Rolling back changes.")
             options.unattended = True
