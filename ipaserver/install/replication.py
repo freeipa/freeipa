@@ -627,6 +627,7 @@ class ReplicationManager(object):
         if iswinsync:
             self.setup_winsync_agmt(entry, win_subtree)
 
+        entry['nsds5ReplicaStripAttrs'] = [" ".join(STRIP_ATTRS)]
         a_conn.add_entry(entry)
 
         try:
@@ -638,8 +639,6 @@ class ReplicationManager(object):
             # Probably the master is an old 389-ds server, tell the caller
             # that we will have to set the memberof fixup task
             self.need_memberof_fixup = True
-
-        entry['nsds5ReplicaStripAttrs'] = [" ".join(STRIP_ATTRS)]
 
         wait_for_entry(a_conn, entry)
 
