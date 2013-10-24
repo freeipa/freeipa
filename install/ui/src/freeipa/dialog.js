@@ -297,7 +297,7 @@ IPA.dialog = function(spec) {
 
         that.message_container = $('<div/>', {
             style: 'display: none',
-            'class': 'dialog-message ui-state-highlight ui-corner-all'
+            'class': 'dialog-message alert'
         }).appendTo(that.body_node);
 
         var widgets = that.widgets.get_widgets();
