@@ -236,8 +236,10 @@ def env_normalize(env):
     """Fill env variables from alternate variable names
 
     MASTER_env1 <- MASTER
-    REPLICA_env1 <- REPLICA
-    CLIENT_env1 <- CLIENT, SLAVE
+    REPLICA_env1 <- REPLICA, SLAVE
+    CLIENT_env1 <- CLIENT
+    similarly for BEAKER* variants: BEAKERMASTER1_env1 <- BEAKERMASTER, etc.
+
     CLIENT_env1 gets extended with CLIENT2 or CLIENT2_env1
     """
     def coalesce(name, *other_names):
@@ -253,8 +255,12 @@ def env_normalize(env):
             else:
                 env[name] = ''
     coalesce('MASTER_env1', 'MASTER')
-    coalesce('REPLICA_env1', 'REPLICA')
-    coalesce('CLIENT_env1', 'CLIENT', 'SLAVE')
+    coalesce('REPLICA_env1', 'REPLICA', 'SLAVE')
+    coalesce('CLIENT_env1', 'CLIENT')
+
+    coalesce('BEAKERMASTER1_env1', 'BEAKERMASTER')
+    coalesce('BEAKERREPLICA1_env1', 'BEAKERREPLICA', 'BEAKERSLAVE')
+    coalesce('BEAKERCLIENT1_env1', 'BEAKERCLIENT')
 
     def extend(name, name2):
         value = env.get(name2)

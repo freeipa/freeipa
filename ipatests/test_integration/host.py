@@ -32,7 +32,8 @@ class BaseHost(object):
     """Representation of a remote IPA host"""
     transport_class = None
 
-    def __init__(self, domain, hostname, role, index, ip=None):
+    def __init__(self, domain, hostname, role, index, ip=None,
+                 external_hostname=None):
         self.domain = domain
         self.role = role
         self.index = index
@@ -40,7 +41,7 @@ class BaseHost(object):
         shortname, dot, ext_domain = hostname.partition('.')
         self.shortname = shortname
         self.hostname = shortname + '.' + self.domain.name
-        self.external_hostname = hostname
+        self.external_hostname = external_hostname or hostname
 
         self.netbios = self.domain.name.split('.')[0].upper()
 
@@ -96,6 +97,8 @@ class BaseHost(object):
     def from_env(cls, env, domain, hostname, role, index):
         ip = env.get('BEAKER%s%s_IP_env%s' %
                         (role.upper(), index, domain.index), None)
+        external_hostname = env.get(
+            'BEAKER%s%s_env%s' % (role.upper(), index, domain.index), None)
 
         # We need to determine the type of the host, this depends on the domain
         # type, as we assume all Unix machines are in the Unix domain and
@@ -106,7 +109,7 @@ class BaseHost(object):
         else:
             cls = Host
 
-        self = cls(domain, hostname, role, index, ip)
+        self = cls(domain, hostname, role, index, ip, external_hostname)
         return self
 
     @property
