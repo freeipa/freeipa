@@ -424,14 +424,14 @@ sides.
             )
 
         # If domain name and realm does not match, IPA server is not be able
-        # to estabilish trust with Active Directory.
+        # to establish trust with Active Directory.
 
         realm_not_matching_domain = (api.env.domain.upper() != api.env.realm)
 
         if options['trust_type'] == u'ad' and realm_not_matching_domain:
             raise errors.ValidationError(
                 name=_('Realm-domain mismatch'),
-                error=_('To estabilish trust with Active Directory, the '
+                error=_('To establish trust with Active Directory, the '
                         'domain name and the realm name of the IPA server '
                         'must match')
                 )
