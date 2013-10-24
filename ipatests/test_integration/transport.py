@@ -87,10 +87,10 @@ class Transport(object):
 
     def mkdir_recursive(self, path):
         """`mkdir -p` on the remote host"""
-        if not path or path == '/':
-            raise ValueError('Invalid path')
-        if not self.file_exists(path or '/'):
-            self.mkdir_recursive(os.path.dirname(path))
+        if not self.file_exists(path):
+            parent_path = os.path.dirname(path)
+            if path != parent_path:
+                self.mkdir_recursive(parent_path)
             self.mkdir(path)
 
     def get_file(self, remotepath, localpath):
