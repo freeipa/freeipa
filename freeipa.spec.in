@@ -832,13 +832,13 @@ fi
 %endif # ONLY_CLIENT
 
 %changelog
-* Fri Aug 25 2013 Martin Kosek <mkosek@redhat.com> - 3.3.2-1
+* Fri Oct 25 2013 Martin Kosek <mkosek@redhat.com> - 3.3.2-1
 - Remove mod_ssl conflict, it can now live with mod_nss installed
 
 * Wed Sep 4 2013 Ana Krivokapic <akrivoka@redhat.com> - 3.3.0-3
 - Conform to tmpfiles.d packaging guidelines
 
-* Wed Aug 29 2013 Petr Viktorin <pviktori@redhat.com> - 3.3.0-2
+* Wed Aug 28 2013 Petr Viktorin <pviktori@redhat.com> - 3.3.0-2
 - Add man pages to the tests subpackage
 
 * Mon Aug 12 2013 Petr Viktorin <pviktori@redhat.com> - 3.3.0-1
