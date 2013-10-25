@@ -474,6 +474,10 @@ def main():
     if options.setup_dns:
         check_bind()
 
+    # Check to see if httpd is already configured to listen on 443
+    if httpinstance.httpd_443_configured():
+        sys.exit("Aborting installation")
+
     check_dirsrv()
 
     if options.conf_ntp:
