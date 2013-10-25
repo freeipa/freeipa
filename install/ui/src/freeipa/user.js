@@ -110,7 +110,11 @@ return {
                         'cn',
                         'displayname',
                         'initials',
-                        'gecos'
+                        'gecos',
+                        {
+                            name: 'userclass',
+                            flags: ['w_if_no_aci']
+                        }
                     ]
                 },
                 {
@@ -318,7 +322,8 @@ return {
                         required: false
                     },
                     'givenname',
-                    'sn'
+                    'sn',
+                    'userclass'
                 ]
             },
             {

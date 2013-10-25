@@ -91,6 +91,7 @@ return {
                             $type: 'textarea',
                             name: 'description'
                         },
+                        'userclass',
                         'l',
                         'nshostlocation',
                         'nshardwareplatform',
@@ -250,6 +251,7 @@ return {
             {
                 name: 'other',
                 fields: [
+                    'userclass',
                     {
                         name: 'ip_address',
                         validators: [ 'ip_address' ],
