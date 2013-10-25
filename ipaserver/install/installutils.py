@@ -331,7 +331,7 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
     fd = open(filename)
     newfile = []
     for line in fd:
-        if directive in line:
+        if line.lstrip().startswith(directive):
             valueset = True
             if value is not None:
                 if quotes:
@@ -359,7 +359,7 @@ def get_directive(filename, directive, separator=' '):
     """
     fd = open(filename, "r")
     for line in fd:
-        if directive in line:
+        if line.lstrip().startswith(directive):
             line = line.strip()
             result = line.split(separator, 1)[1]
             result = result.strip('"')
