@@ -832,7 +832,7 @@ fi
 %endif # ONLY_CLIENT
 
 %changelog
-* Fri Aug 25 2013 Martin Kosek <mkosek@redhat.com> - 3.3.90-4
+* Fri Oct 25 2013 Martin Kosek <mkosek@redhat.com> - 3.3.90-4
 - Remove mod_ssl conflict, it can now live with mod_nss installed
 
 * Wed Sep 4 2013 Ana Krivokapic <akrivoka@redhat.com> - 3.3.90-3
