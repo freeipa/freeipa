@@ -1,0 +1,9 @@
+# Enable Retro changelog
+dn: cn=Retro Changelog Plugin,cn=plugins,cn=config
+only:nsslapd-pluginEnabled: on
+add:nsslapd-attribute: nsuniqueid:targetUniqueId
+add:nsslapd-changelogmaxage: 2d
+
+# Enable SyncRepl
+dn: cn=Content Synchronization,cn=plugins,cn=config
+only:nsslapd-pluginEnabled: on

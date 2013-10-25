@@ -22,6 +22,7 @@ import os
 import pwd
 import netaddr
 import re
+import errno
 
 import ldap
 
@@ -509,6 +510,16 @@ class BindInstance(service.Service):
         os.close(bind_fd)
         print "Sample zone file for bind has been created in "+bind_name
 
+    def create_dir(self, path, mode):
+        try:
+            os.makedirs(path, mode)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise e
+
+        pent = pwd.getpwnam(self.named_user or 'named')
+        os.chown(path, pent.pw_uid, pent.pw_gid)
+
     def create_instance(self):
 
         try:
@@ -518,6 +529,8 @@ class BindInstance(service.Service):
 
         # get a connection to the DS
         self.ldap_connect()
+
+        self.create_dir('/var/named/ipa', 0700)
 
         if installutils.record_in_hosts(self.ip_address, self.fqdn) is None:
             installutils.add_record_to_hosts(self.ip_address, self.fqdn)
