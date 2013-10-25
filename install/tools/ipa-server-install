@@ -791,6 +791,10 @@ def main():
         except ipaclient.ntpconf.NTPConfigurationError:
             pass
 
+    # Check to see if httpd is already configured to listen on 443
+    if httpinstance.httpd_443_configured():
+        sys.exit("Aborting installation")
+
     realm_name = ""
     host_name = ""
     domain_name = ""

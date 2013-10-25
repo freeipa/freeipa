@@ -121,7 +121,7 @@ Requires: mod_auth_kerb >= 5.4-16
 %else
 Requires: mod_auth_kerb >= 5.4-8
 %endif
-Requires: mod_nss
+Requires: mod_nss >= 1.0.8-24
 Requires: python-ldap
 Requires: python-krbV
 Requires: acl
@@ -165,10 +165,6 @@ Conflicts: bind < 9.8.2-0.4.rc2
 # Versions of nss-pam-ldapd < 0.8.4 require a mapping from uniqueMember to
 # member.
 Conflicts: nss-pam-ldapd < 0.8.4
-
-# mod_proxy provides a single API to communicate over SSL. If mod_ssl
-# is even loaded into Apache then it grabs this interface.
-Conflicts: mod_ssl
 
 Obsoletes: ipa-server >= 1.0
 
@@ -836,6 +832,9 @@ fi
 %endif # ONLY_CLIENT
 
 %changelog
+* Fri Aug 25 2013 Martin Kosek <mkosek@redhat.com> - 3.3.2-1
+- Remove mod_ssl conflict, it can now live with mod_nss installed
+
 * Wed Sep 4 2013 Ana Krivokapic <akrivoka@redhat.com> - 3.3.0-3
 - Conform to tmpfiles.d packaging guidelines
 

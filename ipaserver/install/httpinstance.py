@@ -23,6 +23,7 @@ import tempfile
 import pwd
 import shutil
 import stat
+import re
 
 import service
 import certs
@@ -32,6 +33,7 @@ from ipapython import ipautil
 from ipapython import services as ipaservices
 from ipapython import dogtag
 from ipapython.ipa_log_manager import *
+from ipaserver.install import sysupgrade
 from ipalib import api
 
 HTTPD_DIR = "/etc/httpd"
@@ -45,6 +47,31 @@ change with the command:
    /usr/sbin/setsebool -P %(var)s true
 Try updating the policycoreutils and selinux-policy packages.
 """
+
+def httpd_443_configured():
+    """
+    We now allow mod_ssl to be installed so don't automatically disable it.
+    However it can't share the same listen port as mod_nss, so check for that.
+
+    Returns True if something other than mod_nss is listening on 443.
+    False otherwise.
+    """
+    try:
+        (stdout, stderr, rc) = ipautil.run(['/usr/sbin/httpd', '-t', '-D', 'DUMP_VHOSTS'])
+    except ipautil.CalledProcessError, e:
+        service.print_msg("WARNING: cannot check if port 443 is already configured")
+        service.print_msg("httpd returned error when checking: %s" % e)
+        return False
+
+    port_line_re = re.compile(r'(?P<address>\S+):(?P<port>\d+)')
+    for line in stdout.splitlines():
+        m = port_line_re.match(line)
+        if m and int(m.group('port')) == 443:
+            service.print_msg("Apache is already configured with a listener on port 443:")
+            service.print_msg(line)
+            return True
+
+    return False
 
 class WebGuiInstance(service.SimpleServiceInstance):
     def __init__(self):
@@ -87,7 +114,6 @@ class HTTPInstance(service.Service):
         self.ldap_connect()
 
 
-        self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
         self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
         self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
         self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
@@ -227,15 +253,25 @@ class HTTPInstance(service.Service):
         http_fd.close()
         os.chmod(target_fname, 0644)
 
-    def __disable_mod_ssl(self):
-        if os.path.exists(SSL_CONF):
-            self.fstore.backup_file(SSL_CONF)
-            os.unlink(SSL_CONF)
+    def change_mod_nss_port_to_http(self):
+        # mod_ssl enforces SSLEngine on for vhost on 443 even though
+        # the listener is mod_nss. This then crashes the httpd as mod_nss
+        # listened port obviously does not match mod_ssl requirements.
+        #
+        # Change port to http to workaround the mod_ssl check, the SSL is
+        # enforced in the vhost later, so it is benign.
+        #
+        # Remove when https://bugzilla.redhat.com/show_bug.cgi?id=1023168
+        # is fixed.
+        if not sysupgrade.get_upgrade_state('nss.conf', 'listen_port_updated'):
+            installutils.set_directive(NSS_CONF, 'Listen', '443 http', quotes=False)
+            sysupgrade.set_upgrade_state('nss.conf', 'listen_port_updated', True)
 
     def __set_mod_nss_port(self):
         self.fstore.backup_file(NSS_CONF)
         if installutils.update_file(NSS_CONF, '8443', '443') != 0:
             print "Updating port in %s failed." % NSS_CONF
+        self.change_mod_nss_port_to_http()
 
     def __set_mod_nss_nickname(self, nickname):
         installutils.set_directive(NSS_CONF, 'NSSNickname', nickname)
