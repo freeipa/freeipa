@@ -132,7 +132,6 @@ struct ipapwd_krbcfg {
     krb5_key_salt_tuple *pref_encsalts;
     char **passsync_mgrs;
     int num_passsync_mgrs;
-    bool allow_lm_hash;
     bool allow_nt_hash;
 };
 
@@ -172,7 +171,7 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset);
 int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                       struct ipapwd_data *data, char *userpw,
                       int is_krb, int is_smb, int is_ipant,
-                      Slapi_Value ***svals, char **nthash, char **lmhash,
+                      Slapi_Value ***svals, char **nthash,
                       Slapi_Value ***ntvals, char **errMesg);
 
 /* from prepost.c */

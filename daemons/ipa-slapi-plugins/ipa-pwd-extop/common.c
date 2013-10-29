@@ -366,7 +366,6 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     slapi_entry_free(config_entry);
 
     /* get the ipa etc/ipaConfig entry */
-    config->allow_lm_hash = false;
     config->allow_nt_hash = false;
     ret = ipapwd_getEntry(ipa_etc_config_dn, &config_entry, NULL);
     if (ret != LDAP_SUCCESS) {
@@ -376,10 +375,6 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
         tmparray = slapi_entry_attr_get_charray(config_entry,
                                                 "ipaConfigString");
         for (i = 0; tmparray && tmparray[i]; i++) {
-            if (strcasecmp(tmparray[i], "AllowLMhash") == 0) {
-                config->allow_lm_hash = true;
-                continue;
-            }
             if (strcasecmp(tmparray[i], "AllowNThash") == 0) {
                 config->allow_nt_hash = true;
                 continue;
@@ -928,7 +923,6 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     Slapi_Value **pwvals = NULL;
     struct tm utctime;
     char timestr[GENERALIZED_TIME_LENGTH+1];
-    char *lm = NULL;
     char *nt = NULL;
     int is_smb = 0;
     int is_ipant = 0;
@@ -965,7 +959,7 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     ret = ipapwd_gen_hashes(krbcfg, data,
                             data->password,
                             is_krb, is_smb, is_ipant,
-                            &svals, &nt, &lm, &ntvals, &errMesg);
+                            &svals, &nt, &ntvals, &errMesg);
     if (ret) {
         goto free_and_return;
     }
@@ -1003,11 +997,6 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
                               "krbPasswordExpiration", timestr);
 		}
 	}
-
-    if (lm && is_smb) {
-        slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                              "sambaLMPassword", lm);
-    }
 
     if (nt && is_smb) {
         slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
@@ -1069,7 +1058,6 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     LOG_TRACE("<= result: %d\n", ret);
 
 free_and_return:
-    if (lm) slapi_ch_free((void **)&lm);
     if (nt) slapi_ch_free((void **)&nt);
     if (modtime) slapi_ch_free((void **)&modtime);
     slapi_mods_free(&smods);

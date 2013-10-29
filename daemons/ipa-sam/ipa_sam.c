@@ -2637,10 +2637,9 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 	char *name;
 	char *trustpw = NULL;
 	char *trustpw_utf8 = NULL;
-	char *trustpw_utf8_uc = NULL;
 	char *tmp_str = NULL;
 	int ret;
-	struct ntlm_keys ntlm_keys;
+	uint8_t nt_key[16];
 	size_t converted_size;
 	bool res;
 	char *sid_str;
@@ -2706,23 +2705,13 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 		goto done;
 	}
 
-	if (!push_utf8_talloc(user, &trustpw_utf8_uc, tmp_str, &converted_size)) {
-		res = false;
-		goto done;
-	}
-
-	ret = encode_ntlm_keys(trustpw_utf8, trustpw_utf8_uc, true, true,
-			       &ntlm_keys);
+	ret = encode_nt_key(trustpw_utf8, nt_key);
 	if (ret != 0) {
 		res = false;
 		goto done;
 	}
 
-	if (!pdb_set_lanman_passwd(user, ntlm_keys.lm, PDB_SET)) {
-		res = false;
-		goto done;
-	}
-	if (!pdb_set_nt_passwd(user, ntlm_keys.nt, PDB_SET)) {
+	if (!pdb_set_nt_passwd(user, nt_key, PDB_SET)) {
 		res = false;
 		goto done;
 	}
@@ -2740,10 +2729,6 @@ done:
 	if (tmp_str != NULL) {
 		memset(tmp_str, 0, strlen(tmp_str));
 		talloc_free(tmp_str);
-	}
-	if (trustpw_utf8_uc != NULL) {
-		memset(trustpw_utf8_uc, 0, strlen(trustpw_utf8_uc));
-		talloc_free(trustpw_utf8_uc);
 	}
 
 	return res;
