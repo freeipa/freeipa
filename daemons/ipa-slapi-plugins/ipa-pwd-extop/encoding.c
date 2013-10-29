@@ -201,15 +201,13 @@ enc_error:
 int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                       struct ipapwd_data *data, char *userpw,
                       int is_krb, int is_smb, int is_ipant, Slapi_Value ***svals,
-                      char **nthash, char **lmhash, Slapi_Value ***ntvals,
+                      char **nthash, Slapi_Value ***ntvals,
                       char **errMesg)
 {
     int rc;
-    char *userpw_uc = NULL;
 
     *svals = NULL;
     *nthash = NULL;
-    *lmhash = NULL;
     *errMesg = NULL;
 
     if (is_krb) {
@@ -225,40 +223,24 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
     }
 
     if (is_smb || is_ipant) {
-        char lm[33], nt[33];
-        struct ntlm_keys ntlm;
+        char nt[33];
+        uint8_t nt_key[16];
         int ret;
 
-        userpw_uc = (char *) slapi_utf8StrToUpper((unsigned char *) userpw);
-        if (!userpw_uc) {
-            *errMesg = "Failed to generate upper case password\n";
-            LOG_FATAL("%s", *errMesg);
-            rc = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-
-        ret = encode_ntlm_keys(userpw,
-                               userpw_uc,
-                               krbcfg->allow_lm_hash,
-                               krbcfg->allow_nt_hash,
-                               &ntlm);
-        memset(userpw_uc, 0, strlen(userpw_uc));
-        slapi_ch_free_string(&userpw_uc);
-        if (ret) {
-            *errMesg = "Failed to generate NT/LM hashes\n";
-            LOG_FATAL("%s", *errMesg);
-            rc = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-        if (krbcfg->allow_lm_hash) {
-            hexbuf(lm, ntlm.lm);
-            lm[32] = '\0';
-            *lmhash = slapi_ch_strdup(lm);
-        }
         if (krbcfg->allow_nt_hash) {
-            hexbuf(nt, ntlm.nt);
+            ret = encode_nt_key(userpw, nt_key);
+            if (ret) {
+                *errMesg = "Failed to generate NT/LM hashes\n";
+                LOG_FATAL("%s", *errMesg);
+                rc = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+
+            hexbuf(nt, nt_key);
             nt[32] = '\0';
             *nthash = slapi_ch_strdup(nt);
+        } else {
+            memset(nt_key, 0, 16);
         }
 
         if (is_ipant) {
@@ -269,7 +251,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                 goto done;
             }
             (*ntvals)[0] = slapi_value_new();
-            if (slapi_value_set((*ntvals)[0], ntlm.nt, 16) == NULL) {
+            if (slapi_value_set((*ntvals)[0], nt_key, 16) == NULL) {
                 rc = LDAP_OPERATIONS_ERROR;
                 goto done;
             }

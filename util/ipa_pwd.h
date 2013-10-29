@@ -74,15 +74,6 @@ int ipapwd_generate_new_history(char *password,
                                 char ***new_pwd_history,
                                 int *new_pwd_hlen);
 
-struct ntlm_keys {
-    uint8_t lm[16];
-    uint8_t nt[16];
-};
-
-int encode_ntlm_keys(char *newPasswd,
-                     char *upperPasswd,
-                     bool do_lm_hash,
-                     bool do_nt_hash,
-                     struct ntlm_keys *keys);
+int encode_nt_key(char *newPasswd, uint8_t *nt_key);
 
 #endif
