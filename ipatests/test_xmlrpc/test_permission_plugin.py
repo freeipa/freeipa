@@ -2140,3 +2140,285 @@ class test_permission_legacy(Declarative):
             ),
         ),
     ]
+
+
+class test_permission_bindtype(Declarative):
+    cleanup_commands = [
+        ('permission_del', [permission1], {'force': True}),
+        ('permission_del', [permission1_renamed], {'force': True}),
+        ('privilege_del', [privilege1], {}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create anonymous %r' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                    type=u'user',
+                    ipapermright=u'write',
+                    ipapermbindruletype=u'anonymous',
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Added permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    type=[u'user'],
+                    ipapermright=[u'write'],
+                    ipapermbindruletype=[u'anonymous'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtarget=[DN('uid=*', users_dn)],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, users_dn,
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) userdn = "ldap:///anyone";)',
+        ),
+
+        dict(
+            desc='Create %r' % privilege1,
+            command=('privilege_add', [privilege1],
+                dict(description=u'privilege desc. 1')
+            ),
+            expected=dict(
+                value=privilege1,
+                summary=u'Added privilege "%s"' % privilege1,
+                result=dict(
+                    dn=privilege1_dn,
+                    cn=[privilege1],
+                    description=[u'privilege desc. 1'],
+                    objectclass=objectclasses.privilege,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Try to add %r to %r' % (permission1, privilege1),
+            command=(
+                'privilege_add_permission', [privilege1], dict(
+                    permission=[permission1],
+                )
+            ),
+            expected=errors.ValidationError(
+                name='permission',
+                error=u'cannot add permission "%s" with bindtype "%s" to a '
+                       'privilege' % (permission1, 'anonymous')),
+        ),
+
+        dict(
+            desc='Change binddn of %r to all' % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                    type=u'user',
+                    ipapermbindruletype=u'all',
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Modified permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    type=[u'user'],
+                    ipapermright=[u'write'],
+                    ipapermbindruletype=[u'all'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtarget=[DN('uid=*', users_dn)],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, users_dn,
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) userdn = "ldap:///all";)',
+        ),
+
+        dict(
+            desc='Try to add %r to %r' % (permission1, privilege1),
+            command=(
+                'privilege_add_permission', [privilege1], dict(
+                    permission=[permission1],
+                )
+            ),
+            expected=errors.ValidationError(
+                name='permission',
+                error=u'cannot add permission "%s" with bindtype "%s" to a '
+                       'privilege' % (permission1, 'all')),
+        ),
+
+        dict(
+            desc='Search for %r using --bindtype' % permission1,
+            command=('permission_find', [], {'ipapermbindruletype': u'all'}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        type=[u'user'],
+                        ipapermright=[u'write'],
+                        ipapermbindruletype=[u'all'],
+                        objectclass=objectclasses.permission,
+                        ipapermissiontype=[u'SYSTEM', u'V2'],
+                        ipapermlocation=[users_dn],
+                        ipapermtarget=[DN('uid=*', users_dn)],
+                    ),
+                ],
+            ),
+        ),
+
+        dict(
+            desc='Add zero permissions to %r' % (privilege1),
+            command=('privilege_add_permission', [privilege1], {}),
+            expected=dict(
+                completed=0,
+                failed=dict(member=dict(permission=[])),
+                result=dict(
+                    dn=privilege1_dn,
+                    cn=[privilege1],
+                    description=[u'privilege desc. 1'],
+                    objectclass=objectclasses.privilege,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Rename %r to permission %r' % (permission1,
+                                                 permission1_renamed),
+            command=(
+                'permission_mod', [permission1], dict(rename=permission1_renamed)
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Modified permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_renamed_dn,
+                    cn=[permission1_renamed],
+                    type=[u'user'],
+                    objectclass=objectclasses.permission,
+                    ipapermright=[u'write'],
+                    ipapermbindruletype=[u'all'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtarget=[DN('uid=*', users_dn)],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1_renamed, users_dn,
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1_renamed +
+            'allow (write) userdn = "ldap:///all";)',
+        ),
+
+        dict(
+            desc='Reset binddn of %r to permission' % permission1_renamed,
+            command=(
+                'permission_mod', [permission1_renamed], dict(
+                    type=u'user',
+                    ipapermbindruletype=u'permission',
+                )
+            ),
+            expected=dict(
+                value=permission1_renamed,
+                summary=u'Modified permission "%s"' % permission1_renamed,
+                result=dict(
+                    dn=permission1_renamed_dn,
+                    cn=[permission1_renamed],
+                    objectclass=objectclasses.permission,
+                    type=[u'user'],
+                    ipapermright=[u'write'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtarget=[DN('uid=*', users_dn)],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1_renamed, users_dn,
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1_renamed +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
+        ),
+
+        dict(
+            desc='Rename %r back to %r' % (permission1_renamed, permission1),
+            command=(
+                'permission_mod', [permission1_renamed],
+                dict(rename=permission1)
+            ),
+            expected=dict(
+                value=permission1_renamed,
+                summary=u'Modified permission "%s"' % permission1_renamed,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    type=[u'user'],
+                    objectclass=objectclasses.permission,
+                    ipapermright=[u'write'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtarget=[DN('uid=*', users_dn)],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, users_dn,
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
+        dict(
+            desc='Add %r to %r' % (permission1, privilege1),
+            command=(
+                'privilege_add_permission', [privilege1], dict(
+                    permission=[permission1],
+                )
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(member=dict(permission=[])),
+                result=dict(
+                    dn=privilege1_dn,
+                    cn=[privilege1],
+                    description=[u'privilege desc. 1'],
+                    memberof_permission=[permission1],
+                    objectclass=objectclasses.privilege,
+                )
+            ),
+        ),
+
+        dict(
+            desc='Try to change binddn of %r to anonymous' % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                    type=u'user',
+                    ipapermbindruletype=u'anonymous',
+                )
+            ),
+            expected=errors.ValidationError(
+                name='ipapermbindruletype',
+                error=u'cannot set bindtype for a permission that is '
+                    'assigned to a privilege')
+        ),
+    ]

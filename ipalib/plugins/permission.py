@@ -180,7 +180,7 @@ class permission(baseldap.LDAPObject):
             label=_('Bind rule type'),
             doc=_('Bind rule type'),
             autofill=True,
-            values=(u'permission',),
+            values=(u'permission', u'all', u'anonymous'),
             default=u'permission',
         ),
         DNOrURL(
@@ -774,6 +774,13 @@ class permission_mod(baseldap.LDAPUpdate):
 
         self.obj.reject_system(old_entry)
         self.obj.upgrade_permission(old_entry)
+
+        # Check setting bindtype for an assigned permission
+        if options.get('ipapermbindruletype') and old_entry.get('member'):
+            raise errors.ValidationError(
+                name='ipapermbindruletype',
+                error=_('cannot set bindtype for a permission that is '
+                        'assigned to a privilege'))
 
         # Since `entry` only contains the attributes we are currently changing,
         # it cannot be used directly to generate an ACI.

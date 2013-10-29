@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib.plugins.baseldap import *
-from ipalib import api, _, ngettext
+from ipalib import api, _, ngettext, errors
 from ipalib.plugable import Registry
 
 __doc__ = _("""
@@ -151,6 +151,37 @@ class privilege_add_permission(LDAPAddReverseMember):
             doc=_('Number of permissions added'),
         ),
     )
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        if options.get('permission'):
+            # We can only add permissions with bind rule type set to
+            # "permission" (or old-style permissions)
+            ldapfilter = ldap.combine_filters(rules='&', filters=[
+                '(objectClass=ipaPermissionV2)',
+                '(!(ipaPermBindRuleType=permission))',
+                ldap.make_filter_from_attr('cn', options['permission'],
+                                           rules='|'),
+            ])
+            try:
+                entries, truncated = ldap.find_entries(
+                    filter=ldapfilter,
+                    attrs_list=['cn', 'ipapermbindruletype'],
+                    base_dn=DN(self.api.env.container_permission,
+                               self.api.env.basedn),
+                    size_limit=1)
+            except errors.NotFound:
+                pass
+            else:
+                entry = entries[0]
+                message = _('cannot add permission "%(perm)s" with bindtype '
+                            '"%(bindtype)s" to a privilege')
+                raise errors.ValidationError(
+                    name='permission',
+                    error=message % {
+                        'perm': entry.single_value['cn'],
+                        'bindtype': entry.single_value.get(
+                            'ipapermbindruletype', 'permission')})
+        return dn
 
 
 @register()
