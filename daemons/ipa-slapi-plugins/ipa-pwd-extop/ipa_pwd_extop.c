@@ -719,7 +719,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	bsdn = slapi_be_getsuffix(be, 0);
 	if (bsdn == NULL) {
 		LOG_TRACE("Search for Base DN failed\n");
-		errMesg = "PrincipalName not found.\n";
+		errMesg = "PrincipalName not found (search for Base DN failed).\n";
 		rc = LDAP_NO_SUCH_OBJECT;
 		goto free_and_return;
 	}
@@ -743,7 +743,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	if (ret == -1 || res != LDAP_SUCCESS) {
 		LOG_TRACE("Search for Principal failed, err (%d)\n",
 			  res ? res : ret);
-		errMesg = "PrincipalName not found.\n";
+		errMesg = "PrincipalName not found (search failed).\n";
 		rc = LDAP_NO_SUCH_OBJECT;
 		goto free_and_return;
 	}
@@ -752,7 +752,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	slapi_pblock_get(pbte, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &es);
 	if (!es) {
 		LOG_TRACE("No entries ?!");
-		errMesg = "PrincipalName not found.\n";
+		errMesg = "PrincipalName not found (no result returned).\n";
 		rc = LDAP_NO_SUCH_OBJECT;
 		goto free_and_return;
 	}
@@ -763,7 +763,10 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	/* if there is none or more than one, freak out */
 	if (i != 1) {
 		LOG_TRACE("Too many entries, or entry no found (%d)", i);
-		errMesg = "PrincipalName not found.\n";
+		if (i == 0)
+			errMesg = "PrincipalName not found.\n";
+		else
+			errMesg = "PrincipalName not found (too many entries).\n";
 		rc = LDAP_NO_SUCH_OBJECT;
 		goto free_and_return;
 	}
@@ -857,7 +860,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 		rtag = ber_scanf(ber, "{t[{t[i]t[o]}]", &ttmp, &ttmp, &tint, &ttmp, &tval);
 		if (rtag == LBER_ERROR) {
 			LOG_FATAL("ber_scanf failed\n");
-			errMesg = "Invalid payload, failed to decode.\n";
+			errMesg = "Invalid payload, failed to decode EncryptionKey.\n";
 			rc = LDAP_PROTOCOL_ERROR;
 			goto free_and_return;
 		}
@@ -906,7 +909,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 			rtag = ber_scanf(ber, "t[{t[i]", &ttmp, &ttmp, &tint);
 			if (rtag == LBER_ERROR) {
 				LOG_FATAL("ber_scanf failed\n");
-				errMesg = "Invalid payload, failed to decode.\n";
+				errMesg = "Invalid payload, failed to decode KrbSalt type.\n";
 				rc = LDAP_PROTOCOL_ERROR;
 				goto free_and_return;
 			}
@@ -920,7 +923,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 				rtag = ber_scanf(ber, "t[o]}]", &ttmp, &tval);
 				if (rtag == LBER_ERROR) {
 					LOG_FATAL("ber_scanf failed\n");
-					errMesg = "Invalid payload, failed to decode.\n";
+					errMesg = "Invalid payload, failed to decode KrbSalt contents.\n";
 					rc = LDAP_PROTOCOL_ERROR;
 					goto free_and_return;
 				}
@@ -948,7 +951,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 		}
 		if (rtag == LBER_ERROR) {
 			LOG_FATAL("ber_scanf failed\n");
-			errMesg = "Invalid payload, failed to decode.\n";
+			errMesg = "Invalid payload, failed to decode s2kparams.\n";
 			rc = LDAP_PROTOCOL_ERROR;
 			goto free_and_return;
 		}

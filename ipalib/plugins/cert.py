@@ -142,7 +142,8 @@ def get_csr_hostname(csr):
         subject = pkcs10.get_subject(request)
         return subject.common_name
     except NSPRError, nsprerr:
-        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request:'))
+        raise errors.CertificateOperationError(
+            error=_('Failure decoding Certificate Signing Request: %s') % nsprerr)
 
 def get_subjectaltname(csr):
     """
@@ -155,7 +156,8 @@ def get_subjectaltname(csr):
                 return nss.x509_alt_name(extension.value)[0]
         return None
     except NSPRError, nsprerr:
-        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request'))
+        raise errors.CertificateOperationError(
+            error=_('Failure decoding Certificate Signing Request: %s') % nsprerr)
 
 def validate_csr(ugettext, csr):
     """
@@ -171,10 +173,8 @@ def validate_csr(ugettext, csr):
         request = pkcs10.load_certificate_request(csr)
     except TypeError, e:
         raise errors.Base64DecodeError(reason=str(e))
-    except NSPRError:
-        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request'))
     except Exception, e:
-        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request: %s') % str(e))
+        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request: %s') % e)
 
 def normalize_csr(csr):
     """
