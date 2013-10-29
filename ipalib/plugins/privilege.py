@@ -19,6 +19,7 @@
 
 from ipalib.plugins.baseldap import *
 from ipalib import api, _, ngettext
+from ipalib.plugable import Registry
 
 __doc__ = _("""
 Privileges
@@ -41,6 +42,10 @@ A privilege may not contain other privileges.
 See role and permission for additional information.
 """)
 
+register = Registry()
+
+
+@register()
 class privilege(LDAPObject):
     """
     Privilege object.
@@ -75,33 +80,29 @@ class privilege(LDAPObject):
         ),
     )
 
-api.register(privilege)
 
-
+@register()
 class privilege_add(LDAPCreate):
     __doc__ = _('Add a new privilege.')
 
     msg_summary = _('Added privilege "%(value)s"')
 
-api.register(privilege_add)
 
-
+@register()
 class privilege_del(LDAPDelete):
     __doc__ = _('Delete a privilege.')
 
     msg_summary = _('Deleted privilege "%(value)s"')
 
-api.register(privilege_del)
 
-
+@register()
 class privilege_mod(LDAPUpdate):
     __doc__ = _('Modify a privilege.')
 
     msg_summary = _('Modified privilege "%(value)s"')
 
-api.register(privilege_mod)
 
-
+@register()
 class privilege_find(LDAPSearch):
     __doc__ = _('Search for privileges.')
 
@@ -109,32 +110,28 @@ class privilege_find(LDAPSearch):
         '%(count)d privilege matched', '%(count)d privileges matched', 0
     )
 
-api.register(privilege_find)
 
-
+@register()
 class privilege_show(LDAPRetrieve):
     __doc__ = _('Display information about a privilege.')
 
-api.register(privilege_show)
 
-
+@register()
 class privilege_add_member(LDAPAddMember):
     __doc__ = _('Add members to a privilege.')
 
     NO_CLI=True
 
-api.register(privilege_add_member)
 
-
+@register()
 class privilege_remove_member(LDAPRemoveMember):
     """
     Remove members from a privilege
     """
     NO_CLI=True
 
-api.register(privilege_remove_member)
 
-
+@register()
 class privilege_add_permission(LDAPAddReverseMember):
     __doc__ = _('Add permissions to a privilege.')
 
@@ -155,9 +152,8 @@ class privilege_add_permission(LDAPAddReverseMember):
         ),
     )
 
-api.register(privilege_add_permission)
 
-
+@register()
 class privilege_remove_permission(LDAPRemoveReverseMember):
     __doc__ = _('Remove permissions from a privilege.')
 
@@ -179,5 +175,3 @@ class privilege_remove_permission(LDAPRemoveReverseMember):
             doc=_('Number of permissions removed'),
         ),
     )
-
-api.register(privilege_remove_permission)
