@@ -178,7 +178,7 @@ class config(LDAPObject):
             cli_name='ipaconfigstring',
             label=_('Password plugin features'),
             doc=_('Extra hashes to generate in password plug-in'),
-            values=(u'AllowLMhash', u'AllowNThash',
+            values=(u'AllowNThash',
                     u'KDC:Disable Last Success', u'KDC:Disable Lockout'),
             csv=True,
         ),

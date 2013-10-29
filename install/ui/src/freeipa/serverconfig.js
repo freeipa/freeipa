@@ -69,7 +69,7 @@ return {
                             name: 'ipaconfigstring',
                             $type: 'checkboxes',
                             options: IPA.create_options([
-                                'AllowLMhash', 'AllowNThash',
+                                'AllowNThash',
                                 'KDC:Disable Last Success', 'KDC:Disable Lockout'
                             ])
                         },

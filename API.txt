@@ -499,7 +499,7 @@ args: 0,24,3
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
-option: StrEnum('ipaconfigstring', attribute=True, autofill=False, cli_name='ipaconfigstring', csv=True, multivalue=True, required=False, values=(u'AllowLMhash', u'AllowNThash', u'KDC:Disable Last Success', u'KDC:Disable Lockout'))
+option: StrEnum('ipaconfigstring', attribute=True, autofill=False, cli_name='ipaconfigstring', csv=True, multivalue=True, required=False, values=(u'AllowNThash', u'KDC:Disable Last Success', u'KDC:Disable Lockout'))
 option: Str('ipadefaultemaildomain', attribute=True, autofill=False, cli_name='emaildomain', multivalue=False, required=False)
 option: Str('ipadefaultloginshell', attribute=True, autofill=False, cli_name='defaultshell', multivalue=False, required=False)
 option: Str('ipadefaultprimarygroup', attribute=True, autofill=False, cli_name='defaultgroup', multivalue=False, required=False)

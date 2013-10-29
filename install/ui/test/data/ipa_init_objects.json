@@ -580,7 +580,6 @@
                         "name": "ipaconfigstring",
                         "type": "unicode",
                         "values": [
-                            "AllowLMhash",
                             "AllowNThash",
                             "KDC:Disable Last Success",
                             "KDC:Disable Lockout"
