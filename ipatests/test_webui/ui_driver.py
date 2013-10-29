@@ -288,13 +288,13 @@ class UI_driver(object):
         """
         return "contains(concat(' ',normalize-space(@%s), ' '),' %s ')" % (attr, val)
 
-    def init_app(self):
+    def init_app(self, login=None, password=None):
         """
         Load and login
         """
         self.load()
         self.wait(0.5)
-        self.login()
+        self.login(login, password)
         # metadata + default page
         self.wait_for_request(n=5)
 
@@ -306,20 +306,38 @@ class UI_driver(object):
         runner = self
         WebDriverWait(self.driver, 10).until(lambda d: runner.files_loaded())
 
-    def login(self):
+    def login(self, login=None, password=None, new_password=None):
         """
         Log in if user is not logged in.
         """
         self.wait_for_request(n=2)
         if not self.logged_in():
+
+            if not login:
+                login = self.config['ipa_admin']
+            if not password:
+                password = self.config['ipa_password']
+            if not new_password:
+                new_password = password
+
             auth = self.get_auth_dialog()
             login_tb = self.find("//input[@type='text'][@name='username']", 'xpath', auth, strict=True)
             psw_tb = self.find("//input[@type='password'][@name='password']", 'xpath', auth, strict=True)
-            login_tb.send_keys(self.config['ipa_admin'])
-            psw_tb.send_keys(self.config['ipa_password'])
+            login_tb.send_keys(login)
+            psw_tb.send_keys(password)
             psw_tb.send_keys(Keys.RETURN)
             self.wait(0.5)
             self.wait_for_request()
+
+            # reset password if needed
+            if self.get_auth_dialog():
+                newpw_tb = self.find("//input[@type='password'][@name='new_password']", 'xpath', auth, strict=True)
+                verify_tb = self.find("//input[@type='password'][@name='verify_password']", 'xpath', auth, strict=True)
+                newpw_tb.send_keys(new_password)
+                verify_tb.send_keys(new_password)
+                verify_tb.send_keys(Keys.RETURN)
+                self.wait(0.5)
+                self.wait_for_request(n=2)
 
     def logged_in(self):
         """
@@ -329,6 +347,10 @@ class UI_driver(object):
         visible_name = login_as and login_as.is_displayed()
         logged_in = not self.auth_dialog_opened() and visible_name
         return logged_in
+
+    def logout(self):
+        btn = self.find('logout', 'class name')
+        btn.click()
 
     def get_auth_dialog(self):
         """

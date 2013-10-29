@@ -29,6 +29,11 @@ import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
 
+try:
+    from selenium.webdriver.common.by import By
+except ImportError:
+    pass
+
 
 class test_user(UI_driver):
 
@@ -143,17 +148,107 @@ class test_user(UI_driver):
 
         # reset password
         pwd = self.config.get('ipa_password')
-        fields = [
-            ('password', 'password1', pwd),
-            ('password', 'password2', pwd),
-        ]
-        self.action_panel_action('account_actions', 'reset_password')
-        self.assert_dialog()
-        self.fill_fields(fields)
-        self.dialog_button_click('reset_password')
-        self.wait_for_request(n=2)
-        self.assert_no_error_dialog()
+        self.reset_password_action(pwd)
         self.assert_text_field('has_password', '******')
 
         # delete
         self.delete_action(user.ENTITY, user.PKEY)
+
+    def test_password_expiration_notification(self):
+        """
+        Test password expiration notification
+        """
+
+        pwd = self.config.get('ipa_password')
+
+        self.init_app()
+
+        self.set_ipapwdexpadvnotify('15')
+
+        # create user and group and add user to that group
+        self.add_record(user.ENTITY, user.DATA)
+        self.add_record(group.ENTITY, group.DATA)
+        self.navigate_to_entity(group.ENTITY)
+        self.navigate_to_record(group.PKEY)
+        self.add_associations([user.PKEY])
+
+        # password policy for group
+        self.add_record('pwpolicy', {
+            'pkey': group.PKEY,
+            'add': [
+                ('combobox', 'cn', group.PKEY),
+                ('textbox', 'cospriority', '12345'),
+            ]})
+        self.navigate_to_record(group.PKEY)
+        self.mod_record('pwpolicy', {
+            'pkey': group.PKEY,
+            'mod': [
+                ('textbox', 'krbmaxpwdlife', '7'),
+                ('textbox', 'krbminpwdlife', '0'),
+            ]})
+
+        # reset password
+        self.navigate_to_record(user.PKEY, entity=user.ENTITY)
+        self.reset_password_action(pwd)
+
+        #re-login as new user
+        self.logout()
+        self.init_app(user.PKEY, pwd)
+
+        header = self.find('.header', By.CSS_SELECTOR)
+        self.assert_text(
+            '.header-passwordexpires',
+            'Your password expires in 6 days. Reset your password.',
+            header)
+
+        # test password reset
+        link = self.find('.header-passwordexpires a', By.CSS_SELECTOR, strict=True)
+        link.click()
+        self.fill_password_dialog(pwd, pwd)
+
+        # cleanup
+        self.logout()
+        self.init_app()
+        self.set_ipapwdexpadvnotify('4')
+        self.delete(user.ENTITY, [user.DATA])
+        self.delete(group.ENTITY, [group.DATA])
+
+    def set_ipapwdexpadvnotify(self, days):
+        """
+        Set ipa config "Password Expiration Notification (days)" field
+        """
+
+        self.navigate_to_entity('config')
+        self.mod_record('config', {
+            'mod': [
+                ('textbox', 'ipapwdexpadvnotify', days),
+            ]
+        })
+
+    def reset_password_action(self, password):
+        """
+        Execute reset password action
+        """
+
+        self.action_panel_action('account_actions', 'reset_password')
+        self.fill_password_dialog(password)
+
+    def fill_password_dialog(self, password, current=None):
+        """
+        Fill password dialog
+        """
+
+        self.assert_dialog()
+
+        fields = [
+            ('password', 'password1', password),
+            ('password', 'password2', password),
+        ]
+
+        if current:
+            fields.append(('password', 'current_password', current))
+
+        self.fill_fields(fields)
+        self.dialog_button_click('reset_password')
+        self.wait_for_request(n=3)
+        self.assert_no_error_dialog()

@@ -610,7 +610,7 @@ IPA.update_password_expiration = function() {
  */
 IPA.password_selfservice = function() {
     var reset_dialog = IPA.user_password_dialog({
-        self_service: true,
+        pkey: IPA.whoami.uid[0],
         on_success: function() {
             var command = IPA.get_whoami_command();
             var orig_on_success = command.on_success;
@@ -620,7 +620,7 @@ IPA.password_selfservice = function() {
             };
             command.execute();
 
-            alert(text.get('@i18n:password.password_change_complete'));
+            IPA.notify_success(text.get('@i18n:password.password_change_complete'));
             reset_dialog.close();
         }
     });
