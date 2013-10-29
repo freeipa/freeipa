@@ -529,7 +529,6 @@ IPA.user_password_dialog = function(spec) {
 
     that.success_handler = spec.on_success;
     that.error_handler = spec.on_error;
-    that.self_service = spec.self_service; //option to force self-service
     that.pkey = spec.pkey;
 
     that.is_self_service = function() {

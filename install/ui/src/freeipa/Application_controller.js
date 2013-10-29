@@ -121,8 +121,10 @@ define([
         start_runtime: function() {
             this.run_time = new Deferred();
 
-            // now we are ready for displaying a facet
-            // cat match a facet if hash is set
+            IPA.update_password_expiration();
+
+            // now we are ready for displaying a facet,
+            // it can match a facet if hash is set
             this.router.startup();
 
             // choose default facet if not defined by route
