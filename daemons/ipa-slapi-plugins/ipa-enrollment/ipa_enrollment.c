@@ -184,7 +184,7 @@ ipa_join(Slapi_PBlock *pb)
     slapi_pblock_get(pbte, SLAPI_PLUGIN_INTOP_RESULT, &res);
     if (ret == -1 || res != LDAP_SUCCESS) {
         LOG_TRACE("Search for host failed, err (%d)\n", res?res:ret);
-        errMesg = "Host not found.\n";
+        errMesg = "Host not found (search failed).\n";
         rc = LDAP_NO_SUCH_OBJECT;
         goto free_and_return;
     }
@@ -193,7 +193,7 @@ ipa_join(Slapi_PBlock *pb)
     slapi_pblock_get(pbte, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &es);
     if (!es) {
         LOG_TRACE("No entries ?!");
-        errMesg = "Host not found.\n";
+        errMesg = "Host not found (no result returned).\n";
         rc = LDAP_NO_SUCH_OBJECT;
         goto free_and_return;
     }
@@ -204,7 +204,10 @@ ipa_join(Slapi_PBlock *pb)
     /* if there is none or more than one, freak out */
     if (i != 1) {
         LOG_TRACE("Too many entries, or entry no found (%d)", i);
-        errMesg = "Host not found.\n";
+        if (i == 0)
+            errMesg = "Host not found.\n";
+        else
+            errMesg = "Host not found (too many entries).\n";
         rc = LDAP_NO_SUCH_OBJECT;
         goto free_and_return;
     }
