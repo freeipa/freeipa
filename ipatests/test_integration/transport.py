@@ -277,7 +277,7 @@ class OpenSSHTransport(Transport):
         control_file = os.path.join(self.control_dir.path, 'control')
         known_hosts_file = os.path.join(self.control_dir.path, 'known_hosts')
 
-        argv = ['/usr/bin/ssh',
+        argv = ['ssh',
                 '-l', 'root',
                 '-o', 'ControlPath=%s' % control_file,
                 '-o', 'StrictHostKeyChecking=no',
@@ -299,7 +299,7 @@ class OpenSSHTransport(Transport):
 
     def start_shell(self, argv, log_stdout=True):
         self.log.info('RUN %s', argv)
-        command = self._run(['/bin/bash'], argv=argv, log_stdout=log_stdout)
+        command = self._run(['bash'], argv=argv, log_stdout=log_stdout)
         return command
 
     def _run(self, command, log_stdout=True, argv=None, collect_output=True):
@@ -319,25 +319,26 @@ class OpenSSHTransport(Transport):
 
     def file_exists(self, path):
         self.log.info('STAT %s', path)
-        cmd = self._run(['/usr/bin/ls', path], log_stdout=False)
+        cmd = self._run(['ls', path], log_stdout=False)
         cmd.wait(raiseonerr=False)
+
         return cmd.returncode == 0
 
     def mkdir(self, path):
         self.log.info('MKDIR %s', path)
-        cmd = self._run(['/usr/bin/mkdir', path])
+        cmd = self._run(['mkdir', path])
         cmd.wait()
 
     def put_file_contents(self, filename, contents):
         self.log.info('PUT %s', filename)
-        cmd = self._run(['/usr/bin/tee', filename], log_stdout=False)
+        cmd = self._run(['tee', filename], log_stdout=False)
         cmd.stdin.write(contents)
         cmd.wait()
         assert cmd.stdout_text == contents
 
     def get_file_contents(self, filename):
         self.log.info('GET %s', filename)
-        cmd = self._run(['/usr/bin/cat', filename], log_stdout=False)
+        cmd = self._run(['cat', filename], log_stdout=False)
         cmd.wait(raiseonerr=False)
         if cmd.returncode == 0:
             return cmd.stdout_text
