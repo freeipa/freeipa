@@ -343,5 +343,40 @@ class config_freebsd_nss_pam_ldapd(config_base_legacy_client):
         self.log.command('curl -k https://%s/ipa/config/ca.crt > '
                          '%s' % (api.env.host, cacrt))
 
-
 api.register(config_freebsd_nss_pam_ldapd)
+
+
+class config_redhat_nss_ldap(config_base_legacy_client):
+    """
+    Legacy client configuration for Red Hat based systems,
+    using nss-ldap.
+    """
+    description = ('Instructions for configuring a system with nss-ldap '
+                   'as a FreeIPA client. This set of instructions is targeted '
+                   'for platforms that include the authconfig utility, which '
+                   'are all Red Hat based platforms.')
+
+    def get_info(self):
+        uri, base = self.get_uri_and_base()
+        self.check_compat_plugin()
+
+        self.log.comment('Install required packages via yum')
+        self.log.command('yum install -y wget openssl nss_ldap '
+                         'authconfig which\n')
+
+        self.configure_ca_cert()
+
+        self.log.comment('Use the authconfig to configure nsswitch.conf '
+                         'and the PAM stack')
+        self.log.command('authconfig --updateall --enableldap '
+                         '--enableldapauth --ldapserver=%s --ldapbasedn=%s\n'
+                         % (uri, base))
+
+    def configure_ca_cert(self):
+        self.log.comment('NOTE: IPA certificate uses the SHA-256 hash '
+                         'function. SHA-256 was introduced in RHEL5.2. '
+                         'Therefore, clients older than RHEL5.2 will not be '
+                         'able to interoperate with IPA server 3.x.')
+        super(config_redhat_nss_ldap, self).configure_ca_cert()
+
+api.register(config_redhat_nss_ldap)
