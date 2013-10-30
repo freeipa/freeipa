@@ -116,8 +116,20 @@ def unapply_fixes(host):
 def restore_files(host):
     backupname = os.path.join(host.config.test_dir, 'file_backup')
     rmname = os.path.join(host.config.test_dir, 'file_remove')
+
+    # Restore the backed up files
     host.run_command('cp -arvf %s/* /' % ipautil.shell_quote(backupname),
                      raiseonerr=False)
+
+    # Restore context of the backed-up files
+    sed_remove_backupdir = 's/%s//g' % backupname.replace('/', '\/')
+    host.run_command("find %s | "
+                     "sed '%s' | "
+                     "sed '/^$/d' | "
+                     "xargs -d '\n' "
+                     "/sbin/restorecon -v" % (backupname, sed_remove_backupdir))
+
+    # Remove all the files that did not exist and were 'backed up'
     host.run_command(['xargs', '-d', r'\n', '-a', rmname, 'rm', '-vf'],
                      raiseonerr=False)
     host.run_command(['rm', '-rvf', backupname, rmname], raiseonerr=False)
