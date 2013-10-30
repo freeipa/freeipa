@@ -52,7 +52,7 @@ class config_base_legacy_client(Advice):
                          '/etc/openldap/cacerts/ipa.crt\n' % api.env.host)
 
         self.log.comment('Generate hashes for the openldap library')
-        self.log.command('which cacertdir_rehash')
+        self.log.command('command -v cacertdir_rehash')
         self.log.command('if [ $? -ne 0 ] ; then')
         self.log.command(' wget "%s" -O cacertdir_rehash ;' % cacertdir_rehash)
         self.log.command(' chmod 755 ./cacertdir_rehash ;')
@@ -362,7 +362,7 @@ class config_redhat_nss_ldap(config_base_legacy_client):
 
         self.log.comment('Install required packages via yum')
         self.log.command('yum install -y wget openssl nss_ldap '
-                         'authconfig which\n')
+                         'authconfig\n')
 
         self.configure_ca_cert()
 
