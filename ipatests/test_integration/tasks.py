@@ -374,12 +374,22 @@ def clear_sssd_cache(host):
     Clears SSSD cache by removing the cache files. Restarts SSSD.
     """
 
-    host.run_command(['systemctl', 'stop', 'sssd'])
-    host.run_command(['rm', '-rfv', '/var/lib/sss/db/cache_%s.ldb'
-                                    % host.domain.name])
-    host.run_command(['rm', '-rfv', '/var/lib/sss/mc/group'])
-    host.run_command(['rm', '-rfv', '/var/lib/sss/mc/passwd'])
-    host.run_command(['systemctl', 'start', 'sssd'])
+    systemd_available = host.transport.file_exists('/bin/systemctl')
+
+    if systemd_available:
+        host.run_command(['systemctl', 'start', 'sssd'])
+    else:
+        host.run_command(['/sbin/service', 'sssd', 'start'])
+
+    host.run_command("find /var/lib/sss/db -name '*.ldb' | "
+                     "xargs rm -fv")
+    host.run_command(['rm', '-fv', '/var/lib/sss/mc/group'])
+    host.run_command(['rm', '-fv', '/var/lib/sss/mc/passwd'])
+
+    if systemd_available:
+        host.run_command(['systemctl', 'start', 'sssd'])
+    else:
+        host.run_command(['/sbin/service', 'sssd', 'start'])
 
 
 def sync_time(host, server):
