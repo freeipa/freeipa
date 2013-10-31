@@ -405,7 +405,7 @@ class hbactest(Command):
                     request.user.groups = []
                 else:
                     groups = []
-                    for dn, entry in entries:
+                    for entry in entries:
                         memberof_dns = entry.get('memberof', [])
                         for memberof_dn in memberof_dns:
                             if memberof_dn.endswith(group_container):

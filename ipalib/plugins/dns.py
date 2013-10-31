@@ -1716,7 +1716,7 @@ class dnszone(LDAPObject):
             test_dn = super(dnszone, self).get_dn(zone, **options)
 
             try:
-                (dn, entry_attrs) = self.backend.get_entry(test_dn, [''])
+                dn = self.backend.get_entry(test_dn, ['']).dn
             except errors.NotFound:
                 pass
 
@@ -1982,9 +1982,12 @@ class dnszone_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
+        entry = ldap.get_entry(dn, ['idnszoneactive'])
+
+        entry['idnszoneactive'] = ['FALSE']
 
         try:
-            ldap.update_entry(dn, {'idnszoneactive': 'FALSE'})
+            ldap.update_entry(entry)
         except errors.EmptyModlist:
             pass
 
@@ -2003,9 +2006,12 @@ class dnszone_enable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
+        entry = ldap.get_entry(dn, ['idnszoneactive'])
+
+        entry['idnszoneactive'] = ['TRUE']
 
         try:
-            ldap.update_entry(dn, {'idnszoneactive': 'TRUE'})
+            ldap.update_entry(entry)
         except errors.EmptyModlist:
             pass
 
@@ -2024,7 +2030,7 @@ class dnszone_add_permission(LDAPQuery):
         dn = self.obj.get_dn(*keys, **options)
 
         try:
-            (dn_, entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+            entry_attrs = ldap.get_entry(dn, ['objectclass'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -2033,14 +2039,16 @@ class dnszone_add_permission(LDAPQuery):
                          ipapermissiontype=u'SYSTEM'
                      )['result']
 
-        update = {}
         dnszone_ocs = entry_attrs.get('objectclass')
         if dnszone_ocs:
-            dnszone_ocs.append('ipadnszone')
-            update['objectclass'] = list(set(dnszone_ocs))
+            for oc in dnszone_ocs:
+                if oc.lower() == 'ipadnszone':
+                    break
+            else:
+                dnszone_ocs.append('ipadnszone')
 
-        update['managedby'] = [permission['dn']]
-        ldap.update_entry(dn, update)
+        entry_attrs['managedby'] = [permission['dn']]
+        ldap.update_entry(entry_attrs)
 
         return dict(
             result=True,
@@ -2058,11 +2066,15 @@ class dnszone_remove_permission(LDAPQuery):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
         dn = self.obj.get_dn(*keys, **options)
-
         try:
-            ldap.update_entry(dn, {'managedby': None})
+            entry = ldap.get_entry(dn, ['managedby'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
+        entry['managedby'] = None
+
+        try:
+            ldap.update_entry(entry)
         except errors.EmptyModlist:
             # managedBy attribute is clean, lets make sure there is also no
             # dangling DNS zone permission
@@ -2177,7 +2189,7 @@ class dnsrecord(LDAPObject):
             # zone must exist
             ldap = self.api.Backend.ldap2
             try:
-                (dn_, zone) = ldap.get_entry(dn, [])
+                ldap.get_entry(dn, [])
             except errors.NotFound:
                 self.api.Object['dnszone'].handle_not_found(keys[-2])
             return self.api.Object[self.parent_object].get_dn(*keys[:-1], **options)
@@ -2200,10 +2212,8 @@ class dnsrecord(LDAPObject):
             entries = ldap.find_entries(filter=ldap_filter, base_dn=base_dn)[0]
 
             for entry in entries:
-                master_dn = entry[0]
-                assert isinstance(master_dn, DN)
                 try:
-                    master = master_dn[1]['cn']
+                    master = entry.dn[1]['cn']
                     dns_masters.append(master)
                 except (IndexError, KeyError):
                     pass
@@ -2227,8 +2237,11 @@ class dnsrecord(LDAPObject):
             raise errors.OptionError(no_option_msg)
 
     def get_record_entry_attrs(self, entry_attrs):
-        return dict((attr, val) for attr,val in entry_attrs.iteritems() \
-                    if attr in self.params and not self.params[attr].primary_key)
+        entry_attrs = entry_attrs.copy()
+        for attr in entry_attrs.keys():
+            if attr not in self.params or self.params[attr].primary_key:
+                del entry_attrs[attr]
+        return entry_attrs
 
     def postprocess_record(self, record, **options):
         if options.get('structured', False):
@@ -2498,7 +2511,7 @@ class dnsrecord_add(LDAPCreate):
         # We always want to retrieve all DNS record attributes to test for
         # record type collisions (#2601)
         try:
-            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
+            old_entry = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
             old_entry = None
         else:
@@ -2523,9 +2536,10 @@ class dnsrecord_add(LDAPCreate):
                 # Update can be safely run as old record values has been
                 # already merged in pre_callback
                 ldap = self.obj.backend
-                dn = call_args[0]
-                entry_attrs = self.obj.get_record_entry_attrs(call_args[1])
-                ldap.update_entry(dn, entry_attrs, **call_kwargs)
+                entry_attrs = self.obj.get_record_entry_attrs(call_args[0])
+                update = ldap.get_entry(entry_attrs.dn, entry_attrs.keys())
+                update.update(entry_attrs)
+                ldap.update_entry(update, **call_kwargs)
                 return
         raise exc
 
@@ -2592,7 +2606,7 @@ class dnsrecord_mod(LDAPUpdate):
         # current entry is needed in case of per-dns-record-part updates and
         # for record type collision check
         try:
-            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
+            old_entry = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -2627,7 +2641,7 @@ class dnsrecord_mod(LDAPUpdate):
                 keys = keys[:-1] + (rename,)
             dn = self.obj.get_dn(*keys, **options)
             ldap = self.obj.backend
-            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
+            old_entry = ldap.get_entry(dn, _record_attributes)
 
             del_all = True
             for attr in old_entry.keys():
@@ -2744,7 +2758,7 @@ class dnsrecord_del(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn_, old_entry) = ldap.get_entry(dn, _record_attributes)
+            old_entry = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -2910,10 +2924,10 @@ class dnsrecord_find(LDAPSearch):
         if entries:
             zone_obj = self.api.Object[self.obj.parent_object]
             zone_dn = zone_obj.get_dn(args[0])
-            if entries[0][0] == zone_dn:
-                entries[0][1][zone_obj.primary_key.name] = [_dns_zone_record]
+            if entries[0].dn == zone_dn:
+                entries[0][zone_obj.primary_key.name] = [_dns_zone_record]
             for entry in entries:
-                self.obj.postprocess_record(entry[1], **options)
+                self.obj.postprocess_record(entry, **options)
 
         return truncated
 
@@ -3016,7 +3030,7 @@ class dnsconfig(LDAPObject):
         return DN(api.env.container_dns, api.env.basedn)
 
     def get_dnsconfig(self, ldap):
-        (dn, entry) = ldap.get_entry(self.get_dn(), None)
+        entry = ldap.get_entry(self.get_dn(), None)
 
         return entry
 

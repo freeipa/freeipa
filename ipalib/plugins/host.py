@@ -340,9 +340,10 @@ class host(LDAPObject):
             self.backend.get_entry(dn, [''])
         except errors.NotFound:
             try:
-                (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                entry_attrs = self.backend.find_entry_by_attr(
                     'serverhostname', hostname, self.object_class, [''],
                     DN(self.container_dn, api.env.basedn))
+                dn = entry_attrs.dn
             except errors.NotFound:
                 pass
         return dn
@@ -359,7 +360,7 @@ class host(LDAPObject):
                 filter=host_filter, attrs_list=host_attrs)
 
             for host in hosts:
-                managed_hosts.append(host[0])
+                managed_hosts.append(host.dn)
         except errors.NotFound:
             return []
 
@@ -581,7 +582,7 @@ class host_del(LDAPDelete):
 
         if self.api.env.enable_ra:
             try:
-                (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+                entry_attrs = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             cert = entry_attrs.single_value.get('usercertificate')
@@ -651,7 +652,7 @@ class host_mod(LDAPUpdate):
         if 'locality' in entry_attrs:
             entry_attrs['l'] = entry_attrs['locality']
         if 'krbprincipalname' in entry_attrs:
-            (dn, entry_attrs_old) = ldap.get_entry(
+            entry_attrs_old = ldap.get_entry(
                 dn, ['objectclass', 'krbprincipalname']
             )
             if 'krbprincipalname' in entry_attrs_old:
@@ -665,7 +666,7 @@ class host_mod(LDAPUpdate):
         if cert:
             if self.api.env.enable_ra:
                 x509.verify_cert_subject(ldap, keys[-1], cert)
-                (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
+                entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
                 oldcert = entry_attrs_old.single_value.get('usercertificate')
                 if oldcert:
                     oldcert = x509.normalize_certificate(oldcert)
@@ -703,9 +704,7 @@ class host_mod(LDAPUpdate):
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
             else:
-                (_dn, _entry_attrs) = ldap.get_entry(
-                    dn, ['objectclass']
-                )
+                _entry_attrs = ldap.get_entry(dn, ['objectclass'])
                 obj_classes = _entry_attrs['objectclass']
             if 'ieee802device' not in obj_classes:
                 obj_classes.append('ieee802device')
@@ -725,7 +724,7 @@ class host_mod(LDAPUpdate):
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
             else:
-                (_dn, _entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+                _entry_attrs = ldap.get_entry(dn, ['objectclass'])
                 obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
             if 'ipasshhost' not in obj_classes:
                 obj_classes.append('ipasshhost')
@@ -792,7 +791,7 @@ class host_find(LDAPSearch):
                 for pkey in options.get('man_host', []):
                     dn = self.obj.get_dn(pkey)
                     try:
-                        (dn, entry_attrs) = ldap.get_entry(dn, ['managedby'])
+                        entry_attrs = ldap.get_entry(dn, ['managedby'])
                     except errors.NotFound:
                         self.obj.handle_not_found(pkey)
                     hosts.append(set(entry_attrs.get('managedby', '')))
@@ -809,7 +808,7 @@ class host_find(LDAPSearch):
                 for pkey in options.get('not_man_host', []):
                     dn = self.obj.get_dn(pkey)
                     try:
-                        (dn, entry_attrs) = ldap.get_entry(dn, ['managedby'])
+                        entry_attrs = ldap.get_entry(dn, ['managedby'])
                     except errors.NotFound:
                         self.obj.handle_not_found(pkey)
                     not_hosts += entry_attrs.get('managedby', [])
@@ -830,11 +829,10 @@ class host_find(LDAPSearch):
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
             return truncated
-        for entry in entries:
-            (dn, entry_attrs) = entry
+        for entry_attrs in entries:
             set_certificate_attrs(entry_attrs)
             set_kerberos_attrs(entry_attrs, options)
-            self.obj.get_password_attributes(ldap, dn, entry_attrs)
+            self.obj.get_password_attributes(ldap, entry_attrs.dn, entry_attrs)
             self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
             if entry_attrs['has_password']:
                 # If an OTP is set there is no keytab, at least not one
@@ -842,9 +840,9 @@ class host_find(LDAPSearch):
                 entry_attrs['has_keytab'] = False
 
             if options.get('all', False):
-                entry_attrs['managing'] = self.obj.get_managed_hosts(entry[0])
+                entry_attrs['managing'] = self.obj.get_managed_hosts(entry_attrs.dn)
 
-            convert_sshpubkey_post(ldap, dn, entry_attrs)
+            convert_sshpubkey_post(ldap, entry_attrs.dn, entry_attrs)
 
         return truncated
 
@@ -941,7 +939,7 @@ class host_disable(LDAPQuery):
 
         dn = self.obj.get_dn(*keys, **options)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+            entry_attrs = ldap.get_entry(dn, ['usercertificate'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         cert = entry_attrs.single_value.get('usercertificate')
@@ -972,7 +970,8 @@ class host_disable(LDAPQuery):
                         raise nsprerr
 
             # Remove the usercertificate altogether
-            ldap.update_entry(dn, {'usercertificate': None})
+            entry_attrs['usercertificate'] = None
+            ldap.update_entry(entry_attrs)
             done_work = True
 
         self.obj.get_password_attributes(ldap, dn, entry_attrs)

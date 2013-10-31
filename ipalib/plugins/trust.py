@@ -456,7 +456,7 @@ sides.
                          base_dn=DN(api.env.container_trusts, api.env.basedn),
                          filter=trust_filter)
 
-        result['result'] = entry_to_dict(trusts[0][1], **options)
+        result['result'] = entry_to_dict(trusts[0], **options)
 
         # For AD trusts with algorithmic mapping, we need to add a separate
         # range for each subdomain.
@@ -778,9 +778,7 @@ class trust_find(LDAPSearch):
         if options.get('pkey_only', False):
             return truncated
 
-        for entry in entries:
-            (dn, attrs) = entry
-
+        for attrs in entries:
             # Translate ipanttrusttype to trusttype if --raw not used
             if not options.get('raw', False):
                 attrs['trusttype'] = trust_type_string(attrs['ipanttrusttype'][0])
@@ -897,7 +895,7 @@ class trustconfig(LDAPObject):
             # and not "ipausergroup" so that it can also match groups like
             # "Default SMB Group" which does not have this objectclass.
             try:
-                (dn, group_entry) = self.backend.find_entry_by_attr(
+                group_entry = self.backend.find_entry_by_attr(
                     self.api.Object['group'].primary_key.name,
                     group,
                     ['posixgroup'],
@@ -906,7 +904,7 @@ class trustconfig(LDAPObject):
             except errors.NotFound:
                 self.api.Object['group'].handle_not_found(group)
             else:
-                entry_attrs['ipantfallbackprimarygroup'] = [dn]
+                entry_attrs['ipantfallbackprimarygroup'] = [group_entry.dn]
 
     def _convert_groupdn(self, entry_attrs, options):
         """

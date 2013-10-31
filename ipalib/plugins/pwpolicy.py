@@ -478,13 +478,13 @@ class pwpolicy_find(LDAPSearch):
         returns a pair: (is_global, priority)
         """
         # global policy will be always last in the output
-        if entry[1]['cn'][0] == global_policy_name:
+        if entry['cn'][0] == global_policy_name:
             return True, 0
         else:
             # policies with higher priority (lower number) will be at the
             # beginning of the list
             try:
-                cospriority = int(entry[1]['cospriority'][0])
+                cospriority = int(entry['cospriority'][0])
             except KeyError:
                 # if cospriority is not present in the entry, rather return 0
                 # than crash
@@ -496,9 +496,9 @@ class pwpolicy_find(LDAPSearch):
             # When pkey_only flag is on, entries should contain only a cn.
             # Add a cospriority attribute that will be used for sorting.
             # Attribute rights are not allowed for pwpolicy_find.
-            self.obj.add_cospriority(e[1], e[1]['cn'][0], rights=False)
+            self.obj.add_cospriority(e, e['cn'][0], rights=False)
 
-            self.obj.convert_time_for_output(e[1], **options)
+            self.obj.convert_time_for_output(e, **options)
 
         # do custom entry sorting by its cospriority
         entries.sort(key=self.priority_sort_key)
@@ -507,7 +507,7 @@ class pwpolicy_find(LDAPSearch):
             # remove cospriority that was used for sorting
             for e in entries:
                 try:
-                    del e[1]['cospriority']
+                    del e['cospriority']
                 except KeyError:
                     pass
 

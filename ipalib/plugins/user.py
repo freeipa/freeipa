@@ -400,7 +400,7 @@ class user(LDAPObject):
 
     def _normalize_and_validate_email(self, email, config=None):
         if not config:
-            config = self.backend.get_ipa_config()[1]
+            config = self.backend.get_ipa_config()
 
         # check if default email domain should be added
         defaultdomain = config.get('ipadefaultemaildomain', [None])[0]
@@ -437,11 +437,11 @@ class user(LDAPObject):
             for m in xrange(len(manager)):
                 if isinstance(manager[m], DN) and manager[m].endswith(container_dn):
                     continue
-                (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                entry_attrs = self.backend.find_entry_by_attr(
                         self.primary_key.name, manager[m], self.object_class, [''],
                         container_dn
                     )
-                manager[m] = dn
+                manager[m] = entry_attrs.dn
         except errors.NotFound:
             raise errors.NotFound(reason=_('manager %(manager)s not found') % dict(manager=manager[m]))
 
@@ -510,7 +510,7 @@ class user_add(LDAPCreate):
                 entry_attrs['gidnumber'] = baseldap.DNA_MAGIC
 
         validate_nsaccountlock(entry_attrs)
-        config = ldap.get_ipa_config()[1]
+        config = ldap.get_ipa_config()
         if 'ipamaxusernamelength' in config:
             if len(keys[-1]) > int(config.get('ipamaxusernamelength')[0]):
                 raise errors.ValidationError(
@@ -542,7 +542,7 @@ class user_add(LDAPCreate):
                 def_primary_group = config.get('ipadefaultprimarygroup')
                 group_dn = self.api.Object['group'].get_dn(def_primary_group)
                 try:
-                    (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidnumber'])
+                    group_attrs = ldap.get_entry(group_dn, ['gidnumber'])
                 except errors.NotFound:
                     error_msg = _('Default group for new users not found')
                     raise errors.NotFound(reason=error_msg)
@@ -590,7 +590,7 @@ class user_add(LDAPCreate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        config = ldap.get_ipa_config()[1]
+        config = ldap.get_ipa_config()
         # add the user we just created into the default primary group
         def_primary_group = config.get('ipadefaultprimarygroup')
         group_dn = self.api.Object['group'].get_dn(def_primary_group)
@@ -607,7 +607,7 @@ class user_add(LDAPCreate):
         # delete description attribute NO_UPG_MAGIC if present
         if options.get('noprivate', False):
             if not options.get('all', False):
-                (dn, desc_attr) = ldap.get_entry(dn, ['description'])
+                desc_attr = ldap.get_entry(dn, ['description'])
                 entry_attrs.update(desc_attr)
             if 'description' in entry_attrs and NO_UPG_MAGIC in entry_attrs['description']:
                 entry_attrs['description'].remove(NO_UPG_MAGIC)
@@ -619,7 +619,7 @@ class user_add(LDAPCreate):
 
         # Fetch the entry again to update memberof, mep data, etc updated
         # at the end of the transaction.
-        (newdn, newentry) = ldap.get_entry(dn, ['*'])
+        newentry = ldap.get_entry(dn, ['*'])
         entry_attrs.update(newentry)
 
         if options.get('random', False):
@@ -668,7 +668,7 @@ class user_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         if options.get('rename') is not None:
-            config = ldap.get_ipa_config()[1]
+            config = ldap.get_ipa_config()
             if 'ipamaxusernamelength' in config:
                 if len(options['rename']) > int(config.get('ipamaxusernamelength')[0]):
                     raise errors.ValidationError(
@@ -769,12 +769,11 @@ class user_find(LDAPSearch):
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
             return truncated
-        for entry in entries:
-            (dn, attrs) = entry
+        for attrs in entries:
             self.obj._convert_manager(attrs, **options)
-            self.obj.get_password_attributes(ldap, dn, attrs)
+            self.obj.get_password_attributes(ldap, attrs.dn, attrs)
             convert_nsaccountlock(attrs)
-            convert_sshpubkey_post(ldap, dn, attrs)
+            convert_sshpubkey_post(ldap, attrs.dn, attrs)
         return truncated
 
     msg_summary = ngettext(
@@ -858,9 +857,13 @@ class user_unlock(LDAPQuery):
 
     def execute(self, *keys, **options):
         dn = self.obj.get_dn(*keys, **options)
-        entry_attrs = {'krbLastAdminUnlock': strftime("%Y%m%d%H%M%SZ",gmtime()), 'krbLoginFailedCount': '0'}
+        entry = self.obj.backend.get_entry(
+            dn, ['krbLastAdminUnlock', 'krbLoginFailedCount'])
 
-        self.obj.backend.update_entry(dn, entry_attrs)
+        entry['krbLastAdminUnlock'] = [strftime("%Y%m%d%H%M%SZ", gmtime())]
+        entry['krbLoginFailedCount'] = ['0']
+
+        self.obj.backend.update_entry(entry)
 
         return dict(
             result=True,
@@ -916,7 +919,7 @@ class user_status(LDAPQuery):
         entries = []
         count = 0
         for master in masters:
-            host = master[1]['cn'][0]
+            host = master['cn'][0]
             if host == api.env.host:
                 other_ldap = self.obj.backend
             else:
@@ -936,8 +939,8 @@ class user_status(LDAPQuery):
                 entry = other_ldap.get_entry(dn, attr_list)
                 newresult = {'dn': dn}
                 for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
-                    newresult[attr] = entry[1].get(attr, [u'N/A'])
-                newresult['krbloginfailedcount'] = entry[1].get('krbloginfailedcount', u'0')
+                    newresult[attr] = entry.get(attr, [u'N/A'])
+                newresult['krbloginfailedcount'] = entry.get('krbloginfailedcount', u'0')
                 if not options.get('raw', False):
                     for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
                         try:
@@ -954,9 +957,9 @@ class user_status(LDAPQuery):
                 else:
                     time_format = '%Y-%m-%dT%H:%M:%SZ'
                 newresult['now'] = unicode(strftime(time_format, gmtime()))
-                convert_nsaccountlock(entry[1])
-                if 'nsaccountlock' in entry[1].keys():
-                    disabled = entry[1]['nsaccountlock']
+                convert_nsaccountlock(entry)
+                if 'nsaccountlock' in entry:
+                    disabled = entry['nsaccountlock']
                 entries.append(newresult)
                 count += 1
             except errors.NotFound:

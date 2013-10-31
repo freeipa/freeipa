@@ -87,10 +87,10 @@ class sudocmd(LDAPObject):
             self.backend.get_entry(dn, [''])
         except errors.NotFound:
             try:
-                (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                entry_attrs = self.backend.find_entry_by_attr(
                     'sudocmd', keys[-1], self.object_class, [''],
-                    DN(self.container_dn, api.env.basedn)
-                )
+                    DN(self.container_dn, api.env.basedn))
+                dn = entry_attrs.dn
             except errors.NotFound:
                 pass
         return dn
@@ -125,7 +125,7 @@ class sudocmd_del(LDAPDelete):
         except errors.NotFound:
             pass
         else:
-            for entry_dn, entry_attrs in entries:
+            for entry_attrs in entries:
                 [cn] = entry_attrs['cn']
                 dependent_sudorules.append(cn)
 

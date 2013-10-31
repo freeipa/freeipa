@@ -551,9 +551,9 @@ class idrange_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         try:
-            (old_dn, old_attrs) = ldap.get_entry(dn, ['ipabaseid',
-                                                      'ipaidrangesize',
-                                                      'ipanttrusteddomainsid'])
+            old_attrs = ldap.get_entry(dn, ['ipabaseid',
+                                            'ipaidrangesize',
+                                            'ipanttrusteddomainsid'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -595,7 +595,7 @@ class idrange_find(LDAPSearch):
         return (filters, base_dn, ldap.SCOPE_ONELEVEL)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        for dn, entry in entries:
+        for entry in entries:
             self.obj.handle_iparangetype(entry, options)
         return truncated
 
@@ -629,7 +629,7 @@ class idrange_mod(LDAPUpdate):
         attrs_list.append('objectclass')
 
         try:
-            (old_dn, old_attrs) = ldap.get_entry(dn, ['*'])
+            old_attrs = ldap.get_entry(dn, ['*'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 

@@ -253,7 +253,8 @@ class hbacrule_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+            entry_attrs = ldap.get_entry(dn, attrs_list)
+            dn = entry_attrs.dn
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -294,14 +295,17 @@ class hbacrule_enable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-        entry_attrs = {'ipaenabledflag': 'TRUE'}
-
         try:
-            ldap.update_entry(dn, entry_attrs)
-        except errors.EmptyModlist:
-            pass
+            entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
             self.obj.handle_not_found(cn)
+
+        entry_attrs['ipaenabledflag'] = ['TRUE']
+
+        try:
+            ldap.update_entry(entry_attrs)
+        except errors.EmptyModlist:
+            pass
 
         return dict(
             result=True,
@@ -321,14 +325,17 @@ class hbacrule_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-        entry_attrs = {'ipaenabledflag': 'FALSE'}
-
         try:
-            ldap.update_entry(dn, entry_attrs)
-        except errors.EmptyModlist:
-            pass
+            entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
             self.obj.handle_not_found(cn)
+
+        entry_attrs['ipaenabledflag'] = ['FALSE']
+
+        try:
+            ldap.update_entry(entry_attrs)
+        except errors.EmptyModlist:
+            pass
 
         return dict(
             result=True,
@@ -355,12 +362,12 @@ class hbacrule_add_accesstime(LDAPQuery):
 
         dn = self.obj.get_dn(cn)
 
-        (dn, entry_attrs) = ldap.get_entry(dn, ['accesstime'])
+        entry_attrs = ldap.get_entry(dn, ['accesstime'])
         entry_attrs.setdefault('accesstime', []).append(
             options['accesstime']
         )
         try:
-            ldap.update_entry(dn, entry_attrs)
+            ldap.update_entry(entry_attrs)
         except errors.EmptyModlist:
             pass
         except errors.NotFound:
@@ -395,12 +402,12 @@ class hbacrule_remove_accesstime(LDAPQuery):
 
         dn = self.obj.get_dn(cn)
 
-        (dn, entry_attrs) = ldap.get_entry(dn, ['accesstime'])
+        entry_attrs = ldap.get_entry(dn, ['accesstime'])
         try:
             entry_attrs.setdefault('accesstime', []).remove(
                 options['accesstime']
             )
-            ldap.update_entry(dn, entry_attrs)
+            ldap.update_entry(entry_attrs)
         except (ValueError, errors.EmptyModlist):
             pass
         except errors.NotFound:
@@ -428,7 +435,8 @@ class hbacrule_add_user(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+            dn = entry_attrs.dn
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if 'usercategory' in entry_attrs and \
@@ -458,7 +466,8 @@ class hbacrule_add_host(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+            dn = entry_attrs.dn
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if 'hostcategory' in entry_attrs and \
@@ -512,7 +521,8 @@ class hbacrule_add_service(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+            dn = entry_attrs.dn
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if 'servicecategory' in entry_attrs and \

@@ -120,7 +120,7 @@ class realmdomains_mod(LDAPUpdate):
 
         # If --add-domain or --del-domain options were provided, read
         # the curent list from LDAP, modify it, and write the changes back
-        domains = ldap.get_entry(dn)[1]['associateddomain']
+        domains = ldap.get_entry(dn)['associateddomain']
 
         if add_domain:
             if not force and not has_soa_or_ns_record(add_domain):
@@ -144,9 +144,9 @@ class realmdomains_mod(LDAPUpdate):
         dn = self.obj.get_dn(*keys, **options)
         ldap = self.obj.backend
 
-        domains_old = set(ldap.get_entry(dn)[1]['associateddomain'])
+        domains_old = set(ldap.get_entry(dn)['associateddomain'])
         result = super(realmdomains_mod, self).execute(*keys, **options)
-        domains_new = set(ldap.get_entry(dn)[1]['associateddomain'])
+        domains_new = set(ldap.get_entry(dn)['associateddomain'])
 
         domains_added = domains_new - domains_old
         domains_deleted = domains_old - domains_new

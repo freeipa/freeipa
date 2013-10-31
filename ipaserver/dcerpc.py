@@ -143,10 +143,10 @@ class DomainValidator(object):
     def is_configured(self):
         cn_trust_local = DN(('cn', self.api.env.domain), self.api.env.container_cifsdomains, self.api.env.basedn)
         try:
-            (dn, entry_attrs) = self.ldap.get_entry(cn_trust_local, [self.ATTR_FLATNAME, self.ATTR_SID])
+            entry_attrs = self.ldap.get_entry(cn_trust_local, [self.ATTR_FLATNAME, self.ATTR_SID])
             self.flatname = entry_attrs[self.ATTR_FLATNAME][0]
             self.sid = entry_attrs[self.ATTR_SID][0]
-            self.dn = dn
+            self.dn = entry_attrs.dn
             self.domain = self.api.env.domain
         except errors.NotFound, e:
             return False
@@ -175,7 +175,7 @@ class DomainValidator(object):
             # domain names as keys and those are generally case-insensitive
             result = ipautil.CIDict()
 
-            for dn, entry in entries:
+            for entry in entries:
                 try:
                     trust_partner = entry[self.ATTR_TRUST_PARTNER][0]
                     flatname_normalized = entry[self.ATTR_FLATNAME][0].lower()
@@ -184,7 +184,7 @@ class DomainValidator(object):
                     # Some piece of trusted domain info in LDAP is missing
                     # Skip the domain, but leave log entry for investigation
                     api.log.warn("Trusted domain '%s' entry misses an "
-                                 "attribute: %s", dn, e)
+                                 "attribute: %s", entry.dn, e)
                     continue
 
                 result[trust_partner] = (flatname_normalized,
@@ -341,7 +341,7 @@ class DomainValidator(object):
             # Treat non-unique entries as invalid
             raise errors.ValidationError(name=_('trusted domain object'),
                error= _('Trusted domain did not return a unique object'))
-        sid = self.__sid_to_str(entries[0][1]['objectSid'][0])
+        sid = self.__sid_to_str(entries[0]['objectSid'][0])
         try:
             test_sid = security.dom_sid(sid)
             return unicode(test_sid)
@@ -378,7 +378,7 @@ class DomainValidator(object):
                         attrs=attrs, scope=_ldap.SCOPE_SUBTREE)
             except errors.NotFound:
                 raise errors.NotFound(reason=_('trusted domain user not found'))
-            user_dn = entries[0][0]
+            user_dn = entries[0].dn
         elif domain or flatname:
             attrs = ['cn']
             filter = '(&(sAMAccountName=%(name)s)(objectClass=user))' \
@@ -388,7 +388,7 @@ class DomainValidator(object):
                         flatname, filter, attrs, _ldap.SCOPE_SUBTREE)
             except errors.NotFound:
                 raise errors.NotFound(reason=_('trusted domain user not found'))
-            user_dn = entries[0][0]
+            user_dn = entries[0].dn
         else:
             # No domain or realm specified, ambiguous search
             raise errors.ValidationError(name=_('trusted domain object'),
@@ -401,8 +401,8 @@ class DomainValidator(object):
         filter = "(objectClass=user)"
         entries = self.get_trusted_domain_objects(domain,
             flatname, filter, attrs, _ldap.SCOPE_BASE, user_dn)
-        object_sid = self.__sid_to_str(entries[0][1]['objectSid'][0])
-        group_sids = [self.__sid_to_str(sid) for sid in entries[0][1]['tokenGroups']]
+        object_sid = self.__sid_to_str(entries[0]['objectSid'][0])
+        group_sids = [self.__sid_to_str(sid) for sid in entries[0]['tokenGroups']]
         return (object_sid, group_sids)
 
     def get_trusted_domain_user_and_groups(self, object_name):

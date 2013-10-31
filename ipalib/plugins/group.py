@@ -217,7 +217,7 @@ class group_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
-        config = ldap.get_ipa_config()[1]
+        config = ldap.get_ipa_config()
         def_primary_group = config.get('ipadefaultprimarygroup', '')
         def_primary_group_dn = group_dn = self.obj.get_dn(def_primary_group)
         if dn == def_primary_group_dn:
@@ -272,7 +272,8 @@ class group_mod(LDAPUpdate):
                     reason=u'Cannot be renamed')
 
         if ('posix' in options and options['posix']) or 'gidnumber' in options:
-            (dn, old_entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+            old_entry_attrs = ldap.get_entry(dn, ['objectclass'])
+            dn = old_entry_attrs.dn
             if 'ipaexternalgroup' in old_entry_attrs['objectclass']:
                 raise errors.ExternalGroupViolation()
             if 'posixgroup' in old_entry_attrs['objectclass']:
@@ -288,7 +289,8 @@ class group_mod(LDAPUpdate):
             if is_protected_group:
                 raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
                     reason=u'Cannot support external non-IPA members')
-            (dn, old_entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+            old_entry_attrs = ldap.get_entry(dn, ['objectclass'])
+            dn = old_entry_attrs.dn
             if 'posixgroup' in old_entry_attrs['objectclass']:
                 raise errors.PosixGroupViolation()
             if 'ipaexternalgroup' in old_entry_attrs['objectclass']:
@@ -367,7 +369,7 @@ class group_find(LDAPSearch):
 
             # filter based on 'criteria' argument
             search_kw = {}
-            config = ldap.get_ipa_config()[1]
+            config = ldap.get_ipa_config()
             attrs = config.get(self.obj.search_attributes_config, [])
             if len(attrs) == 1 and isinstance(attrs[0], basestring):
                 search_attrs = attrs[0].split(',')
@@ -520,7 +522,7 @@ class group_detach(LDAPQuery):
         user_dn = self.api.Object['user'].get_dn(*keys)
 
         try:
-            (user_dn, user_attrs) = ldap.get_entry(user_dn)
+            user_attrs = ldap.get_entry(user_dn)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         is_managed = self.obj.has_objectclass(user_attrs['objectclass'], 'mepmanagedentry')
@@ -528,7 +530,7 @@ class group_detach(LDAPQuery):
             not (ldap.can_write(user_dn, "mepManagedEntry")) and is_managed):
             raise errors.ACIError(info=_('not allowed to modify user entries'))
 
-        (group_dn, group_attrs) = ldap.get_entry(group_dn)
+        group_attrs = ldap.get_entry(group_dn)
         is_managed = self.obj.has_objectclass(group_attrs['objectclass'], 'mepmanagedby')
         if (not ldap.can_write(group_dn, "objectclass") or
             not (ldap.can_write(group_dn, "mepManagedBy")) and is_managed):
@@ -538,14 +540,14 @@ class group_detach(LDAPQuery):
         try:
             i = objectclasses.index('mepOriginEntry')
             del objectclasses[i]
-            update_attrs = {'objectclass': objectclasses, 'mepManagedEntry': None}
-            ldap.update_entry(user_dn, update_attrs)
+            user_attrs['mepManagedEntry'] = None
+            ldap.update_entry(user_attrs)
         except ValueError:
             # Somehow the user isn't managed, let it pass for now. We'll
             # let the group throw "Not managed".
             pass
 
-        (group_dn, group_attrs) = ldap.get_entry(group_dn)
+        group_attrs = ldap.get_entry(group_dn)
         objectclasses = group_attrs['objectclass']
         try:
             i = objectclasses.index('mepManagedEntry')
@@ -555,14 +557,14 @@ class group_detach(LDAPQuery):
         del objectclasses[i]
 
         # Make sure the resulting group has the default group objectclasses
-        config = ldap.get_ipa_config()[1]
+        config = ldap.get_ipa_config()
         def_objectclass = config.get(
             self.obj.object_class_config, objectclasses
         )
         objectclasses = list(set(def_objectclass + objectclasses))
 
-        update_attrs = {'objectclass': objectclasses, 'mepManagedBy': None}
-        ldap.update_entry(group_dn, update_attrs)
+        group_attrs['mepManagedBy'] = None
+        ldap.update_entry(group_attrs)
 
         return dict(
             result=True,

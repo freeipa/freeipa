@@ -300,7 +300,7 @@ class sudorule_mod(LDAPUpdate):
             else:
                 self.obj.check_order_uniqueness(*keys, **options)
         try:
-            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -344,14 +344,17 @@ class sudorule_enable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-        entry_attrs = {'ipaenabledflag': 'TRUE'}
-
         try:
-            ldap.update_entry(dn, entry_attrs)
-        except errors.EmptyModlist:
-            pass
+            entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
             self.obj.handle_not_found(cn)
+
+        entry_attrs['ipaenabledflag'] = ['TRUE']
+
+        try:
+            ldap.update_entry(entry_attrs)
+        except errors.EmptyModlist:
+            pass
 
         return dict(result=True)
 
@@ -368,14 +371,17 @@ class sudorule_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-        entry_attrs = {'ipaenabledflag': 'FALSE'}
-
         try:
-            ldap.update_entry(dn, entry_attrs)
-        except errors.EmptyModlist:
-            pass
+            entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
             self.obj.handle_not_found(cn)
+
+        entry_attrs['ipaenabledflag'] = ['FALSE']
+
+        try:
+            ldap.update_entry(entry_attrs)
+        except errors.EmptyModlist:
+            pass
 
         return dict(result=True)
 
@@ -394,7 +400,7 @@ class sudorule_add_allow_command(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'cmdcategory'):
@@ -423,7 +429,7 @@ class sudorule_add_deny_command(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'cmdcategory'):
@@ -451,7 +457,7 @@ class sudorule_add_user(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'usercategory'):
@@ -487,7 +493,7 @@ class sudorule_add_host(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'hostcategory'):
@@ -528,7 +534,7 @@ class sudorule_add_runasuser(LDAPAddMember):
             return True
 
         try:
-            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'ipasudorunasusercategory') or \
@@ -585,7 +591,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
             return True
 
         try:
-            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'ipasudorunasusercategory') or \
@@ -639,7 +645,7 @@ class sudorule_add_option(LDAPQuery):
 
         if not options['ipasudoopt'].strip():
             raise errors.EmptyModlist()
-        (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudoopt'])
+        entry_attrs = ldap.get_entry(dn, ['ipasudoopt'])
 
         try:
             if options['ipasudoopt'] not in entry_attrs['ipasudoopt']:
@@ -651,14 +657,14 @@ class sudorule_add_option(LDAPQuery):
             entry_attrs.setdefault('ipasudoopt', []).append(
                 options['ipasudoopt'])
         try:
-            ldap.update_entry(dn, entry_attrs)
+            ldap.update_entry(entry_attrs)
         except errors.EmptyModlist:
             pass
         except errors.NotFound:
             self.obj.handle_not_found(cn)
 
         attrs_list = self.obj.default_attributes
-        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        entry_attrs = ldap.get_entry(dn, attrs_list)
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
@@ -692,12 +698,12 @@ class sudorule_remove_option(LDAPQuery):
 
         if not options['ipasudoopt'].strip():
             raise errors.EmptyModlist()
-        (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudoopt'])
+        entry_attrs = ldap.get_entry(dn, ['ipasudoopt'])
         try:
             if options['ipasudoopt'] in entry_attrs['ipasudoopt']:
                 entry_attrs.setdefault('ipasudoopt', []).remove(
                     options['ipasudoopt'])
-                ldap.update_entry(dn, entry_attrs)
+                ldap.update_entry(entry_attrs)
             else:
                 raise errors.AttrValueNotFound(
                     attr='ipasudoopt',
@@ -714,7 +720,7 @@ class sudorule_remove_option(LDAPQuery):
             self.obj.handle_not_found(cn)
 
         attrs_list = self.obj.default_attributes
-        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        entry_attrs = ldap.get_entry(dn, attrs_list)
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 

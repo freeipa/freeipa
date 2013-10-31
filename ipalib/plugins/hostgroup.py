@@ -188,8 +188,7 @@ class hostgroup_find(LDAPSearch):
         if options.get('pkey_only', False):
             return truncated
         for entry in entries:
-            (dn, entry_attrs) = entry
-            self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
+            self.obj.suppress_netgroup_memberof(ldap, entry.dn, entry)
         return truncated
 
 api.register(hostgroup_find)

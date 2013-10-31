@@ -103,7 +103,7 @@ class passwd(Command):
         """
         ldap = self.api.Backend.ldap2
 
-        (dn, entry_attrs) = ldap.find_entry_by_attr(
+        entry_attrs = ldap.find_entry_by_attr(
             'krbprincipalname', principal, 'posixaccount', [''],
             DN(api.env.container_user, api.env.basedn)
         )
@@ -115,9 +115,9 @@ class passwd(Command):
             raise errors.ACIError(info=_('Invalid credentials'))
 
         if current_password == MAGIC_VALUE:
-            ldap.modify_password(dn, password)
+            ldap.modify_password(entry_attrs.dn, password)
         else:
-            ldap.modify_password(dn, password, current_password)
+            ldap.modify_password(entry_attrs.dn, password, current_password)
 
         return dict(
             result=True,

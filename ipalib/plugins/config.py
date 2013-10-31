@@ -232,7 +232,7 @@ class config_mod(LDAPUpdate):
         if kw:
             config = ldap.get_ipa_config(kw.values())
             for (k, v) in kw.iteritems():
-                allowed_attrs = ldap.get_allowed_attributes(config[1][v])
+                allowed_attrs = ldap.get_allowed_attributes(config[v])
                 fields = entry_attrs[k].split(',')
                 for a in fields:
                     a = a.strip()
@@ -285,7 +285,7 @@ class config_mod(LDAPUpdate):
                                 error=error_message)
 
             else:
-                config = ldap.get_ipa_config()[1]
+                config = ldap.get_ipa_config()
                 defaultuser = config.get('ipaselinuxusermapdefault', [None])[0]
 
             if 'ipaselinuxusermaporder' in entry_attrs:
@@ -307,7 +307,7 @@ class config_mod(LDAPUpdate):
                                 error=error_message)
             else:
                 if not config:
-                    config = ldap.get_ipa_config()[1]
+                    config = ldap.get_ipa_config()
                 order = config['ipaselinuxusermaporder']
                 userlist = order[0].split('$')
             if defaultuser and defaultuser not in userlist:

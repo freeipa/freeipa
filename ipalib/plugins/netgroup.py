@@ -167,7 +167,7 @@ class netgroup_add(LDAPCreate):
 
         try:
             test_dn = self.obj.get_dn(keys[-1])
-            (test_dn_, netgroup) = ldap.get_entry(test_dn, ['objectclass'])
+            netgroup = ldap.get_entry(test_dn, ['objectclass'])
             if 'mepManagedEntry' in netgroup.get('objectclass', []):
                 raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
             else:
@@ -206,7 +206,8 @@ class netgroup_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+            entry_attrs = ldap.get_entry(dn, attrs_list)
+            dn = entry_attrs.dn
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:

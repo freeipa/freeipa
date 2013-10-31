@@ -112,7 +112,7 @@ def validate_selinuxuser_inlist(ldap, user):
 
     Returns nothing if the user is found, raises an exception otherwise.
     """
-    config = ldap.get_ipa_config()[1]
+    config = ldap.get_ipa_config()
     item = config.get('ipaselinuxusermaporder', [])
     if len(item) != 1:
         raise errors.NotFound(reason=_('SELinux user map list not '
@@ -217,13 +217,13 @@ class selinuxusermap(LDAPObject):
             return str(dn)
         except ValueError:
             try:
-                (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                entry_attrs = self.backend.find_entry_by_attr(
                     self.api.Object['hbacrule'].primary_key.name,
                     seealso,
                     self.api.Object['hbacrule'].object_class,
                     [''],
                     DN(self.api.Object['hbacrule'].container_dn, api.env.basedn))
-                seealso = dn
+                seealso = entry_attrs.dn
             except errors.NotFound:
                 raise errors.NotFound(reason=_('HBAC rule %(rule)s not found') % dict(rule=seealso))
 
@@ -237,7 +237,7 @@ class selinuxusermap(LDAPObject):
             return
 
         if 'seealso' in entry_attrs:
-            (hbac_dn, hbac_attrs) = ldap.get_entry(entry_attrs['seealso'][0], ['cn'])
+            hbac_attrs = ldap.get_entry(entry_attrs['seealso'][0], ['cn'])
             entry_attrs['seealso'] = hbac_attrs['cn'][0]
 
 api.register(selinuxusermap)
@@ -296,7 +296,7 @@ class selinuxusermap_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (_dn, _entry_attrs) = ldap.get_entry(dn, attrs_list)
+            _entry_attrs = ldap.get_entry(dn, attrs_list)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -369,8 +369,7 @@ all=True)['result']
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
             return truncated
-        for entry in entries:
-            (dn, attrs) = entry
+        for attrs in entries:
             self.obj._convert_seealso(ldap, attrs, **options)
         return truncated
 
@@ -398,14 +397,17 @@ class selinuxusermap_enable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-        entry_attrs = {'ipaenabledflag': 'TRUE'}
-
         try:
-            ldap.update_entry(dn, entry_attrs)
-        except errors.EmptyModlist:
-            raise errors.AlreadyActive()
+            entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
             self.obj.handle_not_found(cn)
+
+        entry_attrs['ipaenabledflag'] = ['TRUE']
+
+        try:
+            ldap.update_entry(entry_attrs)
+        except errors.EmptyModlist:
+            raise errors.AlreadyActive()
 
         return dict(
             result=True,
@@ -425,14 +427,17 @@ class selinuxusermap_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-        entry_attrs = {'ipaenabledflag': 'FALSE'}
-
         try:
-            ldap.update_entry(dn, entry_attrs)
-        except errors.EmptyModlist:
-            raise errors.AlreadyInactive()
+            entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
             self.obj.handle_not_found(cn)
+
+        entry_attrs['ipaenabledflag'] = ['FALSE']
+
+        try:
+            ldap.update_entry(entry_attrs)
+        except errors.EmptyModlist:
+            raise errors.AlreadyInactive()
 
         return dict(
             result=True,
@@ -451,7 +456,8 @@ class selinuxusermap_add_user(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+            dn = entry_attrs.dn
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if 'usercategory' in entry_attrs and \
@@ -483,7 +489,8 @@ class selinuxusermap_add_host(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+            entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+            dn = entry_attrs.dn
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if 'hostcategory' in entry_attrs and \

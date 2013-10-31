@@ -603,11 +603,11 @@ class automountmap_del(LDAPDelete):
         assert isinstance(dn, DN)
         # delete optional parental connection (direct maps may not have this)
         try:
-            (dn_, entry_attrs) = ldap.find_entry_by_attr(
+            entry_attrs = ldap.find_entry_by_attr(
                 'automountinformation', keys[0], 'automount',
                 base_dn=DN(self.obj.container_dn, api.env.basedn)
             )
-            ldap.delete_entry(dn_)
+            ldap.delete_entry(entry_attrs)
         except errors.NotFound:
             pass
         return True
@@ -715,7 +715,7 @@ class automountkey(LDAPObject):
         # First we look with the information given, then try to search for
         # the right entry.
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, ['*'])
+            dn = ldap.get_entry(dn, ['*']).dn
         except errors.NotFound:
             if kwargs.get('automountinformation', False):
                 sfilter = '(&(automountkey=%s)(automountinformation=%s))' % \
@@ -732,7 +732,7 @@ class automountkey(LDAPObject):
                 raise errors.NotFound(reason=_('More than one entry with key %(key)s found, use --info to select specific entry.') % dict(key=pkey))
             if truncated:
                 raise errors.LimitsExceeded()
-            dn = entries[0][0]
+            dn = entries[0].dn
 
         return dn
 
@@ -955,7 +955,7 @@ class automountkey_mod(LDAPUpdate):
                 # automountinformation attribute of existing LDAP object needs
                 # to be retrieved so that RDN can be generated
                 dn = self.obj.get_dn(*keys, **options)
-                (dn_, entry_attrs_) = ldap.get_entry(dn, ['automountinformation'])
+                entry_attrs_ = ldap.get_entry(dn, ['automountinformation'])
                 new_info = entry_attrs_.get('automountinformation', [])[0]
 
             # automounkey attribute cannot be overwritten so that get_dn()

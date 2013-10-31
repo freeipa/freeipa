@@ -332,7 +332,7 @@ def convert_sshpubkey_post(ldap, dn, entry_attrs):
         pubkeys = entry_attrs['ipasshpubkey']
     else:
         old_entry_attrs = ldap.get_entry(dn, ['ipasshpubkey'])
-        pubkeys = old_entry_attrs[1].get('ipasshpubkey')
+        pubkeys = old_entry_attrs.get('ipasshpubkey')
     if not pubkeys:
         return
 

@@ -79,7 +79,7 @@ class pkinit_anonymous(Command):
         set_lock = False
         lock = None
 
-        (dn, entry_attrs) = ldap.get_entry(self.default_dn, ['nsaccountlock'])
+        entry_attrs = ldap.get_entry(self.default_dn, ['nsaccountlock'])
 
         if 'nsaccountlock' in entry_attrs:
             lock = entry_attrs['nsaccountlock'][0].lower()
@@ -94,7 +94,8 @@ class pkinit_anonymous(Command):
                 lock = 'TRUE'
 
         if set_lock:
-            ldap.update_entry(dn, {'nsaccountlock':lock})
+            entry_attrs['nsaccountlock'] = lock
+            ldap.update_entry(entry_attrs)
 
         return dict(result=True)
 

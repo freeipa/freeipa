@@ -434,7 +434,7 @@ class service_del(LDAPDelete):
         check_required_principal(ldap, hostname, service)
         if self.api.env.enable_ra:
             try:
-                (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+                entry_attrs = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             cert = entry_attrs.get('usercertificate')
@@ -486,8 +486,7 @@ class service_mod(LDAPUpdate):
                 dercert = x509.normalize_certificate(cert)
                 x509.verify_cert_subject(ldap, hostname, dercert)
                 try:
-                    (dn, entry_attrs_old) = ldap.get_entry(
-                        dn, ['usercertificate'])
+                    entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
                 except errors.NotFound:
                     self.obj.handle_not_found(*keys)
                 if 'usercertificate' in entry_attrs_old:
@@ -541,9 +540,8 @@ class service_find(LDAPSearch):
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
             return truncated
-        for entry in entries:
-            (dn, entry_attrs) = entry
-            self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        for entry_attrs in entries:
+            self.obj.get_password_attributes(ldap, entry_attrs.dn, entry_attrs)
             set_certificate_attrs(entry_attrs)
             set_kerberos_attrs(entry_attrs, options)
         return truncated
@@ -615,7 +613,7 @@ class service_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
-        (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+        entry_attrs = ldap.get_entry(dn, ['usercertificate'])
 
         (service, hostname, realm) = split_principal(keys[-1])
         check_required_principal(ldap, hostname, service)
@@ -648,7 +646,8 @@ class service_disable(LDAPQuery):
                         raise nsprerr
 
             # Remove the usercertificate altogether
-            ldap.update_entry(dn, {'usercertificate': None})
+            entry_attrs['usercertificate'] = None
+            ldap.update_entry(entry_attrs)
             done_work = True
 
         self.obj.get_password_attributes(ldap, dn, entry_attrs)

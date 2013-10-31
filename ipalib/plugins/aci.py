@@ -367,17 +367,16 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
         groupdn = DN(groupdn)
         if len(groupdn) and groupdn[0].attr == 'cn':
             dn = DN()
-            entry = {}
+            entry = ldap.make_entry(dn)
             try:
                 entry = ldap.get_entry(groupdn, ['cn'])
-                dn = entry.dn
             except errors.NotFound, e:
                 # FIXME, use real name here
                 if test:
                     dn = DN(('cn', 'test'), api.env.container_permission,
                             api.env.basedn)
-                    entry = {'cn': [u'test']}
-            if api.env.container_permission in dn:
+                    entry = ldap.make_entry(dn, {'cn': [u'test']})
+            if api.env.container_permission in entry.dn:
                 kw['permission'] = entry['cn'][0]
             else:
                 if 'cn' in entry:
@@ -539,7 +538,6 @@ class aci_add(crud.Create):
         newaci = _make_aci(ldap, None, aciname, kw)
 
         entry = ldap.get_entry(self.api.env.basedn, ['aci'])
-        dn = entry.dn
 
         acis = _convert_strings_to_acis(entry.get('aci', []))
         for a in acis:
@@ -584,7 +582,6 @@ class aci_del(crud.Delete):
         ldap = self.api.Backend.ldap2
 
         entry = ldap.get_entry(self.api.env.basedn, ['aci'])
-        dn = entry.dn
 
         acistrs = entry.get('aci', [])
         acis = _convert_strings_to_acis(acistrs)
@@ -704,7 +701,6 @@ class aci_find(crud.Search):
         ldap = self.api.Backend.ldap2
 
         entry = ldap.get_entry(self.api.env.basedn, ['aci'])
-        dn = entry.dn
 
         acis = _convert_strings_to_acis(entry.get('aci', []))
         results = []
@@ -754,7 +750,8 @@ class aci_find(crud.Search):
                 pass
             else:
                 for a in acis:
-                    if a.bindrule['expression'] != ('ldap:///%s' % dn):
+                    uri = 'ldap:///%s' % entry.dn
+                    if a.bindrule['expression'] != uri:
                         results.remove(a)
                 acis = list(results)
 

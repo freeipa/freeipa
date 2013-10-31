@@ -158,7 +158,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                          % (entry_attrs['gidnumber'][0], pkey))
         elif entry_attrs['gidnumber'][0] not in valid_gids:
             try:
-                (remote_dn, remote_entry) = ds_ldap.find_entry_by_attr(
+                remote_entry = ds_ldap.find_entry_by_attr(
                     'gidnumber', entry_attrs['gidnumber'][0], 'posixgroup',
                     [''], search_bases['group']
                 )
@@ -238,7 +238,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                                 pkey, value, type(value), attr, e)
                         continue
                 try:
-                    (remote_dn, remote_entry) = ds_ldap.get_entry(value, [api.Object.user.primary_key.name, api.Object.group.primary_key.name])
+                    remote_entry = ds_ldap.get_entry(value, [api.Object.user.primary_key.name, api.Object.group.primary_key.name])
                 except errors.NotFound:
                     api.log.warn('%s: attribute %s refers to non-existent entry %s' % (pkey, attr, value))
                     continue
@@ -270,9 +270,10 @@ def _post_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
 
     if 'description' in entry_attrs and NO_UPG_MAGIC in entry_attrs['description']:
         entry_attrs['description'].remove(NO_UPG_MAGIC)
-        update_attrs = dict(description = entry_attrs['description'])
         try:
-            ldap.update_entry(dn, update_attrs)
+            update_attrs = ldap.get_entry(dn, ['description'])
+            update_attrs['description'] = entry_attrs['description']
+            ldap.update_entry(update_attrs)
         except (errors.EmptyModlist, errors.NotFound):
             pass
 
@@ -292,17 +293,17 @@ def _update_default_group(ldap, pkey, config, ctx, force):
         except errors.NotFound:
             return
         new_members = []
-        (group_dn, group_entry_attrs) = ldap.get_entry(group_dn, ['member'])
+        group_entry_attrs = ldap.get_entry(group_dn, ['member'])
         for m in result:
-            if m[0] not in group_entry_attrs.get('member', []):
-                new_members.append(m[0])
+            if m.dn not in group_entry_attrs.get('member', []):
+                new_members.append(m.dn)
         if len(new_members) > 0:
             members = group_entry_attrs.get('member', [])
             members.extend(new_members)
             group_entry_attrs['member'] = members
 
             try:
-                ldap.update_entry(group_dn, group_entry_attrs)
+                ldap.update_entry(group_entry_attrs)
             except errors.EmptyModlist:
                 pass
 
@@ -406,8 +407,9 @@ def _group_exc_callback(ldap, dn, entry_attrs, exc, options):
         if options.get('groupoverwritegid', False) and \
            entry_attrs.get('gidnumber') is not None:
             try:
-                new_entry_attrs = {'gidnumber':entry_attrs['gidnumber']}
-                ldap.update_entry(dn, new_entry_attrs)
+                new_entry_attrs = ldap.get_entry(dn, ['gidnumber'])
+                new_entry_attrs['gidnumber'] = entry_attrs['gidnumber']
+                ldap.update_entry(new_entry_attrs)
             except errors.EmptyModlist:
                 # no change to the GID
                 pass
@@ -747,7 +749,7 @@ can use their Kerberos accounts.''')
                 def_group = config.get('ipadefaultprimarygroup')
                 context['def_group_dn'] = api.Object.group.get_dn(def_group)
                 try:
-                    (g_dn, g_attrs) = ldap.get_entry(context['def_group_dn'], ['gidnumber', 'cn'])
+                    g_attrs = ldap.get_entry(context['def_group_dn'], ['gidnumber', 'cn'])
                 except errors.NotFound:
                     error_msg = _('Default group for new users not found')
                     raise errors.NotFound(reason=error_msg)
@@ -760,20 +762,11 @@ can use their Kerberos accounts.''')
             invalid_gids = []
             migrate_cnt = 0
             context['migrate_cnt'] = 0
-            for (dn, entry_attrs) in entries:
+            for entry_attrs in entries:
                 context['migrate_cnt'] = migrate_cnt
                 s = datetime.datetime.now()
-                if dn is None:  # LDAP search reference
-                    failed[ldap_obj_name][entry_attrs[0]] = unicode(_ref_err_msg)
-                    continue
 
-                try:
-                    dn = DN(dn)
-                except ValueError:
-                    failed[ldap_obj_name][dn] = unicode(_dn_err_msg)
-                    continue
-
-                ava = dn[0][0]
+                ava = entry_attrs.dn[0][0]
                 if ava.attr == ldap_obj.primary_key.name:
                     # In case if pkey attribute is in the migrated object DN
                     # and the original LDAP is multivalued, make sure that
@@ -785,8 +778,7 @@ can use their Kerberos accounts.''')
                 if pkey in exclude:
                     continue
 
-                dn = ldap_obj.get_dn(pkey)
-                assert isinstance(dn, DN)
+                entry_attrs.dn = ldap_obj.get_dn(pkey)
                 entry_attrs['objectclass'] = list(
                     set(
                         config.get(
@@ -799,28 +791,29 @@ can use their Kerberos accounts.''')
                 callback = self.migrate_objects[ldap_obj_name]['pre_callback']
                 if callable(callback):
                     try:
-                        dn = callback(
-                            ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
-                            config, context, schema = options['schema'],
-                            search_bases = search_bases,
-                            valid_gids = valid_gids,
-                            invalid_gids = invalid_gids,
+                        entry_attrs.dn = callback(
+                            ldap, pkey, entry_attrs.dn, entry_attrs,
+                            failed[ldap_obj_name], config, context,
+                            schema=options['schema'],
+                            search_bases=search_bases,
+                            valid_gids=valid_gids,
+                            invalid_gids=invalid_gids,
                             **blacklists
                         )
-                        assert isinstance(dn, DN)
-                        if not dn:
+                        if not entry_attrs.dn:
                             continue
                     except errors.NotFound, e:
                         failed[ldap_obj_name][pkey] = unicode(e.reason)
                         continue
 
                 try:
-                    ldap.add_entry(dn, entry_attrs)
+                    ldap.add_entry(entry_attrs)
                 except errors.ExecutionError, e:
                     callback = self.migrate_objects[ldap_obj_name]['exc_callback']
                     if callable(callback):
                         try:
-                            callback(ldap, dn, entry_attrs, e, options)
+                            callback(
+                                ldap, entry_attrs.dn, entry_attrs, e, options)
                         except errors.ExecutionError, e:
                             failed[ldap_obj_name][pkey] = unicode(e)
                             continue
@@ -833,9 +826,8 @@ can use their Kerberos accounts.''')
                 callback = self.migrate_objects[ldap_obj_name]['post_callback']
                 if callable(callback):
                     callback(
-                        ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
-                        config, context,
-                    )
+                        ldap, pkey, entry_attrs.dn, entry_attrs,
+                        failed[ldap_obj_name], config, context)
                 e = datetime.datetime.now()
                 d = e - s
                 total_dur = e - migration_start
@@ -851,7 +843,7 @@ can use their Kerberos accounts.''')
     def execute(self, ldapuri, bindpw, **options):
         ldap = self.api.Backend.ldap2
         self.normalize_options(options)
-        config = ldap.get_ipa_config()[1]
+        config = ldap.get_ipa_config()
 
         ds_base_dn = options.get('basedn')
         if ds_base_dn is not None:
@@ -881,8 +873,7 @@ can use their Kerberos accounts.''')
         #check whether the compat plugin is enabled
         if not options.get('compat'):
             try:
-                (dn,check_compat) = ldap.get_entry(_compat_dn)
-                assert isinstance(dn, DN)
+                check_compat = ldap.get_entry(_compat_dn)
                 if check_compat is not None and \
                         check_compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
                     return dict(result={}, failed={}, enabled=True, compat=False)
@@ -895,12 +886,12 @@ can use their Kerberos accounts.''')
                 '', ['namingcontexts', 'defaultnamingcontext'], DN(''),
                 ds_ldap.SCOPE_BASE, size_limit=-1, time_limit=0,
             )
-            if 'defaultnamingcontext' in entries[0][1]:
-                ds_base_dn = DN(entries[0][1]['defaultnamingcontext'][0])
+            if 'defaultnamingcontext' in entries[0]:
+                ds_base_dn = DN(entries[0]['defaultnamingcontext'][0])
                 assert isinstance(ds_base_dn, DN)
             else:
                 try:
-                    ds_base_dn = DN(entries[0][1]['namingcontexts'][0])
+                    ds_base_dn = DN(entries[0]['namingcontexts'][0])
                     assert isinstance(ds_base_dn, DN)
                 except (IndexError, KeyError), e:
                     raise StandardError(str(e))

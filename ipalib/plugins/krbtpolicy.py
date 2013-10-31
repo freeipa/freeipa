@@ -166,15 +166,17 @@ class krbtpolicy_reset(LDAPQuery):
         else:
             def_values = _default_values
 
+        entry = ldap.get_entry(dn, def_values.keys())
+        entry.update(def_values)
         try:
-            ldap.update_entry(dn, def_values)
+            ldap.update_entry(entry)
         except errors.EmptyModlist:
             pass
 
         if keys[-1] is not None:
             # policy for user was deleted, retrieve global policy
             dn = self.obj.get_dn(None)
-        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 

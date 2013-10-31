@@ -203,8 +203,8 @@ def get_effective_rights(ldap, dn, attrs=None):
         attrs = ['*', 'nsaccountlock', 'cospriority']
     rights = ldap.get_effective_rights(dn, attrs)
     rdict = {}
-    if 'attributelevelrights' in rights[1]:
-        rights = rights[1]['attributelevelrights']
+    if 'attributelevelrights' in rights:
+        rights = rights['attributelevelrights']
         rights = rights[0].split(', ')
         for r in rights:
             (k,v) = r.split(':')
@@ -262,7 +262,7 @@ def wait_for_value(ldap, dn, attr, value):
 
         # FIXME: put a try/except around here? I think it is probably better
         # to just let the exception filter up to the caller.
-        (dn, entry_attrs) = ldap.get_entry( dn, ['*'])
+        entry_attrs = ldap.get_entry(dn, ['*'])
         if attr in entry_attrs:
             if isinstance(entry_attrs[attr], (list, tuple)):
                 values = map(lambda y:y.lower(), entry_attrs[attr])
@@ -332,8 +332,8 @@ def add_external_post_callback(memberattr, membertype, externalattr, ldap, compl
     # Sift through the failures. We assume that these are all
     # entries that aren't stored in IPA, aka external entries.
     if memberattr in failed and membertype in failed[memberattr]:
-        (dn, entry_attrs_) = ldap.get_entry(dn, [externalattr])
-        assert isinstance(dn, DN)
+        entry_attrs_ = ldap.get_entry(dn, [externalattr])
+        dn = entry_attrs_.dn
         members = entry_attrs.get(memberattr, [])
         external_entries = entry_attrs_.get(externalattr, [])
         lc_external_entries = set(e.lower() for e in external_entries)
@@ -364,8 +364,9 @@ def add_external_post_callback(memberattr, membertype, externalattr, ldap, compl
                 failed_entries.append(membername)
 
         if completed_external:
+            entry_attrs_[externalattr] = external_entries
             try:
-                ldap.update_entry(dn, {externalattr: external_entries})
+                ldap.update_entry(entry_attrs_)
             except errors.EmptyModlist:
                 pass
             failed[memberattr][membertype] = failed_entries
@@ -378,7 +379,8 @@ def remove_external_post_callback(memberattr, membertype, externalattr, ldap, co
     # Run through the failures and gracefully remove any member defined
     # as an external member.
     if memberattr in failed and membertype in failed[memberattr]:
-        (dn, entry_attrs_) = ldap.get_entry(dn, [externalattr])
+        entry_attrs_ = ldap.get_entry(dn, [externalattr])
+        dn = entry_attrs_.dn
         external_entries = entry_attrs_.get(externalattr, [])
         failed_entries = []
         completed_external = 0
@@ -398,8 +400,9 @@ def remove_external_post_callback(memberattr, membertype, externalattr, ldap, co
                 failed_entries.append(membername)
 
         if completed_external:
+            entry_attrs_[externalattr] = external_entries
             try:
-                ldap.update_entry(dn, {externalattr: external_entries})
+                ldap.update_entry(entry_attrs_)
             except errors.EmptyModlist:
                 pass
             failed[memberattr][membertype] = failed_entries
@@ -415,7 +418,7 @@ def host_is_master(ldap, fqdn):
     """
     master_dn = DN(('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     try:
-        (dn, entry_attrs) = ldap.get_entry(master_dn, ['objectclass'])
+        ldap.get_entry(master_dn, ['objectclass'])
         raise errors.ValidationError(name='hostname', error=_('An IPA master host cannot be deleted or disabled'))
     except errors.NotFound:
         # Good, not a master
@@ -478,14 +481,14 @@ class LDAPObject(Object):
             parent_dn = DN(self.container_dn, api.env.basedn)
         if self.rdn_attribute:
             try:
-                (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                entry_attrs = self.backend.find_entry_by_attr(
                     self.primary_key.name, keys[-1], self.object_class, [''],
                     DN(self.container_dn, api.env.basedn)
                 )
             except errors.NotFound:
                 pass
             else:
-                return dn
+                return entry_attrs.dn
         if self.primary_key and keys[-1] is not None:
             return self.backend.make_dn_from_attr(
                 self.primary_key.name, keys[-1], parent_dn
@@ -502,7 +505,7 @@ class LDAPObject(Object):
         assert isinstance(dn, DN)
         try:
             if self.rdn_attribute:
-                (dn, entry_attrs) = self.backend.get_entry(
+                entry_attrs = self.backend.get_entry(
                     dn, [self.primary_key.name]
                 )
                 try:
@@ -609,7 +612,7 @@ class LDAPObject(Object):
             json_dict['primary_key'] = self.primary_key.name
         objectclasses = self.object_class
         if self.object_class_config:
-            config = ldap.get_ipa_config()[1]
+            config = ldap.get_ipa_config()
             objectclasses = config.get(
                 self.object_class_config, objectclasses
             )
@@ -872,7 +875,7 @@ last, after all sets and adds."""),
 
         if needldapattrs:
             try:
-                (dn, old_entry) = self._exc_wrapper(keys, options, ldap.get_entry)(
+                old_entry = self._exc_wrapper(keys, options, ldap.get_entry)(
                     dn, needldapattrs
                 )
             except errors.NotFound:
@@ -1004,15 +1007,16 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
-        entry_attrs = self.args_options_2_entry(*keys, **options)
-        entry_attrs = ldap.make_entry(DN(), entry_attrs)
+        dn = self.obj.get_dn(*keys, **options)
+        entry_attrs = ldap.make_entry(
+            dn, self.args_options_2_entry(*keys, **options))
 
         self.process_attr_options(entry_attrs, None, keys, options)
 
         entry_attrs['objectclass'] = deepcopy(self.obj.object_class)
 
         if self.obj.object_class_config:
-            config = ldap.get_ipa_config()[1]
+            config = ldap.get_ipa_config()
             entry_attrs['objectclass'] = config.get(
                 self.obj.object_class_config, entry_attrs['objectclass']
             )
@@ -1020,8 +1024,6 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         if self.obj.uuid_attribute:
             entry_attrs[self.obj.uuid_attribute] = 'autogenerate'
 
-        dn = self.obj.get_dn(*keys, **options)
-        assert isinstance(dn, DN)
         if self.obj.rdn_attribute:
             try:
                 dn_attr = dn[0].attr
@@ -1029,10 +1031,9 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
                 dn_attr = None
             if dn_attr != self.obj.primary_key.name:
                 self.obj.handle_duplicate_entry(*keys)
-            dn = ldap.make_dn(
+            entry_attrs.dn = ldap.make_dn(
                 entry_attrs, self.obj.rdn_attribute,
-                DN(self.obj.container_dn, api.env.basedn)
-            )
+                DN(self.obj.container_dn, api.env.basedn))
 
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
@@ -1044,16 +1045,16 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
             attrs_list = list(attrs_list)
 
         for callback in self.get_callbacks('pre'):
-            dn = callback(
-                self, ldap, dn, entry_attrs, attrs_list, *keys, **options)
-            assert isinstance(dn, DN)
+            entry_attrs.dn = callback(
+                self, ldap, entry_attrs.dn, entry_attrs, attrs_list,
+                *keys, **options)
 
         _check_single_value_attrs(self.params, entry_attrs)
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
 
         try:
-            self._exc_wrapper(keys, options, ldap.add_entry)(dn, entry_attrs)
+            self._exc_wrapper(keys, options, ldap.add_entry)(entry_attrs)
         except errors.NotFound:
             parent = self.obj.parent_object
             if parent:
@@ -1078,25 +1079,23 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
                     object_class = self.obj.object_class
                 else:
                     object_class = None
-                (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.find_entry_by_attr)(
+                entry_attrs = self._exc_wrapper(keys, options, ldap.find_entry_by_attr)(
                     self.obj.primary_key.name, keys[-1], object_class, attrs_list,
                     DN(self.obj.container_dn, api.env.basedn)
                 )
-                assert isinstance(dn, DN)
             else:
-                (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
-                    dn, attrs_list
-                )
-                assert isinstance(dn, DN)
+                entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(
+                    entry_attrs.dn, attrs_list)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
         for callback in self.get_callbacks('post'):
-            dn = callback(self, ldap, dn, entry_attrs, *keys, **options)
+            entry_attrs.dn = callback(
+                self, ldap, entry_attrs.dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
-        assert isinstance(dn, DN)
+        dn = entry_attrs.dn
         entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
@@ -1204,23 +1203,23 @@ class LDAPRetrieve(LDAPQuery):
             assert isinstance(dn, DN)
 
         try:
-            (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
+            entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(
                 dn, attrs_list
             )
-            assert isinstance(dn, DN)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
         if options.get('rights', False) and options.get('all', False):
-            entry_attrs['attributelevelrights'] = get_effective_rights(ldap, dn)
+            entry_attrs['attributelevelrights'] = get_effective_rights(
+                ldap, entry_attrs.dn)
 
         for callback in self.get_callbacks('post'):
-            dn = callback(self, ldap, dn, entry_attrs, *keys, **options)
-            assert isinstance(dn, DN)
+            entry_attrs.dn = callback(
+                self, ldap, entry_attrs.dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
-        assert isinstance(dn, DN)
+        dn = entry_attrs.dn
         entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
@@ -1282,10 +1281,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             raise errors.EmptyModlist()
 
         dn = self.obj.get_dn(*keys, **options)
-        assert isinstance(dn, DN)
-
-        entry_attrs = self.args_options_2_entry(**options)
-        entry_attrs = ldap.make_entry(dn, entry_attrs)
+        entry_attrs = ldap.make_entry(dn, self.args_options_2_entry(**options))
 
         self.process_attr_options(entry_attrs, dn, keys, options)
 
@@ -1302,9 +1298,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         _check_empty_attrs(self.obj.params, entry_attrs)
 
         for callback in self.get_callbacks('pre'):
-            dn = callback(
-                self, ldap, dn, entry_attrs, attrs_list, *keys, **options)
-            assert isinstance(dn, DN)
+            entry_attrs.dn = callback(
+                self, ldap, entry_attrs.dn, entry_attrs, attrs_list,
+                *keys, **options)
 
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
@@ -1318,11 +1314,12 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
             if self.obj.rdn_is_primary_key and self.obj.primary_key.name in entry_attrs:
                 # RDN change
-                self._exc_wrapper(keys, options, ldap.update_entry_rdn)(dn,
-                    RDN((self.obj.primary_key.name, entry_attrs[self.obj.primary_key.name])))
+                self._exc_wrapper(keys, options, ldap.update_entry_rdn)(
+                    entry_attrs.dn,
+                    RDN((self.obj.primary_key.name,
+                         entry_attrs[self.obj.primary_key.name])))
                 rdnkeys = keys[:-1] + (entry_attrs[self.obj.primary_key.name], )
-                dn = self.obj.get_dn(*rdnkeys)
-                assert isinstance(dn, DN)
+                entry_attrs.dn = self.obj.get_dn(*rdnkeys)
                 del entry_attrs[self.obj.primary_key.name]
                 options['rdnupdate'] = True
                 rdnupdate = True
@@ -1331,10 +1328,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             # to decide what to do. An EmptyModlist in this context doesn't
             # mean an error occurred, just that there were no other updates to
             # perform.
-            assert isinstance(dn, DN)
-
             update = self._exc_wrapper(keys, options, ldap.get_entry)(
-                dn, entry_attrs.keys())
+                entry_attrs.dn, entry_attrs.keys())
             update.update(entry_attrs)
 
             self._exc_wrapper(keys, options, ldap.update_entry)(update)
@@ -1345,20 +1340,20 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             self.obj.handle_not_found(*keys)
 
         try:
-            (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
-                dn, attrs_list
-            )
+            entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(
+                entry_attrs.dn, attrs_list)
         except errors.NotFound:
             raise errors.MidairCollision(
                 format=_('the entry was deleted while being modified')
             )
 
         if options.get('rights', False) and options.get('all', False):
-            entry_attrs['attributelevelrights'] = get_effective_rights(ldap, dn)
+            entry_attrs['attributelevelrights'] = get_effective_rights(
+                ldap, entry_attrs.dn)
 
         for callback in self.get_callbacks('post'):
-            dn = callback(self, ldap, dn, entry_attrs, *keys, **options)
-            assert isinstance(dn, DN)
+            entry_attrs.dn = callback(
+                self, ldap, entry_attrs.dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
@@ -1414,8 +1409,8 @@ class LDAPDelete(LDAPMultiQuery):
                     except errors.NotFound:
                         break
                     else:
-                        for (dn_, entry_attrs) in subentries:
-                            delete_subtree(dn_)
+                        for entry_attrs in subentries:
+                            delete_subtree(entry_attrs.dn)
                 try:
                     self._exc_wrapper(nkeys, options, ldap.delete_entry)(base_dn)
                 except errors.NotFound:
@@ -1577,21 +1572,20 @@ class LDAPAddMember(LDAPModMember):
             attrs_list = list(attrs_list)
 
         try:
-            (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
+            entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(
                 dn, attrs_list
             )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
         for callback in self.get_callbacks('post'):
-            (completed, dn) = callback(
-                self, ldap, completed, failed, dn, entry_attrs, *keys,
-                **options)
-            assert isinstance(dn, DN)
+            (completed, entry_attrs.dn) = callback(
+                self, ldap, completed, failed, entry_attrs.dn, entry_attrs,
+                *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
-        assert isinstance(dn, DN)
+        dn = entry_attrs.dn
         entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
@@ -1680,21 +1674,20 @@ class LDAPRemoveMember(LDAPModMember):
         time.sleep(.3)
 
         try:
-            (dn, entry_attrs) = self._exc_wrapper(keys, options, ldap.get_entry)(
+            entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(
                 dn, attrs_list
             )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
         for callback in self.get_callbacks('post'):
-            (completed, dn) = callback(
-                self, ldap, completed, failed, dn, entry_attrs, *keys,
-                **options)
-            assert isinstance(dn, DN)
+            (completed, entry_attrs.dn) = callback(
+                self, ldap, completed, failed, entry_attrs.dn, entry_attrs,
+                *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
-        assert isinstance(dn, DN)
+        dn = entry_attrs.dn
         entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
@@ -1857,7 +1850,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         else:
             search_attrs = self.obj.default_attributes
         if self.obj.search_attributes_config:
-            config = ldap.get_ipa_config()[1]
+            config = ldap.get_ipa_config()
             config_attrs = config.get(
                 self.obj.search_attributes_config, [])
             if len(config_attrs) == 1 and (
@@ -1899,12 +1892,12 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         if self.sort_result_entries:
             if self.obj.primary_key:
                 def sort_key(x):
-                    return x[1][self.obj.primary_key.name][0].lower()
+                    return x[self.obj.primary_key.name][0].lower()
                 entries.sort(key=sort_key)
 
         if not options.get('raw', False):
             for e in entries:
-                self.obj.convert_attribute_members(e[1], *args, **options)
+                self.obj.convert_attribute_members(e, *args, **options)
 
         for (i, e) in enumerate(entries):
             entries[i] = entry_to_dict(e, **options)
@@ -2036,16 +2029,15 @@ class LDAPAddReverseMember(LDAPModReverseMember):
                 failed['member'][self.reverse_attr].append((attr, unicode(msg)))
 
         # Update the member data.
-        (dn, entry_attrs) = ldap.get_entry(dn, ['*'])
+        entry_attrs = ldap.get_entry(dn, ['*'])
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
         for callback in self.get_callbacks('post'):
-            (completed, dn) = callback(
-                self, ldap, completed, failed, dn, entry_attrs, *keys,
-                **options)
-            assert isinstance(dn, DN)
+            (completed, entry_attrs.dn) = callback(
+                self, ldap, completed, failed, entry_attrs.dn, entry_attrs,
+                *keys, **options)
 
-        assert isinstance(dn, DN)
+        dn = entry_attrs.dn
         entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
@@ -2141,16 +2133,15 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
                 failed['member'][self.reverse_attr].append((attr, unicode(msg)))
 
         # Update the member data.
-        (dn, entry_attrs) = ldap.get_entry(dn, ['*'])
+        entry_attrs = ldap.get_entry(dn, ['*'])
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
         for callback in self.get_callbacks('post'):
-            (completed, dn) = callback(
-                self, ldap, completed, failed, dn, entry_attrs, *keys,
-                **options)
-            assert isinstance(dn, DN)
+            (completed, entry_attrs.dn) = callback(
+                self, ldap, completed, failed, entry_attrs.dn, entry_attrs,
+                *keys, **options)
 
-        assert isinstance(dn, DN)
+        dn = entry_attrs.dn
         entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
