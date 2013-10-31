@@ -75,7 +75,7 @@ def get_entry(dn, conn):
     """
     entry = None
     try:
-        (dn, entry) = conn.get_entry(dn)
+        entry = conn.get_entry(dn)
     except errors.NotFound:
         pass
     return entry
@@ -165,20 +165,18 @@ def main():
             elif entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
                 print "Enabling plugin"
                 # Already configured, just enable the plugin
-                mod = {'nsslapd-pluginenabled': 'on'}
-                conn.update_entry(nis_config_dn, mod)
+                entry['nsslapd-pluginenabled'] = ['on']
+                conn.update_entry(entry)
             else:
                 print "Plugin already Enabled"
                 retval = 2
 
         elif args[0] == "disable":
             try:
-                mod = {'nsslapd-pluginenabled': 'off'}
-                conn.update_entry(nis_config_dn, mod)
-            except errors.NotFound:
-                print "Plugin is already disabled"
-                retval = 2
-            except errors.EmptyModlist:
+                entry = conn.get_entry(nis_config_dn, ['nsslapd-pluginenabled'])
+                entry['nsslapd-pluginenabled'] = ['off']
+                conn.update_entry(entry)
+            except (errors.NotFound, errors.EmptyModlist):
                 print "Plugin is already disabled"
                 retval = 2
             except errors.LDAPError, lde:

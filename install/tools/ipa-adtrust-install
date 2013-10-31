@@ -118,13 +118,13 @@ def set_and_check_netbios_name(netbios_name, unattended):
     cur_netbios_name = None
     gen_netbios_name = None
     reset_netbios_name = False
-    dom_dn = None
+    entry = None
 
     try:
-        (dom_dn, entry) = api.Backend.ldap2.get_entry(DN(('cn', api.env.domain),
-                                    api.env.container_cifsdomains,
-                                    ipautil.realm_to_suffix(api.env.realm)),
-                                    [flat_name_attr])
+        entry = api.Backend.ldap2.get_entry(
+            DN(('cn', api.env.domain), api.env.container_cifsdomains,
+               ipautil.realm_to_suffix(api.env.realm)),
+            [flat_name_attr])
     except errors.NotFound:
         # trust not configured
         pass
@@ -160,7 +160,7 @@ def set_and_check_netbios_name(netbios_name, unattended):
         if not netbios_name:
             gen_netbios_name = adtrustinstance.make_netbios_name(api.env.domain)
 
-        if dom_dn:
+        if entry is not None:
             # Fix existing trust configuration
             print "Trust is configured but no NetBIOS domain name found, " \
                   "setting it now."

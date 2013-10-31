@@ -561,10 +561,10 @@ def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
         except errors.ExecutionError, e:
             root_logger.critical("Could not connect to the Directory Server on %s" % realm_name)
             raise e
-        (dn, entry_attrs) = conn.get_ipa_config()
+        entry_attrs = conn.get_ipa_config()
         if 'ipacertificatesubjectbase' not in entry_attrs:
-            mod = {'ipacertificatesubjectbase': str(subject_base)}
-            conn.update_entry(dn, mod)
+            entry_attrs['ipacertificatesubjectbase'] = [str(subject_base)]
+            conn.update_entry(entry_attrs)
         conn.disconnect()
 
 

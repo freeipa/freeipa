@@ -930,21 +930,22 @@ class CAInstance(service.Service):
         decoded = base64.b64decode(self.ra_cert)
 
         entry_dn = DN(('uid', "ipara"), ('ou', 'People'), self.basedn)
-        entry = [
-        ('objectClass', ['top', 'person', 'organizationalPerson', 'inetOrgPerson', 'cmsuser']),
-        ('uid', "ipara"),
-        ('sn', "ipara"),
-        ('cn', "ipara"),
-        ('usertype', "agentType"),
-        ('userstate', "1"),
-        ('userCertificate', decoded),
-        ('description', '2;%s;%s;%s' % \
-             (str(self.requestId),
-              DN(('CN', 'Certificate Authority'), self.subject_base),
-              DN(('CN', 'IPA RA'), self.subject_base))),
-        ]
+        entry = conn.make_entry(
+            entry_dn,
+            objectClass=['top', 'person', 'organizationalPerson',
+                         'inetOrgPerson', 'cmsuser'],
+            uid=["ipara"],
+            sn=["ipara"],
+            cn=["ipara"],
+            usertype=["agentType"],
+            userstate=["1"],
+            userCertificate=[decoded],
+            description=['2;%s;%s;%s' % (
+                str(self.requestId),
+                DN(('CN', 'Certificate Authority'), self.subject_base),
+                DN(('CN', 'IPA RA'), self.subject_base))])
 
-        conn.add_entry(entry_dn, entry)
+        conn.add_entry(entry)
 
         dn = DN(('cn', 'Certificate Manager Agents'), ('ou', 'groups'), self.basedn)
         modlist = [(0, 'uniqueMember', '%s' % entry_dn)]
@@ -1764,11 +1765,11 @@ def update_people_entry(uid, dercert):
             conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
             conn.connect(bind_dn=DN(('cn', 'directory manager')),
                 bind_pw=dm_password)
-            (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'])
+            entry_attrs = conn.get_entry(dn, ['usercertificate'])
             entry_attrs['usercertificate'].append(dercert)
             entry_attrs['description'] = '2;%d;%s;%s' % (serial_number, issuer,
                 subject)
-            conn.update_entry(dn, entry_attrs)
+            conn.update_entry(entry_attrs)
             updated = True
             break
         except errors.NetworkError:

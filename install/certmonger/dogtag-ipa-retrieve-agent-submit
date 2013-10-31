@@ -62,7 +62,7 @@ try:
     conn.connect(ccache=ccache)
     try:
         syslog.syslog(syslog.LOG_NOTICE, "Updating certificate for %s" % nickname)
-        (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'])
+        entry_attrs = conn.get_entry(dn, ['usercertificate'])
         cert = entry_attrs['usercertificate'][0]
         cert = base64.b64encode(cert)
         print x509.make_pem(cert)

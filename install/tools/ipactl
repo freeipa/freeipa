@@ -137,7 +137,7 @@ def get_config(dirsrv):
         except Exception, e:
             masters_list.append("No master found because of error: %s" % str(e))
         else:
-            for dn, master_entry in entries:
+            for master_entry in entries:
                 masters_list.append(master_entry.single_value['cn'])
 
         masters = "\n".join(masters_list)

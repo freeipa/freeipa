@@ -162,7 +162,7 @@ class ReplicaPrepare(admintool.AdminTool):
             conn = ldap2(shared_instance=False, base_dn=suffix)
             conn.connect(bind_dn=DN(('cn', 'directory manager')),
                          bind_pw=self.dirman_password)
-            dn, entry_attrs = conn.get_ipa_config()
+            entry_attrs = conn.get_ipa_config()
             conn.disconnect()
         except errors.ACIError:
             raise admintool.ScriptError("The password provided is incorrect "

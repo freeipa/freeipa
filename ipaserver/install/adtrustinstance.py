@@ -472,7 +472,7 @@ class ADTRUSTInstance(service.Service):
             members = current.get('memberPrincipal', [])
             if not(self.cifs_principal in members):
                 current["memberPrincipal"] = members + [self.cifs_principal]
-                self.admin_conn.update_entry(targets_dn, current)
+                self.admin_conn.update_entry(current)
             else:
                 self.print_msg('cifs principal already targeted, nothing to do.')
         except errors.NotFound:
@@ -503,7 +503,7 @@ class ADTRUSTInstance(service.Service):
                 members = current.get('member', [])
                 if not(self.cifs_agent in members):
                     current["member"] = members + [self.cifs_agent]
-                    self.admin_conn.update_entry(self.smb_dn, current)
+                    self.admin_conn.update_entry(current)
             except errors.NotFound:
                 entry = self.admin_conn.make_entry(
                     self.smb_dn,
@@ -723,7 +723,7 @@ class ADTRUSTInstance(service.Service):
                 lookup_nsswitch = current.get(lookup_nsswitch_name, [])
                 if not(config[1] in lookup_nsswitch):
                     current[lookup_nsswitch_name] = [config[1]]
-                    self.admin_conn.update_entry(entry_dn, current)
+                    self.admin_conn.update_entry(current)
         except Exception, e:
             root_logger.critical("Enabling nsswitch support in slapi-nis failed with error '%s'" % e)
 

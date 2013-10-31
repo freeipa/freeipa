@@ -69,13 +69,15 @@ try:
     conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
     conn.connect(ccache=ccache)
     try:
-        (entry_dn, entry_attrs) = conn.get_entry(dn, ['usercertificate'])
+        entry_attrs = conn.get_entry(dn, ['usercertificate'])
         entry_attrs['usercertificate'] = cert
-        conn.update_entry(dn, entry_attrs)
+        conn.update_entry(entry_attrs)
     except errors.NotFound:
-        entry_attrs = dict(objectclass=['top', 'pkiuser', 'nscontainer'],
-                                        usercertificate=cert)
-        conn.add_entry(dn, entry_attrs)
+        entry_attrs = conn.make_entry(
+            dn,
+            objectclass=['top', 'pkiuser', 'nscontainer'],
+            usercertificate=[cert])
+        conn.add_entry(entry_attrs)
     except errors.EmptyModlist:
         pass
     conn.disconnect()
