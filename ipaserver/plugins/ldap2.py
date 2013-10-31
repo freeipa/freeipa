@@ -85,9 +85,6 @@ class ldap2(LDAPClient, CrudBackend):
         # do not set it
         pass
 
-    def get_api(self):
-        return api
-
     def __del__(self):
         if self.isconnected():
             self.disconnect()
