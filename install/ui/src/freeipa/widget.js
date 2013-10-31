@@ -450,7 +450,32 @@ IPA.input_widget = function(spec) {
      * Focus input element
      * @abstract
      */
-    that.focus_input = function() {};
+    that.focus_input = function() {
+
+        var input = that.get_input();
+
+        if (!input) {
+            return;
+        } else if (input.jquery || input.length === undefined) {
+            input.focus();
+        } else if (input.length) {
+            input[0].focus();
+        }
+    };
+
+    /**
+     * Get input element or array of input elements in case of multivalued
+     * widgets.
+     *
+     * - useful for label.for
+     *
+     * @return {null|HTMLElement[]}
+     */
+    that.get_input = function() {
+
+        if (that.input) return that.input;
+        return null;
+    };
 
     /**
      * Mark element as deleted.
@@ -533,9 +558,12 @@ IPA.text_widget = function(spec) {
             style: 'display: none;'
         }).appendTo(container);
 
+        var id = IPA.html_util.get_next_id(that.name);
+
         that.input = $('<input/>', {
             type: that.input_type,
             name: that.name,
+            id: id,
             size: that.size,
             title: that.tooltip,
             keyup: function() {
@@ -593,13 +621,6 @@ IPA.text_widget = function(spec) {
     that.clear = function() {
         that.input.val('');
         that.display_control.text('');
-    };
-
-    /**
-     * @inheritDoc
-     */
-    that.focus_input = function() {
-        that.input.focus();
     };
 
     /**
@@ -758,8 +779,18 @@ IPA.multivalued_widget = function(spec) {
     };
 
     that.focus_last = function() {
+        if (!that.rows.length) return;
         var last_row = that.rows[that.rows.length-1];
         last_row.widget.focus_input();
+    };
+
+    that.focus_input = function() {
+
+        if (that.rows.length) {
+            that.focus_last();
+        } else {
+            that.add_link.focus();
+        }
     };
 
     that.add_row = function(values) {
@@ -1125,7 +1156,7 @@ IPA.option_widget_base = function(spec, that) {
         var id = that._option_next_id + input_name;
         var enabled = that.enabled && option.enabled;
 
-        $('<input/>', {
+        option.input_node = $('<input/>', {
             id: id,
             type: that.input_type,
             name: input_name,
@@ -1135,7 +1166,7 @@ IPA.option_widget_base = function(spec, that) {
             change: that.on_input_change
         }).appendTo(container);
 
-        $('<label/>', {
+        option.label_node =  $('<label/>', {
             html: option.label || '&nbsp;',
             title: option.tooltip || that.tooltip,
             'for': id
@@ -1419,6 +1450,14 @@ IPA.radio_widget = function(spec) {
 
         that.create_error_link(container);
     };
+
+    /**
+     * @inheritDoc
+     */
+    that.focus_input = function() {
+        that.options[0].input_node.focus();
+    };
+
     return that;
 };
 
@@ -1458,6 +1497,13 @@ IPA.checkbox_widget = function (spec) {
             value = value ? checked : '';
         }
         that.owb_update([value]);
+    };
+
+    /**
+     * @inheritDoc
+     */
+    that.get_input = function() {
+        return that.options[0].input_node;
     };
 
     return that;
@@ -1636,6 +1682,13 @@ IPA.select_widget = function(spec) {
     that.disable_options = function(options) {
 
         that.set_options_enabled(false, options);
+    };
+
+    /**
+     * @inheritDoc
+     */
+    that.get_input = function() {
+        return that.select;
     };
 
     // methods that should be invoked by subclasses
@@ -2995,9 +3048,12 @@ IPA.combobox_widget = function(spec) {
             style: 'display: none;'
         }).appendTo(that.input_container);
 
+        var id = IPA.html_util.get_next_id(that.name);
+
         that.input = $('<input/>', {
             type: 'text',
             name: that.name,
+            id: id,
             title: that.tooltip,
             keydown: that.on_input_keydown,
             mousedown: that.on_no_close,
@@ -3991,13 +4047,23 @@ IPA.fluid_layout = function(spec) {
 
         var label_cont = $('<div/>', { 'class': 'control-label' });
 
-        $('<label/>', {
+        var label_el = $('<label/>', {
             name: widget.name,
             'class': '',
             text: label_text
         }).appendTo(label_cont);
 
-        // TODO: set `for` in label
+        var input = widget.get_input();
+
+        if (input && input.length) input = input[0];
+
+        if (input && input.id) {
+            label_el.prop('for', input.id);
+        } else {
+            label_el.bind('click', function() {
+                widget.focus_input();
+            });
+        }
         return label_cont;
     };
 
