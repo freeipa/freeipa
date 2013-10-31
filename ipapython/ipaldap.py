@@ -1521,14 +1521,14 @@ class LDAPClient(object):
 
         assert isinstance(dn, DN)
 
-        (entry, truncated) = self.find_entries(
+        (entries, truncated) = self.find_entries(
             None, attrs_list, dn, self.SCOPE_BASE, time_limit=time_limit,
             size_limit=size_limit
         )
 
         if truncated:
             raise errors.LimitsExceeded()
-        return entry[0]
+        return entries[0]
 
     def _get_dn_and_attrs(self, entry_or_dn, entry_attrs):
         """Helper for legacy calling style for {add,update}_entry
@@ -1577,7 +1577,7 @@ class LDAPClient(object):
         assert isinstance(dn, DN)
 
         # get original entry
-        dn, entry_attrs_old = self.get_entry(dn, entry_attrs.keys())
+        entry_attrs_old = self.get_entry(dn, entry_attrs.keys())
 
         # generate modlist
         # for multi value attributes: no MOD_REPLACE to handle simultaneous

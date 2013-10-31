@@ -923,7 +923,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
                 conn.connect(bind_dn=dn, bind_pw=password)
 
                 # password is ok, must be expired, lets double-check
-                (userdn, entry_attrs) = conn.get_entry(dn,
+                entry_attrs = conn.get_entry(dn,
                     ['krbpasswordexpiration'])
                 if 'krbpasswordexpiration' in entry_attrs:
                     expiration = entry_attrs['krbpasswordexpiration'][0]

@@ -1303,9 +1303,7 @@ class ra(rabase.rabase):
             ent, trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
             if len(ent):
                 entry = random.choice(ent)
-                dn = entry[0]
-                assert isinstance(dn, DN)
-                return dn[1].value
+                return entry.dn[1].value
         except Exception, e:
             pass
         return None

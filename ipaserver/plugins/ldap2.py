@@ -277,13 +277,13 @@ class ldap2(LDAPClient, CrudBackend):
             # Not in our context yet
             pass
         try:
-            (entry, truncated) = self.find_entries(
+            (entries, truncated) = self.find_entries(
                 None, attrs_list, base_dn=dn, scope=self.SCOPE_BASE,
                 time_limit=2, size_limit=10
             )
             if truncated:
                 raise errors.LimitsExceeded()
-            config_entry = entry[0]
+            config_entry = entries[0]
         except errors.NotFound:
             config_entry = self.make_entry(dn)
         for a in self.config_defaults:
@@ -304,15 +304,15 @@ class ldap2(LDAPClient, CrudBackend):
             upg_entry = self.conn.search_s(upg_dn, _ldap.SCOPE_BASE,
                                            attrlist=['*'])[0]
             disable_attr = '(objectclass=disable)'
-            if 'originfilter' in upg_entry[1]:
-                org_filter = upg_entry[1]['originfilter']
+            if 'originfilter' in upg_entry:
+                org_filter = upg_entry['originfilter']
                 return not bool(re.search(r'%s' % disable_attr, org_filter[0]))
             else:
                 return False
         except _ldap.NO_SUCH_OBJECT, e:
             return False
 
-    def get_effective_rights(self, dn, entry_attrs):
+    def get_effective_rights(self, dn, attrs_list):
         """Returns the rights the currently bound user has for the given DN.
 
            Returns 2 attributes, the attributeLevelRights for the given list of
@@ -322,15 +322,14 @@ class ldap2(LDAPClient, CrudBackend):
         assert isinstance(dn, DN)
 
         principal = getattr(context, 'principal')
-        (binddn, attrs) = self.find_entry_by_attr("krbprincipalname", principal,
+        entry = self.find_entry_by_attr("krbprincipalname", principal,
             "krbPrincipalAux", base_dn=api.env.basedn)
-        assert isinstance(binddn, DN)
-        sctrl = [GetEffectiveRightsControl(True, "dn: " + str(binddn))]
+        sctrl = [GetEffectiveRightsControl(True, "dn: " + str(entry.dn))]
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
-        (dn, attrs) = self.get_entry(dn, entry_attrs)
+        entry = self.get_entry(dn, attrs_list)
         # remove the control so subsequent operations don't include GER
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, [])
-        return (dn, attrs)
+        return entry
 
     def can_write(self, dn, attr):
         """Returns True/False if the currently bound user has write permissions
@@ -339,7 +338,7 @@ class ldap2(LDAPClient, CrudBackend):
 
         assert isinstance(dn, DN)
 
-        (dn, attrs) = self.get_effective_rights(dn, [attr])
+        attrs = self.get_effective_rights(dn, [attr])
         if 'attributelevelrights' in attrs:
             attr_rights = attrs.get('attributelevelrights')[0].decode('UTF-8')
             (attr, rights) = attr_rights.split(':')
@@ -354,7 +353,7 @@ class ldap2(LDAPClient, CrudBackend):
         """
         assert isinstance(dn, DN)
 
-        (dn, attrs) = self.get_effective_rights(dn, [attr])
+        attrs = self.get_effective_rights(dn, [attr])
         if 'attributelevelrights' in attrs:
             attr_rights = attrs.get('attributelevelrights')[0].decode('UTF-8')
             (attr, rights) = attr_rights.split(':')
@@ -379,7 +378,7 @@ class ldap2(LDAPClient, CrudBackend):
 
         assert isinstance(dn, DN)
 
-        (dn, attrs) = self.get_effective_rights(dn, ["*"])
+        attrs = self.get_effective_rights(dn, ["*"])
         if 'entrylevelrights' in attrs:
             entry_rights = attrs['entrylevelrights'][0].decode('UTF-8')
             if 'd' in entry_rights:
@@ -392,7 +391,7 @@ class ldap2(LDAPClient, CrudBackend):
            on the entry.
         """
         assert isinstance(dn, DN)
-        (dn, attrs) = self.get_effective_rights(dn, ["*"])
+        attrs = self.get_effective_rights(dn, ["*"])
         if 'entrylevelrights' in attrs:
             entry_rights = attrs['entrylevelrights'][0].decode('UTF-8')
             if 'a' in entry_rights:
@@ -478,7 +477,7 @@ class ldap2(LDAPClient, CrudBackend):
         assert isinstance(active, bool)
 
         # get the entry in question
-        (dn, entry_attrs) = self.get_entry(dn, ['nsaccountlock'])
+        entry_attrs = self.get_entry(dn, ['nsaccountlock'])
 
         # check nsAccountLock attribute
         account_lock_attr = entry_attrs.get('nsaccountlock', ['false'])
@@ -495,7 +494,7 @@ class ldap2(LDAPClient, CrudBackend):
         account_lock_attr = str(not active).upper()
 
         entry_attrs['nsaccountlock'] = account_lock_attr
-        self.update_entry(dn, entry_attrs)
+        self.update_entry(entry_attrs)
 
     def activate_entry(self, dn):
         """Mark entry active."""
@@ -529,7 +528,7 @@ class ldap2(LDAPClient, CrudBackend):
 
         assert isinstance(dn, DN)
 
-        (dn, entry_attrs) = self.get_entry(dn, attrs_list)
+        entry_attrs = self.get_entry(dn, attrs_list)
         return entry_attrs
 
     def create(self, **kw):
@@ -542,7 +541,7 @@ class ldap2(LDAPClient, CrudBackend):
         dn = kw['dn']
         assert isinstance(dn, DN)
         del kw['dn']
-        self.add_entry(dn, kw)
+        self.add_entry(self.make_entry(dn, kw))
         return self._get_normalized_entry_for_crud(dn)
 
     def retrieve(self, primary_key, attributes):
@@ -559,7 +558,7 @@ class ldap2(LDAPClient, CrudBackend):
 
         Extends CrudBackend.update.
         """
-        self.update_entry(primary_key, kw)
+        self.update_entry(self.make_entry(primary_key, kw))
         return self._get_normalized_entry_for_crud(primary_key)
 
     def delete(self, primary_key):
@@ -604,7 +603,7 @@ class ldap2(LDAPClient, CrudBackend):
         (entries, truncated) = self.find_entries(
             filter, attrs_list, base_dn, scope
         )
-        for (dn, entry_attrs) in entries:
+        for entry_attrs in entries:
             output.append(entry_attrs)
 
         if truncated:
