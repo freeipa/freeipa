@@ -277,8 +277,8 @@ return {
         height: 300,
         sections: [
             {
-                $factory: IPA.dnszone_name_section,
                 name: 'name',
+                layout: IPA.dnszone_name_section_layout,
                 fields: [
                     {
                         $type: 'dnszone_name',
@@ -401,95 +401,26 @@ IPA.dnszone_details_facet = function(spec, no_init) {
     return that;
 };
 
-IPA.dnszone_name_section = function(spec) {
+IPA.dnszone_name_section_layout = function(spec) {
 
-    spec = spec || {};
+    var that = IPA.fluid_layout(spec);
 
-    var that = IPA.details_table_section(spec);
+    that.radio_names = spec.radio_names || 'idnsname_method';
 
-    that.create = function(container) {
-        that.container = container;
+    that.create_label = function(widget) {
 
-        that.message_container = $('<div/>', {
-            style: 'display: none',
-            'class': 'dialog-message ui-state-highlight ui-corner-all'
-        }).appendTo(that.container);
+        var label_text = widget.label + that.get_measurement_unit_text(widget);
 
-        var table = $('<table/>', {
-            'class': 'section-table'
-        }).appendTo(that.container);
+        var label_cont = $('<div/>', { 'class': 'control-label' });
 
-        var idnsname = that.widgets.get_widget('idnsname');
+        widget.create_radio(label_cont);
 
-        var tr = $('<tr/>').appendTo(table);
-
-        var td = $('<td/>', {
-            'class': 'section-cell-label',
-            title: idnsname.label
-        }).appendTo(tr);
-
-        idnsname.create_radio(td);
-
-        var label = $('<label/>', {
-            name: 'idnsname',
-            'class': 'field-label',
-            'for': idnsname.radio_id
-        }).appendTo(td);
-
-
-
-        label.append(idnsname.label+':');
-
-        idnsname.create_required(td);
-
-        td = $('<td/>', {
-            'class': 'section-cell-field',
-            title: idnsname.label
-        }).appendTo(tr);
-
-        var widget_cont = $('<div/>', {
-            name: 'idnsname',
-            'class': 'field'
-        }).appendTo(td);
-
-        idnsname.create(widget_cont);
-
-        var idnsname_input = $('input', widget_cont);
-
-        var name_from_ip = that.widgets.get_widget('name_from_ip');
-
-        tr = $('<tr/>').appendTo(table);
-
-        td = $('<td/>', {
-            'class': 'section-cell-label',
-            title: name_from_ip.label
-        }).appendTo(tr);
-
-        name_from_ip.create_radio(td);
-
-        label = $('<label/>', {
-            name: 'name_from_ip',
-            'class': 'field-label',
-            'for': name_from_ip.radio_id
-        }).appendTo(td);
-
-        label.append(name_from_ip.label+':');
-
-        name_from_ip.create_required(td);
-
-        td = $('<td/>', {
-            'class': 'section-cell-field',
-            title: name_from_ip.label
-        }).appendTo(tr);
-
-        widget_cont = $('<div/>', {
-            name: 'name_from_ip',
-            'class': 'field'
-        }).appendTo(td);
-
-        name_from_ip.create(widget_cont);
-
-        idnsname.radio.click();
+        $('<label/>', {
+            name: widget.name,
+            'for': widget.radio_id,
+            text: label_text
+        }).appendTo(label_cont);
+        return label_cont;
     };
 
 
@@ -526,6 +457,13 @@ IPA.add_dns_zone_name_policy = function() {
 
             idnsname_f.reset();
         });
+    };
+
+    that.post_create = function() {
+
+        var idnsname_w = this.container.widgets.get_widget('name.idnsname');
+        idnsname_w.radio.prop('checked', true);
+        idnsname_w.radio_clicked.notify([], idnsname_w);
     };
 
     return that;
