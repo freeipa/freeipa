@@ -31,6 +31,7 @@ import ldap
 import ldap.sasl
 import ldap.filter
 from ldap.ldapobject import SimpleLDAPObject
+from ldap.controls import SimplePagedResultsControl
 import ldapurl
 
 from ipalib import errors, _
@@ -1380,7 +1381,7 @@ class LDAPClient(object):
 
     def find_entries(self, filter=None, attrs_list=None, base_dn=None,
                      scope=ldap.SCOPE_SUBTREE, time_limit=None,
-                     size_limit=None, search_refs=False):
+                     size_limit=None, search_refs=False, paged_search=False):
         """
         Return a list of entries and indication of whether the results were
         truncated ([(dn, entry_attrs)], truncated) matching specified search
@@ -1396,6 +1397,7 @@ class LDAPClient(object):
             (default unlimited)
         search_refs -- allow search references to be returned
             (default skips these entries)
+        paged_search -- search using paged results control
         """
         if base_dn is None:
             base_dn = DN()
@@ -1417,24 +1419,65 @@ class LDAPClient(object):
         if attrs_list:
             attrs_list = [a.lower() for a in set(attrs_list)]
 
+        sctrls = None
+        cookie = ''
+        page_size = (size_limit if size_limit > 0 else 2000) - 1
+        if page_size == 0:
+            paged_search = False
+
         # pass arguments to python-ldap
         with self.error_handler():
-            try:
-                id = self.conn.search_ext(
-                    base_dn, scope, filter, attrs_list, timeout=time_limit,
-                    sizelimit=size_limit
-                )
-                while True:
-                    (objtype, res_list) = self.conn.result(id, 0)
-                    if not res_list:
+            while True:
+                if paged_search:
+                    sctrls = [SimplePagedResultsControl(0, page_size, cookie)]
+
+                try:
+                    id = self.conn.search_ext(
+                        base_dn, scope, filter, attrs_list,
+                        serverctrls=sctrls, timeout=time_limit,
+                        sizelimit=size_limit
+                    )
+                    while True:
+                        result = self.conn.result3(id, 0)
+                        objtype, res_list, res_id, res_ctrls = result
+                        if not res_list:
+                            break
+                        if (objtype == ldap.RES_SEARCH_ENTRY or
+                                (search_refs and
+                                    objtype == ldap.RES_SEARCH_REFERENCE)):
+                            res.append(res_list[0])
+
+                    if paged_search:
+                        # Get cookie for the next page
+                        for ctrl in res_ctrls:
+                            if isinstance(ctrl, SimplePagedResultsControl):
+                                cookie = ctrl.cookie
+                                break
+                        else:
+                            cookie = ''
+                except ldap.LDAPError, e:
+                    # If paged search is in progress, try to cancel it
+                    if paged_search and cookie:
+                        sctrls = [SimplePagedResultsControl(0, 0, cookie)]
+                        try:
+                            self.conn.search_ext_s(
+                                base_dn, scope, filter, attrs_list,
+                                serverctrls=sctrls, timeout=time_limit,
+                                sizelimit=size_limit)
+                        except ldap.LDAPError, e:
+                            self.log.warning(
+                                "Error cancelling paged search: %s", e)
+                        cookie = ''
+
+                    try:
+                        raise e
+                    except (ldap.ADMINLIMIT_EXCEEDED, ldap.TIMELIMIT_EXCEEDED,
+                            ldap.SIZELIMIT_EXCEEDED):
+                        truncated = True
                         break
-                    if (objtype == ldap.RES_SEARCH_ENTRY or
-                            (search_refs and
-                                objtype == ldap.RES_SEARCH_REFERENCE)):
-                        res.append(res_list[0])
-            except (ldap.ADMINLIMIT_EXCEEDED, ldap.TIMELIMIT_EXCEEDED,
-                    ldap.SIZELIMIT_EXCEEDED), e:
-                truncated = True
+
+                if not paged_search or not cookie:
+                    break
 
         if not res and not truncated:
             raise errors.NotFound(reason='no such entry')

@@ -183,7 +183,7 @@ class ldap2(LDAPClient, CrudBackend):
 
     def find_entries(self, filter=None, attrs_list=None, base_dn=None,
                      scope=_ldap.SCOPE_SUBTREE, time_limit=None,
-                     size_limit=None, search_refs=False):
+                     size_limit=None, search_refs=False, paged_search=False):
         if time_limit is None or size_limit is None:
             config = self.get_ipa_config()
             if time_limit is None:
@@ -194,7 +194,7 @@ class ldap2(LDAPClient, CrudBackend):
         res, truncated = super(ldap2, self).find_entries(
             filter=filter, attrs_list=attrs_list, base_dn=base_dn, scope=scope,
             time_limit=time_limit, size_limit=size_limit,
-            search_refs=search_refs)
+            search_refs=search_refs, paged_search=paged_search)
 
         if attrs_list and (
                 'memberindirect' in attrs_list or '*' in attrs_list):
