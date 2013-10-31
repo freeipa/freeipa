@@ -61,7 +61,7 @@ class test_ldap(object):
         """
         self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
         self.conn.connect()
-        (dn, entry_attrs) = self.conn.get_entry(self.dn, ['usercertificate'])
+        entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
         serial = unicode(x509.get_serial_number(cert, x509.DER))
@@ -75,7 +75,7 @@ class test_ldap(object):
             raise nose.SkipTest('Missing ccache %s' % self.ccache)
         self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
         self.conn.connect(ccache='FILE:%s' % self.ccache)
-        (dn, entry_attrs) = self.conn.get_entry(self.dn, ['usercertificate'])
+        entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
         serial = unicode(x509.get_serial_number(cert, x509.DER))
@@ -94,7 +94,7 @@ class test_ldap(object):
             raise nose.SkipTest("No directory manager password in %s" % pwfile)
         self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
         self.conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
-        (dn, entry_attrs) = self.conn.get_entry(self.dn, ['usercertificate'])
+        entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
         serial = unicode(x509.get_serial_number(cert, x509.DER))
@@ -142,7 +142,7 @@ class test_ldap(object):
             self.conn.connect(autobind=True)
         except errors.ACIError:
             raise nose.SkipTest("Only executed as root")
-        (dn, entry_attrs) = self.conn.get_entry(self.dn, ['usercertificate'])
+        entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
         serial = unicode(x509.get_serial_number(cert, x509.DER))

@@ -1306,7 +1306,7 @@ class test_netgroup(Declarative):
 #            raise nose.SkipTest('compat and nis are not enabled, skipping test')
 #        finally:
 #            conn.disconnect()
-#        triples = entries[0][0][1]['nisnetgrouptriple']
+#        triples = entries[0][0]['nisnetgrouptriple']
 #
 #        # This may not prove to be reliable since order is not guaranteed
 #        # and even which user gets into which triple can be random.
