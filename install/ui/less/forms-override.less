@@ -115,10 +115,34 @@ input[type="radio"]:checked:disabled + label {
     }
 }
 
+// this style directly negates the same in forms.less
+.help-inline {
+    margin-top: 0;
+}
+
 .control-group .control-label {
     position: relative;
 
     label {
         margin-bottom: 0;
+    }
+}
+
+// implicit required indicator
+.control-group.required .control-label label:after {
+    display: inline-block;
+    position: absolute;
+    right: -11px;
+    top: 0px;
+    font-size: 125%;
+    font-weight: bold;
+    content: '*';
+    color: #1d85d9;
+}
+
+@media (max-width: 480px) {
+    .control-group.required .control-label label:after {
+        position: relative;
+        right: -2px;
     }
 }

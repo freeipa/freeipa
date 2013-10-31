@@ -25,6 +25,7 @@
 define(['dojo/_base/array',
        'dojo/_base/lang',
        'dojo/Evented',
+       'dojo/on',
        './builder',
        './ipa',
        './jquery',
@@ -32,7 +33,7 @@ define(['dojo/_base/array',
        './reg',
        './text'
        ],
-       function(array, lang, Evented, builder, IPA, $, phases, reg, text) {
+       function(array, lang, Evented, on, builder, IPA, $, phases, reg, text) {
 
 /**
  * Widget module
@@ -279,7 +280,7 @@ IPA.input_widget = function(spec) {
 
         $('<span/>', {
             name: 'error_link',
-            'class': 'ui-state-error ui-corner-all',
+            'class': 'help-inline',
             style: 'display:none'
         }).appendTo(container);
     };
@@ -382,7 +383,7 @@ IPA.input_widget = function(spec) {
     that.show_error = function(message) {
         var error_link = that.get_error_link();
         error_link.html(message);
-        error_link.css('display', 'block');
+        error_link.css('display', '');
         that.emit('error-show', { source: that, error: message });
     };
 
@@ -787,6 +788,9 @@ IPA.multivalued_widget = function(spec) {
         });
         row.widget.undo_clicked.attach(function() {
             that.on_child_undo_clicked(row);
+        });
+        on(row.widget, 'error-show', function() {
+            that.emit('error-show', { source: that });
         });
 
         row.remove_link = $('<a/>', {
@@ -3962,6 +3966,9 @@ IPA.fluid_layout = function(spec) {
 
             label.appendTo(group);
             control.appendTo(group);
+
+            that.register_state_handlers(widget);
+            that.update_state(group, widget);
         }
 
         return container;
@@ -3991,7 +3998,6 @@ IPA.fluid_layout = function(spec) {
         }).appendTo(label_cont);
 
         // TODO: set `for` in label
-        // TODO: maintain errors and required
         return label_cont;
     };
 
@@ -4007,6 +4013,52 @@ IPA.fluid_layout = function(spec) {
 
         widget.create(widget_container);
         return controls;
+    };
+
+    that.register_state_handlers = function(widget) {
+        on(widget, 'require-change', that.on_require_change);
+        on(widget, 'enabled-change', that.on_enabled_change);
+        on(widget, 'error-show', that.on_error_show);
+        on(widget, 'error-hide', that.on_error_hide);
+    };
+
+    that.on_enabled_change = function(event) {
+
+        var row = that._get_row(event);
+        if (!row) return;
+        row.toggleClass('disabled', !event.enabled);
+    };
+
+    that.on_require_change = function(event) {
+
+        var row = that._get_row(event);
+        if (!row) return;
+        row.toggleClass('required', !!event.required);
+    };
+
+    that.on_error_show = function(event) {
+
+        var row = that._get_row(event);
+        if (!row) return;
+        row.toggleClass('error', true);
+    };
+
+    that.on_error_hide= function(event) {
+
+        var row = that._get_row(event);
+        if (!row) return;
+        row.toggleClass('error', false);
+    };
+
+    that.update_state = function(row, widget) {
+        row.toggleClass('disabled', !widget.enabled);
+        row.toggleClass('required', !!widget.required);
+    };
+
+    that._get_row = function(event) {
+        var widget = event.source;
+        if (!widget) return null;
+        return that.rows.get(widget.name);
     };
 
     return that;
