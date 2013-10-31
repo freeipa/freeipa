@@ -529,6 +529,11 @@ class IPASimpleLDAPObject(object):
         resp_data = self.convert_result(resp_data)
         return resp_type, resp_data
 
+    def result3(self, msgid=ldap.RES_ANY, all=1, timeout=None):
+        rtype, rdata, rmsgid, rctrls = self.conn.result3(msgid, all, timeout)
+        rdata = self.convert_result(rdata)
+        return rtype, rdata, rmsgid, rctrls
+
     def sasl_interactive_bind_s(self, who, auth, serverctrls=None,
                                 clientctrls=None, sasl_flags=ldap.SASL_QUIET):
         self.flush_cached_schema()
