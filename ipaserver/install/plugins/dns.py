@@ -160,7 +160,7 @@ class update_dns_limits(PostUpdate):
                             self.env.basedn)
 
         try:
-            (dn, entry) = ldap.get_entry(dns_service_dn, self.limit_attributes)
+            entry = ldap.get_entry(dns_service_dn, self.limit_attributes)
         except errors.NotFound:
             # this host may not have DNS service set
             root_logger.debug("DNS: service %s not found, no need to update limits" % dns_service_dn)

@@ -33,7 +33,7 @@ class update_upload_cacrt(PostUpdate):
 
     def execute(self, **options):
         ldap = self.obj.backend
-        (cdn, ipa_config) = ldap.get_ipa_config()
+        ipa_config = ldap.get_ipa_config()
         subject_base = ipa_config.get('ipacertificatesubjectbase', [None])[0]
         dirname = config_dirname(realm_to_serverid(api.env.realm))
         certdb = certs.CertDB(api.env.realm, nssdir=dirname, subject_base=subject_base)

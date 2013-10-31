@@ -89,7 +89,7 @@ class update_replica_attribute_lists(PreUpdate):
             replica[attribute] = [template % " ".join(values)]
 
             try:
-                repl.conn.update_entry(replica.dn, replica)
+                repl.conn.update_entry(replica)
                 self.log.debug("Updated")
             except Exception, e:
                 self.log.error("Error caught updating replica: %s", str(e))
@@ -107,7 +107,7 @@ class update_replica_attribute_lists(PreUpdate):
                     '%s %s' % (attrlist, ' '.join(missing))]
 
                 try:
-                    repl.conn.update_entry(replica.dn, replica)
+                    repl.conn.update_entry(replica)
                     self.log.debug("Updated %s", attribute)
                 except Exception, e:
                     self.log.error("Error caught updating %s: %s",

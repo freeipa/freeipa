@@ -71,27 +71,25 @@ class update_idrange_type(PostUpdate):
             error = False
 
             # Set the range type
-            for dn, entry in entries:
-                update = {}
-
+            for entry in entries:
                 objectclasses = [o.lower() for o
                                            in entry.get('objectclass', [])]
 
                 if 'ipatrustedaddomainrange' in objectclasses:
                     # NOTICE: assumes every AD range does not use POSIX
                     #         attributes
-                    update['ipaRangeType'] = 'ipa-ad-trust'
+                    entry['ipaRangeType'] = ['ipa-ad-trust']
                 elif 'ipadomainidrange' in objectclasses:
-                    update['ipaRangeType'] = 'ipa-local'
+                    entry['ipaRangeType'] = ['ipa-local']
                 else:
-                    update['ipaRangeType'] = 'unknown'
+                    entry['ipaRangeType'] = ['unknown']
                     root_logger.error("update_idrange_type: could not detect "
-                                      "range type for entry: %s" % str(dn))
+                                      "range type for entry: %s" % str(entry.dn))
                     root_logger.error("update_idrange_type: ID range type set "
-                                      "to 'unknown' for entry: %s" % str(dn))
+                                      "to 'unknown' for entry: %s" % str(entry.dn))
 
                 try:
-                    ldap.update_entry(dn, update)
+                    ldap.update_entry(entry)
                 except (errors.EmptyModlist, errors.NotFound):
                     pass
                 except errors.ExecutionError, e:

@@ -38,7 +38,7 @@ class update_anonymous_aci(PostUpdate):
         targetfilter = '(&(!(objectClass=ipaToken))(!(objectClass=ipatokenTOTP))(!(objectClass=ipatokenRadiusConfiguration)))'
         filter = None
 
-        (dn, entry_attrs) = ldap.get_entry(api.env.basedn, ['aci'])
+        entry_attrs = ldap.get_entry(api.env.basedn, ['aci'])
 
         acistrs = entry_attrs.get('aci', [])
         acilist = aci._convert_strings_to_acis(entry_attrs.get('aci', []))
@@ -87,7 +87,7 @@ class update_anonymous_aci(PostUpdate):
         entry_attrs['aci'] = acistrs
 
         try:
-            ldap.update_entry(dn, entry_attrs)
+            ldap.update_entry(entry_attrs)
         except Exception, e:
             root_logger.error("Failed to update Anonymous ACI: %s" % e)
 

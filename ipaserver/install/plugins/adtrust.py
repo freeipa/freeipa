@@ -46,7 +46,7 @@ class update_default_range(PostUpdate):
 
         dn = DN(('cn', 'admins'), api.env.container_group, api.env.basedn)
         try:
-            (dn, admins_entry) = ldap.get_entry(dn, ['gidnumber'])
+            admins_entry = ldap.get_entry(dn, ['gidnumber'])
         except errors.NotFound:
             root_logger.error("default_range: No local ID range and no admins "
                               "group found. Cannot create default ID range")
@@ -88,7 +88,7 @@ class update_default_range(PostUpdate):
         else:
             masters = set()
             remaining_values_sum = 0
-            for entry_dn, entry in entries:
+            for entry in entries:
                 hostname = entry.get('dnahostname', [None])[0]
                 if hostname is None or hostname in masters:
                     continue

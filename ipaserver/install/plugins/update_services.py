@@ -66,13 +66,12 @@ class update_service_principalalias(PostUpdate):
                               len(entries), truncated)
 
             error = False
-            for dn, entry in entries:
-                update = {}
-                update['objectclass'] = (entry['objectclass'] +
-                                         ['ipakrbprincipal'])
-                update['ipakrbprincipalalias'] = entry['krbprincipalname']
+            for entry in entries:
+                entry['objectclass'] = (entry['objectclass'] +
+                                        ['ipakrbprincipal'])
+                entry['ipakrbprincipalalias'] = entry['krbprincipalname']
                 try:
-                    ldap.update_entry(dn, update)
+                    ldap.update_entry(entry)
                 except (errors.EmptyModlist, errors.NotFound):
                     pass
                 except errors.ExecutionError, e:

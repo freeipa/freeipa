@@ -77,15 +77,15 @@ class GenerateUpdateMixin(object):
                 old_dn = entry['managedtemplate'][0]
                 assert isinstance(old_dn, DN)
                 try:
-                    (old_dn, entry) = ldap.get_entry(old_dn, ['*'])
+                    entry = ldap.get_entry(old_dn, ['*'])
                 except errors.NotFound, e:
                     pass
                 else:
                     # Compute the new dn by replacing the old container with the new container
-                    new_dn = EditableDN(old_dn)
+                    new_dn = EditableDN(entry.dn)
                     if new_dn.replace(old_template_container, new_template_container) != 1:
                         self.error("unable to replace '%s' with '%s' in '%s'",
-                                   old_template_container, new_template_container, old_dn)
+                                   old_template_container, new_template_container, entry.dn)
                         continue
 
                     new_dn = DN(new_dn)
@@ -95,10 +95,10 @@ class GenerateUpdateMixin(object):
                                   'default': entry_to_update(entry)}
 
                     # Delete the old entry
-                    old_update = {'dn': old_dn, 'deleteentry': None}
+                    old_update = {'dn': entry.dn, 'deleteentry': None}
 
                     # Add the delete and replacement updates to the list of all updates
-                    update_list.append({old_dn: old_update, new_dn: new_update})
+                    update_list.append({entry.dn: old_update, new_dn: new_update})
 
             else:
                 # Update the template dn by replacing the old containter with the new container
