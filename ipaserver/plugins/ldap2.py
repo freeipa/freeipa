@@ -56,11 +56,6 @@ from ipalib import api, errors
 from ipalib.crud import CrudBackend
 from ipalib.request import context
 
-# Group Member types
-MEMBERS_ALL = 0
-MEMBERS_DIRECT = 1
-MEMBERS_INDIRECT = 2
-
 
 class ldap2(LDAPClient, CrudBackend):
     """
@@ -191,194 +186,84 @@ class ldap2(LDAPClient, CrudBackend):
             if size_limit is None:
                 size_limit = config.get('ipasearchrecordslimit', [None])[0]
 
+        has_memberindirect = False
+        has_memberofindirect = False
+        if attrs_list:
+            if 'memberindirect' in attrs_list:
+                has_memberindirect = True
+                attrs_list.remove('memberindirect')
+            if 'memberofindirect' in attrs_list:
+                has_memberofindirect = True
+                attrs_list.remove('memberofindirect')
+
         res, truncated = super(ldap2, self).find_entries(
             filter=filter, attrs_list=attrs_list, base_dn=base_dn, scope=scope,
             time_limit=time_limit, size_limit=size_limit,
             search_refs=search_refs, paged_search=paged_search)
 
-        if attrs_list and (
-                'memberindirect' in attrs_list or '*' in attrs_list):
-            for r in res:
-                if not 'member' in r[1]:
-                    continue
-                else:
-                    members = r[1]['member']
-                    indirect = self.get_members(
-                        r[0], members, membertype=MEMBERS_INDIRECT,
-                        time_limit=time_limit, size_limit=size_limit)
-                    if len(indirect) > 0:
-                        r[1]['memberindirect'] = indirect
-        if attrs_list and (
-                'memberofindirect' in attrs_list or '*' in attrs_list):
-            for r in res:
-                if 'memberof' in r[1]:
-                    memberof = r[1]['memberof']
-                    del r[1]['memberof']
-                elif 'memberOf' in r[1]:
-                    memberof = r[1]['memberOf']
-                    del r[1]['memberOf']
-                else:
-                    continue
-                direct, indirect = self.get_memberof(
-                    r[0], memberof, time_limit=time_limit,
-                    size_limit=size_limit)
-                if len(direct) > 0:
-                    r[1]['memberof'] = direct
-                if len(indirect) > 0:
-                    r[1]['memberofindirect'] = indirect
+        if has_memberindirect or has_memberofindirect:
+            for entry in res:
+                if has_memberindirect:
+                    self._process_memberindirect(
+                        entry, time_limit=time_limit, size_limit=size_limit)
+                if has_memberofindirect:
+                    self._process_memberofindirect(
+                        entry, time_limit=time_limit, size_limit=size_limit)
 
         return (res, truncated)
 
-    def get_members(self, group_dn, members, attr_list=[],
-                    membertype=MEMBERS_ALL, time_limit=None, size_limit=None):
-        """Do a memberOf search of groupdn and return the attributes in
-           attr_list (an empty list returns all attributes).
+    def _process_memberindirect(self, group_entry, time_limit=None,
+                                size_limit=None):
+        filter = self.make_filter({'memberof': group_entry.dn})
+        try:
+            result, truncated = self.find_entries(
+                base_dn=self.api.env.basedn,
+                filter=filter,
+                attrs_list=['member'],
+                time_limit=time_limit,
+                size_limit=size_limit,
+                paged_search=True)
+            if truncated:
+                raise errors.LimitsExceeded()
+        except errors.NotFound:
+            result = []
 
-           membertype = MEMBERS_ALL all members returned
-           membertype = MEMBERS_DIRECT only direct members are returned
-           membertype = MEMBERS_INDIRECT only inherited members are returned
+        indirect = set()
+        for entry in result:
+            indirect.update(entry.get('member', []))
+        indirect.difference_update(group_entry.get('member', []))
 
-           Members may be included in a group as a result of being a member
-           of a group that is a member of the group being queried.
+        if indirect:
+            group_entry['memberindirect'] = list(indirect)
 
-           Returns a list of DNs.
-        """
+    def _process_memberofindirect(self, entry, time_limit=None,
+                                  size_limit=None):
+        dn = entry.dn
+        filter = self.make_filter(
+            {'member': dn, 'memberuser': dn, 'memberhost': dn})
+        try:
+            result, truncated = self.find_entries(
+                base_dn=self.api.env.basedn,
+                filter=filter,
+                attrs_list=[''],
+                time_limit=time_limit,
+                size_limit=size_limit)
+            if truncated:
+                raise errors.LimitsExceeded()
+        except errors.NotFound:
+            result = []
 
-        assert isinstance(group_dn, DN)
+        direct = set()
+        indirect = set(entry.get('memberof', []))
+        for group_entry in result:
+            dn = group_entry.dn
+            if dn in indirect:
+                indirect.remove(dn)
+                direct.add(dn)
 
-        if membertype not in [MEMBERS_ALL, MEMBERS_DIRECT, MEMBERS_INDIRECT]:
-            return None
-
-        self.log.debug(
-            "get_members: group_dn=%s members=%s membertype=%s",
-            group_dn, members, membertype)
-        search_group_dn = ldap.filter.escape_filter_chars(str(group_dn))
-        searchfilter = "(memberof=%s)" % search_group_dn
-
-        attr_list.append("member")
-
-        # Verify group membership
-
-        results = []
-        if membertype == MEMBERS_ALL or membertype == MEMBERS_INDIRECT:
-            api = self.get_api()
-            if api:
-                user_container_dn = DN(api.env.container_user, api.env.basedn)
-                host_container_dn = DN(api.env.container_host, api.env.basedn)
-            else:
-                user_container_dn = host_container_dn = None
-            checkmembers = set(DN(x) for x in members)
-            checked = set()
-            while checkmembers:
-                member_dn = checkmembers.pop()
-                checked.add(member_dn)
-
-                # No need to check entry types that are not nested for
-                # additional members
-                if user_container_dn and (
-                        member_dn.endswith(user_container_dn) or
-                        member_dn.endswith(host_container_dn)):
-                    results.append([member_dn, {}])
-                    continue
-                try:
-                    result, truncated = self.find_entries(
-                        searchfilter, attr_list, member_dn,
-                        time_limit=time_limit, size_limit=size_limit,
-                        scope=ldap.SCOPE_BASE)
-                    if truncated:
-                        raise errors.LimitsExceeded()
-                    results.append(list(result[0]))
-                    for m in result[0][1].get('member', []):
-                        # This member may contain other members, add it to our
-                        # candidate list
-                        if m not in checked:
-                            checkmembers.add(m)
-                except errors.NotFound:
-                    pass
-
-        if membertype == MEMBERS_ALL:
-            entries = []
-            for e in results:
-                entries.append(e[0])
-
-            return entries
-
-        dn, group = self.get_entry(
-            group_dn, ['member'],
-            size_limit=size_limit, time_limit=time_limit)
-        real_members = group.get('member', [])
-
-        entries = []
-        for e in results:
-            if e[0] not in real_members and e[0] not in entries:
-                if membertype == MEMBERS_INDIRECT:
-                    entries.append(e[0])
-            else:
-                if membertype == MEMBERS_DIRECT:
-                    entries.append(e[0])
-
-        self.log.debug("get_members: result=%s", entries)
-        return entries
-
-    def get_memberof(self, entry_dn, memberof, time_limit=None,
-                     size_limit=None):
-        """
-        Examine the objects that an entry is a member of and determine if they
-        are a direct or indirect member of that group.
-
-        entry_dn: dn of the entry we want the direct/indirect members of
-        memberof: the memberOf attribute for entry_dn
-
-        Returns two memberof lists: (direct, indirect)
-        """
-
-        assert isinstance(entry_dn, DN)
-
-        self.log.debug(
-            "get_memberof: entry_dn=%s memberof=%s", entry_dn, memberof)
-        if not type(memberof) in (list, tuple):
-            return ([], [])
-        if len(memberof) == 0:
-            return ([], [])
-
-        search_entry_dn = ldap.filter.escape_filter_chars(str(entry_dn))
-        attr_list = ["memberof"]
-        searchfilter = "(|(member=%s)(memberhost=%s)(memberuser=%s))" % (
-            search_entry_dn, search_entry_dn, search_entry_dn)
-
-        # Search only the groups for which the object is a member to
-        # determine if it is directly or indirectly associated.
-
-        results = []
-        for group in memberof:
-            assert isinstance(group, DN)
-            try:
-                result, truncated = self.find_entries(
-                    searchfilter, attr_list,
-                    group, time_limit=time_limit, size_limit=size_limit,
-                    scope=ldap.SCOPE_BASE)
-                results.extend(list(result))
-            except errors.NotFound:
-                pass
-
-        direct = []
-        # If there is an exception here, it is likely due to a failure in
-        # referential integrity. All members should have corresponding
-        # memberOf entries.
-        indirect = list(memberof)
-        for r in results:
-            direct.append(r[0])
-            try:
-                indirect.remove(r[0])
-            except ValueError, e:
-                self.log.info(
-                    'Failed to remove indirect entry %s from %s',
-                    r[0], entry_dn)
-                raise e
-
-        self.log.debug(
-            "get_memberof: result direct=%s indirect=%s", direct, indirect)
-        return (direct, indirect)
+        if indirect:
+            entry['memberof'] = list(direct)
+            entry['memberofindirect'] = list(indirect)
 
     config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
     def get_ipa_config(self, attrs_list=None):
