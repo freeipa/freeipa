@@ -47,11 +47,6 @@ DEFAULT_TIMEOUT = 10
 DN_SYNTAX_OID = '1.3.6.1.4.1.1466.115.121.1.12'
 _debug_log_ldap = False
 
-# Group Member types
-MEMBERS_ALL = 0
-MEMBERS_DIRECT = 1
-MEMBERS_INDIRECT = 2
-
 _missing = object()
 
 
@@ -1086,13 +1081,6 @@ class LDAPClient(object):
     def _init_connection(self):
         self.conn = None
 
-    def get_api(self):
-        """Return the API if available, otherwise None
-
-        May be overridden in a subclass.
-        """
-        return None
-
     @contextlib.contextmanager
     def error_handler(self, arg_desc=None):
         """Context manager that handles LDAPErrors
@@ -1398,9 +1386,9 @@ class LDAPClient(object):
         attrs_list -- list of attributes to return, all if None (default None)
         base_dn -- dn of the entry at which to start the search (default '')
         scope -- search scope, see LDAP docs (default ldap2.SCOPE_SUBTREE)
-        time_limit -- time limit in seconds (default use IPA config values)
+        time_limit -- time limit in seconds (default unlimited)
         size_limit -- size (number of entries returned) limit
-            (default use IPA config values)
+            (default unlimited)
         search_refs -- allow search references to be returned
             (default skips these entries)
         """
@@ -1412,21 +1400,17 @@ class LDAPClient(object):
         res = []
         truncated = False
 
-        if time_limit is None or size_limit is None:
-            config = self.get_ipa_config()
-            if time_limit is None:
-                time_limit = config.get('ipasearchtimelimit', [-1])[0]
-            if size_limit is None:
-                size_limit = config.get('ipasearchrecordslimit', [0])[0]
-        if time_limit == 0:
-            time_limit = -1
+        if time_limit is None or time_limit == 0:
+            time_limit = -1.0
+        if size_limit is None:
+            size_limit = 0
         if not isinstance(size_limit, int):
             size_limit = int(size_limit)
         if not isinstance(time_limit, float):
             time_limit = float(time_limit)
 
         if attrs_list:
-            attrs_list = list(set(attrs_list))
+            attrs_list = [a.lower() for a in set(attrs_list)]
 
         # pass arguments to python-ldap
         with self.error_handler():
@@ -1449,37 +1433,6 @@ class LDAPClient(object):
 
         if not res and not truncated:
             raise errors.NotFound(reason='no such entry')
-
-        if attrs_list and (
-                'memberindirect' in attrs_list or '*' in attrs_list):
-            for r in res:
-                if not 'member' in r[1]:
-                    continue
-                else:
-                    members = r[1]['member']
-                    indirect = self.get_members(
-                        r[0], members, membertype=MEMBERS_INDIRECT,
-                        time_limit=time_limit, size_limit=size_limit)
-                    if len(indirect) > 0:
-                        r[1]['memberindirect'] = indirect
-        if attrs_list and (
-                'memberofindirect' in attrs_list or '*' in attrs_list):
-            for r in res:
-                if 'memberof' in r[1]:
-                    memberof = r[1]['memberof']
-                    del r[1]['memberof']
-                elif 'memberOf' in r[1]:
-                    memberof = r[1]['memberOf']
-                    del r[1]['memberOf']
-                else:
-                    continue
-                direct, indirect = self.get_memberof(
-                    r[0], memberof, time_limit=time_limit,
-                    size_limit=size_limit)
-                if len(direct) > 0:
-                    r[1]['memberof'] = direct
-                if len(indirect) > 0:
-                    r[1]['memberofindirect'] = indirect
 
         return (res, truncated)
 
@@ -1528,164 +1481,6 @@ class LDAPClient(object):
         if truncated:
             raise errors.LimitsExceeded()
         return entry[0]
-
-    def get_ipa_config(self, attrs_list=None):
-        """Returns the IPA configuration entry.
-
-        Overriden in the subclasses that have access to IPA configuration.
-        """
-        return {}
-
-    def get_memberof(self, entry_dn, memberof, time_limit=None,
-                     size_limit=None):
-        """
-        Examine the objects that an entry is a member of and determine if they
-        are a direct or indirect member of that group.
-
-        entry_dn: dn of the entry we want the direct/indirect members of
-        memberof: the memberOf attribute for entry_dn
-
-        Returns two memberof lists: (direct, indirect)
-        """
-
-        assert isinstance(entry_dn, DN)
-
-        self.log.debug(
-            "get_memberof: entry_dn=%s memberof=%s", entry_dn, memberof)
-        if not type(memberof) in (list, tuple):
-            return ([], [])
-        if len(memberof) == 0:
-            return ([], [])
-
-        search_entry_dn = ldap.filter.escape_filter_chars(str(entry_dn))
-        attr_list = ["memberof"]
-        searchfilter = "(|(member=%s)(memberhost=%s)(memberuser=%s))" % (
-            search_entry_dn, search_entry_dn, search_entry_dn)
-
-        # Search only the groups for which the object is a member to
-        # determine if it is directly or indirectly associated.
-
-        results = []
-        for group in memberof:
-            assert isinstance(group, DN)
-            try:
-                result, truncated = self.find_entries(
-                    searchfilter, attr_list,
-                    group, time_limit=time_limit, size_limit=size_limit,
-                    scope=ldap.SCOPE_BASE)
-                results.extend(list(result))
-            except errors.NotFound:
-                pass
-
-        direct = []
-        # If there is an exception here, it is likely due to a failure in
-        # referential integrity. All members should have corresponding
-        # memberOf entries.
-        indirect = list(memberof)
-        for r in results:
-            direct.append(r[0])
-            try:
-                indirect.remove(r[0])
-            except ValueError, e:
-                self.log.info(
-                    'Failed to remove indirect entry %s from %s',
-                    r[0], entry_dn)
-                raise e
-
-        self.log.debug(
-            "get_memberof: result direct=%s indirect=%s", direct, indirect)
-        return (direct, indirect)
-
-    def get_members(self, group_dn, members, attr_list=[],
-                    membertype=MEMBERS_ALL, time_limit=None, size_limit=None):
-        """Do a memberOf search of groupdn and return the attributes in
-           attr_list (an empty list returns all attributes).
-
-           membertype = MEMBERS_ALL all members returned
-           membertype = MEMBERS_DIRECT only direct members are returned
-           membertype = MEMBERS_INDIRECT only inherited members are returned
-
-           Members may be included in a group as a result of being a member
-           of a group that is a member of the group being queried.
-
-           Returns a list of DNs.
-        """
-
-        assert isinstance(group_dn, DN)
-
-        if membertype not in [MEMBERS_ALL, MEMBERS_DIRECT, MEMBERS_INDIRECT]:
-            return None
-
-        self.log.debug(
-            "get_members: group_dn=%s members=%s membertype=%s",
-            group_dn, members, membertype)
-        search_group_dn = ldap.filter.escape_filter_chars(str(group_dn))
-        searchfilter = "(memberof=%s)" % search_group_dn
-
-        attr_list.append("member")
-
-        # Verify group membership
-
-        results = []
-        if membertype == MEMBERS_ALL or membertype == MEMBERS_INDIRECT:
-            api = self.get_api()
-            if api:
-                user_container_dn = DN(api.env.container_user, api.env.basedn)
-                host_container_dn = DN(api.env.container_host, api.env.basedn)
-            else:
-                user_container_dn = host_container_dn = None
-            checkmembers = set(DN(x) for x in members)
-            checked = set()
-            while checkmembers:
-                member_dn = checkmembers.pop()
-                checked.add(member_dn)
-
-                # No need to check entry types that are not nested for
-                # additional members
-                if user_container_dn and (
-                        member_dn.endswith(user_container_dn) or
-                        member_dn.endswith(host_container_dn)):
-                    results.append([member_dn, {}])
-                    continue
-                try:
-                    result, truncated = self.find_entries(
-                        searchfilter, attr_list, member_dn,
-                        time_limit=time_limit, size_limit=size_limit,
-                        scope=ldap.SCOPE_BASE)
-                    if truncated:
-                        raise errors.LimitsExceeded()
-                    results.append(list(result[0]))
-                    for m in result[0][1].get('member', []):
-                        # This member may contain other members, add it to our
-                        # candidate list
-                        if m not in checked:
-                            checkmembers.add(m)
-                except errors.NotFound:
-                    pass
-
-        if membertype == MEMBERS_ALL:
-            entries = []
-            for e in results:
-                entries.append(e[0])
-
-            return entries
-
-        dn, group = self.get_entry(
-            group_dn, ['member'],
-            size_limit=size_limit, time_limit=time_limit)
-        real_members = group.get('member', [])
-
-        entries = []
-        for e in results:
-            if e[0] not in real_members and e[0] not in entries:
-                if membertype == MEMBERS_INDIRECT:
-                    entries.append(e[0])
-            else:
-                if membertype == MEMBERS_DIRECT:
-                    entries.append(e[0])
-
-        self.log.debug("get_members: result=%s", entries)
-        return entries
 
     def _get_dn_and_attrs(self, entry_or_dn, entry_attrs):
         """Helper for legacy calling style for {add,update}_entry
