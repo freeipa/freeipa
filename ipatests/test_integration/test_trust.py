@@ -86,7 +86,8 @@ class TestBasicADTrust(ADTrustBase):
     def test_user_gid_uid_resolution_in_nonposix_trust(self):
         """Check that user has SID-generated UID"""
 
-        testuser = 'testuser@%s' % self.ad.domain.realm
+        # Using domain name since it is lowercased realm name for AD domains
+        testuser = 'testuser@%s' % self.ad.domain.name
         result = self.master.run_command(['getent', 'passwd', testuser])
 
         # This regex checks that Test User does not have UID 10042 nor belongs
@@ -124,7 +125,8 @@ class TestPosixADTrust(ADTrustBase):
     def test_user_uid_gid_resolution_in_posix_trust(self):
         # Check that user has AD-defined UID
 
-        testuser = 'testuser@%s' % self.ad.domain.realm
+        # Using domain name since it is lowercased realm name for AD domains
+        testuser = 'testuser@%s' % self.ad.domain.name
         result = self.master.run_command(['getent', 'passwd', testuser])
 
         testuser_stdout = "testuser@%s:*:10042:10047:"\
@@ -136,7 +138,8 @@ class TestPosixADTrust(ADTrustBase):
     def test_user_without_posix_attributes_not_visible(self):
         # Check that user has AD-defined UID
 
-        nonposixuser = 'nonposixuser@%s' % self.ad.domain.realm
+        # Using domain name since it is lowercased realm name for AD domains
+        nonposixuser = 'nonposixuser@%s' % self.ad.domain.name
         result = self.master.run_command(['getent', 'passwd', nonposixuser],
                                          raiseonerr=False)
 
