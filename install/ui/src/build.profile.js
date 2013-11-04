@@ -9,9 +9,9 @@ var profile = (function(){
         releaseName: "build",
         action: "release",
 
-        layerOptimize: "comments",
-        optimize: "comments",
-        cssOptimize: "comments",
+        layerOptimize: false,
+        optimize: false,
+        cssOptimize: false,
         mini: true,
         stripConsole: "warn",
         selectorEngine: "lite",

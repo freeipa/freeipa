@@ -9,12 +9,11 @@ var profile = (function(){
         releaseName: "lib",
         action: "release",
 
-        // Remove just comments. Don't use Shrinksave or Clusure, we don't
-        // pack it, it would raise error.
-        // Additional optimization can be done by uglify.js.
-        layerOptimize: "comments",
-        optimize: "comments",
-        cssOptimize: "comments",
+        // optimization done separately by uglify.js
+        layerOptimize: false,
+        optimize: false,
+        cssOptimize: false,
+
         mini: true,
         stripConsole: "warn",
         selectorEngine: "lite",

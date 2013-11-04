@@ -9,9 +9,9 @@ var profile = (function(){
         releaseName: "dojo",
         action: "release",
 
-        layerOptimize: "comments",
-        optimize: "comments",
-        cssOptimize: "comments",
+        layerOptimize: false,
+        optimize: false,
+        cssOptimize: false,
         mini: true,
         stripConsole: "warn",
         selectorEngine: "lite",
@@ -81,6 +81,7 @@ var profile = (function(){
                     "dojo/on",
                     "dojo/io-query",
                     //
+                    "dojo/keys",
                     "dojo/router",
                     "dojo/hash", //used by router
                     "dojo/topic", //used by router

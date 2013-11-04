@@ -164,7 +164,8 @@ if [[ $DOJO = $YES ]] ; then
             git clean -dfx
             git checkout master
             git fetch --tags
-            git pull
+            git fetch
+            git branch -D $BRANCH
             git checkout $BRANCH
         fi
     popd
@@ -185,7 +186,7 @@ if [[ $UTIL = $YES ]] ; then
             git checkout master
             git fetch --tags
             git fetch
-            git pull
+            git branch -D $BRANCH
             git checkout $BRANCH
         fi
 
