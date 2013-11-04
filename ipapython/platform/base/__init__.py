@@ -48,6 +48,12 @@ wellknownports = {
 
 SVC_LIST_FILE = "/var/run/ipa/services.list"
 
+# Firefox paths
+FIREFOX_EXEC = "/usr/bin/firefox"
+FIREFOX_INSTALL_DIRS = ["/usr/lib64/firefox", "/usr/lib/firefox"]
+# /firefox/install/dir/FIREFOX_PREFERENCES_REL_PATH
+FIREFOX_PREFERENCES_REL_PATH = "browser/defaults/preferences"
+
 class AuthConfig(object):
     """
     AuthConfig class implements system-independent interface to configure

@@ -40,7 +40,8 @@ try:
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
     from ipapython.ipautil import (
-        run, user_input, CalledProcessError, file_exists, realm_to_suffix)
+        run, user_input, CalledProcessError, file_exists, dir_exists,
+        realm_to_suffix)
     import ipapython.services as ipaservices
     from ipapython import ipautil, sysrestore, version, certmonger, ipaldap
     from ipapython.config import IPAOptionParser
@@ -150,7 +151,12 @@ def parse_options():
                       help=SUPPRESS_HELP, default=False)
     basic_group.add_option("--automount-location", dest="location",
                            help="Automount location")
+    basic_group.add_option("--configure-firefox", dest="configure_firefox",
+                            action="store_true", default=False,
+                            help="configure Firefox")
     parser.add_option_group(basic_group)
+    basic_group.add_option("--firefox-dir", dest="firefox_dir", default=None,
+                            help="specify directory where Firefox is installed (for example: '/usr/lib/firefox')")
 
     sssd_group = OptionGroup(parser, "SSSD options")
     sssd_group.add_option("--permit", dest="permit",
@@ -184,6 +190,9 @@ def parse_options():
 
     if options.force_ntpd and not options.conf_ntp:
         parser.error("--force-ntpd cannot be used together with --no-ntp")
+
+    if options.firefox_dir and not options.configure_firefox:
+        parser.error("--firefox-dir cannot be used without --configure-firefox option")
 
     return safe_opts, options
 
@@ -621,6 +630,18 @@ def uninstall(options, env):
 
     if was_sshd_configured and ipaservices.knownservices.sshd.is_running():
         ipaservices.knownservices.sshd.restart()
+
+    # Remove the Firefox configuration
+    if statestore.has_state('firefox'):
+        root_logger.info("Removing Firefox configuration.")
+        preferences_fname = statestore.restore_state('firefox', 'preferences_fname')
+        if preferences_fname is not None:
+            if file_exists(preferences_fname):
+                try:
+                    os.remove(preferences_fname)
+                except Exception, e:
+                    root_logger.warning("'%s' could not be removed: %s." % preferences_fname, str(e))
+                    root_logger.warning("Please remove file '%s' manually." % preferences_fname)
 
     rv = 0
 
@@ -1823,6 +1844,76 @@ def get_ca_cert(fstore, options, server, basedn):
         raise errors.FileError(reason=u"Unable set permissions on ca "
                                u"cert '%s': %s" % (CACERT, e))
 
+#IMPORTANT First line of FF config file is ignored
+FIREFOX_CONFIG_TEMPLATE = """
+
+/* Kerberos SSO configuration */
+pref("network.negotiate-auth.trusted-uris", ".$DOMAIN");
+
+/* These are the defaults */
+pref("network.negotiate-auth.gsslib", "");
+pref("network.negotiate-auth.using-native-gsslib", true);
+pref("network.negotiate-auth.allow-proxies", true);
+"""
+
+FIREFOX_PREFERENCES_FILENAME = "all-ipa.js"
+
+def configure_firefox(options, statestore, domain):
+    try:
+        root_logger.debug("Setting up Firefox configuration.")
+
+        preferences_dir = None
+
+        # Check user specified location of firefox install directory
+        if options.firefox_dir is not None:
+            pref_path = os.path.join(options.firefox_dir,
+                                    ipaservices.FIREFOX_PREFERENCES_REL_PATH)
+            if dir_exists(pref_path):
+                preferences_dir = pref_path
+            else:
+                root_logger.error("Directory '%s' does not exists." % pref_path)
+        else:
+            # test if firefox is installed
+            if file_exists(ipaservices.FIREFOX_EXEC):
+
+                # find valid preferences path
+                for path in ipaservices.FIREFOX_INSTALL_DIRS:
+                    pref_path = os.path.join(path,
+                                            ipaservices.FIREFOX_PREFERENCES_REL_PATH)
+                    if dir_exists(pref_path):
+                        preferences_dir = pref_path
+                        break
+            else:
+                root_logger.error("Firefox configuration skipped (Firefox not found).")
+                return
+
+        # setting up firefox
+        if preferences_dir is not None:
+
+            # user could specify relative path, we need to store absolute
+            preferences_dir = os.path.abspath(preferences_dir)
+            root_logger.debug("Firefox preferences directory found '%s'." % preferences_dir)
+            preferences_fname = os.path.join(preferences_dir, FIREFOX_PREFERENCES_FILENAME)
+            update_txt = ipautil.template_str(FIREFOX_CONFIG_TEMPLATE, dict(DOMAIN=domain))
+            root_logger.debug("Firefox trusted and delegation uris will be set as '.%s' domain." % domain)
+            root_logger.debug("Firefox configuration will be stored in '%s' file." % preferences_fname)
+
+            try:
+                with open(preferences_fname, 'w') as f:
+                    f.write(update_txt)
+                root_logger.info("Firefox sucessfully configured.")
+                statestore.backup_state('firefox', 'preferences_fname', preferences_fname)
+            except Exception, e:
+                root_logger.debug("An error occured during creating preferences file: %s." % str(e))
+                root_logger.error("Firefox configuration failed.")
+        else:
+            root_logger.debug("Firefox preferences directory not found.")
+            root_logger.error("Firefox configuration failed.")
+
+    except Exception, e:
+        root_logger.debug(str(e))
+        root_logger.error("Firefox configuration failed.")
+
 
 def install(options, env, fstore, statestore):
     dnsok = False
@@ -2567,6 +2658,9 @@ def install(options, env, fstore, statestore):
 
     if options.location:
         configure_automount(options)
+
+    if options.configure_firefox:
+        configure_firefox(options, statestore, cli_domain)
 
     root_logger.info('Client configuration complete.')
 

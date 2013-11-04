@@ -48,7 +48,8 @@ from ipapython.platform.redhat.service import redhat_service, RedHatServices
 #                         and restorecon is installed.
 __all__ = ['authconfig', 'service', 'knownservices',
     'backup_and_replace_hostname', 'restore_context', 'check_selinux_status',
-    'restore_network_configuration', 'timedate_services']
+    'restore_network_configuration', 'timedate_services', 'FIREFOX_EXEC',
+    'FIREFOX_INSTALL_DIRS', 'FIREFOX_PREFERENCES_REL_PATH']
 
 # Just copy a referential list of timedate services
 timedate_services = list(base.timedate_services)
@@ -131,3 +132,8 @@ def restore_network_configuration(fstore, statestore):
     filepath = '/etc/sysconfig/network'
     if fstore.has_file(filepath):
         fstore.restore_file(filepath)
+
+# Firefox paths
+FIREFOX_EXEC = base.FIREFOX_EXEC
+FIREFOX_INSTALL_DIRS = base.FIREFOX_INSTALL_DIRS
+FIREFOX_PREFERENCES_REL_PATH = base.FIREFOX_PREFERENCES_REL_PATH

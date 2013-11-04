@@ -44,7 +44,8 @@ from ipapython.platform import fedora16, base
 #                         and restorecon is installed.
 __all__ = ['authconfig', 'service', 'knownservices',
     'backup_and_replace_hostname', 'restore_context', 'check_selinux_status',
-    'restore_network_configuration', 'timedate_services']
+    'restore_network_configuration', 'timedate_services', 'FIREFOX_EXEC',
+    'FIREFOX_INSTALL_DIRS', 'FIREFOX_PREFERENCES_REL_PATH']
 
 # Just copy a referential list of timedate services
 timedate_services = list(base.timedate_services)
@@ -111,3 +112,8 @@ service = fedora16.service
 knownservices = fedora16.knownservices
 restore_context = fedora16.restore_context
 check_selinux_status = fedora16.check_selinux_status
+
+# Firefox paths
+FIREFOX_EXEC = base.FIREFOX_EXEC
+FIREFOX_INSTALL_DIRS = base.FIREFOX_INSTALL_DIRS
+FIREFOX_PREFERENCES_REL_PATH = base.FIREFOX_PREFERENCES_REL_PATH
