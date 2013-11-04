@@ -19,8 +19,77 @@
 */
 
 //
-// AMD Wrapper for jquery library
+// AMD Wrapper for jQuery
 //
 define(function() {
-    return jQuery;
+
+    $ = jQuery;
+
+    //
+    // Following code taken from jQuery UI library, MIT license, see
+    // README-LICENSES.txt
+    //
+
+    $.fn.extend({
+        focus: (function( orig ) {
+                return function( delay, fn ) {
+                    return typeof delay === "number" ?
+                            this.each(function() {
+                                    var elem = this;
+                                    window.setTimeout(function() {
+                                            $( elem ).focus();
+                                            if ( fn ) {
+                                                    fn.call( elem );
+                                            }
+                                    }, delay );
+                            }) :
+                            orig.apply( this, arguments );
+                };
+        })( $.fn.focus )
+    });
+
+    // selectors
+    function focusable( element, isTabIndexNotNaN ) {
+        var map, mapName, img,
+                nodeName = element.nodeName.toLowerCase();
+        if ( "area" === nodeName ) {
+                map = element.parentNode;
+                mapName = map.name;
+                if ( !element.href || !mapName || map.nodeName.toLowerCase() !== "map" ) {
+                        return false;
+                }
+                img = $( "img[usemap=#" + mapName + "]" )[0];
+                return !!img && visible( img );
+        }
+        return ( /input|select|textarea|button|object/.test( nodeName ) ?
+                !element.disabled :
+                "a" === nodeName ?
+                        element.href || isTabIndexNotNaN :
+                        isTabIndexNotNaN) &&
+                // the element and all of its ancestors must be visible
+                visible( element );
+    }
+
+    function visible( element ) {
+        return $.expr.filters.visible( element ) &&
+                !$( element ).parents().addBack().filter(function() {
+                        return $.css( this, "visibility" ) === "hidden";
+                }).length;
+    }
+
+    $.extend( $.expr[ ":" ], {
+
+        focusable: function( element ) {
+                return focusable( element, !isNaN( $.attr( element, "tabindex" ) ) );
+        },
+
+        tabbable: function( element ) {
+                var tabIndex = $.attr( element, "tabindex" ),
+                        isTabIndexNaN = isNaN( tabIndex );
+                return ( isTabIndexNaN || tabIndex >= 0 ) && focusable( element, !isTabIndexNaN );
+        }
+    });
+
+
+    return $;
 });

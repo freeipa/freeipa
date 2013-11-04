@@ -22,14 +22,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['./jquery',
+define([
+        'dojo/keys',
+        './jquery',
         './json2',
         './_base/i18n',
         './metadata',
         './builder',
         './reg',
         './text'],
-       function($, JSON, i18n, metadata_provider, builder, reg, text) {
+       function(keys, $, JSON, i18n, metadata_provider, builder, reg, text) {
 
 /**
  * @class
@@ -2353,15 +2355,15 @@ IPA.unauthorized_dialog = function(spec) {
         }
 
         if (that.current_view === 'session') {
-            if (event.keyCode === $.ui.keyCode.ENTER && !this.test_ignore(event)) {
+            if (event.keyCode === keys.ENTER && !this.test_ignore(event)) {
                 that.on_login();
                 event.preventDefault();
             }
         } else {
-            if (event.keyCode === $.ui.keyCode.ENTER && !this.test_ignore(event)) {
+            if (event.keyCode === keys.ENTER && !this.test_ignore(event)) {
                 that.on_reset();
                 event.preventDefault();
-            } else if (event.keyCode === $.ui.ESCAPE) {
+            } else if (event.keyCode === keys.ESCAPE) {
                 that.on_cancel();
                 event.preventDefault();
             }

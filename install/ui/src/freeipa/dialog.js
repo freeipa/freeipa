@@ -20,7 +20,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa', './jquery', './text', './field', './widget'], function(IPA, $, text) {
+define([
+       'dojo/keys',
+       './ipa',
+       './jquery',
+       './text',
+       './field',
+       './widget'],
+       function(keys, IPA, $, text) {
 
 /**
  * Opened dialogs
@@ -371,14 +378,14 @@ IPA.dialog = function(spec) {
     that.on_key_down = function(event) {
 
         if ( that.close_on_escape && !event.isDefaultPrevented() && event.keyCode &&
-            event.keyCode === $.ui.keyCode.ESCAPE ) {
+            event.keyCode === keys.ESCAPE ) {
             event.preventDefault();
             that.close();
             return;
         }
 
         // prevent tabbing out of dialogs
-        if ( event.keyCode !== $.ui.keyCode.TAB ) {
+        if ( event.keyCode !== keys.TAB ) {
             return;
         }
 
@@ -718,7 +725,7 @@ IPA.adder_dialog = function(spec) {
             type: 'text',
             name: 'filter',
             keyup: function(event) {
-                if (event.keyCode === $.ui.keyCode.ENTER) {
+                if (event.keyCode === keys.ENTER) {
                     that.search();
                     return false;
                 }
@@ -1256,12 +1263,12 @@ IPA.confirm_mixin = function() {
              * @param {Event} event
              */
             on_key_up: function(event) {
-                if (event.keyCode === $.ui.keyCode.ENTER &&
+                if (event.keyCode === keys.ENTER &&
                         !this.test_ignore(event) &&
                         !!this.on_confirm) {
                     event.preventDefault();
                     this.on_confirm();
-                } else if (event.keyCode === $.ui.keyCode.ESCAPE &&
+                } else if (event.keyCode === keys.ESCAPE &&
                         !!this.on_cancel) {
                     event.preventDefault();
                     this.on_cancel();

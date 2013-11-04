@@ -25,6 +25,7 @@
 define(['dojo/_base/array',
        'dojo/_base/lang',
        'dojo/Evented',
+       'dojo/keys',
        'dojo/on',
        './builder',
        './ipa',
@@ -33,7 +34,7 @@ define(['dojo/_base/array',
        './reg',
        './text'
        ],
-       function(array, lang, Evented, on, builder, IPA, $, phases, reg, text) {
+       function(array, lang, Evented, keys, on, builder, IPA, $, phases, reg, text) {
 
 /**
  * Widget module
@@ -3159,10 +3160,10 @@ IPA.combobox_widget = function(spec) {
 
         var key = e.which;
 
-        if (key === $.ui.keyCode.TAB ||
-            key === $.ui.keyCode.ESCAPE ||
-            key === $.ui.keyCode.ENTER ||
-            key === $.ui.keyCode.SHIFT ||
+        if (key === keys.TAB ||
+            key === keys.ESCAPE ||
+            key === keys.ENTER ||
+            key === keys.SHIFT ||
             e.ctrlKey ||
             e.metaKey ||
             e.altKey) return true;
@@ -3172,11 +3173,11 @@ IPA.combobox_widget = function(spec) {
             return true;
         }
 
-        if (key === $.ui.keyCode.UP || key === $.ui.keyCode.DOWN) {
+        if (key === keys.UP_ARROW || key === keys.DOWN_ARROW) {
             e.preventDefault();
             that.open();
 
-            if (key === $.ui.keyCode.UP) {
+            if (key === keys.UP_ARROW) {
                 that.select_prev();
             } else {
                 that.select_next();
@@ -3207,7 +3208,7 @@ IPA.combobox_widget = function(spec) {
     that.on_list_container_keydown = function(e) {
         // close on ESCAPE and consume event to prevent unwanted
         // behaviour like closing dialog
-        if (e.which == $.ui.keyCode.ESCAPE) {
+        if (e.which == keys.ESCAPE) {
             e.preventDefault();
             e.stopPropagation();
             that.close();
@@ -3217,7 +3218,7 @@ IPA.combobox_widget = function(spec) {
     };
 
     that.on_filter_keyup = function(e) {
-        if (e.which == $.ui.keyCode.ENTER) {
+        if (e.which == keys.ENTER) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -3229,11 +3230,11 @@ IPA.combobox_widget = function(spec) {
 
     that.on_filter_keydown = function(e) {
         var key = e.which;
-        if (key === $.ui.keyCode.UP) {
+        if (key === keys.UP_ARROW) {
             e.preventDefault();
             that.select_prev();
             that.list.focus();
-        } else if (key === $.ui.keyCode.DOWN) {
+        } else if (key === keys.DOWN_ARROW) {
             e.preventDefault();
             that.select_next();
             that.list.focus();
@@ -3241,7 +3242,7 @@ IPA.combobox_widget = function(spec) {
     };
 
     that.list_on_keydown = function(e) {
-        if (e.which === $.ui.keyCode.TAB) {
+        if (e.which === keys.TAB) {
             e.preventDefault();
             if (that.searchable) {
                 that.filter.focus();
@@ -3253,7 +3254,7 @@ IPA.combobox_widget = function(spec) {
     };
 
     that.list_on_keyup = function(e) {
-        if (e.which === $.ui.keyCode.ENTER || e.which === $.ui.keyCode.SPACE) {
+        if (e.which === keys.ENTER || e.which === keys.SPACE) {
             e.stopPropagation();
             that.close();
             IPA.select_range(that.input, 0, 0);
