@@ -40,7 +40,12 @@ import pwd
 import textwrap
 from optparse import OptionGroup, OptionValueError
 
-from ipaserver.install import adtrustinstance
+try:
+    from ipaserver.install import adtrustinstance
+    _server_trust_ad_installed = True
+except ImportError:
+    _server_trust_ad_installed = False
+
 from ipaserver.install import dsinstance
 from ipaserver.install import krbinstance
 from ipaserver.install import bindinstance
@@ -493,7 +498,8 @@ def uninstall():
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
     dsinstance.DsInstance(fstore=fstore).uninstall()
-    adtrustinstance.ADTRUSTInstance(fstore).uninstall()
+    if _server_trust_ad_installed:
+        adtrustinstance.ADTRUSTInstance(fstore).uninstall()
     memcacheinstance.MemcacheInstance().uninstall()
     otpdinstance.OtpdInstance().uninstall()
     ipaservices.restore_network_configuration(fstore, sstore)
