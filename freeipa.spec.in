@@ -760,11 +760,8 @@ fi
 %{_sbindir}/ipa-rmkeytab
 %{_sbindir}/ipa-join
 %dir %{_usr}/share/ipa
-%dir %{_usr}/share/ipa/ipaclient
 %dir %{_localstatedir}/lib/ipa-client
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
-%{_usr}/share/ipa/ipaclient/ipa.cfg
-%{_usr}/share/ipa/ipaclient/ipa.js
 %dir %{python_sitelib}/ipaclient
 %{python_sitelib}/ipaclient/*.py*
 %{_mandir}/man1/ipa-getkeytab.1.gz

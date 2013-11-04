@@ -205,7 +205,6 @@ dnl ---------------------------------------------------------------------------
 
 AC_CONFIG_FILES([
     Makefile
-    firefox/Makefile
     ipaclient/Makefile
     ipa-install/Makefile
     man/Makefile

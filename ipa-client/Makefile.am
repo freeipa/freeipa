@@ -81,7 +81,6 @@ ipa_join_LDADD = 		\
 	$(NULL)
 
 SUBDIRS =			\
-	firefox			\
 	ipaclient		\
 	ipa-install		\
 	man			\
