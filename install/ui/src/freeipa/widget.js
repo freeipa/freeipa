@@ -25,6 +25,7 @@
 define(['dojo/_base/array',
        'dojo/_base/lang',
        'dojo/Evented',
+       'dojo/has',
        'dojo/keys',
        'dojo/on',
        './builder',
@@ -34,7 +35,7 @@ define(['dojo/_base/array',
        './reg',
        './text'
        ],
-       function(array, lang, Evented, keys, on, builder, IPA, $, phases, reg, text) {
+       function(array, lang, Evented, has, keys, on, builder, IPA, $, phases, reg, text) {
 
 /**
  * Widget module
@@ -2264,7 +2265,7 @@ IPA.table_widget = function (spec) {
         that.tbody = $('<tbody/>').appendTo(that.table);
 
         // workaround for #2835
-        if ($.browser.msie) {
+        if (has('ie')) {
             that.tbody.mousedown(function(event) {
                 that.scroll_top = that.tbody.scrollTop();
                 window.setTimeout(function() {
@@ -3135,13 +3136,13 @@ IPA.combobox_widget = function(spec) {
 
         that.list = $('<select/>', {
             name: 'list',
-            size: that.size,
             style: 'width: 100%',
             keydown: that.list_on_keydown,
             keyup: that.list_on_keyup,
             change: that.list_on_change,
             blur: that.list_child_on_blur
         }).appendTo(div);
+        that.list.prop('size', that.size);
 
         if (that.undo) {
             that.create_undo(container);
