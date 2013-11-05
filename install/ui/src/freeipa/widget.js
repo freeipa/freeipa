@@ -3681,7 +3681,7 @@ IPA.button = function(spec) {
 
     if (spec.icon) {
         $('<span/>', {
-            'class': 'icon '+spec.icon
+            'class': 'fa '+spec.icon
         }).appendTo(button);
     }
 

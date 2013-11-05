@@ -80,7 +80,7 @@ define(['dojo/_base/declare',
         _fullnameSetter: function(value) {
             this.fullname = value;
             if (this.logged_user_node) {
-                prop.set(this.logged_user_node, 'textContent', value);
+                prop.set(this.logged_user_node, 'textContent', ' '+ value);
             }
         },
 
@@ -170,7 +170,7 @@ define(['dojo/_base/declare',
             var nodes = [];
 
             nodes.push(construct.create('span', {
-                'class': 'icon-user icon-white'
+                'class': 'fa fa-user'
             }));
 
             this.logged_user_node = construct.create('span', {
@@ -205,18 +205,21 @@ define(['dojo/_base/declare',
                 items: [
                     {
                         name: 'profile',
-                        label: 'Profile'
+                        label: 'Profile',
+                        icon: 'fa-user'
                     },
                     {
                         name: 'password_reset',
-                        label: 'Change password'
+                        label: 'Change password',
+                        icon: 'fa-key'
                     },
                     {
                         'class': 'divider'
                     },
                     {
                         name: 'logout',
-                        label: 'Logout'
+                        label: 'Logout',
+                        icon: 'fa-sign-out'
                     }
                 ]
             });

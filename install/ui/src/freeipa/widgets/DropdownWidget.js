@@ -173,10 +173,19 @@ define(['dojo/_base/declare',
             var li = construct.create('li', {
                 'data-name': item.name || ''
             });
+
             var a = construct.create('a', {
-                'href': '#' + item.name || '',
-                innerHTML: item.label || ''
+                'href': '#' + item.name || ''
             }, li);
+
+            if (item.icon) {
+                construct.create('i', {
+                    'class': 'fa ' + item.icon
+                }, a);
+            }
+
+            var text = document.createTextNode(' '+item.label || '');
+            construct.place(text, a);
 
             if (item['class']) {
                 dom_class.add(li, item['class']);
