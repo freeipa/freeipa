@@ -121,17 +121,15 @@ class Service(object):
 
         self.admin_conn = conn
 
-
     def ldap_disconnect(self):
         self.admin_conn.unbind()
         self.admin_conn = None
 
-    def _ldap_mod(self, ldif, sub_dict = None):
-
+    def _ldap_mod(self, ldif, sub_dict=None):
         pw_name = None
         fd = None
         path = ipautil.SHARE_DIR + ldif
-        nologlist=[]
+        nologlist = []
 
         if sub_dict is not None:
             txt = ipautil.template_file(path, sub_dict)
@@ -139,9 +137,9 @@ class Service(object):
             path = fd.name
 
             # do not log passwords
-            if sub_dict.has_key('PASSWORD'):
+            if 'PASSWORD' in sub_dict:
                 nologlist.append(sub_dict['PASSWORD'])
-            if sub_dict.has_key('RANDOM_PASSWORD'):
+            if 'RANDOM_PASSWORD' in sub_dict:
                 nologlist.append(sub_dict['RANDOM_PASSWORD'])
 
         args = ["/usr/bin/ldapmodify", "-v", "-f", path]
@@ -152,16 +150,18 @@ class Service(object):
             self.ldap_connect()
         args += ["-H", self.admin_conn.ldap_uri]
 
-        auth_parms = []
+        # If DM password is available, use it
         if self.dm_password:
             [pw_fd, pw_name] = tempfile.mkstemp()
             os.write(pw_fd, self.dm_password)
             os.close(pw_fd)
             auth_parms = ["-x", "-D", "cn=Directory Manager", "-y", pw_name]
+        # Use GSSAPI auth when not using DM password or not being root
+        elif os.getegid() != 0:
+            auth_parms = ["-Y", "GSSAPI"]
+        # Default to EXTERNAL auth mechanism
         else:
-            # always try GSSAPI auth when not using DM password or not being root
-            if os.getegid() != 0:
-                auth_parms = ["-Y", "GSSAPI"]
+            auth_parms = ["-Y", "EXTERNAL"]
 
         args += auth_parms
 
