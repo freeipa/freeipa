@@ -7,6 +7,10 @@
   list-style-type: none;
   > li { position: relative; }
 }
+
+@faLifaLg: (4em / 14);
+@faLifaLgL: @faLifaLg - @fa-li-width;
+
 .fa-li {
   position: absolute;
   left: -@fa-li-width;
@@ -14,6 +18,6 @@
   top: (2em / 14);
   text-align: center;
   &.fa-lg {
-    left: -@fa-li-width + (4em / 14);
+    left: @faLifaLgL
   }
 }
