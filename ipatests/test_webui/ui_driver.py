@@ -742,12 +742,12 @@ class UI_driver(object):
             parent = self.get_form()
         s = "[name='%s'].combobox-widget" % name
         cb = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-        open_btn = self.find('a[name=open] span', By.CSS_SELECTOR, cb, strict=True)
+        open_btn = self.find('a[name=open] i', By.CSS_SELECTOR, cb, strict=True)
         open_btn.click()
         self.wait()
         self.wait_for_request()
 
-        search_btn = self.find('a[name=search] span', By.CSS_SELECTOR, cb, strict=True)
+        search_btn = self.find('a[name=search] i', By.CSS_SELECTOR, cb, strict=True)
         opt_s = "select[name=list] option[value='%s']" % value
         option = self.find(opt_s, By.CSS_SELECTOR, cb)
         if not option:

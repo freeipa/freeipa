@@ -61,12 +61,12 @@ var spec = {
                 {
                     name: 'disable',
                     label: '@i18n:buttons.disable',
-                    icon: 'disabled-icon'
+                    icon: 'fa-minus'
                 },
                 {
                     name: 'enable',
                     label: '@i18n:buttons.enable',
-                    icon: 'enabled-icon'
+                    icon: 'fa-check'
                 }
             ]
         },
@@ -705,7 +705,7 @@ IPA.sudo.options_section = function(spec) {
             that.remove_button = IPA.action_button({
                 name: 'remove',
                 label: '@i18n:buttons.remove',
-                icon: 'remove-icon',
+                icon: 'fa-trash-o',
                 'class': 'action-button-disabled',
                 click: function() {
                     if (!that.remove_button.hasClass('action-button-disabled')) {
@@ -718,7 +718,7 @@ IPA.sudo.options_section = function(spec) {
             that.add_button = IPA.action_button({
                 name: 'add',
                 label: '@i18n:buttons.add',
-                icon: 'add-icon',
+                icon: 'fa-plus',
                 click: function() {
                     if (!that.add_button.hasClass('action-button-disabled')) {
                         that.add_handler();

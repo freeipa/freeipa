@@ -87,12 +87,12 @@ return {
                 {
                     name: 'disable',
                     label: '@i18n:buttons.disable',
-                    icon: 'disabled-icon'
+                    icon: 'fa-minus'
                 },
                 {
                     name: 'enable',
                     label: '@i18n:buttons.enable',
-                    icon: 'enabled-icon'
+                    icon: 'fa-check'
                 }
             ]
         },

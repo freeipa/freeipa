@@ -1905,11 +1905,13 @@ IPA.boolean_status_formatter = function(spec) {
 
     that.show_false = true;
     that.type = 'html';
+    that.enabled_icon = spec.disabled_icon || 'fa fa-check';
+    that.disabled_icon = spec.disabled_icon || 'fa fa-minus';
 
     that.format = function(value) {
-        var status = value ? 'enabled' : 'disabled';
+        var icon_cls = value ? that.enabled_icon : that.disabled_icon;
         var formatted_value = that.boolean_formatter_format(value);
-        formatted_value = '<span class=\"icon '+status+'-icon\"/> '+formatted_value;
+        formatted_value = '<i class=\"'+icon_cls+'\"/> '+formatted_value;
         return formatted_value;
     };
 
@@ -2717,7 +2719,7 @@ IPA.attribute_table_widget = function(spec) {
         that.remove_button = IPA.action_button({
             name: 'remove',
             label: '@i18n:buttons.remove',
-            icon: 'remove-icon',
+            icon: 'fa-trash-o',
             'class': 'action-button-disabled',
             click: function() {
                 if (!that.remove_button.hasClass('action-button-disabled')) {
@@ -2730,7 +2732,7 @@ IPA.attribute_table_widget = function(spec) {
         that.add_button = IPA.action_button({
             name: 'add',
             label: '@i18n:buttons.add',
-            icon: 'add-icon',
+            icon: 'fa-plus',
             click: function() {
                 if (!that.add_button.hasClass('action-button-disabled')) {
                     that.add_handler();
@@ -3078,7 +3080,7 @@ IPA.combobox_widget = function(spec) {
 
         that.open_button = IPA.action_button({
             name: 'open',
-            icon: 'combobox-icon',
+            icon: 'fa-angle-down',
             focusable: false,
             click: function() {
                 that.no_close_flag = false;
@@ -3116,7 +3118,7 @@ IPA.combobox_widget = function(spec) {
 
             that.search_button = IPA.action_button({
                 name: 'search',
-                icon: 'search-icon',
+                icon: 'fa-search',
                 focusable: false,
                 click: function() {
                     that.no_close_flag = false;
@@ -3680,7 +3682,7 @@ IPA.button = function(spec) {
     if (spec.type) button.addClass(spec.type);
 
     if (spec.icon) {
-        $('<span/>', {
+        $('<i/>', {
             'class': 'fa '+spec.icon
         }).appendTo(button);
     }

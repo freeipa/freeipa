@@ -182,7 +182,7 @@ IPA.hbac.test_facet = function(spec) {
             that.prev_button = IPA.button({
                 name: 'prev',
                 label: '@i18n:widget.prev',
-                icon: 'prev-icon',
+                icon: 'fa-chevron-left',
                 click: function() {
                     if (!that.prev_button.hasClass('action-button-disabled')) {
                         that.prev();
@@ -197,7 +197,7 @@ IPA.hbac.test_facet = function(spec) {
         that.next_button = IPA.button({
             name: 'next',
             label: '@i18n:widget.next',
-            icon: 'next-icon',
+            icon: 'fa-chevron-right',
             click: function() {
                 if (!that.next_button.hasClass('action-button-disabled')) {
                     that.next();
@@ -309,7 +309,7 @@ IPA.hbac.test_select_facet = function(spec) {
 
         that.find_button = IPA.action_button({
             name: 'find',
-            icon: 'search-icon',
+            icon: 'fa-search',
             click: function() {
                 that.find();
                 return false;
@@ -533,6 +533,7 @@ IPA.hbac.test_run_facet = function(spec) {
         that.run_button = IPA.button({
             name: 'run_test',
             label: '@i18n:objects.hbactest.run_test',
+            icon: 'fa-gear',
             click: function() {
                 if (!that.run_button.hasClass('action-button-disabled')) {
                     that.run();
@@ -605,7 +606,7 @@ IPA.hbac.test_run_facet = function(spec) {
         that.prev_button = IPA.button({
             name: 'prev',
             label: '@i18n:widget.prev',
-            icon: 'prev-icon',
+            icon: 'fa-chevron-left',
             click: function() {
                 if (!that.prev_button.hasClass('action-button-disabled')) {
                     that.prev();
@@ -619,6 +620,7 @@ IPA.hbac.test_run_facet = function(spec) {
         that.new_test_button = IPA.button({
             name: 'new_test',
             label: '@i18n:objects.hbactest.new_test',
+            icon: 'fa-repeat',
             click: function() {
                 if (!that.new_test_button.hasClass('action-button-disabled')) {
                     that.new_test();

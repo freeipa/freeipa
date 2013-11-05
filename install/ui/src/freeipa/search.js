@@ -48,19 +48,19 @@ exp.search_facet_control_buttons_pre_op = function(spec, context) {
             {
                 name: 'remove',
                 label: '@i18n:buttons.remove',
-                icon: 'remove-icon'
+                icon: 'fa-trash-o'
             },
             {
                 name: 'add',
                 label: '@i18n:buttons.add',
-                icon: 'add-icon'
+                icon: 'fa-plus'
             });
     }
     spec.control_buttons.unshift(
         {
             name: 'refresh',
             label: '@i18n:buttons.refresh',
-            icon: 'reset-icon'
+            icon: 'fa-refresh'
         });
 
     spec.state = spec.state || {};
@@ -128,7 +128,7 @@ IPA.search_facet = function(spec, no_init) {
 
         that.find_button = IPA.action_button({
             name: 'find',
-            icon: 'search-icon',
+            icon: 'fa-search',
             click: function() {
                 that.find();
                 return false;

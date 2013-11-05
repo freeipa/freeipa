@@ -1028,14 +1028,15 @@ table.scrollable tbody {
     width: 250px;
 }
 
-.combobox-widget-input .combobox-icon {
+.combobox-widget-input a i {
     display: inline-block;
     position: absolute;
     top: 0;
     bottom: 0;
     right: 0;
     margin-top: 4px;
-    margin-right: 4px;
+    margin-right: 8px;
+    font-size: 16px;
 }
 
 .combobox-widget-list {
@@ -1057,13 +1058,14 @@ table.scrollable tbody {
     margin: 0;
 }
 
-.combobox-widget-list .search-icon {
+.combobox-widget-list a i {
     position: absolute;
     top: 0;
     bottom: 0;
     right: 0;
     margin-top: 6px;
     margin-right: 3px;
+    font-size: 16px;
 }
 
 .host-adder-dialog table.fqdn {

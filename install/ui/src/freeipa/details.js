@@ -466,19 +466,19 @@ exp.details_facet_pre_op = function(spec, context) {
             {
                 name: 'reset',
                 label: '@i18n:buttons.reset',
-                icon: 'reset-icon'
+                icon: 'fa-undo'
             },
             {
                 name: 'update',
                 label: '@i18n:buttons.update',
-                icon: 'update-icon'
+                icon: 'fa-upload'
             });
     }
     spec.control_buttons.unshift(
         {
             name: 'refresh',
             label: '@i18n:buttons.refresh',
-            icon: 'reset-icon'
+            icon: 'fa-refresh'
         });
 
     spec.state = spec.state || {};
