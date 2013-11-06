@@ -57,17 +57,21 @@
             }
 
             .rcue-button-close {
-                background-image: url("../img/dialog-button-close.png");
-                width: 25px;
-                height: 25px;
-                background-repeat: no-repeat;
-                background-position: center;
-                display: inline-block;
-                margin-top: -4px;
-                margin-right: -6px;
+
                 position: absolute;
                 top: 15px;
                 right: 19px;
+                display: inline-block;
+
+                .fa;
+
+                &:before {
+                    content: @fa-var-times;
+                }
+
+                &:hover {
+                    text-decoration: none;
+                }
             }
         }
 
