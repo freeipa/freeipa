@@ -22,79 +22,88 @@
 // This file contains overrides of reference RCUE implementation to comply
 // with IPA design
 
+
+// variables
+@checkbox-color: darken(#b7b7b7, 20%);
+@checkbox-disabled-color: #d2d2d2;
+@checkbox-hover-color: #64b0db;
+@checkbox-selected-color: darken(@checkbox-hover-color, 20%);
+
 /* Checkboxes and Radios */
 input[type="checkbox"],
 input[type="radio"] {
-  display: none;
+    display: none;
 }
 
 input[type="checkbox"] + label,
 input[type="radio"] + label {
-  display: inline-block;
-  margin: 4px;
-  padding: 0 24px;
-  background-repeat: no-repeat;
-  background-position: center left;
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+
+    &:before {
+        .fa;
+
+        font-size: 125%;
+        vertical-align: -11%;
+        margin-right: 5px;
+    }
 }
 
 input[type="checkbox"].standalone + label,
 input[type="radio"].standalone + label {
-  padding: 0;
-  width: 13px;
+    width: 13px;
+
+    &:before {
+        margin-right: 0px;
+    }
 }
 
+input[type="radio"] + label,
 input[type="checkbox"] + label {
-  background-image: url('../img/checkbutton-background.png');
+
+    &:before {
+        color: @checkbox-color;
+    }
+
+    &:hover:before {
+        color: @checkbox-hover-color;
+    }
 }
 
-input[type="checkbox"]:hover + label {
-  background-image: url('../img/checkbutton-background-hover.png');
-}
-
-input[type="checkbox"]:checked + label {
-  background-image: url('../img/checkbutton-background-selected.png');
-}
-
+input[type="radio"]:disabled + label,
 input[type="checkbox"]:disabled + label {
-  background-image: url('../img/checkbutton-background-disabled.png');
+    color: @checkbox-disabled-color;
+
+    &:before,
+    &:hover:before {
+        color: @checkbox-disabled-color;
+    }
 }
 
-input[type="checkbox"]:checked:disabled + label {
-  background-image: url('../img/checkbutton-background-selected-disabled.png');
+input[type="checkbox"] + label:before {
+    content: "@{fa-var-square-o} ";
 }
 
-input[type="radio"] + label {
-  background-image: url('../img/radiobutton-background.png');
+input[type="checkbox"]:checked + label:before {
+    content: "@{fa-var-check-square-o} ";
+    color: @checkbox-selected-color;
 }
 
-input[type="radio"]:hover + label {
-  background-image: url('../img/radiobutton-background-hover.png');
+input[type="radio"] + label:before {
+    content: @fa-var-circle-o;
 }
 
-input[type="radio"]:checked + label {
-  background-image: url('../img/radiobutton-background-selected.png');
+input[type="radio"]:checked + label:before {
+    content: @fa-var-dot-circle-o;
+    color: @checkbox-selected-color;
 }
 
 input[type="radio"]:disabled + label {
-  background-image: url('../img/radiobutton-background-disabled.png');
-}
-
-input[type="radio"]:checked:disabled + label {
-  background-image: url('../img/radiobutton-background-selected-disabled.png');
+    color: @checkbox-disabled-color;
 }
 
 .form-horizontal {
-
-    // lower radio's label width to keep it aligned with other labels when
-    // radio is part of form label
-    .control-label {
-        input[type="checkbox"] + label,
-        input[type="radio"] + label {
-            width: 144px;
-            padding: 0 0 0 16px;
-            margin: 0;
-        }
-    }
 
     .controls {
 

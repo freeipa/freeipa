@@ -54,7 +54,7 @@ var exp = {};
  * @member IPA
  * @property {number}
  */
-IPA.checkbox_column_width = 22;
+IPA.checkbox_column_width = 13;
 
 /**
  * String to show next to required fields to indicate that the field is required.
@@ -1169,7 +1169,7 @@ IPA.option_widget_base = function(spec, that) {
         }).appendTo(container);
 
         option.label_node =  $('<label/>', {
-            html: option.label || '&nbsp;',
+            html: option.label || '',
             title: option.tooltip || that.tooltip,
             'for': id
         }).appendTo(container);
@@ -1556,7 +1556,7 @@ IPA.standalone_option = function(spec, container, label) {
 
     if (!label) {
         input.addClass('standalone');
-        label = '&nbsp;';
+        label = '';
     }
 
     var label_el = $('<label/>', {
