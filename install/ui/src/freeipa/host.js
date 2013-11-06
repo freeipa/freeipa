@@ -589,33 +589,31 @@ IPA.host_keytab_widget = function(spec) {
 
         that.widget_create(container);
 
-        that.missing_span = $('<span/>', {
+        that.missing_el = $('<label/>', {
             name: 'missing',
             style: 'display: none;'
         }).appendTo(container);
 
-        $('<img/>', {
-            src: 'images/caution-icon.png',
-            'class': 'status-icon'
-        }).appendTo(that.missing_span);
+        $('<i/>', {
+            'class': 'fa fa-warning'
+        }).appendTo(that.missing_el);
 
-        that.missing_span.append(' ');
+        that.missing_el.append(' ');
 
-        that.missing_span.append(text.get('@i18n:objects.host.keytab_missing'));
+        that.missing_el.append(text.get('@i18n:objects.host.keytab_missing'));
 
-        that.present_span = $('<span/>', {
+        that.present_el = $('<label/>', {
             name: 'present',
             style: 'display: none;'
         }).appendTo(container);
 
-        $('<img/>', {
-            src: 'images/check-icon.png',
-            'class': 'status-icon'
-        }).appendTo(that.present_span);
+        $('<i/>', {
+            'class': 'fa fa-check'
+        }).appendTo(that.present_el);
 
-        that.present_span.append(' ');
+        that.present_el.append(' ');
 
-        that.present_span.append(text.get('@i18n:objects.host.keytab_present'));
+        that.present_el.append(text.get('@i18n:objects.host.keytab_present'));
     };
 
     that.update = function(values) {
@@ -625,13 +623,13 @@ IPA.host_keytab_widget = function(spec) {
     };
 
     that.clear = function() {
-        that.present_span.css('display', 'none');
-        that.missing_span.css('display', 'none');
+        that.present_el.css('display', 'none');
+        that.missing_el.css('display', 'none');
     };
 
     function set_status(status) {
-        that.present_span.css('display', status == 'present' ? 'inline' : 'none');
-        that.missing_span.css('display', status == 'missing' ? 'inline' : 'none');
+        that.present_el.css('display', status == 'present' ? '' : 'none');
+        that.missing_el.css('display', status == 'missing' ? '' : 'none');
     }
 
     return that;
@@ -753,32 +751,30 @@ IPA.host_password_widget = function(spec) {
 
         that.widget_create(container);
 
-        that.missing_span = $('<span/>', {
+        that.missing_el = $('<label/>', {
             name: 'missing'
         }).appendTo(container);
 
-        $('<img/>', {
-            src: 'images/caution-icon.png',
-            'class': 'status-icon'
-        }).appendTo(that.missing_span);
+        $('<i/>', {
+            'class': 'fa fa-warning'
+        }).appendTo(that.missing_el);
 
-        that.missing_span.append(' ');
+        that.missing_el.append(' ');
 
-        that.missing_span.append(text.get('@i18n:objects.host.password_missing'));
+        that.missing_el.append(text.get('@i18n:objects.host.password_missing'));
 
-        that.present_span = $('<span/>', {
+        that.present_el = $('<label/>', {
             name: 'present',
             style: 'display: none;'
         }).appendTo(container);
 
-        $('<img/>', {
-            src: 'images/check-icon.png',
-            'class': 'status-icon'
-        }).appendTo(that.present_span);
+        $('<i/>', {
+            'class': 'fa fa-check'
+        }).appendTo(that.present_el);
 
-        that.present_span.append(' ');
+        that.present_el.append(' ');
 
-        that.present_span.append(text.get('@i18n:objects.host.password_present'));
+        that.present_el.append(text.get('@i18n:objects.host.password_present'));
     };
 
     that.update = function(values) {
@@ -788,8 +784,8 @@ IPA.host_password_widget = function(spec) {
     };
 
     that.clear = function() {
-        that.missing_span.css('display', 'none');
-        that.present_span.css('display', 'none');
+        that.missing_el.css('display', 'none');
+        that.present_el.css('display', 'none');
     };
 
     function set_status(status) {
@@ -797,11 +793,11 @@ IPA.host_password_widget = function(spec) {
         that.status = status;
 
         if (status == 'missing') {
-            that.missing_span.css('display', 'inline');
-            that.present_span.css('display', 'none');
+            that.missing_el.css('display', '');
+            that.present_el.css('display', 'none');
         } else {
-            that.missing_span.css('display', 'none');
-            that.present_span.css('display', 'inline');
+            that.missing_el.css('display', 'none');
+            that.present_el.css('display', '');
         }
     }
 

@@ -823,60 +823,44 @@ IPA.cert.status_widget = function(spec) {
 
         that.widget_create(container);
 
-        that.status_valid = $('<div/>', {
-            name: 'certificate-valid',
-            style: 'display: none;'
-        }).appendTo(container);
+        that.status_valid = that.create_status('certificate-valid',
+                                               text.get('@i18n:objects.cert.valid'),
+                                               'fa fa-check');
+        that.status_valid.appendTo(container);
 
-        $('<img/>', {
-            src: 'images/check-icon.png',
-            style: 'float: left;',
-            'class': 'status-icon'
-        }).appendTo(that.status_valid);
+        that.status_revoked = that.create_status('certificate-revoked',
+                                               text.get('@i18n:objects.cert.revoked'),
+                                               'fa fa-warning');
+        that.status_revoked.appendTo(container);
 
-        var content_div = $('<div/>', {
-            style: 'float: left;'
-        }).appendTo(that.status_valid);
-
-        content_div.append('<b>'+text.get('@i18n:objects.cert.valid')+'</b>');
-
-        that.status_revoked = $('<div/>', {
-            name: 'certificate-revoked',
-            style: 'display: none;'
-        }).appendTo(container);
-
-        $('<img/>', {
-            src: 'images/caution-icon.png',
-            style: 'float: left;',
-            'class': 'status-icon'
-        }).appendTo(that.status_revoked);
-
-        content_div = $('<div/>', {
-            style: 'float: left;'
-        }).appendTo(that.status_revoked);
-
-        content_div.append('<b>'+text.get('@i18n:objects.cert.revoked')+'</b>');
-        content_div.append(' ');
         that.revocation_reason = $('<span/>', {
             'name': 'revocation_reason'
-        }).appendTo(content_div);
+        }).appendTo(that.status_revoked);
 
-        that.status_missing = $('<div/>', {
-            name: 'certificate-missing',
+        that.status_missing = that.create_status('certificate-missing',
+                                               text.get('@i18n:objects.cert.missing'),
+                                               'fa fa-warning');
+        that.status_missing.appendTo(container);
+    };
+
+    that.create_status = function(name, text, icon) {
+
+        var container = $('<div>', {
+            name: name,
             style: 'display: none;'
+        });
+
+        var status = $('<label/>', {
+            'class': 'certificate-status'
         }).appendTo(container);
 
-        $('<img/>', {
-            src: 'images/caution-icon.png',
-            style: 'float: left;',
-            'class': 'status-icon'
-        }).appendTo(that.status_missing);
+        $('<i/>', {
+            'class': icon
+        }).appendTo(status);
 
-        content_div = $('<div/>', {
-            style: 'float: left;'
-        }).appendTo(that.status_missing);
+        status.append(" " +text);
 
-        content_div.append('<b>'+text.get('@i18n:objects.cert.missing')+'</b>');
+        return container;
     };
 
     that.update = function(certificate) {
@@ -911,7 +895,9 @@ IPA.cert.status_widget = function(spec) {
             that.status_revoked.css('display', status === IPA.cert.CERTIFICATE_STATUS_REVOKED ? '' : 'none');
 
             var reason = IPA.cert.CRL_REASON[revocation_reason];
-            that.revocation_reason.html(revocation_reason === undefined || reason === null ? '' : text.get('@i18n:objects.cert.'+reason));
+            var reason_text = revocation_reason === undefined || reason === null ? '' : text.get('@i18n:objects.cert.'+reason);
+            reason_text = ' ('+reason_text+')';
+            that.revocation_reason.html(reason_text);
         }
     };
 

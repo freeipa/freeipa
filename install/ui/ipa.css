@@ -776,43 +776,6 @@ textarea.certificate {
     height: 250px;
 }
 
-table.certificate-status {
-    line-height: 2;
-}
-
-table.kerberos-key-status {
-    line-height: 2;
-}
-
-.status-icon {
-    vertical-align: bottom;
-}
-
-.status-valid {
-    background-image: url(images/check-icon.png);
-    border: 0.2em solid #008000;
-}
-
-.status-valid-active {
-    background-color: #008000;
-}
-
-.status-revoked {
-    border: 0.2em solid #ff0000;
-}
-
-.status-revoked-active {
-    background-color: #ff0000;
-}
-
-.status-missing {
-    border: 0.2em solid #daa520;
-}
-
-.status-missing-active {
-    background-color: #daa520;
-}
-
 .error-message-hinted {
     color: red;
     padding-top: 0.5em;
@@ -1090,6 +1053,10 @@ table.scrollable tbody {
 
 .dnszone-adder-dialog .section-cell-label {
     width: 180px;
+}
+
+.certificate-status {
+    display: inline-block;
 }
 
 /* Info and simple pages (not main app) */

@@ -322,37 +322,33 @@ IPA.service_provisioning_status_widget = function (spec) {
 
         that.status_valid = $('<div/>', {
             name: 'kerberos-key-valid',
+            'class': 'provisioning-status',
             style: 'display: none;'
         }).appendTo(container);
 
-        $('<img/>', {
-            src: 'images/check-icon.png',
-            style: 'float: left;',
-            'class': 'status-icon'
+        var content = $('<label/>', {
         }).appendTo(that.status_valid);
 
-        var content_div = $('<div/>', {
-            style: 'float: left;'
-        }).appendTo(that.status_valid);
-
-        content_div.append('<b>'+text.get('@i18n:objects.service.valid')+'</b>');
+        $('<i/>', {
+            'class': 'fa fa-check'
+        }).appendTo(content);
+        content.append(' ');
+        content.append(text.get('@i18n:objects.service.valid'));
 
         that.status_missing = $('<div/>', {
             name: 'kerberos-key-missing',
+            'class': 'provisioning-status',
             style: 'display: none;'
         }).appendTo(container);
 
-        $('<img/>', {
-            src: 'images/caution-icon.png',
-            style: 'float: left;',
-            'class': 'status-icon'
+        content = $('<label/>', {
         }).appendTo(that.status_missing);
 
-        content_div = $('<div/>', {
-            style: 'float: left;'
-        }).appendTo(that.status_missing);
-
-        content_div.append('<b>'+text.get('@i18n:objects.service.missing')+'</b>');
+        $('<i/>', {
+            'class': 'fa fa-warning'
+        }).appendTo(content);
+        content.append(' ');
+        content.append(text.get('@i18n:objects.service.missing'));
     };
 
     that.update = function(values) {
