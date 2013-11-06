@@ -1355,6 +1355,9 @@ class CAInstance(service.Service):
             installutils.set_directive(caconfig,
                  'internaldb.ldapconn.secureConn', 'true', quotes=False,
                  separator='=')
+            # Remove internaldb password as is not needed anymore
+            installutils.set_directive(self.dogtag_constants.PASSWORD_CONF_PATH,
+                                       'internaldb', None)
 
     def uninstall(self):
         if self.is_configured():
