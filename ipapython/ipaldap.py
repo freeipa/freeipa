@@ -719,7 +719,9 @@ class LDAPEntry(collections.MutableMapping):
         return self._orig
 
     def __repr__(self):
-        return '%s(%r, %r)' % (type(self).__name__, self._dn, self._raw)
+        data = dict(self._raw)
+        data.update((k, v) for k, v in self._nice.iteritems() if v is not None)
+        return '%s(%r, %r)' % (type(self).__name__, self._dn, data)
 
     def copy(self):
         return LDAPEntry(self)
