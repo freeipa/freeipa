@@ -1448,20 +1448,25 @@ form#login {
 
 .facet-title .header-icon {
     display: none;
-    width: 17px;
-    height: 17px;
+    font-size: 70%;
+    vertical-align: 20%;
+    margin-right: 3px;
+    /* Font awesome style, TODO: use mixin */
+    display: inline-block;
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-.facet-title.enabled .header-icon {
-    background-image: url(images/ui-icons_222222_256x240.png);
-    background-position: -64px -144px;
-    display: inline-block;
+.facet-title.enabled .header-icon:before {
+    content: "\f00c";
 }
 
-.facet-title.disabled .header-icon {
-    background-image: url(images/ui-icons_bbbbbb_256x240.png);
-    background-position: -64px -128px;
-    display: inline-block;
+.facet-title.disabled .header-icon:before {
+    content: "\f068";
 }
 
 .facet-title.disabled h3,
