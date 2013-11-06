@@ -359,7 +359,7 @@ div[name=settings].facet-group li a {
 
 .facet-controls a {
     font-size: 1.3em !important;
-    margin: 0 6px 0 0;
+    margin: 0 16px 0 0;
 }
 
 .facet-controls .network-activity-indicator img {
