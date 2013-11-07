@@ -247,6 +247,38 @@ def get_cert_path(cert_path):
 
     return None
 
+
+def save_state(service):
+    enabled = service.is_enabled()
+    running = service.is_running()
+
+    if enabled or running:
+        statestore.backup_state(service.service_name, 'enabled', enabled)
+        statestore.backup_state(service.service_name, 'running', running)
+
+
+def restore_state(service):
+    enabled = statestore.restore_state(service.service_name, 'enabled')
+    running = statestore.restore_state(service.service_name, 'running')
+
+    if enabled:
+        try:
+            service.enable()
+        except Exception:
+            root_logger.warning(
+                "Failed to configure automatic startup of the %s daemon",
+                service.service_name
+            )
+    if running:
+        try:
+            service.start()
+        except Exception:
+            root_logger.warning(
+                "Failed to restart the %s daemon",
+                service.service_name
+            )
+
+
 # Checks whether nss_ldap or nss-pam-ldapd is installed. If anyone of mandatory files was found returns True and list of all files found.
 def nssldap_exists():
     files_to_check = [{'function':'configure_ldap_conf', 'mandatory':['/etc/ldap.conf','/etc/nss_ldap.conf','/etc/libnss-ldap.conf'], 'optional':['/etc/pam_ldap.conf']},
@@ -565,42 +597,17 @@ def uninstall(options, env):
     ipautil.restore_hostname(statestore)
 
     nscd = ipaservices.knownservices.nscd
-    if nscd.is_installed():
-        try:
-            nscd.restart()
-        except Exception:
-            root_logger.warning(
-                "Failed to restart the %s daemon", nscd.service_name)
-
-        try:
-            nscd.enable()
-        except Exception:
-            root_logger.warning(
-                "Failed to configure automatic startup of the %s daemon",
-                nscd.service_name)
-    else:
-        # this is optional service, just log
-        root_logger.info("%s daemon is not installed, skip configuration",
-            nscd.service_name)
-
     nslcd = ipaservices.knownservices.nslcd
-    if nslcd.is_installed():
-        try:
-            nslcd.stop()
-        except Exception:
-            root_logger.warning(
-                "Failed to stop the %s daemon", nslcd.service_name)
 
-        try:
-            nslcd.disable()
-        except Exception:
-            root_logger.warning(
-                "Failed to disable automatic startup of the %s daemon",
-                nslcd.service_name)
-    else:
-        # this is optional service, just log
-        root_logger.info("%s daemon is not installed, skip configuration",
-            nslcd.service_name)
+    for service in (nscd, nslcd):
+        if service.is_installed():
+            restore_state(service)
+        else:
+            # this is an optional service, just log
+            root_logger.info(
+                "%s daemon is not installed, skip configuration",
+                service.service_name
+            )
 
     ntp_configured = statestore.has_state('ntp')
     if ntp_configured:
@@ -2524,6 +2531,8 @@ def install(options, env, fstore, statestore):
     #Name Server Caching Daemon. Disable for SSSD, use otherwise (if installed)
     nscd = ipaservices.knownservices.nscd
     if nscd.is_installed():
+        save_state(nscd)
+
         try:
             if options.sssd:
                 nscd_service_action = 'stop'
@@ -2560,6 +2569,10 @@ def install(options, env, fstore, statestore):
         if not options.sssd:
             root_logger.info("%s daemon is not installed, skip configuration",
                 nscd.service_name)
+
+    nslcd = ipaservices.knownservices.nslcd
+    if nscd.is_installed():
+        save_state(nslcd)
 
     retcode, conf, filename = (0, None, None)
 
