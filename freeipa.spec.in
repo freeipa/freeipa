@@ -680,11 +680,11 @@ fi
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
 %{_usr}/share/ipa/ui/*.js
-%{_usr}/share/ipa/ui/*.eot
-%{_usr}/share/ipa/ui/*.svg
-%{_usr}/share/ipa/ui/*.ttf
-%{_usr}/share/ipa/ui/*.woff
 %{_usr}/share/ipa/ui/css/*.css
+%{_usr}/share/ipa/ui/font/*.eot
+%{_usr}/share/ipa/ui/font/*.svg
+%{_usr}/share/ipa/ui/font/*.ttf
+%{_usr}/share/ipa/ui/font/*.woff
 %dir %{_usr}/share/ipa/ui/js
 %dir %{_usr}/share/ipa/ui/js/dojo
 %{_usr}/share/ipa/ui/js/dojo/dojo.js

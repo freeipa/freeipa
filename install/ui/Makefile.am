@@ -19,14 +19,6 @@ app_DATA =				\
 	login.html			\
 	login.js			\
 	logout.html			\
-	overpass_bold-web.eot		\
-	overpass_bold-web.svg		\
-	overpass_bold-web.ttf		\
-	overpass_bold-web.woff		\
-	overpass_regular-web.eot	\
-	overpass_regular-web.svg	\
-	overpass_regular-web.ttf	\
-	overpass_regular-web.woff	\
 	reset_password.js		\
 	reset_password.html		\
 	$(NULL)
