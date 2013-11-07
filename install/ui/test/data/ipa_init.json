@@ -52,6 +52,7 @@
                         "show_results": "Show Results"
                     },
                     "buttons": {
+                        "about": "About",
                         "add": "Add",
                         "add_and_add_another": "Add and Add Another",
                         "add_and_close": "Add and Close",
@@ -98,6 +99,8 @@
                         "dirty_title": "Unsaved Changes",
                         "edit_title": "Edit ${entity}",
                         "hide_details": "Hide details",
+                        "about_title": "About",
+                        "about_message": "${product}, version: ${version}",
                         "prospective": "Prospective",
                         "redirection": "Redirection",
                         "remove_empty": "Select entries to be removed.",

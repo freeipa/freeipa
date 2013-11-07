@@ -1076,6 +1076,28 @@ IPA.message_dialog = function(spec) {
     return that;
 };
 
+IPA.about_dialog = function(spec) {
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'version_dialog';
+    var product = 'FreeIPA';
+    var version = 'Unknown';
+    var msg = text.get('@i18n:dialogs.about_message', '${product}, version: ${version}');
+    if (IPA.env) {
+        product = IPA.env.product_name || product;
+        version = IPA.env.version;
+    }
+    msg = msg.replace('${product}', product);
+    msg = msg.replace('${version}', version);
+    spec.message = spec.message || msg;
+    spec.title = spec.title || text.get('@i18n:dialogs.about_title', 'About');
+
+    var that = IPA.message_dialog(spec);
+
+    return that;
+};
+
 /**
  * Confirmation dialog
  *

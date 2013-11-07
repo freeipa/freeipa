@@ -185,6 +185,7 @@ class i18n_messages(Command):
             "show_results": _("Show Results"),
         },
         "buttons": {
+            "about": _("About"),
             "add": _("Add"),
             "add_and_add_another": _("Add and Add Another"),
             "add_and_close": _("Add and Close"),
@@ -231,6 +232,8 @@ class i18n_messages(Command):
             "dirty_title": _("Unsaved Changes"),
             "edit_title": _("Edit ${entity}"),
             "hide_details": _("Hide details"),
+            "about_title": _("About"),
+            "about_message": _("${product}, version: ${version}"),
             "prospective": _("Prospective"),
             "redirection": _("Redirection"),
             "remove_empty": _("Select entries to be removed."),
