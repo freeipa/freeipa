@@ -234,7 +234,7 @@ class UI_driver(object):
         """
         Test if dependencies were loaded. (Checks if UI has been rendered)
         """
-        indicator = self.find("span.network-activity-indicator", By.CSS_SELECTOR)
+        indicator = self.find(".network-activity-indicator", By.CSS_SELECTOR)
         return indicator is not None
 
     def has_ca(self):
@@ -259,7 +259,7 @@ class UI_driver(object):
         """
         Check if there is running AJAX request
         """
-        indicator = self.find("span.network-activity-indicator", By.CSS_SELECTOR)
+        indicator = self.find(".network-activity-indicator", By.CSS_SELECTOR)
         displayed = indicator and indicator.is_displayed()
         return displayed
 
@@ -343,14 +343,13 @@ class UI_driver(object):
         """
         Check if user is logged in
         """
-        login_as = self.find('header-loggedinas', 'class name')
-        visible_name = login_as and login_as.is_displayed()
+        login_as = self.find('loggedinas', 'class name')
+        visible_name = len(login_as.text) > 0
         logged_in = not self.auth_dialog_opened() and visible_name
         return logged_in
 
     def logout(self):
-        btn = self.find('logout', 'class name')
-        btn.click()
+        self.profile_menu_action('logout')
 
     def get_auth_dialog(self):
         """
@@ -380,7 +379,7 @@ class UI_driver(object):
                 parent = parts[0:-1]
                 self.navigate_by_menu('/'.join(parent), complete)
 
-        s = ".navigation a[href='#%s']" % item
+        s = ".navbar a[href='#%s']" % item
         link = self.find(s, By.CSS_SELECTOR, strict=True)
         assert link.is_displayed(), 'Navigation link is not displayed'
         link.click()
@@ -594,6 +593,16 @@ class UI_driver(object):
         assert not disabled, 'Invalid button state: disabled. Button: %s' % name
         btn.click()
         self.wait_for_request()
+
+    def profile_menu_action (self, name):
+        """
+        Execute action from profile menu
+        """
+        menu_toggle = self.find('[name=profile-menu] > a', By.CSS_SELECTOR)
+        menu_toggle.click()
+        s = "[name=profile-menu] a[href='#%s']" % name
+        btn = self.find(s, By.CSS_SELECTOR, strict=True)
+        btn.click()
 
     def get_form(self):
         """

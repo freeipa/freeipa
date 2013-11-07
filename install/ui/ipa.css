@@ -120,38 +120,6 @@ textarea[readonly] {
     padding: 0.2em;
 }
 
-/*  ----  Header  ----  */
-.header {
-    position: absolute;
-    top: 0;
-    left: 6px;
-    right: 6px;
-    height: 34px;
-    background: transparent;
-}
-
-.header a {
-    text-decoration: none;
-}
-
-.header a:link {
-    text-decoration: none;
-    color: white;
-}
-
-.header a:visited {
-    text-decoration: none;
-    color: white;
-}
-
-.header span.header-logo {
-    padding-left: 2em;
-}
-
-.header span.header-logo a img {
-    border: 0;
-}
-
 /* ---- Password expiration */
 
 .header-passwordexpires {
@@ -161,20 +129,6 @@ textarea[readonly] {
 }
 
 .header-passwordexpires a {
-    font-weight: bold;
-}
-
-/* ---- Logged-in As ---- */
-.header-right {
-    float: right;
-}
-
-.header-loggedinas {
-    line-height: 34px;
-    color: #fff;
-}
-
-.header-loggedinas .login {
     font-weight: bold;
 }
 
@@ -231,7 +185,7 @@ textarea[readonly] {
 
 .facet {
     position: absolute;
-    top: 5px;
+    top: 110px;
     left: 10px;
     right: 10px;
     bottom: 0;
@@ -253,7 +207,7 @@ textarea[readonly] {
 
 .facet-title {
     position: absolute;
-    top: 15px;
+    top: 10px;
     left: 0;
     color: gray;
     display: block;
@@ -261,6 +215,7 @@ textarea[readonly] {
 
 .facet-title h3 {
     margin: 0;
+    line-height: 1.8em;
 }
 
 .facet-title span {

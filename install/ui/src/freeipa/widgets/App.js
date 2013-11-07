@@ -31,10 +31,11 @@ define(['dojo/_base/declare',
         'dojo/Evented',
         'dojo/Stateful',
         './Menu',
+        './DropdownWidget',
         'dojo/NodeList-dom'
        ],
        function(declare, lang, array, dom, construct, prop, dom_class,
-                dom_style, query, on, Stateful, Evented, Menu) {
+                dom_style, query, on, Stateful, Evented, Menu, DropdownWidget) {
 
     /**
      * Main application widget
@@ -59,13 +60,7 @@ define(['dojo/_base/declare',
 
         password_expires_node: null,
 
-        logged_nodes: null,
-
         logged_user_node: null,
-
-        logged_user_link_node: null,
-
-        logout_link_node: null,
 
         menu_node: null,
 
@@ -77,9 +72,7 @@ define(['dojo/_base/declare',
 
         _loggedSetter: function(value) {
             this.logged = value;
-            if (this.logged_nodes) {
-                this.logged_nodes.style('visibility', value ? 'visible' : 'hidden');
-            }
+            //TODO show/hide menu
         },
 
         fullname: '',
@@ -92,8 +85,6 @@ define(['dojo/_base/declare',
         },
 
         render: function() {
-            // TODO: this method may be split into several components
-
 
             this.domNode = construct.create('div', {
                 id: this.app_id,
@@ -106,9 +97,6 @@ define(['dojo/_base/declare',
 
             this._render_header();
 
-            this.menu_node = this.menu_widget.render();
-            construct.place(this.menu_node, this.header_node);
-
             this.content_node = construct.create('div', {
                 'class': 'content'
             }, this.domNode);
@@ -117,57 +105,116 @@ define(['dojo/_base/declare',
         _render_header: function() {
             this.header_node = construct.create('div', {
                 'class': 'header rcue'
-            }, this.domNode);
+            });
 
-            // logo
-            construct.place(''+
-                '<span class="header-logo">'+
-                     '<a href="#"><img src="images/ipa-logo.png" />'+
-                                 '<img src="images/ipa-banner.png" /></a>'+
-                '</span>', this.header_node);
+            this._render_nav_util();
+            construct.place(this.nav_util_node, this.header_node);
 
-            // right part
-            construct.place(''+
-            '<span class="header-right">'+
-                '<span class="header-passwordexpires"></span>'+
-                '<span class="loggedinas header-loggedinas" style="visibility:hidden;">'+
-                    '<a href="#"><span class="login_header">Logged in as</span>: <span class="login"></span></a>'+
-                '</span>'+
-                '<span class="header-loggedinas" style="visibility:hidden;">'+
-                    ' | <a href="#logout" class="logout">Logout</a>'+
-                '</span>'+
-                '<span class="header-network-activity-indicator network-activity-indicator">'+
-                    '<img src="images/spinner-header.gif" />'+
-                '</span>'+
-            '</span>', this.header_node);
-
-
-            this.password_expires_node = query('.header-passwordexpires', this.header_node)[0];
-            this.logged_nodes = query('.header-loggedinas', this.header_node);
-            this.logged_header_node = query('.login_header')[0];
-            this.logged_user_node = query('.loggedinas .login', this.header_node)[0];
-            this.logged_user_link_node = query('.loggedinas a', this.header_node)[0];
-            this.logout_link_node = query('.logout')[0];
-
-            on(this.logout_link_node, 'click', lang.hitch(this,this.on_logout));
-            on(this.logged_user_link_node, 'click', lang.hitch(this,this.on_profile));
+            this.menu_node = this.menu_widget.render();
+            construct.place(this.menu_node, this.header_node);
 
             construct.place(this.header_node, this.domNode);
         },
 
-        on_profile: function(event) {
-            event.preventDefault();
-            this.emit('profile-click');
+        _render_nav_util: function() {
+            this.nav_util_node = construct.create('div', {
+                'class': 'navbar utility'
+            });
+
+            this.nav_util_inner_node = construct.create('div', {
+                'class': 'navbar-inner'
+            }, this.nav_util_node);
+
+            this._render_brand();
+            construct.place(this.brand_node, this.nav_util_inner_node);
+
+            this.nav_util_tool_node = construct.create('ul', {
+                'class': 'nav pull-right'
+            }, this.nav_util_inner_node);
+
+            this.password_expires_node = construct.create('li', {
+                'class': 'header-passwordexpires'
+            }, this.nav_util_tool_node);
+
+            var network_activity = construct.create('li', {
+                'class': 'header-network-activity-indicator network-activity-indicator'
+            }, this.nav_util_tool_node);
+
+            construct.create('img', {
+                'src': 'images/spinner-header.gif'
+            }, network_activity);
+
+            var user_toggle = this._render_user_toggle_nodes();
+            this.user_menu.set('toggle_content', user_toggle);
+            construct.place(this.user_menu.render(), this.nav_util_tool_node);
+
+            return this.nav_util_node;
         },
 
-        on_logout: function(event) {
-            event.preventDefault();
-            this.emit('logout-click');
+        _render_brand: function() {
+            this.brand_node = construct.create('a', {
+                'class': 'brand',
+                href: '#'
+            });
+
+            construct.create('img', {
+                src: 'images/header-logo.png',
+                alt: 'FreeIPA' // TODO: replace with configuration value
+            }, this.brand_node);
+
+            return this.brand_node;
+        },
+
+        _render_user_toggle_nodes: function() {
+
+            var nodes = [];
+
+            nodes.push(construct.create('span', {
+                'class': 'icon-user icon-white'
+            }));
+
+            this.logged_user_node = construct.create('span', {
+                'class': 'loggedinas'
+            });
+            nodes.push(this.logged_user_node);
+
+            nodes.push(construct.create('b', {
+                'class': 'caret'
+            }));
+
+            return nodes;
+        },
+
+        on_user_menu_click: function(item) {
+
+            if (item.name === 'profile') {
+                this.emit('profile-click');
+            } else if (item.name === 'logout') {
+                this.emit('logout-click');
+            }
         },
 
         constructor: function(spec) {
             spec = spec || {};
             this.menu_widget = new Menu();
+            this.user_menu = new DropdownWidget({
+                el_type:  'li',
+                name: 'profile-menu',
+                items: [
+                    {
+                        name: 'profile',
+                        label: 'Profile'
+                    },
+                    {
+                        'class': 'divider'
+                    },
+                    {
+                        name: 'logout',
+                        label: 'Logout'
+                    }
+                ]
+            });
+            on(this.user_menu, 'item-click', lang.hitch(this, this.on_user_menu_click));
         }
 
     });
