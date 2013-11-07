@@ -12,6 +12,7 @@ app_DATA =                              \
 	facet-tab-off.png		\
 	facet-tab-on.png		\
 	firefox-icon.png		\
+	header-logo.png			\
 	hover-tab.png 			\
 	ie-icon.png 			\
 	ipa-banner.png			\
