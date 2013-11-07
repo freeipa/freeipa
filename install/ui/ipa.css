@@ -259,7 +259,7 @@ textarea[readonly] {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 30px;
+    bottom: 35px;
     z-index: 1; /* need to be above facet header */
     border-bottom: 1px solid #C9C3BA;
 }
