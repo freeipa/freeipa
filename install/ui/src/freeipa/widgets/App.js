@@ -141,7 +141,7 @@ define(['dojo/_base/declare',
             }, this.nav_util_tool_node);
 
             construct.create('img', {
-                'src': 'images/spinner-header.gif'
+                src: 'images/spinner-header-1.gif'
             }, network_activity);
 
             var user_toggle = this._render_user_toggle_nodes();

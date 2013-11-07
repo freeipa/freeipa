@@ -27,7 +27,7 @@ app_DATA =                              \
 	reset-icon.png			\
 	search-background.png		\
 	search-icon.png			\
-	spinner-header.gif		\
+	spinner-header-1.gif		\
 	spinner-small.gif		\
 	static-background.png		\
 	subnav-background.png		\
