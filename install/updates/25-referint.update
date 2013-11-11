@@ -11,3 +11,4 @@ add: nsslapd-pluginArg14: memberallowcmd
 add: nsslapd-pluginArg15: memberdenycmd
 add: nsslapd-pluginArg16: ipasudorunas
 add: nsslapd-pluginArg17: ipasudorunasgroup
+add: nsslapd-pluginArg18: ipatokenradiusconfiglink

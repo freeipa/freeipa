@@ -109,6 +109,7 @@ DEFAULT_CONFIG = (
     ('container_dna_posix_ids', DN(('cn', 'posix-ids'), ('cn', 'dna'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_realm_domains', DN(('cn', 'Realm Domains'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_otp', DN(('cn', 'otp'))),
+    ('container_radiusproxy', DN(('cn', 'radiusproxy'))),
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),

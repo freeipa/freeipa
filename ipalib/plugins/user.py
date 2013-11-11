@@ -124,6 +124,12 @@ def validate_nsaccountlock(entry_attrs):
                 raise errors.ValidationError(name='nsaccountlock',
                     error=_('must be TRUE or FALSE'))
 
+def radius_dn2pk(api, entry_attrs):
+    cl = entry_attrs.get('ipatokenradiusconfiglink', None)
+    if cl:
+        pk = api.Object['radiusproxy'].get_primary_key_from_dn(cl[0])
+        entry_attrs['ipatokenradiusconfiglink'] = [pk]
+
 def convert_nsaccountlock(entry_attrs):
     if not 'nsaccountlock' in entry_attrs:
         entry_attrs['nsaccountlock'] = False
@@ -199,7 +205,8 @@ class user(LDAPObject):
     object_class = ['posixaccount']
     object_class_config = 'ipauserobjectclasses'
     possible_objectclasses = [
-        'meporiginentry', 'ipauserauthtypeclass', 'ipauser'
+        'meporiginentry', 'ipauserauthtypeclass', 'ipauser',
+        'ipatokenradiusproxyuser'
     ]
     disallow_object_classes = ['krbticketpolicyaux']
     search_attributes_config = 'ipausersearchfields'
@@ -207,7 +214,8 @@ class user(LDAPObject):
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
         'uidnumber', 'gidnumber', 'mail', 'ou',
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
-        'memberofindirect', 'ipauserauthtype', 'userclass'
+        'memberofindirect', 'ipauserauthtype', 'userclass',
+        'ipatokenradiusconfiglink', 'ipatokenradiususername'
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
@@ -371,7 +379,7 @@ class user(LDAPObject):
             cli_name='user_auth_type',
             label=_('User authentication types'),
             doc=_('Types of supported user authentication'),
-            values=(u'password',),
+            values=(u'password', u'radius'),
             csv=True,
         ),
         Str('userclass*',
@@ -379,6 +387,14 @@ class user(LDAPObject):
             label=_('Class'),
             doc=_('User category (semantics placed on this attribute are for '
                   'local interpretation)'),
+        ),
+        Str('ipatokenradiusconfiglink?',
+            cli_name='radius',
+            label=_('RADIUS proxy configuration'),
+        ),
+        Str('ipatokenradiususername?',
+            cli_name='radius_username',
+            label=_('RADIUS proxy username'),
         ),
     )
 
@@ -560,6 +576,19 @@ class user_add(LDAPCreate):
             and 'ipauser' not in entry_attrs['objectclass']):
             entry_attrs['objectclass'].append('ipauser')
 
+        if 'ipatokenradiusconfiglink' in entry_attrs:
+            cl = entry_attrs['ipatokenradiusconfiglink']
+            if cl:
+                if 'objectclass' not in entry_attrs:
+                    _entry = ldap.get_entry(dn, ['objectclass'])
+                    entry_attrs['objectclass'] = _entry['objectclass']
+
+                if 'ipatokenradiusproxyuser' not in entry_attrs['objectclass']:
+                    entry_attrs['objectclass'].append('ipatokenradiusproxyuser')
+
+                answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
+                entry_attrs['ipatokenradiusconfiglink'] = answer
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -604,9 +633,8 @@ class user_add(LDAPCreate):
                 pass
 
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
-
         convert_sshpubkey_post(ldap, dn, entry_attrs)
-
+        radius_dn2pk(self.api, entry_attrs)
         return dn
 
 api.register(user_add)
@@ -654,18 +682,31 @@ class user_mod(LDAPUpdate):
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
         if ('ipasshpubkey' in entry_attrs or 'ipauserauthtype' in entry_attrs
-            or 'userclass' in entry_attrs):
+            or 'userclass' in entry_attrs or 'ipatokenradiusconfiglink' in entry_attrs):
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
             else:
-                (_dn, _entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+                _entry_attrs = ldap.get_entry(dn, ['objectclass'])
                 obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
+
             if 'ipasshpubkey' in entry_attrs and 'ipasshuser' not in obj_classes:
                 obj_classes.append('ipasshuser')
-            if 'ipauserauthtype' in entry_attrs and 'ipauserauthtype' not in obj_classes:
+
+            if 'ipauserauthtype' in entry_attrs and 'ipauserauthtypeclass' not in obj_classes:
                 obj_classes.append('ipauserauthtypeclass')
+
             if 'userclass' in entry_attrs and 'ipauser' not in obj_classes:
                 obj_classes.append('ipauser')
+
+            if 'ipatokenradiusconfiglink' in entry_attrs:
+                cl = entry_attrs['ipatokenradiusconfiglink']
+                if cl:
+                    if 'ipatokenradiusproxyuser' not in obj_classes:
+                        obj_classes.append('ipatokenradiusproxyuser')
+
+                    answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
+                    entry_attrs['ipatokenradiusconfiglink'] = answer
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -680,6 +721,7 @@ class user_mod(LDAPUpdate):
         self.obj._convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         convert_sshpubkey_post(ldap, dn, entry_attrs)
+        radius_dn2pk(self.api, entry_attrs)
         return dn
 
 api.register(user_mod)
@@ -703,6 +745,12 @@ class user_find(LDAPSearch):
         manager = options.get('manager')
         if manager is not None:
             options['manager'] = self.obj._normalize_manager(manager)
+
+        # Ensure that the RADIUS config link is a dn, not just the name
+        cl = 'ipatokenradiusconfiglink'
+        if cl in options:
+            options[cl] = self.api.Object['radiusproxy'].get_dn(options[cl])
+
         return super(user_find, self).execute(self, *args, **options)
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
@@ -742,6 +790,7 @@ class user_show(LDAPRetrieve):
         self.obj._convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         convert_sshpubkey_post(ldap, dn, entry_attrs)
+        radius_dn2pk(self.api, entry_attrs)
         return dn
 
 api.register(user_show)
