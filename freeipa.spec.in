@@ -318,12 +318,16 @@ This package contains tests that verify IPA functionality.
 %build
 export CFLAGS="$CFLAGS %{optflags}"
 export CPPFLAGS="$CPPFLAGS %{optflags}"
+%if 0%{?fedora} >= 19
+export SUPPORTED_PLATFORM=fedora19
+%else
 %if 0%{?fedora} >= 18
 # use fedora18 platform which is based on fedora16 platform with systemd
 # support + fedora18 changes
 export SUPPORTED_PLATFORM=fedora18
 %else
 export SUPPORTED_PLATFORM=fedora16
+%endif
 %endif
 # Force re-generate of platform support
 rm -f ipapython/services.py
@@ -342,12 +346,16 @@ make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
 
 %install
 rm -rf %{buildroot}
+%if 0%{?fedora} >= 19
+export SUPPORTED_PLATFORM=fedora19
+%else
 %if 0%{?fedora} >= 18
 # use fedora18 platform which is based on fedora16 platform with systemd
 # support + fedora18 changes
 export SUPPORTED_PLATFORM=fedora18
 %else
 export SUPPORTED_PLATFORM=fedora16
+%endif
 %endif
 # Force re-generate of platform support
 rm -f ipapython/services.py
@@ -788,12 +796,14 @@ fi
 %dir %{python_sitelib}/ipapython/platform/base
 %dir %{python_sitelib}/ipapython/platform/fedora16
 %dir %{python_sitelib}/ipapython/platform/fedora18
+%dir %{python_sitelib}/ipapython/platform/fedora19
 %dir %{python_sitelib}/ipapython/platform/redhat
 %{python_sitelib}/ipapython/*.py*
 %{python_sitelib}/ipapython/platform/*.py*
 %{python_sitelib}/ipapython/platform/base/*.py*
 %{python_sitelib}/ipapython/platform/fedora16/*.py*
 %{python_sitelib}/ipapython/platform/fedora18/*.py*
+%{python_sitelib}/ipapython/platform/fedora19/*.py*
 %{python_sitelib}/ipapython/platform/redhat/*.py*
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
@@ -829,6 +839,9 @@ fi
 %endif # ONLY_CLIENT
 
 %changelog
+* Tue Nov 12 2013 Tomas Babej<tbabej@redhat.com> - 3.3.90-5
+- Add Fedora 19 platform files
+
 * Fri Oct 25 2013 Martin Kosek <mkosek@redhat.com> - 3.3.90-4
 - Remove mod_ssl conflict, it can now live with mod_nss installed
 

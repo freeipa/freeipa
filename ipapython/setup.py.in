@@ -70,6 +70,7 @@ def setup_package():
                          "ipapython.platform.base",
                          "ipapython.platform.fedora16",
                          "ipapython.platform.fedora18",
+                         "ipapython.platform.fedora19",
                          "ipapython.platform.redhat" ],
         )
     finally:
