@@ -27,15 +27,16 @@ define([
         'dojo/topic',
         'dojo/query',
         'dojo/dom-class',
-       './json2',
+        './json2',
         './widgets/App',
+        './widgets/FacetContainer',
         './ipa',
-       './navigation/Menu',
+        './navigation/Menu',
         './navigation/Router',
         './navigation/menu_spec'
        ],
        function(declare, lang, array, Deferred, on, topic, query, dom_class,
-            JSON, App_widget, IPA, Menu, Router, menu_spec) {
+            JSON, App_widget, FacetContainer, IPA, Menu, Router, menu_spec) {
 
     /**
      * Application controller
@@ -45,6 +46,11 @@ define([
      * @class Application_controller
      */
     var App = declare(null, {
+
+        /**
+         * Facet container map
+         */
+        containers: null,
 
         app_widget: null,
 
@@ -56,12 +62,39 @@ define([
 
         facet_changing: false,
 
+        /**
+         * Currently displayed facet
+         *
+         */
+        current_facet: null,
+
+        /**
+         * Currently displayed facet container
+         */
+        current_container: null,
+
         init: function() {
             this.menu = new Menu();
             this.router = new Router();
+
+            var body_node = query('body')[0];
             this.app_widget = new App_widget();
+            this.app_widget.container_node = body_node;
             this.app_widget.menu_widget.set_menu(this.menu);
-            this.app_widget.container_node = query('body')[0];
+
+            var simple_container = new FacetContainer();
+            simple_container.container_node = body_node;
+
+            this.containers = {
+                // Default view
+                main: {
+                    widget: this.app_widget
+                },
+                // Mainly for standalone facets
+                simple: {
+                    widget: simple_container
+                }
+            };
 
             on(this.app_widget.menu_widget, 'item-select', lang.hitch(this, this.on_menu_click));
             on(this.app_widget, 'profile-click', lang.hitch(this, this.on_profile));
@@ -77,6 +110,9 @@ define([
             topic.subscribe('phase-error', lang.hitch(this, this.on_phase_error));
 
             this.app_widget.render();
+            this.app_widget.hide();
+            simple_container.render();
+            simple_container.hide();
         },
 
         /**
@@ -248,12 +284,27 @@ define([
         on_facet_show: function(event) {
             var facet = event.facet;
 
+            // choose container
+            var container = this.containers[facet.preferred_container];
+            if (!container) container = this.containers.main;
+
+            if (this.current_container !== container) {
+
+                if (this.current_container) {
+                    this.current_container.widget.hide();
+                }
+
+                this.current_container = container;
+                this.current_container.widget.show();
+            }
+
             // update menu
             var menu_item = this._find_menu_item(facet);
             if (menu_item) this.menu.select(menu_item);
 
+            // show facet
             if (!facet.container) {
-                facet.container_node = this.app_widget.content_node;
+                facet.container_node = container.widget.content_node;
                 on(facet, 'facet-state-change', lang.hitch(this, this.on_facet_state_changed));
             }
             if (this.current_facet) {

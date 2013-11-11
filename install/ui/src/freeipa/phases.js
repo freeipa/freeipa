@@ -32,6 +32,7 @@ define([
             //'resource-load', // implicit phase
             'customization',
             'registration',
+            'login',
             'init',
             'metadata',
             'post-metadata',

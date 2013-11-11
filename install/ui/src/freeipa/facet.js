@@ -125,6 +125,14 @@ exp.facet = IPA.facet = function(spec, no_init) {
     var that = new Evented();
 
     /**
+     * Name of preferred facet container
+     *
+     * Leave unset to use default container.
+     * @property {string}
+     */
+    that.preferred_container = spec.preferred_container;
+
+    /**
      * Entity this facet belongs to
      * @property {entity.entity}
      */

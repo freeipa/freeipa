@@ -28,14 +28,14 @@ define(['dojo/_base/declare',
         'dojo/dom-style',
         'dojo/query',
         'dojo/on',
-        'dojo/Evented',
-        'dojo/Stateful',
         './Menu',
         './DropdownWidget',
+        './FacetContainer',
         'dojo/NodeList-dom'
        ],
        function(declare, lang, array, dom, construct, prop, dom_class,
-                dom_style, query, on, Stateful, Evented, Menu, DropdownWidget) {
+                dom_style, query, on, Menu, DropdownWidget,
+                FacetContainer) {
 
     /**
      * Main application widget
@@ -45,13 +45,12 @@ define(['dojo/_base/declare',
      *
      * @class widgets.App
      */
-    var app = declare([Stateful, Evented], {
+    var app = declare([FacetContainer], {
 
         //widgets
         menu_widget: null,
 
         //nodes:
-
         dom_node: null,
 
         container_node: null,
@@ -64,9 +63,7 @@ define(['dojo/_base/declare',
 
         menu_node: null,
 
-        content_node: null,
-
-        app_id: 'container',
+        id: 'container',
 
         logged: false,
 
@@ -87,7 +84,7 @@ define(['dojo/_base/declare',
         render: function() {
 
             this.dom_node = construct.create('div', {
-                id: this.app_id,
+                id: this.id,
                 'class': 'app-container'
             });
 
