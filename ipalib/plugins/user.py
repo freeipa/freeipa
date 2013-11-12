@@ -198,14 +198,16 @@ class user(LDAPObject):
     object_name_plural = _('users')
     object_class = ['posixaccount']
     object_class_config = 'ipauserobjectclasses'
-    possible_objectclasses = ['meporiginentry', 'ipauserauthtypeclass']
+    possible_objectclasses = [
+        'meporiginentry', 'ipauserauthtypeclass', 'ipauser'
+    ]
     disallow_object_classes = ['krbticketpolicyaux']
     search_attributes_config = 'ipausersearchfields'
     default_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
         'uidnumber', 'gidnumber', 'mail', 'ou',
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
-        'memberofindirect', 'ipauserauthtype'
+        'memberofindirect', 'ipauserauthtype', 'userclass'
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
@@ -371,6 +373,12 @@ class user(LDAPObject):
             doc=_('Types of supported user authentication'),
             values=(u'password',),
             csv=True,
+        ),
+        Str('userclass*',
+            cli_name='class',
+            label=_('Class'),
+            doc=_('User category (semantics placed on this attribute are for '
+                  'local interpretation)'),
         ),
     )
 
@@ -547,6 +555,11 @@ class user_add(LDAPCreate):
         if 'manager' in entry_attrs:
             entry_attrs['manager'] = self.obj._normalize_manager(entry_attrs['manager'])
 
+        if ('objectclass' in entry_attrs
+            and 'userclass' in entry_attrs
+            and 'ipauser' not in entry_attrs['objectclass']):
+            entry_attrs['objectclass'].append('ipauser')
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -640,7 +653,8 @@ class user_mod(LDAPUpdate):
             entry_attrs['userpassword'] = ipa_generate_password(user_pwdchars)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
-        if 'ipasshpubkey' in entry_attrs or 'ipauserauthtype' in entry_attrs:
+        if ('ipasshpubkey' in entry_attrs or 'ipauserauthtype' in entry_attrs
+            or 'userclass' in entry_attrs):
             if 'objectclass' in entry_attrs:
                 obj_classes = entry_attrs['objectclass']
             else:
@@ -650,6 +664,8 @@ class user_mod(LDAPUpdate):
                 obj_classes.append('ipasshuser')
             if 'ipauserauthtype' in entry_attrs and 'ipauserauthtype' not in obj_classes:
                 obj_classes.append('ipauserauthtypeclass')
+            if 'userclass' in entry_attrs and 'ipauser' not in obj_classes:
+                obj_classes.append('ipauser')
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

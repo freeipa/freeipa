@@ -188,12 +188,28 @@ class test_user(Declarative):
         dict(
             desc='Create "%s"' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
+                'user_add',
+                [user1],
+                dict(
+                    givenname=u'Test',
+                    sn=u'User1',
+                    userclass=u'testusers'
+                )
             ),
             expected=dict(
                 value=user1,
                 summary=u'Added user "%s"' % user1,
-                result=get_user_result(user1, u'Test', u'User1', 'add'),
+                result=get_user_result(
+                    user1,
+                    u'Test',
+                    u'User1',
+                    'add',
+                    userclass=[u'testusers'],
+                    objectclass=add_oc(
+                        objectclasses.user,
+                        u'ipantuserattrs'
+                    ) + [u'ipauser']
+                ),
             ),
             extra_check = upg_check,
         ),
@@ -215,12 +231,27 @@ class test_user(Declarative):
                 'user_show', [user1], {}
             ),
             expected=dict(
-                result=get_user_result(user1, u'Test', u'User1', 'show'),
+                result=get_user_result(
+                    user1,
+                    u'Test',
+                    u'User1',
+                    'show',
+                    userclass=[u'testusers']
+                ),
                 value=user1,
                 summary=None,
             ),
         ),
 
+        dict(
+            desc='Remove userclass for user "%s"' % user1,
+            command=('user_mod', [user1], dict(userclass=u'')),
+            expected=dict(
+                result=get_user_result(user1, u'Test', u'User1', 'mod'),
+                value=user1,
+                summary=u'Modified user "%s"' % user1,
+            ),
+        ),
 
         dict(
             desc='Search for "%s" with all=True' % user1,
@@ -229,7 +260,16 @@ class test_user(Declarative):
             ),
             expected=dict(
                 result=[
-                    get_user_result(user1, u'Test', u'User1', 'show-all'),
+                    get_user_result(
+                        user1,
+                        u'Test',
+                        u'User1',
+                        'show-all',
+                        objectclass=add_oc(
+                            objectclasses.user,
+                            u'ipantuserattrs'
+                        ) + [u'ipauser']
+                    ),
                 ],
                 summary=u'1 user matched',
                 count=1, truncated=False,

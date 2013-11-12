@@ -54,3 +54,4 @@ objectClasses: (2.16.840.1.113730.3.8.12.15 NAME 'ipaIDrange' ABSTRACT MUST ( cn
 objectClasses: (2.16.840.1.113730.3.8.12.16 NAME 'ipaDomainIDRange' SUP ipaIDrange STRUCTURAL MAY ( ipaBaseRID $ ipaSecondaryBaseRID ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.17 NAME 'ipaTrustedADDomainRange' SUP ipaIDrange STRUCTURAL MUST ( ipaBaseRID $ ipaNTTrustedDomainSID ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.19 NAME 'ipaUserAuthTypeClass' SUP top AUXILIARY DESC 'Class for authentication methods definition' MAY ipaUserAuthType X-ORIGIN 'IPA v3')
+objectClasses: (2.16.840.1.113730.3.8.12.20 NAME 'ipaUser' AUXILIARY MUST ( uid ) MAY ( userClass ) X-ORIGIN 'IPA v3' )
