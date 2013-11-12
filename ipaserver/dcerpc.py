@@ -82,6 +82,9 @@ dcerpc_error_codes = {
     -1073741614: access_denied_error,
     -1073741603:
         errors.ValidationError(name=_('AD domain controller'), error=_('unsupported functional level')),
+    -1073741811: # NT_STATUS_INVALID_PARAMETER
+        errors.RemoteRetrieveError(
+            reason=_('AD domain controller complains about communication sequence. It may mean unsynchronized time on both sides, for example')),
 }
 
 dcerpc_error_messages = {
