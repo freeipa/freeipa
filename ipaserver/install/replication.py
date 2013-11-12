@@ -626,8 +626,9 @@ class ReplicationManager(object):
 
         if iswinsync:
             self.setup_winsync_agmt(entry, win_subtree)
+        else:
+            entry['nsds5ReplicaStripAttrs'] = [" ".join(STRIP_ATTRS)]
 
-        entry['nsds5ReplicaStripAttrs'] = [" ".join(STRIP_ATTRS)]
         a_conn.add_entry(entry)
 
         try:
