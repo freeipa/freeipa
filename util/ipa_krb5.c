@@ -296,6 +296,9 @@ void ipa_krb5_free_key_data(krb5_key_data *keys, int num_keys)
 {
     int i;
 
+    if (keys == NULL)
+        return;
+
     for (i = 0; i < num_keys; i++) {
         /* try to wipe key from memory,
          * hopefully the compiler will not optimize it away */

@@ -1385,7 +1385,25 @@ static krb5_error_code ipadb_get_ldap_mod_key_data(struct ipadb_mods *imods,
 {
     krb5_error_code kerr;
     struct berval *bval = NULL;
+    LDAPMod *mod;
     int ret;
+
+    /* If the key data is empty, remove all keys. */
+    if (n_key_data == 0 || key_data == NULL) {
+        kerr = ipadb_mods_new(imods, &mod);
+        if (kerr != 0)
+            return kerr;
+
+        mod->mod_op = LDAP_MOD_DELETE;
+        mod->mod_bvalues = NULL;
+        mod->mod_type = strdup("krbPrincipalKey");
+        if (mod->mod_type == NULL) {
+            ipadb_mods_free_tip(imods);
+            return ENOMEM;
+        }
+
+        return 0;
+    }
 
     ret = ber_encode_krb5_key_data(key_data, n_key_data, mkvno, &bval);
     if (ret != 0) {
