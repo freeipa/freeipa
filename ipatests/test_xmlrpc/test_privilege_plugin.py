@@ -38,6 +38,8 @@ privilege1 = u'testpriv1'
 privilege1_dn = DN(('cn',privilege1),
                    api.env.container_privilege,api.env.basedn)
 
+users_dn = DN(api.env.container_user, api.env.basedn)
+
 
 class test_privilege(Declarative):
 
@@ -89,8 +91,8 @@ class test_privilege(Declarative):
             desc='Create %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     type=u'user',
-                     permissions=[u'add', u'delete'],
+                    type=u'user',
+                    ipapermright=[u'add', u'delete'],
                 )
             ),
             expected=dict(
@@ -100,8 +102,12 @@ class test_privilege(Declarative):
                     dn=permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
-                    type=u'user',
-                    permissions=[u'add', u'delete'],
+                    type=[u'user'],
+                    ipapermright=[u'add', u'delete'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtarget=[DN('uid=*', users_dn)],
                 ),
             ),
         ),
@@ -206,8 +212,8 @@ class test_privilege(Declarative):
             desc='Create %r' % permission2,
             command=(
                 'permission_add', [permission2], dict(
-                     type=u'user',
-                     permissions=u'write',
+                    type=u'user',
+                    ipapermright=u'write',
                 )
             ),
             expected=dict(
@@ -217,8 +223,12 @@ class test_privilege(Declarative):
                     dn=permission2_dn,
                     cn=[permission2],
                     objectclass=objectclasses.permission,
-                    type=u'user',
-                    permissions=[u'write'],
+                    type=[u'user'],
+                    ipapermright=[u'write'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtarget=[DN('uid=*', users_dn)],
                 ),
             ),
         ),

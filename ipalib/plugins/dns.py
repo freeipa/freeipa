@@ -2030,7 +2030,7 @@ class dnszone_add_permission(LDAPQuery):
 
         permission_name = self.obj.permission_name(keys[-1])
         permission = api.Command['permission_add_noaci'](permission_name,
-                         permissiontype=u'SYSTEM'
+                         ipapermissiontype=u'SYSTEM'
                      )['result']
 
         update = {}

@@ -77,10 +77,14 @@ role = [
     u'top',
 ]
 
-permission = [
+system_permission = [
     u'groupofnames',
     u'ipapermission',
     u'top'
+]
+
+permission = system_permission + [
+    u'ipapermissionv2',
 ]
 
 privilege = [

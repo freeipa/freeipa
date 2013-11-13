@@ -40,7 +40,11 @@ capabilities = dict(
     # a user with UID=999. With the capability, these parameters are optional
     # and 999 really means 999.
     # https://fedorahosted.org/freeipa/ticket/2886
-    optional_uid_params=u'2.54'
+    optional_uid_params=u'2.54',
+
+    # permissions2: Reworked permission system
+    # http://www.freeipa.org/page/V3/Permissions_V2
+    permissions2=u'2.69',
 )
 
 

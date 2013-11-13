@@ -1361,6 +1361,7 @@ class test_dns(Declarative):
                 result={
                     'dn': dnszone1_permission_dn,
                     'cn': [dnszone1_permission],
+                    'objectclass': objectclasses.system_permission,
                     'ipapermissiontype': [u'SYSTEM'],
                 },
             ),
