@@ -17,12 +17,15 @@ app_DATA =                              \
 	ie-icon.png 			\
 	ipa-banner.png			\
 	ipa-logo.png			\
+	login-screen-background.jpg	\
+	login-screen-logo.png	\
 	mainnav-tab-off.png  		\
 	mainnav-tab-on.png  		\
 	modal-background.png  		\
 	nav-arrow.png			\
 	outer-background.png		\
 	panel-background.png		\
+	product-name.png		\
 	remove-icon.png			\
 	reset-icon.png			\
 	search-background.png		\

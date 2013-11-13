@@ -707,6 +707,7 @@ fi
 %{_usr}/share/ipa/ui/js/freeipa/app.js
 %dir %{_usr}/share/ipa/ui/js/plugins
 %dir %{_usr}/share/ipa/ui/images
+%{_usr}/share/ipa/ui/images/*.jpg
 %{_usr}/share/ipa/ui/images/*.png
 %{_usr}/share/ipa/ui/images/*.gif
 %dir %{_usr}/share/ipa/wsgi

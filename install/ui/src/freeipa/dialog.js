@@ -1291,7 +1291,7 @@ IPA.confirm_mixin = function() {
                 var self = this;
                 this._on_key_up_listener = function(e) { self.on_key_up(e); };
                 this._on_key_down_listener = function(e) { self._on_key_down(e); };
-                var dialog_container = this.dom_node;
+                var dialog_container = $(this.dom_node);
                 dialog_container.bind('keyup', this._on_key_up_listener);
                 dialog_container.bind('keydown', this._on_key_down_listener);
             },
@@ -1300,7 +1300,7 @@ IPA.confirm_mixin = function() {
              * Removal of registered event handlers
              */
             remove_listeners: function() {
-                var dialog_container = this.dom_node;
+                var dialog_container = $(this.dom_node);
                 dialog_container.unbind('keyup', this._on_key_up_listener);
                 dialog_container.unbind('keydown', this._on_key_down_listener);
             },
