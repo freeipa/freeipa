@@ -24,7 +24,9 @@
 
 define([
     'dojo/_base/array',
+    'dojo/_base/declare',
     'dojo/_base/lang',
+    'dojo/Evented',
     './metadata',
     './builder',
     './datetime',
@@ -34,25 +36,31 @@ define([
     './phases',
     './reg',
     './rpc',
-    './text'],
-       function(array, lang, metadata_provider, builder, datetime, IPA, $,
-                navigation, phases, reg, rpc, text) {
+    './text',
+    './util',
+    './FieldBinder'],
+       function(array, declare, lang, Evented, metadata_provider, builder, datetime,
+                IPA, $, navigation, phases, reg, rpc, text, util, FieldBinder) {
 
 /**
  * Field module
- * @class field
+ *
+ * Contains basic fields, adapters and validators.
+ *
+ * @class
  * @singleton
  */
-var exp = {};
+var field = {};
 
 /**
  * Field
- * @class IPA.field
+ * @class
+ * @alternateClassName IPA.field
  */
-IPA.field = function(spec) {
+field.field = IPA.field = function(spec) {
     spec = spec || {};
 
-    var that = IPA.object();
+    var that = new Evented();
 
     /**
      * Entity
@@ -70,7 +78,7 @@ IPA.field = function(spec) {
      * Container
      * @property {facet.facet|IPA.dialog}
      */
-    that.container = null;
+    that.container = spec.container;
 
     /**
      * Name
@@ -116,22 +124,48 @@ IPA.field = function(spec) {
     that.measurement_unit = spec.measurement_unit;
 
     /**
-     * Formatter
+     * Data parser
      *
-     * - transforms field value to widget value
-     * - use corresponding output_formatter if field is not read-only and
-     *   backend can't handle the different format
+     * - transforms datasource value to field value
      * @property {IPA.formatter}
      */
-    that.formatter = builder.build('formatter', spec.formatter);
+    that.data_parser = builder.build('formatter', spec.data_parser);
 
     /**
-     * Output formatter
+     * Data formatter
      *
-     * - transforms widget value into value for backend
+     * - formats field value to datasource value
+     *
      * @property {IPA.formatter}
      */
-    that.output_formatter = builder.build('formatter', spec.output_formatter);
+    that.data_formatter = builder.build('formatter', spec.data_formatter);
+
+    /**
+     * UI parser
+     *
+     * - formats widget value to field value
+     *
+     * @property {IPA.formatter}
+     */
+    that.ui_parser = builder.build('formatter', spec.ui_parser);
+
+    /**
+     * UI formatter
+     *
+     * - formats field value to widget value
+     * - in spec one can use also `formatter` instead of `ui_formatter`
+     *
+     * @property {IPA.formatter}
+     */
+    that.ui_formatter = builder.build('formatter', spec.ui_formatter || spec.formatter);
+
+
+    /**
+     * Adapter whích selected values from record on load.
+     *
+     * @property {field.Adapter}
+     */
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
 
     /**
      * Widget
@@ -205,10 +239,20 @@ IPA.field = function(spec) {
     that.priority = spec.priority;
 
     /**
-     * Loaded values
+     * Loaded value
+     *
+     * - currently value is supposed to be an Array. This might change in a
+     *   future.
+     *
      * @property {Array.<Object>}
      */
-    that.values = [];
+    that.value = [];
+
+    /**
+     * Default value
+     * @property {Mixed}
+     */
+    that.default_value = null;
 
     /**
      * Field is dirty (value is modified)
@@ -230,6 +274,20 @@ IPA.field = function(spec) {
      */
     that.dirty_changed = IPA.observer();
 
+    /**
+     * Last validation result
+     * @property {Object}
+     */
+    that.validation_result = null;
+
+    /**
+     * Controls if field should perform validation when it's not supposed to
+     * be edited by user (`is_editable()`).
+     * @property {boolean}
+     */
+    that.validate_noneditable = spec.validate_noneditable !== undefined ?
+        spec.validate_noneditable : false;
+
     var init = function() {
         if (typeof that.metadata === 'string') {
             that.metadata = metadata_provider.get(that.metadata);
@@ -246,6 +304,7 @@ IPA.field = function(spec) {
             }
         }
 
+        that.set_value([], true); // default value
         that.validators.push(IPA.metadata_validator());
     };
 
@@ -263,107 +322,109 @@ IPA.field = function(spec) {
 
     /**
      * Required setter
+     *
+     * Note that final required state also depends on `read_only` and
+     * `writable` states.
+     *
      * @param {boolean} required
      */
     that.set_required = function(required) {
+        var old = that.is_required();
         that.required = required;
+        var current = that.is_required();
 
-        that.update_required();
-    };
-
-    /**
-     * Update required state in widget to match field's
-     * @protected
-     */
-    that.update_required = function() {
-        if(that.widget && that.widget.set_required) {
-            that.widget.set_required(that.is_required());
+        if (current !== old) {
+            that.emit('require-change', { source: that, required: current });
         }
     };
 
     /**
-     * Check if value is set when it has to be. Show error if not.
-     * @return {boolean}
+     * Check if value is set when it has to be. Report if not.
+     * @return {boolean} value passes the require check
      */
     that.validate_required = function() {
-        var values = that.save();
-        if (IPA.is_empty(values) && that.is_required() && that.enabled) {
-            that.valid = false;
-            var message = text.get('@i18n:widget.validation.required',
+        var values = that.get_value();
+        var result = { valid: true, message: null };
+        if ((that.validate_noneditable || that.is_editable()) &&
+             util.is_empty(values) && that.is_required()) {
+            result.valid = false;
+            result.message = text.get('@i18n:widget.validation.required',
                 "Required field");
-            that.show_error(message);
-            return false;
+            that.set_valid(result);
         }
-        return true;
+        return result.valid;
     };
 
     /**
-     * Returns true and clears the error message if the field value passes
-     * the validation pattern. If the field value does not pass validation,
-     * displays the error message and returns false.
-     * @return {boolean}
+     * Validates the field.
+     * Sets the result by `set_valid` call.
+     * @return {boolean} field is valid
      */
     that.validate = function() {
-        that.hide_error();
-        that.valid = true;
 
-        if (!that.enabled) return that.valid;
+        var result = { valid: true, message: null, errors: [], results: []};
+        var values = that.get_value();
 
-        var values = that.get_widget_values();
+        if ((that.validate_noneditable || that.is_editable()) && !util.is_empty(values)) {
 
-        if (IPA.is_empty(values)) {
-            return that.valid;
-        }
-
-        var value = values[0];
-
-        for (var i=0; i<that.validators.length; i++) {
-            var validation_result = that.validators[i].validate(value, that);
-            that.valid = validation_result.valid;
-            if (!that.valid) {
-                that.show_error(validation_result.message);
-                break;
+            // validate all values
+            for (var i=0, il=values.length; i<il; i++) {
+                for (var j=0, jl=that.validators.length; j<jl; j++) {
+                    var res = that.validators[j].validate(values[i], that);
+                    result.results[i] = res;
+                    if (!res.valid) {
+                        result.valid = false;
+                        result.errors[i] = res;
+                        // set error message only for first error
+                        if (!result.message) result.message = res.message;
+                        break; // report only one error per value
+                    }
+                }
             }
         }
 
-        return that.valid;
+        that.set_valid(result);
+        return result.valid;
     };
 
     /**
-     * This function stores the entire record and the values
-     * of the field, then invoke `reset()` to update the UI.
+     * Set valid state and validation error message
+     * @param {Object|null} result Validation result
+     * @fires valid-change
+     */
+    that.set_valid = function(result) {
+
+        var old_result = that.validation_result;
+        that.valid = result.valid;
+        that.validation_result = result;
+
+        if (!util.equals(old_result, result)) {
+            that.emit('valid-change', {
+                source: that,
+                valid: result.valid,
+                result: result
+            });
+        }
+    };
+
+    /**
+     * This function calls adapter to get value from record and date_parser to
+     * process it. The it sets is as `value`.
      */
     that.load = function(record) {
-        that.record = record;
 
-        that.values = that.get_value(record, that.param);
+        var value = that.adapter.load(record);
+        var parsed = util.parse(that.data_parser, value, "Parse error:"+that.name);
+        value = parsed.value;
+        if (!parsed.ok) {
+            window.console.warn(parsed.message);
+        }
 
+        // this call is quite application specific and should be moved to
+        // different component
         that.load_writable(record);
 
-        that.reset();
-    };
-
-    /**
-     * Get value of attribute with given name from record (during `load`)
-     *
-     * @protected
-     * @param {Object} record
-     * @param {string} name
-     * @return {Array} array of values
-     */
-    that.get_value = function(record, name) {
-
-        var value = record[name];
-
-        if (!(value instanceof Array)) {
-            value = value !== undefined ? [value] : [];
-        }
-
-        if (!value.length) {
-            value = [''];
-        }
-
-        return value;
+        that.set_value(value, true);
     };
 
     /**
@@ -386,15 +447,15 @@ IPA.field = function(spec) {
      */
     that.load_writable = function(record) {
 
-        that.writable = true;
+        var writable = true;
 
         if (that.metadata) {
             if (that.metadata.primary_key) {
-                that.writable = false;
+                writable = false;
             }
 
             if (that.metadata.flags && array.indexOf(that.metadata.flags, 'no_update') > -1) {
-                that.writable = false;
+                writable = false;
             }
         }
 
@@ -411,44 +472,62 @@ IPA.field = function(spec) {
             // For all others, lack of rights means no write.
             if ((!rights && !(that.flags.indexOf('w_if_no_aci') > -1 && write_oc)) ||
                  (rights && rights.indexOf('w') < 0)) {
-                that.writable = false;
+                writable = false;
             }
         }
+
+        that.set_writable(writable);
+    };
+
+    /**
+     * Set writable
+     * @fires writable-change
+     * @param {boolean} writable
+     */
+    that.set_writable = function(writable) {
+
+        var old = !!that.writable;
+        that.writable = writable;
+        if (old !== writable) {
+            that.emit('writable-change', { source: that, writable: writable });
+        }
+
+        that.set_required(that.required); // force update of required
+    };
+
+    /**
+     * Set read only
+     * @fires readonly-change
+     * @param {boolean} writable
+     */
+    that.set_read_only = function(read_only) {
+
+        var old = !!that.read_only;
+        that.read_only = read_only;
+        if (old !== read_only) {
+            that.emit('readonly-change', { source: that, readonly: read_only });
+        }
+        that.set_required(that.required); // force update of required
+    };
+
+    /**
+     * Get if field is intended to be edited
+     *
+     * It's a combination of `enabled`, 'writable` and `read_only` state.
+     *
+     * @returns {Boolean}
+     */
+    that.is_editable = function() {
+
+        return that.enabled && that.writable && !that.read_only;
     };
 
     /**
      * Reset field and widget to loaded values
      */
     that.reset = function() {
-        that.set_widget_flags();
-        that.update_required();
-        that.update();
-        that.validate();
-        that.set_dirty(false);
-    };
-
-    /**
-     * Update widget with loaded values.
-     */
-    that.update = function() {
-
-        if (!that.widget || !that.widget.update) return;
-
-        var formatted_values;
-
-        // Change loaded value to human readable value
-        if (that.formatter) {
-            formatted_values = [];
-            for (var i=0; that.values && i<that.values.length; i++) {
-                var value = that.values[i];
-                var formatted_value = that.formatter.format(value);
-                formatted_values.push(formatted_value);
-            }
-        } else {
-            formatted_values = that.values;
-        }
-
-        that.widget.update(formatted_values);
+        that.emit('reset', { source: that });
+        that.set_value(that.get_pristine_value(), true);
     };
 
     /**
@@ -461,7 +540,7 @@ IPA.field = function(spec) {
     that.get_update_info = function() {
 
         var update_info = IPA.update_info_builder.new_update_info();
-        if (that.is_dirty()) {
+        if (that.dirty) {
             var values = that.save();
             var field_info = IPA.update_info_builder.new_field_info(that, values);
             update_info.fields.push(field_info);
@@ -470,27 +549,95 @@ IPA.field = function(spec) {
     };
 
     /**
-     * This function saves the values entered in the UI.
-     * It returns the values in an array, or null if
-     * the field should not be saved.
+     * Prepare value for persistor.
+     *
+     * Sets `record[param]` option if `record` is supplied.
+     *
+     * Returns `['']` when disabled. Otherwise value formatted by
+     * `data_formatter` and `adapter`.
+     *
+     * @param {Object} [record]
      * @return {Array} values
      */
     that.save = function(record) {
 
-        var values = that.values;
+        if (!that.enabled) return ['']; // not pretty, maybe leave it for caller
 
-        if (!that.enabled) return [''];
-
-        if (that.widget) {
-            values = that.get_widget_values();
-            values = that.format_output(values);
+        var value = that.get_value();
+        var formatted = util.format(that.data_formatter, value);
+        if (formatted.ok) {
+            value = formatted.value;
+        } else {
+            window.console.warn('Output data format error:\n'+
+                                JSON.stringify(formatted));
         }
 
-        if (record) {
-            record[that.param] = values;
+        var diff = that.adapter.save(value, record);
+        value = diff[that.param]; // a hack which should be removed. This
+                                  // function should not return any value. But
+                                  // current consumers expect it.
+        return value;
+    };
+
+    /**
+     * Get field's value
+     *
+     * Returns pure value; doesn't use any formatter.
+     *
+     * @returns {Mixed} field's value
+     */
+    that.get_value = function() {
+       return that.value;
+    };
+
+    /**
+     * Set value
+     *
+     * Always raises value-change when setting pristine value
+     *
+     * @param {Mixed} value
+     * @param {boolean} pristine - value is pristine
+     * @fires value-change
+     * @fires dirty-change
+     */
+    that.set_value = function(value, pristine) {
+
+        that.set_previous_value(that.value);
+        that.value = value;
+
+        if (util.dirty(that.value, that.previous_value, that.get_dirty_check_options()) ||
+            pristine) {
+            that.emit('value-change', {
+                source: that,
+                value: that.value,
+                previous: that.previous_value
+            });
         }
 
-        return values;
+        var dirty = false;
+        if (pristine) {
+            that.set_pristine_value(value);
+        } else {
+            dirty = that.test_dirty();
+        }
+        that.set_dirty(dirty);
+        that.validate();
+    };
+
+    that.get_previous_value = function() {
+        return that.previous_value;
+    };
+
+    that.set_previous_value = function(value) {
+        that.previous_value = value;
+    };
+
+    that.get_pristine_value = function() {
+        return that.pristine_value;
+    };
+
+    that.set_pristine_value = function(value) {
+        that.pristine_value = value;
     };
 
     /**
@@ -509,26 +656,6 @@ IPA.field = function(spec) {
     };
 
     /**
-     * Use output formatter to transform value entered into UI to
-     * value used by backend
-     *
-     * @param {Array} values
-     * @return {Array} formatted values
-     */
-    that.format_output = function(values) {
-
-        if (that.output_formatter) {
-            var formatted_values = [];
-            for (var i=0; values && i<values.length; i++) {
-                var formatted_value = that.output_formatter.format(values[i]);
-                formatted_values.push(formatted_value);
-            }
-            return formatted_values;
-        }
-        return values;
-    };
-
-    /**
      * This function compares the original values and the
      * values entered in the UI. If the values have changed
      * it will return true.
@@ -537,52 +664,25 @@ IPA.field = function(spec) {
      */
     that.test_dirty = function() {
 
+        // remove? this check should part of container which cares, the
+        // field should not care
         if (that.read_only || !that.writable) return false;
 
-        var values = that.save();
+        var pristine = that.get_pristine_value();
+        var value = that.get_value();
 
-        //check for empty value: null, [''], '', []
-        var orig_empty = IPA.is_empty(that.values);
-        var new_empty= IPA.is_empty(values);
-        if (orig_empty && new_empty) return false;
-        if (orig_empty != new_empty) return true;
-
-        //strict equality - checks object's ref equality, numbers, strings
-        if (values === that.values) return false;
-
-        //compare values in array
-        if (values.length !== that.values.length) return true;
-
-        return !that.dirty_are_equal(that.values, values);
+        return util.dirty(value, pristine, that.get_dirty_check_options());
     };
 
     /**
-     * Compares values in two arrays
-     * @protected
-     * @param {Array} orig_vals
-     * @param {Array} new_vals
-     * @return {boolean} values are equal
+     * Returns options for dirty check
+     * @returns {Object}
      */
-    that.dirty_are_equal = function(orig_vals, new_vals) {
+    that.get_dirty_check_options = function() {
 
-        orig_vals.sort();
-        new_vals.sort();
-
-        for (var i=0; i<orig_vals.length; i++) {
-            if (orig_vals[i] !== new_vals[i]) {
-                return false;
-            }
-        }
-
-        return true;
-    };
-
-    /**
-     * Getter for `dirty`
-     * @return {boolean}
-     */
-    that.is_dirty = function() {
-        return that.dirty;
+        return {
+            unordered: !that.ordered
+        };
     };
 
     /**
@@ -592,42 +692,10 @@ IPA.field = function(spec) {
     that.set_dirty = function(dirty) {
         var old = that.dirty;
         that.dirty = dirty;
-        if (that.undo) {
-            that.show_undo(dirty);
-        }
 
         if (old !== dirty) {
             that.dirty_changed.notify([], that);
-        }
-    };
-
-
-    /**
-     * Display validation error
-     * @protected
-     * @param {string} message
-     */
-    that.show_error = function(message) {
-        if (that.widget && that.widget.show_error) that.widget.show_error(message);
-    };
-
-    /**
-     * Hide validation error
-     * @protected
-     */
-    that.hide_error = function() {
-        if (that.widget && that.widget.hide_error) that.widget.hide_error();
-    };
-
-    /**
-     * Show/hide undo button
-     * @protected
-     * @param {boolean} value true:show, false:hide
-     */
-    that.show_undo = function(value) {
-        if (that.widget && that.widget.show_undo) {
-            if(value) { that.widget.show_undo(); }
-            else { that.widget.hide_undo(); }
+            that.emit('dirty-change', { source: that, dirty: dirty });
         }
     };
 
@@ -636,32 +704,10 @@ IPA.field = function(spec) {
      * @param {boolean} value
      */
     that.set_enabled = function(value) {
+        var old = !!that.enabled;
         that.enabled = value;
-        if (that.widget && that.widget.set_enabled) {
-            that.widget.set_enabled(value);
-        }
-    };
-
-    /**
-     * Subject to removal
-     * @deprecated
-     */
-    that.refresh = function() {
-    };
-
-    /**
-     * Reflect `label`, `tooltip`, `measurement_unit`, `undo`, `writable`,
-     * `read_only` into widget.
-     */
-    that.set_widget_flags = function() {
-
-        if (that.widget) {
-            if (that.label) that.widget.label = that.label;
-            if (that.tooltip) that.widget.tooltip = that.tooltip;
-            if (that.measurement_unit) that.widget.measurement_unit = that.measurement_unit;
-            that.widget.undo = that.undo;
-            that.widget.writable = that.writable;
-            that.widget.read_only = that.read_only;
+        if (old !== that.enabled) {
+            that.emit('enable-change', { source: that, enabled: that.enabled });
         }
     };
 
@@ -671,28 +717,11 @@ IPA.field = function(spec) {
     that.widgets_created = function() {
 
         that.widget = that.container.widgets.get_widget(that.widget_name);
-
-        if(that.widget) {
-            that.set_widget_flags();
-
-            that.widget.value_changed.attach(that.widget_value_changed);
-            that.widget.undo_clicked.attach(that.widget_undo_clicked);
+        if (that.widget) {
+            that._binder = new FieldBinder(that, that.widget);
+            that._binder.bind();
+            that._binder.copy_properties();
         }
-    };
-
-    /**
-     * Handler for widget's `value_changed` event
-     */
-    that.widget_value_changed = function() {
-        that.set_dirty(that.test_dirty());
-        that.validate();
-    };
-
-    /**
-     * Handler for widget's `undo_clicked` event
-     */
-    that.widget_undo_clicked = function() {
-        that.reset();
     };
 
     init();
@@ -711,13 +740,91 @@ IPA.field = function(spec) {
 };
 
 /**
+ * Adapter's task is to select wanted data from record and vice-versa.
+ *
+ * This default adapter expects that context will be field and record
+ * will be FreeIPA JsonRPC result.
+ *
+ * @class
+ */
+field.Adapter = declare(null, {
+
+    /**
+     * Adapter's context; e.g., field
+     *
+     * @property {Object}
+     */
+    context: null,
+
+    /**
+     * Get single value from record
+     * @param {Object} record Record
+     * @param {string} name Attribute name
+     * @returns {Array} attribute value
+     * @protected
+     */
+    get_value: function(record, name) {
+        var value = record[name];
+        return util.normalize_value(value);
+    },
+
+    /**
+     * By default just select attribute with name defined by `context.param`
+     * from a record. Uses default value if value is not in record and context
+     * defines it.
+     * @param {Object} record
+     * @returns {Array} attribute value
+     */
+    load: function(record) {
+        var value = this.get_value(record, this.context.param);
+        if (util.is_empty(value) && !util.is_empty(this.context.default_value)) {
+            value = util.normalize_value(this.context.default_value);
+        }
+        return value;
+    },
+
+    /**
+     * Save value into record
+     *
+     * Default behavior is to save it as property which name is defined by
+     * contex's param.
+     * @param {Object} value Value to save
+     * @param {Object} record Record to save the value into
+     * @returns {Object} what was saved
+     */
+    save: function(value, record) {
+
+        var diff = {};
+        diff[this.context.param] = value;
+        if (record) {
+            lang.mixin(record, diff);
+        }
+        return diff;
+    },
+
+    constructor: function(spec) {
+        this.context = spec.context || {};
+    }
+});
+
+/**
  * Validator
  *
  * - base class, always returns positive result
  *
- * @class IPA.validator
+ * Result format
+ *
+ * - validation result is an object with mandatory `valid` property which
+ *   has to be set to a boolean value. True if value is valid, false otherwise.
+ * - if `valid === false` result should also contain `message` property with
+ *   human readable error text
+ * - it may contain also other properties; e.g., `errors` which contains an
+ *   array with other validation result objects in case of complex validation.
+ *
+ * @class
+ * @alternateClassName IPA.validator
  */
-IPA.validator = function(spec) {
+field.validator = IPA.validator = function(spec) {
 
     spec = spec || {};
 
@@ -768,10 +875,11 @@ IPA.validator = function(spec) {
  *
  * Validates value according to supplied metadata
  *
- * @class IPA.metadata_validator
+ * @class
+ * @alternateClassName IPA.metadata_validator
  * @extends IPA.validator
  */
-IPA.metadata_validator = function(spec) {
+field.metadata_validator = IPA.metadata_validator = function(spec) {
 
     var that = IPA.validator(spec);
 
@@ -784,7 +892,7 @@ IPA.metadata_validator = function(spec) {
         var metadata = context.metadata;
         var number = false;
 
-        if (!metadata || IPA.is_empty(value)) return that.true_result();
+        if (!metadata || util.is_empty(value)) return that.true_result();
 
         if (metadata.type === 'int') {
             number = true;
@@ -829,10 +937,11 @@ IPA.metadata_validator = function(spec) {
 /**
  * Checks if value is supported
  *
- * @class IPA.unsupported_validator
+ * @class
+ * @alternateClassName IPA.unsupported_validator
  * @extends IPA.validator
  */
-IPA.unsupported_validator = function(spec) {
+field.unsupported_validator = IPA.unsupported_validator = function(spec) {
 
     spec.message = spec.message ||'@i18n:widgets.validation.unsupported';
 
@@ -849,7 +958,7 @@ IPA.unsupported_validator = function(spec) {
      */
     that.validate = function(value, context) {
 
-        if (IPA.is_empty(value)) return that.true_result();
+        if (util.is_empty(value)) return that.true_result();
 
         if (that.unsupported.indexOf(value) > -1) return that.false_result();
 
@@ -864,10 +973,11 @@ IPA.unsupported_validator = function(spec) {
  *
  * - designed for password confirmation
  *
- * @class IPA.same_password_validator
+ * @class
+ * @alternateClassName IPA.same_password_validator
  * @extends IPA.validator
  */
-IPA.same_password_validator = function(spec) {
+field.same_password_validator = IPA.same_password_validator = function(spec) {
 
     spec = spec || {};
 
@@ -887,7 +997,7 @@ IPA.same_password_validator = function(spec) {
      */
     that.validate = function(value, context) {
 
-        var other_field = context.container.fields.get_field(that.other_field);
+        var other_field = context.container.get_field(that.other_field);
         var other_value = other_field.save();
         var this_value = context.save();
 
@@ -900,48 +1010,25 @@ IPA.same_password_validator = function(spec) {
 };
 
 /**
- * Check if input value is a valid datetime
- *
- * @class IPA.datetime_validator
- * @extends IPA.validator
- */
-IPA.datetime_validator = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.validator(spec);
-
-    that.message = text.get(spec.message || '@i18n:widget.validation.datetime');
-
-    /**
-     * @inheritDoc
-     */
-    that.validate = function(value, context) {
-
-        var valid = datetime.parse(value) !== null;
-        if (!valid) return that.false_result();
-
-        return that.true_result();
-    };
-
-    return that;
-};
-
-/**
  * Used along with checkbox widget
  *
- * @class IPA.checkbox_field
+ * @class
+ * @alternateClassName IPA.datetime_field
  * @extends IPA.field
  */
-IPA.datetime_field = function(spec) {
+field.datetime_field = IPA.datetime_field = function(spec) {
 
     spec = spec || {};
-    spec.validators = spec.validators || ['datetime'];
-    spec.output_formatter = spec.output_formatter || {
+    spec.data_formatter = spec.data_formatter || {
         $type: 'datetime',
         template: datetime.templates.generalized
     };
-    spec.formatter = spec.formatter || 'datetime';
+    spec.data_parser = spec.formatter || 'datetime';
+    spec.ui_formatter = spec.ui_formatter || spec.formatter || {
+        $type: 'datetime',
+        template: datetime.templates.human
+    };
+    spec.ui_parser = spec.ui_parser || 'datetime';
 
     var that = IPA.field(spec);
     return that;
@@ -950,54 +1037,16 @@ IPA.datetime_field = function(spec) {
 /**
  * Used along with checkbox widget
  *
- * @class IPA.checkbox_field
+ * @class
+ * @alternateClassName IPA.checkbox_field
  * @extends IPA.field
  */
-IPA.checkbox_field = function(spec) {
+field.checkbox_field = IPA.checkbox_field = function(spec) {
 
     spec = spec || {};
+    spec.data_parser = 'boolean';
 
     var that = IPA.field(spec);
-
-    /**
-     * Check value by default
-     * @property {boolean}
-     */
-    that.checked = spec.checked || false;
-
-    /**
-     * Boolean formatter for parsing loaded values.
-     * @property {IPA.boolean_formatter}
-     */
-    that.boolean_formatter = IPA.boolean_formatter();
-
-    /**
-     * @inheritDoc
-     */
-    that.load = function(record) {
-
-        that.record = record;
-
-        that.values = that.get_value(record, that.param);
-
-        var value = that.boolean_formatter.parse(that.values);
-        if (value === '') value = that.widget.checked; //default value
-
-        that.values = [value];
-
-        that.load_writable(record);
-
-        that.reset();
-    };
-
-    /**
-     * @inheritDoc
-     */
-    that.widgets_created = function() {
-
-        that.field_widgets_created();
-        that.widget.checked = that.checked;
-    };
 
     /**
      * A checkbox will always have a value, so it's never required.
@@ -1008,33 +1057,17 @@ IPA.checkbox_field = function(spec) {
         return false;
     };
 
-    that.checkbox_load = that.load;
-
-    return that;
-};
-
-/**
- * Used along with checkboxes widget
- *
- * @class IPA.checkboxes_field
- * @extends IPA.field
- */
-IPA.checkboxes_field = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.field(spec);
-
     return that;
 };
 
 /**
  * Used along with radio widget
  *
- * @class IPA.radio_field
+ * @class
+ * @alternateClassName IPA.radio_field
  * @extends IPA.field
  */
-IPA.radio_field = function(spec) {
+field.radio_field = IPA.radio_field = function(spec) {
 
     spec = spec || {};
 
@@ -1048,125 +1081,55 @@ IPA.radio_field = function(spec) {
         return false;
     };
 
-    /**
-     * @inheritDoc
-     */
-    that.widgets_created = function() {
-
-        that.field_widgets_created();
-    };
-
-    return that;
-};
-
-/**
- * Used along with multivalued widget
- *
- * @class IPA.multivalued_field
- * @extends IPA.field
- */
-IPA.multivalued_field = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.field(spec);
-
-    /**
-     * @inheritDoc
-     */
-    that.load = function(record) {
-
-        that.field_load(record);
-    };
-
-    /**
-     * @inheritDoc
-     */
-    that.test_dirty = function() {
-        var dirty = that.field_test_dirty();
-        dirty = dirty || that.widget.test_dirty(); //also checks order
-        return dirty;
-    };
-
-    /**
-     * @inheritDoc
-     */
-    that.validate = function() {
-
-        var values = that.save();
-
-        return that.validate_core(values);
-    };
-
-    /**
-     * Validate each value separately.
-     * @protected
-     * @param {Array} values
-     * @return {boolean} valid
-     */
-    that.validate_core = function(values) {
-
-        that.hide_error();
-        that.valid = true;
-
-        if (IPA.is_empty(values)) {
-            return that.valid;
-        }
-
-        for (var i=0; i<values.length; i++) {
-
-            for (var j=0; j<that.validators.length; j++) {
-
-                var validation_result = that.validators[j].validate(values[i], that);
-                if (!validation_result.valid) {
-                    that.valid = false;
-                    var row_index = that.widget.get_saved_value_row_index(i);
-                    that.widget.show_child_error(row_index, validation_result.message);
-                    break;
-                }
-            }
-        }
-
-        return that.valid;
-    };
-
     return that;
 };
 
 /**
  * Used along with ssh key widget
  *
- * @class IPA.sshkeys_field
- * @extends IPA.multivalued_field
+ * - by default has  `w_if_no_aci` to workaround missing object class
+ *
+ * @class
+ * @alternateClassName IPA.sshkeys_field
+ * @extends IPA.field
  */
-IPA.sshkeys_field = function(spec) {
+field.sshkeys_field = IPA.sshkeys_field = function(spec) {
 
     spec = spec || {};
+    spec.adapter = spec.adapter || field.SshKeysAdapter;
+    spec.flags = spec.flags || ['w_if_no_aci'];
 
-    var that = IPA.multivalued_field(spec);
+    var that = IPA.field(spec);
+    return that;
+};
+
+/**
+ * SSH Keys Adapter
+ * @class
+ * @extends field.Adapter
+ */
+field.SshKeysAdapter = declare([field.Adapter], {
 
     /**
-     * By default has 'w_if_no_aci' flag.
+     * Transforms record into array of key, fingerprint pairs
      *
-     * - fixes upgrade issue. When attr rights are missing due to lack of
-     *   object class.
+     * """
+     *  // input:
+     *  {
+     *      'ipasshpubkey': [ 'foo', 'foo1'],
+     *      'sshpubkeyfp': ['fooFP', 'fooFP2']
+     *  }
+     *
+     *  // output:
+     *  [
+     *      { key: 'foo', fingerprint: 'fooFP'},
+     *      { key: 'foo1', fingerprint: 'fooFP2'},
+     *  ]
+     * """
      */
-    that.flags = spec.flags || ['w_if_no_aci'];
-
-    /**
-     * Name of fingerprint param
-     * @property {string}
-     */
-    that.sshfp_attr = spec.sshfp_attr || 'sshpubkeyfp';
-
-    /**
-     * @inheritDoc
-     */
-    that.load = function(record) {
-
-        var keys = that.get_value(record, that.param);
-        var fingerprints = that.get_value(record, that.sshfp_attr);
-
+    load: function(record) {
+        var keys = this.get_value(record, this.context.param);
+        var fingerprints = this.get_value(record, 'sshpubkeyfp');
         var values = [];
 
         if (keys.length === fingerprints.length) {
@@ -1181,148 +1144,24 @@ IPA.sshkeys_field = function(spec) {
                 values.push(value);
             }
         }
-
-        that.values = values;
-
-        that.load_writable(record);
-
-        that.reset();
-    };
+        return values;
+    },
 
     /**
-     * @inheritDoc
+     * Transforms array of pairs into array of keys and save it into record.
+     * @param {Array} values Source values
+     * @param {Object} record Target record.
+     * @returns {Array} saved value
      */
-    that.dirty_are_equal = function(orig_vals, new_vals) {
+    save: function(values, record) {
 
-        var i;
-        var orig_keys = [];
-
-        for (i=0; i<orig_vals.length; i++) {
-            orig_keys.push(orig_vals[i].key);
+        var ret = [];
+        for (var i=0; i<values.length; i++) {
+            ret.push(values[i].key);
         }
-
-        return that.field_dirty_are_equal(orig_keys, new_vals);
-    };
-
-    return that;
-};
-
-/**
- * Used along with select widget
- *
- * @class IPA.select_field
- * @extends IPA.field
- */
-IPA.select_field = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.field(spec);
-
-    /**
-     * @inheritDoc
-     */
-    that.widgets_created = function() {
-
-        that.field_widgets_created();
-    };
-
-    return that;
-};
-
-/**
- * Used along with link widget
- *
- * @class IPA.link_field
- * @extends IPA.field
- */
-IPA.link_field = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.field(spec);
-
-    /**
-     * Entity a link points to
-     * @property {entity.entity}
-     */
-    that.other_entity = IPA.get_entity(spec.other_entity);
-
-    function other_pkeys () {
-        return that.facet.get_pkeys();
+        return this.inherited(arguments, [ret, record]);
     }
-
-    /**
-     * Function which should return primary keys of link target in case of
-     * link points to an entity.
-     * @property {Function}
-     */
-    that.other_pkeys = spec.other_pkeys || other_pkeys;
-
-    /**
-     * Handler for widget `link_click` event
-     */
-    that.on_link_clicked = function() {
-
-        navigation.show_entity(
-            that.other_entity.name,
-            'default',
-            that.other_pkeys());
-    };
-
-    /**
-     * @inheritDoc
-     */
-    that.load = function(record) {
-
-        that.field_load(record);
-        that.check_entity_link();
-    };
-
-    /**
-     * Check if entity exists
-     *
-     * - only if link points to an entity
-     * - update widget's `is_link` accordingly
-     */
-    that.check_entity_link = function() {
-
-        //In some cases other entity may not be present.
-        //For example when DNS is not configured.
-        if (!that.other_entity) {
-            that.widget.is_link = false;
-            that.widget.update(that.values);
-            return;
-        }
-
-        rpc.command({
-            entity: that.other_entity.name,
-            method: 'show',
-            args: that.other_pkeys(),
-            options: {},
-            retry: false,
-            on_success: function(data) {
-                that.widget.is_link = data.result && data.result.result;
-                that.widget.update(that.values);
-            },
-            on_error: function() {
-                that.widget.is_link = false;
-                that.widget.update(that.values);
-            }
-        }).execute();
-    };
-
-    /**
-     * @inheritDoc
-     */
-    that.widgets_created = function() {
-        that.field_widgets_created();
-        that.widget.link_clicked.attach(that.on_link_clicked);
-    };
-
-
-    return that;
-};
+});
 
 /**
  * Field for enabling/disabling entity
@@ -1330,10 +1169,11 @@ IPA.link_field = function(spec) {
  * - expects radio widget
  * - requires facet to use 'update_info' update method
  *
- * @class IPA.enable_field
+ * @class
+ * @alternateClassName IPA.enable_field
  * @extends IPA.field
  */
-IPA.enable_field = function(spec) {
+field.enable_field = IPA.enable_field = function(spec) {
 
     spec = spec  || {};
 
@@ -1390,9 +1230,10 @@ IPA.enable_field = function(spec) {
 
 /**
  * Collection of fields
- * @class IPA.field_container
+ * @class
+ * @alternateClassName IPA.field_container
  */
-IPA.field_container = function(spec) {
+field.field_container = IPA.field_container = function(spec) {
 
     spec = spec || {};
 
@@ -1456,9 +1297,10 @@ IPA.field_container = function(spec) {
 
 /**
  * Old field builder
- * @class IPA.field_builder
+ * @class
+ * @alternateClassName IPA.field_builder
  */
-IPA.field_builder = function(spec) {
+field.field_builder = IPA.field_builder = function(spec) {
 
     spec = spec || {};
 
@@ -1507,7 +1349,7 @@ IPA.field_builder = function(spec) {
  * @member field
  * @return spec
  */
-exp.pre_op = function(spec, context) {
+field.pre_op = function(spec, context) {
 
     if (context.facet) spec.facet = context.facet;
     if (context.entity) spec.entity = context.entity;
@@ -1520,7 +1362,7 @@ exp.pre_op = function(spec, context) {
  * @member field
  * @return obj
  */
-exp.post_op = function(obj, spec, context) {
+field.post_op = function(obj, spec, context) {
 
     if (context.container) context.container.add_field(obj);
     return obj;
@@ -1530,52 +1372,66 @@ exp.post_op = function(obj, spec, context) {
  * Field builder with registry
  * @member field
  */
-exp.builder = builder.get('field');
-exp.builder.factory = IPA.field;
-exp.builder.string_mode = 'property';
-exp.builder.string_property = 'name';
-reg.set('field', exp.builder.registry);
-exp.builder.pre_ops.push(exp.pre_op);
-exp.builder.post_ops.push(exp.post_op);
+field.builder = builder.get('field');
+field.builder.factory = field.field;
+field.builder.string_mode = 'property';
+field.builder.string_property = 'name';
+reg.set('field', field.builder.registry);
+field.builder.pre_ops.push(field.pre_op);
+field.builder.post_ops.push(field.post_op);
 
 /**
  * Validator builder with registry
  * @member field
  */
-exp.validator_builder = builder.get('validator');
-reg.set('validator', exp.validator_builder.registry);
+field.validator_builder = builder.get('validator');
+reg.set('validator', field.validator_builder.registry);
+
+/**
+ * Adapter builder with registry
+ * @member field
+ */
+field.adapter_builder = builder.get('adapter');
+field.adapter_builder.post_ops.push(function(obj, spec, context) {
+        obj.context = context.context;
+        return obj;
+    }
+);
+reg.set('adapter', field.adapter_builder.registry);
 
 /**
  * Register fields and validators to global registry
  * @member field
  */
-exp.register = function() {
+field.register = function() {
     var f = reg.field;
     var v = reg.validator;
+    var l = reg.adapter;
 
-    f.register('checkbox', IPA.checkbox_field);
-    f.register('checkboxes', IPA.checkboxes_field);
-    f.register('combobox', IPA.field);
-    f.register('datetime', IPA.datetime_field);
-    f.register('enable', IPA.enable_field);
-    f.register('entity_select', IPA.field);
-    f.register('field', IPA.field);
-    f.register('link', IPA.link_field);
-    f.register('multivalued', IPA.multivalued_field);
-    f.register('password', IPA.field);
-    f.register('radio', IPA.radio_field);
-    f.register('select', IPA.select_field);
-    f.register('sshkeys', IPA.sshkeys_field);
-    f.register('textarea', IPA.field);
-    f.register('text', IPA.field);
-    f.register('value_map', IPA.field);
+    f.register('checkbox', field.checkbox_field);
+    f.register('checkboxes', field.field);
+    f.register('combobox', field.field);
+    f.register('datetime', field.datetime_field);
+    f.register('enable', field.enable_field);
+    f.register('entity_select', field.field);
+    f.register('field', field.field);
+    f.register('link', field.field);
+    f.register('multivalued', field.field);
+    f.register('password', field.field);
+    f.register('radio', field.radio_field);
+    f.register('select', field.field);
+    f.register('sshkeys', field.sshkeys_field);
+    f.register('textarea', field.field);
+    f.register('text', field.field);
+    f.register('value_map', field.field);
 
-    v.register('metadata', IPA.metadata_validator);
-    v.register('unsupported', IPA.unsupported_validator);
-    v.register('same_password', IPA.same_password_validator);
-    v.register('datetime', IPA.datetime_validator);
+    v.register('metadata', field.metadata_validator);
+    v.register('unsupported', field.unsupported_validator);
+    v.register('same_password', field.same_password_validator);
+
+    l.register('adapter', field.Adapter);
 };
-phases.on('registration', exp.register);
+phases.on('registration', field.register);
 
-return exp;
+return field;
 });

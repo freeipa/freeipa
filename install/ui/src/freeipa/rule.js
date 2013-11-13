@@ -218,7 +218,7 @@ IPA.rule_association_table_field = function(spec) {
         //performs delete operation.
 
         if (!that.widget.enabled) {
-            var values = that.save();
+            var values = that.widget.save();
 
             if (values.length > 0) { //no need to delete if has no values
 

@@ -44,7 +44,11 @@
  * @class _base.Provider
  *
  */
-define(['dojo/_base/declare','dojo/_base/lang'], function(declare, lang) {
+define([
+    'dojo/_base/declare',
+    'dojo/_base/lang',
+    './debug'],
+    function(declare, lang, debug) {
 
     var undefined;
     var Provider = declare(null, {
@@ -177,7 +181,7 @@ define(['dojo/_base/declare','dojo/_base/lang'], function(declare, lang) {
             }
 
             var ret = value || alternate;
-            if (!ret && key) {
+            if (!ret && key && debug.provider_missing_value) {
                 window.console.log('No value for:'+key);
             }
 

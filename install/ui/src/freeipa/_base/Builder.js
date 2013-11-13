@@ -366,7 +366,7 @@ define(['dojo/_base/declare',
                     var temp = lang.clone(preop);
                     this.spec_mod.mod(spec, temp);
                     this.spec_mod.del_rules(temp);
-                    lang.mixin(spec, preop);
+                    lang.mixin(spec, temp);
                 }
             }
             return spec;

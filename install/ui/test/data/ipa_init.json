@@ -560,6 +560,7 @@
                             "error": "Text does not match field pattern",
                             "datetime": "Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")",
                             "decimal": "Must be a decimal number",
+                            "format": "Format error",
                             "integer": "Must be an integer",
                             "ip_address": "Not a valid IP address",
                             "ip_v4_address": "Not a valid IPv4 address",
@@ -567,6 +568,7 @@
                             "max_value": "Maximum value is ${value}",
                             "min_value": "Minimum value is ${value}",
                             "net_address": "Not a valid network address",
+                            "parse": "Parse error",
                             "port": "'${port}' is not a valid port",
                             "required": "Required field",
                             "unsupported": "Unsupported value"

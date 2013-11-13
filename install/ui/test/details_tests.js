@@ -24,12 +24,12 @@ define([
     'freeipa/jquery',
     'freeipa/details',
     'freeipa/facet',
+    'freeipa/field',
     'freeipa/reg',
     'freeipa/rpc',
     'freeipa/entity',
-    'freeipa/field',
     'freeipa/widget'],
-        function(md, IPA, $, mod_details, mod_facet, reg, rpc) {
+        function(md, IPA, $, mod_details, mod_facet, mod_field, reg, rpc) {
     return function() {
 
 var details_container;
@@ -41,6 +41,7 @@ module('details', {
 
         mod_facet.register();
         mod_details.register();
+        mod_field.register();
 
         IPA.init({
             url: 'data',
@@ -255,7 +256,10 @@ test("Testing details lifecycle: create, load.", function(){
     ok (load_called, 'load manager called');
 
     var field = facet.fields.get_field('test');
-    field.set_dirty(true);
+    field.set_value("foo");
+    var widget = facet.widgets.get_widget('contact.test');
+    // simulate user change
+    widget.emit('value-change', { source: widget, value: "foo" });
 
     facet.update(
         function(){update_success_called = true;},

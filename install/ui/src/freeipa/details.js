@@ -591,6 +591,15 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.dirty_changed = IPA.observer();
 
     /**
+     * Get field
+     * @param {string} name Field name
+     * @returns {IPA.field}
+     */
+    that.get_field = function(name) {
+        return that.fields.get_field(name);
+    };
+
+    /**
      * @inheritDoc
      */
     that.create = function(container) {
@@ -685,7 +694,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.is_dirty = function() {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
-            if (fields[i].enabled && fields[i].is_dirty()) {
+            if (fields[i].enabled && fields[i].dirty) {
                 return true;
             }
         }
@@ -741,7 +750,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
 
-            if (!field.enabled || only_dirty && !field.is_dirty()) continue;
+            if (!field.enabled || only_dirty && !field.dirty) continue;
 
             var values = field.save();
             if (require_value && !values) continue;

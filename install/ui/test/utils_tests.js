@@ -22,9 +22,10 @@ define([
         'freeipa/ipa',
         'freeipa/jquery',
         'freeipa/datetime',
+        'freeipa/util',
         'freeipa/field',
         'freeipa/widget'],
-       function(IPA, $, datetime) {  return function() {
+       function(IPA, $, datetime, util) {  return function() {
 
 var old;
 
@@ -141,6 +142,23 @@ test('Testing IPA.defined', function() {
     same(IPA.defined('', true), false, 'Empty string - checking');
     same(IPA.defined(undefined), false, 'undefined');
     same(IPA.defined(null), false, 'null');
+});
+
+test('Testing util.equals', function() {
+
+    ok(util.equals([], []), 'Empty Arrays');
+    ok(util.equals([1, "a", false, true], [1, "a", false, true]), 'Arrays');
+    ok(util.equals(true, true), 'Boolean: true');
+    ok(util.equals(false, false), 'Boolean: false');
+    ok(!util.equals(true, false), 'Negative: boolean');
+    ok(!util.equals(false, true), 'Negative: boolean');
+    ok(util.equals("abc", "abc"), 'Positive: strings');
+    ok(!util.equals("abc", "aBC"), 'Negative: string casing');
+    ok(util.equals(1, 1), 'Positive: number');
+    ok(util.equals(1.0, 1), 'Positive: number');
+    ok(util.equals(2.2, 2.2), 'Positive: number');
+
+    ok(!util.equals([], [""]), 'Negative: empty array');
 });
 
 test('Testing datetime', function() {

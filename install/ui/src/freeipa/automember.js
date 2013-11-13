@@ -19,6 +19,8 @@
  */
 
 define([
+    'dojo/_base/declare',
+    './field',
     './metadata',
     './ipa',
     './jquery',
@@ -31,7 +33,8 @@ define([
     './search',
     './association',
     './entity'],
-    function(metadata_provider, IPA, $, navigation, phases, reg, rpc, text) {
+    function(declare, field_mod, metadata_provider, IPA, $, navigation,
+        phases, reg, rpc, text) {
 
 var exp = IPA.automember = {};
 
@@ -445,28 +448,26 @@ IPA.automember.parse_condition_regex = function(regex) {
 IPA.automember.condition_field = function(spec) {
 
     spec = spec || {};
+    spec.adapter = spec.adapter || IPA.automember.condition_adapter;
     var that = IPA.field(spec);
-
-    that.attr_name = spec.attribute || that.name;
-
-    that.load = function(record) {
-
-        var regexes = record[that.attr_name];
-        that.values = [];
-
-        if (regexes) {
-            for (var i=0, j=0; i<regexes.length; i++) {
-                var condition = IPA.automember.parse_condition_regex(regexes[i]);
-                that.values.push(condition);
-            }
-        }
-
-        that.load_writable(record);
-        that.reset();
-    };
-
     return that;
 };
+
+IPA.automember.condition_adapter = declare([field_mod.Adapter], {
+
+    load: function(record) {
+        var regexes = this.inherited(arguments);
+        var values = [];
+        if (regexes) {
+            for (var i=0, j=0; i<regexes.length; i++) {
+                if (regexes[i] === '') continue;
+                var condition = IPA.automember.parse_condition_regex(regexes[i]);
+                values.push(condition);
+            }
+        }
+        return values;
+    }
+});
 
 IPA.automember.condition_widget = function(spec) {
 

@@ -184,3 +184,25 @@ input[type="radio"]:checked + label:before {
         right: -2px;
     }
 }
+
+// do not show error hint for valid value in multivalued widget if some
+// other value is invalid
+.control-group.error .valid .help-inline {
+    display: none;
+}
+
+// only type text for now - it should be replaced when we adopt Bootstrap 3
+// based RCUE (patternfly)
+.control-group.error .valid input[type=text] {
+
+    border-color: #62afdb !important;
+
+    &:focus {
+        border-color: rgba(82, 168, 236, 0.8);
+        outline: 0;
+        outline: thin dotted \9;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+        -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+    }
+}

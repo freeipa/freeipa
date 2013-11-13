@@ -20,6 +20,7 @@
  */
 
 define([
+    'dojo/on',
     './metadata',
     './ipa',
     './jquery',
@@ -30,7 +31,7 @@ define([
     './search',
     './association',
     './entity'],
-        function(metadata_provider, IPA, $, phases, reg, text) {
+        function(on, metadata_provider, IPA, $, phases, reg, text) {
 
 /**
  * Widgets, entities and fields related to Access Control that means
@@ -577,6 +578,7 @@ aci.attributes_widget = function(spec) {
                 $('.aci-attribute', that.table).
                     prop('checked', $(this).prop('checked'));
                 that.value_changed.notify([], that);
+                that.emit('value-change', { source: that });
             }
         }, th);
 
@@ -615,6 +617,7 @@ aci.attributes_widget = function(spec) {
                 'class': 'aci-attribute',
                 change: function() {
                     that.value_changed.notify([], that);
+                    that.emit('value-change', { source: that });
                 }
             }, td);
             td = $('<td/>').appendTo(tr);
@@ -827,15 +830,9 @@ aci.permission_target_policy = function (spec) {
     that.init = function() {
 
         that.permission_target = that.container.widgets.get_widget(that.widget_name);
-        var type_select = that.permission_target.widgets.get_widget('type');
+        var type_f = that.container.fields.get_field('type');
 
-        type_select.value_changed.attach(function() {
-            that.apply_type();
-        });
-
-        type_select.undo_clicked.attach(function() {
-            that.apply_type();
-        });
+        on(type_f, 'value-change', that.apply_type);
     };
 
     that.apply_type = function () {
@@ -861,9 +858,7 @@ aci.permission_target_policy = function (spec) {
                 // permission plugin resets ipapermlocation to basedn when
                 // type is unset. -> use it as pristine value so undo will
                 // work correctly.
-                var loc = [IPA.env.basedn];
-                loc_w.update(loc);
-                loc_f.values = loc;
+                loc_f.set_value([IPA.env.basedn], true);
             } else {
                 attrs = attr_multi.save();
                 attr_table.update(attrs);
@@ -1077,9 +1072,9 @@ aci.register = function() {
     e.register({ type: 'delegation', spec: aci.delegation_entity_spec });
 
     w.register('attributes', aci.attributes_widget);
-    f.register('attributes', IPA.checkboxes_field);
+    f.register('attributes', IPA.field);
     w.register('rights', aci.rights_widget);
-    f.register('rights', IPA.checkboxes_field);
+    f.register('rights', IPA.field);
     w.register('permission_target', aci.permission_target_widget);
 };
 

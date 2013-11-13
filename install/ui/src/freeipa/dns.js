@@ -21,20 +21,24 @@
 
 
 define([
+    'dojo/_base/declare',
     './ipa',
     './jquery',
     './net',
+    './field',
     './navigation',
     './menu',
     './phases',
     './reg',
     './rpc',
+    './util',
     './text',
     './details',
     './search',
     './association',
     './entity'],
-       function(IPA, $, NET, navigation, menu, phases, reg, rpc, text) {
+       function(declare, IPA, $, NET, field_mod, navigation, menu, phases,
+        reg, rpc, util, text) {
 
 var exp = IPA.dns = {
     zone_permission_name: 'Manage DNS zone ${dnszone}'
@@ -1434,8 +1438,8 @@ IPA.dns.record_prepare_details_for_type = function(type, fields, container) {
  */
 
 
-IPA.dnsrecord_host_link_field = function(spec) {
-    var that = IPA.link_field(spec);
+IPA.dnsrecord_host_link_widget = function(spec) {
+    var that = IPA.link_widget(spec);
     that.other_pkeys = function() {
         var pkey = that.facet.get_pkeys();
         return [pkey[1]+'.'+pkey[0]];
@@ -1587,12 +1591,20 @@ IPA.dnsrecord_adder_dialog_type_policy = function(spec) {
 IPA.dns.record_type_table_field = function(spec) {
 
     spec = spec || {};
+    spec.adapter = spec.adapter || IPA.dns.record_type_adapter;
 
     var that = IPA.field(spec);
 
     that.dnstype = spec.dnstype;
 
-    that.load = function(record) {
+    return that;
+};
+
+IPA.dns.record_type_adapter = declare([field_mod.Adapter], {
+
+    separator: ';',
+
+    load: function(record) {
 
         var data = {};
 
@@ -1602,22 +1614,16 @@ IPA.dns.record_type_table_field = function(spec) {
         for (var i=0, j=0; i<record.dnsrecords.length; i++) {
 
             var dnsrecord = record.dnsrecords[i];
-            if(dnsrecord.dnstype === that.dnstype) {
+            if(dnsrecord.dnstype === this.context.dnstype) {
 
                 dnsrecord.position = j;
                 j++;
                 data.dnsrecords.push(dnsrecord);
             }
         }
-
-        that.values = data;
-
-        that.load_writable(record);
-        that.reset();
-    };
-
-    return that;
-};
+        return data;
+    }
+});
 
 IPA.dns.record_type_table_widget = function(spec) {
 
@@ -2040,69 +2046,34 @@ IPA.dns.record_type_table_widget = function(spec) {
 IPA.dns.netaddr_field = function(spec) {
 
     spec = spec || {};
-
-    var that = IPA.multivalued_field(spec);
-
-    that.load = function(record) {
-
-        that.record = record;
-
-        that.values = that.get_value(record, that.name);
-        that.values = that.values[0].split(';');
-
-        that.load_writable(record);
-
-        that.reset();
-    };
-
-    that.test_dirty = function() {
-
-        if (that.read_only) return false;
-
-        var values = that.field_save();
-
-        //check for empty value: null, [''], '', []
-        var orig_empty = IPA.is_empty(that.values);
-        var new_empty= IPA.is_empty(values);
-        if (orig_empty && new_empty) return false;
-        if (orig_empty != new_empty) return true;
-
-        //strict equality - checks object's ref equality, numbers, strings
-        if (values === that.values) return false;
-
-        //compare values in array
-        if (values.length !== that.values.length) return true;
-
-        for (var i=0; i<values.length; i++) {
-            if (values[i] != that.values[i]) {
-                return true;
-            }
-        }
-
-        return that.widget.test_dirty();
-    };
-
-    that.save = function(record) {
-
-        var values = that.field_save();
-        var new_val = values.join(';');
-
-        if (record) {
-            record[that.name] = new_val;
-        }
-
-        return [new_val];
-    };
-
-    that.validate = function() {
-
-        var values = that.field_save();
-
-        return that.validate_core(values);
-    };
-
+    spec.adapter = IPA.dns.netaddr_adapter;
+    var that = IPA.field(spec);
     return that;
 };
+
+IPA.dns.netaddr_adapter = declare([field_mod.Adapter], {
+
+    separator: ';',
+
+    load: function(record) {
+        var value = this.inherited(arguments)[0];
+        if (value) {
+            if (value[value.length-1] === this.separator) {
+                value = value.substring(0, value.length-1);
+            }
+            value = value.split(this.separator);
+        }
+        value = util.normalize_value(value);
+        return value;
+    },
+
+    save: function(value, record) {
+        if (value[0]) {
+            value = [value.join(this.separator)];
+        }
+        return this.inherited(arguments, [value, record]);
+    }
+});
 
 IPA.dns.record_modify_column = function(spec) {
 
@@ -2519,8 +2490,8 @@ exp.register = function() {
     w.register('dnszone_name', IPA.dnszone_name_widget);
     w.register('force_dnszone_add_checkbox', IPA.force_dnszone_add_checkbox_widget);
     f.register('force_dnszone_add_checkbox', IPA.checkbox_field);
-    w.register('dnsrecord_host_link', IPA.link_widget);
-    f.register('dnsrecord_host_link', IPA.dnsrecord_host_link_field);
+    w.register('dnsrecord_host_link', IPA.dnsrecord_host_link_widget);
+    f.register('dnsrecord_host_link', IPA.field);
     w.register('dnsrecord_type', IPA.dnsrecord_type_widget);
     f.register('dnsrecord_type', IPA.dnsrecord_type_field);
     w.register('dnsrecord_type_table', IPA.dns.record_type_table_widget);

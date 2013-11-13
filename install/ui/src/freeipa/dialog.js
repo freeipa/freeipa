@@ -204,6 +204,15 @@ IPA.dialog = function(spec) {
         return that;
     };
 
+    /**
+     * Get field
+     * @param {string} name Field name
+     * @returns {IPA.field}
+     */
+    that.get_field = function(name) {
+        return that.fields.get_field(name);
+    };
+
     /** Validate dialog fields */
     that.validate = function() {
         var valid = true;

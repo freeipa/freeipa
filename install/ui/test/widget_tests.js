@@ -18,9 +18,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/field', 'freeipa/widget',
-        'freeipa/entity'],
-       function(IPA, $) {  return function() {
+define([
+    'dojo/on',
+    'freeipa/ipa',
+    'freeipa/jquery',
+    'freeipa/group',
+    'freeipa/field',
+    'freeipa/widget',
+    'freeipa/entity'
+], function(on, IPA, $, group) {  return function() {
 
 var widget_container;
 var widget;
@@ -43,6 +49,7 @@ module('widget',{
            factory = null;
            spec = null;
 
+           group.register();
 
        },
        teardown: function() {
@@ -119,23 +126,28 @@ function text_tests(widget,input){
 function multivalued_text_tests(widget) {
 
     var values = ['val1', 'val2', 'val3'];
+    var changed = false;
+    function on_change (event) {
+        changed = true;
+    }
+    on(widget, 'value-change', on_change);
 
     widget.update(values);
 
     same(widget.save(), values, "All values loaded");
-    same(widget.test_dirty(), false, "Field initially clean");
 
     values = ['val1', 'val2', 'val3', 'val4'];
     widget.add_row(['val4']);
-
     same(widget.save(), values, "Value added");
-    same(widget.test_dirty(), true, "Field is dirty");
+    ok(changed, "Value changed");
+    changed = false;
 
     values = ['val1', 'val3', 'val4'];
     widget.remove_row(widget.rows[1]);
 
     same(widget.save(), values, "Value removed");
-    same(widget.test_dirty(), true, "Field is dirty");
+    ok(changed, "Value changed");
+    changed = false;
 }
 
 test("IPA.table_widget" ,function(){
@@ -294,7 +306,10 @@ test("IPA.entity_link_widget" ,function(){
     factory  = IPA.link_widget;
     spec = {
         name: 'gidnumber',
-        other_entity:'group'
+        other_entity:'group',
+        other_pkeys: function() {
+            return ['kfrog'];
+        }
     };
     base_widget_test(widget,'user','test_value');
 
@@ -303,8 +318,6 @@ test("IPA.entity_link_widget" ,function(){
             return "";
         }
     };
-
-    var mock_record = { uid: ['kfrog'], gidnumber: ['123456']};
 
     widget.entity = mock_entity;
     widget.create(widget_container);
@@ -315,7 +328,7 @@ test("IPA.entity_link_widget" ,function(){
     ok(nonlink.length > 1);
     ok(link.length > 1);
 
-    widget.is_link = true; //setting is_link is responsibility of field
+    var mock_record = { gidnumber: ['123456']};
     widget.update(mock_record.gidnumber);
 
     link = widget_container.find('a:contains("123456")');

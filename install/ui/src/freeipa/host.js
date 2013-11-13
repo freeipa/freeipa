@@ -430,7 +430,7 @@ IPA.host_fqdn_field = function(spec) {
     };
 
     that.child_value_changed = function() {
-        that.validate();
+        that.set_value(that.widget.save());
     };
 
     return that;
@@ -523,8 +523,9 @@ IPA.dnszone_select_widget = function(spec) {
     return that;
 };
 
-IPA.host_dnsrecord_entity_link_field = function(spec){
-    var that = IPA.link_field(spec);
+IPA.host_dnsrecord_entity_link_widget = function(spec) {
+
+    var that = IPA.link_widget(spec);
 
     that.other_pkeys = function(){
         var pkey = that.facet.get_pkey();
@@ -852,8 +853,8 @@ exp.register = function() {
     w.register('host_fqdn', IPA.host_fqdn_widget);
     f.register('dnszone_select', IPA.field);
     w.register('dnszone_select', IPA.dnszone_select_widget);
-    f.register('host_dnsrecord_entity_link', IPA.host_dnsrecord_entity_link_field);
-    w.register('host_dnsrecord_entity_link', IPA.link_widget);
+    f.register('host_dnsrecord_entity_link', IPA.field);
+    w.register('host_dnsrecord_entity_link', IPA.host_dnsrecord_entity_link_widget);
     f.register('force_host_add_checkbox', IPA.checkbox_field);
     w.register('force_host_add_checkbox', IPA.force_host_add_checkbox_widget);
     f.register('host_password', IPA.field);

@@ -19,6 +19,8 @@
  */
 
 define([
+    'dojo/_base/declare',
+    './field',
     './ipa',
     './jquery',
     './phases',
@@ -29,7 +31,7 @@ define([
     './search',
     './association',
     './entity'],
-        function(IPA, $, phases, reg, rpc, text) {
+        function(declare, field_mod, IPA, $, phases, reg, rpc, text) {
 
 var exp =IPA.service = {};
 
@@ -66,16 +68,16 @@ return {
                     fields: [
                         'krbprincipalname',
                         {
-                            $type: 'service_name',
                             name: 'service',
                             label: '@i18n:objects.service.service',
-                            read_only: true
+                            read_only: true,
+                            adapter: IPA.service_name_adapter
                         },
                         {
-                            $type: 'service_host',
                             name: 'host',
                             label: '@i18n:objects.service.host',
-                            read_only: true
+                            read_only: true,
+                            adapter: IPA.service_host_adapter
                         },
                         {
                             name: 'ipakrbauthzdata',
@@ -271,45 +273,21 @@ IPA.service_adder_dialog = function(spec) {
     return that;
 };
 
-IPA.service_name_field = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.field(spec);
-
-    that.load = function(record) {
-
-        that.field_load(record);
-
+IPA.service_name_adapter = declare([field_mod.Adapter], {
+    load: function(record) {
         var krbprincipalname = record.krbprincipalname[0];
         var value = krbprincipalname.replace(/\/.*$/, '');
-        that.values = [value];
+        return [value];
+    }
+});
 
-        that.reset();
-    };
-
-    return that;
-};
-
-IPA.service_host_field = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.field(spec);
-
-    that.load = function(record) {
-
-        that.field_load(record);
-
+IPA.service_host_adapter = declare([field_mod.Adapter], {
+    load: function(record) {
         var krbprincipalname = record.krbprincipalname[0];
         var value = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
-        that.values = [value];
-
-        that.reset();
-    };
-
-    return that;
-};
+        return [value];
+    }
+});
 
 IPA.service_provisioning_status_widget = function (spec) {
 
@@ -512,10 +490,6 @@ phases.on('registration', function() {
 
     e.register({type: 'service', spec: exp.entity_spec});
 
-    f.register('service_name', IPA.service_name_field);
-    w.register('service_name', IPA.text_widget);
-    f.register('service_host', IPA.service_host_field);
-    w.register('service_host', IPA.text_widget);
     f.register('service_provisioning_status', IPA.field);
     w.register('service_provisioning_status', IPA.service_provisioning_status_widget);
     a.register('service_unprovision', IPA.service.unprovision_action);

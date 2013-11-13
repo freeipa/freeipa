@@ -32,13 +32,15 @@ define(['dojo/_base/array',
        './datetime',
        './ipa',
        './jquery',
+       './navigation',
        './phases',
        './reg',
        './rpc',
-       './text'
+       './text',
+       './util'
        ],
-       function(array, lang, Evented, has, keys, on, builder, datetime, IPA, $,
-        phases, reg, rpc, text) {
+       function(array, lang, Evented, has, keys, on, builder, datetime,
+                IPA, $, navigation, phases, reg, rpc, text, util) {
 
 /**
  * Widget module
@@ -128,6 +130,12 @@ IPA.widget = function(spec) {
     that.enabled = spec.enabled === undefined ? true : spec.enabled;
 
     /**
+     * Enables showing of validation errors
+     * @property {boolean}
+     */
+    that.show_errors = spec.show_errors === undefined ? true : spec.show_errors;
+
+    /**
      * Create HTML representation of a widget.
      * @method
      * @param {HTMLElement} container - Container node
@@ -188,6 +196,24 @@ IPA.widget = function(spec) {
         context = lang.mixin(def_c, context);
         var child = builder.build('widget', spec, context, overrides);
         return child;
+    };
+
+    that.add_class = function(cls) {
+        if (that.container) {
+            that.container.addClass(cls);
+        }
+    };
+
+    that.remove_class = function(cls) {
+        if (that.container) {
+            that.container.removeClass(cls);
+        }
+    };
+
+    that.toggle_class = function(cls, flag) {
+        if (that.container) {
+            that.container.toggleClass(cls, flag);
+        }
     };
 
     that.widget_create = that.create;
@@ -259,6 +285,7 @@ IPA.input_widget = function(spec) {
      * Value changed event.
      *
      * Raised when user modifies data by hand.
+     * @deprecated
      *
      * @event
      */
@@ -266,6 +293,7 @@ IPA.input_widget = function(spec) {
 
     /**
      * Undo clicked event.
+     * @deprecated
      *
      * @event
      */
@@ -273,6 +301,7 @@ IPA.input_widget = function(spec) {
 
     /**
      * Updated event.
+     * @deprecated
      *
      * Raised when widget content gets updated - raised by
      * {@link IPA.input_widget#update} method.
@@ -324,6 +353,13 @@ IPA.input_widget = function(spec) {
      */
     that.save = function() {
         return [];
+    };
+
+    /**
+     * Alias of save
+     */
+    that.get_value = function() {
+        return that.save();
     };
 
     /**
@@ -383,27 +419,60 @@ IPA.input_widget = function(spec) {
      * @return {jQuery} error link jQuery reference
      */
     that.get_error_link = function() {
-        return $('span[name="error_link"]', that.container);
+        return $('span[name="error_link"]', that.container).eq(0);
+    };
+
+    /**
+     * Set's validity of widget's value. Usually checked by outside logic.
+     * @param {Object} result Validation result as defined in IPA.validator
+     */
+    that.set_valid = function(result) {
+
+        var old = that.valid;
+        that.valid = result.valid;
+
+        that.toggle_class('valid', that.valid);
+        if (!that.valid) {
+            that.show_error(result.message);
+        } else  {
+            that.hide_error();
+        }
+        if (old !== that.valid) {
+            that.emit("valid-change", {
+                source: that,
+                valid: that.valid,
+                result: result
+            });
+        }
     };
 
     /**
      * Show error message
      * @protected
-     * @param {string} message
+     * @fires error-show
+     * @param {Object} error
      */
     that.show_error = function(message) {
-        var error_link = that.get_error_link();
-        error_link.html(message);
-        error_link.css('display', '');
-        that.emit('error-show', { source: that, error: message });
+        if (that.show_errors) {
+            var error_link = that.get_error_link();
+            error_link.html(message);
+            error_link.css('display', '');
+        }
+        that.emit('error-show', {
+            source: that,
+            error: message,
+            displayed: that.show_errors
+        });
     };
 
     /**
      * Hide error message
      * @protected
+     * @fires error-hide
      */
     that.hide_error = function() {
         var error_link = that.get_error_link();
+        error_link.html('');
         error_link.css('display', 'none');
         that.emit('error-hide', { source: that });
     };
@@ -458,6 +527,38 @@ IPA.input_widget = function(spec) {
     };
 
     /**
+     * Set writable
+     * @fires writable-change
+     * @param {boolean} writable
+     */
+    that.set_writable = function(writable) {
+
+        var changed = writable !== that.writable;
+
+        that.writable = writable;
+
+        if (changed) {
+            that.emit('writable-change', { source: that, writable: writable });
+        }
+    };
+
+    /**
+     * Set read only
+     * @fires readonly-change
+     * @param {boolean} writable
+     */
+    that.set_read_only = function(read_only) {
+
+        var changed = read_only !== that.read_only;
+
+        that.read_only = read_only;
+
+        if (changed) {
+            that.emit('readonly-change', { source: that, read_only: read_only });
+        }
+    };
+
+    /**
      * Focus input element
      * @abstract
      */
@@ -499,6 +600,7 @@ IPA.input_widget = function(spec) {
     // methods that should be invoked by subclasses
     that.widget_hide_error = that.hide_error;
     that.widget_show_error = that.show_error;
+    that.widget_set_valid = that.set_valid;
 
     return that;
 };
@@ -680,7 +782,7 @@ IPA.multivalued_widget = function(spec) {
     that.child_spec = spec.child_spec;
     that.size = spec.size || 30;
     that.undo_control;
-    that.initialized = false;
+    that.initialized = true;
 
     that.rows = [];
 
@@ -693,24 +795,16 @@ IPA.multivalued_widget = function(spec) {
             row.remove_link.show();
         }
 
-        that.value_changed.notify([], that);
-        that.emit('child-value-change', { source: that, row: row });
         that.emit('value-change', { source: that });
+        that.emit('child-value-change', { source: that, row: row });
     };
 
     that.on_child_undo_clicked = function(row) {
         if (row.is_new) {
             that.remove_row(row);
         } else {
-            //reset
-            row.widget.update(row.original_values);
-            row.widget.set_deleted(false);
-            row.deleted = false;
-            row.remove_link.show();
+            that.reset_row(row);
         }
-
-        row.widget.hide_undo();
-        that.value_changed.notify([], that);
         that.emit('child-undo-click', { source: that, row: row });
     };
 
@@ -745,20 +839,45 @@ IPA.multivalued_widget = function(spec) {
         }
     };
 
-    that.show_child_error = function(index, error) {
+    that.set_valid = function (result) {
 
-        that.rows[index].widget.show_error(error);
-    };
+        var old = that.valid;
+        that.valid = result.valid;
 
-    that.get_saved_value_row_index = function(index) {
+        if (!result.valid && result.errors) {
+            var offset = 0;
+            for (var i=0; i<that.rows.length; i++) {
 
-        for (var i=0; i<that.rows.length;i++) {
+                var val_result = null;
+                if (that.rows[i].deleted) {
+                    offset++;
+                    val_result = { valid: true };
+                } else {
+                    val_result = result.results[i-offset];
+                }
+                var widget = that.rows[i].widget;
+                if (val_result) widget.set_valid(val_result);
+            }
 
-            if(that.rows[i].deleted) index++;
-            if(i === index) return i;
+            if (that.rows.length > 0) {
+                var error_link = that.get_error_link();
+                error_link.css('display', 'none');
+                error_link.html('');
+            } else {
+                that.show_error(result.message);
+            }
+
+        } else {
+            that.hide_error();
         }
 
-        return -1; //error state
+        if (old !== that.valid) {
+            that.emit("valid-change", {
+                source: that,
+                valid: that.valid,
+                result: result
+            });
+        }
     };
 
     that.save = function() {
@@ -829,10 +948,10 @@ IPA.multivalued_widget = function(spec) {
         row.original_values = values;
         row.widget.update(values);
 
-        row.widget.value_changed.attach(function() {
+        on(row.widget, 'value-change', function() {
             that.on_child_value_changed(row);
         });
-        row.widget.undo_clicked.attach(function() {
+        on(row.widget, 'undo-click', function() {
             that.on_child_undo_clicked(row);
         });
         on(row.widget, 'error-show', function() {
@@ -847,8 +966,6 @@ IPA.multivalued_widget = function(spec) {
             html: text.get('@i18n:buttons.remove'),
             click: function () {
                 that.remove_row(row);
-                that.value_changed.notify([], that);
-                that.emit('value-change', { source: that });
                 return false;
             }
         }).appendTo(row.container);
@@ -902,6 +1019,17 @@ IPA.multivalued_widget = function(spec) {
         }).appendTo(container);
     };
 
+    that.reset_row = function(row) {
+        row.widget.update(row.original_values);
+        row.widget.set_deleted(false);
+        row.deleted = false;
+        row.remove_link.show();
+        row.widget.hide_undo();
+
+        that.value_changed.notify([], that);
+        that.emit('value-change', { source: that });
+    };
+
     that.remove_row = function(row) {
         if (row.is_new) {
             row.container.remove();
@@ -912,6 +1040,8 @@ IPA.multivalued_widget = function(spec) {
             row.remove_link.hide();
             row.widget.show_undo();
         }
+        that.value_changed.notify([], that);
+        that.emit('value-change', { source: that });
     };
 
     that.remove_rows = function() {
@@ -929,28 +1059,12 @@ IPA.multivalued_widget = function(spec) {
 
         if (row.deleted || row.is_new) return true;
 
-        var values = row.widget.save();
-        if (!values) return false;
+        var value = row.widget.save();
 
-        if (row.original_values.length !== values.length) return true;
-
-        for (var i=0; i<values.length; i++) {
-            if (values[i] !== row.original_values[i]) {
-                return true;
-            }
+        if (util.dirty(value, row.original_values, { unordered: true })) {
+            return true;
         }
-
         return false;
-    };
-
-    that.test_dirty = function() {
-        var dirty = false;
-
-        for(var i=0; i < that.rows.length; i++) {
-            dirty = dirty || that.test_dirty_row(that.rows[i]);
-        }
-
-        return dirty;
     };
 
     that.update = function(values, index) {
@@ -1693,10 +1807,15 @@ IPA.select_widget = function(spec) {
     };
 
     that.update = function(values) {
+        var old = that.save()[0];
         var value = values[0];
         var option = $('option[value="'+value+'"]', that.select);
-        if (!option.length) return;
-        option.prop('selected', true);
+        if (option.length) {
+            option.prop('selected', true);
+        } else {
+            // default was selected instead of supplied value, hence notify
+            util.emit_delayed(that,'value-change', { source: that });
+        }
         that.updated.notify([], that);
         that.emit('update', { source: that });
     };
@@ -1869,7 +1988,8 @@ IPA.boolean_formatter = function(spec) {
     spec = spec || {};
 
     var that = IPA.formatter(spec);
-
+    /** Parse error */
+    that.parse_error = text.get(spec.parse_error || 'Boolean value expected');
     /** Formatted value for true */
     that.true_value = text.get(spec.true_value || '@i18n:true');
     /** Formatted value for false */
@@ -1881,9 +2001,9 @@ IPA.boolean_formatter = function(spec) {
     /**
      * Result of parse of `undefined` or `null` value will be `empty_value`
      * if set.
-     * @property {boolean|undefined}
+     * @property {boolean}
      */
-    that.empty_value = spec.empty_value;
+    that.empty_value = spec.empty_value !== undefined ? spec.empty_value : false;
 
     /**
      * Convert string boolean value into real boolean value, or keep
@@ -1894,9 +2014,8 @@ IPA.boolean_formatter = function(spec) {
      */
     that.parse = function(value) {
 
-        if (value === undefined || value === null) {
-            if (that.empty_value !== undefined) value = that.empty_value;
-            else return '';
+        if (util.is_empty(value)) {
+            value = that.empty_value;
         }
 
         if (value instanceof Array) {
@@ -1910,11 +2029,17 @@ IPA.boolean_formatter = function(spec) {
                 value = true;
             } else if (value === 'false') {
                 value = false;
-            } // leave other values unchanged
+            }
         }
 
         if (typeof value === 'boolean') {
             if (that.invert_value) value = !value;
+        } else {
+            throw {
+                reason: 'parse',
+                value: that.empty_value,
+                message: that.parse_error
+            };
         }
 
         return value;
@@ -1987,13 +2112,32 @@ IPA.datetime_formatter = function(spec) {
 
     var that = IPA.formatter(spec);
     that.template = spec.template;
+    that.parse_error = text.get(spec.parse_error || '@i18n:widget.validation.datetime');
+
+    that.parse = function(value) {
+        if (value === '') return null;
+        var date = datetime.parse(value);
+        if (!date) {
+            throw {
+                reason: 'parse',
+                value: null,
+                message: that.parse_error
+            };
+        }
+        return date;
+    };
 
     that.format = function(value) {
 
         if (!value) return '';
-        var date = datetime.parse(value);
-        if (!date) return value;
-        var str = datetime.format(date, that.template);
+        if (!(value instanceof Date)) {
+            throw {
+                reason: 'format',
+                value: '',
+                message: 'Input value is not of Date type'
+            };
+        }
+        var str = datetime.format(value, that.template);
         return str;
     };
     return that;
@@ -2657,12 +2801,6 @@ IPA.table_widget = function (spec) {
             rows.push(tr);
         });
         return rows;
-    };
-
-    that.show_error = function(message) {
-        var error_link = that.get_error_link();
-        error_link.html(message);
-        error_link.css('display', '');
     };
 
     that.set_enabled = function(enabled) {
@@ -3599,13 +3737,26 @@ IPA.entity_select_widget = function(spec) {
 IPA.link_widget = function(spec) {
     var that = IPA.input_widget(spec);
 
-    that.is_link = spec.is_link || false;
+    /**
+     * Entity a link points to
+     * @property {entity.entity}
+     */
+    that.other_entity = IPA.get_entity(spec.other_entity);
 
     /**
-     * Raised when link is clicked
-     * @event
+     * Function which should return primary keys of link target in case of
+     * link points to an entity.
+     * @property {Function}
      */
-    that.link_clicked = IPA.observer();
+    that.other_pkeys = spec.other_pkeys || other_pkeys;
+
+    that.is_link = spec.is_link || false;
+
+    that.value = [];
+
+    function other_pkeys () {
+        return that.facet.get_pkeys();
+    }
 
     /** @inheritDoc */
     that.create = function(container) {
@@ -3617,8 +3768,7 @@ IPA.link_widget = function(spec) {
             html: '',
             'class': 'link-btn',
             click: function() {
-                that.link_clicked.notify([], that);
-                that.emit('link-click', { source: that });
+                that.on_link_clicked();
                 return false;
             }
         }).appendTo(container);
@@ -3628,11 +3778,19 @@ IPA.link_widget = function(spec) {
     };
 
     /** @inheritDoc */
-    that.update = function (values){
+    that.update = function(values) {
 
-        if (values || values.length > 0) {
-            that.nonlink.text(values[0]);
-            that.link.text(values[0]);
+        that.value = util.normalize_value(values)[0] || '';
+        that.link.html(that.value);
+        that.nonlink.html(that.value);
+
+        that.check_entity_link();
+        that.updated.notify([], that);
+        that.emit('update', { source: that });
+    };
+
+    that.update_link = function() {
+        if (that.value) {
             if(that.is_link) {
                 that.link.css('display','');
                 that.nonlink.css('display','none');
@@ -3641,13 +3799,54 @@ IPA.link_widget = function(spec) {
                 that.nonlink.css('display','');
             }
         } else {
-            that.link.html('');
-            that.nonlink.html('');
             that.link.css('display','none');
             that.nonlink.css('display','none');
         }
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+    };
+
+    /**
+     * Handler for widget `link_click` event
+     */
+    that.on_link_clicked = function() {
+
+        navigation.show_entity(
+            that.other_entity.name,
+            'default',
+            that.other_pkeys());
+    };
+
+    /**
+     * Check if entity exists
+     *
+     * - only if link points to an entity
+     * - updates link visibility accordingly
+     */
+    that.check_entity_link = function() {
+
+        //In some cases other entity may not be present.
+        //For example when DNS is not configured.
+        if (!that.other_entity) {
+            that.is_link = false;
+            return;
+        }
+
+        rpc.command({
+            entity: that.other_entity.name,
+            method: 'show',
+            args: that.other_pkeys(),
+            options: {},
+            retry: false,
+            on_success: function(data) {
+                that.is_link = data.result && data.result.result;
+                that.update_link();
+            },
+            on_error: function() {
+                that.is_link = false;
+                that.update_link();
+            }
+        }).execute();
+
+        that.update_link();
     };
 
     /** @inheritDoc */
@@ -4119,7 +4318,7 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
             text: label_text
         }).appendTo(label_cont);
 
-        var input = widget.get_input();
+        var input = widget.get_input && widget.get_input();
 
         if (input && input.length) input = input[0];
 
@@ -4150,6 +4349,8 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
     that.register_state_handlers = function(widget) {
         on(widget, 'require-change', that.on_require_change);
         on(widget, 'enabled-change', that.on_enabled_change);
+        on(widget, 'readonly-change', that.on_require_change);
+        on(widget, 'writable-change', that.on_require_change);
         on(widget, 'error-show', that.on_error_show);
         on(widget, 'error-hide', that.on_error_hide);
     };
@@ -4165,7 +4366,7 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
 
         var row = that._get_row(event);
         if (!row) return;
-        row.toggleClass('required', !!event.required);
+        row.toggleClass('required', !!event.required && event.source.is_writable());
     };
 
     that.on_error_show = function(event) {
@@ -4184,7 +4385,7 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
 
     that.update_state = function(row, widget) {
         row.toggleClass('disabled', !widget.enabled);
-        row.toggleClass('required', !!widget.required);
+        row.toggleClass('required', !!widget.required && widget.is_writable());
     };
 
     that._get_row = function(event) {
@@ -4685,9 +4886,10 @@ IPA.widget_container = function(spec) {
 
 /**
  * Widget builder
- * @class
+ * @class widget.widget_builder
+ * @alternateClassName IPA.widget_builder
  */
-IPA.widget_builder = function(spec) {
+exp.widget_builder = IPA.widget_builder = function(spec) {
 
     spec = spec || {};
 
@@ -4792,9 +4994,9 @@ IPA.sshkey_widget = function(spec) {
         that.create_error_link(container);
     };
 
-    that.update = function(values) {
+    that.update = function(value) {
 
-        var key = values && values.length ? values[0] : null;
+        var key = value[0];
 
         if (!key || key === '') {
             key = {};
@@ -4821,9 +5023,7 @@ IPA.sshkey_widget = function(spec) {
     };
 
     that.save = function() {
-        var value = that.key.key;
-        value = value ? [value] : [''];
-        return value;
+        return that.key;
     };
 
     that.update_link = function() {

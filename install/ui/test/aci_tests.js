@@ -239,7 +239,17 @@ test("Testing type target.", function() {
 
     same(target_widget.target, 'type', 'type selected');
 
-    $("input[type=checkbox]").attr("checked",true);
+    var attrs_w = target_widget.widgets.get_widget('attrs');
+    var options = attrs_w.options;
+    ok(options.length > 0, "Attrs has some options");
+    // check them all
+    var values = [];
+    for (var i=0,l=options.length; i<l; i++) {
+        values.push(options[i].value);
+    }
+    attrs_w.update(values);
+    attrs_w.emit('value-change', { source: attrs_w });
+
     var record = {};
     target_facet.save(record);
 
@@ -250,8 +260,7 @@ test("Testing type target.", function() {
         'ipapermtarget', 'memberof', 'attrs'],
         'type and attrs rows visible');
 
-    ok((record.attrs.length > 10),
-       "response length shows some attrs set");
+    same(record.attrs.length, options.length, "response contains all checked attrs");
 });
 
 

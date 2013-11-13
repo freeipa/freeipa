@@ -523,6 +523,8 @@ IPA.cert.load_policy = function(spec) {
             method: 'show',
             args: [serial_number],
             on_success: function(data, text_status, xhr) {
+                // copy it so consumers can notice the difference
+                that.container.certificate = lang.clone(that.container.certificate);
                 var cert = that.container.certificate;
                 cert.revocation_reason = data.result.result.revocation_reason;
                 that.notify_loaded();
@@ -914,12 +916,11 @@ IPA.cert.status_field = function(spec) {
 
     that.load = function(result) {
         that.register_listener();
-        that.reset();
+        that.field_load(result);
     };
 
     that.set_certificate = function(certificate) {
-        that.values = certificate;
-        that.reset();
+        that.set_value(certificate);
     };
 
     that.register_listener = function() {

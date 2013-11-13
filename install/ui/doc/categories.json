@@ -74,8 +74,8 @@
                     "reg",
                     "details.details_builder",
                     "details.section_builder",
-                    "IPA.field_builder",
-                    "IPA.widget_builder"
+                    "field.field_builder",
+                    "widget.widget_builder"
                 ]
             },
             {
@@ -96,8 +96,10 @@
                     "IPA.bulk_associator",
                     "IPA.association_config",
                     "spec_util",
+                    "_base.debug",
                     "_base.Spec_mod",
-                    "datetime"
+                    "datetime",
+                    "util"
                 ]
             }
         ]
@@ -115,7 +117,7 @@
                     "facet.FacetState",
                     "facet.action_holder",
                     "details.facet_policies",
-                    "IPA.field_container",
+                    "field.field_container",
                     "IPA.widget_container",
                     "details.update_info",
                     "details.command_info",
@@ -179,8 +181,20 @@
             {
                 "name": "Fields",
                 "classes": [
-                    "IPA.field",
+                    "field.field",
                     "*_field"
+                ]
+            },
+            {
+                "name": "Binders",
+                "classes": [
+                    "*Binder"
+                ]
+            },
+            {
+                "name": "Adapters",
+                "classes": [
+                    "*Adapter"
                 ]
             },
             {
@@ -193,7 +207,7 @@
             {
                 "name": "Validators",
                 "classes": [
-                    "IPA.validator",
+                    "field.validator",
                     "*_validator"
                 ]
             }
