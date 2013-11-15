@@ -161,3 +161,8 @@ realmdomains = [
     u'nsContainer',
     u'domainRelatedObject',
 ]
+
+radiusproxy = [
+    u'ipatokenradiusconfiguration',
+    u'top',
+]
