@@ -2073,11 +2073,12 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
 command: migrate_ds
-args: 2,17,4
+args: 2,18,4
 arg: Str('ldapuri', cli_name='ldap_uri')
 arg: Password('bindpw', cli_name='password', confirm=False)
 option: DNParam('basedn?', cli_name='base_dn')
 option: DNParam('binddn?', autofill=True, cli_name='bind_dn', default=ipapython.dn.DN('cn=directory manager'))
+option: File('cacertfile?', cli_name='ca_cert_file', default=None)
 option: Flag('compat?', autofill=True, cli_name='with_compat', default=False)
 option: Flag('continue?', autofill=True, default=False)
 option: Str('exclude_groups*', autofill=True, cli_name='exclude_groups', csv=True, default=())

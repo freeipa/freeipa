@@ -20,7 +20,7 @@
 import re
 
 from ipalib import api, errors, output
-from ipalib import Command, Password, Str, Flag, StrEnum, DNParam
+from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File
 from ipalib.cli import to_cli
 from ipalib.plugins.user import NO_UPG_MAGIC
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -30,6 +30,7 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
         raise e
 from ipalib import _
 from ipapython.dn import DN
+from ipapython.ipautil import write_tmp_file
 import datetime
 
 __doc__ = _("""
@@ -593,6 +594,12 @@ class migrate_ds(Command):
             doc=_('Allows migration despite the usage of compat plugin'),
             default=False,
         ),
+        File('cacertfile?',
+            cli_name='ca_cert_file',
+            label=_('CA certificate'),
+            doc=_('Load CA certificate of LDAP server from FILE'),
+            default=None
+        ),
     )
 
     has_output = (
@@ -844,7 +851,6 @@ can use their Kerberos accounts.''')
     def execute(self, ldapuri, bindpw, **options):
         ldap = self.api.Backend.ldap2
         self.normalize_options(options)
-
         config = ldap.get_ipa_config()[1]
 
         ds_base_dn = options.get('basedn')
@@ -857,7 +863,20 @@ can use their Kerberos accounts.''')
 
         # connect to DS
         ds_ldap = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
-        ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw)
+
+        cacert = None
+        if options.get('cacertfile') is not None:
+            #store CA cert into file
+            tmp_ca_cert_f = write_tmp_file(options['cacertfile'])
+            cacert = tmp_ca_cert_f.name
+
+            #start TLS connection
+            ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw,
+                tls_cacertfile=cacert)
+
+            tmp_ca_cert_f.close()
+        else:
+            ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw)
 
         #check whether the compat plugin is enabled
         if not options.get('compat'):
