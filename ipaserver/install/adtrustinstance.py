@@ -881,11 +881,16 @@ class ADTRUSTInstance(service.Service):
         if self.is_configured():
             self.print_msg("Unconfiguring %s" % self.service_name)
 
-        running = self.restore_state("running")
-        enabled = self.restore_state("enabled")
+        # Call restore_state so that we do not leave mess in the statestore
+        # Otherwise this does nothing
+        self.restore_state("running")
+        self.restore_state("enabled")
 
+        # Always try to stop and disable smb service, since we do not leave
+        # working configuration after uninstall
         try:
             self.stop()
+            self.disable()
         except:
             pass
 
@@ -917,9 +922,3 @@ class ADTRUSTInstance(service.Service):
 
         # Remove our keys from samba's keytab
         self.clean_samba_keytab()
-
-        if not enabled is None and not enabled:
-            self.disable()
-
-        if not running is None and running:
-            self.start()
