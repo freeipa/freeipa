@@ -72,6 +72,8 @@ SSH_KNOWNHOSTSFILE = '/var/lib/sss/pubconf/known_hosts'
 
 client_nss_nickname_format = 'IPA Machine Certificate - %s'
 
+NSSWITCH_CONF = '/etc/nsswitch.conf'
+
 def parse_options():
     def validate_ca_cert_file_option(option, opt, value, parser):
         if not os.path.exists(value):
@@ -137,6 +139,9 @@ def parse_options():
                       help="do not configure OpenSSH client")
     basic_group.add_option("--no-sshd", dest="conf_sshd", default=True, action="store_false",
                       help="do not configure OpenSSH server")
+    basic_group.add_option("--no-sudo", dest="conf_sudo", default=True,
+                      action="store_false",
+                      help="do not configure SSSD as data source for sudo")
     basic_group.add_option("--no-dns-sshfp", dest="create_sshfp", default=True, action="store_false",
                       help="do not automatically create DNS SSHFP records")
     basic_group.add_option("--noac", dest="no_ac", default=False, action="store_true",
@@ -351,6 +356,69 @@ def is_ipa_client_installed(on_master=False):
        (not on_master and os.path.exists('/etc/ipa/default.conf'))
 
     return installed
+
+def configure_nsswitch_database(fstore, database, services, preserve=True,
+                                append=True, default_value=None):
+    """
+    Edits the specified nsswitch.conf database (e.g. passwd, group, sudoers)
+    to use the specified service(s).
+
+    Arguments:
+        fstore - FileStore to backup the nsswitch.conf
+        database - database configuration that should be ammended, e.g 'sudoers'
+        service - list of services that should be added, e.g. ['sss']
+        preserve - if True, the already configured services will be preserved
+
+    The next arguments modify the behaviour if preserve=True:
+        append - if True, the services will be appended, if False, prepended
+        default_value - list of services that are considered as default (if
+                        the database is not mentioned in nsswitch.conf), e.g.
+                        ['files']
+    """
+
+    # Backup the original version of nsswitch.conf, we're going to edit it now
+    if not fstore.has_file(NSSWITCH_CONF):
+        fstore.backup_file(NSSWITCH_CONF)
+
+    conf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    conf.setOptionAssignment(':')
+
+    if preserve:
+        # Read the existing configuration
+        with open('/etc/nsswitch.conf', 'r') as f:
+            opts = conf.parse(f)
+            raw_database_entry = conf.findOpts(opts, 'option', database)[1]
+
+            if not raw_database_entry:
+                # If there is no database entry, database is not present in
+                # the nsswitch.conf. Set the list of services to the
+                # default list, if passed.
+                configured_services = ' '.join(default_value or [])
+            else:
+                configured_services = raw_database_entry['value'].strip()
+
+        if append:
+            new_services = ' ' + configured_services + ' ' + ' '.join(services)
+        else:
+            new_services = ' ' +  ' '.join(services) + ' ' + configured_services
+
+    else:
+        # Preserve not set, let's rewrite existing configuration
+        new_services = ' ' + ' '.join(services)
+
+    # Set new services as sources for database
+    opts = [{'name': database,
+             'type':'option',
+             'action':'set',
+             'value': new_services
+            },
+            {'name':'empty',
+             'type':'empty'
+            }]
+
+    conf.changeConf(NSSWITCH_CONF, opts)
+    root_logger.info("Configured %s in %s" % (database, NSSWITCH_CONF))
+
 
 def uninstall(options, env):
 
@@ -1140,6 +1208,20 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
                 "Configure SSH support manually in /etc/sssd/sssd.conf.")
 
         sssdconfig.activate_service('ssh')
+
+    if options.conf_sudo:
+        # Activate the service in the SSSD config
+        try:
+            sssdconfig.new_service('sudo')
+        except SSSDConfig.ServiceAlreadyExists:
+            pass
+        except SSSDConfig.ServiceNotRecognizedError:
+            root_logger.error("Unable to activate the SUDO service in "
+                              "SSSD config.")
+
+        sssdconfig.activate_service('sudo')
+        configure_nsswitch_database(fstore, 'sudoers', ['sss'],
+                                    default_value=['files'])
 
     domain.add_provider('ipa', 'id')
 
@@ -2265,7 +2347,7 @@ def install(options, env, fstore, statestore):
         # skip this step when run by ipa-server-install as it always configures
         # hostname if different from system hostname
         ipaservices.backup_and_replace_hostname(fstore, statestore, options.hostname)
-   
+
     if not options.on_master:
         # Attempt to sync time with IPA server.
         # We assume that NTP servers are discoverable through SRV records in the DNS
