@@ -375,6 +375,11 @@ sides.
                     passed_options = options
                     passed_options.update(range_type=created_range_type)
 
+                    # Do not pass the base id to the subdomains since it would
+                    # clash with the root level domain
+                    if 'base_id' in passed_options:
+                        del passed_options['base_id']
+
                     # Try to add the range for each subdomain
                     try:
                         self.add_range(range_name, dom_sid, *keys,
