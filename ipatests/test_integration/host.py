@@ -160,7 +160,7 @@ class BaseHost(object):
     def ldap_connect(self):
         """Return an LDAPClient authenticated to this host as directory manager
         """
-        self.log.info('Connecting to LDAP')
+        self.log.info('Connecting to LDAP at %s', self.external_hostname)
         ldap = IPAdmin(self.external_hostname)
         binddn = self.config.dirman_dn
         self.log.info('LDAP bind as %s' % binddn)
