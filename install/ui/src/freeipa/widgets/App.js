@@ -52,7 +52,7 @@ define(['dojo/_base/declare',
 
         //nodes:
 
-        domNode: null,
+        dom_node: null,
 
         container_node: null,
 
@@ -86,20 +86,20 @@ define(['dojo/_base/declare',
 
         render: function() {
 
-            this.domNode = construct.create('div', {
+            this.dom_node = construct.create('div', {
                 id: this.app_id,
                 'class': 'app-container'
             });
 
             if (this.container_node) {
-                construct.place(this.domNode, this.container_node);
+                construct.place(this.dom_node, this.container_node);
             }
 
             this._render_header();
 
             this.content_node = construct.create('div', {
                 'class': 'content'
-            }, this.domNode);
+            }, this.dom_node);
         },
 
         _render_header: function() {
@@ -113,7 +113,7 @@ define(['dojo/_base/declare',
             this.menu_node = this.menu_widget.render();
             construct.place(this.menu_node, this.header_node);
 
-            construct.place(this.header_node, this.domNode);
+            construct.place(this.header_node, this.dom_node);
         },
 
         _render_nav_util: function() {

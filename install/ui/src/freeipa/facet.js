@@ -249,19 +249,19 @@ exp.facet = IPA.facet = function(spec, no_init) {
     that.dialogs = $.ordered_map();
 
     /**
-     * domNode of container
-     * Suppose to contain domNode of this and other facets.
+     * dom_node of container
+     * Suppose to contain dom_node of this and other facets.
      * @property {jQuery}
      */
     that.container_node = spec.container_node;
 
     /**
-     * domNode which contains all content of a facet.
+     * dom_node which contains all content of a facet.
      * Should contain error content and content. When error is moved to
      * standalone facet it will replace functionality of content.
      * @property {jQuery}
      */
-    that.domNode = null;
+    that.dom_node = null;
 
     /**
      * Facet group name
@@ -468,7 +468,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
         that.old_state = state;
 
         // we don't have to reflect any changes if facet dom is not yet created
-        if (!that.domNode) {
+        if (!that.dom_node) {
             if (needs_update) that.set_expired_flag();
             return;
         }
@@ -526,11 +526,11 @@ exp.facet = IPA.facet = function(spec, no_init) {
 
         var entity_name = !!that.entity ? that.entity.name : '';
 
-        if (that.domNode) {
-            that.domNode.empty();
-            that.domNode.detach();
+        if (that.dom_node) {
+            that.dom_node.empty();
+            that.dom_node.detach();
         } else {
-            that.domNode = $('<div/>', {
+            that.dom_node = $('<div/>', {
                 'class': 'facet active-facet',
                 name: that.name,
                 'data-name': that.name,
@@ -538,34 +538,34 @@ exp.facet = IPA.facet = function(spec, no_init) {
             });
         }
 
-        var domNode = that.domNode;
-        that.container = domNode;
+        var dom_node = that.dom_node;
+        that.container = dom_node;
 
         if (!that.container_node) throw {
             error: 'Can\'t create facet. No container node defined.'
         };
-        var node = domNode[0];
+        var node = dom_node[0];
         construct.place(node,that.container_node);
 
 
-        if (that.disable_facet_tabs) domNode.addClass('no-facet-tabs');
-        domNode.addClass(that.display_class);
+        if (that.disable_facet_tabs) dom_node.addClass('no-facet-tabs');
+        dom_node.addClass(that.display_class);
 
         that.header_container = $('<div/>', {
             'class': 'facet-header'
-        }).appendTo(domNode);
+        }).appendTo(dom_node);
         that.create_header(that.header_container);
 
         that.content = $('<div/>', {
             'class': 'facet-content'
-        }).appendTo(domNode);
+        }).appendTo(dom_node);
 
         that.error_container = $('<div/>', {
             'class': 'facet-content facet-error'
-        }).appendTo(domNode);
+        }).appendTo(dom_node);
 
         that.create_content(that.content);
-        domNode.removeClass('active-facet');
+        dom_node.removeClass('active-facet');
     };
 
     /**
@@ -626,7 +626,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
 
         that.entity.facet = that; // FIXME: remove
 
-        if (!that.domNode) {
+        if (!that.dom_node) {
             that.create();
 
             var state = that.state.clone();
@@ -637,7 +637,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
                 that.clear();
             }
 
-            that.domNode.addClass('active-facet');
+            that.dom_node.addClass('active-facet');
             that.show_content();
             that.header.select_tab();
 
@@ -645,7 +645,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
                 that.refresh();
             }
         } else {
-            that.domNode.addClass('active-facet');
+            that.dom_node.addClass('active-facet');
             that.show_content();
             that.header.select_tab();
         }
@@ -687,7 +687,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
      * Un-mark itself as active facet
      */
     that.hide = function() {
-        that.domNode.removeClass('active-facet');
+        that.dom_node.removeClass('active-facet');
     };
 
     /**

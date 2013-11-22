@@ -55,10 +55,10 @@ define(['dojo/_base/declare',
         menu: null,
 
         /**
-         * domNode of this widget. FIXME: move to superclass (none yet)
+         * dom_node of this widget. FIXME: move to superclass (none yet)
          * @property {HTMLElement}
          */
-        domNode: null,
+        dom_node: null,
 
         /**
          * Turns off update on data change
@@ -76,20 +76,20 @@ define(['dojo/_base/declare',
          * Renders widget's elements
          */
         render: function() {
-            if (this.domNode) {
-                construct.empty(this.domNode);
+            if (this.dom_node) {
+                construct.empty(this.dom_node);
             } else {
-                this.domNode = construct.create('div', {
+                this.dom_node = construct.create('div', {
                     'class': 'navbar primary persistent-secondary'
                 });
             }
             this.innerNode = construct.create('div', {
                 'class': 'navbar-inner'
-            }, this.domNode);
+            }, this.dom_node);
             if (this.menu) {
                 this._render_children(null, null, this.innerNode, 1);
             }
-            return this.domNode;
+            return this.dom_node;
         },
 
         /**
@@ -228,7 +228,7 @@ define(['dojo/_base/declare',
 
             // hide all except top level
             var exception = this._get_lvl_class(1);
-            query('div.submenu', this.domNode).forEach(function(submenu_node) {
+            query('div.submenu', this.dom_node).forEach(function(submenu_node) {
 
                 if (dom_class.contains(submenu_node, exception)) return;
 
@@ -242,7 +242,7 @@ define(['dojo/_base/declare',
                 this._update_item(item);
 
                 // show submenu
-                var item_div = query('div[data-item=\''+item.name+'\']', this.domNode)[0];
+                var item_div = query('div[data-item=\''+item.name+'\']', this.dom_node)[0];
                 if (item_div) {
                     dom_style.set(item_div, {
                         display: 'block'

@@ -233,13 +233,13 @@ test("Testing details lifecycle: create, load.", function(){
 
     facet.load(data);
 
-    var contact = $('.details-section[name=contact]', facet.domNode);
+    var contact = $('.details-section[name=contact]', facet.dom_node);
 
     ok(
         contact.length,
         'Verifying section for contact is created');
 
-    var identity = $('.details-section[name=identity]', facet.domNode);
+    var identity = $('.details-section[name=identity]', facet.dom_node);
 
     ok(
         identity.length,

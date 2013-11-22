@@ -91,7 +91,7 @@ define(['dojo/_base/declare',
         items: [],
 
         /**
-         * domNode of this widget
+         * dom_node of this widget
          * @property {HTMLElement}
          */
         dom_node: null,
