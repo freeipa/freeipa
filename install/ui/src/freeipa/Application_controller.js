@@ -331,9 +331,10 @@ define([
             this.current_facet = null;
         },
 
+
         _find_menu_item: function(facet) {
 
-            var items;
+            var items = [];
 
             // entity facets
             if (facet.entity) {

@@ -22,6 +22,7 @@ define([
     // core
     './app_container',
     './plugins/load_page',
+    './plugins/login',
     // entities
     './aci',
     './automember',

@@ -239,7 +239,8 @@
                     "otptoken",
                     "radiusproxy",
                     "user",
-                    "plugins.load"
+                    "plugins.load",
+                    "plugins.login"
                 ]
             }
         ]
