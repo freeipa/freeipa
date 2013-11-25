@@ -29,6 +29,7 @@ define([
         'dojo/Stateful',
         'dojo/Evented',
         './_base/Singleton_registry',
+        './_base/construct',
         './builder',
         './ipa',
         './jquery',
@@ -42,7 +43,7 @@ define([
         './field',
         './widget'
        ], function(declare, lang, construct, on, Stateful, Evented,
-                   Singleton_registry, builder, IPA, $,
+                   Singleton_registry, construct_utils, builder, IPA, $,
                    navigation, phases, reg, rpc, su, text) {
 
 /**
@@ -3493,6 +3494,7 @@ var FacetState = exp.FacetState = declare([Stateful, Evented], {
 var registry = new Singleton_registry();
 reg.set('facet', registry);
 builder.set('facet', registry.builder);
+registry.builder.post_ops.push(construct_utils.init_post_op);
 
 /**
  * Action builder with registry

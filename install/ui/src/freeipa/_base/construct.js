@@ -107,6 +107,18 @@ define(['dojo/_base/declare',
             return lang._mixin(r, src, construct.clone);
         },
 
+        /**
+         * Run object's init function after instantiation if it has one
+         * @param {Object} obj
+         * @param {Object} spec
+         */
+        init_post_op: function(obj, spec) {
+            if (obj && typeof obj.init === 'function') {
+                obj.init(spec);
+            }
+            return obj;
+        },
+
         no_cs_for_type_error: function(type) {
             return {
                 error: 'No construction specification for given type',

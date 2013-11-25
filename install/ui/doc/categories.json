@@ -36,6 +36,7 @@
                 "name": "Facets",
                 "classes": [
                     "facet.facet",
+                    "facets.Facet",
                     "*_facet"
                 ]
             },
