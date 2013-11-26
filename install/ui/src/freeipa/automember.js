@@ -285,7 +285,8 @@ IPA.automember.rule_details_facet = function(spec) {
                             },
                             {
                                 name: 'automemberinclusiveregex',
-                                label: '@i18n:objects.automember.expression'
+                                label: '@i18n:objects.automember.expression',
+                                required: true
                             }
                         ]
                     }
@@ -314,7 +315,8 @@ IPA.automember.rule_details_facet = function(spec) {
                             },
                             {
                                 name: 'automemberexclusiveregex',
-                                label: '@i18n:objects.automember.expression'
+                                label: '@i18n:objects.automember.expression',
+                                required: true
                             }
                         ]
                     }
