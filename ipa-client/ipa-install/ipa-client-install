@@ -2119,13 +2119,13 @@ def install(options, env, fstore, statestore):
             (ccache_fd, ccache_name) = tempfile.mkstemp()
             os.close(ccache_fd)
             env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = ccache_name
-            join_args = ["/usr/sbin/ipa-join", "-s", cli_server[0], "-b", str(realm_to_suffix(cli_realm))]
+            join_args = ["/usr/sbin/ipa-join",
+                         "-s", cli_server[0],
+                         "-b", str(realm_to_suffix(cli_realm)),
+                         "-h", hostname]
             if options.debug:
                 join_args.append("-d")
                 env['XMLRPC_TRACE_CURL'] = 'yes'
-            if options.hostname:
-                join_args.append("-h")
-                join_args.append(options.hostname)
             if options.force_join:
                 join_args.append("-f")
             if options.principal is not None:
