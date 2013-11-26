@@ -117,6 +117,7 @@ struct ipadb_e_data {
     struct ipapwd_policy *pol;
     time_t last_admin_unlock;
     char **authz_data;
+    bool has_tktpolaux;
 };
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);

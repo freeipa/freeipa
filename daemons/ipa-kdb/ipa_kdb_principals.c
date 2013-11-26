@@ -468,6 +468,17 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         ied->ipa_user = true;
     }
 
+    /* check if it has the krbTicketPolicyAux objectclass */
+    ret = ipadb_ldap_attr_has_value(lcontext, lentry,
+                                    "objectClass", "krbTicketPolicyAux");
+    if (ret != 0 && ret != ENOENT) {
+        kerr = ret;
+        goto done;
+    }
+    if (ret == 0) {
+        ied->has_tktpolaux = true;
+    }
+
     ret = ipadb_ldap_attr_to_str(lcontext, lentry,
                                  "krbPwdPolicyReference", &restring);
     switch (ret) {
@@ -1411,6 +1422,29 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
 
     /* KADM5_ATTRIBUTES */
     if (entry->mask & KMASK_ATTRIBUTES) {
+        /* if the object does not have the krbTicketPolicyAux class
+         * we need to add it or this will fail, only for modifications.
+         * We always add this objectclass by default when doing an add
+         * from scratch. */
+        if ((mod_op == LDAP_MOD_REPLACE) && entry->e_data) {
+            struct ipadb_e_data *ied;
+
+            ied = (struct ipadb_e_data *)entry->e_data;
+            if (ied->magic != IPA_E_DATA_MAGIC) {
+                kerr = EINVAL;
+                goto done;
+            }
+
+            if (!ied->has_tktpolaux) {
+                kerr = ipadb_get_ldap_mod_str(imods, "objectclass",
+                                              "krbTicketPolicyAux",
+                                              LDAP_MOD_ADD);
+                if (kerr) {
+                    goto done;
+                }
+            }
+        }
+
         kerr = ipadb_get_ldap_mod_int(imods,
                                       "krbTicketFlags",
                                       (int)entry->attributes,
