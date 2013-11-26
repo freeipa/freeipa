@@ -293,7 +293,7 @@ class textui(backend.Backend):
                     return
                 else:
                     if len(value) > 0:
-                        text = ', '.join(value)
+                        text = ', '.join(str(v) for v in value)
                     else:
                         return
                 line_len = self.get_tty_width()
