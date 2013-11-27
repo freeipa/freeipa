@@ -1,4 +1,4 @@
-PYTHONLIBDIR ?= $(shell  python -c "from distutils.sysconfig import *; print get_python_lib()")
+PYTHONLIBDIR ?= $(shell  python2 -c "from distutils.sysconfig import *; print get_python_lib()")
 PACKAGEDIR ?= $(DESTDIR)/$(PYTHONLIBDIR)/ipa
 CONFIGDIR ?= $(DESTDIR)/etc/ipa
 TESTS = $(wildcard test/*.py)
@@ -12,9 +12,9 @@ all:
 
 install:
 	if [ "$(DESTDIR)" = "" ]; then \
-		python setup.py install; \
+		python2 setup.py install; \
 	else \
-		python setup.py install --root $(DESTDIR); \
+		python2 setup.py install --root $(DESTDIR); \
 	fi
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
@@ -42,4 +42,4 @@ maintainer-clean: distclean
 test: $(subst .py,.tst,$(TESTS))
 
 %.tst: %.py
-	python $<
+	python2 $<

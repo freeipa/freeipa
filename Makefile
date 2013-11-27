@@ -50,7 +50,7 @@ ifneq ($(DEVELOPER_MODE),0)
 LINT_OPTIONS=--no-fail
 endif
 
-PYTHON ?= $(shell rpm -E %__python || echo /usr/bin/python)
+PYTHON ?= $(shell rpm -E %__python || echo /usr/bin/python2)
 
 CFLAGS := -g -O2 -Werror -Wall -Wextra -Wformat-security -Wno-unused-parameter -Wno-sign-compare -Wno-missing-field-initializers $(CFLAGS)
 export CFLAGS

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # Authors:
 #   John Dennis <jdennis@redhat.com>
 #

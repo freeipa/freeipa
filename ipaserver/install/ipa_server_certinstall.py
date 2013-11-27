@@ -1,4 +1,3 @@
-#! /usr/bin/python
 # Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
 #          Jan Cholasta <jcholast@redhat.com>
 #

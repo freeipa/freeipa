@@ -1,4 +1,4 @@
-#! /usr/bin/python -E
+#! /usr/bin/python2 -E
 #
 # Copyright (C) 2007    Red Hat
 # see file 'COPYING' for use and warranty information

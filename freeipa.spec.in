@@ -496,7 +496,7 @@ fi
 
 # Restart IPA processes. This must be also run in postrans so that plugins
 # and software is in consistent state
-python -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+python2 -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 # NOTE: systemd specific section
 if [  $? -eq 0 ]; then
     /bin/systemctl try-restart ipa.service >/dev/null 2>&1 || :
@@ -532,7 +532,7 @@ fi
         winbind_krb5_locator.so /dev/null 90
 
 %posttrans server-trust-ad
-python -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+python2 -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 if [  $? -eq 0 ]; then
 # NOTE: systemd specific section
     /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :

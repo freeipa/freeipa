@@ -1,4 +1,4 @@
-#!/usr/bin/python -E
+#!/usr/bin/python2 -E
 #
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>

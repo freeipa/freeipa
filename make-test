@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 """
 Run IPA unit tests under multiple versions of Python (if present).

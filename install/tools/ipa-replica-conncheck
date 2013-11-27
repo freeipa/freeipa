@@ -1,4 +1,4 @@
-#! /usr/bin/python -E
+#! /usr/bin/python2 -E
 # Authors: Martin Kosek <mkosek@redhat.com>
 #
 # Copyright (C) 2011  Red Hat
