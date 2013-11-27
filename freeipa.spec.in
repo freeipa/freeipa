@@ -5,6 +5,10 @@
 %global POLICYCOREUTILSVER 2.1.12-5
 %global gettext_domain ipa
 
+%if (0%{?fedora} > 15 || 0%{?rhel} >= 7)
+%define _hardened_build 1
+%endif
+
 Name:           freeipa
 Version:        __VERSION__
 Release:        __RELEASE__%{?dist}
