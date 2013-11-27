@@ -1231,10 +1231,17 @@ api.register(trustdomain_del)
 def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
     trust_name = trust_entry['cn'][0]
     creds = None
-    password = options.get('realm_password', None)
+    password = options.get('realm_passwd', None)
     if password:
-        creds = u"%s%%%s" % (options.get('realm_admin'), password)
-    domains = ipaserver.dcerpc.fetch_domains(self.api, trustinstance.local_flatname, trust_name, creds=creds)
+        admin_name = options.get('realm_admin')
+        sp = admin_name.split('\\')
+        if len(sp) == 1:
+            sp.insert(0, trustinstance.remote_domain.info['name'])
+        creds = u"{name}%{password}".format(name="\\".join(sp),
+                                            password=password)
+    domains = ipaserver.dcerpc.fetch_domains(self.api,
+                                             trustinstance.local_flatname,
+                                             trust_name, creds=creds)
     result = []
     if not domains:
         return None

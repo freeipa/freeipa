@@ -655,7 +655,7 @@ class TrustDomainInstance(object):
        except RuntimeError, (num, message):
            raise assess_dcerpc_exception(num=num, message=message)
 
-    def __init_lsa_pipe(self, remote_host):
+    def init_lsa_pipe(self, remote_host):
         """
         Try to initialize connection to the LSA pipe at remote host.
         This method tries consequently all possible transport options
@@ -692,7 +692,7 @@ class TrustDomainInstance(object):
         """
         There are multiple transports to issue LSA calls. However, depending on a
         system in use they may be blocked by local operating system policies.
-        Generate all we can use. __init_lsa_pipe() will try them one by one until
+        Generate all we can use. init_lsa_pipe() will try them one by one until
         there is one working.
 
         We try NCACN_NP before NCACN_IP_TCP and signed sessions before unsigned.
@@ -753,7 +753,7 @@ class TrustDomainInstance(object):
         return naming_ref.match(context).group(1)
 
     def retrieve(self, remote_host):
-        self.__init_lsa_pipe(remote_host)
+        self.init_lsa_pipe(remote_host)
 
         objectAttribute = lsa.ObjectAttribute()
         objectAttribute.sec_qos = lsa.QosInfo()
@@ -964,34 +964,48 @@ def fetch_domains(api, mydomain, trustdomain, creds=None):
                 NETR_TRUST_ATTRIBUTE_TREAT_AS_EXTERNAL  = 0x00000040)
 
     def communicate(td):
-        td.creds.guess(td.parm)
-        netrc = net.Net(creds=td.creds, lp=td.parm)
-        try:
-            result = netrc.finddc(domain=trustdomain, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
-        except RuntimeError, e:
-            raise assess_dcerpc_exception(message=str(e))
-        if not result:
-            return None
-        td.retrieve(unicode(result.pdc_dns_name))
-
+        td.init_lsa_pipe(td.info['dc'])
         netr_pipe = netlogon.netlogon(td.binding, td.parm, td.creds)
         domains = netr_pipe.netr_DsrEnumerateDomainTrusts(td.binding, 1)
         return domains
 
     domains = None
+    domain_validator = DomainValidator(api)
+    configured = domain_validator.is_configured()
+    if not configured:
+        return None
+
     td = TrustDomainInstance('')
     td.parm.set('workgroup', mydomain)
-    td.creds = credentials.Credentials()
+    cr = credentials.Credentials()
+    cr.set_kerberos_state(credentials.DONT_USE_KERBEROS)
+    cr.guess(td.parm)
+    cr.set_anonymous()
+    cr.set_workstation(domain_validator.flatname)
+    netrc = net.Net(creds=cr, lp=td.parm)
+    try:
+        result = netrc.finddc(domain=trustdomain,
+                              flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+    except RuntimeError, e:
+        raise assess_dcerpc_exception(message=str(e))
+
+    td.info['dc'] = unicode(result.pdc_dns_name)
     if creds is None:
         domval = DomainValidator(api)
         (ccache_name, principal) = domval.kinit_as_http(trustdomain)
+        td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
         if ccache_name:
             with installutils.private_ccache(path=ccache_name):
+                td.creds.guess(td.parm)
+                td.creds.set_workstation(domain_validator.flatname)
                 domains = communicate(td)
     else:
+        td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.DONT_USE_KERBEROS)
+        td.creds.guess(td.parm)
         td.creds.parse_string(creds)
+        td.creds.set_workstation(domain_validator.flatname)
         domains = communicate(td)
 
     if domains is None:
