@@ -677,6 +677,7 @@ fi
 %{_usr}/share/ipa/ui/*.svg
 %{_usr}/share/ipa/ui/*.ttf
 %{_usr}/share/ipa/ui/*.woff
+%dir %{_usr}/share/ipa/ui/js
 %dir %{_usr}/share/ipa/ui/js/dojo
 %{_usr}/share/ipa/ui/js/dojo/dojo.js
 %dir %{_usr}/share/ipa/ui/js/libs
