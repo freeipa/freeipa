@@ -136,6 +136,7 @@ class UI_driver(object):
         """
         if not self.driver:
             self.driver = self.get_driver()
+            self.driver.maximize_window()
 
     def tearDown(self):
         """
