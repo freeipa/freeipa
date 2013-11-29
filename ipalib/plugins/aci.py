@@ -120,8 +120,8 @@ targetattr REPLACES the current attributes, it does not add to them.
 from copy import deepcopy
 
 from ipalib import api, crud, errors
-from ipalib import Object, Command
-from ipalib import Flag, Int, Str, StrEnum
+from ipalib import Object
+from ipalib import Flag, Str, StrEnum, DNParam
 from ipalib.aci import ACI
 from ipalib import output
 from ipalib import _, ngettext
@@ -892,7 +892,12 @@ class aci_show(crud.Retrieve):
         ),
     )
 
-    takes_options = (_prefix_option,)
+    takes_options = (
+        _prefix_option,
+        DNParam('location?',
+            label=_('Location of the ACI'),
+        )
+    )
 
     def execute(self, aciname, **kw):
         """
@@ -905,7 +910,8 @@ class aci_show(crud.Retrieve):
         """
         ldap = self.api.Backend.ldap2
 
-        entry = ldap.get_entry(self.api.env.basedn, ['aci'])
+        dn = kw.get('location', self.api.env.basedn)
+        entry = ldap.get_entry(dn, ['aci'])
 
         acis = _convert_strings_to_acis(entry.get('aci', []))
 

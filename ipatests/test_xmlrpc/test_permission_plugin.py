@@ -22,10 +22,13 @@
 Test the `ipalib/plugins/permission.py` module.
 """
 
+import os
+
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative
 from ipapython.dn import DN
+import inspect
 
 permission1 = u'testperm'
 permission1_dn = DN(('cn',permission1),
@@ -86,6 +89,44 @@ users_dn = DN(api.env.container_user, api.env.basedn)
 groups_dn = DN(api.env.container_group, api.env.basedn)
 
 
+def verify_permission_aci(name, dn, acistring):
+    """Return test dict that verifies the ACI at the given location"""
+    return dict(
+        desc="Verify ACI of %s #(%s)" % (name, lineinfo(2)),
+        command=('aci_show', [name], dict(
+            aciprefix=u'permission', location=dn, raw=True)),
+        expected=dict(
+            result=dict(aci=acistring),
+            summary=None,
+            value=name,
+        ),
+    )
+
+
+def verify_permission_aci_missing(name, dn):
+    """Return test dict that checks the ACI at the given location is missing"""
+    return dict(
+        desc="Verify ACI of %s is missing #(%s)" % (name, lineinfo(2)),
+        command=('aci_show', [name], dict(
+            aciprefix=u'permission', location=dn, raw=True)),
+        expected=errors.NotFound(
+            reason='ACI with name "%s" not found' % name),
+    )
+
+
+def lineinfo(level):
+    """Return "filename:lineno" for `level`-th caller"""
+    # Declarative tests hide tracebacks.
+    # Including this info in the test name makes it possible
+    # to locate failing tests.
+    frame = inspect.currentframe()
+    for i in range(level):
+        frame = frame.f_back
+    lineno = frame.f_lineno
+    filename = os.path.basename(frame.f_code.co_filename)
+    return '%s:%s' % (filename, lineno)
+
+
 class test_permission_negative(Declarative):
     """Make sure invalid operations fail"""
 
@@ -100,7 +141,6 @@ class test_permission_negative(Declarative):
             expected=errors.NotFound(
                 reason=u'%s: permission not found' % permission1),
         ),
-
 
         dict(
             desc='Try to update non-existent %r' % permission1,
@@ -152,6 +192,8 @@ class test_permission_negative(Declarative):
                       '(e.g. target, targetfilter, attrs)'),
         ),
 
+        verify_permission_aci_missing(permission1, api.env.basedn),
+
         dict(
             desc='Try to create invalid %r' % invalid_permission1,
             command=('permission_add', [invalid_permission1], dict(
@@ -161,6 +203,8 @@ class test_permission_negative(Declarative):
             expected=errors.ValidationError(name='name',
                 error='May only contain letters, numbers, -, _, ., and space'),
         ),
+
+        verify_permission_aci_missing(permission1, users_dn),
 
         dict(
             desc='Create %r so we can try breaking it' % permission1,
@@ -280,6 +324,13 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
 
         dict(
             desc='Try to create duplicate %r' % permission1,
@@ -540,6 +591,14 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission2, users_dn,
+            '(targetattr = "cn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission2 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission2_dn,
+        ),
+
 
         dict(
             desc='Search for %r' % permission1,
@@ -766,6 +825,15 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (read) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
 
         dict(
             desc='Retrieve %r to verify update' % permission1,
@@ -871,6 +939,17 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci_missing(permission1, users_dn),
+
+        verify_permission_aci(
+            permission1_renamed, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1_renamed +
+            'allow (all) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
+        ),
+
 
         dict(
             desc='Rename %r to permission %r' % (permission1_renamed,
@@ -901,6 +980,17 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci_missing(permission1_renamed, users_dn),
+
+        verify_permission_aci(
+            permission1_renamed_ucase, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase +
+            'allow (write) groupdn = "ldap:///%s";)' %
+                permission1_renamed_ucase_dn,
+        ),
 
         dict(
             desc='Change %r to a subtree type' % permission1_renamed_ucase,
@@ -928,6 +1018,15 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1_renamed_ucase, users_dn,
+            '(targetattr = "sn")' +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase +
+            'allow (write) groupdn = "ldap:///%s";)' %
+                permission1_renamed_ucase_dn,
+        ),
+
         dict(
             desc='Reset --subtree of %r' % permission2,
             command=(
@@ -949,6 +1048,14 @@ class test_permission(Declarative):
                     'ipapermlocation': [api.env.basedn],
                 },
             ),
+        ),
+
+        verify_permission_aci(
+            permission2, api.env.basedn,
+            '(targetattr = "cn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission2 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission2_dn,
         ),
 
         dict(
@@ -1027,6 +1134,7 @@ class test_permission(Declarative):
             )
         ),
 
+        verify_permission_aci_missing(permission1_renamed_ucase, users_dn),
 
         dict(
             desc='Try to delete non-existent %r' % permission1,
@@ -1062,6 +1170,7 @@ class test_permission(Declarative):
             )
         ),
 
+        verify_permission_aci_missing(permission2, users_dn),
 
         dict(
             desc='Search for %r' % permission1,
@@ -1128,6 +1237,15 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=editors', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Try to update non-existent memberof of %r' % permission1,
             command=('permission_mod', [permission1], dict(
@@ -1163,6 +1281,15 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Unset memberof of permission %r' % permission1,
             command=(
@@ -1188,6 +1315,13 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
 
         dict(
             desc='Delete %r' % permission1,
@@ -1199,6 +1333,7 @@ class test_permission(Declarative):
             )
         ),
 
+        verify_permission_aci_missing(permission1, users_dn),
 
         dict(
             desc='Create targetgroup permission %r' % permission1,
@@ -1227,6 +1362,14 @@ class test_permission(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, api.env.basedn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN('cn=editors', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Create %r' % permission3,
             command=(
@@ -1252,6 +1395,14 @@ class test_permission(Declarative):
                     ipapermlocation=[users_dn],
                 ),
             ),
+        ),
+
+        verify_permission_aci(
+            permission3, users_dn,
+            '(targetattr = "cn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission3 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission3_dn,
         ),
 
         dict(
@@ -1298,6 +1449,14 @@ class test_permission(Declarative):
                     ipapermlocation=[users_dn],
                 ),
             ),
+        ),
+
+        verify_permission_aci(
+            permission3, users_dn,
+            '(targetattr = "cn || uid")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission3 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission3_dn,
         ),
 
         dict(
@@ -1351,6 +1510,15 @@ class test_permission_sync_attributes(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Unset location on %r, verify type is gone' % permission1,
             command=(
@@ -1376,6 +1544,15 @@ class test_permission_sync_attributes(Declarative):
                     ipapermlocation=[api.env.basedn],
                 ),
             ),
+        ),
+
+        verify_permission_aci(
+            permission1, api.env.basedn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
 
         dict(
@@ -1406,6 +1583,15 @@ class test_permission_sync_attributes(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Unset target on %r, verify type is gone' % permission1,
             command=(
@@ -1432,6 +1618,14 @@ class test_permission_sync_attributes(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Unset targetfilter on %r, verify memberof is gone' % permission1,
             command=(
@@ -1453,6 +1647,13 @@ class test_permission_sync_attributes(Declarative):
                     ipapermlocation=[users_dn],
                 ),
             ),
+        ),
+
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
 
         dict(
@@ -1480,6 +1681,14 @@ class test_permission_sync_attributes(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, groups_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('cn', '*'), groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Set target on %r, verify targetgroup is set' % permission1,
             command=(
@@ -1503,6 +1712,14 @@ class test_permission_sync_attributes(Declarative):
                     targetgroup=[u'editors'],
                 ),
             ),
+        ),
+
+        verify_permission_aci(
+            permission1, groups_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('cn', 'editors'), groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
     ]
 
@@ -1545,6 +1762,15 @@ class test_permission_sync_nice(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Unset type on %r, verify target & location are gone' % permission1,
             command=(
@@ -1571,6 +1797,14 @@ class test_permission_sync_nice(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, api.env.basedn,
+            '(targetattr = "sn")' +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Unset memberof on %r, verify targetfilter is gone' % permission1,
             command=(
@@ -1592,6 +1826,13 @@ class test_permission_sync_nice(Declarative):
                     ipapermlocation=[api.env.basedn],
                 ),
             ),
+        ),
+
+        verify_permission_aci(
+            permission1, api.env.basedn,
+            '(targetattr = "sn")' +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
 
         dict(
@@ -1619,6 +1860,14 @@ class test_permission_sync_nice(Declarative):
             ),
         ),
 
+        verify_permission_aci(
+            permission1, groups_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('cn', '*'), groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
         dict(
             desc='Set targetgroup on %r, verify target is set' % permission1,
             command=(
@@ -1642,6 +1891,14 @@ class test_permission_sync_nice(Declarative):
                     targetgroup=[u'editors'],
                 ),
             ),
+        ),
+
+        verify_permission_aci(
+            permission1, groups_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('cn', 'editors'), groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
     ]
 

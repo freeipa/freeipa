@@ -92,10 +92,11 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('value', <type 'unicode'>, None)
 command: aci_show
-args: 1,4,3
+args: 1,5,3
 arg: Str('aciname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: StrEnum('aciprefix', cli_name='prefix', values=(u'permission', u'delegation', u'selfservice', u'none'))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: DNParam('location?')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
