@@ -220,6 +220,12 @@ IPA.input_widget = function(spec) {
     that.height = spec.height;
 
     /**
+     * Widget is required
+     * @property {boolean}
+     */
+    that.required = spec.required;
+
+    /**
      * Enable undo button showing. Undo button is displayed when user
      * modifies data.
      * @property {boolean} undo=true
@@ -4006,11 +4012,14 @@ IPA.table_layout = function(spec) {
     return that;
 };
 
-IPA.fluid_layout = function(spec) {
+exp.fluid_layout = IPA.fluid_layout = function(spec) {
 
     var that = IPA.layout(spec);
 
     that.cont_cls = spec.cont_cls || 'form-horizontal';
+    that.widget_cls = spec.widget_cls || 'controls';
+    that.label_cls = spec.label_cls || 'control-label';
+    that.group_cls = spec.group_cls || 'control-group';
 
     that.create = function(widgets) {
 
@@ -4035,7 +4044,7 @@ IPA.fluid_layout = function(spec) {
     };
 
     that.create_control_group = function(container, widget) {
-        var group = $('<div/>', { 'class': 'control-group' });
+        var group = $('<div/>', { 'class': that.group_cls });
         that.rows.put(widget.name, group);
 
         if (widget.hidden) {
@@ -4049,7 +4058,7 @@ IPA.fluid_layout = function(spec) {
     that.create_label = function(widget) {
         var label_text = widget.label + that.get_measurement_unit_text(widget);
 
-        var label_cont = $('<div/>', { 'class': 'control-label' });
+        var label_cont = $('<div/>', { 'class': that.label_cls });
 
         var label_el = $('<label/>', {
             name: widget.name,
@@ -4073,7 +4082,7 @@ IPA.fluid_layout = function(spec) {
 
     that.create_control = function(widget) {
         var controls = $('<div/>', {
-            'class': 'controls'
+            'class': that.widget_cls
         });
 
         var widget_container = $('<div/>', {

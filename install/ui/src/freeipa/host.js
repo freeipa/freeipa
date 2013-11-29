@@ -316,53 +316,15 @@ IPA.host_fqdn_widget = function(spec) {
         var hostname = that.widgets.get_widget('hostname');
         var dnszone = that.widgets.get_widget('dnszone');
 
-        var table = $('<table/>', {
-            'class': 'fqdn'
-        }).appendTo(that.container);
+        var layout = IPA.fluid_layout({
+            cont_cls: 'row-fluid',
+            group_cls: 'control-group span6',
+            widget_cls: 'control',
+            label_cls: 'control-label'
+        });
 
-        var tr = $('<tr/>').appendTo(table);
-
-        var th = $('<th/>', {
-            'class': 'hostname',
-            title: hostname.label,
-            text: hostname.label
-        }).appendTo(tr);
-
-        $('<span/>', {
-            'class': 'required-indicator',
-            text: IPA.required_indicator
-        }).appendTo(th);
-
-        th = $('<th/>', {
-            'class': 'dnszone',
-            title: dnszone.label,
-            text: dnszone.label
-        }).appendTo(tr);
-
-        $('<span/>', {
-            'class': 'required-indicator',
-            text: IPA.required_indicator
-        }).appendTo(th);
-
-        tr = $('<tr/>').appendTo(table);
-
-        var td = $('<td/>', {
-            'class': 'hostname'
-        }).appendTo(tr);
-
-        var widget_cont = $('<div/>', {
-            name: hostname.name
-        }).appendTo(td);
-        hostname.create(widget_cont);
-
-        td = $('<td/>', {
-            'class': 'dnszone'
-        }).appendTo(tr);
-
-        widget_cont = $('<div/>', {
-            name: dnszone.name
-        }).appendTo(td);
-        dnszone.create(widget_cont);
+        var html = layout.create([hostname, dnszone]);
+        that.container.append(html);
 
         var hostname_input = $('input', hostname.container);
         var dnszone_input = $('input', dnszone.container);
@@ -392,19 +354,24 @@ IPA.host_fqdn_field = function(spec) {
 
     var that = IPA.field(spec);
 
-    that.validate_required = function() {
 
-        var hostname = that.hostname_widget.save();
-        var dnszone = that.dns_zone_widget.save();
+    that.has_value = function(widget) {
+
+        var value = widget.save();
+        var has_value = !!value.length && value[0] !== '';
+        return has_value;
+    };
+
+    that.validate_required = function() {
 
         var valid = true;
 
-        if(!hostname.length || hostname[0] === '') {
+        if (!that.has_value(that.hostname_widget)) {
             that.hostname_widget.show_error(text.get('@i18n:widget.validation.required'));
             that.valid = valid = false;
         }
 
-        if(!dnszone.length || dnszone[0] === '') {
+        if (!that.has_value(that.dns_zone_widget)) {
             that.dns_zone_widget.show_error(text.get('@i18n:widget.validation.required'));
             that.valid = valid = false;
         }
@@ -413,8 +380,12 @@ IPA.host_fqdn_field = function(spec) {
     };
 
     that.hide_error = function() {
-        that.hostname_widget.hide_error();
-        that.dns_zone_widget.hide_error();
+        if (that.has_value(that.hostname_widget)) {
+            that.hostname_widget.hide_error();
+        }
+        if (that.has_value(that.dns_zone_widget)) {
+            that.dns_zone_widget.hide_error();
+        }
     };
 
     that.save = function(record) {
@@ -440,6 +411,12 @@ IPA.host_fqdn_field = function(spec) {
         that.widget = that.container.widgets.get_widget(that.widget_name);
         that.hostname_widget = that.widget.widgets.get_widget('hostname');
         that.dns_zone_widget = that.widget.widgets.get_widget('dnszone');
+        that.hostname_widget.value_changed.attach(that.child_value_changed);
+        that.dns_zone_widget.value_changed.attach(that.child_value_changed);
+    };
+
+    that.child_value_changed = function() {
+        that.validate();
     };
 
     return that;
