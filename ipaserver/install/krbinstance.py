@@ -31,6 +31,7 @@ import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import services as ipaservices
+from ipapython import kernel_keyring
 from ipalib import errors
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
@@ -251,6 +252,15 @@ class KrbInstance(service.Service):
         else:
             dr_map = ""
         self.sub_dict['OTHER_DOMAIN_REALM_MAPS'] = dr_map
+
+        # Configure KEYRING CCACHE if supported
+        if kernel_keyring.is_persistent_keyring_supported():
+            root_logger.debug("Enabling persistent keyring CCACHE")
+            self.sub_dict['OTHER_LIBDEFAULTS'] = \
+                " default_ccache_name = KEYRING:persistent:%{uid}\n"
+        else:
+            root_logger.debug("Persistent keyring CCACHE is not enabled")
+            self.sub_dict['OTHER_LIBDEFAULTS'] = ''
 
     def __configure_sasl_mappings(self):
         # we need to remove any existing SASL mappings in the directory as otherwise they

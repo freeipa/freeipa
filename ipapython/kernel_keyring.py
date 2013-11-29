@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
+
 from ipapython.ipautil import run
 
 # NOTE: Absolute path not required for keyctl since we reset the environment
@@ -46,6 +48,21 @@ def get_real_key(key):
     if rc:
         raise ValueError('key %s not found' % key)
     return stdout.rstrip()
+
+def get_persistent_key(key):
+    (stdout, stderr, rc) = run(['keyctl', 'get_persistent', KEYRING, key], raiseonerr=False)
+    if rc:
+        raise ValueError('persistent key %s not found' % key)
+    return stdout.rstrip()
+
+def is_persistent_keyring_supported():
+    uid = os.geteuid()
+    try:
+        get_persistent_key(str(uid))
+    except ValueError:
+        return False
+
+    return True
 
 def has_key(key):
     """
