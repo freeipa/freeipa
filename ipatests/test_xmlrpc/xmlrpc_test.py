@@ -241,6 +241,7 @@ class Declarative(XMLRPC_test):
     and must not fail.
     """
 
+    default_version = API_VERSION
     cleanup_commands = tuple()
     tests = tuple()
 
@@ -290,7 +291,7 @@ class Declarative(XMLRPC_test):
 
     def check(self, nice, desc, command, expected, extra_check=None):
         (cmd, args, options) = command
-        options.setdefault('version', API_VERSION)
+        options.setdefault('version', self.default_version)
         if cmd not in api.Command:
             raise nose.SkipTest('%r not in api.Command' % cmd)
         if isinstance(expected, errors.PublicError):
