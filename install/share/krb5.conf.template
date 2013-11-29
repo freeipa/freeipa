@@ -12,7 +12,7 @@ includedir /var/lib/sss/pubconf/krb5.include.d/
  rdns = false
  ticket_lifetime = 24h
  forwardable = yes
-
+$OTHER_LIBDEFAULTS
 [realms]
  $REALM = {
   kdc = $FQDN:88

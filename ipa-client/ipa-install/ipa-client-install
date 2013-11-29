@@ -43,6 +43,7 @@ try:
         run, user_input, CalledProcessError, file_exists, realm_to_suffix)
     import ipapython.services as ipaservices
     from ipapython import ipautil, sysrestore, version, certmonger, ipaldap
+    from ipapython import kernel_keyring
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
     from ipalib import x509
@@ -925,6 +926,12 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
     libopts.append({'name':'rdns', 'type':'option', 'value':'false'})
     libopts.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
     libopts.append({'name':'forwardable', 'type':'option', 'value':'yes'})
+
+    # Configure KEYRING CCACHE if supported
+    if kernel_keyring.is_persistent_keyring_supported():
+        root_logger.debug("Enabling persistent keyring CCACHE")
+        libopts.append({'name':'default_ccache_name', 'type':'option',
+            'value':'KEYRING:persistent:%{uid}'})
 
     opts.append({'name':'libdefaults', 'type':'section', 'value':libopts})
     opts.append({'name':'empty', 'type':'empty'})
