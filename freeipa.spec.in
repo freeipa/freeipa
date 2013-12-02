@@ -118,14 +118,14 @@ Requires: krb5-server >= 1.10
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
-Requires: httpd >= 2.4.6-6
+Requires: httpd
 Requires: mod_wsgi
 %if 0%{?fedora} >= 18
 Requires: mod_auth_kerb >= 5.4-16
 %else
 Requires: mod_auth_kerb >= 5.4-8
 %endif
-Requires: mod_nss >= 1.0.8-26
+Requires: mod_nss >= 1.0.8-24
 Requires: python-ldap
 Requires: python-krbV
 Requires: acl
@@ -837,10 +837,6 @@ fi
 %endif # ONLY_CLIENT
 
 %changelog
-* Tue Nov 26 2013 Jan Cholasta <jcholast@redhat.com> - 3.3.2-2
-- Set minimum version of httpd to 2.4.6-6
-- Set minimum version of mod_nss to 1.0.8-26
-
 * Fri Oct 25 2013 Martin Kosek <mkosek@redhat.com> - 3.3.2-1
 - Remove mod_ssl conflict, it can now live with mod_nss installed
 

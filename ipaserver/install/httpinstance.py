@@ -253,24 +253,25 @@ class HTTPInstance(service.Service):
         http_fd.close()
         os.chmod(target_fname, 0644)
 
-    def change_mod_nss_port_from_http(self):
+    def change_mod_nss_port_to_http(self):
         # mod_ssl enforces SSLEngine on for vhost on 443 even though
         # the listener is mod_nss. This then crashes the httpd as mod_nss
         # listened port obviously does not match mod_ssl requirements.
         #
-        # The workaround for this was to change port to http. It is no longer
-        # necessary, as mod_nss now ships with default configuration which
-        # sets SSLEngine off when mod_ssl is installed.
+        # Change port to http to workaround the mod_ssl check, the SSL is
+        # enforced in the vhost later, so it is benign.
         #
-        # Remove the workaround.
-        if sysupgrade.get_upgrade_state('nss.conf', 'listen_port_updated'):
-            installutils.set_directive(NSS_CONF, 'Listen', '443', quotes=False)
-            sysupgrade.set_upgrade_state('nss.conf', 'listen_port_updated', False)
+        # Remove when https://bugzilla.redhat.com/show_bug.cgi?id=1023168
+        # is fixed.
+        if not sysupgrade.get_upgrade_state('nss.conf', 'listen_port_updated'):
+            installutils.set_directive(NSS_CONF, 'Listen', '443 http', quotes=False)
+            sysupgrade.set_upgrade_state('nss.conf', 'listen_port_updated', True)
 
     def __set_mod_nss_port(self):
         self.fstore.backup_file(NSS_CONF)
         if installutils.update_file(NSS_CONF, '8443', '443') != 0:
             print "Updating port in %s failed." % NSS_CONF
+        self.change_mod_nss_port_to_http()
 
     def __set_mod_nss_nickname(self, nickname):
         installutils.set_directive(NSS_CONF, 'NSSNickname', nickname)
