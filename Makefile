@@ -1,6 +1,6 @@
 include VERSION
 
-SUBDIRS=daemons install ipapython ipa-client
+SUBDIRS=daemons install ipapython ipa-client smartproxy
 CLIENTDIRS=ipapython ipa-client
 
 PRJ_PREFIX=freeipa
@@ -74,6 +74,7 @@ bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
 	cd daemons; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR) --with-openldap; fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+	cd smartproxy; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 client-autogen: version-update
 	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
@@ -193,6 +194,7 @@ tarballs: local-archive
 	cd dist/$(TARBALL_PREFIX)/ipa-client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/daemons; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/install; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
+	cd dist/$(TARBALL_PREFIX)/smartproxy; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist; tar cfz sources/$(TARBALL) $(TARBALL_PREFIX)
 	rm -rf dist/$(TARBALL_PREFIX)
 
@@ -259,5 +261,6 @@ maintainer-clean: clean
 	cd install && $(MAKE) maintainer-clean
 	cd ipa-client && $(MAKE) maintainer-clean
 	cd ipapython && $(MAKE) maintainer-clean
+	cd smartproxy && $(MAKE) maintainer-clean
 	rm -f version.m4
 	rm -f freeipa.spec

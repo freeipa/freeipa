@@ -1,0 +1,12 @@
+[Unit]
+Description=IPA smartproxy for Foreman
+After=ipa.target
+
+[Service]
+ExecStart=/usr/sbin/ipa-smartproxy -c /etc/ipa/ipa-smartproxy.conf -d -p /var/run/ipa-smartproxy.pid
+ExecReload=/bin/kill -USR1 $MAINPID
+Type=forking
+PIDFile=/var/run/ipa-smartproxy.pid
+
+[Install]
+WantedBy=multi-user.target

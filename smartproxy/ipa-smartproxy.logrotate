@@ -1,0 +1,11 @@
+/var/log/ipa-smartproxy.access /var/log/ipa-smartproxy.errors {
+    weekly
+    missingok
+    notifempty
+    sharedscripts
+    rotate 52
+    compress
+    postrotate
+        /bin/systemctl reload ipa-smartproxy.service > /dev/null 2>/dev/null || true
+    endscript
+}

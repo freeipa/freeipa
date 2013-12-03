@@ -57,12 +57,15 @@ def json_serialize(obj):
 
 def get_current_principal():
     try:
-        # krbV isn't necessarily available on client machines, fail gracefully
-        import krbV
-        return unicode(krbV.default_context().default_ccache().principal().name)
+        import kerberos
+        rc, vc = kerberos.authGSSClientInit("notempty")
+        rc = kerberos.authGSSClientInquireCred(vc)
+        username = kerberos.authGSSClientUserName(vc)
+        kerberos.authGSSClientClean(vc)
+        return unicode(username)
     except ImportError:
-        raise RuntimeError('python-krbV is not available.')
-    except krbV.Krb5Error:
+        raise RuntimeError('python-kerberos is not available.')
+    except kerberos.GSSError, e:
         #TODO: do a kinit?
         raise errors.CCacheError()
 
