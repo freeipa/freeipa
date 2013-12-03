@@ -73,7 +73,7 @@ class install_data(_install_data):
 setup(
     name='freeipa',
     version=ipalib.__version__,
-    license='GPLv2+',
+    license='GPLv3+',
     url='http://freeipa.org/',
     packages=[
         'ipalib',

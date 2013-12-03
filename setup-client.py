@@ -29,7 +29,7 @@ import ipalib
 setup(
     name='freeipa',
     version=ipalib.__version__,
-    license='GPLv2+',
+    license='GPLv3+',
     url='http://freeipa.org/',
     packages=[
         'ipalib',
