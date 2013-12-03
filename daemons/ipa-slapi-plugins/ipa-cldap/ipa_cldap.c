@@ -147,7 +147,8 @@ static int ipa_cldap_init_service(Slapi_PBlock *pb,
 
     ctx->sd = socket(PF_INET6, SOCK_DGRAM, 0);
     if (ctx->sd == -1) {
-        LOG_FATAL("Failed to create socket\n");
+        LOG_FATAL("Failed to create IPv6 socket: IPv6 support in kernel "
+                  "is required\n");
         ret = EIO;
         goto done;
     }
