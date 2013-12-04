@@ -82,7 +82,9 @@ static int ipa_cldap_stop(Slapi_PBlock *pb)
     }
 
     /* send stop signal to terminate worker thread */
-    write(ctx->stopfd[1], "", 1);
+    do {
+        ret = write(ctx->stopfd[1], "", 1);
+    } while (ret == -1 && errno == EINTR);
     close(ctx->stopfd[1]);
 
     ret = pthread_join(ctx->tid, &retval);
