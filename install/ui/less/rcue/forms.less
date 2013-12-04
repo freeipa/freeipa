@@ -1,14 +1,18 @@
 input,
 select,
 textarea {
-  font-family: OpenSansRegular, Helvetica, Arial, sans-serif;
+  font-family: @font-family-base;
+  font-weight: normal;
+  font-style: normal;
 }
 
 label {
-  font-family: OpenSansSemiBold, Helvetica, Arial, sans-serif;
+  font-family: @font-family-base;
+  font-weight: 600;
+  font-style: normal;
 }
 
-.help-block, 
+.help-block,
 .help-inline,
 input,
 input[type="text"],
@@ -28,7 +32,7 @@ input[type="color"],
 label,
 select,
 textarea,
-.uneditable-input, 
+.uneditable-input,
 .uneditable-textarea {
   font-size: 11px;
 }
@@ -74,7 +78,7 @@ textarea[disabled],
 input[readonly],
 select[readonly],
 textarea[readonly],
-.uneditable-input, 
+.uneditable-input,
 .uneditable-textarea {
   background-color: #f8f8f8;
   border-color: #d4d4d4;

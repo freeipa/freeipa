@@ -285,12 +285,6 @@ pushd $DIR/../../ #freeipa/install
         RECURSIVE=0
         EXCEPTIONS="--exclude /Makefile*"
         sync-files
-
-        SOURCE=ui/font/*
-        TARGET=$TARGET_BASE/ui/font
-        RECURSIVE=0
-        EXCEPTIONS="--exclude /Makefile*"
-        sync-files
     fi
 
     if [[ $IMAGES ]] ; then

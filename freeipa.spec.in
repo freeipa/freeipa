@@ -154,6 +154,8 @@ Requires: policycoreutils >= %{POLICYCOREUTILSVER}
 Requires: tar
 Requires(pre): certmonger >= 0.65
 Requires(pre): 389-ds-base >= 1.3.1.3
+Requires: fontawesome-fonts
+Requires: open-sans-fonts
 
 # With FreeIPA 3.3, package freeipa-server-selinux was obsoleted as the
 # entire SELinux policy is stored in the system policy
@@ -680,11 +682,8 @@ fi
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
 %{_usr}/share/ipa/ui/*.js
+%dir %{_usr}/share/ipa/ui/css
 %{_usr}/share/ipa/ui/css/*.css
-%{_usr}/share/ipa/ui/font/*.eot
-%{_usr}/share/ipa/ui/font/*.svg
-%{_usr}/share/ipa/ui/font/*.ttf
-%{_usr}/share/ipa/ui/font/*.woff
 %dir %{_usr}/share/ipa/ui/js
 %dir %{_usr}/share/ipa/ui/js/dojo
 %{_usr}/share/ipa/ui/js/dojo/dojo.js
