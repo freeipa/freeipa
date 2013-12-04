@@ -320,8 +320,8 @@ This package contains tests that verify IPA functionality.
 %setup -n freeipa-%{version} -q
 
 %build
-export CFLAGS="$CFLAGS %{optflags}"
-export CPPFLAGS="$CPPFLAGS %{optflags}"
+export CFLAGS="%{optflags} $CFLAGS"
+export CPPFLAGS="%{optflags} $CPPFLAGS"
 %if 0%{?fedora} >= 19
 export SUPPORTED_PLATFORM=fedora19
 %else
