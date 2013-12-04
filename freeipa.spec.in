@@ -322,6 +322,7 @@ This package contains tests that verify IPA functionality.
 %build
 export CFLAGS="%{optflags} $CFLAGS"
 export CPPFLAGS="%{optflags} $CPPFLAGS"
+export LDFLAGS="%{__global_ldflags} $LDFLAGS"
 %if 0%{?fedora} >= 19
 export SUPPORTED_PLATFORM=fedora19
 %else
