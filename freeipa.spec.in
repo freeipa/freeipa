@@ -326,6 +326,7 @@ export JAVA_STACK_SIZE="8m"
 %endif
 export CFLAGS="$CFLAGS %{optflags}"
 export CPPFLAGS="$CPPFLAGS %{optflags}"
+export LDFLAGS="%{__global_ldflags} $LDFLAGS"
 %if 0%{?fedora} >= 18
 # use fedora18 platform which is based on fedora16 platform with systemd
 # support + fedora18 changes
