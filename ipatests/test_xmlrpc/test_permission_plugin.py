@@ -87,6 +87,7 @@ invalid_permission1 = u'bad;perm'
 
 users_dn = DN(api.env.container_user, api.env.basedn)
 groups_dn = DN(api.env.container_group, api.env.basedn)
+etc_dn = DN('cn=etc', api.env.basedn)
 
 
 def verify_permission_aci(name, dn, acistring):
@@ -1469,6 +1470,106 @@ class test_permission(Declarative):
         ),
     ]
 
+
+class test_permission_rollback(Declarative):
+    """Test rolling back changes after failed update"""
+    cleanup_commands = [
+        ('permission_del', [permission1], {'force': True}),
+    ]
+
+    _verifications = [
+        dict(
+            desc='Retrieve %r' % permission1,
+            command=('permission_show', [permission1], {}),
+            expected=dict(
+                value=permission1,
+                summary=None,
+                result={
+                    'dn': permission1_dn,
+                    'cn': [permission1],
+                    'objectclass': objectclasses.permission,
+                    'ipapermright': [u'write'],
+                    'ipapermallowedattr': [u'sn'],
+                    'ipapermbindruletype': [u'permission'],
+                    'ipapermissiontype': [u'SYSTEM', u'V2'],
+                    'ipapermlocation': [users_dn],
+                    'ipapermtarget': [DN(('uid', 'admin'), users_dn)],
+                },
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetattr = "sn")' +
+            '(target = "ldap:///%s")' % DN(('uid', 'admin'), users_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
+        verify_permission_aci_missing(permission1, etc_dn)
+    ]
+
+    tests = [
+        dict(
+            desc='Create %r' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                    ipapermlocation=users_dn,
+                    ipapermtarget=DN('uid=admin', users_dn),
+                    ipapermright=[u'write'],
+                    ipapermallowedattr=[u'sn'],
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Added permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    ipapermright=[u'write'],
+                    ipapermallowedattr=[u'sn'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtarget=[DN(('uid', 'admin'), users_dn)],
+                ),
+            ),
+        ),
+
+    ] + _verifications + [
+
+        dict(
+            desc='Move %r to non-existent DN' % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                    ipapermlocation=DN('foo=bar'),
+                )
+            ),
+            expected=errors.NotFound(reason='Entry foo=bar not found'),
+        ),
+
+    ] + _verifications + [
+
+        dict(
+            desc='Move %r to another DN' % permission1,
+            command=('permission_mod', [permission1],
+                     dict(ipapermlocation=etc_dn)
+            ),
+            expected=errors.InvalidSyntax(
+                attr=r'ACL Invalid Target Error(-8): '
+                    r'Target is beyond the scope of the ACL'
+                    r'(SCOPE:%(sdn)s) '
+                    r'(targetattr = \22sn\22)'
+                    r'(target = \22ldap:///%(tdn)s\22)'
+                    r'(version 3.0;acl \22permission:testperm\22;'
+                    r'allow (write) groupdn = \22ldap:///%(pdn)s\22;)' % dict(
+                        sdn=etc_dn,
+                        tdn=DN('uid=admin', users_dn),
+                        pdn=permission1_dn)),
+        ),
+
+    ] + _verifications
 
 class test_permission_sync_attributes(Declarative):
     """Test the effects of setting permission attributes"""

@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import traceback
 
 from ipalib.plugins import baseldap
 from ipalib import errors
@@ -366,24 +367,40 @@ class permission(baseldap.LDAPObject):
                                                      self.api.env.basedn)
 
         self.log.debug('Adding ACI %r to %s' % (acistring, location))
-        entry = ldap.get_entry(location, ['aci'])
+        try:
+            entry = ldap.get_entry(location, ['aci'])
+        except errors.NotFound:
+            raise errors.NotFound(reason=_('Entry %s not found') % location)
         entry.setdefault('aci', []).append(acistring)
         ldap.update_entry(entry)
 
     def remove_aci(self, permission_entry):
-        """Remove the ACI corresponding to the given permission entry"""
-        self._replace_aci(permission_entry)
+        """Remove the ACI corresponding to the given permission entry
+
+        :return: tuple:
+            - entry
+            - removed ACI string, or None if none existed previously
+        """
+        return self._replace_aci(permission_entry)
 
     def update_aci(self, permission_entry, old_name=None):
-        """Update the ACI corresponding to the given permission entry"""
+        """Update the ACI corresponding to the given permission entry
+
+        :return: tuple:
+            - entry
+            - removed ACI string, or None if none existed previously
+        """
         new_acistring = self.make_aci(permission_entry)
-        self._replace_aci(permission_entry, old_name, new_acistring)
+        return self._replace_aci(permission_entry, old_name, new_acistring)
 
     def _replace_aci(self, permission_entry, old_name=None, new_acistring=None):
         """Replace ACI corresponding to permission_entry
 
         :param old_name: the old name of the permission, if different from new
         :param new_acistring: new ACI string; if None the ACI is just deleted
+        :return: tuple:
+            - entry
+            - removed ACI string, or None if none existed previously
         """
         ldap = self.api.Backend.ldap2
         acientry, acistring = self._get_aci_entry_and_string(
@@ -402,6 +419,7 @@ class permission(baseldap.LDAPObject):
             ldap.update_entry(acientry)
         except errors.EmptyModlist:
             self.log.info('No changes to ACI')
+        return acientry, acistring
 
     def _get_aci_entry_and_string(self, permission_entry, name=None,
                                   notfound_ok=False):
@@ -422,7 +440,7 @@ class permission(baseldap.LDAPObject):
         try:
             acientry = ldap.get_entry(location, ['aci'])
         except errors.NotFound:
-            acientry = {}
+            acientry = ldap.make_entry(location)
         acis = acientry.get('aci', ())
         for acistring in acis:
             aci = ACI(acistring)
@@ -759,7 +777,7 @@ class permission_mod(baseldap.LDAPUpdate):
         else:
             context.permision_moving_aci = True
             try:
-                self.obj.remove_aci(old_entry)
+                context.old_aci_info = self.obj.remove_aci(old_entry)
             except errors.NotFound, e:
                 self.log.error('permission ACI not found: %s' % e)
 
@@ -768,13 +786,36 @@ class permission_mod(baseldap.LDAPUpdate):
 
         return dn
 
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        if call_func.func_name == 'update_entry':
+            self._revert_aci()
+        raise exc
+
+    def _revert_aci(self):
+        old_aci_info = getattr(context, 'old_aci_info', None)
+        if old_aci_info:
+            # Try to roll back the old ACI
+            entry, old_aci_string = old_aci_info
+            if old_aci_string:
+                self.log.warn('Reverting ACI on %s to %s' % (entry.dn,
+                                                            old_aci_string))
+                entry['aci'].append(old_aci_string)
+                self.Backend.ldap2.update_entry(entry)
+
     def post_callback(self, ldap, dn, entry, *keys, **options):
         old_entry = context.old_entry
 
-        if context.permision_moving_aci:
-            self.obj.add_aci(entry)
-        else:
-            self.obj.update_aci(entry, old_entry.single_value['cn'])
+        try:
+            if context.permision_moving_aci:
+                self.obj.add_aci(entry)
+            else:
+                self.obj.update_aci(entry, old_entry.single_value['cn'])
+        except Exception:
+            self.log.error('Error updating ACI: %s' % traceback.format_exc())
+            self.log.warn('Reverting entry')
+            ldap.update_entry(old_entry)
+            self._revert_aci()
+            raise
         self.obj.postprocess_result(entry, options)
         entry['dn'] = entry.dn
         return dn
