@@ -464,6 +464,7 @@ class CAInstance(service.Service):
             self.step("setting up signing cert profile", self.__setup_sign_profile)
             self.step("set certificate subject base", self.__set_subject_in_config)
             self.step("enabling Subject Key Identifier", self.enable_subject_key_identifier)
+            self.step("enabling Subject Alternative Name", self.enable_subject_alternative_name)
             self.step("enabling CRL and OCSP extensions for certificates", self.__set_crl_ocsp_extensions)
             self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
             self.step("configuring certificate server to start on boot", self.__enable)
@@ -1198,6 +1199,8 @@ class CAInstance(service.Service):
             new_set_list = '1,2,3,4,5,6,7,8,9'
         elif setlist == '1,2,3,4,5,6,7,8,10':
             new_set_list = '1,2,3,4,5,6,7,8,9,10'
+        elif setlist == '1,2,3,4,5,6,7,8,10,11':
+            new_set_list = '1,2,3,4,5,6,7,8,9,10,11'
 
         if new_set_list:
             installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
@@ -1507,6 +1510,54 @@ class CAInstance(service.Service):
                 self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.10.default.params.critical',
                 'false',
+                quotes=False, separator='=')
+            return True
+
+        # No update was done
+        return False
+
+    def enable_subject_alternative_name(self):
+        """
+        See if Subject Alternative Name is set in the profile and if not, add
+        it.
+        """
+        setlist = installutils.get_directive(
+            self.dogtag_constants.IPA_SERVICE_PROFILE,
+            'policyset.serverCertSet.list', separator='=')
+
+        # this is the default setting from pki-ca/pki-tomcat. Don't touch it
+        # if a user has manually modified it.
+        if setlist == '1,2,3,4,5,6,7,8,10' or setlist == '1,2,3,4,5,6,7,8,9,10':
+            setlist = setlist + ',11'
+            installutils.set_directive(
+                self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.list',
+                setlist,
+                quotes=False, separator='=')
+            installutils.set_directive(
+                self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.11.constraint.class_id',
+                'noConstraintImpl',
+                quotes=False, separator='=')
+            installutils.set_directive(
+                self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.11.constraint.name',
+                'No Constraint',
+                quotes=False, separator='=')
+            installutils.set_directive(
+                self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.11.default.class_id',
+                'userExtensionDefaultImpl',
+                quotes=False, separator='=')
+            installutils.set_directive(
+                self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.11.default.name',
+                'User Supplied Extension Default',
+                quotes=False, separator='=')
+            installutils.set_directive(
+                self.dogtag_constants.IPA_SERVICE_PROFILE,
+                'policyset.serverCertSet.11.default.params.userExtOID',
+                '2.5.29.17',
                 quotes=False, separator='=')
             return True
 

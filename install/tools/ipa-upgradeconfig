@@ -330,9 +330,14 @@ def upgrade_ipa_profile(ca, domain, fqdn):
             root_logger.debug('Subject Key Identifier updated.')
         else:
             root_logger.debug('Subject Key Identifier already set.')
+        san = ca.enable_subject_alternative_name()
+        if san:
+            root_logger.debug('Subject Alternative Name updated.')
+        else:
+            root_logger.debug('Subject Alternative Name already set.')
         audit = ca.set_audit_renewal()
         uri = ca.set_crl_ocsp_extensions(domain, fqdn)
-        if audit or ski or uri:
+        if audit or ski or san or uri:
             return True
     else:
         root_logger.info('CA is not configured')
