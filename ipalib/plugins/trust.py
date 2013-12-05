@@ -262,7 +262,7 @@ class trust(LDAPObject):
                 result = ldap.get_entries(DN(self.container_dn, self.env.basedn),
                                           ldap.SCOPE_SUBTREE, filter, [''])
             except errors.NotFound:
-                trust_type = u'ad'
+                return None
             else:
                 if len(result) > 1:
                     raise errors.OnlyOneValueAllowed(attr='trust domain')
@@ -1244,7 +1244,7 @@ def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
                                              trust_name, creds=creds)
     result = []
     if not domains:
-        return None
+        return result
 
     for dom in domains:
         dom['trust_type'] = u'ad'
