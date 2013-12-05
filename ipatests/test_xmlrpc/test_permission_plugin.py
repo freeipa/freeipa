@@ -88,6 +88,7 @@ invalid_permission1 = u'bad;perm'
 users_dn = DN(api.env.container_user, api.env.basedn)
 groups_dn = DN(api.env.container_group, api.env.basedn)
 etc_dn = DN('cn=etc', api.env.basedn)
+nonexistent_dn = DN('cn=does not exist', api.env.basedn)
 
 
 def verify_permission_aci(name, dn, acistring):
@@ -1468,6 +1469,19 @@ class test_permission(Declarative):
                 name='ipapermtargetfilter',
                 error='Bad search filter'),
         ),
+
+
+        dict(
+            desc='Try setting nonexisting location on %r' % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                    ipapermlocation=nonexistent_dn,
+                )
+            ),
+            expected=errors.ValidationError(
+                name='ipapermlocation',
+                error='Entry %s does not exist' % nonexistent_dn)
+        ),
     ]
 
 
@@ -1546,7 +1560,9 @@ class test_permission_rollback(Declarative):
                     ipapermlocation=DN('foo=bar'),
                 )
             ),
-            expected=errors.NotFound(reason='Entry foo=bar not found'),
+            expected=errors.ValidationError(
+                name='ipapermlocation',
+                error='Entry foo=bar does not exist'),
         ),
 
     ] + _verifications + [

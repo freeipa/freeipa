@@ -623,6 +623,16 @@ class permission(baseldap.LDAPObject):
                     name='ipapermtargetfilter',
                     error=_('Bad search filter'))
 
+        # Ensure location exists
+        if entry.get('ipapermlocation'):
+            location = DN(entry.single_value['ipapermlocation'])
+            try:
+                ldap.get_entry(location, attrs_list=[])
+            except errors.NotFound:
+                raise errors.ValidationError(
+                    name='ipapermlocation',
+                    error=_('Entry %s does not exist') % location)
+
         # Ensure there's something in the ACI's filter
         needed_attrs = (
             'ipapermtarget', 'ipapermtargetfilter', 'ipapermallowedattr')
