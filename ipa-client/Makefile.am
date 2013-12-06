@@ -25,7 +25,6 @@ AM_CPPFLAGS =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DLOCALEDIR=\""$(localedir)"\"				\
-	$(AM_CFLAGS)						\
 	$(KRB5_CFLAGS)						\
 	$(OPENLDAP_CFLAGS)					\
 	$(SASL_CFLAGS)						\

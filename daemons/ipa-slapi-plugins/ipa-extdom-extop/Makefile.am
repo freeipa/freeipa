@@ -13,7 +13,6 @@ AM_CPPFLAGS =							\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
-	$(AM_CFLAGS)						\
 	$(LDAP_CFLAGS)						\
 	$(WARN_CFLAGS)						\
 	$(SSSIDMAP_CFLAGS)					\

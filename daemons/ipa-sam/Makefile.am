@@ -20,7 +20,6 @@ AM_CPPFLAGS =						\
 	-DLDAPIDIR=\""$(localstatedir)/run"\"		\
 	-DHAVE_LDAP					\
 	-I $(KRB5_UTIL_DIR)				\
-	$(AM_CFLAGS)					\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\
 	$(WARN_CFLAGS)					\

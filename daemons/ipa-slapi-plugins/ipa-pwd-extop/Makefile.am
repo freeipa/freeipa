@@ -18,13 +18,12 @@ AM_CPPFLAGS =							\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
-	$(AM_CFLAGS)						\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)						\
 	$(SSL_CFLAGS)						\
 	$(WARN_CFLAGS)						\
 	$(NULL)
-	
+
 AM_LDFLAGS = \
 	$(KRB5_LIBS)	\
 	$(SSL_LIBS)	\
