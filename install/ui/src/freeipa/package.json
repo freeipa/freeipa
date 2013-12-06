@@ -5,8 +5,6 @@
     "keywords": ["FreeIPA","Identity management", "Red Hat", "Web UI"],
     "maintainers": [{
         "name": "Petr Vobornik"
-    },{
-        "name": "Endi Sukma Dewata"
     }],
     "contributors": [{
         "name": "Petr Vobornik"
@@ -16,13 +14,12 @@
         "name": "Adam Young"
     },{
         "name": "Pavel Zuna"
+    },{
+        "name": "Ana Krivokapic"
     }],
     "licenses": [{
         "type": "GPLv3",
         "url": "http://www.gnu.org/licenses/gpl-3.0.html"
-    },{
-        "type": "GPLv2",
-        "url": "http://www.gnu.org/licenses/gpl-2.0.html"
     }],
     "bugs": "https://fedorahosted.org/freeipa/",
     "repositories": [{
