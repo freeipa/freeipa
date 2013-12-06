@@ -241,19 +241,19 @@ class UI_driver(object):
         """
         FreeIPA server was installed with CA.
         """
-        return 'no_ca' not in self.config
+        return not self.config.get('no_ca')
 
     def has_dns(self):
         """
         FreeIPA server was installed with DNS.
         """
-        return 'no_dns' not in self.config
+        return not self.config.get('no_dns')
 
     def has_trusts(self):
         """
         FreeIPA server was installed with Trusts.
         """
-        return 'has_trusts' in self.config
+        return self.config.get('has_trusts')
 
     def has_active_request(self):
         """
