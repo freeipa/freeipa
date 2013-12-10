@@ -596,42 +596,39 @@ class KerberosSession(object):
         return ['']
 
 
-class xmlserver(WSGIExecutioner, HTTP_Status, KerberosSession):
+class KerberosWSGIExecutioner(WSGIExecutioner, HTTP_Status, KerberosSession):
+    """Base class for xmlserver and jsonserver_kerb
     """
-    Execution backend plugin for XML-RPC server.
-
-    Also see the `ipalib.rpc.xmlclient` plugin.
-    """
-
-    content_type = 'text/xml'
-    key = '/xml'
 
     def _on_finalize(self):
-        self.__system = {
-            'system.listMethods': self.listMethods,
-            'system.methodSignature': self.methodSignature,
-            'system.methodHelp': self.methodHelp,
-        }
-        super(xmlserver, self)._on_finalize()
+        super(KerberosWSGIExecutioner, self)._on_finalize()
         self.kerb_session_on_finalize()
 
     def __call__(self, environ, start_response):
-        '''
-        '''
-
-        self.debug('WSGI xmlserver.__call__:')
+        self.debug('KerberosWSGIExecutioner.__call__:')
         user_ccache=environ.get('KRB5CCNAME')
-        headers = [('Content-Type', 'text/xml; charset=utf-8')]
+
+        headers = [('Content-Type', '%s; charset=utf-8' % self.content_type)]
+
         if user_ccache is None:
-            self.internal_error(environ, start_response,
-                                'xmlserver.__call__: KRB5CCNAME not defined in HTTP request environment')
+
+            status = HTTP_STATUS_SERVER_ERROR
+            response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+
+            self.log.error(
+                '%s: %s', status,
+                'KerberosWSGIExecutioner.__call__: '
+                'KRB5CCNAME not defined in HTTP request environment')
+
             return self.marshal(None, CCacheError())
         try:
             self.create_context(ccache=user_ccache)
-            response = super(xmlserver, self).__call__(environ, start_response)
-            if getattr(context, 'session_data', None) is None and \
-              self.env.context != 'lite':
-                self.finalize_kerberos_acquisition('xmlserver', user_ccache, environ, start_response, headers)
+            response = super(KerberosWSGIExecutioner, self).__call__(
+                environ, start_response)
+            session_data = getattr(context, 'session_data', None)
+            if (session_data is None and self.env.context != 'lite'):
+                self.finalize_kerberos_acquisition(
+                    'xmlserver', user_ccache, environ, start_response, headers)
         except PublicError, e:
             status = HTTP_STATUS_SUCCESS
             response = status
@@ -640,6 +637,17 @@ class xmlserver(WSGIExecutioner, HTTP_Status, KerberosSession):
         finally:
             destroy_context()
         return response
+
+
+class xmlserver(KerberosWSGIExecutioner):
+    """
+    Execution backend plugin for XML-RPC server.
+
+    Also see the `ipalib.rpc.xmlclient` plugin.
+    """
+
+    content_type = 'text/xml'
+    key = '/xml'
 
     def listMethods(self, *params):
         return tuple(name.decode('UTF-8') for name in self.Command)
@@ -769,40 +777,12 @@ class jsonserver_session(jsonserver, KerberosSession):
         return response
 
 
-class jsonserver_kerb(jsonserver, KerberosSession):
+class jsonserver_kerb(jsonserver, KerberosWSGIExecutioner):
     """
     JSON RPC server protected with kerberos auth.
     """
 
     key = '/json'
-
-    def _on_finalize(self):
-        super(jsonserver_kerb, self)._on_finalize()
-        self.kerb_session_on_finalize()
-
-    def __call__(self, environ, start_response):
-        '''
-        '''
-
-        self.debug('WSGI jsonserver_kerb.__call__:')
-
-        user_ccache=environ.get('KRB5CCNAME')
-        if user_ccache is None:
-            self.internal_error(environ, start_response,
-                                'jsonserver_kerb.__call__: KRB5CCNAME not defined in HTTP request environment')
-            return self.marshal(None, CCacheError())
-        self.create_context(ccache=user_ccache)
-
-        try:
-            response = super(jsonserver_kerb, self).__call__(environ, start_response)
-            if (getattr(context, 'session_data', None) is None and
-                    self.env.context != 'lite'):
-                self.finalize_kerberos_acquisition('jsonserver', user_ccache,
-                                                environ, start_response)
-        finally:
-            destroy_context()
-
-        return response
 
 
 class login_kerberos(Backend, KerberosSession, HTTP_Status):
