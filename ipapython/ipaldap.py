@@ -246,10 +246,17 @@ class IPASimpleLDAPObject(object):
     #
     # FWIW, many entries under cn=config are undefined :-(
 
-    _SCHEMA_OVERRIDE = CIDict({
+    _SYNTAX_OVERRIDE = CIDict({
         'managedtemplate': DN_SYNTAX_OID, # DN
         'managedbase':     DN_SYNTAX_OID, # DN
         'originscope':     DN_SYNTAX_OID, # DN
+    })
+    _SINGLE_VALUE_OVERRIDE = CIDict({
+        'nsslapd-ssl-check-hostname': True,
+        'nsslapd-lookthroughlimit': True,
+        'nsslapd-idlistscanlimit': True,
+        'nsslapd-anonlimitsdn': True,
+        'nsslapd-minssf-exclude-rootdse': True,
     })
 
     def __init__(self, uri, force_schema_updates, no_schema=False,
@@ -327,8 +334,8 @@ class IPASimpleLDAPObject(object):
             attr = attr.encode('utf-8')
 
         # Is this a special case attribute?
-        if attr in self._SCHEMA_OVERRIDE:
-            return self._SCHEMA_OVERRIDE[attr]
+        if attr in self._SYNTAX_OVERRIDE:
+            return self._SYNTAX_OVERRIDE[attr]
 
         if self.schema is None:
             return None
@@ -360,6 +367,9 @@ class IPASimpleLDAPObject(object):
         """
         if isinstance(attr, unicode):
             attr = attr.encode('utf-8')
+
+        if attr in self._SINGLE_VALUE_OVERRIDE:
+            return self._SINGLE_VALUE_OVERRIDE[attr]
 
         if self.schema is None:
             return None
