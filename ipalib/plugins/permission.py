@@ -837,6 +837,7 @@ class permission_mod(baseldap.LDAPUpdate):
         except Exception:
             self.log.error('Error updating ACI: %s' % traceback.format_exc())
             self.log.warn('Reverting entry')
+            old_entry.reset_modlist(entry)
             ldap.update_entry(old_entry)
             self._revert_aci()
             raise

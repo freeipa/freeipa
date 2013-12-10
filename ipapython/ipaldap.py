@@ -412,14 +412,7 @@ class IPASimpleLDAPObject(object):
         associated with the entry. The keys of attrs are strings, and
         the associated values are lists of strings.
 
-        We convert the dn to a DN object.
-
-        We convert every value associated with an attribute according
-        to it's syntax into the desired Python type.
-
-        returns a IPA result tuple of the same form as a python-ldap
-        result tuple except everything inside of the result tuple has
-        been converted to it's preferred IPA python type.
+        We convert the tuple to an LDAPEntry object.
         '''
 
         ipa_result = []
@@ -440,6 +433,7 @@ class IPASimpleLDAPObject(object):
 
             for attr, original_values in original_attrs.items():
                 ipa_entry.raw[attr] = original_values
+            ipa_entry.reset_modlist()
 
             ipa_result.append(ipa_entry)
 
@@ -740,13 +734,17 @@ class LDAPEntry(collections.MutableMapping):
 
         return result
 
-    def reset_modlist(self):
+    def reset_modlist(self, other=None):
         """
         Make the current state of the entry a new reference point for change
         tracking.
         """
-        self._orig = self
-        self._orig = self.clone()
+        if other is None:
+            other = self
+        assert isinstance(other, LDAPEntry)
+        if other is self:
+            self._orig = self
+        self._orig = other.clone()
 
     def _sync_attr(self, name):
         nice = self._nice[name]
@@ -1530,16 +1528,6 @@ class LDAPClient(object):
             raise errors.LimitsExceeded()
         return entries[0]
 
-    def _get_dn_and_attrs(self, entry_or_dn, entry_attrs):
-        """Helper for legacy calling style for {add,update}_entry
-        """
-        if entry_attrs is None:
-            return entry_or_dn.dn, entry_or_dn
-        else:
-            assert isinstance(entry_or_dn, DN)
-            entry_attrs = self.make_entry(entry_or_dn, entry_attrs)
-            return entry_or_dn, entry_attrs
-
     def add_entry(self, entry, entry_attrs=None):
         """Create a new entry.
 
@@ -1548,13 +1536,17 @@ class LDAPClient(object):
         The legacy two-argument variant is:
             add_entry(dn, entry_attrs)
         """
-        dn, attrs = self._get_dn_and_attrs(entry, entry_attrs)
+        if entry_attrs is not None:
+            entry = self.make_entry(entry, entry_attrs)
 
         # remove all [] values (python-ldap hates 'em)
-        attrs = dict((k, v) for k, v in attrs.raw.iteritems() if v)
+        attrs = dict((k, v) for k, v in entry.raw.iteritems() if v)
 
         with self.error_handler():
-            self.conn.add_s(dn, attrs.items())
+            self.conn.add_s(entry.dn, attrs.items())
+
+        if entry_attrs is None:
+            entry.reset_modlist()
 
     def update_entry_rdn(self, dn, new_rdn, del_old=True):
         """
@@ -1576,20 +1568,17 @@ class LDAPClient(object):
     def _generate_modlist(self, dn, entry_attrs):
         assert isinstance(dn, DN)
 
-        # get original entry
-        entry_attrs_old = self.get_entry(dn, entry_attrs.keys())
-
         # generate modlist
         # for multi value attributes: no MOD_REPLACE to handle simultaneous
         # updates better
         # for single value attribute: always MOD_REPLACE
         modlist = []
         for (k, v) in entry_attrs.raw.iteritems():
-            if not v and k in entry_attrs_old:
+            if not v and k in entry_attrs.orig_data:
                 modlist.append((ldap.MOD_DELETE, k, None))
             else:
                 v = set(v)
-                old_v = set(entry_attrs_old.raw.get(k, []))
+                old_v = set(entry_attrs.orig_data.raw.get(k, []))
 
                 adds = list(v.difference(old_v))
                 rems = list(old_v.difference(v))
@@ -1629,16 +1618,21 @@ class LDAPClient(object):
         The legacy two-argument variant is:
             update_entry(dn, entry_attrs)
         """
-        dn, attrs = self._get_dn_and_attrs(entry, entry_attrs)
+        if entry_attrs is not None:
+            entry = self.get_entry(entry, entry_attrs.keys())
+            entry.update(entry_attrs)
 
         # generate modlist
-        modlist = self._generate_modlist(dn, attrs)
+        modlist = self._generate_modlist(entry.dn, entry)
         if not modlist:
             raise errors.EmptyModlist()
 
         # pass arguments to python-ldap
         with self.error_handler():
-            self.conn.modify_s(dn, modlist)
+            self.conn.modify_s(entry.dn, modlist)
+
+        if entry_attrs is None:
+            entry.reset_modlist()
 
     def delete_entry(self, entry_or_dn):
         """Delete an entry given either the DN or the entry itself"""
