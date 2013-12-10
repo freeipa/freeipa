@@ -693,10 +693,6 @@ class LDAPUpdate:
         added = False
         updated = False
         if not found:
-            # New entries get their orig_data set to the entry itself. We want to
-            # empty that so that everything appears new when generating the
-            # modlist
-            # entry.orig_data = {}
             try:
                 if self.live_run:
                     if len(entry):

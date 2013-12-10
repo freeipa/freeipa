@@ -74,7 +74,7 @@ class GenerateUpdateMixin(object):
         for entry in definitions_managed_entries:
             assert isinstance(entry.dn, DN)
             if deletes:
-                old_dn = entry.data['managedtemplate'][0]
+                old_dn = entry['managedtemplate'][0]
                 assert isinstance(old_dn, DN)
                 try:
                     (old_dn, entry) = ldap.get_entry(old_dn, ['*'])
@@ -102,14 +102,14 @@ class GenerateUpdateMixin(object):
 
             else:
                 # Update the template dn by replacing the old containter with the new container
-                old_dn = entry.data['managedtemplate'][0]
+                old_dn = entry['managedtemplate'][0]
                 new_dn = EditableDN(old_dn)
                 if new_dn.replace(old_template_container, new_template_container) != 1:
                     self.error("unable to replace '%s' with '%s' in '%s'",
                                old_template_container, new_template_container, old_dn)
                     continue
                 new_dn = DN(new_dn)
-                entry.data['managedtemplate'] = new_dn
+                entry['managedtemplate'] = new_dn
 
                 # Edit the dn, then convert it back to an immutable DN
                 old_dn = entry.dn
@@ -122,7 +122,7 @@ class GenerateUpdateMixin(object):
 
                 # The old attributes become defaults for the new entry
                 new_update = {'dn': new_dn,
-                              'default': entry_to_update(entry.data)}
+                              'default': entry_to_update(entry)}
 
                 # Add the replacement update to the collection of all updates
                 update_list.append({new_dn: new_update})

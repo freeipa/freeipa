@@ -714,7 +714,6 @@ class LDAPEntry(collections.MutableMapping):
     def conn(self):
         return self._conn
 
-    # properties for Entry and Entity compatibility
     @property
     def dn(self):
         return self._dn
@@ -735,16 +734,6 @@ class LDAPEntry(collections.MutableMapping):
         if self._single_value_view is None:
             self._single_value_view = SingleValueLDAPEntryView(self)
         return self._single_value_view
-
-    @property
-    def data(self):
-        # FIXME: for backwards compatibility only
-        return self
-
-    @property
-    def orig_data(self):
-        # FIXME: for backwards compatibility only
-        return self._orig
 
     def __repr__(self):
         data = dict(self._raw)
