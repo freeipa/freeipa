@@ -1231,15 +1231,6 @@ class LDAPClient(object):
         """schema associated with this LDAP server"""
         return self.conn.schema
 
-    def get_syntax(self, attr, value):
-        if self.schema is None:
-            return None
-        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
-        if obj is not None:
-            return obj.syntax
-        else:
-            return None
-
     def has_dn_syntax(self, attr):
         return self.conn.has_dn_syntax(attr)
 
@@ -1255,9 +1246,6 @@ class LDAPClient(object):
                 raise errors.NotFound(
                     reason=_('objectclass %s not found') % oc)
         return [unicode(a).lower() for a in list(set(allowed_attributes))]
-
-    def get_single_value(self, attr):
-        return self.conn.get_single_value(attr)
 
     def make_dn_from_attr(self, attr, value, parent_dn=None):
         """
