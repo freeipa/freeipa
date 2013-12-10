@@ -281,7 +281,7 @@ class LDAPUpdate:
 
     def _entry_to_entity(self, ent):
         entry = ent.copy()
-        entry.commit()
+        entry.reset_modlist()
         return entry
 
     def _combine_updates(self, all_updates, update):

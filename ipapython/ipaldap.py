@@ -740,7 +740,7 @@ class LDAPEntry(collections.MutableMapping):
 
         return result
 
-    def commit(self):
+    def reset_modlist(self):
         """
         Make the current state of the entry a new reference point for change
         tracking.
