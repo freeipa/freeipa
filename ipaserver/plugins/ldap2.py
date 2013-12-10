@@ -272,7 +272,7 @@ class ldap2(LDAPClient, CrudBackend):
         try:
             config_entry = getattr(context, 'config_entry')
             if config_entry.conn is self.conn:
-                return config_entry.clone()
+                return config_entry
         except AttributeError:
             # Not in our context yet
             pass
@@ -289,7 +289,7 @@ class ldap2(LDAPClient, CrudBackend):
         for a in self.config_defaults:
             if a not in config_entry:
                 config_entry[a] = self.config_defaults[a]
-        context.config_entry = config_entry.clone()
+        context.config_entry = config_entry
         return config_entry
 
     def has_upg(self):

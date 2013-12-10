@@ -690,14 +690,14 @@ class LDAPEntry(collections.MutableMapping):
         self._raw = {}
         self._sync = {}
         self._not_list = set()
-        self._orig = self
+        self._orig = {}
         self._raw_view = None
         self._single_value_view = None
 
         if isinstance(_obj, LDAPEntry):
             #pylint: disable=E1103
             self._not_list = set(_obj._not_list)
-            self._orig = _obj._orig
+            self._orig = dict(_obj._orig)
             if _obj.conn is _conn:
                 self._names = CIDict(_obj._names)
                 self._nice = dict(_obj._nice)
@@ -742,31 +742,6 @@ class LDAPEntry(collections.MutableMapping):
 
     def copy(self):
         return LDAPEntry(self)
-
-    def clone(self):
-        result = LDAPEntry(self._conn, self._dn)
-
-        result._names = deepcopy(self._names)
-        result._nice = deepcopy(self._nice)
-        result._raw = deepcopy(self._raw)
-        result._sync = deepcopy(self._sync)
-        result._not_list = deepcopy(self._not_list)
-        if self._orig is not self:
-            result._orig = self._orig.clone()
-
-        return result
-
-    def reset_modlist(self, other=None):
-        """
-        Make the current state of the entry a new reference point for change
-        tracking.
-        """
-        if other is None:
-            other = self
-        assert isinstance(other, LDAPEntry)
-        if other is self:
-            self._orig = self
-        self._orig = other.clone()
 
     def _sync_attr(self, name):
         nice = self._nice[name]
@@ -840,6 +815,8 @@ class LDAPEntry(collections.MutableMapping):
                 if oldname in self._not_list:
                     self._not_list.remove(oldname)
                     self._not_list.add(name)
+                if oldname in self._orig:
+                    self._orig[name] = self._orig.pop(oldname)
         else:
             if self._conn.schema is not None:
                 attrtype = self._conn.schema.get_obj(ldap.schema.AttributeType,
@@ -850,6 +827,11 @@ class LDAPEntry(collections.MutableMapping):
                         self._names[altname] = name
 
             self._names[name] = name
+
+            for oldname in self._orig.keys():
+                if self._names.get(oldname) == name:
+                    self._orig[name] = self._orig.pop(oldname)
+                    break
 
     def _set_nice(self, name, value):
         name = self._attr_name(name)
@@ -981,14 +963,20 @@ class LDAPEntry(collections.MutableMapping):
             return NotImplemented
         return other is not self
 
+    def reset_modlist(self, other=None):
+        if other is None:
+            other = self
+        assert isinstance(other, LDAPEntry)
+        self._orig = deepcopy(dict(other.raw))
+
     def generate_modlist(self):
         modlist = []
 
         names = set(self.iterkeys())
-        names.update(self._orig.iterkeys())
+        names.update(self._orig)
         for name in names:
             new = self.raw.get(name)
-            old = self._orig.raw.get(name)
+            old = self._orig.get(name)
             if old and not new:
                 modlist.append((ldap.MOD_DELETE, name, None))
                 continue
