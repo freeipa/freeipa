@@ -992,6 +992,44 @@ class LDAPEntry(collections.MutableMapping):
             return NotImplemented
         return other is not self
 
+    def generate_modlist(self):
+        modlist = []
+
+        names = set(self.iterkeys())
+        names.update(self._orig.iterkeys())
+        for name in names:
+            new = self.raw.get(name)
+            old = self._orig.raw.get(name)
+            if old and not new:
+                modlist.append((ldap.MOD_DELETE, name, None))
+                continue
+            if not old:
+                modlist.append((ldap.MOD_REPLACE, name, new))
+                continue
+
+            # We used to convert to sets and use difference to calculate
+            # the changes but this did not preserve order which is important
+            # particularly for schema
+            adds = [value for value in new if value not in old]
+            dels = [value for value in old if value not in new]
+            if adds and self.conn.get_single_value(name):
+                if len(adds) > 1:
+                    raise errors.OnlyOneValueAllowed(attr=name)
+                modlist.append((ldap.MOD_REPLACE, name, adds))
+            else:
+                if adds:
+                    modlist.append((ldap.MOD_ADD, name, adds))
+                if dels:
+                    modlist.append((ldap.MOD_DELETE, name, dels))
+
+        # Usually the modlist order does not matter.
+        # However, for schema updates, we want 'attributetypes' before
+        # 'objectclasses'.
+        # A simple sort will ensure this.
+        modlist.sort(key=lambda m: m[1].lower() != 'attributetypes')
+
+        return modlist
+
     # FIXME: Remove when python-ldap tuple compatibility is dropped
     def __iter__(self):
         yield self._dn
@@ -1587,51 +1625,6 @@ class LDAPClient(object):
             self.conn.rename_s(dn, new_rdn, delold=int(del_old))
             time.sleep(.3)  # Give memberOf plugin a chance to work
 
-    def _generate_modlist(self, dn, entry_attrs):
-        assert isinstance(dn, DN)
-
-        # generate modlist
-        # for multi value attributes: no MOD_REPLACE to handle simultaneous
-        # updates better
-        # for single value attribute: always MOD_REPLACE
-        modlist = []
-        for (k, v) in entry_attrs.raw.iteritems():
-            if not v and k in entry_attrs.orig_data:
-                modlist.append((ldap.MOD_DELETE, k, None))
-            else:
-                v = set(v)
-                old_v = set(entry_attrs.orig_data.raw.get(k, []))
-
-                adds = list(v.difference(old_v))
-                rems = list(old_v.difference(v))
-
-                is_single_value = self.get_single_value(k)
-
-                value_count = len(old_v) + len(adds) - len(rems)
-                if is_single_value and value_count > 1:
-                    raise errors.OnlyOneValueAllowed(attr=k)
-
-                force_replace = False
-                if len(v) > 0 and len(v.intersection(old_v)) == 0:
-                    force_replace = True
-
-                if adds:
-                    if force_replace:
-                        modlist.append((ldap.MOD_REPLACE, k, adds))
-                    else:
-                        modlist.append((ldap.MOD_ADD, k, adds))
-                if rems:
-                    if not force_replace:
-                        modlist.append((ldap.MOD_DELETE, k, rems))
-
-        # Usually the modlist order does not matter.
-        # However, for schema updates, we want 'attributetypes' before
-        # 'objectclasses'.
-        # A simple sort will ensure this.
-        modlist.sort(key=lambda m: m[1].lower())
-
-        return modlist
-
     def update_entry(self, entry, entry_attrs=None):
         """Update entry's attributes.
 
@@ -1645,7 +1638,7 @@ class LDAPClient(object):
             entry.update(entry_attrs)
 
         # generate modlist
-        modlist = self._generate_modlist(entry.dn, entry)
+        modlist = entry.generate_modlist()
         if not modlist:
             raise errors.EmptyModlist()
 

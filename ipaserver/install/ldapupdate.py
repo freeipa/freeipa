@@ -718,7 +718,7 @@ class LDAPUpdate:
         else:
             # Update LDAP
             try:
-                changes = self.conn._generate_modlist(entry.dn, entry)
+                changes = entry.generate_modlist()
                 if len(changes) >= 1:
                     updated = True
                 safe_changes = []

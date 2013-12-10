@@ -114,7 +114,7 @@ def update_schema(schema_files, ldapi=False, dm_password=None, live_run=True):
 
     # FIXME: We should have a better way to display the modlist,
     # for now display raw output of our internal routine
-    modlist = conn._generate_modlist(schema_entry.dn, schema_entry)
+    modlist = schema_entry.generate_modlist()
     log.debug("Complete schema modlist:\n%s", pprint.pformat(modlist))
 
     if modified and live_run:
