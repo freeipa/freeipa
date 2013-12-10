@@ -279,11 +279,6 @@ class LDAPUpdate:
         if fd != sys.stdin: fd.close()
         return text
 
-    def _entry_to_entity(self, ent):
-        entry = ent.copy()
-        entry.reset_modlist()
-        return entry
-
     def _combine_updates(self, all_updates, update):
         'Combine a new update with the list of total updates'
         dn = update.get('dn')
@@ -518,7 +513,7 @@ class LDAPUpdate:
 
         if not default:
             # This means that the entire entry needs to be created with add
-            return self._entry_to_entity(entry)
+            return entry
 
         for item in default:
             # We already do syntax-parsing so this is safe
@@ -531,8 +526,9 @@ class LDAPUpdate:
             else:
                 e = [value]
             entry[attr] = e
+        entry.reset_modlist()
 
-        return self._entry_to_entity(entry)
+        return entry
 
     def _get_entry(self, dn):
         """Retrieve an object from LDAP.
@@ -672,7 +668,7 @@ class LDAPUpdate:
             if len(e) > 1:
                 # we should only ever get back one entry
                 raise BadSyntax, "More than 1 entry returned on a dn search!? %s" % new_entry.dn
-            entry = self._entry_to_entity(e[0])
+            entry = e[0]
             found = True
             self.info("Updating existing entry: %s", entry.dn)
         except errors.NotFound:
