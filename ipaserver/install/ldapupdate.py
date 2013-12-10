@@ -50,9 +50,9 @@ from ipaserver.plugins import ldap2
 def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):
     """Create a connection for updates"""
     if ldapi:
-        conn = ipaldap.IPAdmin(ldapi=True, realm=realm)
+        conn = ipaldap.IPAdmin(ldapi=True, realm=realm, decode_attrs=False)
     else:
-        conn = ipaldap.IPAdmin(fqdn, ldapi=False, realm=realm)
+        conn = ipaldap.IPAdmin(fqdn, ldapi=False, realm=realm, decode_attrs=False)
     try:
         if dm_password:
             conn.do_simple_bind(binddn=DN(('cn', 'directory manager')),
@@ -235,8 +235,7 @@ class LDAPUpdate:
                                 skipinitialspace=True,
                                 **kwargs)
         for row in csv_reader:
-            # decode UTF-8 back to Unicode, cell by cell:
-            yield [unicode(cell, 'utf-8') for cell in row]
+            yield row
 
     def _identify_arch(self):
         """On multi-arch systems some libraries may be in /lib64, /usr/lib64,
@@ -557,19 +556,7 @@ class LDAPUpdate:
             # We already do syntax-parsing so this is safe
             (action, attr, update_values) = update.split(':',2)
             update_values = self._parse_values(update_values)
-
-            # If the attribute is known to be a DN convert it to a DN object.
-            # This has to be done after _parse_values() due to quoting and comma separated lists.
-            if self.conn.has_dn_syntax(attr):
-                update_values = [DN(x) for x in update_values]
-
-            entry_values = entry.get(attr)
-            if not isinstance(entry_values, list):
-                if entry_values is None:
-                    entry_values = []
-                else:
-                    entry_values = [entry_values]
-
+            entry_values = entry.get(attr, [])
             for update_value in update_values:
                 if action == 'remove':
                     self.debug("remove: '%s' from %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr,entry_values))
@@ -646,12 +633,9 @@ class LDAPUpdate:
             self.debug("%s", message)
         self.debug("dn: %s", e.dn)
         for a, value in e.items():
-            if isinstance(value, (list, tuple)):
-                self.debug('%s:', a)
-                for l in value:
-                    self.debug("\t%s", safe_output(a, l))
-            else:
-                self.debug('%s: %s', a, safe_output(a, value))
+            self.debug('%s:', a)
+            for l in value:
+                self.debug("\t%s", safe_output(a, l))
 
     def _update_record(self, update):
         found = False
