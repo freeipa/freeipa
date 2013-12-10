@@ -422,7 +422,7 @@ class IPASimpleLDAPObject(object):
             try:
                 return target_type(val)
             except Exception, e:
-                msg = 'unable to convert the attribute "%s" value "%s" to type %s' % (attr, val, target_type)
+                msg = 'unable to convert the attribute %r value %r to type %s' % (attr, val, target_type)
                 self.log.error(msg)
                 raise ValueError(msg)
         elif isinstance(val, list):
