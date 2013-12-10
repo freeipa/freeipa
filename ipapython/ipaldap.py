@@ -323,20 +323,22 @@ class IPASimpleLDAPObject(object):
         self._schema = None
 
     def get_syntax(self, attr):
+        if isinstance(attr, unicode):
+            attr = attr.encode('utf-8')
+
         # Is this a special case attribute?
-        syntax = self._SCHEMA_OVERRIDE.get(attr)
-        if syntax is not None:
-            return syntax
+        if attr in self._SCHEMA_OVERRIDE:
+            return self._SCHEMA_OVERRIDE[attr]
 
         if self.schema is None:
             return None
 
         # Try to lookup the syntax in the schema returned by the server
         obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
-        if obj is not None:
-            return obj.syntax
-        else:
+        if obj is None:
             return None
+
+        return obj.syntax
 
     def has_dn_syntax(self, attr):
         """
@@ -346,6 +348,27 @@ class IPASimpleLDAPObject(object):
         """
         syntax = self.get_syntax(attr)
         return syntax == DN_SYNTAX_OID
+
+    def get_single_value(self, attr):
+        """
+        Check the schema to see if the attribute is single-valued.
+
+        If the attribute is in the schema then returns True/False
+
+        If there is a problem loading the schema or the attribute is
+        not in the schema return None
+        """
+        if isinstance(attr, unicode):
+            attr = attr.encode('utf-8')
+
+        if self.schema is None:
+            return None
+
+        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
+        if obj is None:
+            return None
+
+        return obj.single_value
 
 
     def encode(self, val):
@@ -1186,18 +1209,7 @@ class LDAPClient(object):
         return [unicode(a).lower() for a in list(set(allowed_attributes))]
 
     def get_single_value(self, attr):
-        """
-        Check the schema to see if the attribute is single-valued.
-
-        If the attribute is in the schema then returns True/False
-
-        If there is a problem loading the schema or the attribute is
-        not in the schema return None
-        """
-        if self.schema is None:
-            return None
-        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
-        return obj and obj.single_value
+        return self.conn.get_single_value(attr)
 
     def make_dn_from_attr(self, attr, value, parent_dn=None):
         """
