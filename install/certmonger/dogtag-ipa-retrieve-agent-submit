@@ -23,6 +23,10 @@
 # retrieve the updated certificate from IPA.
 
 import os
+# Prevent garbage from readline on standard output
+# (see https://fedorahosted.org/freeipa/ticket/4064)
+if not os.isatty(1):
+    os.environ['TERM'] = 'dumb'
 import sys
 import shutil
 import tempfile
