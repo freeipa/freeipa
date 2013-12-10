@@ -23,6 +23,8 @@
 Test the `ipalib/plugins/user.py` module.
 """
 
+import re
+
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_equal, assert_not_equal
@@ -44,6 +46,9 @@ invaliduser2=u'tuser1234567890123456789012345678901234567890'
 
 sshpubkey = u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L public key test'
 sshpubkeyfp = u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B public key test (ssh-rsa)'
+
+# Date in ISO format (2013-12-10T12:00:00)
+isodate_re = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
 
 
 def get_user_result(uid, givenname, sn, operation='show', omit=[],
@@ -1446,6 +1451,26 @@ class test_user(Declarative):
                 ),
                 value=user1,
                 summary='Modified user "%s"' % user1,
+            ),
+        ),
+
+        dict(
+            desc='Query status of "%s"' % user1,
+            command=('user_status', [user1], {}),
+            expected=dict(
+                count=1,
+                result=[
+                    dict(
+                        dn=get_user_dn(user1),
+                        krblastfailedauth=[u'N/A'],
+                        krblastsuccessfulauth=[u'N/A'],
+                        krbloginfailedcount=u'0',
+                        now=isodate_re.match,
+                        server=api.env.host,
+                    ),
+                ],
+                summary=u'Account disabled: False',
+                truncated=False,
             ),
         ),
 
