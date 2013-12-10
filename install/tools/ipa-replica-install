@@ -606,14 +606,34 @@ def main():
                      tls_cacertfile=CACERT)
         replman = ReplicationManager(config.realm_name, config.master_host_name,
                                      config.dirman_password)
-        found = False
+
+        # Check that we don't already have a replication agreement
         try:
-            entry = conn.find_entries(u'fqdn=%s' % host, ['fqdn'], DN(api.env.container_host, api.env.basedn))
-            print "The host %s already exists on the master server.\nYou should remove it before proceeding:" % host
-            print "    %% ipa host-del %s" % host
-            found = True
+            (agreement_cn, agreement_dn) = replman.agreement_dn(host)
+            entry = conn.get_entry(agreement_dn, ['*'])
         except errors.NotFound:
             pass
+        else:
+            root_logger.info('Error: A replication agreement for this host '
+                'already exists.')
+            print ('A replication agreement for this host already exists. '
+                   'It needs to be removed.')
+            print "Run this on the master that generated the info file:"
+            print "    %% ipa-replica-manage del %s --force" % host
+            exit(3)
+
+        # Check pre-existing host entry
+        try:
+            entry = conn.find_entries(u'fqdn=%s' % host, ['fqdn'], DN(api.env.container_host, api.env.basedn))
+        except errors.NotFound:
+            pass
+        else:
+            root_logger.info(
+                'Error: Host %s already exists on the master server.' % host)
+            print 'The host %s already exists on the master server.' % host
+            print "You should remove it before proceeding:"
+            print "    %% ipa host-del %s" % host
+            exit(3)
 
         # If remote host has DNS, check forward/reverse resolution
         with temporary_ldap2_connection(
@@ -633,17 +653,6 @@ def main():
             root_logger.debug('No IPA DNS servers, '
                 'skipping forward/reverse resolution check')
 
-        # Check that we don't already have a replication agreement
-        try:
-            (agreement_cn, agreement_dn) = replman.agreement_dn(host)
-            entry = conn.get_entry(agreement_dn, ['*'])
-            print "A replication agreement for this host already exists. It needs to be removed. Run this on the master that generated the info file:"
-            print "    %% ipa-replica-manage del %s --force" % host
-            found = True
-        except errors.NotFound:
-            pass
-        if found:
-            sys.exit(3)
     except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
     except errors.LDAPError:
