@@ -1775,66 +1775,6 @@ class IPAdmin(LDAPClient):
         self.__bind_with_wait(
             self.conn.sasl_interactive_bind_s, timeout, None, auth_tokens)
 
-    def updateEntry(self,dn,oldentry,newentry):
-        # FIXME: for backwards compatibility only
-        """This wraps the mod function. It assumes that the entry is already
-           populated with all of the desired objectclasses and attributes"""
-
-        assert isinstance(dn, DN)
-
-        modlist = self.generateModList(oldentry, newentry)
-
-        if len(modlist) == 0:
-            raise errors.EmptyModlist
-
-        with self.error_handler():
-            self.modify_s(dn, modlist)
-        return True
-
-    def generateModList(self, old_entry, new_entry):
-        # FIXME: for backwards compatibility only
-        """A mod list generator that computes more precise modification lists
-           than the python-ldap version.  For single-value attributes always
-           use a REPLACE operation, otherwise use ADD/DEL.
-        """
-
-        # Some attributes, like those in cn=config, need to be replaced
-        # not deleted/added.
-        FORCE_REPLACE_ON_UPDATE_ATTRS = ('nsslapd-ssl-check-hostname', 'nsslapd-lookthroughlimit', 'nsslapd-idlistscanlimit', 'nsslapd-anonlimitsdn', 'nsslapd-minssf-exclude-rootdse')
-        modlist = []
-
-        keys = set(old_entry.keys())
-        keys.update(new_entry.keys())
-
-        for key in keys:
-            new_values = new_entry.raw.get(key, [])
-            old_values = old_entry.raw.get(key, [])
-
-            # We used to convert to sets and use difference to calculate
-            # the changes but this did not preserve order which is important
-            # particularly for schema
-            adds = [x for x in new_values if x not in old_values]
-            removes = [x for x in old_values if x not in new_values]
-
-            if len(adds) == 0 and len(removes) == 0:
-                continue
-
-            is_single_value = self.get_single_value(key)
-            force_replace = False
-            if key in FORCE_REPLACE_ON_UPDATE_ATTRS or is_single_value:
-                force_replace = True
-
-            if adds:
-                if force_replace:
-                    modlist.append((ldap.MOD_REPLACE, key, adds))
-                else:
-                    modlist.append((ldap.MOD_ADD, key, adds))
-            if removes:
-                if not force_replace or not new_values:
-                    modlist.append((ldap.MOD_DELETE, key, removes))
-
-        return modlist
-
     def modify_s(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
         return self.conn.modify_s(*args, **kwargs)

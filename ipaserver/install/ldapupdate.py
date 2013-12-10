@@ -722,7 +722,7 @@ class LDAPUpdate:
         else:
             # Update LDAP
             try:
-                changes = self.conn.generateModList(entry.orig_data, entry)
+                changes = self.conn._generate_modlist(entry.dn, entry)
                 if len(changes) >= 1:
                     updated = True
                 safe_changes = []
@@ -731,7 +731,7 @@ class LDAPUpdate:
                 self.debug("%s" % safe_changes)
                 self.debug("Live %d, updated %d" % (self.live_run, updated))
                 if self.live_run and updated:
-                    self.conn.updateEntry(entry.dn, entry.orig_data, entry)
+                    self.conn.update_entry(entry)
                 self.info("Done")
             except errors.EmptyModlist:
                 self.info("Entry already up-to-date")
