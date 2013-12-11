@@ -32,29 +32,57 @@ from ipatests.test_integration.host import BaseHost, Host
 TESTHOST_PREFIX = 'TESTHOST_'
 
 
+_SettingInfo = collections.namedtuple('Setting', 'name var_name default')
+_setting_infos = (
+    # Directory on which test-specific files will be stored,
+    _SettingInfo('test_dir', 'IPATEST_DIR', '/root/ipatests'),
+
+    # File with root's private RSA key for SSH (default: ~/.ssh/id_rsa)
+    _SettingInfo('root_ssh_key_filename', 'IPA_ROOT_SSH_KEY', None),
+
+    # SSH password for root (used if root_ssh_key_filename is not set)
+    _SettingInfo('root_password', 'IPA_ROOT_SSH_PASSWORD', None),
+
+    _SettingInfo('admin_name', 'ADMINID', 'admin'),
+    _SettingInfo('admin_password', 'ADMINPW', 'Secret123'),
+    _SettingInfo('dirman_dn', 'ROOTDN', 'cn=Directory Manager'),
+    _SettingInfo('dirman_password', 'ROOTDNPWD', None),
+
+    # 8.8.8.8 is probably the best-known public DNS
+    _SettingInfo('dns_forwarder', 'DNSFORWARD', '8.8.8.8'),
+    _SettingInfo('nis_domain', 'NISDOMAIN', 'ipatest'),
+    _SettingInfo('ntp_server', 'NTPSERVER', None),
+    _SettingInfo('ad_admin_name', 'ADADMINID', 'Administrator'),
+    _SettingInfo('ad_admin_password', 'ADADMINPW', 'Secret123'),
+
+    _SettingInfo('ipv6', 'IPv6SETUP', False),
+    _SettingInfo('debug', 'IPADEBUG', False),
+)
+
+
 class Config(object):
     def __init__(self, **kwargs):
         self.log = log_mgr.get_logger(self)
 
         admin_password = kwargs.get('admin_password') or 'Secret123'
 
+        # This unfortunately duplicates information in _setting_infos,
+        # but is left here for the sake of static analysis.
         self.test_dir = kwargs.get('test_dir', '/root/ipatests')
-        self.root_password = kwargs.get('root_password')
         self.root_ssh_key_filename = kwargs.get('root_ssh_key_filename')
-        self.ipv6 = bool(kwargs.get('ipv6', False))
-        self.debug = bool(kwargs.get('debug', False))
+        self.root_password = kwargs.get('root_password')
         self.admin_name = kwargs.get('admin_name') or 'admin'
         self.admin_password = admin_password
         self.dirman_dn = DN(kwargs.get('dirman_dn') or 'cn=Directory Manager')
         self.dirman_password = kwargs.get('dirman_password') or admin_password
-        self.admin_name = kwargs.get('admin_name') or 'admin'
-        # 8.8.8.8 is probably the best-known public DNS
         self.dns_forwarder = kwargs.get('dns_forwarder') or '8.8.8.8'
         self.nis_domain = kwargs.get('nis_domain') or 'ipatest'
         self.ntp_server = kwargs.get('ntp_server') or (
             '%s.pool.ntp.org' % random.randint(0, 3))
         self.ad_admin_name = kwargs.get('ad_admin_name') or 'Administrator'
         self.ad_admin_password = kwargs.get('ad_admin_password') or 'Secret123'
+        self.ipv6 = bool(kwargs.get('ipv6', False))
+        self.debug = bool(kwargs.get('debug', False))
 
         if not self.root_password and not self.root_ssh_key_filename:
             self.root_ssh_key_filename = '~/.ssh/id_rsa'
@@ -71,25 +99,7 @@ class Config(object):
 
         Input variables:
 
-        DOMAIN: the domain to install in
-        IPATEST_DIR: Directory on which test-specific files will be stored,
-            by default /root/ipatests
-        IPv6SETUP: "TRUE" if setting up with IPv6
-        IPADEBUG: non-empty if debugging is turned on
-        IPA_ROOT_SSH_KEY: File with root's private RSA key for SSH
-            (default: ~/.ssh/id_rsa)
-        IPA_ROOT_SSH_PASSWORD: SSH password for root
-            (used if IPA_ROOT_SSH_KEY is not set)
-
-        ADMINID: Administrator username
-        ADMINPW: Administrator password
-        ROOTDN: Directory Manager DN
-        ROOTDNPWD: Directory Manager password
-        ADADMINID: Active Directory Administrator username
-        ADADMINPW: Active Directory Administrator password
-        DNSFORWARD: DNS forwarder
-        NISDOMAIN
-        NTPSERVER
+        See _setting_infos for test-wide settings
 
         MASTER_env1: FQDN of the master
         REPLICA_env1: space-separated FQDNs of the replicas
@@ -115,21 +125,14 @@ class Config(object):
         """
         env_normalize(env)
 
-        self = cls(test_dir=env.get('IPATEST_DIR') or '/root/ipatests',
-                   ipv6=(env.get('IPv6SETUP') == 'TRUE'),
-                   debug=env.get('IPADEBUG'),
-                   root_password=env.get('IPA_ROOT_SSH_PASSWORD'),
-                   root_ssh_key_filename=env.get('IPA_ROOT_SSH_KEY'),
-                   admin_name=env.get('ADMINID'),
-                   admin_password=env.get('ADMINPW'),
-                   dirman_dn=env.get('ROOTDN'),
-                   dirman_password=env.get('ROOTDNPWD'),
-                   dns_forwarder=env.get('DNSFORWARD'),
-                   nis_domain=env.get('NISDOMAIN'),
-                   ntp_server=env.get('NTPSERVER'),
-                   ad_admin_name=env.get('ADADMINID'),
-                   ad_admin_password=env.get('ADADMINPW'),
-                   )
+        kwargs = {s.name: env.get(s.var_name, s.default)
+                  for s in _setting_infos}
+
+        # $IPv6SETUP needs to be 'TRUE' to enable ipv6
+        if isinstance(kwargs['ipv6'], basestring):
+            kwargs['ipv6'] = (kwargs['ipv6'].upper() == 'TRUE')
+
+        self = cls(**kwargs)
 
         # Either IPA master or AD can define a domain
 
@@ -156,24 +159,14 @@ class Config(object):
             # Older Python versions
             env = {}
 
-        env['IPATEST_DIR'] = self.test_dir
-        env['IPv6SETUP'] = 'TRUE' if self.ipv6 else ''
-        env['IPADEBUG'] = 'TRUE' if self.debug else ''
-        env['IPA_ROOT_SSH_PASSWORD'] = self.root_password or ''
-        env['IPA_ROOT_SSH_KEY'] = self.root_ssh_key_filename or ''
-
-        env['ADMINID'] = self.admin_name
-        env['ADMINPW'] = self.admin_password
-
-        env['ROOTDN'] = str(self.dirman_dn)
-        env['ROOTDNPWD'] = self.dirman_password
-
-        env['ADADMINID'] = self.ad_admin_name
-        env['ADADMINPW'] = self.ad_admin_password
-
-        env['DNSFORWARD'] = self.dns_forwarder
-        env['NISDOMAIN'] = self.nis_domain
-        env['NTPSERVER'] = self.ntp_server
+        for setting in _setting_infos:
+            value = getattr(self, setting.name)
+            if value in (None, False):
+                env[setting.var_name] = ''
+            elif value is True:
+                env[setting.var_name] = 'TRUE'
+            else:
+                env[setting.var_name] = str(value)
 
         for domain in self.domains:
             env['DOMAIN%s' % domain._env] = domain.name
