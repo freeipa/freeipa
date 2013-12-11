@@ -27,9 +27,8 @@ import random
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration.host import BaseHost, Host
-
-TESTHOST_PREFIX = 'TESTHOST_'
+from ipatests.test_integration.util import check_config_dict_empty
+from ipatests.test_integration.util import TESTHOST_PREFIX
 
 
 _SettingInfo = collections.namedtuple('Setting', 'name var_name default')
@@ -92,6 +91,27 @@ class Config(object):
     @property
     def ad_domains(self):
         return filter(lambda d: d.type == 'AD', self.domains)
+
+    @classmethod
+    def from_dict(cls, dct):
+        kwargs = {s.name: dct.pop(s.name, s.default) for s in _setting_infos}
+        self = cls(**kwargs)
+
+        for domain_dict in dct.pop('domains'):
+            self.domains.append(Domain.from_dict(domain_dict, self))
+
+        check_config_dict_empty(dct, 'config')
+
+        return self
+
+    def to_dict(self):
+        dct = {'domains': [d.to_dict() for d in self.domains]}
+        for setting in _setting_infos:
+            value = getattr(self, setting.name)
+            if isinstance(value, DN):
+                value = str(value)
+            dct[setting.name] = value
+        return dct
 
     @classmethod
     def from_env(cls, env):
@@ -316,7 +336,32 @@ class Domain(object):
             yield role
 
     @classmethod
+    def from_dict(cls, dct, config):
+        from ipatests.test_integration.host import BaseHost
+
+        domain_type = dct.pop('type')
+        assert domain_type in ('IPA', 'AD')
+        domain_name = dct.pop('name')
+        self = cls(config, domain_name, domain_type)
+
+        for host_dict in dct.pop('hosts'):
+            host = BaseHost.from_dict(host_dict, self)
+            self.hosts.append(host)
+
+        check_config_dict_empty(dct, 'domain %s' % domain_name)
+
+        return self
+
+    def to_dict(self):
+        return {
+            'type': self.type,
+            'name': self.name,
+            'hosts': [h.to_dict() for h in self.hosts],
+        }
+
+    @classmethod
     def from_env(cls, env, config, index, domain_type):
+        from ipatests.test_integration.host import BaseHost
 
         # Roles available in the domain depend on the type of the domain
         # Unix machines are added only to the IPA domains, Windows machines

@@ -26,6 +26,8 @@ from ipapython.ipaldap import IPAdmin
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration import transport
+from ipatests.test_integration.util import check_config_dict_empty
+from ipatests.test_integration.util import TESTHOST_PREFIX
 
 
 class BaseHost(object):
@@ -99,6 +101,10 @@ class BaseHost(object):
         external_hostname = env.get(
             'BEAKER%s%s_env%s' % (role.upper(), index, domain_index), None)
 
+        return cls._make_host(domain, hostname, role, ip, external_hostname)
+
+    @staticmethod
+    def _make_host(domain, hostname, role, ip, external_hostname):
         # We need to determine the type of the host, this depends on the domain
         # type, as we assume all Unix machines are in the Unix domain and
         # all Windows machine in a AD domain
@@ -108,8 +114,35 @@ class BaseHost(object):
         else:
             cls = Host
 
-        self = cls(domain, hostname, role, ip, external_hostname)
-        return self
+        return cls(domain, hostname, role, ip, external_hostname)
+
+    @classmethod
+    def from_dict(cls, dct, domain):
+        if isinstance(dct, basestring):
+            dct = {'name': dct}
+        try:
+            role = dct.pop('role').lower()
+        except KeyError:
+            role = domain.static_roles[0]
+
+        hostname = dct.pop('name')
+        if '.' not in hostname:
+            hostname = '.'.join((hostname, domain.name))
+
+        ip = dct.pop('ip', None)
+        external_hostname = dct.pop('external_hostname', None)
+
+        check_config_dict_empty(dct, 'host %s' % hostname)
+
+        return cls._make_host(domain, hostname, role, ip, external_hostname)
+
+    def to_dict(self):
+        return {
+            'name': self.hostname,
+            'ip': self.ip,
+            'role': self.role,
+            'external_hostname': self.external_hostname,
+        }
 
     @property
     def config(self):
