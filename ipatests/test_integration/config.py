@@ -29,6 +29,8 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration.host import BaseHost, Host
 
+TESTHOST_PREFIX = 'TESTHOST_'
+
 
 class Config(object):
     def __init__(self, **kwargs):
@@ -181,8 +183,11 @@ class Config(object):
             for role in domain.roles:
                 hosts = domain.hosts_by_role(role)
 
+                prefix = ('' if role in domain.static_roles
+                          else TESTHOST_PREFIX)
+
                 hostnames = ' '.join(h.hostname for h in hosts)
-                env['%s%s' % (role.upper(), domain._env)] = hostnames
+                env['%s%s%s' % (prefix, role.upper(), domain._env)] = hostnames
 
                 ext_hostnames = ' '.join(h.external_hostname for h in hosts)
                 env['BEAKER%s%s' % (role.upper(), domain._env)] = ext_hostnames
@@ -209,9 +214,10 @@ class Config(object):
                     env['MASTER'] = default_domain.master.hostname
                     env['BEAKERMASTER'] = default_domain.master.external_hostname
                     env['MASTERIP'] = default_domain.master.ip
-                env['SLAVE'] = env['REPLICA'] = env['REPLICA_env1']
-                env['BEAKERSLAVE'] = env['BEAKERREPLICA_env1']
-                env['SLAVEIP'] = env['BEAKERREPLICA_IP_env1']
+                if default_domain.replicas:
+                    env['SLAVE'] = env['REPLICA'] = env['REPLICA_env1']
+                    env['BEAKERSLAVE'] = env['BEAKERREPLICA_env1']
+                    env['SLAVEIP'] = env['BEAKERREPLICA_IP_env1']
                 if default_domain.clients:
                     client = default_domain.clients[0]
                     env['CLIENT'] = client.hostname
