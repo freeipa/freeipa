@@ -128,7 +128,8 @@ class BaseHost(object):
         env['MYBEAKERHOSTNAME'] = self.external_hostname
         env['MYIP'] = self.ip
 
-        prefix = 'TESTHOST_' if self.role in self.domain.extra_roles else ''
+        prefix = ('' if self.role in self.domain.static_roles
+                  else TESTHOST_PREFIX)
         env['MYROLE'] = '%s%s%s' % (prefix, role, self.domain._env)
         env['MYENV'] = str(self.domain.index)
 
