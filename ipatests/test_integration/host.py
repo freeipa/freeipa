@@ -32,11 +32,10 @@ class BaseHost(object):
     """Representation of a remote IPA host"""
     transport_class = None
 
-    def __init__(self, domain, hostname, role, index, ip=None,
+    def __init__(self, domain, hostname, role, ip=None,
                  external_hostname=None):
         self.domain = domain
         self.role = role
-        self.index = index
 
         shortname, dot, ext_domain = hostname.partition('.')
         self.shortname = shortname
@@ -94,11 +93,11 @@ class BaseHost(object):
         self.log_collectors.remove(collector)
 
     @classmethod
-    def from_env(cls, env, domain, hostname, role, index):
+    def from_env(cls, env, domain, hostname, role, index, domain_index):
         ip = env.get('BEAKER%s%s_IP_env%s' %
-                        (role.upper(), index, domain.index), None)
+                        (role.upper(), index, domain_index), None)
         external_hostname = env.get(
-            'BEAKER%s%s_env%s' % (role.upper(), index, domain.index), None)
+            'BEAKER%s%s_env%s' % (role.upper(), index, domain_index), None)
 
         # We need to determine the type of the host, this depends on the domain
         # type, as we assume all Unix machines are in the Unix domain and
@@ -109,7 +108,7 @@ class BaseHost(object):
         else:
             cls = Host
 
-        self = cls(domain, hostname, role, index, ip, external_hostname)
+        self = cls(domain, hostname, role, ip, external_hostname)
         return self
 
     @property
@@ -120,9 +119,12 @@ class BaseHost(object):
         """Return environment variables specific to this host"""
         env = self.domain.to_env(**kwargs)
 
+        index = self.domain.hosts.index(self) + 1
+        domain_index = self.config.domains.index(self.domain) + 1
+
         role = self.role.upper()
         if self.role != 'master':
-            role += str(self.index)
+            role += str(index)
 
         env['MYHOSTNAME'] = self.hostname
         env['MYBEAKERHOSTNAME'] = self.external_hostname
@@ -130,8 +132,9 @@ class BaseHost(object):
 
         prefix = ('' if self.role in self.domain.static_roles
                   else TESTHOST_PREFIX)
-        env['MYROLE'] = '%s%s%s' % (prefix, role, self.domain._env)
-        env['MYENV'] = str(self.domain.index)
+        env_suffix = '_env%s' % domain_index
+        env['MYROLE'] = '%s%s%s' % (prefix, role, env_suffix)
+        env['MYENV'] = str(domain_index)
 
         return env
 
