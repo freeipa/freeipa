@@ -169,9 +169,10 @@ class Config(object):
                 env[setting.var_name] = str(value)
 
         for domain in self.domains:
-            env['DOMAIN%s' % domain._env] = domain.name
-            env['RELM%s' % domain._env] = domain.realm
-            env['BASEDN%s' % domain._env] = str(domain.basedn)
+            env_suffix = '_env%s' % (self.domains.index(domain) + 1)
+            env['DOMAIN%s' % env_suffix] = domain.name
+            env['RELM%s' % env_suffix] = domain.realm
+            env['BASEDN%s' % env_suffix] = str(domain.basedn)
 
             for role in domain.roles:
                 hosts = domain.hosts_by_role(role)
@@ -180,13 +181,13 @@ class Config(object):
                           else TESTHOST_PREFIX)
 
                 hostnames = ' '.join(h.hostname for h in hosts)
-                env['%s%s%s' % (prefix, role.upper(), domain._env)] = hostnames
+                env['%s%s%s' % (prefix, role.upper(), env_suffix)] = hostnames
 
                 ext_hostnames = ' '.join(h.external_hostname for h in hosts)
-                env['BEAKER%s%s' % (role.upper(), domain._env)] = ext_hostnames
+                env['BEAKER%s%s' % (role.upper(), env_suffix)] = ext_hostnames
 
                 ips = ' '.join(h.ip for h in hosts)
-                env['BEAKER%s_IP%s' % (role.upper(), domain._env)] = ips
+                env['BEAKER%s_IP%s' % (role.upper(), env_suffix)] = ips
 
                 for i, host in enumerate(hosts, start=1):
                     suffix = '%s%s' % (role.upper(), i)
@@ -195,9 +196,9 @@ class Config(object):
 
                     ext_hostname = host.external_hostname
                     env['%s%s%s' % (prefix, suffix,
-                                    domain._env)] = host.hostname
-                    env['BEAKER%s%s' % (suffix, domain._env)] = ext_hostname
-                    env['BEAKER%s_IP%s' % (suffix, domain._env)] = host.ip
+                                    env_suffix)] = host.hostname
+                    env['BEAKER%s%s' % (suffix, env_suffix)] = ext_hostname
+                    env['BEAKER%s_IP%s' % (suffix, env_suffix)] = host.ip
 
         if simple:
             # Simple Vars for simplicity and backwards compatibility with older
@@ -272,16 +273,13 @@ def env_normalize(env):
 
 class Domain(object):
     """Configuration for an IPA / AD domain"""
-    def __init__(self, config, name, index, domain_type):
+    def __init__(self, config, name, domain_type):
         self.log = log_mgr.get_logger(self)
         self.type = domain_type
 
         self.config = config
         self.name = name
         self.hosts = []
-        self.index = index
-
-        self._env = '_env%s' % index
 
         self.realm = self.name.upper()
         self.basedn = DN(*(('dc', p) for p in name.split('.')))
@@ -302,14 +300,14 @@ class Domain(object):
     def extra_roles(self):
         return [role for role in self.roles if role not in self.static_roles]
 
-    def _roles_from_env(self, env):
+    def _roles_from_env(self, env, env_suffix):
         for role in self.static_roles:
             yield role
 
         # Extra roles are defined via env variables of form TESTHOST_key_envX
         roles = set()
         for var in sorted(env):
-            if var.startswith(TESTHOST_PREFIX) and var.endswith(self._env):
+            if var.startswith(TESTHOST_PREFIX) and var.endswith(env_suffix):
                 variable_split = var.split('_')
                 role_name = '_'.join(variable_split[1:-1])
                 if (role_name and not role_name[-1].isdigit()):
@@ -328,20 +326,23 @@ class Domain(object):
         else:
             master_role = 'AD'
 
-        master_env = '%s_env%s' % (master_role, index)
+        env_suffix = '_env%s' % index
+
+        master_env = '%s%s' % (master_role, env_suffix)
         hostname, dot, domain_name = env[master_env].partition('.')
-        self = cls(config, domain_name, index, domain_type)
+        self = cls(config, domain_name, domain_type)
 
-        for role in self._roles_from_env(env):
+        for role in self._roles_from_env(env, env_suffix):
             prefix = '' if role in self.static_roles else TESTHOST_PREFIX
-            value = env.get('%s%s%s' % (prefix, role.upper(), self._env), '')
+            value = env.get('%s%s%s' % (prefix, role.upper(), env_suffix), '')
 
-            for index, hostname in enumerate(value.split(), start=1):
-                host = BaseHost.from_env(env, self, hostname, role, index)
+            for host_index, hostname in enumerate(value.split(), start=1):
+                host = BaseHost.from_env(env, self, hostname, role,
+                                         host_index, index)
                 self.hosts.append(host)
 
         if not self.hosts:
-            raise ValueError('No hosts defined for %s' % self._env)
+            raise ValueError('No hosts defined for %s' % env_suffix)
 
         return self
 
