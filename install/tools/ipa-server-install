@@ -89,6 +89,8 @@ VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
                        'incorporationlocality', 'incorporationstate',
                        'incorporationcountry', 'businesscategory']
 
+SYSRESTORE_DIR_PATH = '/var/lib/ipa/sysrestore'
+
 def subject_callback(option, opt_str, value, parser):
     """
     Make sure the certificate subject base is a valid DN
@@ -525,16 +527,19 @@ def uninstall():
     sysupgrade.remove_upgrade_file()
 
     if fstore.has_files():
-        root_logger.error('Some files have not been restored, see /var/lib/ipa/sysrestore/sysrestore.index')
+        root_logger.error('Some files have not been restored, see %s/sysrestore.index' % SYSRESTORE_DIR_PATH)
     has_state = False
     for module in IPA_MODULES: # from installutils
         if sstore.has_state(module):
-            root_logger.error('Some installation state for %s has not been restored, see /var/lib/ipa/sysrestore/sysrestore.state' % module)
+            root_logger.error('Some installation state for %s has not been restored, see %s/sysrestore.state' % (module, SYSRESTORE_DIR_PATH))
             has_state = True
             rv = 1
 
     if has_state:
-        root_logger.error('Some installation state has not been restored.\nThis may cause re-installation to fail.\nIt should be safe to remove /var/lib/ipa/sysrestore.state but it may\nmean your system hasn\'t be restored to its pre-installation state.')
+        root_logger.error('Some installation state has not been restored.\n'
+                          'This may cause re-installation to fail.\n'
+                          'It should be safe to remove %s/sysrestore.state but it may\n'
+                          'mean your system hasn\'t be restored to its pre-installation state.' % SYSRESTORE_DIR_PATH)
 
     # Note that this name will be wrong after the first uninstall.
     dirname = dsinstance.config_dirname(dsinstance.realm_to_serverid(api.env.realm))
@@ -603,9 +608,9 @@ def main():
     root_logger.debug("missing options might be asked for interactively later\n")
 
     global fstore
-    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    fstore = sysrestore.FileStore(SYSRESTORE_DIR_PATH)
     global sstore
-    sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
+    sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
 
     # Configuration for ipalib, we will bootstrap and finalize later, after
     # we are sure we have the configuration file ready.
