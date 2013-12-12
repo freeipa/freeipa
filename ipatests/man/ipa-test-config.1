@@ -30,7 +30,7 @@ The FreeIPA integration test suite is configured by setting environment
 variables.
 The ipa\-run\-tests command reads these variables and prints detailed
 configuration for shell-based scripts to standard output.
-The output of ipa\-run\-tests consists of export statements that can be
+The default output of ipa\-run\-tests consists of export statements that can be
 sourced by Bash.
 
 If run without arguments, it prints out configuration specific to the local
@@ -68,8 +68,31 @@ Output configuration for the host with the given role.
 \fB\-\-no\-simple\fR
 Do not output Simple Vars.
 These are normally included for backwards compatibility.
+.TP
+\fB\-\-yaml\fR
+Output configuration in YAML format instead of Bash script.
+This requires the PyYAML library to be installed.
+.TP
+\fB\-\-json\fR
+Output configuration in JSON format instead of Bash script.
 
 .SH "ENVIRONMENT VARIABLES"
+
+.TP
+File\-based configuration:
+
+.TP
+\fB$IPATEST_YAML_CONFIG\fR
+    Specifies a file that contains configuration in YAML format,
+    as given by \fBipa\-test\-config \-\-global \-\-yaml\fR.
+    If given, the other environment variables are ignored.
+    This requires the PyYAML library to be installed.
+
+.TP
+\fB$IPATEST_JSON_CONFIG\fR
+    Specifies a file that contains configuration in JSON format,
+    as given by \fBipa\-test\-config \-\-global \-\-json\fR.
+    If given, the other environment variables are ignored.
 
 .TP
 Domain configuration:
