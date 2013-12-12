@@ -22,6 +22,7 @@
 import sys
 import os
 import argparse
+import json
 
 from ipalib.constants import FQDN
 from ipatests.test_integration import config
@@ -59,6 +60,14 @@ def main(argv):
                         help='Do not print Simple Vars '
                              '(normally included backwards-compatibility)')
 
+    parser.add_argument('--yaml', action='store_const', dest='output_format',
+                        const='yaml',
+                        help='Output configuration in YAML format')
+
+    parser.add_argument('--json', action='store_const', dest='output_format',
+                        const='json',
+                        help='Output configuration in JSON format')
+
     args = parser.parse_args(argv)
 
     hostsargs = [bool(args.host), bool(args.master), bool(args.replica),
@@ -77,7 +86,13 @@ def main(argv):
 
     conf = config.Config.from_env(os.environ)
 
-    return config.env_to_script(get_object(conf, args).to_env(**kwargs))
+    if args.output_format == 'json':
+        return json.dumps(conf.to_dict(), indent=2)
+    elif args.output_format == 'yaml':
+        import yaml
+        return yaml.safe_dump(conf.to_dict(), default_flow_style=False)
+    else:
+        return config.env_to_script(get_object(conf, args).to_env(**kwargs))
 
 
 def get_object(conf, args):
