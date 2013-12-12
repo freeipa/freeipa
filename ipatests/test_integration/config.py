@@ -23,6 +23,7 @@
 import os
 import collections
 import random
+import json
 
 from ipapython import ipautil
 from ipapython.dn import DN
@@ -117,7 +118,12 @@ class Config(object):
     def from_env(cls, env):
         """Create a test config from environment variables
 
-        Input variables:
+        If IPATEST_YAML_CONFIG or IPATEST_JSON_CONFIG is set,
+        configuration is read from the named file.
+        For YAML, the PyYAML (python-yaml) library needs to be installed.
+
+        Otherwise, configuration is read from various curiously
+        named environment variables:
 
         See _setting_infos for test-wide settings
 
@@ -143,6 +149,17 @@ class Config(object):
 
         Also see env_normalize() for alternate variable names
         """
+        if 'IPATEST_YAML_CONFIG' in env:
+            import yaml
+            with open(env['IPATEST_YAML_CONFIG']) as file:
+                data = yaml.safe_load(file)
+            return cls.from_dict(data)
+
+        if 'IPATEST_JSON_CONFIG' in env:
+            with open(env['IPATEST_JSON_CONFIG']) as file:
+                data = json.load(file)
+            return cls.from_dict(data)
+
         env_normalize(env)
 
         kwargs = {s.name: env.get(s.var_name, s.default)
