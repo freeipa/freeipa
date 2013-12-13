@@ -188,7 +188,6 @@ class permission(baseldap.LDAPObject):
             cli_name='subtree',
             label=_('Subtree'),
             doc=_('Subtree to apply permissions to'),
-            default=api.env.basedn,
             flags={'ask_create'},
         ),
         Str(
