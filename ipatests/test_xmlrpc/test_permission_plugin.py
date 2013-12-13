@@ -2055,6 +2055,27 @@ def _make_permission_flag_tests(flags, expected_message):
         ),
 
         dict(
+            desc='Add %r to %r' % (permission1, privilege1),
+            command=('privilege_add_permission', [privilege1],
+                     {'permission': permission1}),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        permission=[],
+                    ),
+                ),
+                result={
+                    'dn': privilege1_dn,
+                    'cn': [privilege1],
+                    'description': [u'privilege desc. 1'],
+                    'memberof_permission': [permission1],
+                    'objectclass': objectclasses.privilege,
+                }
+            ),
+        ),
+
+        dict(
             desc='Delete %r with --force' % permission1,
             command=('permission_del', [permission1], {'force': True}),
             expected=dict(
@@ -2070,9 +2091,28 @@ class test_permission_flags(Declarative):
     """Test that permission flags are handled correctly"""
     cleanup_commands = [
         ('permission_del', [permission1], {'force': True}),
+        ('privilege_del', [privilege1], {}),
     ]
 
-    tests = (
+    tests = [
+        dict(
+            desc='Create %r' % privilege1,
+            command=('privilege_add', [privilege1],
+                dict(description=u'privilege desc. 1')
+            ),
+            expected=dict(
+                value=privilege1,
+                summary=u'Added privilege "%s"' % privilege1,
+                result=dict(
+                    dn=privilege1_dn,
+                    cn=[privilege1],
+                    description=[u'privilege desc. 1'],
+                    objectclass=objectclasses.privilege,
+                ),
+            ),
+        ),
+
+    ] + (
         _make_permission_flag_tests(
             [u'SYSTEM'],
             'A SYSTEM permission may not be modified or removed') +
