@@ -310,8 +310,16 @@ class permission(baseldap.LDAPObject):
 
         if options.get('raw'):
             # Retreive the ACI from LDAP to ensure we get the real thing
-            acientry, acistring = self._get_aci_entry_and_string(entry)
-            entry.single_value['aci'] = acistring
+            try:
+                acientry, acistring = self._get_aci_entry_and_string(entry)
+            except errors.NotFound:
+                if list(entry.get('ipapermissiontype')) == ['SYSTEM']:
+                    # SYSTEM permissions don't have normal ACIs
+                    pass
+                else:
+                    raise
+            else:
+                entry.single_value['aci'] = acistring
 
         if not client_has_capability(options['version'], 'permissions2'):
             # Legacy clients expect some attributes as a single value

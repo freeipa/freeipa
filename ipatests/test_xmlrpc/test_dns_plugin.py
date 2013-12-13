@@ -1349,7 +1349,6 @@ class test_dns(Declarative):
                 '"%s" already exists' % dnszone1_permission)
         ),
 
-
         dict(
             desc='Make sure the permission was created %r' % dnszone1,
             command=(
@@ -1367,13 +1366,28 @@ class test_dns(Declarative):
             ),
         ),
 
+        dict(
+            desc='Retrieve the permission %r with --all --raw' % dnszone1,
+            command=(
+                'permission_show', [dnszone1_permission], {}
+            ),
+            expected=dict(
+                value=dnszone1_permission,
+                summary=None,
+                result={
+                    'dn': dnszone1_permission_dn,
+                    'cn': [dnszone1_permission],
+                    'objectclass': objectclasses.system_permission,
+                    'ipapermissiontype': [u'SYSTEM'],
+                },
+            ),
+        ),
 
         dict(
             desc='Try to remove per-zone permission for unknown zone',
             command=('dnszone_remove_permission', [u'does.not.exist'], {}),
             expected=errors.NotFound(reason=u'does.not.exist: DNS zone not found')
         ),
-
 
         dict(
             desc='Remove per-zone permission for zone %r' % dnszone1,
