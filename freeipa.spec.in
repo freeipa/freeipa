@@ -320,6 +320,10 @@ This package contains tests that verify IPA functionality.
 %setup -n freeipa-%{version} -q
 
 %build
+%ifarch ppc %{power64}
+# UI compilation segfaulted on ppc platforms when stack was lower (#1040576)
+export JAVA_STACK_SIZE="8m"
+%endif
 export CFLAGS="$CFLAGS %{optflags}"
 export CPPFLAGS="$CPPFLAGS %{optflags}"
 %if 0%{?fedora} >= 18
