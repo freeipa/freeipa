@@ -31,5 +31,6 @@ if [[ ! $profile ]] ; then
     exit 1
 fi
 
-rhino $DIR/build/build.js baseUrl=$DIR/build load=build profile=$DIR/../src/$profile.profile.js
+RHINO="java -Xss${JAVA_STACK_SIZE:-512k} -classpath /usr/share/java/rhino.jar  org.mozilla.javascript.tools.shell.Main"
+$RHINO $DIR/build/build.js baseUrl=$DIR/build load=build profile=$DIR/../src/$profile.profile.js
 exit $?

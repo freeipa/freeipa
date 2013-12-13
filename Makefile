@@ -52,6 +52,11 @@ endif
 
 PYTHON ?= $(shell rpm -E %__python)
 
+# Uncomment to increase Java stack size for Web UI build in case it fails
+# because of stack overflow exception. Default should be OK for most platforms.
+#JAVA_STACK_SIZE ?= 8m
+#export JAVA_STACK_SIZE
+
 all: bootstrap-autogen server tests
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
