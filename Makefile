@@ -52,7 +52,7 @@ endif
 
 PYTHON ?= $(shell rpm -E %__python || echo /usr/bin/python2)
 
-CFLAGS := -g -O2 -Werror -Wall -Wextra -Wformat-security -Wno-unused-parameter -Wno-sign-compare -Wno-missing-field-initializers $(CFLAGS)
+CFLAGS := -g -O2 -Wall -Wextra -Wformat-security -Wno-unused-parameter -Wno-sign-compare -Wno-missing-field-initializers $(CFLAGS)
 export CFLAGS
 
 # Uncomment to increase Java stack size for Web UI build in case it fails
