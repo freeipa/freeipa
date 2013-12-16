@@ -891,11 +891,12 @@ class permission_find(baseldap.LDAPSearch):
             for entry in legacy_entries:
                 if entry.single_value['cn'] in nonlegacy_names:
                     continue
-                if len(entries) > max_entries:
+                if max_entries > 0 and len(entries) > max_entries:
                     # We've over the limit, pop the last entry and set
                     # truncated flag
                     # (this is easier to do than checking before adding
                     # the entry to results)
+                    # (max_entries <= 0 means unlimited)
                     entries.pop()
                     truncated = True
                     break
