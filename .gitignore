@@ -39,6 +39,7 @@ freeipa2-dev-doc
 !/Makefile
 /dist/
 /RELEASE
+/rpmbuild/
 
 # Subdirectories
 /daemons/ipa-otpd/ipa-otpd
