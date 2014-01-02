@@ -688,12 +688,25 @@ class DsInstance(service.Service):
     def upload_ca_dercert(self, dercert):
         """Upload the CA DER certificate to the LDAP directory
         """
-        # Note: Don't try to optimize if base64 data is already available.
-        # We want to re-encode using Python's b64encode to ensure the
-        # data is normalized (no extra newlines in the ldif)
-        self.sub_dict['CADERCERT'] = base64.b64encode(dercert)
+        conn = ipaldap.IPAdmin(self.fqdn)
+        conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
 
-        self._ldap_mod('upload-cacert.ldif', self.sub_dict)
+        dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), self.suffix)
+        try:
+            entry = conn.get_entry(dn, attrs_list=['cACertificate;binary'])
+            entry['cACertificate;binary'] = [dercert]
+            conn.update_entry(entry)
+        except errors.NotFound:
+            entry = conn.make_entry(
+                dn,
+                {'objectClass': ['nsContainer', 'pkiCA'],
+                 'cn': ['CAcert'],
+                 'cACertificate;binary': [dercert]})
+            conn.add_entry(entry)
+        except errors.EmptyModlist:
+            pass
+
+        conn.unbind()
 
     def __add_default_layout(self):
         self._ldap_mod("bootstrap-template.ldif", self.sub_dict)
