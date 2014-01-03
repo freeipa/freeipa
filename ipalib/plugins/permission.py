@@ -32,27 +32,27 @@ from ipalib.request import context
 
 __doc__ = _("""
 Permissions
-""" + """
+""") + _("""
 A permission enables fine-grained delegation of rights. A permission is
 a human-readable wrapper around a 389-ds Access Control Rule,
 or instruction (ACI).
 A permission grants the right to perform a specific task such as adding a
 user, modifying a group, etc.
-""" + """
+""") + _("""
 A permission may not contain other permissions.
-""" + """
+""") + _("""
 * A permission grants access to read, write, add, delete, read, search,
   or compare.
 * A privilege combines similar permissions (for example all the permissions
   needed to add a user).
 * A role grants a set of privileges to users, groups, hosts or hostgroups.
-""" + """
+""") + _("""
 A permission is made up of a number of different parts:
 
 1. The name of the permission.
 2. The target of the permission.
 3. The rights granted by the permission.
-""" + """
+""") + _("""
 Rights define what operations are allowed, and may be one or more
 of the following:
 1. write - write one or more attributes
@@ -62,28 +62,28 @@ of the following:
 5. add - add a new entry to the tree
 6. delete - delete an existing entry
 7. all - all permissions are granted
-""" + """
+""") + _("""
 Note the distinction between attributes and entries. The permissions are
 independent, so being able to add a user does not mean that the user will
 be editable.
-""" + """
+""") + _("""
 There are a number of allowed targets:
 1. subtree: a DN; the permission applies to the subtree under this DN
 2. target filter: an LDAP filter
 3. target: DN with possible wildcards, specifies entries permission applies to
-""" + """
+""") + _("""
 Additionally, there are the following convenience options.
 Setting one of these options will set the corresponding attribute(s).
 1. type: a type of object (user, group, etc); sets subtree and target filter.
 2. memberof: apply to members of a group; sets target filter
 3. targetgroup: grant access to modify a specific group (such as granting
    the rights to manage group membership); sets target.
-""" + """
+""") + _("""
 EXAMPLES:
-""" + """
+""") + _("""
  Add a permission that grants the creation of users:
    ipa permission-add --type=user --permissions=add "Add Users"
-""" + """
+""") + _("""
  Add a permission that grants the ability to manage group membership:
    ipa permission-add --attrs=member --permissions=write --type=group "Manage Group Members"
 """)
@@ -421,7 +421,7 @@ class permission(baseldap.LDAPObject):
             acientry['aci'].remove(acistring)
         if new_acistring:
             self.log.debug('Adding ACI %r to %s' % (new_acistring, acidn))
-            acientry['aci'].append(new_acistring)
+            acientry.setdefault('aci', []).append(new_acistring)
         try:
             ldap.update_entry(acientry)
         except errors.EmptyModlist:
@@ -742,7 +742,8 @@ class permission_del(baseldap.LDAPDelete):
         try:
             self.obj.remove_aci(entry)
         except errors.NotFound:
-            errors.NotFound('ACI of permission %s was not found' % keys[0])
+            errors.NotFound(
+                reason=_('ACI of permission %s was not found') % keys[0])
 
         return dn
 
