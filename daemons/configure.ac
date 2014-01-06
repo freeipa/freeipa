@@ -309,6 +309,7 @@ AC_CONFIG_FILES([
     ipa-sam/Makefile
     ipa-otpd/Makefile
     ipa-slapi-plugins/Makefile
+    ipa-slapi-plugins/libotp/Makefile
     ipa-slapi-plugins/ipa-cldap/Makefile
     ipa-slapi-plugins/ipa-dns/Makefile
     ipa-slapi-plugins/ipa-enrollment/Makefile

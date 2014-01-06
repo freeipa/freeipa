@@ -1,6 +1,7 @@
 NULL =
 
 SUBDIRS =			\
+	libotp			\
 	ipa-cldap		\
 	ipa-dns			\
 	ipa-enrollment		\
