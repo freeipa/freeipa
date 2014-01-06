@@ -340,31 +340,44 @@ class permission(baseldap.LDAPObject):
     def make_aci(self, entry):
         """Make an ACI string from the given permission entry"""
 
-        aci = ACI()
+        aci_parts = []
         name = entry.single_value['cn']
-        aci.name = 'permission:%s' % name
+
+        # targetattr
+        attrs = entry.get('ipapermallowedattr', [])
+        if attrs:
+            aci_parts.append("(targetattr = \"%s\")" % ' || '.join(attrs))
+
+        # target
         ipapermtarget = entry.single_value.get('ipapermtarget')
         if ipapermtarget:
-            aci.set_target('ldap:///%s' % ipapermtarget)
+            aci_parts.append("(target = \"%s\")" %
+                             'ldap:///%s' % ipapermtarget)
+
+        # targetfilter
         ipapermtargetfilter = entry.single_value.get('ipapermtargetfilter')
         if ipapermtargetfilter:
-            aci.set_target_filter(ipapermtargetfilter)
+            assert (ipapermtargetfilter.startswith('(')
+                    and ipapermtargetfilter.endswith(')'))
+            aci_parts.append("(targetfilter = \"%s\")" % ipapermtargetfilter)
 
+        # version, name, rights, bind rule
         ipapermbindruletype = entry.single_value.get('ipapermbindruletype',
                                                      'permission')
         if ipapermbindruletype == 'permission':
             dn = DN(('cn', name), self.container_dn, self.api.env.basedn)
-            aci.set_bindrule('groupdn = "ldap:///%s"' % dn)
+            bindrule = 'groupdn = "ldap:///%s"' % dn
         elif ipapermbindruletype == 'all':
-            aci.set_bindrule('userdn = "ldap:///all"')
+            bindrule = 'userdn = "ldap:///all"'
         elif ipapermbindruletype == 'anonymous':
-            aci.set_bindrule('userdn = "ldap:///anyone"')
+            bindrule = 'userdn = "ldap:///anyone"'
         else:
             raise ValueError(ipapermbindruletype)
-        aci.permissions = entry['ipapermright']
-        aci.set_target_attr(entry.get('ipapermallowedattr', []))
 
-        return aci.export_to_string()
+        aci_parts.append('(version 3.0;acl "permission:%s";allow (%s) %s;)' % (
+            name, ','.join(entry['ipapermright']), bindrule))
+
+        return ''.join(aci_parts)
 
     def add_aci(self, permission_entry):
         """Add the ACI coresponding to the given permission entry"""
