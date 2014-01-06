@@ -77,8 +77,8 @@ class Config(object):
         self.dirman_password = kwargs.get('dirman_password') or admin_password
         self.dns_forwarder = kwargs.get('dns_forwarder') or '8.8.8.8'
         self.nis_domain = kwargs.get('nis_domain') or 'ipatest'
-        self.ntp_server = kwargs.get('ntp_server') or (
-            '%s.pool.ntp.org' % random.randint(0, 3))
+        self.ntp_server = str(kwargs.get('ntp_server') or (
+            '%s.pool.ntp.org' % random.randint(0, 3)))
         self.ad_admin_name = kwargs.get('ad_admin_name') or 'Administrator'
         self.ad_admin_password = kwargs.get('ad_admin_password') or 'Secret123'
         self.ipv6 = bool(kwargs.get('ipv6', False))
@@ -312,10 +312,10 @@ class Domain(object):
     """Configuration for an IPA / AD domain"""
     def __init__(self, config, name, domain_type):
         self.log = log_mgr.get_logger(self)
-        self.type = domain_type
+        self.type = str(domain_type)
 
         self.config = config
-        self.name = name
+        self.name = str(name)
         self.hosts = []
 
         self.realm = self.name.upper()
