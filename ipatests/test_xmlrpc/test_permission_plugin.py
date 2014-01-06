@@ -241,7 +241,7 @@ class test_permission_negative(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
@@ -271,11 +271,11 @@ class test_permission_negative(Declarative):
         ),
 
         dict(
-            desc='Try to remove target and memberof from %r' % permission1,
+            desc='Try to remove targetfilter and memberof from %r' % permission1,
             command=(
                 'permission_mod', [permission1], dict(
                     attrs=None,
-                    ipapermtarget=None,
+                    ipapermtargetfilter=None,
                 )
             ),
             expected=errors.ValidationError(
@@ -344,7 +344,7 @@ class test_permission(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
@@ -352,7 +352,7 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -429,7 +429,7 @@ class test_permission(Declarative):
                     'ipapermbindruletype': [u'permission'],
                     'ipapermissiontype': [u'SYSTEM', u'V2'],
                     'ipapermlocation': [users_dn],
-                    'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                    'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                 },
             ),
         ),
@@ -451,9 +451,9 @@ class test_permission(Declarative):
                     'ipapermright': [u'write'],
                     'ipapermissiontype': [u'SYSTEM', u'V2'],
                     'ipapermlocation': [users_dn],
-                    'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                    'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     'aci': ['(targetattr = "sn")'
-                            '(target = "ldap:///%(tdn)s")'
+                            '(targetfilter = "(objectclass=posixaccount)")' +
                             '(version 3.0;acl "permission:%(name)s";'
                             'allow (write) groupdn = "ldap:///%(pdn)s";)' %
                             {'tdn': DN(('uid', '*'), users_dn),
@@ -483,7 +483,7 @@ class test_permission(Declarative):
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     },
                 ],
             ),
@@ -509,7 +509,7 @@ class test_permission(Declarative):
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     },
                 ],
             ),
@@ -547,7 +547,7 @@ class test_permission(Declarative):
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     },
                 ],
             ),
@@ -572,9 +572,9 @@ class test_permission(Declarative):
                         'ipapermright': [u'write'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                         'aci': ['(targetattr = "sn")'
-                                '(target = "ldap:///%(tdn)s")'
+                                '(targetfilter = "(objectclass=posixaccount)")' +
                                 '(version 3.0;acl "permission:%(name)s";'
                                 'allow (write) groupdn = "ldap:///%(pdn)s";)' %
                                 {'tdn': DN(('uid', '*'), users_dn),
@@ -611,7 +611,7 @@ class test_permission(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
@@ -619,11 +619,10 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission2, users_dn,
             '(targetattr = "cn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission2 +
             'allow (write) groupdn = "ldap:///%s";)' % permission2_dn,
         ),
-
 
         dict(
             desc='Search for %r' % permission1,
@@ -644,7 +643,7 @@ class test_permission(Declarative):
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     },
                     {
                         'dn': permission2_dn,
@@ -656,7 +655,7 @@ class test_permission(Declarative):
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     },
                 ],
             ),
@@ -741,7 +740,7 @@ class test_permission(Declarative):
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     },
                 ],
             ),
@@ -766,7 +765,7 @@ class test_permission(Declarative):
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                         'member_privilege': [privilege1],
                     },
                     {
@@ -779,7 +778,7 @@ class test_permission(Declarative):
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
                         'ipapermlocation': [users_dn],
-                        'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     },
                 ],
             ),
@@ -844,12 +843,13 @@ class test_permission(Declarative):
                     memberof=[u'ipausers'],
                     owner=[u'cn=other-test', u'cn=other-test2'],
                     attrs=[u'sn'],
-                    ipapermtargetfilter=[u'(memberOf=%s)' % DN('cn=ipausers',
-                                                               groups_dn)],
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN('cn=ipausers', groups_dn),
+                        u"(objectclass=posixaccount)",
+                    ],
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
                 ),
             ),
         ),
@@ -857,12 +857,12 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
+            '(targetfilter = "(&' +
+                '(memberOf=%s)' % DN('cn=ipausers', groups_dn) +
+                '(objectclass=posixaccount))")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (read) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
 
         dict(
             desc='Retrieve %r to verify update' % permission1,
@@ -879,17 +879,15 @@ class test_permission(Declarative):
                     'ipapermright': [u'read'],
                     'memberof': [u'ipausers'],
                     'attrs': [u'sn'],
-                    'ipapermtargetfilter': [u'(memberOf=%s)' % DN('cn=ipausers',
-                                                                  groups_dn)],
+                    'ipapermtargetfilter': [
+                        u'(memberOf=%s)' % DN('cn=ipausers', groups_dn),
+                        u'(objectclass=posixaccount)'],
                     'ipapermbindruletype': [u'permission'],
                     'ipapermissiontype': [u'SYSTEM', u'V2'],
                     'ipapermlocation': [users_dn],
-                    'ipapermtarget': [DN(('uid', '*'), users_dn)],
                 },
             ),
         ),
-
-
 
         dict(
             desc='Try to rename %r to existing permission %r' % (permission1,
@@ -901,7 +899,6 @@ class test_permission(Declarative):
             expected=errors.DuplicateEntry(),
         ),
 
-
         dict(
             desc='Try to rename %r to empty name' % (permission1),
             command=(
@@ -911,7 +908,6 @@ class test_permission(Declarative):
             expected=errors.ValidationError(name='rename',
                                     error=u'New name can not be empty'),
         ),
-
 
         dict(
             desc='Check integrity of original permission %r' % permission1,
@@ -928,12 +924,12 @@ class test_permission(Declarative):
                     'ipapermright': [u'read'],
                     'memberof': [u'ipausers'],
                     'attrs': [u'sn'],
-                    'ipapermtargetfilter': [u'(memberOf=%s)' % DN('cn=ipausers',
-                                                                  groups_dn)],
+                    'ipapermtargetfilter': [
+                        u'(memberOf=%s)' % DN('cn=ipausers', groups_dn),
+                        u'(objectclass=posixaccount)'],
                     'ipapermbindruletype': [u'permission'],
                     'ipapermissiontype': [u'SYSTEM', u'V2'],
                     'ipapermlocation': [users_dn],
-                    'ipapermtarget': [DN(('uid', '*'), users_dn)],
                 },
             ),
         ),
@@ -958,12 +954,12 @@ class test_permission(Declarative):
                     'ipapermright': [u'all'],
                     'memberof': [u'ipausers'],
                     'attrs': [u'sn'],
-                    'ipapermtargetfilter': [u'(memberOf=%s)' % DN('cn=ipausers',
-                                                                  groups_dn)],
+                    'ipapermtargetfilter': [
+                        u'(memberOf=%s)' % DN('cn=ipausers', groups_dn),
+                        u'(objectclass=posixaccount)'],
                     'ipapermbindruletype': [u'permission'],
                     'ipapermissiontype': [u'SYSTEM', u'V2'],
                     'ipapermlocation': [users_dn],
-                    'ipapermtarget': [DN(('uid', '*'), users_dn)],
                 },
             ),
         ),
@@ -973,8 +969,9 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission1_renamed, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
+            '(targetfilter = "(&' +
+                '(memberOf=%s)' % DN('cn=ipausers', groups_dn) +
+                '(objectclass=posixaccount))")' +
             '(version 3.0;acl "permission:%s";' % permission1_renamed +
             'allow (all) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
         ),
@@ -999,12 +996,12 @@ class test_permission(Declarative):
                     'ipapermright': [u'write'],
                     'memberof': [u'ipausers'],
                     'attrs': [u'sn'],
-                    'ipapermtargetfilter': [u'(memberOf=%s)' % DN('cn=ipausers',
-                                                                  groups_dn)],
+                    'ipapermtargetfilter': [
+                        u'(memberOf=%s)' % DN('cn=ipausers', groups_dn),
+                        u'(objectclass=posixaccount)'],
                     'ipapermbindruletype': [u'permission'],
                     'ipapermissiontype': [u'SYSTEM', u'V2'],
                     'ipapermlocation': [users_dn],
-                    'ipapermtarget': [DN(('uid', '*'), users_dn)],
                 },
             ),
         ),
@@ -1014,8 +1011,9 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission1_renamed_ucase, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
+            '(targetfilter = "(&' +
+                '(memberOf=%s)' % DN('cn=ipausers', groups_dn) +
+                '(objectclass=posixaccount))")' +
             '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase +
             'allow (write) groupdn = "ldap:///%s";)' %
                 permission1_renamed_ucase_dn,
@@ -1073,7 +1071,7 @@ class test_permission(Declarative):
                     'attrs': [u'cn'],
                     'ipapermbindruletype': [u'permission'],
                     'ipapermissiontype': [u'SYSTEM', u'V2'],
-                    'ipapermtarget': [DN(('uid', '*'), users_dn)],
+                    'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
                     'ipapermlocation': [api.env.basedn],
                 },
             ),
@@ -1082,7 +1080,7 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission2, api.env.basedn,
             '(targetattr = "cn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission2 +
             'allow (write) groupdn = "ldap:///%s";)' % permission2_dn,
         ),
@@ -1256,12 +1254,12 @@ class test_permission(Declarative):
                     ipapermright=[u'write'],
                     type=[u'user'],
                     attrs=[u'sn'],
-                    ipapermtargetfilter=[u'(memberOf=%s)' % DN(('cn', 'editors'),
-                                                               groups_dn)],
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN(('cn', 'editors'), groups_dn),
+                        u'(objectclass=posixaccount)'],
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
                 ),
             ),
         ),
@@ -1269,8 +1267,8 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=editors', groups_dn) +
+            '(targetfilter = "(&(memberOf=%s)' % DN('cn=editors', groups_dn) +
+                '(objectclass=posixaccount))")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -1300,12 +1298,12 @@ class test_permission(Declarative):
                     ipapermright=[u'write'],
                     type=[u'user'],
                     attrs=[u'sn'],
-                    ipapermtargetfilter=[u'(memberOf=%s)' % DN(('cn', 'admins'),
-                                                               groups_dn)],
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                        u'(objectclass=posixaccount)'],
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
                 ),
             ),
         ),
@@ -1313,8 +1311,9 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(targetfilter = "(&' +
+                '(memberOf=%s)' % DN('cn=admins', groups_dn) +
+                '(objectclass=posixaccount))")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -1339,7 +1338,7 @@ class test_permission(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
@@ -1347,7 +1346,7 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -1419,7 +1418,7 @@ class test_permission(Declarative):
                     ipapermright=[u'write'],
                     attrs=(u'cn',),
                     ipapermbindruletype=[u'permission'],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
                 ),
@@ -1429,7 +1428,7 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission3, users_dn,
             '(targetattr = "cn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission3 +
             'allow (write) groupdn = "ldap:///%s";)' % permission3_dn,
         ),
@@ -1450,7 +1449,7 @@ class test_permission(Declarative):
                     ipapermright=[u'write'],
                     attributelevelrights=permission3_attributelevelrights,
                     ipapermbindruletype=[u'permission'],
-                    ipapermtarget=[DN(('uid', '*'),users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
                 ),
@@ -1475,7 +1474,7 @@ class test_permission(Declarative):
                     ipapermright=[u'write'],
                     attributelevelrights=permission3_attributelevelrights,
                     ipapermbindruletype=[u'permission'],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
                 ),
@@ -1485,20 +1484,28 @@ class test_permission(Declarative):
         verify_permission_aci(
             permission3, users_dn,
             '(targetattr = "cn || uid")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission3 +
             'allow (write) groupdn = "ldap:///%s";)' % permission3_dn,
         ),
 
         dict(
+            desc='Try to modify %r with naked targetfilter' % permission1,
+            command=('permission_mod', [permission1],
+                     {'ipapermtargetfilter': u"cn=admin"}),
+            expected=errors.ValidationError(
+                name='filter',
+                error='must be enclosed in parentheses'),
+        ),
+
+        dict(
             desc='Try to modify %r with invalid targetfilter' % permission1,
             command=('permission_mod', [permission1],
-                     {'ipapermtargetfilter': u"ceci n'est pas un filtre"}),
+                     {'ipapermtargetfilter': u"(ceci n'est pas un filtre)"}),
             expected=errors.ValidationError(
                 name='ipapermtargetfilter',
                 error='Bad search filter'),
         ),
-
 
         dict(
             desc='Try setting nonexisting location on %r' % permission1,
@@ -1630,9 +1637,9 @@ class test_permission_sync_attributes(Declarative):
                     ipapermlocation=users_dn,
                     ipapermright=u'write',
                     attrs=u'sn',
-                    ipapermtargetfilter=u'(memberOf=%s)' % DN(('cn', 'admins'),
-                                                              groups_dn),
-                    ipapermtarget=DN(('uid', '*'), users_dn),
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                        u'(objectclass=posixaccount)'],
                 )
             ),
             expected=dict(
@@ -1648,9 +1655,9 @@ class test_permission_sync_attributes(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
-                    ipapermtargetfilter=[u'(memberOf=%s)' % DN(('cn', 'admins'),
-                                                              groups_dn)],
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                        u'(objectclass=posixaccount)'],
                     memberof=[u'admins'],
                 ),
             ),
@@ -1659,8 +1666,8 @@ class test_permission_sync_attributes(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(targetfilter = "(&(memberOf=%s)' % DN('cn=admins', groups_dn) +
+                '(objectclass=posixaccount))")'
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -1683,9 +1690,9 @@ class test_permission_sync_attributes(Declarative):
                     attrs=[u'sn'],
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
-                    ipapermtargetfilter=[u'(memberOf=%s)' % DN(('cn', 'admins'),
-                                                              groups_dn)],
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                        u'(objectclass=posixaccount)'],
                     memberof=[u'admins'],
                     ipapermlocation=[api.env.basedn],
                 ),
@@ -1695,11 +1702,13 @@ class test_permission_sync_attributes(Declarative):
         verify_permission_aci(
             permission1, api.env.basedn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(targetfilter = "(&(memberOf=%s)' % DN('cn=admins', groups_dn) +
+                '(objectclass=posixaccount))")'
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
+
+        verify_permission_aci_missing(permission1, users_dn),
 
         dict(
             desc='Reset location on %r' % permission1,
@@ -1721,9 +1730,9 @@ class test_permission_sync_attributes(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
-                    ipapermtargetfilter=[u'(memberOf=%s)' % DN(('cn', 'admins'),
-                                                              groups_dn)],
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                        u'(objectclass=posixaccount)'],
                     memberof=[u'admins'],
                 ),
             ),
@@ -1732,17 +1741,20 @@ class test_permission_sync_attributes(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(targetfilter = "(&(memberOf=%s)' % DN('cn=admins', groups_dn) +
+                '(objectclass=posixaccount))")'
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
 
+        verify_permission_aci_missing(permission1, api.env.basedn),
+
         dict(
-            desc='Unset target on %r, verify type is gone' % permission1,
+            desc='Unset objectclass filter on %r, verify type is gone' % permission1,
             command=(
                 'permission_mod', [permission1], dict(
-                    ipapermtarget=None,
+                    ipapermtargetfilter=u'(memberOf=%s)' % DN(('cn', 'admins'),
+                                                              groups_dn),
                 )
             ),
             expected=dict(
@@ -1757,8 +1769,8 @@ class test_permission_sync_attributes(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtargetfilter=[u'(memberOf=%s)' % DN(('cn', 'admins'),
-                                                              groups_dn)],
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn)],
                     memberof=[u'admins'],
                 ),
             ),
@@ -1822,7 +1834,7 @@ class test_permission_sync_attributes(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[groups_dn],
-                    ipapermtarget=[DN(('cn', '*'), groups_dn)],
+                    ipapermtargetfilter=[u'(objectclass=ipausergroup)'],
                 ),
             ),
         ),
@@ -1830,7 +1842,7 @@ class test_permission_sync_attributes(Declarative):
         verify_permission_aci(
             permission1, groups_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('cn', '*'), groups_dn) +
+            '(targetfilter = "(objectclass=ipausergroup)")'
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -1849,6 +1861,7 @@ class test_permission_sync_attributes(Declarative):
                     dn=permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
+                    type=[u'group'],
                     ipapermright=[u'write'],
                     attrs=[u'sn'],
                     ipapermbindruletype=[u'permission'],
@@ -1856,6 +1869,7 @@ class test_permission_sync_attributes(Declarative):
                     ipapermtarget=[DN('cn=editors', groups_dn)],
                     ipapermlocation=[groups_dn],
                     targetgroup=[u'editors'],
+                    ipapermtargetfilter=[u'(objectclass=ipausergroup)'],
                 ),
             ),
         ),
@@ -1864,6 +1878,7 @@ class test_permission_sync_attributes(Declarative):
             permission1, groups_dn,
             '(targetattr = "sn")' +
             '(target = "ldap:///%s")' % DN(('cn', 'editors'), groups_dn) +
+            '(targetfilter = "(objectclass=ipausergroup)")'
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -1900,9 +1915,9 @@ class test_permission_sync_nice(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
-                    ipapermtargetfilter=[u'(memberOf=%s)' % DN(('cn', 'admins'),
-                                                              groups_dn)],
+                    ipapermtargetfilter=[
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                        u'(objectclass=posixaccount)'],
                     memberof=[u'admins'],
                 ),
             ),
@@ -1911,14 +1926,14 @@ class test_permission_sync_nice(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=admins', groups_dn) +
+            '(targetfilter = "(&(memberOf=%s)' % DN('cn=admins', groups_dn) +
+                '(objectclass=posixaccount))")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
 
         dict(
-            desc='Unset type on %r, verify target & location are gone' % permission1,
+            desc='Unset type on %r, verify target & filter are gone' % permission1,
             command=(
                 'permission_mod', [permission1], dict(
                     type=None,
@@ -2001,7 +2016,7 @@ class test_permission_sync_nice(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[groups_dn],
-                    ipapermtarget=[DN(('cn', '*'), groups_dn)],
+                    ipapermtargetfilter=[u'(objectclass=ipausergroup)'],
                 ),
             ),
         ),
@@ -2009,7 +2024,7 @@ class test_permission_sync_nice(Declarative):
         verify_permission_aci(
             permission1, groups_dn,
             '(targetattr = "sn")' +
-            '(target = "ldap:///%s")' % DN(('cn', '*'), groups_dn) +
+            '(targetfilter = "(objectclass=ipausergroup)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2028,6 +2043,7 @@ class test_permission_sync_nice(Declarative):
                     dn=permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
+                    type=[u'group'],
                     ipapermright=[u'write'],
                     attrs=[u'sn'],
                     ipapermbindruletype=[u'permission'],
@@ -2035,6 +2051,7 @@ class test_permission_sync_nice(Declarative):
                     ipapermtarget=[DN('cn=editors', groups_dn)],
                     ipapermlocation=[groups_dn],
                     targetgroup=[u'editors'],
+                    ipapermtargetfilter=[u'(objectclass=ipausergroup)'],
                 ),
             ),
         ),
@@ -2043,6 +2060,7 @@ class test_permission_sync_nice(Declarative):
             permission1, groups_dn,
             '(targetattr = "sn")' +
             '(target = "ldap:///%s")' % DN(('cn', 'editors'), groups_dn) +
+            '(targetfilter = "(objectclass=ipausergroup)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2200,14 +2218,14 @@ class test_permission_bindtype(Declarative):
                     ipapermbindruletype=[u'anonymous'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN('uid=*', users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
 
         verify_permission_aci(
             permission1, users_dn,
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) userdn = "ldap:///anyone";)',
         ),
@@ -2262,14 +2280,14 @@ class test_permission_bindtype(Declarative):
                     ipapermbindruletype=[u'all'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN('uid=*', users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
 
         verify_permission_aci(
             permission1, users_dn,
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) userdn = "ldap:///all";)',
         ),
@@ -2304,7 +2322,7 @@ class test_permission_bindtype(Declarative):
                         objectclass=objectclasses.permission,
                         ipapermissiontype=[u'SYSTEM', u'V2'],
                         ipapermlocation=[users_dn],
-                        ipapermtarget=[DN('uid=*', users_dn)],
+                        ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ),
                 ],
             ),
@@ -2343,14 +2361,14 @@ class test_permission_bindtype(Declarative):
                     ipapermbindruletype=[u'all'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN('uid=*', users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
 
         verify_permission_aci(
             permission1_renamed, users_dn,
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1_renamed +
             'allow (write) userdn = "ldap:///all";)',
         ),
@@ -2375,14 +2393,14 @@ class test_permission_bindtype(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN('uid=*', users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
 
         verify_permission_aci(
             permission1_renamed, users_dn,
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1_renamed +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
         ),
@@ -2405,14 +2423,14 @@ class test_permission_bindtype(Declarative):
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN('uid=*', users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                 ),
             ),
         ),
 
         verify_permission_aci(
             permission1, users_dn,
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2510,7 +2528,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'permission'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o', u'cn'],
                 ),
@@ -2520,7 +2538,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "cn || l || o")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2559,7 +2577,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "cn || l || o")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2582,7 +2600,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'permission'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o', u'dc'],
                     ipapermincludedattr=[u'dc'],
@@ -2594,7 +2612,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "dc || l || o")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2616,7 +2634,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'permission'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o', u'sn'],
                     ipapermincludedattr=[u'cn', u'sn'],
@@ -2628,7 +2646,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "l || o || sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2650,7 +2668,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'permission'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o', u'sn'],
                     ipapermincludedattr=[u'cn', u'sn', u'o'],
@@ -2662,7 +2680,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "l || o || sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2684,7 +2702,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'permission'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o'],
                     ipapermincludedattr=[u'cn', u'sn', u'o'],
@@ -2696,7 +2714,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "l || o")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -2717,7 +2735,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o'],
                     ipapermincludedattr=[u'cn', u'sn', u'o'],
@@ -2729,7 +2747,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "l || o")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) userdn = "ldap:///all";)',
         ),
@@ -2749,7 +2767,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o'],
                     ipapermincludedattr=[u'cn', u'sn', u'o'],
@@ -2773,7 +2791,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o'],
                     ipapermincludedattr=[u'cn', u'sn', u'o'],
@@ -2792,17 +2810,16 @@ class test_managed_permissions(Declarative):
                     dn=permission1_dn,
                     cn=[permission1],
                     aci=['(targetattr = "l || o")'
-                         '(target = "ldap:///%(tdn)s")'
+                         '(targetfilter = "(objectclass=posixaccount)")'
                          '(version 3.0;acl "permission:%(name)s";'
                          'allow (write) userdn = "ldap:///all";)' %
-                         {'tdn': DN(('uid', '*'), users_dn),
-                          'name': permission1}],
+                         {'name': permission1}],
                     objectclass=objectclasses.permission,
                     ipapermissiontype=[u'SYSTEM', u'V2', u'MANAGED'],
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     ipapermincludedattr=[u'cn', u'sn', u'o'],
                     ipapermexcludedattr=[u'cn', u'sn'],
@@ -2826,7 +2843,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o'],
                     ipapermexcludedattr=[u'cn'],
@@ -2837,7 +2854,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "l || o")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) userdn = "ldap:///all";)',
         ),
@@ -2858,7 +2875,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o', u'sn'],
                     ipapermincludedattr=[u'sn'],
@@ -2870,7 +2887,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "l || o || sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) userdn = "ldap:///all";)',
         ),
@@ -2892,7 +2909,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o', u'sn'],
                     ipapermincludedattr=[u'sn'],
@@ -2918,7 +2935,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o', u'sn'],
                     ipapermincludedattr=[u'sn'],
@@ -2955,7 +2972,7 @@ class test_managed_permissions(Declarative):
                     ipapermright=[u'write'],
                     ipapermbindruletype=[u'all'],
                     ipapermlocation=[users_dn],
-                    ipapermtarget=[DN(('uid', '*'), users_dn)],
+                    ipapermtargetfilter=[u'(objectclass=posixaccount)'],
                     ipapermdefaultattr=[u'l', u'o', u'cn'],
                     attrs=[u'l', u'o', u'sn', u'cn'],
                     ipapermincludedattr=[u'sn'],
@@ -2966,7 +2983,7 @@ class test_managed_permissions(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetattr = "cn || l || o || sn")' +
-            '(target = "ldap:///%s")' % DN(('uid', '*'), users_dn) +
+            '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) userdn = "ldap:///all";)',
         ),
