@@ -37,12 +37,12 @@ class BaseHost(object):
     def __init__(self, domain, hostname, role, ip=None,
                  external_hostname=None):
         self.domain = domain
-        self.role = role
+        self.role = str(role)
 
         shortname, dot, ext_domain = hostname.partition('.')
         self.shortname = shortname
-        self.hostname = shortname + '.' + self.domain.name
-        self.external_hostname = external_hostname or hostname
+        self.hostname = str(shortname + '.' + self.domain.name)
+        self.external_hostname = str(external_hostname or hostname)
 
         self.netbios = self.domain.name.split('.')[0].upper()
 
@@ -51,7 +51,7 @@ class BaseHost(object):
         self.log = log_mgr.get_logger(self.logger_name)
 
         if ip:
-            self.ip = ip
+            self.ip = str(ip)
         else:
             if self.config.ipv6:
                 # $(dig +short $M $rrtype|tail -1)
