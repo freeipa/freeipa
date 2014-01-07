@@ -81,6 +81,11 @@ def value_to_utf8(val):
 
     return unicode(val).encode('utf-8')
 
+# FIXME: Remove when python-ldap tuple compatibility is dropped
+def raise_deprecation_error():
+    raise RuntimeError(
+        "this API has been deprecated, see http://www.freeipa.org/page/"
+        "HowTo/Migrate_your_code_to_the_new_LDAP_API")
 
 class _ServerSchema(object):
     '''
@@ -918,10 +923,8 @@ class LDAPEntry(collections.MutableMapping):
 
     def __getitem__(self, name):
         # FIXME: Remove when python-ldap tuple compatibility is dropped
-        if name == 0:
-            return self._dn
-        elif name == 1:
-            return self
+        if name in (0, 1):
+            raise_deprecation_error()
 
         return self._get_nice(name)
 
@@ -1009,8 +1012,7 @@ class LDAPEntry(collections.MutableMapping):
 
     # FIXME: Remove when python-ldap tuple compatibility is dropped
     def __iter__(self):
-        yield self._dn
-        yield self
+        raise_deprecation_error()
 
     # FIXME: Remove when python-ldap tuple compatibility is dropped
     def iterkeys(self):
@@ -1557,12 +1559,9 @@ class LDAPClient(object):
         """Create a new entry.
 
         This should be called as add_entry(entry).
-
-        The legacy two-argument variant is:
-            add_entry(dn, entry_attrs)
         """
         if entry_attrs is not None:
-            entry = self.make_entry(entry, entry_attrs)
+            raise_deprecation_error()
 
         # remove all [] values (python-ldap hates 'em)
         attrs = dict((k, v) for k, v in entry.raw.iteritems() if v)
@@ -1570,8 +1569,7 @@ class LDAPClient(object):
         with self.error_handler():
             self.conn.add_s(entry.dn, attrs.items())
 
-        if entry_attrs is None:
-            entry.reset_modlist()
+        entry.reset_modlist()
 
     def update_entry_rdn(self, dn, new_rdn, del_old=True):
         """
@@ -1594,13 +1592,9 @@ class LDAPClient(object):
         """Update entry's attributes.
 
         This should be called as update_entry(entry).
-
-        The legacy two-argument variant is:
-            update_entry(dn, entry_attrs)
         """
         if entry_attrs is not None:
-            entry = self.get_entry(entry, entry_attrs.keys())
-            entry.update(entry_attrs)
+            raise_deprecation_error()
 
         # generate modlist
         modlist = entry.generate_modlist()
@@ -1611,8 +1605,7 @@ class LDAPClient(object):
         with self.error_handler():
             self.conn.modify_s(entry.dn, modlist)
 
-        if entry_attrs is None:
-            entry.reset_modlist()
+        entry.reset_modlist()
 
     def delete_entry(self, entry_or_dn):
         """Delete an entry given either the DN or the entry itself"""
