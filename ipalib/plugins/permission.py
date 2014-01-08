@@ -692,14 +692,11 @@ class permission_add(baseldap.LDAPCreate):
     msg_summary = _('Added permission "%(value)s"')
     has_output_params = baseldap.LDAPCreate.has_output_params + output_params
 
-    # Need to override args_options_2_params so that processed options apply to
+    # Need to override execute so that processed options apply to
     # the whole command, not just the callbacks
-    def args_options_2_params(self, *args, **options):
-        if self.env.in_server:
-            self.obj.preprocess_options(options)
-
-        return super(permission_add, self).args_options_2_params(
-            *args, **options)
+    def execute(self, *keys, **options):
+        self.obj.preprocess_options(options)
+        return super(permission_add, self).execute(*keys, **options)
 
     def pre_callback(self, ldap, dn, entry, attrs_list, *keys, **options):
         entry['ipapermissiontype'] = ['SYSTEM', 'V2']
@@ -755,12 +752,9 @@ class permission_mod(baseldap.LDAPUpdate):
     msg_summary = _('Modified permission "%(value)s"')
     has_output_params = baseldap.LDAPUpdate.has_output_params + output_params
 
-    def args_options_2_params(self, *args, **options):
-        if self.env.in_server:
-            self.obj.preprocess_options(options)
-
-        return super(permission_mod, self).args_options_2_params(
-            *args, **options)
+    def execute(self, *keys, **options):
+        self.obj.preprocess_options(options)
+        return super(permission_mod, self).execute(*keys, **options)
 
     def pre_callback(self, ldap, dn, entry, attrs_list, *keys, **options):
         if 'rename' in options and not options['rename']:
@@ -855,12 +849,9 @@ class permission_find(baseldap.LDAPSearch):
         '%(count)d permission matched', '%(count)d permissions matched', 0)
     has_output_params = baseldap.LDAPSearch.has_output_params + output_params
 
-    def args_options_2_params(self, *args, **options):
-        if self.env.in_server:
-            self.obj.preprocess_options(options)
-
-        return super(permission_find, self).args_options_2_params(
-            *args, **options)
+    def execute(self, *keys, **options):
+        self.obj.preprocess_options(options)
+        return super(permission_find, self).execute(*keys, **options)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         attribute_options = [o for o in options
