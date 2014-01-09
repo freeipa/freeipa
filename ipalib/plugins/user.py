@@ -209,6 +209,7 @@ class user(LDAPObject):
         'ipatokenradiusproxyuser'
     ]
     disallow_object_classes = ['krbticketpolicyaux']
+    permission_filter_objectclasses = ['posixaccount']
     search_attributes_config = 'ipausersearchfields'
     default_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',

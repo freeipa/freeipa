@@ -222,6 +222,7 @@ class host(LDAPObject):
     object_name = _('host')
     object_name_plural = _('hosts')
     object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser', 'ipaservice']
+    permission_filter_objectclasses = ['ipahost']
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',

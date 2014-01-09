@@ -442,6 +442,7 @@ class LDAPObject(Object):
     possible_objectclasses = []
     limit_object_classes = [] # Only attributes in these are allowed
     disallow_object_classes = [] # Disallow attributes in these
+    permission_filter_objectclasses = None
     search_attributes = []
     search_attributes_config = None
     default_attributes = []

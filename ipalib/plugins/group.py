@@ -122,6 +122,7 @@ class group(LDAPObject):
     object_class = ['ipausergroup']
     object_class_config = 'ipagroupobjectclasses'
     possible_objectclasses = ['posixGroup', 'mepManagedEntry', 'ipaExternalGroup']
+    permission_filter_objectclasses = ['ipausergroup']
     search_attributes_config = 'ipagroupsearchfields'
     default_attributes = [
         'cn', 'description', 'gidnumber', 'member', 'memberof',

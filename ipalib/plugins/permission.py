@@ -99,9 +99,6 @@ EXAMPLES:
 
 register = Registry()
 
-VALID_OBJECT_TYPES = (u'user', u'group', u'host', u'service', u'hostgroup',
-                      u'netgroup', u'dnsrecord',)
-
 _DEPRECATED_OPTION_ALIASES = {
     'permissions': 'ipapermright',
     'filter': 'ipapermtargetfilter',
@@ -139,6 +136,15 @@ class DNOrURL(DNParam):
         if isinstance(value, basestring) and value.startswith('ldap:///'):
             value = strip_ldap_prefix(value)
         return super(DNOrURL, self)._convert_scalar(value, index=index)
+
+
+def validate_type(ugettext, typestr):
+    try:
+        obj = api.Object[typestr]
+    except KeyError:
+        return _('"%s" is not an object type') % typestr
+    if not getattr(obj, 'permission_filter_objectclasses', None):
+        return _('"%s" is not a valid permission type') % typestr
 
 
 @register()
@@ -247,12 +253,11 @@ class permission(baseldap.LDAPObject):
             doc=_('User group to apply permissions to (sets target)'),
             flags={'ask_create', 'virtual_attribute'},
         ),
-        StrEnum(
-            'type?',
+        Str(
+            'type?', validate_type,
             label=_('Type'),
             doc=_('Type of IPA object '
                   '(sets subtree and objectClass targetfilter)'),
-            values=VALID_OBJECT_TYPES,
             flags={'ask_create', 'virtual_attribute'},
         ),
     ) + tuple(
@@ -310,19 +315,22 @@ class permission(baseldap.LDAPObject):
 
             # type
             if ipapermtargetfilter and ipapermlocation:
-                for objname in VALID_OBJECT_TYPES:
-                    obj = self.api.Object[objname]
+                for obj in self.api.Object():
+                    filter_objectclasses = getattr(
+                        obj, 'permission_filter_objectclasses', None)
+                    if not filter_objectclasses:
+                        continue
                     wantdn = DN(obj.container_dn, self.api.env.basedn)
                     if DN(ipapermlocation) != wantdn:
                         continue
 
-                    for objclass in obj.object_class:
+                    for objclass in filter_objectclasses:
                         filter_re = '\(objectclass=%s\)' % re.escape(objclass)
                         if not any(re.match(filter_re, tf, re.I)
                                    for tf in ipapermtargetfilter):
                             break
                     else:
-                        entry.single_value['type'] = objname
+                        entry.single_value['type'] = unicode(obj.name)
                         break
 
             # old output names
@@ -684,7 +692,7 @@ class permission(baseldap.LDAPObject):
                         error=_('subtree and type are mutually exclusive'))
                 obj = self.api.Object[objtype.lower()]
                 new_values = [u'(objectclass=%s)' % o
-                              for o in obj.object_class]
+                              for o in obj.permission_filter_objectclasses]
                 filter_ops['add'].extend(new_values)
                 container_dn = DN(obj.container_dn, self.api.env.basedn)
                 options['ipapermlocation'] = container_dn

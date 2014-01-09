@@ -61,6 +61,7 @@ class hostgroup(LDAPObject):
     object_name = _('host group')
     object_name_plural = _('host groups')
     object_class = ['ipaobject', 'ipahostgroup']
+    permission_filter_objectclasses = ['ipahostgroup']
     default_attributes = ['cn', 'description', 'member', 'memberof',
         'memberindirect', 'memberofindirect',
     ]

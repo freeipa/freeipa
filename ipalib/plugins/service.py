@@ -299,6 +299,7 @@ class service(LDAPObject):
         'ipaservice', 'pkiuser'
     ]
     possible_objectclasses = ['ipakrbprincipal']
+    permission_filter_objectclasses = ['ipaservice']
     search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
     default_attributes = ['krbprincipalname', 'usercertificate', 'managedby',
         'ipakrbauthzdata',]

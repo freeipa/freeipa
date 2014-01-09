@@ -2113,6 +2113,7 @@ class dnsrecord(LDAPObject):
     object_name = _('DNS resource record')
     object_name_plural = _('DNS resource records')
     object_class = ['top', 'idnsrecord']
+    permission_filter_objectclasses = ['idnsrecord']
     default_attributes = ['idnsname'] + _record_attributes
     rdn_is_primary_key = True
 
