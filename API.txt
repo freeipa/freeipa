@@ -3794,7 +3794,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: user_add
-args: 1,43,3
+args: 1,44,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -3814,6 +3814,7 @@ option: Str('ipasshpubkey', attribute=True, cli_name='sshpubkey', csv=True, mult
 option: Str('ipatokenradiusconfiglink', attribute=True, cli_name='radius', multivalue=False, required=False)
 option: Str('ipatokenradiususername', attribute=True, cli_name='radius_username', multivalue=False, required=False)
 option: StrEnum('ipauserauthtype', attribute=True, cli_name='user_auth_type', csv=True, multivalue=True, required=False, values=(u'password', u'radius', u'otp'))
+option: DateTime('krbprincipalexpiration', attribute=True, cli_name='principal_expiration', multivalue=False, required=False)
 option: Str('krbprincipalname', attribute=True, autofill=True, cli_name='principal', multivalue=False, required=False)
 option: Str('l', attribute=True, cli_name='city', multivalue=False, required=False)
 option: Str('loginshell', attribute=True, cli_name='shell', multivalue=False, required=False)
@@ -3865,7 +3866,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: user_find
-args: 1,53,4
+args: 1,54,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('carlicense', attribute=True, autofill=False, cli_name='carlicense', multivalue=True, query=True, required=False)
@@ -3888,6 +3889,7 @@ option: Str('initials', attribute=True, autofill=False, cli_name='initials', mul
 option: Str('ipatokenradiusconfiglink', attribute=True, autofill=False, cli_name='radius', multivalue=False, query=True, required=False)
 option: Str('ipatokenradiususername', attribute=True, autofill=False, cli_name='radius_username', multivalue=False, query=True, required=False)
 option: StrEnum('ipauserauthtype', attribute=True, autofill=False, cli_name='user_auth_type', csv=True, multivalue=True, query=True, required=False, values=(u'password', u'radius', u'otp'))
+option: DateTime('krbprincipalexpiration', attribute=True, autofill=False, cli_name='principal_expiration', multivalue=False, query=True, required=False)
 option: Str('krbprincipalname', attribute=True, autofill=False, cli_name='principal', multivalue=False, query=True, required=False)
 option: Str('l', attribute=True, autofill=False, cli_name='city', multivalue=False, query=True, required=False)
 option: Str('loginshell', attribute=True, autofill=False, cli_name='shell', multivalue=False, query=True, required=False)
@@ -3925,7 +3927,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: user_mod
-args: 1,44,3
+args: 1,45,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -3946,6 +3948,7 @@ option: Str('ipasshpubkey', attribute=True, autofill=False, cli_name='sshpubkey'
 option: Str('ipatokenradiusconfiglink', attribute=True, autofill=False, cli_name='radius', multivalue=False, required=False)
 option: Str('ipatokenradiususername', attribute=True, autofill=False, cli_name='radius_username', multivalue=False, required=False)
 option: StrEnum('ipauserauthtype', attribute=True, autofill=False, cli_name='user_auth_type', csv=True, multivalue=True, required=False, values=(u'password', u'radius', u'otp'))
+option: DateTime('krbprincipalexpiration', attribute=True, autofill=False, cli_name='principal_expiration', multivalue=False, required=False)
 option: Str('l', attribute=True, autofill=False, cli_name='city', multivalue=False, required=False)
 option: Str('loginshell', attribute=True, autofill=False, cli_name='shell', multivalue=False, required=False)
 option: Str('mail', attribute=True, autofill=False, cli_name='email', multivalue=True, required=False)

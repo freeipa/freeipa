@@ -24,7 +24,7 @@ import posixpath
 import os
 
 from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str, Bool, StrEnum
+from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
 from ipalib.plugins.baseldap import *
 from ipalib.plugins import baseldap
 from ipalib.request import context
@@ -216,7 +216,8 @@ class user(LDAPObject):
         'uidnumber', 'gidnumber', 'mail', 'ou',
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
         'memberofindirect', 'ipauserauthtype', 'userclass',
-        'ipatokenradiusconfiglink', 'ipatokenradiususername'
+        'ipatokenradiusconfiglink', 'ipatokenradiususername',
+        'krbprincipalexpiration'
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
@@ -290,6 +291,10 @@ class user(LDAPObject):
             autofill=True,
             flags=['no_update'],
             normalizer=lambda value: normalize_principal(value),
+        ),
+        DateTime('krbprincipalexpiration?',
+            cli_name='principal_expiration',
+            label=_('Kerberos principal expiration'),
         ),
         Str('mail*',
             cli_name='email',
