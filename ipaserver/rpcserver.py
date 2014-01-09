@@ -42,12 +42,14 @@ from ipalib.rpc import (xml_dumps, xml_loads,
 from ipalib.util import parse_time_duration, normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
-from ipalib.session import (session_mgr, AuthManager, get_ipa_ccache_name,
+from ipalib.session import (
+    session_mgr, AuthManager, get_ipa_ccache_name,
     load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time,
-    default_max_session_duration)
+    default_max_session_duration, krbccache_dir, krbccache_prefix)
 from ipalib.backend import Backend
 from ipalib.krb_utils import (
-    KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name)
+    KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name,
+    krb5_format_service_principal_name)
 from ipapython import ipautil
 from ipapython.version import VERSION
 from ipalib.text import _
@@ -973,14 +975,38 @@ class login_password(Backend, KerberosSession, HTTP_Status):
         return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
 
     def kinit(self, user, realm, password, ccache_name):
+        # get http service ccache as an armor for FAST to enable OTP authentication
+        armor_principal = krb5_format_service_principal_name(
+            'HTTP', self.api.env.host, realm)
+        keytab = '/etc/httpd/conf/ipa.keytab'
+        armor_name = "%sA_%s" % (krbccache_prefix, user)
+        armor_path = os.path.join(krbccache_dir, armor_name)
+
+        self.debug('Obtaining armor ccache: principal=%s keytab=%s ccache=%s',
+                   armor_principal, keytab, armor_path)
+
+        (stdout, stderr, returncode) = ipautil.run(
+            ['/usr/bin/kinit', '-kt', keytab, armor_principal],
+            env={'KRB5CCNAME': armor_path}, raiseonerr=False)
+
+        if returncode != 0:
+            raise CCacheError()
+
         # Format the user as a kerberos principal
         principal = krb5_format_principal_name(user, realm)
 
-        (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kinit', principal],
-                                                   env={'KRB5CCNAME':ccache_name},
-                                                   stdin=password, raiseonerr=False)
+        (stdout, stderr, returncode) = ipautil.run(
+            ['/usr/bin/kinit', principal, '-T', armor_path],
+            env={'KRB5CCNAME': ccache_name}, stdin=password, raiseonerr=False)
+
         self.debug('kinit: principal=%s returncode=%s, stderr="%s"',
                    principal, returncode, stderr)
+
+        self.debug('Cleanup the armor ccache')
+        ipautil.run(
+            ['/usr/bin/kdestroy', '-A', '-c', armor_path],
+            env={'KRB5CCNAME': armor_path},
+            raiseonerr=False)
 
         if returncode != 0:
             raise InvalidSessionPassword(principal=principal, message=unicode(stderr))
