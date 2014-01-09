@@ -21,6 +21,7 @@
 
 import string
 import time
+import datetime
 import shutil
 from decimal import Decimal
 from copy import deepcopy
@@ -35,6 +36,7 @@ from ldap.controls import SimplePagedResultsControl
 import ldapurl
 
 from ipalib import errors, _
+from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 from ipapython import ipautil
 from ipapython.ipautil import (
     format_netloc, wait_for_open_socket, wait_for_open_ports, CIDict)
@@ -239,6 +241,7 @@ class IPASimpleLDAPObject(object):
         '2.16.840.1.113719.1.301.4.41.1' : DN,  # krbSubTrees
         '2.16.840.1.113719.1.301.4.52.1' : DN,  # krbObjectReferences
         '2.16.840.1.113719.1.301.4.53.1' : DN,  # krbPrincContainerRef
+        '1.3.6.1.4.1.1466.115.121.1.24'  : datetime.datetime,
     }
 
     # In most cases we lookup the syntax from the schema returned by
@@ -408,6 +411,8 @@ class IPASimpleLDAPObject(object):
         elif isinstance(val, dict):
             dct = dict((self.encode(k), self.encode(v)) for k, v in val.iteritems())
             return dct
+        elif isinstance(val, datetime.datetime):
+            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
         elif val is None:
             return None
         else:
@@ -426,6 +431,8 @@ class IPASimpleLDAPObject(object):
                     return val
                 elif target_type is unicode:
                     return val.decode('utf-8')
+                elif target_type is datetime.datetime:
+                    return datetime.datetime.strptime(val, LDAP_GENERALIZED_TIME_FORMAT)
                 else:
                     return target_type(val)
             except Exception, e:

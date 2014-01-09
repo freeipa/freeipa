@@ -206,3 +206,5 @@ DEFAULT_CONFIG = (
     ('jsonrpc_uri', object),  # derived from xmlrpc_uri in Env._finalize_core()
 
 )
+
+LDAP_GENERALIZED_TIME_FORMAT = "%Y%m%d%H%M%SZ"

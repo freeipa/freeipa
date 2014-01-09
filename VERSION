@@ -89,5 +89,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=83
-# Last change: jcholast - add 'primary_key_types' capability
+IPA_API_VERSION_MINOR=84
+# Last change: tbabej - added datetime value support

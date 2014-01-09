@@ -102,6 +102,7 @@ a more detailed description for clarity.
 import re
 import decimal
 import base64
+import datetime
 from xmlrpclib import MAXINT, MININT
 
 from types import NoneType
@@ -109,7 +110,7 @@ from text import _ as ugettext
 from plugable import ReadOnly, lock, check_name
 from errors import ConversionError, RequirementError, ValidationError
 from errors import PasswordMismatch, Base64DecodeError
-from constants import TYPE_ERROR, CALLABLE_ERROR
+from constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from text import Gettext, FixMe
 from util import json_serialize
 from ipapython.dn import DN
@@ -1608,6 +1609,55 @@ class File(Str):
         ('stdin_if_missing', bool, False),
         ('noextrawhitespace', bool, False),
     )
+
+class DateTime(Param):
+    """
+    DateTime parameter type.
+
+    Accepts LDAP Generalized time without in the following format:
+       '%Y%m%d%H%M%SZ'
+
+    Accepts subset of values defined by ISO 8601:
+        '%Y-%m-%dT%H:%M:%SZ'
+        '%Y-%m-%dT%H:%MZ'
+        '%Y-%m-%dZ'
+
+    Also accepts above formats using ' ' (space) as a separator instead of 'T'.
+
+    Refer to the `man strftime` for the explanations for the %Y,%m,%d,%H.%M,%S.
+    """
+
+    accepted_formats = [LDAP_GENERALIZED_TIME_FORMAT,  # generalized time
+                        '%Y-%m-%dT%H:%M:%SZ',  # ISO 8601, second precision
+                        '%Y-%m-%dT%H:%MZ',     # ISO 8601, minute precision
+                        '%Y-%m-%dZ',           # ISO 8601, date only
+                        '%Y-%m-%d %H:%M:%SZ',  # non-ISO 8601, second precision
+                        '%Y-%m-%d %H:%MZ']     # non-ISO 8601, minute precision
+
+
+    type = datetime.datetime
+    type_error = _('must be datetime value')
+
+    def _convert_scalar(self, value, index=None):
+        if isinstance(value, basestring):
+            for date_format in self.accepted_formats:
+                try:
+                    time = datetime.datetime.strptime(value, date_format)
+                    return time
+                except ValueError:
+                    pass
+
+            # If we get here, the strptime call did not succeed for any
+            # the accepted formats, therefore raise error
+
+            error = (_("does not match any of accepted formats: ") +
+                      (', '.join(self.accepted_formats)))
+
+            raise ConversionError(name=self.get_param_name(),
+                                  index=index,
+                                  error=error)
+
+        return super(DateTime, self)._convert_scalar(value, index)
 
 
 class AccessTime(Str):

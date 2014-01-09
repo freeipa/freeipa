@@ -46,10 +46,12 @@ import plugable
 from errors import (PublicError, CommandError, HelpError, InternalError,
                     NoSuchNamespaceError, ValidationError, NotFound,
                     NotConfiguredError, PromptFailed)
-from constants import CLI_TAB
+from constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
 from parameters import File, Str, Enum, Any
 from text import _
 from ipapython.version import API_VERSION
+
+import datetime
 
 
 def to_cli(name):
@@ -155,6 +157,8 @@ class textui(backend.Backend):
         """
         if type(value) is str:
             return base64.b64encode(value)
+        elif type(value) is datetime.datetime:
+            return value.strftime(LDAP_GENERALIZED_TIME_FORMAT)
         else:
             return value
 

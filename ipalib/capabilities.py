@@ -48,6 +48,9 @@ capabilities = dict(
 
     # primary_key_types: Non-unicode primary keys in command output
     primary_key_types=u'2.83',
+
+    # support for datetime values on the client
+    datetime_values=u'2.84'
 )
 
 

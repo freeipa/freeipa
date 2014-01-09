@@ -33,6 +33,7 @@ Also see the `ipaserver.rpcserver` module.
 from types import NoneType
 from decimal import Decimal
 import sys
+import datetime
 import os
 import locale
 import base64
@@ -41,17 +42,18 @@ import json
 import socket
 from urllib2 import urlparse
 
-from xmlrpclib import (Binary, Fault, dumps, loads, ServerProxy, Transport,
-        ProtocolError, MININT, MAXINT)
+from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
+        Transport, ProtocolError, MININT, MAXINT)
 import kerberos
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from nss.error import NSPRError
 
 from ipalib.backend import Connectible
+from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.errors import (public_errors, UnknownError, NetworkError,
     KerberosError, XMLRPCMarshallError, JSONError, ConversionError)
-from ipalib import errors
+from ipalib import errors, capabilities
 from ipalib.request import context, Connection
 from ipalib.util import get_current_principal
 from ipapython.ipa_log_manager import root_logger
@@ -163,6 +165,14 @@ def xml_wrap(value, version):
         return unicode(value)
     if isinstance(value, DN):
         return str(value)
+
+    # Encode datetime.datetime objects as xmlrpclib.DateTime objects
+    if isinstance(value, datetime.datetime):
+        if capabilities.client_has_capability(version, 'datetime_values'):
+            return DateTime(value)
+        else:
+            return value.strftime(LDAP_GENERALIZED_TIME_FORMAT)
+
     assert type(value) in (unicode, int, long, float, bool, NoneType)
     return value
 
@@ -196,6 +206,9 @@ def xml_unwrap(value, encoding='UTF-8'):
     if isinstance(value, Binary):
         assert type(value.data) is str
         return value.data
+    if isinstance(value, DateTime):
+        # xmlprc DateTime is converted to string of %Y%m%dT%H:%M:%S format
+        return datetime.datetime.strptime(str(value), "%Y%m%dT%H:%M:%S")
     assert type(value) in (unicode, int, float, bool, NoneType)
     return value
 
@@ -266,6 +279,11 @@ def json_encode_binary(val, version):
         return {'__base64__': base64.b64encode(str(val))}
     elif isinstance(val, DN):
         return str(val)
+    elif isinstance(val, datetime.datetime):
+        if capabilities.client_has_capability(version, 'datetime_values'):
+            return {'__datetime__': val.strftime(LDAP_GENERALIZED_TIME_FORMAT)}
+        else:
+            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
     else:
         return val
 
@@ -293,6 +311,9 @@ def json_decode_binary(val):
     if isinstance(val, dict):
         if '__base64__' in val:
             return base64.b64decode(val['__base64__'])
+        elif '__datetime__' in val:
+            return datetime.datetime.strptime(val['__datetime__'],
+                                              LDAP_GENERALIZED_TIME_FORMAT)
         else:
             return dict((k, json_decode_binary(v)) for k, v in val.items())
     elif isinstance(val, list):
