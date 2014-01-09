@@ -19,7 +19,7 @@
 
 from ipalib.plugins.baseldap import DN, LDAPObject, LDAPAddMember, LDAPRemoveMember
 from ipalib.plugins.baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
-from ipalib import api, Int, Str, Bool, Flag, Bytes, IntEnum, StrEnum, Password, _, ngettext
+from ipalib import api, Int, Str, Bool, DateTime, Flag, Bytes, IntEnum, StrEnum, Password, _, ngettext
 from ipalib.plugable import Registry
 from ipalib.errors import PasswordMismatch, ConversionError, LastMemberError, NotFound
 from ipalib.request import context
@@ -160,11 +160,11 @@ class otptoken(LDAPObject):
             cli_name='disabled',
             label=_('Disabled state')
         ),
-        Str('ipatokennotbefore?',
+        DateTime('ipatokennotbefore?',
             cli_name='not_before',
             label=_('Validity start'),
         ),
-        Str('ipatokennotafter?',
+        DateTime('ipatokennotafter?',
             cli_name='not_after',
             label=_('Validity end'),
         ),
