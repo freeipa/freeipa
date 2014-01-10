@@ -400,14 +400,16 @@ class hbactest(Command):
                 ldap = self.api.Backend.ldap2
                 group_container = DN(api.env.container_group, api.env.basedn)
                 try:
-                    entries, truncated = ldap.find_entries(filter_sids, ['cn'], group_container)
+                    entries, truncated = ldap.find_entries(filter_sids, ['memberof'], group_container)
                 except errors.NotFound:
                     request.user.groups = []
                 else:
                     groups = []
                     for dn, entry in entries:
-                        if dn.endswith(group_container):
-                            groups.append(dn[0][0].value)
+                        memberof_dns = entry.get('memberof', [])
+                        for memberof_dn in memberof_dns:
+                            if memberof_dn.endswith(group_container):
+                                groups.append(memberof_dn[0][0].value)
                     request.user.groups = sorted(set(groups))
             else:
                 # try searching for a local user
