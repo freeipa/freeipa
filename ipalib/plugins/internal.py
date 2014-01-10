@@ -695,6 +695,7 @@ class i18n_messages(Command):
             "undo_all": _("undo all"),
             "validation": {
                 "error": _("Text does not match field pattern"),
+                "datetime": _("Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")"),
                 "decimal": _("Must be a decimal number"),
                 "integer": _("Must be an integer"),
                 "ip_address": _('Not a valid IP address'),

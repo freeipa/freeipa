@@ -106,6 +106,7 @@ var profile = (function(){
                     'dojo/when',
                     'dojo/domReady!', //added with '!' as a loader plugin
                     "dojo/query",
+                    "dojo/string",
                     "dojo/NodeList-dom",
                     "dojo/promise/all"
                 ]

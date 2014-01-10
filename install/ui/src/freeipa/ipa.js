@@ -27,11 +27,12 @@ define([
         './jquery',
         './json2',
         './_base/i18n',
+        './datetime',
         './metadata',
         './builder',
         './reg',
         './text'],
-       function(keys, $, JSON, i18n, metadata_provider, builder, reg, text) {
+       function(keys, $, JSON, i18n, datetime, metadata_provider, builder, reg, text) {
 
 /**
  * @class
@@ -573,7 +574,7 @@ IPA.update_password_expiration = function() {
     var now, expires, notify_days, diff, message, container;
 
     expires = IPA.whoami.krbpasswordexpiration;
-    expires = expires ? IPA.parse_utc_date(expires[0]) : null;
+    expires = expires ? datetime.parse(expires[0]) : null;
 
     notify_days = IPA.server_config.ipapwdexpadvnotify;
     notify_days = notify_days ? notify_days[0] : 0;
@@ -618,40 +619,6 @@ IPA.password_selfservice = function() {
         }
     });
     reset_dialog.open();
-};
-
-/**
- * Parse value as UTC date
- * @member IPA
- * @return Data
- */
-IPA.parse_utc_date = function(value) {
-
-    if (!value) return null;
-
-    // verify length
-    if (value.length  != 'YYYYmmddHHMMSSZ'.length) {
-        return null;
-    }
-
-    // We only handle GMT
-    if (value.charAt(value.length -1) !== 'Z') {
-        return null;
-    }
-
-    var date = new Date();
-
-    date.setUTCFullYear(
-        value.substring(0, 4),    // YYYY
-        value.substring(4, 6)-1,  // mm (0-11)
-        value.substring(6, 8));   // dd (1-31)
-
-    date.setUTCHours(
-        value.substring(8, 10),   // HH (0-23)
-        value.substring(10, 12),  // MM (0-59)
-        value.substring(12, 14)); // SS (0-59)
-
-    return date;
 };
 
 /**

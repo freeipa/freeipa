@@ -135,7 +135,7 @@ return {
                             name: 'krbpasswordexpiration',
                             label: '@i18n:objects.user.krbpasswordexpiration',
                             read_only: true,
-                            formatter: 'utc_date'
+                            formatter: 'datetime'
                         },
                         'uidnumber',
                         'gidnumber',

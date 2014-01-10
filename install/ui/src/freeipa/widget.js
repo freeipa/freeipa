@@ -29,13 +29,15 @@ define(['dojo/_base/array',
        'dojo/keys',
        'dojo/on',
        './builder',
+       './datetime',
        './ipa',
        './jquery',
        './phases',
        './reg',
        './text'
        ],
-       function(array, lang, Evented, has, keys, on, builder, IPA, $, phases, reg, text) {
+       function(array, lang, Evented, has, keys, on, builder, datetime, IPA, $,
+        phases, reg, text) {
 
 /**
  * Widget module
@@ -1934,24 +1936,25 @@ IPA.boolean_status_formatter = function(spec) {
 };
 
 /**
- * Take an LDAP format date in UTC and format it
+ * Take supported ISO 8601 or LDAP format date and format it
  * @class
  * @extends IPA.formatter
  */
-IPA.utc_date_formatter = function(spec) {
+IPA.datetime_formatter = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.formatter(spec);
+    that.template = spec.template;
 
     that.format = function(value) {
 
         if (!value) return '';
-        var date =  IPA.parse_utc_date(value);
+        var date = datetime.parse(value);
         if (!date) return value;
-        return date.toString();
+        var str = datetime.format(date, that.template);
+        return str;
     };
-
     return that;
 };
 
@@ -5155,6 +5158,7 @@ exp.register = function() {
     w.register('details_section', IPA.details_section);
     w.register('details_table_section', IPA.details_table_section);
     w.register('details_table_section_nc', IPA.details_section);
+    w.register('datetime', IPA.text_widget);
     w.register('multiple_choice_section', IPA.multiple_choice_section);
     w.register('enable', IPA.enable_widget);
     w.register('entity_select', IPA.entity_select_widget);
@@ -5172,7 +5176,7 @@ exp.register = function() {
 
     f.register('boolean', IPA.boolean_formatter);
     f.register('boolean_status', IPA.boolean_status_formatter);
-    f.register('utc_date', IPA.utc_date_formatter);
+    f.register('datetime', IPA.datetime_formatter);
 };
 
 phases.on('registration', exp.register);

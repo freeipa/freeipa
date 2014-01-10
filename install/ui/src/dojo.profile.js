@@ -69,6 +69,7 @@ var profile = (function(){
                     // ^ core is about 20KB
                     "dojo/_base/lang",
                     "dojo/_base/array",
+                    "dojo/string",
                     // ^ adds 10KB
                     "dojo/dom",
                     "dojo/dom-construct",

@@ -27,13 +27,15 @@ define([
     'dojo/_base/lang',
     './metadata',
     './builder',
+    './datetime',
     './ipa',
     './jquery',
     './navigation',
     './phases',
     './reg',
     './text'],
-       function(array, lang, metadata_provider, builder, IPA, $, navigation, phases, reg, text) {
+       function(array, lang, metadata_provider, builder, datetime, IPA, $,
+                navigation, phases, reg, text) {
 
 /**
  * Field module
@@ -116,10 +118,19 @@ IPA.field = function(spec) {
      * Formatter
      *
      * - transforms field value to widget value
-     * - only for read-only fields
+     * - use corresponding output_formatter if field is not read-only and
+     *   backend can't handle the different format
      * @property {IPA.formatter}
      */
     that.formatter = builder.build('formatter', spec.formatter);
+
+    /**
+     * Output formatter
+     *
+     * - transforms widget value into value for backend
+     * @property {IPA.formatter}
+     */
+    that.output_formatter = builder.build('formatter', spec.output_formatter);
 
     /**
      * Widget
@@ -297,7 +308,7 @@ IPA.field = function(spec) {
 
         if (!that.enabled) return that.valid;
 
-        var values = that.save();
+        var values = that.get_widget_values();
 
         if (IPA.is_empty(values)) {
             return that.valid;
@@ -424,9 +435,8 @@ IPA.field = function(spec) {
 
         var formatted_values;
 
-        // The formatter is currently only used on read-only fields only
-        // because it cannot parse formatted values back to internal values.
-        if (that.formatter && that.read_only) {
+        // Change loaded value to human readable value
+        if (that.formatter) {
             formatted_values = [];
             for (var i=0; that.values && i<that.values.length; i++) {
                 var value = that.values[i];
@@ -468,16 +478,52 @@ IPA.field = function(spec) {
 
         var values = that.values;
 
-        if(!that.enabled) return [''];
+        if (!that.enabled) return [''];
 
-        if(that.widget) {
-            values = that.widget.save();
+        if (that.widget) {
+            values = that.get_widget_values();
+            values = that.format_output(values);
         }
 
-        if(record) {
+        if (record) {
             record[that.param] = values;
         }
 
+        return values;
+    };
+
+    /**
+     * Gets widget values
+     * @returns {Array}
+     */
+    that.get_widget_values = function() {
+
+        var values = [''];
+
+        if (that.widget) {
+            values = that.widget.save();
+        }
+
+        return values;
+    };
+
+    /**
+     * Use output formatter to transform value entered into UI to
+     * value used by backend
+     *
+     * @param {Array} values
+     * @return {Array} formatted values
+     */
+    that.format_output = function(values) {
+
+        if (that.output_formatter) {
+            var formatted_values = [];
+            for (var i=0; values && i<values.length; i++) {
+                var formatted_value = that.output_formatter.format(values[i]);
+                formatted_values.push(formatted_value);
+            }
+            return formatted_values;
+        }
         return values;
     };
 
@@ -849,6 +895,54 @@ IPA.same_password_validator = function(spec) {
         return that.true_result();
     };
 
+    return that;
+};
+
+/**
+ * Check if input value is a valid datetime
+ *
+ * @class IPA.datetime_validator
+ * @extends IPA.validator
+ */
+IPA.datetime_validator = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.validator(spec);
+
+    that.message = text.get(spec.message || '@i18n:widget.validation.datetime');
+
+    /**
+     * @inheritDoc
+     */
+    that.validate = function(value, context) {
+
+        var valid = datetime.parse(value) !== null;
+        if (!valid) return that.false_result();
+
+        return that.true_result();
+    };
+
+    return that;
+};
+
+/**
+ * Used along with checkbox widget
+ *
+ * @class IPA.checkbox_field
+ * @extends IPA.field
+ */
+IPA.datetime_field = function(spec) {
+
+    spec = spec || {};
+    spec.validators = spec.validators || ['datetime'];
+    spec.output_formatter = spec.output_formatter || {
+        $type: 'datetime',
+        template: datetime.templates.generalized
+    };
+    spec.formatter = spec.formatter || 'datetime';
+
+    var that = IPA.field(spec);
     return that;
 };
 
@@ -1461,6 +1555,7 @@ exp.register = function() {
     f.register('checkbox', IPA.checkbox_field);
     f.register('checkboxes', IPA.checkboxes_field);
     f.register('combobox', IPA.field);
+    f.register('datetime', IPA.datetime_field);
     f.register('enable', IPA.enable_field);
     f.register('entity_select', IPA.field);
     f.register('field', IPA.field);
@@ -1477,6 +1572,7 @@ exp.register = function() {
     v.register('metadata', IPA.metadata_validator);
     v.register('unsupported', IPA.unsupported_validator);
     v.register('same_password', IPA.same_password_validator);
+    v.register('datetime', IPA.datetime_validator);
 };
 phases.on('registration', exp.register);
 

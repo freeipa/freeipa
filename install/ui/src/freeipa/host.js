@@ -357,6 +357,19 @@ IPA.host_fqdn_widget = function(spec) {
         });
     };
 
+    that.save = function() {
+
+        var hw = that.widgets.get_widget('hostname');
+        var dw = that.widgets.get_widget('dnszone');
+
+        var hostname = hw.save()[0];
+        var dnszone = dw.save()[0];
+
+        var fqdn = hostname && dnszone ? [ hostname+'.'+dnszone ] : [];
+        return fqdn;
+
+    };
+
     return that;
 };
 
@@ -398,18 +411,6 @@ IPA.host_fqdn_field = function(spec) {
         if (that.has_value(that.dns_zone_widget)) {
             that.dns_zone_widget.hide_error();
         }
-    };
-
-    that.save = function(record) {
-
-        if(!record) record = {};
-
-        var hostname = that.hostname_widget.save()[0];
-        var dnszone = that.dns_zone_widget.save()[0];
-
-        record.fqdn = hostname && dnszone ? [ hostname+'.'+dnszone ] : [];
-
-        return record.fqdn;
     };
 
     that.reset = function() {

@@ -18,8 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/field', 'freeipa/widget'],
-       function(IPA, $) {  return function() {
+define([
+        'freeipa/ipa',
+        'freeipa/jquery',
+        'freeipa/datetime',
+        'freeipa/field',
+        'freeipa/widget'],
+       function(IPA, $, datetime) {  return function() {
 
 var old;
 
@@ -136,6 +141,88 @@ test('Testing IPA.defined', function() {
     same(IPA.defined('', true), false, 'Empty string - checking');
     same(IPA.defined(undefined), false, 'undefined');
     same(IPA.defined(null), false, 'null');
+});
+
+test('Testing datetime', function() {
+
+    var valid = [
+        // [format, str, data, utc, output]
+        [ '${YYYY}${MM}${DD}${HH}${mm}${ss}Z', '20140114175402Z', [ 2014, 1, 14, 17, 54, 2], true ],
+        [ '${YYYY}-${MM}-${DD}T${HH}:${mm}:${ss}Z', '2014-01-14T17:54:02Z', [ 2014, 1, 14, 17, 54, 2], true ],
+        [ '${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}Z', '2014-01-14 17:54:02Z', [ 2014, 1, 14, 17, 54, 2], true ],
+        [ '${YYYY}-${MM}-${DD}T${HH}:${mm}Z', '2014-01-14T17:54Z', [ 2014, 1, 14, 17, 54, 0], true ],
+        [ '${YYYY}-${MM}-${DD} ${HH}:${mm}Z', '2014-01-14 17:54Z', [ 2014, 1, 14, 17, 54, 0], true ],
+        [ '${YYYY}-${MM}-${DD}', '2014-01-14', [ 2014, 1, 14, 0, 0, 0], true ],
+
+        // allow overflows?
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCFullYear
+        [ '${YYYY}-${MM}-${DD}', '2014-01-32', [ 2014, 2, 1, 0, 0, 0], true, '2014-02-01' ],
+        [ '${YYYY}-${MM}-${DD}', '2014-02-30', [ 2014, 3, 2, 0, 0, 0], true, '2014-03-02' ],
+        [ '${YYYY}-${MM}-${DD}', '2014-15-10', [ 2015, 3, 10, 0, 0, 0], true, '2015-03-10' ],
+
+        // local time
+        [ '${YYYY}-${MM}-${DD}T${HH}:${mm}:${ss}', '2014-01-14T17:54:13', [ 2014, 1, 14, 17, 54, 13], false ],
+        [ '${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}', '2014-01-14 17:54:13', [ 2014, 1, 14, 17, 54, 13], false ],
+        [ '${YYYY}-${MM}-${DD}T${HH}:${mm}', '2014-01-14T17:54', [ 2014, 1, 14, 17, 54, 0], false ],
+        [ '${YYYY}-${MM}-${DD} ${HH}:${mm}', '2014-01-14 17:54', [ 2014, 1, 14, 17, 54, 0], false ]
+    ];
+    var invalid = [
+        // [str, utc]
+        ['2014-01-14T12:01:00', true],
+        ['2014-01-14T12:01', true],
+        ['2014-01-14T12', true],
+        ['2014-01-14T12Z', true],
+        ['2014-01-14TZ', true],
+
+
+        ['2014-01-14 17:54:00', true],
+        ['2014-01-14 17:54', true],
+        ['2014-01-14 17', true],
+        ['2014-01-14 17Z', true],
+        ['2014-01-14Z', true],
+
+        ['2014-01-14X17:54:00Z', true],
+        ['20140114175400', false]
+    ];
+    var i, l;
+
+    function test_valid(format, str, data, utc, output) {
+        datetime.allow_local = !utc;
+        var d = data;
+
+        var expected = new Date();
+        if (utc) {
+            expected.setUTCFullYear(d[0], d[1]-1, d[2]);
+            expected.setUTCHours(d[3], d[4], d[5], 0); // set ms to 0
+        } else {
+            expected.setFullYear(d[0], d[1]-1, d[2]);
+            expected.setHours(d[3], d[4], d[5], 0); // set ms to 0
+        }
+
+        var parsed = datetime.parse(str);
+
+        ok(parsed, "Parse successful: "+str);
+        if (!parsed) return; // don't die for other tests
+        strictEqual(parsed.getTime(), expected.getTime(), "Valid date: "+str);
+
+        var formatted = datetime.format(parsed, format, !utc);
+        expected = output || str;
+        strictEqual(formatted, expected, "Format: "+format);
+    }
+
+    function test_invalid(str, utc) {
+        datetime.allow_local = !utc;
+        var parsed = datetime.parse(str);
+        strictEqual(parsed, null, "Parse invalid date: "+str);
+    }
+
+    for (i=0, l=valid.length; i < l; i++) {
+        test_valid(valid[i][0], valid[i][1], valid[i][2], valid[i][3], valid[i][4]);
+    }
+
+    for (i=0, l=invalid.length; i < l; i++) {
+        test_invalid(invalid[i][0], invalid[i][1]);
+    }
 });
 
 };});

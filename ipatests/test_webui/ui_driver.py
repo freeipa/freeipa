@@ -802,7 +802,7 @@ class UI_driver(object):
     def get_field_checked(self, name, parent=None):
         if not parent:
             parent = self.get_form()
-        s = "div[name='%s'] input[name='%s']" % (name, name)
+        s = "div[name='%s'] input[name^='%s']" % (name, name)
         els = self.find(s, By.CSS_SELECTOR, parent, strict=True, many=True)
         values = []
         for el in els:

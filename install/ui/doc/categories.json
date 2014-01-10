@@ -96,7 +96,8 @@
                     "IPA.bulk_associator",
                     "IPA.association_config",
                     "spec_util",
-                    "_base.Spec_mod"
+                    "_base.Spec_mod",
+                    "datetime"
                 ]
             }
         ]
