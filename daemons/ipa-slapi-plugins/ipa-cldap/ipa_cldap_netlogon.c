@@ -163,7 +163,7 @@ static int ipa_cldap_encode_netlogon(char *fq_hostname, char *domain,
     nlr->domain_name = name;
 
     /* copy the first 15 characters of the fully qualified hostname*/
-    pdc_name = talloc_asprintf(nlr, "\\\\%.*s", NETBIOS_NAME_MAX, fq_hostname);
+    pdc_name = talloc_asprintf(nlr, "%.*s", NETBIOS_NAME_MAX, fq_hostname);
 
     for (p = pdc_name; *p; p++) {
         /* Create the NetBIOS name from the first segment of the hostname */
