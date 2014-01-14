@@ -284,7 +284,8 @@ class OpenSSHTransport(Transport):
                 '-o', 'UserKnownHostsFile=%s' % known_hosts_file]
 
         if self.host.root_ssh_key_filename:
-            argv.extend(['-i', self.host.root_ssh_key_filename])
+            key_filename = os.path.expanduser(self.host.root_ssh_key_filename)
+            argv.extend(['-i', key_filename])
         elif self.host.root_password:
             self.log.critical('Password authentication not supported')
             raise RuntimeError('Password authentication not supported')
