@@ -1246,7 +1246,16 @@ IPA.confirm_mixin = function() {
             },
 
             /**
+             * Map of keys which are down
+             * @property {Object}
+             */
+            keysdown: {},
+
+            /**
              * Test if event is confirmation event
+             *
+             * Clears  event's keyCode in `keysdown` map
+             *
              * @param {Event} event
              * @return {boolean}
              */
@@ -1254,9 +1263,11 @@ IPA.confirm_mixin = function() {
 
                 var ir = this.ignore_enter_rules,
                     t = event.target,
-
+                    key = event.keyCode,
                     ignore = ir.src_elements.indexOf(t.tagName.toLowerCase()) > -1 ||
-                             ir.src_types.indexOf(t.type) > -1;
+                             ir.src_types.indexOf(t.type) > -1 ||
+                             !this.keysdown[key];
+                    delete this.keysdown[key];
 
                 return ignore;
             },
@@ -1267,8 +1278,10 @@ IPA.confirm_mixin = function() {
             register_listeners: function() {
                 var self = this;
                 this._on_key_up_listener = function(e) { self.on_key_up(e); };
+                this._on_key_down_listener = function(e) { self._on_key_down(e); };
                 var dialog_container = this.dom_node;
                 dialog_container.bind('keyup', this._on_key_up_listener);
+                dialog_container.bind('keydown', this._on_key_down_listener);
             },
 
             /**
@@ -1277,6 +1290,7 @@ IPA.confirm_mixin = function() {
             remove_listeners: function() {
                 var dialog_container = this.dom_node;
                 dialog_container.unbind('keyup', this._on_key_up_listener);
+                dialog_container.unbind('keydown', this._on_key_down_listener);
             },
 
             /**
@@ -1295,6 +1309,23 @@ IPA.confirm_mixin = function() {
                     event.preventDefault();
                     this.on_cancel();
                 }
+                delete this.keysdown[event.keyCode];
+            },
+
+            /**
+             * Internal listener for saving which keys were pressed to
+             * prevent reaction to event which originated in completely different
+             * control.
+             *
+             * Example: first dialog is closed by keydown event, second is
+             * therefore focused and consumes keyup event which can lead to undesired
+             * behavior.
+             *
+             * @private
+             * @param {Event} event
+             */
+            _on_key_down: function(event) {
+                this.keysdown[event.keyCode] = true;
             }
         },
 
