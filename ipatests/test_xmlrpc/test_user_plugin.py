@@ -99,10 +99,6 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
             mepmanagedentry=[get_group_dn(uid)],
             objectclass=add_oc(objectclasses.user, u'ipantuserattrs'),
             krbprincipalname=[u'%s@%s' % (uid, api.env.realm)],
-            krbpwdpolicyreference=[DN(('cn', 'global_policy'),
-                                      ('cn', api.env.realm),
-                                      ('cn', 'kerberos'),
-                                      api.env.basedn)],
         )
     if operation in ('show', 'show-all', 'find', 'mod'):
         result.update(
