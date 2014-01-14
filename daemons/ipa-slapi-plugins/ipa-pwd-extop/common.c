@@ -436,53 +436,25 @@ static void pwd_values_free(Slapi_ValueSet** results,
     slapi_vattr_values_free(results, actual_type_name, buffer_flags);
 }
 
-static int ipapwd_rdn_count(const char *dn)
-{
-    int rdnc = 0;
-    LDAPDN ldn;
-    int ret;
-
-    ret = ldap_str2dn(dn, &ldn, LDAP_DN_FORMAT_LDAPV3);
-    if (ret != LDAP_SUCCESS) {
-        LOG_TRACE("ldap_str2dn(dn) failed ?!");
-        return -1;
-    }
-
-    for (rdnc = 0; ldn != NULL && ldn[rdnc]; rdnc++) /* count */ ;
-    ldap_dnfree(ldn);
-
-    return rdnc;
-}
-
 int ipapwd_getPolicy(const char *dn,
                      Slapi_Entry *target,
                      struct ipapwd_policy *policy)
 {
     const char *krbPwdPolicyReference;
-    const char *pdn;
-    const Slapi_DN *psdn;
-    Slapi_Backend *be;
+    char *pdn = NULL;
     Slapi_PBlock *pb = NULL;
     char *attrs[] = { "krbMaxPwdLife", "krbMinPwdLife",
                       "krbPwdMinDiffChars", "krbPwdMinLength",
                       "krbPwdHistoryLength", NULL};
     Slapi_Entry **es = NULL;
     Slapi_Entry *pe = NULL;
-    int ret, res, dist, rdnc, scope, i;
-    Slapi_DN *sdn = NULL;
+    int ret, res, scope, i;
     int buffer_flags=0;
     Slapi_ValueSet* results = NULL;
-    char* actual_type_name = NULL;
+    char *actual_type_name = NULL;
     int tmpint;
 
     LOG_TRACE("Searching policy for [%s]\n", dn);
-
-    sdn = slapi_sdn_new_dn_byref(dn);
-    if (sdn == NULL) {
-        LOG_OOM();
-        ret = -1;
-        goto done;
-    }
 
     pwd_get_values(target, "krbPwdPolicyReference",
                    &results, &actual_type_name, &buffer_flags);
@@ -490,21 +462,18 @@ int ipapwd_getPolicy(const char *dn,
         Slapi_Value *sv;
         slapi_valueset_first_value(results, &sv);
         krbPwdPolicyReference = slapi_value_get_string(sv);
-        pdn = krbPwdPolicyReference;
-        scope = LDAP_SCOPE_BASE;
-        LOG_TRACE("using policy reference: %s\n", pdn);
+        pdn = slapi_ch_strdup(krbPwdPolicyReference);
     } else {
-        /* Find ancestor base DN */
-        be = slapi_be_select(sdn);
-        psdn = slapi_be_getsuffix(be, 0);
-        if (psdn == NULL) {
-            LOG_FATAL("Invalid DN [%s]\n", dn);
-            ret = -1;
-            goto done;
-        }
-        pdn = slapi_sdn_get_dn(psdn);
-        scope = LDAP_SCOPE_SUBTREE;
+        /* Fallback to hardcoded value */
+        pdn = slapi_ch_smprintf("cn=global_policy,%s", ipa_realm_dn);
     }
+    if (pdn == NULL) {
+        LOG_OOM();
+        ret = -1;
+        goto done;
+    }
+    LOG_TRACE("Using policy at [%s]\n", pdn);
+    scope = LDAP_SCOPE_BASE;
 
     pb = slapi_pblock_new();
     slapi_search_internal_set_pb(pb,
@@ -539,54 +508,13 @@ int ipapwd_getPolicy(const char *dn,
     /* if there is only one, return that */
     if (i == 1) {
         pe = es[0];
-        goto fill;
-    }
-
-    /* count number of RDNs in DN */
-    rdnc = ipapwd_rdn_count(dn);
-    if (rdnc == -1) {
-        LOG_TRACE("ipapwd_rdn_count(dn) failed");
+    } else {
+        LOG_TRACE("Multiple entries from a base search ?!");
         ret = -1;
         goto done;
     }
 
-    pe = NULL;
-    dist = -1;
-
-    /* find closest entry */
-    for (i = 0; es[i]; i++) {
-        const Slapi_DN *esdn;
-
-        esdn = slapi_entry_get_sdn_const(es[i]);
-        if (esdn == NULL) continue;
-        if (0 == slapi_sdn_compare(esdn, sdn)) {
-            pe = es[i];
-            dist = 0;
-            break;
-        }
-        if (slapi_sdn_issuffix(sdn, esdn)) {
-            const char *dn1;
-            int c1;
-
-            dn1 = slapi_sdn_get_dn(esdn);
-            if (!dn1) continue;
-            c1 = ipapwd_rdn_count(dn1);
-            if (c1 == -1) continue;
-            if ((dist == -1) ||
-                ((rdnc - c1) < dist)) {
-                dist = rdnc - c1;
-                pe = es[i];
-            }
-        }
-        if (dist == 0) break; /* found closest */
-    }
-
-    if (pe == NULL) {
-        ret = -1;
-        goto done;
-    }
-
-fill:
+    /* read data out of policy object */
     policy->min_pwd_life = slapi_entry_attr_get_int(pe, "krbMinPwdLife");
 
     tmpint = slapi_entry_attr_get_int(pe, "krbMaxPwdLife");
@@ -615,7 +543,7 @@ done:
         slapi_free_search_results_internal(pb);
         slapi_pblock_destroy(pb);
     }
-    if (sdn) slapi_sdn_free(&sdn);
+    slapi_ch_free_string(&pdn);
     return ret;
 }
 
