@@ -823,11 +823,14 @@ class BindInstance(service.Service):
     def __setup_resolv_conf(self):
         self.fstore.backup_file(RESOLV_CONF)
         resolv_txt = "search "+self.domain+"\nnameserver "+self.ip_address+"\n"
-        resolv_fd = open(RESOLV_CONF, 'w')
-        resolv_fd.seek(0)
-        resolv_fd.truncate(0)
-        resolv_fd.write(resolv_txt)
-        resolv_fd.close()
+        try:
+            resolv_fd = open(RESOLV_CONF, 'w')
+            resolv_fd.seek(0)
+            resolv_fd.truncate(0)
+            resolv_fd.write(resolv_txt)
+            resolv_fd.close()
+        except IOError as e:
+            root_logger.error('Could not write to resolv.conf: %s', e)
 
     def add_master_dns_records(self, fqdn, ip_address, realm_name, domain_name,
                                reverse_zone, ntp=False, ca_configured=None):
