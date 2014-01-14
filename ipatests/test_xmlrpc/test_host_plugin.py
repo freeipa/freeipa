@@ -863,6 +863,33 @@ class test_host(Declarative):
             ),
         ),
 
+
+        dict(
+            desc='Create a host with a NULL password',
+            command=('host_add', [fqdn3],
+                dict(
+                    description=u'Test host 3',
+                    force=True,
+                    userpassword=None,
+                ),
+            ),
+            expected=dict(
+                value=fqdn3,
+                summary=u'Added host "%s"' % fqdn3,
+                result=dict(
+                    dn=dn3,
+                    fqdn=[fqdn3],
+                    description=[u'Test host 3'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn3],
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+
     ]
 
 class test_host_false_pwd_change(XMLRPC_test):

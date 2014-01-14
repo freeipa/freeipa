@@ -425,7 +425,7 @@ class host_add(LDAPCreate):
             entry_attrs['l'] = entry_attrs['locality']
         entry_attrs['cn'] = keys[-1]
         entry_attrs['serverhostname'] = keys[-1].split('.', 1)[0]
-        if 'userpassword' not in entry_attrs and not options.get('random', False):
+        if not entry_attrs.get('userpassword', False) and not options.get('random', False):
             entry_attrs['krbprincipalname'] = 'host/%s@%s' % (
                 keys[-1], self.api.env.realm
             )
