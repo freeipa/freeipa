@@ -1730,6 +1730,7 @@ IPA.error_dialog = function(spec) {
                 errors_container.show();
                 show_details.hide();
                 hide_details.show();
+                hide_details.focus();
                 return false;
             });
 
@@ -1737,6 +1738,7 @@ IPA.error_dialog = function(spec) {
                 errors_container.hide();
                 hide_details.hide();
                 show_details.show();
+                show_details.focus();
                 return false;
             });
         }
