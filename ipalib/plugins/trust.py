@@ -188,6 +188,114 @@ def make_trust_dn(env, trust_type, dn):
         return DN(dn, container_dn)
     return dn
 
+def add_range(self, range_name, dom_sid, *keys, **options):
+    """
+    First, we try to derive the parameters of the ID range based on the
+    information contained in the Active Directory.
+
+    If that was not successful, we go for our usual defaults (random base,
+    range size 200 000, ipa-ad-trust range type).
+
+    Any of these can be overriden by passing appropriate CLI options
+    to the trust-add command.
+    """
+
+    range_size = None
+    range_type = None
+    base_id = None
+
+    # First, get information about ID space from AD
+    # However, we skip this step if other than ipa-ad-trust-posix
+    # range type is enforced
+
+    if options.get('range_type', None) in (None, u'ipa-ad-trust-posix'):
+
+        # Get the base dn
+        domain = keys[-1]
+        basedn = realm_to_suffix(domain)
+
+        # Search for information contained in
+        # CN=ypservers,CN=ypServ30,CN=RpcServices,CN=System
+        info_filter = '(objectClass=msSFU30DomainInfo)'
+        info_dn = DN('CN=ypservers,CN=ypServ30,CN=RpcServices,CN=System')\
+                  + basedn
+
+        # Get the domain validator
+        domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+        if not domain_validator.is_configured():
+            raise errors.NotFound(
+                reason=_('Cannot search in trusted domains without own '
+                         'domain configured. Make sure you have run '
+                         'ipa-adtrust-install on the IPA server first'))
+
+        # KDC might not get refreshed data at the first time,
+        # retry several times
+        for retry in range(10):
+            info_list = domain_validator.search_in_dc(domain,
+                                                      info_filter,
+                                                      None,
+                                                      SCOPE_SUBTREE,
+                                                      basedn=info_dn,
+                                                      quiet=True)
+
+            if info_list:
+                info = info_list[0]
+                break
+            else:
+                sleep(2)
+
+        required_msSFU_attrs = ['msSFU30MaxUidNumber', 'msSFU30OrderNumber']
+
+        if not info_list:
+            # We were unable to gain UNIX specific info from the AD
+            self.log.debug("Unable to gain POSIX info from the AD")
+        else:
+            if all(attr in info for attr in required_msSFU_attrs):
+                self.log.debug("Able to gain POSIX info from the AD")
+                range_type = u'ipa-ad-trust-posix'
+
+                max_uid = info.get('msSFU30MaxUidNumber')
+                max_gid = info.get('msSFU30MaxGidNumber', None)
+                max_id = int(max(max_uid, max_gid)[0])
+
+                base_id = int(info.get('msSFU30OrderNumber')[0])
+                range_size = (1 + (max_id - base_id) / DEFAULT_RANGE_SIZE)\
+                             * DEFAULT_RANGE_SIZE
+
+    # Second, options given via the CLI options take precedence to discovery
+    if options.get('range_type', None):
+        range_type = options.get('range_type', None)
+    elif not range_type:
+        range_type = u'ipa-ad-trust'
+
+    if options.get('range_size', None):
+        range_size = options.get('range_size', None)
+    elif not range_size:
+        range_size = DEFAULT_RANGE_SIZE
+
+    if options.get('base_id', None):
+        base_id = options.get('base_id', None)
+    elif not base_id:
+        # Generate random base_id if not discovered nor given via CLI
+        base_id = DEFAULT_RANGE_SIZE + (
+            pysss_murmur.murmurhash3(
+                dom_sid,
+                len(dom_sid), 0xdeadbeefL
+            ) % 10000
+        ) * DEFAULT_RANGE_SIZE
+
+    # Finally, add new ID range
+    self.api.Command['idrange_add'](range_name,
+                                    ipabaseid=base_id,
+                                    ipaidrangesize=range_size,
+                                    ipabaserid=0,
+                                    iparangetype=range_type,
+                                    ipanttrusteddomainsid=dom_sid)
+
+    # Return the values that were generated inside this function
+    return range_type, range_size, base_id
+
+
 class trust(LDAPObject):
     """
     Trust object.
@@ -258,15 +366,11 @@ class trust(LDAPObject):
             filter = ldap.make_filter({'objectclass': ['ipaNTTrustedDomain'], 'cn': [keys[-1]] },
                                       rules=ldap.MATCH_ALL)
             filter = ldap.combine_filters((filter, "ipaNTSIDBlacklistIncoming=*"), rules=ldap.MATCH_ALL)
-            try:
-                result = ldap.get_entries(DN(self.container_dn, self.env.basedn),
-                                          ldap.SCOPE_SUBTREE, filter, [''])
-            except errors.NotFound:
-                return None
-            else:
-                if len(result) > 1:
-                    raise errors.OnlyOneValueAllowed(attr='trust domain')
-                return result[0].dn
+            result = ldap.get_entries(DN(self.container_dn, self.env.basedn),
+                                      ldap.SCOPE_SUBTREE, filter, [''])
+            if len(result) > 1:
+                raise errors.OnlyOneValueAllowed(attr='trust domain')
+            return result[0].dn
 
         dn=make_trust_dn(self.env, trust_type, DN(*sdn))
         return dn
@@ -341,8 +445,8 @@ sides.
             # Store the created range type, since for POSIX trusts no
             # ranges for the subdomains should be added, POSIX attributes
             # provide a global mapping across all subdomains
-            (created_range_type, _, _) = self.add_range(range_name, dom_sid,
-                                                        *keys, **options)
+            (created_range_type, _, _) = add_range(self, range_name, dom_sid,
+                                                   *keys, **options)
         else:
             created_range_type = old_range['result']['iparangetype'][0]
 
@@ -382,8 +486,8 @@ sides.
 
                     # Try to add the range for each subdomain
                     try:
-                        self.add_range(range_name, dom_sid, *keys,
-                                       **passed_options)
+                        add_range(self, range_name, dom_sid, *keys,
+                                  **passed_options)
                     except errors.DuplicateEntry:
                         pass
 
@@ -549,120 +653,17 @@ sides.
 
         return old_range, range_name, dom_sid
 
-    def add_range(self, range_name, dom_sid, *keys, **options):
-        """
-        First, we try to derive the parameters of the ID range based on the
-        information contained in the Active Directory.
-
-        If that was not successful, we go for our usual defaults (random base,
-        range size 200 000, ipa-ad-trust range type).
-
-        Any of these can be overriden by passing appropriate CLI options
-        to the trust-add command.
-        """
-
-        range_size = None
-        range_type = None
-        base_id = None
-
-        # First, get information about ID space from AD
-        # However, we skip this step if other than ipa-ad-trust-posix
-        # range type is enforced
-
-        if options.get('range_type', None) in (None, u'ipa-ad-trust-posix'):
-
-            # Get the base dn
-            domain = keys[-1]
-            basedn = realm_to_suffix(domain)
-
-            # Search for information contained in
-            # CN=ypservers,CN=ypServ30,CN=RpcServices,CN=System
-            info_filter = '(objectClass=msSFU30DomainInfo)'
-            info_dn = DN('CN=ypservers,CN=ypServ30,CN=RpcServices,CN=System')\
-                      + basedn
-
-            # Get the domain validator
-            domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
-            if not domain_validator.is_configured():
-                raise errors.NotFound(
-                    reason=_('Cannot search in trusted domains without own '
-                             'domain configured. Make sure you have run '
-                             'ipa-adtrust-install on the IPA server first'))
-
-            # KDC might not get refreshed data at the first time,
-            # retry several times
-            for retry in range(10):
-                info_list = domain_validator.search_in_dc(domain,
-                                                          info_filter,
-                                                          None,
-                                                          SCOPE_SUBTREE,
-                                                          basedn=info_dn,
-                                                          quiet=True)
-
-                if info_list:
-                    info = info_list[0]
-                    break
-                else:
-                    sleep(2)
-
-            required_msSFU_attrs = ['msSFU30MaxUidNumber', 'msSFU30OrderNumber']
-
-            if not info_list:
-                # We were unable to gain UNIX specific info from the AD
-                self.log.debug("Unable to gain POSIX info from the AD")
-            else:
-                if all(attr in info for attr in required_msSFU_attrs):
-                    self.log.debug("Able to gain POSIX info from the AD")
-                    range_type = u'ipa-ad-trust-posix'
-
-                    max_uid = info.get('msSFU30MaxUidNumber')
-                    max_gid = info.get('msSFU30MaxGidNumber', None)
-                    max_id = int(max(max_uid, max_gid)[0])
-
-                    base_id = int(info.get('msSFU30OrderNumber')[0])
-                    range_size = (1 + (max_id - base_id) / DEFAULT_RANGE_SIZE)\
-                                 * DEFAULT_RANGE_SIZE
-
-        # Second, options given via the CLI options take precedence to discovery
-        if options.get('range_type', None):
-            range_type = options.get('range_type', None)
-        elif not range_type:
-            range_type = u'ipa-ad-trust'
-
-        if options.get('range_size', None):
-            range_size = options.get('range_size', None)
-        elif not range_size:
-            range_size = DEFAULT_RANGE_SIZE
-
-        if options.get('base_id', None):
-            base_id = options.get('base_id', None)
-        elif not base_id:
-            # Generate random base_id if not discovered nor given via CLI
-            base_id = DEFAULT_RANGE_SIZE + (
-                pysss_murmur.murmurhash3(
-                    dom_sid,
-                    len(dom_sid), 0xdeadbeefL
-                ) % 10000
-            ) * DEFAULT_RANGE_SIZE
-
-        # Finally, add new ID range
-        api.Command['idrange_add'](range_name,
-                                   ipabaseid=base_id,
-                                   ipaidrangesize=range_size,
-                                   ipabaserid=0,
-                                   iparangetype=range_type,
-                                   ipanttrusteddomainsid=dom_sid)
-
-        # Return the values that were generated inside this function
-        return range_type, range_size, base_id
-
     def execute_ad(self, full_join, *keys, **options):
         # Join domain using full credentials and with random trustdom
         # secret (will be generated by the join method)
 
         # First see if the trust is already in place
         # Force retrieval of the trust object by not passing trust_type
-        dn = self.obj.get_dn(keys[-1])
+        try:
+            dn = self.obj.get_dn(keys[-1])
+        except errors.NotFound:
+            dn = None
+
         if dn:
             summary = _('Re-established trust to domain "%(value)s"')
         else:
@@ -794,6 +795,7 @@ class trust_show(LDAPRetrieve):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
 
+        assert isinstance(dn, DN)
         # Translate ipanttrusttype to trusttype
         # and ipanttrustdirection to trustdirection
         # if --raw not used
@@ -1246,6 +1248,11 @@ def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
     if not domains:
         return result
 
+    # trust range must exist by the time fetch_domains_from_trust is called
+    range_name = trust_name.upper() + '_id_range'
+    old_range = api.Command.idrange_show(range_name, raw=True)['result']
+    idrange_type = old_range['iparangetype']
+
     for dom in domains:
         dom['trust_type'] = u'ad'
         try:
@@ -1255,8 +1262,15 @@ def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
                 dom['all'] = options['all']
             if 'raw' in options:
                 dom['raw'] = options['raw']
+
             res = self.api.Command.trustdomain_add(trust_name, name, **dom)
             result.append(res['result'])
+
+            if idrange_type != u'ipa-ad-trust-posix':
+                range_name = name.upper() + '_id_range'
+                dom['range_type'] = u'ipa-ad-trust'
+                add_range(self, range_name, dom['ipanttrusteddomainsid'],
+                          trust_name, name, **dom)
         except errors.DuplicateEntry:
             # Ignore updating duplicate entries
             pass
