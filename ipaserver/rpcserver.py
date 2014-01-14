@@ -31,7 +31,7 @@ import urlparse
 import time
 import json
 
-from ipalib import plugable, capabilities
+from ipalib import plugable, capabilities, errors
 from ipalib.backend import Executioner
 from ipalib.errors import (PublicError, InternalError, CommandError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
@@ -290,6 +290,8 @@ class WSGIExecutioner(Executioner):
     content_type = None
     key = ''
 
+    _system_commands = {}
+
     def set_api(self, api):
         super(WSGIExecutioner, self).set_api(api)
         if 'wsgi_dispatch' in self.api.Backend:
@@ -331,9 +333,12 @@ class WSGIExecutioner(Executioner):
                 (name, args, options, _id) = self.unmarshal(data)
             else:
                 (name, args, options, _id) = self.simple_unmarshal(environ)
-            if name not in self.Command:
+            if name in self._system_commands:
+                result = self._system_commands[name](self, *args, **options)
+            elif name not in self.Command:
                 raise CommandError(name=name)
-            result = self.Command[name](*args, **options)
+            else:
+                result = self.Command[name](*args, **options)
         except PublicError, e:
             error = e
         except StandardError, e:
@@ -650,16 +655,56 @@ class xmlserver(KerberosWSGIExecutioner):
     key = '/xml'
 
     def listMethods(self, *params):
-        return tuple(name.decode('UTF-8') for name in self.Command)
+        """list methods for XML-RPC introspection"""
+        if params:
+            raise errors.ZeroArgumentError(name='system.listMethods')
+        return (tuple(unicode(name) for name in self.Command) +
+                tuple(unicode(name) for name in self._system_commands))
+
+    def _get_method_name(self, name, *params):
+        """Get a method name for XML-RPC introspection commands"""
+        if not params:
+            raise errors.RequirementError(name='method name')
+        elif len(params) > 1:
+            raise errors.MaxArgumentError(name=name, count=1)
+        [method_name] = params
+        return method_name
 
     def methodSignature(self, *params):
-        return u'methodSignature not implemented'
+        """get method signature for XML-RPC introspection"""
+        method_name = self._get_method_name('system.methodSignature', *params)
+        if method_name in self._system_commands:
+            # TODO
+            # for now let's not go out of our way to document standard XML-RPC
+            return u'undef'
+        elif method_name in self.Command:
+            # All IPA commands return a dict (struct),
+            # and take a params, options - list and dict (array, struct)
+            return [[u'struct', u'array', u'struct']]
+        else:
+            raise errors.CommandError(name=method_name)
 
     def methodHelp(self, *params):
-        return u'methodHelp not implemented'
+        """get method docstring for XML-RPC introspection"""
+        method_name = self._get_method_name('system.methodHelp', *params)
+        if method_name in self._system_commands:
+            return u''
+        elif method_name in self.Command:
+            return unicode(self.Command[method_name].__doc__ or '')
+        else:
+            raise errors.CommandError(name=method_name)
+
+    _system_commands = {
+        'system.listMethods': listMethods,
+        'system.methodSignature': methodSignature,
+        'system.methodHelp': methodHelp,
+    }
 
     def unmarshal(self, data):
         (params, name) = xml_loads(data)
+        if name in self._system_commands:
+            # For XML-RPC introspection, return params directly
+            return (name, params, {}, None)
         (args, options) = params_2_args_options(params)
         if 'version' not in options:
             # Keep backwards compatibility with client containing

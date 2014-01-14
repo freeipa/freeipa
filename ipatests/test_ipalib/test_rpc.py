@@ -21,13 +21,14 @@
 Test the `ipalib.rpc` module.
 """
 
-import threading
-from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy
+from xmlrpclib import Binary, Fault, dumps, loads
+
+import nose
 from ipatests.util import raises, assert_equal, PluginTester, DummyClass
 from ipatests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib.frontend import Command
 from ipalib.request import context, Connection
-from ipalib import rpc, errors
+from ipalib import rpc, errors, api, request
 
 
 std_compound = (binary_bytes, utf8_bytes, unicode_str)
@@ -242,3 +243,88 @@ class test_xmlclient(PluginTester):
         assert_equal(e.error, u'no such error')
 
         assert context.xmlclient.conn._calledall() is True
+
+
+class test_xml_introspection(object):
+    @classmethod
+    def setUpClass(self):
+        try:
+            api.Backend.xmlclient.connect(fallback=False)
+        except (errors.NetworkError, IOError):
+            raise nose.SkipTest('%r: Server not available: %r' %
+                                (__name__, api.env.xmlrpc_uri))
+
+    @classmethod
+    def tearDownClass(self):
+        request.destroy_context()
+
+    def test_list_methods(self):
+        result = api.Backend.xmlclient.conn.system.listMethods()
+        assert len(result)
+        assert 'ping' in result
+        assert 'user_add' in result
+        assert 'system.listMethods' in result
+        assert 'system.methodSignature' in result
+        assert 'system.methodHelp' in result
+
+    def test_list_methods_many_params(self):
+        try:
+            result = api.Backend.xmlclient.conn.system.listMethods('foo')
+        except Fault, f:
+            print f
+            assert f.faultCode == 3003
+            assert f.faultString == (
+                "command 'system.listMethods' takes no arguments")
+        else:
+            raise AssertionError('did not raise')
+
+    def test_ping_signature(self):
+        result = api.Backend.xmlclient.conn.system.methodSignature('ping')
+        assert result == [['struct', 'array', 'struct']]
+
+
+    def test_ping_help(self):
+        result = api.Backend.xmlclient.conn.system.methodHelp('ping')
+        assert result == 'Ping a remote server.'
+
+    def test_signature_no_params(self):
+        try:
+            result = api.Backend.xmlclient.conn.system.methodSignature()
+        except Fault, f:
+            print f
+            assert f.faultCode == 3007
+            assert f.faultString == "'method name' is required"
+        else:
+            raise AssertionError('did not raise')
+
+    def test_signature_many_params(self):
+        try:
+            result = api.Backend.xmlclient.conn.system.methodSignature('a', 'b')
+        except Fault, f:
+            print f
+            assert f.faultCode == 3004
+            assert f.faultString == (
+                "command 'system.methodSignature' takes at most 1 argument")
+        else:
+            raise AssertionError('did not raise')
+
+    def test_help_no_params(self):
+        try:
+            result = api.Backend.xmlclient.conn.system.methodHelp()
+        except Fault, f:
+            print f
+            assert f.faultCode == 3007
+            assert f.faultString == "'method name' is required"
+        else:
+            raise AssertionError('did not raise')
+
+    def test_help_many_params(self):
+        try:
+            result = api.Backend.xmlclient.conn.system.methodHelp('a', 'b')
+        except Fault, f:
+            print f
+            assert f.faultCode == 3004
+            assert f.faultString == (
+                "command 'system.methodHelp' takes at most 1 argument")
+        else:
+            raise AssertionError('did not raise')
