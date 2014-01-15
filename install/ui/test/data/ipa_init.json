@@ -464,6 +464,7 @@
                             "details": "Trust Settings",
                             "domain": "Domain",
                             "establish_using": "Establish using",
+                            "fetch_domains": "Fetch domains",
                             "ipantflatname": "Domain NetBIOS name",
                             "ipanttrusteddomainsid": "Domain Security Identifier",
                             "preshared_password": "Pre-shared password",

@@ -600,6 +600,7 @@ class i18n_messages(Command):
                 "details": _("Trust Settings"),
                 "domain": _("Domain"),
                 "establish_using": _("Establish using"),
+                "fetch_domains": _("Fetch domains"),
                 "ipantflatname": _("Domain NetBIOS name"),
                 "ipanttrusteddomainsid": _("Domain Security Identifier"),
                 "preshared_password": _("Pre-shared password"),
