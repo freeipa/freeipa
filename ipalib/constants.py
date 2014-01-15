@@ -119,7 +119,7 @@ DEFAULT_CONFIG = (
     ('rpc_protocol', 'jsonrpc'),
 
     # Time to wait for a service to start, in seconds
-    ('startup_timeout', 120),
+    ('startup_timeout', 300),
 
     # Web Application mount points
     ('mount_ipa', '/ipa/'),
