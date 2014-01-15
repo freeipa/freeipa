@@ -135,6 +135,11 @@ return {
                         },
                         'uidnumber',
                         'gidnumber',
+                        'krbprincipalname',
+                        {
+                            $type: 'datetime',
+                            name: 'krbprincipalexpiration'
+                        },
                         'loginshell',
                         'homedirectory',
                         {
