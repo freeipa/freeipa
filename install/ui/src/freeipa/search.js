@@ -470,20 +470,23 @@ IPA.batch_items_action = function(spec) {
     that.execute_action = function(facet, on_success, on_error) {
 
         var entity = facet.managed_entity;
-        var pkeys = facet.get_selected_values();
+        var selected_keys = facet.get_selected_values();
+        var pkeys = facet.get_pkeys();
+        if (!pkeys[0]) pkeys = []; // correction for search facet
 
         that.batch = IPA.batch_command({
             name: entity.name + '_batch_'+ that.method,
             on_success: that.get_on_success(facet, on_success)
         });
 
-        for (var i=0; i<pkeys.length; i++) {
-            var pkey = pkeys[i];
+        for (var i=0; i<selected_keys.length; i++) {
+            var item_keys = pkeys.splice(0);
+            item_keys.push(selected_keys[i]);
 
             var command = IPA.command({
                 entity: entity.name,
                 method: that.method,
-                args: [pkey]
+                args: item_keys
             });
 
             that.batch.add_command(command);

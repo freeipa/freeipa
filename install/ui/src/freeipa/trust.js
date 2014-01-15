@@ -48,11 +48,69 @@ return {
             dest_facet: 'search'
         }
     ],
+    facet_groups: [ 'settings', 'trustdomain' ],
     facets: [
         {
             $type: 'search',
             columns: [
                 'cn'
+            ]
+        },
+        {
+            $type: 'nested_search',
+            $pre_ops: [
+                // trustdomain-add is hidden, remove add button
+                { $del: [[ 'control_buttons', [{ name: 'add'}] ]] }
+            ],
+            nested_entity: 'trustdomain',
+            facet_group: 'trustdomain',
+            name: 'domains',
+            label: '@mo:trustdomain.label',
+            tab_label: '@mo:trustdomain.label',
+            search_all_entries: true,
+            actions: [
+                {
+                    $type: 'batch_disable'
+                },
+                {
+                    $type: 'batch_enable'
+                },
+                {
+                    $type: 'object',
+                    name: 'fetch',
+                    label: '@i18n:objects.trust.fetch_domains',
+                    method: 'fetch_domains'
+                }
+            ],
+            control_buttons: [
+                {
+                    name: 'disable',
+                    label: '@i18n:buttons.disable',
+                    icon: 'fa-minus'
+                },
+                {
+                    name: 'enable',
+                    label: '@i18n:buttons.enable',
+                    icon: 'fa-check'
+                },
+                {
+                    name: 'fetch',
+                    label: '@i18n:objects.trust.fetch_domains',
+                    icon: 'fa-download'
+                }
+            ],
+            columns: [
+                {
+                    name: 'cn',
+                    link: false
+                },
+                {
+                    name: 'domain_enabled',
+                    label: '@i18n:status.label',
+                    formatter: 'boolean_status'
+                },
+                'ipantflatname',
+                'ipanttrusteddomainsid'
             ]
         },
         {
@@ -261,6 +319,13 @@ IPA.trust.adder_dialog = function(spec) {
     return that;
 };
 
+
+var make_trustdomain_spec = function() {
+return {
+    name: 'trustdomain',
+    containing_entity: 'trust'
+};};
+
 var make_trustconfig_spec = function() {
 return {
     name: 'trustconfig',
@@ -349,7 +414,9 @@ exp.remove_menu_item = function() {
 };
 
 exp.trust_spec = make_trust_spec();
+exp.trustdomain_spec = make_trustdomain_spec();
 exp.trustconfig_spec = make_trustconfig_spec();
+
 
 IPA.trust.register = function() {
     var e = reg.entity;
@@ -357,6 +424,7 @@ IPA.trust.register = function() {
     var f = reg.field;
 
     e.register({type: 'trust', spec: exp.trust_spec});
+    e.register({type: 'trustdomain', spec: exp.trustdomain_spec});
     e.register({type: 'trustconfig', spec: exp.trustconfig_spec});
 
     w.register('trust_fallbackgroup_select', IPA.trust.fallbackgroup_select_widget);
