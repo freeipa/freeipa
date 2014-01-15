@@ -21,3 +21,5 @@ default:schema-compat-entry-attribute: objectclass=ieee802Device
 default:schema-compat-entry-attribute: cn=%{fqdn}
 default:schema-compat-entry-attribute: macAddress=%{macAddress}
 
+dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: sudoOrder=%{sudoOrder}
