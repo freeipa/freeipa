@@ -786,15 +786,16 @@ def private_ccache(path=None):
 
     os.environ['KRB5CCNAME'] = path
 
-    yield
+    try:
+        yield
+    finally:
+        if original_value is not None:
+            os.environ['KRB5CCNAME'] = original_value
+        else:
+            os.environ.pop('KRB5CCNAME')
 
-    if original_value is not None:
-        os.environ['KRB5CCNAME'] = original_value
-    else:
-        os.environ.pop('KRB5CCNAME')
-
-    if os.path.exists(path):
-        os.remove(path)
+        if os.path.exists(path):
+            os.remove(path)
 
 
 @contextmanager
@@ -827,6 +828,8 @@ def stopped_service(service, instance_name=""):
         # Stop the service, do the required stuff and start it again
         root_logger.debug('Stopping %s%s.', service, log_instance_name)
         ipaservices.knownservices[service].stop(instance_name)
-        yield
-        root_logger.debug('Starting %s%s.', service, log_instance_name)
-        ipaservices.knownservices[service].start(instance_name)
+        try:
+            yield
+        finally:
+            root_logger.debug('Starting %s%s.', service, log_instance_name)
+            ipaservices.knownservices[service].start(instance_name)
