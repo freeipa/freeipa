@@ -360,7 +360,7 @@ def main():
 
     fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
     statestore = sysrestore.StateFile('/var/lib/ipa-client/sysrestore')
-    if not fstore.has_files():
+    if not fstore.has_files() and not os.path.exists('/etc/ipa/default.conf'):
         sys.exit('IPA client is not configured on this system.\n')
 
     options, args = parse_options()
