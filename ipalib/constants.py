@@ -116,7 +116,7 @@ DEFAULT_CONFIG = (
     ('rpc_json_uri', 'http://localhost:8888/ipa/json'),
     ('ldap_uri', 'ldap://localhost:389'),
     # Time to wait for a service to start, in seconds
-    ('startup_timeout', 120),
+    ('startup_timeout', 300),
 
     # Web Application mount points
     ('mount_ipa', '/ipa/'),
