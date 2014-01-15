@@ -183,8 +183,14 @@ return {
                             other_entity: 'user',
                             other_field: 'uid'
                         },
-                        'ipatokennotbefore',
-                        'ipatokennotafter',
+                        {
+                            $type: 'datetime',
+                            name: 'ipatokennotbefore'
+                        },
+                        {
+                            $type: 'datetime',
+                            name: 'ipatokennotafter'
+                        },
                         'ipatokenvendor',
                         'ipatokenmodel',
                         'ipatokenserial',
@@ -228,8 +234,14 @@ return {
                 other_entity: 'user',
                 other_field: 'uid'
             },
-            'ipatokennotbefore',
-            'ipatokennotafter',
+            {
+                $type: 'datetime',
+                name: 'ipatokennotbefore'
+            },
+            {
+                $type: 'datetime',
+                name: 'ipatokennotafter'
+            },
             'ipatokenvendor',
             'ipatokenmodel',
             'ipatokenserial',
