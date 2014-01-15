@@ -52,7 +52,26 @@ LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \
 -h ipa.example.com -ZZ -D "cn=Directory Manager" \
 uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
 
-For more information, see the FreeIPA Documentation to Sudo.
+EXAMPLES:
+
+ Create a new rule:
+   ipa sudorule-add readfiles
+
+ Add sudo command object and add it as allowed command in the rule:
+   ipa sudocmd-add /usr/bin/less
+   ipa sudorule-add-allow-command readfiles --sudocmds /usr/bin/less
+
+ Add a host to the rule:
+   ipa sudorule-add-host readfiles --hosts server.example.com
+
+ Add a user to the rule:
+   ipa sudorule-add-user readfiles --users jsmith
+
+ Add a special Sudo rule for default Sudo server configuration:
+   ipa sudorule-add defaults
+
+ Set a default Sudo option:
+   ipa sudorule-add-option defaults --sudooption '!authenticate'
 """)
 
 topic = ('sudo', _('Commands for controlling sudo configuration'))
