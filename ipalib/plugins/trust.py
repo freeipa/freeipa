@@ -21,7 +21,7 @@
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipautil import realm_to_suffix
-from ipalib import api, Str, StrEnum, Password, _, ngettext
+from ipalib import api, Str, StrEnum, Password, Bool, _, ngettext
 from ipalib import Command
 from ipalib import errors
 from ldap import SCOPE_SUBTREE
@@ -1183,8 +1183,24 @@ api.register(trustdomain)
 class trustdomain_find(LDAPSearch):
     __doc__ = _('Search domains of the trust')
 
+    has_output_params = LDAPSearch.has_output_params + (
+        Flag('domain_enabled', label= _('Domain enabled')),
+    )
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         return (filters, base_dn, ldap.SCOPE_SUBTREE)
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        trust_dn = self.obj.get_dn(args[0], trust_type=u'ad')
+        trust_entry = ldap.get_entry(trust_dn)
+        for entry in entries:
+            sid = entry['ipanttrusteddomainsid'][0]
+            if sid in trust_entry['ipantsidblacklistincoming']:
+                entry['domain_enabled'] = [False]
+            else:
+                entry['domain_enabled'] = [True]
+        return truncated
+
+
 api.register(trustdomain_find)
 
 class trustdomain_mod(LDAPUpdate):
