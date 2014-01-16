@@ -1043,10 +1043,15 @@ def main():
     update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()
 
+    removed_sysconfig_file = '/etc/sysconfig/httpd'
+    if fstore.has_file(removed_sysconfig_file):
+        root_logger.info('Restoring %s as it is no longer required',
+            removed_sysconfig_file)
+        fstore.restore_file(removed_sysconfig_file)
+
     http = httpinstance.HTTPInstance(fstore)
     http.remove_httpd_ccache()
     http.configure_selinux_for_httpd()
-    http.configure_httpd_ccache()
     http.change_mod_nss_port_from_http()
 
     ds = dsinstance.DsInstance()

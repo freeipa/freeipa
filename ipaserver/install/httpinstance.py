@@ -126,7 +126,6 @@ class HTTPInstance(service.Service):
         self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
-        self.step("configure httpd ccache", self.configure_httpd_ccache)
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
 
@@ -217,24 +216,9 @@ class HTTPInstance(service.Service):
 
     def remove_httpd_ccache(self):
         # Clean up existing ccache
-        pent = pwd.getpwnam("apache")
-        installutils.remove_file('/tmp/krb5cc_%d' % pent.pw_uid)
-
-    def configure_httpd_ccache(self):
-        pent = pwd.getpwnam("apache")
-        ccache = '/tmp/krb5cc_%d' % pent.pw_uid
-        filepath = '/etc/sysconfig/httpd'
-        if not os.path.exists(filepath):
-            # file doesn't exist; create it with correct ownership & mode
-            open(filepath, 'a').close()
-            os.chmod(filepath,
-                stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-            os.chown(filepath, 0, 0)
-
-        replacevars = {'KRB5CCNAME': ccache}
-        old_values = ipautil.backup_config_and_replace_variables(
-            self.fstore, filepath, replacevars=replacevars)
-        ipaservices.restore_context(filepath)
+        # Make sure that empty env is passed to avoid passing KRB5CCNAME from
+        # current env
+        ipautil.run(['kdestroy'], runas='apache', raiseonerr=False, env={})
 
     def __configure_http(self):
         target_fname = '/etc/httpd/conf.d/ipa.conf'
