@@ -607,9 +607,7 @@ IPA.attributes_widget = function(spec) {
         var unmatched = [];
 
         for (var i=0; i<that.values.length; i++) {
-            var input = $('input[name="'+that.name+'"]'+
-                          '[value="'+that.values[i]+'"]', that.container);
-            if (!input.length) {
+            if (!that.has_option(that.values[i])) {
                 unmatched.push(that.values[i]);
             }
         }
@@ -618,6 +616,14 @@ IPA.attributes_widget = function(spec) {
             that.options.push.apply(that.options, that.prepare_options(unmatched));
             that.create_options(unmatched);
         }
+    };
+
+    that.has_option = function(value) {
+        var o = that.options;
+        for (var i=0, l=o.length; i<l; i++) {
+            if (o[i].value === value) return true;
+        }
+        return false;
     };
 
     that.show_undo = function() {
