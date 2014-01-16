@@ -66,8 +66,6 @@ class test_replace(Declarative):
                     initials=[u'TU'],
                     mail=[u'test1@example.com', u'test2@example.com'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),('cn','kerberos'),
-                                              api.env.basedn)],
                     mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
                                         api.env.basedn)],
                     memberof_group=[u'ipausers'],

@@ -248,8 +248,6 @@ class test_range(Declarative):
                     initials=[u'TU'],
                     mail=[u'%s@%s' % (user1, api.env.domain)],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
                     mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
                                         api.env.basedn)],
                     memberof_group=[u'ipausers'],

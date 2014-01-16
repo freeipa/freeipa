@@ -71,8 +71,6 @@ class test_attr(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[DN(('cn','global_policy'),('cn',api.env.realm),
-                                              ('cn','kerberos'),api.env.basedn)],
                     mepmanagedentry=[DN(('cn',user1),('cn','groups'),('cn','accounts'),
                                         api.env.basedn)],
                     memberof_group=[u'ipausers'],

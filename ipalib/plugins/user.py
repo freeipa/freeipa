@@ -498,9 +498,6 @@ class user_add(LDAPCreate):
             homes_root = config.get('ipahomesrootdir', ['/home'])[0]
             # build user's home directory based on his uid
             entry_attrs['homedirectory'] = posixpath.join(homes_root, keys[-1])
-        entry_attrs.setdefault('krbpwdpolicyreference',
-                               DN(('cn', 'global_policy'), ('cn', api.env.realm), ('cn', 'kerberos'),
-                                  api.env.basedn))
         entry_attrs.setdefault('krbprincipalname', '%s@%s' % (entry_attrs['uid'], api.env.realm))
 
         if entry_attrs.get('gidnumber') is None:
