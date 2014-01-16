@@ -42,6 +42,7 @@ import datetime
 import netaddr
 import time
 import krbV
+import pwd
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 
@@ -246,29 +247,35 @@ def shell_quote(string):
     return "'" + string.replace("'", "'\\''") + "'"
 
 def run(args, stdin=None, raiseonerr=True,
-        nolog=(), env=None, capture_output=True, skip_output=False, cwd=None):
+        nolog=(), env=None, capture_output=True, skip_output=False, cwd=None,
+        runas=None):
     """
     Execute a command and return stdin, stdout and the process return code.
 
-    args is a list of arguments for the command
+    :param args: List of arguments for the command
+    :param stdin: Optional input to the command
+    :param raiseonerr: If True, raises an exception if the return code is
+        not zero
+    :param nolog: Tuple of strings that shouldn't be logged, like passwords.
+        Each tuple consists of a string to be replaced by XXXXXXXX.
 
-    stdin is used if you want to pass input to the command
+        Example:
+        We have a command
+            ['/usr/bin/setpasswd', '--password', 'Secret123', 'someuser']
+        and we don't want to log the password so nolog would be set to:
+        ('Secret123',)
+        The resulting log output would be:
 
-    raiseonerr raises an exception if the return code is not zero
+        /usr/bin/setpasswd --password XXXXXXXX someuser
 
-    nolog is a tuple of strings that shouldn't be logged, like passwords.
-    Each tuple consists of a string to be replaced by XXXXXXXX.
-
-    For example, the command ['/usr/bin/setpasswd', '--password', 'Secret123', 'someuser']
-
-    We don't want to log the password so nolog would be set to:
-    ('Secret123',)
-
-    The resulting log output would be:
-
-    /usr/bin/setpasswd --password XXXXXXXX someuser
-
-    If an value isn't found in the list it is silently ignored.
+        If a value isn't found in the list it is silently ignored.
+    :param env: Dictionary of environment variables passed to the command.
+        When None, current environment is copied
+    :param capture_output: Capture stderr and stdout
+    :param skip_output: Redirect the output to /dev/null and do not capture it
+    :param cwd: Current working directory
+    :param runas: Name of a user that the command shold be run as. The spawned
+        process will have both real and effective UID and GID set.
     """
     p_in = None
     p_out = None
@@ -298,9 +305,19 @@ def run(args, stdin=None, raiseonerr=True,
     root_logger.debug('Starting external process')
     root_logger.debug('args=%s' % arg_string)
 
+    preexec_fn = None
+    if runas is not None:
+        pent = pwd.getpwnam(runas)
+        root_logger.debug('runas=%s (UID %d, GID %s)', runas,
+            pent.pw_uid, pent.pw_gid)
+
+        preexec_fn = lambda: (os.setregid(pent.pw_gid, pent.pw_gid),
+                              os.setreuid(pent.pw_uid, pent.pw_uid))
+
     try:
         p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
-                             close_fds=True, env=env, cwd=cwd)
+                             close_fds=True, env=env, cwd=cwd,
+                             preexec_fn=preexec_fn)
         stdout,stderr = p.communicate(stdin)
         stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
     except KeyboardInterrupt:
