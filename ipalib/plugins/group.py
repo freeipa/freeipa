@@ -387,6 +387,21 @@ api.register(group_find)
 class group_show(LDAPRetrieve):
     __doc__ = _('Display information about a named group.')
     has_output_params = LDAPRetrieve.has_output_params + (ipaexternalmember_param,)
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        if ('ipaexternalmember' in entry_attrs and
+            len(entry_attrs['ipaexternalmember']) > 0 and
+            'trust_resolve' in self.Command and
+            not options.get('raw', False)):
+            sids = entry_attrs['ipaexternalmember']
+            result = self.Command.trust_resolve(sids=sids)
+            for entry in result['result']:
+                try:
+                    idx = sids.index(entry['sid'][0])
+                    sids[idx] = entry['name'][0]
+                except ValueError:
+                    pass
+        return dn
 api.register(group_show)
 
 
