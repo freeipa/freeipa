@@ -1199,10 +1199,7 @@ IPA.option_widget_base = function(spec, that) {
     that.get_input_name = function() {
 
         if (!that._input_name) {
-            var name = that.name;
-            if (that.input_type === 'radio') {
-                name = IPA.html_util.get_next_id(name);
-            }
+            var name = IPA.html_util.get_next_id(that.name);
             that._input_name = name;
             that._selector = 'input[name="'+name+'"]';
         }
