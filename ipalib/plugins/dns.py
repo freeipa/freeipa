@@ -2636,7 +2636,7 @@ class dnsrecord_mod(LDAPUpdate):
                     break
 
             if del_all:
-                return self.obj.methods.delentry(*keys)
+                return self.obj.methods.delentry(*keys, version=options['version'])
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
