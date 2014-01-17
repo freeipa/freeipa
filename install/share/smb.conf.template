@@ -1,5 +1,6 @@
 [global]
 workgroup = $NETBIOS_NAME
+netbios name = $HOST_NETBIOS_NAME
 realm = $REALM
 kerberos method = dedicated keytab
 dedicated keytab file = FILE:/etc/samba/samba.keytab
