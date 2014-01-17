@@ -124,6 +124,7 @@ class ADTRUSTInstance(service.Service):
         self.secondary_rid_base = None
 
         self.fqdn = None
+        self.host_netbios_name = None
         self.realm = None
         self.domain_name = None
 
@@ -151,6 +152,7 @@ class ADTRUSTInstance(service.Service):
 
         # Values obtained from API.env
         self.fqdn = self.fqdn or api.env.host
+        self.host_netbios_name = make_netbios_name(self.fqdn)
         self.realm = self.realm or api.env.realm
         self.domain_name = self.domain_name or api.env.domain
 
@@ -769,6 +771,7 @@ class ADTRUSTInstance(service.Service):
         self.sub_dict = dict(REALM = self.realm,
                              SUFFIX = self.suffix,
                              NETBIOS_NAME = self.netbios_name,
+                             HOST_NETBIOS_NAME = self.host_netbios_name,
                              SMB_DN = self.smb_dn,
                              LDAPI_SOCKET = self.ldapi_socket,
                              FQDN = self.fqdn)
