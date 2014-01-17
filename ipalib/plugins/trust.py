@@ -978,6 +978,7 @@ if _nss_idmap_installed:
         return unicode(string)
 
 class trust_resolve(Command):
+    NO_CLI = True
     __doc__ = _('Resolve security identifiers of users and groups in trusted domains')
 
     takes_options = (
