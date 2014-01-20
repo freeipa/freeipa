@@ -412,8 +412,8 @@ def sync_time(host, server):
     leaves ntpd stopped.
     """
 
-    host.run_command(['sudo', 'systemctl', 'stop', 'ntpd'])
-    host.run_command(['sudo', 'ntpdate', server.hostname])
+    host.run_command(['systemctl', 'stop', 'ntpd'])
+    host.run_command(['ntpdate', server.hostname])
 
 
 def connect_replica(master, replica):
