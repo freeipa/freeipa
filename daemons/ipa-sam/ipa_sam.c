@@ -2437,6 +2437,44 @@ done:
 	return status;
 }
 
+static int delete_subtree(struct ldapsam_privates *ldap_state, char* dn)
+{
+	LDAP *state = priv2ld(ldap_state);
+	int rc;
+	char *filter = NULL;
+	int scope = LDAP_SCOPE_SUBTREE;
+	LDAPMessage *result = NULL;
+	LDAPMessage *entry = NULL;
+	char *entry_dn = NULL;
+
+	/* use 'dn' for a temporary talloc context */
+	filter = talloc_asprintf(dn, "(objectClass=*)");
+	if (filter == NULL) {
+		return LDAP_NO_MEMORY;
+	}
+
+	rc = smbldap_search(ldap_state->smbldap_state, dn, scope, filter, NULL, 0, &result);
+	TALLOC_FREE(filter);
+
+	if (result != NULL) {
+		smbldap_talloc_autofree_ldapmsg(dn, result);
+	}
+
+	for (entry = ldap_first_entry(state, result);
+	     entry != NULL;
+	     entry = ldap_next_entry(state, entry)) {
+		entry_dn = get_dn(dn, state, entry);
+		/* remove child entries */
+		if ((entry_dn != NULL) && (strcmp(entry_dn, dn) != 0)) {
+			rc = smbldap_delete(ldap_state->smbldap_state, entry_dn);
+		}
+	}
+	rc = smbldap_delete(ldap_state->smbldap_state, dn);
+
+	/* caller will destroy dn */
+	return rc;
+}
+
 static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 					   const char *domain)
 {
@@ -2444,7 +2482,7 @@ static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 	struct ldapsam_privates *ldap_state =
 		(struct ldapsam_privates *)methods->private_data;
 	LDAPMessage *entry = NULL;
-	const char *dn;
+	char *dn;
 	const char *domain_name;
 	TALLOC_CTX *tmp_ctx;
 	NTSTATUS status;
@@ -2490,6 +2528,11 @@ static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 	}
 
 	ret = smbldap_delete(ldap_state->smbldap_state, dn);
+	if (ret == LDAP_NOT_ALLOWED_ON_NONLEAF) {
+		/* delete_subtree will use 'dn' as temporary context too */
+		ret = delete_subtree(ldap_state, dn);
+	}
+
 	if (ret != LDAP_SUCCESS) {
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
