@@ -233,7 +233,11 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
     def uninstall(cls):
         cls.master.run_command(['ipa', 'user-del', 'disabledipauser'],
                                 raiseonerr=False)
-        tasks.unapply_fixes(cls.legacy_client)
+
+        # Also unapply fixes on the legacy client, if defined
+        if hasattr(cls, 'legacy_client'):
+            tasks.unapply_fixes(cls.legacy_client)
+
         super(BaseTestLegacyClient, cls).uninstall()
 
 
