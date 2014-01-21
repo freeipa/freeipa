@@ -342,13 +342,16 @@ class permission(baseldap.LDAPObject):
 
         rights = entry.get('attributelevelrights')
         if rights:
-            rights['memberof'] = rights['ipapermtargetfilter']
-            rights['targetgroup'] = rights['ipapermtarget']
+            if 'ipapermtarget' in rights:
+                rights['targetgroup'] = rights['ipapermtarget']
+            if 'ipapermtargetfilter' in rights:
+                rights['memberof'] = rights['ipapermtargetfilter']
 
-            type_rights = set(rights['ipapermtargetfilter'])
-            type_rights.intersection_update(rights['ipapermlocation'])
-            rights['type'] = ''.join(sorted(
-                type_rights, key=rights['ipapermtargetfilter'].index))
+                type_rights = set(rights['ipapermtargetfilter'])
+                location_rights = set(rights.get('ipapermlocation', ''))
+                type_rights.intersection_update(location_rights)
+                rights['type'] = ''.join(sorted(
+                    type_rights, key=rights['ipapermtargetfilter'].index))
 
             if 'ipapermincludedattr' in rights:
                 rights['attrs'] = ''.join(sorted(
