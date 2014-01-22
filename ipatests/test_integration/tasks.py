@@ -119,17 +119,21 @@ def restore_files(host):
     backupname = os.path.join(host.config.test_dir, 'file_backup')
     rmname = os.path.join(host.config.test_dir, 'file_remove')
 
-    # Restore the backed up files
-    host.run_command('cp -arvf %s/* /' % ipautil.shell_quote(backupname),
-                     raiseonerr=False)
-
-    # Restore context of the backed-up files
+    # Prepare command for restoring context of the backed-up files
     sed_remove_backupdir = 's/%s//g' % backupname.replace('/', '\/')
-    host.run_command("find %s | "
-                     "sed '%s' | "
-                     "sed '/^$/d' | "
-                     "xargs -d '\n' "
-                     "/sbin/restorecon -v" % (backupname, sed_remove_backupdir))
+    restorecon_command = (
+        "find %s | "
+        "sed '%s' | "
+        "sed '/^$/d' | "
+        "xargs -d '\n' "
+        "/sbin/restorecon -v" % (backupname, sed_remove_backupdir))
+
+    # Prepare command for actual restoring of the backed up files
+    copyfiles_command = 'cp -arvf %s/* /' % ipautil.shell_quote(backupname)
+
+    # Run both commands in one session. For more information, see:
+    # https://fedorahosted.org/freeipa/ticket/4133
+    host.run_command('%s ; (%s ||:)' % (restorecon_command, copyfiles_command))
 
     # Remove all the files that did not exist and were 'backed up'
     host.run_command(['xargs', '-d', r'\n', '-a', rmname, 'rm', '-vf'],
