@@ -118,7 +118,7 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
 
     def test_getent_ad_group(self):
         self.clear_sssd_caches()
-        testgroup = 'test group@%s' % self.ad.domain.name
+        testgroup = 'testgroup@%s' % self.ad.domain.name
         result = self.legacy_client.run_command(['getent', 'group', testgroup])
 
         testgroup_stdout = "%s:\*:10047:" % testgroup
@@ -127,7 +127,7 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
     def test_id_ad_user(self):
         self.clear_sssd_caches()
         testuser = 'testuser@%s' % self.ad.domain.name
-        testgroup = 'test group@%s' % self.ad.domain.name
+        testgroup = 'testgroup@%s' % self.ad.domain.name
 
         result = self.legacy_client.run_command(['id', testuser])
 
