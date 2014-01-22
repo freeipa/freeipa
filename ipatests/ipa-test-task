@@ -213,6 +213,24 @@ class TaskRunner(object):
                             help='Server that serves as a time source')
         subparser.set_defaults(func=self.sync_time)
 
+        subparser = subparsers.add_parser(
+            'add-a-records-in-master-domain',
+            help='Adds A records to the IPA master for all the hosts in the '
+                 'master domain.')
+        subparser.add_argument('master', type=str,
+                            help='IPA master to add records on')
+        subparser.set_defaults(
+            func=self.add_a_records_for_hosts_in_master_domain)
+
+        subparser = subparsers.add_parser(
+            'add-a-record',
+            help='Adds A record for the host to the IPA master')
+        subparser.add_argument('master', type=str,
+                            help='IPA master to add record on')
+        subparser.add_argument('host', type=str,
+                            help='Host whose record should be added')
+        subparser.set_defaults(func=self.add_a_record)
+
         return parser
 
     def main(self, argv):
@@ -396,6 +414,15 @@ class TaskRunner(object):
         host = self.get_host(args.host, default=args.domain.master)
         server = self.get_host(args.server)
         tasks.sync_time(host, server)
+
+    def add_a_records_for_hosts_in_master_domain(self, args):
+        master = self.get_host(args.master, default=args.domain.master)
+        tasks.add_a_records_for_hosts_in_master_domain(master)
+
+    def add_a_record(self, args):
+        master = self.get_host(args.master, default=args.domain.master)
+        host = self.get_host(args.host)
+        tasks.add_a_record(master, host)
 
 if __name__ == '__main__':
     exit(TaskRunner().main(sys.argv[1:]))
