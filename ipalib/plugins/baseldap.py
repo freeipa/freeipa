@@ -1332,7 +1332,12 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             # mean an error occurred, just that there were no other updates to
             # perform.
             assert isinstance(dn, DN)
-            self._exc_wrapper(keys, options, ldap.update_entry)(dn, entry_attrs)
+
+            update = self._exc_wrapper(keys, options, ldap.get_entry)(
+                dn, entry_attrs.keys())
+            update.update(entry_attrs)
+
+            self._exc_wrapper(keys, options, ldap.update_entry)(update)
         except errors.EmptyModlist, e:
             if not rdnupdate:
                 raise e
