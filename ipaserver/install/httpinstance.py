@@ -218,7 +218,7 @@ class HTTPInstance(service.Service):
         # Clean up existing ccache
         # Make sure that empty env is passed to avoid passing KRB5CCNAME from
         # current env
-        ipautil.run(['kdestroy'], runas='apache', raiseonerr=False, env={})
+        ipautil.run(['kdestroy', '-A'], runas='apache', raiseonerr=False, env={})
 
     def __configure_http(self):
         target_fname = '/etc/httpd/conf.d/ipa.conf'
