@@ -147,6 +147,13 @@ Clears SSSD cache by removing the cache files. Restarts SSSD.
 Syncs the time with the remote server. Please note that this function leaves
 ntpd stopped.
 
+.TP
+\fBipa\-test\-task add\-a\-records\-in\-master\-domain MASTER\fR
+Adds A records to the IPA master for all the hosts in the master domain.
+
+.TP
+\fBipa\-test\-task add\-a\-record MASTER HOST\fR
+Adds an A record for the host to the IPA master.
 
 .SH "EXIT STATUS"
 0 if the command was successful

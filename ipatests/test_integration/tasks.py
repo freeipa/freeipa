@@ -572,6 +572,9 @@ def install_topo(topo, master, replicas, clients,
     installed = {master}
     if not skip_master:
         install_master(master)
+
+    add_a_records_for_hosts_in_master_domain(master)
+
     for parent, child in get_topo(topo)(master, replicas):
         if child in installed:
             log.info('Connecting replica %s to %s' % (parent, child))
@@ -632,3 +635,28 @@ def wait_for_replication(ldap, timeout=30):
             break
     else:
         log.error('Giving up wait for replication to finish')
+
+
+def add_a_records_for_hosts_in_master_domain(master):
+    for host in master.domain.hosts:
+        # We don't need to take care of the zone creation since it is master
+        # domain
+        add_a_record(master, host)
+
+
+def add_a_record(master, host):
+    # Find out if the record is already there
+    cmd = master.run_command(['ipa',
+                              'dnsrecord-find',
+                              master.domain.name,
+                              host.hostname,
+                              '--a-rec', host.ip],
+                             raiseonerr=False)
+
+    # If not, add it
+    if cmd.returncode != 0:
+        master.run_command(['ipa',
+                            'dnsrecord-add',
+                            master.domain.name,
+                            host.hostname,
+                            '--a-rec', host.ip])
