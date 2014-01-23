@@ -5,6 +5,8 @@ profile_server=(-t ,, -v 12)
 
 crl_path=${crl_path-$(readlink -f $dbdir)}
 
+serial_number=0
+
 gen_cert() {
     local profile="$1" nick="$2" subject="$3" ca options pwfile noise csr crt
     shift 3
@@ -46,7 +48,8 @@ file://$crl_path/$ca.crl
 n
 n
 EOF
-    certutil -C -d "$dbdir" -f "$pwfile" -m "$RANDOM" -i "$csr" -o "$crt" "${options[@]}" "$@"
+    serial_number=$(($serial_number+1))
+    certutil -C -d "$dbdir" -f "$pwfile" -m "$serial_number" -i "$csr" -o "$crt" "${options[@]}" "$@"
     certutil -A -d "$dbdir" -n "$nick" -f "$pwfile" -i "$crt" "${options[@]}"
 
     rm -f "$pwfile" "$noise" "$csr" "$crt"
