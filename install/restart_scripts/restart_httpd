@@ -20,11 +20,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import syslog
+import traceback
 from ipapython import services as ipaservices
 
-syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted httpd')
+def main():
+    syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted httpd')
+
+    try:
+        ipaservices.knownservices.httpd.restart()
+    except Exception, e:
+        syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % str(e))
 
 try:
-    ipaservices.knownservices.httpd.restart()
-except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % str(e))
+    main()
+except Exception:
+    syslog.syslog(syslog.LOG_ERR, traceback.format_exc())

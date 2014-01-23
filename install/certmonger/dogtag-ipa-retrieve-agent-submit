@@ -31,6 +31,8 @@ import sys
 import shutil
 import tempfile
 import syslog
+import base64
+import traceback
 from ipalib import api
 from ipapython.dn import DN
 from ipalib import errors
@@ -39,45 +41,52 @@ from ipapython import services as ipaservices
 from ipapython import ipautil
 from ipaserver.install import certs
 from ipaserver.plugins.ldap2 import ldap2
-import base64
 
-# We cheat and pass in the nickname as the CA profile to execute against.
-# Some way is needed to determine which entry to retrieve from LDAP
-operation = os.environ.get('CERTMONGER_OPERATION')
-nickname = os.environ.get('CERTMONGER_CA_PROFILE')
+def main():
+    # We cheat and pass in the nickname as the CA profile to execute against.
+    # Some way is needed to determine which entry to retrieve from LDAP
+    operation = os.environ.get('CERTMONGER_OPERATION')
+    nickname = os.environ.get('CERTMONGER_CA_PROFILE')
 
-if operation not in ['SUBMIT', 'POLL']:
-    sys.exit(6) # unsupported operation
+    if operation not in ['SUBMIT', 'POLL']:
+        sys.exit(6) # unsupported operation
 
-api.bootstrap(context='renew')
-api.finalize()
+    api.bootstrap(context='renew')
+    api.finalize()
 
-# Update or add it
-tmpdir = tempfile.mkdtemp(prefix = "tmp-")
-try:
-    dn = DN(('cn', nickname), ('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-    principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-    ccache = ipautil.kinit_hostprincipal('/etc/krb5.keytab', tmpdir, principal)
-    conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
-    conn.connect(ccache=ccache)
+    # Update or add it
+    tmpdir = tempfile.mkdtemp(prefix = "tmp-")
     try:
-        syslog.syslog(syslog.LOG_NOTICE, "Updating certificate for %s" % nickname)
-        entry_attrs = conn.get_entry(dn, ['usercertificate'])
-        cert = entry_attrs['usercertificate'][0]
-        cert = base64.b64encode(cert)
-        print x509.make_pem(cert)
-    except errors.NotFound:
-        syslog.syslog(syslog.LOG_INFO, "Updated certificate for %s not available" % nickname)
-        # No cert available yet, tell certmonger to wait another 8 hours
-        print 8 * 60 * 60
-        sys.exit(5)
+        dn = DN(('cn', nickname), ('cn', 'ca_renewal'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
+        ccache = ipautil.kinit_hostprincipal('/etc/krb5.keytab', tmpdir, principal)
+        conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
+        conn.connect(ccache=ccache)
+        try:
+            syslog.syslog(syslog.LOG_NOTICE, "Updating certificate for %s" % nickname)
+            entry_attrs = conn.get_entry(dn, ['usercertificate'])
+            cert = entry_attrs['usercertificate'][0]
+            cert = base64.b64encode(cert)
+            print x509.make_pem(cert)
+        except errors.NotFound:
+            syslog.syslog(syslog.LOG_INFO, "Updated certificate for %s not available" % nickname)
+            # No cert available yet, tell certmonger to wait another 8 hours
+            print 8 * 60 * 60
+            sys.exit(5)
+        finally:
+            conn.disconnect()
+    except Exception, e:
+        syslog.syslog(syslog.LOG_ERR, "Exception trying to retrieve %s: %s" % (nickname, e))
+        # Unhandled error
+        sys.exit(3)
     finally:
-        conn.disconnect()
-except Exception, e:
-    syslog.syslog(syslog.LOG_ERR, "Exception trying to retrieve %s: %s" % (nickname, e))
-    # Unhandled error
-    sys.exit(3)
-finally:
-    shutil.rmtree(tmpdir)
+        shutil.rmtree(tmpdir)
 
-sys.exit(0)
+    sys.exit(0)
+
+try:
+    main()
+except Exception:
+    syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
+    print "Internal error"
+    sys.exit(3)
