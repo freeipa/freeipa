@@ -36,6 +36,25 @@ libipa_cldap_la_LIBADD = 		\
 	$(NDRNBT_LIBS)			\
 	$(NULL)
 
+if HAVE_CMOCKA
+TESTS = ipa_cldap_tests
+check_PROGRAMS = ipa_cldap_tests
+endif
+
+ipa_cldap_tests_SOURCES =	\
+	ipa_cldap_tests.c	\
+	ipa_cldap_netlogon.c	\
+	$(NULL)
+ipa_cldap_tests_CFLAGS = $(CMOCKA_FLAGS)
+ipa_cldap_tests_LDFLAGS =	\
+	-rpath $(shell pkg-config --libs-only-L dirsrv | sed -e 's/-L//')	\
+	$(NULL)
+ipa_cldap_tests_LDADD =	\
+	$(CMOCKA_LIBS)	\
+	$(NDRNBT_LIBS)	\
+	$(DIRSRV_LIBS)	\
+	$(NULL)
+
 appdir = $(IPA_DATA_DIR)
 app_DATA =			\
 	ipa-cldap-conf.ldif	\
