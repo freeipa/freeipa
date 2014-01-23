@@ -29,7 +29,7 @@ from ipatests.test_integration import tasks
 from ipatests.test_integration import test_trust as trust_tests
 
 
-class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
+class BaseTestLegacyClient(object):
     """
     Tests legacy client support.
     """
@@ -42,6 +42,13 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
                     '/etc/nsswitch.conf',
                     '/etc/sssd/sssd.conf']
 
+    # Actual test classes need to override these attributes to set the expected
+    # values on the UID and GID results, since this varies with the usage of the
+    # POSIX and non-POSIX ID ranges
+
+    testuser_uid_regex = None
+    testuser_gid_regex = None
+
     @classmethod
     def setup_class(cls):
         super(BaseTestLegacyClient, cls).setup_class()
@@ -52,9 +59,6 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
 
         for f in cls.backup_files:
             tasks.backup_file(cls.legacy_client, f)
-
-    def test_remove_trust_with_posix_attributes(self):
-        pass
 
     def test_apply_advice(self):
         # Obtain the advice from the server
@@ -110,9 +114,11 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
         testuser = 'testuser@%s' % self.ad.domain.name
         result = self.legacy_client.run_command(['getent', 'passwd', testuser])
 
-        testuser_stdout = "testuser@%s:*:10042:10047:"\
+        testuser_stdout = "testuser@%s:*:%s:%s:"\
                           "Test User:/home/testuser:/bin/sh"\
-                          % self.ad.domain.name
+                          % (self.ad.domain.name,
+                             self.testuser_uid_regex,
+                             self.testuser_gid_regex)
 
         assert testuser_stdout in result.stdout_text
 
@@ -121,7 +127,7 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
         testgroup = 'testgroup@%s' % self.ad.domain.name
         result = self.legacy_client.run_command(['getent', 'group', testgroup])
 
-        testgroup_stdout = "%s:\*:10047:" % testgroup
+        testgroup_stdout = "%s:\*:%s:" % (testgroup, self.testuser_gid_regex)
         assert re.search(testgroup_stdout, result.stdout_text)
 
     def test_id_ad_user(self):
@@ -131,9 +137,9 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
 
         result = self.legacy_client.run_command(['id', testuser])
 
-        uid_regex = "uid=10042\(%s\)" % testuser
-        gid_regex = "gid=10047\(%s\)" % testgroup
-        groups_regex = "groups=10047\(%s\)" % testgroup
+        uid_regex = "uid=%s\(%s\)" % (self.testuser_uid_regex, testuser)
+        gid_regex = "gid=%s\(%s\)" % (self.testuser_gid_regex, testgroup)
+        groups_regex = "groups=%s\(%s\)" % (self.testuser_gid_regex, testgroup)
 
         assert re.search(uid_regex, result.stdout_text)
         assert re.search(gid_regex, result.stdout_text)
@@ -241,13 +247,15 @@ class BaseTestLegacyClient(trust_tests.TestEnforcedPosixADTrust):
         super(BaseTestLegacyClient, cls).uninstall()
 
 
-class TestLegacySSSDBefore19RedHat(BaseTestLegacyClient):
+# Base classes with attributes that are specific for each legacy client test
+
+class BaseTestLegacySSSDBefore19RedHat(object):
 
     advice_id = 'config-redhat-sssd-before-1-9'
     required_extra_roles = ['legacy_client_sssd_redhat']
 
 
-class TestLegacyNssPamLdapdRedHat(BaseTestLegacyClient):
+class BaseTestLegacyNssPamLdapdRedHat(object):
 
     advice_id = 'config-redhat-nss-pam-ldapd'
     required_extra_roles = ['legacy_client_nss_pam_ldapd_redhat']
@@ -256,10 +264,65 @@ class TestLegacyNssPamLdapdRedHat(BaseTestLegacyClient):
         tasks.clear_sssd_cache(self.master)
 
 
-class TestLegacyNssLdapRedHat(BaseTestLegacyClient):
+class BaseTestLegacyNssLdapRedHat(object):
 
     advice_id = 'config-redhat-nss-ldap'
     required_extra_roles = ['legacy_client_nss_ldap_redhat']
 
     def clear_sssd_caches(self):
         tasks.clear_sssd_cache(self.master)
+
+
+# Base classes that join legacy client specific steps with steps required
+# to setup IPA with trust (both with and without using the POSIX attributes)
+
+class BaseTestLegacyClientPosix(BaseTestLegacyClient,
+                                trust_tests.TestEnforcedPosixADTrust):
+
+    testuser_uid_regex = '10042'
+    testuser_gid_regex = '10047'
+
+    def test_remove_trust_with_posix_attributes(self):
+        pass
+
+
+class BaseTestLegacyClientNonPosix(BaseTestLegacyClient,
+                                   trust_tests.TestBasicADTrust):
+
+    testuser_uid_regex = '(?!10042)(\d+)'
+    testuser_gid_regex = '(?!10047)(\d+)'
+
+    def test_remove_nonposix_trust(self):
+        pass
+
+
+# Tests definitions themselvels. Beauty. Just pure beauty.
+
+class TestLegacySSSDBefore19RedHatNonPosix(BaseTestLegacySSSDBefore19RedHat,
+                                           BaseTestLegacyClientNonPosix):
+    pass
+
+
+class TestLegacyNssPamLdapdRedHatNonPosix(BaseTestLegacyNssPamLdapdRedHat,
+                                          BaseTestLegacyClientNonPosix):
+    pass
+
+
+class TestLegacyNssLdapRedHatNonPosix(BaseTestLegacyNssLdapRedHat,
+                                      BaseTestLegacyClientNonPosix):
+    pass
+
+
+class TestLegacySSSDBefore19RedHatPosix(BaseTestLegacySSSDBefore19RedHat,
+                                        BaseTestLegacyClientPosix):
+    pass
+
+
+class TestLegacyNssPamLdapdRedHatPosix(BaseTestLegacyNssPamLdapdRedHat,
+                                       BaseTestLegacyClientPosix):
+    pass
+
+
+class TestLegacyNssLdapRedHatPosix(BaseTestLegacyNssLdapRedHat,
+                                   BaseTestLegacyClientPosix):
+    pass
