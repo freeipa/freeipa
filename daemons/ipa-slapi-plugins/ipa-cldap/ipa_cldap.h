@@ -51,6 +51,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <dirsrv/slapi-plugin.h>
+#include <talloc.h>
 #include "util.h"
 
 #define IPA_CLDAP_PLUGIN_NAME "CLDAP Server"
@@ -106,4 +107,5 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
                        struct ipa_cldap_req *req,
                        struct berval *reply);
 
+char *make_netbios_name(TALLOC_CTX *mem_ctx, const char *s);
 #endif /* _IPA_CLDAP_H_ */
