@@ -42,6 +42,10 @@ log = log_mgr.get_logger(__name__)
 def prepare_host(host):
     if isinstance(host, Host):
         env_filename = os.path.join(host.config.test_dir, 'env.sh')
+
+        # First we try to run simple echo command to test the connection
+        host.run_command(['true'], set_env=False)
+
         host.collect_log(env_filename)
         host.transport.mkdir_recursive(host.config.test_dir)
         host.put_file_contents(env_filename, env_to_script(host.to_env()))
