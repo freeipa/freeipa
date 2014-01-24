@@ -74,7 +74,7 @@ keys /etc/ntp/keys
 """
 
 ntp_sysconfig = """# Drop root to id 'ntp:ntp' by default.
-OPTIONS="-x -u ntp:ntp -p /var/run/ntpd.pid"
+OPTIONS="-x -p /var/run/ntpd.pid"
 
 # Set to 'yes' to sync hw clock after successful ntpdate
 SYNC_HWCLOCK=yes

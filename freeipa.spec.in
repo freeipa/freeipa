@@ -549,6 +549,16 @@ if [ $1 -gt 1 ] ; then
             /sbin/restorecon /etc/krb5.conf
         fi
     fi
+
+    if [ -f '/etc/sysconfig/ntpd' -a $restore -ge 2 ]; then
+        if grep -E -q 'OPTIONS=.*-u ntp:ntp' /etc/sysconfig/ntpd 2>/dev/null; then
+            sed -r '/OPTIONS=/ { s/\s+-u ntp:ntp\s+/ /; s/\s*-u ntp:ntp\s*// }' /etc/sysconfig/ntpd >/etc/sysconfig/ntpd.ipanew
+            mv /etc/sysconfig/ntpd.ipanew /etc/sysconfig/ntpd
+            /sbin/restorecon /etc/sysconfig/ntpd
+
+            /bin/systemctl condrestart ntpd.service 2>&1 || :
+        fi
+    fi
 fi
 
 %triggerin -n freeipa-client -- openssh-server
