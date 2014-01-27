@@ -286,19 +286,21 @@ def _update_default_group(ldap, pkey, config, ctx, force):
         searchfilter = "(&(objectclass=posixAccount)(!(memberof=%s)))" % group_dn
         try:
             (result, truncated) = ldap.find_entries(searchfilter,
-                [''], api.env.container_user, scope=ldap.SCOPE_SUBTREE,
-                time_limit = -1)
+                [''], DN(api.env.container_user, api.env.basedn),
+                scope=ldap.SCOPE_SUBTREE, time_limit = -1)
         except errors.NotFound:
+            api.log.debug('All users have default group set')
             return
         new_members = []
         (group_dn, group_entry_attrs) = ldap.get_entry(group_dn, ['member'])
+        existing_members = set(group_entry_attrs.get('member', []))
         for m in result:
-            if m[0] not in group_entry_attrs.get('member', []):
+            if m[0] not in existing_members:
                 new_members.append(m[0])
-        if len(new_members) > 0:
-            members = group_entry_attrs.get('member', [])
+
+        if new_members:
+            members = group_entry_attrs.setdefault('member', [])
             members.extend(new_members)
-            group_entry_attrs['member'] = members
 
             try:
                 ldap.update_entry(group_dn, group_entry_attrs)
@@ -308,7 +310,8 @@ def _update_default_group(ldap, pkey, config, ctx, force):
         e = datetime.datetime.now()
         d = e - s
         mode = " (forced)" if force else ""
-        api.log.debug('Adding %d users to group%s duration %s' % (len(new_members), mode, d))
+        api.log.debug('Adding %d users to group%s duration %s',
+                len(new_members), mode, d)
 
 # GROUP MIGRATION CALLBACKS AND VARS
 
