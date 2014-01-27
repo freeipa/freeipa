@@ -767,7 +767,6 @@ fi
 %{_mandir}/man1/ipa-backup.1.gz
 %{_mandir}/man1/ipa-restore.1.gz
 %{_mandir}/man1/ipa-advise.1.gz
-%ghost %{_localstatedir}/named/ipa
 
 %files server-trust-ad
 %{_sbindir}/ipa-adtrust-install

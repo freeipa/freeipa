@@ -1084,10 +1084,6 @@ def main():
     setup_firefox_extension(fstore)
     add_ca_dns_records()
 
-    bind = bindinstance.BindInstance(fstore)
-    if bind.is_configured():
-        bind.create_dir('/var/named/ipa', 0700)
-
     # Any of the following functions returns True iff the named.conf file
     # has been altered
     named_conf_changes = (
@@ -1101,6 +1097,7 @@ def main():
     if any(named_conf_changes):
         # configuration has changed, restart the name server
         root_logger.info('Changes to named.conf have been made, restart named')
+        bind = bindinstance.BindInstance(fstore)
         try:
             bind.restart()
         except ipautil.CalledProcessError, e:
