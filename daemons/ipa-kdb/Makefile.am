@@ -21,6 +21,7 @@ AM_CPPFLAGS =						\
 	$(KRB5_CFLAGS)					\
 	$(WARN_CFLAGS)					\
 	$(NDRPAC_CFLAGS)				\
+	$(NSS_CFLAGS)					\
 	$(NULL)
 
 plugindir = $(libdir)/krb5/plugins/kdb
@@ -51,6 +52,7 @@ ipadb_la_LIBADD = 		\
 	$(LDAP_LIBS)		\
 	$(NDRPAC_LIBS)		\
 	$(UNISTRING_LIBS)	\
+	$(NSS_LIBS)             \
 	$(NULL)
 
 if HAVE_CHECK
@@ -77,7 +79,7 @@ ipa_kdb_tests_LDADD =          \
        $(KRB5_LIBS)            \
        $(LDAP_LIBS)            \
        $(NDRPAC_LIBS)          \
-       -lnss3                  \
+       $(NSS_LIBS)             \
        -lkdb5                  \
        -lsss_idmap             \
        $(NULL)

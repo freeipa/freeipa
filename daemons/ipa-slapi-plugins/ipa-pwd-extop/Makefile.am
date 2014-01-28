@@ -21,6 +21,7 @@ AM_CPPFLAGS =							\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)						\
 	$(SSL_CFLAGS)						\
+	$(NSS_CFLAGS)						\
 	$(WARN_CFLAGS)						\
 	$(NULL)
 

@@ -27,10 +27,10 @@
 #include <stdio.h>
 #include <time.h>
 #include <ctype.h>
-#include <nss3/nss.h>
-#include <nss3/nssb64.h>
-#include <nss3/hasht.h>
-#include <nss3/pk11pub.h>
+#include <nss.h>
+#include <nssb64.h>
+#include <hasht.h>
+#include <pk11pub.h>
 #include <errno.h>
 #include "ipa_pwd.h"
 
