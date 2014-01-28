@@ -41,17 +41,17 @@
 #  include <config.h>
 #endif
 
+#include <libotp.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdbool.h>
 
 #include <prio.h>
 #include <ssl.h>
-#include <dirsrv/slapi-plugin.h>
 #include <krb5.h>
 #include <kdb.h>
 #include <lber.h>
@@ -187,6 +187,3 @@ void *ipapwd_get_plugin_id(void);
 Slapi_DN *ipapwd_get_otp_config_area(void);
 Slapi_DN *ipapwd_get_plugin_sdn(void);
 bool ipapwd_get_plugin_started(void);
-
-/* from auth.c */
-bool ipapwd_do_otp_auth(Slapi_Entry *bind_entry, struct berval *creds);

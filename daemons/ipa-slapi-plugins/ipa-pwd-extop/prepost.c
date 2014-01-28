@@ -62,13 +62,13 @@
 
 #include "ipapwd.h"
 #include "util.h"
+#include "syncreq.h"
 
 #define IPAPWD_OP_NULL 0
 #define IPAPWD_OP_ADD 1
 #define IPAPWD_OP_MOD 2
 
-#define IPAPWD_OP_NOT_HANDLED 0
-#define IPAPWD_OP_HANDLED     1
+#define OTP_VALIDATE_STEPS 3
 
 extern Slapi_PluginDesc ipapwd_plugin_desc;
 extern void *ipapwd_plugin_id;
@@ -1241,73 +1241,78 @@ done:
     return ret;
 }
 
-/* Handle OTP authentication. */
-static int ipapwd_pre_bind_otp(Slapi_PBlock * pb)
+/*
+ * Authenticates creds against OTP tokens. Returns true when authentication
+ * completed successfully against a token OR when a user has no active tokens.
+ *
+ * WARNING: This function DOES NOT authenticate the first factor. Only the OTP
+ *          code is validated! You still need to validate the first factor.
+ *
+ * NOTE: When successful, this function truncates creds to remove the token
+ *       value at the end. This leaves only the password in creds for later
+ *       validation.
+ */
+static bool ipapwd_do_otp_auth(const char *dn, Slapi_Entry *bind_entry,
+                               struct berval *creds)
 {
-    char *user_attrs[] = { IPA_USER_AUTH_TYPE, NULL };
-    int ret = IPAPWD_OP_NOT_HANDLED;
-    Slapi_Entry *bind_entry = NULL;
-    struct berval *creds = NULL;
-    const char *bind_dn = NULL;
-    Slapi_DN *bind_sdn = NULL;
-    int result = LDAP_SUCCESS;
+    struct otptoken **tokens = NULL;
+    bool success = false;
+
+    /* Find all of the user's active tokens. */
+    tokens = otptoken_find(ipapwd_plugin_id, dn, NULL, true, NULL);
+    if (tokens == NULL) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                        "%s: can't find tokens for '%s'.\n", __func__, dn);
+        return false;
+    }
+
+    /* If the user has no active tokens, succeed. */
+    success = tokens[0] == NULL;
+
+    /* Loop through each token. */
+    for (int i = 0; tokens[i] && !success; i++) {
+        /* Attempt authentication. */
+        success = otptoken_validate_string(tokens[i], OTP_VALIDATE_STEPS,
+                                           creds->bv_val, creds->bv_len, true);
+
+        /* Truncate the password to remove the OTP code at the end. */
+        if (success) {
+            creds->bv_len -= otptoken_get_digits(tokens[i]);
+            creds->bv_val[creds->bv_len] = '\0';
+        }
+
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                        "%s: token authentication %s "
+                        "(user: '%s', token: '%s\').\n", __func__,
+                        success ? "succeeded" : "failed", dn,
+                        slapi_sdn_get_ndn(otptoken_get_sdn(tokens[i])));
+    }
+
+    otptoken_free_array(tokens);
+    return success;
+}
+
+/*
+ * This function handles the bind functionality for OTP. The return value
+ * indicates if the OTP portion of authentication was successful.
+ *
+ * NOTE: This function may modify creds. See explanation in the comment for
+ *       ipapwd_do_otp_auth() above.
+ */
+static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
+                                struct berval *creds)
+{
     char **auth_types = NULL;
-    int method;
-    int i;
+    bool otpauth;
+    bool pwdauth;
 
     /* If we didn't start successfully, bail. */
-    if (!ipapwd_get_plugin_started()) {
-        goto done;
-    }
+    if (!ipapwd_get_plugin_started())
+        return true;
 
     /* If global disabled flag is set, just punt. */
-    if (ipapwd_otp_is_disabled()) {
-        goto done;
-    }
-
-    /* Retrieve parameters for bind operation. */
-    i = slapi_pblock_get(pb, SLAPI_BIND_METHOD, &method);
-    if (i == 0) {
-        i = slapi_pblock_get(pb, SLAPI_BIND_TARGET_SDN, &bind_sdn);
-        if (i == 0) {
-            i = slapi_pblock_get(pb, SLAPI_BIND_CREDENTIALS, &creds);
-        }
-    }
-    if (i != 0) {
-        LOG_FATAL("Not handled (can't retrieve bind parameters)\n");
-        goto done;
-    }
-
-    bind_dn = slapi_sdn_get_dn(bind_sdn);
-
-    /* We only handle non-anonymous simple binds.  We just pass everything
-     * else through to the server. */
-    if (method != LDAP_AUTH_SIMPLE || *bind_dn == '\0' || creds->bv_len == 0) {
-        LOG_TRACE("Not handled (not simple bind or NULL dn/credentials)\n");
-        goto done;
-    }
-
-    /* Check if any allowed authentication types are set in the user entry.
-     * If not, we just use the global settings from the config entry. */
-    result = slapi_search_internal_get_entry(bind_sdn, user_attrs, &bind_entry,
-                                             ipapwd_get_plugin_id());
-    if (result != LDAP_SUCCESS) {
-        LOG_FATAL("Not handled (could not search for BIND dn %s - error "
-                  "%d : %s)\n", bind_dn, result, ldap_err2string(result));
-        goto done;
-    }
-    if (bind_entry == NULL) {
-        LOG_FATAL("Not handled (could not find entry for BIND dn %s)\n", bind_dn);
-        goto done;
-    }
-
-    i = slapi_check_account_lock(pb, bind_entry, 0, 0, 0);
-    if (i == 1) {
-        LOG_TRACE("Not handled (account %s inactivated.)\n", bind_dn);
-        goto done;
-    }
-
-    auth_types = slapi_entry_attr_get_charray(bind_entry, IPA_USER_AUTH_TYPE);
+    if (ipapwd_otp_is_disabled())
+        return true;
 
     /*
      * IMPORTANT SECTION!
@@ -1315,149 +1320,37 @@ static int ipapwd_pre_bind_otp(Slapi_PBlock * pb)
      * This section handles authentication logic, so be careful!
      *
      * The basic idea of this section is:
-     * 1. If OTP is enabled, try to use it first. If successful, send response.
-     * 2. If OTP was not enabled/successful, check if password is enabled.
-     * 3. If password is not enabled, send failure response.
-     * 4. Otherwise, fall through to standard server password authentication.
-     *
+     * 1. If OTP is enabled, validate OTP.
+     * 2. If PWD is enabled or OTP succeeded, fall through to PWD validation.
      */
+    auth_types = slapi_entry_attr_get_charray(entry, IPA_USER_AUTH_TYPE);
+    otpauth = ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_OTP);
+    pwdauth = ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_PASSWORD);
+    slapi_ch_array_free(auth_types);
 
-    /* If OTP is allowed, attempt to do OTP authentication. */
-    if (ipapwd_is_auth_type_allowed(auth_types, IPA_OTP_AUTH_TYPE_OTP)) {
+    if (otpauth) {
         LOG_PLUGIN_NAME(IPAPWD_PLUGIN_NAME,
                         "Attempting OTP authentication for '%s'.\n", bind_dn);
-        if (ipapwd_do_otp_auth(bind_entry, creds)) {
-            /* FIXME - NGK - If the auth type request control was sent,
-             * construct the response control to indicate what auth type was
-             * used.  We might be able to do this in the
-             * SLAPI_PLUGIN_PRE_RESULT_FN callback instead of here. */
-
-            /* FIXME - NGK - What about other controls, like the pwpolicy
-             * control? If any other critical controls are set, we need to
-             * either process them properly or reject the operation with an
-             * unsupported critical control error. */
-
-            /* Send response approving authentication. */
-            slapi_send_ldap_result(pb, LDAP_SUCCESS, NULL, NULL, 0, NULL);
-            ret = IPAPWD_OP_HANDLED;
-        }
+        if (ipapwd_do_otp_auth(bind_dn, entry, creds))
+            return true;
     }
 
-    /* If OTP failed or was not enabled, we need to figure out if we can fall
-     * back to standard password authentication or give an error. */
-    if (ret != IPAPWD_OP_HANDLED) {
-        if (!ipapwd_is_auth_type_allowed(auth_types,
-                                         IPA_OTP_AUTH_TYPE_PASSWORD)) {
-            /* Password authentication is disabled, so we have failed. */
-            slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
-                                   NULL, NULL, 0, NULL);
-            ret = IPAPWD_OP_HANDLED;
-            goto done;
-        }
-
-        /* Password authentication is permitted, so tell the server that we
-         * didn't handle this request. Then the server will perform standard
-         * password authentication. */
-        LOG_PLUGIN_NAME(IPAPWD_PLUGIN_NAME,
-                        "Attempting PASSWORD authentication for \"%s\".\n",
-                        bind_dn);
-
-        /* FIXME - NGK - Do we need to figure out how to build
-         * the reponse control in this case?  Maybe we can use a
-         * SLAPI_PLUGIN_PRE_RESULT_FN callback to handle that? */
-    }
-
-done:
-    slapi_ch_array_free(auth_types);
-    slapi_entry_free(bind_entry);
-    return ret;
+    return pwdauth;
 }
 
-/* PRE BIND Operation:
- * Used for password migration from DS to IPA.
- * Gets the clean text password, authenticates the user and generates
- * a kerberos key if missing.
- * Person to blame if anything blows up: Pavel Zuna <pzuna@redhat.com>
- */
-static int ipapwd_pre_bind(Slapi_PBlock *pb)
+static int ipapwd_authenticate(const char *dn, Slapi_Entry *entry,
+                               const struct berval *credentials)
 {
-    struct ipapwd_krbcfg *krbcfg = NULL;
-    struct ipapwd_data pwdata;
-    struct berval *credentials; /* bind credentials */
-    Slapi_Entry *entry = NULL;
     Slapi_Value **pwd_values = NULL; /* values of userPassword attribute */
     Slapi_Value *value = NULL;
     Slapi_Attr *attr = NULL;
-    struct tm expire_tm;
-    char *errMesg = "Internal operations error\n"; /* error message */
-    char *expire = NULL; /* passwordExpirationTime attribute value */
-    char *dn = NULL; /* bind DN */
-    Slapi_Value *objectclass;
-    int method; /* authentication method */
-    int ret = 0;
-    char *principal = NULL;
-
-    LOG_TRACE("=>\n");
-
-    /* Try to do OTP first. */
-    ret = ipapwd_pre_bind_otp(pb);
-    if (ret == IPAPWD_OP_HANDLED) {
-        return ret;
-    }
-
-    /* get BIND parameters */
-    ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET, &dn);
-    ret |= slapi_pblock_get(pb, SLAPI_BIND_METHOD, &method);
-    ret |= slapi_pblock_get(pb, SLAPI_BIND_CREDENTIALS, &credentials);
-    if (ret) {
-        LOG_FATAL("slapi_pblock_get failed!?\n");
-        goto done;
-    }
-
-    /* we're only interested in simple authentication */
-    if (method != LDAP_AUTH_SIMPLE)
-        goto done;
-
-    /* list of attributes to retrieve */
-    const char *attrs_list[] = {SLAPI_USERPWD_ATTR, "krbprincipalkey", "uid",
-                                "krbprincipalname", "objectclass",
-                                "passwordexpirationtime",  "passwordhistory",
-                                NULL};
-
-    /* retrieve user entry */
-    ret = ipapwd_getEntry(dn, &entry, (char **) attrs_list);
-    if (ret) {
-        LOG("failed to retrieve user entry: %s\n", dn);
-        goto done;
-    }
-
-    /* check the krbPrincipalName attribute is present */
-    ret = slapi_entry_attr_find(entry, "krbprincipalname", &attr);
-    if (ret) {
-        LOG("no krbPrincipalName in user entry: %s\n", dn);
-        goto done;
-    }
-
-    /* we aren't interested in host principals */
-    objectclass = slapi_value_new_string("ipaHost");
-    if ((slapi_entry_attr_has_syntax_value(entry, SLAPI_ATTR_OBJECTCLASS, objectclass)) == 1) {
-        slapi_value_free(&objectclass);
-        goto done;
-    }
-    slapi_value_free(&objectclass);
-
-    /* check the krbPrincipalKey attribute is NOT present */
-    ret = slapi_entry_attr_find(entry, "krbprincipalkey", &attr);
-    if (!ret) {
-        LOG("kerberos key already present in user entry: %s\n", dn);
-        goto done;
-    }
+    int ret;
 
     /* retrieve userPassword attribute */
     ret = slapi_entry_attr_find(entry, SLAPI_USERPWD_ATTR, &attr);
     if (ret) {
         LOG("no " SLAPI_USERPWD_ATTR " in user entry: %s\n", dn);
-        goto done;
+        return ret;
     }
 
     /* get the number of userPassword values and allocate enough memory */
@@ -1467,7 +1360,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     if (!pwd_values) {
         /* probably not required: should terminate the server anyway */
         LOG_OOM();
-        goto done;
+        return ret;
     }
     /* zero-fill the allocated memory; we need the array ending with NULL */
     memset(pwd_values, 0, ret);
@@ -1487,8 +1380,45 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     slapi_ch_free((void **) &pwd_values);
     slapi_value_free(&value);
 
-    if (ret) {
+    if (ret)
         LOG("invalid BIND password for user entry: %s\n", dn);
+    return ret;
+}
+
+static void ipapwd_write_krb_keys(Slapi_PBlock *pb, char *dn,
+                                  Slapi_Entry *entry,
+                                  const struct berval *credentials)
+{
+    char *errMesg = "Internal operations error\n";
+    struct ipapwd_krbcfg *krbcfg = NULL;
+    struct ipapwd_data pwdata;
+    Slapi_Value *objectclass;
+    Slapi_Attr *attr = NULL;
+    char *principal = NULL;
+    struct tm expire_tm;
+    char *expire = NULL;
+    int ret;
+
+    /* check the krbPrincipalName attribute is present */
+    ret = slapi_entry_attr_find(entry, "krbprincipalname", &attr);
+    if (ret) {
+        LOG("no krbPrincipalName in user entry: %s\n", dn);
+        goto done;
+    }
+
+    /* we aren't interested in host principals */
+    objectclass = slapi_value_new_string("ipaHost");
+    if ((slapi_entry_attr_has_syntax_value(entry, SLAPI_ATTR_OBJECTCLASS,
+                                           objectclass)) == 1) {
+        slapi_value_free(&objectclass);
+        goto done;
+    }
+    slapi_value_free(&objectclass);
+
+    /* check the krbPrincipalKey attribute is NOT present */
+    ret = slapi_entry_attr_find(entry, "krbprincipalkey", &attr);
+    if (!ret) {
+        LOG("kerberos key already present in user entry: %s\n", dn);
         goto done;
     }
 
@@ -1556,10 +1486,80 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
 done:
     slapi_ch_free_string(&principal);
     slapi_ch_free_string(&expire);
-    if (entry)
-        slapi_entry_free(entry);
     free_ipapwd_krbcfg(&krbcfg);
+}
 
+
+/* PRE BIND Operation
+ *
+ * Used for:
+ *   1. Password migration from DS to IPA -- Gets the clean text password,
+ *      authenticates the user and generates a kerberos key if missing.
+ *   2. OTP validation
+ *   3. OTP synchronization
+ */
+static int ipapwd_pre_bind(Slapi_PBlock *pb)
+{
+    static const char *attrs_list[] = {
+        SLAPI_USERPWD_ATTR, IPA_USER_AUTH_TYPE, "krbprincipalkey", "uid",
+        "krbprincipalname", "objectclass", "passwordexpirationtime",
+        "passwordhistory",
+        NULL
+    };
+    struct berval *credentials = NULL;
+    Slapi_Entry *entry = NULL;
+    char *dn = NULL;
+    int method = 0;
+    bool syncreq;
+    int ret = 0;
+
+    /* get BIND parameters */
+    ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET, &dn);
+    ret |= slapi_pblock_get(pb, SLAPI_BIND_METHOD, &method);
+    ret |= slapi_pblock_get(pb, SLAPI_BIND_CREDENTIALS, &credentials);
+    if (ret) {
+        LOG_FATAL("slapi_pblock_get failed!?\n");
+        return 0;
+    }
+
+    /* We're only interested in simple authentication. */
+    if (method != LDAP_AUTH_SIMPLE || credentials->bv_len == 0)
+        return 0;
+
+    /* Retrieve the user's entry. */
+    ret = ipapwd_getEntry(dn, &entry, (char **) attrs_list);
+    if (ret) {
+        LOG("failed to retrieve user entry: %s\n", dn);
+        return 0;
+    }
+
+    /* Try to do OTP first. */
+    syncreq = sync_request_present(pb);
+    if (!syncreq && !ipapwd_pre_bind_otp(dn, entry, credentials)) {
+        slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
+                               NULL, NULL, 0, NULL);
+        return 1;
+    }
+
+    /* Authenticate the user. */
+    ret = ipapwd_authenticate(dn, entry, credentials);
+    if (ret) {
+        slapi_entry_free(entry);
+        return 0;
+    }
+
+    /* Attempt to handle a token synchronization request. */
+    if (syncreq && !sync_request_handle(ipapwd_get_plugin_id(), pb, dn)) {
+        slapi_entry_free(entry);
+        slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
+                               NULL, NULL, 0, NULL);
+        return 1;
+    }
+
+    /* Attempt to write out kerberos keys for the user. */
+    ipapwd_write_krb_keys(pb, dn, entry, credentials);
+
+    slapi_entry_free(entry);
     return 0;
 }
 
@@ -1567,6 +1567,8 @@ done:
 int ipapwd_pre_init(Slapi_PBlock *pb)
 {
     int ret;
+
+    slapi_register_supported_control(OTP_SYNC_REQUEST_OID, SLAPI_OPERATION_BIND);
 
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
