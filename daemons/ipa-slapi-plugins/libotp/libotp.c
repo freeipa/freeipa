@@ -46,14 +46,17 @@
 #define TOKEN(s) "ipaToken" s
 #define O(s) TOKEN("OTP" s)
 #define T(s) TOKEN("TOTP" s)
+#define H(s) TOKEN("HOTP" s)
 
 #define IPA_OTP_DEFAULT_TOKEN_STEP 30
-#define IPA_OTP_OBJCLS_FILTER "(objectClass=ipaTokenTOTP)"
+#define IPA_OTP_OBJCLS_FILTER \
+    "(|(objectClass=ipaTokenTOTP)(objectClass=ipaTokenHOTP))"
 
 
 enum otptoken_type {
     OTPTOKEN_NONE = 0,
     OTPTOKEN_TOTP,
+    OTPTOKEN_HOTP,
 };
 
 struct otptoken {
@@ -61,10 +64,15 @@ struct otptoken {
     Slapi_DN *sdn;
     struct hotp_token token;
     enum otptoken_type type;
-    struct {
-        unsigned int step;
-        int offset;
-    } totp;
+    union {
+        struct {
+            unsigned int step;
+            int offset;
+        } totp;
+        struct {
+            uint64_t counter;
+        } hotp;
+    };
 };
 
 static const char *get_basedn(Slapi_DN *dn)
@@ -124,6 +132,9 @@ static bool validate(struct otptoken *token, time_t now, ssize_t step,
     case OTPTOKEN_TOTP:
         step = (now + token->totp.offset) / token->totp.step + step;
         break;
+    case OTPTOKEN_HOTP:
+        step = token->hotp.counter + step;
+        break;
     default:
         return false;
     }
@@ -160,6 +171,13 @@ static bool writeback(struct otptoken *token, ssize_t step, bool sync)
         attr = T("clockOffset");
         value = token->totp.offset + step * token->totp.step;
         break;
+    case OTPTOKEN_HOTP:
+        /* Having support for LDAP_MOD_INCREMENT could be helpful here. */
+        if (step < 0)
+            return false; /* NEVER go backwards! */
+        attr = H("counter");
+        value = token->hotp.counter + step;
+        break;
     default:
         return false;
     }
@@ -189,6 +207,9 @@ static bool writeback(struct otptoken *token, ssize_t step, bool sync)
     switch (token->type) {
     case OTPTOKEN_TOTP:
         token->totp.offset = value;
+        break;
+    case OTPTOKEN_HOTP:
+        token->hotp.counter = value;
         break;
     default:
         break;
@@ -243,6 +264,8 @@ static struct otptoken *otptoken_new(Slapi_ComponentId *id, Slapi_Entry *entry)
     for (int i = 0; vals[i] != NULL; i++) {
         if (strcasecmp(vals[i], "ipaTokenTOTP") == 0)
             token->type = OTPTOKEN_TOTP;
+        else if (strcasecmp(vals[i], "ipaTokenHOTP") == 0)
+            token->type = OTPTOKEN_HOTP;
     }
     slapi_ch_array_free(vals);
     if (token->type == OTPTOKEN_NONE)
@@ -284,6 +307,10 @@ static struct otptoken *otptoken_new(Slapi_ComponentId *id, Slapi_Entry *entry)
         token->totp.step = slapi_entry_attr_get_uint(entry, T("timeStep"));
         if (token->totp.step == 0)
             token->totp.step = IPA_OTP_DEFAULT_TOKEN_STEP;
+        break;
+    case OTPTOKEN_HOTP:
+        /* Get counter. */
+        token->hotp.counter = slapi_entry_attr_get_int(entry, H("counter"));
         break;
     default:
         break;
@@ -433,7 +460,8 @@ bool otptoken_validate(struct otptoken *token, size_t steps, uint32_t code)
         if (validate(token, now, i, code, NULL))
             return writeback(token, i + 1, false);
 
-        if (i == 0)
+        /* Counter-based tokens must NEVER validate old steps! */
+        if (i == 0 || token->type == OTPTOKEN_HOTP)
             continue;
 
         /* Validate the negative step. */
@@ -497,7 +525,8 @@ bool otptoken_sync(struct otptoken * const *tokens, size_t steps,
             if (validate(tokens[j], now, i, first_code, &second_code))
                 return writeback(tokens[j], i + 2, true);
 
-            if (i == 0)
+            /* Counter-based tokens must NEVER validate old steps! */
+            if (i == 0 || tokens[j]->type == OTPTOKEN_HOTP)
                 continue;
 
             /* Validate the negative step. */

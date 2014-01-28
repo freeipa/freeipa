@@ -53,7 +53,7 @@ EXAMPLES:
 
 register = Registry()
 
-TOKEN_TYPES = (u'totp',)
+TOKEN_TYPES = (u'totp', u'hotp')
 
 # NOTE: For maximum compatibility, KEY_LENGTH % 5 == 0
 KEY_LENGTH = 10
@@ -102,7 +102,7 @@ class otptoken(LDAPObject):
     object_name = _('OTP token')
     object_name_plural = _('OTP tokens')
     object_class = ['ipatoken']
-    possible_objectclasses = ['ipatokentotp']
+    possible_objectclasses = ['ipatokentotp', 'ipatokenhotp']
     default_attributes = [
         'ipatokenuniqueid', 'description', 'ipatokenowner',
         'ipatokendisabled', 'ipatokennotbefore', 'ipatokennotafter',
@@ -185,6 +185,12 @@ class otptoken(LDAPObject):
             minvalue=5,
             flags=('no_update'),
         ),
+        Int('ipatokenhotpcounter?',
+            cli_name='counter',
+            label=_('Counter'),
+            minvalue=0,
+            flags=('no_update'),
+        ),
     )
 
 
@@ -222,14 +228,17 @@ class otptoken_add(LDAPCreate):
         entry_attrs.setdefault('ipatokenserial', entry_attrs['ipatokenuniqueid'])
         entry_attrs.setdefault('ipatokenotpalgorithm', u'sha1')
         entry_attrs.setdefault('ipatokenotpdigits', 6)
-        entry_attrs.setdefault('ipatokentotpclockoffset', 0)
-        entry_attrs.setdefault('ipatokentotptimestep', 30)
         entry_attrs.setdefault('ipatokenotpkey',
             "".join(map(chr, random.SystemRandom().sample(range(255), KEY_LENGTH))))
 
-        # Set the object class
+        # Set the object class and defaults for specific token types
         if options['type'] == 'totp':
             entry_attrs['objectclass'] = otptoken.object_class + ['ipatokentotp']
+            entry_attrs.setdefault('ipatokentotpclockoffset', 0)
+            entry_attrs.setdefault('ipatokentotptimestep', 30)
+        elif options['type'] == 'hotp':
+            entry_attrs['objectclass'] = otptoken.object_class + ['ipatokenhotp']
+            entry_attrs.setdefault('ipatokenhotpcounter', 0)
 
         # Resolve the user's dn
         _normalize_owner(self.api.Object.user, entry_attrs)
@@ -248,13 +257,16 @@ class otptoken_add(LDAPCreate):
         args['issuer'] = issuer
         args['secret'] = base64.b32encode(entry_attrs['ipatokenotpkey'])
         args['digits'] = entry_attrs['ipatokenotpdigits']
-        args['period'] = entry_attrs['ipatokentotptimestep']
         args['algorithm'] = entry_attrs['ipatokenotpalgorithm']
+        if options['type'] == 'totp':
+            args['period'] = entry_attrs['ipatokentotptimestep']
+        elif options['type'] == 'hotp':
+            args['counter'] = entry_attrs['ipatokenhotpcounter']
 
         # Build the URI
         label = urllib.quote(entry_attrs['ipatokenuniqueid'])
         parameters = urllib.urlencode(args)
-        uri = u'otpauth://totp/%s:%s?%s' % (issuer, label, parameters)
+        uri = u'otpauth://%s/%s:%s?%s' % (options['type'], issuer, label, parameters)
         setattr(context, 'uri', uri)
 
         return dn

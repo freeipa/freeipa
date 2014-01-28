@@ -35,7 +35,7 @@ class update_anonymous_aci(PostUpdate):
         aciname = u'Enable Anonymous access'
         aciprefix = u'none'
         ldap = self.obj.backend
-        targetfilter = '(&(!(objectClass=ipaToken))(!(objectClass=ipatokenTOTP))(!(objectClass=ipatokenRadiusConfiguration)))'
+        targetfilter = '(&(!(objectClass=ipaToken))(!(objectClass=ipatokenTOTP))(!(objectClass=ipatokenHOTP))(!(objectClass=ipatokenRadiusConfiguration)))'
         filter = None
 
         entry_attrs = ldap.get_entry(api.env.basedn, ['aci'])
