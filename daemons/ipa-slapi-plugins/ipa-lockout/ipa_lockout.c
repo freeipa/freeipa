@@ -49,6 +49,7 @@
 #include <time.h>
 #include "slapi-plugin.h"
 #include "nspr.h"
+#include <krb5.h>
 
 #include "util.h"
 
@@ -80,6 +81,8 @@ static char *_PluginDN = NULL;
 static int g_plugin_started = 0;
 
 static struct ipa_context *global_ipactx = NULL;
+
+static char *ipa_global_policy = NULL;
 
 #define GENERALIZED_TIME_LENGTH 15
 
@@ -142,8 +145,11 @@ ipalockout_get_global_config(struct ipa_context *ipactx)
     Slapi_Attr *attr = NULL;
     char *dn = NULL;
     char *basedn = NULL;
+    char *realm = NULL;
     Slapi_DN *sdn;
     Slapi_Entry *config_entry;
+    krb5_context krbctx = NULL;
+    krb5_error_code krberr;
     int ret;
 
     /* Get cn=config so we can get the default naming context */
@@ -164,6 +170,28 @@ ipalockout_get_global_config(struct ipa_context *ipactx)
     slapi_entry_free(config_entry);
 
     if (!basedn) {
+        goto done;
+    }
+
+    krberr = krb5_init_context(&krbctx);
+    if (krberr) {
+        LOG_FATAL("krb5_init_context failed (%d)\n", krberr);
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    krberr = krb5_get_default_realm(krbctx, &realm);
+    if (krberr) {
+        LOG_FATAL("Failed to get default realm (%d)\n", krberr);
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ipa_global_policy = slapi_ch_smprintf("cn=global_policy,cn=%s,cn=kerberos,%s",
+                                          realm, basedn);
+    if (!ipa_global_policy) {
+        LOG_OOM();
+        ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
 
@@ -221,6 +249,8 @@ ipalockout_get_global_config(struct ipa_context *ipactx)
 done:
     if (config_entry)
         slapi_entry_free(config_entry);
+    free(realm);
+    krb5_free_context(krbctx);
     free(dn);
     free(basedn);
     return ret;
@@ -248,6 +278,8 @@ int ipalockout_getpolicy(Slapi_Entry *target_entry, Slapi_Entry **policy_entry,
             slapi_valueset_first_value(*values, &sv);
             *policy_dn = slapi_value_get_string(sv);
         }
+    } else {
+        *policy_dn = ipa_global_policy;
     }
 
     if (*policy_dn == NULL) {
@@ -375,6 +407,8 @@ static int
 ipalockout_close(Slapi_PBlock * pb)
 {
     LOG_TRACE( "--in-->\n");
+
+    slapi_ch_free_string(&ipa_global_policy);
 
     LOG_TRACE("<--out--\n");
 
