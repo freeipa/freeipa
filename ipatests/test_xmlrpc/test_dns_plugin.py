@@ -69,6 +69,9 @@ cname_dn = DN(('idnsname',cname), zone1_dn)
 dname = u'testdns-dname'
 dname_dn = DN(('idnsname',dname), zone1_dn)
 
+relnxname = u'does-not-exist-test'
+absnxname = u'does.not.exist.test.'
+
 arec1 = u'172.16.29.111'
 arec2 = u'172.31.254.222'
 arec3 = u'172.16.250.123'
@@ -739,9 +742,9 @@ class test_dns(Declarative):
         dict(
             desc='Try to modify SRV record in zone %r with non-existent modified value' % (zone1),
             command=('dnsrecord_mod', [zone1, u'_foo._tcp'], {'srv_part_priority': 1,
-                                                  'srvrecord' : [u"0 100 1234 does.not.exist."] }),
+                                                  'srvrecord' : [u"0 100 1234 %s" % absnxname] }),
             expected=errors.AttrValueNotFound(attr='SRV record',
-                value=u'0 100 1234 does.not.exist.'),
+                value=u'0 100 1234 %s' % absnxname),
         ),
 
         dict(
@@ -791,7 +794,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add CNAME record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'cnamerecord': u'foo-1.example.com.'}),
+            command=('dnsrecord_add', [zone1, name1], {'cnamerecord': absnxname}),
             expected=errors.ValidationError(name='cnamerecord',
                 error=u'CNAME record is not allowed to coexist with any other '
                       u'record (RFC 1034, section 3.6.2)'),
@@ -799,7 +802,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add invalid CNAME record %r using dnsrecord_add' % (cname),
-            command=('dnsrecord_add', [zone1, cname], {'cnamerecord': u'-.example.com'}),
+            command=('dnsrecord_add', [zone1, cname], {'cnamerecord': u'-.%s' % relnxname}),
             expected=errors.ValidationError(name='hostname',
                 error=u'invalid domain-name: only letters, numbers, _, and - ' +
                     u'are allowed. DNS label may not start or end with -'),
@@ -808,14 +811,14 @@ class test_dns(Declarative):
         dict(
             desc='Try to add multiple CNAME record %r using dnsrecord_add' % (cname),
             command=('dnsrecord_add', [zone1, cname], {'cnamerecord':
-                [u'1.example.com.', u'2.example.com.']}),
+                [u'1.%s' % absnxname, u'2.%s' % absnxname]}),
             expected=errors.ValidationError(name='cnamerecord',
                 error=u'only one CNAME record is allowed per name (RFC 2136, section 1.1.5)'),
         ),
 
         dict(
             desc='Add CNAME record to %r using dnsrecord_add' % (cname),
-            command=('dnsrecord_add', [zone1, cname], {'cnamerecord': u'foo-1.example.com.'}),
+            command=('dnsrecord_add', [zone1, cname], {'cnamerecord': absnxname}),
             expected={
                 'value': cname,
                 'summary': None,
@@ -823,7 +826,7 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnsrecord,
                     'dn': cname_dn,
                     'idnsname': [cname],
-                    'cnamerecord': [u'foo-1.example.com.'],
+                    'cnamerecord': [absnxname],
                 },
             },
         ),
@@ -861,14 +864,15 @@ class test_dns(Declarative):
         dict(
             desc='Try to add multiple DNAME records to %r using dnsrecord_add' % (dname),
             command=('dnsrecord_add', [zone1, name1], {'dnamerecord':
-                [u'foo-1.example.com.', u'foo-2.example.com.']}),
+                [u'foo-1.%s' % absnxname, u'foo-2.%s' % absnxname]}),
             expected=errors.ValidationError(name='dnamerecord',
                 error=u'only one DNAME record is allowed per name (RFC 6672, section 2.4)'),
         ),
 
         dict(
             desc='Try to add invalid DNAME record %r using dnsrecord_add' % (dname),
-            command=('dnsrecord_add', [zone1, dname], {'dnamerecord': u'-.example.com.'}),
+            command=('dnsrecord_add', [zone1, dname], {'dnamerecord': u'-.%s'
+                % absnxname}),
             expected=errors.ValidationError(name='target',
                 error=u'invalid domain-name: only letters, numbers, _, and - ' +
                     u'are allowed. DNS label may not start or end with -'),
@@ -877,7 +881,7 @@ class test_dns(Declarative):
         dict(
             desc='Add DNAME record to %r using dnsrecord_add' % (dname),
             command=('dnsrecord_add', [zone1, dname],
-                {'dnamerecord': u'd.example.com.', 'arecord': arec1}),
+                {'dnamerecord': u'd.%s' % absnxname, 'arecord': arec1}),
             expected={
                 'value': dname,
                 'summary': None,
@@ -885,7 +889,7 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnsrecord,
                     'dn': dname_dn,
                     'idnsname': [dname],
-                    'dnamerecord': [u'd.example.com.'],
+                    'dnamerecord': [u'd.%s' % absnxname],
                     'arecord': [arec1],
                 },
             },
@@ -893,7 +897,8 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add CNAME record to %r using dnsrecord_add' % (dname),
-            command=('dnsrecord_add', [zone1, dname], {'cnamerecord': u'foo-1.example.com.'}),
+            command=('dnsrecord_add', [zone1, dname], {'cnamerecord': u'foo-1.%s'
+                % absnxname}),
             expected=errors.ValidationError(name='cnamerecord',
                 error=u'CNAME record is not allowed to coexist with any other '
                       u'record (RFC 1034, section 3.6.2)'),
@@ -911,14 +916,14 @@ class test_dns(Declarative):
         dict(
             desc='Add NS+DNAME record to %r zone record using dnsrecord_add' % (zone2),
             command=('dnsrecord_add', [zone2, u'@'],
-                {'dnamerecord': u'd.example.com.',
+                {'dnamerecord': u'd.%s' % absnxname,
                  'nsrecord': zone1_ns}),
             expected = {
                 'value': u'@',
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnszone,
-                    'dnamerecord': [u'd.example.com.'],
+                    'dnamerecord': [u'd.%s' % absnxname],
                     'dn': zone2_dn,
                     'nsrecord': [zone2_ns, zone1_ns],
                     'idnsname': [u'@']
@@ -939,7 +944,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add invalid KX record %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'kxrecord': u'foo-1.example.com' }),
+            command=('dnsrecord_add', [zone1, name1], {'kxrecord': absnxname}),
             expected=errors.ValidationError(name='kx_rec',
                 error=u'format must be specified as "PREFERENCE EXCHANGER" ' +
                     u' (see RFC 2230 for details)'),
@@ -1000,19 +1005,20 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'nsrecord': u'does.not.exist.'}),
-            expected=errors.NotFound(reason=u"Nameserver 'does.not.exist.' does not have a corresponding A/AAAA record"),
+            command=('dnsrecord_add', [zone1, name1], {'nsrecord': absnxname}),
+            expected=errors.NotFound(reason=u"Nameserver '%s' does not have a corresponding A/AAAA record" % absnxname),
         ),
 
         dict(
             desc='Try to add unresolvable relative NS record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'nsrecord': u'does.not.exist'}),
-            expected=errors.NotFound(reason=u"Nameserver 'does.not.exist.%s.' does not have a corresponding A/AAAA record" % zone1),
+            command=('dnsrecord_add', [zone1, name1], {'nsrecord': relnxname}),
+            expected=errors.NotFound(reason=u"Nameserver '%s.%s.' does not "
+                "have a corresponding A/AAAA record" % (relnxname, zone1)),
         ),
 
         dict(
             desc='Add unresolvable NS record with --force to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'nsrecord': u'does.not.exist.',
+            command=('dnsrecord_add', [zone1, name1], {'nsrecord': absnxname,
                                                             'force' : True}),
             expected={
                 'value': name1,
@@ -1025,7 +1031,7 @@ class test_dns(Declarative):
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
                     'nsecrecord': [zone1 + u' TXT A'],
-                    'nsrecord': [u'does.not.exist.'],
+                    'nsrecord': [absnxname],
                 },
             },
         ),
@@ -1049,7 +1055,7 @@ class test_dns(Declarative):
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
                     'nsecrecord': [zone1 + u' TXT A'],
-                    'nsrecord': [u'does.not.exist.'],
+                    'nsrecord': [absnxname],
                 },
             },
         ),
@@ -1151,7 +1157,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add invalid PTR %r to %r using dnsrecord_add' % (revname1, revzone1),
-            command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': u'-.example.com' }),
+            command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': u'-.%s' % relnxname}),
             expected=errors.ValidationError(name='hostname',
                 error=u'invalid domain-name: only letters, numbers, and - ' +
                     u'are allowed. DNS label may not start or end with -'),
@@ -1159,7 +1165,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Add PTR record %r to %r using dnsrecord_add' % (revname1, revzone1),
-            command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': u'foo-1.example.com' }),
+            command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': absnxname}),
             expected={
                 'value': revname1,
                 'summary': None,
@@ -1167,7 +1173,7 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnsrecord,
                     'dn': revname1_dn,
                     'idnsname': [revname1],
-                    'ptrrecord': [u'foo-1.example.com.'],
+                    'ptrrecord': [absnxname],
                 },
             },
         ),
@@ -1187,8 +1193,8 @@ class test_dns(Declarative):
                     'dnsrecords': [
                         {
                             'dnstype': u'PTR',
-                            'dnsdata': u'foo-1.example.com.',
-                            'ptr_part_hostname': u'foo-1.example.com.'
+                            'dnsdata': absnxname,
+                            'ptr_part_hostname': absnxname,
                         },
                     ],
                 },
@@ -1344,8 +1350,8 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add per-zone permission for unknown zone',
-            command=('dnszone_add_permission', [u'does.not.exist'], {}),
-            expected=errors.NotFound(reason=u'does.not.exist: DNS zone not found')
+            command=('dnszone_add_permission', [absnxname], {}),
+            expected=errors.NotFound(reason=u'%s: DNS zone not found' % absnxname)
         ),
 
 
@@ -1407,8 +1413,9 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to remove per-zone permission for unknown zone',
-            command=('dnszone_remove_permission', [u'does.not.exist'], {}),
-            expected=errors.NotFound(reason=u'does.not.exist: DNS zone not found')
+            command=('dnszone_remove_permission', [absnxname], {}),
+            expected=errors.NotFound(reason=u'%s: DNS zone not found'
+                % absnxname)
         ),
 
         dict(
