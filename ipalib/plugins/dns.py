@@ -368,25 +368,31 @@ def _normalize_bind_aci(bind_acis):
     acis += u';'
     return acis
 
-def _bind_hostname_validator(ugettext, value):
+def _bind_hostname_validator(ugettext, value, allow_slash=False):
     if value == _dns_zone_record:
         return
     try:
         # Allow domain name which is not fully qualified. These are supported
         # in bind and then translated as <non-fqdn-name>.<domain>.
-        validate_hostname(value, check_fqdn=False, allow_underscore=True)
+        validate_hostname(value, check_fqdn=False, allow_underscore=True, allow_slash=allow_slash)
     except ValueError, e:
         return _('invalid domain-name: %s') \
             % unicode(e)
 
     return None
 
+def _bind_cname_hostname_validator(ugettext, value):
+    """
+    Validator for CNAME allows classless domain names (25/0.0.10.in-addr.arpa.)
+    """
+    return _bind_hostname_validator(ugettext, value, allow_slash=True)
+
 def _dns_record_name_validator(ugettext, value):
     if value == _dns_zone_record:
         return
 
     try:
-        map(lambda label:validate_dns_label(label, allow_underscore=True), \
+        map(lambda label:validate_dns_label(label, allow_underscore=True, allow_slash=True), \
             value.split(u'.'))
     except ValueError, e:
         return unicode(e)
@@ -411,7 +417,10 @@ def _validate_bind_forwarder(ugettext, forwarder):
 
 def _domain_name_validator(ugettext, value):
     try:
-        validate_domain_name(value)
+        #classless reverse zones can contain slash '/'
+        normalized_zone = normalize_zone(value)
+        validate_domain_name(value, allow_slash=zone_is_reverse(normalized_zone))
+
     except ValueError, e:
         return unicode(e)
 
@@ -939,7 +948,7 @@ class CNAMERecord(DNSRecord):
     rfc = 1035
     parts = (
         Str('hostname',
-            _bind_hostname_validator,
+            _bind_cname_hostname_validator,
             label=_('Hostname'),
             doc=_('A hostname which this alias hostname points to'),
         ),
@@ -960,7 +969,7 @@ class DNAMERecord(DNSRecord):
     rfc = 2672
     parts = (
         Str('target',
-            _bind_hostname_validator,
+            _bind_cname_hostname_validator,
             label=_('Target'),
         ),
     )
@@ -2131,6 +2140,14 @@ class dnsrecord(LDAPObject):
                            doc=_('Parse all raw DNS records and return them in a structured way'),
                            )
 
+    def _idnsname_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if not self.is_pkey_zone_record(*keys):
+            zone, addr = normalize_zone(keys[-2]), keys[-1]
+            try:
+                validate_domain_name(addr, allow_underscore=True, allow_slash=zone_is_reverse(zone))
+            except ValueError, e:
+                raise errors.ValidationError(name='idnsname', error=unicode(e))
+
     def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         nsrecords = entry_attrs.get('nsrecord')
@@ -2144,6 +2161,7 @@ class dnsrecord(LDAPObject):
         ptrrecords = entry_attrs.get('ptrrecord')
         if ptrrecords is None:
             return
+
         zone = keys[-2]
         if self.is_pkey_zone_record(*keys):
             addr = u''
@@ -2165,11 +2183,16 @@ class dnsrecord(LDAPObject):
                     error=unicode(_('Reverse zone for PTR record should be a sub-zone of one the following fully qualified domains: %s') % allowed_zones))
 
         addr_len = len(addr.split('.')) if addr else 0
-        ip_addr_comp_count = addr_len + len(zone.split('.'))
-        if ip_addr_comp_count != zone_len:
-            raise errors.ValidationError(name='ptrrecord',
-                error=unicode(_('Reverse zone %(name)s requires exactly %(count)d IP address components, %(user_count)d given')
-                % dict(name=zone_name, count=zone_len, user_count=ip_addr_comp_count)))
+
+        #Classless zones (0/25.0.0.10.in-addr.arpa.) -> skip check
+        #zone has to be checked without reverse domain suffix (in-addr.arpa.)
+        if ('/' not in addr and '/' not in zone and
+            '-' not in addr and '-' not in zone):
+            ip_addr_comp_count = addr_len + len(zone.split('.'))
+            if ip_addr_comp_count != zone_len:
+                raise errors.ValidationError(name='ptrrecord',
+                      error=unicode(_('Reverse zone %(name)s requires exactly %(count)d IP address components, %(user_count)d given')
+                      % dict(name=zone_name, count=zone_len, user_count=ip_addr_comp_count)))
 
     def run_precallback_validators(self, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)

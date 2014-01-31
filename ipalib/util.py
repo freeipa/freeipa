@@ -215,34 +215,45 @@ def normalize_zone(zone):
     else:
         return zone
 
-def validate_dns_label(dns_label, allow_underscore=False):
-    label_chars = r'a-z0-9'
-    underscore_err_msg = ''
-    if allow_underscore:
-        label_chars += "_"
-        underscore_err_msg = u' _,'
-    label_regex = r'^[%(chars)s]([%(chars)s-]?[%(chars)s])*$' % dict(chars=label_chars)
-    regex = re.compile(label_regex, re.IGNORECASE)
 
-    if not dns_label:
-        raise ValueError(_('empty DNS label'))
+def validate_dns_label(dns_label, allow_underscore=False, allow_slash=False):
+     base_chars = 'a-z0-9'
+     extra_chars = ''
+     middle_chars = ''
 
-    if len(dns_label) > 63:
-        raise ValueError(_('DNS label cannot be longer that 63 characters'))
+     if allow_underscore:
+         extra_chars += '_'
+     if allow_slash:
+         middle_chars += '/'
 
-    if not regex.match(dns_label):
-        raise ValueError(_('only letters, numbers,%(underscore)s and - are allowed. ' \
-                           'DNS label may not start or end with -') \
-                           % dict(underscore=underscore_err_msg))
+     middle_chars = middle_chars + '-' #has to be always the last in the regex [....-]
 
-def validate_domain_name(domain_name, allow_underscore=False):
+     label_regex = r'^[%(base)s%(extra)s]([%(base)s%(extra)s%(middle)s]?[%(base)s%(extra)s])*$' \
+         % dict(base=base_chars, extra=extra_chars, middle=middle_chars)
+     regex = re.compile(label_regex, re.IGNORECASE)
+
+     if not dns_label:
+         raise ValueError(_('empty DNS label'))
+
+     if len(dns_label) > 63:
+         raise ValueError(_('DNS label cannot be longer that 63 characters'))
+
+     if not regex.match(dns_label):
+         chars = ', '.join("'%s'" % c for c in extra_chars + middle_chars)
+         chars2 = ', '.join("'%s'" % c for c in middle_chars)
+         raise ValueError(_("only letters, numbers, %(chars)s are allowed. " \
+                            "DNS label may not start or end with %(chars2)s") \
+                            % dict(chars=chars, chars2=chars2))
+
+
+def validate_domain_name(domain_name, allow_underscore=False, allow_slash=False):
     if domain_name.endswith('.'):
         domain_name = domain_name[:-1]
 
     domain_name = domain_name.split(".")
 
     # apply DNS name validator to every name part
-    map(lambda label:validate_dns_label(label,allow_underscore), domain_name)
+    map(lambda label:validate_dns_label(label, allow_underscore, allow_slash), domain_name)
 
 
 def validate_zonemgr(zonemgr):
@@ -287,7 +298,7 @@ def validate_zonemgr(zonemgr):
                local_part.split(local_part_sep)):
         raise ValueError(local_part_errmsg)
 
-def validate_hostname(hostname, check_fqdn=True, allow_underscore=False):
+def validate_hostname(hostname, check_fqdn=True, allow_underscore=False, allow_slash=False):
     """ See RFC 952, 1123
 
     :param hostname Checked value
@@ -305,9 +316,9 @@ def validate_hostname(hostname, check_fqdn=True, allow_underscore=False):
     if '.' not in hostname:
         if check_fqdn:
             raise ValueError(_('not fully qualified'))
-        validate_dns_label(hostname,allow_underscore)
+        validate_dns_label(hostname, allow_underscore, allow_slash)
     else:
-        validate_domain_name(hostname,allow_underscore)
+        validate_domain_name(hostname, allow_underscore, allow_slash)
 
 def normalize_sshpubkey(value):
     return SSHPublicKey(value).openssh()
