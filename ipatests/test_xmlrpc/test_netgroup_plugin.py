@@ -385,8 +385,8 @@ class test_netgroup(Declarative):
             desc='Add invalid host %r to netgroup %r' % (invalidhost, netgroup1),
             command=('netgroup_add_member', [netgroup1], dict(host=invalidhost)),
             expected=errors.ValidationError(name='host',
-             error='only letters, numbers, _, and - are allowed. ' +
-                    u'DNS label may not start or end with -'),
+             error=u"only letters, numbers, '_', '-' are allowed. " +
+                    u"DNS label may not start or end with '-'"),
         ),
 
 
@@ -826,8 +826,8 @@ class test_netgroup(Declarative):
                 dict(setattr='externalhost=%s' % invalidhost)
             ),
             expected=errors.ValidationError(name='externalhost',
-                error='only letters, numbers, _, and - are allowed. ' +
-                    'DNS label may not start or end with -'),
+                error=u"only letters, numbers, '_', '-' are allowed. " +
+                    u"DNS label may not start or end with '-'"),
         ),
 
         dict(
