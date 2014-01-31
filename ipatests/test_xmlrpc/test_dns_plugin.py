@@ -42,6 +42,17 @@ zone2_dn = DN(('idnsname', zone2), api.env.container_dns, api.env.basedn)
 zone2_ns = u'ns1.%s.' % zone2
 zone2_rname = u'root.%s.' % zone2
 
+zone3 = u'zone3.test'
+zone3_ip = u'192.168.1.1'
+zone3_ip2 = u'192.168.1.129'
+zone3_dn = DN(('idnsname', zone3), api.env.container_dns, api.env.basedn)
+zone3_ns = u'ns1.%s.' % zone3
+zone3_ns2 = u'ns2.%s.' % zone3
+zone3_rname = u'root.%s.' % zone3
+
+zone3_ns2_arec = u'ns2'
+zone3_ns2_arec_dn = DN(('idnsname',zone3_ns2_arec), zone3_dn)
+
 revzone1 = u'31.16.172.in-addr.arpa.'
 revzone1_ip = u'172.16.31.0'
 revzone1_ipprefix = u'172.16.31.'
@@ -50,6 +61,16 @@ revzone1_dn = DN(('idnsname', revzone1), api.env.container_dns, api.env.basedn)
 revzone2 = u'30.15.172.in-addr.arpa.'
 revzone2_ip = u'172.15.30.0/24'
 revzone2_dn = DN(('idnsname',revzone2), api.env.container_dns, api.env.basedn)
+
+revzone3_classless1 = u'1.168.192.in-addr.arpa.'
+revzone3_classless1_ip = u'192.168.1.0'
+revzone3_classless1_ipprefix = u'192.168.1.'
+revzone3_classless1_dn = DN(('idnsname', revzone3_classless1), api.env.container_dns, api.env.basedn)
+
+revzone3_classless2 = u'128/25.1.168.192.in-addr.arpa.'
+revzone3_classless2_ip = u'192.168.1.128'
+revzone3_classless2_ipprefix = u'192.168.1.'
+revzone3_classless2_dn = DN(('idnsname', revzone3_classless2), api.env.container_dns, api.env.basedn)
 
 name1 = u'testdnsres'
 name1_dn = DN(('idnsname',name1), zone1_dn)
@@ -68,6 +89,17 @@ cname_dn = DN(('idnsname',cname), zone1_dn)
 
 dname = u'testdns-dname'
 dname_dn = DN(('idnsname',dname), zone1_dn)
+
+nsrev = u'128/25'
+nsrev_dn = DN(('idnsname',nsrev), revzone3_classless1_dn)
+
+cnamerev = u'129'
+cnamerev_dn = DN(('idnsname',cnamerev), revzone3_classless1_dn)
+cnamerev_hostname = u'129.128/25.1.168.192.in-addr.arpa.'
+
+ptr_revzone3 = u'129'
+ptr_revzone3_dn = DN(('idnsname',cnamerev), revzone3_classless2_dn)
+ptr_revzone3_hostname = zone3_ns2;
 
 relnxname = u'does-not-exist-test'
 absnxname = u'does.not.exist.test.'
@@ -103,7 +135,8 @@ class test_dns(Declarative):
             pass
 
     cleanup_commands = [
-        ('dnszone_del', [zone1, zone2, revzone1, revzone2],
+        ('dnszone_del', [zone1, zone2, zone3, revzone1, revzone2,
+                         revzone3_classless1, revzone3_classless2],
             {'continue': True}),
         ('dnsconfig_mod', [], {'idnsforwarders' : None,
                                'idnsforwardpolicy' : None,
@@ -148,8 +181,8 @@ class test_dns(Declarative):
                 }
             ),
             expected=errors.ValidationError(name='name',
-                error=u'only letters, numbers, and - are allowed. ' +
-                    u'DNS label may not start or end with -'),
+                error=u"only letters, numbers, '-' are allowed." +
+                u" DNS label may not start or end with '-'"),
         ),
 
 
@@ -525,8 +558,8 @@ class test_dns(Declarative):
             desc='Try to create record with invalid name in zone %r' % zone1,
             command=('dnsrecord_add', [zone1, u'invalid record'], {'arecord': arec2}),
             expected=errors.ValidationError(name='name',
-                error=u'only letters, numbers, _, and - are allowed. ' +
-                    u'DNS label may not start or end with -'),
+                error=u"only letters, numbers, '_', '/', '-' are allowed." +
+                    u" DNS label may not start or end with '/', '-'"),
         ),
 
 
@@ -701,8 +734,8 @@ class test_dns(Declarative):
                                                                  'srv_part_port' : 123,
                                                                  'srv_part_target' : u'foo bar'}),
             expected=errors.ValidationError(name='srv_target',
-                error=u'invalid domain-name: only letters, numbers, _, and - ' +
-                    u'are allowed. DNS label may not start or end with -'),
+                error=u"invalid domain-name: only letters, numbers, '_', '-' are allowed." +
+                    u" DNS label may not start or end with '-'"),
         ),
 
         dict(
@@ -804,8 +837,8 @@ class test_dns(Declarative):
             desc='Try to add invalid CNAME record %r using dnsrecord_add' % (cname),
             command=('dnsrecord_add', [zone1, cname], {'cnamerecord': u'-.%s' % relnxname}),
             expected=errors.ValidationError(name='hostname',
-                error=u'invalid domain-name: only letters, numbers, _, and - ' +
-                    u'are allowed. DNS label may not start or end with -'),
+                error=u"invalid domain-name: only letters, numbers, '_', '/', '-' are allowed." +
+                    u" DNS label may not start or end with '/', '-'"),
         ),
 
         dict(
@@ -874,8 +907,8 @@ class test_dns(Declarative):
             command=('dnsrecord_add', [zone1, dname], {'dnamerecord': u'-.%s'
                 % absnxname}),
             expected=errors.ValidationError(name='target',
-                error=u'invalid domain-name: only letters, numbers, _, and - ' +
-                    u'are allowed. DNS label may not start or end with -'),
+                error=u"invalid domain-name: only letters, numbers, '_', '/', '-' are allowed." +
+                    u" DNS label may not start or end with '/', '-'"),
         ),
 
         dict(
@@ -1159,8 +1192,8 @@ class test_dns(Declarative):
             desc='Try to add invalid PTR %r to %r using dnsrecord_add' % (revname1, revzone1),
             command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': u'-.%s' % relnxname}),
             expected=errors.ValidationError(name='hostname',
-                error=u'invalid domain-name: only letters, numbers, and - ' +
-                    u'are allowed. DNS label may not start or end with -'),
+                error=u"invalid domain-name: only letters, numbers, '-' " +
+                    u"are allowed. DNS label may not start or end with '-'"),
         ),
 
         dict(
@@ -1551,4 +1584,196 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc='Create zone %r' % zone3,
+            command=(
+                'dnszone_add', [zone3], {
+                    'idnssoamname': zone3_ns,
+                    'idnssoarname': zone3_rname,
+                    'ip_address' : zone3_ip,
+                }
+            ),
+            expected={
+                'value': zone3,
+                'summary': None,
+                'result': {
+                    'dn': zone3_dn,
+                    'idnsname': [zone3],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone3_ns],
+                    'nsrecord': [zone3_ns],
+                    'idnssoarname': [zone3_rname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Add A record to %r in zone %r' % (zone3_ns2_arec, zone3),
+            command=('dnsrecord_add', [zone3, zone3_ns2_arec], {'arecord': zone3_ip2}),
+            expected={
+                'value': zone3_ns2_arec,
+                'summary': None,
+                'result': {
+                    'dn': zone3_ns2_arec_dn,
+                    'idnsname': [zone3_ns2_arec],
+                    'arecord': [zone3_ip2],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
+
+        dict(
+            desc='Create reverse zone %r' % revzone3_classless1,
+            command=(
+                'dnszone_add', [revzone3_classless1], {
+                    'idnssoamname': zone3_ns,
+                    'idnssoarname': zone3_rname,
+                }
+            ),
+            expected={
+                'value': revzone3_classless1,
+                'summary': None,
+                'result': {
+                    'dn': revzone3_classless1_dn,
+                    'idnsname': [revzone3_classless1],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone3_ns],
+                    'nsrecord': [zone3_ns],
+                    'idnssoarname': [zone3_rname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                                         % dict(realm=api.env.realm, zone=revzone3_classless1)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Create classless reverse zone %r' % revzone3_classless2,
+            command=(
+                'dnszone_add', [revzone3_classless2], {
+                    'idnssoamname': zone3_ns2,
+                    'idnssoarname': zone3_rname,
+                }
+            ),
+            expected={
+                'value': revzone3_classless2,
+                'summary': None,
+                'result': {
+                    'dn': revzone3_classless2_dn,
+                    'idnsname': [revzone3_classless2],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone3_ns2],
+                    'nsrecord': [zone3_ns2],
+                    'idnssoarname': [zone3_rname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                                         % dict(realm=api.env.realm, zone=revzone3_classless2)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Add NS record to %r in revzone %r' % (nsrev, revzone3_classless1),
+            command=('dnsrecord_add', [revzone3_classless1, nsrev], {'nsrecord': zone3_ns2}),
+            expected={
+                'value': nsrev,
+                'summary': None,
+                'result': {
+                    'dn': nsrev_dn,
+                    'idnsname': [nsrev],
+                    'nsrecord': [zone3_ns2],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
+
+        dict(
+            desc='Add CNAME record to %r in revzone %r' % (cnamerev, revzone3_classless1),
+            command=('dnsrecord_add', [revzone3_classless1, cnamerev], {'cnamerecord': cnamerev_hostname}),
+            expected={
+                'value': cnamerev,
+                'summary': None,
+                'result': {
+                    'dn': cnamerev_dn,
+                    'idnsname': [cnamerev],
+                    'cnamerecord': [cnamerev_hostname],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
+
+        dict(
+            desc='Add PTR record to %r in revzone %r' % (ptr_revzone3, revzone3_classless2),
+            command=('dnsrecord_add', [revzone3_classless2, cnamerev],
+                     {'ptrrecord': ptr_revzone3_hostname}),
+            expected={
+                'value': ptr_revzone3,
+                'summary': None,
+                'result': {
+                    'dn': ptr_revzone3_dn,
+                    'idnsname': [ptr_revzone3],
+                    'ptrrecord': [ptr_revzone3_hostname],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
+
+        dict(
+            desc='Try to create zone with invalid name',
+            command=(
+                'dnszone_add', [u'invalid/zone'], {
+                    'idnssoamname': zone1_ns,
+                    'idnssoarname': zone1_rname,
+                    'ip_address' : zone1_ip,
+                }
+            ),
+            expected=errors.ValidationError(name='name',
+                error=u"only letters, numbers, '-' are allowed." +
+                u" DNS label may not start or end with '-'"),
+        ),
+
+        dict(
+            desc='Try to add NS record %r to non-reverse zone %r using dnsrecord_add' % (nsrev, zone1),
+            command=('dnsrecord_add', [zone1, nsrev], {'nsrecord': zone3_ns2}),
+            expected=errors.ValidationError(name='idnsname',
+                error=u"only letters, numbers, '_', '-' are allowed." +
+                u" DNS label may not start or end with '-'"),
+        ),
+
+       dict(
+            desc='Try to add invalid PTR hostname %r to %r using dnsrecord_add' % (cnamerev_hostname, revzone1),
+            command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': cnamerev_hostname }),
+            expected=errors.ValidationError(name='hostname',
+                error=u"invalid domain-name: only letters, numbers, '-' are allowed." +
+                u" DNS label may not start or end with '-'"),
+        ),
     ]

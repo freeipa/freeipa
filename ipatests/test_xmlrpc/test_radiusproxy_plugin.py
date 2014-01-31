@@ -240,8 +240,8 @@ class test_raduisproxy(Declarative):
         for fqdn, error in (
             (radius1_fqdn + u':0x5a', 'invalid port number'),
             (radius1_fqdn + u':1:2:3',
-             'only letters, numbers, _, and - are allowed. DNS label may not '
-             'start or end with -'),
+             "only letters, numbers, '_', '-' are allowed. DNS label may not "
+             "start or end with '-'"),
             (u'bogus', 'not fully qualified'),
         )
     ] + [
