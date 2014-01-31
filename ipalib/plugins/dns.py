@@ -2149,6 +2149,9 @@ class dnsrecord(LDAPObject):
             addr = u''
         else:
             addr = keys[-1]
+
+        zone = normalize_zone(zone)
+
         zone_len = 0
         for valid_zone in REVERSE_DNS_ZONES:
             if zone.endswith(valid_zone):
