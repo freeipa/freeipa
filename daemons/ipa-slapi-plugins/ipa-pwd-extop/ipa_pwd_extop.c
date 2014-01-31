@@ -39,6 +39,7 @@
 
 #include "ipapwd.h"
 #include "util.h"
+#include "authcfg.h"
 
 /*
  * Password Modify - LDAP Extended Operation.
@@ -87,28 +88,9 @@ Slapi_PluginDesc ipapwd_plugin_desc = {
 void *ipapwd_plugin_id;
 static int usetxn = 0;
 
-static Slapi_DN *_ConfigAreaDN = NULL;
-static Slapi_DN *_PluginDN = NULL;
-static bool g_plugin_started = false;
-
 void *ipapwd_get_plugin_id(void)
 {
     return ipapwd_plugin_id;
-}
-
-Slapi_DN *ipapwd_get_otp_config_area(void)
-{
-    return _ConfigAreaDN;
-}
-
-Slapi_DN *ipapwd_get_plugin_sdn(void)
-{
-    return _PluginDN;
-}
-
-bool ipapwd_get_plugin_started(void)
-{
-    return g_plugin_started;
 }
 
 static int filter_keys(struct ipapwd_krbcfg *krbcfg,
@@ -1222,40 +1204,6 @@ Slapi_Filter *ipapwd_string2filter(char *strfilter)
 	return ret;
 }
 
-/* Loads the OTP config entry, parses it, and applies it. */
-static bool ipapwd_load_otp_config(void)
-{
-    char *config_attrs[] = { IPA_USER_AUTH_TYPE, NULL };
-    Slapi_Entry *config_entry = NULL;
-    Slapi_DN *config_sdn = NULL;
-    int ret;
-
-    /* If we are using an alternate config area, check it for our
-     * configuration, otherwise we just use our main plug-in config
-     * entry. */
-    if ((config_sdn = ipapwd_get_otp_config_area()) == NULL) {
-        config_sdn = ipapwd_get_plugin_sdn();
-    }
-
-    slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                    "Looking for config settings in \"%s\".\n",
-                    config_sdn ? slapi_sdn_get_ndn(config_sdn) : "null");
-
-    /* Fetch the config entry. */
-    ret = slapi_search_internal_get_entry(config_sdn, config_attrs,
-                                          &config_entry, ipapwd_plugin_id);
-    if (ret != LDAP_SUCCESS) {
-        LOG_TRACE("Search for OTP config failed, err (%d)\n", ret);
-        /* fall through, defaults will be set */
-    }
-
-    /* Parse and apply the config. */
-    ipapwd_parse_otp_config_entry(config_entry, true);
-
-    slapi_entry_free(config_entry);
-    return true;
-}
-
 /* Init data structs */
 static int ipapwd_start( Slapi_PBlock *pb )
 {
@@ -1264,35 +1212,16 @@ static int ipapwd_start( Slapi_PBlock *pb )
     char *realm = NULL;
     char *config_dn;
     Slapi_Entry *config_entry = NULL;
-    Slapi_DN *plugindn = NULL;
-    char *config_area = NULL;
     int ret;
 
-    /* Check if we're already started */
-    if (g_plugin_started) {
-        return LDAP_SUCCESS;
-    }
-
-    /* Get the plug-in target dn from the system and store for future use. */
-    slapi_pblock_get(pb, SLAPI_TARGET_SDN, &plugindn);
-    if (plugindn == NULL || slapi_sdn_get_ndn_len(plugindn) == 0) {
-        LOG_FATAL("No plugin dn?\n");
-        return LDAP_OPERATIONS_ERROR;
-    }
-    _PluginDN = slapi_sdn_dup(plugindn);
-
-    /* Set the alternate config area if one is defined. */
-    slapi_pblock_get(pb, SLAPI_PLUGIN_CONFIG_AREA, &config_area);
-    if (config_area != NULL) {
-        _ConfigAreaDN = slapi_sdn_new_normdn_byval(config_area);
-    }
-
-    /*
-     * Load the config.
+    /* NOTE: We never call authcfg_fini() from a destructor. This is because
+     *       it may race with threaded requests at shutdown. This leak should
+     *       only occur when the DS is exiting, so it isn't a big deal.
      */
-    if (!ipapwd_load_otp_config()) {
-        LOG_FATAL("Unable to load plug-in config\n");
-        return LDAP_OPERATIONS_ERROR;
+    if (!authcfg_init()) {
+        LOG_FATAL("AuthConf initialization failed!\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
     }
 
     krberr = krb5_init_context(&krbctx);
@@ -1363,33 +1292,13 @@ static int ipapwd_start( Slapi_PBlock *pb )
     }
 
     ret = LDAP_SUCCESS;
-    g_plugin_started = true;
 
 done:
     free(realm);
     krb5_free_context(krbctx);
     if (config_entry) slapi_entry_free(config_entry);
+    if (ret != LDAP_SUCCESS) authcfg_fini();
     return ret;
-}
-
-/* Clean up any resources allocated at startup. */
-static int ipapwd_close(Slapi_PBlock * pb)
-{
-    if (!g_plugin_started) {
-        goto done;
-    }
-
-    g_plugin_started = false;
-
-    /* We are not guaranteed that other threads are finished accessing
-     * PluginDN or ConfigAreaDN, so we don't want to free them.  This is
-     * only a one-time leak at shutdown, so it should be fine.
-     * slapi_sdn_free(&_PluginDN);
-     * slapi_sdn_free(&_ConfigAreaDN);
-     */
-
-done:
-    return 0;
 }
 
 static char *ipapwd_oid_list[] = {
@@ -1443,7 +1352,6 @@ int ipapwd_init( Slapi_PBlock *pb )
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_OIDLIST, ipapwd_oid_list);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_NAMELIST, ipapwd_name_list);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_FN, (void *)ipapwd_extop);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_CLOSE_FN, (void *)ipapwd_close);
     if (ret) {
         LOG("Failed to set plug-in version, function, and OID.\n" );
         return -1;

@@ -76,30 +76,6 @@
 #define IPA_CHANGETYPE_ADMIN 1
 #define IPA_CHANGETYPE_DSMGR 2
 
-/*
- * Attribute type defines
- */
-#define IPA_USER_AUTH_TYPE           "ipaUserAuthType"
-#define IPA_OTP_TOKEN_OWNER_TYPE     "ipaTokenOwner"
-#define IPA_OTP_TOKEN_LENGTH_TYPE    "ipaTokenOTPDigits"
-#define IPA_OTP_TOKEN_KEY_TYPE       "ipaTokenOTPKey"
-#define IPA_OTP_TOKEN_ALGORITHM_TYPE "ipaTokenOTPAlgorithm"
-#define IPA_OTP_TOKEN_OFFSET_TYPE    "ipaTokenTOTPClockOffset"
-#define IPA_OTP_TOKEN_STEP_TYPE      "ipaTokenTOTPTimeStep"
-
-/* Authentication type defines */
-#define IPA_OTP_AUTH_TYPE_NONE     0
-#define IPA_OTP_AUTH_TYPE_DISABLED 1
-#define IPA_OTP_AUTH_TYPE_PASSWORD 2
-#define IPA_OTP_AUTH_TYPE_OTP      4
-#define IPA_OTP_AUTH_TYPE_PKINIT   8
-#define IPA_OTP_AUTH_TYPE_RADIUS   16
-#define IPA_OTP_AUTH_TYPE_VALUE_DISABLED "DISABLED"
-#define IPA_OTP_AUTH_TYPE_VALUE_PASSWORD "PASSWORD"
-#define IPA_OTP_AUTH_TYPE_VALUE_OTP      "OTP"
-#define IPA_OTP_AUTH_TYPE_VALUE_PKINIT   "PKINIT"
-#define IPA_OTP_AUTH_TYPE_VALUE_RADIUS   "RADIUS"
-
 struct ipapwd_data {
     Slapi_Entry *target;
     char *dn;
@@ -135,9 +111,6 @@ struct ipapwd_krbcfg {
     bool allow_nt_hash;
 };
 
-bool ipapwd_is_auth_type_allowed(char **auth_type_list, int auth_type);
-bool ipapwd_parse_otp_config_entry(Slapi_Entry * e, bool apply);
-bool ipapwd_otp_is_disabled(void);
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
                         int *is_root, int *is_krb, int *is_smb, int *is_ipant,
                         char *attr, int access);
@@ -184,6 +157,3 @@ int ipapwd_post_init_betxn(Slapi_PBlock *pb);
 
 /* from ipa_pwd_extop.c */
 void *ipapwd_get_plugin_id(void);
-Slapi_DN *ipapwd_get_otp_config_area(void);
-Slapi_DN *ipapwd_get_plugin_sdn(void);
-bool ipapwd_get_plugin_started(void);

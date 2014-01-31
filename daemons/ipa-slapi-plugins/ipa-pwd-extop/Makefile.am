@@ -40,6 +40,7 @@ plugindir = $(libdir)/dirsrv/plugins
 plugin_LTLIBRARIES = libipa_pwd_extop.la
 libipa_pwd_extop_la_LIBADD  = $(builddir)/../libotp/libotp.la
 libipa_pwd_extop_la_SOURCES = 		\
+	authcfg.c			\
 	common.c			\
 	encoding.c			\
 	prepost.c			\
