@@ -978,12 +978,12 @@ class LDAPEntry(collections.MutableMapping):
         names = set(self.iterkeys())
         names.update(self._orig)
         for name in names:
-            new = self.raw.get(name)
-            old = self._orig.get(name)
+            new = self.raw.get(name, [])
+            old = self._orig.get(name, [])
             if old and not new:
                 modlist.append((ldap.MOD_DELETE, name, None))
                 continue
-            if not old:
+            if not old and new:
                 modlist.append((ldap.MOD_REPLACE, name, new))
                 continue
 
