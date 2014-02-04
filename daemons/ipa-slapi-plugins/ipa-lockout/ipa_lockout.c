@@ -176,23 +176,23 @@ ipalockout_get_global_config(struct ipa_context *ipactx)
     krberr = krb5_init_context(&krbctx);
     if (krberr) {
         LOG_FATAL("krb5_init_context failed (%d)\n", krberr);
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
-    krberr = krb5_get_default_realm(krbctx, &realm);
-    if (krberr) {
-        LOG_FATAL("Failed to get default realm (%d)\n", krberr);
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
-    ipa_global_policy = slapi_ch_smprintf("cn=global_policy,cn=%s,cn=kerberos,%s",
-                                          realm, basedn);
-    if (!ipa_global_policy) {
-        LOG_OOM();
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
+        /* Yes, we failed, but it is because /etc/krb5.conf doesn't exist
+         * or is misconfigured. Start up in a degraded mode.
+         */
+    } else {
+        krberr = krb5_get_default_realm(krbctx, &realm);
+        if (krberr) {
+            LOG_FATAL("Failed to get default realm (%d)\n", krberr);
+        } else {
+            ipa_global_policy =
+                slapi_ch_smprintf("cn=global_policy,cn=%s,cn=kerberos,%s",
+                                  realm, basedn);
+            if (!ipa_global_policy) {
+                LOG_OOM();
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+        }
     }
 
     ret = asprintf(&dn, "cn=ipaConfig,cn=etc,%s", basedn);
