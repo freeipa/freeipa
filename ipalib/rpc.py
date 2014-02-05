@@ -746,7 +746,7 @@ class RPCClient(Connectible):
             else:
                 transport_class = LanguageAwareTransport
             kw['transport'] = transport_class(protocol=self.protocol)
-            self.log.debug('trying %s' % url)
+            self.log.info('trying %s' % url)
             setattr(context, 'request_url', url)
             serverproxy = self.server_proxy_class(url, **kw)
             if len(urls) == 1:
@@ -828,8 +828,8 @@ class RPCClient(Connectible):
                 '%s.forward(): %r not in api.Command' % (self.name, name)
             )
         server = getattr(context, 'request_url', None)
-        self.debug("Forwarding '%s' to %s server '%s'",
-                   name, self.protocol, server)
+        self.log.info("Forwarding '%s' to %s server '%s'",
+                      name, self.protocol, server)
         command = getattr(self.conn, name)
         params = [args, kw]
         try:
