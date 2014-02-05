@@ -93,8 +93,9 @@ class TestBasicADTrust(ADTrustBase):
         # This regex checks that Test User does not have UID 10042 nor belongs
         # to the group with GID 10047
         testuser_regex = "^testuser@%s:\*:(?!10042)(\d+):(?!10047)(\d+):"\
-                         "Test User:/home/testuser:/bin/sh$"\
-                         % re.escape(self.ad.domain.name)
+                         "Test User:/home/%s/testuser:/bin/sh$"\
+                         % (re.escape(self.ad.domain.name),
+                            re.escape(self.ad.domain.name))
 
         assert re.search(testuser_regex, result.stdout_text)
 

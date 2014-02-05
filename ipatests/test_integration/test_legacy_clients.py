@@ -125,11 +125,15 @@ class BaseTestLegacyClient(object):
         testuser = 'testuser@%s' % self.ad.domain.name
         result = self.legacy_client.run_command(['getent', 'passwd', testuser])
 
-        testuser_regex = "testuser@%s:*:%s:%s:"\
-                         "Test User:/home/testuser:/bin/sh"\
+        testuser_regex = "testuser@%s:\*:%s:%s:"\
+                         "Test User:%s:/bin/sh"\
                          % (re.escape(self.ad.domain.name),
                             self.testuser_uid_regex,
-                            self.testuser_gid_regex)
+                            self.testuser_gid_regex,
+                            self.homedir_template.format(
+                                username='testuser',
+                                domain=re.escape(self.ad.domain.name))
+                            )
 
         assert re.search(testuser_regex, result.stdout_text)
 
@@ -236,11 +240,16 @@ class BaseTestLegacyClient(object):
         testuser = 'subdomaintestuser@%s' % self.ad_subdomain
         result = self.legacy_client.run_command(['getent', 'passwd', testuser])
 
-        testuser_regex = "subdomaintestuser@%s:*:%s:%s:"\
-                         "Subdomain Test User:/home/subdomaintestuser:/bin/sh"\
+        testuser_regex = "subdomaintestuser@%s:\*:%s:%s:"\
+                         "Subdomain Test User:%s:"\
+                         "/bin/sh"\
                          % (re.escape(self.ad_subdomain),
                             self.subdomain_testuser_uid_regex,
-                            self.subdomain_testuser_gid_regex)
+                            self.subdomain_testuser_gid_regex,
+                            self.homedir_template.format(
+                                username='subdomaintestuser',
+                                domain=re.escape(self.ad_subdomain))
+                            )
 
         assert re.search(testuser_regex, result.stdout_text)
 
@@ -385,6 +394,7 @@ class BaseTestLegacyClientPosix(BaseTestLegacyClient,
     testuser_gid_regex = '10047'
     subdomain_testuser_uid_regex = '10142'
     subdomain_testuser_gid_regex = '10147'
+    homedir_template = "/home/{username}"
 
     def test_remove_trust_with_posix_attributes(self):
         pass
@@ -397,6 +407,7 @@ class BaseTestLegacyClientNonPosix(BaseTestLegacyClient,
     testuser_gid_regex = '(?!10047)(\d+)'
     subdomain_testuser_uid_regex = '(?!10142)(\d+)'
     subdomain_testuser_gid_regex = '(?!10147)(\d+)'
+    homedir_template = '/home/{domain}/{username}'
 
     def test_remove_nonposix_trust(self):
         pass
