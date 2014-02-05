@@ -399,9 +399,9 @@ def clear_sssd_cache(host):
     systemd_available = host.transport.file_exists('/bin/systemctl')
 
     if systemd_available:
-        host.run_command(['systemctl', 'start', 'sssd'])
+        host.run_command(['systemctl', 'stop', 'sssd'])
     else:
-        host.run_command(['/sbin/service', 'sssd', 'start'])
+        host.run_command(['/sbin/service', 'sssd', 'stop'])
 
     host.run_command("find /var/lib/sss/db -name '*.ldb' | "
                      "xargs rm -fv")
