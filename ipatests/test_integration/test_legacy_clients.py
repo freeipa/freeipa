@@ -221,6 +221,8 @@ class BaseTestLegacyClient(object):
     def install(cls):
         super(BaseTestLegacyClient, cls).install()
 
+        tasks.kinit_admin(cls.master)
+
         password_confirmation = (
             cls.master.config.admin_password +
             '\n' +
