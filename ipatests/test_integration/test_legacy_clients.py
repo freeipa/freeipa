@@ -48,6 +48,8 @@ class BaseTestLegacyClient(object):
 
     testuser_uid_regex = None
     testuser_gid_regex = None
+    subdomain_testuser_uid_regex = None
+    subdomain_testuser_gid_regex = None
 
     @classmethod
     def setup_class(cls):
@@ -55,6 +57,15 @@ class BaseTestLegacyClient(object):
         cls.ad = cls.ad_domains[0].ads[0]
 
         cls.legacy_client = cls.host_by_role(cls.required_extra_roles[0])
+
+        # Determine whether the subdomain AD is available
+        try:
+            child_ad = cls.host_by_role(cls.optional_extra_roles[0])
+            cls.ad_subdomain = '.'.join(
+                                   child_ad.external_hostname.split('.')[1:])
+        except LookupError:
+            cls.ad_subdomain = None
+
         tasks.apply_common_fixes(cls.legacy_client)
 
         for f in cls.backup_files:
@@ -114,21 +125,21 @@ class BaseTestLegacyClient(object):
         testuser = 'testuser@%s' % self.ad.domain.name
         result = self.legacy_client.run_command(['getent', 'passwd', testuser])
 
-        testuser_stdout = "testuser@%s:*:%s:%s:"\
-                          "Test User:/home/testuser:/bin/sh"\
-                          % (self.ad.domain.name,
-                             self.testuser_uid_regex,
-                             self.testuser_gid_regex)
+        testuser_regex = "testuser@%s:*:%s:%s:"\
+                         "Test User:/home/testuser:/bin/sh"\
+                         % (re.escape(self.ad.domain.name),
+                            self.testuser_uid_regex,
+                            self.testuser_gid_regex)
 
-        assert testuser_stdout in result.stdout_text
+        assert re.search(testuser_regex, result.stdout_text)
 
     def test_getent_ad_group(self):
         self.clear_sssd_caches()
         testgroup = 'testgroup@%s' % self.ad.domain.name
         result = self.legacy_client.run_command(['getent', 'group', testgroup])
 
-        testgroup_stdout = "%s:\*:%s:" % (testgroup, self.testuser_gid_regex)
-        assert re.search(testgroup_stdout, result.stdout_text)
+        testgroup_regex = "%s:\*:%s:" % (testgroup, self.testuser_gid_regex)
+        assert re.search(testgroup_regex, result.stdout_text)
 
     def test_id_ad_user(self):
         self.clear_sssd_caches()
@@ -217,6 +228,92 @@ class BaseTestLegacyClient(object):
 
         assert result.returncode != 0
 
+    def test_getent_subdomain_ad_user(self):
+        if not self.ad_subdomain:
+            raise nose.SkipTest('AD for the subdomain is not available.')
+
+        self.clear_sssd_caches()
+        testuser = 'subdomaintestuser@%s' % self.ad_subdomain
+        result = self.legacy_client.run_command(['getent', 'passwd', testuser])
+
+        testuser_regex = "subdomaintestuser@%s:*:%s:%s:"\
+                         "Subdomain Test User:/home/subdomaintestuser:/bin/sh"\
+                         % (re.escape(self.ad_subdomain),
+                            self.subdomain_testuser_uid_regex,
+                            self.subdomain_testuser_gid_regex)
+
+        assert re.search(testuser_regex, result.stdout_text)
+
+    def test_getent_subdomain_ad_group(self):
+        if not self.ad_subdomain:
+            raise nose.SkipTest('AD for the subdomain is not available.')
+
+        self.clear_sssd_caches()
+        testgroup = 'subdomaintestgroup@%s' % self.ad_subdomain
+        result = self.legacy_client.run_command(['getent', 'group', testgroup])
+
+        testgroup_stdout = "%s:\*:%s:" % (testgroup, self.testuser_gid_regex)
+        assert re.search(testgroup_stdout, result.stdout_text)
+
+    def test_id_subdomain_ad_user(self):
+        if not self.ad_subdomain:
+            raise nose.SkipTest('AD for the subdomain is not available.')
+
+        self.clear_sssd_caches()
+        testuser = 'subdomaintestuser@%s' % self.ad_subdomain
+        testgroup = 'subdomaintestgroup@%s' % self.ad_subdomain
+
+        result = self.legacy_client.run_command(['id', testuser])
+
+        uid_regex = "uid=%s\(%s\)" % (self.testuser_uid_regex, testuser)
+        gid_regex = "gid=%s\(%s\)" % (self.testuser_gid_regex, testgroup)
+        groups_regex = "groups=%s\(%s\)" % (self.testuser_gid_regex, testgroup)
+
+        assert re.search(uid_regex, result.stdout_text)
+        assert re.search(gid_regex, result.stdout_text)
+        assert re.search(groups_regex, result.stdout_text)
+
+    def test_login_subdomain_ad_user(self):
+        if not self.ad_subdomain:
+            raise nose.SkipTest('AD for the subdomain is not available.')
+
+        if not self.master.transport.file_exists('/usr/bin/sshpass'):
+            raise nose.SkipTest('Package sshpass not available on %s'
+                                 % self.master.hostname)
+
+        testuser = 'subdomaintestuser@%s' % self.ad_subdomain
+        result = self.master.run_command(
+            'sshpass -p Secret123 '
+            'ssh '
+            '-o StrictHostKeyChecking=no '
+            '-l %s '
+            '%s '
+            '"echo test"' %
+             (testuser, self.legacy_client.external_hostname))
+
+        assert "test" in result.stdout_text
+
+    def test_login_disabled_subdomain_ad_user(self):
+        if not self.ad_subdomain:
+            raise nose.SkipTest('AD for the subdomain is not available.')
+
+        if not self.master.transport.file_exists('/usr/bin/sshpass'):
+            raise nose.SkipTest('Package sshpass not available on %s'
+                                 % self.master.hostname)
+
+        testuser = 'subdomaindisabledaduser@%s' % self.ad_subdomain
+        result = self.master.run_command(
+            'sshpass -p Secret123 '
+            'ssh '
+            '-o StrictHostKeyChecking=no '
+            '-l %s '
+            '%s '
+            '"echo test"' %
+            (testuser, self.legacy_client.external_hostname),
+            raiseonerr=False)
+
+        assert result.returncode != 0
+
     @classmethod
     def install(cls):
         super(BaseTestLegacyClient, cls).install()
@@ -255,12 +352,14 @@ class BaseTestLegacySSSDBefore19RedHat(object):
 
     advice_id = 'config-redhat-sssd-before-1-9'
     required_extra_roles = ['legacy_client_sssd_redhat']
+    optional_extra_roles = ['ad_subdomain']
 
 
 class BaseTestLegacyNssPamLdapdRedHat(object):
 
     advice_id = 'config-redhat-nss-pam-ldapd'
     required_extra_roles = ['legacy_client_nss_pam_ldapd_redhat']
+    optional_extra_roles = ['ad_subdomain']
 
     def clear_sssd_caches(self):
         tasks.clear_sssd_cache(self.master)
@@ -270,6 +369,7 @@ class BaseTestLegacyNssLdapRedHat(object):
 
     advice_id = 'config-redhat-nss-ldap'
     required_extra_roles = ['legacy_client_nss_ldap_redhat']
+    optional_extra_roles = ['ad_subdomain']
 
     def clear_sssd_caches(self):
         tasks.clear_sssd_cache(self.master)
@@ -283,6 +383,8 @@ class BaseTestLegacyClientPosix(BaseTestLegacyClient,
 
     testuser_uid_regex = '10042'
     testuser_gid_regex = '10047'
+    subdomain_testuser_uid_regex = '10142'
+    subdomain_testuser_gid_regex = '10147'
 
     def test_remove_trust_with_posix_attributes(self):
         pass
@@ -293,12 +395,14 @@ class BaseTestLegacyClientNonPosix(BaseTestLegacyClient,
 
     testuser_uid_regex = '(?!10042)(\d+)'
     testuser_gid_regex = '(?!10047)(\d+)'
+    subdomain_testuser_uid_regex = '(?!10142)(\d+)'
+    subdomain_testuser_gid_regex = '(?!10147)(\d+)'
 
     def test_remove_nonposix_trust(self):
         pass
 
 
-# Tests definitions themselvels. Beauty. Just pure beauty.
+# Tests definitions themselves. Beauty. Just pure beauty.
 
 class TestLegacySSSDBefore19RedHatNonPosix(BaseTestLegacySSSDBefore19RedHat,
                                            BaseTestLegacyClientNonPosix):
