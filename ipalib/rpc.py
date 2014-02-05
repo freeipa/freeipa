@@ -621,7 +621,7 @@ class xmlclient(Connectible):
                     kw['transport'] = KerbTransport()
             else:
                 kw['transport'] = LanguageAwareTransport()
-            self.log.debug('trying %s' % url)
+            self.log.info('trying %s' % url)
             setattr(context, 'request_url', url)
             serverproxy = ServerProxy(url, **kw)
             if len(urls) == 1:
@@ -697,7 +697,7 @@ class xmlclient(Connectible):
                 '%s.forward(): %r not in api.Command' % (self.name, name)
             )
         server = getattr(context, 'request_url', None)
-        self.debug("Forwarding '%s' to server '%s'", name, server)
+        self.log.info("Forwarding '%s' to server '%s'", name, server)
         command = getattr(self.conn, name)
         params = [args, kw]
         try:

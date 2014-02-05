@@ -22,6 +22,7 @@ from ipalib import api
 from ipalib.errors import ValidationError
 from ipapython import admintool
 from textwrap import wrap
+from ipapython.ipa_log_manager import log_mgr
 
 
 """
@@ -173,6 +174,10 @@ class IpaAdvise(admintool.AdminTool):
 
         api.bootstrap(in_server=False, context='advise')
         api.finalize()
+        if not self.options.verbose:
+            # Do not print connection information by default
+            logger_name = r'ipa\.ipalib\.rpc\.xmlclient'
+            log_mgr.configure(dict(logger_regexps=[(logger_name, 'warning')]))
 
         # With no argument, print the list out and exit
         if not self.args:
