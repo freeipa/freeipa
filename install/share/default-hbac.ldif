@@ -7,7 +7,6 @@ cn: allow_all
 accessruletype: allow
 usercategory: all
 hostcategory: all
-sourcehostcategory: all
 servicecategory: all
 ipaenabledflag: TRUE
 description: Allow all users to access any host from any host

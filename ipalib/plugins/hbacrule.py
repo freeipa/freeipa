@@ -118,7 +118,7 @@ class hbacrule(LDAPObject):
     default_attributes = [
         'cn', 'ipaenabledflag',
         'description', 'usercategory', 'hostcategory',
-        'sourcehostcategory', 'servicecategory', 'ipaenabledflag',
+        'servicecategory', 'ipaenabledflag',
         'memberuser', 'sourcehost', 'memberhost', 'memberservice',
         'memberhostgroup', 'externalhost',
     ]
