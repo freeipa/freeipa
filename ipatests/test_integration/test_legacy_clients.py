@@ -51,6 +51,9 @@ class BaseTestLegacyClient(object):
     subdomain_testuser_uid_regex = None
     subdomain_testuser_gid_regex = None
 
+    # To allow custom validation dependent on the trust type
+    posix_trust = False
+
     @classmethod
     def setup_class(cls):
         super(BaseTestLegacyClient, cls).setup_class()
@@ -152,9 +155,13 @@ class BaseTestLegacyClient(object):
 
         result = self.legacy_client.run_command(['id', testuser])
 
+        # Only for POSIX trust testing does the testuser belong to the
+        # testgroup
+        group_name = '\(%s\)' % testgroup if self.posix_trust else ''
+
         uid_regex = "uid=%s\(%s\)" % (self.testuser_uid_regex, testuser)
-        gid_regex = "gid=%s\(%s\)" % (self.testuser_gid_regex, testgroup)
-        groups_regex = "groups=%s\(%s\)" % (self.testuser_gid_regex, testgroup)
+        gid_regex = "gid=%s%s" % (self.testuser_gid_regex, group_name)
+        groups_regex = "groups=%s%s" % (self.testuser_gid_regex, group_name)
 
         assert re.search(uid_regex, result.stdout_text)
         assert re.search(gid_regex, result.stdout_text)
@@ -274,9 +281,13 @@ class BaseTestLegacyClient(object):
 
         result = self.legacy_client.run_command(['id', testuser])
 
+        # Only for POSIX trust testing does the testuser belong to the
+        # testgroup
+        group_name = '\(%s\)' % testgroup if self.posix_trust else ''
+
         uid_regex = "uid=%s\(%s\)" % (self.testuser_uid_regex, testuser)
-        gid_regex = "gid=%s\(%s\)" % (self.testuser_gid_regex, testgroup)
-        groups_regex = "groups=%s\(%s\)" % (self.testuser_gid_regex, testgroup)
+        gid_regex = "gid=%s%s" % (self.testuser_gid_regex, group_name)
+        groups_regex = "groups=%s%s" % (self.testuser_gid_regex, group_name)
 
         assert re.search(uid_regex, result.stdout_text)
         assert re.search(gid_regex, result.stdout_text)
@@ -395,6 +406,7 @@ class BaseTestLegacyClientPosix(BaseTestLegacyClient,
     subdomain_testuser_uid_regex = '10142'
     subdomain_testuser_gid_regex = '10147'
     homedir_template = "/home/{username}"
+    posix_trust = True
 
     def test_remove_trust_with_posix_attributes(self):
         pass
