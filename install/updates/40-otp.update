@@ -7,6 +7,7 @@ dn: $SUFFIX
 add: aci:'(targetfilter = "(objectClass=ipaToken)")(targetattrs = "objectclass || ipatokenUniqueID || description || ipatokenOwner || ipatokenNotBefore || ipatokenNotAfter || ipatokenVendor || ipatokenModel || ipatokenSerial")(version 3.0; acl "Users can read basic token info"; allow (read, search, compare) userattr = "ipatokenOwner#USERDN";)'
 add: aci:'(targetfilter = "(objectClass=ipaToken)")(targetattrs = "ipatokenUniqueID || description || ipatokenOwner || ipatokenNotBefore || ipatokenNotAfter || ipatokenVendor || ipatokenModel || ipatokenSerial")(version 3.0; acl "Users can write basic token info"; allow (write) userattr = "ipatokenOwner#USERDN";)'
 add: aci:'(targetfilter = "(objectClass=ipatokenTOTP)")(targetattrs = "ipatokenOTPkey || ipatokenOTPalgorithm || ipatokenOTPdigits || ipatokenTOTPclockOffset || ipatokenTOTPtimeStep")(version 3.0; acl "Users can add TOTP token secrets"; allow (write, search) userattr = "ipatokenOwner#USERDN";)'
+add: aci:'(target = "ldap:///ipatokenuniqueid=*,cn=otp,$SUFFIX")(targetfilter = "(objectClass=ipaToken)")(version 3.0; acl "Users can create and delete tokens"; allow (add, delete) userattr = "ipatokenOwner#SELFDN";)'
 
 dn: cn=radiusproxy,$SUFFIX
 default: objectClass: nsContainer
