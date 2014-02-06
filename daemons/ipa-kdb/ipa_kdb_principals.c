@@ -66,6 +66,7 @@ static char *std_principal_attrs[] = {
     "passwordHistory",
     IPA_KRB_AUTHZ_DATA_ATTR,
     IPA_USER_AUTH_TYPE,
+    "ipatokenRadiusConfigLink",
 
     "objectClass",
     NULL
@@ -224,6 +225,122 @@ static int ipadb_ldap_attr_to_key_data(LDAP *lcontext, LDAPMessage *le,
     return ret;
 }
 
+static void ipadb_validate_otp(struct ipadb_context *ipactx,
+                               LDAPMessage *lentry,
+                               enum ipadb_user_auth *ua)
+{
+    static const char *attrs[] = { "dn", NULL };
+    static const char *dttmpl = "%Y%m%d%H%M%SZ";
+    static const char *ftmpl = "(&"
+        "(objectClass=ipaToken)(ipatokenOwner=%s)"
+        "(|(ipatokenNotBefore<=%s)(!(ipatokenNotBefore=*)))"
+        "(|(ipatokenNotAfter>=%s)(!(ipatokenNotAfter=*)))"
+        "(|(ipatokenDisabled=FALSE)(!(ipatokenDisabled=*)))"
+    ")";
+    krb5_error_code kerr = 0;
+    LDAPMessage *res = NULL;
+    char datetime[16] = {};
+    char *filter = NULL;
+    struct tm tm = {};
+    char *dn = NULL;
+    time_t now = 0;
+    int count = 0;
+
+    if (!(*ua & IPADB_USER_AUTH_OTP))
+        return;
+
+    /* Get the current time. */
+    if (time(&now) == (time_t) -1)
+        return;
+    if (gmtime_r(&now, &tm) == NULL)
+        return;
+
+    /* Make the current time string. */
+    if (strftime(datetime, sizeof(datetime), dttmpl, &tm) == 0)
+        return;
+
+    /* Make the filter. */
+    dn = ldap_get_dn(ipactx->lcontext, lentry);
+    if (dn == NULL)
+        return;
+    count = asprintf(&filter, ftmpl, dn, datetime, datetime);
+    ldap_memfree(dn);
+    if (count < 0)
+        return;
+
+    /* Fetch the active token list. */
+    kerr = ipadb_simple_search(ipactx, ipactx->base, LDAP_SCOPE_SUBTREE,
+                               filter, (char**) attrs, &res);
+    free(filter);
+    if (kerr != 0 || res == NULL)
+        return;
+
+    /* Count the number of active tokens. */
+    count = ldap_count_entries(ipactx->lcontext, res);
+    ldap_msgfree(res);
+
+    /* If the user is configured for OTP, but has no active tokens, remove
+     * OTP from the list since the user obviously can't log in this way. */
+    if (count == 0)
+        *ua &= ~IPADB_USER_AUTH_OTP;
+}
+
+static void ipadb_validate_radius(struct ipadb_context *ipactx,
+                                  LDAPMessage *lentry,
+                                  enum ipadb_user_auth *ua)
+{
+    struct berval **vals;
+
+    if (!(*ua & IPADB_USER_AUTH_RADIUS))
+        return;
+
+    /* Ensure that the user has a link to a RADIUS config. */
+    vals = ldap_get_values_len(ipactx->lcontext, lentry,
+                               "ipatokenRadiusConfigLink");
+    if (vals == NULL || vals[0] == NULL)
+        *ua &= ~IPADB_USER_AUTH_RADIUS;
+
+    if (vals != NULL)
+        ldap_value_free_len(vals);
+}
+
+static void ipadb_validate_password(struct ipadb_context *ipactx,
+                                    LDAPMessage *lentry,
+                                    enum ipadb_user_auth *ua)
+{
+    /* If no mechanisms are set, use password. */
+    if (*ua == IPADB_USER_AUTH_NONE)
+        *ua |= IPADB_USER_AUTH_PASSWORD;
+
+    /* If any other mechanism has passed validation, don't use password. */
+    else if (*ua & ~IPADB_USER_AUTH_PASSWORD)
+        *ua &= ~IPADB_USER_AUTH_PASSWORD;
+}
+
+static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
+                                                LDAPMessage *lentry)
+{
+    enum ipadb_user_auth ua = IPADB_USER_AUTH_NONE;
+
+    /* Get the user's user_auth settings. */
+    ipadb_parse_user_auth(ipactx->lcontext, lentry, &ua);
+
+    /* If the disabled flag is set, ignore everything else. */
+    if ((ua | ipactx->user_auth) & IPADB_USER_AUTH_DISABLED)
+        return IPADB_USER_AUTH_DISABLED;
+
+    /* Determine which user_auth policy is active: user or global. */
+    if (ua == IPADB_USER_AUTH_NONE)
+        ua = ipactx->user_auth;
+
+    /* Perform flag validation. */
+    ipadb_validate_otp(ipactx, lentry, &ua);
+    ipadb_validate_radius(ipactx, lentry, &ua);
+    ipadb_validate_password(ipactx, lentry, &ua);
+
+    return ua;
+}
+
 static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               char *principal,
                                               LDAPMessage *lentry,
@@ -231,9 +348,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               uint32_t *polmask)
 {
     krb5_octet otp_string[] = {'o', 't', 'p', 0, '[', ']', 0 };
-    enum ipadb_user_auth user_ua = IPADB_USER_AUTH_EMPTY;
-    enum ipadb_user_auth *active_ua = &user_ua;
     struct ipadb_context *ipactx;
+    enum ipadb_user_auth ua;
     LDAP *lcontext;
     krb5_db_entry *entry;
     struct ipadb_e_data *ied;
@@ -267,16 +383,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     entry->magic = KRB5_KDB_MAGIC_NUMBER;
     entry->len = KRB5_KDB_V1_BASE_LENGTH;
 
-    /* Get the user's user_auth settings. */
-    ipadb_get_user_auth(ipactx->lcontext, lentry, &user_ua);
-
-    /* TODO: Should we confirm the existence of ipatokenRadiusConfigLink in
-     *       the case of RADIUS? Existence of a token for OTP? */
-
-    /* Determine which user_auth policy is active: user or global. */
-    if ((ipactx->user_auth & IPADB_USER_AUTH_DISABLED)
-        || user_ua == IPADB_USER_AUTH_EMPTY)
-        active_ua = &ipactx->user_auth;
+    /* Get User Auth configuration. */
+    ua = ipadb_get_user_auth(ipactx, lentry);
 
     /* ignore mask for now */
 
@@ -410,8 +518,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     switch (ret) {
     case 0:
         /* Only set a principal's key if password auth should be used. */
-        if ((*active_ua & ~IPADB_USER_AUTH_DISABLED) != IPADB_USER_AUTH_EMPTY
-            && !(*active_ua & IPADB_USER_AUTH_PASSWORD)) {
+        if (!(ua & IPADB_USER_AUTH_PASSWORD)) {
             /* This is the same behavior as ENOENT below. */
             ipa_krb5_free_key_data(res_key_data, result);
             break;
@@ -551,10 +658,11 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     }
 
     /* If enabled, set the otp user string, enabling otp. */
-    if ((*active_ua & (IPADB_USER_AUTH_RADIUS | IPADB_USER_AUTH_OTP)) &&
-        !(*active_ua & IPADB_USER_AUTH_DISABLED)) {
-        ret = ipadb_set_tl_data(entry, KRB5_TL_STRING_ATTRS,
-                                sizeof(otp_string), otp_string);
+    if (ua & (IPADB_USER_AUTH_RADIUS | IPADB_USER_AUTH_OTP)) {
+        kerr = ipadb_set_tl_data(entry, KRB5_TL_STRING_ATTRS,
+                                 sizeof(otp_string), otp_string);
+        if (kerr)
+            goto done;
     }
 
     kerr = 0;

@@ -186,13 +186,13 @@ static const struct {
     { }
 };
 
-void ipadb_get_user_auth(LDAP *lcontext, LDAPMessage *le,
-                         enum ipadb_user_auth *userauth)
+void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
+                           enum ipadb_user_auth *userauth)
 {
     struct berval **vals;
     int i, j;
 
-    *userauth = IPADB_USER_AUTH_EMPTY;
+    *userauth = IPADB_USER_AUTH_NONE;
     vals = ldap_get_values_len(lcontext, le, IPA_USER_AUTH_TYPE);
     if (!vals)
         return;
@@ -205,6 +205,8 @@ void ipadb_get_user_auth(LDAP *lcontext, LDAPMessage *le,
             }
         }
     }
+
+    ldap_value_free_len(vals);
 }
 
 int ipadb_get_global_configs(struct ipadb_context *ipactx)
@@ -239,7 +241,7 @@ int ipadb_get_global_configs(struct ipadb_context *ipactx)
     }
 
     /* Check for permitted authentication types. */
-    ipadb_get_user_auth(ipactx->lcontext, res, &ipactx->user_auth);
+    ipadb_parse_user_auth(ipactx->lcontext, res, &ipactx->user_auth);
 
     vals = ldap_get_values_len(ipactx->lcontext, first,
                                "ipaConfigString");

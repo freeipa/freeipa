@@ -80,7 +80,7 @@
 struct ipadb_mspac;
 
 enum ipadb_user_auth {
-  IPADB_USER_AUTH_EMPTY    = 0,
+  IPADB_USER_AUTH_NONE     = 0,
   IPADB_USER_AUTH_DISABLED = 1 << 0,
   IPADB_USER_AUTH_PASSWORD = 1 << 1,
   IPADB_USER_AUTH_RADIUS   = 1 << 2,
@@ -275,5 +275,5 @@ void ipadb_audit_as_req(krb5_context kcontext,
                         krb5_error_code error_code);
 
 /* AUTH METHODS */
-void ipadb_get_user_auth(LDAP *lcontext, LDAPMessage *le,
-                         enum ipadb_user_auth *user_auth);
+void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
+                           enum ipadb_user_auth *user_auth);
