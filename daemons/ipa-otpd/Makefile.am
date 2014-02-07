@@ -9,7 +9,7 @@ systemdsystemunit_DATA = ipa-otpd.socket ipa-otpd@.service
 ipa_otpd_SOURCES = bind.c forward.c main.c parse.c query.c queue.c stdio.c
 
 %.socket: %.socket.in
-	@sed -e 's|@krb5kdcdir[@]|$(krb5kdcdir)|g' \
+	@sed -e 's|@krb5rundir[@]|$(krb5rundir)|g' \
 	     -e 's|@UNLINK[@]|@UNLINK@|g' \
 	     $< > $@
 

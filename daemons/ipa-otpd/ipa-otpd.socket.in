@@ -2,8 +2,8 @@
 Description=ipa-otpd socket
 
 [Socket]
-ListenStream=@krb5kdcdir@/DEFAULT.socket
-ExecStopPre=@UNLINK@ @krb5kdcdir@/DEFAULT.socket
+ListenStream=@krb5rundir@/DEFAULT.socket
+ExecStopPre=@UNLINK@ @krb5rundir@/DEFAULT.socket
 SocketMode=0600
 Accept=true
 

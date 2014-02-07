@@ -60,10 +60,10 @@ AC_CHECK_LIB(k5crypto, main, [krb5crypto=k5crypto], [krb5crypto=crypto])
 AC_CHECK_LIB(krad, main, [], [AC_MSG_ERROR([libkrad not found])])
 KRB5_LIBS="-lkrb5 -l$krb5crypto -lcom_err"
 KRAD_LIBS="-lkrad"
-krb5kdcdir="${localstatedir}/kerberos/krb5kdc"
+krb5rundir="${localstatedir}/run/krb5kdc"
 AC_SUBST(KRB5_LIBS)
 AC_SUBST(KRAD_LIBS)
-AC_SUBST(krb5kdcdir)
+AC_SUBST(krb5rundir)
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for Mozilla LDAP and OpenLDAP SDK
@@ -337,7 +337,7 @@ echo "
         sysconfdir:               ${sysconfdir}
         localstatedir:            ${localstatedir}
         datadir:                  ${datadir}
-        krb5kdcdir:               ${krb5kdcdir}
+        krb5rundir:               ${krb5rundir}
         systemdsystemunitdir:     ${systemdsystemunitdir}
         source code location:     ${srcdir}
         compiler:                 ${CC}
