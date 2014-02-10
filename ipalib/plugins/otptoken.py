@@ -99,7 +99,7 @@ class otptoken(LDAPObject):
     OTP Token object.
     """
     container_dn = api.env.container_otp
-    object_name = _('OTP tokens')
+    object_name = _('OTP token')
     object_name_plural = _('OTP tokens')
     object_class = ['ipatoken']
     possible_objectclasses = ['ipatokentotp']
@@ -110,8 +110,8 @@ class otptoken(LDAPObject):
     ]
     rdn_is_primary_key = True
 
-    label = _('OTP tokens')
-    label_singular = _('OTP token')
+    label = _('OTP Tokens')
+    label_singular = _('OTP Token')
 
     takes_params = (
         Str('ipatokenuniqueid',
