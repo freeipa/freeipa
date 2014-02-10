@@ -202,6 +202,15 @@ class otptoken_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        # These are values we always want to write to LDAP. So if they are
+        # specified as a value that evaluates to False (i.e. None), delete them
+        # and fill in the defaults below.
+        for attr in ('ipatokentotpclockoffset', 'ipatokentotptimestep',
+                     'ipatokenotpalgorithm', 'ipatokenotpdigits',
+                     'ipatokenotpkey'):
+            if attr in entry_attrs and not entry_attrs[attr]:
+                del entry_attrs[attr]
+
         # Set defaults. This needs to happen on the server side because we may
         # have global configurable defaults in the near future.
         options.setdefault('type', TOKEN_TYPES[0])
