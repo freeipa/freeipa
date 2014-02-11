@@ -1,48 +1,74 @@
 
                                IPA Server
 
-  What is it?
-  -----------
+  Overview
+  --------
 
-  For efficiency, compliance and risk mitigation, organizations need to
-  centrally manage and correlate vital security information including:
+  FreeIPA allows Linux administrators to centrally manage identity,
+  authentication and access control aspects of Linux and UNIX systems
+  by providing simple to install and use command line and web based
+  managment tools.
+  FreeIPA is built on top of well known Open Source components and standard
+  protocols with a very strong focus on ease of management and automation
+  of installation and configuration tasks.
+  FreeIPA can seamlessly integrate into an Active Directory environment via
+  cross-realm Kerberos trust or user synchronization.
 
-    * Identity (machine, user, virtual machines, groups, authentication
-      credentials)
-    * Policy (configuration settings, access control information)
-    * Audit (events, logs, analysis thereof) 
+  Benefits
+  --------
 
-  Since these are not new problems. there exist many approaches and
-  products focused on addressing them. However, these tend to have the
-  following weaknesses:
+  FreeIPA:
+  * Allows all your users to access all the machines with the same credentials
+    and security settings
+  * Allows users to access personal files transparently from any machine in
+    an authenticated and secure way
+  * Uses an advanced grouping mechanism to restrict network access to services
+    and files only to specific users
+  * Allows central management of security mechanisms like passwords,
+    SSH Public Keys, SUDO rules, Keytabs, Access Control Rules
+  * Enables delegation of selected administrative tasks to other power users
+  * Integrates into Active Directory environments
 
-    * Focus on solving identity management across the enterprise has meant
-      less focus on policy and audit.
-    * Vendor focus on Web identity management problems has meant less well
-      developed solutions for central management of the Linux and Unix
-      world's vital security info. Organizations are forced to maintain
-      a hodgepodge of internal and proprietary solutions at high TCO.
-    * Proprietary security products don't easily provide access to the
-      vital security information they collect or manage. This makes it
-      difficult to synchronize and analyze effectively. 
+  Components
+  ----------
 
-  The Latest Version
-  ------------------
+  The FreeIPA project provides unified installation and management
+  tools for the following components:
 
-  Details of the latest version can be found on the IPA server project
-  page under <http://www.freeipa.org/>.
+  * LDAP Server - based on the 389 project (LDAP)
+    http://directory.fedoraproject.org/wiki/Main_Page
+
+  * KDC - based on MIT Kerberos implementation
+    http://k5wiki.kerberos.org/wiki/Main_Page
+
+  * PKI based on Dogtag project
+    http://pki.fedoraproject.org/wiki/PKI_Main_Page
+
+  * Samba libraries for Active Directory integration
+    http://www.samba.org/
+
+  * DNS Server based on BIND and the Bind-DynDB-LDAP plugin
+    https://www.isc.org/software/bind
+    https://fedorahosted.org/bind-dyndb-ldap
+
+
+  Project Website
+  ---------------
+
+  Releases, announcements and other information can be found on the IPA
+  server project page at <http://www.freeipa.org/>.
 
   Documentation
   -------------
 
   The most up-to-date documentation can be found at
-  <http://freeipa.org/page/Documentation/>.
+  <http://freeipa.org/page/Documentation>.
 
   Quick Start
   -----------
 
   To get started quickly, start here:
-  <https://fedorahosted.org/freeipa/wiki/QuickStartGuide>
+  <http://www.freeipa.org/page/Quick_Start_Guide>
 
   Licensing
   ---------
