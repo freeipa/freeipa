@@ -195,7 +195,7 @@ def membername(i):
 class DummyMember(object):
     def __init__(self, i):
         self.i = i
-        self.name = membername(i)
+        self.name = self.__name__ = membername(i)
 
 
 def gen_members(*indexes):
@@ -283,8 +283,10 @@ class test_NameSpace(ClassChecker):
             for i in yes:
                 assert membername(i) in o
                 assert membername(i).upper() not in o
+                assert DummyMember(i) in o
             for i in no:
                 assert membername(i) not in o
+                assert DummyMember(i) not in o
 
     def test_getitem(self):
         """
@@ -320,9 +322,15 @@ class test_NameSpace(ClassChecker):
             assert o[:-4] == members[:-4]
             assert o[-9:-4] == members[-9:-4]
 
+            # Test retrieval by value
+            for member in members:
+                assert o[DummyMember(member.i)] is member
+
             # Test that TypeError is raised with wrong type
             e = raises(TypeError, o.__getitem__, 3.0)
-            assert str(e) == TYPE_ERROR % ('key', (str, int, slice), 3.0, float)
+            assert str(e) == TYPE_ERROR % (
+                'key', (str, int, slice, 'object with __name__'),
+                3.0, float)
 
     def test_repr(self):
         """

@@ -287,7 +287,7 @@ class NameSpace(ReadOnly):
     >>> class Member(object):
     ...     def __init__(self, i):
     ...         self.i = i
-    ...         self.name = 'member%d' % i
+    ...         self.name = self.__name__ = 'member%d' % i
     ...     def __repr__(self):
     ...         return 'Member(%d)' % self.i
     ...
@@ -378,6 +378,14 @@ class NameSpace(ReadOnly):
     >>> unsorted_ns[0]
     Member(7)
 
+    As a special extension, NameSpace objects can be indexed by objects that
+    have a "__name__" attribute (e.g. classes). These lookups are converted
+    to lookups on the name:
+
+    >>> class_ns = NameSpace([Member(7), Member(3), Member(5)], sort=False)
+    >>> unsorted_ns[Member(3)]
+    Member(3)
+
     The `NameSpace` class is used in many places throughout freeIPA.  For a few
     examples, see the `plugable.API` and the `frontend.Command` classes.
     """
@@ -447,6 +455,7 @@ class NameSpace(ReadOnly):
         """
         Return ``True`` if namespace has a member named ``name``.
         """
+        name = getattr(name, '__name__', name)
         return name in self.__map
 
     def __getitem__(self, key):
@@ -455,12 +464,14 @@ class NameSpace(ReadOnly):
 
         :param key: The name or index of a member, or a slice object.
         """
+        key = getattr(key, '__name__',  key)
         if isinstance(key, basestring):
             return self.__map[key]
         if type(key) in (int, slice):
             return self.__members[key]
         raise TypeError(
-            TYPE_ERROR % ('key', (str, int, slice), key, type(key))
+            TYPE_ERROR % ('key', (str, int, slice, 'object with __name__'),
+                          key, type(key))
         )
 
     def __repr__(self):
