@@ -5,7 +5,7 @@
     "--css": ["doc.css"],
     "--external": ["jQuery", "Store", "QueryResult", "Stateful", "Evented",
                    "XMLHttpRequest", "Promise"],
-    "--warnings": ["-link", "-no_doc"],
+    "--warnings": ["-link", "-nodoc"],
     "--": [
         "../src/freeipa/"
     ],

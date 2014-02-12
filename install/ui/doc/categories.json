@@ -123,7 +123,8 @@
                     "details.command_info",
                     "details.field_info",
                     "details.update_info_builder",
-                    "details.command_builder"
+                    "details.command_builder",
+                    "FormMixin"
                 ]
             },
             {
