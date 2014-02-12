@@ -767,8 +767,8 @@ class test_host(Declarative):
             desc='Test that validation is enabled on adds',
             command=('host_add', [invalidfqdn1], {}),
             expected=errors.ValidationError(name='hostname',
-                error=u'invalid domain-name: only letters, numbers, and - ' +
-                    u'are allowed. DNS label may not start or end with -'),
+                error=u"invalid domain-name: only letters, numbers, '-' " +
+                u"are allowed. DNS label may not start or end with '-'"),
         ),
 
 
