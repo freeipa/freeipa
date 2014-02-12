@@ -5352,6 +5352,91 @@ IPA.value_map_widget = function(spec) {
     return that;
 };
 
+exp.validation_summary_widget = IPA.validation_summary_widget = function(spec) {
+
+    var that = IPA.widget(spec);
+
+    /**
+     * Map of errors to display
+     *
+     * - key: source ie. widget name
+     * - value: error text
+     * @protected
+     * @property {ordered_map}
+     */
+    that.errors = $.ordered_map();
+
+    /**
+     * Map of warning s to display
+     *
+     * - key: source ie. widget name
+     * - value: warning text
+     * @protected
+     * @property {ordered_map}
+     */
+    that.warnings = $.ordered_map();
+
+    that.errors_node = null;
+    that.warnings_node = null;
+
+    that.create = function(container) {
+        that.widget_create(container);
+        that.add_class('validation-summary');
+
+        that.errors_node = $('<div/>', {
+            'class': 'text-error'
+        }).appendTo(container);
+        that.warnings_node = $('<div/>', {
+            'class': 'text-warning'
+        }).appendTo(container);
+        that.render_items(that.errors, that.errors_node);
+        that.render_items(that.warnings, that.warnings_node);
+    };
+
+    that.render_items = function(items, node) {
+
+        if (that.enabled) {
+            that.set_visible(that.errors.length > 0 || that.warnings.length > 0);
+        }
+
+        if (!node) return;
+
+        node.empty();
+
+        var values = items.values;
+        var keys = items.keys;
+
+        for (var i=0; i<values.length; i++) {
+            $('<div/>', {
+                'data-name': keys[i],
+                html: values[i]
+            }).appendTo(node);
+        }
+    };
+
+    that.add_error = function(name, text) {
+        that.errors.put(name, text);
+        that.render_items(that.errors, that.errors_node);
+    };
+
+    that.remove_error = function(name) {
+        that.errors.remove(name);
+        that.render_items(that.errors, that.errors_node);
+    };
+
+    that.add_warning = function(name, text) {
+        that.warnings.put(name, text);
+        that.render_items(that.warnings, that.warnings_node);
+    };
+
+    that.remove_warning = function(name) {
+        that.warnings.remove(name);
+        that.render_items(that.warnings, that.warnings_node);
+    };
+
+    return that;
+};
+
 /**
  * Activity widget
  *
@@ -5519,6 +5604,7 @@ exp.register = function() {
     w.register('sshkeys', IPA.sshkeys_widget);
     w.register('textarea', IPA.textarea_widget);
     w.register('text', IPA.text_widget);
+    w.register('validation_summary', IPA.validation_summary_widget);
     w.register('value_map', IPA.value_map_widget);
 
     f.register('boolean', IPA.boolean_formatter);
