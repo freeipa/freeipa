@@ -24,6 +24,7 @@
 
 define([
         'dojo/keys',
+        'dojo/topic',
         './jquery',
         './json2',
         './_base/i18n',
@@ -34,7 +35,8 @@ define([
         './rpc',
         './text',
         'exports'
-    ], function(keys, $, JSON, i18n, datetime, metadata_provider, builder, reg, rpc, text, exports) {
+    ], function(keys, topic, $, JSON, i18n, datetime, metadata_provider,
+        builder, reg, rpc, text, exports) {
 
 /**
  * @class
@@ -318,6 +320,9 @@ var IPA = function () {
     that.display_activity_icon = function() {
         that.network_call_count++;
         $('.network-activity-indicator').css('visibility', 'visible');
+        if (that.network_call_count === 1) {
+            topic.publish('network-activity-start');
+        }
     };
 
     /**
@@ -330,6 +335,7 @@ var IPA = function () {
 
         if (0 === that.network_call_count) {
             $('.network-activity-indicator').css('visibility', 'hidden');
+            topic.publish('network-activity-end');
         }
     };
 
