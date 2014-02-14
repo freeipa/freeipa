@@ -238,7 +238,8 @@
                     "aci",
                     "otptoken",
                     "radiusproxy",
-                    "user"
+                    "user",
+                    "plugins.load"
                 ]
             }
         ]

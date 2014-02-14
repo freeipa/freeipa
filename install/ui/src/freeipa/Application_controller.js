@@ -31,12 +31,13 @@ define([
         './widgets/App',
         './widgets/FacetContainer',
         './ipa',
+        './reg',
         './navigation/Menu',
         './navigation/Router',
         './navigation/menu_spec'
        ],
        function(declare, lang, array, Deferred, on, topic, query, dom_class,
-            JSON, App_widget, FacetContainer, IPA, Menu, Router, menu_spec) {
+            JSON, App_widget, FacetContainer, IPA, reg, Menu, Router, menu_spec) {
 
     /**
      * Application controller
@@ -113,6 +114,8 @@ define([
             this.app_widget.hide();
             simple_container.render();
             simple_container.hide();
+            var load_facet = reg.facet.get('load');
+            this.show_facet(load_facet);
         },
 
         /**
@@ -154,7 +157,11 @@ define([
         start_runtime: function() {
             this.run_time = new Deferred();
 
+            // hide load or login facets
+            this.hide_facet();
+
             IPA.update_password_expiration();
+
 
             // now we are ready for displaying a facet,
             // it can match a facet if hash is set
@@ -282,7 +289,10 @@ define([
         },
 
         on_facet_show: function(event) {
-            var facet = event.facet;
+            this.show_facet(event.facet);
+        },
+
+        show_facet: function(facet) {
 
             // choose container
             var container = this.containers[facet.preferred_container];
@@ -307,11 +317,18 @@ define([
                 facet.container_node = container.widget.content_node;
                 on(facet, 'facet-state-change', lang.hitch(this, this.on_facet_state_changed));
             }
+
+            this.hide_facet();
+            this.current_facet = facet;
+            facet.show();
+        },
+
+        hide_facet: function() {
+
             if (this.current_facet) {
                 this.current_facet.hide();
             }
-            this.current_facet = facet;
-            facet.show();
+            this.current_facet = null;
         },
 
         _find_menu_item: function(facet) {

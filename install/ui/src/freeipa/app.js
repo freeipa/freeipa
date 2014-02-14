@@ -19,9 +19,10 @@
 */
 
 define([
-    //core
+    // core
     './app_container',
-    //entities
+    './plugins/load_page',
+    // entities
     './aci',
     './automember',
     './automount',
