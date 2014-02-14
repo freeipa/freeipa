@@ -28,6 +28,8 @@ define(['dojo/_base/array',
        'dojo/has',
        'dojo/keys',
        'dojo/on',
+       'dojo/string',
+       'dojo/topic',
        './builder',
        './datetime',
        './ipa',
@@ -39,8 +41,8 @@ define(['dojo/_base/array',
        './text',
        './util'
        ],
-       function(array, lang, Evented, has, keys, on, builder, datetime,
-                IPA, $, navigation, phases, reg, rpc, text, util) {
+       function(array, lang, Evented, has, keys, on, string, topic, builder,
+                datetime, IPA, $, navigation, phases, reg, rpc, text, util) {
 
 /**
  * Widget module
@@ -5351,6 +5353,89 @@ IPA.value_map_widget = function(spec) {
 };
 
 /**
+ * Activity widget
+ *
+ * Displays spinner with optional text.
+ *
+ * @class  IPA.activity_widget
+ * @extends IPA.widget
+ */
+exp.activity_widget = IPA.activity_widget = function(spec) {
+
+    var that = IPA.widget(spec);
+
+    /**
+     * Optional text to display next to spinner
+     * @property {string}
+     */
+    that.text = spec.text || '';
+
+    that.dots_node = null;
+
+    that.text_node = null;
+
+    that.dots = spec.dots || 0;
+
+    that.step = spec.step || 1;
+
+    that.max_dots = spec.max_dots || 3;
+
+    that.timer = null;
+
+    that.speed = spec.speed || 800;
+
+    that.activate_event = spec.activate_event || 'network-activity-start';
+    that.deactivate_event = spec.deactivate_event || 'network-activity-end';
+
+    that.create = function(container) {
+        that.widget_create(container);
+        that.add_class('global-activity-indicator slider closed');
+        that.text_node = $("<div/>", {
+            text: that.text
+        }).appendTo(that.container);
+        if (that.visible) that.start();
+        that.set_visible(that.visible);
+        topic.subscribe(that.activate_event, function() {
+            that.show();
+        });
+        topic.subscribe(that.deactivate_event, function() {
+            that.hide();
+        });
+    };
+
+    that.start = function() {
+
+        that.timer = window.setInterval( function() {
+            that.make_step();
+        }, that.speed);
+    };
+
+    that.stop = function() {
+        if (that.timer) window.clearInterval(that.timer);
+    };
+
+    that.hide = function() {
+        that.toggle_class('closed', true);
+        that.stop();
+    };
+
+    that.show = function() {
+        that.toggle_class('closed', false);
+        that.start();
+    };
+
+    that.make_step = function() {
+
+        that.dots += that.step;
+        if (that.dots > that.max_dots) that.dots = 0;
+        var dot_str = string.rep('.', that.dots);
+        that.text_node.text(that.text + " " + dot_str);
+    };
+
+    return that;
+};
+
+/**
  * pre_op operations for widgets
  * - sets facet and entity if present in context
  * @member widget
@@ -5410,6 +5495,7 @@ exp.register = function() {
     var f = reg.formatter;
 
     w.register('action_panel', IPA.action_panel);
+    w.register('activity', IPA.activity_widget);
     w.register('attribute_table', IPA.attribute_table_widget);
     w.register('button', IPA.button_widget);
     w.register('checkbox', IPA.checkbox_widget);

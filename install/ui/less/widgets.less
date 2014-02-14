@@ -1,0 +1,31 @@
+
+
+.global-activity-indicator {
+
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	background-color: rgba(0, 0, 0, 0.3);
+
+	max-height: 22px;
+	text-shadow: none;
+	color: white;
+	font-size: 20px;
+	font-weight: 300;
+	width: 200px;
+	padding: 20px;
+	margin: auto;
+}
+
+.slider{
+	overflow-y: hidden;
+	transition-property: all;
+	transition-duration: .5s;
+	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+}
+
+.slider.closed {
+	max-height: 0;
+	padding: 0 20px;
+}
