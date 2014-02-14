@@ -28,6 +28,7 @@ define([
         './jquery',
         './json2',
         './_base/i18n',
+        './auth',
         './datetime',
         './metadata',
         './builder',
@@ -35,7 +36,7 @@ define([
         './rpc',
         './text',
         'exports'
-    ], function(keys, topic, $, JSON, i18n, datetime, metadata_provider,
+    ], function(keys, topic, $, JSON, i18n, auth, datetime, metadata_provider,
         builder, reg, rpc, text, exports) {
 
 /**
@@ -107,9 +108,6 @@ var IPA = function () {
      *                                      - metadata
      *                                      - user information
      *                                      - server configuration
-     * @property {boolean} logged_kerberos - User authenticated by
-     *                                       Kerberos negotiation
-     * @property {boolean} logged_password - User authenticated by password
      */
     that.ui = {};
 
@@ -362,7 +360,7 @@ IPA.object = function(s) {
 /**
  * Make request on Kerberos authentication url to initialize Kerberos negotiation.
  *
- * Set result to IPA.ui.logged_kerberos.
+ * Set result to auth module.
  *
  * @member IPA
  */
@@ -371,12 +369,11 @@ IPA.get_credentials = function() {
 
     function error_handler(xhr, text_status, error_thrown) {
         status = xhr.status;
-        IPA.ui.logged_kerberos = false;
     }
 
     function success_handler(data, text_status, xhr) {
         status = xhr.status;
-        IPA.ui.logged_kerberos = true;
+        auth.current.set_authenticated(true, 'kerberos');
     }
 
     var request = {
@@ -397,7 +394,7 @@ IPA.get_credentials = function() {
  * Logout
  *
  * - terminate the session.
- * - redirect to logout landing page on success
+ * - reloads UI
  *
  * @member IPA
  */
@@ -412,21 +409,22 @@ IPA.logout = function() {
         dialog.open();
     }
 
-    function redirect () {
-        window.location = 'logout.html';
+    function reload () {
+        var l = window.location;
+        l.assign(l.href.split('#')[0]);
     }
 
     function success_handler(data, text_status, xhr) {
         if (data && data.error) {
             show_error(data.error.message);
         } else {
-            redirect();
+            reload();
         }
     }
 
     function error_handler(xhr, text_status, error_thrown) {
         if (xhr.status === 401) {
-            redirect();
+            reload();
         } else {
             show_error(text_status);
         }
@@ -461,7 +459,7 @@ IPA.login_password = function(username, password) {
 
     function success_handler(data, text_status, xhr) {
         result = 'success';
-        IPA.ui.logged_password = true;
+        auth.current.set_authenticated(true, 'password');
     }
 
     function error_handler(xhr, text_status, error_thrown) {
@@ -475,8 +473,6 @@ IPA.login_password = function(username, password) {
                 result = reason;
             }
         }
-
-        IPA.ui.logged_password = false;
     }
 
     var data = {
@@ -825,7 +821,7 @@ IPA.error_dialog = function(spec) {
     IPA.confirm_mixin().apply(that);
 
     /** @property {XMLHttpRequest} xhr Command's xhr */
-    that.xhr = spec.xhr || {};
+    that.xhr = spec.xhr || null;
     /** @property {string} text_status Command's text status */
     that.text_status = spec.text_status || '';
     /** @property {{name:string,message:string}} error_thrown Command's error */

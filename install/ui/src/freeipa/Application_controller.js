@@ -102,13 +102,13 @@ define([
             on(this.app_widget, 'logout-click', lang.hitch(this, this.on_logout));
             on(this.app_widget, 'password-reset-click', lang.hitch(this, this.on_password_reset));
             on(this.app_widget, 'about-click', lang.hitch(this, this.on_about));
-            on(this.menu, 'selected', lang.hitch(this, this.on_menu_select));
 
             on(this.router, 'facet-show', lang.hitch(this, this.on_facet_show));
             on(this.router, 'facet-change', lang.hitch(this, this.on_facet_change));
             on(this.router, 'facet-change-canceled', lang.hitch(this, this.on_facet_canceled));
             on(this.router, 'error', lang.hitch(this, this.on_router_error));
             topic.subscribe('phase-error', lang.hitch(this, this.on_phase_error));
+            topic.subscribe('authenticate', lang.hitch(this, this.on_authenticate));
 
             this.app_widget.render();
             this.app_widget.hide();
@@ -262,6 +262,8 @@ define([
             //this.facet_changing =  true;
             var new_facet = event.facet;
             var current_facet = this.current_facet;
+
+            if (current_facet === new_facet) return;
 
             if (current_facet && !current_facet.can_leave()) {
                 var permit_clb = lang.hitch(this, function() {
@@ -417,29 +419,45 @@ define([
         },
 
         /**
-         * Watches menu changes and adjusts facet space when there is
-         * a need for larger menu space.
-         *
-         * Show extended menu space when:
-         *     * there is 3+ levels of menu
-         *
-         * Don't show when:
-         *     * all items of levels 3+ are hidden
+         * Starts authentication process in authentication UI
+         * @returns {undefined}
          */
-        on_menu_select: function(select_state) {
+        on_authenticate: function() {
 
-            var visible_levels = 0;
-            var levels = select_state.new_selection.length;
-            for (var i=0; i< levels; i++) {
-                var item = select_state.new_selection[i];
-                if(!item.hidden) visible_levels++;
+            var self = this;
+            if (this.auth_ui === 'dialog') {
+                var dummy_command = {
+                    execute: function() {
+                        topic.publish('auth-successful');
+                    }
+                };
+
+                var dialog = IPA.unauthorized_dialog({
+                    close_on_escape: false,
+                    error_thrown: { name: '', message: ''},
+                    command: dummy_command
+                });
+
+                dialog.open();
+            } else {
+                var facet = this.current_facet;
+
+                // we don't want the load facet to be displayed after successful auth
+                if (facet && facet.name === 'load') {
+                    facet = null;
+                }
+                var login_facet = reg.facet.get('login');
+
+                on.once(login_facet, "logged_in", function() {
+
+                    if (facet) {
+                        self.show_facet(facet);
+                    }
+                    topic.publish('auth-successful');
+                });
+
+                this.show_facet(login_facet);
             }
-
-            var three_levels = visible_levels >= 3;
-
-            dom_class.toggle(this.app_widget.content_node,
-                             'nav-space-3',
-                             three_levels);
         }
     });
 

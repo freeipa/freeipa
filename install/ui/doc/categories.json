@@ -18,6 +18,8 @@
                 "classes": [
                     "phases",
                     "_base.Phase_controller*",
+                    "auth",
+                    "auth.Auth",
                     "Application_controller",
                     "app",
                     "plugin_loader",

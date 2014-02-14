@@ -23,12 +23,13 @@
 */
 
 define([
-	'dojo/_base/lang',
+    'dojo/_base/lang',
+    './auth',
     './ipa',
     './text',
     'exports'
    ],
-   function(lang, IPA, text, rpc /*exports*/) {
+   function(lang, auth, IPA, text, rpc /*exports*/) {
 
 /**
  * Call an IPA command over JSON-RPC.
@@ -206,19 +207,12 @@ rpc.command = function(spec) {
             dialog.open();
         }
 
-        function auth_dialog_open(xhr, text_status, error_thrown) {
+        function error_handler_auth(xhr, text_status, error_thrown) {
 
-            var ajax = this;
-
-            var dialog = IPA.unauthorized_dialog({
-                xhr: xhr,
-                text_status: text_status,
-                error_thrown: error_thrown,
-                close_on_escape: false,
-                command: that
+            auth.current.set_authenticated(false, '');
+            auth.current.authenticate().then(function() {
+                that.execute();
             });
-
-            dialog.open();
         }
 
         /*
@@ -259,7 +253,7 @@ rpc.command = function(spec) {
             IPA.hide_activity_icon();
 
             if (xhr.status === 401) {
-                auth_dialog_open(xhr, text_status, error_thrown);
+                error_handler_auth(xhr, text_status, error_thrown);
                 return;
             } else if (!error_thrown) {
                 error_thrown = {
@@ -281,13 +275,14 @@ rpc.command = function(spec) {
                 error_thrown.message = error_msg;
             }
 
-            // global specical cases error handlers section
+            // global special cases error handlers section
 
             // With trusts, user from trusted domain can use his ticket but he
-            // doesn't have rights for LDAP modify. It will throw internal errror.
+            // doesn't have rights for LDAP modify. It will throw internal error.
             // We should offer form base login.
-            if (xhr.status === 500 && IPA.ui.logged_kerberos && !IPA.ui.initialized) {
-                auth_dialog_open(xhr, text_status, error_thrown);
+            if (xhr.status === 500 && auth.authenticated_by === 'kerberos' &&
+                !IPA.ui.initialized) {
+                error_handler_auth(xhr, text_status, error_thrown);
                 return;
             }
 
