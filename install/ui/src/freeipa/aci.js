@@ -756,7 +756,7 @@ aci.permission_target_widget = function(spec) {
         that.type_select = IPA.select_widget({
             entity: that.entity,
             name: 'type',
-            hidden: true,
+            visible: false,
             options: types
         });
         that.widgets.add_widget(that.type_select);
@@ -764,21 +764,21 @@ aci.permission_target_widget = function(spec) {
         that.ipapermlocation_text = IPA.text_widget({
             entity: that.entity,
             name: 'ipapermlocation',
-            hidden: true
+            visible: false
         });
         that.widgets.add_widget(that.ipapermlocation_text);
 
         that.extratargetfilter_text = IPA.multivalued_widget({
             entity: that.entity,
             name: 'extratargetfilter',
-            hidden: true
+            visible: false
         });
         that.widgets.add_widget(that.extratargetfilter_text);
 
         that.ipapermtarget_text = IPA.text_widget({
             entity: that.entity,
             name: 'ipapermtarget',
-            hidden: true
+            visible: false
         });
         that.widgets.add_widget(that.ipapermtarget_text);
 
@@ -799,14 +799,14 @@ aci.permission_target_widget = function(spec) {
             entity: that.entity,
             name: 'attrs',
             object_type: types[0].name,
-            hidden: true
+            visible: false
         });
         that.widgets.add_widget(that.attribute_table);
 
         that.attribute_multivalued = IPA.multivalued_widget({
             entity: that.entity,
             name: 'attrs_multi',
-            hidden: true
+            visible: false
         });
         that.widgets.add_widget(that.attribute_multivalued);
     };
@@ -941,7 +941,7 @@ aci.permission_target_policy = function (spec) {
         var enabled = !(managed_f && that.managed) && visible && !that.system;
         field.set_enabled(enabled);
         field.set_required(visible && target_info.required);
-        widget.hidden = !visible;
+        widget.set_visible(visible);
     };
 
     that.target_mapping = {

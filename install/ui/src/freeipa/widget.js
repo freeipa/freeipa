@@ -136,6 +136,12 @@ IPA.widget = function(spec) {
     that.show_errors = spec.show_errors === undefined ? true : spec.show_errors;
 
     /**
+     * Facet should be visible
+     * @property {boolean}
+     */
+    that.visible = spec.visible === undefined ? true : spec.visible;
+
+    /**
      * Create HTML representation of a widget.
      * @method
      * @param {HTMLElement} container - Container node
@@ -169,16 +175,25 @@ IPA.widget = function(spec) {
      * @param {boolean} value - True - visible; False - hidden
      */
     that.set_visible = function(visible) {
-        var changed = visible !== that.container.is(':visible');
+        var changed = visible !== that.visible;
+        that.visible = visible;
 
         if (visible) {
-            that.container.show();
+            that.show();
         } else {
-            that.container.hide();
+            that.hide();
         }
         if (changed) {
             that.emit('visible-change', { source: that, visible: visible });
         }
+    };
+
+    that.hide = function() {
+        that.container.hide();
+    };
+
+    that.show = function() {
+        that.container.show();
     };
 
     /**
@@ -273,11 +288,7 @@ IPA.input_widget = function(spec) {
      */
     that.read_only = spec.read_only;
 
-    /**
-     * Mark the widget to be hidden (form or dialog may not display it).
-     * @property {boolean}
-     */
-    that.hidden = spec.hidden;
+
 
     //events
     //each widget can contain several events
@@ -4213,7 +4224,7 @@ IPA.table_layout = function(spec) {
             var tr = $('<tr/>');
             that.rows.put(widget.name, tr);
 
-            if (widget.hidden) {
+            if (!widget.visible) {
                 tr.css('display', 'none');
             }
 
@@ -4299,7 +4310,7 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
         var group = $('<div/>', { 'class': that.group_cls });
         that.rows.put(widget.name, group);
 
-        if (widget.hidden) {
+        if (!widget.visible) {
             group.css('display', 'none');
         }
 
@@ -4353,6 +4364,7 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
         on(widget, 'writable-change', that.on_require_change);
         on(widget, 'error-show', that.on_error_show);
         on(widget, 'error-hide', that.on_error_hide);
+        on(widget, 'visible-change', that.on_visible_change);
     };
 
     that.on_enabled_change = function(event) {
@@ -4381,6 +4393,16 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
         var row = that._get_row(event);
         if (!row) return;
         row.toggleClass('error', false);
+    };
+
+    that.on_visible_change = function(event) {
+
+        var row = that._get_row(event);
+        if (event.visible) {
+            row.css('display', '');
+        } else {
+            row.css('display', 'none');
+        }
     };
 
     that.update_state = function(row, widget) {
