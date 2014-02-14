@@ -459,78 +459,6 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Disable zone %r' % zone1,
-            command=('dnszone_disable', [zone1], {}),
-            expected={
-                'value': zone1,
-                'summary': u'Disabled DNS zone "%s"' % zone1,
-                'result': True,
-            },
-        ),
-
-
-        dict(
-            desc='Check if zone %r is really disabled' % zone1,
-            command=('dnszone_show', [zone1], {}),
-            expected={
-                'value': zone1,
-                'summary': None,
-                'result': {
-                    'dn': zone1_dn,
-                    'idnsname': [zone1],
-                    'idnszoneactive': [u'FALSE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                },
-            },
-        ),
-
-
-        dict(
-            desc='Enable zone %r' % zone1,
-            command=('dnszone_enable', [zone1], {}),
-            expected={
-                'value': zone1,
-                'summary': u'Enabled DNS zone "%s"' % zone1,
-                'result': True,
-            },
-        ),
-
-
-        dict(
-            desc='Check if zone %r is really enabled' % zone1,
-            command=('dnszone_show', [zone1], {}),
-            expected={
-                'value': zone1,
-                'summary': None,
-                'result': {
-                    'dn': zone1_dn,
-                    'idnsname': [zone1],
-                    'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                },
-            },
-        ),
-
-
-        dict(
             desc='Try to retrieve non-existent record %r in zone %r' % (name1, zone1),
             command=('dnsrecord_show', [zone1, name1], {}),
             expected=errors.NotFound(
@@ -1775,5 +1703,79 @@ class test_dns(Declarative):
             expected=errors.ValidationError(name='hostname',
                 error=u"invalid domain-name: only letters, numbers, '-' are allowed." +
                 u" DNS label may not start or end with '-'"),
+        ),
+
+
+        dict(
+            desc='Disable zone %r' % zone1,
+            command=('dnszone_disable', [zone1], {}),
+            expected={
+                'value': zone1,
+                'summary': u'Disabled DNS zone "%s"' % zone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really disabled' % zone1,
+            command=('dnszone_show', [zone1], {}),
+            expected={
+                'value': zone1,
+                'summary': None,
+                'result': {
+                    'dn': zone1_dn,
+                    'idnsname': [zone1],
+                    'idnszoneactive': [u'FALSE'],
+                    'idnssoamname': [zone1 + u'.'],
+                    'nsrecord': [zone1 + u'.'],
+                    'arecord': [zone1_ip],
+                    'idnssoarname': [zone1_rname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Enable zone %r' % zone1,
+            command=('dnszone_enable', [zone1], {}),
+            expected={
+                'value': zone1,
+                'summary': u'Enabled DNS zone "%s"' % zone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really enabled' % zone1,
+            command=('dnszone_show', [zone1], {}),
+            expected={
+                'value': zone1,
+                'summary': None,
+                'result': {
+                    'dn': zone1_dn,
+                    'idnsname': [zone1],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone1 + u'.'],
+                    'nsrecord': [zone1 + u'.'],
+                    'arecord': [zone1_ip],
+                    'idnssoarname': [zone1_rname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+            },
         ),
     ]
