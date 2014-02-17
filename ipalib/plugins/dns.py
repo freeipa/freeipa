@@ -1136,14 +1136,19 @@ class LOCRecord(DNSRecord):
     See RFC 1876 for details""")
 
     def _get_part_values(self, value):
-        regex = re.compile(\
-            r'(?P<d1>\d{1,2}\s+)(?P<m1>\d{1,2}\s+)?(?P<s1>\d{1,2}\.?\d{1,3}?\s+)?'\
-            r'(?P<dir1>[N|S])\s+'\
-            r'(?P<d2>\d{1,3}\s+)(?P<m2>\d{1,2}\s+)?(?P<s2>\d{1,2}\.?\d{1,3}?\s+)?'\
-            r'(?P<dir2>[W|E])\s+'\
-            r'(?P<alt>-?\d{1,8}\.?\d{1,2}?)m?\s*'\
-            r'(?P<siz>\d{1,8}\.?\d{1,2}?)?m?\s*'\
-            r'(?P<hp>\d{1,8}\.?\d{1,2}?)?m?\s*(?P<vp>\d{1,8}\.?\d{1,2}?)?m?\s*$')
+        regex = re.compile(
+            r'(?P<d1>\d{1,2}\s+)'
+            r'(?:(?P<m1>\d{1,2}\s+)'
+            r'(?P<s1>\d{1,2}(?:\.\d{1,3})?\s+)?)?'
+            r'(?P<dir1>[NS])\s+'
+            r'(?P<d2>\d{1,3}\s+)'
+            r'(?:(?P<m2>\d{1,2}\s+)'
+            r'(?P<s2>\d{1,2}(?:\.\d{1,3})?\s+)?)?'
+            r'(?P<dir2>[WE])\s+'
+            r'(?P<alt>-?\d{1,8}(?:\.\d{1,2})?)m?'
+            r'(?:\s+(?P<siz>\d{1,8}(?:\.\d{1,2})?)m?'
+            r'(?:\s+(?P<hp>\d{1,8}(?:\.\d{1,2})?)m?'
+            r'(?:\s+(?P<vp>\d{1,8}(?:\.\d{1,2})?)m?\s*)?)?)?$')
 
         m = regex.match(value)
 
