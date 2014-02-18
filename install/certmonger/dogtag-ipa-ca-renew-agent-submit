@@ -110,7 +110,7 @@ def store_cert():
         try:
             attempts = int(cookie)
         except ValueError:
-            return (UNCONFIGURED, "Invalid cookie")
+            return (UNCONFIGURED, "Invalid cookie: %r" % cookie)
     else:
         return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
 
@@ -175,7 +175,8 @@ def request_and_store_cert():
 
         state, sep, cookie = cookie.partition(':')
         if state not in ('request', 'store'):
-            return (UNCONFIGURED, "Invalid cookie")
+            return (UNCONFIGURED,
+                    "Invalid cookie: %r" % os.environ['CERTMONGER_CA_COOKIE'])
     else:
         return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
 
@@ -271,11 +272,55 @@ def export_csr():
 
     return (ISSUED, cert)
 
+def renew_ca_cert():
+    """
+    This is used for automatic CA certificate renewal.
+    """
+    cert = os.environ.get('CERTMONGER_CERTIFICATE')
+    if not cert:
+        return (REJECTED, "New certificate requests not supported")
+
+    operation = os.environ.get('CERTMONGER_OPERATION')
+    if operation == 'SUBMIT':
+        state = 'retrieve'
+
+        if x509.is_self_signed(cert):
+            ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+            if ca.is_renewal_master():
+                state = 'request'
+    elif operation == 'POLL':
+        cookie = os.environ.get('CERTMONGER_CA_COOKIE')
+        if not cookie:
+            return (UNCONFIGURED, "Cookie not provided")
+
+        state, sep, cookie = cookie.partition(':')
+        if state not in ('retrieve', 'request'):
+            return (UNCONFIGURED,
+                    "Invalid cookie: %r" % os.environ['CERTMONGER_CA_COOKIE'])
+
+        os.environ['CERTMONGER_CA_COOKIE'] = cookie
+    else:
+        return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
+
+    if state == 'retrieve':
+        result = retrieve_cert()
+    elif state == 'request':
+        os.environ['CERTMONGER_CA_PROFILE'] = 'caCACert'
+        result = request_and_store_cert()
+
+    if result[0] == WAIT:
+        return (result[0], '%s:%s' % (state, result[1]))
+    elif result[0] == WAIT_WITH_DELAY:
+        return (result[0], result[1], '%s:%s' % (state, result[2]))
+    else:
+        return result
+
 def main():
     handlers = {
         'ipaStorage':       store_cert,
         'ipaRetrieval':     retrieve_cert,
         'ipaCSRExport':     export_csr,
+        'ipaCACertRenewal': renew_ca_cert,
     }
 
     api.bootstrap(context='renew')
