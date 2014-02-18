@@ -399,7 +399,7 @@ class permission_mod(LDAPUpdate):
         result = self.api.Command.permission_show(cn, **common_options)['result']
 
         for r in result:
-            if not r.startswith('member_'):
+            if not r.startswith('member_') and not r.startswith('memberindirect'):
                 entry_attrs[r] = result[r]
         return dn
 
