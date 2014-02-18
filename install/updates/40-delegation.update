@@ -71,6 +71,8 @@ add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
 dn: cn=Revoke Certificate,cn=permissions,cn=pbac,$SUFFIX
 add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
 
+dn: cn=ipa,cn=etc,$SUFFIX
+add:aci:'(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,$SUFFIX")(targetattr = cACertificate)(version 3.0; acl "Modify CA Certificate"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
 
 # Automember tasks
 dn: cn=Automember Task Administrator,cn=privileges,cn=pbac,$SUFFIX
