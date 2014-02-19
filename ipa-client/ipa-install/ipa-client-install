@@ -2203,6 +2203,25 @@ def install(options, env, fstore, statestore):
         # skip this step when run by ipa-server-install as it always configures
         # hostname if different from system hostname
         ipaservices.backup_and_replace_hostname(fstore, statestore, options.hostname)
+   
+    if not options.on_master:
+        # Attempt to sync time with IPA server.
+        # We assume that NTP servers are discoverable through SRV records in the DNS
+        # If that fails, we try to sync directly with IPA server, assuming it runs NTP
+        root_logger.info('Synchronizing time with KDC...')
+        ntp_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp', None, break_on_first=False)
+        synced_ntp = False
+        if ntp_servers:
+            for s in ntp_servers:
+                synced_ntp = ipaclient.ntpconf.synconce_ntp(s)
+                if synced_ntp:
+                    break
+        if not synced_ntp:
+            synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server[0])
+        if not synced_ntp:
+            root_logger.warning("Unable to sync time with IPA NTP " +
+                "server, assuming the time is in sync. Please check " +
+                "that 123 UDP port is opened.")
 
     if not options.unattended:
         if (options.principal is None and options.password is None and
@@ -2216,23 +2235,6 @@ def install(options, env, fstore, statestore):
         nolog = tuple()
         # First test out the kerberos configuration
         try:
-            # Attempt to sync time with IPA server.
-            # We assume that NTP servers are discoverable through SRV records in the DNS
-            # If that fails, we try to sync directly with IPA server, assuming it runs NTP
-            root_logger.info('Synchronizing time with KDC...')
-            ntp_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp', None, break_on_first=False)
-            synced_ntp = False
-            if ntp_servers:
-                for s in ntp_servers:
-                    synced_ntp = ipaclient.ntpconf.synconce_ntp(s)
-                    if synced_ntp:
-                        break
-            if not synced_ntp:
-                synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server[0])
-            if not synced_ntp:
-                root_logger.warning("Unable to sync time with IPA NTP " +
-                    "server, assuming the time is in sync. Please check " +
-                    "that 123 UDP port is opened.")
             (krb_fd, krb_name) = tempfile.mkstemp()
             os.close(krb_fd)
             if configure_krb5_conf(
