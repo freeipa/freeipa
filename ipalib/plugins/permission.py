@@ -883,7 +883,9 @@ class permission_mod(baseldap.LDAPUpdate):
         # it cannot be used directly to generate an ACI.
         # First we need to copy the original data into it.
         for key, value in old_entry.iteritems():
-            if key not in options and key != 'cn':
+            if (key not in options and
+                    key != 'cn' and
+                    key not in self.obj.attribute_members):
                 entry.setdefault(key, value)
 
         if not entry.get('ipapermlocation'):
