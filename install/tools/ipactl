@@ -291,6 +291,15 @@ def ipa_stop(options):
 def ipa_restart(options):
     dirsrv = ipaservices.knownservices.dirsrv
     new_svc_list = []
+    dirsrv_restart = True
+    if not dirsrv.is_running():
+        try:
+            print "Starting Directory Service"
+            dirsrv.start(capture_output=get_capture_output('dirsrv', options.debug))
+            dirsrv_restart = False
+        except Exception, e:
+            raise IpactlError("Failed to start Directory Service: " + str(e))
+
     try:
         new_svc_list = get_config(dirsrv)
     except Exception, e:
@@ -339,8 +348,9 @@ def ipa_restart(options):
                 emit_err("Failed to stop %s Service" % svc)
 
     try:
-        print "Restarting Directory Service"
-        dirsrv.restart(capture_output=get_capture_output('dirsrv', options.debug))
+        if dirsrv_restart:
+            print "Restarting Directory Service"
+            dirsrv.restart(capture_output=get_capture_output('dirsrv', options.debug))
     except Exception, e:
         emit_err("Failed to restart Directory Service: " + str(e))
         emit_err("Shutting down")
