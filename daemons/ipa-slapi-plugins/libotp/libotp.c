@@ -332,6 +332,7 @@ static struct otptoken **find(Slapi_ComponentId *id, const char *user_dn,
     Slapi_PBlock *pb = NULL;
     Slapi_DN *sdn = NULL;
     char *filter = NULL;
+    const char *basedn = NULL;
     size_t count = 0;
     int result = -1;
 
@@ -362,8 +363,12 @@ static struct otptoken **find(Slapi_ComponentId *id, const char *user_dn,
         if (sdn == NULL)
             goto error;
 
+        basedn = get_basedn(sdn);
+        if (basedn == NULL)
+            goto error;
+
         /* Find all user tokens. */
-        slapi_search_internal_set_pb(pb, get_basedn(sdn),
+        slapi_search_internal_set_pb(pb, basedn,
                                      LDAP_SCOPE_SUBTREE, filter, NULL,
                                      0, NULL, NULL, id, 0);
     }
