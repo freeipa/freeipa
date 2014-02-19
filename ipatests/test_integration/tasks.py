@@ -137,7 +137,7 @@ def restore_files(host):
 
     # Run both commands in one session. For more information, see:
     # https://fedorahosted.org/freeipa/ticket/4133
-    host.run_command('%s ; (%s ||:)' % (restorecon_command, copyfiles_command))
+    host.run_command('%s ; (%s ||:)' % (copyfiles_command, restorecon_command))
 
     # Remove all the files that did not exist and were 'backed up'
     host.run_command(['xargs', '-d', r'\n', '-a', rmname, 'rm', '-vf'],
