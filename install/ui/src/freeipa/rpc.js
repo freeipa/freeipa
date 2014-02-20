@@ -228,17 +228,26 @@ rpc.command = function(spec) {
          * session credentials.
          */
         function error_handler_login(xhr, text_status, error_thrown) {
-            if (xhr.status === 401) {
-                var login_status = IPA.get_credentials();
 
-                if (login_status === 200) {
-                    that.request.error = error_handler;
-                    $.ajax(that.request);
-                    return;
-                }
+            var self = this;
+            function proceed() {
+                // error_handler() calls IPA.hide_activity_icon()
+                error_handler.call(self, xhr, text_status, error_thrown);
             }
-            // error_handler() calls IPA.hide_activity_icon()
-            error_handler.call(this, xhr, text_status, error_thrown);
+
+            if (xhr.status === 401) {
+
+                IPA.get_credentials().then(function(login_status) {
+                    if (login_status === 200) {
+                        that.request.error = error_handler;
+                        $.ajax(that.request);
+                        return;
+                    }
+                    proceed();
+                });
+            } else {
+                proceed();
+            }
         }
 
         /*

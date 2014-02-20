@@ -23,6 +23,7 @@
 */
 
 define([
+        'dojo/Deferred',
         'dojo/keys',
         'dojo/topic',
         './jquery',
@@ -36,8 +37,8 @@ define([
         './rpc',
         './text',
         'exports'
-    ], function(keys, topic, $, JSON, i18n, auth, datetime, metadata_provider,
-        builder, reg, rpc, text, exports) {
+    ], function(Deferred, keys, topic, $, JSON, i18n, auth, datetime,
+        metadata_provider, builder, reg, rpc, text, exports) {
 
 /**
  * @class
@@ -366,28 +367,30 @@ IPA.object = function(s) {
  */
 IPA.get_credentials = function() {
     var status;
+    var d = new Deferred();
 
     function error_handler(xhr, text_status, error_thrown) {
-        status = xhr.status;
+        d.resolve(xhr.status);
+        IPA.hide_activity_icon();
     }
 
     function success_handler(data, text_status, xhr) {
-        status = xhr.status;
         auth.current.set_authenticated(true, 'kerberos');
+        d.resolve(xhr.status);
+        IPA.hide_activity_icon();
     }
 
     var request = {
         url: IPA.login_url,
         cache: false,
-        async: false,
         type: "GET",
         success: success_handler,
         error: error_handler
     };
-
+    IPA.display_activity_icon();
     $.ajax(request);
 
-    return status;
+    return d.promise;
 };
 
 /**
@@ -415,6 +418,7 @@ IPA.logout = function() {
     }
 
     function success_handler(data, text_status, xhr) {
+        IPA.hide_activity_icon();
         if (data && data.error) {
             show_error(data.error.message);
         } else {
@@ -423,6 +427,7 @@ IPA.logout = function() {
     }
 
     function error_handler(xhr, text_status, error_thrown) {
+        IPA.hide_activity_icon();
         if (xhr.status === 401) {
             reload();
         } else {
@@ -441,7 +446,7 @@ IPA.logout = function() {
         success: success_handler,
         error: error_handler
     };
-
+    IPA.display_activity_icon();
     $.ajax(request);
 };
 
@@ -456,14 +461,18 @@ IPA.logout = function() {
 IPA.login_password = function(username, password) {
 
     var result = 'invalid';
+    var d = new Deferred();
 
     function success_handler(data, text_status, xhr) {
+        IPA.hide_activity_icon();
         result = 'success';
         auth.current.set_authenticated(true, 'password');
+        d.resolve(result);
     }
 
     function error_handler(xhr, text_status, error_thrown) {
 
+        IPA.hide_activity_icon();
         if (xhr.status === 401) {
             var reason = xhr.getResponseHeader("X-IPA-Rejection-Reason");
 
@@ -473,6 +482,7 @@ IPA.login_password = function(username, password) {
                 result = reason;
             }
         }
+        d.resolve(result);
     }
 
     var data = {
@@ -486,7 +496,6 @@ IPA.login_password = function(username, password) {
         contentType: 'application/x-www-form-urlencoded',
         processData: true,
         dataType: 'html',
-        async: false,
         type: 'POST',
         success: success_handler,
         error: error_handler
@@ -494,9 +503,8 @@ IPA.login_password = function(username, password) {
 
     IPA.display_activity_icon();
     $.ajax(request);
-    IPA.hide_activity_icon();
 
-    return result;
+    return d.promise;
 };
 
 /**

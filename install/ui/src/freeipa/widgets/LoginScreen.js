@@ -337,14 +337,14 @@ define(['dojo/_base/declare',
 
         login_with_kerberos: function() {
 
-            var status = IPA.get_credentials();
-
-            if (status === 200) {
-                this.emit('logged_in');
-            } else {
-                var val_summary = this.get_widget('validation');
-                val_summary.add_error('login', this.krb_auth_failed);
-            }
+            IPA.get_credentials().then(lang.hitch(this, function(status) {
+                if (status === 200) {
+                    this.emit('logged_in');
+                } else {
+                    var val_summary = this.get_widget('validation');
+                    val_summary.add_error('login', this.krb_auth_failed);
+                }
+            }));
         },
 
         login_with_password: function() {
@@ -356,18 +356,20 @@ define(['dojo/_base/declare',
             var password_f = this.get_field('password');
             var password = password_f.get_value()[0];
 
-            var result = IPA.login_password(login, password);
+            IPA.login_password(login, password).then(
+                lang.hitch(this, function(result) {
 
-            if (result === 'success') {
-                this.emit('logged_in');
-                password_f.set_value('');
-            } else if (result === 'password-expired') {
-                this.set('view', 'reset');
-                val_summary.add_error('login', this.password_expired);
-            } else {
-                val_summary.add_error('login', this.form_auth_failed);
-                password_f.set_value('');
-            }
+                if (result === 'success') {
+                    this.emit('logged_in');
+                    password_f.set_value('');
+                } else if (result === 'password-expired') {
+                    this.set('view', 'reset');
+                    val_summary.add_error('login', this.password_expired);
+                } else {
+                    val_summary.add_error('login', this.form_auth_failed);
+                    password_f.set_value('');
+                }
+            }));
         },
 
         login_and_reset: function() {
