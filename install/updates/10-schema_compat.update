@@ -23,3 +23,10 @@ default:schema-compat-entry-attribute: macAddress=%{macAddress}
 
 dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
 add:schema-compat-entry-attribute: sudoOrder=%{sudoOrder}
+
+dn: cn=Schema Compatibility,cn=plugins,cn=config
+# We need to run schema-compat pre-bind callback before
+# other IPA pre-bind callbacks to make sure bind DN is
+# rewritten to the original entry if needed
+add:nsslapd-pluginprecedence: 49
+
