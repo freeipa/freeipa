@@ -53,7 +53,10 @@ EXAMPLES:
 
 register = Registry()
 
-TOKEN_TYPES = (u'totp', u'hotp')
+TOKEN_TYPES = {
+    u'totp': ['ipatokentotpclockoffset', 'ipatokentotptimestep'],
+    u'hotp': ['ipatokenhotpcounter']
+}
 
 # NOTE: For maximum compatibility, KEY_LENGTH % 5 == 0
 KEY_LENGTH = 10
@@ -117,12 +120,16 @@ class otptoken(LDAPObject):
         Str('ipatokenuniqueid',
             cli_name='id',
             label=_('Unique ID'),
+            default_from=lambda: unicode(uuid.uuid4()),
+            autofill=True,
             primary_key=True,
             flags=('optional_create'),
         ),
         StrEnum('type?',
             label=_('Type'),
-            values=TOKEN_TYPES,
+            default=u'totp',
+            autofill=True,
+            values=tuple(TOKEN_TYPES.keys()),
             flags=('virtual_attribute', 'no_update'),
         ),
         Str('description?',
@@ -148,23 +155,33 @@ class otptoken(LDAPObject):
         Str('ipatokenvendor?',
             cli_name='vendor',
             label=_('Vendor'),
+            default=u'FreeIPA',
+            autofill=True,
         ),
         Str('ipatokenmodel?',
             cli_name='model',
             label=_('Model'),
+            default_from=lambda type: type,
+            autofill=True,
         ),
         Str('ipatokenserial?',
             cli_name='serial',
             label=_('Serial'),
+            default_from=lambda id: id,
+            autofill=True,
         ),
         OTPTokenKey('ipatokenotpkey?',
             cli_name='key',
             label=_('Key'),
+            default_from=lambda: "".join(random.SystemRandom().sample(map(chr, range(256)), 10)),
+            autofill=True,
             flags=('no_display', 'no_update', 'no_search'),
         ),
         StrEnum('ipatokenotpalgorithm?',
             cli_name='algo',
             label=_('Algorithm'),
+            default=u'sha1',
+            autofill=True,
             flags=('no_update'),
             values=(u'sha1', u'sha256', u'sha384', u'sha512'),
         ),
@@ -172,22 +189,30 @@ class otptoken(LDAPObject):
             cli_name='digits',
             label=_('Display length'),
             values=(6, 8),
+            default=6,
+            autofill=True,
             flags=('no_update'),
         ),
         Int('ipatokentotpclockoffset?',
             cli_name='offset',
             label=_('Clock offset'),
+            default=0,
+            autofill=True,
             flags=('no_update'),
         ),
         Int('ipatokentotptimestep?',
             cli_name='interval',
             label=_('Clock interval'),
+            default=30,
+            autofill=True,
             minvalue=5,
             flags=('no_update'),
         ),
         Int('ipatokenhotpcounter?',
             cli_name='counter',
             label=_('Counter'),
+            default=0,
+            autofill=True,
             minvalue=0,
             flags=('no_update'),
         ),
@@ -208,37 +233,13 @@ class otptoken_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        # These are values we always want to write to LDAP. So if they are
-        # specified as a value that evaluates to False (i.e. None), delete them
-        # and fill in the defaults below.
-        for attr in ('ipatokentotpclockoffset', 'ipatokentotptimestep',
-                     'ipatokenotpalgorithm', 'ipatokenotpdigits',
-                     'ipatokenotpkey'):
-            if attr in entry_attrs and not entry_attrs[attr]:
-                del entry_attrs[attr]
-
-        # Set defaults. This needs to happen on the server side because we may
-        # have global configurable defaults in the near future.
-        options.setdefault('type', TOKEN_TYPES[0])
-        if entry_attrs.get('ipatokenuniqueid', None) is None:
-            entry_attrs['ipatokenuniqueid'] = str(uuid.uuid4())
-            dn = DN("ipatokenuniqueid=%s" % entry_attrs['ipatokenuniqueid'], dn)
-        entry_attrs.setdefault('ipatokenvendor', u'FreeIPA')
-        entry_attrs.setdefault('ipatokenmodel', options['type'])
-        entry_attrs.setdefault('ipatokenserial', entry_attrs['ipatokenuniqueid'])
-        entry_attrs.setdefault('ipatokenotpalgorithm', u'sha1')
-        entry_attrs.setdefault('ipatokenotpdigits', 6)
-        entry_attrs.setdefault('ipatokenotpkey',
-            "".join(map(chr, random.SystemRandom().sample(range(255), KEY_LENGTH))))
-
         # Set the object class and defaults for specific token types
-        if options['type'] == 'totp':
-            entry_attrs['objectclass'] = otptoken.object_class + ['ipatokentotp']
-            entry_attrs.setdefault('ipatokentotpclockoffset', 0)
-            entry_attrs.setdefault('ipatokentotptimestep', 30)
-        elif options['type'] == 'hotp':
-            entry_attrs['objectclass'] = otptoken.object_class + ['ipatokenhotp']
-            entry_attrs.setdefault('ipatokenhotpcounter', 0)
+        entry_attrs['objectclass'] = otptoken.object_class + ['ipatoken' + options['type']]
+        for ttype, tattrs in TOKEN_TYPES.items():
+            if ttype != options['type']:
+                for tattr in tattrs:
+                    if tattr in entry_attrs:
+                        del entry_attrs[tattr]
 
         # Resolve the user's dn
         _normalize_owner(self.api.Object.user, entry_attrs)
