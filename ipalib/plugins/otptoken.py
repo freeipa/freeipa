@@ -80,7 +80,7 @@ class OTPTokenKey(Bytes):
             except TypeError, e:
                 raise ConversionError(name=self.name, index=index, error=str(e))
 
-        return Bytes._convert_scalar(value, index)
+        return super(OTPTokenKey, self)._convert_scalar(value, index)
 
 def _convert_owner(userobj, entry_attrs, options):
     if 'ipatokenowner' in entry_attrs and not options.get('raw', False):
