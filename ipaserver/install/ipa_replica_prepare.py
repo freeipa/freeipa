@@ -202,8 +202,11 @@ class ReplicaPrepare(admintool.AdminTool):
             if not dns_container_exists(api.env.host, api.env.basedn,
                                         dm_password=self.dirman_password,
                                         ldapi=True, realm=api.env.realm):
-                raise admintool.ScriptError("You can't add a DNS record "
-                    "because DNS is not set up.")
+                self.log.error(
+                    "It is not possible to add a DNS record automatically "
+                    "because DNS is not managed by IPA. Please create DNS "
+                    "record manually and then omit --ip-address option.")
+                raise admintool.ScriptError("Cannot add DNS record")
             if options.reverse_zone and not bindinstance.verify_reverse_zone(
                     options.reverse_zone, options.ip_address):
                 raise admintool.ScriptError("Invalid reverse zone")
