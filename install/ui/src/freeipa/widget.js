@@ -3305,7 +3305,7 @@ IPA.combobox_widget = function(spec) {
 
         that.list_container = $('<div/>', {
             'class': 'combobox-widget-list',
-            css: { 'z-index': that.z_index },
+            css: { 'z-index': that.z_index, 'display':'none' },
             keydown: that.on_list_container_keydown
         }).appendTo(that.input_container);
 
@@ -3505,16 +3505,16 @@ IPA.combobox_widget = function(spec) {
 
     that.open = function() {
         if (!that.read_only && that.enabled) {
-            that.list_container.css('visibility', 'visible');
+            that.list_container.css('display', '');
         }
     };
 
     that.close = function() {
-        that.list_container.css('visibility', 'hidden');
+        that.list_container.css('display', 'none');
     };
 
     that.is_open = function() {
-        return that.list_container.css('visibility') == 'visible';
+        return that.list_container.css('display') != 'none';
     };
 
     that.search = function(filter, on_success, on_error) {
