@@ -220,6 +220,31 @@ class test_permission_negative(Declarative):
         verify_permission_aci_missing(permission1, users_dn),
 
         dict(
+            desc='Try creating %r with bad attribute name' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                    type=u'user',
+                    ipapermright=u'write',
+                    attrs=u'bogusattr',
+                )
+            ),
+            expected=errors.InvalidSyntax(
+                attr=r'targetattr "bogusattr" does not exist in schema. '
+                     r'Please add attributeTypes "bogusattr" to '
+                     r'schema if necessary. '
+                     r'ACL Syntax Error(-5):'
+                     r'(targetattr = \22bogusattr\22)'
+                     r'(targetfilter = \22(objectclass=posixaccount)\22)'
+                     r'(version 3.0;acl \22permission:%(name)s\22;'
+                     r'allow (write) groupdn = \22ldap:///%(dn)s\22;)' % dict(
+                        name=permission1,
+                        dn=permission1_dn),
+            ),
+        ),
+
+        verify_permission_aci_missing(permission1, users_dn),
+
+        dict(
             desc='Create %r so we can try breaking it' % permission1,
             command=(
                 'permission_add', [permission1], dict(

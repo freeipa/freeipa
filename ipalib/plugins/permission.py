@@ -830,7 +830,26 @@ class permission_add(baseldap.LDAPCreate):
         return dn
 
     def post_callback(self, ldap, dn, entry, *keys, **options):
-        self.obj.add_aci(entry)
+        try:
+            self.obj.add_aci(entry)
+        except Exception:
+            # Adding the ACI failed.
+            # We want to be 100% sure the ACI is not there, so try to
+            # remove it. (This is a no-op if the ACI was not added.)
+            self.obj.remove_aci(entry)
+            # Remove the entry.
+            # The permission entry serves as a "lock" tho prevent
+            # permission-add commands started at the same time from
+            # interfering. As long as the entry is there, the other
+            # permission-add will fail with DuplicateEntry.
+            # So deleting entry ("releasing the lock") must be the last
+            # thing we do here.
+            try:
+                self.api.Backend['ldap2'].delete_entry(entry)
+            except errors.NotFound:
+                pass
+            # Re-raise original exception
+            raise
         self.obj.postprocess_result(entry, options)
         return dn
 
