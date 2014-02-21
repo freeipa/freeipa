@@ -554,31 +554,19 @@ class test_old_permission(Declarative):
 
         # This tests setting truncated to True in the post_callback of
         # permission_find(). The return order in LDAP is not guaranteed
-        # but in practice this is the first entry it finds. This is subject
-        # to change.
+        # so do not check the actual entry.
         dict(
             desc='Search for permissions by attr with a limit of 1 (truncated)',
-            command=('permission_find', [], dict(attrs=u'ipaenabledflag',
-                                                 sizelimit=1)),
+            command=('permission_find', [u'Modify'],
+                     dict(attrs=u'ipaenabledflag', sizelimit=1)),
             expected=dict(
                 count=1,
                 truncated=True,
                 summary=u'1 permission matched',
-                result=[
-                    {
-                        'dn': DN(('cn', 'Modify HBAC rule'),
-                                 api.env.container_permission, api.env.basedn),
-                        'cn': [u'Modify HBAC rule'],
-                        'objectclass': objectclasses.permission,
-                        'member_privilege': [u'HBAC Administrator'],
-                        'memberindirect_role': [u'IT Security Specialist'],
-                        'permissions' : [u'write'],
-                        'attrs': [u'servicecategory', u'sourcehostcategory', u'cn', u'description', u'ipaenabledflag', u'accesstime', u'usercategory', u'hostcategory', u'accessruletype', u'sourcehost'],
-                        'ipapermbindruletype': [u'permission'],
-                        'ipapermtarget': [DN('ipauniqueid=*', hbac_dn)],
-                        'subtree': u'ldap:///%s' % api.env.basedn,
-                    },
-                ],
+                result=[lambda res:
+                    DN(res['dn']).endswith(DN(api.env.container_permission,
+                                              api.env.basedn)) and
+                    'ipapermission' in res['objectclass']],
             ),
         ),
 
