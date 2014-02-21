@@ -261,8 +261,10 @@ class UI_driver(object):
         Check if there is running AJAX request
         """
         indicator = self.find(".network-activity-indicator", By.CSS_SELECTOR)
-        displayed = indicator and indicator.is_displayed()
-        return displayed
+        i_visible = indicator and indicator.is_displayed()
+        global_indicator = self.find(".global-activity-indicator", By.CSS_SELECTOR)
+        g_visible = global_indicator and global_indicator.is_displayed()
+        return i_visible or g_visible
 
     def wait(self, seconds=0.2):
         """
@@ -321,19 +323,19 @@ class UI_driver(object):
             if not new_password:
                 new_password = password
 
-            auth = self.get_auth_dialog()
+            auth = self.get_login_screen()
             login_tb = self.find("//input[@type='text'][@name='username']", 'xpath', auth, strict=True)
             psw_tb = self.find("//input[@type='password'][@name='password']", 'xpath', auth, strict=True)
             login_tb.send_keys(login)
             psw_tb.send_keys(password)
             psw_tb.send_keys(Keys.RETURN)
             self.wait(0.5)
-            self.wait_for_request()
+            self.wait_for_request(n=2)
 
             # reset password if needed
-            if self.get_auth_dialog():
-                newpw_tb = self.find("//input[@type='password'][@name='new_password']", 'xpath', auth, strict=True)
-                verify_tb = self.find("//input[@type='password'][@name='verify_password']", 'xpath', auth, strict=True)
+            newpw_tb = self.find("//input[@type='password'][@name='new_password']", 'xpath', auth, strict=True)
+            verify_tb = self.find("//input[@type='password'][@name='verify_password']", 'xpath', auth, strict=True)
+            if newpw_tb.is_displayed():
                 newpw_tb.send_keys(new_password)
                 verify_tb.send_keys(new_password)
                 verify_tb.send_keys(Keys.RETURN)
@@ -346,24 +348,24 @@ class UI_driver(object):
         """
         login_as = self.find('loggedinas', 'class name')
         visible_name = len(login_as.text) > 0
-        logged_in = not self.auth_dialog_opened() and visible_name
+        logged_in = not self.login_screen_visible() and visible_name
         return logged_in
 
     def logout(self):
         self.profile_menu_action('logout')
 
-    def get_auth_dialog(self):
+    def get_login_screen(self):
         """
-        Get reference to authentication dialog
+        Get reference of login screen
         """
-        return self.find('unauthorized_dialog', 'id')
+        return self.find('rcue-login-screen', 'id')
 
-    def auth_dialog_opened(self):
+    def login_screen_visible(self):
         """
-        Check if authentication dialog is opened
+        Check if login screen is visible
         """
-        dialog = self.get_auth_dialog()
-        return dialog and dialog.is_displayed()
+        screen = self.get_login_screen()
+        return screen and screen.is_displayed()
 
     def navigate_to_entity(self, entity, facet=None):
         self.driver.get(self.get_url(entity, facet))
