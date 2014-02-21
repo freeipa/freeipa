@@ -31,10 +31,12 @@ from ipatests.util import raises, ClassChecker, read_only
 from ipatests.util import dummy_ugettext, assert_equal
 from ipatests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib import parameters, text, errors, config
-from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
+from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
 from xmlrpclib import MAXINT, MININT
+
+NULLS = (None, '', u'', tuple(), [])
 
 class test_DefaultFrom(ClassChecker):
     """

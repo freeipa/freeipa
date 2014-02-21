@@ -32,9 +32,6 @@ except:
     except:
         FQDN = None
 
-# The parameter system treats all these values as None:
-NULLS = (None, '', u'', tuple(), [])
-
 # regular expression NameSpace member names must match:
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
 

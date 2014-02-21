@@ -109,10 +109,13 @@ from text import _ as ugettext
 from plugable import ReadOnly, lock, check_name
 from errors import ConversionError, RequirementError, ValidationError
 from errors import PasswordMismatch, Base64DecodeError
-from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
+from constants import TYPE_ERROR, CALLABLE_ERROR
 from text import Gettext, FixMe
 from util import json_serialize
 from ipapython.dn import DN
+
+def _is_null(value):
+    return not value and value != 0 # NOTE: False == 0
 
 class DefaultFrom(ReadOnly):
     """
@@ -550,7 +553,7 @@ class Param(ReadOnly):
         """
         One stop shopping.
         """
-        if value in NULLS:
+        if _is_null(value):
             value = self.get_default(**kw)
         else:
             value = self.convert(self.normalize(value))
@@ -740,16 +743,16 @@ class Param(ReadOnly):
 
         (Note that `Str` is a subclass of `Param`.)
 
-        All values in `constants.NULLS` will be converted to ``None``.  For
-        example:
+        All non-numeric, non-boolean values which evaluate to False will be
+        converted to None.  For example:
 
         >>> scalar.convert(u'') is None  # An empty string
         True
         >>> scalar.convert([]) is None  # An empty list
         True
 
-        Likewise, values in `constants.NULLS` will be filtered out of a
-        multivalue parameter.  For example:
+        Likewise, they will be filtered out of a multivalue parameter.
+        For example:
 
         >>> multi = Str('my_multi', multivalue=True)
         >>> multi.convert([1.5, '', 17, None, u'Hello'])
@@ -772,14 +775,14 @@ class Param(ReadOnly):
 
         :param value: A proposed value for this parameter.
         """
-        if value in NULLS:
+        if _is_null(value):
             return
         if self.multivalue:
             if type(value) not in (tuple, list):
                 value = (value,)
             values = tuple(
                 self._convert_scalar(v, i) for (i, v) in filter(
-                    lambda iv: iv[1] not in NULLS, enumerate(value)
+                    lambda iv: not _is_null(iv[1]), enumerate(value)
                 )
             )
             if len(values) == 0:
