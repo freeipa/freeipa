@@ -25,6 +25,8 @@
 
 #include "ipa_kdb.h"
 
+#define IPADB_GLOBAL_CONFIG_CACHE_TIME 60
+
 struct ipadb_context *ipadb_get_context(krb5_context kcontext)
 {
     void *db_ctx;
@@ -41,6 +43,7 @@ struct ipadb_context *ipadb_get_context(krb5_context kcontext)
 static void ipadb_context_free(krb5_context kcontext,
                                struct ipadb_context **ctx)
 {
+    struct ipadb_global_config *cfg;
     size_t c;
 
     if (*ctx != NULL) {
@@ -56,10 +59,11 @@ static void ipadb_context_free(krb5_context kcontext,
         ipadb_mspac_struct_free(&(*ctx)->mspac);
         krb5_free_default_realm(kcontext, (*ctx)->realm);
 
-        for (c = 0; (*ctx)->authz_data && (*ctx)->authz_data[c]; c++) {
-            free((*ctx)->authz_data[c]);
+        cfg = &(*ctx)->config;
+        for (c = 0; cfg->authz_data && cfg->authz_data[c]; c++) {
+            free(cfg->authz_data[c]);
         }
-        free((*ctx)->authz_data);
+        free(cfg->authz_data);
 
         free(*ctx);
         *ctx = NULL;
@@ -209,7 +213,7 @@ void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
     ldap_value_free_len(vals);
 }
 
-int ipadb_get_global_configs(struct ipadb_context *ipactx)
+static int ipadb_load_global_config(struct ipadb_context *ipactx)
 {
     char *attrs[] = { "ipaConfigString", IPA_KRB_AUTHZ_DATA_ATTR,
                       IPA_USER_AUTH_TYPE, NULL };
@@ -217,7 +221,6 @@ int ipadb_get_global_configs(struct ipadb_context *ipactx)
     LDAPMessage *res = NULL;
     LDAPMessage *first;
     char *base = NULL;
-    int i;
     int ret;
     char **authz_data_list;
 
@@ -241,45 +244,44 @@ int ipadb_get_global_configs(struct ipadb_context *ipactx)
     }
 
     /* Check for permitted authentication types. */
-    ipadb_parse_user_auth(ipactx->lcontext, res, &ipactx->user_auth);
+    ipadb_parse_user_auth(ipactx->lcontext, res, &ipactx->config.user_auth);
 
-    vals = ldap_get_values_len(ipactx->lcontext, first,
-                               "ipaConfigString");
-    if (!vals || !vals[0]) {
-        /* no config, set nothing */
-        ret = 0;
-        goto done;
+    /* Load config strings. */
+    vals = ldap_get_values_len(ipactx->lcontext, first, "ipaConfigString");
+    if (vals) {
+        ipactx->config.disable_last_success = false;
+        ipactx->config.disable_lockout = false;
+        for (int i = 0; vals[i]; i++) {
+            if (strncasecmp("KDC:Disable Last Success",
+                            vals[i]->bv_val, vals[i]->bv_len) == 0) {
+                ipactx->config.disable_last_success = true;
+                continue;
+            }
+
+            if (strncasecmp("KDC:Disable Lockout",
+                            vals[i]->bv_val, vals[i]->bv_len) == 0) {
+                ipactx->config.disable_lockout = true;
+                continue;
+            }
+        }
     }
 
-    for (i = 0; vals[i]; i++) {
-        if (strncasecmp("KDC:Disable Last Success",
-                        vals[i]->bv_val, vals[i]->bv_len) == 0) {
-            ipactx->disable_last_success = true;
-            continue;
-        }
-        if (strncasecmp("KDC:Disable Lockout",
-                        vals[i]->bv_val, vals[i]->bv_len) == 0) {
-            ipactx->disable_lockout = true;
-            continue;
-        }
-    }
-
+	/* Load authz data. */
     ret = ipadb_ldap_attr_to_strlist(ipactx->lcontext, first,
                                      IPA_KRB_AUTHZ_DATA_ATTR, &authz_data_list);
-    if (ret != 0 && ret != ENOENT) {
-        goto done;
-    }
     if (ret == 0) {
-        if (ipactx->authz_data != NULL) {
-            for (i = 0; ipactx->authz_data[i]; i++) {
-                free(ipactx->authz_data[i]);
-            }
-            free(ipactx->authz_data);
+        if (ipactx->config.authz_data != NULL) {
+            for (int i = 0; ipactx->config.authz_data[i]; i++)
+                free(ipactx->config.authz_data[i]);
+            free(ipactx->config.authz_data);
         }
 
-        ipactx->authz_data = authz_data_list;
-    }
+        ipactx->config.authz_data = authz_data_list;
+    } else if (ret != ENOENT)
+        goto done;
 
+    /* Success! */
+    ipactx->config.last_update = time(NULL);
     ret = 0;
 
 done:
@@ -287,6 +289,18 @@ done:
     ldap_msgfree(res);
     free(base);
     return ret;
+}
+
+const struct ipadb_global_config *
+ipadb_get_global_config(struct ipadb_context *ipactx)
+{
+    time_t now = 0;
+
+    if (time(&now) != (time_t)-1
+        && now - ipactx->config.last_update > IPADB_GLOBAL_CONFIG_CACHE_TIME)
+        ipadb_load_global_config(ipactx);
+
+    return &ipactx->config;
 }
 
 int ipadb_get_connection(struct ipadb_context *ipactx)
@@ -390,7 +404,7 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
     ipactx->n_supp_encs = n_kst;
 
     /* get additional options */
-    ret = ipadb_get_global_configs(ipactx);
+    ret = ipadb_load_global_config(ipactx);
     if (ret) {
         goto done;
     }

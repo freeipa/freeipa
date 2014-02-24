@@ -320,18 +320,25 @@ static void ipadb_validate_password(struct ipadb_context *ipactx,
 static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
                                                 LDAPMessage *lentry)
 {
+    enum ipadb_user_auth gua = IPADB_USER_AUTH_NONE;
     enum ipadb_user_auth ua = IPADB_USER_AUTH_NONE;
+    const struct ipadb_global_config *gcfg = NULL;
 
     /* Get the user's user_auth settings. */
     ipadb_parse_user_auth(ipactx->lcontext, lentry, &ua);
 
+    /* Get the global user_auth settings. */
+    gcfg = ipadb_get_global_config(ipactx);
+    if (gcfg != NULL)
+        gua = gcfg->user_auth;
+
     /* If the disabled flag is set, ignore everything else. */
-    if ((ua | ipactx->user_auth) & IPADB_USER_AUTH_DISABLED)
+    if ((ua | gua) & IPADB_USER_AUTH_DISABLED)
         return IPADB_USER_AUTH_DISABLED;
 
     /* Determine which user_auth policy is active: user or global. */
     if (ua == IPADB_USER_AUTH_NONE)
-        ua = ipactx->user_auth;
+        ua = gua;
 
     /* Perform flag validation. */
     ipadb_validate_otp(ipactx, lentry, &ua);

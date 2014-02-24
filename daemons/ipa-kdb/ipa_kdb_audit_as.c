@@ -30,6 +30,7 @@ void ipadb_audit_as_req(krb5_context kcontext,
                         krb5_timestamp authtime,
                         krb5_error_code error_code)
 {
+    const struct ipadb_global_config *gcfg;
     struct ipadb_context *ipactx;
     struct ipadb_e_data *ied;
     krb5_error_code kerr;
@@ -63,6 +64,10 @@ void ipadb_audit_as_req(krb5_context kcontext,
 
     client->mask = 0;
 
+    gcfg = ipadb_get_global_config(ipactx);
+    if (gcfg == NULL)
+        return;
+
     switch (error_code) {
     case 0:
         /* Check if preauth flag is specified (default), otherwise we have
@@ -72,7 +77,7 @@ void ipadb_audit_as_req(krb5_context kcontext,
                 client->fail_auth_count = 0;
                 client->mask |= KMASK_FAIL_AUTH_COUNT;
             }
-            if (ipactx->disable_last_success) {
+            if (gcfg->disable_last_success) {
                 break;
             }
             client->last_success = authtime;
@@ -83,7 +88,7 @@ void ipadb_audit_as_req(krb5_context kcontext,
     case KRB5KDC_ERR_PREAUTH_FAILED:
     case KRB5KRB_AP_ERR_BAD_INTEGRITY:
 
-        if (ipactx->disable_lockout) {
+        if (gcfg->disable_lockout) {
             break;
         }
 

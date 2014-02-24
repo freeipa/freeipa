@@ -1878,6 +1878,9 @@ void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
     }
 
     if (ied == NULL || ied->authz_data == NULL) {
+        const struct ipadb_global_config *gcfg = NULL;
+        char **tmp = NULL;
+
         if (context == NULL) {
             krb5_klog_syslog(LOG_ERR, "Missing Kerberos context, no " \
                                       "authorization data will be added.");
@@ -1885,14 +1888,17 @@ void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
         }
 
         ipactx = ipadb_get_context(context);
-        if (ipactx == NULL || ipactx->authz_data == NULL) {
+        gcfg = ipadb_get_global_config(ipactx);
+        if (gcfg != NULL)
+            tmp = gcfg->authz_data;
+        if (ipactx == NULL || tmp == NULL) {
             krb5_klog_syslog(LOG_ERR, "No default authorization data types " \
                                       "available, no authorization data will " \
                                       "be added.");
             goto done;
         }
 
-        authz_data_list = ipactx->authz_data;
+        authz_data_list = tmp;
     } else {
         authz_data_list = ied->authz_data;
     }

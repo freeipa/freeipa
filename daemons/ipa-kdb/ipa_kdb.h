@@ -87,6 +87,14 @@ enum ipadb_user_auth {
   IPADB_USER_AUTH_OTP      = 1 << 3,
 };
 
+struct ipadb_global_config {
+	time_t last_update;
+	bool disable_last_success;
+	bool disable_lockout;
+	char **authz_data;
+	enum ipadb_user_auth user_auth;
+};
+
 struct ipadb_context {
     char *uri;
     char *base;
@@ -99,10 +107,9 @@ struct ipadb_context {
     krb5_key_salt_tuple *supp_encs;
     int n_supp_encs;
     struct ipadb_mspac *mspac;
-    bool disable_last_success;
-    bool disable_lockout;
-    char **authz_data;
-    enum ipadb_user_auth user_auth;
+
+    /* Don't access this directly, use ipadb_get_global_config(). */
+    struct ipadb_global_config config;
 };
 
 #define IPA_E_DATA_MAGIC 0x0eda7a
@@ -277,3 +284,5 @@ void ipadb_audit_as_req(krb5_context kcontext,
 /* AUTH METHODS */
 void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
                            enum ipadb_user_auth *user_auth);
+const struct ipadb_global_config *
+ipadb_get_global_config(struct ipadb_context *ipactx);
