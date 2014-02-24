@@ -1173,8 +1173,9 @@ class permission_find(baseldap.LDAPSearch):
 
             filters = ['(objectclass=ipaPermission)',
                        '(!(ipaPermissionType=V2))']
-            if args:
-                filters.append(ldap.make_filter_from_attr('cn', args[0],
+            if 'name' in options:
+                filters.append(ldap.make_filter_from_attr('cn',
+                                                          options['name'],
                                                           exact=False))
             attrs_list = list(self.obj.default_attributes)
             attrs_list += list(self.obj.attribute_members)
@@ -1206,22 +1207,28 @@ class permission_find(baseldap.LDAPSearch):
                     break
                 self.obj.upgrade_permission(entry, output_only=True,
                                             cached_acientry=root_entry)
-                cn = entry.single_value['cn']
-                if any(a.lower() in cn.lower() for a in args if a):
-                    entries.append(entry)
+                # If all given options match, include the entry
+                # Do a case-insensitive match, on any value if multi-valued
+                for opt in attribute_options:
+                    optval = options[opt]
+                    if not isinstance(optval, (tuple, list)):
+                        optval = [optval]
+                    value = entry.get(opt)
+                    if not value:
+                        break
+                    if not all(any(str(ov).lower() in str(v).lower()
+                                for v in value) for ov in optval):
+                        break
                 else:
-                    # If all given options match, include the entry
-                    # Do a case-insensitive match, on any value if multi-valued
-                    for opt in attribute_options:
-                        optval = options[opt]
-                        if not isinstance(optval, (tuple, list)):
-                            optval = [optval]
-                        value = entry.get(opt)
-                        if not value:
-                            break
-                        if not all(any(str(ov).lower() in str(v).lower()
-                                   for v in value) for ov in optval):
-                            break
+                    # Each search term must be present in some
+                    # attribute value
+                    for arg in args:
+                        if arg:
+                            arg = arg.lower()
+                            if not any(arg in str(value).lower()
+                                       for values in entry.values()
+                                       for value in values):
+                                break
                     else:
                         entries.append(entry)
 
