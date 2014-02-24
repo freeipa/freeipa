@@ -258,8 +258,8 @@ class ldap2(LDAPClient, CrudBackend):
                 indirect.remove(dn)
                 direct.add(dn)
 
+        entry['memberof'] = list(direct)
         if indirect:
-            entry['memberof'] = list(direct)
             entry['memberofindirect'] = list(indirect)
 
     config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
