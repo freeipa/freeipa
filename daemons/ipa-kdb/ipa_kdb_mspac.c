@@ -1985,6 +1985,14 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     int result;
     krb5_db_entry *client_entry = NULL;
 
+
+    /* When client is NULL, authdata flag on the service principal was cleared
+     * by an admin. We don't generate MS-PAC in this case */
+    if (client == NULL) {
+        *signed_auth_data = NULL;
+        return 0;
+    }
+
     /* When using s4u2proxy client_princ actually refers to the proxied user
      * while client->princ to the proxy service asking for the TGS on behalf
      * of the proxied user. So always use client_princ in preference */
