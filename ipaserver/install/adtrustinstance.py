@@ -889,12 +889,15 @@ class ADTRUSTInstance(service.Service):
         self.restore_state("running")
         self.restore_state("enabled")
 
+        winbind = ipaservices.service("winbind")
         # Always try to stop and disable smb service, since we do not leave
         # working configuration after uninstall
         try:
             self.stop()
             self.disable()
-        except:
+            winbind.stop()
+            winbind.disable()
+        except Exception:
             pass
 
         # Since we do not guarantee restoring back to working samba state,
@@ -907,7 +910,7 @@ class ADTRUSTInstance(service.Service):
                 try:
                     ipautil.run(["/usr/sbin/setsebool",
                                  "-P", var, sebool_state])
-                except:
+                except Exception:
                     self.print_msg(SELINUX_WARNING % dict(var=var))
 
         # Remove samba's credentials cache
