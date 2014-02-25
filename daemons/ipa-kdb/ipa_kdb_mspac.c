@@ -1983,12 +1983,14 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     bool with_pac;
     bool with_pad;
     int result;
+    krb5_db_entry *client_entry = NULL;
 
     /* When using s4u2proxy client_princ actually refers to the proxied user
      * while client->princ to the proxy service asking for the TGS on behalf
      * of the proxied user. So always use client_princ in preference */
     if (client_princ != NULL) {
         ks_client_princ = client_princ;
+        kerr = ipadb_get_principal(context, client_princ, flags, &client_entry);
     } else {
         ks_client_princ = client->princ;
     }
@@ -2025,7 +2027,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
             }
         }
 
-        kerr = ipadb_get_pac(context, client, &pac);
+        kerr = ipadb_get_pac(context, client_entry ? client_entry : client, &pac);
         if (kerr != 0 && kerr != ENOENT) {
             goto done;
         }
@@ -2041,7 +2043,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         /* check or generate pac data */
         if ((pac_auth_data == NULL) || (pac_auth_data[0] == NULL)) {
             if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
-                kerr = ipadb_get_pac(context, client, &pac);
+                kerr = ipadb_get_pac(context, client_entry ? client_entry : client, &pac);
                 if (kerr != 0 && kerr != ENOENT) {
                     goto done;
                 }
@@ -2094,6 +2096,9 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     kerr = 0;
 
 done:
+    if (client_entry != NULL) {
+        ipadb_free_principal(context, client_entry);
+    }
     krb5_pac_free(context, pac);
     return kerr;
 }
