@@ -245,6 +245,18 @@ class test_permission_negative(Declarative):
         verify_permission_aci_missing(permission1, users_dn),
 
         dict(
+            desc='Try to create permission with : in the name',
+            command=('permission_add', ['bad:' + permission1], dict(
+                    type=u'user',
+                    ipapermright=u'write',
+                )),
+            expected=errors.ValidationError(name='name',
+                error='May only contain letters, numbers, -, _, ., and space'),
+        ),
+
+        verify_permission_aci_missing(permission1, users_dn),
+
+        dict(
             desc='Try to create permission with full and extra target filter',
             command=('permission_add', [permission1], dict(
                     type=u'user',
@@ -1521,6 +1533,19 @@ class test_permission(Declarative):
             expected=errors.ValidationError(
                 name='ipapermlocation',
                 error='Entry %s does not exist' % nonexistent_dn)
+        ),
+
+        dict(
+            desc='Search for nonexisting permission with ":" in the name',
+            command=(
+                'permission_find', ['doesnotexist:' + permission1], {}
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 permissions matched',
+                result=[],
+            ),
         ),
     ]
 

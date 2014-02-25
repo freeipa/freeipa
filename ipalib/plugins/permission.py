@@ -147,6 +147,18 @@ def validate_type(ugettext, typestr):
         return _('"%s" is not a valid permission type') % typestr
 
 
+def _disallow_colon(option):
+    """Given a "cn" option, return a new "cn" option with ':' disallowed
+
+    Used in permission-add and for --rename in permission-mod to prevent user
+    from creating new permissions with ":" in the name.
+    """
+    return option.clone(
+        pattern='^[-_ a-zA-Z0-9.]+$',
+        pattern_errmsg="May only contain letters, numbers, -, _, ., and space",
+    )
+
+
 @register()
 class permission(baseldap.LDAPObject):
     """
@@ -176,8 +188,9 @@ class permission(baseldap.LDAPObject):
             cli_name='name',
             label=_('Permission name'),
             primary_key=True,
-            pattern='^[-_ a-zA-Z0-9.]+$',
-            pattern_errmsg="May only contain letters, numbers, -, _, ., and space",
+            pattern='^[-_ a-zA-Z0-9.:]+$',
+            pattern_errmsg="May only contain letters, numbers, "
+                           "-, _, ., :, and space",
         ),
         StrEnum(
             'ipapermright*',
@@ -877,6 +890,13 @@ class permission_add(baseldap.LDAPCreate):
         self.obj.preprocess_options(options, merge_targetfilter=True)
         return super(permission_add, self).execute(*keys, **options)
 
+    def get_args(self):
+        for arg in super(permission_add, self).get_args():
+            if arg.name == 'cn':
+                yield _disallow_colon(arg)
+            else:
+                yield arg
+
     def pre_callback(self, ldap, dn, entry, attrs_list, *keys, **options):
         entry['ipapermissiontype'] = ['SYSTEM', 'V2']
         entry['cn'] = list(keys)
@@ -965,6 +985,13 @@ class permission_mod(baseldap.LDAPUpdate):
         context.filter_ops = self.obj.preprocess_options(
             options, return_filter_ops=True)
         return super(permission_mod, self).execute(*keys, **options)
+
+    def get_options(self):
+        for opt in super(permission_mod, self).get_options():
+            if opt.name == 'rename':
+                yield _disallow_colon(opt)
+            else:
+                yield opt
 
     def pre_callback(self, ldap, dn, entry, attrs_list, *keys, **options):
         if 'rename' in options and not options['rename']:

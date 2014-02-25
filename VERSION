@@ -89,5 +89,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=79
-# Last change: pviktori - rename --permission to --right
+IPA_API_VERSION_MINOR=80
+# Last change: pviktori - ":" in permission names
