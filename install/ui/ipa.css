@@ -1243,6 +1243,18 @@ table.scrollable tbody {
     width: 250px;
 }
 
+input, select, textarea {
+    font-size: 1em;
+    font-family: "Liberation Sans",Arial,Sans;
+}
+
+input[type=radio], input[type=checkbox],
+.ui-widget input[type=radio], .ui-widget input[type=checkbox]{
+     margin-right: 5px;
+     position: relative;
+     top: 3px;
+}
+
 .multivalued-widget [name=value] {
     margin-bottom: 1em;
 }
