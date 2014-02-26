@@ -892,8 +892,11 @@ class TrustDomainInstance(object):
             dname.string = another_domain.info['dns_domain']
             res = self._pipe.QueryTrustedDomainInfoByName(self._policy_handle, dname, lsa.LSA_TRUSTED_DOMAIN_INFO_FULL_INFO)
             self._pipe.DeleteTrustedDomain(self._policy_handle, res.info_ex.sid)
-        except RuntimeError, e:
-            pass
+        except RuntimeError, (num, message):
+            # Ignore anything but access denied (NT_STATUS_ACCESS_DENIED)
+            if num == -1073741790:
+                raise access_denied_error
+
         try:
             trustdom_handle = self._pipe.CreateTrustedDomainEx2(self._policy_handle, info, self.auth_info, security.SEC_STD_DELETE)
         except RuntimeError, (num, message):
