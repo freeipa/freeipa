@@ -831,6 +831,7 @@ class BindInstance(service.Service):
         self.reverse_zone = reverse_zone
         self.ca_configured = ca_configured
         self.first_instance = False
+        self.zonemgr = 'hostmaster.%s' % self.domain
 
         self.__add_self()
         self.__add_ipa_ca_record()
