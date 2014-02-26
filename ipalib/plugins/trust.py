@@ -1191,6 +1191,8 @@ class trustdomain_find(LDAPSearch):
         return (filters, base_dn, ldap.SCOPE_SUBTREE)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return truncated
         trust_dn = self.obj.get_dn(args[0], trust_type=u'ad')
         trust_entry = ldap.get_entry(trust_dn)
         for entry in entries:
