@@ -70,7 +70,6 @@ from ipapython import ipautil
 from ipapython import dogtag
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
-from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 from ipalib.util import validate_domain_name
 from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import *
@@ -749,47 +748,11 @@ def main():
 
     if options.external_cert_file:
         try:
-            extcert = load_certificate_from_file(options.external_cert_file)
-        except IOError, e:
-            print "Can't load the PEM certificate: %s." % str(e)
+            validate_external_cert(options.external_cert_file,
+                                   options.external_ca_file, options.subject)
+        except ValueError, e:
+            print e
             sys.exit(1)
-        except nss.error.NSPRError:
-            print "'%s' is not a valid PEM-encoded certificate." % options.external_cert_file
-            sys.exit(1)
-
-        certsubject = DN(str(extcert.subject))
-        wantsubject = DN(('CN','Certificate Authority'), options.subject)
-        if certsubject != wantsubject:
-            print "Subject of the external certificate is not correct (got %s, expected %s)." % (certsubject, wantsubject)
-            sys.exit(1)
-
-        try:
-            extchain = load_certificate_chain_from_file(options.external_ca_file)
-        except IOError, e:
-            print "Can't load the external CA chain: %s." % str(e)
-            sys.exit(1)
-        except nss.error.NSPRError:
-            print "'%s' is not a valid PEM-encoded certificate chain." % options.external_ca_file
-            sys.exit(1)
-
-        certdict = dict((DN(str(cert.subject)), cert) for cert in extchain)
-        del extchain
-        certissuer = DN(str(extcert.issuer))
-        if certissuer not in certdict:
-            print "The external certificate is not signed by the external CA (unknown issuer %s)." % certissuer
-            sys.exit(1)
-
-        cert = extcert
-        del extcert
-        while cert.issuer != cert.subject:
-            certissuer = DN(str(cert.issuer))
-            if certissuer not in certdict:
-                print "The external CA chain is incomplete (%s is missing from the chain)." % certissuer
-                sys.exit(1)
-            del cert
-            cert = certdict[certissuer]
-        del certdict
-        del cert
 
     # We only set up the CA if the PKCS#12 options are not given.
     if options.dirsrv_pkcs12:

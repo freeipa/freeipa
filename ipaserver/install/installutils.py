@@ -33,13 +33,14 @@ from contextlib import contextmanager
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 import ldap
+from nss.error import NSPRError
 
 from ipapython import ipautil, sysrestore, admintool, dogtag
 from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import *
 from ipalib.util import validate_hostname
 from ipapython import config
-from ipalib import errors
+from ipalib import errors, x509
 from ipapython.dn import DN
 from ipaserver.install import certs, service
 from ipaplatform import services
@@ -865,3 +866,50 @@ def check_entropy():
     except ValueError as e:
         root_logger.debug("Invalid value in /proc/sys/kernel/random/entropy_avail %s" % \
             e)
+
+def validate_external_cert(cert_file, ca_file, subject_base):
+    extcert = None
+    try:
+        extcert = x509.load_certificate_from_file(cert_file)
+        certsubject = DN(str(extcert.subject))
+        certissuer = DN(str(extcert.issuer))
+    except IOError, e:
+        raise ValueError("Can't load the PEM certificate: %s." % e)
+    except (TypeError, NSPRError):
+        raise ValueError(
+            "'%s' is not a valid PEM-encoded certificate." % cert_file)
+    finally:
+        del extcert
+
+    wantsubject = DN(('CN', 'Certificate Authority'), subject_base)
+    if certsubject != wantsubject:
+        raise ValueError(
+            "Subject of the external certificate is not correct (got %s, "
+            "expected %s)." % (certsubject, wantsubject))
+
+    extchain = None
+    try:
+        extchain = x509.load_certificate_chain_from_file(ca_file)
+        certdict = dict((DN(str(cert.subject)), DN(str(cert.issuer)))
+                        for cert in extchain)
+    except IOError, e:
+        raise ValueError("Can't load the external CA chain: %s." % e)
+    except (TypeError, NSPRError):
+        raise ValueError(
+            "'%s' is not a valid PEM-encoded certificate chain." % ca_file)
+    finally:
+        del extchain
+
+    if certissuer not in certdict:
+        raise ValueError(
+            "The external certificate is not signed by the external CA "
+            "(unknown issuer %s)." % certissuer)
+
+    while certsubject != certissuer:
+        certsubject = certissuer
+        try:
+            certissuer = certdict[certsubject]
+        except KeyError:
+            raise ValueError(
+                "The external CA chain is incomplete (%s is missing from the "
+                "chain)." % certsubject)
