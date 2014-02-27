@@ -89,5 +89,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=76
-# Last change: npmccallum - otptoken defaults change
+IPA_API_VERSION_MINOR=77
+# Last change: pviktori - permissions: multivalued memberof

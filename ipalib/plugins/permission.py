@@ -243,7 +243,7 @@ class permission(baseldap.LDAPObject):
             flags={'no_option'}
         ),
 
-        Str('memberof?',
+        Str('memberof*',
             label=_('Member of group'),  # FIXME: Does this label make sense?
             doc=_('Target members of a group (sets memberOf targetfilter)'),
             flags={'ask_create', 'virtual_attribute'},
@@ -388,9 +388,13 @@ class permission(baseldap.LDAPObject):
 
         if not client_has_capability(options['version'], 'permissions2'):
             # Legacy clients expect some attributes as a single value
-            for attr in 'type', 'targetgroup', 'memberof', 'aci':
+            for attr in 'type', 'targetgroup', 'aci':
                 if attr in entry:
                     entry[attr] = entry.single_value[attr]
+            # memberof was also single-valued, but not any more
+            if entry.get('memberof'):
+                joined_value = u', '.join(str(m) for m in entry['memberof'])
+                entry['memberof'] = joined_value
             if 'subtree' in entry:
                 # Legacy clients expect subtree as a URL
                 dn = entry.single_value['subtree']
@@ -656,14 +660,14 @@ class permission(baseldap.LDAPObject):
 
         # memberof
         if 'memberof' in options:
-            memberof = options.pop('memberof')
             filter_ops['remove'].append(re.compile(r'\(memberOf=.*\)', re.I))
-            if memberof:
+            memberof = options.pop('memberof')
+            for group in (memberof or ()):
                 try:
-                    groupdn = self.api.Object.group.get_dn_if_exists(memberof)
+                    groupdn = self.api.Object.group.get_dn_if_exists(group)
                 except errors.NotFound:
                     raise errors.NotFound(
-                        reason=_('%s: group not found') % memberof)
+                        reason=_('%s: group not found') % group)
                 filter_ops['add'].append(u'(memberOf=%s)' % groupdn)
 
         # targetgroup

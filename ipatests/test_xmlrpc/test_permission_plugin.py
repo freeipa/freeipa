@@ -3255,4 +3255,44 @@ class test_permission_filters(Declarative):
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
+
+        dict(
+            desc='Add multiple memberof to %r' % permission1,
+            command=(
+                'permission_mod', [permission1],
+                dict(
+                    memberof=[u'admins', u'editors'],
+                ),
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Modified permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    ipapermright=[u'write'],
+                    memberof=[u'admins', u'editors'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[api.env.basedn],
+                    ipapermtargetfilter=[
+                        u'(uid=abc)',
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                        u'(memberOf=%s)' % DN(('cn', 'editors'), groups_dn),
+                    ],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, api.env.basedn,
+            '(targetfilter = "(&'
+                '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn) +
+                '(memberOf=%s)' % DN(('cn', 'editors'), groups_dn) +
+                '(uid=abc)' +
+            ')")' +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
     ]
