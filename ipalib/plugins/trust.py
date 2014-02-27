@@ -458,38 +458,13 @@ sides.
 
         result['result'] = entry_to_dict(trusts[0][1], **options)
 
-        # For AD trusts with algorithmic mapping, we need to add a separate
-        # range for each subdomain.
-        if (options.get('trust_type') == u'ad' and
-            created_range_type != u'ipa-ad-trust-posix'):
-
+        # Fetch topology of the trust forest -- we need always to do it
+        # for AD trusts, regardless of the type of idranges associated with it
+        # Note that fetch_domains_from_trust will add needed ranges for
+        # the algorithmic ID mapping case.
+        if options.get('trust_type') == u'ad':
             domains = fetch_domains_from_trust(self, self.trustinstance,
                                                result['result'], **options)
-            if domains and len(domains) > 0:
-                for dom in domains:
-                    range_name = dom['cn'][0].upper() + '_id_range'
-                    dom_sid = dom['ipanttrusteddomainsid'][0]
-
-                    # Enforce the same range type as the range for the root
-                    # level domain.
-
-                    # This will skip the detection of the POSIX attributes if
-                    # they are not available, since it has been already
-                    # detected when creating the range for the root level domain
-                    passed_options = options
-                    passed_options.update(range_type=created_range_type)
-
-                    # Do not pass the base id to the subdomains since it would
-                    # clash with the root level domain
-                    if 'base_id' in passed_options:
-                        del passed_options['base_id']
-
-                    # Try to add the range for each subdomain
-                    try:
-                        add_range(self, range_name, dom_sid, *keys,
-                                  **passed_options)
-                    except errors.DuplicateEntry:
-                        pass
 
         # Format the output into human-readable values
         result['result']['trusttype'] = [trust_type_string(
@@ -1270,7 +1245,7 @@ def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
     # trust range must exist by the time fetch_domains_from_trust is called
     range_name = trust_name.upper() + '_id_range'
     old_range = api.Command.idrange_show(range_name, raw=True)['result']
-    idrange_type = old_range['iparangetype']
+    idrange_type = old_range['iparangetype'][0]
 
     for dom in domains:
         dom['trust_type'] = u'ad'
