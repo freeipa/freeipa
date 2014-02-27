@@ -30,9 +30,27 @@
 @checkbox-selected-color: darken(@checkbox-hover-color, 20%);
 
 /* Checkboxes and Radios */
+
+.radio, .checkbox {
+    position: relative;
+    padding: 0;
+}
+
 input[type="checkbox"],
 input[type="radio"] {
-    display: none;
+    display: inline;
+    position: absolute;
+    overflow: hidden;
+    margin:0;
+    padding:0;
+    border:0;
+    outline:0;
+    opacity:0;
+}
+
+input[type="checkbox"]:focus + label:before,
+input[type="radio"]:focus + label:before {
+    outline: thin dotted @checkbox-selected-color;
 }
 
 input[type="checkbox"] + label,
@@ -45,7 +63,7 @@ input[type="radio"] + label {
         .fa;
 
         font-size: 125%;
-        vertical-align: -11%;
+        vertical-align: -7%;
         margin-right: 5px;
     }
 }
@@ -81,12 +99,22 @@ input[type="checkbox"]:disabled + label {
     }
 }
 
+input[type="radio"]:disabled:checked + label,
+input[type="checkbox"]:disabled:checked + label {
+    color: @checkbox-color;
+
+    &:before,
+    &:hover:before {
+        color: @checkbox-color;
+    }
+}
+
 input[type="checkbox"] + label:before {
-    content: "@{fa-var-square-o} ";
+    content: @fa-var-square-o;
 }
 
 input[type="checkbox"]:checked + label:before {
-    content: "@{fa-var-check-square-o} ";
+    content: @fa-var-check-square-o;
     color: @checkbox-selected-color;
 }
 
@@ -97,10 +125,6 @@ input[type="radio"] + label:before {
 input[type="radio"]:checked + label:before {
     content: @fa-var-dot-circle-o;
     color: @checkbox-selected-color;
-}
-
-input[type="radio"]:disabled + label {
-    color: @checkbox-disabled-color;
 }
 
 .form-horizontal {

@@ -37,10 +37,10 @@ ZONE_DATA = {
         ('textbox', 'idnsname', ZONE_PKEY),
         ('textbox', 'idnssoamname', 'ns'),
         ('textbox', 'ip_address', '192.168.1.1'),
-        ('checkbox', 'force', ''),
+        ('checkbox', 'force', 'checked'),
     ],
     'mod': [
-        ('checkbox', 'idnsallowsyncptr', ''),
+        ('checkbox', 'idnsallowsyncptr', 'checked'),
     ],
 }
 
@@ -63,7 +63,7 @@ RECORD_MOD_DATA = {
 
 CONFIG_MOD_DATA = {
     'mod': [
-        ('checkbox', 'idnsallowsyncptr', ''),
+        ('checkbox', 'idnsallowsyncptr', 'checked'),
     ],
 }
 

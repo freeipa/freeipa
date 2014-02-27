@@ -41,7 +41,7 @@ class sevice_tasks(UI_driver):
                 ('combobox', 'host', host)
             ],
             'mod': [
-                ('checkbox', 'ipakrbokasdelegate', ''),
+                ('checkbox', 'ipakrbokasdelegate', None),
             ],
         }
 
@@ -177,7 +177,7 @@ class test_service(sevice_tasks):
         """
         pkey = self.get_http_pkey()
         name = 'ipakrbokasdelegate'
-        mod = {'mod': [('checkbox', name, '')]}
+        mod = {'mod': [('checkbox', name, None)]}
         checked = ['checked']
 
         self.init_app()

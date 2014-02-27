@@ -1166,6 +1166,10 @@ IPA.option_widget_base = function(spec, that) {
         var id = that._option_next_id + input_name;
         var enabled = that.enabled && option.enabled;
 
+        var opt_cont = $('<span/>', {
+            "class": that.intput_type
+        }).appendTo(container);
+
         option.input_node = $('<input/>', {
             id: id,
             type: that.input_type,
@@ -1174,13 +1178,13 @@ IPA.option_widget_base = function(spec, that) {
             value: option.value,
             title: option.tooltip || that.tooltip,
             change: that.on_input_change
-        }).appendTo(container);
+        }).appendTo(opt_cont);
 
         option.label_node =  $('<label/>', {
             html: option.label || '',
             title: option.tooltip || that.tooltip,
             'for': id
-        }).appendTo(container);
+        }).appendTo(opt_cont);
 
         that.new_option_id();
     };
@@ -1557,6 +1561,10 @@ IPA.standalone_option = function(spec, container, label) {
 
     spec.type = spec.type || 'checkbox';
 
+    var opt_cont = $('<span/>', {
+        'class': spec.type
+    });
+
     var input = $('<input/>', spec);
 
     if (!label) {
@@ -1571,11 +1579,12 @@ IPA.standalone_option = function(spec, container, label) {
     });
 
     if (container) {
-        input.appendTo(container);
-        label_el.appendTo(container);
+        input.appendTo(opt_cont);
+        label_el.appendTo(opt_cont);
+        opt_cont.appendTo(container);
     }
 
-    return [input, label_el];
+    return [input, label_el, opt_cont];
 };
 
 /**

@@ -61,14 +61,14 @@ class host_tasks(UI_driver):
             ]
             if ip:
                 add_data.append(('textbox', 'ip_address', ip))
-            add_data.append(('checkbox', 'force', ''))
+            add_data.append(('checkbox', 'force', None))
             del_data = [
-                ('checkbox', 'updatedns', '')
+                ('checkbox', 'updatedns', None)
             ]
         else:
             add_data = [
                 ('textbox', 'fqdn', '%s.%s' % (host, domain)),
-                ('checkbox', 'force', ''),
+                ('checkbox', 'force', None),
             ]
             del_data = None
 
@@ -204,7 +204,7 @@ class test_host(host_tasks):
         http://www.freeipa.org/page/V3/Kerberos_Flags
         """
         name = 'ipakrbokasdelegate'
-        mod = {'mod': [('checkbox', name, '')]}
+        mod = {'mod': [('checkbox', name, None)]}
         checked = ['checked']
 
         self.init_app()
