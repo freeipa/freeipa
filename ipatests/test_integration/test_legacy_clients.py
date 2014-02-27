@@ -248,7 +248,7 @@ class BaseTestLegacyClient(object):
         result = self.legacy_client.run_command(['getent', 'passwd', testuser])
 
         testuser_regex = "subdomaintestuser@%s:\*:%s:%s:"\
-                         "Subdomain Test User:%s:"\
+                         "Subdomaintest User:%s:"\
                          "/bin/sh"\
                          % (re.escape(self.ad_subdomain),
                             self.subdomain_testuser_uid_regex,
@@ -405,7 +405,7 @@ class BaseTestLegacyClientPosix(BaseTestLegacyClient,
     testuser_gid_regex = '10047'
     subdomain_testuser_uid_regex = '10142'
     subdomain_testuser_gid_regex = '10147'
-    homedir_template = "/home/{username}"
+    homedir_template = "/home/{domain}/{username}"
     posix_trust = True
 
     def test_remove_trust_with_posix_attributes(self):

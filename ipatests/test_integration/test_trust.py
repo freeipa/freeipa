@@ -131,8 +131,9 @@ class TestPosixADTrust(ADTrustBase):
         result = self.master.run_command(['getent', 'passwd', testuser])
 
         testuser_stdout = "testuser@%s:*:10042:10047:"\
-                          "Test User:/home/testuser:/bin/sh"\
-                          % self.ad.domain.name
+                          "Test User:/home/%s/testuser:/bin/sh"\
+                          % (self.ad.domain.name,
+                             self.ad.domain.name)
 
         assert testuser_stdout in result.stdout_text
 
