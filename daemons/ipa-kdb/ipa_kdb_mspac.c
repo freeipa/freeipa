@@ -806,6 +806,12 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     krb5_error_code kerr;
     enum ndr_err_code ndr_err;
 
+    /* When no client entry is there, we cannot generate MS-PAC */
+    if (!client) {
+        *pac = NULL;
+        return 0;
+    }
+
     ipactx = ipadb_get_context(kcontext);
     if (!ipactx) {
         return KRB5_KDB_DBNOTINITED;
@@ -1534,6 +1540,12 @@ static krb5_error_code ipadb_add_transited_service(krb5_context context,
     uint32_t i;
     char *tmpstr;
 
+    /* When proxy is NULL, authdata flag on the service principal was cleared
+     * by an admin. We don't generate MS-PAC in this case */
+    if (proxy == NULL) {
+        return 0;
+    }
+
     tmpctx = talloc_new(NULL);
     if (!tmpctx) {
         kerr = ENOMEM;
@@ -1731,6 +1743,12 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
     }
 
     if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
+        if (proxy == NULL) {
+            *pac = NULL;
+            kerr = 0;
+            goto done;
+        }
+
         kerr = ipadb_add_transited_service(context, proxy, server,
                                            old_pac, new_pac);
         if (kerr) {
@@ -1986,20 +2004,27 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     krb5_db_entry *client_entry = NULL;
 
 
-    /* When client is NULL, authdata flag on the service principal was cleared
-     * by an admin. We don't generate MS-PAC in this case */
-    if (client == NULL) {
-        *signed_auth_data = NULL;
-        return 0;
-    }
+    is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
 
     /* When using s4u2proxy client_princ actually refers to the proxied user
      * while client->princ to the proxy service asking for the TGS on behalf
      * of the proxied user. So always use client_princ in preference */
     if (client_princ != NULL) {
         ks_client_princ = client_princ;
-        kerr = ipadb_get_principal(context, client_princ, flags, &client_entry);
+        if (!is_as_req) {
+            kerr = ipadb_get_principal(context, client_princ, flags, &client_entry);
+            /* If we didn't find client_princ in our database, it might be:
+             * - a principal from another realm, handle it down in ipadb_get/verify_pac()
+             */
+            if (!kerr) {
+                client_entry = NULL;
+            }
+        }
     } else {
+        if (client == NULL) {
+            *signed_auth_data = NULL;
+            return 0;
+        }
         ks_client_princ = client->princ;
     }
 
@@ -2013,8 +2038,6 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         krb5_klog_syslog(LOG_ERR, "PAD authorization data is requested but " \
                                   "currently not supported.");
     }
-
-    is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
 
     if (is_as_req && with_pac && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) {
         /* Be aggressive here: special case for discovering range type
