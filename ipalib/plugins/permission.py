@@ -711,7 +711,7 @@ class permission(baseldap.LDAPObject):
             return filter_ops
         elif filter_ops['add']:
             options['ipapermtargetfilter'] = list(options.get(
-                'ipapermtargetfilter', [])) + filter_ops['add']
+                'ipapermtargetfilter') or []) + filter_ops['add']
 
     def validate_permission(self, entry):
         ldap = self.Backend.ldap2

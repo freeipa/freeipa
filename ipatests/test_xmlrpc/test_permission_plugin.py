@@ -3295,4 +3295,51 @@ class test_permission_filters(Declarative):
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
+
+        dict(
+            desc='Delete %r' % permission1,
+            command=('permission_del', [permission1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=permission1,
+                summary=u'Deleted permission "%s"' % permission1,
+            )
+        ),
+
+        verify_permission_aci_missing(permission1, api.env.basedn),
+
+        dict(
+            desc='Create %r with empty filters [#4206]' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                    type=u'user',
+                    ipapermright=u'write',
+                    ipapermtargetfilter=u'',
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Added permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    type=[u'user'],
+                    ipapermright=[u'write'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    ipapermtargetfilter=[
+                        u'(objectclass=posixaccount)',
+                    ],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, users_dn,
+            '(targetfilter = "(objectclass=posixaccount)")' +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
     ]
