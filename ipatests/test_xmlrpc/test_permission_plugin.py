@@ -271,6 +271,16 @@ class test_permission_negative(Declarative):
         ),
 
         dict(
+            desc='Try to "remove" empty memberof from %r' % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                    memberof=None,
+                )
+            ),
+            expected=errors.EmptyModlist(),
+        ),
+
+        dict(
             desc='Try to remove targetfilter and memberof from %r' % permission1,
             command=(
                 'permission_mod', [permission1], dict(
@@ -285,7 +295,7 @@ class test_permission_negative(Declarative):
         ),
 
         dict(
-            desc='Try to rename %r to invalid invalid %r' % (
+            desc='Try to rename %r to invalid %r' % (
                 permission1, invalid_permission1),
             command=('permission_mod', [permission1], dict(
                     rename=invalid_permission1,

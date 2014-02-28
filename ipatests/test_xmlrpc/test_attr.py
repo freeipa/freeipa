@@ -279,6 +279,12 @@ class test_attr(Declarative):
         ),
 
         dict(
+            desc='Try to "remove" empty location from %r' % user1,
+            command=('user_mod', [user1], dict(l=None)),
+            expected=errors.EmptyModlist(),
+        ),
+
+        dict(
             desc='Lock %r using setattr' % user1,
             command=(
                 'user_mod', [user1], dict(setattr=u'nsaccountlock=TrUe')
