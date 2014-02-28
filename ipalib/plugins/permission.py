@@ -522,13 +522,14 @@ class permission(baseldap.LDAPObject):
         return acientry, acistring
 
     def _get_aci_entry_and_string(self, permission_entry, name=None,
-                                  notfound_ok=False):
+                                  notfound_ok=False, cached_acientry=None):
         """Get the entry and ACI corresponding to the permission entry
 
         :param name: The name of the permission, or None for the cn
         :param notfound_ok:
             If true, (acientry, None) will be returned on missing ACI, rather
             than raising exception
+        :param cached_acientry: See upgrade_permission()
         """
         ldap = self.api.Backend.ldap2
         if name is None:
@@ -537,10 +538,15 @@ class permission(baseldap.LDAPObject):
                                                      self.api.env.basedn)
         wanted_aciname = 'permission:%s' % name
 
-        try:
-            acientry = ldap.get_entry(location, ['aci'])
-        except errors.NotFound:
-            acientry = ldap.make_entry(location)
+        if (cached_acientry and
+                cached_acientry.dn == location and
+                'aci' in cached_acientry):
+            acientry = cached_acientry
+        else:
+            try:
+                acientry = ldap.get_entry(location, ['aci'])
+            except errors.NotFound:
+                acientry = ldap.make_entry(location)
         acis = acientry.get('aci', ())
         for acistring in acis:
             aci = ACI(acistring)
@@ -554,7 +560,7 @@ class permission(baseldap.LDAPObject):
                          'in %(dn)s ') % {'name': name, 'dn': location})
 
     def upgrade_permission(self, entry, target_entry=None,
-                           output_only=False):
+                           output_only=False, cached_acientry=None):
         """Upgrade the given permission entry to V2, in-place
 
         The entry is only upgraded if it is a plain old-style permission,
@@ -567,11 +573,16 @@ class permission(baseldap.LDAPObject):
         :param output_only:
             If true, the flags are not updated to V2.
             Used for the -find and -show commands.
+        :param cached_acientry:
+            Optional pre-retreived entry that contains the existing ACI.
+            If it is None or its DN does not match the location DN,
+            cached_acientry is ignored and the entry is retreived from LDAP.
         """
         if entry.get('ipapermissiontype'):
             # Only convert old-style, non-SYSTEM permissions -- i.e. no flags
             return
-        base, acistring = self._get_aci_entry_and_string(entry)
+        base, acistring = self._get_aci_entry_and_string(
+            entry, cached_acientry=cached_acientry)
 
         if not target_entry:
             target_entry = entry
@@ -1078,8 +1089,11 @@ class permission_find(baseldap.LDAPSearch):
                     base_dn=DN(self.obj.container_dn, self.api.env.basedn),
                     filter=ldap.combine_filters(filters, rules=ldap.MATCH_ALL),
                     attrs_list=attrs_list)
+                # Retrieve the root entry (with all legacy ACIs) at once
+                root_entry = ldap.get_entry(DN(api.env.basedn), ['aci'])
             except errors.NotFound:
                 legacy_entries = ()
+                cached_root_entry = None
             self.log.debug('potential legacy entries: %s', len(legacy_entries))
             nonlegacy_names = {e.single_value['cn'] for e in entries}
             for entry in legacy_entries:
@@ -1094,7 +1108,8 @@ class permission_find(baseldap.LDAPSearch):
                     entries.pop()
                     truncated = True
                     break
-                self.obj.upgrade_permission(entry, output_only=True)
+                self.obj.upgrade_permission(entry, output_only=True,
+                                            cached_acientry=root_entry)
                 cn = entry.single_value['cn']
                 if any(a.lower() in cn.lower() for a in args if a):
                     entries.append(entry)
