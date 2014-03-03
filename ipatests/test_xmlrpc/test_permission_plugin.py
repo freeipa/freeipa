@@ -315,7 +315,6 @@ class test_permission_negative(Declarative):
                 name='ipapermexcludedattr',
                 error='only available on managed permissions'),
         ),
-
     ]
 
 
@@ -1631,7 +1630,33 @@ class test_permission_rollback(Declarative):
                         pdn=permission1_dn)),
         ),
 
+    ] + _verifications + [
+
+        dict(
+            desc='Try adding an invalid attribute on %r with --all --rights' % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                    attrs=[u'cn', u'bogusattributexyz'],
+                    rights=True,
+                    all=True,
+                )
+            ),
+            expected=errors.InvalidSyntax(
+                attr=r'targetattr "bogusattributexyz" does not exist '
+                    r'in schema. Please add attributeTypes '
+                    r'"bogusattributexyz" to schema if necessary. ACL Syntax '
+                    r'Error(-5):(targetattr = \22bogusattributexyz || cn\22)'
+                    r'(target = \22ldap:///%(tdn)s\22)'
+                    r'(version 3.0;acl \22permission:%(name)s\22;'
+                    r'allow (write) groupdn = \22ldap:///%(dn)s\22;)' % dict(
+                        tdn=DN('uid=admin', users_dn),
+                        name=permission1,
+                        dn=permission1_dn),
+            ),
+        ),
+
     ] + _verifications
+
 
 class test_permission_sync_attributes(Declarative):
     """Test the effects of setting permission attributes"""

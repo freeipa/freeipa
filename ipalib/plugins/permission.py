@@ -988,6 +988,9 @@ class permission_mod(baseldap.LDAPUpdate):
             else:
                 self.obj.update_aci(entry, old_entry.single_value['cn'])
         except Exception:
+            # Don't revert attribute which doesn't exist in LDAP
+            entry.pop('attributelevelrights', None)
+
             self.log.error('Error updating ACI: %s' % traceback.format_exc())
             self.log.warn('Reverting entry')
             old_entry.reset_modlist(entry)
