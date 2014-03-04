@@ -987,7 +987,7 @@ def main():
     if realm_not_matching_domain:
         print("WARNING: Realm name does not match the domain name.\n"
               "You will not be able to estabilish trusts with Active "
-              "Directory unless\nythe realm name of the IPA server matches "
+              "Directory unless\nthe realm name of the IPA server matches "
               "its domain name.\n\n")
 
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
