@@ -101,7 +101,7 @@ register = Registry()
 
 _DEPRECATED_OPTION_ALIASES = {
     'permissions': 'ipapermright',
-    'filter': 'ipapermtargetfilter',
+    'filter': 'extratargetfilter',
     'subtree': 'ipapermlocation',
 }
 
@@ -230,6 +230,12 @@ class permission(baseldap.LDAPObject):
             flags={'ask_create'},
         ),
         Str(
+            'extratargetfilter*', prevalidate_filter,
+            label=_('Extra target filter'),
+            doc=_('Target filter, excluding filters set by type and memberof'),
+            flags={'virtual_attribute'},
+        ),
+        Str(
             'ipapermtargetfilter*', prevalidate_filter,
             cli_name='filter',
             label=_('Target filter'),
@@ -287,10 +293,15 @@ class permission(baseldap.LDAPObject):
             Command options. Contains keys such as ``raw``, ``all``,
             ``pkey_only``, ``version``.
         """
+        old_client = not client_has_capability(
+            options['version'], 'permissions2')
+
         if not options.get('raw') and not options.get('pkey_only'):
             ipapermtargetfilter = entry.get('ipapermtargetfilter', [])
             ipapermtarget = entry.single_value.get('ipapermtarget')
             ipapermlocation = entry.single_value.get('ipapermlocation')
+
+            implicit_targetfilters = set()
 
             # memberof
             memberof = []
@@ -302,6 +313,7 @@ class permission(baseldap.LDAPObject):
                                    self.api.env.basedn)
                     if dn[1:] == groups_dn[:] and dn[0].attr == 'cn':
                         memberof.append(dn[0].value)
+                        implicit_targetfilters.add(match.group(0))
             if memberof:
                 entry['memberof'] = memberof
 
@@ -324,17 +336,28 @@ class permission(baseldap.LDAPObject):
                     if DN(ipapermlocation) != wantdn:
                         continue
 
+                    objectclass_targetfilters = set()
                     for objclass in filter_objectclasses:
                         filter_re = '\(objectclass=%s\)' % re.escape(objclass)
-                        if not any(re.match(filter_re, tf, re.I)
-                                   for tf in ipapermtargetfilter):
+                        for tf in ipapermtargetfilter:
+                            if re.match(filter_re, tf, re.I):
+                                objectclass_targetfilters.add(tf)
+                                break
+                        else:
                             break
                     else:
                         entry.single_value['type'] = unicode(obj.name)
+                        implicit_targetfilters |= objectclass_targetfilters
                         break
 
+            if ipapermtargetfilter:
+                extratargetfilter = sorted(
+                    set(ipapermtargetfilter) - implicit_targetfilters)
+                if extratargetfilter:
+                        entry['extratargetfilter'] = extratargetfilter
+
             # old output names
-            if not client_has_capability(options['version'], 'permissions2'):
+            if old_client:
                 for old_name, new_name in _DEPRECATED_OPTION_ALIASES.items():
                     if new_name in entry:
                         entry[old_name] = entry[new_name]
@@ -359,7 +382,7 @@ class permission(baseldap.LDAPObject):
                     set(rights.get('ipapermexcludedattr', '')),
                     key=rights['ipapermincludedattr'].index))
 
-            if not client_has_capability(options['version'], 'permissions2'):
+            if old_client:
                 for old_name, new_name in _DEPRECATED_OPTION_ALIASES.items():
                     if new_name in entry:
                         rights[old_name] = rights[new_name]
@@ -386,7 +409,7 @@ class permission(baseldap.LDAPObject):
                     not entry.get('ipapermdefaultattr')):
                 entry.pop('ipapermincludedattr', None)
 
-        if not client_has_capability(options['version'], 'permissions2'):
+        if old_client:
             # Legacy clients expect some attributes as a single value
             for attr in 'type', 'targetgroup', 'aci':
                 if attr in entry:
@@ -406,6 +429,10 @@ class permission(baseldap.LDAPObject):
                     assert flt[0] == '(' and flt[-1] == ')'
                     new_filter.append(flt[1:-1])
                 entry['filter'] = new_filter
+
+        if not options['raw'] and not options['all']:
+            # Don't return the raw target filter by default
+            entry.pop('ipapermtargetfilter', None)
 
     def get_effective_attrs(self, entry):
         attrs = set(entry.get('ipapermdefaultattr', ()))
