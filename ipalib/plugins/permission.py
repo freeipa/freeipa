@@ -285,6 +285,61 @@ class permission(baseldap.LDAPObject):
             raise errors.ACIError(
                 info=_('A SYSTEM permission may not be modified or removed'))
 
+    def _get_filter_attr_info(self, entry):
+        """Get information on filter-related virtual attributes
+
+        Returns a dict with this information:
+        'implicit_targetfilters': targetfilters implied by memberof and type
+        'memberof': list of names of groups from memberof
+        'type': the type
+        """
+        ipapermtargetfilter = entry.get('ipapermtargetfilter', [])
+        ipapermlocation = entry.single_value.get('ipapermlocation')
+
+        implicit_targetfilters = set()
+        result = {'implicit_targetfilters': implicit_targetfilters}
+
+        # memberof
+        memberof = []
+        for targetfilter in ipapermtargetfilter:
+            match = re.match('^\(memberof=(.*)\)$', targetfilter, re.I)
+            if match:
+                dn = DN(match.group(1))
+                groups_dn = DN(self.api.Object.group.container_dn,
+                                self.api.env.basedn)
+                if dn[1:] == groups_dn[:] and dn[0].attr == 'cn':
+                    memberof.append(dn[0].value)
+                    implicit_targetfilters.add(match.group(0))
+        if memberof:
+            result['memberof'] = memberof
+
+        # type
+        if ipapermtargetfilter and ipapermlocation:
+            for obj in self.api.Object():
+                filter_objectclasses = getattr(
+                    obj, 'permission_filter_objectclasses', None)
+                if not filter_objectclasses:
+                    continue
+                wantdn = DN(obj.container_dn, self.api.env.basedn)
+                if DN(ipapermlocation) != wantdn:
+                    continue
+
+                objectclass_targetfilters = set()
+                for objclass in filter_objectclasses:
+                    filter_re = '\(objectclass=%s\)' % re.escape(objclass)
+                    for tf in ipapermtargetfilter:
+                        if re.match(filter_re, tf, re.I):
+                            objectclass_targetfilters.add(tf)
+                            break
+                    else:
+                        break
+                else:
+                    result['type'] = [unicode(obj.name)]
+                    implicit_targetfilters |= objectclass_targetfilters
+                    break
+
+        return result
+
     def postprocess_result(self, entry, options):
         """Update a permission entry for output (in place)
 
@@ -299,23 +354,6 @@ class permission(baseldap.LDAPObject):
         if not options.get('raw') and not options.get('pkey_only'):
             ipapermtargetfilter = entry.get('ipapermtargetfilter', [])
             ipapermtarget = entry.single_value.get('ipapermtarget')
-            ipapermlocation = entry.single_value.get('ipapermlocation')
-
-            implicit_targetfilters = set()
-
-            # memberof
-            memberof = []
-            for targetfilter in ipapermtargetfilter:
-                match = re.match('^\(memberof=(.*)\)$', targetfilter, re.I)
-                if match:
-                    dn = DN(match.group(1))
-                    groups_dn = DN(self.api.Object.group.container_dn,
-                                   self.api.env.basedn)
-                    if dn[1:] == groups_dn[:] and dn[0].attr == 'cn':
-                        memberof.append(dn[0].value)
-                        implicit_targetfilters.add(match.group(0))
-            if memberof:
-                entry['memberof'] = memberof
 
             # targetgroup
             if ipapermtarget:
@@ -325,34 +363,15 @@ class permission(baseldap.LDAPObject):
                         dn[0].attr == 'cn' and dn[0].value != '*'):
                     entry.single_value['targetgroup'] = dn[0].value
 
-            # type
-            if ipapermtargetfilter and ipapermlocation:
-                for obj in self.api.Object():
-                    filter_objectclasses = getattr(
-                        obj, 'permission_filter_objectclasses', None)
-                    if not filter_objectclasses:
-                        continue
-                    wantdn = DN(obj.container_dn, self.api.env.basedn)
-                    if DN(ipapermlocation) != wantdn:
-                        continue
-
-                    objectclass_targetfilters = set()
-                    for objclass in filter_objectclasses:
-                        filter_re = '\(objectclass=%s\)' % re.escape(objclass)
-                        for tf in ipapermtargetfilter:
-                            if re.match(filter_re, tf, re.I):
-                                objectclass_targetfilters.add(tf)
-                                break
-                        else:
-                            break
-                    else:
-                        entry.single_value['type'] = unicode(obj.name)
-                        implicit_targetfilters |= objectclass_targetfilters
-                        break
-
-            if ipapermtargetfilter:
+            filter_attr_info = self._get_filter_attr_info(entry)
+            if 'type' in filter_attr_info:
+                entry['type'] = filter_attr_info['type']
+            if 'memberof' in filter_attr_info:
+                entry['memberof'] = filter_attr_info['memberof']
+            if 'implicit_targetfilters' in filter_attr_info:
                 extratargetfilter = sorted(
-                    set(ipapermtargetfilter) - implicit_targetfilters)
+                    set(ipapermtargetfilter) -
+                    filter_attr_info['implicit_targetfilters'])
                 if extratargetfilter:
                         entry['extratargetfilter'] = extratargetfilter
 
@@ -652,7 +671,9 @@ class permission(baseldap.LDAPObject):
             raise ValueError('Cannot convert ACI, %r != %r' % (new_acistring,
                                                                acistring))
 
-    def preprocess_options(self, options, return_filter_ops=False):
+    def preprocess_options(self, options,
+                           return_filter_ops=False,
+                           merge_targetfilter=False):
         """Preprocess options (in-place)
 
         :param options: A dictionary of options
@@ -667,7 +688,18 @@ class permission(baseldap.LDAPObject):
                 - remove: list of regular expression objects; values that match
                     any of them sould be removed
                 - add: list of values to be added, after any removals
+        :merge_targetfilter:
+            If true, the extratargetfilter is copied into ipapermtargetfilter.
         """
+
+        if 'extratargetfilter' in options:
+            if 'ipapermtargetfilter' in options:
+                raise errors.ValidationError(
+                    name='ipapermtargetfilter',
+                    error=_('cannot specify full target filter '
+                            'and extra target filter simultaneously'))
+            if merge_targetfilter:
+                options['ipapermtargetfilter'] = options['extratargetfilter']
 
         filter_ops = {'add': [], 'remove': []}
 
@@ -836,7 +868,7 @@ class permission_add(baseldap.LDAPCreate):
     # Need to override execute so that processed options apply to
     # the whole command, not just the callbacks
     def execute(self, *keys, **options):
-        self.obj.preprocess_options(options)
+        self.obj.preprocess_options(options, merge_targetfilter=True)
         return super(permission_add, self).execute(*keys, **options)
 
     def pre_callback(self, ldap, dn, entry, attrs_list, *keys, **options):
@@ -950,7 +982,8 @@ class permission_mod(baseldap.LDAPUpdate):
                         error=_('cannot rename managed permissions'))
                 option = self.options[option_name]
                 allow_mod = 'allow_mod_for_managed_permission' in option.flags
-                if option.attribute and not allow_mod:
+                if (option.attribute and not allow_mod or
+                        option_name == 'extratargetfilter'):
                     raise errors.ValidationError(
                         name=option_name,
                         error=_('not modifiable on managed permissions'))
@@ -993,6 +1026,14 @@ class permission_mod(baseldap.LDAPUpdate):
                     key != 'cn' and
                     key not in self.obj.attribute_members):
                 entry.setdefault(key, value)
+
+        # For extratargetfilter, add it to the implicit filters
+        # to get the full target filter
+        if 'extratargetfilter' in options:
+            filter_attr_info = self.obj._get_filter_attr_info(entry)
+            entry['ipapermtargetfilter'] = (
+                list(options['extratargetfilter'] or []) +
+                list(filter_attr_info['implicit_targetfilters']))
 
         filter_ops = context.filter_ops
         removes = filter_ops.get('remove', [])
