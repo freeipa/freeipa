@@ -113,7 +113,6 @@ lint: bootstrap-autogen
 
 
 test:
-	./make-testcert
 	./make-test
 
 release-update:

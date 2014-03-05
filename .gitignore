@@ -64,7 +64,6 @@ freeipa2-dev-doc
 /ipa-client/ipa-join
 /ipa-client/ipa-rmkeytab
 
-/ipatests/test_xmlrpc/service.crt
 /ipatests/setup.py
 
 /ipapython/setup.py
