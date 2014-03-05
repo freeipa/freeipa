@@ -493,6 +493,12 @@ class API(DictProxy):
         object.__setattr__(self, 'log_mgr', log_mgr)
         log = log_mgr.root_logger
         object.__setattr__(self, 'log', log)
+
+        # Add the argument parser
+        if not parser:
+            parser = self.build_global_parser()
+        object.__setattr__(self, 'parser', parser)
+
         # If logging has already been configured somewhere else (like in the
         # installer), don't add handlers or change levels:
         if log_mgr.configure_state != 'default' or self.env.validate_api:
@@ -517,10 +523,6 @@ class API(DictProxy):
                                           stream=sys.stderr,
                                           level=level,
                                           format=LOGGING_FORMAT_STDERR)])
-
-        if not parser:
-            parser = self.build_global_parser()
-        object.__setattr__(self, 'parser', parser)
 
         # Add file handler:
         if self.env.mode in ('dummy', 'unit_test'):
