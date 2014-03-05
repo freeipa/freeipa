@@ -37,7 +37,10 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <dirsrv/slapi-plugin.h>
@@ -47,10 +50,17 @@
 #define IPA_CN "cn"
 #define IPA_BASE_ID "ipaBaseID"
 #define IPA_ID_RANGE_SIZE "ipaIDRangeSize"
+#define IPA_RANGE_TYPE "ipaRangeType"
 #define IPA_BASE_RID "ipaBaseRID"
 #define IPA_SECONDARY_BASE_RID "ipaSecondaryBaseRID"
 #define IPA_DOMAIN_ID "ipaNTTrustedDomainSID"
 #define RANGES_FILTER "objectclass=ipaIDRange"
+#define DOMAIN_ID_FILTER "ipaNTTrustedDomainSID=*"
+
+#define AD_TRUST_RANGE_TYPE "ipa-ad-trust"
+#define AD_TRUST_POSIX_RANGE_TYPE "ipa-ad-trust-posix"
+#define LOCAL_RANGE_TYPE "ipa-local"
+
 
 #define IPA_PLUGIN_NAME "ipa-range-check"
 #define IPA_RANGE_CHECK_FEATURE_DESC "IPA ID range check plugin"
@@ -72,6 +82,8 @@ struct ipa_range_check_ctx {
 struct range_info {
     char *name;
     char *domain_id;
+    char *forest_root_id;
+    char *id_range_type;
     uint32_t base_id;
     uint32_t id_range_size;
     uint32_t base_rid;
@@ -82,11 +94,188 @@ static void free_range_info(struct range_info *range) {
     if (range != NULL) {
         slapi_ch_free_string(&(range->name));
         slapi_ch_free_string(&(range->domain_id));
+        slapi_ch_free_string(&(range->forest_root_id));
+        slapi_ch_free_string(&(range->id_range_type));
         free(range);
     }
 }
 
-static int slapi_entry_to_range_info(struct slapi_entry *entry,
+struct domain_info {
+    char *domain_id;
+    char *forest_root_id;
+    struct domain_info *next;
+};
+
+static void free_domain_info(struct domain_info *info) {
+    if (info != NULL) {
+        slapi_ch_free_string(&(info->domain_id));
+        slapi_ch_free_string(&(info->forest_root_id));
+        free(info);
+    }
+}
+
+static int map_domain_to_root(struct domain_info **head,
+                              struct slapi_entry *domain,
+                              struct slapi_entry *root_domain){
+
+    struct domain_info* new_head = NULL;
+    new_head = (struct domain_info*) malloc(sizeof(struct domain_info));
+    if (new_head == NULL) {
+        return ENOMEM;
+    }
+
+    new_head->domain_id = slapi_entry_attr_get_charptr(domain,
+                                                       IPA_DOMAIN_ID);
+    new_head->forest_root_id = slapi_entry_attr_get_charptr(root_domain,
+                                                            IPA_DOMAIN_ID);
+    new_head->next = *head;
+
+    return 0;
+}
+
+/* Searches for the domain_info struct with the specified domain_id
+ * in the linked list. Returns the forest root domain's ID, or NULL for
+ * local ranges. */
+
+static char* get_forest_root_id(struct domain_info *head, char* domain_id) {
+
+    /* For local ranges there is no forest root domain,
+     * so consider only ranges with domain_id set */
+    if (domain_id != NULL) {
+        while(head) {
+            if (strcasecmp(head->domain_id, domain_id) == 0) {
+                return head->forest_root_id;
+            }
+            head = head->next;
+        }
+     }
+
+    return NULL;
+}
+
+
+/*
+ * This function builds a mapping from domain ID to forest
+ * root domain ID.
+ */
+
+static int build_domain_to_forest_root_map(struct domain_info **head,
+                                           struct ipa_range_check_ctx *ctx){
+
+    Slapi_PBlock *trusted_domain_search_pb = NULL;
+    Slapi_Entry **trusted_domain_entries = NULL;
+    Slapi_DN *base_dn = NULL;
+    char *base = NULL;
+
+    int search_result;
+    int ret = 0;
+
+    /* Set the base DN for the search to cn=ad, cn=trusts, $SUFFIX */
+    ret = asprintf(&base, "cn=ad,cn=trusts,%s", ctx->base_dn);
+    if (ret == -1) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    /* Create SDN from the base */
+    base_dn = slapi_sdn_new_dn_byref(base);
+    if (base_dn == NULL) {
+        LOG_FATAL("Failed to convert base DN.\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    /* Allocate a new parameter block */
+    trusted_domain_search_pb = slapi_pblock_new();
+    if (trusted_domain_search_pb == NULL) {
+        LOG_FATAL("Failed to create new pblock.\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    /* Search for all the root domains, note the LDAP_SCOPE_ONELEVEL */
+    slapi_search_internal_set_pb(trusted_domain_search_pb,
+                                 base,
+                                 LDAP_SCOPE_SUBTREE, DOMAIN_ID_FILTER,
+                                 NULL, 0, NULL, NULL, ctx->plugin_id, 0);
+
+    ret = slapi_search_internal_pb(trusted_domain_search_pb);
+    if (ret != 0) {
+        LOG_FATAL("Starting internal search failed.\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = slapi_pblock_get(trusted_domain_search_pb, SLAPI_PLUGIN_INTOP_RESULT, &search_result);
+    if (ret != 0 || search_result != LDAP_SUCCESS) {
+        LOG_FATAL("Internal search failed.\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = slapi_pblock_get(trusted_domain_search_pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES,
+                           &trusted_domain_entries);
+
+    if (ret != 0) {
+        LOG_FATAL("Failed to read searched root domain entries.\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    if (trusted_domain_entries == NULL || trusted_domain_entries[0] == NULL) {
+        LOG("No existing root domain entries.\n");
+        ret = 0;
+        goto done;
+    }
+
+    /* now we iterate the domains and determine which of them are root domains */
+    for (int i = 0; trusted_domain_entries[i] != NULL; i++) {
+
+        ret = slapi_sdn_isparent(base_dn,
+                                 slapi_entry_get_sdn(trusted_domain_entries[i]));
+
+        /* trusted domain is root domain */
+        if (ret == 1) {
+            ret = map_domain_to_root(head,
+                                     trusted_domain_entries[i],
+                                     trusted_domain_entries[i]);
+            if (ret != 0) {
+                goto done;
+            }
+        }
+        else {
+            /* we need to search for the root domain */
+            for (int j = 0; trusted_domain_entries[j] != NULL; j++) {
+                ret = slapi_sdn_isparent(
+                          slapi_entry_get_sdn(trusted_domain_entries[j]),
+                          slapi_entry_get_sdn(trusted_domain_entries[i]));
+
+                /* match, set the jth domain as the root domain for the ith */
+                if (ret == 1) {
+                    ret = map_domain_to_root(head,
+                                             trusted_domain_entries[i],
+                                             trusted_domain_entries[j]);
+                    if (ret != 0) {
+                        goto done;
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
+done:
+    slapi_free_search_results_internal(trusted_domain_search_pb);
+    slapi_pblock_destroy(trusted_domain_search_pb);
+    free(base);
+
+    return ret;
+
+}
+
+static int slapi_entry_to_range_info(struct domain_info *domain_info_head,
+                                     struct slapi_entry *entry,
                                      struct range_info **_range)
 {
     int ret;
@@ -99,12 +288,15 @@ static int slapi_entry_to_range_info(struct slapi_entry *entry,
     }
 
     range->name = slapi_entry_attr_get_charptr(entry, IPA_CN);
-    if (range->name == NULL) {
+    range->domain_id = slapi_entry_attr_get_charptr(entry, IPA_DOMAIN_ID);
+    range->id_range_type = slapi_entry_attr_get_charptr(entry, IPA_RANGE_TYPE);
+    range->forest_root_id = get_forest_root_id(domain_info_head,
+                                               range->domain_id);
+
+    if (range->name == NULL || range->id_range_type == NULL) {
         ret = EINVAL;
         goto done;
     }
-
-    range->domain_id = slapi_entry_attr_get_charptr(entry, IPA_DOMAIN_ID);
 
     ul_val = slapi_entry_attr_get_ulong(entry, IPA_BASE_ID);
     if (ul_val == 0 || ul_val >= UINT32_MAX) {
@@ -169,58 +361,67 @@ static bool intervals_overlap(uint32_t x, uint32_t base, uint32_t x_size, uint32
  *                   |     |  /  \ |
  * new range:       base  rid  sec_rid
  **/
-static int ranges_overlap(struct range_info *r1, struct range_info *r2)
+static int check_ranges(struct range_info *r1, struct range_info *r2)
 {
+    /* Do not check overlaps of range with the range itself */
     if (r1->name != NULL && r2->name != NULL &&
         strcasecmp(r1->name, r2->name) == 0) {
         return 0;
     }
 
-    /* check if base range overlaps with existing base range */
-    if (intervals_overlap(r1->base_id, r2->base_id,
-        r1->id_range_size, r2->id_range_size)){
-        return 1;
+    /* Check if base range overlaps with existing base range.
+     * Exception: ipa-ad-trust-posix ranges from the same forest */
+    if (!(strcasecmp(r1->id_range_type, AD_TRUST_POSIX_RANGE_TYPE) &&
+          strcasecmp(r2->id_range_type, AD_TRUST_POSIX_RANGE_TYPE) &&
+          r1->forest_root_id != NULL && r2->forest_root_id !=NULL &&
+          strcasecmp(r1->forest_root_id, r2->forest_root_id) == 0)) {
+
+        if (intervals_overlap(r1->base_id, r2->base_id,
+            r1->id_range_size, r2->id_range_size)){
+            return 1;
+        }
+
     }
 
-    /* if both base_rid and secondary_base_rid = 0, the rid range is not set */
-    bool rid_ranges_set = (r1->base_rid != 0 || r1->secondary_base_rid != 0) &&
-                          (r2->base_rid != 0 || r2->secondary_base_rid != 0);
-
-    /**
-     * ipaNTTrustedDomainSID is not set for local ranges, use it to
-     * determine the type of the range **/
-    bool local_ranges = r1->domain_id == NULL && r2->domain_id == NULL;
-
+    /* Following checks apply for the ranges from the same domain */
     bool ranges_from_same_domain =
          (r1->domain_id == NULL && r2->domain_id == NULL) ||
          (r1->domain_id != NULL && r2->domain_id != NULL &&
           strcasecmp(r1->domain_id, r2->domain_id) == 0);
 
-    /**
-     * in case rid range is not set or ranges belong to different domains
-     * we can skip rid range tests as they are irrelevant **/
-    if (rid_ranges_set && ranges_from_same_domain){
+    if (ranges_from_same_domain) {
 
-        /* check if rid range overlaps with existing rid range */
-        if (intervals_overlap(r1->base_rid, r2->base_rid,
-            r1->id_range_size, r2->id_range_size))
-            return 2;
+        /* Ranges from the same domain must have the same type */
+        if (strcasecmp(r1->id_range_type, r2->id_range_type) != 0) {
+            return 6;
+        }
 
-        /**
-         * The following 3 checks are relevant only if both ranges are local.
-         * Check if secondary rid range overlaps with existing secondary rid
-         * range. **/
-        if (local_ranges){
+        /* For ipa-local or ipa-ad-trust range types primary RID ranges should
+         * not overlap */
+        if (strcasecmp(r1->id_range_type, AD_TRUST_RANGE_TYPE) == 0 ||
+            strcasecmp(r1->id_range_type, LOCAL_RANGE_TYPE) == 0) {
+
+            /* Check if rid range overlaps with existing rid range */
+            if (intervals_overlap(r1->base_rid, r2->base_rid,
+                r1->id_range_size, r2->id_range_size))
+                return 2;
+        }
+
+        /* The following 3 checks are relevant only if both ranges are local. */
+        if (strcasecmp(r1->id_range_type, LOCAL_RANGE_TYPE) == 0){
+
+            /* Check if secondary RID range overlaps with existing secondary or
+             * primary RID range. */
             if (intervals_overlap(r1->secondary_base_rid,
                 r2->secondary_base_rid, r1->id_range_size, r2->id_range_size))
                 return 3;
 
-            /* check if rid range overlaps with existing secondary rid range */
+            /* Check if RID range overlaps with existing secondary RID range */
             if (intervals_overlap(r1->base_rid, r2->secondary_base_rid,
                 r1->id_range_size, r2->id_range_size))
                 return 4;
 
-            /* check if secondary rid range overlaps with existing rid range */
+            /* Check if secondary RID range overlaps with existing RID range */
             if (intervals_overlap(r1->secondary_base_rid, r2->base_rid,
                 r1->id_range_size, r2->id_range_size))
                 return 5;
@@ -256,9 +457,10 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
     int search_result;
     Slapi_Entry **search_entries = NULL;
     size_t c;
-    int no_overlap = 0;
+    int ranges_valid = 0;
     const char *check_attr;
     char *errmsg = NULL;
+    struct domain_info *domain_info_head = NULL;
 
     ret = slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op);
     if (ret != 0) {
@@ -345,7 +547,14 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
             goto done;
     }
 
-    ret = slapi_entry_to_range_info(entry, &new_range);
+    /* build a linked list of domain_info structs */
+    ret = build_domain_to_forest_root_map(&domain_info_head, ctx);
+    if (ret != 0) {
+        LOG_FATAL("Building of domain forest root domain map failed.\n");
+        goto done;
+    }
+
+    ret = slapi_entry_to_range_info(domain_info_head, entry, &new_range);
     if (ret != 0) {
         LOG_FATAL("Failed to convert LDAP entry to range struct.\n");
         goto done;
@@ -389,19 +598,20 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
     }
 
     for (c = 0; search_entries[c] != NULL; c++) {
-        ret = slapi_entry_to_range_info(search_entries[c], &old_range);
+        ret = slapi_entry_to_range_info(domain_info_head, search_entries[c],
+                                        &old_range);
         if (ret != 0) {
             LOG_FATAL("Failed to convert LDAP entry to range struct.\n");
             goto done;
         }
 
-        no_overlap = ranges_overlap(new_range, old_range);
+        ranges_valid = check_ranges(new_range, old_range);
         free_range_info(old_range);
         old_range = NULL;
-        if (no_overlap != 0) {
+        if (ranges_valid != 0) {
             ret = LDAP_CONSTRAINT_VIOLATION;
 
-            switch (no_overlap){
+            switch (ranges_valid){
             case 1:
                 errmsg = "New base range overlaps with existing base range.";
                 break;
@@ -417,6 +627,8 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
             case 5:
                 errmsg = "New secondary rid range overlaps with existing primary rid range.";
                 break;
+            case 6:
+                errmsg = "New ID range has invalid type. All ranges in the same domain must be of the same type.";
             default:
                 errmsg = "New range overlaps with existing one.";
                 break;
@@ -438,6 +650,14 @@ done:
     free_range_info(new_range);
     if (free_entry) {
         slapi_entry_free(entry);
+    }
+
+    /* Remove the domain info linked list from memory */
+    struct domain_info *next;
+    while(domain_info_head) {
+        next = domain_info_head->next;
+        free_domain_info(domain_info_head);
+        domain_info_head = next;
     }
 
     if (ret != 0) {
