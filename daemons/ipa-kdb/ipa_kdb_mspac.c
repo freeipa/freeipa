@@ -2002,6 +2002,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     bool with_pad;
     int result;
     krb5_db_entry *client_entry = NULL;
+    krb5_boolean is_equal;
 
 
     is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
@@ -2012,12 +2013,18 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     if (client_princ != NULL) {
         ks_client_princ = client_princ;
         if (!is_as_req) {
-            kerr = ipadb_get_principal(context, client_princ, flags, &client_entry);
-            /* If we didn't find client_princ in our database, it might be:
-             * - a principal from another realm, handle it down in ipadb_get/verify_pac()
-             */
-            if (!kerr) {
-                client_entry = NULL;
+            is_equal = false;
+            if ((client != NULL) && (client->princ != NULL)) {
+                is_equal = krb5_principal_compare(context, client_princ, client->princ);
+            }
+            if (!is_equal) {
+                kerr = ipadb_get_principal(context, client_princ, flags, &client_entry);
+                /* If we didn't find client_princ in our database, it might be:
+                 * - a principal from another realm, handle it down in ipadb_get/verify_pac()
+                 */
+                if (kerr != 0) {
+                    client_entry = NULL;
+                }
             }
         }
     } else {
