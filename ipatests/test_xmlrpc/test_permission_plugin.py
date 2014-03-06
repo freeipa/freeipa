@@ -1488,7 +1488,7 @@ class test_permission(Declarative):
             command=('permission_mod', [permission1],
                      {'ipapermtargetfilter': u"cn=admin"}),
             expected=errors.ValidationError(
-                name='filter',
+                name='rawfilter',
                 error='must be enclosed in parentheses'),
         ),
 

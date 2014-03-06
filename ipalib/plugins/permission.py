@@ -231,15 +231,17 @@ class permission(baseldap.LDAPObject):
         ),
         Str(
             'extratargetfilter*', prevalidate_filter,
+            cli_name='filter',
             label=_('Extra target filter'),
-            doc=_('Target filter, excluding filters set by type and memberof'),
+            doc=_('Extra target filter'),
             flags={'virtual_attribute'},
         ),
         Str(
             'ipapermtargetfilter*', prevalidate_filter,
-            cli_name='filter',
-            label=_('Target filter'),
-            doc=_('Target filter'),
+            cli_name='rawfilter',
+            label=_('Raw target filter'),
+            doc=_('All target filters, including those implied by '
+                  'type and memberof'),
         ),
 
         DNParam(
