@@ -626,10 +626,6 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         that.create_controls();
     };
 
-    that.widgets.create_widget_delimiter = function(container) {
-        container.append('<hr/>');
-    };
-
     /**
      * @inheritDoc
      */
