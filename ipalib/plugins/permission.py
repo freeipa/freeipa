@@ -306,7 +306,11 @@ class permission(baseldap.LDAPObject):
         for targetfilter in ipapermtargetfilter:
             match = re.match('^\(memberof=(.*)\)$', targetfilter, re.I)
             if match:
-                dn = DN(match.group(1))
+                try:
+                    dn = DN(match.group(1))
+                except ValueError:
+                    # Malformed DN; e.g. (memberof=*)
+                    continue
                 groups_dn = DN(self.api.Object.group.container_dn,
                                 self.api.env.basedn)
                 if dn[1:] == groups_dn[:] and dn[0].attr == 'cn':
