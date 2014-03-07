@@ -689,10 +689,10 @@ class permission(baseldap.LDAPObject):
             If true, a dictionary of operations on ipapermtargetfilter is
             returned.
             These operations must be performed after the existing entry
-            is retreived.
+            is retrieved.
             The dict has the following keys:
-                - remove: list of regular expression objects; values that match
-                    any of them sould be removed
+                - remove: list of regular expression objects;
+                    implicit values that match any of them should be removed
                 - add: list of values to be added, after any removals
         :merge_targetfilter:
             If true, the extratargetfilter is copied into ipapermtargetfilter.
@@ -1042,10 +1042,13 @@ class permission_mod(baseldap.LDAPUpdate):
                 list(filter_attr_info['implicit_targetfilters']))
 
         filter_ops = context.filter_ops
+        old_filter_attr_info = self.obj._get_filter_attr_info(old_entry)
+        old_implicit_filters = old_filter_attr_info['implicit_targetfilters']
         removes = filter_ops.get('remove', [])
         new_filters = set(
             filt for filt in (entry.get('ipapermtargetfilter') or [])
-            if not any(rem.match(filt) for rem in removes))
+            if filt not in old_implicit_filters or
+                not any(rem.match(filt) for rem in removes))
         new_filters.update(filter_ops.get('add', []))
         new_filters.update(options.get('ipapermtargetfilter') or [])
         entry['ipapermtargetfilter'] = list(new_filters)
