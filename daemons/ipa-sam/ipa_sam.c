@@ -82,6 +82,18 @@ struct trustAuthInOutBlob {
 	struct AuthenticationInformationArray previous;/* [subcontext(0),flag(LIBNDR_FLAG_REMAINING)] */
 }/* [gensize,public,nopush] */;
 
+/* from generated idmap.h - hopefully OK */
+enum id_type {
+	ID_TYPE_NOT_SPECIFIED,
+	ID_TYPE_UID,
+	ID_TYPE_GID,
+	ID_TYPE_BOTH
+};
+
+struct unixid {
+	uint32_t id;
+	enum id_type type;
+}/* [public] */;
 
 enum ndr_err_code ndr_pull_trustAuthInOutBlob(struct ndr_pull *ndr, int ndr_flags, struct trustAuthInOutBlob *r); /*available in libndr-samba.so */
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
@@ -91,6 +103,7 @@ char *sid_string_talloc(TALLOC_CTX *mem_ctx, const struct dom_sid *sid); /* avai
 char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so */
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
+void idmap_cache_set_sid2unixid(const struct dom_sid *sid, struct unixid *unix_id); /* available in libsmbconf.so */
 
 #define LDAP_PAGE_SIZE 1024
 #define LDAP_OBJ_SAMBASAMACCOUNT "ipaNTUserAttrs"
@@ -750,8 +763,8 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 	}
 
 	for (c = 0; values[c] != NULL; c++) {
-		if (strncmp(LDAP_OBJ_GROUPMAP, values[c]->bv_val,
-			                       values[c]->bv_len) == 0) {
+		if (strncasecmp(LDAP_OBJ_GROUPMAP, values[c]->bv_val,
+						   values[c]->bv_len) == 0) {
 			break;
 		}
 	}
@@ -769,6 +782,9 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 		}
 
 		unixid_from_gid(id, strtoul(gid_str, NULL, 10));
+
+		idmap_cache_set_sid2unixid(sid, id);
+
 		ret = true;
 		goto done;
 	}
@@ -785,8 +801,11 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 
 	unixid_from_uid(id, strtoul(value, NULL, 10));
 
+	idmap_cache_set_sid2unixid(sid, id);
+
 	ret = true;
  done:
+
 	TALLOC_FREE(mem_ctx);
 	return ret;
 }
@@ -806,6 +825,18 @@ static bool ldapsam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 	int rc;
 	enum idmap_error_code err;
 	TALLOC_CTX *tmp_ctx = talloc_stackframe();
+	struct unixid id;
+
+	/* Fast fail if we get a request for uidNumber=0 because it currently
+	 * will never exist in the directory
+	 * Saves an expensive LDAP call of which failure will never be cached
+	 */
+	if (uid == 0) {
+		DEBUG(3, ("ERROR: Received request for uid %u, "
+			  "fast failing as it will never exist\n",
+			  (unsigned int)uid));
+		goto done;
+	}
 
 	filter = talloc_asprintf(tmp_ctx,
 				 "(&(uidNumber=%u)"
@@ -852,6 +883,10 @@ static bool ldapsam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 
 	sid_copy(sid, user_sid);
 
+	unixid_from_uid(&id, uid);
+
+	idmap_cache_set_sid2unixid(sid, &id);
+
 	ret = true;
 
 done:
@@ -866,21 +901,30 @@ static bool ldapsam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 	struct ldapsam_privates *priv =
 		(struct ldapsam_privates *)methods->private_data;
 	char *filter;
-	const char *attrs[] = { LDAP_ATTRIBUTE_SID, NULL };
+	const char *attrs[] = { LDAP_ATTRIBUTE_SID, LDAP_ATTRIBUTE_OBJECTCLASS, NULL };
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
 	bool ret = false;
-	char *group_sid_string;
+	char *group_sid_string = NULL;
 	struct dom_sid *group_sid = NULL;
+	struct berval **values;
+	size_t c;
 	int rc;
 	enum idmap_error_code err;
 	TALLOC_CTX *tmp_ctx = talloc_stackframe();
+	struct unixid id;
 
 	filter = talloc_asprintf(tmp_ctx,
-				 "(&(gidNumber=%u)"
-				 "(objectClass=%s))",
+				 "(|(&(gidNumber=%u)"
+				     "(objectClass=%s))"
+				   "(&(uidNumber=%u)"
+				     "(objectClass=%s)"
+				     "(objectClass=%s)))",
 				 (unsigned int)gid,
-				 LDAP_OBJ_GROUPMAP);
+				 LDAP_OBJ_GROUPMAP,
+				 (unsigned int)gid,
+				 LDAP_OBJ_POSIXACCOUNT,
+				 LDAP_OBJ_SAMBASAMACCOUNT);
 	if (filter == NULL) {
 		DEBUG(3, ("talloc_asprintf failed\n"));
 		goto done;
@@ -892,14 +936,46 @@ static bool ldapsam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 	}
 	smbldap_talloc_autofree_ldapmsg(tmp_ctx, result);
 
-	if (ldap_count_entries(priv2ld(priv), result) != 1) {
-		DEBUG(3, ("ERROR: Got %d entries for gid %u, expected one\n",
+	if (ldap_count_entries(priv2ld(priv), result) == 0) {
+		DEBUG(3, ("ERROR: Got %d entries for gid %u, expected at least one\n",
 			   ldap_count_entries(priv2ld(priv), result),
 			   (unsigned int)gid));
 		goto done;
 	}
 
-	entry = ldap_first_entry(priv2ld(priv), result);
+	for (entry = ldap_first_entry(priv2ld(priv), result);
+		 entry != NULL;
+		 entry = ldap_next_entry(priv2ld(priv), entry)) {
+
+		values = ldap_get_values_len(priv2ld(priv), entry, "objectClass");
+		if (values == NULL) {
+			DEBUG(10, ("Cannot find any objectclasses.\n"));
+			goto done;
+		}
+
+		for (c = 0; values[c] != NULL; c++) {
+			if (strncasecmp(LDAP_OBJ_GROUPMAP, values[c]->bv_val,
+							   values[c]->bv_len) == 0) {
+				goto found;
+			}
+		}
+
+	}
+
+found:
+	/* If we didn't find a group we found a user - so this is a primary group
+	 * For user private group, use fallback group */
+	if (entry == NULL) {
+
+		DEBUG(10, ("Did not find user private group %u, "
+			   "returning fallback group.\n", (unsigned int)gid));
+
+		sid_copy(sid,
+			 &priv->ipasam_privates->fallback_primary_group);
+		ret = true;
+		goto done;
+
+	}
 
 	group_sid_string = get_single_attribute(tmp_ctx, priv2ld(priv), entry,
 						LDAP_ATTRIBUTE_SID);
@@ -910,7 +986,7 @@ static bool ldapsam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 	}
 
 	err = sss_idmap_sid_to_smb_sid(priv->ipasam_privates->idmap_ctx,
-				       group_sid_string, &group_sid);
+					   group_sid_string, &group_sid);
 	if (err != IDMAP_SUCCESS) {
 		DEBUG(3, ("Error calling sid_string_talloc for sid '%s'\n",
 			  group_sid_string));
@@ -918,6 +994,10 @@ static bool ldapsam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 	}
 
 	sid_copy(sid, group_sid);
+
+	unixid_from_gid(&id, gid);
+
+	idmap_cache_set_sid2unixid(sid, &id);
 
 	ret = true;
 
@@ -2456,9 +2536,15 @@ static int delete_subtree(struct ldapsam_privates *ldap_state, char* dn)
 	rc = smbldap_search(ldap_state->smbldap_state, dn, scope, filter, NULL, 0, &result);
 	TALLOC_FREE(filter);
 
-	if (result != NULL) {
-		smbldap_talloc_autofree_ldapmsg(dn, result);
+	if (rc != LDAP_SUCCESS) {
+		return rc;
 	}
+
+	if (result == NULL) {
+		return LDAP_NO_MEMORY;
+	}
+
+	smbldap_talloc_autofree_ldapmsg(dn, result);
 
 	for (entry = ldap_first_entry(state, result);
 	     entry != NULL;
@@ -2467,6 +2553,9 @@ static int delete_subtree(struct ldapsam_privates *ldap_state, char* dn)
 		/* remove child entries */
 		if ((entry_dn != NULL) && (strcmp(entry_dn, dn) != 0)) {
 			rc = smbldap_delete(ldap_state->smbldap_state, entry_dn);
+			if (rc != LDAP_SUCCESS) {
+				return rc;
+			}
 		}
 	}
 	rc = smbldap_delete(ldap_state->smbldap_state, dn);
@@ -2856,6 +2945,7 @@ static int ipasam_get_sid_by_gid(struct ldapsam_privates *ldap_state,
 	struct dom_sid *sid = NULL;
 	int count;
 	enum idmap_error_code err;
+	struct unixid id;
 
 	tmp_ctx = talloc_new("ipasam_get_sid_by_gid");
 	if (tmp_ctx == NULL) {
@@ -2910,6 +3000,10 @@ static int ipasam_get_sid_by_gid(struct ldapsam_privates *ldap_state,
 	}
 	sid_copy(_sid, sid);
 
+	unixid_from_gid(&id, gid);
+
+	idmap_cache_set_sid2unixid(sid, &id);
+
 	ret = 0;
 
 done:
@@ -2929,6 +3023,7 @@ static int ipasam_get_primary_group_sid(TALLOC_CTX *mem_ctx,
 	uint32_t uid;
 	uint32_t gid;
 	struct dom_sid *group_sid;
+	struct unixid id;
 
 	TALLOC_CTX *tmp_ctx = talloc_init("ipasam_get_primary_group_sid");
 	if (tmp_ctx == NULL) {
@@ -2967,8 +3062,13 @@ static int ipasam_get_primary_group_sid(TALLOC_CTX *mem_ctx,
 		}
 	}
 
-        ret = 0;
+	unixid_from_gid(&id, gid);
+
+	idmap_cache_set_sid2unixid(group_sid, &id);
+
+	ret = 0;
 done:
+
 	if (ret == 0) {
 		*_group_sid = talloc_steal(mem_ctx, group_sid);
 	}
