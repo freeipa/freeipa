@@ -2382,6 +2382,48 @@ class test_permission_targetfilter(Declarative):
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
         ),
 
+    ] + [
+        dict(
+            desc='Search for %r using %s %s' % (permission1, value_name, option_name),
+            command=(
+                'permission_find', [],
+                {option_name: value, 'all': True}
+            ),
+            expected=dict(
+                summary=u'1 permission matched' if should_find else u'0 permissions matched',
+                truncated=False,
+                count=1 if should_find else 0,
+                result=[dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    type=[u'user'],
+                    ipapermright=[u'write'],
+                    attrs=[u'sn'],
+                    ipapermincludedattr=[u'sn'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[users_dn],
+                    memberof=[u'admins'],
+                    extratargetfilter=[u'(cn=*)'],
+                    ipapermtargetfilter=[
+                        u'(cn=*)',
+                        u'(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                        u'(objectclass=posixaccount)'],
+                )] if should_find else [],
+            ),
+        )
+        for option_name in (
+            'extratargetfilter',
+            'ipapermtargetfilter',
+        )
+        for value_name, value, should_find in (
+            ('"extra"', u'(cn=*)', True),
+            ('"non-extra"', u'(objectclass=posixaccount)', True),
+            ('non-existing', u'(sn=insert a very improbable last name)', False),
+        )
+    ] + [
+
     ]
 
 

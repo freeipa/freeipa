@@ -1115,7 +1115,7 @@ class permission_find(baseldap.LDAPSearch):
     has_output_params = baseldap.LDAPSearch.has_output_params + output_params
 
     def execute(self, *keys, **options):
-        self.obj.preprocess_options(options)
+        self.obj.preprocess_options(options, merge_targetfilter=True)
         return super(permission_find, self).execute(*keys, **options)
 
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope,
