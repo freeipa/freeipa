@@ -218,24 +218,27 @@ test("Testing unsuccessful IPA.command().", function() {
         on_error: error_handler
     }).execute();
 
+    function click_button(name) {
+        var dialog = $('#error_dialog');
+        var btn = $('button[name='+name+']', dialog).first();
+        btn.trigger('click');
+    }
+
     var dialog = $('#error_dialog');
-    var ui_dialog = dialog.parent('.ui-dialog');
 
     equals(
         ajax_counter, 1,
         "Checking ajax invocation counter");
 
     ok(
-        ui_dialog.length === 1 && dialog.dialog('isOpen'),
+        dialog.length === 1,
         "The dialog box is created and open.");
 
     ok(
         success_handler_counter === 0 && error_handler_counter === 0,
         "Initially none of the handlers are called.");
 
-    // search the retry button from the beginning
-    var retry = $('button', ui_dialog).first();
-    retry.trigger('click');
+    click_button('retry');
 
     equals(
         ajax_counter, 2,
@@ -245,11 +248,7 @@ test("Testing unsuccessful IPA.command().", function() {
         success_handler_counter === 0 && error_handler_counter === 0,
         "After 1st retry, none of the handlers are called.");
 
-    // search the retry button from the beginning again because the dialog
-    // has been recreated
-    ui_dialog = $('#error_dialog').parent('.ui-dialog');
-    retry = $('button', ui_dialog).first();
-    retry.trigger('click');
+    click_button('retry');
 
     equals(ajax_counter, 3,
         "Checking ajax invocation counter");
@@ -257,11 +256,7 @@ test("Testing unsuccessful IPA.command().", function() {
     ok(success_handler_counter === 0 && error_handler_counter === 0,
         "After 2nd retry, none of the handlers are called.");
 
-    // search the cancel button from the beginning because the dialog has
-    // been recreated
-    ui_dialog = $('#error_dialog').parent('.ui-dialog');
-    var cancel = $('button', ui_dialog).first().next();
-    cancel.trigger('click');
+    click_button('cancel');
 
     equals(ajax_counter, 3,
         "Checking ajax invocation counter");

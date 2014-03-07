@@ -88,26 +88,26 @@ test("Testing IPA.details_section.create().", function() {
     var container = $("<div/>");
     section.create(container);
 
-    var table = $('table', container);
+    var section_el = $('.details-section', container);
 
     same(
-        table.length, 1,
-        'Verifying table');
+        section_el.length, 1,
+        'Verifying section element');
 
-    var rows = $('tr', table);
+    var controls = $('.control-group', section_el);
     same(
-        rows.length, fields.length,
-        'Verifying table rows');
+        controls.length, fields.length,
+        'Verifying number of controls');
 
     for (var i=0; i<fields.length; i++) {
         var field = fields[i];
 
-        var field_label = $('.field-label[name='+field.name+']', container);
+        var field_label = $('.control-label label[name='+field.name+']', container);
         same(
-            field_label.text(), field.label+':',
+            field_label.text(), field.label,
             'Verifying label for field '+field.name);
 
-        var field_container = $('.field[name='+field.name+']', container);
+        var field_container = $('.controls div[name='+field.name+']', container);
 
         ok(
             field_container.length,
@@ -245,7 +245,7 @@ test("Testing details lifecycle: create, load.", function(){
         identity.length,
         'Verifying section for identity is created');
 
-    var rows = $('tr', identity);
+    var rows = $('.control-group', identity);
 
     same(
         rows.length, 6,
@@ -308,26 +308,26 @@ test("Testing IPA.details_section_create again()",function() {
     section.create(container);
     facet.load(data);
 
-    var table = $('table', container);
+   var section_el = $('.details-section', container);
 
     same(
-        table.length, 1,
-        'Verifying table');
+        section_el.length, 1,
+        'Verifying section element');
 
-    var rows = $('tr', table);
+    var controls = $('.control-group', section_el);
     same(
-        rows.length, fields.length,
-        'Verifying table rows');
+        controls.length, fields.length,
+        'Verifying number of controls');
 
     for (var i=0; i<fields.length; i++) {
         var field = fields[i];
 
-        var field_label = $('.field-label[name='+field.name+']', container);
+        var field_label = $('.control-label label[name='+field.name+']', container);
         same(
-            field_label.text(), field.label+':',
+            field_label.text(), field.label,
             'Verifying label for field '+field.name);
 
-        var field_container = $('.field[name='+field.name+']', container);
+        var field_container = $('.controls div[name='+field.name+']', container);
 
         ok(
             field_container.length,
