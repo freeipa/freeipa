@@ -19,6 +19,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=automember,cn=etc",
                 "default_attributes": [
                     "automemberinclusiveregex",
@@ -113,6 +114,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=automount",
                 "default_attributes": [
                     "automountkey",
@@ -215,6 +217,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=automount",
                 "default_attributes": [
                     "cn"
@@ -288,6 +291,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=automount",
                 "default_attributes": [
                     "automountmapname",
@@ -367,6 +371,7 @@
                 "aciattrs": [],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "",
                 "default_attributes": [
                     "ipamaxusernamelength",
@@ -384,7 +389,8 @@
                     "ipaselinuxusermaporder",
                     "ipaselinuxusermapdefault",
                     "ipaconfigstring",
-                    "ipakrbauthzdata"
+                    "ipakrbauthzdata",
+                    "ipauserauthtype"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -602,20 +608,34 @@
                         "label": "Default SELinux user",
                         "name": "ipaselinuxusermapdefault",
                         "noextrawhitespace": true,
-                        "required": true,
                         "type": "unicode"
                     },
                     {
                         "class": "StrEnum",
-                        "doc": "Default types of PAC for new services",
+                        "doc": "Default types of PAC supported for services",
                         "flags": [],
-                        "label": "PAC type",
+                        "label": "Default PAC types",
                         "multivalue": true,
                         "name": "ipakrbauthzdata",
                         "type": "unicode",
                         "values": [
                             "MS-PAC",
-                            "PAD"
+                            "PAD",
+                            "nfs:NONE"
+                        ]
+                    },
+                    {
+                        "class": "StrEnum",
+                        "doc": "Default types of supported user authentication",
+                        "flags": [],
+                        "label": "Default user authentication types",
+                        "multivalue": true,
+                        "name": "ipauserauthtype",
+                        "type": "unicode",
+                        "values": [
+                            "password",
+                            "radius",
+                            "otp"
                         ]
                     }
                 ],
@@ -633,11 +653,15 @@
                     "acctpolicysubentry",
                     "aci",
                     "administratorcontactinfo",
+                    "adminmessages",
                     "adminrole",
                     "adminurl",
                     "afsdbrecord",
+                    "algorithm",
+                    "algorithmid",
                     "aliasedobjectname",
                     "altserver",
+                    "archivedby",
                     "arecord",
                     "associateddomain",
                     "associatedname",
@@ -658,6 +682,8 @@
                     "automountinformation",
                     "automountkey",
                     "automountmapname",
+                    "autorenew",
+                    "beginrange",
                     "bindtimelimit",
                     "bootfile",
                     "bootparameter",
@@ -676,6 +702,7 @@
                     "carlicense",
                     "certificaterevocationlist",
                     "certrecord",
+                    "certstatus",
                     "changelog",
                     "changelogmaximumage",
                     "changelogmaximumconcurrentwrites",
@@ -696,7 +723,10 @@
                     "cirupdateschedule",
                     "cirusepersistentsearch",
                     "cirusessl",
+                    "clientid",
+                    "clone",
                     "cmdcategory",
+                    "cmsusergroup",
                     "cn",
                     "cnamerecord",
                     "co",
@@ -712,13 +742,26 @@
                     "createtimestamp",
                     "creatorsname",
                     "credentiallevel",
+                    "crlcache",
+                    "crlextensions",
+                    "crlname",
+                    "crlnumber",
+                    "crlsize",
                     "crosscertificatepair",
+                    "datatype",
+                    "dateofarchival",
+                    "dateofcreate",
+                    "dateofmodify",
+                    "dateofrecovery",
+                    "dateofrevocation",
                     "dc",
                     "defaultsearchbase",
                     "defaultsearchscope",
                     "defaultserverlist",
                     "deleteoldrdn",
+                    "deltanumber",
                     "deltarevocationlist",
+                    "deltasize",
                     "departmentnumber",
                     "dereferencealiases",
                     "description",
@@ -740,6 +783,10 @@
                     "dnaprefix",
                     "dnarangerequesttimeout",
                     "dnaremainingvalues",
+                    "dnaremotebindcred",
+                    "dnaremotebinddn",
+                    "dnaremotebindmethod",
+                    "dnaremoteconnprotocol",
                     "dnascope",
                     "dnasecureportnum",
                     "dnasharedcfgdn",
@@ -755,8 +802,11 @@
                     "documentpublisher",
                     "documenttitle",
                     "documentversion",
+                    "domainmanager",
                     "drink",
+                    "dsonlymemberuid",
                     "dsrecord",
+                    "duration",
                     "edupersonaffiliation",
                     "edupersonentitlement",
                     "edupersonnickname",
@@ -768,15 +818,19 @@
                     "edupersonscopedaffiliation",
                     "employeenumber",
                     "employeetype",
+                    "endrange",
                     "enhancedsearchguide",
                     "enrolledby",
                     "entrydn",
                     "entryid",
                     "entryusn",
+                    "expiredcerts",
+                    "extension",
                     "externalhost",
                     "externaluser",
                     "facsimiletelephonenumber",
                     "filterinfo",
+                    "firstunsaved",
                     "followreferrals",
                     "fqdn",
                     "ftpdownloadbandwidth",
@@ -811,6 +865,7 @@
                     "idnsforwarders",
                     "idnsforwardpolicy",
                     "idnsname",
+                    "idnspersistentsearch",
                     "idnssoaexpire",
                     "idnssoaminimum",
                     "idnssoamname",
@@ -820,6 +875,7 @@
                     "idnssoaserial",
                     "idnsupdatepolicy",
                     "idnszoneactive",
+                    "idnszonerefresh",
                     "inetdomainbasedn",
                     "inetdomainstatus",
                     "inetsubscriberaccountid",
@@ -845,6 +901,7 @@
                     "ipadefaultloginshell",
                     "ipadefaultprimarygroup",
                     "ipaenabledflag",
+                    "ipaentitlementid",
                     "ipaexternalmember",
                     "ipagroupobjectclasses",
                     "ipagroupsearchfields",
@@ -863,6 +920,8 @@
                     "ipantlogonscript",
                     "ipantprofilepath",
                     "ipantsecurityidentifier",
+                    "ipantsidblacklistincoming",
+                    "ipantsidblacklistoutgoing",
                     "ipantsupportedencryptiontypes",
                     "ipanttrustattributes",
                     "ipanttrustauthincoming",
@@ -873,8 +932,17 @@
                     "ipanttrustpartner",
                     "ipanttrustposixoffset",
                     "ipanttrusttype",
+                    "ipapermbindruletype",
+                    "ipapermdefaultattr",
+                    "ipapermexcludedattr",
+                    "ipapermincludedattr",
                     "ipapermissiontype",
+                    "ipapermlocation",
+                    "ipapermright",
+                    "ipapermtarget",
+                    "ipapermtargetfilter",
                     "ipapwdexpadvnotify",
+                    "iparangetype",
                     "ipasearchrecordslimit",
                     "ipasearchtimelimit",
                     "ipasecondarybaserid",
@@ -889,7 +957,29 @@
                     "ipasudorunasgroup",
                     "ipasudorunasgroupcategory",
                     "ipasudorunasusercategory",
+                    "ipatokendisabled",
+                    "ipatokenhotpcounter",
+                    "ipatokenmodel",
+                    "ipatokennotafter",
+                    "ipatokennotbefore",
+                    "ipatokenotpalgorithm",
+                    "ipatokenotpdigits",
+                    "ipatokenotpkey",
+                    "ipatokenowner",
+                    "ipatokenradiusconfiglink",
+                    "ipatokenradiusretries",
+                    "ipatokenradiussecret",
+                    "ipatokenradiusserver",
+                    "ipatokenradiustimeout",
+                    "ipatokenradiususername",
+                    "ipatokenserial",
+                    "ipatokentotpclockoffset",
+                    "ipatokentotptimestep",
+                    "ipatokenuniqueid",
+                    "ipatokenusermapattribute",
+                    "ipatokenvendor",
                     "ipauniqueid",
+                    "ipauserauthtype",
                     "ipauserobjectclasses",
                     "ipausersearchfields",
                     "iphostnumber",
@@ -899,6 +989,9 @@
                     "ipserviceport",
                     "ipserviceprotocol",
                     "isreplicated",
+                    "issuedby",
+                    "issueinfo",
+                    "issuername",
                     "javaclassname",
                     "javaclassnames",
                     "javacodebase",
@@ -908,6 +1001,8 @@
                     "javaserializeddata",
                     "jpegphoto",
                     "keyrecord",
+                    "keysize",
+                    "keystate",
                     "krbadmservers",
                     "krbcanonicalname",
                     "krbdefaultencsalttypes",
@@ -997,6 +1092,7 @@
                     "mepmappedattr",
                     "meprdnattr",
                     "mepstaticattr",
+                    "metainfo",
                     "mgrpaddheader",
                     "mgrpallowedbroadcaster",
                     "mgrpalloweddomain",
@@ -1040,6 +1136,8 @@
                     "netscapereversiblepassword",
                     "newrdn",
                     "newsuperior",
+                    "nextrange",
+                    "nextupdate",
                     "nisdomain",
                     "nisdomainname",
                     "nismapentry",
@@ -1050,6 +1148,8 @@
                     "nisnetiduser",
                     "nispublickey",
                     "nissecretkey",
+                    "notafter",
+                    "notbefore",
                     "nsaccesslog",
                     "nsaccountlock",
                     "nsadminaccessaddresses",
@@ -1091,6 +1191,8 @@
                     "nsds5replconflict",
                     "nsds5replicaabortcleanruv",
                     "nsds5replicaautoreferral",
+                    "nsds5replicabackoffmax",
+                    "nsds5replicabackoffmin",
                     "nsds5replicabinddn",
                     "nsds5replicabindmethod",
                     "nsds5replicabusywaittime",
@@ -1111,6 +1213,7 @@
                     "nsds5replicalegacyconsumer",
                     "nsds5replicaname",
                     "nsds5replicaport",
+                    "nsds5replicaprotocoltimeout",
                     "nsds5replicapurgedelay",
                     "nsds5replicareferral",
                     "nsds5replicaroot",
@@ -1142,6 +1245,7 @@
                     "nshostlocation",
                     "nsidletimeout",
                     "nsidlistscanlimit",
+                    "nsindexidlistscanlimit",
                     "nsindextype",
                     "nsinstalledlocation",
                     "nsjarfilename",
@@ -1171,9 +1275,11 @@
                     "nsrole",
                     "nsroledn",
                     "nsrolefilter",
+                    "nsrolescopedn",
                     "nsruvreplicalastmodified",
                     "nssaslmapbasedntemplate",
                     "nssaslmapfiltertemplate",
+                    "nssaslmappriority",
                     "nssaslmapregexstring",
                     "nsschemacsn",
                     "nssecureserverport",
@@ -1188,6 +1294,7 @@
                     "nsslapd-changelogsuffix",
                     "nsslapd-ldapiautodnsuffix",
                     "nsslapd-parent-suffix",
+                    "nsslapd-plugin-depends-on-type",
                     "nsslapd-pluginconfigarea",
                     "nsslapd-plugindescription",
                     "nsslapd-pluginenabled",
@@ -1198,6 +1305,8 @@
                     "nsslapd-pluginvendor",
                     "nsslapd-pluginversion",
                     "nsslapd-readonly",
+                    "nsslapd-sasl-mapping-fallback",
+                    "nsslapd-sasl-max-buffer-size",
                     "nsslapd-suffix",
                     "nssnmpcontact",
                     "nssnmpdescription",
@@ -1295,6 +1404,8 @@
                     "organizationalstatus",
                     "ou",
                     "owner",
+                    "ownername",
+                    "p12expiration",
                     "pager",
                     "pamexcludesuffix",
                     "pamfallback",
@@ -1307,6 +1418,8 @@
                     "pamservice",
                     "parentid",
                     "parentorganization",
+                    "password",
+                    "passwordadmindn",
                     "passwordallowchangetime",
                     "passwordchange",
                     "passwordchecksyntax",
@@ -1338,6 +1451,7 @@
                     "passwordresetfailurecount",
                     "passwordretrycount",
                     "passwordstoragescheme",
+                    "passwordtrackupdatetime",
                     "passwordunlock",
                     "passwordwarning",
                     "personaltitle",
@@ -1385,8 +1499,13 @@
                     "printer-stacking-order-supported",
                     "printer-uri",
                     "printer-xri-supported",
+                    "privatekeydata",
                     "profilettl",
+                    "proofofarchival",
                     "ptrrecord",
+                    "publickeydata",
+                    "publickeyformat",
+                    "publishingstatus",
                     "pwdpolicysubentry",
                     "pwdupdatetime",
                     "ref",
@@ -1408,9 +1527,31 @@
                     "replicaupdatereplayed",
                     "replicaupdateschedule",
                     "replicausessl",
+                    "requestagentgroup",
+                    "requesterror",
+                    "requestflag",
+                    "requestid",
+                    "requestinfo",
+                    "requestowner",
+                    "requestresult",
+                    "requestsourceid",
+                    "requeststate",
+                    "requesttype",
+                    "resourceacls",
                     "retrycountresettime",
+                    "revinfo",
+                    "revokedby",
+                    "revokedcerts",
+                    "revokedon",
                     "roleoccupant",
                     "roomnumber",
+                    "rootdn-allow-host",
+                    "rootdn-allow-ip",
+                    "rootdn-close-time",
+                    "rootdn-days-allowed",
+                    "rootdn-deny-host",
+                    "rootdn-deny-ip",
+                    "rootdn-open-time",
                     "rrsigrecord",
                     "sabayonprofilename",
                     "sabayonprofileurl",
@@ -1475,7 +1616,12 @@
                     "searchguide",
                     "searchtimelimit",
                     "secretary",
+                    "secureadminport",
+                    "secureagentport",
+                    "secureeeclientauthport",
+                    "secureport",
                     "seealso",
+                    "serialno",
                     "serialnumber",
                     "serverhostname",
                     "serverproductname",
@@ -1485,6 +1631,7 @@
                     "servicecategory",
                     "servicecredentiallevel",
                     "servicesearchdescriptor",
+                    "sessioncontext",
                     "shadowexpire",
                     "shadowflag",
                     "shadowinactive",
@@ -1492,6 +1639,7 @@
                     "shadowmax",
                     "shadowmin",
                     "shadowwarning",
+                    "signingalgorithmid",
                     "sigrecord",
                     "sn",
                     "sourcehost",
@@ -1499,9 +1647,12 @@
                     "srvrecord",
                     "sshfprecord",
                     "st",
+                    "status",
                     "street",
                     "structuralobjectclass",
+                    "subjectname",
                     "subschemasubentry",
+                    "subsystemname",
                     "subtreeaci",
                     "sudocmd",
                     "sudocommand",
@@ -1524,38 +1675,54 @@
                     "telephonenumber",
                     "teletexterminalidentifier",
                     "telexnumber",
+                    "thisupdate",
                     "title",
                     "tombstonenumsubordinates",
+                    "transid",
+                    "transname",
+                    "transops",
+                    "transstatus",
                     "trustmodel",
                     "ttl",
                     "txtrecord",
                     "uid",
                     "uidnumber",
-                    "unhashed#user#password",
                     "uniqueidentifier",
                     "uniquemember",
+                    "unrevokedcerts",
+                    "unsecureport",
                     "usercategory",
                     "usercertificate",
                     "userclass",
+                    "userdn",
+                    "usermessages",
                     "userpassword",
                     "userpkcs12",
                     "usersmimecertificate",
+                    "userstate",
+                    "usertype",
                     "vacationenddate",
                     "vacationstartdate",
                     "vendorname",
                     "vendorversion",
+                    "version",
                     "vlvbase",
                     "vlvenabled",
                     "vlvfilter",
                     "vlvscope",
                     "vlvsort",
                     "vlvuses",
+                    "winsyncdirectoryfilter",
                     "winsyncinterval",
+                    "winsyncmoveaction",
+                    "winsyncsubtreepair",
+                    "winsyncwindowsfilter",
                     "x121address",
                     "x500uniqueidentifier"
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=costemplates,cn=accounts",
                 "default_attributes": [
                     "cn",
@@ -1674,7 +1841,7 @@
                     },
                     {
                         "class": "Str",
-                        "doc": "Comma-separated list of permissions to grant (read, write). Default is write.",
+                        "doc": "Permissions to grant (read, write). Default is write.",
                         "flags": [],
                         "label": "Permissions",
                         "multivalue": true,
@@ -1684,7 +1851,7 @@
                     },
                     {
                         "class": "Str",
-                        "doc": "Comma-separated list of attributes",
+                        "doc": "Attributes to which the delegation applies",
                         "flags": [],
                         "label": "Attributes",
                         "multivalue": true,
@@ -1719,6 +1886,7 @@
                 "aciattrs": [],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "",
                 "default_attributes": [
                     "idnsforwardpolicy",
@@ -1767,7 +1935,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
-                        "doc": "A list of global forwarders. A custom port can be specified for each forwarder using a standard format \"IP_ADDRESS port PORT\"",
+                        "doc": "Global forwarders. A custom port can be specified for each forwarder using a standard format \"IP_ADDRESS port PORT\"",
                         "flags": [],
                         "label": "Global forwarders",
                         "multivalue": true,
@@ -1777,14 +1945,15 @@
                     },
                     {
                         "class": "StrEnum",
-                        "doc": "Forward policy",
+                        "doc": "Global forwarding policy. Set to \"none\" to disable any configured global forwarders.",
                         "flags": [],
                         "label": "Forward policy",
                         "name": "idnsforwardpolicy",
                         "type": "unicode",
                         "values": [
                             "only",
-                            "first"
+                            "first",
+                            "none"
                         ]
                     },
                     {
@@ -1794,6 +1963,17 @@
                         "label": "Allow PTR sync",
                         "name": "idnsallowsyncptr",
                         "type": "bool"
+                    },
+                    {
+                        "class": "DeprecatedParam",
+                        "deprecate": true,
+                        "doc": "Zone refresh interval",
+                        "flags": [
+                            "no_option"
+                        ],
+                        "label": "Zone refresh interval",
+                        "name": "idnszonerefresh",
+                        "type": "object"
                     }
                 ],
                 "uuid_attribute": ""
@@ -1805,7 +1985,6 @@
                     "afsdbrecord",
                     "arecord",
                     "certrecord",
-                    "cn",
                     "cnamerecord",
                     "dnamerecord",
                     "dnsclass",
@@ -1834,6 +2013,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=dns",
                 "default_attributes": [
                     "idnsname",
@@ -1995,7 +2175,7 @@
                     },
                     {
                         "class": "ARecord",
-                        "doc": "Comma-separated list of raw A records",
+                        "doc": "Raw A records",
                         "flags": [],
                         "label": "A record",
                         "multivalue": true,
@@ -2036,7 +2216,7 @@
                     },
                     {
                         "class": "AAAARecord",
-                        "doc": "Comma-separated list of raw AAAA records",
+                        "doc": "Raw AAAA records",
                         "flags": [],
                         "label": "AAAA record",
                         "multivalue": true,
@@ -2077,7 +2257,7 @@
                     },
                     {
                         "class": "A6Record",
-                        "doc": "Comma-separated list of raw A6 records",
+                        "doc": "Raw A6 records",
                         "flags": [],
                         "label": "A6 record",
                         "multivalue": true,
@@ -2104,7 +2284,7 @@
                     },
                     {
                         "class": "AFSDBRecord",
-                        "doc": "Comma-separated list of raw AFSDB records",
+                        "doc": "Raw AFSDB records",
                         "flags": [],
                         "label": "AFSDB record",
                         "multivalue": true,
@@ -2147,7 +2327,7 @@
                     },
                     {
                         "class": "APLRecord",
-                        "doc": "Comma-separated list of raw APL records",
+                        "doc": "Raw APL records",
                         "flags": [
                             "no_option"
                         ],
@@ -2162,7 +2342,7 @@
                     },
                     {
                         "class": "CERTRecord",
-                        "doc": "Comma-separated list of raw CERT records",
+                        "doc": "Raw CERT records",
                         "flags": [],
                         "label": "CERT record",
                         "multivalue": true,
@@ -2234,7 +2414,7 @@
                     },
                     {
                         "class": "CNAMERecord",
-                        "doc": "Comma-separated list of raw CNAME records",
+                        "doc": "Raw CNAME records",
                         "flags": [],
                         "label": "CNAME record",
                         "multivalue": true,
@@ -2261,7 +2441,7 @@
                     },
                     {
                         "class": "DHCIDRecord",
-                        "doc": "Comma-separated list of raw DHCID records",
+                        "doc": "Raw DHCID records",
                         "flags": [
                             "no_option"
                         ],
@@ -2276,7 +2456,7 @@
                     },
                     {
                         "class": "DLVRecord",
-                        "doc": "Comma-separated list of raw DLV records",
+                        "doc": "Raw DLV records",
                         "flags": [
                             "no_option"
                         ],
@@ -2291,7 +2471,7 @@
                     },
                     {
                         "class": "DNAMERecord",
-                        "doc": "Comma-separated list of raw DNAME records",
+                        "doc": "Raw DNAME records",
                         "flags": [],
                         "label": "DNAME record",
                         "multivalue": true,
@@ -2318,7 +2498,7 @@
                     },
                     {
                         "class": "DNSKEYRecord",
-                        "doc": "Comma-separated list of raw DNSKEY records",
+                        "doc": "Raw DNSKEY records",
                         "flags": [
                             "no_option"
                         ],
@@ -2333,7 +2513,7 @@
                     },
                     {
                         "class": "DSRecord",
-                        "doc": "Comma-separated list of raw DS records",
+                        "doc": "Raw DS records",
                         "flags": [],
                         "label": "DS record",
                         "multivalue": true,
@@ -2405,7 +2585,7 @@
                     },
                     {
                         "class": "HIPRecord",
-                        "doc": "Comma-separated list of raw HIP records",
+                        "doc": "Raw HIP records",
                         "flags": [
                             "no_option"
                         ],
@@ -2420,7 +2600,7 @@
                     },
                     {
                         "class": "IPSECKEYRecord",
-                        "doc": "Comma-separated list of raw IPSECKEY records",
+                        "doc": "Raw IPSECKEY records",
                         "flags": [
                             "no_option"
                         ],
@@ -2435,7 +2615,7 @@
                     },
                     {
                         "class": "KEYRecord",
-                        "doc": "Comma-separated list of raw KEY records",
+                        "doc": "Raw KEY records",
                         "flags": [],
                         "label": "KEY record",
                         "multivalue": true,
@@ -2507,7 +2687,7 @@
                     },
                     {
                         "class": "KXRecord",
-                        "doc": "Comma-separated list of raw KX records",
+                        "doc": "Raw KX records",
                         "flags": [],
                         "label": "KX record",
                         "multivalue": true,
@@ -2549,7 +2729,7 @@
                     },
                     {
                         "class": "LOCRecord",
-                        "doc": "Comma-separated list of raw LOC records",
+                        "doc": "Raw LOC records",
                         "flags": [],
                         "label": "LOC record",
                         "multivalue": true,
@@ -2789,7 +2969,7 @@
                     },
                     {
                         "class": "MXRecord",
-                        "doc": "Comma-separated list of raw MX records",
+                        "doc": "Raw MX records",
                         "flags": [],
                         "label": "MX record",
                         "multivalue": true,
@@ -2831,7 +3011,7 @@
                     },
                     {
                         "class": "NAPTRRecord",
-                        "doc": "Comma-separated list of raw NAPTR records",
+                        "doc": "Raw NAPTR records",
                         "flags": [],
                         "label": "NAPTR record",
                         "multivalue": true,
@@ -2930,7 +3110,7 @@
                     },
                     {
                         "class": "NSRecord",
-                        "doc": "Comma-separated list of raw NS records",
+                        "doc": "Raw NS records",
                         "flags": [],
                         "label": "NS record",
                         "multivalue": true,
@@ -2957,7 +3137,7 @@
                     },
                     {
                         "class": "NSECRecord",
-                        "doc": "Comma-separated list of raw NSEC records",
+                        "doc": "Raw NSEC records",
                         "flags": [],
                         "label": "NSEC record",
                         "multivalue": true,
@@ -3035,7 +3215,7 @@
                     },
                     {
                         "class": "NSEC3Record",
-                        "doc": "Comma-separated list of raw NSEC3 records",
+                        "doc": "Raw NSEC3 records",
                         "flags": [
                             "no_option"
                         ],
@@ -3050,7 +3230,7 @@
                     },
                     {
                         "class": "NSEC3PARAMRecord",
-                        "doc": "Comma-separated list of raw NSEC3PARAM records",
+                        "doc": "Raw NSEC3PARAM records",
                         "flags": [
                             "no_option"
                         ],
@@ -3065,7 +3245,7 @@
                     },
                     {
                         "class": "PTRRecord",
-                        "doc": "Comma-separated list of raw PTR records",
+                        "doc": "Raw PTR records",
                         "flags": [],
                         "label": "PTR record",
                         "multivalue": true,
@@ -3092,7 +3272,7 @@
                     },
                     {
                         "class": "RRSIGRecord",
-                        "doc": "Comma-separated list of raw RRSIG records",
+                        "doc": "Raw RRSIG records",
                         "flags": [],
                         "label": "RRSIG record",
                         "multivalue": true,
@@ -3270,7 +3450,7 @@
                     },
                     {
                         "class": "RPRecord",
-                        "doc": "Comma-separated list of raw RP records",
+                        "doc": "Raw RP records",
                         "flags": [
                             "no_option"
                         ],
@@ -3285,7 +3465,7 @@
                     },
                     {
                         "class": "SIGRecord",
-                        "doc": "Comma-separated list of raw SIG records",
+                        "doc": "Raw SIG records",
                         "flags": [],
                         "label": "SIG record",
                         "multivalue": true,
@@ -3463,7 +3643,7 @@
                     },
                     {
                         "class": "SPFRecord",
-                        "doc": "Comma-separated list of raw SPF records",
+                        "doc": "Raw SPF records",
                         "flags": [
                             "no_option"
                         ],
@@ -3478,7 +3658,7 @@
                     },
                     {
                         "class": "SRVRecord",
-                        "doc": "Comma-separated list of raw SRV records",
+                        "doc": "Raw SRV records",
                         "flags": [],
                         "label": "SRV record",
                         "multivalue": true,
@@ -3550,7 +3730,7 @@
                     },
                     {
                         "class": "SSHFPRecord",
-                        "doc": "Comma-separated list of raw SSHFP records",
+                        "doc": "Raw SSHFP records",
                         "flags": [],
                         "label": "SSHFP record",
                         "multivalue": true,
@@ -3607,7 +3787,7 @@
                     },
                     {
                         "class": "TARecord",
-                        "doc": "Comma-separated list of raw TA records",
+                        "doc": "Raw TA records",
                         "flags": [
                             "no_option"
                         ],
@@ -3622,7 +3802,7 @@
                     },
                     {
                         "class": "TKEYRecord",
-                        "doc": "Comma-separated list of raw TKEY records",
+                        "doc": "Raw TKEY records",
                         "flags": [
                             "no_option"
                         ],
@@ -3637,7 +3817,7 @@
                     },
                     {
                         "class": "TSIGRecord",
-                        "doc": "Comma-separated list of raw TSIG records",
+                        "doc": "Raw TSIG records",
                         "flags": [
                             "no_option"
                         ],
@@ -3652,7 +3832,7 @@
                     },
                     {
                         "class": "TXTRecord",
-                        "doc": "Comma-separated list of raw TXT records",
+                        "doc": "Raw TXT records",
                         "flags": [],
                         "label": "TXT record",
                         "multivalue": true,
@@ -3687,7 +3867,6 @@
                     "afsdbrecord",
                     "arecord",
                     "certrecord",
-                    "cn",
                     "cnamerecord",
                     "dnamerecord",
                     "dnsclass",
@@ -3731,6 +3910,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=dns",
                 "default_attributes": [
                     "idnsname",
@@ -3880,7 +4060,7 @@
                         "doc": "SOA record serial number",
                         "flags": [],
                         "label": "SOA serial",
-                        "maxvalue": 2147483647,
+                        "maxvalue": 4294967295,
                         "minvalue": 1,
                         "name": "idnssoaserial",
                         "required": true,
@@ -3928,7 +4108,7 @@
                         "doc": "How long should negative responses be cached",
                         "flags": [],
                         "label": "SOA minimum",
-                        "maxvalue": 10800,
+                        "maxvalue": 2147483647,
                         "minvalue": 0,
                         "name": "idnssoaminimum",
                         "required": true,
@@ -3940,7 +4120,7 @@
                         "flags": [],
                         "label": "SOA time to live",
                         "maxvalue": 2147483647,
-                        "minvalue": -2147483648,
+                        "minvalue": 0,
                         "name": "dnsttl",
                         "type": "int"
                     },
@@ -4010,7 +4190,7 @@
                     },
                     {
                         "class": "Str",
-                        "doc": "A list of per-zone forwarders. A custom port can be specified for each forwarder using a standard format \"IP_ADDRESS port PORT\"",
+                        "doc": "Per-zone forwarders. A custom port can be specified for each forwarder using a standard format \"IP_ADDRESS port PORT\"",
                         "flags": [],
                         "label": "Zone forwarders",
                         "multivalue": true,
@@ -4020,14 +4200,15 @@
                     },
                     {
                         "class": "StrEnum",
-                        "doc": "Forward policy",
+                        "doc": "Per-zone conditional forwarding policy. Set to \"none\" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.",
                         "flags": [],
                         "label": "Forward policy",
                         "name": "idnsforwardpolicy",
                         "type": "unicode",
                         "values": [
                             "only",
-                            "first"
+                            "first",
+                            "none"
                         ]
                     },
                     {
@@ -4085,6 +4266,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=groups,cn=accounts",
                 "default_attributes": [
                     "cn",
@@ -4219,6 +4401,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=hbac",
                 "default_attributes": [
                     "cn",
@@ -4226,7 +4409,6 @@
                     "description",
                     "usercategory",
                     "hostcategory",
-                    "sourcehostcategory",
                     "servicecategory",
                     "ipaenabledflag",
                     "memberuser",
@@ -4347,15 +4529,15 @@
                         ]
                     },
                     {
-                        "class": "StrEnum",
-                        "doc": "Source host category the rule applies to",
-                        "flags": [],
-                        "label": "Source host category",
+                        "class": "DeprecatedParam",
+                        "deprecate": true,
+                        "doc": "<sourcehostcategory>",
+                        "flags": [
+                            "no_option"
+                        ],
+                        "label": "<sourcehostcategory>",
                         "name": "sourcehostcategory",
-                        "type": "unicode",
-                        "values": [
-                            "all"
-                        ]
+                        "type": "object"
                     },
                     {
                         "class": "StrEnum",
@@ -4440,30 +4622,26 @@
                         "type": "unicode"
                     },
                     {
-                        "class": "Str",
-                        "doc": "Source Hosts",
+                        "class": "DeprecatedParam",
+                        "deprecate": true,
+                        "doc": "<sourcehost_host>",
                         "flags": [
-                            "no_update",
-                            "no_create",
-                            "no_search"
+                            "no_option"
                         ],
-                        "label": "Source Hosts",
+                        "label": "<sourcehost_host>",
                         "name": "sourcehost_host",
-                        "noextrawhitespace": true,
-                        "type": "unicode"
+                        "type": "object"
                     },
                     {
-                        "class": "Str",
-                        "doc": "Source Host Groups",
+                        "class": "DeprecatedParam",
+                        "deprecate": true,
+                        "doc": "<sourcehost_hostgroup>",
                         "flags": [
-                            "no_update",
-                            "no_create",
-                            "no_search"
+                            "no_option"
                         ],
-                        "label": "Source Host Groups",
+                        "label": "<sourcehost_hostgroup>",
                         "name": "sourcehost_hostgroup",
-                        "noextrawhitespace": true,
-                        "type": "unicode"
+                        "type": "object"
                     },
                     {
                         "class": "Str",
@@ -4520,6 +4698,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=hbacservices,cn=hbac",
                 "default_attributes": [
                     "cn",
@@ -4615,6 +4794,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=hbacservicegroups,cn=hbac",
                 "default_attributes": [
                     "cn",
@@ -4712,6 +4892,7 @@
                     "objectclass",
                     "serverhostname",
                     "usercertificate",
+                    "userclass",
                     "userpassword"
                 ],
                 "attribute_members": {
@@ -4740,6 +4921,7 @@
                     ]
                 },
                 "bindable": true,
+                "can_have_permissions": true,
                 "container_dn": "cn=computers,cn=accounts",
                 "default_attributes": [
                     "fqdn",
@@ -4754,7 +4936,8 @@
                     "managedby",
                     "memberindirect",
                     "memberofindirect",
-                    "macaddress"
+                    "macaddress",
+                    "userclass"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -4945,6 +5128,27 @@
                         "type": "unicode"
                     },
                     {
+                        "class": "Str",
+                        "doc": "Host category (semantics placed on this attribute are for local interpretation)",
+                        "flags": [],
+                        "label": "Class",
+                        "multivalue": true,
+                        "name": "userclass",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Bool",
+                        "doc": "Pre-authentication is required for the service",
+                        "flags": [
+                            "virtual_attribute",
+                            "no_search"
+                        ],
+                        "label": "Requires pre-authentication",
+                        "name": "ipakrbrequirespreauth",
+                        "type": "bool"
+                    },
+                    {
                         "class": "Bool",
                         "doc": "Client credentials may be delegated to the service",
                         "flags": [
@@ -4994,6 +5198,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=hostgroups,cn=accounts",
                 "default_attributes": [
                     "cn",
@@ -5078,10 +5283,177 @@
                 ],
                 "uuid_attribute": "ipauniqueid"
             },
+            "idrange": {
+                "aciattrs": [
+                    "cn",
+                    "ipabaseid",
+                    "ipabaserid",
+                    "ipaidrangesize",
+                    "ipanttrusteddomainsid",
+                    "iparangetype",
+                    "ipasecondarybaserid"
+                ],
+                "attribute_members": {},
+                "bindable": false,
+                "can_have_permissions": false,
+                "container_dn": "cn=ranges,cn=etc",
+                "default_attributes": [
+                    "cn",
+                    "ipabaseid",
+                    "ipaidrangesize",
+                    "ipabaserid",
+                    "ipasecondarybaserid",
+                    "ipanttrusteddomainsid",
+                    "iparangetype"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "ID Ranges",
+                "label_singular": "ID Range",
+                "methods": [
+                    "add",
+                    "del",
+                    "find",
+                    "mod",
+                    "show"
+                ],
+                "name": "idrange",
+                "object_class": [
+                    "ipaIDrange"
+                ],
+                "object_class_config": null,
+                "object_name": "range",
+                "object_name_plural": "ranges",
+                "parent_object": "",
+                "primary_key": "cn",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [
+                    {
+                        "class": "Str",
+                        "doc": "Range name",
+                        "flags": [],
+                        "label": "Range name",
+                        "name": "cn",
+                        "noextrawhitespace": true,
+                        "primary_key": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "First Posix ID of the range",
+                        "flags": [],
+                        "label": "First Posix ID of the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaseid",
+                        "required": true,
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "Number of IDs in the range",
+                        "flags": [],
+                        "label": "Number of IDs in the range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipaidrangesize",
+                        "required": true,
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "First RID of the corresponding RID range",
+                        "flags": [],
+                        "label": "First RID of the corresponding RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipabaserid",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "First RID of the secondary RID range",
+                        "flags": [],
+                        "label": "First RID of the secondary RID range",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipasecondarybaserid",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Domain SID of the trusted domain",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Domain SID of the trusted domain",
+                        "name": "ipanttrusteddomainsid",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Name of the trusted domain",
+                        "flags": [
+                            "no_update",
+                            "no_search",
+                            "virtual_attribute"
+                        ],
+                        "label": "Name of the trusted domain",
+                        "name": "ipanttrusteddomainname",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "doc": "ID range type, one of ipa-ad-trust-posix, ipa-ad-trust, ipa-local, ipa-ad-winsync, ipa-ipa-trust",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Range type",
+                        "name": "iparangetype",
+                        "type": "unicode",
+                        "values": [
+                            "ipa-ad-trust-posix",
+                            "ipa-ad-trust",
+                            "ipa-local",
+                            "ipa-ad-winsync",
+                            "ipa-ipa-trust"
+                        ]
+                    }
+                ],
+                "uuid_attribute": ""
+            },
             "krbtpolicy": {
                 "aciattrs": [],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=EXAMPLE.COM,cn=kerberos",
                 "default_attributes": [
                     "krbmaxticketlife",
@@ -5197,6 +5569,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=ng,cn=alt",
                 "default_attributes": [
                     "cn",
@@ -5349,12 +5722,288 @@
                 ],
                 "uuid_attribute": "ipauniqueid"
             },
+            "otptoken": {
+                "aciattrs": [
+                    "description",
+                    "ipatokendisabled",
+                    "ipatokenhotpcounter",
+                    "ipatokenmodel",
+                    "ipatokennotafter",
+                    "ipatokennotbefore",
+                    "ipatokenotpalgorithm",
+                    "ipatokenotpdigits",
+                    "ipatokenotpkey",
+                    "ipatokenowner",
+                    "ipatokenserial",
+                    "ipatokentotpclockoffset",
+                    "ipatokentotptimestep",
+                    "ipatokenuniqueid",
+                    "ipatokenvendor",
+                    "objectclass"
+                ],
+                "attribute_members": {},
+                "bindable": false,
+                "can_have_permissions": false,
+                "container_dn": "cn=otp",
+                "default_attributes": [
+                    "ipatokenuniqueid",
+                    "description",
+                    "ipatokenowner",
+                    "ipatokendisabled",
+                    "ipatokennotbefore",
+                    "ipatokennotafter",
+                    "ipatokenvendor",
+                    "ipatokenmodel",
+                    "ipatokenserial"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "OTP Tokens",
+                "label_singular": "OTP Token",
+                "methods": [
+                    "add",
+                    "del",
+                    "find",
+                    "mod",
+                    "show"
+                ],
+                "name": "otptoken",
+                "object_class": [
+                    "ipatoken"
+                ],
+                "object_class_config": null,
+                "object_name": "OTP token",
+                "object_name_plural": "OTP tokens",
+                "parent_object": "",
+                "primary_key": "ipatokenuniqueid",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [
+                    {
+                        "class": "Str",
+                        "doc": "Unique ID",
+                        "flags": [
+                            "optional_create"
+                        ],
+                        "label": "Unique ID",
+                        "name": "ipatokenuniqueid",
+                        "noextrawhitespace": true,
+                        "primary_key": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "default": "totp",
+                        "doc": "Type",
+                        "flags": [
+                            "no_update",
+                            "virtual_attribute"
+                        ],
+                        "label": "Type",
+                        "name": "type",
+                        "type": "unicode",
+                        "values": [
+                            "totp",
+                            "hotp"
+                        ]
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Description",
+                        "flags": [],
+                        "label": "Description",
+                        "name": "description",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Owner",
+                        "flags": [],
+                        "label": "Owner",
+                        "name": "ipatokenowner",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Bool",
+                        "doc": "Disabled state",
+                        "flags": [],
+                        "label": "Disabled state",
+                        "name": "ipatokendisabled",
+                        "type": "bool"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Validity start",
+                        "flags": [],
+                        "label": "Validity start",
+                        "name": "ipatokennotbefore",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Validity end",
+                        "flags": [],
+                        "label": "Validity end",
+                        "name": "ipatokennotafter",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "default": "FreeIPA",
+                        "doc": "Vendor",
+                        "flags": [],
+                        "label": "Vendor",
+                        "name": "ipatokenvendor",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Model",
+                        "flags": [],
+                        "label": "Model",
+                        "name": "ipatokenmodel",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Serial",
+                        "flags": [],
+                        "label": "Serial",
+                        "name": "ipatokenserial",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "OTPTokenKey",
+                        "confirm": true,
+                        "doc": "Key",
+                        "flags": [
+                            "no_display",
+                            "no_update",
+                            "no_search"
+                        ],
+                        "label": "Key",
+                        "name": "ipatokenotpkey",
+                        "type": "str"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "default": "sha1",
+                        "doc": "Algorithm",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Algorithm",
+                        "name": "ipatokenotpalgorithm",
+                        "type": "unicode",
+                        "values": [
+                            "sha1",
+                            "sha256",
+                            "sha384",
+                            "sha512"
+                        ]
+                    },
+                    {
+                        "class": "IntEnum",
+                        "default": 6,
+                        "doc": "Display length",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Display length",
+                        "name": "ipatokenotpdigits",
+                        "type": "int",
+                        "values": [
+                            6,
+                            8
+                        ]
+                    },
+                    {
+                        "class": "Int",
+                        "default": 0,
+                        "doc": "Clock offset",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Clock offset",
+                        "maxvalue": 2147483647,
+                        "minvalue": -2147483648,
+                        "name": "ipatokentotpclockoffset",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "default": 30,
+                        "doc": "Clock interval",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Clock interval",
+                        "maxvalue": 2147483647,
+                        "minvalue": 5,
+                        "name": "ipatokentotptimestep",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "default": 0,
+                        "doc": "Counter",
+                        "flags": [
+                            "no_update"
+                        ],
+                        "label": "Counter",
+                        "maxvalue": 2147483647,
+                        "minvalue": 0,
+                        "name": "ipatokenhotpcounter",
+                        "type": "int"
+                    }
+                ],
+                "uuid_attribute": ""
+            },
             "permission": {
                 "aciattrs": [
                     "businesscategory",
                     "cn",
                     "description",
+                    "ipapermbindruletype",
+                    "ipapermdefaultattr",
+                    "ipapermexcludedattr",
+                    "ipapermincludedattr",
                     "ipapermissiontype",
+                    "ipapermlocation",
+                    "ipapermright",
+                    "ipapermtarget",
+                    "ipapermtargetfilter",
                     "member",
                     "o",
                     "objectclass",
@@ -5365,16 +6014,29 @@
                 "attribute_members": {
                     "member": [
                         "privilege"
+                    ],
+                    "memberindirect": [
+                        "role"
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=permissions,cn=pbac",
                 "default_attributes": [
                     "cn",
                     "member",
                     "memberof",
                     "memberindirect",
-                    "ipapermissiontype"
+                    "ipapermissiontype",
+                    "objectclass",
+                    "ipapermdefaultattr",
+                    "ipapermincludedattr",
+                    "ipapermexcludedattr",
+                    "ipapermbindruletype",
+                    "ipapermlocation",
+                    "ipapermright",
+                    "ipapermtargetfilter",
+                    "ipapermtarget"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -5395,7 +6057,8 @@
                 "name": "permission",
                 "object_class": [
                     "groupofnames",
-                    "ipapermission"
+                    "ipapermission",
+                    "ipapermissionv2"
                 ],
                 "object_class_config": null,
                 "object_name": "permission",
@@ -5433,95 +6096,214 @@
                         "label": "Permission name",
                         "name": "cn",
                         "noextrawhitespace": true,
-                        "pattern": "^[-_ a-zA-Z0-9]+$",
-                        "pattern_errmsg": "May only contain letters, numbers, -, _, and space",
+                        "pattern": "^[-_ a-zA-Z0-9.]+$",
+                        "pattern_errmsg": "May only contain letters, numbers, -, _, ., and space",
                         "primary_key": true,
                         "required": true,
                         "type": "unicode"
                     },
                     {
-                        "class": "Str",
-                        "doc": "Comma-separated list of permissions to grant (read, write, add, delete, all)",
+                        "class": "StrEnum",
+                        "doc": "Rights to grant (read, search, compare, write, add, delete, all)",
                         "flags": [],
                         "label": "Permissions",
                         "multivalue": true,
-                        "name": "permissions",
-                        "noextrawhitespace": true,
-                        "required": true,
-                        "type": "unicode"
+                        "name": "ipapermright",
+                        "type": "unicode",
+                        "values": [
+                            "read",
+                            "search",
+                            "compare",
+                            "write",
+                            "add",
+                            "delete",
+                            "all"
+                        ]
                     },
                     {
                         "class": "Str",
-                        "doc": "Comma-separated list of attributes",
+                        "doc": "All attributes to which the permission applies",
                         "flags": [
-                            "ask_create"
+                            "virtual_attribute",
+                            "allow_mod_for_managed_permission"
                         ],
-                        "label": "Attributes",
+                        "label": "Effective attributes",
                         "multivalue": true,
                         "name": "attrs",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     },
                     {
-                        "class": "StrEnum",
-                        "doc": "Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)",
+                        "class": "Str",
+                        "doc": "User-specified attributes to which the permission applies",
                         "flags": [
-                            "ask_create"
+                            "no_create",
+                            "allow_mod_for_managed_permission"
                         ],
-                        "label": "Type",
-                        "name": "type",
-                        "type": "unicode",
-                        "values": [
-                            "user",
-                            "group",
-                            "host",
-                            "service",
-                            "hostgroup",
-                            "netgroup",
-                            "dnsrecord"
-                        ]
+                        "label": "Included attributes",
+                        "multivalue": true,
+                        "name": "ipapermincludedattr",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
                     },
                     {
                         "class": "Str",
-                        "doc": "Target members of a group",
+                        "doc": "User-specified attributes to which the permission explicitly does not apply",
+                        "flags": [
+                            "no_create",
+                            "allow_mod_for_managed_permission"
+                        ],
+                        "label": "Excluded attributes",
+                        "multivalue": true,
+                        "name": "ipapermexcludedattr",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Attributes to which the permission applies by default",
+                        "flags": [
+                            "no_update",
+                            "no_create"
+                        ],
+                        "label": "Default attributes",
+                        "multivalue": true,
+                        "name": "ipapermdefaultattr",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "default": "permission",
+                        "doc": "Bind rule type",
+                        "flags": [
+                            "allow_mod_for_managed_permission"
+                        ],
+                        "label": "Bind rule type",
+                        "name": "ipapermbindruletype",
+                        "required": true,
+                        "type": "unicode",
+                        "values": [
+                            "permission",
+                            "all",
+                            "anonymous"
+                        ]
+                    },
+                    {
+                        "class": "DNOrURL",
+                        "doc": "Subtree to apply permissions to",
                         "flags": [
                             "ask_create"
                         ],
+                        "label": "Subtree",
+                        "name": "ipapermlocation",
+                        "type": "DN"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Extra target filter",
+                        "flags": [
+                            "virtual_attribute"
+                        ],
+                        "label": "Extra target filter",
+                        "multivalue": true,
+                        "name": "extratargetfilter",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "All target filters, including those implied by type and memberof",
+                        "flags": [],
+                        "label": "Raw target filter",
+                        "multivalue": true,
+                        "name": "ipapermtargetfilter",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "DNParam",
+                        "doc": "ACI target DN",
+                        "flags": [
+                            "no_option"
+                        ],
+                        "label": "ACI target DN",
+                        "name": "ipapermtarget",
+                        "type": "DN"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Target members of a group (sets memberOf targetfilter)",
+                        "flags": [
+                            "ask_create",
+                            "virtual_attribute"
+                        ],
                         "label": "Member of group",
+                        "multivalue": true,
                         "name": "memberof",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     },
                     {
                         "class": "Str",
-                        "doc": "Legal LDAP filter (e.g. ou=Engineering)",
+                        "doc": "User group to apply permissions to (sets target)",
                         "flags": [
-                            "ask_create"
+                            "ask_create",
+                            "virtual_attribute"
                         ],
-                        "label": "Filter",
+                        "label": "Target group",
+                        "name": "targetgroup",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Type of IPA object (sets subtree and objectClass targetfilter)",
+                        "flags": [
+                            "ask_create",
+                            "virtual_attribute"
+                        ],
+                        "label": "Type",
+                        "name": "type",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Deprecated; use extratargetfilter",
+                        "flags": [
+                            "no_option",
+                            "virtual_attribute"
+                        ],
+                        "label": "<filter>",
+                        "multivalue": true,
                         "name": "filter",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     },
                     {
                         "class": "Str",
-                        "doc": "Subtree to apply permissions to",
+                        "doc": "Deprecated; use ipapermlocation",
                         "flags": [
-                            "ask_create"
+                            "no_option",
+                            "virtual_attribute"
                         ],
-                        "label": "Subtree",
+                        "label": "<subtree>",
+                        "multivalue": true,
                         "name": "subtree",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     },
                     {
                         "class": "Str",
-                        "doc": "User group to apply permissions to",
+                        "doc": "Deprecated; use ipapermright",
                         "flags": [
-                            "ask_create"
+                            "no_option",
+                            "virtual_attribute"
                         ],
-                        "label": "Target group",
-                        "name": "targetgroup",
+                        "label": "<permissions>",
+                        "multivalue": true,
+                        "name": "permissions",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     }
@@ -5553,6 +6335,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=privileges,cn=pbac",
                 "default_attributes": [
                     "cn",
@@ -5650,6 +6433,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=EXAMPLE.COM,cn=kerberos",
                 "default_attributes": [
                     "cn",
@@ -5726,7 +6510,7 @@
                         "doc": "Maximum password lifetime (in days)",
                         "flags": [],
                         "label": "Max lifetime (days)",
-                        "maxvalue": 2147483647,
+                        "maxvalue": 20000,
                         "minvalue": 0,
                         "name": "krbmaxpwdlife",
                         "type": "int"
@@ -5817,33 +6601,35 @@
                 ],
                 "uuid_attribute": ""
             },
-            "idrange": {
+            "radiusproxy": {
                 "aciattrs": [
                     "cn",
-                    "ipabaseid",
-                    "ipabaserid",
-                    "ipaidrangesize",
-                    "ipanttrusteddomainsid",
-                    "ipasecondarybaserid"
+                    "description",
+                    "ipatokenradiusretries",
+                    "ipatokenradiussecret",
+                    "ipatokenradiusserver",
+                    "ipatokenradiustimeout",
+                    "ipatokenusermapattribute",
+                    "objectclass"
                 ],
                 "attribute_members": {},
                 "bindable": false,
-                "container_dn": "cn=ranges,cn=etc",
+                "can_have_permissions": false,
+                "container_dn": "cn=radiusproxy",
                 "default_attributes": [
                     "cn",
-                    "ipabaseid",
-                    "ipaidrangesize",
-                    "ipabaserid",
-                    "ipasecondarybaserid",
-                    "ipanttrusteddomainsid",
-                    "iparangetype"
+                    "description",
+                    "ipatokenradiusserver",
+                    "ipatokenradiustimeout",
+                    "ipatokenradiusretries",
+                    "ipatokenusermapattribute"
                 ],
                 "hidden_attributes": [
                     "objectclass",
                     "aci"
                 ],
-                "label": "Ranges",
-                "label_singular": "Range",
+                "label": "RADIUS Servers",
+                "label_singular": "RADIUS Server",
                 "methods": [
                     "add",
                     "del",
@@ -5851,13 +6637,13 @@
                     "mod",
                     "show"
                 ],
-                "name": "range",
+                "name": "radiusproxy",
                 "object_class": [
-                    "ipaIDrange"
+                    "ipatokenradiusconfiguration"
                 ],
                 "object_class_config": null,
-                "object_name": "range",
-                "object_name_plural": "ranges",
+                "object_name": "RADIUS proxy server",
+                "object_name_plural": "RADIUS proxy servers",
                 "parent_object": "",
                 "primary_key": "cn",
                 "rdn_attribute": "",
@@ -5886,9 +6672,9 @@
                 "takes_params": [
                     {
                         "class": "Str",
-                        "doc": "Range name",
+                        "doc": "RADIUS proxy server name",
                         "flags": [],
-                        "label": "Range name",
+                        "label": "RADIUS proxy server name",
                         "name": "cn",
                         "noextrawhitespace": true,
                         "primary_key": true,
@@ -5896,65 +6682,64 @@
                         "type": "unicode"
                     },
                     {
-                        "class": "Int",
-                        "doc": "First Posix ID of the range",
-                        "flags": [],
-                        "label": "First Posix ID of the range",
-                        "maxvalue": 2147483647,
-                        "minvalue": -2147483648,
-                        "name": "ipabaseid",
-                        "required": true,
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Number of IDs in the range",
-                        "flags": [],
-                        "label": "Number of IDs in the range",
-                        "maxvalue": 2147483647,
-                        "minvalue": -2147483648,
-                        "name": "ipaidrangesize",
-                        "required": true,
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "First RID of the corresponding RID range",
-                        "flags": [],
-                        "label": "First RID of the corresponding RID range",
-                        "maxvalue": 2147483647,
-                        "minvalue": -2147483648,
-                        "name": "ipabaserid",
-                        "required": true,
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "First RID of the secondary RID range",
-                        "flags": [],
-                        "label": "First RID of the secondary RID range",
-                        "maxvalue": 2147483647,
-                        "minvalue": -2147483648,
-                        "name": "ipasecondarybaserid",
-                        "type": "int"
-                    },
-                    {
                         "class": "Str",
-                        "doc": "Domain SID of the trusted domain",
+                        "doc": "A description of this RADIUS proxy server",
                         "flags": [],
-                        "label": "Domain SID of the trusted domain",
-                        "name": "ipanttrusteddomainsid",
+                        "label": "Description",
+                        "name": "description",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     },
                     {
                         "class": "Str",
-                        "doc": "Range type",
+                        "doc": "The hostname or IP (with or without port)",
+                        "flags": [],
+                        "label": "Server",
+                        "multivalue": true,
+                        "name": "ipatokenradiusserver",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Password",
+                        "confirm": true,
+                        "doc": "The secret used to encrypt data",
                         "flags": [
                             "no_option"
                         ],
-                        "label": "Range type",
-                        "name": "iparangetype",
+                        "label": "Secret",
+                        "name": "ipatokenradiussecret",
+                        "noextrawhitespace": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "The total timeout across all retries (in seconds)",
+                        "flags": [],
+                        "label": "Timeout",
+                        "maxvalue": 2147483647,
+                        "minvalue": 1,
+                        "name": "ipatokenradiustimeout",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "doc": "The number of times to retry authentication",
+                        "flags": [],
+                        "label": "Retries",
+                        "maxvalue": 10,
+                        "minvalue": 0,
+                        "name": "ipatokenradiusretries",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "The username attribute on the user object",
+                        "flags": [],
+                        "label": "User attribute",
+                        "name": "ipatokenusermapattribute",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     }
@@ -5965,8 +6750,11 @@
                 "aciattrs": [],
                 "attribute_members": {},
                 "bindable": false,
-                "container_dn": "",
-                "default_attributes": ["associateddomain"],
+                "can_have_permissions": false,
+                "container_dn": "cn=Realm Domains,cn=ipa,cn=etc",
+                "default_attributes": [
+                    "associateddomain"
+                ],
                 "hidden_attributes": [
                     "objectclass",
                     "aci"
@@ -5978,27 +6766,63 @@
                     "show"
                 ],
                 "name": "realmdomains",
-                "object_class": [
-                    "domainrelatedobject",
-                    "top",
-                    "nscontainter"
-                ],
+                "object_class": [],
                 "object_class_config": null,
-                "object_name": "realmdomains",
-                "object_name_plural": "realmdomains",
+                "object_name": "Realm domains",
+                "object_name_plural": "entries",
                 "parent_object": "",
                 "rdn_attribute": "",
-                "relationships": {},
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
                 "takes_params": [
                     {
                         "class": "Str",
                         "doc": "Domain",
                         "flags": [],
                         "label": "Domain",
+                        "multivalue": true,
                         "name": "associateddomain",
+                        "noextrawhitespace": true,
                         "required": true,
-                        "type": "unicode",
-                        "multivalued": true
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Add domain",
+                        "flags": [],
+                        "label": "Add domain",
+                        "name": "add_domain",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Delete domain",
+                        "flags": [],
+                        "label": "Delete domain",
+                        "name": "del_domain",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
                     }
                 ],
                 "uuid_attribute": ""
@@ -6028,6 +6852,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=roles,cn=accounts",
                 "default_attributes": [
                     "cn",
@@ -6143,7 +6968,7 @@
                     },
                     {
                         "class": "Str",
-                        "doc": "Comma-separated list of permissions to grant (read, write). Default is write.",
+                        "doc": "Permissions to grant (read, write). Default is write.",
                         "flags": [],
                         "label": "Permissions",
                         "multivalue": true,
@@ -6153,7 +6978,7 @@
                     },
                     {
                         "class": "Str",
-                        "doc": "Comma-separated list of attributes",
+                        "doc": "Attributes to which the permission applies.",
                         "flags": [],
                         "label": "Attributes",
                         "multivalue": true,
@@ -6189,6 +7014,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=usermap,cn=selinux",
                 "default_attributes": [
                     "cn",
@@ -6419,6 +7245,7 @@
                     ]
                 },
                 "bindable": true,
+                "can_have_permissions": true,
                 "container_dn": "cn=services,cn=accounts",
                 "default_attributes": [
                     "krbprincipalname",
@@ -6449,8 +7276,7 @@
                     "krbticketpolicyaux",
                     "ipaobject",
                     "ipaservice",
-                    "pkiuser",
-                    "ipakrbprincipal"
+                    "pkiuser"
                 ],
                 "object_class_config": null,
                 "object_name": "service",
@@ -6489,7 +7315,7 @@
                     },
                     {
                         "class": "StrEnum",
-                        "doc": "Types of PAC this service supports",
+                        "doc": "Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services.",
                         "flags": [],
                         "label": "PAC type",
                         "multivalue": true,
@@ -6500,6 +7326,17 @@
                             "PAD",
                             "NONE"
                         ]
+                    },
+                    {
+                        "class": "Bool",
+                        "doc": "Pre-authentication is required for the service",
+                        "flags": [
+                            "virtual_attribute",
+                            "no_search"
+                        ],
+                        "label": "Requires pre-authentication",
+                        "name": "ipakrbrequirespreauth",
+                        "type": "bool"
                     },
                     {
                         "class": "Bool",
@@ -6529,6 +7366,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=sudocmds,cn=sudo",
                 "default_attributes": [
                     "sudocmd",
@@ -6558,7 +7396,7 @@
                 "object_name_plural": "sudo commands",
                 "parent_object": "",
                 "primary_key": "sudocmd",
-                "rdn_attribute": "",
+                "rdn_attribute": "ipauniqueid",
                 "relationships": {
                     "member": [
                         "Member",
@@ -6624,6 +7462,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=sudocmdgroups,cn=sudo",
                 "default_attributes": [
                     "cn",
@@ -6782,6 +7621,7 @@
                     ]
                 },
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=sudorules,cn=sudo",
                 "default_attributes": [
                     "cn",
@@ -7163,6 +8003,8 @@
                 "aciattrs": [
                     "cn",
                     "ipantflatname",
+                    "ipantsidblacklistincoming",
+                    "ipantsidblacklistoutgoing",
                     "ipantsupportedencryptiontypes",
                     "ipanttrustattributes",
                     "ipanttrustauthincoming",
@@ -7177,6 +8019,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "cn=trusts",
                 "default_attributes": [
                     "cn",
@@ -7201,6 +8044,7 @@
                 "methods": [
                     "add",
                     "del",
+                    "fetch_domains",
                     "find",
                     "mod",
                     "show"
@@ -7306,6 +8150,7 @@
                 "aciattrs": [],
                 "attribute_members": {},
                 "bindable": false,
+                "can_have_permissions": false,
                 "container_dn": "",
                 "default_attributes": [
                     "cn",
@@ -7415,6 +8260,125 @@
                 ],
                 "uuid_attribute": ""
             },
+            "trustdomain": {
+                "aciattrs": [
+                    "cn",
+                    "ipantflatname",
+                    "ipantsidblacklistincoming",
+                    "ipantsidblacklistoutgoing",
+                    "ipantsupportedencryptiontypes",
+                    "ipanttrustattributes",
+                    "ipanttrustauthincoming",
+                    "ipanttrustauthoutgoing",
+                    "ipanttrustdirection",
+                    "ipanttrusteddomainsid",
+                    "ipanttrustforesttrustinfo",
+                    "ipanttrustpartner",
+                    "ipanttrustposixoffset",
+                    "ipanttrusttype",
+                    "objectclass"
+                ],
+                "attribute_members": {},
+                "bindable": false,
+                "can_have_permissions": false,
+                "container_dn": "",
+                "default_attributes": [
+                    "cn",
+                    "ipantflatname",
+                    "ipanttrusteddomainsid",
+                    "ipanttrustpartner"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "Trusted domains",
+                "label_singular": "Trusted domain",
+                "methods": [
+                    "add",
+                    "del",
+                    "disable",
+                    "enable",
+                    "find",
+                    "mod"
+                ],
+                "name": "trustdomain",
+                "object_class": [
+                    "ipaNTTrustedDomain"
+                ],
+                "object_class_config": null,
+                "object_name": "trust domain",
+                "object_name_plural": "trust domains",
+                "parent_object": "trust",
+                "primary_key": "cn",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [
+                    {
+                        "class": "Str",
+                        "doc": "Domain name",
+                        "flags": [],
+                        "label": "Domain name",
+                        "name": "cn",
+                        "noextrawhitespace": true,
+                        "primary_key": true,
+                        "required": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Domain NetBIOS name",
+                        "flags": [],
+                        "label": "Domain NetBIOS name",
+                        "name": "ipantflatname",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Domain Security Identifier",
+                        "flags": [],
+                        "label": "Domain Security Identifier",
+                        "name": "ipanttrusteddomainsid",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "Trusted domain partner",
+                        "flags": [
+                            "no_display",
+                            "no_option"
+                        ],
+                        "label": "Trusted domain partner",
+                        "name": "ipanttrustpartner",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    }
+                ],
+                "uuid_attribute": ""
+            },
             "user": {
                 "aciattrs": [
                     "audio",
@@ -7439,7 +8403,10 @@
                     "initials",
                     "internationalisdnnumber",
                     "ipasshpubkey",
+                    "ipatokenradiusconfiglink",
+                    "ipatokenradiususername",
                     "ipauniqueid",
+                    "ipauserauthtype",
                     "jpegphoto",
                     "krbcanonicalname",
                     "krbextradata",
@@ -7494,6 +8461,7 @@
                     "uid",
                     "uidnumber",
                     "usercertificate",
+                    "userclass",
                     "userpassword",
                     "userpkcs12",
                     "usersmimecertificate",
@@ -7517,6 +8485,7 @@
                     ]
                 },
                 "bindable": true,
+                "can_have_permissions": true,
                 "container_dn": "cn=users,cn=accounts",
                 "default_attributes": [
                     "uid",
@@ -7532,7 +8501,11 @@
                     "title",
                     "memberof",
                     "nsaccountlock",
-                    "memberofindirect"
+                    "memberofindirect",
+                    "ipauserauthtype",
+                    "userclass",
+                    "ipatokenradiusconfiglink",
+                    "ipatokenradiususername"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -7734,26 +8707,22 @@
                     },
                     {
                         "class": "Int",
-                        "default": 999,
                         "doc": "User ID Number (system will assign one if not provided)",
                         "flags": [],
                         "label": "UID",
                         "maxvalue": 2147483647,
                         "minvalue": 1,
                         "name": "uidnumber",
-                        "required": true,
                         "type": "int"
                     },
                     {
                         "class": "Int",
-                        "default": 999,
                         "doc": "Group ID Number",
                         "flags": [],
                         "label": "GID",
                         "maxvalue": 2147483647,
                         "minvalue": 1,
                         "name": "gidnumber",
-                        "required": true,
                         "type": "int"
                     },
                     {
@@ -7887,6 +8856,48 @@
                         "label": "SSH public key",
                         "multivalue": true,
                         "name": "ipasshpubkey",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "doc": "Types of supported user authentication",
+                        "flags": [],
+                        "label": "User authentication types",
+                        "multivalue": true,
+                        "name": "ipauserauthtype",
+                        "type": "unicode",
+                        "values": [
+                            "password",
+                            "radius",
+                            "otp"
+                        ]
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "User category (semantics placed on this attribute are for local interpretation)",
+                        "flags": [],
+                        "label": "Class",
+                        "multivalue": true,
+                        "name": "userclass",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "RADIUS proxy configuration",
+                        "flags": [],
+                        "label": "RADIUS proxy configuration",
+                        "name": "ipatokenradiusconfiglink",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "doc": "RADIUS proxy username",
+                        "flags": [],
+                        "label": "RADIUS proxy username",
+                        "name": "ipatokenradiususername",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     }
