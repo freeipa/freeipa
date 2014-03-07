@@ -488,13 +488,14 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         }
 
         data = krb5_princ_component(ipactx->context, princ, 1);
-        strres = malloc(data->length);
+        strres = malloc(data->length+1);
         if (strres == NULL) {
             krb5_free_principal(ipactx->kcontext, princ);
             return ENOENT;
         }
 
         memcpy(strres, data->data, data->length);
+        strres[data->length] = '\0';
         krb5_free_principal(ipactx->kcontext, princ);
 
         /* Only add PAC to TGT to services on IPA masters to allow querying
